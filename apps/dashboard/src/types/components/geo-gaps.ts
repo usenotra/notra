@@ -42,6 +42,10 @@ export interface GeoSearchGapDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+export interface GeoSearchGapEvidenceProps {
+  gap: GeoSearchGapRow;
+}
+
 export interface GeoGapAnswerPanelProps {
   organizationId: string;
   promptId: string;
@@ -84,6 +88,8 @@ export interface GeoGapsTableProps {
   onWritePrompt: (row: GeoPromptGapRow) => void;
   onWriteSearch: (row: GeoSearchGapRow, existingPageUrl?: string) => void;
   onDismissSearch: (row: GeoSearchGapRow) => void;
+  onTrackSearch: (row: GeoSearchGapRow) => void;
+  trackingSearchId: string | null;
   dismissingSearchId: string | null;
   onRescanPrompt: (row: GeoPromptGapRow) => void;
   onIgnorePrompt: (row: GeoPromptGapRow) => void;

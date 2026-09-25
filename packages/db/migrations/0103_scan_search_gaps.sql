@@ -1,0 +1,1 @@
+ALTER TABLE "geo_prompt_suggestions" ADD COLUMN "scan_evidence" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -43,7 +43,27 @@ The table columns are **Content** (the prompt, with its title when one exists), 
 
 ### Search gaps
 
-A search gap is a Google Search Console query suggestion that you have not turned into a tracked prompt yet. The table shows **Content** and **Impressions** (the sum of impressions across the queries behind the suggestion). Search gaps require the Search Console connection on the [Prompts page](/geo/prompts-and-competitors#search-console-suggestions); without it the page says **No search gaps** with "Connect Search Console on Prompts to pull queries you don't cover yet."
+Search gaps are pending suggestions from two sources:
+
+- **Google Search Console** uses queries from your connected property. Impressions, clicks and position come from Google Search Console.
+- **AI scan** uses actual research queries recorded by engines during completed scans, including conversation follow-ups. These queries reflect how an engine researched your prompts. They do not measure user demand, so impressions, clicks and position are absent.
+
+After a successful scan, Notra checks up to 1,000 results from completed scans in the last 30 days. It excludes empty answers, queries that repeat their originating prompt, tracked prompts, own-brand queries and exact normalized duplicates. Suggestions rank by independent origin prompts and engines, then recency. Repeated scans alone do not increase their rank. There are at most 50 pending scan suggestions, with up to eight evidence snapshots each.
+
+Open an AI scan row to inspect the actual query, originating prompt, engine, language, observation time and scan ID. **Track prompt** adds the query to tracking. You can also dismiss it or write from it. Dismissed and accepted suggestions stay resolved on later scans. Refreshes preserve existing briefs.
+
+The default order shows recent suggestions from either source. You can explicitly sort by impressions. Recommendations use title and URL word overlap as a heuristic, not a full-content comparison. Stored answer sources are not mapped to individual research queries. A scan-based writer brief receives the originating evidence, but does not treat the originating prompt's mention rate as a baseline for the new query.
+
+#### Existing scans
+
+The next completed scan also processes recent stored checks. Operators can backfill one project explicitly, without running another scan or making a generation call:
+
+```bash
+bun --env-file=.env packages/geo-core/src/scripts/backfill-scan-search-gaps.ts \
+  --organization org_123 --project project_123
+```
+
+This command requires the database connection for the intended environment and the scan-evidence migration. `--help` prints usage without connecting to the database. Re-running it preserves suggestion IDs and decisions.
 
 ### Empty states
 
@@ -74,7 +94,7 @@ curl https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/gaps \
     }
   ],
   "searchGaps": [
-    { "id": "sug_456", "prompt": "changelog generator for github", "title": null, "impressions": 1240, "brief": null }
+    { "id": "sug_456", "source": "search_console", "scanEvidence": [], "prompt": "changelog generator for github", "title": null, "impressions": 1240, "brief": null }
   ],
   "hasScanData": true,
   "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }

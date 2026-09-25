@@ -16,10 +16,11 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { useMemo } from "react";
 
+import { SearchGapEvidence } from "@/components/geo/search-gap-evidence";
 import { Table } from "@/components/motion/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoSearchGapDetailSheetProps } from "@/types/components/geo-gaps";
-import { formatCount, formatPercent } from "@/utils/format";
+import { formatCount } from "@/utils/format";
 
 export function SearchGapDetailSheet({
   row,
@@ -33,10 +34,6 @@ export function SearchGapDetailSheet({
   const [retained, releasePayload] = useRetainedValue(payload);
   const gap = retained?.row;
   const title = gap?.brief?.workingTitle ?? gap?.title;
-  const ctr =
-    gap?.impressions != null && gap.impressions > 0 && gap.clicks !== null
-      ? (gap.clicks / gap.impressions) * 100
-      : null;
 
   return (
     <Sheet
@@ -50,7 +47,10 @@ export function SearchGapDetailSheet({
         variant="inset"
       >
         <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
-          <SheetDescription>Search gap · Source question</SheetDescription>
+          <SheetDescription>
+            Search gap ·{" "}
+            {gap?.source === "scan" ? "AI scan" : "Google Search Console"}
+          </SheetDescription>
           <SheetTitle className="leading-snug text-balance wrap-anywhere">
             {gap?.prompt ?? "Search gap"}
           </SheetTitle>
@@ -62,50 +62,7 @@ export function SearchGapDetailSheet({
             key={gap.id}
           >
             <div className="space-y-4">
-              <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
-                <div className="bg-muted/70 border-b px-4 py-3">
-                  <h3 className="text-sm font-medium">Search performance</h3>
-                </div>
-                <dl className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-4">
-                  <div className="space-y-1">
-                    <dt className="text-muted-foreground text-xs">
-                      Impressions
-                    </dt>
-                    <dd className="text-xl font-medium tabular-nums">
-                      {gap.impressions === null
-                        ? "—"
-                        : formatCount(gap.impressions)}
-                    </dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-muted-foreground text-xs">Clicks</dt>
-                    <dd className="text-xl font-medium tabular-nums">
-                      {gap.clicks === null ? "—" : formatCount(gap.clicks)}
-                    </dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-muted-foreground text-xs">
-                      Click-through rate
-                    </dt>
-                    <dd className="text-xl font-medium tabular-nums">
-                      {ctr === null ? "—" : `${formatPercent(ctr)}%`}
-                    </dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-muted-foreground text-xs">
-                      Avg. position
-                    </dt>
-                    <dd className="text-xl font-medium tabular-nums">
-                      {gap.position === null
-                        ? "—"
-                        : `#${gap.position.toFixed(1)}`}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="text-muted-foreground px-4 pb-4 text-xs">
-                  Across this gap's Google Search queries.
-                </p>
-              </section>
+              <SearchGapEvidence gap={gap} />
 
               <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
                 <div className="bg-muted/70 flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
@@ -138,63 +95,65 @@ export function SearchGapDetailSheet({
                 </div>
               </section>
 
-              <section className="min-w-0">
-                <Table
-                  className="rounded-2xl"
-                  toolbar={
-                    <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
-                      <h3 className="text-sm font-medium">Search queries</h3>
-                      <span className="text-muted-foreground text-xs tabular-nums">
-                        {gap.queries.length}
-                      </span>
-                    </div>
-                  }
-                  columns={[
-                    {
-                      key: "query",
-                      header: "Query",
-                      width: "1fr",
-                      minWidth: "10rem",
-                      sortable: true,
-                      cell: (query) => (
-                        <span className="block leading-relaxed wrap-anywhere">
-                          {query.query}
+              {gap.source === "search_console" ? (
+                <section className="min-w-0">
+                  <Table
+                    className="rounded-2xl"
+                    toolbar={
+                      <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
+                        <h3 className="text-sm font-medium">Search queries</h3>
+                        <span className="text-muted-foreground text-xs tabular-nums">
+                          {gap.queries.length}
                         </span>
-                      ),
-                    },
-                    {
-                      key: "impressions",
-                      header: "Impressions",
-                      width: "8.5rem",
-                      align: "right",
-                      sortable: true,
-                      cell: (query) => formatCount(query.impressions),
-                    },
-                    {
-                      key: "clicks",
-                      header: "Clicks",
-                      width: "6rem",
-                      align: "right",
-                      sortable: true,
-                      cell: (query) => formatCount(query.clicks),
-                    },
-                    {
-                      key: "position",
-                      header: "Position",
-                      width: "6.5rem",
-                      align: "right",
-                      sortable: true,
-                      cell: (query) => `#${query.position.toFixed(1)}`,
-                    },
-                  ]}
-                  data={gap.queries}
-                  defaultSort={{ key: "impressions", direction: "desc" }}
-                  emptyState="No query-level data available for this gap."
-                  getRowId={(query) => query.query}
-                  height={360}
-                  rowSizing="content"
-                />
-              </section>
+                      </div>
+                    }
+                    columns={[
+                      {
+                        key: "query",
+                        header: "Query",
+                        width: "1fr",
+                        minWidth: "10rem",
+                        sortable: true,
+                        cell: (query) => (
+                          <span className="block leading-relaxed wrap-anywhere">
+                            {query.query}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "impressions",
+                        header: "Impressions",
+                        width: "8.5rem",
+                        align: "right",
+                        sortable: true,
+                        cell: (query) => formatCount(query.impressions),
+                      },
+                      {
+                        key: "clicks",
+                        header: "Clicks",
+                        width: "6rem",
+                        align: "right",
+                        sortable: true,
+                        cell: (query) => formatCount(query.clicks),
+                      },
+                      {
+                        key: "position",
+                        header: "Position",
+                        width: "6.5rem",
+                        align: "right",
+                        sortable: true,
+                        cell: (query) => `#${query.position.toFixed(1)}`,
+                      },
+                    ]}
+                    data={gap.queries}
+                    defaultSort={{ key: "impressions", direction: "desc" }}
+                    emptyState="No query-level data available for this gap."
+                    getRowId={(query) => query.query}
+                    height={360}
+                    rowSizing="content"
+                  />
+                </section>
+              ) : null}
 
               <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
                 <div className="bg-muted/70 flex items-center justify-between gap-3 border-b px-4 py-3">
@@ -203,6 +162,10 @@ export function SearchGapDetailSheet({
                     {gap.recommendation.targets.length}
                   </span>
                 </div>
+                <p className="text-muted-foreground px-4 pt-3 text-xs">
+                  Matches compare title and URL words, not full page content.
+                  Scan sources are not mapped to individual queries.
+                </p>
                 {gap.recommendation.targets.length > 0 ? (
                   <ul className="divide-y">
                     {gap.recommendation.targets.map((target) => (

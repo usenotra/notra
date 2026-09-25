@@ -1,5 +1,6 @@
 import type { ToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterBrief } from "@notra/ai/types/geo-writer";
+import type { GeoScanSuggestionEvidence } from "@notra/db/types/geo-suggestions";
 import type { GeoWriterSourceKind } from "@notra/db/types/geo-writer";
 import type {
   AiTrafficResponse,
@@ -1626,19 +1627,21 @@ export interface TwemojiProps {
 }
 
 export interface GeoPromptSuggestionRow {
+  scanEvidence: GeoScanSuggestionEvidence[];
   id: string;
   prompt: string;
   title: string | null;
-  source: "search_console";
+  source: "search_console" | "scan";
   sourceKeywords: GeoSuggestionKeyword[];
   createdAt: Date;
 }
 
 export interface GeoPromptSuggestion {
+  scanEvidence: GeoScanSuggestionEvidence[];
   id: string;
   prompt: string;
   title: string | null;
-  source: "search_console";
+  source: "search_console" | "scan";
   keywords: GeoSuggestionKeyword[];
   createdAt: string;
 }

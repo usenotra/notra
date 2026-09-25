@@ -55,6 +55,7 @@ export interface GeoPlannerEvidenceEngine {
 }
 
 export interface GeoPlannerEvidence {
+  sourceKind?: "scan";
   prompt: string;
   mentionedEngines: number;
   totalEngines: number;

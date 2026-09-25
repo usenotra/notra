@@ -48,6 +48,7 @@ import {
   type GeoScanPlanSummary,
   type GeoScanUsageByRole,
 } from "./types/geo-scan";
+import type { GeoScanSuggestionEvidence } from "./types/geo-suggestions";
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 import type { PostGitHubPublish } from "./types/post-github-publish";
@@ -2011,9 +2012,13 @@ export const geoPromptSuggestions = pgTable(
     }),
     prompt: text("prompt").notNull(),
     title: text("title"),
-    source: text("source", { enum: ["search_console"] })
+    source: text("source", { enum: ["search_console", "scan"] })
       .notNull()
       .default("search_console"),
+    scanEvidence: jsonb("scan_evidence")
+      .$type<GeoScanSuggestionEvidence[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     sourceKeywords: jsonb("source_keywords")
       .$type<
         {

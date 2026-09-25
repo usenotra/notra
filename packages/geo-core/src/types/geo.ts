@@ -12,6 +12,7 @@ import type {
 } from "@notra/db/types/geo-checks";
 import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import type { GeoScanUsageByRole } from "@notra/db/types/geo-scan";
+import type { GeoScanSuggestionEvidence } from "@notra/db/types/geo-suggestions";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import type { FinishReason, LanguageModel, ToolSet } from "ai";
 
@@ -1599,7 +1600,8 @@ export type GeoWriterSourceKind =
   | "manual"
   | "gap"
   | "prompt"
-  | "search_console";
+  | "search_console"
+  | "scan";
 
 export interface GeoWriterPlanInput {
   topic: string;
@@ -1626,6 +1628,7 @@ export interface GeoPromptEvidenceEngine {
 }
 
 export interface GeoPromptEvidence {
+  sourceKind?: "scan";
   sourcePromptId: string;
   prompt: string;
   mentionedEngines: number;
@@ -1690,6 +1693,8 @@ export interface GeoPromptGapRow {
 }
 
 export interface GeoSearchGapRow {
+  source: "search_console" | "scan";
+  scanEvidence: GeoScanSuggestionEvidence[];
   id: string;
   prompt: string;
   title: string | null;

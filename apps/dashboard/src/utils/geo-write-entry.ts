@@ -1,5 +1,8 @@
 import { GEO_WRITER_TRIGGER_ID } from "@notra/geo-core/constants/geo";
-import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
+import type {
+  GeoContentBriefSummary,
+  GeoSearchGapRow,
+} from "@notra/geo-core/types/geo";
 import { sourceMetadataSchema } from "@notra/schemas/dashboard/content";
 
 import type {
@@ -41,6 +44,18 @@ export function writeDialogStateFromGap(
 
 export function emptyWriteDialogState(): WriteDialogInitialState {
   return { sourceKind: "manual" };
+}
+
+export function writeDialogStateFromSearchGap(
+  row: GeoSearchGapRow,
+  existingPageUrl?: string
+): WriteDialogInitialState {
+  return {
+    sourceKind: row.source,
+    sourceId: row.id,
+    topic: row.prompt,
+    existingPageUrl,
+  };
 }
 
 export function briefDisplayTitle(

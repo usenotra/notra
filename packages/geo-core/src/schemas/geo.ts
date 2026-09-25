@@ -545,6 +545,7 @@ export const geoWriterPlanInputSchema = geoOrganizationInputSchema.extend({
     "gap",
     "prompt",
     "search_console",
+    "scan",
   ]).optional(),
   sourceId: string().min(1).optional(),
   existingPageUrl: url().max(GEO_EXISTING_PAGE_URL_MAX_LENGTH).optional(),

@@ -1,5 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import { geoMentionChecks } from "@notra/db/schema";
+import { geoMentionChecks, geoPromptSuggestions } from "@notra/db/schema";
 import type { GeoContentBriefBaselineJson } from "@notra/db/types/geo-writer";
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import { Effect } from "effect";
@@ -69,7 +69,9 @@ export function evidenceToBaseline(
 
 export const loadPromptEvidence = Effect.fn("geo.writer.evidence")(function* (
   projectId: string,
-  sourcePromptId: string
+  sourcePromptId: string,
+  checkIds?: string[],
+  organizationId?: string
 ) {
   const since = new Date(
     Date.now() - GEO_WRITER_GAP_LOOKBACK_DAYS * MS_PER_DAY
@@ -97,7 +99,12 @@ export const loadPromptEvidence = Effect.fn("geo.writer.evidence")(function* (
       .where(
         and(
           eq(geoMentionChecks.projectId, projectId),
-          eq(geoMentionChecks.turn, 0),
+          organizationId
+            ? eq(geoMentionChecks.organizationId, organizationId)
+            : undefined,
+          checkIds
+            ? inArray(geoMentionChecks.id, checkIds)
+            : eq(geoMentionChecks.turn, 0),
           inArray(geoMentionChecks.promptId, promptIds),
           gte(geoMentionChecks.capturedAt, since)
         )
@@ -152,3 +159,46 @@ export const loadPromptEvidence = Effect.fn("geo.writer.evidence")(function* (
   };
   return evidence;
 });
+
+export const loadScanSuggestionEvidence = Effect.fn("geo.writer.scanEvidence")(
+  function* (organizationId: string, projectId: string, suggestionId: string) {
+    const suggestion = yield* geoDb(
+      "scan suggestion evidence lookup failed",
+      () =>
+        db.query.geoPromptSuggestions.findFirst({
+          where: and(
+            eq(geoPromptSuggestions.id, suggestionId),
+            eq(geoPromptSuggestions.organizationId, organizationId),
+            eq(geoPromptSuggestions.projectId, projectId),
+            eq(geoPromptSuggestions.source, "scan")
+          ),
+        })
+    );
+    const origin = suggestion?.scanEvidence[0];
+    if (!origin || !suggestion) {
+      return null;
+    }
+    const evidence = yield* loadPromptEvidence(
+      projectId,
+      origin.promptId,
+      suggestion.scanEvidence
+        .filter((item) => item.promptId === origin.promptId)
+        .map((item) => item.checkId),
+      organizationId
+    );
+    // These are origin-check observations, not measurements for the new query.
+    // Preserve the query/prompt snapshots even after source-check retention.
+    return {
+      sourceKind: "scan",
+      sourcePromptId: origin.promptId,
+      mentionedEngines: 0,
+      totalEngines: 0,
+      engines: [],
+      competitorMentions: [],
+      citedDomains: [],
+      capturedAt: origin.capturedAt,
+      ...evidence,
+      prompt: `Research queries observed during AI scans, not measured user demand. Sources below belong to the originating answers, not individual queries.\n${suggestion.scanEvidence.map((item) => `Query: ${item.query}\nOrigin prompt: ${item.prompt}\nEngine: ${item.engine}; observed: ${item.capturedAt}`).join("\n\n")}`,
+    } satisfies GeoPromptEvidence;
+  }
+);

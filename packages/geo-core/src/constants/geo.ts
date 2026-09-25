@@ -253,7 +253,7 @@ export const GEO_GAPS_EMPTY = {
   "no-search-gaps": {
     title: "No search gaps",
     description:
-      "Connect Search Console on Prompts to pull queries you don't cover yet.",
+      "Run an AI scan to discover research queries, or connect Google Search Console on Prompts to find gaps from search performance.",
     action: "Open Prompts",
   },
   "no-matches": {

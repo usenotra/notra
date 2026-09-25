@@ -38,6 +38,7 @@ export const listSuggestions = Effect.fn("geo.suggestions.list")(function* (
       title: row.title,
       source: row.source,
       keywords: row.sourceKeywords,
+      scanEvidence: row.scanEvidence,
       createdAt: row.createdAt.toISOString(),
     })),
   };

@@ -24,7 +24,6 @@ import {
   useGeoSuggestionAccept,
   useGeoSuggestionDismiss,
   useGeoSuggestions,
-  useGeoSuggestionsAcceptAll,
   useGscAnalyzing,
   useGscCardDismissal,
   useGscStatus,
@@ -358,7 +357,6 @@ export function PromptSuggestions({
     useGscCardDismissal(organizationId);
   const checking = useGscAnalyzing(organizationId);
   const accept = useGeoSuggestionAccept(organizationId);
-  const acceptAll = useGeoSuggestionsAcceptAll(organizationId);
   const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
   const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
   const [confirmDismiss, setConfirmDismiss] =
@@ -368,7 +366,7 @@ export function PromptSuggestions({
     useState(connectionSucceeded);
   const pendingSuggestionRequests = useRef(new Map<string, Promise<unknown>>());
   const trackAllQueued = useRef(false);
-  const rowActionsBlocked = () => trackAllQueued.current || acceptAll.isPending;
+  const rowActionsBlocked = () => trackAllQueued.current;
   const [acceptingSuggestionIds, acceptSuggestion] = useSuggestionRowAction(
     accept.mutateAsync,
     pendingSuggestionRequests,
@@ -380,10 +378,12 @@ export function PromptSuggestions({
       pendingSuggestionRequests,
       rowActionsBlocked
     );
-  const suggestions = data?.suggestions ?? [];
+  const suggestions = (data?.suggestions ?? []).filter(
+    (row) => row.source === "search_console"
+  );
   const hasSuggestions = suggestions.length > 0;
   const detail = suggestions.find((row) => row.id === detailId) ?? null;
-  const trackAllPending = isTrackAllQueued || acceptAll.isPending;
+  const trackAllPending = isTrackAllQueued;
   const detailBusy =
     detail !== null &&
     (checking ||
@@ -402,20 +402,25 @@ export function PromptSuggestions({
   );
 
   const acceptAllSuggestions = async () => {
-    if (trackAllQueued.current || acceptAll.isPending) {
+    if (trackAllQueued.current) {
       return;
     }
 
     trackAllQueued.current = true;
     setIsTrackAllQueued(true);
     try {
+      const remaining = suggestions.filter(
+        (row) => !pendingSuggestionRequests.current.has(row.id)
+      );
       const pendingResults = await Promise.allSettled([
         ...pendingSuggestionRequests.current.values(),
       ]);
       if (pendingResults.some((result) => result.status === "rejected")) {
         return;
       }
-      await acceptAll.mutateAsync();
+      await Promise.allSettled(
+        remaining.map((row) => accept.mutateAsync({ suggestionId: row.id }))
+      );
     } catch {
       // The mutation hook reports the error.
     } finally {
