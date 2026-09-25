@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoDashboardPath,
@@ -48,6 +49,13 @@ export default async function OnboardingVisibilityPage({
   const projectId =
     typeof project === "string" && project ? project : undefined;
   const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
+
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
 
   const [stage, hasPaidHistory] = await Promise.all([
     getGeoOnboardingStage(organization.id, projectId),

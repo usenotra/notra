@@ -36,7 +36,11 @@ import {
   zdrAddonToggle,
 } from "@/utils/billing-plans";
 
-export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
+export function PricingClient({
+  canSkipOnboarding,
+  slug,
+  progressHrefs,
+}: PricingClientProps) {
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -220,14 +224,19 @@ export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
           {planGroups.map(renderPlanCard)}
         </div>
       )}
-      <form action={skipOnboarding} className="mt-8 flex justify-center">
-        <button
-          className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
-          type="submit"
+      {canSkipOnboarding && (
+        <form
+          action={skipOnboarding.bind(null, slug, ONBOARDING_STEPS.PRICING)}
+          className="mt-8 flex justify-center"
         >
-          Skip onboarding
-        </button>
-      </form>
+          <button
+            className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
+            type="submit"
+          >
+            Skip onboarding
+          </button>
+        </form>
+      )}
     </div>
   );
 }

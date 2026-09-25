@@ -2,8 +2,13 @@ import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { redirect } from "next/navigation";
 
 import { ONBOARDING_STEP_PRICING } from "@/constants/onboarding";
-import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
+import {
+  getLastActiveOrganization,
+  getSession,
+  validateOrganizationAccess,
+} from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
@@ -28,10 +33,20 @@ export default async function OnboardingPricingPage({
   const projectId =
     typeof project === "string" && project ? project : undefined;
   const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
-  const stage = await getGeoOnboardingStage(organization.id, projectId);
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
+  const [stage, { member }] = await Promise.all([
+    getGeoOnboardingStage(organization.id, projectId),
+    validateOrganizationAccess(organization.slug),
+  ]);
 
   return (
     <PricingClient
+      canSkipOnboarding={member?.role === "owner" || member?.role === "admin"}
       progressHrefs={onboardingProgressHrefs({
         current: ONBOARDING_STEP_PRICING,
         hasBrand: true,

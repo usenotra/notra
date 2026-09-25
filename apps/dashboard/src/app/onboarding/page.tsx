@@ -1,11 +1,12 @@
 import { db } from "@notra/db/drizzle";
-import { brandSettings, organizations } from "@notra/db/schema";
+import { brandSettings } from "@notra/db/schema";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoOnboardingCompetitorsPath,
@@ -36,13 +37,12 @@ export default async function OnboardingPage({
     redirect(geoOnboardingWorkspacePath(projectId, isDevReplay));
   }
 
-  const org = await db.query.organizations.findFirst({
-    where: eq(organizations.id, organization.id),
-    columns: { onboardingDismissed: true },
-  });
-  if (org?.onboardingDismissed && !isDevReplay) {
-    redirect(`/${organization.slug}`);
-  }
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
 
   const brand = await db.query.brandSettings.findFirst({
     where: eq(brandSettings.organizationId, organization.id),

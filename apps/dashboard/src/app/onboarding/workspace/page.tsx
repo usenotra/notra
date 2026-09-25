@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 import { ONBOARDING_STEP_WORKSPACE } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
@@ -35,6 +36,13 @@ export default async function OnboardingWorkspacePage({
   const projectId =
     typeof project === "string" && project ? project : undefined;
   const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
+
+  await redirectIfOnboardingDismissed(
+    existing.id,
+    existing.slug,
+    projectId,
+    isDevReplay
+  );
 
   const [brand, existingOrgRow, notificationSettings, stage] =
     await Promise.all([

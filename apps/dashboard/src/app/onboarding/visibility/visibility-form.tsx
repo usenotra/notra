@@ -175,7 +175,7 @@ function VisibilityReview({
           size="sm"
           variant="link"
         >
-          Skip for now
+          Skip this step
         </Button>
       </div>
     </form>

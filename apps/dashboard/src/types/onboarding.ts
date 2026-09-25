@@ -9,6 +9,8 @@ import type {
 import type { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
 import type * as z from "zod";
 
+import type { OnboardingStep } from "@/types/analytics/events";
+
 export type OnboardingWorkspaceInput = z.infer<
   typeof onboardingWorkspaceSchema
 >;
@@ -22,6 +24,7 @@ export interface CompanyLogoResult {
 export type OnboardingProgressHrefs = readonly (string | null)[];
 
 export interface PricingClientProps {
+  canSkipOnboarding: boolean;
   slug: string;
   progressHrefs?: OnboardingProgressHrefs;
 }
@@ -44,6 +47,10 @@ export interface WorkspaceFormProps {
 
 export interface OnboardingSplitLayoutProps {
   children: React.ReactNode;
+}
+
+export interface OnboardingStepLayoutProps extends OnboardingSplitLayoutProps {
+  step: OnboardingStep;
 }
 
 export interface OnboardingProgressProps {
