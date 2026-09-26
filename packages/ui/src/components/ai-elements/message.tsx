@@ -65,6 +65,7 @@ import {
   useState,
 } from "react";
 import { Streamdown } from "streamdown";
+import { MESSAGE_TEXT_ANIMATION } from "@notra/ui/constants/message-animation";
 import {
   MESSAGE_TABLE_COPY_FORMATS,
   MESSAGE_TABLE_COPY_RESET_MS,
@@ -726,6 +727,7 @@ const messageResponseComponents = {
 export const MessageResponse = memo(
   ({ className, components, ...props }: MessageResponseProps) => (
     <Streamdown
+      animated={props.isAnimating ? MESSAGE_TEXT_ANIMATION : false}
       className={cn(
         "wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
         className
@@ -735,7 +737,9 @@ export const MessageResponse = memo(
     />
   ),
   (prevProps, nextProps) =>
-    prevProps.children === nextProps.children && prevProps.mode === nextProps.mode
+    prevProps.children === nextProps.children &&
+    prevProps.mode === nextProps.mode &&
+    prevProps.isAnimating === nextProps.isAnimating
 );
 
 MessageResponse.displayName = "MessageResponse";
