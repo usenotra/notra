@@ -1,5 +1,7 @@
 "use client";
 
+import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
@@ -19,7 +21,6 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
 } from "lexical";
-import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -194,8 +195,6 @@ export default function KiboCodeBlockComponent({
     }, 2000);
   };
 
-  const CopyButtonIcon = isCopied ? CheckIcon : CopyIcon;
-
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Interactive editor element
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Interactive editor element
@@ -232,8 +231,9 @@ export default function KiboCodeBlockComponent({
           size="icon"
           variant="ghost"
         >
-          <CopyButtonIcon
+          <HugeiconsIcon
             className={isCopied ? "text-success" : "text-muted-foreground"}
+            icon={isCopied ? Tick02Icon : Copy01Icon}
             size={14}
           />
         </Button>

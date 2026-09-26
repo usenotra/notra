@@ -14,6 +14,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "icons",
+    label: "Icons",
+    href: "/design-system/icons",
+    level: "section",
+  },
+  {
     id: "buttons",
     label: "Buttons & Badges",
     href: "/design-system#buttons",

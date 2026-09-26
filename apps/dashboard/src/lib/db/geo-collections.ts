@@ -182,6 +182,12 @@ export const geoProjectsCollection = createCollectionFactory<GeoProject>({
       name: item.name,
       brandSettingsId: item.brandSettingsId,
     }),
+  update: (scope, key, modified) =>
+    dashboardOrpc.geo.projectsUpdate.call({
+      organizationId: scope.organizationId,
+      projectId: key,
+      brandSettingsId: modified.brandSettingsId,
+    }),
   remove: (scope, original) =>
     dashboardOrpc.geo.projectsDelete.call({
       organizationId: scope.organizationId,

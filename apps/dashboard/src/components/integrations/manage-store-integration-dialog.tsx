@@ -4,6 +4,7 @@ import {
   Delete02Icon,
   MinusSignIcon,
   PlusSignIcon,
+  Refresh03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_MCP_HEADERS } from "@notra/schemas/dashboard/integrations";
@@ -30,7 +31,6 @@ import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCcwIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -363,7 +363,10 @@ function ConnectionActions({
           type="button"
           variant="outline"
         >
-          <RefreshCcwIcon className={refreshing ? "animate-spin" : ""} />
+          <HugeiconsIcon
+            className={refreshing ? "animate-spin" : ""}
+            icon={Refresh03Icon}
+          />
           Refresh tools
         </Button>
         {connection.authType === "oauth" ? (

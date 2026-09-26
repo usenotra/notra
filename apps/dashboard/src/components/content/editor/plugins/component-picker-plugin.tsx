@@ -1,5 +1,20 @@
 "use client";
 
+import {
+  CodeIcon,
+  Film01Icon,
+  Heading01Icon,
+  Heading02Icon,
+  Heading03Icon,
+  ImageAdd01Icon,
+  LeftToRightListNumberIcon,
+  MinusSignIcon,
+  ParagraphBulletsPoint01Icon,
+  ParagraphIcon,
+  QuoteUpIcon,
+  Table01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "@lexical/extension";
 import {
   INSERT_ORDERED_LIST_COMMAND,
@@ -21,20 +36,6 @@ import {
   $isRangeSelection,
   type TextNode,
 } from "lexical";
-import {
-  Code,
-  Heading1,
-  Heading2,
-  Heading3,
-  Film,
-  ImagePlus,
-  List,
-  ListOrdered,
-  Minus,
-  Pilcrow,
-  Quote,
-  Table2,
-} from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -121,7 +122,7 @@ export function ComponentPickerPlugin() {
   const baseOptions = useMemo(() => {
     return [
       new ComponentPickerOption("Paragraph", {
-        icon: <Pilcrow className="size-4" />,
+        icon: <HugeiconsIcon icon={ParagraphIcon} className="size-4" />,
         keywords: ["normal", "text", "p"],
         onSelect: () =>
           editor.update(() => {
@@ -132,7 +133,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Heading 1", {
-        icon: <Heading1 className="size-4" />,
+        icon: <HugeiconsIcon icon={Heading01Icon} className="size-4" />,
         keywords: ["h1", "header", "title"],
         onSelect: () =>
           editor.update(() => {
@@ -143,7 +144,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Heading 2", {
-        icon: <Heading2 className="size-4" />,
+        icon: <HugeiconsIcon icon={Heading02Icon} className="size-4" />,
         keywords: ["h2", "header", "subtitle"],
         onSelect: () =>
           editor.update(() => {
@@ -154,7 +155,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Heading 3", {
-        icon: <Heading3 className="size-4" />,
+        icon: <HugeiconsIcon icon={Heading03Icon} className="size-4" />,
         keywords: ["h3", "header", "subheading"],
         onSelect: () =>
           editor.update(() => {
@@ -165,19 +166,26 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Bulleted List", {
-        icon: <List className="size-4" />,
+        icon: (
+          <HugeiconsIcon
+            icon={ParagraphBulletsPoint01Icon}
+            className="size-4"
+          />
+        ),
         keywords: ["ul", "unordered", "bullet", "list"],
         onSelect: () =>
           editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined),
       }),
       new ComponentPickerOption("Numbered List", {
-        icon: <ListOrdered className="size-4" />,
+        icon: (
+          <HugeiconsIcon icon={LeftToRightListNumberIcon} className="size-4" />
+        ),
         keywords: ["ol", "ordered", "number", "list"],
         onSelect: () =>
           editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined),
       }),
       new ComponentPickerOption("Quote", {
-        icon: <Quote className="size-4" />,
+        icon: <HugeiconsIcon icon={QuoteUpIcon} className="size-4" />,
         keywords: ["blockquote", "quotation"],
         onSelect: () =>
           editor.update(() => {
@@ -188,7 +196,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Code Block", {
-        icon: <Code className="size-4" />,
+        icon: <HugeiconsIcon icon={CodeIcon} className="size-4" />,
         keywords: ["code", "codeblock", "snippet"],
         onSelect: () =>
           editor.update(() => {
@@ -200,7 +208,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Table", {
-        icon: <Table2 className="size-4" />,
+        icon: <HugeiconsIcon icon={Table01Icon} className="size-4" />,
         keywords: ["table", "grid", "spreadsheet", "rows", "columns"],
         onSelect: () =>
           editor.dispatchCommand(INSERT_TABLE_COMMAND, {
@@ -210,7 +218,7 @@ export function ComponentPickerPlugin() {
           }),
       }),
       new ComponentPickerOption("Image", {
-        icon: <ImagePlus className="size-4" />,
+        icon: <HugeiconsIcon icon={ImageAdd01Icon} className="size-4" />,
         keywords: ["image", "photo", "picture", "upload", "img"],
         onSelect: () => {
           queueMicrotask(() => {
@@ -222,7 +230,7 @@ export function ComponentPickerPlugin() {
         },
       }),
       new ComponentPickerOption("Video", {
-        icon: <Film className="size-4" />,
+        icon: <HugeiconsIcon icon={Film01Icon} className="size-4" />,
         keywords: ["video", "movie", "mp4", "webm", "clip"],
         onSelect: () => {
           queueMicrotask(() => {
@@ -234,7 +242,7 @@ export function ComponentPickerPlugin() {
         },
       }),
       new ComponentPickerOption("Divider", {
-        icon: <Minus className="size-4" />,
+        icon: <HugeiconsIcon icon={MinusSignIcon} className="size-4" />,
         keywords: ["hr", "horizontal", "rule", "line", "divider"],
         onSelect: () =>
           editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined),

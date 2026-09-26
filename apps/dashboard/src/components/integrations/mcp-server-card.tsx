@@ -4,6 +4,7 @@ import {
   CpuIcon,
   Delete02Icon,
   MoreHorizontalIcon,
+  Refresh03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -29,7 +30,6 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { RefreshCcwIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -82,8 +82,9 @@ export function McpServerCard({
                     disabled={reauthorizing}
                     onClick={() => onReauthorize?.(server.id)}
                   >
-                    <RefreshCcwIcon
+                    <HugeiconsIcon
                       className={`size-4 ${reauthorizing ? "animate-spin" : ""}`}
+                      icon={Refresh03Icon}
                     />
                     Reauthorize
                   </DropdownMenuItem>
@@ -93,8 +94,9 @@ export function McpServerCard({
                   disabled={refreshing || !server.enabled}
                   onClick={() => onRefreshTools?.(server.id)}
                 >
-                  <RefreshCcwIcon
+                  <HugeiconsIcon
                     className={`size-4 ${refreshing ? "animate-spin" : ""}`}
+                    icon={Refresh03Icon}
                   />
                   Refresh tools
                 </DropdownMenuItem>

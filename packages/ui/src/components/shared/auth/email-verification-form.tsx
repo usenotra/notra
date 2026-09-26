@@ -1,6 +1,8 @@
 "use client";
 
+
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
+
 import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { EmailVerificationFormProps } from "../../../types/auth";
@@ -43,7 +45,7 @@ export function EmailVerificationForm({
       return;
     }
     setFormError(
-      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK
+      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK,
     );
     setCode("");
     setIsPending(false);

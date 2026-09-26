@@ -1,12 +1,13 @@
 "use client";
 
+import { Route01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_JOURNEY_DEEP_CRAWL_PAGES } from "@notra/geo-core/constants/geo";
 import type { GeoJourneySourceStats } from "@notra/geo-core/types/geo";
 import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
-import { RouteIcon } from "lucide-react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
@@ -75,7 +76,11 @@ export function JourneyOverviewCard({
       emptyDescription={
         failed ? undefined : "See the paths AI agents take through your site."
       }
-      emptyMedia={failed ? undefined : <RouteIcon className="size-5" />}
+      emptyMedia={
+        failed ? undefined : (
+          <HugeiconsIcon icon={Route01Icon} className="size-5" />
+        )
+      }
       emptySeed="geo-journey-overview"
       eyebrow="Journeys"
       stats={[

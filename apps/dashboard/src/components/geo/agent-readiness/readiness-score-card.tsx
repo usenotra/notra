@@ -4,7 +4,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   LinkSquare02Icon,
-  Refresh01Icon,
+  Refresh03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -121,7 +121,7 @@ export function AgentReadinessScoreCard({
           size="sm"
           variant="outline"
         >
-          <HugeiconsIcon icon={Refresh01Icon} size={16} />
+          <HugeiconsIcon icon={Refresh03Icon} size={16} />
           {isScanning ? "Scanning…" : "Rescan"}
         </Button>
       }

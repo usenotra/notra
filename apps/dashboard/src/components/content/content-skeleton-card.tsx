@@ -1,5 +1,7 @@
 "use client";
 
+import { CodeIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ContentType } from "@notra/ai/schemas/content";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
@@ -8,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { BracesIcon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 
 import { getContentTypeLabel } from "@/components/content/content-card";
 import { cn } from "@/lib/utils";
@@ -44,7 +46,7 @@ export function ContentSkeletonCard({
           {source === "api" && (
             <Tooltip>
               <TooltipTrigger className="border-border/60 bg-muted/80 text-muted-foreground hover:bg-muted -mt-0.5 inline-flex shrink-0 items-center justify-center rounded-md border p-1 transition-colors">
-                <BracesIcon className="size-3.5" />
+                <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
               </TooltipTrigger>
               <TooltipContent side="top">Queued via API</TooltipContent>
             </Tooltip>

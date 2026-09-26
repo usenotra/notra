@@ -1,8 +1,10 @@
 "use client";
 
+import { ColorPickerIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Color from "color";
 import { Slider } from "@base-ui/react/slider";
-import { PipetteIcon } from "lucide-react";
+
 import {
   type ComponentProps,
   createContext,
@@ -46,7 +48,7 @@ type ColorPickerContextValue = ColorState & {
 };
 
 const ColorPickerContext = createContext<ColorPickerContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 export const useColorPicker = () => {
@@ -124,7 +126,7 @@ export const ColorPicker = ({
     const handler = onChangeRef.current;
     if (handler) {
       const color = Color.hsl(next.hue, next.saturation, next.lightness).alpha(
-        next.alpha / 100
+        next.alpha / 100,
       );
       const rgba = color.rgb().array();
 
@@ -148,7 +150,7 @@ export const ColorPicker = ({
       setAlpha: (nextAlpha: number) => commit({ alpha: nextAlpha }),
       setMode,
     }),
-    [hue, saturation, lightness, alpha, mode, commit]
+    [hue, saturation, lightness, alpha, mode, commit],
   );
 
   return (
@@ -172,7 +174,7 @@ export const ColorPickerSelection = memo(
     const [, hsvSaturation = 0, hsvValue = 0] = Color.hsl(
       hue,
       saturation,
-      lightness
+      lightness,
     )
       .hsv()
       .array();
@@ -211,14 +213,14 @@ export const ColorPickerSelection = memo(
         const [, nextSaturation = 0, nextLightness = 0] = Color.hsv(
           hue,
           x * 100,
-          (1 - y) * 100
+          (1 - y) * 100,
         )
           .hsl()
           .array();
 
         commit({ saturation: nextSaturation, lightness: nextLightness });
       },
-      [hue, commit]
+      [hue, commit],
     );
 
     const backgroundGradient = useMemo(() => {
@@ -235,16 +237,16 @@ export const ColorPickerSelection = memo(
         const rect = containerRef.current.getBoundingClientRect();
         const x = Math.max(
           0,
-          Math.min(1, (event.clientX - rect.left) / rect.width)
+          Math.min(1, (event.clientX - rect.left) / rect.width),
         );
         const y = Math.max(
           0,
-          Math.min(1, (event.clientY - rect.top) / rect.height)
+          Math.min(1, (event.clientY - rect.top) / rect.height),
         );
 
         commitFromPosition(x, y);
       },
-      [commitFromPosition]
+      [commitFromPosition],
     );
 
     useEffect(() => {
@@ -270,7 +272,7 @@ export const ColorPickerSelection = memo(
         aria-valuetext={`Saturation ${Math.round(saturation)}%, Lightness ${Math.round(lightness)}%`}
         className={cn(
           "relative size-full cursor-crosshair rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-          className
+          className,
         )}
         onKeyDown={handleKeyDown}
         onPointerDown={(e) => {
@@ -296,7 +298,7 @@ export const ColorPickerSelection = memo(
         />
       </div>
     );
-  }
+  },
 );
 
 ColorPickerSelection.displayName = "ColorPickerSelection";
@@ -384,7 +386,7 @@ export const ColorPickerEyeDropper = ({
   const isSupported = useSyncExternalStore(
     emptySubscribe,
     () => "EyeDropper" in window,
-    () => false
+    () => false,
   );
 
   const handleEyeDropper = async () => {
@@ -418,7 +420,7 @@ export const ColorPickerEyeDropper = ({
         handleEyeDropper();
       }}
     >
-      <PipetteIcon size={16} />
+      <HugeiconsIcon icon={ColorPickerIcon} size={16} />
     </Button>
   );
 };
@@ -530,7 +532,7 @@ const PercentageInput = ({ className, ...props }: PercentageInputProps) => {
         {...props}
         className={cn(
           "h-8 w-[3.25rem] rounded-l-none bg-secondary px-2 text-xs shadow-none",
-          className
+          className,
         )}
         onBlur={apply}
         onChange={(event) => setDraft(event.target.value)}
@@ -567,7 +569,7 @@ export const ColorPickerFormat = ({
       <div
         className={cn(
           "-space-x-px relative flex w-full items-center rounded-md shadow-sm",
-          className
+          className,
         )}
         {...props}
       >
@@ -586,7 +588,7 @@ export const ColorPickerFormat = ({
       <div
         className={cn(
           "-space-x-px flex items-center rounded-md shadow-sm",
-          className
+          className,
         )}
         {...props}
       >
@@ -594,7 +596,7 @@ export const ColorPickerFormat = ({
           <Input
             className={cn(
               "h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none",
-              index && "rounded-l-none"
+              index && "rounded-l-none",
             )}
             key={rgbChannels[index]}
             readOnly
@@ -635,7 +637,7 @@ export const ColorPickerFormat = ({
       <div
         className={cn(
           "-space-x-px flex items-center rounded-md shadow-sm",
-          className
+          className,
         )}
         {...props}
       >
@@ -643,7 +645,7 @@ export const ColorPickerFormat = ({
           <Input
             className={cn(
               "h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none",
-              index && "rounded-l-none"
+              index && "rounded-l-none",
             )}
             key={hslChannels[index]}
             readOnly

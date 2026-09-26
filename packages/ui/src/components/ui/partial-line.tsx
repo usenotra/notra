@@ -1,5 +1,7 @@
 "use client";
 
+import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { CartesianGrid, Line, LineChart, XAxis, Customized } from "recharts";
 import { useCallback, useState } from "react";
 import {
@@ -16,7 +18,6 @@ import {
   ChartTooltipContent,
 } from "@notra/ui/components/ui/chart";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { TrendingUp } from "lucide-react";
 
 const chartData = [
   { month: "January", desktop: 345, mobile: 210 },
@@ -58,7 +59,7 @@ export function PartialLineChart() {
             variant="outline"
             className="text-green-500 bg-green-500/10 border-none ml-2"
           >
-            <TrendingUp className="h-4 w-4" />
+            <HugeiconsIcon icon={AnalyticsUpIcon} className="h-4 w-4" />
             <span>5.2%</span>
           </Badge>
         </CardTitle>

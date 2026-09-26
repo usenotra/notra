@@ -89,12 +89,37 @@ export const GEO_WRITER_BRIEF_POLL_INTERVAL_MS = 3000;
 export const GEO_WRITER_BRIEFS_LIMIT = 20;
 export const GEO_GAPS_MAX_CHECKS = 400;
 export const GEO_GAPS_SEARCH_LIMIT = 100;
+export const GEO_GAPS_ENGINE_QUERY_LIMIT = 12;
+export const GEO_AI_SEARCH_GAP_MIN_SEARCHES = 2;
+export const GEO_AI_SEARCH_GAP_MAX_QUERIES = 5000;
+export const GEO_AI_SEARCH_GAP_VARIANT_LIMIT = 5;
+export const GEO_AI_SEARCH_GAP_PROMPT_LIMIT = 5;
+export const GEO_AI_SEARCH_QUERY_STOPWORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "best",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+  "top",
+  "vs",
+  "with",
+]);
 /** Fallback before the gaps table measures remaining viewport height. */
 export const GEO_GAPS_TABLE_HEIGHT = 420;
 export const GEO_GAPS_METER_STEPS = 5;
 export const GEO_GAPS_COMPETITOR_SIGNAL_CAP = 4;
 export const GEO_GAPS_LOADING_STATUS =
   "Calculating gaps from the latest scan. This usually takes a few seconds.";
+export const GEO_GAPS_ENGINE_DETAIL = {
+  mentioned: "Mentions you",
+  searched: "Ran this search",
+} as const;
 export const GEO_GAPS_COMPETITOR_DETAIL = {
   tracked: "Tracked competitor",
   discovered: "Discovered in answers, not tracked yet",
@@ -250,6 +275,11 @@ export const GEO_GAPS_EMPTY = {
     title: "No prompt gaps",
     description: "Engines already mention you on the questions you track.",
   },
+  "no-ai-search-gaps": {
+    title: "No AI search gaps",
+    description:
+      "Nothing engines search for across your scans leaves you out yet.",
+  },
   "no-search-gaps": {
     title: "No search gaps",
     description:
@@ -307,6 +337,12 @@ export const GEO_GROUNDED_PROVIDERS: readonly GeoGroundedProviderConfig[] = [
   {
     provider: "gateway-google",
     zdr: "some",
+    envVar: null,
+    isAvailable: () => true,
+  },
+  {
+    provider: "gateway-perplexity",
+    zdr: "none",
     envVar: null,
     isAvailable: () => true,
   },

@@ -1,9 +1,10 @@
 "use client";
 
+import { Files01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourneyPageStats } from "@notra/geo-core/types/geo";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
-import { FilesIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
@@ -69,7 +70,11 @@ export function JourneyPathsCard({
       emptyDescription={
         failed ? undefined : "Pages fetched by AI agents will appear here."
       }
-      emptyMedia={failed ? undefined : <FilesIcon className="size-5" />}
+      emptyMedia={
+        failed ? undefined : (
+          <HugeiconsIcon icon={Files01Icon} className="size-5" />
+        )
+      }
       emptySeed="geo-journey-paths"
       eyebrow="Fetched pages"
       stats={journeyPageKindStats(kindCounts, totalPages)}

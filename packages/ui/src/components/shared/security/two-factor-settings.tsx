@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Add01Icon,
-  ArrowReloadHorizontalIcon,
-  Delete02Icon,
-  SmartPhone01Icon,
-  SquareLockPasswordIcon,
-  TwoFactorAccessIcon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon, ArrowReloadHorizontalIcon, Delete02Icon, SmartPhone01Icon, SquareLockPasswordIcon, TwoFactorAccessIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loader2Icon } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -117,7 +110,7 @@ function FactorList({
   onRemoveFactor,
 }: FactorListProps) {
   const [confirmingFactorId, setConfirmingFactorId] = useState<string | null>(
-    null
+    null,
   );
 
   async function remove(factorId: string, confirmationCode: string) {
@@ -138,35 +131,35 @@ function FactorList({
         return (
           <li className="grid gap-3 px-3 py-2.5 text-sm" key={factor.id}>
             <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <HugeiconsIcon
-                className="shrink-0 text-muted-foreground"
-                icon={SmartPhone01Icon}
-                size={16}
-              />
-              <div className="min-w-0">
-                <p className="truncate font-medium">{factorName}</p>
-                {addedOn && (
-                  <p className="text-muted-foreground text-xs">
-                    Added {addedOn}
-                  </p>
-                )}
+              <div className="flex min-w-0 items-center gap-3">
+                <HugeiconsIcon
+                  className="shrink-0 text-muted-foreground"
+                  icon={SmartPhone01Icon}
+                  size={16}
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{factorName}</p>
+                  {addedOn && (
+                    <p className="text-muted-foreground text-xs">
+                      Added {addedOn}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-            <Button
-              disabled={isRemoving || isConfirming}
-              onClick={() => setConfirmingFactorId(factor.id)}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              {isRemoving ? (
-                <Loader2Icon className="animate-spin" data-icon="inline-start" />
-              ) : (
-                <HugeiconsIcon data-icon="inline-start" icon={Delete02Icon} />
-              )}
-              Remove
-            </Button>
+              <Button
+                disabled={isRemoving || isConfirming}
+                onClick={() => setConfirmingFactorId(factor.id)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {isRemoving ? (
+                  <Loader2Icon className="animate-spin" data-icon="inline-start" />
+                ) : (
+                  <HugeiconsIcon data-icon="inline-start" icon={Delete02Icon} />
+                )}
+                Remove
+              </Button>
             </div>
             {isConfirming && (
               <SecondFactorConfirm
@@ -224,23 +217,22 @@ export function TwoFactorSettings({
     />
   ) : null;
 
-  const action =
-    isEnabled ? null : (
-      <Button
-        className="rounded-xl"
-        disabled={isStartingEnrollment}
-        onClick={onStartEnrollment}
-        size="sm"
-        type="button"
-      >
-        {isStartingEnrollment ? (
-          <Loader2Icon className="animate-spin" data-icon="inline-start" />
-        ) : (
-          <HugeiconsIcon data-icon="inline-start" icon={Add01Icon} />
-        )}
-        Set up
-      </Button>
-    );
+  const action = isEnabled ? null : (
+    <Button
+      className="rounded-xl"
+      disabled={isStartingEnrollment}
+      onClick={onStartEnrollment}
+      size="sm"
+      type="button"
+    >
+      {isStartingEnrollment ? (
+        <Loader2Icon className="animate-spin" data-icon="inline-start" />
+      ) : (
+        <HugeiconsIcon data-icon="inline-start" icon={Add01Icon} />
+      )}
+      Set up
+    </Button>
+  );
 
   const bodyKey = isEnabled ? "factors" : "empty";
 
@@ -256,7 +248,9 @@ export function TwoFactorSettings({
       >
         <ResponsiveDialogContent className="dialog-stacked sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Set up two-factor authentication</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              Set up two-factor authentication
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               Adds a code check whenever you sign in with your password.
             </ResponsiveDialogDescription>

@@ -271,6 +271,14 @@ export function useGeoProjectsDb(
     return created;
   };
 
+  const updateProjectBrand = (projectId: string, brandSettingsId: string) => {
+    const transaction = collection.update(projectId, (draft) => {
+      draft.brandSettingsId = brandSettingsId;
+    });
+    track(projectId, transaction, "Failed to update project brand identity");
+    return transaction.isPersisted.promise;
+  };
+
   const deleteProject = async (projectId: string) => {
     const snapshot = projects.find((project) => project.id === projectId);
     if (snapshot) {
@@ -299,6 +307,7 @@ export function useGeoProjectsDb(
     isCreating,
     isDeleting,
     createProject,
+    updateProjectBrand,
     deleteProject,
   };
 }

@@ -220,7 +220,6 @@ export const POSTHOG_EVENTS = {
   QUOTA_EXCEEDED: "quota_exceeded",
   CREDITS_TOPUP_OPENED: "credits_topup_opened",
   CREDITS_TOPUP_COMPLETED: "credits_topup_completed",
-  SIGNUP_CREDITS_GRANTED: "signup_credits_granted",
   ZDR_ADDON_ATTACHED: "zdr_addon_attached",
   ZDR_ADDON_REMOVED: "zdr_addon_removed",
   CUSTOMER_PORTAL_OPENED: "customer_portal_opened",

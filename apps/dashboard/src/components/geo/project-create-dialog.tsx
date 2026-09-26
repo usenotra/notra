@@ -1,7 +1,5 @@
 "use client";
 
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,21 +10,25 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@notra/ui/components/ui/select";
 import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
+import { toast } from "sonner";
 
-import { AddIdentityDialog } from "@/app/(dashboard)/[slug]/brand/identity/components/add-identity-dialog";
 import { Button } from "@/components/button";
-import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
+import { GeoProjectBrandSelection } from "@/components/geo/project-brand-selection";
+import {
+  useAnalyzeBrand,
+  useBrandAnalysisProgress,
+  useBrandSettings,
+  useCreateBrandVoice,
+} from "@/lib/hooks/use-brand-analysis";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import type { GeoProjectCreateDialogProps } from "@/types/geo";
+import {
+  projectBrandIdentityName,
+  projectWebsiteUrl,
+  resolveProjectBrandSelection,
+} from "@/utils/geo-projects";
 
 export function GeoProjectCreateDialog({
   open,
@@ -34,165 +36,204 @@ export function GeoProjectCreateDialog({
   organizationId,
   onCreated,
 }: GeoProjectCreateDialogProps) {
-  const nameId = useId();
-  const brandId = useId();
+  const id = useId();
   const [name, setName] = useState("");
+  const [website, setWebsite] = useState("");
   const [selectedBrandSettingsId, setSelectedBrandSettingsId] = useState<
     string | null
   >(null);
-  const [identityDialogOpen, setIdentityDialogOpen] = useState(false);
-  const { createProject, isCreating } = useGeoProjectsDb(organizationId, {
-    enabled: open,
-  });
-  const brandSettingsQuery = useBrandSettings(organizationId);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { createProject } = useGeoProjectsDb(organizationId, { enabled: open });
+  const brandQuery = useBrandSettings(organizationId, { enabled: open });
+  const createIdentity = useCreateBrandVoice(organizationId);
+  const { startPolling } = useBrandAnalysisProgress(organizationId);
+  const analyzeIdentity = useAnalyzeBrand(organizationId, startPolling);
+  const websiteUrl = projectWebsiteUrl(website);
+  const identityName = projectBrandIdentityName(
+    name,
+    brandQuery.data?.voices ?? []
+  );
+  const { matches, selectedIdentity } = resolveProjectBrandSelection(
+    website,
+    brandQuery.data?.voices ?? [],
+    selectedBrandSettingsId,
+    createIdentity.data?.voice
+  );
 
-  const voices = brandSettingsQuery.data?.voices ?? [];
-  const brandSettingsId =
-    selectedBrandSettingsId ??
-    voices.find((voice) => voice.isDefault)?.id ??
-    voices.at(0)?.id ??
-    null;
-
-  const handleOpenChange = (next: boolean) => {
-    if (!next) {
-      setName("");
-      setSelectedBrandSettingsId(null);
-    }
-    onOpenChange(next);
+  const reset = () => {
+    setName("");
+    setWebsite("");
+    setSelectedBrandSettingsId(null);
+    setError(null);
+    createIdentity.reset();
   };
 
   const handleCreate = async () => {
-    const trimmed = name.trim();
-    if (trimmed.length === 0 || !brandSettingsId || isCreating) {
+    if (isSubmitting) {
       return;
     }
-    const project = await createProject({
-      name: trimmed,
-      brandSettingsId,
-    });
-    setName("");
-    setSelectedBrandSettingsId(null);
-    onOpenChange(false);
-    onCreated(project.id);
+    if (!websiteUrl || !name.trim()) {
+      setError("Enter a valid website and a project name.");
+      return;
+    }
+    if (!brandQuery.isSuccess || (matches.length > 1 && !selectedIdentity)) {
+      setError("Choose a brand identity for this website before continuing.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      let brandSettingsId = selectedIdentity?.id;
+      if (!brandSettingsId) {
+        const { voice } = await createIdentity.mutateAsync({
+          name: identityName,
+          websiteUrl,
+        });
+        brandSettingsId = voice.id;
+        setSelectedBrandSettingsId(voice.id);
+      }
+      const project = await createProject({
+        name: name.trim(),
+        brandSettingsId,
+      });
+      if (
+        !selectedIdentity ||
+        createIdentity.data?.voice.id === brandSettingsId
+      ) {
+        await analyzeIdentity
+          .mutateAsync({ url: websiteUrl, voiceId: brandSettingsId })
+          .catch(() => {
+            toast.error(
+              "Project created, but brand analysis could not start. Retry from Brand Identity."
+            );
+          });
+      }
+      reset();
+      onOpenChange(false);
+      onCreated(project.id);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Failed to create project"
+      );
+    }
+    setIsSubmitting(false);
   };
 
   return (
-    <>
-      <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-        <ResponsiveDialogContent className="sm:max-w-sm">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>New project</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              We’ll analyze the brand’s website, find competitors, generate
-              prompts, and start tracking it automatically.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="space-y-4 px-4 sm:px-0">
-            <div className="space-y-2">
-              <Label htmlFor={nameId}>Project name</Label>
-              <Input
-                autoFocus
-                id={nameId}
-                onChange={(event) => setName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    handleCreate();
-                  }
-                }}
-                placeholder="Acme"
-                value={name}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={brandId}>Brand identity</Label>
-              <div className="flex gap-2">
-                <Select
-                  disabled={voices.length === 0}
-                  onValueChange={(value) =>
-                    setSelectedBrandSettingsId(value ?? null)
-                  }
-                  value={brandSettingsId ?? ""}
-                >
-                  <SelectTrigger className="min-w-0 flex-1" id={brandId}>
-                    <SelectValue placeholder="Select a brand identity">
-                      {(value: string | null) => {
-                        if (voices.length === 0) {
-                          return "No brand identity yet";
-                        }
-                        return (
-                          voices.find((voice) => voice.id === value)?.name ??
-                          "Select a brand identity"
-                        );
-                      }}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    {voices.map((voice) => (
-                      <SelectItem key={voice.id} value={voice.id}>
-                        {voice.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {voices.length > 0 && (
-                  <Button
-                    aria-label="Create brand identity"
-                    onClick={() => setIdentityDialogOpen(true)}
-                    size="icon"
-                    type="button"
-                    variant="outline"
-                  >
-                    <HugeiconsIcon icon={PlusSignIcon} size={16} />
-                  </Button>
-                )}
-              </div>
-              {voices.length === 0 && (
-                <Button
-                  className="w-full justify-center gap-2"
-                  onClick={() => setIdentityDialogOpen(true)}
-                  size="lg"
-                  type="button"
-                >
-                  <HugeiconsIcon icon={PlusSignIcon} size={16} />
-                  Create brand identity
-                </Button>
-              )}
-              <p className="text-muted-foreground text-xs">
-                {voices.length === 0
-                  ? "You need a brand identity to track this project. Create one to continue."
-                  : "Link a brand identity to this project, or create a new one."}
-              </p>
-            </div>
+    <ResponsiveDialog
+      onOpenChange={(next) => {
+        if (isSubmitting) {
+          return;
+        }
+        if (!next) {
+          reset();
+        }
+        onOpenChange(next);
+      }}
+      open={open}
+    >
+      <ResponsiveDialogContent className="sm:max-w-sm">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>New project</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Start with the website you want to track. We will find competitors,
+            generate prompts, and start the first scan.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleCreate();
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-website`}>Website</Label>
+            <Input
+              autoComplete="url"
+              disabled={isSubmitting}
+              id={`${id}-website`}
+              inputMode="url"
+              onChange={(event) => {
+                setWebsite(event.target.value);
+                setSelectedBrandSettingsId(null);
+                setError(null);
+              }}
+              placeholder="example.com"
+              required
+              value={website}
+            />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-name`}>Project name</Label>
+            <Input
+              disabled={isSubmitting}
+              id={`${id}-name`}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Acme"
+              required
+              value={name}
+            />
+          </div>
+          {websiteUrl && brandQuery.isSuccess ? (
+            <GeoProjectBrandSelection
+              disabled={isSubmitting}
+              identities={matches}
+              onSelect={setSelectedBrandSettingsId}
+              projectName={identityName}
+              selectedIdentity={selectedIdentity}
+            />
+          ) : null}
+          {brandQuery.isError ? (
+            <p className="text-destructive text-sm" role="alert">
+              Could not load brand identities.{" "}
+              <button
+                className="underline"
+                onClick={() => brandQuery.refetch()}
+                type="button"
+              >
+                Try again
+              </button>
+            </p>
+          ) : null}
+          {error ? (
+            <p className="text-destructive text-sm" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {error && createIdentity.isSuccess ? (
+            <p className="text-muted-foreground text-sm">
+              The brand identity was saved. Retrying reuses it; its analysis
+              starts after the project is created. You can also manage it in
+              Brand Identity.
+            </p>
+          ) : null}
           <ResponsiveDialogFooter>
             <Button
-              onClick={() => handleOpenChange(false)}
+              disabled={isSubmitting}
+              onClick={() => {
+                reset();
+                onOpenChange(false);
+              }}
               type="button"
               variant="outline"
             >
               Cancel
             </Button>
             <Button
-              disabled={
-                name.trim().length === 0 || !brandSettingsId || isCreating
-              }
-              onClick={handleCreate}
-              type="button"
+              disabled={isSubmitting || !brandQuery.isSuccess}
+              type="submit"
             >
-              {isCreating && <Loader2Icon className="size-4 animate-spin" />}
-              {isCreating ? "Setting up project" : "Create project"}
+              {isSubmitting ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : null}
+              {isSubmitting ? "Setting up project" : "Create project"}
             </Button>
           </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-      <AddIdentityDialog
-        onCreated={(voice) => setSelectedBrandSettingsId(voice.id)}
-        onOpenChange={setIdentityDialogOpen}
-        open={identityDialogOpen}
-        organizationId={organizationId}
-        startPolling={() => undefined}
-      />
-    </>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

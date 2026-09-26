@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  CodeIcon,
+  Link01Icon,
+  TextBoldIcon,
+  TextItalicIcon,
+  TextStrikethroughIcon,
+  TextUnderlineIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
@@ -10,14 +19,6 @@ import {
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import {
-  Bold,
-  Code,
-  Italic,
-  Link,
-  Strikethrough,
-  Underline,
-} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -227,7 +228,7 @@ function FloatingToolbar({
         title="Bold (Ctrl+B)"
         type="button"
       >
-        <Bold className="size-4" />
+        <HugeiconsIcon icon={TextBoldIcon} className="size-4" />
       </button>
       <button
         aria-label="Format italic"
@@ -236,7 +237,7 @@ function FloatingToolbar({
         title="Italic (Ctrl+I)"
         type="button"
       >
-        <Italic className="size-4" />
+        <HugeiconsIcon icon={TextItalicIcon} className="size-4" />
       </button>
       <button
         aria-label="Format underline"
@@ -245,7 +246,7 @@ function FloatingToolbar({
         title="Underline (Ctrl+U)"
         type="button"
       >
-        <Underline className="size-4" />
+        <HugeiconsIcon icon={TextUnderlineIcon} className="size-4" />
       </button>
       <button
         aria-label="Format strikethrough"
@@ -256,7 +257,7 @@ function FloatingToolbar({
         title="Strikethrough"
         type="button"
       >
-        <Strikethrough className="size-4" />
+        <HugeiconsIcon icon={TextStrikethroughIcon} className="size-4" />
       </button>
       <button
         aria-label="Format code"
@@ -265,7 +266,7 @@ function FloatingToolbar({
         title="Code"
         type="button"
       >
-        <Code className="size-4" />
+        <HugeiconsIcon icon={CodeIcon} className="size-4" />
       </button>
       <div className="bg-border mx-1 h-4 w-px" />
       <button
@@ -275,7 +276,7 @@ function FloatingToolbar({
         title="Link"
         type="button"
       >
-        <Link className="size-4" />
+        <HugeiconsIcon icon={Link01Icon} className="size-4" />
       </button>
       {isLinkEditMode && (
         <div className="ml-1 flex items-center gap-1">

@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  Delete02Icon,
+  LayoutThreeColumnIcon,
+  LayoutThreeRowIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $deleteTableColumnAtSelection,
@@ -16,15 +26,6 @@ import {
   COMMAND_PRIORITY_LOW,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  Columns3,
-  Rows3,
-  Trash2,
-} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -165,7 +166,7 @@ function TableActionMenu({
         title="Insert row above"
         type="button"
       >
-        <ArrowUp className="size-4" />
+        <HugeiconsIcon icon={ArrowUp01Icon} className="size-4" />
       </button>
       <button
         aria-label="Insert row below"
@@ -174,7 +175,7 @@ function TableActionMenu({
         title="Insert row below"
         type="button"
       >
-        <ArrowDown className="size-4" />
+        <HugeiconsIcon icon={ArrowDown01Icon} className="size-4" />
       </button>
       <button
         aria-label="Insert column before"
@@ -183,7 +184,7 @@ function TableActionMenu({
         title="Insert column before"
         type="button"
       >
-        <ArrowLeft className="size-4" />
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
       </button>
       <button
         aria-label="Insert column after"
@@ -192,7 +193,7 @@ function TableActionMenu({
         title="Insert column after"
         type="button"
       >
-        <ArrowRight className="size-4" />
+        <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
       </button>
       <div className="bg-border mx-0.5 h-4 w-px" />
       <button
@@ -202,7 +203,7 @@ function TableActionMenu({
         title="Delete row"
         type="button"
       >
-        <Rows3 className="size-4" />
+        <HugeiconsIcon icon={LayoutThreeRowIcon} className="size-4" />
       </button>
       <button
         aria-label="Delete column"
@@ -211,7 +212,7 @@ function TableActionMenu({
         title="Delete column"
         type="button"
       >
-        <Columns3 className="size-4" />
+        <HugeiconsIcon icon={LayoutThreeColumnIcon} className="size-4" />
       </button>
       <button
         aria-label="Delete table"
@@ -220,7 +221,7 @@ function TableActionMenu({
         title="Delete table"
         type="button"
       >
-        <Trash2 className="size-4" />
+        <HugeiconsIcon icon={Delete02Icon} className="size-4" />
       </button>
     </div>
   );

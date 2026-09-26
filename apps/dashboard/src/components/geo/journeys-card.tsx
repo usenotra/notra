@@ -1,11 +1,12 @@
 "use client";
 
+import { Route01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
-import { RouteIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -118,7 +119,7 @@ export function JourneysCard({
             }
             className="min-h-72 px-6 py-10 [&_h3]:text-lg"
             description="Journeys appear when AI traffic reaches your site."
-            media={<RouteIcon className="size-5" />}
+            media={<HugeiconsIcon icon={Route01Icon} className="size-5" />}
             title="See how AI agents explore your site"
           />
         )}

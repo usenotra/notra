@@ -177,7 +177,6 @@ import {
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Toaster } from "@notra/ui/components/ui/sonner";
 import {
   Stepper,
   StepperContent,
@@ -1776,8 +1775,6 @@ export default function DesignSystemClientPage() {
       <DesignSystemClaudeChatCatalog />
       <DesignSystemGeminiCatalog />
       <DesignSystemPerplexityCatalog />
-
-      <Toaster richColors />
     </DesignSystemFrame>
   );
 }

@@ -99,7 +99,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               </Suspense>
             ) : null}
           </NuqsAdapter>
-          <Toaster position="top-center" />
+          <Toaster position="bottom-right" />
           <DatabuddyAnalytics />
         </TooltipProvider>
       </ThemeProvider>

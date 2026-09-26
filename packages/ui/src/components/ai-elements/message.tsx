@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  ArrowExpandDiagonal02Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   AttachmentIcon,
   Cancel01Icon,
   Copy01Icon,
+  Download01Icon,
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -48,14 +50,10 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { TABLE_CHROME_CLASS } from "@notra/ui/constants/table";
-import { DownloadIcon, Maximize2Icon } from "lucide-react";
+
 import type { FileUIPart, UIMessage } from "ai";
 import Image from "next/image";
-import type {
-  ComponentProps,
-  HTMLAttributes,
-  ReactElement,
-} from "react";
+import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import {
   createContext,
   memo,
@@ -91,7 +89,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
     className={cn(
       "group flex w-full max-w-[95%] min-w-0 flex-col gap-2",
       from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
-      className
+      className,
     )}
     {...props}
   />
@@ -109,7 +107,7 @@ export const MessageContent = ({
       "is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
       "group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
       "group-[.is-assistant]:w-full group-[.is-assistant]:text-foreground",
-      className
+      className,
     )}
     {...props}
   >
@@ -175,7 +173,7 @@ interface MessageBranchContextType {
 }
 
 const MessageBranchContext = createContext<MessageBranchContextType | null>(
-  null
+  null,
 );
 
 const useMessageBranch = () => {
@@ -183,7 +181,7 @@ const useMessageBranch = () => {
 
   if (!context) {
     throw new Error(
-      "MessageBranch components must be used within MessageBranch"
+      "MessageBranch components must be used within MessageBranch",
     );
   }
 
@@ -260,7 +258,7 @@ export const MessageBranchContent = ({
     <div
       className={cn(
         "grid gap-2 overflow-hidden [&>div]:pb-0",
-        index === currentBranch ? "block" : "hidden"
+        index === currentBranch ? "block" : "hidden",
       )}
       key={branch.key}
       {...props}
@@ -349,7 +347,7 @@ export const MessageBranchPage = ({
     <ButtonGroupText
       className={cn(
         "border-none bg-transparent text-muted-foreground shadow-none",
-        className
+        className,
       )}
       {...props}
     >
@@ -368,8 +366,8 @@ type MarkdownTableProps = ComponentProps<"table"> & {
 };
 
 function readTableData(table: HTMLTableElement): MessageTableData {
-  const headers = Array.from(table.querySelectorAll("thead th")).map((cell) =>
-    cell.textContent?.trim() ?? ""
+  const headers = Array.from(table.querySelectorAll("thead th")).map(
+    (cell) => cell.textContent?.trim() ?? "",
   );
   const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
   const fallbackRows =
@@ -377,8 +375,8 @@ function readTableData(table: HTMLTableElement): MessageTableData {
   const rows = fallbackRows
     .map((row) =>
       Array.from(row.querySelectorAll("td")).map(
-        (cell) => cell.textContent?.trim() ?? ""
-      )
+        (cell) => cell.textContent?.trim() ?? "",
+      ),
     )
     .filter((row) => row.length > 0);
 
@@ -431,7 +429,7 @@ function MessageMarkdownTable({
         clearTimeout(copyTimeoutRef.current);
       }
     },
-    []
+    [],
   );
 
   const getData = () => {
@@ -448,7 +446,7 @@ function MessageMarkdownTable({
     }
     copyTimeoutRef.current = setTimeout(
       () => setCopied(false),
-      MESSAGE_TABLE_COPY_RESET_MS
+      MESSAGE_TABLE_COPY_RESET_MS,
     );
   };
 
@@ -466,11 +464,7 @@ function MessageMarkdownTable({
   };
 
   const downloadMarkdown = () => {
-    downloadText(
-      "table.md",
-      tableDataToMarkdown(getData()),
-      "text/markdown"
-    );
+    downloadText("table.md", tableDataToMarkdown(getData()), "text/markdown");
   };
 
   const renderTable = () => (
@@ -478,7 +472,7 @@ function MessageMarkdownTable({
       <table
         className={cn(
           "w-full min-w-max caption-bottom border-separate border-spacing-0 text-sm [&_thead_th:last-child]:pr-24",
-          className
+          className,
         )}
         ref={tableRef}
         {...props}
@@ -493,14 +487,14 @@ function MessageMarkdownTable({
       className={cn(
         "group/table relative max-w-full",
         TABLE_CHROME_CLASS,
-        toolbarOpen && "is-menu-open"
+        toolbarOpen && "is-menu-open",
       )}
     >
       <div className="absolute top-1 right-1.5 z-10">
         <div
           className={cn(
             "flex items-center gap-1 rounded-md border bg-background/90 p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within/table:opacity-100 group-hover/table:opacity-100 supports-[backdrop-filter]:bg-background/75 supports-[backdrop-filter]:backdrop-blur",
-            toolbarOpen && "opacity-100"
+            toolbarOpen && "opacity-100",
           )}
         >
           <ContextMenu onOpenChange={setCopyMenuOpen}>
@@ -563,15 +557,12 @@ function MessageMarkdownTable({
                   />
                 }
               >
-                <DownloadIcon className="size-3.5" />
+                <HugeiconsIcon icon={Download01Icon} className="size-3.5" />
                 <span className="sr-only">Download table</span>
               </TooltipTrigger>
               <TooltipContent>Download table</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent
-              align="end"
-              className="w-44 min-w-44"
-            >
+            <DropdownMenuContent align="end" className="w-44 min-w-44">
               <DropdownMenuItem
                 className="whitespace-nowrap"
                 onClick={downloadCsv}
@@ -595,7 +586,10 @@ function MessageMarkdownTable({
                   />
                 }
               >
-                <Maximize2Icon className="size-3.5" />
+                <HugeiconsIcon
+                  icon={ArrowExpandDiagonal02Icon}
+                  className="size-3.5"
+                />
                 <span className="sr-only">View table fullscreen</span>
               </TooltipTrigger>
               <TooltipContent>View table fullscreen</TooltipContent>
@@ -633,7 +627,10 @@ function MessageTableHead({
   ...props
 }: ComponentProps<"thead"> & { node?: unknown }) {
   return (
-    <TableHeader className={cn("[&_tr]:hover:bg-transparent", className)} {...props}>
+    <TableHeader
+      className={cn("[&_tr]:hover:bg-transparent", className)}
+      {...props}
+    >
       {children}
     </TableHeader>
   );
@@ -706,7 +703,7 @@ function MessageLink({
     <a
       className={cn(
         "font-medium text-foreground underline underline-offset-3 transition-colors hover:text-foreground/80",
-        className
+        className,
       )}
       href={href}
       rel={rel ?? (isExternal ? "noopener noreferrer" : undefined)}
@@ -772,7 +769,7 @@ export function MessageAttachment({
     <div
       className={cn(
         "group relative size-24 overflow-hidden rounded-lg",
-        className
+        className,
       )}
       {...props}
     >
@@ -849,7 +846,7 @@ export function MessageAttachments({
     <div
       className={cn(
         "ml-auto flex w-fit flex-wrap items-start gap-2",
-        className
+        className,
       )}
       {...props}
     >
@@ -868,7 +865,7 @@ export const MessageToolbar = ({
   <div
     className={cn(
       "mt-4 flex w-full items-center justify-between gap-4",
-      className
+      className,
     )}
     {...props}
   >

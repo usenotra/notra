@@ -120,6 +120,7 @@
     "zod": "^4.5.0"
   },
   "devDependencies": {
+    "@ai-sdk/devtools": "1.0.22",
     "@notra/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

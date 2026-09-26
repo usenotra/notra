@@ -1,7 +1,8 @@
 "use client";
 
+import { GripVerticalIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { DraggableBlockPlugin_EXPERIMENTAL } from "@lexical/react/LexicalDraggableBlockPlugin";
-import { GripVertical } from "lucide-react";
 import { type ReactElement, useMemo, useRef } from "react";
 
 const DRAGGABLE_BLOCK_MENU_CLASSNAME = "draggable-block-menu";
@@ -26,7 +27,10 @@ export function DraggableBlockPlugin({
         className={`${DRAGGABLE_BLOCK_MENU_CLASSNAME} hover:bg-muted absolute top-0 left-0 cursor-grab rounded p-0.5 opacity-0 transition-opacity will-change-transform active:cursor-grabbing`}
         ref={menuRef}
       >
-        <GripVertical className="text-muted-foreground size-4" />
+        <HugeiconsIcon
+          icon={GripVerticalIcon}
+          className="text-muted-foreground size-4"
+        />
       </div>
     ),
     []

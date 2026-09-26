@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshIcon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
@@ -72,7 +72,7 @@ export function GuidelinesPanel({
   if (isError) {
     return (
       <EmptyState
-        actionIcon={<HugeiconsIcon className="size-4" icon={RefreshIcon} />}
+        actionIcon={<HugeiconsIcon className="size-4" icon={Refresh03Icon} />}
         actionLabel="Retry"
         description="We couldn't load this brand identity's guidelines."
         onActionClick={() => refetch()}
@@ -183,7 +183,7 @@ export function GuidelinesPanel({
               {isRefreshBusy ? (
                 <Loader2Icon className="size-4 animate-spin" />
               ) : (
-                <HugeiconsIcon className="size-4" icon={RefreshIcon} />
+                <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
               )}
               {isRefreshBusy ? "Refreshing…" : "Refresh Guidelines"}
             </Button>

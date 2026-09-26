@@ -1,12 +1,13 @@
 "use client";
 
+import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ComboboxContent,
   ComboboxEmpty,
   ComboboxItem,
   ComboboxList,
 } from "@notra/ui/components/ui/combobox";
-import { PlusIcon, RefreshCwIcon } from "lucide-react";
 
 import { Button } from "@/components/button";
 import { CompetitorBrandLogo } from "@/components/onboarding/competitor-brand-logo";
@@ -38,8 +39,9 @@ function SearchRetryNotice({
         type="button"
         variant="ghost"
       >
-        <RefreshCwIcon
+        <HugeiconsIcon
           className={searchFetching ? "size-3 animate-spin" : "size-3"}
+          icon={Refresh03Icon}
         />
         {searchFetching ? "Retrying" : "Retry search"}
       </Button>
@@ -55,7 +57,7 @@ function CompetitorSearchResultRow({
     return (
       <span className="flex w-full min-w-0 items-center gap-2.5">
         <span className="bg-muted flex size-6 shrink-0 items-center justify-center rounded-md">
-          <PlusIcon className="size-3.5" />
+          <HugeiconsIcon icon={Add01Icon} className="size-3.5" />
         </span>
         <span className="min-w-0 flex-1 truncate font-medium">
           Add “{entry.name}” manually

@@ -1,7 +1,8 @@
 "use client";
 
+import { Download01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
-import { DownloadIcon } from "lucide-react";
 import Image from "next/image";
 
 import type { ToolOutputImage } from "./types";
@@ -41,7 +42,11 @@ export function ToolOutputImages({ images }: { images: ToolOutputImage[] }) {
             title="Download image"
             type="button"
           >
-            <DownloadIcon aria-hidden="true" className="size-4" />
+            <HugeiconsIcon
+              icon={Download01Icon}
+              aria-hidden="true"
+              className="size-4"
+            />
           </button>
         </div>
       ))}

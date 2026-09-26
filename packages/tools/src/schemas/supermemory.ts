@@ -4,7 +4,9 @@ export const supermemorySearchResponseSchema = z.object({
   results: z
     .array(
       z.looseObject({
+        id: z.string().optional(),
         documentId: z.string().optional(),
+        chunk: z.string().optional(),
         chunks: z
           .array(
             z.looseObject({
@@ -16,6 +18,7 @@ export const supermemorySearchResponseSchema = z.object({
         memory: z.string().optional(),
         title: z.string().nullable().optional(),
         score: z.number().optional(),
+        similarity: z.number().optional(),
         metadata: z.record(z.string(), z.unknown()).nullable().optional(),
       })
     )

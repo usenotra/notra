@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   type AddGitHubIntegrationFormValues,
@@ -27,7 +29,6 @@ import { Input } from "@notra/ui/components/ui/input";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDownIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { isValidElement, useEffect, useRef, useState } from "react";
@@ -428,7 +429,8 @@ export function LegacyAddIntegrationDialog({
 
               <Collapsible onOpenChange={setTokenOpen} open={tokenOpen}>
                 <CollapsibleTrigger className="flex w-full items-center gap-2 text-sm font-medium">
-                  <ChevronDownIcon
+                  <HugeiconsIcon
+                    icon={ArrowDown01Icon}
                     className={`h-4 w-4 transition-transform ${tokenOpen ? "" : "-rotate-90"}`}
                   />
                   Personal Access Token

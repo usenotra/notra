@@ -6,6 +6,7 @@ import {
   GEO_SEARCH_GAP_WRITE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type {
+  GeoAiSearchGapRow,
   GeoContentGapsResponse,
   GeoGapBriefRef,
   GeoGapWriteAction,
@@ -52,6 +53,23 @@ export function withRestoredPromptGap(
       (a, b) => b.opportunity - a.opportunity
     ),
   };
+}
+
+export function maxGapOpportunity(
+  rows: readonly { opportunity: number }[]
+): number {
+  return Math.max(0, ...rows.map((row) => row.opportunity));
+}
+
+export function gapOpportunityLevel(
+  opportunity: number,
+  maxOpportunity: number
+): number {
+  return gapMeterLevel(maxOpportunity <= 0 ? 0 : opportunity / maxOpportunity);
+}
+
+export function isGeoGapsTab(value: unknown): value is GeoGapsTab {
+  return value === "prompt" || value === "search" || value === "ai";
 }
 
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
@@ -213,35 +231,43 @@ export function geoGapsEmptyKind({
   if (!hasScanData) {
     return "no-scan";
   }
-  return "no-prompt-gaps";
+  return tab === "ai" ? "no-ai-search-gaps" : "no-prompt-gaps";
 }
 
 function gapSearchValues(row: {
   prompt: string;
   title: string | null;
   brief: GeoGapBriefRef | null;
+  searchQueries?: string[];
 }): string[] {
-  return [row.prompt, row.title ?? "", row.brief?.workingTitle ?? ""];
+  return [
+    row.prompt,
+    row.title ?? "",
+    row.brief?.workingTitle ?? "",
+    ...(row.searchQueries ?? []),
+  ];
 }
 
-function filterGapsByQuery<
-  T extends {
-    prompt: string;
-    title: string | null;
-    brief: GeoGapBriefRef | null;
-  },
->(rows: readonly T[], query: string): T[] {
+export function gapSearchQueriesLabel(
+  queries: readonly string[]
+): string | null {
+  return queries.length === 0 ? null : `AI searched: ${queries.join(", ")}`;
+}
+
+function filterGapsByQuery<T>(
+  rows: readonly T[],
+  query: string,
+  values: (row: T) => string[]
+): T[] {
   const trimmed = query.trim();
-  const matched = rows.filter((row) =>
-    fuzzyMatches(gapSearchValues(row), trimmed)
-  );
+  const matched = rows.filter((row) => fuzzyMatches(values(row), trimmed));
   if (trimmed.length === 0) {
     return matched;
   }
   return matched
     .map((row) => ({
       row,
-      score: bestFuzzyScore(gapSearchValues(row), trimmed),
+      score: bestFuzzyScore(values(row), trimmed),
     }))
     .sort((left, right) => right.score - left.score)
     .map((entry) => entry.row);
@@ -258,14 +284,39 @@ export function filterPromptGaps(
       : rows.filter((row) =>
           gapMissingEngineFamilies(row.engines).includes(engineFamily)
         );
-  return filterGapsByQuery(byEngine, query);
+  return filterGapsByQuery(byEngine, query, gapSearchValues);
 }
 
 export function filterSearchGaps(
   rows: readonly GeoSearchGapRow[],
   query: string
 ): GeoSearchGapRow[] {
-  return filterGapsByQuery(rows, query);
+  return filterGapsByQuery(rows, query, gapSearchValues);
+}
+
+export function filterAiSearchGaps(
+  rows: readonly GeoAiSearchGapRow[],
+  query: string
+): GeoAiSearchGapRow[] {
+  return filterGapsByQuery(rows, query, aiSearchGapSearchValues);
+}
+
+function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
+  return [
+    row.query,
+    ...row.variants,
+    ...row.prompts,
+    row.brief?.workingTitle ?? "",
+  ];
+}
+
+export function aiSearchGapSubtitle(row: GeoAiSearchGapRow): string | null {
+  const [first] = row.prompts;
+  if (!first) {
+    return null;
+  }
+  const more = row.prompts.length - 1;
+  return more > 0 ? `From "${first}" and ${more} more` : `From "${first}"`;
 }
 
 export function uniqueGapEngineFamilies(

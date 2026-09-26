@@ -2,7 +2,7 @@ import {
   Delete02Icon,
   Edit02Icon,
   MoreVerticalIcon,
-  Refresh01Icon,
+  Refresh03Icon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -199,7 +199,7 @@ export function VoiceSelector({
                       }
                     }}
                   >
-                    <HugeiconsIcon className="size-4" icon={Refresh01Icon} />
+                    <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
                     Re-analyze
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

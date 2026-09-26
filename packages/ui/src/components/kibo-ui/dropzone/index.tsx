@@ -1,6 +1,7 @@
 "use client";
 
-import { UploadIcon } from "lucide-react";
+import { Upload01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useMemo } from "react";
 import type { DropEvent, DropzoneOptions, FileRejection } from "react-dropzone";
@@ -32,7 +33,7 @@ const renderBytes = (bytes: number) => {
 };
 
 const DropzoneContext = createContext<DropzoneContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export type DropzoneProps = Omit<DropzoneOptions, "onDrop"> & {
@@ -41,7 +42,7 @@ export type DropzoneProps = Omit<DropzoneOptions, "onDrop"> & {
   onDrop?: (
     acceptedFiles: File[],
     fileRejections: FileRejection[],
-    event: DropEvent
+    event: DropEvent,
   ) => void;
   children?: ReactNode;
 };
@@ -79,7 +80,7 @@ export const Dropzone = ({
 
   const contextValue = useMemo(
     () => ({ src, accept, maxSize, minSize, maxFiles }),
-    [src, accept, maxSize, minSize, maxFiles]
+    [src, accept, maxSize, minSize, maxFiles],
   );
 
   return (
@@ -90,7 +91,7 @@ export const Dropzone = ({
           "relative h-auto w-full cursor-pointer flex-col overflow-hidden p-8",
           isDragActive && "outline-none ring-1 ring-ring",
           disabled && "pointer-events-none opacity-50",
-          className
+          className,
         )}
         {...getRootProps()}
       >
@@ -135,12 +136,12 @@ export const DropzoneContent = ({
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <UploadIcon size={16} />
+        <HugeiconsIcon icon={Upload01Icon} size={16} />
       </div>
       <p className="my-2 w-full truncate font-medium text-sm">
         {src.length > maxLabelItems
           ? `${listFormatter.format(
-              src.slice(0, maxLabelItems).map((file) => file.name)
+              src.slice(0, maxLabelItems).map((file) => file.name),
             )} and ${src.length - maxLabelItems} more`
           : listFormatter.format(src.map((file) => file.name))}
       </p>
@@ -188,7 +189,7 @@ export const DropzoneEmptyState = ({
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <UploadIcon size={16} />
+        <HugeiconsIcon icon={Upload01Icon} size={16} />
       </div>
       <p className="my-2 w-full truncate text-wrap font-medium text-sm">
         Upload {maxFiles === 1 ? "a file" : "files"}

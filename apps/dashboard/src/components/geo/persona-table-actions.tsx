@@ -5,7 +5,7 @@ import {
   ArchiveRestoreIcon,
   PauseIcon,
   PlayIcon,
-  RefreshIcon,
+  Refresh03Icon,
   ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -85,7 +85,7 @@ export function PersonaTableRowActions({
               type="button"
               variant="ghost"
             >
-              <HugeiconsIcon icon={RefreshIcon} size={16} />
+              <HugeiconsIcon icon={Refresh03Icon} size={16} />
             </Button>
           }
         />
@@ -163,7 +163,7 @@ export function PersonaTableContextMenu({
         disabled={mutationDisabled}
         onClick={() => onRegenerate(persona.id)}
       >
-        <HugeiconsIcon icon={RefreshIcon} />
+        <HugeiconsIcon icon={Refresh03Icon} />
         Regenerate persona
       </ContextMenuItem>
       <ContextMenuSeparator />

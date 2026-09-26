@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { gateway } from "@notra/ai/gateway";
 import {
   type AILogTarget,
@@ -33,13 +35,15 @@ export function createModel(
     return wrapModelForDevTools(wrapModelWithObservability(base, log));
   }
 
-  // @supermemory/tools is typed against AI SDK 5, but its wrapper is a Proxy
+  // @supermemory/tools is typed against AI SDK 5/6, but its wrapper is a Proxy
   // that forwards the V4 model spec and stream parts unchanged.
-  const model = withSupermemory(base as never, organizationId, {
+  const model = withSupermemory(base as never, {
     apiKey: supermemoryApiKey,
     mode: "full",
     addMemory: "always",
     ...options?.supermemory,
+    containerTag: organizationId,
+    customId: options?.supermemory?.customId ?? randomUUID(),
   }) as unknown as GatewayResult;
 
   return wrapModelForDevTools(wrapModelWithObservability(model, log));

@@ -1,7 +1,8 @@
 "use client";
 
+import { LinkSquare02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
-import { CheckIcon, ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -90,7 +91,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   }`}
                 >
                   {isCompleted ? (
-                    <CheckIcon className="h-3.5 w-3.5" />
+                    <HugeiconsIcon icon={Tick02Icon} className="h-3.5 w-3.5" />
                   ) : (
                     index + 1
                   )}
@@ -113,7 +114,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       target="_blank"
                     >
                       {step.link.label}
-                      <ExternalLinkIcon className="h-3 w-3" />
+                      <HugeiconsIcon
+                        icon={LinkSquare02Icon}
+                        className="h-3 w-3"
+                      />
                     </a>
                   ) : null}
                   {"internalLink" in step && step.internalLink ? (
@@ -123,7 +127,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       onClick={(e) => e.stopPropagation()}
                     >
                       Go to API Keys
-                      <ExternalLinkIcon className="h-3 w-3" />
+                      <HugeiconsIcon
+                        icon={LinkSquare02Icon}
+                        className="h-3 w-3"
+                      />
                     </Link>
                   ) : null}
                 </div>

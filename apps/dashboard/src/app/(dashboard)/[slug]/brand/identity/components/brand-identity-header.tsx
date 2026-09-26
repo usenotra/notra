@@ -1,6 +1,6 @@
 "use client";
 
-import { Add01Icon, RefreshIcon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Loader2Icon } from "lucide-react";
@@ -53,7 +53,7 @@ export function BrandIdentityHeader({
           {isRefreshingGuidelines ? (
             <Loader2Icon className="size-4 animate-spin" />
           ) : (
-            <HugeiconsIcon className="size-4" icon={RefreshIcon} />
+            <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
           )}
           Refresh Guidelines
         </Button>

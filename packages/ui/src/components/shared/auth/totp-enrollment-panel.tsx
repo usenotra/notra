@@ -3,6 +3,7 @@
 import { CheckmarkCircle02Icon, Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
+
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -29,11 +30,7 @@ function formatSecret(secret: string) {
   return compact.match(SECRET_GROUP_REGEX)?.join(" ") ?? compact;
 }
 
-function CopyValueField({
-  label,
-  value,
-  display,
-}: CopyValueFieldProps) {
+function CopyValueField({ label, value, display }: CopyValueFieldProps) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -214,7 +211,9 @@ export function TotpEnrollmentPanel({
             disabled={isPending || code.length !== TOTP_CODE_LENGTH}
             type="submit"
           >
-            {isPending && <Loader2Icon className="animate-spin" />}
+            {isPending && (
+              <Loader2Icon className="animate-spin" />
+            )}
             {submitLabel}
           </Button>
         </StepActions>
@@ -224,8 +223,8 @@ export function TotpEnrollmentPanel({
     content = (
       <div className="grid gap-4">
         <p className="text-muted-foreground text-sm">
-          In your authenticator app, add an account with this key and
-          time-based codes.
+          In your authenticator app, add an account with this key and time-based
+          codes.
         </p>
         <CopyValueField
           display={formatSecret(secret)}

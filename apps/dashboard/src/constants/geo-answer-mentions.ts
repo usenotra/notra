@@ -17,3 +17,6 @@ export const GEO_ANSWER_MENTION_KIND_LABEL = "Type";
 export const GEO_ANSWER_MENTION_ALSO_KNOWN_AS = "Also known as";
 export const GEO_ANSWER_MENTION_MENTIONS_LABEL = "Mentions";
 export const GEO_ANSWER_MENTION_WITH_YOU_LABEL = "With your brand";
+
+export const GEO_ANSWER_MENTION_LIST_ITEM_CLASS =
+  "py-1 [&>p:first-child]:inline";

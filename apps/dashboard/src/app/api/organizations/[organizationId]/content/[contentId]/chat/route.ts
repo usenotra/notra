@@ -227,6 +227,7 @@ export const POST = withEvlog(async function POST(
     const { stream, routingDecision } = await orchestrateChat(
       {
         organizationId,
+        chatId,
         messages,
         currentMarkdown,
         contentType,
