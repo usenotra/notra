@@ -50,11 +50,11 @@ export function CreditSummaryCards({
         heading="Current Balance"
       >
         <div>
-          <p className="truncate text-3xl font-bold tracking-tight tabular-nums">
+          <p className="text-3xl font-bold tracking-tight wrap-anywhere tabular-nums">
             {balance !== null ? formatDollars(balance) : "-"}
           </p>
           {included !== null && (
-            <p className="text-muted-foreground mt-1 truncate text-sm">
+            <p className="text-muted-foreground mt-1 text-sm wrap-anywhere">
               of {formatDollars(included)} included
             </p>
           )}
@@ -66,7 +66,7 @@ export function CreditSummaryCards({
         heading="Used This Period"
       >
         <div>
-          <p className="truncate text-3xl font-bold tracking-tight tabular-nums">
+          <p className="text-3xl font-bold tracking-tight wrap-anywhere tabular-nums">
             {formatDollars(totalUsage)}
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
