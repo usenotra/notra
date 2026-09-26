@@ -13,6 +13,7 @@ import {
 
 import {
   BRAND_GUIDELINE_LEADING_WWW_REGEX,
+  BRAND_GUIDELINE_SOURCE_PREVIEW_LIMIT,
   BRAND_GUIDELINE_TOKEN_GROUPS,
 } from "@/constants/brand-guidelines";
 import type {
@@ -286,6 +287,19 @@ function serializeGuidelineDate(value: Date | null) {
   return value?.toISOString() ?? null;
 }
 
+function previewGuidelineSourceText(value: string | null) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) {
+    return null;
+  }
+  // Use code-point slicing so we never split a surrogate pair.
+  const chars = Array.from(trimmed);
+  if (chars.length <= BRAND_GUIDELINE_SOURCE_PREVIEW_LIMIT) {
+    return trimmed;
+  }
+  return `${chars.slice(0, BRAND_GUIDELINE_SOURCE_PREVIEW_LIMIT).join("").trimEnd()}…`;
+}
+
 export function serializeGuidelinesResponse(
   guideline: StoredBrandGuideline | null | undefined
 ): BrandGuidelinesResponse {
@@ -308,6 +322,12 @@ export function serializeGuidelinesResponse(
       contextDevMeta: guideline.contextDevMeta,
       lastGeneratedAt: serializeGuidelineDate(guideline.lastGeneratedAt),
       lastGenerationError: guideline.lastGenerationError,
+      sourcePdfFilename: guideline.sourcePdfFilename,
+      sourcePdfPreview: previewGuidelineSourceText(guideline.sourcePdfText),
+      sourcePdfUploadedAt: serializeGuidelineDate(
+        guideline.sourcePdfUploadedAt
+      ),
+      sourcePdfUrl: guideline.sourcePdfUrl,
       createdAt: guideline.createdAt.toISOString(),
       updatedAt: guideline.updatedAt.toISOString(),
     },

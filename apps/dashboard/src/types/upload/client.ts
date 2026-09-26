@@ -1,4 +1,10 @@
-export type UploadType = "avatar" | "logo" | "brand_asset" | "content" | "chat";
+export type UploadType =
+  | "avatar"
+  | "logo"
+  | "brand_asset"
+  | "brand_guideline_pdf"
+  | "content"
+  | "chat";
 
 /** Response from the upload presign procedure */
 export interface UploadPresignedResponse {

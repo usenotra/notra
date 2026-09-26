@@ -1021,6 +1021,11 @@ export const brandGuidelines = pgTable(
     contextDevMeta: jsonb("context_dev_meta"),
     lastGeneratedAt: timestamp("last_generated_at"),
     lastGenerationError: text("last_generation_error"),
+    sourcePdfFilename: text("source_pdf_filename"),
+    sourcePdfStorageKey: text("source_pdf_storage_key"),
+    sourcePdfUrl: text("source_pdf_url"),
+    sourcePdfText: text("source_pdf_text"),
+    sourcePdfUploadedAt: timestamp("source_pdf_uploaded_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

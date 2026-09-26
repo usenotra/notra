@@ -50,6 +50,7 @@ async function assertUploadAccess({
   const requiresOrganization =
     type === "logo" ||
     type === "brand_asset" ||
+    type === "brand_guideline_pdf" ||
     type === "content" ||
     type === "chat";
 
@@ -117,6 +118,9 @@ async function resolveUploadTarget({
       break;
     case "brand_asset":
       key = `organization/${organizationId}/brand-assets/${id}.${extension}`;
+      break;
+    case "brand_guideline_pdf":
+      key = `organization/${organizationId}/brand-guidelines/${id}.${extension}`;
       break;
     case "content":
       key = `organization/${organizationId}/content/${id}.${extension}`;

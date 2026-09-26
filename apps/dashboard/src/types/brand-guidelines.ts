@@ -166,6 +166,10 @@ export interface StoredBrandGuideline {
   contextDevMeta: unknown;
   lastGeneratedAt: Date | null;
   lastGenerationError: string | null;
+  sourcePdfFilename: string | null;
+  sourcePdfUrl: string | null;
+  sourcePdfText: string | null;
+  sourcePdfUploadedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   assets: StoredBrandGuidelineAsset[];

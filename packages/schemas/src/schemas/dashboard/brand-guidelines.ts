@@ -94,6 +94,34 @@ export const createGuidelineColorSchema = z.object({
   usage: optionalNullableText(240),
 });
 
+export const attachGuidelineSourcePdfSchema = z.object({
+  key: z
+    .string()
+    .min(1)
+    .max(512)
+    .refine((value) => !value.includes("..") && !value.startsWith("/"), {
+      message: "Invalid object key",
+    }),
+  filename: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .refine((value) => value.toLowerCase().endsWith(".pdf"), {
+      message: "Brand guideline file must be a PDF",
+    }),
+});
+
+export const discardGuidelineSourcePdfSchema = z.object({
+  key: z
+    .string()
+    .min(1)
+    .max(512)
+    .refine((value) => !value.includes("..") && !value.startsWith("/"), {
+      message: "Invalid object key",
+    }),
+});
+
 export const createGuidelineAssetSchema = z.object({
   kind: guidelineAssetKindSchema,
   variant: guidelineAssetVariantSchema,

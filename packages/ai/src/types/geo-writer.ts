@@ -94,6 +94,7 @@ export interface GeoWriterPromptInput {
   today: string;
   monthYear: string;
   language: string;
+  guidelineDocument?: string | null;
 }
 
 export interface RunGeoWriterOptions {

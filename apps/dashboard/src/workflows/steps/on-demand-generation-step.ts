@@ -5,6 +5,7 @@ import type { PostSourceMetadata } from "@notra/db/schema";
 import { flushPostHogServer } from "@notra/posthog/server";
 import { createRequestLogger } from "evlog";
 
+import { loadBrandGuidelineSourceInstructionsSafely } from "@/lib/brand-guidelines";
 import {
   buildDataPointRestrictionInstructions,
   buildSelectedItemsInstructions,
@@ -62,8 +63,11 @@ export async function runOnDemandGeneration(
     buildDataPointRestrictionInstructions(dataPoints);
   const selectedItemsInstructions =
     buildSelectedItemsInstructions(selectedItems);
+  const guidelineInstructions =
+    await loadBrandGuidelineSourceInstructionsSafely(brand?.id);
   const customInstructions = [
     brand?.customInstructions?.trim() || "",
+    guidelineInstructions,
     restrictionInstructions || "",
     selectedItemsInstructions || "",
   ]

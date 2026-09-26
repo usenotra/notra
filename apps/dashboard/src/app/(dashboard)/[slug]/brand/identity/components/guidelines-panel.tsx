@@ -21,6 +21,7 @@ import { formatRelativeTime } from "@/utils/format";
 import { GuidelinesAssetsSection } from "./guidelines-assets-section";
 import { GuidelinesColorsSection } from "./guidelines-colors-section";
 import { GuidelinesScreenshotsSection } from "./guidelines-screenshots-section";
+import { GuidelinesSourcePdfSection } from "./guidelines-source-pdf-section";
 import { GuidelinesTokensSection } from "./guidelines-tokens-section";
 import { GuidelinesTypographySection } from "./guidelines-typography-section";
 
@@ -35,9 +36,10 @@ export function GuidelinesPanel({
   const refresh = useRefreshBrandGuidelinesAction(organizationId, voiceId);
 
   const isFailed = data?.guideline?.status === "failed";
-  const isGenerating =
-    data?.guideline?.status === "queued" ||
-    data?.guideline?.status === "generating";
+  // `queued` is the initial/never-generated state (including PDF-only rows
+  // created by attach). Only `generating` means a workflow is actively
+  // running; polling and the generating UI key off this.
+  const isGenerating = data?.guideline?.status === "generating";
   const isRefreshBusy = refresh.isPending || isGenerating;
   const generationError = data?.guideline?.lastGenerationError;
 
@@ -83,25 +85,13 @@ export function GuidelinesPanel({
 
   const { guideline, assets, colors, fonts, tokens, screenshots } = data;
 
-  if (!guideline) {
-    return (
-      <EmptyState
-        action={
-          <Button disabled={isRefreshBusy} onClick={refresh.refreshGuidelines}>
-            {isRefreshBusy ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon className="size-4" icon={SparklesIcon} />
-            )}
-            {isRefreshBusy ? "Generating…" : "Generate Guidelines"}
-          </Button>
-        }
-        description="Brand guidelines have not been generated yet. Generate them to pull logos, colors, typography, and landing page screenshots from your website."
-        preview={<EmptyStateGuidelinesPreview />}
-        title="No guidelines yet"
-      />
-    );
-  }
+  const sourcePdf = (
+    <GuidelinesSourcePdfSection
+      guideline={guideline}
+      organizationId={organizationId}
+      voiceId={voiceId}
+    />
+  );
 
   const hasData =
     assets.length > 0 ||
@@ -110,9 +100,42 @@ export function GuidelinesPanel({
     tokens.length > 0 ||
     screenshots.length > 0;
 
+  // Never generated: no generated assets and no successful generation yet.
+  // Covers both `guideline === null` and PDF-only `queued` rows so a PDF
+  // upload alone keeps the "Generate Guidelines" empty state instead of the
+  // "Guidelines are empty / Refresh" state.
+  const neverGenerated = !hasData && !guideline?.lastGeneratedAt && !isFailed;
+
+  if (!guideline || (neverGenerated && !isGenerating)) {
+    return (
+      <div className="space-y-6">
+        {sourcePdf}
+        <EmptyState
+          action={
+            <Button
+              disabled={isRefreshBusy}
+              onClick={refresh.refreshGuidelines}
+            >
+              {isRefreshBusy ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : (
+                <HugeiconsIcon className="size-4" icon={SparklesIcon} />
+              )}
+              {isRefreshBusy ? "Generating…" : "Generate Guidelines"}
+            </Button>
+          }
+          description="Brand guidelines have not been generated yet. Generate them to pull logos, colors, typography, and landing page screenshots from your website."
+          preview={<EmptyStateGuidelinesPreview />}
+          title="No guidelines yet"
+        />
+      </div>
+    );
+  }
+
   if (isGenerating && !hasData) {
     return (
       <div className="space-y-6">
+        {sourcePdf}
         <div className="flex items-center justify-between gap-3">
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
             <Loader2Icon className="size-4 animate-spin" />
@@ -130,6 +153,7 @@ export function GuidelinesPanel({
 
   return (
     <div className="space-y-6">
+      {sourcePdf}
       {isGenerating ? (
         <p className="text-muted-foreground flex items-center justify-end gap-2 text-xs">
           <Loader2Icon className="size-3 animate-spin" />

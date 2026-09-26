@@ -4,8 +4,10 @@ import {
   ALLOWED_RASTER_MIME_TYPES,
   type AllowedChatMimeType,
   type AllowedRasterMimeType,
+  BRAND_GUIDELINE_PDF_MIME_TYPE,
   MAX_AVATAR_FILE_SIZE,
   MAX_BRAND_ASSET_FILE_SIZE,
+  MAX_BRAND_GUIDELINE_PDF_FILE_SIZE,
   MAX_CHAT_FILE_SIZE,
   MAX_CONTENT_FILE_SIZE,
   MAX_LOGO_FILE_SIZE,
@@ -18,6 +20,7 @@ import type { UploadType } from "@/types/upload/client";
 const maxSizeByType = {
   avatar: MAX_AVATAR_FILE_SIZE,
   brand_asset: MAX_BRAND_ASSET_FILE_SIZE,
+  brand_guideline_pdf: MAX_BRAND_GUIDELINE_PDF_FILE_SIZE,
   logo: MAX_LOGO_FILE_SIZE,
   content: MAX_CONTENT_FILE_SIZE,
   chat: MAX_CHAT_FILE_SIZE,
@@ -64,6 +67,13 @@ export function validateUpload({
       break;
     case "brand_asset":
       assertAllowedGeneralUploadType(fileType, "brand assets");
+      break;
+    case "brand_guideline_pdf":
+      if (fileType !== BRAND_GUIDELINE_PDF_MIME_TYPE) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Brand guideline uploads must be PDF files.",
+        });
+      }
       break;
     case "content":
       assertAllowedGeneralUploadType(fileType, "content");

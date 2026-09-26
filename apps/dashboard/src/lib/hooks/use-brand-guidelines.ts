@@ -57,10 +57,11 @@ export function useBrandGuidelines(organizationId: string, voiceId: string) {
       enabled: !!organizationId && !!voiceId,
     }),
     refetchInterval: (query) => {
+      // Only `generating` indicates an active workflow. `queued` is the
+      // never-generated initial state (including PDF-only rows) and must not
+      // poll forever.
       const status = query.state.data?.guideline?.status;
-      return status === "queued" || status === "generating"
-        ? BRAND_GUIDELINE_POLL_INTERVAL_MS
-        : false;
+      return status === "generating" ? BRAND_GUIDELINE_POLL_INTERVAL_MS : false;
     },
   });
 }
@@ -215,5 +216,50 @@ export function useCreateGuidelineAsset(
       }),
     organizationId,
     voiceId,
+  });
+}
+
+export function useAttachGuidelineSourcePdf(
+  organizationId: string,
+  voiceId: string
+) {
+  return useGuidelineMutation<{ filename: string; key: string }>({
+    mutationFn: (input) =>
+      dashboardOrpc.brand.guidelines.attachSourcePdf.call({
+        organizationId,
+        voiceId,
+        ...input,
+      }),
+    organizationId,
+    voiceId,
+  });
+}
+
+export function useRemoveGuidelineSourcePdf(
+  organizationId: string,
+  voiceId: string
+) {
+  return useGuidelineMutation({
+    mutationFn: () =>
+      dashboardOrpc.brand.guidelines.removeSourcePdf.call({
+        organizationId,
+        voiceId,
+      }),
+    organizationId,
+    voiceId,
+  });
+}
+
+export function useDiscardGuidelineSourcePdf(
+  organizationId: string,
+  voiceId: string
+) {
+  return useMutation({
+    mutationFn: (input: { key: string }) =>
+      dashboardOrpc.brand.guidelines.discardSourcePdf.call({
+        organizationId,
+        voiceId,
+        ...input,
+      }),
   });
 }

@@ -4,7 +4,9 @@ import z from "zod";
 import {
   ALLOWED_CHAT_MIME_TYPES,
   MAX_AVATAR_FILE_SIZE,
+  BRAND_GUIDELINE_PDF_MIME_TYPE,
   MAX_BRAND_ASSET_FILE_SIZE,
+  MAX_BRAND_GUIDELINE_PDF_FILE_SIZE,
   MAX_CHAT_FILE_SIZE,
   MAX_CONTENT_FILE_SIZE,
   MAX_LOGO_FILE_SIZE,
@@ -47,6 +49,18 @@ export const uploadBrandAssetSchema = z.object({
     }),
 });
 
+export const uploadBrandGuidelinePdfSchema = z.object({
+  type: z.literal("brand_guideline_pdf"),
+  fileType: z.literal(BRAND_GUIDELINE_PDF_MIME_TYPE),
+  fileSize: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(MAX_BRAND_GUIDELINE_PDF_FILE_SIZE, {
+      message: `Brand guideline PDF must be less than ${MAX_BRAND_GUIDELINE_PDF_FILE_SIZE / 1024 / 1024}MB`,
+    }),
+});
+
 export const uploadMediaSchema = z.object({
   type: z.literal("content"),
   fileType: z.coerce.string().nonempty(),
@@ -75,6 +89,7 @@ export const uploadSchema = z.union([
   uploadAvatarSchema,
   uploadLogoSchema,
   uploadBrandAssetSchema,
+  uploadBrandGuidelinePdfSchema,
   uploadMediaSchema,
   uploadChatSchema,
 ]);

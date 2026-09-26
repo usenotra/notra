@@ -1,6 +1,7 @@
 import {
   ALLOWED_CHAT_MIME_TYPES,
   type AllowedChatMimeType,
+  BRAND_GUIDELINE_PDF_MIME_TYPE,
   SVG_MIME_TYPE,
 } from "@notra/schemas/constants/dashboard/upload";
 
@@ -15,22 +16,54 @@ import type {
   UploadType,
 } from "@/types/upload/client";
 
+function resolveUploadMimeType(file: File, type: UploadType): string {
+  // Some browsers (notably Chrome on certain OS/file-system combinations)
+  // report an empty MIME type for PDFs. The presign schema requires
+  // `application/pdf` for brand guideline PDFs, so normalize here to match
+  // the client-side `isPdfFile` extension check. Without this, empty-type
+  // PDFs always fail presign validation and the PUT `Content-Type` would
+  // mismatch the SigV4 `ContentType`.
+  if (
+    type === "brand_guideline_pdf" &&
+    file.type === "" &&
+    file.name.toLowerCase().endsWith(".pdf")
+  ) {
+    return BRAND_GUIDELINE_PDF_MIME_TYPE;
+  }
+  return file.type;
+}
+
 async function getPresignedUrl(
   file: File,
   type: UploadType
 ): Promise<UploadPresignedResponse> {
+  const fileType = resolveUploadMimeType(file, type);
+  if (type === "brand_guideline_pdf") {
+    return dashboardOrpc.upload.createPresignedUpload.call({
+      type,
+      fileType: BRAND_GUIDELINE_PDF_MIME_TYPE,
+      fileSize: file.size,
+    });
+  }
   return dashboardOrpc.upload.createPresignedUpload.call({
-    type,
-    fileType: file.type,
+    // The presign input is a discriminated union; after narrowing out
+    // `brand_guideline_pdf` (which requires a literal MIME type), the
+    // remaining variants accept a generic MIME string.
+    type: type as Exclude<UploadType, "brand_guideline_pdf">,
+    fileType,
     fileSize: file.size,
-  });
+  } as Parameters<typeof dashboardOrpc.upload.createPresignedUpload.call>[0]);
 }
 
-async function uploadToR2(presignedUrl: string, file: File) {
+async function uploadToR2(
+  presignedUrl: string,
+  file: File,
+  contentType: string
+) {
   const response = await fetch(presignedUrl, {
     method: "PUT",
     body: file,
-    headers: { "Content-Type": file.type },
+    headers: { "Content-Type": contentType },
   });
 
   if (!response.ok) {
@@ -61,8 +94,19 @@ export async function uploadFile({
     return uploadSvgThroughServer(file, type);
   }
 
+  const mimeType = resolveUploadMimeType(file, type);
   const { url, key, publicUrl } = await getPresignedUrl(file, type);
-  await uploadToR2(url, file);
+  try {
+    await uploadToR2(url, file, mimeType);
+  } catch (error) {
+    if (type === "brand_guideline_pdf") {
+      throw Object.assign(
+        error instanceof Error ? error : new Error("R2 upload failed"),
+        { uploadKey: key }
+      );
+    }
+    throw error;
+  }
 
   if (
     type === "chat" &&
