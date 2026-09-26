@@ -4,7 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 
 import { WorkspaceInvitationServiceError } from "../errors/workspaces";
 import type { WorkspaceAuthData } from "../types/auth";
-import { isOAuthAuth } from "../types/auth";
+import { isAccountKeyAuth, isOAuthAuth } from "../types/auth";
 import type {
   PendingWorkspaceInvitation,
   WorkspaceContext,
@@ -44,7 +44,7 @@ export async function getWorkspaceContext(
     return null;
   }
 
-  if (!isOAuthAuth(auth)) {
+  if (!(isOAuthAuth(auth) || isAccountKeyAuth(auth))) {
     return {
       currentWorkspace,
       workspaces: [toWorkspaceMembership(currentWorkspace, null, true)],
@@ -156,6 +156,14 @@ export async function getWorkspaceContext(
       left.name.localeCompare(right.name) || left.id.localeCompare(right.id)
     );
   });
+
+  if (isAccountKeyAuth(auth)) {
+    return {
+      currentWorkspace,
+      workspaces,
+      authentication: { type: "apiKey" },
+    };
+  }
 
   return {
     currentWorkspace,

@@ -1,13 +1,18 @@
 import type { createDb } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import {
+  isUnscopedApiPath,
   LEGACY_API_READ_SCOPE,
   LEGACY_API_WRITE_SCOPE,
 } from "@notra/utils/api-scopes";
 import { readOAuthConsentGrant } from "@notra/utils/oauth-consent";
 import { Unkey } from "@unkey/api";
+import type {
+  Identity,
+  V2KeysVerifyKeyResponseData,
+} from "@unkey/api/models/components";
 import { NotFoundException, WorkOS } from "@workos-inc/node";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import {
   createRemoteJWKSet,
@@ -18,7 +23,8 @@ import {
 
 import { API_AUTH_KINDS } from "../constants/analytics";
 import type { ApiAuthKind } from "../types/analytics";
-import type { AuthData } from "../types/auth";
+import type { AccountApiKeyAuthData, AuthData } from "../types/auth";
+import { ACCOUNT_ORG_HEADERS, parseAccountUserId } from "../types/auth";
 import {
   API_URL,
   AUTH_GUIDE_URL,
@@ -449,6 +455,87 @@ function getRecovery(status: AuthFailureStatus) {
   return "The authentication service is temporarily unavailable. Retry with exponential backoff.";
 }
 
+function getRequestedOrganizationId(c: Context): string | null {
+  for (const header of ACCOUNT_ORG_HEADERS) {
+    const value = c.req.header(header)?.trim();
+    if (value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+async function resolveAccountKeyAuth(
+  c: Context,
+  verified: V2KeysVerifyKeyResponseData & { identity: Identity },
+  userId: string
+): Promise<AuthResult> {
+  const db = c.get("db");
+  const membershipRows = await db.query.members.findMany({
+    where: eq(members.userId, userId),
+    columns: { organizationId: true },
+    orderBy: [asc(members.createdAt), asc(members.organizationId)],
+  });
+  const memberOrgIds = [
+    ...new Set(
+      membershipRows
+        .map((row) => row.organizationId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0)
+    ),
+  ];
+
+  if (memberOrgIds.length === 0) {
+    return {
+      success: false,
+      error: "Workspace access revoked",
+      status: 403,
+      kind: API_AUTH_KINDS.UNKEY,
+    };
+  }
+
+  const requestedOrgId = getRequestedOrganizationId(c);
+  const verifiedIdentity = verified.identity;
+  if (requestedOrgId) {
+    if (!memberOrgIds.includes(requestedOrgId)) {
+      return {
+        success: false,
+        error: "Workspace access revoked",
+        status: 403,
+        kind: API_AUTH_KINDS.UNKEY,
+      };
+    }
+    const auth: AccountApiKeyAuthData = {
+      ...verified,
+      userId,
+      isAccountKey: true,
+      identity: { ...verifiedIdentity, externalId: requestedOrgId },
+    };
+    c.set("auth", auth);
+    return { success: true, auth };
+  }
+
+  const pathname = c.req.path;
+  if (isUnscopedApiPath(pathname) || memberOrgIds.length === 1) {
+    const [fallbackOrgId] = memberOrgIds as [string, ...string[]];
+    const auth: AccountApiKeyAuthData = {
+      ...verified,
+      userId,
+      isAccountKey: true,
+      identity: { ...verifiedIdentity, externalId: fallbackOrgId },
+    };
+    c.set("auth", auth);
+    return { success: true, auth };
+  }
+
+  return {
+    success: false,
+    error:
+      "Organization selection required: send X-Notra-Organization-Id for the workspace this request should act on",
+    status: 403,
+    kind: API_AUTH_KINDS.UNKEY,
+  };
+}
+
 async function verifyRequestAuth(
   c: Context,
   options: AuthOptions = {}
@@ -532,13 +619,32 @@ async function verifyRequestAuth(
       };
     }
 
-    if (!result.data.identity?.externalId) {
+    const verifiedIdentity = result.data.identity;
+    if (!verifiedIdentity?.externalId) {
       return {
         success: false,
         error: "Missing or invalid API key",
         status: 401,
         kind: API_AUTH_KINDS.UNKEY,
       };
+    }
+
+    const accountUserId = parseAccountUserId(verifiedIdentity.externalId);
+    if (accountUserId) {
+      try {
+        return await resolveAccountKeyAuth(
+          c,
+          { ...result.data, identity: verifiedIdentity },
+          accountUserId
+        );
+      } catch {
+        return {
+          success: false,
+          error: "Service unavailable",
+          status: 503,
+          kind: API_AUTH_KINDS.UNKEY,
+        };
+      }
     }
 
     c.set("auth", result.data);
