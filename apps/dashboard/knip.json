@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "src/app/design-system/**/page.dev.tsx",
+    "src/app/design-system/layout.dev.tsx",
     "scripts/*.ts",
     "tests/fixtures/*.fixture.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",

@@ -25,6 +25,13 @@ function localDevProxy(request: NextRequest) {
 }
 
 export default async function proxy(request: NextRequest) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    /^\/design-system(?:\/|$)/.test(request.nextUrl.pathname)
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   // Local impersonation has no WorkOS session and still requires loopback.
   if (isLocalDevAuthEnabled()) {
     return localDevProxy(request);
