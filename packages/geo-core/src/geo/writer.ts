@@ -909,7 +909,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         new GeoPromptNotFoundError({ promptId: sourceId })
       );
     }
-    return suggestion.prompt;
+    // Keep the suggestion as the reuse key, but honor edits to its topic.
+    return input.topic;
   }
 
   const promptRow = yield* geoDb("prompt lookup failed", () =>
