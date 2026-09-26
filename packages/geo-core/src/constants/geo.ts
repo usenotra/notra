@@ -90,6 +90,25 @@ export const GEO_WRITER_BRIEFS_LIMIT = 20;
 export const GEO_GAPS_MAX_CHECKS = 400;
 export const GEO_GAPS_SEARCH_LIMIT = 100;
 export const GEO_GAPS_ENGINE_QUERY_LIMIT = 12;
+export const GEO_AI_SEARCH_GAP_MIN_SEARCHES = 2;
+export const GEO_AI_SEARCH_GAP_VARIANT_LIMIT = 5;
+export const GEO_AI_SEARCH_GAP_PROMPT_LIMIT = 5;
+export const GEO_AI_SEARCH_QUERY_STOPWORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "best",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+  "top",
+  "vs",
+  "with",
+]);
 /** Fallback before the gaps table measures remaining viewport height. */
 export const GEO_GAPS_TABLE_HEIGHT = 420;
 export const GEO_GAPS_METER_STEPS = 5;
@@ -250,6 +269,11 @@ export const GEO_GAPS_EMPTY = {
   "no-prompt-gaps": {
     title: "No prompt gaps",
     description: "Engines already mention you on the questions you track.",
+  },
+  "no-ai-search-gaps": {
+    title: "No AI search gaps",
+    description:
+      "Nothing engines search for across your scans leaves you out yet.",
   },
   "no-search-gaps": {
     title: "No search gaps",

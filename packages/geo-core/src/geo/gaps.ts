@@ -16,6 +16,9 @@ import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
+  GEO_AI_SEARCH_GAP_MIN_SEARCHES,
+  GEO_AI_SEARCH_GAP_PROMPT_LIMIT,
+  GEO_AI_SEARCH_GAP_VARIANT_LIMIT,
   GEO_COLLISION_POST_CONTENT_TYPE,
   GEO_COLLISION_POST_LIMIT,
   GEO_COLLISION_SITEMAP_PAGE_LIMIT,
@@ -26,6 +29,7 @@ import {
   GEO_WRITER_PLANNER_GAP_LIMIT,
 } from "../constants/geo";
 import type {
+  GeoAiSearchGapRow,
   GeoContentCollisionCandidate,
   GeoContentGapsResponse,
   GeoGapBriefRef,
@@ -42,6 +46,7 @@ import {
   scoreContentCollisions,
 } from "../utils/geo-content-collision";
 import {
+  aiSearchQueryKey,
   gapOpportunityScore,
   isMissingMajority,
   searchGapClicks,
@@ -58,6 +63,11 @@ import {
   findPromptMentionEntry,
   shouldSkipUnmatchedGapScan,
 } from "./prompts";
+import {
+  buildBrandTerms,
+  isNavigationalQuery,
+  promptMentionsBrand,
+} from "./suggestion-keywords";
 
 const MS_PER_DAY = 86_400_000;
 
@@ -81,6 +91,25 @@ interface PromptGapAgg {
   mentionedEngines: string[];
   competitors: string[];
   searchQueries: Map<string, string>;
+}
+
+interface AiSearchAgg {
+  variants: Map<string, number>;
+  prompts: Set<string>;
+  engines: Set<string>;
+  searches: number;
+  mentioned: number;
+  cited: number;
+  competitors: string[];
+}
+
+interface AiSearchCheck {
+  engine: string;
+  prompt: string;
+  mentioned: boolean;
+  ownedSourceCited: boolean;
+  competitors: string[];
+  grounding: { queries: string[] };
 }
 
 function toBriefRef(row: GapBriefRow | undefined): GeoGapBriefRef | null {
@@ -151,6 +180,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
             mentioned: geoMentionChecks.mentioned,
             competitors: geoMentionChecks.competitors,
             grounding: geoMentionChecks.grounding,
+            ownedSourceCited: geoMentionChecks.ownedSourceCited,
           }
         )
         .from(geoMentionChecks)
@@ -184,6 +214,8 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
     geoDb("settings lookup failed", () =>
       db.query.geoSettings.findFirst({
         columns: {
+          companyName: true,
+          aliases: true,
           removedAutoPromptIds: true,
           ignoredGapPromptIds: true,
           competitors: true,
@@ -198,6 +230,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
     removedAutoPromptIds: new Set(settingsRow?.removedAutoPromptIds ?? []),
     ignoredGapPromptIds: new Set(settingsRow?.ignoredGapPromptIds ?? []),
     settingsCompetitors: settingsRow?.competitors ?? [],
+    brandTerms: buildBrandTerms(settingsRow),
   };
 });
 
@@ -239,6 +272,97 @@ function aggregateMentionChecks(
     byPrompt.set(check.promptId, entry);
   }
   return byPrompt;
+}
+
+function aggregateAiSearches(
+  checks: readonly AiSearchCheck[],
+  brandTerms: string[]
+): Map<string, AiSearchAgg> {
+  const byKey = new Map<string, AiSearchAgg>();
+  for (const check of checks) {
+    const seenInCheck = new Set<string>();
+    for (const raw of check.grounding.queries) {
+      const query = raw.trim();
+      const key = aiSearchQueryKey(query);
+      if (
+        key.length === 0 ||
+        seenInCheck.has(key) ||
+        isNavigationalQuery(query) ||
+        promptMentionsBrand(query, brandTerms)
+      ) {
+        continue;
+      }
+      seenInCheck.add(key);
+      const entry = byKey.get(key) ?? {
+        variants: new Map<string, number>(),
+        prompts: new Set<string>(),
+        engines: new Set<string>(),
+        searches: 0,
+        mentioned: 0,
+        cited: 0,
+        competitors: [] as string[],
+      };
+      entry.variants.set(query, (entry.variants.get(query) ?? 0) + 1);
+      entry.prompts.add(check.prompt);
+      entry.engines.add(check.engine);
+      entry.searches += 1;
+      if (check.mentioned) {
+        entry.mentioned += 1;
+      } else {
+        entry.competitors.push(...check.competitors);
+      }
+      if (check.ownedSourceCited) {
+        entry.cited += 1;
+      }
+      byKey.set(key, entry);
+    }
+  }
+  return byKey;
+}
+
+function toAiSearchGapRows(
+  byKey: Map<string, AiSearchAgg>,
+  trackedAliases: Map<string, string>,
+  briefFor: (key: string) => GapBriefRow | undefined
+): GeoAiSearchGapRow[] {
+  const rows: GeoAiSearchGapRow[] = [];
+  for (const [key, entry] of byKey) {
+    if (
+      entry.searches < GEO_AI_SEARCH_GAP_MIN_SEARCHES ||
+      entry.cited > 0 ||
+      !isMissingMajority(entry.searches - entry.mentioned, entry.searches)
+    ) {
+      continue;
+    }
+    const [query = key, ...variants] = [...entry.variants.entries()]
+      .sort((left, right) => right[1] - left[1])
+      .map(([variant]) => variant);
+    const { tracked, discovered } = splitGapCompetitors(
+      entry.competitors,
+      trackedAliases
+    );
+    const ownMentionRate = entry.mentioned / entry.searches;
+    rows.push({
+      id: key,
+      query,
+      variants: variants.slice(0, GEO_AI_SEARCH_GAP_VARIANT_LIMIT),
+      prompts: [...entry.prompts].slice(0, GEO_AI_SEARCH_GAP_PROMPT_LIMIT),
+      engines: [...entry.engines],
+      searches: entry.searches,
+      ownMentionRate,
+      competitors: tracked,
+      discoveredCompetitors: discovered,
+      opportunity: gapOpportunityScore({
+        ownMentionRate,
+        competitorCount: tracked.length + discovered.length,
+        engineCoverage: entry.searches,
+      }),
+      brief: toBriefRef(briefFor(key)),
+    });
+  }
+  return rows
+    .sort((left, right) => right.opportunity - left.opportunity)
+    .slice(0, GEO_GAPS_SEARCH_LIMIT);
 }
 
 function forEachMissingMajorityGap(
@@ -476,7 +600,11 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
           .where(
             and(
               eq(geoContentBriefs.projectId, projectId),
-              inArray(geoContentBriefs.sourceKind, ["gap", "search_console"]),
+              inArray(geoContentBriefs.sourceKind, [
+                "gap",
+                "search_console",
+                "ai_search",
+              ]),
               isNotNull(geoContentBriefs.sourceId)
             )
           )
@@ -504,6 +632,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     removedAutoPromptIds,
     ignoredGapPromptIds,
     settingsCompetitors,
+    brandTerms,
   } = mentionInputs;
 
   const trackedAliases = competitorCanonicalMap([
@@ -600,9 +729,16 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     recommendation: searchGapRecommendation(suggestion, collisionCandidates),
   }));
 
+  const aiSearchGaps = toAiSearchGapRows(
+    aggregateAiSearches(checks, brandTerms),
+    trackedAliases,
+    (key) => briefBySource.get(sourceKey("ai_search", key))
+  );
+
   const response: GeoContentGapsResponse = {
     promptGaps,
     searchGaps,
+    aiSearchGaps,
     hasScanData: checks.length > 0,
   };
   return response;

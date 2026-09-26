@@ -28,6 +28,7 @@ import {
 } from "@notra/geo-core/constants/geo";
 import { findCompetitor } from "@notra/geo-core/geo/domain";
 import type {
+  GeoAiSearchGapRow,
   GeoPromptGapRow,
   GeoSearchGapRow,
 } from "@notra/geo-core/types/geo";
@@ -75,6 +76,7 @@ import { cn } from "@/lib/utils";
 import type {
   GeoGapBrandMentionsCellProps,
   GeoGapContentCellProps,
+  GeoGapEnginesCellProps,
   GeoGapMeterProps,
   GeoGapNumberCellProps,
   GeoGapOpportunityCellProps,
@@ -91,6 +93,8 @@ import type {
 } from "@/types/components/geo-gaps";
 import { formatMentionRate } from "@/utils/geo-charts";
 import {
+  aiSearchGapSubtitle,
+  filterAiSearchGaps,
   filterPromptGaps,
   filterSearchGaps,
   gapCanRescan,
@@ -524,6 +528,22 @@ function VisibleOnCell({
   );
 }
 
+function EnginesCell({ engines }: GeoGapEnginesCellProps) {
+  return (
+    <LogoStack
+      limit={GEO_GAPS_TABLE_LOGO_LIMIT}
+      items={gapMissingEngineFamilies(engines).map((family) => ({
+        key: family,
+        label: engineFamilyLabel(family),
+        detail: "Ran this search",
+        renderIcon: (className) => (
+          <EngineIcon className={className} engine={family} />
+        ),
+      }))}
+    />
+  );
+}
+
 function QueriesCell({ prompt, queries }: GeoGapQueriesCellProps) {
   const count =
     queries.length === 1
@@ -602,6 +622,7 @@ function GapsTabs({
   onTabChange,
   promptCount,
   searchCount,
+  aiSearchCount,
 }: GeoGapsTabsProps) {
   return (
     <PermissionRow
@@ -609,7 +630,7 @@ function GapsTabs({
       label="Gap type"
       layout="compact"
       onValueChange={(value) => {
-        if (value === "prompt" || value === "search") {
+        if (value === "prompt" || value === "search" || value === "ai") {
           onTabChange(value);
         }
       }}
@@ -625,6 +646,12 @@ function GapsTabs({
         Search Gaps
         <span className="text-xs tabular-nums opacity-70">
           {searchCount.toLocaleString()}
+        </span>
+      </PermissionOption>
+      <PermissionOption value="ai">
+        AI Search Gaps
+        <span className="text-xs tabular-nums opacity-70">
+          {aiSearchCount.toLocaleString()}
         </span>
       </PermissionOption>
     </PermissionRow>
@@ -734,6 +761,7 @@ function BrandMentionsCell({
 export function GeoGapsTable({
   promptGaps,
   searchGaps,
+  aiSearchGaps,
   competitors,
   hasScanData,
   isScanning,
@@ -742,6 +770,7 @@ export function GeoGapsTable({
   onRunScan,
   onWritePrompt,
   onWriteSearch,
+  onWriteAiSearch,
   onDismissSearch,
   dismissingSearchId,
   onRescanPrompt,
@@ -784,6 +813,14 @@ export function GeoGapsTable({
   const filteredSearchGaps = useMemo(
     () => filterSearchGaps(searchGaps, query),
     [query, searchGaps]
+  );
+  const filteredAiSearchGaps = useMemo(
+    () => filterAiSearchGaps(aiSearchGaps, query),
+    [aiSearchGaps, query]
+  );
+  const maxAiSearchOpportunity = useMemo(
+    () => Math.max(0, ...aiSearchGaps.map((row) => row.opportunity)),
+    [aiSearchGaps]
   );
 
   const renderPromptActions = (row: GeoPromptGapRow, inSheet = false) => {
@@ -949,8 +986,95 @@ export function GeoGapsTable({
     },
   ];
 
-  const sourceRows = tab === "prompt" ? promptGaps : searchGaps;
-  const rows = tab === "prompt" ? filteredPromptGaps : filteredSearchGaps;
+  const aiSearchColumns: TableColumn<GeoAiSearchGapRow>[] = [
+    {
+      key: "query",
+      header: "AI search",
+      width: "1fr",
+      minWidth: "12rem",
+      cell: (row) => (
+        <ContentCell
+          subtitle={aiSearchGapSubtitle(row)}
+          title={row.brief?.workingTitle ?? row.query}
+        />
+      ),
+      sortValue: (row) => row.query,
+      sortable: true,
+    },
+    {
+      key: "searches",
+      header: "Searches",
+      hint: "Scan answers in which an engine ran this web search.",
+      width: "7rem",
+      cell: (row) => (
+        <NumberCell
+          emptyLabel={GEO_GAPS_EMPTY_CELL.impressions}
+          value={row.searches}
+        />
+      ),
+      sortValue: (row) => row.searches,
+      sortable: true,
+    },
+    {
+      key: "engines",
+      collapsePriority: 1,
+      header: "Searched by",
+      width: "9.5rem",
+      cell: (row) => <EnginesCell engines={row.engines} />,
+      sortValue: (row) => gapMissingEngineFamilies(row.engines).length,
+      sortable: true,
+    },
+    {
+      key: "competitors",
+      collapsePriority: 2,
+      header: "Competitors",
+      width: "9.5rem",
+      cell: (row) => (
+        <BrandMentionsCell
+          competitors={competitors}
+          discovered={row.discoveredCompetitors}
+          tracked={row.competitors}
+        />
+      ),
+      sortValue: (row) =>
+        row.competitors.length + row.discoveredCompetitors.length,
+      sortable: true,
+    },
+    {
+      key: "write",
+      header: "",
+      align: "right",
+      width: "9.5rem",
+      minWidth: "9.5rem",
+      cell: (row) => (
+        <WriteCell
+          action={gapWriteAction(row.brief)}
+          onOpenPost={onOpenPost}
+          onWrite={() => onWriteAiSearch(row)}
+          opportunityBucket={gapMeterLevel(
+            maxAiSearchOpportunity <= 0
+              ? 0
+              : row.opportunity / maxAiSearchOpportunity
+          )}
+          postId={row.brief?.postId}
+          sourceKind="ai_search"
+        />
+      ),
+    },
+  ];
+
+  const sourceRowsByTab = {
+    prompt: promptGaps,
+    search: searchGaps,
+    ai: aiSearchGaps,
+  };
+  const rowsByTab = {
+    prompt: filteredPromptGaps,
+    search: filteredSearchGaps,
+    ai: filteredAiSearchGaps,
+  };
+  const sourceRows = sourceRowsByTab[tab];
+  const rows = rowsByTab[tab];
   const [tableRef, tableHeight] = useFillHeight(GEO_GAPS_TABLE_HEIGHT);
   const emptyKind =
     rows.length === 0
@@ -966,6 +1090,7 @@ export function GeoGapsTable({
   const rowCount = rows.length;
   const promptGapCount = promptGaps.length;
   const searchGapCount = searchGaps.length;
+  const aiSearchGapCount = aiSearchGaps.length;
 
   useEffect(() => {
     if (viewedRef.current) {
@@ -978,11 +1103,20 @@ export function GeoGapsTable({
       gap_count: rowCount,
       prompt_gap_count: promptGapCount,
       search_gap_count: searchGapCount,
+      ai_search_gap_count: aiSearchGapCount,
       has_scan_data: hasScanData,
     });
-  }, [emptyKind, hasScanData, promptGapCount, rowCount, searchGapCount, tab]);
-  const table =
-    tab === "prompt" ? (
+  }, [
+    aiSearchGapCount,
+    emptyKind,
+    hasScanData,
+    promptGapCount,
+    rowCount,
+    searchGapCount,
+    tab,
+  ]);
+  const tables = {
+    prompt: (
       <Table
         className="rounded-2xl"
         columns={promptColumns}
@@ -992,7 +1126,8 @@ export function GeoGapsTable({
         height={tableHeight}
         onRowClick={(row) => setDetailPromptId(row.id)}
       />
-    ) : (
+    ),
+    search: (
       <Table
         className="rounded-2xl"
         columns={searchColumns}
@@ -1002,7 +1137,19 @@ export function GeoGapsTable({
         height={tableHeight}
         onRowClick={(row) => setDetailSearchId(row.id)}
       />
-    );
+    ),
+    ai: (
+      <Table
+        className="rounded-2xl"
+        columns={aiSearchColumns}
+        data={filteredAiSearchGaps}
+        defaultSort={{ key: "searches", direction: "desc" }}
+        getRowId={(row) => row.id}
+        height={tableHeight}
+      />
+    ),
+  };
+  const table = tables[tab];
 
   const sheetActions = selectedPrompt
     ? renderPromptActions(selectedPrompt, true)
@@ -1015,6 +1162,7 @@ export function GeoGapsTable({
           onTabChange={setTab}
           promptCount={filteredPromptGaps.length}
           searchCount={filteredSearchGaps.length}
+          aiSearchCount={filteredAiSearchGaps.length}
           tab={tab}
         />
         <GapsFilters

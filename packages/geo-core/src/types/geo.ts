@@ -1601,7 +1601,8 @@ export type GeoWriterSourceKind =
   | "manual"
   | "gap"
   | "prompt"
-  | "search_console";
+  | "search_console"
+  | "ai_search";
 
 export interface GeoWriterPlanInput {
   topic: string;
@@ -1742,9 +1743,24 @@ export interface GeoSearchGapRecommendation {
   targets: GeoContentCollisionMatch[];
 }
 
+export interface GeoAiSearchGapRow {
+  id: string;
+  query: string;
+  variants: string[];
+  prompts: string[];
+  engines: string[];
+  searches: number;
+  ownMentionRate: number;
+  competitors: string[];
+  discoveredCompetitors: string[];
+  opportunity: number;
+  brief: GeoGapBriefRef | null;
+}
+
 export interface GeoContentGapsResponse {
   promptGaps: GeoPromptGapRow[];
   searchGaps: GeoSearchGapRow[];
+  aiSearchGaps: GeoAiSearchGapRow[];
   hasScanData: boolean;
 }
 
