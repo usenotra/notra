@@ -1,5 +1,6 @@
 "use client";
 
+import { ChatQuoteProvider } from "@/components/chat/chat-quote";
 import {
   ContentDetailChatPanel,
   ContentDetailFloatingChat,
@@ -56,14 +57,18 @@ export default function PageClient({
 
   return (
     <ContentDetailLoadedView
-      chatInputSection={floatingChat}
+      chatInputSection={
+        <ChatQuoteProvider conversationId={chat.chatPanelProps.activeChatId}>
+          {floatingChat}
+          <ContentDetailChatPanel {...chat.chatPanelProps} />
+        </ChatQuoteProvider>
+      }
       contentId={contentId}
       data={data}
       document={document}
       onSelectionChange={chat.handleSelectionChange}
       organizationId={organizationId}
       organizationSlug={organizationSlug}
-      rightPanelSection={<ContentDetailChatPanel {...chat.chatPanelProps} />}
       selectedExcerpt={chat.selection}
     />
   );

@@ -2,11 +2,7 @@
 
 import { Clock01Icon, CpuIcon, FlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type {
-  ChatMessageMetadata,
-  ChatModel,
-  ThinkingLevel,
-} from "@notra/ai/types/chat";
+import type { ChatModel, ThinkingLevel } from "@notra/ai/types/chat";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { OpenaiDark } from "@notra/ui/components/ui/svgs/openaiDark";
@@ -15,10 +11,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
+import type {
+  AssistantMetadataHoverProps,
+  AssistantTokenUsageProps,
+} from "@/types/components/assistant-metadata";
 
 const MODEL_LABELS = {
   auto: "Auto",
@@ -106,14 +105,54 @@ function ModelBadgeIcon({ model }: { model: string }) {
   return <ClaudeAiIcon className="size-3" />;
 }
 
-interface AssistantMetadataHoverProps {
-  metadata: ChatMessageMetadata | undefined;
+function AssistantTokenUsage({
+  metadata,
+  outputTokens,
+}: AssistantTokenUsageProps) {
+  const contextWindow = metadata.model
+    ? getModelContextWindow(metadata.model)
+    : null;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <div className="flex cursor-default items-center gap-1">
+            <HugeiconsIcon className="size-3" icon={CpuIcon} />
+            <span>{formatTokens(outputTokens)} tokens</span>
+          </div>
+        }
+      />
+      <TooltipContent>
+        <div className="flex flex-col gap-0.5 text-xs">
+          {typeof metadata.inputTokens === "number" ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Input</span>
+              <span>{metadata.inputTokens.toLocaleString("en-US")}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-muted-foreground">Output</span>
+            <span>{outputTokens.toLocaleString("en-US")}</span>
+          </div>
+          {contextWindow !== null ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Context</span>
+              <span>{formatContextWindow(contextWindow)}</span>
+            </div>
+          ) : null}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function AssistantMetadataHover({
   metadata,
+  compact = false,
 }: AssistantMetadataHoverProps) {
   const { showAgentStats } = useShowAgentStats();
+  const showStats = showAgentStats && !compact;
 
   if (!metadata) {
     return null;
@@ -123,9 +162,10 @@ export function AssistantMetadataHover({
 
   if (metadata.model) {
     const modelLabel = getModelLabel(metadata.model);
-    const thinkingLabel = metadata.thinkingLevel
-      ? THINKING_LEVEL_LABELS[metadata.thinkingLevel]
-      : null;
+    const thinkingLabel =
+      !compact && metadata.thinkingLevel
+        ? THINKING_LEVEL_LABELS[metadata.thinkingLevel]
+        : null;
 
     items.push(
       <div className="flex items-center gap-1.5" key="model">
@@ -138,7 +178,7 @@ export function AssistantMetadataHover({
     );
   }
 
-  if (showAgentStats && typeof metadata.tokensPerSecond === "number") {
+  if (showStats && typeof metadata.tokensPerSecond === "number") {
     items.push(
       <div className="flex items-center gap-1" key="tps">
         <HugeiconsIcon className="size-3" icon={FlashIcon} />
@@ -147,58 +187,23 @@ export function AssistantMetadataHover({
     );
   }
 
-  if (showAgentStats && typeof metadata.outputTokens === "number") {
-    const contextWindow = metadata.model
-      ? getModelContextWindow(metadata.model)
-      : null;
-    const hasBreakdown =
-      typeof metadata.inputTokens === "number" ||
-      typeof metadata.outputTokens === "number" ||
-      contextWindow !== null;
-
+  if (showStats && typeof metadata.outputTokens === "number") {
     items.push(
-      <Tooltip key="tokens">
-        <TooltipTrigger
-          render={
-            <div className="flex cursor-default items-center gap-1">
-              <HugeiconsIcon className="size-3" icon={CpuIcon} />
-              <span>{formatTokens(metadata.outputTokens)} tokens</span>
-            </div>
-          }
-        />
-        {hasBreakdown ? (
-          <TooltipContent>
-            <div className="flex flex-col gap-0.5 text-xs">
-              {typeof metadata.inputTokens === "number" ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Input</span>
-                  <span>{metadata.inputTokens.toLocaleString()}</span>
-                </div>
-              ) : null}
-              {typeof metadata.outputTokens === "number" ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Output</span>
-                  <span>{metadata.outputTokens.toLocaleString()}</span>
-                </div>
-              ) : null}
-              {contextWindow !== null ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Context</span>
-                  <span>{formatContextWindow(contextWindow)}</span>
-                </div>
-              ) : null}
-            </div>
-          </TooltipContent>
-        ) : null}
-      </Tooltip>
+      <AssistantTokenUsage
+        key="tokens"
+        metadata={metadata}
+        outputTokens={metadata.outputTokens}
+      />
     );
   }
 
-  if (showAgentStats && typeof metadata.ttftMs === "number") {
+  if (showStats && typeof metadata.ttftMs === "number") {
     items.push(
-      <div className="flex items-center gap-1" key="ttft">
+      <div className="flex min-w-0 items-center gap-1" key="ttft">
         <HugeiconsIcon className="size-3" icon={Clock01Icon} />
-        <span>Time to First Token: {formatDuration(metadata.ttftMs)}</span>
+        <span className="truncate">
+          Time to First Token: {formatDuration(metadata.ttftMs)}
+        </span>
       </div>
     );
   }
@@ -209,12 +214,8 @@ export function AssistantMetadataHover({
 
   return (
     <div
-      className={cn(
-        "text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs",
-        showAgentStats
-          ? "opacity-100"
-          : "duration-fast opacity-0 transition-opacity group-hover:opacity-100"
-      )}
+      className="text-muted-foreground duration-fast absolute top-full left-0 flex max-w-full items-center gap-3 overflow-clip pt-1 text-xs whitespace-nowrap opacity-0 transition-opacity group-focus-within/message:opacity-100 group-hover/message:opacity-100 motion-reduce:transition-none [&>div:not(:last-child)]:shrink-0 [@media(hover:none)]:opacity-100"
+      data-chat-quote-ignore
     >
       {items}
     </div>

@@ -77,6 +77,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
@@ -111,6 +112,7 @@ import {
   contextItemKey,
   contextItemsEqual,
 } from "@/utils/chat-input";
+import { prependChatQuote } from "@/utils/chat-quote";
 import {
   extractIntegrationReferences,
   getIntegrationReferenceValue,
@@ -1108,6 +1110,7 @@ function handleComposerEditorKeyDown(
 }
 
 function sendOrQueueComposer({
+  quote,
   chatIncludedInPlan,
   check,
   clearComposer,
@@ -1126,6 +1129,7 @@ function sendOrQueueComposer({
   pendingUploads,
   taggedSkillNames,
 }: {
+  quote?: string | null;
   attachments: ChatAttachment[];
   chatIncludedInPlan: boolean;
   check: (input: {
@@ -1153,7 +1157,7 @@ function sendOrQueueComposer({
       taggedSkillNames
     );
     const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
-    if (!outbound || hasAttachments) {
+    if ((!outbound && !quote) || hasAttachments) {
       return;
     }
     clearError();
@@ -1171,7 +1175,7 @@ function sendOrQueueComposer({
         return;
       }
     }
-    onSend?.(outbound, []);
+    onSend?.(prependChatQuote(outbound, quote), []);
     clearComposer();
     return;
   }
@@ -1182,6 +1186,7 @@ function sendOrQueueComposer({
     );
     const hasContent =
       outbound.length > 0 ||
+      Boolean(quote) ||
       attachments.length > 0 ||
       pendingUploads.length > 0;
     if (!hasContent) {
@@ -1196,7 +1201,7 @@ function sendOrQueueComposer({
     }
     clearError();
     setPendingSend({
-      value: outbound,
+      value: prependChatQuote(outbound, quote),
       attachments: [...attachments],
       pendingUploadIds: pendingUploads.map((pending) => pending.id),
     });
@@ -1234,6 +1239,7 @@ export function ChatInputAdvanced({
   draftStorageKey,
   ref,
 }: ChatInputAdvancedProps) {
+  const quoteContext = useChatQuote();
   const contextPickerId = useId();
   const slashListId = useId();
   const mentionListId = useId();
@@ -2218,7 +2224,8 @@ export function ChatInputAdvanced({
       onRemoveContext?.(item);
     }
     clearTaggedSkills();
-  }, [clearTaggedSkills, draftStorageKey, onRemoveContext]);
+    quoteContext?.setQuote(null);
+  }, [clearTaggedSkills, draftStorageKey, onRemoveContext, quoteContext]);
 
   const sendSnapshot = useCallback(
     (value: string, snapshotAttachments: ChatAttachment[]) => {
@@ -2281,11 +2288,14 @@ export function ChatInputAdvanced({
       taggedSkillNames
     );
     const currentAttachments = attachmentsRef.current;
-    if (!outbound && currentAttachments.length === 0) {
+    if (!outbound && !quoteContext?.quote && currentAttachments.length === 0) {
       return false;
     }
-    return sendSnapshot(outbound, currentAttachments);
-  }, [isLoading, sendSnapshot, taggedSkillNames]);
+    return sendSnapshot(
+      prependChatQuote(outbound, quoteContext?.quote),
+      currentAttachments
+    );
+  }, [isLoading, sendSnapshot, taggedSkillNames, quoteContext]);
 
   const handleSend = useCallback(() => {
     const editor = editorRef.current;
@@ -2293,6 +2303,7 @@ export function ChatInputAdvanced({
       return;
     }
     sendOrQueueComposer({
+      quote: quoteContext?.quote,
       attachments: attachmentsRef.current,
       chatIncludedInPlan,
       check,
@@ -2324,6 +2335,7 @@ export function ChatInputAdvanced({
     onSend,
     performSend,
     taggedSkillNames,
+    quoteContext,
   ]);
 
   useEffect(() => {
@@ -2546,7 +2558,10 @@ export function ChatInputAdvanced({
           acceptedFileTypesLabel={acceptedFileTypesLabel}
         />
       ) : null}
-      <div className="relative w-full min-w-0">
+      <div
+        className="relative w-full min-w-0"
+        data-chat-quote-composer={quoteContext?.scopeId}
+      >
         {mentionQuery === null ? null : (
           <ChatMentionMenu
             contextOptionsCount={contextOptions.length}
@@ -2598,6 +2613,7 @@ export function ChatInputAdvanced({
           }
         >
           <section aria-label="Chat input drop area">
+            <ChatQuotePreview disabled={isQueued} />
             <input
               accept={allowedChatMimeTypes.join(",")}
               className="hidden"
@@ -2701,7 +2717,9 @@ export function ChatInputAdvanced({
               <ChatComposerSendButton
                 attachmentCount={attachments.length}
                 hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
-                isEmpty={isEmpty && taggedSkills.length === 0}
+                isEmpty={
+                  isEmpty && taggedSkills.length === 0 && !quoteContext?.quote
+                }
                 isLoading={isLoading}
                 isQueued={isQueued}
                 isStopping={isStopping}

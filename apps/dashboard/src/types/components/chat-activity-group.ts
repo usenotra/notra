@@ -14,6 +14,7 @@ export interface ChatActivityGroupProps {
   elapsedSeconds?: number;
   forceOpen?: boolean;
   groupId: string;
+  hasDetails: boolean;
   isLoading: boolean;
   isStreaming: boolean;
   step: string;
