@@ -1677,6 +1677,33 @@ export interface GeoGapOpportunityInput {
   engineCoverage: number;
 }
 
+export interface GeoGapScore {
+  competitors: string[];
+  discoveredCompetitors: string[];
+  ownMentionRate: number;
+  opportunity: number;
+}
+
+export interface GeoAiSearchCheck {
+  promptId: string;
+  engine: string;
+  prompt: string;
+  mentioned: boolean;
+  ownedSourceCited: boolean;
+  competitors: string[];
+  queries: string[];
+}
+
+export interface GeoAiSearchAgg {
+  variants: Map<string, number>;
+  prompts: Set<string>;
+  engines: Set<string>;
+  searches: number;
+  mentioned: number;
+  covered: number;
+  competitors: string[];
+}
+
 export interface GeoPromptGapRow {
   id: string;
   prompt: string;

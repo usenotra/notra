@@ -11,6 +11,7 @@ import {
   GEO_GAPS_COMPETITOR_DETAIL,
   GEO_GAPS_EMPTY,
   GEO_GAPS_EMPTY_CELL,
+  GEO_GAPS_ENGINE_DETAIL,
   GEO_GAPS_ENGINE_FILTER_ALL,
   GEO_GAPS_METER_STEPS,
   GEO_GAPS_METER_TONE_CLASS,
@@ -71,12 +72,14 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
+import { GEO_GAPS_TABS } from "@/constants/geo-gaps";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type {
   GeoGapBrandMentionsCellProps,
+  GeoGapCompetitorFields,
   GeoGapContentCellProps,
-  GeoGapEnginesCellProps,
+  GeoGapEngineLogosProps,
   GeoGapMeterProps,
   GeoGapNumberCellProps,
   GeoGapOpportunityCellProps,
@@ -98,7 +101,7 @@ import {
   filterPromptGaps,
   filterSearchGaps,
   gapCanRescan,
-  gapMeterLevel,
+  gapOpportunityLevel,
   gapMeterTone,
   gapMissingEngineFamilies,
   gapOpportunityDetail,
@@ -107,6 +110,8 @@ import {
   gapSearchQueriesLabel,
   gapWriteLabel,
   geoGapsEmptyKind,
+  isGeoGapsTab,
+  maxGapOpportunity,
   searchGapActionOrder,
   searchGapWriteLabel,
   uniqueGapEngineFamilies,
@@ -446,8 +451,7 @@ function OpportunityCell({ row, maxOpportunity }: GeoGapOpportunityCellProps) {
       </Tooltip>
     );
   }
-  const intensity = maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity;
-  const level = gapMeterLevel(intensity);
+  const level = gapOpportunityLevel(row.opportunity, maxOpportunity);
   return (
     <GapMeter
       label={`${level}/${GEO_GAPS_METER_STEPS} opportunity · ${formatMentionRate(row.ownMentionRate)} mention rate · ${gapOpportunityDetail(row)}`}
@@ -513,29 +517,22 @@ function VisibleOnCell({
       <span className="text-xs tabular-nums">
         {gapVisibleOnLabel(mentionedEngines, missingEngines)}
       </span>
-      <LogoStack
-        limit={GEO_GAPS_TABLE_LOGO_LIMIT}
-        items={visible.map((family) => ({
-          key: family,
-          label: engineFamilyLabel(family),
-          detail: "Mentions you",
-          renderIcon: (className) => (
-            <EngineIcon className={className} engine={family} />
-          ),
-        }))}
+      <EngineLogos
+        detail={GEO_GAPS_ENGINE_DETAIL.mentioned}
+        engines={mentionedEngines}
       />
     </span>
   );
 }
 
-function EnginesCell({ engines }: GeoGapEnginesCellProps) {
+function EngineLogos({ engines, detail }: GeoGapEngineLogosProps) {
   return (
     <LogoStack
       limit={GEO_GAPS_TABLE_LOGO_LIMIT}
       items={gapMissingEngineFamilies(engines).map((family) => ({
         key: family,
         label: engineFamilyLabel(family),
-        detail: "Ran this search",
+        detail,
         renderIcon: (className) => (
           <EngineIcon className={className} engine={family} />
         ),
@@ -617,43 +614,27 @@ function GapsEmpty({
   );
 }
 
-function GapsTabs({
-  tab,
-  onTabChange,
-  promptCount,
-  searchCount,
-  aiSearchCount,
-}: GeoGapsTabsProps) {
+function GapsTabs({ tab, onTabChange, counts }: GeoGapsTabsProps) {
   return (
     <PermissionRow
       className="w-fit shrink-0"
       label="Gap type"
       layout="compact"
       onValueChange={(value) => {
-        if (value === "prompt" || value === "search" || value === "ai") {
+        if (isGeoGapsTab(value)) {
           onTabChange(value);
         }
       }}
       value={tab}
     >
-      <PermissionOption value="prompt">
-        Prompt Gaps
-        <span className="text-xs tabular-nums opacity-70">
-          {promptCount.toLocaleString("en-US")}
-        </span>
-      </PermissionOption>
-      <PermissionOption value="search">
-        Search Gaps
-        <span className="text-xs tabular-nums opacity-70">
-          {searchCount.toLocaleString("en-US")}
-        </span>
-      </PermissionOption>
-      <PermissionOption value="ai">
-        AI Search Gaps
-        <span className="text-xs tabular-nums opacity-70">
-          {aiSearchCount.toLocaleString("en-US")}
-        </span>
-      </PermissionOption>
+      {GEO_GAPS_TABS.map((option) => (
+        <PermissionOption key={option.value} value={option.value}>
+          {option.label}
+          <span className="text-xs tabular-nums opacity-70">
+            {counts[option.value].toLocaleString("en-US")}
+          </span>
+        </PermissionOption>
+      ))}
     </PermissionRow>
   );
 }
@@ -796,7 +777,7 @@ export function GeoGapsTable({
       .withOptions({ clearOnDefault: true })
   );
   const maxOpportunity = useMemo(
-    () => Math.max(0, ...promptGaps.map((row) => row.opportunity)),
+    () => maxGapOpportunity(promptGaps),
     [promptGaps]
   );
   const engineFamilies = useMemo(() => {
@@ -819,7 +800,7 @@ export function GeoGapsTable({
     [aiSearchGaps, query]
   );
   const maxAiSearchOpportunity = useMemo(
-    () => Math.max(0, ...aiSearchGaps.map((row) => row.opportunity)),
+    () => maxGapOpportunity(aiSearchGaps),
     [aiSearchGaps]
   );
 
@@ -854,15 +835,34 @@ export function GeoGapsTable({
           closeSheet();
           onWritePrompt(row);
         }}
-        opportunityBucket={gapMeterLevel(
-          maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity
-        )}
+        opportunityBucket={gapOpportunityLevel(row.opportunity, maxOpportunity)}
         postId={row.brief?.postId}
         rescanDisabled={isScanning}
         sourceKind="prompt"
       />
     );
   };
+
+  function competitorsColumn<
+    T extends GeoGapCompetitorFields,
+  >(): TableColumn<T> {
+    return {
+      key: "competitors",
+      collapsePriority: 2,
+      header: "Competitors",
+      width: "9.5rem",
+      cell: (row) => (
+        <BrandMentionsCell
+          competitors={competitors}
+          discovered={row.discoveredCompetitors}
+          tracked={row.competitors}
+        />
+      ),
+      sortValue: (row) =>
+        row.competitors.length + row.discoveredCompetitors.length,
+      sortable: true,
+    };
+  }
 
   const promptColumns: TableColumn<GeoPromptGapRow>[] = [
     {
@@ -906,22 +906,7 @@ export function GeoGapsTable({
       sortValue: (row) => gapMissingEngineFamilies(row.mentionedEngines).length,
       sortable: true,
     },
-    {
-      key: "competitors",
-      collapsePriority: 2,
-      header: "Competitors",
-      width: "9.5rem",
-      cell: (row) => (
-        <BrandMentionsCell
-          competitors={competitors}
-          discovered={row.discoveredCompetitors}
-          tracked={row.competitors}
-        />
-      ),
-      sortValue: (row) =>
-        row.competitors.length + row.discoveredCompetitors.length,
-      sortable: true,
-    },
+    competitorsColumn(),
     {
       key: "write",
       header: "",
@@ -1020,26 +1005,16 @@ export function GeoGapsTable({
       collapsePriority: 1,
       header: "Searched by",
       width: "9.5rem",
-      cell: (row) => <EnginesCell engines={row.engines} />,
+      cell: (row) => (
+        <EngineLogos
+          detail={GEO_GAPS_ENGINE_DETAIL.searched}
+          engines={row.engines}
+        />
+      ),
       sortValue: (row) => gapMissingEngineFamilies(row.engines).length,
       sortable: true,
     },
-    {
-      key: "competitors",
-      collapsePriority: 2,
-      header: "Competitors",
-      width: "9.5rem",
-      cell: (row) => (
-        <BrandMentionsCell
-          competitors={competitors}
-          discovered={row.discoveredCompetitors}
-          tracked={row.competitors}
-        />
-      ),
-      sortValue: (row) =>
-        row.competitors.length + row.discoveredCompetitors.length,
-      sortable: true,
-    },
+    competitorsColumn(),
     {
       key: "write",
       header: "",
@@ -1051,10 +1026,9 @@ export function GeoGapsTable({
           action={gapWriteAction(row.brief)}
           onOpenPost={onOpenPost}
           onWrite={() => onWriteAiSearch(row)}
-          opportunityBucket={gapMeterLevel(
-            maxAiSearchOpportunity <= 0
-              ? 0
-              : row.opportunity / maxAiSearchOpportunity
+          opportunityBucket={gapOpportunityLevel(
+            row.opportunity,
+            maxAiSearchOpportunity
           )}
           postId={row.brief?.postId}
           sourceKind="ai_search"
@@ -1160,9 +1134,11 @@ export function GeoGapsTable({
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <GapsTabs
           onTabChange={setTab}
-          promptCount={filteredPromptGaps.length}
-          searchCount={filteredSearchGaps.length}
-          aiSearchCount={filteredAiSearchGaps.length}
+          counts={{
+            prompt: filteredPromptGaps.length,
+            search: filteredSearchGaps.length,
+            ai: filteredAiSearchGaps.length,
+          }}
           tab={tab}
         />
         <GapsFilters

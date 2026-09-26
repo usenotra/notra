@@ -116,6 +116,10 @@ export const GEO_GAPS_METER_STEPS = 5;
 export const GEO_GAPS_COMPETITOR_SIGNAL_CAP = 4;
 export const GEO_GAPS_LOADING_STATUS =
   "Calculating gaps from the latest scan. This usually takes a few seconds.";
+export const GEO_GAPS_ENGINE_DETAIL = {
+  mentioned: "Mentions you",
+  searched: "Ran this search",
+} as const;
 export const GEO_GAPS_COMPETITOR_DETAIL = {
   tracked: "Tracked competitor",
   discovered: "Discovered in answers, not tracked yet",

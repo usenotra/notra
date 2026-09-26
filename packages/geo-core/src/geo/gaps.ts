@@ -12,19 +12,7 @@ import {
   posts,
 } from "@notra/db/schema";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
-import {
-  and,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  like,
-  not,
-  notInArray,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -42,10 +30,13 @@ import {
   GEO_WRITER_PLANNER_GAP_LIMIT,
 } from "../constants/geo";
 import type {
+  GeoAiSearchAgg,
+  GeoAiSearchCheck,
   GeoAiSearchGapRow,
   GeoContentCollisionCandidate,
   GeoContentGapsResponse,
   GeoGapBriefRef,
+  GeoGapScore,
   GeoPromptGapIgnoreInput,
   GeoPromptGapRow,
   GeoScopeInput,
@@ -73,10 +64,9 @@ import { geoDb } from "./effect";
 import { GeoSettingsMissingError } from "./errors";
 import { requireGeoProject } from "./projects";
 import {
-  CUSTOM_PROMPT_SCAN_ID_PREFIX,
-  SEQUENCE_PROMPT_SCAN_ID_PREFIX,
-  customPromptScanId,
+  activeGapScanFilter,
   findPromptMentionEntry,
+  gapScanIds,
   shouldSkipUnmatchedGapScan,
 } from "./prompts";
 import {
@@ -107,26 +97,6 @@ interface PromptGapAgg {
   mentionedEngines: string[];
   competitors: string[];
   searchQueriesByEngine: string[][];
-}
-
-interface AiSearchAgg {
-  variants: Map<string, number>;
-  prompts: Set<string>;
-  engines: Set<string>;
-  searches: number;
-  mentioned: number;
-  covered: number;
-  competitors: string[];
-}
-
-interface AiSearchCheck {
-  promptId: string;
-  engine: string;
-  prompt: string;
-  mentioned: boolean;
-  ownedSourceCited: boolean;
-  competitors: string[];
-  queries: string[];
 }
 
 function toBriefRef(row: GapBriefRow | undefined): GeoGapBriefRef | null {
@@ -181,10 +151,38 @@ function lookbackSince(): Date {
   return new Date(Date.now() - GEO_WRITER_GAP_LOOKBACK_DAYS * MS_PER_DAY);
 }
 
+function recentFirstTurnChecks(projectId: string) {
+  return and(
+    eq(geoMentionChecks.projectId, projectId),
+    eq(geoMentionChecks.turn, 0),
+    gte(geoMentionChecks.capturedAt, lookbackSince())
+  );
+}
+
+function scoreGap(
+  input: { competitors: readonly string[]; mentioned: number; total: number },
+  trackedAliases: Map<string, string>
+): GeoGapScore {
+  const { tracked, discovered } = splitGapCompetitors(
+    input.competitors,
+    trackedAliases
+  );
+  const ownMentionRate = input.mentioned / input.total;
+  return {
+    competitors: tracked,
+    discoveredCompetitors: discovered,
+    ownMentionRate,
+    opportunity: gapOpportunityScore({
+      ownMentionRate,
+      competitorCount: tracked.length + discovered.length,
+      engineCoverage: input.total,
+    }),
+  };
+}
+
 const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
   projectId: string
 ) {
-  const since = lookbackSince();
   const [checks, prompts, settingsRow] = yield* Effect.all([
     geoDb("mention checks lookup failed", () =>
       db
@@ -200,13 +198,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
           }
         )
         .from(geoMentionChecks)
-        .where(
-          and(
-            eq(geoMentionChecks.projectId, projectId),
-            eq(geoMentionChecks.turn, 0),
-            gte(geoMentionChecks.capturedAt, since)
-          )
-        )
+        .where(recentFirstTurnChecks(projectId))
         .orderBy(
           geoMentionChecks.promptId,
           geoMentionChecks.engine,
@@ -252,12 +244,11 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
 
 const loadAiSearchChecks = Effect.fn("geo.gaps.aiSearchChecks")(function* (
   projectId: string,
-  activeScanIds: readonly string[],
+  matchedScanIds: readonly string[],
   removedAutoPromptIds: readonly string[]
 ) {
   const queries = sql`${geoMentionChecks.grounding}->'queries'`;
-  const promptId = geoMentionChecks.promptId;
-  const rows: AiSearchCheck[] = yield* geoDb(
+  const rows: GeoAiSearchCheck[] = yield* geoDb(
     "AI search checks lookup failed",
     () =>
       db
@@ -273,16 +264,11 @@ const loadAiSearchChecks = Effect.fn("geo.gaps.aiSearchChecks")(function* (
         .from(geoMentionChecks)
         .where(
           and(
-            eq(geoMentionChecks.projectId, projectId),
-            eq(geoMentionChecks.turn, 0),
-            gte(geoMentionChecks.capturedAt, lookbackSince()),
-            or(
-              inArray(promptId, [...activeScanIds]),
-              and(
-                not(like(promptId, `${CUSTOM_PROMPT_SCAN_ID_PREFIX}%`)),
-                not(like(promptId, `${SEQUENCE_PROMPT_SCAN_ID_PREFIX}%`)),
-                notInArray(promptId, [...removedAutoPromptIds])
-              )
+            recentFirstTurnChecks(projectId),
+            activeGapScanFilter(
+              geoMentionChecks.promptId,
+              matchedScanIds,
+              removedAutoPromptIds
             ),
             sql`case when jsonb_typeof(${queries}) = 'array' then jsonb_array_length(${queries}) else 0 end > 0`
           )
@@ -329,10 +315,10 @@ function aggregateMentionChecks(
 }
 
 function aggregateAiSearches(
-  checks: readonly AiSearchCheck[],
+  checks: readonly GeoAiSearchCheck[],
   brandTerms: string[]
-): Map<string, AiSearchAgg> {
-  const byKey = new Map<string, AiSearchAgg>();
+): Map<string, GeoAiSearchAgg> {
+  const byKey = new Map<string, GeoAiSearchAgg>();
   for (const check of checks) {
     const seenInCheck = new Set<string>();
     for (const raw of check.queries) {
@@ -375,7 +361,7 @@ function aggregateAiSearches(
 }
 
 function toAiSearchGapRows(
-  byKey: Map<string, AiSearchAgg>,
+  byKey: Map<string, GeoAiSearchAgg>,
   trackedAliases: Map<string, string>,
   briefFor: (key: string) => GapBriefRow | undefined
 ): GeoAiSearchGapRow[] {
@@ -390,11 +376,6 @@ function toAiSearchGapRows(
     const [query = key, ...variants] = [...entry.variants.entries()]
       .sort((left, right) => right[1] - left[1])
       .map(([variant]) => variant);
-    const { tracked, discovered } = splitGapCompetitors(
-      entry.competitors,
-      trackedAliases
-    );
-    const ownMentionRate = entry.mentioned / entry.searches;
     rows.push({
       id: key,
       query,
@@ -402,14 +383,14 @@ function toAiSearchGapRows(
       prompts: [...entry.prompts].slice(0, GEO_AI_SEARCH_GAP_PROMPT_LIMIT),
       engines: [...entry.engines],
       searches: entry.searches,
-      ownMentionRate,
-      competitors: tracked,
-      discoveredCompetitors: discovered,
-      opportunity: gapOpportunityScore({
-        ownMentionRate,
-        competitorCount: tracked.length + discovered.length,
-        engineCoverage: entry.searches,
-      }),
+      ...scoreGap(
+        {
+          competitors: entry.competitors,
+          mentioned: entry.mentioned,
+          total: entry.searches,
+        },
+        trackedAliases
+      ),
       brief: toBriefRef(briefFor(key)),
     });
   }
@@ -435,8 +416,9 @@ function forEachMissingMajorityGap(
     if (!entry) {
       continue;
     }
-    matchedScanIds.add(prompt.id);
-    matchedScanIds.add(customPromptScanId(prompt.id));
+    for (const scanId of gapScanIds(prompt.id)) {
+      matchedScanIds.add(scanId);
+    }
     if (isMissingMajority(entry.missing.length, entry.total)) {
       onGap(prompt.id, prompt.prompt, prompt.title, entry);
     }
@@ -622,10 +604,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
       Effect.flatMap((inputs) =>
         loadAiSearchChecks(
           projectId,
-          inputs.prompts.flatMap((prompt) => [
-            prompt.id,
-            customPromptScanId(prompt.id),
-          ]),
+          inputs.prompts.flatMap((prompt) => gapScanIds(prompt.id)),
           [...inputs.removedAutoPromptIds]
         ).pipe(Effect.map((checks) => ({ ...inputs, aiSearchChecks: checks })))
       )
@@ -733,32 +712,20 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     if (ignoredGapPromptIds.has(id)) {
       return;
     }
-    const { tracked, discovered } = splitGapCompetitors(
-      entry.competitors,
-      trackedAliases
-    );
-    const ownMentionRate = entry.mentioned / entry.total;
+    const score = scoreGap(entry, trackedAliases);
     promptGaps.push({
       id,
       prompt,
       title,
       engines: entry.missing,
       mentionedEngines: entry.mentionedEngines,
-      competitors: tracked,
-      discoveredCompetitors: discovered,
+      ...score,
       searchQueries: interleaveSearchQueries(
         entry.searchQueriesByEngine,
         GEO_GAPS_ENGINE_QUERY_LIMIT
       ),
-      ownMentionRate,
       engineCoverage: entry.total,
-      opportunity: won
-        ? 0
-        : gapOpportunityScore({
-            ownMentionRate,
-            competitorCount: tracked.length + discovered.length,
-            engineCoverage: entry.total,
-          }),
+      opportunity: won ? 0 : score.opportunity,
       won,
       brief: toBriefRef(briefBySource.get(sourceKey("gap", id))),
     });

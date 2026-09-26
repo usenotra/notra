@@ -117,13 +117,17 @@ export interface GeoGapsEmptyProps {
 export interface GeoGapsTabsProps {
   tab: GeoGapsTab;
   onTabChange: (tab: GeoGapsTab) => void;
-  promptCount: number;
-  searchCount: number;
-  aiSearchCount: number;
+  counts: Record<GeoGapsTab, number>;
 }
 
-export interface GeoGapEnginesCellProps {
+export interface GeoGapEngineLogosProps {
   engines: readonly string[];
+  detail: string;
+}
+
+export interface GeoGapCompetitorFields {
+  competitors: string[];
+  discoveredCompetitors: string[];
 }
 
 export interface GeoGapsFiltersProps {

@@ -55,6 +55,23 @@ export function withRestoredPromptGap(
   };
 }
 
+export function maxGapOpportunity(
+  rows: readonly { opportunity: number }[]
+): number {
+  return Math.max(0, ...rows.map((row) => row.opportunity));
+}
+
+export function gapOpportunityLevel(
+  opportunity: number,
+  maxOpportunity: number
+): number {
+  return gapMeterLevel(maxOpportunity <= 0 ? 0 : opportunity / maxOpportunity);
+}
+
+export function isGeoGapsTab(value: unknown): value is GeoGapsTab {
+  return value === "prompt" || value === "search" || value === "ai";
+}
+
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
 export function gapMeterLevel(
   intensity: number,
@@ -281,12 +298,16 @@ export function filterAiSearchGaps(
   rows: readonly GeoAiSearchGapRow[],
   query: string
 ): GeoAiSearchGapRow[] {
-  return filterGapsByQuery(rows, query, (row) => [
+  return filterGapsByQuery(rows, query, aiSearchGapSearchValues);
+}
+
+function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
+  return [
     row.query,
     ...row.variants,
     ...row.prompts,
     row.brief?.workingTitle ?? "",
-  ]);
+  ];
 }
 
 export function aiSearchGapSubtitle(row: GeoAiSearchGapRow): string | null {
