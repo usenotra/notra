@@ -415,18 +415,16 @@ export function PromptSuggestions({
       const pendingResults = await Promise.allSettled([
         ...pendingSuggestionRequests.current.values(),
       ]);
-      if (pendingResults.some((result) => result.status === "rejected")) {
-        return;
+      if (pendingResults.every((result) => result.status === "fulfilled")) {
+        await Promise.allSettled(
+          remaining.map((row) => accept.mutateAsync({ suggestionId: row.id }))
+        );
       }
-      await Promise.allSettled(
-        remaining.map((row) => accept.mutateAsync({ suggestionId: row.id }))
-      );
     } catch {
       // The mutation hook reports the error.
-    } finally {
-      trackAllQueued.current = false;
-      setIsTrackAllQueued(false);
     }
+    trackAllQueued.current = false;
+    setIsTrackAllQueued(false);
   };
 
   const columns = suggestionColumns({

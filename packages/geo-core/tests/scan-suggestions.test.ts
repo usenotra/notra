@@ -13,7 +13,6 @@ import assert from "node:assert/strict";
 import { buildGeoPlannerPrompt } from "@notra/ai/prompts/geo_writer/planner";
 import type { GenerateGeoContentBriefOptions } from "@notra/ai/types/geo-writer";
 import {
-  geoContentBriefs,
   geoMentionChecks,
   geoPrompts,
   geoPromptSuggestions,
