@@ -25,19 +25,21 @@ export function McpConnectionTestStatus({
       {status === "success" ? (
         <>
           <HugeiconsIcon
-            className="text-success size-4"
+            className="text-success size-4 shrink-0"
             icon={CheckmarkCircle02Icon}
           />
-          <span>{message || "Connection successful"}</span>
+          <span className="min-w-0 wrap-anywhere">
+            {message || "Connection successful"}
+          </span>
         </>
       ) : null}
       {status === "error" ? (
         <>
           <HugeiconsIcon
-            className="text-destructive size-4"
+            className="text-destructive size-4 shrink-0"
             icon={Alert01Icon}
           />
-          <span className="text-destructive">
+          <span className="text-destructive min-w-0 wrap-anywhere">
             {message || "Could not reach the server"}
           </span>
         </>

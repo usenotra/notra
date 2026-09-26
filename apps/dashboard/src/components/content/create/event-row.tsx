@@ -55,7 +55,9 @@ export function EventRow({
         {selected && <HugeiconsIcon className="size-3" icon={Tick01Icon} />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{label}</p>
+        <p className="truncate text-sm" title={label}>
+          {label}
+        </p>
         <p className="text-muted-foreground truncate text-xs">{meta}</p>
       </div>
       <Badge className={cn("shrink-0", EVENT_BADGE[type])}>

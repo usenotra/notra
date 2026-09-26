@@ -114,7 +114,7 @@ export function ReferencesList({
   };
 
   let content = (
-    <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
+    <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2">
       {references.map((ref) => (
         <ReferenceCard
           isDeleting={deletingId === ref.id}

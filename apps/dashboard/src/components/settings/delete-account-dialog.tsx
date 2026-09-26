@@ -179,7 +179,7 @@ export function DeleteAccountDialog({
                       key={org.id}
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar className="size-8 rounded-lg after:rounded-lg">
+                        <Avatar className="size-8 shrink-0 rounded-lg after:rounded-lg">
                           <AvatarImage
                             alt={org.name}
                             className="rounded-lg"
@@ -189,8 +189,13 @@ export function DeleteAccountDialog({
                             {org.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">{org.name}</p>
+                        <div className="min-w-0">
+                          <p
+                            className="truncate text-sm font-medium"
+                            title={org.name}
+                          >
+                            {org.name}
+                          </p>
                           <p className="text-muted-foreground text-xs">
                             {org.memberCount} member
                             {org.memberCount !== 1 ? "s" : ""}
@@ -213,7 +218,7 @@ export function DeleteAccountDialog({
                             value="transfer"
                           />
                           <Label
-                            className="cursor-pointer text-sm leading-tight font-normal"
+                            className="min-w-0 cursor-pointer text-sm leading-tight font-normal wrap-anywhere"
                             htmlFor={`transfer-${org.id}`}
                           >
                             Transfer ownership
@@ -257,7 +262,7 @@ export function DeleteAccountDialog({
                 <div className="space-y-2 rounded-lg border border-dashed p-3">
                   {soleOwnerOrgs.map((org) => (
                     <div className="flex items-center gap-2" key={org.id}>
-                      <Avatar className="size-6 rounded after:rounded">
+                      <Avatar className="size-6 shrink-0 rounded after:rounded">
                         <AvatarImage
                           alt={org.name}
                           className="rounded"
@@ -267,8 +272,10 @@ export function DeleteAccountDialog({
                           {org.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="text-sm">{org.name}</p>
-                      <span className="text-muted-foreground text-xs">
+                      <p className="min-w-0 truncate text-sm" title={org.name}>
+                        {org.name}
+                      </p>
+                      <span className="text-muted-foreground shrink-0 text-xs">
                         (only you)
                       </span>
                     </div>

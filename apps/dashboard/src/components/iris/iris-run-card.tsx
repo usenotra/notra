@@ -70,7 +70,7 @@ export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
         </span>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1 wrap-anywhere">
         <p className="text-sm font-medium">{decision.headline}</p>
         {decision.detail ? (
           <p className="text-muted-foreground text-xs leading-relaxed">
@@ -97,7 +97,10 @@ export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
                 {humanizeIrisTaskStatus(task.status)}
               </span>
               {task.errorMessage ? (
-                <span className="text-destructive min-w-0 flex-1 truncate">
+                <span
+                  className="text-destructive min-w-0 flex-1 truncate"
+                  title={task.errorMessage}
+                >
                   {task.errorMessage}
                 </span>
               ) : null}
@@ -125,7 +128,9 @@ export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
             noticeClass(outboxNotice.tone)
           )}
         >
-          <span className="flex-1">{outboxNotice.message}</span>
+          <span className="min-w-0 flex-1 wrap-anywhere">
+            {outboxNotice.message}
+          </span>
           {outboxNotice.needsSlackFix ? (
             <Link
               className="text-foreground inline-flex shrink-0 items-center gap-1 font-medium hover:underline"

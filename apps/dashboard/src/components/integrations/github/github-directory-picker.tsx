@@ -458,7 +458,10 @@ export function GitHubDirectoryPicker({
             className="text-muted-foreground size-4 shrink-0"
             icon={Folder01Icon}
           />
-          <span className="truncate font-mono text-xs">
+          <span
+            className="truncate font-mono text-xs"
+            title={directory || undefined}
+          >
             {directory || "Repository root"}
           </span>
         </span>
@@ -491,7 +494,9 @@ export function GitHubDirectoryPicker({
               className="text-muted-foreground size-4 shrink-0"
               icon={Folder01Icon}
             />
-            <span>{repositoryName} (root)</span>
+            <span className="min-w-0 truncate" title={repositoryName}>
+              {repositoryName} (root)
+            </span>
           </label>
 
           {directory ? (

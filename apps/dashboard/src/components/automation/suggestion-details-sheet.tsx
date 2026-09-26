@@ -27,7 +27,7 @@ export function SuggestionDetailsSheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border sm:max-w-md">
         <SheetHeader className="bg-muted/50 border-b pr-14">
-          <SheetTitle>{suggestion.title}</SheetTitle>
+          <SheetTitle className="wrap-anywhere">{suggestion.title}</SheetTitle>
           <SheetDescription>
             Review the recommendation before creating this {automationLabel}.
           </SheetDescription>
@@ -37,7 +37,7 @@ export function SuggestionDetailsSheet({
           {suggestion.description ? (
             <section className="space-y-2">
               <h3 className="text-sm font-medium">Recommendation</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-muted-foreground text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
                 {suggestion.description}
               </p>
             </section>
@@ -47,7 +47,7 @@ export function SuggestionDetailsSheet({
             <section className="space-y-2">
               <h3 className="text-sm font-medium">Why this fits</h3>
               <div className="bg-muted/50 rounded-lg border p-3">
-                <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-muted-foreground text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
                   {suggestion.evidence}
                 </p>
               </div>

@@ -197,7 +197,7 @@ export function CollectionsView({
                 <CollectionStatusBadge status={collectionStatus(collection)} />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5">
-                <p className="line-clamp-2 text-sm leading-snug font-medium">
+                <p className="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere">
                   {collectionTitle(collection)}
                 </p>
                 <p className="text-muted-foreground text-xs">

@@ -115,7 +115,10 @@ export function RepoSection({
           )}
         </div>
         <Github className="size-4 shrink-0" />
-        <span className="flex-1 text-sm font-medium">
+        <span
+          className="min-w-0 flex-1 truncate text-sm font-medium"
+          title={`${repo.owner}/${repo.repo}`}
+        >
           {repo.owner}/{repo.repo}
         </span>
       </button>

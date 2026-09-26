@@ -187,7 +187,7 @@ export function SentimentResultsTable({
           className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
         >
           <SheetHeader className="border-b p-5 pr-12">
-            <SheetTitle>{selected?.title}</SheetTitle>
+            <SheetTitle className="wrap-anywhere">{selected?.title}</SheetTitle>
             <SheetDescription>
               Exact quotes from the analyzed sample of saved answers.
             </SheetDescription>

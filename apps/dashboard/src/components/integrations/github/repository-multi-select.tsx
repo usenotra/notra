@@ -131,7 +131,10 @@ export function RepositoryMultiSelect({
                   </span>
 
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                    <span className="min-w-0 truncate text-sm font-medium">
+                    <span
+                      className="min-w-0 truncate text-sm font-medium"
+                      title={repo.fullName}
+                    >
                       {repo.fullName}
                     </span>
                     {repo.private ? (

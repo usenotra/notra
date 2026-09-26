@@ -77,7 +77,7 @@ export function GeoProjectDeleteSection({
       >
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
+            <ResponsiveAlertDialogTitle className="wrap-anywhere">
               Delete “{project.name}”?
             </ResponsiveAlertDialogTitle>
             <ResponsiveAlertDialogDescription>

@@ -51,7 +51,14 @@ export function GitHubRepositoryRow({
             <Github className="size-4" />
           </div>
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="truncate text-sm font-medium">
+            <h3
+              className="max-w-full truncate text-sm font-medium"
+              title={
+                primaryRepository
+                  ? `${primaryRepository.owner}/${primaryRepository.repo}`
+                  : integration.displayName
+              }
+            >
               {primaryRepository ? (
                 <a
                   className="underline-offset-4 hover:underline"
@@ -96,7 +103,10 @@ export function GitHubRepositoryRow({
           <div key={repository.id}>
             {integration.repositories.length > 1 ? (
               <div className="mb-2 flex min-w-0 items-center gap-1">
-                <h4 className="min-w-0 flex-1 truncate text-sm font-medium">
+                <h4
+                  className="min-w-0 flex-1 truncate text-sm font-medium"
+                  title={`${repository.owner}/${repository.repo}`}
+                >
                   {repository.owner}/{repository.repo}
                 </h4>
                 <span className="text-muted-foreground text-xs">·</span>

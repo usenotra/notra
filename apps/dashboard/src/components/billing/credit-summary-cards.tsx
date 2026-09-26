@@ -25,7 +25,10 @@ export function CreditSummaryCards({
     typeof aiCredits?.granted === "number" ? aiCredits.granted : null;
   const usagePercent =
     included && included > 0
-      ? Math.min(((included - (balance ?? 0)) / included) * 100, 100)
+      ? Math.min(
+          Math.max(((included - (balance ?? 0)) / included) * 100, 0),
+          100
+        )
       : 0;
 
   if (isLoading) {
@@ -43,22 +46,27 @@ export function CreditSummaryCards({
       <TitleCard
         accentColor="#10b981"
         action={balanceAction}
+        className="min-w-0"
         heading="Current Balance"
       >
         <div>
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p className="truncate text-3xl font-bold tracking-tight tabular-nums">
             {balance !== null ? formatDollars(balance) : "-"}
           </p>
           {included !== null && (
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="text-muted-foreground mt-1 truncate text-sm">
               of {formatDollars(included)} included
             </p>
           )}
         </div>
       </TitleCard>
-      <TitleCard accentColor="#8b5cf6" heading="Used This Period">
+      <TitleCard
+        accentColor="#8b5cf6"
+        className="min-w-0"
+        heading="Used This Period"
+      >
         <div>
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p className="truncate text-3xl font-bold tracking-tight tabular-nums">
             {formatDollars(totalUsage)}
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
@@ -66,7 +74,7 @@ export function CreditSummaryCards({
           </p>
         </div>
       </TitleCard>
-      <TitleCard heading="Usage">
+      <TitleCard className="min-w-0" heading="Usage">
         <div>
           <div className="flex items-baseline gap-2">
             <p className="text-3xl font-bold tracking-tight tabular-nums">

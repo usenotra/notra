@@ -2481,7 +2481,7 @@ function StandaloneChatPageClient({
         <div className="mx-auto flex w-full max-w-2xl min-w-0 flex-col gap-4">
           <div className="w-full space-y-1">
             <p className="text-muted-foreground text-xs">{dateStr}</p>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">
               {greeting}
               {userName ? `, ${userName}` : ""}
             </h1>

@@ -170,11 +170,17 @@ export function McpServerCard({
               {server.indexedToolCount ?? 0} tools
             </Badge>
           </div>
-          <p className="text-muted-foreground truncate font-mono text-xs">
+          <p
+            className="text-muted-foreground truncate font-mono text-xs"
+            title={server.url}
+          >
             {server.url}
           </p>
           {server.toolSyncError ? (
-            <p className="text-destructive truncate text-xs">
+            <p
+              className="text-destructive truncate text-xs"
+              title={server.toolSyncError}
+            >
               {server.toolSyncError}
             </p>
           ) : null}
@@ -190,7 +196,7 @@ export function McpServerCard({
             <ResponsiveAlertDialogTitle>
               Delete MCP server?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will permanently remove &quot;{server.name}&quot; from this
               organization.
             </ResponsiveAlertDialogDescription>

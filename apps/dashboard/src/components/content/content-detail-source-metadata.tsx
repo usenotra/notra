@@ -177,7 +177,7 @@ export function ContentDetailSourceMetadata({
     : undefined;
 
   return (
-    <div className="text-muted-foreground text-xs">
+    <div className="text-muted-foreground text-xs wrap-anywhere">
       <span className="capitalize">
         {formatTriggerType(meta.triggerSourceType)}
       </span>

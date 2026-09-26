@@ -297,7 +297,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
             <ResponsiveAlertDialogTitle>
               Delete chat?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will permanently delete &quot;{session?.title ?? "this chat"}
               &quot;. This action cannot be undone.
             </ResponsiveAlertDialogDescription>

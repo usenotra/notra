@@ -44,7 +44,7 @@ export function GuidelinesTokensSection({
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {TOKEN_TYPE_LABELS[group.type]}
             </p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {group.tokens.map((token) => (
                 <div
                   className="flex items-center gap-1 rounded-lg border py-1 pr-1 pl-3"

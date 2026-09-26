@@ -130,7 +130,7 @@ export function SitemapList({
                 sitemapId={selectedSitemap.id}
                 voiceId={voiceId}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex max-w-full min-w-0 items-center gap-1">
                   <SitemapSelector
                     onSelect={setSelectedSitemapId}
                     selectedSitemapId={selectedSitemap.id}
@@ -193,7 +193,7 @@ export function SitemapList({
             <ResponsiveAlertDialogTitle>
               Remove sitemap?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This removes
               {deleteTarget ? ` ${deleteTarget.label}` : " this sitemap"} and
               its crawled pages from this brand identity.

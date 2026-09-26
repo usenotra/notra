@@ -399,7 +399,7 @@ function TwitterReferenceCard({
     <div className="group border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
       <div className="border-border/60 bg-background flex flex-1 flex-col gap-3 rounded-lg border p-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
             <Avatar
               className="size-8 rounded-full after:rounded-full"
               size="sm"
@@ -450,7 +450,7 @@ function TwitterReferenceCard({
           </div>
         </div>
 
-        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
           {formatTweetContent(reference.content)}
         </p>
 
@@ -556,7 +556,7 @@ function BlogReferenceCard({
           </div>
         </div>
 
-        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
           {reference.content}
         </p>
 
@@ -618,7 +618,7 @@ function CustomReferenceCard({
           </div>
         </div>
 
-        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
           {formatTweetContent(reference.content)}
         </p>
 

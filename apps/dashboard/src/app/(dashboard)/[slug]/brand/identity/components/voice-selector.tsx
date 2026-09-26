@@ -103,7 +103,7 @@ export function VoiceSelector({
 
           return (
             <button
-              className={`group flex min-w-40 shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border py-2.5 pr-2 pl-3 text-left transition-colors ${
+              className={`group flex max-w-72 min-w-40 shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border py-2.5 pr-2 pl-3 text-left transition-colors ${
                 isActive
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/40"
@@ -131,7 +131,7 @@ export function VoiceSelector({
                         </span>
                       }
                     />
-                    <TooltipContent className="max-w-64 space-y-1">
+                    <TooltipContent className="max-w-64 space-y-1 wrap-anywhere">
                       {voice.toneProfile && (
                         <p>Tone Profile: {voice.toneProfile}</p>
                       )}

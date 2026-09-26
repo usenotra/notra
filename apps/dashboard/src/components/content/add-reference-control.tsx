@@ -49,9 +49,13 @@ export function AddReferenceControl({
               key={voice.id}
               onClick={() => onAdd(voice.id, voice.name)}
             >
-              {voice.name}
+              <span className="min-w-0 truncate" title={voice.name}>
+                {voice.name}
+              </span>
               {voice.isDefault && (
-                <span className="text-muted-foreground text-xs">Default</span>
+                <span className="text-muted-foreground shrink-0 text-xs">
+                  Default
+                </span>
               )}
               {alreadyAdded && (
                 <HugeiconsIcon className="ml-auto size-4" icon={Tick02Icon} />

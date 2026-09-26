@@ -222,7 +222,7 @@ export function ChatSearchStack({ items }: ChatSearchStackProps) {
                   {source.title}
                 </span>
                 {source.domain ? (
-                  <span className="text-muted-foreground/70 shrink-0">
+                  <span className="text-muted-foreground/70 max-w-[45%] shrink-0 truncate">
                     {source.domain}
                   </span>
                 ) : null}

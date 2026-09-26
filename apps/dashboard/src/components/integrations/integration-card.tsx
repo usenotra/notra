@@ -137,7 +137,9 @@ export function IntegrationCard({
         onClick={handleCardClick}
       >
         <CardHeader>
-          <CardTitle>{integration.displayName}</CardTitle>
+          <CardTitle className="wrap-anywhere">
+            {integration.displayName}
+          </CardTitle>
           <CardDescription>
             {integration.connectionMethod === "unauthenticated" ? (
               <span className="block">

@@ -118,7 +118,7 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
             </label>
             <input
               autoFocus
-              className="flex-1 bg-transparent px-2.5 py-2 text-sm outline-none"
+              className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm outline-none"
               id="identity-url"
               onChange={(e) => setUrl(sanitizeUrlInput(e.target.value))}
               placeholder="example.com"

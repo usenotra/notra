@@ -119,7 +119,7 @@ function renderCardPreview({
   }
 
   return (
-    <p className="text-muted-foreground line-clamp-3 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] px-3 pb-3 text-sm">
+    <p className="text-muted-foreground line-clamp-3 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] px-3 pb-3 text-sm wrap-anywhere">
       {previewText}
     </p>
   );
@@ -164,7 +164,7 @@ const ContentCard = memo(function ContentCard({
     >
       <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col overflow-hidden rounded-lg border">
         <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-1.5">
-          <p className="line-clamp-2 min-w-0 text-sm leading-snug font-medium">
+          <p className="line-clamp-2 min-w-0 text-sm leading-snug font-medium wrap-anywhere">
             {title}
           </p>
           <div className="flex shrink-0 items-center gap-2">
@@ -219,7 +219,7 @@ const ContentCard = memo(function ContentCard({
           title,
         })}
       </div>
-      <div className="flex items-center gap-1.5 px-1 pb-0.5">
+      <div className="flex flex-wrap items-center gap-1.5 px-1 pb-0.5">
         <Badge
           className="capitalize"
           variant={status === "published" ? "default" : "outline"}
@@ -242,7 +242,7 @@ const ContentCard = memo(function ContentCard({
     <>
       {href ? (
         <Link
-          className="focus-visible:ring-ring block h-full w-full rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+          className="focus-visible:ring-ring block h-full w-full min-w-0 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
           href={href}
         >
           {cardContent}

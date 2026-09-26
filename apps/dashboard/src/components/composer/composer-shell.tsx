@@ -84,7 +84,9 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
       )}
     >
       {title && !hasChips ? (
-        <p className="min-w-0 flex-1 text-xs font-medium">{title}</p>
+        <p className="min-w-0 flex-1 text-xs font-medium wrap-anywhere">
+          {title}
+        </p>
       ) : null}
       {hasChips ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
@@ -129,12 +131,16 @@ function ComposerChip({
           type="button"
         >
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </button>
       ) : (
         <>
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </>
       )}
       {onSteer && !pending ? (

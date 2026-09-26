@@ -239,7 +239,10 @@ function ConnectionSummary({ connection }: McpConnectionSummaryProps) {
         {connection.indexedToolCount ?? 0}
       </ConnectionDetail>
       <ConnectionDetail label="Endpoint">
-        <span className="max-w-64 truncate font-mono text-xs">
+        <span
+          className="block max-w-64 truncate font-mono text-xs"
+          title={connection.url}
+        >
           {connection.url}
         </span>
       </ConnectionDetail>

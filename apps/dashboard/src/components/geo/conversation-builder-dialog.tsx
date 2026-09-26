@@ -90,7 +90,7 @@ export function ConversationBuilderDialog({
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="wrap-anywhere">
             {sequence ? `Edit ${sequence.name}` : "New conversation"}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>

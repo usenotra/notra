@@ -89,7 +89,7 @@ function PersonaDetailHeader({
         <PersonaAvatar className="mt-0.5 size-12" persona={persona} size="lg" />
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex min-w-0 items-center gap-3">
-            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance">
+            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance wrap-anywhere">
               {persona.name}
             </SheetTitle>
             <Button

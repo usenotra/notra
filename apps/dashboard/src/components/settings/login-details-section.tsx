@@ -49,7 +49,10 @@ export function LoginDetailsSection({
         <div className="space-y-2">
           <Label>Email</Label>
           <div className="flex items-center gap-2">
-            <div className="bg-muted/50 flex-1 truncate rounded-lg border px-3 py-2 text-sm">
+            <div
+              className="bg-muted/50 flex-1 truncate rounded-lg border px-3 py-2 text-sm"
+              title={email}
+            >
               {email}
             </div>
             <HugeiconsIcon

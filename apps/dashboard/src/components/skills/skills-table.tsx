@@ -17,7 +17,10 @@ const columns: TableColumn<SkillListItem>[] = [
     width: "14rem",
     sortable: true,
     cell: (skill) => (
-      <span className="block truncate font-mono text-sm font-medium">
+      <span
+        className="block truncate font-mono text-sm font-medium"
+        title={skill.name}
+      >
         {skill.name}
       </span>
     ),

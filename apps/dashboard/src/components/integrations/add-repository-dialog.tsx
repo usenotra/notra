@@ -81,12 +81,13 @@ function RepositorySelector({
               }
               return (
                 <button
-                  className={`hover:bg-accent w-full px-3 py-2 text-left ${
+                  className={`hover:bg-accent w-full truncate px-3 py-2 text-left ${
                     field.state.value === repo.fullName ? "bg-accent" : ""
                   }`}
                   disabled={mutation.isPending}
                   key={virtualRow.key}
                   onClick={() => field.handleChange(repo.fullName)}
+                  title={repo.fullName}
                   style={{
                     position: "absolute",
                     top: 0,

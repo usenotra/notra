@@ -210,7 +210,7 @@ function CompetitorsPicker({
           {suggestions.isPending ? <CompetitorSuggestionsSkeleton /> : null}
           {suggestions.isError ? (
             <div className="flex items-center justify-between gap-3">
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground min-w-0 text-xs wrap-anywhere">
                 Could not pull suggestions for {domain}. You can add a brand
                 above or try again.
               </p>
@@ -229,7 +229,7 @@ function CompetitorsPicker({
             </div>
           ) : null}
           {suggestions.isSuccess && suggested.length === 0 ? (
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-xs wrap-anywhere">
               Nothing obvious for {domain}. Search above instead.
             </p>
           ) : null}

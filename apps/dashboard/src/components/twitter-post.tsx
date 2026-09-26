@@ -135,7 +135,7 @@ function TweetContent({
 
   return (
     <div
-      className="text-[0.9375rem] leading-snug whitespace-pre-wrap"
+      className="text-[0.9375rem] leading-snug wrap-anywhere whitespace-pre-wrap"
       ref={contentRef}
     >
       {formatTweetContent(content)}

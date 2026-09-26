@@ -290,7 +290,7 @@ export function AccountDetailView({
           </EChartsAreaChart>
         )}
         {!isEngagementLoading && points.length < ACCOUNT_DETAIL_MIN_POINTS && (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm wrap-anywhere">
             Not enough activity in the last {ANALYTICS_TIMESERIES_DAYS} days to
             chart @{username}
           </p>

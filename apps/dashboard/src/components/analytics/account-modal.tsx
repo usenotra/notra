@@ -28,7 +28,7 @@ export function AccountModal({ title, children }: AccountModalProps) {
           <ResponsiveDialogTitle className="text-xl font-semibold">
             @{title}
           </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
+          <ResponsiveDialogDescription className="wrap-anywhere">
             Engagement and recent posts for @{title}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>

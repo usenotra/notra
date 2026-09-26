@@ -54,7 +54,9 @@ export function createAttachmentColumns({
           <span className="bg-muted text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-md">
             <HugeiconsIcon className="size-3.5" icon={File02Icon} />
           </span>
-          <span className="truncate font-medium">{row.filename}</span>
+          <span className="truncate font-medium" title={row.filename}>
+            {row.filename}
+          </span>
         </span>
       ),
     },

@@ -197,7 +197,12 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="truncate text-sm font-medium">{feature.name}</p>
+            <p
+              className="min-w-0 truncate text-sm font-medium"
+              title={feature.name}
+            >
+              {feature.name}
+            </p>
             <Tooltip>
               <TooltipTrigger
                 aria-label={`About ${feature.name}`}

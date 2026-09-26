@@ -107,7 +107,9 @@ function GranolaIntegrationCard({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{integration.displayName}</CardTitle>
+          <CardTitle className="wrap-anywhere">
+            {integration.displayName}
+          </CardTitle>
           <CardDescription>
             {integration.createdByUser ? (
               <>

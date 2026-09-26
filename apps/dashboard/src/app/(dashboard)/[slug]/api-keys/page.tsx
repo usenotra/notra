@@ -328,7 +328,11 @@ function ApiKeysTable({
       header: "Name",
       width: "1fr",
       minWidth: "10rem",
-      cell: (apiKey) => <span className="font-medium">{apiKey.name}</span>,
+      cell: (apiKey) => (
+        <span className="font-medium" title={apiKey.name}>
+          {apiKey.name}
+        </span>
+      ),
     },
     {
       key: "start",
@@ -740,7 +744,7 @@ function DeleteApiKeyDialog({
           <ResponsiveAlertDialogTitle>
             Delete API Key?
           </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
+          <ResponsiveAlertDialogDescription className="wrap-anywhere">
             This will permanently delete
             {apiKey ? ` ${apiKey.name}` : " this API key"}. This action cannot
             be undone.

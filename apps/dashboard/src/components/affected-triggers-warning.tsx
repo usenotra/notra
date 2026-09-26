@@ -84,7 +84,7 @@ function TriggerGroup({ icon, label, items }: TriggerGroupProps) {
       <div className="space-y-2 rounded-lg border border-dashed p-3">
         {items.slice(0, 3).map((item) => (
           <div className="flex items-center gap-2" key={item.id}>
-            <p className="text-sm">{item.name}</p>
+            <p className="min-w-0 text-sm wrap-anywhere">{item.name}</p>
           </div>
         ))}
         {items.length > 3 && (

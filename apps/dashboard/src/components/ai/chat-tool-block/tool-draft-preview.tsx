@@ -24,7 +24,7 @@ export function ToolDraftPreview({
 
   return (
     <div className="border-border bg-muted/20 mt-3 space-y-3 rounded-lg border p-3">
-      <div className="space-y-1">
+      <div className="space-y-1 wrap-anywhere">
         <p className="text-foreground text-sm font-medium">{title}</p>
         {excerpt ? (
           <p className="text-muted-foreground text-xs leading-5 whitespace-pre-wrap">

@@ -760,7 +760,7 @@ function CommandPaletteList({
             />
           </div>
           <div className="space-y-1">
-            <p className="text-foreground text-sm font-medium">
+            <p className="text-foreground text-sm font-medium wrap-anywhere">
               No matches for &ldquo;{trimmedQuery}&rdquo;
             </p>
             <p className="text-muted-foreground text-xs">

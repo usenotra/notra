@@ -266,7 +266,7 @@ export function ScanModelMenu({
           ref={listRef}
         >
           {visible.length === 0 ? (
-            <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+            <p className="text-muted-foreground px-2 py-6 text-center text-sm wrap-anywhere">
               No models match “{query.trim()}”
             </p>
           ) : (

@@ -382,7 +382,7 @@ function ContentChatActivityHeader({
   return (
     <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
       <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
-        {title}
+        <span className="truncate">{title}</span>
       </h2>
       <div className="-mr-1.5 flex h-full items-center gap-0.5">
         <Tooltip>
