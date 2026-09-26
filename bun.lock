@@ -574,6 +574,7 @@
         "@notra/schemas": "workspace:*",
         "@shadcn/react": "^0.2.0",
         "@shikijs/transformers": "^3.21.0",
+        "@streamdown/code": "^1.1.1",
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/react-form": "^1.33.5",
         "@tanstack/react-virtual": "^3.14.9",
@@ -2221,6 +2222,8 @@
     "@stoplight/yaml": ["@stoplight/yaml@4.3.0", "", { "dependencies": { "@stoplight/ordered-object-literal": "^1.0.5", "@stoplight/types": "^14.1.1", "@stoplight/yaml-ast-parser": "0.0.50", "tslib": "^2.2.0" } }, "sha512-JZlVFE6/dYpP9tQmV0/ADfn32L9uFarHWxfcRhReKUnljz1ZiUM5zpX+PH8h5CJs6lao3TuFqnPm9IJJCEkE2w=="],
 
     "@stoplight/yaml-ast-parser": ["@stoplight/yaml-ast-parser@0.0.50", "", {}, "sha512-Pb6M8TDO9DtSVla9yXSTAxmo9GVEouq5P40DWXdOie69bXogZTkgvopCq+yEvTMA0F6PEvdJmbtTV3ccIp11VQ=="],
+
+    "@streamdown/code": ["@streamdown/code@1.1.1", "", { "dependencies": { "shiki": "^3.19.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0" } }, "sha512-i7HTNuDgZWb+VdrNVOam9gQhIc5MSSDXKWXgbUrn/4vSRaSMM+Rtl10MQj4wLWPNpF7p80waJsAqFP8HZfb0Jg=="],
 
     "@supermemory/tools": ["@supermemory/tools@1.4.8", "", { "dependencies": { "@ai-sdk/anthropic": "^2.0.25", "@ai-sdk/openai": "^2.0.23", "ai": "^5.0.29", "lru-cache": "^11.2.6", "openai": "^4.104.0", "supermemory": "^3.0.0-alpha.26", "zod": "^4.1.5" }, "peerDependencies": { "@ai-sdk/provider": "^2.0.0 || ^3.0.0", "@voltagent/core": "^2.6.12" }, "optionalPeers": ["@voltagent/core"] }, "sha512-qhd9xl5lkbzuJWEqBWgqYq0KOcVXwQEbAMKal85+dvE7jcwc+czv/Jet5oAtz/8RPF6kbvUHxHFjWodVE3bFlg=="],
 

@@ -65,6 +65,7 @@ import {
   useState,
 } from "react";
 import { Streamdown } from "streamdown";
+import { MESSAGE_CODE_PLUGINS } from "@notra/ui/constants/message-code";
 import { MESSAGE_TEXT_ANIMATION } from "@notra/ui/constants/message-animation";
 import {
   MESSAGE_TABLE_COPY_FORMATS,
@@ -731,10 +732,12 @@ export const MessageResponse = memo(
   ({ className, components, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
+        "message-response wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
         className
       )}
       components={{ ...messageResponseComponents, ...components }}
+      plugins={MESSAGE_CODE_PLUGINS}
+      lineNumbers={false}
       {...props}
       animated={props.isAnimating ? MESSAGE_TEXT_ANIMATION : false}
     />
