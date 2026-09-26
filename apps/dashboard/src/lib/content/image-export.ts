@@ -102,17 +102,27 @@ export function preloadImageExportCopy(
 }
 
 function createExportElement(html: string): HTMLDivElement {
+  // The export is rendered inside this page, so it would pick up the page's
+  // cascade: inherited properties (text color, color-scheme, fonts) and any
+  // global selector that matches the snippet's descendants. A shadow root stops
+  // the selectors, `all: initial` on the host stops the inheritance, and Kiwi
+  // then exports the same computed styles a fresh document would produce.
+  const host = document.createElement("div");
+  host.style.all = "initial";
+  host.style.position = "fixed";
+  host.style.left = "-10000px";
+  host.style.top = "0";
+  host.style.pointerEvents = "none";
+
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
   container.style.width = "1200px";
   container.style.height = "630px";
   container.style.overflow = "hidden";
-  container.style.pointerEvents = "none";
+  container.style.display = "block";
 
   container.replaceChildren(sanitizeExportHtml(html));
-  document.body.appendChild(container);
+  host.attachShadow({ mode: "open" }).appendChild(container);
+  document.body.appendChild(host);
 
   return container;
 }
@@ -151,7 +161,8 @@ async function withExportElement(
   try {
     await copy(exportElement);
   } finally {
-    exportElement.remove();
+    const root = exportElement.getRootNode();
+    (root instanceof ShadowRoot ? root.host : exportElement).remove();
   }
   return true;
 }
@@ -190,7 +201,7 @@ export async function copyImageAsFigma(
 
 export async function copyImageAsPaper(
   element: HTMLElement | null,
-  label?: string,
+  _label?: string,
   html?: string | null,
   htmlUrl?: string | null
 ): Promise<void> {
@@ -206,7 +217,7 @@ export async function copyImageAsPaper(
       html,
       htmlUrl,
       async (exportElement) => {
-        await copyAsPaper(exportElement, { label, name: label });
+        await copyAsPaper(exportElement);
       }
     );
     if (!copied) {

@@ -17,7 +17,15 @@ function copyAttrs(from: Element, to: Element, names: string[]): void {
 function useTarget(useEl: Element): Element | null {
   const href = useEl.getAttribute("href") ?? useEl.getAttribute("xlink:href");
   const id = href?.trim().replace(/^#/, "");
-  return id ? useEl.ownerDocument.getElementById(id) : null;
+  if (!id) {
+    return null;
+  }
+  // A shadow root is its own id scope, so ownerDocument cannot resolve ids
+  // inside it; ask the element's own root first, then fall back to the document.
+  const root = useEl.getRootNode() as Partial<Pick<Document, "getElementById">>;
+  return (
+    root.getElementById?.(id) ?? useEl.ownerDocument.getElementById(id) ?? null
+  );
 }
 
 function inlineUse(useEl: Element, depth: number): Element | null {

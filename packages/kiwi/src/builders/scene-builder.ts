@@ -3,6 +3,7 @@ import type {
   AddFrameOptions,
   AddTextOptions,
   AddVectorOptions,
+  FigmaEffect,
   Guid,
   SceneNode,
   SolidFill,
@@ -16,6 +17,7 @@ export type {
   AddVectorOptions,
   Color,
   DerivedTextData,
+  FigmaEffect,
   Guid,
   RGBA,
   SceneNode,
@@ -41,6 +43,78 @@ export function solidFill(r: number, g: number, b: number, a = 1): SolidFill {
     visible: true,
     blendMode: "NORMAL",
   };
+}
+
+export function dropShadowEffect(
+  options: {
+    dx?: number;
+    dy?: number;
+    blur?: number;
+    spread?: number;
+    color?: [number, number, number, number];
+    opacity?: number;
+  } = {}
+): FigmaEffect {
+  const [r = 0, g = 0, b = 0, a = 1] = options.color ?? [];
+  // Figma DropShadowEffect carries alpha in color.a (no opacity field).
+  const alpha = Math.max(0, Math.min(1, finiteOr(options.opacity ?? a, 1)));
+  const dx = finiteOr(options.dx, 0);
+  const dy = finiteOr(options.dy, 4);
+  const blur = Math.max(0, finiteOr(options.blur, 4));
+  const spread = finiteOr(options.spread, 0);
+  return {
+    type: "DROP_SHADOW",
+    visible: true,
+    blendMode: "NORMAL",
+    color: {
+      r: finiteOr(r, 0),
+      g: finiteOr(g, 0),
+      b: finiteOr(b, 0),
+      a: alpha,
+    },
+    offset: { x: dx, y: dy },
+    radius: blur,
+    spread,
+    showShadowBehindNode: false,
+  };
+}
+
+export function layerBlurEffect(radius: number): FigmaEffect {
+  return {
+    // The bundled Figma schema has no LAYER_BLUR — a layer blur is FOREGROUND_BLUR.
+    type: "FOREGROUND_BLUR",
+    visible: true,
+    radius: Math.max(0, finiteOr(radius, 0)),
+  };
+}
+
+function finiteOr(value: number | undefined, fallback: number): number {
+  return Number.isFinite(value) ? (value as number) : fallback;
+}
+
+function applyNodeExtras(
+  node: SceneNode,
+  options: {
+    opacity?: number;
+    blendMode?: string;
+    effects?: FigmaEffect[];
+    mask?: boolean | null;
+    maskType?: string | null;
+  }
+): void {
+  if (options.opacity !== undefined && Number.isFinite(options.opacity)) {
+    node.opacity = Math.max(0, Math.min(1, options.opacity));
+  }
+  if (options.blendMode) {
+    node.blendMode = options.blendMode;
+  }
+  if (options.effects && options.effects.length > 0) {
+    node.effects = options.effects;
+  }
+  if (options.mask) {
+    node.mask = true;
+    node.maskType = options.maskType ?? "ALPHA";
+  }
 }
 
 export function transformAt(x: number, y: number): Transform {
@@ -197,8 +271,10 @@ export class SceneBuilder {
       stackCounterAlignItems: "MIN",
       stackReverseZIndex: false,
       stackCounterSizing: "FIXED",
-      frameMaskDisabled: true,
+      frameMaskDisabled: !options.clipsContent,
     };
+
+    applyNodeExtras(node, options);
 
     if (hasRadius) {
       if (uniformRadius) {
@@ -325,11 +401,14 @@ export class SceneBuilder {
       dashPattern: hasStroke ? options.dashPattern : undefined,
       strokeJoin: options.strokeJoin ?? "MITER",
       fillPaints: options.fill ? [options.fill] : [],
+      effects: [],
       horizontalConstraint: "MIN",
       verticalConstraint: "MIN",
       frameMaskDisabled: true,
       vectorData: { vectorNetworkBlob: blobIndex },
     };
+
+    applyNodeExtras(node, options);
 
     if (hasStroke) {
       node.strokePaints = [stroke];

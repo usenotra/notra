@@ -147,10 +147,7 @@ test("Paper and Figma copy call separate kiwi functions", async () => {
     expect(loadFallbackFont).toHaveBeenCalledTimes(1);
 
     await copyImageAsPaper(exportElement, "Card");
-    expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
-      label: "Card",
-      name: "Card",
-    });
+    expect(copyAsPaper).toHaveBeenCalledWith(exportElement);
     expect(copyAsFigma).not.toHaveBeenCalled();
 
     await copyImageAsFigma(exportElement, "Card");
