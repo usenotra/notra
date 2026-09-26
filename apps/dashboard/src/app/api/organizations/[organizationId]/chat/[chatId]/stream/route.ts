@@ -173,23 +173,36 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         }
         const [resumeId, resumeIndex] = resume.data.cursor?.split(":") ?? [];
         // Start at the cursor's timestamp instead of the oldest retained item.
-        // A full page is ambiguous: fail rather than silently skip its tail.
+        // A full page may still contain the terminal chunk needed to resume.
         const history = await channel.history({
           start: resumeId ? Number(resumeId.split("-")[0]) : undefined,
           limit: CHAT_STREAM_HISTORY_LIMIT,
         });
-        if (resumeId && history.length >= CHAT_STREAM_HISTORY_LIMIT) {
-          throw new Error("Chat replay window is too large to resume safely");
-        }
-        const resumeItem = resumeId
-          ? history.find((item) => item.id === resumeId)
-          : undefined;
+        const resumePosition = resumeId
+          ? history.findIndex((item) => item.id === resumeId)
+          : -1;
+        const resumeItem = history[resumePosition];
         if (
           resumeId &&
           (!resumeItem ||
             Number(resumeIndex) >= toChunks(resumeItem.data).length)
         ) {
           throw new Error("Chat replay cursor is no longer available");
+        }
+        if (
+          resumeId &&
+          history.length >= CHAT_STREAM_HISTORY_LIMIT &&
+          !history
+            .slice(resumePosition)
+            .some(
+              (item) =>
+                item.event === "ai.chunk" &&
+                toChunks(item.data).some(
+                  (chunk) => chunk.type === "finish" || chunk.type === "abort"
+                )
+            )
+        ) {
+          throw new Error("Chat replay window is too large to resume safely");
         }
         let reachedCursor = !resumeId;
 
