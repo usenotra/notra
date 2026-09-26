@@ -1,4 +1,11 @@
-import { existsSync, lstatSync, readdirSync, readlinkSync, rmSync, statSync } from "node:fs";
+import {
+  existsSync,
+  lstatSync,
+  readdirSync,
+  readlinkSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import path from "node:path";
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
@@ -7,6 +14,7 @@ const turbopackCacheDir = path.join(
   repoRoot,
   "apps/dashboard/.next/cache/turbopack"
 );
+const MAX_TURBOPACK_CACHE_BYTES = 2 * 1024 ** 3;
 
 const listDir = (dir: string): string[] =>
   existsSync(dir) ? readdirSync(dir) : [];
@@ -31,6 +39,15 @@ const toStoreEntry = (link: string): string | undefined => {
   }
   return relative.split(path.sep)[0];
 };
+
+const directorySize = (dir: string): number =>
+  readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .reduce(
+      (total, entry) =>
+        total + statSync(path.join(entry.parentPath, entry.name)).size,
+      0
+    );
 
 const pruneBunStore = (): void => {
   if (!existsSync(storeDir)) {
@@ -78,8 +95,17 @@ const pruneTurbopackCache = (): void => {
   for (const dir of stale) {
     rmSync(dir, { force: true, recursive: true });
   }
+  console.log(`Pruned ${stale.length} stale Turbopack caches`);
+
+  if (!current) {
+    return;
+  }
+  const size = directorySize(current);
+  if (size > MAX_TURBOPACK_CACHE_BYTES) {
+    rmSync(current, { force: true, recursive: true });
+  }
   console.log(
-    `Pruned ${stale.length} stale Turbopack caches, kept ${current ? path.basename(current) : "none"}`
+    `Turbopack cache ${path.basename(current)} is ${Math.round(size / 1024 ** 2)} MB${size > MAX_TURBOPACK_CACHE_BYTES ? ", reset" : ""}`
   );
 };
 
