@@ -80,6 +80,15 @@ export const chatMessageMetadataSchema = z.object({
   totalTokens: z.number().int().nonnegative().optional(),
   ttftMs: z.number().nonnegative().optional(),
   generationDurationMs: z.number().nonnegative().optional(),
+  activityTimings: z
+    .record(
+      z.string(),
+      z.object({
+        startedAt: z.number().nonnegative(),
+        finishedAt: z.number().nonnegative().optional(),
+      })
+    )
+    .optional(),
   tokensPerSecond: z.number().nonnegative().optional(),
   createdAt: z.number().int().nonnegative().optional(),
   externalChannelId: externalChannelIdSchema.optional(),

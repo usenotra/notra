@@ -87,6 +87,7 @@ export type ChatMessagePart =
     };
 
 export interface BuildChatFinishMetadataInput {
+  activityTimings?: ChatMessageMetadata["activityTimings"];
   streamStartedAt: number;
   firstChunkAt: number | null;
   finishedAt: number;
@@ -96,6 +97,12 @@ export interface BuildChatFinishMetadataInput {
   requestedModel?: ChatModel | string;
   thinkingLevel?: ThinkingLevel;
   requestedThinkingLevel?: ThinkingLevel;
+}
+
+export interface ChatActivityTimingEvent {
+  type: string;
+  id?: string;
+  toolCallId?: string;
 }
 
 export interface ChatConfig {

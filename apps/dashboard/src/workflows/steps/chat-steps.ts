@@ -30,6 +30,7 @@ import { realtime } from "@notra/ai/realtime";
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import type { StandaloneChatContextItem } from "@notra/ai/types/standalone-chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -344,12 +345,14 @@ export async function streamChatResponseStep(
       decision: routingDecision,
     });
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
       messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
         const effectiveThinkingLevel =
           enableThinking === false
             ? "off"
@@ -368,6 +371,7 @@ export async function streamChatResponseStep(
 
         if (part.type === "finish") {
           return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
             streamStartedAt,
             firstChunkAt: timing.firstChunkAt,
             finishedAt: Date.now(),
@@ -380,7 +384,7 @@ export async function streamChatResponseStep(
           });
         }
 
-        return;
+        return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
         try {

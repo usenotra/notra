@@ -22,6 +22,7 @@ import {
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
@@ -345,12 +346,14 @@ export const POST = withEvlog(async function POST(
       decision: routingDecision,
     });
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: true,
       messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
         if (part.type === "start") {
           return {
             authorUserId: auth.context.user.id,
@@ -362,6 +365,7 @@ export const POST = withEvlog(async function POST(
 
         if (part.type === "finish") {
           return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
             streamStartedAt,
             firstChunkAt,
             finishedAt: Date.now(),
@@ -372,7 +376,7 @@ export const POST = withEvlog(async function POST(
           });
         }
 
-        return;
+        return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
         if (request.signal.aborted) {

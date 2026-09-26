@@ -40,6 +40,7 @@ import {
   buildChatFinishMetadata,
   stampUserMessageAuthors,
 } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
@@ -568,12 +569,14 @@ async function createDirectStandaloneChatResponse({
       }
     );
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
       messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
         const effectiveThinkingLevel =
           enableThinking === false
             ? "off"
@@ -592,6 +595,7 @@ async function createDirectStandaloneChatResponse({
 
         if (part.type === "finish") {
           return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
             streamStartedAt,
             firstChunkAt,
             finishedAt: Date.now(),
@@ -604,7 +608,7 @@ async function createDirectStandaloneChatResponse({
           });
         }
 
-        return;
+        return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
         try {
