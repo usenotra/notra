@@ -9,12 +9,6 @@
 @import "./text-shimmer.css";
 @import "streamdown/styles.css";
 
-@media (prefers-reduced-motion: reduce) {
-  [data-sd-animate] {
-    animation: none;
-  }
-}
-
 @source "../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";

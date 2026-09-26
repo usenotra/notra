@@ -2086,6 +2086,7 @@ function StandaloneChatPageClient({
       return (
         <MessageResponse
           isAnimating={messageId === chatActivity.activeMessageId}
+          key={`${messageId}-text-${index}`}
         >
           {text}
         </MessageResponse>

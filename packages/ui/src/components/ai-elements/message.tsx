@@ -357,7 +357,10 @@ export const MessageBranchPage = ({
   );
 };
 
-export type MessageResponseProps = ComponentProps<typeof Streamdown>;
+export type MessageResponseProps = Omit<
+  ComponentProps<typeof Streamdown>,
+  "animated"
+>;
 
 type MarkdownTableProps = ComponentProps<"table"> & {
   node?: unknown;
@@ -727,13 +730,13 @@ const messageResponseComponents = {
 export const MessageResponse = memo(
   ({ className, components, ...props }: MessageResponseProps) => (
     <Streamdown
-      animated={props.isAnimating ? MESSAGE_TEXT_ANIMATION : false}
       className={cn(
         "wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
         className
       )}
       components={{ ...messageResponseComponents, ...components }}
       {...props}
+      animated={props.isAnimating ? MESSAGE_TEXT_ANIMATION : false}
     />
   ),
   (prevProps, nextProps) =>
