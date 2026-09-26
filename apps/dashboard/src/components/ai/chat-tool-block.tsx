@@ -37,7 +37,7 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
 import dynamic from "next/dynamic";
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
@@ -54,7 +54,14 @@ import {
 } from "./chat-tool-block/mcp/utils";
 import { ToolDraftPreview } from "./chat-tool-block/tool-draft-preview";
 import { ToolOutputImages } from "./chat-tool-block/tool-output-images";
-import type { ChatToolBlockProps, ToolCopy } from "./chat-tool-block/types";
+import type {
+  ChatToolBlockProps,
+  ChatToolContentProps,
+  ChatToolIconProps,
+  ChatToolTriggerProps,
+  ToolCopy,
+  ToolDetailsProps,
+} from "./chat-tool-block/types";
 import { resolveChatToolBlockVisuals } from "./chat-tool-block/visuals";
 
 const TOOL_DETAILS_PANEL_CLASSNAME =
@@ -803,6 +810,218 @@ function ToolDataSection({ label, value }: { label: string; value: unknown }) {
   );
 }
 
+function ChatToolIcon({
+  isError,
+  isMcp,
+  iconUrl,
+  mcpLogoDarkUrl,
+  mcpLogoLightUrl,
+  toolMetadata,
+  toolName,
+}: ChatToolIconProps) {
+  if (isError) {
+    return (
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={CancelCircleIcon}
+        strokeWidth={1.8}
+      />
+    );
+  }
+  if (isMcp) {
+    const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
+    return (
+      <McpIcon
+        className="size-3.5"
+        darkUrl={
+          iconUrl ?? mcpLogoDarkUrl ?? mcpLogoLightUrl ?? mcpIconUrls.darkUrl
+        }
+        lightUrl={
+          iconUrl ?? mcpLogoLightUrl ?? mcpLogoDarkUrl ?? mcpIconUrls.lightUrl
+        }
+      />
+    );
+  }
+  if (iconUrl) {
+    return (
+      <Avatar className="size-3.5 shrink-0 rounded-sm after:hidden">
+        <AvatarImage className="rounded-sm" src={iconUrl} />
+        <AvatarFallback className="rounded-sm bg-transparent">
+          <HugeiconsIcon
+            className="size-3.5"
+            icon={CpuIcon}
+            strokeWidth={1.8}
+          />
+        </AvatarFallback>
+      </Avatar>
+    );
+  }
+  return (
+    <HugeiconsIcon
+      className="size-3.5 shrink-0"
+      icon={getChatToolIcon(toolName)}
+      strokeWidth={1.8}
+    />
+  );
+}
+
+function ToolDetails({
+  hasApprovalActions,
+  showJsonDetails,
+  showJsonInput,
+  showJsonOutput,
+  input,
+  output,
+  onApprove,
+  onDeny,
+}: ToolDetailsProps) {
+  return (
+    <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
+      <div className="mt-3 space-y-4">
+        {showJsonDetails && showJsonInput ? (
+          <ToolDataSection label="Input" value={input} />
+        ) : null}
+        {showJsonDetails && showJsonOutput ? (
+          <ToolDataSection label="Output" value={output} />
+        ) : null}
+        {hasApprovalActions ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {onApprove ? (
+              <Button onClick={onApprove} size="sm" type="button">
+                <HugeiconsIcon icon={Tick02Icon} className="size-3.5" />
+                Allow
+              </Button>
+            ) : null}
+            {onDeny ? (
+              <Button onClick={onDeny} size="sm" type="button" variant="ghost">
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
+                Deny
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </CollapsibleContent>
+  );
+}
+
+function ChatToolContent({
+  editorHref,
+  input,
+  onApprove,
+  onDeny,
+  output,
+  toolName,
+  isAwaitingApproval,
+  isStreaming,
+  visuals,
+}: ChatToolContentProps) {
+  const {
+    chart,
+    documentDiff,
+    draft,
+    showDraftPreview,
+    hasApprovalActions,
+    showJsonInput,
+    showJsonOutput,
+    showJsonDetails,
+    outputImages,
+  } = visuals;
+  const detailsOutput =
+    toolName === "editMarkdown" &&
+    output !== null &&
+    typeof output === "object" &&
+    !Array.isArray(output)
+      ? Object.fromEntries(
+          Object.entries(output as Record<string, unknown>).filter(
+            ([key]) => key !== "previousMarkdown" && key !== "updatedMarkdown"
+          )
+        )
+      : output;
+  return (
+    <>
+      <ToolOutputImages images={outputImages} />
+      {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
+      {documentDiff ? <DocumentDiff {...documentDiff} /> : null}
+      {showDraftPreview && draft ? (
+        <ToolDraftPreview
+          editorHref={editorHref}
+          markdown={draft.markdown}
+          onApprove={isAwaitingApproval ? onApprove : undefined}
+          onDeny={isAwaitingApproval ? onDeny : undefined}
+          title={draft.title}
+        />
+      ) : null}
+      <ToolDetails
+        hasApprovalActions={hasApprovalActions}
+        input={input}
+        onApprove={onApprove}
+        onDeny={onDeny}
+        output={detailsOutput}
+        showJsonDetails={showJsonDetails}
+        showJsonInput={showJsonInput}
+        showJsonOutput={showJsonOutput}
+      />
+    </>
+  );
+}
+
+function ChatToolTrigger({
+  isError,
+  isMcp,
+  iconUrl,
+  mcpLogoDarkUrl,
+  mcpLogoLightUrl,
+  toolMetadata,
+  toolName,
+  isOpen,
+  isStreaming,
+  hasDetails,
+  subtitle,
+  elapsedSeconds,
+  showElapsedTimer,
+}: ChatToolTriggerProps) {
+  return (
+    <CollapsibleTrigger
+      className={cn(
+        "group flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default",
+        isError
+          ? "text-destructive hover:text-destructive disabled:hover:text-destructive"
+          : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
+      )}
+      disabled={!hasDetails}
+    >
+      <ChatToolIcon
+        iconUrl={iconUrl}
+        isError={isError}
+        isMcp={isMcp}
+        mcpLogoDarkUrl={mcpLogoDarkUrl}
+        mcpLogoLightUrl={mcpLogoLightUrl}
+        toolMetadata={toolMetadata}
+        toolName={toolName}
+      />
+      <span className="min-w-0 truncate leading-5">
+        {isStreaming ? <Shimmer as="span">{subtitle}</Shimmer> : subtitle}
+      </span>
+      {showElapsedTimer && (
+        <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
+          {formatElapsedSeconds(elapsedSeconds)}
+        </span>
+      )}
+      {hasDetails ? (
+        <HugeiconsIcon
+          aria-hidden
+          className={cn(
+            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
+            isOpen ? "rotate-180" : "rotate-0 opacity-0 group-hover:opacity-100"
+          )}
+          icon={ArrowDown01Icon}
+        />
+      ) : null}
+    </CollapsibleTrigger>
+  );
+}
+
 export function ChatToolBlock({
   toolCallId,
   toolName,
@@ -850,18 +1069,7 @@ export function ChatToolBlock({
   }
   const hasInput = input != null;
   const hasOutput = output != null;
-  const {
-    chart,
-    documentDiff,
-    draft,
-    showDraftPreview,
-    hasApprovalActions,
-    showJsonInput,
-    showJsonOutput,
-    showJsonDetails,
-    hasDetails,
-    outputImages,
-  } = resolveChatToolBlockVisuals({
+  const visuals = resolveChatToolBlockVisuals({
     toolName,
     input,
     output,
@@ -874,139 +1082,34 @@ export function ChatToolBlock({
     onApprove,
     onDeny,
   });
-  const detailsOutput =
-    toolName === "editMarkdown" &&
-    output !== null &&
-    typeof output === "object" &&
-    !Array.isArray(output)
-      ? Object.fromEntries(
-          Object.entries(output as Record<string, unknown>).filter(
-            ([key]) => key !== "previousMarkdown" && key !== "updatedMarkdown"
-          )
-        )
-      : output;
-  let toolIcon: ReactNode = null;
-
-  if (isError) {
-    toolIcon = (
-      <HugeiconsIcon
-        className="size-3.5 shrink-0"
-        icon={CancelCircleIcon}
-        strokeWidth={1.8}
-      />
-    );
-  } else if (isMcp) {
-    const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
-    toolIcon = (
-      <McpIcon
-        className="size-3.5"
-        darkUrl={
-          iconUrl ?? mcpLogoDarkUrl ?? mcpLogoLightUrl ?? mcpIconUrls.darkUrl
-        }
-        lightUrl={
-          iconUrl ?? mcpLogoLightUrl ?? mcpLogoDarkUrl ?? mcpIconUrls.lightUrl
-        }
-      />
-    );
-  } else if (iconUrl) {
-    toolIcon = (
-      <Avatar className="size-3.5 shrink-0 rounded-sm after:hidden">
-        <AvatarImage className="rounded-sm" src={iconUrl} />
-        <AvatarFallback className="rounded-sm bg-transparent">
-          <HugeiconsIcon
-            className="size-3.5"
-            icon={CpuIcon}
-            strokeWidth={1.8}
-          />
-        </AvatarFallback>
-      </Avatar>
-    );
-  } else {
-    toolIcon = (
-      <HugeiconsIcon
-        className="size-3.5 shrink-0"
-        icon={getChatToolIcon(toolName)}
-        strokeWidth={1.8}
-      />
-    );
-  }
-
   return (
     <Collapsible onOpenChange={setIsDetailsOpen} open={isOpen}>
-      <CollapsibleTrigger
-        className={cn(
-          "group flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default",
-          isError
-            ? "text-destructive hover:text-destructive disabled:hover:text-destructive"
-            : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
-        )}
-        disabled={!hasDetails}
-      >
-        {toolIcon}
-        <span className="min-w-0 truncate leading-5">
-          {isStreaming ? <Shimmer as="span">{subtitle}</Shimmer> : subtitle}
-        </span>
-        {showElapsedTimer && (
-          <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
-            {formatElapsedSeconds(elapsedSeconds)}
-          </span>
-        )}
-        {hasDetails ? (
-          <HugeiconsIcon
-            aria-hidden
-            className={cn(
-              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
-              isOpen
-                ? "rotate-180"
-                : "rotate-0 opacity-0 group-hover:opacity-100"
-            )}
-            icon={ArrowDown01Icon}
-          />
-        ) : null}
-      </CollapsibleTrigger>
-      <ToolOutputImages images={outputImages} />
-      {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
-      {documentDiff ? <DocumentDiff {...documentDiff} /> : null}
-      {showDraftPreview && draft ? (
-        <ToolDraftPreview
-          editorHref={editorHref}
-          markdown={draft.markdown}
-          onApprove={isAwaitingApproval ? onApprove : undefined}
-          onDeny={isAwaitingApproval ? onDeny : undefined}
-          title={draft.title}
-        />
-      ) : null}
-      <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
-        <div className="mt-3 space-y-4">
-          {showJsonDetails && showJsonInput ? (
-            <ToolDataSection label="Input" value={input} />
-          ) : null}
-          {showJsonDetails && showJsonOutput ? (
-            <ToolDataSection label="Output" value={detailsOutput} />
-          ) : null}
-          {hasApprovalActions ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {onApprove ? (
-                <Button onClick={onApprove} size="sm" type="button">
-                  <HugeiconsIcon icon={Tick02Icon} className="size-3.5" />
-                  Allow
-                </Button>
-              ) : null}
-              {onDeny ? (
-                <Button
-                  onClick={onDeny}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
-                  Deny
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </CollapsibleContent>
+      <ChatToolTrigger
+        elapsedSeconds={elapsedSeconds}
+        hasDetails={visuals.hasDetails}
+        iconUrl={iconUrl}
+        isError={isError}
+        isMcp={isMcp}
+        isOpen={isOpen}
+        isStreaming={isStreaming}
+        mcpLogoDarkUrl={mcpLogoDarkUrl}
+        mcpLogoLightUrl={mcpLogoLightUrl}
+        showElapsedTimer={showElapsedTimer}
+        subtitle={subtitle}
+        toolMetadata={toolMetadata}
+        toolName={toolName}
+      />
+      <ChatToolContent
+        editorHref={editorHref}
+        input={input}
+        isAwaitingApproval={isAwaitingApproval}
+        isStreaming={isStreaming}
+        onApprove={onApprove}
+        onDeny={onDeny}
+        output={output}
+        toolName={toolName}
+        visuals={visuals}
+      />
     </Collapsible>
   );
 }

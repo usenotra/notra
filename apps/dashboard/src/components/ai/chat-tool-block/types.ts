@@ -1,3 +1,5 @@
+import type { ChatToolBlockVisuals } from "./visuals";
+
 export interface ToolCopy {
   verbs: readonly [present: string, past: string];
   noun: string;
@@ -26,3 +28,42 @@ export interface ChatToolBlockProps {
   mcpLogoLightUrl?: string | null;
   toolMetadata?: unknown;
 }
+
+export type ChatToolIconProps = Pick<
+  ChatToolBlockProps,
+  | "iconUrl"
+  | "isMcp"
+  | "mcpLogoDarkUrl"
+  | "mcpLogoLightUrl"
+  | "toolMetadata"
+  | "toolName"
+> & { isError: boolean };
+
+export type ToolDetailsProps = Pick<
+  ChatToolBlockProps,
+  "input" | "onApprove" | "onDeny"
+> & {
+  output: unknown;
+  hasApprovalActions: boolean;
+  showJsonDetails: boolean;
+  showJsonInput: boolean;
+  showJsonOutput: boolean;
+};
+
+export type ChatToolContentProps = Pick<
+  ChatToolBlockProps,
+  "editorHref" | "input" | "onApprove" | "onDeny" | "output" | "toolName"
+> & {
+  isAwaitingApproval: boolean;
+  isStreaming: boolean;
+  visuals: ChatToolBlockVisuals;
+};
+
+export type ChatToolTriggerProps = ChatToolIconProps & {
+  isOpen: boolean;
+  isStreaming: boolean;
+  hasDetails: boolean;
+  subtitle: string;
+  elapsedSeconds: number;
+  showElapsedTimer: boolean;
+};
