@@ -108,14 +108,25 @@ function aiSearchQueryTokens(query: string): string[] {
   return [...new Set(tokens)].sort();
 }
 
-export function aiSearchQueryKey(query: string): string {
-  return aiSearchQueryTokens(query).join(" ");
-}
-
 export function aiSearchGroupKey(query: string): string {
   return aiSearchQueryTokens(query)
     .filter((token) => !AI_SEARCH_YEAR_REGEX.test(token))
     .join(" ");
+}
+
+export function aiSearchGapId(
+  groupKey: string,
+  queries: Iterable<string>
+): string {
+  let latestYear = "";
+  for (const query of queries) {
+    for (const token of aiSearchQueryTokens(query)) {
+      if (AI_SEARCH_YEAR_REGEX.test(token) && token > latestYear) {
+        latestYear = token;
+      }
+    }
+  }
+  return latestYear ? `${groupKey} ${latestYear}` : groupKey;
 }
 
 export function interleaveSearchQueries(

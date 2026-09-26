@@ -51,8 +51,8 @@ import {
   scoreContentCollisions,
 } from "../utils/geo-content-collision";
 import {
+  aiSearchGapId,
   aiSearchGroupKey,
-  aiSearchQueryKey,
   gapOpportunityScore,
   interleaveSearchQueries,
   isMissingMajority,
@@ -394,7 +394,7 @@ function toAiSearchGapRows(
     const [query = key, ...variants] = [...entry.variants.entries()]
       .sort((left, right) => right[1] - left[1])
       .map(([variant]) => variant);
-    const id = aiSearchQueryKey(query);
+    const id = aiSearchGapId(key, entry.variants.keys());
     rows.push({
       id,
       query,
