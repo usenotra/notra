@@ -51,6 +51,7 @@ describe("Agent Readiness Effect boundaries", () => {
     );
     expect(loaded.report?.id).toBe(payload.reportId);
     expect(loaded.report?.score).toBe(80);
+    expect(loaded.report?.crawlability?.checkedAt).toBe("2026-09-25T00:00:00Z");
     expect(loaded.history).toHaveLength(1);
     expect(loaded.scan).toBeNull();
   });
@@ -176,6 +177,10 @@ describe("Agent Readiness Effect boundaries", () => {
     expect(
       (await testDb.query.geoAgentReadinessReports.findFirst())?.status
     ).toBe("failed");
+    expect(
+      (await testDb.query.geoAgentReadinessReports.findFirst())?.crawlability
+        ?.checkedAt
+    ).toBe("2026-09-25T00:00:00Z");
   });
 
   test("completion cannot overwrite a replacement scan", async () => {

@@ -4,6 +4,7 @@ import type {
   AgentReadinessReportStatus,
   AgentReadinessScoreBreakdown,
 } from "@notra/db/types/agent-readiness";
+import type { CrawlabilityReport } from "@notra/db/types/crawlability";
 import type { Effect } from "effect";
 import type { infer as ZodInfer } from "zod";
 
@@ -34,6 +35,7 @@ export interface AgentReadinessScope {
 }
 
 export interface AgentReadinessReportView {
+  crawlability: CrawlabilityReport | null;
   id: string;
   status: AgentReadinessReportStatus;
   targetUrl: string;
@@ -115,6 +117,9 @@ export type AgentReadinessFetch = (
 ) => Promise<Response>;
 
 export interface AgentReadinessNetworkShape {
+  readonly crawlability: (
+    targetUrl: string
+  ) => Effect.Effect<CrawlabilityReport, AgentReadinessApiError>;
   readonly report: (
     targetUrl: string
   ) => Effect.Effect<AgentReadinessParsedReport | null, AgentReadinessApiError>;
