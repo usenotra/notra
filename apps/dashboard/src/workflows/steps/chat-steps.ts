@@ -374,7 +374,7 @@ export async function streamChatResponseStep(
           chatId,
           responseMessages,
           undefined,
-          streamId
+          messages.at(-1)?.id
         );
         if (!saved) {
           console.warn(

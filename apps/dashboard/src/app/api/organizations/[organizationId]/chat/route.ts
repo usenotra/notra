@@ -603,7 +603,7 @@ async function createDirectStandaloneChatResponse({
           chatId,
           responseMessages,
           undefined,
-          streamId
+          messages.at(-1)?.id
         );
         if (!saved) {
           console.warn(
