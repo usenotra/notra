@@ -189,19 +189,20 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         ) {
           throw new Error("Chat replay cursor is no longer available");
         }
-        const hasTerminalChunk = (data: unknown) =>
-          toChunks(data).some(
-            (chunk) => chunk.type === "finish" || chunk.type === "abort"
-          );
+        // A pending finish alone cannot prove continuity after a full page.
+        // Require an ID seen in both history and the subscription.
+        const replayHistory = history.slice(resumePosition);
         if (
           resumeId &&
           history.length >= CHAT_STREAM_HISTORY_LIMIT &&
-          !history
-            .slice(resumePosition)
-            .some(
-              (item) => item.event === "ai.chunk" && hasTerminalChunk(item.data)
-            ) &&
-          !Array.from(pending.values()).some(hasTerminalChunk)
+          !replayHistory.some(
+            (item) =>
+              item.event === "ai.chunk" &&
+              toChunks(item.data).some(
+                (chunk) => chunk.type === "finish" || chunk.type === "abort"
+              )
+          ) &&
+          !replayHistory.some((item) => pending.has(item.id))
         ) {
           throw new Error("Chat replay window is too large to resume safely");
         }
