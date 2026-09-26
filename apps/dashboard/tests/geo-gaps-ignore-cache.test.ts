@@ -16,6 +16,7 @@ function gap(id: string, opportunity: number): GeoPromptGapRow {
     mentionedEngines: [],
     competitors: [],
     discoveredCompetitors: [],
+    searchQueries: [],
     ownMentionRate: 0,
     engineCoverage: 1,
     opportunity,

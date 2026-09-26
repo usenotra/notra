@@ -19,6 +19,7 @@ import {
   GEO_COLLISION_POST_CONTENT_TYPE,
   GEO_COLLISION_POST_LIMIT,
   GEO_COLLISION_SITEMAP_PAGE_LIMIT,
+  GEO_GAPS_ENGINE_QUERY_LIMIT,
   GEO_GAPS_MAX_CHECKS,
   GEO_GAPS_SEARCH_LIMIT,
   GEO_WRITER_GAP_LOOKBACK_DAYS,
@@ -79,6 +80,7 @@ interface PromptGapAgg {
   missing: string[];
   mentionedEngines: string[];
   competitors: string[];
+  searchQueries: Map<string, string>;
 }
 
 function toBriefRef(row: GapBriefRow | undefined): GeoGapBriefRef | null {
@@ -148,6 +150,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
             prompt: geoMentionChecks.prompt,
             mentioned: geoMentionChecks.mentioned,
             competitors: geoMentionChecks.competitors,
+            grounding: geoMentionChecks.grounding,
           }
         )
         .from(geoMentionChecks)
@@ -205,6 +208,7 @@ function aggregateMentionChecks(
     mentioned: boolean;
     engine: string;
     competitors: string[];
+    grounding: { queries: string[] };
   }>
 ): Map<string, PromptGapAgg> {
   const byPrompt = new Map<string, PromptGapAgg>();
@@ -216,8 +220,15 @@ function aggregateMentionChecks(
       missing: [] as string[],
       mentionedEngines: [] as string[],
       competitors: [] as string[],
+      searchQueries: new Map<string, string>(),
     };
     entry.total += 1;
+    for (const query of check.grounding.queries) {
+      const key = query.trim().toLowerCase();
+      if (key.length > 0 && !entry.searchQueries.has(key)) {
+        entry.searchQueries.set(key, query.trim());
+      }
+    }
     if (check.mentioned) {
       entry.mentioned += 1;
       entry.mentionedEngines.push(check.engine);
@@ -537,6 +548,10 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
       mentionedEngines: entry.mentionedEngines,
       competitors: tracked,
       discoveredCompetitors: discovered,
+      searchQueries: [...entry.searchQueries.values()].slice(
+        0,
+        GEO_GAPS_ENGINE_QUERY_LIMIT
+      ),
       ownMentionRate,
       engineCoverage: entry.total,
       opportunity: won

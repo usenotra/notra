@@ -1684,6 +1684,7 @@ export interface GeoPromptGapRow {
   mentionedEngines: string[];
   competitors: string[];
   discoveredCompetitors: string[];
+  searchQueries: string[];
   ownMentionRate: number;
   engineCoverage: number;
   opportunity: number;
