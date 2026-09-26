@@ -8,6 +8,7 @@ import { FEATURES } from "@notra/ai/billing/features";
 import {
   claimChatWorkflowRequest,
   clearActiveChatStream,
+  getActiveChatStream,
   getChatProjectId,
   getChatStreamChannelName,
   loadChatHistory,
@@ -67,6 +68,15 @@ export async function resolveChatStreamStep(
   input: ResolveChatStreamInput
 ): Promise<ResolveChatStreamResult> {
   "use step";
+  if (input.streamId) {
+    const activeStreamId = await getActiveChatStream(
+      input.organizationId,
+      input.chatId
+    );
+    return activeStreamId === input.streamId
+      ? { status: "ready", streamId: input.streamId }
+      : { status: "superseded" };
+  }
   const messages = await loadChatHistory(input.organizationId, input.chatId);
   const latestMessage = messages.at(-1);
   if (!latestMessage) {

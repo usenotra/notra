@@ -80,6 +80,11 @@ export function createStandaloneChatTransport({
         return triggerResponse;
       }
 
+      const streamId = triggerResponse.headers.get("X-Chat-Stream-Id");
+      if (streamId) {
+        setPendingMessageId(streamId);
+      }
+
       const createdChatId = requestBody?.chatId;
       if (createdChatId) {
         live.onChatCreated.current?.(createdChatId);

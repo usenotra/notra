@@ -234,10 +234,11 @@ export const POST = withEvlog(async function POST(
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }
 
+    const streamId = nanoid();
     const streamAcquired = await setActiveChatStream(
       organizationId,
       chatId,
-      latestMessage.id
+      streamId
     );
     if (!streamAcquired) {
       trackBlocked("ALREADY_GENERATING");
@@ -246,7 +247,7 @@ export const POST = withEvlog(async function POST(
         { status: 409 }
       );
     }
-    cleanupStreamId = latestMessage.id;
+    cleanupStreamId = streamId;
 
     const [hydratedMessages, history] = await Promise.all([
       hydrateSavedChatPosts(organizationId, chatId, messages),
@@ -267,7 +268,7 @@ export const POST = withEvlog(async function POST(
     ]);
 
     if (!historySaved) {
-      await clearActiveChatStream(organizationId, chatId, latestMessage.id);
+      await clearActiveChatStream(organizationId, chatId, streamId);
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }
 
@@ -305,6 +306,7 @@ export const POST = withEvlog(async function POST(
 
     if (!canUseWorkflowStreaming) {
       return createDirectStandaloneChatResponse({
+        streamId,
         organizationId,
         userId: auth.context.user.id,
         chatId,
@@ -328,6 +330,7 @@ export const POST = withEvlog(async function POST(
     }
 
     const workflowPayload: ChatWorkflowPayload = {
+      streamId,
       requestId,
       organizationId,
       chatId,
@@ -346,8 +349,11 @@ export const POST = withEvlog(async function POST(
     await startStandaloneChatRun(workflowPayload);
 
     return NextResponse.json(
-      { ok: true, chatId, streamId: latestMessage.id },
-      { status: 202, headers: { "X-Chat-Id": chatId } }
+      { ok: true, chatId, streamId },
+      {
+        status: 202,
+        headers: { "X-Chat-Id": chatId, "X-Chat-Stream-Id": streamId },
+      }
     );
   } catch (e) {
     if (cleanupOrganizationId && cleanupChatId && cleanupStreamId) {
@@ -384,6 +390,7 @@ function canUseChatWorkflowStreaming() {
 }
 
 async function createDirectStandaloneChatResponse({
+  streamId,
   organizationId,
   userId,
   chatId,
@@ -404,6 +411,7 @@ async function createDirectStandaloneChatResponse({
   projectId,
   surface,
 }: {
+  streamId: string;
   organizationId: string;
   userId: string;
   chatId: string;
@@ -425,11 +433,6 @@ async function createDirectStandaloneChatResponse({
   surface?: ChatWorkflowPayload["surface"];
 }) {
   const autumnClient = autumn;
-  const streamId = messages.at(-1)?.id;
-
-  if (!streamId) {
-    throw new Error("Latest message must include an id");
-  }
 
   const lifecycle = await createChatStreamLifecycle({
     organizationId,
@@ -631,7 +634,7 @@ async function createDirectStandaloneChatResponse({
     });
 
     return createUIMessageStreamResponse({
-      headers: { "X-Chat-Id": chatId },
+      headers: { "X-Chat-Id": chatId, "X-Chat-Stream-Id": streamId },
       stream: withChatStreamCleanup(uiStream, async () => {
         try {
           await cleanup();

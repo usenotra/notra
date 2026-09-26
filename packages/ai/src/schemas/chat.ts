@@ -165,6 +165,7 @@ export const updateChatSessionSchema = z
 
 export const chatWorkflowPayloadSchema = z.object({
   requestId: z.string().min(1),
+  streamId: z.string().min(1).optional(),
   organizationId: z.string().min(1),
   chatId: z.string().min(1),
   userId: z.string().min(1),
