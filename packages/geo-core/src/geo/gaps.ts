@@ -100,11 +100,12 @@ interface AiSearchAgg {
   engines: Set<string>;
   searches: number;
   mentioned: number;
-  cited: number;
+  covered: number;
   competitors: string[];
 }
 
 interface AiSearchCheck {
+  promptId: string;
   engine: string;
   prompt: string;
   mentioned: boolean;
@@ -295,7 +296,7 @@ function aggregateAiSearches(
         engines: new Set<string>(),
         searches: 0,
         mentioned: 0,
-        cited: 0,
+        covered: 0,
         competitors: [] as string[],
       };
       entry.variants.set(query, (entry.variants.get(query) ?? 0) + 1);
@@ -307,8 +308,8 @@ function aggregateAiSearches(
       } else {
         entry.competitors.push(...check.competitors);
       }
-      if (check.ownedSourceCited) {
-        entry.cited += 1;
+      if (check.mentioned || check.ownedSourceCited) {
+        entry.covered += 1;
       }
       byKey.set(key, entry);
     }
@@ -325,8 +326,7 @@ function toAiSearchGapRows(
   for (const [key, entry] of byKey) {
     if (
       entry.searches < GEO_AI_SEARCH_GAP_MIN_SEARCHES ||
-      entry.cited > 0 ||
-      !isMissingMajority(entry.searches - entry.mentioned, entry.searches)
+      !isMissingMajority(entry.searches - entry.covered, entry.searches)
     ) {
       continue;
     }
@@ -725,8 +725,22 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     recommendation: searchGapRecommendation(suggestion, collisionCandidates),
   }));
 
+  const activePromptScanIds = new Set(
+    prompts.flatMap((prompt) => [prompt.id, customPromptScanId(prompt.id)])
+  );
   const aiSearchGaps = toAiSearchGapRows(
-    aggregateAiSearches(checks, brandTerms),
+    aggregateAiSearches(
+      checks.filter(
+        (check) =>
+          activePromptScanIds.has(check.promptId) ||
+          !shouldSkipUnmatchedGapScan(
+            check.promptId,
+            activePromptScanIds,
+            removedAutoPromptIds
+          )
+      ),
+      brandTerms
+    ),
     trackedAliases,
     (key) => briefBySource.get(sourceKey("ai_search", key))
   );

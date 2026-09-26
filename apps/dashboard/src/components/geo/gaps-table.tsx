@@ -639,19 +639,19 @@ function GapsTabs({
       <PermissionOption value="prompt">
         Prompt Gaps
         <span className="text-xs tabular-nums opacity-70">
-          {promptCount.toLocaleString()}
+          {promptCount.toLocaleString("en-US")}
         </span>
       </PermissionOption>
       <PermissionOption value="search">
         Search Gaps
         <span className="text-xs tabular-nums opacity-70">
-          {searchCount.toLocaleString()}
+          {searchCount.toLocaleString("en-US")}
         </span>
       </PermissionOption>
       <PermissionOption value="ai">
         AI Search Gaps
         <span className="text-xs tabular-nums opacity-70">
-          {aiSearchCount.toLocaleString()}
+          {aiSearchCount.toLocaleString("en-US")}
         </span>
       </PermissionOption>
     </PermissionRow>

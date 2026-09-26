@@ -13,9 +13,10 @@ export const REUSABLE_BRIEF_STATUSES = [
   "failed",
 ] as const satisfies readonly GeoContentBriefStatus[];
 
-const AI_SEARCH_YEAR_REGEX = /^(?:19|20)\d{2}$/;
-const AI_SEARCH_TOKEN_SPLIT_REGEX = /[^\p{L}\p{N}]+/u;
-const AI_SEARCH_PLURAL_REGEX = /(?<=[^s]{3})s$/;
+const AI_SEARCH_TOKEN_SPLIT_REGEX = /[^\p{L}\p{N}\p{M}]+/u;
+const AI_SEARCH_IES_PLURAL_REGEX = /(?<=\p{L}{2})ies$/u;
+const AI_SEARCH_SSES_PLURAL_REGEX = /(?<=\p{L}{2})sses$/u;
+const AI_SEARCH_S_PLURAL_REGEX = /(?<=\p{L}{3}[^siu\d])s$/u;
 
 const OPEN_BRIEF_STATUSES = new Set<GeoContentBriefStatus>(
   REUSABLE_BRIEF_STATUSES
@@ -104,18 +105,19 @@ export function aiSearchQueryKey(query: string): string {
     .toLowerCase()
     .split(AI_SEARCH_TOKEN_SPLIT_REGEX)
     .filter(
-      (token) =>
-        token.length > 0 &&
-        !GEO_AI_SEARCH_QUERY_STOPWORDS.has(token) &&
-        !AI_SEARCH_YEAR_REGEX.test(token)
+      (token) => token.length > 0 && !GEO_AI_SEARCH_QUERY_STOPWORDS.has(token)
     );
-  return [
-    ...new Set(
-      tokens.map((token) => token.replace(AI_SEARCH_PLURAL_REGEX, ""))
-    ),
-  ]
-    .sort()
-    .join(" ");
+  return [...new Set(tokens.map(singularizeQueryToken))].sort().join(" ");
+}
+
+function singularizeQueryToken(token: string): string {
+  if (AI_SEARCH_IES_PLURAL_REGEX.test(token)) {
+    return token.replace(AI_SEARCH_IES_PLURAL_REGEX, "y");
+  }
+  if (AI_SEARCH_SSES_PLURAL_REGEX.test(token)) {
+    return token.replace(AI_SEARCH_SSES_PLURAL_REGEX, "ss");
+  }
+  return token.replace(AI_SEARCH_S_PLURAL_REGEX, "");
 }
 
 export function interleaveSearchQueries(
