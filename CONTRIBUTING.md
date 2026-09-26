@@ -312,9 +312,12 @@ must have a unique package name and explicitly declare its internal dependencies
 in `package.json`.
 
 `agent` and `onboarding-agent` have `git.deploymentEnabled: false` in their
-`vercel.json` files. Pushes and merges do not deploy them. To deploy one,
-open its Vercel project → **Deployments** → **Create Deployment** and select
-the desired Git branch or commit (or deploy explicitly with the Vercel CLI).
+`vercel.json` files. Pushes and merges do not deploy them. For a production
+release, open the agent's Vercel project → **Deployments** → **Create Deployment**
+and select its configured production branch (usually `main`), then verify the
+deployment is marked **Production**. Alternatively, from the linked agent app
+directory run `vercel deploy --prod`. A different branch or `vercel deploy`
+without `--prod` may only create a preview and will not update the production URL.
 
 The app configs do not set an `ignoreCommand`; build selection relies on
 [Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
