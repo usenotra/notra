@@ -12,7 +12,136 @@ import {
 } from "@/lib/db/geo-project-pending-deletes";
 import { geoProjectQueryParser } from "@/lib/hooks/use-geo-project-query";
 import { geoProjectRepairPath } from "@/utils/geo-hydration";
-import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
+import {
+  projectBrandIdentityName,
+  projectWebsiteHost,
+  projectWebsiteUrl,
+  resolveProjectBrandSelection,
+  sortGeoProjectsOldestFirst,
+} from "@/utils/geo-projects";
+
+describe("project website selection", () => {
+  const identities = [
+    { id: "social", name: "Social", websiteUrl: "https://social.example.com" },
+    { id: "email", name: "Email", websiteUrl: "https://email.example.com" },
+  ];
+
+  test("selects by website instead of a previous or organization selection", () => {
+    expect(
+      resolveProjectBrandSelection("email.example.com", identities, "social")
+        .selectedIdentity?.id
+    ).toBe("email");
+    expect(
+      resolveProjectBrandSelection("other.example.com", identities, "social")
+        .selectedIdentity
+    ).toBeUndefined();
+  });
+
+  test("requires an explicit choice when several identities match", () => {
+    const sameWebsite = [
+      ...identities,
+      {
+        id: "technical",
+        name: "Technical",
+        websiteUrl: "https://email.example.com/docs",
+      },
+    ];
+    expect(
+      resolveProjectBrandSelection("email.example.com", sameWebsite, null)
+        .selectedIdentity
+    ).toBeUndefined();
+    expect(
+      resolveProjectBrandSelection(
+        "email.example.com",
+        sameWebsite,
+        "technical"
+      ).selectedIdentity?.id
+    ).toBe("technical");
+  });
+
+  test("reuses a newly created identity before the list has refetched", () => {
+    const created = {
+      id: "new",
+      name: "New",
+      websiteUrl: "https://new.example.com",
+    };
+    expect(
+      resolveProjectBrandSelection(
+        "new.example.com",
+        identities,
+        "new",
+        created
+      ).selectedIdentity
+    ).toEqual(created);
+    expect(
+      resolveProjectBrandSelection(
+        "new.example.com",
+        [...identities, created],
+        "new",
+        created
+      ).matches
+    ).toHaveLength(1);
+  });
+
+  test("accepts a bare domain and preserves a website path", () => {
+    expect(projectWebsiteUrl(" email.example.com/docs ")).toBe(
+      "https://email.example.com/docs"
+    );
+  });
+
+  test("gives a new website a unique identity name without renaming the project", () => {
+    expect(projectBrandIdentityName("Email", identities)).toBe("Email (2)");
+    expect(
+      projectBrandIdentityName("Email", [
+        ...identities,
+        {
+          id: "other",
+          name: "Email (2)",
+          websiteUrl: "https://other.example.com",
+        },
+      ])
+    ).toBe("Email (3)");
+    expect(projectBrandIdentityName("New project", identities)).toBe(
+      "New project"
+    );
+  });
+
+  test("keeps generated names within the brand name limit", () => {
+    const name = "a".repeat(120);
+    const generated = projectBrandIdentityName(name, [
+      { id: "long", name, websiteUrl: "https://other.example.com" },
+    ]);
+    expect(generated).toHaveLength(120);
+    expect(generated.endsWith(" (2)")).toBe(true);
+  });
+
+  test("matches www and case variations without mixing product subdomains", () => {
+    expect(projectWebsiteHost("https://WWW.Example.com/about")).toBe(
+      projectWebsiteHost("example.com")
+    );
+    expect(projectWebsiteHost("email.example.com")).not.toBe(
+      projectWebsiteHost("social.example.com")
+    );
+  });
+
+  test("rejects missing hosts, credentials and non-web protocols", () => {
+    for (const value of [
+      "",
+      "not a url",
+      "https://",
+      "localhost",
+      "foo.local",
+      "foo.internal",
+      "192.168.1.1",
+      "127.0.0.1",
+      "https://[::1]",
+      "ftp://example.com",
+      "https://user:pass@example.com",
+    ]) {
+      expect(projectWebsiteUrl(value)).toBeNull();
+    }
+  });
+});
 
 const sampleProject = {
   id: "server-1",

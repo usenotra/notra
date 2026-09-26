@@ -271,6 +271,10 @@ export const geoProjectDeleteInputSchema = object({
   projectId: string().min(1),
 });
 
+export const geoProjectUpdateInputSchema = geoProjectDeleteInputSchema.extend({
+  brandSettingsId: string().min(1),
+});
+
 export const geoPromptResultDetailInputSchema =
   geoOrganizationInputSchema.extend({
     checkId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),

@@ -100,6 +100,7 @@ import {
   requireBrandIdentity,
   requireGeoProject,
   resolveGeoScope,
+  updateGeoProject,
 } from "@notra/geo-core/geo/projects";
 import {
   loadGeoPromptResultDetail,
@@ -165,6 +166,7 @@ import {
   geoOrganizationInputSchema,
   geoProjectCreateInputSchema,
   geoProjectDeleteInputSchema,
+  geoProjectUpdateInputSchema,
   geoPromptCreateInputSchema,
   geoPromptHistoryInputSchema,
   geoPromptResultDetailInputSchema,
@@ -1639,6 +1641,15 @@ export const geoRouter = {
             properties: { is_sample: false, project_count: projectCount },
           });
         }
+      )
+    ),
+  projectsUpdate: authorizedProcedure
+    .input(geoProjectUpdateInputSchema)
+    .handler(
+      geoHandler((input) =>
+        updateGeoProject(input.organizationId, input.projectId, {
+          brandSettingsId: input.brandSettingsId,
+        })
       )
     ),
   projectsDelete: authorizedProcedure

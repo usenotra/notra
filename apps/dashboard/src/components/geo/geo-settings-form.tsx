@@ -35,6 +35,7 @@ import {
   GeoScanSchedule,
 } from "@/components/geo/geo-scan-schedule";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { GeoProjectBrandSection } from "@/components/geo/project-brand-section";
 import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
@@ -64,7 +65,7 @@ export function GeoSettingsForm({
   const [conversionPaths, setConversionPaths] = useState(() =>
     normalizeConversionPaths(settings?.conversionPaths ?? [])
   );
-  const { domain: brandDomain } = useGeoActiveProject(organizationId);
+  const { project, domain: brandDomain } = useGeoActiveProject(organizationId);
   const [domains, setDomains] = useState(() =>
     extraProjectDomains(settings?.domains ?? [], brandDomain)
   );
@@ -144,6 +145,13 @@ export function GeoSettingsForm({
         </header>
       )}
       <div className="space-y-6">
+        {showBrand && project ? (
+          <GeoProjectBrandSection
+            key={project.id}
+            organizationId={organizationId}
+            project={project}
+          />
+        ) : null}
         {showBrand ? (
           <GeoBrandSection
             aliases={aliases}
