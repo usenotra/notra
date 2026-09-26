@@ -16,6 +16,7 @@ import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
+  GEO_AI_SEARCH_GAP_MAX_CHECKS,
   GEO_AI_SEARCH_GAP_MIN_SEARCHES,
   GEO_AI_SEARCH_GAP_PROMPT_LIMIT,
   GEO_AI_SEARCH_GAP_VARIANT_LIMIT,
@@ -111,7 +112,7 @@ interface AiSearchCheck {
   mentioned: boolean;
   ownedSourceCited: boolean;
   competitors: string[];
-  grounding: { queries: string[] };
+  queries: string[];
 }
 
 function toBriefRef(row: GapBriefRow | undefined): GeoGapBriefRef | null {
@@ -182,7 +183,6 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
             mentioned: geoMentionChecks.mentioned,
             competitors: geoMentionChecks.competitors,
             grounding: geoMentionChecks.grounding,
-            ownedSourceCited: geoMentionChecks.ownedSourceCited,
           }
         )
         .from(geoMentionChecks)
@@ -236,6 +236,38 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
   };
 });
 
+const loadAiSearchChecks = Effect.fn("geo.gaps.aiSearchChecks")(function* (
+  projectId: string
+) {
+  const queries = sql`${geoMentionChecks.grounding}->'queries'`;
+  const rows: AiSearchCheck[] = yield* geoDb(
+    "AI search checks lookup failed",
+    () =>
+      db
+        .select({
+          promptId: geoMentionChecks.promptId,
+          engine: geoMentionChecks.engine,
+          prompt: geoMentionChecks.prompt,
+          mentioned: geoMentionChecks.mentioned,
+          ownedSourceCited: geoMentionChecks.ownedSourceCited,
+          competitors: geoMentionChecks.competitors,
+          queries: sql<string[]>`coalesce(${queries}, '[]'::jsonb)`,
+        })
+        .from(geoMentionChecks)
+        .where(
+          and(
+            eq(geoMentionChecks.projectId, projectId),
+            eq(geoMentionChecks.turn, 0),
+            gte(geoMentionChecks.capturedAt, lookbackSince()),
+            sql`case when jsonb_typeof(${queries}) = 'array' then jsonb_array_length(${queries}) else 0 end > 0`
+          )
+        )
+        .orderBy(desc(geoMentionChecks.capturedAt))
+        .limit(GEO_AI_SEARCH_GAP_MAX_CHECKS)
+  );
+  return rows;
+});
+
 function aggregateMentionChecks(
   checks: Array<{
     promptId: string;
@@ -278,7 +310,7 @@ function aggregateAiSearches(
   const byKey = new Map<string, AiSearchAgg>();
   for (const check of checks) {
     const seenInCheck = new Set<string>();
-    for (const raw of check.grounding.queries) {
+    for (const raw of check.queries) {
       const query = raw.trim();
       const key = aiSearchQueryKey(query);
       if (
@@ -554,73 +586,80 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
   const scope = yield* requireGeoProject(input);
   const projectId = scope.projectId;
 
-  const [mentionInputs, pending, briefs, competitorRows, collisionCandidates] =
-    yield* Effect.all([
-      loadMentionGapInputs(projectId),
-      geoDb("prompt suggestions lookup failed", () =>
-        db
-          .select({
-            id: geoPromptSuggestions.id,
-            prompt: geoPromptSuggestions.prompt,
-            title: geoPromptSuggestions.title,
-            sourceKeywords: geoPromptSuggestions.sourceKeywords,
-          })
-          .from(geoPromptSuggestions)
-          .where(
-            and(
-              eq(geoPromptSuggestions.organizationId, scope.organizationId),
-              eq(geoPromptSuggestions.projectId, projectId),
-              eq(geoPromptSuggestions.status, "pending")
-            )
+  const [
+    mentionInputs,
+    aiSearchChecks,
+    pending,
+    briefs,
+    competitorRows,
+    collisionCandidates,
+  ] = yield* Effect.all([
+    loadMentionGapInputs(projectId),
+    loadAiSearchChecks(projectId),
+    geoDb("prompt suggestions lookup failed", () =>
+      db
+        .select({
+          id: geoPromptSuggestions.id,
+          prompt: geoPromptSuggestions.prompt,
+          title: geoPromptSuggestions.title,
+          sourceKeywords: geoPromptSuggestions.sourceKeywords,
+        })
+        .from(geoPromptSuggestions)
+        .where(
+          and(
+            eq(geoPromptSuggestions.organizationId, scope.organizationId),
+            eq(geoPromptSuggestions.projectId, projectId),
+            eq(geoPromptSuggestions.status, "pending")
           )
-          .orderBy(desc(geoPromptSuggestions.createdAt))
-          .limit(GEO_GAPS_SEARCH_LIMIT)
-      ),
-      geoDb("briefs lookup failed", () =>
-        db
-          .selectDistinctOn(
-            [geoContentBriefs.sourceKind, geoContentBriefs.sourceId],
-            {
-              id: geoContentBriefs.id,
-              status: geoContentBriefs.status,
-              postId: geoContentBriefs.postId,
-              sourceKind: geoContentBriefs.sourceKind,
-              sourceId: geoContentBriefs.sourceId,
-              workingTitle: sql<string>`${geoContentBriefs.brief}->>'workingTitle'`,
-              baseline: sql<unknown>`${geoContentBriefs.brief}->'baseline'`,
-              publishedAt: geoContentBriefs.publishedAt,
-              rescanScanId: geoContentBriefs.rescanScanId,
-            }
+        )
+        .orderBy(desc(geoPromptSuggestions.createdAt))
+        .limit(GEO_GAPS_SEARCH_LIMIT)
+    ),
+    geoDb("briefs lookup failed", () =>
+      db
+        .selectDistinctOn(
+          [geoContentBriefs.sourceKind, geoContentBriefs.sourceId],
+          {
+            id: geoContentBriefs.id,
+            status: geoContentBriefs.status,
+            postId: geoContentBriefs.postId,
+            sourceKind: geoContentBriefs.sourceKind,
+            sourceId: geoContentBriefs.sourceId,
+            workingTitle: sql<string>`${geoContentBriefs.brief}->>'workingTitle'`,
+            baseline: sql<unknown>`${geoContentBriefs.brief}->'baseline'`,
+            publishedAt: geoContentBriefs.publishedAt,
+            rescanScanId: geoContentBriefs.rescanScanId,
+          }
+        )
+        .from(geoContentBriefs)
+        .where(
+          and(
+            eq(geoContentBriefs.projectId, projectId),
+            inArray(geoContentBriefs.sourceKind, [
+              "gap",
+              "search_console",
+              "ai_search",
+            ]),
+            isNotNull(geoContentBriefs.sourceId)
           )
-          .from(geoContentBriefs)
-          .where(
-            and(
-              eq(geoContentBriefs.projectId, projectId),
-              inArray(geoContentBriefs.sourceKind, [
-                "gap",
-                "search_console",
-                "ai_search",
-              ]),
-              isNotNull(geoContentBriefs.sourceId)
-            )
-          )
-          .orderBy(
-            geoContentBriefs.sourceKind,
-            geoContentBriefs.sourceId,
-            desc(geoContentBriefs.updatedAt)
-          )
-      ),
-      geoDb("competitors lookup failed", () =>
-        db
-          .select({
-            name: geoCompetitors.name,
-            synonyms: geoCompetitors.synonyms,
-          })
-          .from(geoCompetitors)
-          .where(eq(geoCompetitors.projectId, projectId))
-      ),
-      loadCollisionCandidates(scope),
-    ]);
+        )
+        .orderBy(
+          geoContentBriefs.sourceKind,
+          geoContentBriefs.sourceId,
+          desc(geoContentBriefs.updatedAt)
+        )
+    ),
+    geoDb("competitors lookup failed", () =>
+      db
+        .select({
+          name: geoCompetitors.name,
+          synonyms: geoCompetitors.synonyms,
+        })
+        .from(geoCompetitors)
+        .where(eq(geoCompetitors.projectId, projectId))
+    ),
+    loadCollisionCandidates(scope),
+  ]);
   // `loadMentionGapInputs` already read this project's geo_settings row.
   const {
     checks,
@@ -730,7 +769,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
   );
   const aiSearchGaps = toAiSearchGapRows(
     aggregateAiSearches(
-      checks.filter(
+      aiSearchChecks.filter(
         (check) =>
           activePromptScanIds.has(check.promptId) ||
           !shouldSkipUnmatchedGapScan(
