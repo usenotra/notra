@@ -10,3 +10,4 @@ export const SLACK_RELAY_EVENT_TYPE = "notra_dashboard_message";
 export const CHAT_DELETION_TOMBSTONE_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const CHAT_PREVIEW_SAVE_TIMEOUT_MS = 30_000;
 export const CHAT_INTEGRATIONS_CACHE_TTL_SECONDS = 300;
+export const CHAT_STREAM_BUFFER_CAPACITY = 128;

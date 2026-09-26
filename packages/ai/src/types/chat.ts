@@ -1,5 +1,5 @@
 import type { Redis } from "@upstash/redis";
-import type { LanguageModelUsage, UIMessage } from "ai";
+import type { LanguageModelUsage, UIMessage, UIMessageChunk } from "ai";
 import type * as z from "zod";
 
 import type {
@@ -115,4 +115,16 @@ export interface StartChatAbortPollingArgs {
   streamId: string;
   onAbort: () => void;
   intervalMs?: number;
+}
+
+export type ChatStreamLifecycleInput = Omit<
+  StartChatAbortPollingArgs,
+  "onAbort"
+> & {
+  abortSignal?: AbortSignal;
+};
+
+export interface ForwardChatStreamInput {
+  stream: ReadableStream<UIMessageChunk>;
+  emit: (chunks: UIMessageChunk[]) => Promise<unknown>;
 }

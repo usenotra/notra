@@ -5,11 +5,9 @@ import {
 } from "@notra/ai/billing/autumn";
 import { checkChatBilling } from "@notra/ai/billing/chat-billing";
 import { FEATURES } from "@notra/ai/billing/features";
-import { startChatAbortPolling } from "@notra/ai/chat/abort-polling";
 import { getChatRedis } from "@notra/ai/chat/config";
 import {
   clearActiveChatStream,
-  clearChatAbortFlag,
   clearLastResponseStopped,
   generateAndSetChatTitle,
   generateChatId,
@@ -22,6 +20,7 @@ import {
 } from "@notra/ai/chat/history";
 import { getStandaloneChatIntegrations } from "@notra/ai/chat/integrations-cache";
 import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
+import { createChatStreamLifecycle } from "@notra/ai/chat/stream-lifecycle";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getGranolaToolContextByIntegrationId } from "@notra/ai/integrations/granola";
@@ -44,6 +43,7 @@ import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-t
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
+import { withChatStreamCleanup } from "@notra/ai/utils/with-chat-stream-cleanup";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
@@ -55,7 +55,7 @@ import {
 } from "ai";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import {
   AI_CREDITS_SOURCE_STANDALONE_CHAT,
@@ -79,6 +79,7 @@ export const POST = withEvlog(async function POST(
   { params }: RouteContext<{ organizationId: string }>
 ) {
   const log = getLogger();
+  const requestStartedAt = Date.now();
   const requestId = String(log.getContext().requestId);
   let cleanupOrganizationId: string | null = null;
   let cleanupChatId: string | null = null;
@@ -247,10 +248,11 @@ export const POST = withEvlog(async function POST(
     }
     cleanupStreamId = latestMessage.id;
 
-    messages = preserveConversationSelection(
-      await hydrateSavedChatPosts(organizationId, chatId, messages),
-      await loadChatHistory(organizationId, chatId)
-    );
+    const [hydratedMessages, history] = await Promise.all([
+      hydrateSavedChatPosts(organizationId, chatId, messages),
+      loadChatHistory(organizationId, chatId),
+    ]);
+    messages = preserveConversationSelection(hydratedMessages, history);
 
     const [historySaved] = await Promise.all([
       replaceChatHistory(
@@ -270,10 +272,12 @@ export const POST = withEvlog(async function POST(
     }
 
     if (messages.length === 1 && latestMessage.role === "user") {
-      await generateAndSetChatTitle(organizationId, chatId, latestMessage);
+      // Start immediately alongside the response and keep it alive after the request.
+      after(generateAndSetChatTitle(organizationId, chatId, latestMessage));
     }
 
     const canUseWorkflowStreaming = canUseChatWorkflowStreaming();
+    log.set({ chatStartup: { preparationMs: Date.now() - requestStartedAt } });
 
     trackServerEvent({
       event: POSTHOG_EVENTS.CHAT_MESSAGE_SENT,
@@ -427,34 +431,14 @@ async function createDirectStandaloneChatResponse({
     throw new Error("Latest message must include an id");
   }
 
-  const redisAbortController = new AbortController();
-  const stopAbortPolling = startChatAbortPolling({
+  const lifecycle = await createChatStreamLifecycle({
     organizationId,
     chatId,
     streamId,
-    onAbort: () => redisAbortController.abort(),
+    abortSignal,
   });
-
-  const onRequestAbort = () => redisAbortController.abort();
-  abortSignal?.addEventListener("abort", onRequestAbort, { once: true });
-
-  const combinedAbortSignal = abortSignal
-    ? AbortSignal.any([abortSignal, redisAbortController.signal])
-    : redisAbortController.signal;
-
-  let cleanedUp = false;
-  const cleanup = async () => {
-    if (cleanedUp) {
-      return;
-    }
-    cleanedUp = true;
-    stopAbortPolling();
-    abortSignal?.removeEventListener("abort", onRequestAbort);
-    await Promise.allSettled([
-      clearChatAbortFlag(organizationId, chatId, streamId),
-      clearActiveChatStream(organizationId, chatId, streamId),
-    ]);
-  };
+  const combinedAbortSignal = lifecycle.signal;
+  const cleanup = lifecycle.close;
 
   const streamStartedAt = Date.now();
   let firstChunkAt: number | null = null;
@@ -611,36 +595,29 @@ async function createDirectStandaloneChatResponse({
         return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
-        try {
-          const saved = await replaceChatHistory(
-            organizationId,
-            chatId,
-            responseMessages,
-            undefined,
-            streamId
+        const saved = await replaceChatHistory(
+          organizationId,
+          chatId,
+          responseMessages,
+          undefined,
+          streamId
+        );
+        if (!saved) {
+          console.warn(
+            "[Standalone Chat] Skipped saving response: chat was deleted",
+            { requestId, organizationId, chatId }
           );
-          if (!saved) {
-            console.warn(
-              "[Standalone Chat] Skipped saving response: chat was deleted",
-              { requestId, organizationId, chatId }
-            );
-          }
-        } finally {
-          await cleanup();
-          streamDone.resolve();
         }
       },
       onError: (error) => {
-        cleanup().catch(() => undefined);
-        streamDone.resolve();
+        const isAbort =
+          combinedAbortSignal.aborted ||
+          (error instanceof Error && error.name === "AbortError");
         console.error("[Standalone Chat] Direct stream error:", {
           requestId,
           error,
         });
-        if (
-          combinedAbortSignal.aborted ||
-          (error instanceof Error && error.name === "AbortError")
-        ) {
+        if (isAbort) {
           return "Generation stopped.";
         }
         if (NoSuchToolError.isInstance(error)) {
@@ -655,7 +632,13 @@ async function createDirectStandaloneChatResponse({
 
     return createUIMessageStreamResponse({
       headers: { "X-Chat-Id": chatId },
-      stream: uiStream,
+      stream: withChatStreamCleanup(uiStream, async () => {
+        try {
+          await cleanup();
+        } finally {
+          streamDone.resolve();
+        }
+      }),
     });
   };
 

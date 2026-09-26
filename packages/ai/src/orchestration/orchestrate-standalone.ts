@@ -80,17 +80,22 @@ export async function orchestrateStandaloneChat(
     ? getToolApprovalSecret(organizationId, chatId)
     : undefined;
 
-  const validatedIntegrations =
-    deps?.preValidatedIntegrations ??
-    (await validateStandaloneIntegrations(
-      organizationId,
-      context,
-      deps?.integrationFetchers
-    ));
+  const [validatedIntegrations, mcpServerCount, skillSummaries, workspace] =
+    await Promise.all([
+      deps?.preValidatedIntegrations ??
+        validateStandaloneIntegrations(
+          organizationId,
+          context,
+          deps?.integrationFetchers
+        ),
+      getEnabledMcpServerCount(organizationId),
+      getStandaloneSkillSummaries(organizationId),
+      loadChatWorkspace({ organizationId, projectId }),
+    ]);
 
   const hasGitHub = hasEnabledGitHubIntegration(validatedIntegrations);
   const hasLinear = hasEnabledLinearIntegration(validatedIntegrations);
-  const hasMcp = (await getEnabledMcpServerCount(organizationId)) > 0;
+  const hasMcp = mcpServerCount > 0;
   const mcpContext = context.filter((item) => item.type === "mcp-server");
 
   const lastUserMessage = getLastUserMessage(messages);
@@ -182,10 +187,6 @@ export async function orchestrateStandaloneChat(
   const linearContext = hasLinearToolsActive
     ? getLinearContextFromIntegrations(validatedIntegrations)
     : [];
-  const [skillSummaries, workspace] = await Promise.all([
-    getStandaloneSkillSummaries(organizationId),
-    loadChatWorkspace({ organizationId, projectId }),
-  ]);
   const systemPrompt = getStandaloneChatPrompt({
     skillSummaries,
     repoContext,

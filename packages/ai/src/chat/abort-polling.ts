@@ -1,3 +1,5 @@
+import { Clock, Effect, Schedule } from "effect";
+
 import {
   CHAT_ABORT_POLL_INTERVAL_MS,
   CHAT_ACTIVE_STREAM_REFRESH_INTERVAL_MS,
@@ -5,65 +7,42 @@ import {
 import type { StartChatAbortPollingArgs } from "../types/chat";
 import { isChatAborted, refreshActiveChatStream } from "./history";
 
-export function startChatAbortPolling({
+export const pollChatAbort = Effect.fn("Chat.pollAbort")(function* ({
   organizationId,
   chatId,
   streamId,
   onAbort,
   intervalMs = CHAT_ABORT_POLL_INTERVAL_MS,
-}: StartChatAbortPollingArgs): () => void {
-  let stopped = false;
-  let pollInFlight = false;
-  let nextLeaseRefreshAt = Date.now();
-
-  const timer = setInterval(async () => {
-    if (stopped || pollInFlight) {
-      return;
+}: StartChatAbortPollingArgs) {
+  let nextLeaseRefreshAt = 0;
+  const pass = Effect.gen(function* () {
+    const now = yield* Clock.currentTimeMillis;
+    if (now >= nextLeaseRefreshAt) {
+      const refreshed = yield* Effect.tryPromise(() =>
+        refreshActiveChatStream(organizationId, chatId, streamId)
+      );
+      nextLeaseRefreshAt = now + CHAT_ACTIVE_STREAM_REFRESH_INTERVAL_MS;
+      if (!refreshed) {
+        return true;
+      }
     }
-    pollInFlight = true;
-    try {
-      if (Date.now() >= nextLeaseRefreshAt) {
-        nextLeaseRefreshAt =
-          Date.now() + CHAT_ACTIVE_STREAM_REFRESH_INTERVAL_MS;
-        const leaseRefreshed = await refreshActiveChatStream(
-          organizationId,
-          chatId,
-          streamId
-        );
-        if (stopped) {
-          return;
-        }
-        if (!leaseRefreshed) {
-          stopped = true;
-          clearInterval(timer);
-          onAbort();
-          return;
-        }
-      }
+    return yield* Effect.tryPromise(() =>
+      isChatAborted(organizationId, chatId, streamId)
+    );
+  }).pipe(
+    Effect.catch((error) =>
+      Effect.logError("Chat abort polling failed", error).pipe(Effect.as(false))
+    ),
+    Effect.flatMap((aborted) =>
+      aborted
+        ? Effect.sync(onAbort).pipe(Effect.andThen(Effect.interrupt))
+        : Effect.void
+    )
+  );
 
-      const chatAborted = await isChatAborted(organizationId, chatId, streamId);
-      if (stopped) {
-        return;
-      }
-      if (chatAborted) {
-        stopped = true;
-        clearInterval(timer);
-        onAbort();
-      }
-    } catch (error) {
-      console.error("[Chat Abort Poll] Error:", {
-        organizationId,
-        chatId,
-        streamId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      pollInFlight = false;
-    }
-  }, intervalMs);
-
-  return () => {
-    stopped = true;
-    clearInterval(timer);
-  };
-}
+  yield* pass.pipe(
+    Effect.repeat(Schedule.spaced(intervalMs)),
+    Effect.delay(intervalMs),
+    Effect.annotateLogs({ organizationId, chatId, streamId })
+  );
+});
