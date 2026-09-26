@@ -5,19 +5,13 @@ import { GeoUpgradeGate } from "@/components/geo/geo-upgrade-gate";
 import type { GeoLayoutProps } from "@/types/geo";
 
 import { GeoProjectScope } from "./geo-project-scope";
+import { GeoPageSkeleton } from "./skeleton";
 
 export const instant = true;
 
 export default function GeoLayout({ children, modal, params }: GeoLayoutProps) {
   return (
-    <Suspense
-      fallback={
-        <>
-          {children}
-          {modal}
-        </>
-      }
-    >
+    <Suspense fallback={<GeoPageSkeleton />}>
       <GeoLayoutProviders params={params}>
         {children}
         {modal}
