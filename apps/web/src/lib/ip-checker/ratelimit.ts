@@ -6,6 +6,7 @@ import { Data, Effect } from "effect";
 import type { NextRequest } from "next/server";
 
 import { IP_CHECKER_RATE_LIMIT } from "@/constants/ip-checker";
+import { getClientIp } from "@/utils/client-ip";
 
 class IpCheckRateLimitExceeded extends Data.TaggedError(
   "IpCheckRateLimitExceeded"
@@ -39,24 +40,6 @@ function getLimiter(): Ratelimit | null {
     ),
   });
   return limiter;
-}
-
-function getClientIp(request: NextRequest): string {
-  const vercelForwardedFor = request.headers
-    .get("x-vercel-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-  if (vercelForwardedFor) {
-    return vercelForwardedFor;
-  }
-  if (process.env.VERCEL) {
-    return "unknown";
-  }
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    "unknown"
-  );
 }
 
 export const enforceIpCheckRateLimit = Effect.fn("enforceIpCheckRateLimit")(

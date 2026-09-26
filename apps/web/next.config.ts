@@ -180,6 +180,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn.usenotra.com",
       },
+      {
+        protocol: "https",
+        hostname: "www.google.com",
+        pathname: "/s2/favicons",
+      },
+      {
+        protocol: "https",
+        hostname: "*.gstatic.com",
+        pathname: "/faviconV2",
+      },
     ],
   },
 };

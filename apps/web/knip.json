@@ -1,6 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/remotion/index.ts", "remotion.config.ts"],
+  "entry": [
+    "src/remotion/index.ts",
+    "remotion.config.ts",
+    "src/**/*.test.{ts,tsx}"
+  ],
   "ignoreBinaries": ["remotion"],
   "ignoreIssues": {
     "mdx-components.tsx": ["exports"],
