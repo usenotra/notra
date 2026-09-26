@@ -40,10 +40,20 @@ export function useChatQuote() {
   return useContext(ChatQuoteContext);
 }
 
-export function ChatQuoteProvider({ children }: ChatQuoteProviderProps) {
+export function ChatQuoteProvider({
+  children,
+  conversationId,
+}: ChatQuoteProviderProps) {
   const scopeId = useId();
   const [quote, setQuote] = useState<string | null>(null);
   const [selection, setSelection] = useState<ChatQuoteSelection | null>(null);
+  const [previousConversationId, setPreviousConversationId] =
+    useState(conversationId);
+  if (previousConversationId !== conversationId) {
+    setPreviousConversationId(conversationId);
+    setQuote(null);
+    setSelection(null);
+  }
   const buttonRef = useRef<HTMLButtonElement>(null);
   const context = useMemo(
     () => ({ scopeId, quote, setQuote }),

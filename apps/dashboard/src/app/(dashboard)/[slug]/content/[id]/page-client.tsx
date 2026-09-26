@@ -58,7 +58,7 @@ export default function PageClient({
   return (
     <ContentDetailLoadedView
       chatInputSection={
-        <ChatQuoteProvider key={chat.chatPanelProps.activeChatId}>
+        <ChatQuoteProvider conversationId={chat.chatPanelProps.activeChatId}>
           {floatingChat}
           <ContentDetailChatPanel {...chat.chatPanelProps} />
         </ChatQuoteProvider>

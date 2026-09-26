@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction, ReactNode } from "react";
 
 export interface ChatQuoteProviderProps {
   children: ReactNode;
+  conversationId?: string | null;
 }
 
 export interface ChatQuotePreviewProps {
