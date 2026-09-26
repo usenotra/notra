@@ -5,6 +5,7 @@ import {
   GEO_CONTENT_BRIEF_STATUSES,
   GEO_WRITER_SOURCE_KINDS,
 } from "@notra/db/constants/geo-writer";
+import type { GeoScanSuggestionEvidence } from "@notra/db/types/geo-suggestions";
 import {
   GEO_EXISTING_PAGE_URL_MAX_LENGTH,
   GEO_MAX_COMPETITORS,
@@ -65,7 +66,20 @@ const searchGapRecommendationSchema = z.object({
   targets: z.array(searchGapTargetSchema),
 });
 
+const scanSuggestionEvidenceSchema = z.object({
+  checkId: z.string(),
+  scanId: z.string(),
+  engine: z.string(),
+  promptId: z.string(),
+  prompt: z.string(),
+  query: z.string(),
+  capturedAt: z.iso.datetime(),
+  language: z.string(),
+}) satisfies z.ZodType<GeoScanSuggestionEvidence>;
+
 const searchGapSchema = z.object({
+  source: z.enum(["search_console", "scan"]),
+  scanEvidence: z.array(scanSuggestionEvidenceSchema),
   id: z.string(),
   prompt: z.string(),
   title: z.string().nullable(),
@@ -205,7 +219,7 @@ export const planBriefRequestSchema = z
       .max(GEO_BRIEF_TOPIC_MAX_LENGTH)
       .openapi({
         description:
-          "What the article should target. Replaced by the source prompt when sourceKind is gap, prompt or search_console.",
+          "What the article should target. Replaced by the source prompt when sourceKind is gap, prompt, search_console or scan.",
       }),
     autoApprove: z.boolean().default(false).openapi({
       description:

@@ -54,6 +54,7 @@ export function buildGeoPlannerSystem(): string {
     - The acceptance checklist mirrors the GEO writing rules below, adapted to this article.
     - Never invent competitor facts, statistics, or sources. If the topic text provides facts, use them.
     - When <target-evidence> is present, treat it as the ground truth about how assistants answer the target prompt today. Fill recommendedAngle (why this article will earn the mention), competitorsToCounter (each brand named in the evidence plus the claim that earned it the mention), sourcesToReference (only domains listed in the evidence), and missingCoverage (facts or topics the winning answers included that the brand must now cover). Make section claims answer those gaps directly. Leave these fields empty only when no evidence is provided.
+    - When <origin-evidence> is present, it describes research queries and the prompts that caused engines to search. Use it as research context, not as measured user demand or a mention-rate baseline for the new target query. Sources belong to whole originating answers; do not attribute a source URL or domain to an individual research query.
     - When <existing-page> is present, the brief must refresh and expand that page instead of proposing a new one. Keep its slug intent, list the sections and claims that page is missing, and never plan a competing page on the same topic.
 
     GEO writing rules the article must follow:
@@ -83,7 +84,10 @@ function formatList(items: string[], empty: string): string {
 function formatEvidence(
   evidence: GeoPlannerEvidence | null | undefined
 ): string {
-  if (!evidence || evidence.engines.length === 0) {
+  if (
+    !evidence ||
+    (evidence.engines.length === 0 && evidence.sourceKind !== "scan")
+  ) {
     return "";
   }
   const engines = evidence.engines
@@ -127,6 +131,22 @@ function formatEvidence(
     ),
     "(no sources cited)"
   );
+  if (evidence.sourceKind === "scan") {
+    return dedent`
+      <origin-evidence>
+      ${evidence.prompt}
+
+      Referenced originating answers:
+      ${engines || "Source checks are no longer available; use only the recorded query and prompt snapshots above."}
+
+      Competitors in those answers:
+      ${competitorMentions}
+
+      Domains cited by those answers, without query-to-source attribution:
+      ${citedDomains}
+      </origin-evidence>
+    `;
+  }
   return dedent`
     <target-evidence>
     Prompt: "${evidence.prompt}"

@@ -10,7 +10,12 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
-import { brandSettings, geoScans, geoSettings } from "@notra/db/schema";
+import {
+  brandSettings,
+  geoScans,
+  geoSettings,
+  geoPromptSuggestions,
+} from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Exit } from "effect";
 
@@ -35,6 +40,7 @@ import {
   testDb,
 } from "./utils/database";
 import { cleanupBoxes } from "./utils/infrastructure";
+import { seedScanQuery } from "./utils/scan-suggestions";
 
 const { nextGeoScanAtAfter, rearmedGeoScanAt, runGeoScanCronSweep } =
   await import("../src/geo/scan-schedule");
@@ -823,6 +829,69 @@ describe("scheduled GEO scans", () => {
 });
 
 describe("scan ownership and finalization", () => {
+  test.each([false, true])(
+    "successful finalization processes queries and tolerates suggestion failure (%s)",
+    async (failSuggestions) => {
+      const scope = await seedProject("scan-gaps");
+      const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+      assert.ok(claim);
+      const check = await seedScanQuery(scope, {}, "running");
+      if (failSuggestions) {
+        await database.postgres
+          .exec(`CREATE FUNCTION reject_scan_suggestions() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'fixture suggestion failure'; END $$;
+        CREATE TRIGGER reject_scan_suggestions BEFORE INSERT ON geo_prompt_suggestions FOR EACH ROW EXECUTE FUNCTION reject_scan_suggestions();`);
+      }
+      try {
+        await Effect.runPromise(
+          finalizeGeoScanProject(
+            {
+              ...scope,
+              scanId: check.scanId,
+              runId: "run",
+              companyName: "scan-gaps",
+              aliases: [],
+              startedAtMs: Date.now(),
+              gate: {
+                allowed: true,
+                mode: "unmetered",
+                featureId: null,
+                reserved: false,
+                lockId: null,
+                useMarkup: false,
+              },
+            },
+            {
+              checks: 1,
+              mentions: 0,
+              dropped: 0,
+              usage: EMPTY_AGENT_TOKEN_USAGE,
+            },
+            "completed",
+            claim.claimedAt.toISOString()
+          ).pipe(
+            Effect.provideService(GeoContentBillingService, {
+              gateContentBilling: () => Effect.die("Unexpected billing gate"),
+              finalizeContentBilling: () => Effect.void,
+            })
+          )
+        );
+        expect((await testDb.select().from(geoScans))[0]?.status).toBe(
+          "completed"
+        );
+        const suggestions = await testDb.select().from(geoPromptSuggestions);
+        expect(suggestions).toHaveLength(failSuggestions ? 0 : 1);
+        if (!failSuggestions) {
+          expect(suggestions[0]?.scanEvidence[0]?.checkId).toBe(check.id);
+        }
+      } finally {
+        if (failSuggestions) {
+          await database.postgres.exec(
+            "DROP TRIGGER reject_scan_suggestions ON geo_prompt_suggestions; DROP FUNCTION reject_scan_suggestions();"
+          );
+        }
+      }
+    }
+  );
   test.each([true, false, undefined])(
     "a completed scan only covers the scheduled slot when not scoped (%s)",
     async (scoped) => {

@@ -66,7 +66,11 @@ import {
   GeoWriterPlanError,
   GeoWriterStartError,
 } from "./errors";
-import { evidenceToBaseline, loadPromptEvidence } from "./evidence";
+import {
+  evidenceToBaseline,
+  loadPromptEvidence,
+  loadScanSuggestionEvidence,
+} from "./evidence";
 import { loadPlannerGapPrompts } from "./gaps";
 import { requireBrandIdentity, requireGeoProject } from "./projects";
 import { promptIdFromScanId } from "./prompts";
@@ -684,6 +688,16 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
     sourceId && (sourceKind === "gap" || sourceKind === "prompt")
       ? sourceId
       : null;
+  let evidenceEffect = evidenceSourceId
+    ? loadPromptEvidence(scope.projectId, evidenceSourceId)
+    : Effect.succeed(null);
+  if (sourceKind === "scan" && sourceId) {
+    evidenceEffect = loadScanSuggestionEvidence(
+      scope.organizationId,
+      scope.projectId,
+      sourceId
+    );
+  }
 
   const [brand, settings, competitors, gapData, sitemap, evidence] =
     yield* Effect.all([
@@ -720,9 +734,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
       ),
       loadPlannerGapPrompts(scope.projectId),
       loadSitemapPages(brandSettingsId, input.sitemapId),
-      evidenceSourceId
-        ? loadPromptEvidence(scope.projectId, evidenceSourceId)
-        : Effect.succeed(null),
+      evidenceEffect,
     ]);
 
   const companyName =
@@ -822,7 +834,8 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
     )
   );
 
-  const baseline = evidence ? evidenceToBaseline(evidence) : null;
+  const baseline =
+    evidence && sourceKind !== "scan" ? evidenceToBaseline(evidence) : null;
   const brief: GeoWriterBrief = {
     ...generated.brief,
     contentSubtype: input.contentSubtype ?? generated.brief.contentSubtype,
@@ -906,18 +919,21 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
       sourceId &&
       (input.sourceKind === "gap" ||
         input.sourceKind === "prompt" ||
-        input.sourceKind === "search_console")
+        input.sourceKind === "search_console" ||
+        input.sourceKind === "scan")
     )
   ) {
     return input.topic;
   }
 
-  if (input.sourceKind === "search_console") {
+  if (input.sourceKind === "search_console" || input.sourceKind === "scan") {
+    const source = input.sourceKind;
     const suggestion = yield* geoDb("prompt suggestion lookup failed", () =>
       db.query.geoPromptSuggestions.findFirst({
         columns: { prompt: true },
         where: and(
           eq(geoPromptSuggestions.id, sourceId),
+          eq(geoPromptSuggestions.source, source),
           eq(geoPromptSuggestions.organizationId, organizationId),
           eq(geoPromptSuggestions.projectId, projectId)
         ),

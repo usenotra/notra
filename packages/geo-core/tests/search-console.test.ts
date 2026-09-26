@@ -10,9 +10,14 @@ import {
 import assert from "node:assert/strict";
 
 import {
+  upsertGscIntegration,
+  deleteGscIntegration,
+} from "@notra/ai/integrations/google-search-console";
+import {
   geoPromptSuggestions,
   googleSearchConsoleIntegrations,
   projects,
+  users,
 } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Result } from "effect";
@@ -42,6 +47,74 @@ afterAll(() => database.postgres.close());
 beforeEach(resetDatabase);
 
 describe("Search Console Effect sync", () => {
+  test("sync, account reconnect and disconnect preserve scan suggestions", async () => {
+    await seedGsc();
+    await testDb.insert(geoPromptSuggestions).values({
+      id: "scan-gap",
+      organizationId: "org-test",
+      projectId: "gsc",
+      prompt: "what are the best tools for sending email?",
+      source: "scan",
+    });
+    await Effect.runPromise(withGscServices(syncGscSuggestions("org-test")));
+    expect(
+      (await testDb.select().from(geoPromptSuggestions)).map((row) => row.id)
+    ).toEqual(["scan-gap"]);
+    expect(
+      await testDb.query.geoPromptSuggestions.findFirst({
+        where: eq(geoPromptSuggestions.id, "scan-gap"),
+      })
+    ).toBeDefined();
+    await testDb.insert(users).values({
+      id: "gsc-user",
+      email: "fixture@example.com",
+      name: "Fixture",
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const previousKey = process.env.INTEGRATION_ENCRYPTION_KEY;
+    process.env.INTEGRATION_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString(
+      "base64"
+    );
+    try {
+      // Missing old account identity clears cached GSC data, without a remote revocation.
+      const reconnected = await upsertGscIntegration({
+        organizationId: "org-test",
+        userId: "gsc-user",
+        googleAccountEmail: "new@example.com",
+        accessToken: "fixture-access",
+        refreshToken: "fixture-refresh",
+        expiresAt: new Date("2099-01-01"),
+      });
+      expect(
+        await testDb.query.geoPromptSuggestions.findFirst({
+          where: eq(geoPromptSuggestions.id, "scan-gap"),
+        })
+      ).toBeDefined();
+      expect(
+        (await testDb.select().from(geoPromptSuggestions)).every(
+          (row) => row.source === "scan"
+        )
+      ).toBe(true);
+      const disconnectingAt = new Date();
+      await testDb
+        .update(googleSearchConsoleIntegrations)
+        .set({ disconnectingAt })
+        .where(eq(googleSearchConsoleIntegrations.id, reconnected.id));
+      await seedSuggestion("gsc-before-disconnect", "org-test", "gsc");
+      await deleteGscIntegration({ ...reconnected, disconnectingAt });
+      expect(
+        (await testDb.select().from(geoPromptSuggestions)).map((row) => row.id)
+      ).toEqual(["scan-gap"]);
+    } finally {
+      if (previousKey === undefined) {
+        delete process.env.INTEGRATION_ENCRYPTION_KEY;
+      } else {
+        process.env.INTEGRATION_ENCRYPTION_KEY = previousKey;
+      }
+    }
+  });
   test("disconnecting and unselected integrations skip generation", async () => {
     await seedGsc();
     const models = {

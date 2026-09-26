@@ -345,7 +345,7 @@ function SearchWriteCell({
         onWrite={() => onWrite()}
         opportunityBucket={null}
         postId={row.brief?.postId}
-        sourceKind="search_console"
+        sourceKind={row.source}
       />
     );
   }
@@ -743,6 +743,8 @@ export function GeoGapsTable({
   onWriteSearch,
   onDismissSearch,
   dismissingSearchId,
+  onTrackSearch,
+  trackingSearchId,
   onRescanPrompt,
   onIgnorePrompt,
   ignoringPromptId,
@@ -898,7 +900,16 @@ export function GeoGapsTable({
       key: "question",
       header: "Source question",
       width: "1fr",
-      cell: (row) => <QueriesCell prompt={row.prompt} queries={row.queries} />,
+      cell: (row) => (
+        <span className="flex min-w-0 flex-col gap-1">
+          <QueriesCell prompt={row.prompt} queries={row.queries} />
+          <span className="text-muted-foreground text-xs">
+            {row.source === "scan"
+              ? "AI scan · research query"
+              : "Google Search Console"}
+          </span>
+        </span>
+      ),
       sortValue: (row) => row.prompt,
       sortable: true,
     },
@@ -919,7 +930,7 @@ export function GeoGapsTable({
     {
       key: "recommendation",
       header: "Recommendation",
-      hint: "Suggested next step based on search demand and overlap with your existing content.",
+      hint: "Suggested next step based on title and URL overlap, plus search demand when available.",
       width: "9rem",
       cell: (row) => <RecommendationCell recommendation={row.recommendation} />,
       sortValue: (row) => searchGapActionOrder(row.recommendation.action),
@@ -991,7 +1002,6 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={searchColumns}
         data={filteredSearchGaps}
-        defaultSort={{ key: "impressions", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
         onRowClick={(row) => setDetailSearchId(row.id)}
@@ -1047,19 +1057,31 @@ export function GeoGapsTable({
       <SearchGapDetailSheet
         actions={
           selectedSearch ? (
-            <SearchWriteCell
-              isDismissing={dismissingSearchId === selectedSearch.id}
-              onDismiss={() => onDismissSearch(selectedSearch)}
-              onOpenPost={(postId) => {
-                setDetailSearchId(null);
-                onOpenPost(postId);
-              }}
-              onWrite={(existingPageUrl) => {
-                setDetailSearchId(null);
-                onWriteSearch(selectedSearch, existingPageUrl);
-              }}
-              row={selectedSearch}
-            />
+            <>
+              <Button
+                variant="outline"
+                disabled={
+                  trackingSearchId === selectedSearch.id ||
+                  dismissingSearchId === selectedSearch.id
+                }
+                onClick={() => onTrackSearch(selectedSearch)}
+              >
+                Track prompt
+              </Button>
+              <SearchWriteCell
+                isDismissing={dismissingSearchId === selectedSearch.id}
+                onDismiss={() => onDismissSearch(selectedSearch)}
+                onOpenPost={(postId) => {
+                  setDetailSearchId(null);
+                  onOpenPost(postId);
+                }}
+                onWrite={(existingPageUrl) => {
+                  setDetailSearchId(null);
+                  onWriteSearch(selectedSearch, existingPageUrl);
+                }}
+                row={selectedSearch}
+              />
+            </>
           ) : null
         }
         onOpenChange={(open) => {

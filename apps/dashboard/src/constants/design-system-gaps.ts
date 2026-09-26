@@ -65,6 +65,8 @@ export const DESIGN_SYSTEM_PROMPT_GAP: GeoPromptGapRow = {
 export const DESIGN_SYSTEM_SEARCH_GAPS: GeoSearchGapRow[] = [];
 
 export const DESIGN_SYSTEM_SEARCH_GAP: GeoSearchGapRow = {
+  source: "search_console",
+  scanEvidence: [],
   id: "demo-search-gap",
   prompt:
     "Where can I find the Neon database changelog and latest release notes?",
@@ -200,6 +202,37 @@ export const DESIGN_SYSTEM_GAP_RESULTS: GeoPromptResult[] = [
 });
 
 DESIGN_SYSTEM_SEARCH_GAPS.push(
+  {
+    ...DESIGN_SYSTEM_SEARCH_GAP,
+    id: "demo-scan-gap",
+    source: "scan",
+    prompt: "serverless postgres connection pooling comparison",
+    title: null,
+    impressions: null,
+    clicks: null,
+    position: null,
+    queries: [],
+    brief: null,
+    scanEvidence: [
+      {
+        checkId: "demo-check",
+        scanId: "demo-scan",
+        engine: "openai/gpt-5",
+        promptId: "demo-origin",
+        prompt:
+          "Which database works best for a serverless Next.js application?",
+        query: "serverless postgres connection pooling comparison",
+        capturedAt: "2026-09-25T08:30:00.000Z",
+        language: "English",
+      },
+    ],
+    recommendation: {
+      action: "create",
+      reason:
+        "No matching title or URL found. Review the query before planning a page.",
+      targets: [],
+    },
+  },
   DESIGN_SYSTEM_SEARCH_GAP,
   {
     ...DESIGN_SYSTEM_SEARCH_GAP,

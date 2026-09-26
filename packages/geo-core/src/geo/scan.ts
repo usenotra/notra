@@ -162,6 +162,7 @@ import {
   releaseGeoScanRun,
   renewGeoScanRun,
 } from "./scan-status";
+import { refreshScanSuggestions } from "./scan-suggestions";
 import { updateGeoScanTaskStatus } from "./scan-task-status";
 import { resolveScanZdrPolicy } from "./zdr-policy";
 
@@ -1687,6 +1688,19 @@ const finalizeGeoScanProjectBody = Effect.fn("geo.finalizeScanProject.body")(
         stamp: status,
       })
     );
+
+    if (status === "completed") {
+      yield* refreshScanSuggestions({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      }).pipe(
+        geoSkip("scan suggestions refresh failed", {
+          organizationId: context.organizationId,
+          projectId: context.projectId,
+          scanId: context.scanId,
+        })
+      );
+    }
 
     if (claimedAt) {
       const endClaim =

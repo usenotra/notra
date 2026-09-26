@@ -33,6 +33,7 @@ mock.module("@/lib/hooks/use-geo", () => ({
   useGeoRescanPrompt: () => ({ mutate: mock() }),
   useIsGeoScanning: () => false,
   useGeoSuggestionDismiss: () => ({ isPending: false, mutate: mock() }),
+  useGeoSuggestionAccept: () => ({ isPending: false, mutate: mock() }),
 }));
 mock.module("@/lib/hooks/use-geo-db", () => ({
   useGeoCompetitorsDb: () => ({ competitors: [] }),

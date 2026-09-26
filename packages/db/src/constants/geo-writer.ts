@@ -11,4 +11,5 @@ export const GEO_WRITER_SOURCE_KINDS = [
   "gap",
   "prompt",
   "search_console",
+  "scan",
 ] as const;

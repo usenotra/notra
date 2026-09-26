@@ -1,5 +1,15 @@
 import { PGlite } from "@electric-sql/pglite";
 import {
+  brandSitemaps,
+  brandSitemapPages,
+  brandSitemapStatusEnum,
+  brandSitemapPageCategoryEnum,
+  postCollections,
+  postCollectionSourceEnum,
+  postCollectionNameSourceEnum,
+  posts,
+  postStatusEnum,
+  geoContentBriefs,
   brandSettings,
   geoPrompts,
   geoPromptSuggestions,
@@ -28,6 +38,16 @@ import type { ScanSettingsInput } from "../types/fixtures";
 
 // Generate DDL from production tables so column/constraint changes reach tests.
 const schema = {
+  brandSitemaps,
+  brandSitemapPages,
+  brandSitemapStatusEnum,
+  brandSitemapPageCategoryEnum,
+  postCollections,
+  postCollectionSourceEnum,
+  postCollectionNameSourceEnum,
+  posts,
+  postStatusEnum,
+  geoContentBriefs,
   users,
   geoPrompts,
   geoPromptSuggestions,

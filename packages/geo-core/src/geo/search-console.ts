@@ -12,7 +12,7 @@ import {
   geoSettings,
   projects,
 } from "@notra/db/schema";
-import { and, eq, isNull, ne } from "drizzle-orm";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -109,6 +109,7 @@ const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
               .delete(geoPromptSuggestions)
               .where(
                 and(
+                  eq(geoPromptSuggestions.source, "search_console"),
                   eq(
                     geoPromptSuggestions.organizationId,
                     integration.organizationId
@@ -368,14 +369,17 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
           columns: { prompt: true },
         })
       ),
-      // Accepted/dismissed rows occupy the (organizationId, prompt) unique index
-      // even after the tracked prompt is deleted. Pending rows are replaced later.
+      // Only pending GSC rows are replaced. Keep scan suggestions and previous
+      // decisions out of generation, even if a tracked prompt was later deleted.
       geoDb("read prior suggestions", () =>
         db.query.geoPromptSuggestions.findMany({
           where: and(
             eq(geoPromptSuggestions.organizationId, organizationId),
             eq(geoPromptSuggestions.projectId, projectId),
-            ne(geoPromptSuggestions.status, "pending")
+            or(
+              ne(geoPromptSuggestions.status, "pending"),
+              eq(geoPromptSuggestions.source, "scan")
+            )
           ),
           columns: { prompt: true },
         })

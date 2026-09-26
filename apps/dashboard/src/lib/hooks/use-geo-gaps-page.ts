@@ -15,6 +15,7 @@ import {
   useGeoSettings,
   useGeoStartScan,
   useGeoSuggestionDismiss,
+  useGeoSuggestionAccept,
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
@@ -33,6 +34,7 @@ import {
   emptyWriteDialogState,
   geoContentPath,
   writeDialogStateFromGap,
+  writeDialogStateFromSearchGap,
 } from "@/utils/geo-write-entry";
 
 export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
@@ -52,6 +54,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
   const rescanPrompt = useGeoRescanPrompt(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
+  const acceptSuggestion = useGeoSuggestionAccept(organizationId);
   const ignoreGap = useGeoPromptGapIgnore(organizationId);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -147,6 +150,11 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
         dismissingSearchId: dismissSuggestion.isPending
           ? (dismissSuggestion.variables?.suggestionId ?? null)
           : null,
+        trackingSearchId: acceptSuggestion.isPending
+          ? (acceptSuggestion.variables?.suggestionId ?? null)
+          : null,
+        onTrackSearch: (row) =>
+          acceptSuggestion.mutate({ suggestionId: row.id }),
         onDismissSearch: (row) => {
           dismissSuggestion.mutate(
             { suggestionId: row.id },
@@ -158,12 +166,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
           );
         },
         onWriteSearch: (row, existingPageUrl) => {
-          openDialog({
-            sourceKind: "search_console",
-            sourceId: row.id,
-            topic: row.prompt,
-            existingPageUrl,
-          });
+          openDialog(writeDialogStateFromSearchGap(row, existingPageUrl));
         },
         organizationSlug,
         promptGaps: gapsQuery.data?.promptGaps ?? [],

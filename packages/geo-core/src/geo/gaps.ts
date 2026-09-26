@@ -396,6 +396,7 @@ function searchGapRecommendation(
     prompt: string;
     title: string | null;
     sourceKeywords: GeoSuggestionKeyword[] | null;
+    source: "search_console" | "scan";
   },
   candidates: readonly GeoContentCollisionCandidate[]
 ): GeoSearchGapRecommendation {
@@ -410,11 +411,18 @@ function searchGapRecommendation(
     },
     candidates
   );
-  return recommendSearchGapAction({
+  const recommendation = recommendSearchGapAction({
     matches,
     impressions: searchGapImpressions(suggestion.sourceKeywords),
     clicks: searchGapClicks(suggestion.sourceKeywords),
   });
+  if (suggestion.source === "scan") {
+    recommendation.reason =
+      recommendation.targets.length > 0
+        ? "Title and URL overlap suggests related content. Review those pages before deciding whether to create, update or merge."
+        : "No matching title or URL found. Review this observed research query before planning a page; search demand is unknown.";
+  }
+  return recommendation;
 }
 
 export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
@@ -433,6 +441,8 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
             prompt: geoPromptSuggestions.prompt,
             title: geoPromptSuggestions.title,
             sourceKeywords: geoPromptSuggestions.sourceKeywords,
+            source: geoPromptSuggestions.source,
+            scanEvidence: geoPromptSuggestions.scanEvidence,
           })
           .from(geoPromptSuggestions)
           .where(
@@ -465,7 +475,11 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
           .where(
             and(
               eq(geoContentBriefs.projectId, projectId),
-              inArray(geoContentBriefs.sourceKind, ["gap", "search_console"]),
+              inArray(geoContentBriefs.sourceKind, [
+                "gap",
+                "search_console",
+                "scan",
+              ]),
               isNotNull(geoContentBriefs.sourceId)
             )
           )
@@ -572,6 +586,8 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
   promptGaps.sort((a, b) => b.opportunity - a.opportunity);
 
   const searchGaps: GeoSearchGapRow[] = pending.map((suggestion) => ({
+    source: suggestion.source,
+    scanEvidence: suggestion.scanEvidence,
     id: suggestion.id,
     prompt: suggestion.prompt,
     title: suggestion.title,
@@ -580,7 +596,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     position: searchGapPosition(suggestion.sourceKeywords),
     queries: suggestion.sourceKeywords ?? [],
     brief: toBriefRef(
-      briefBySource.get(sourceKey("search_console", suggestion.id))
+      briefBySource.get(sourceKey(suggestion.source, suggestion.id))
     ),
     recommendation: searchGapRecommendation(suggestion, collisionCandidates),
   }));
