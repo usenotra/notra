@@ -40,7 +40,8 @@ const NESTED_ROW_CLASSNAME =
 
 function useWorkedDurationSeconds(
   isStreaming: boolean,
-  durationMs: number | undefined
+  durationMs: number | undefined,
+  liveSeconds: number | undefined
 ): number | null {
   const fromMetadata =
     durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
@@ -69,7 +70,9 @@ function useWorkedDurationSeconds(
     }
   }, [isStreaming]);
 
-  return isStreaming ? (elapsedSeconds ?? 0) : (fromMetadata ?? elapsedSeconds);
+  return isStreaming
+    ? (liveSeconds ?? elapsedSeconds ?? 0)
+    : (fromMetadata ?? elapsedSeconds);
 }
 
 export function ChatActivityGroup({
@@ -83,7 +86,11 @@ export function ChatActivityGroup({
   isStreaming,
   step,
 }: ChatActivityGroupProps) {
-  const measuredSeconds = useWorkedDurationSeconds(isStreaming, durationMs);
+  const measuredSeconds = useWorkedDurationSeconds(
+    isStreaming,
+    durationMs,
+    elapsedSeconds
+  );
   const durationSeconds = measuredSeconds ?? elapsedSeconds ?? null;
   const [isOpen, setIsOpen] = useState(forceOpen);
   const [hasInteracted, setHasInteracted] = useState(false);

@@ -200,7 +200,7 @@ export function AssistantMetadataHover({
   if (showStats && typeof metadata.ttftMs === "number") {
     items.push(
       <div className="flex min-w-0 items-center gap-1" key="ttft">
-        <HugeiconsIcon className="size-3" icon={Clock01Icon} />
+        <HugeiconsIcon className="size-3 shrink-0" icon={Clock01Icon} />
         <span className="truncate">
           Time to First Token: {formatDuration(metadata.ttftMs)}
         </span>
