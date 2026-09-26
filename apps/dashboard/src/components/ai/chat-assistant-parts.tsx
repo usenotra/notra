@@ -109,7 +109,9 @@ export function ChatAssistantParts({
           (hasSingleActivityGroup ? durationMs : undefined)
         }
         elapsedSeconds={
-          segmentIndex === firstActivityIndex ? elapsedSeconds : undefined
+          isStreaming && segmentIndex === firstActivityIndex
+            ? elapsedSeconds
+            : undefined
         }
         forceOpen={forceOpen}
         groupId={`${messageId}-${segment.startIndex}`}

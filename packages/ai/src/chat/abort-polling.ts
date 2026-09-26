@@ -18,10 +18,10 @@ export const pollChatAbort = Effect.fn("Chat.pollAbort")(function* ({
   const pass = Effect.gen(function* () {
     const now = yield* Clock.currentTimeMillis;
     if (now >= nextLeaseRefreshAt) {
+      nextLeaseRefreshAt = now + CHAT_ACTIVE_STREAM_REFRESH_INTERVAL_MS;
       const refreshed = yield* Effect.tryPromise(() =>
         refreshActiveChatStream(organizationId, chatId, streamId)
       );
-      nextLeaseRefreshAt = now + CHAT_ACTIVE_STREAM_REFRESH_INTERVAL_MS;
       if (!refreshed) {
         return true;
       }

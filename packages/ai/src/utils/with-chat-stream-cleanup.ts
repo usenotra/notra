@@ -9,12 +9,15 @@ export function chatStreamSource(
 ): Stream.Stream<UIMessageChunk, ChatStreamDeliveryError> {
   return Stream.unwrap(
     Effect.gen(function* () {
+      let readFailed = false;
       const reader = yield* Effect.acquireRelease(
         Effect.sync(() => stream.getReader()),
         (reader) =>
           Effect.tryPromise(() => reader.cancel()).pipe(
             Effect.catch((error) =>
-              Effect.logError("Chat stream cancellation failed", error)
+              readFailed
+                ? Effect.void
+                : Effect.logError("Chat stream cancellation failed", error)
             ),
             Effect.ensuring(Effect.sync(() => reader.releaseLock())),
             Effect.ensuring(
@@ -27,8 +30,13 @@ export function chatStreamSource(
           Effect.gen(function* () {
             const result = yield* Effect.tryPromise({
               try: () => reader.read(),
-              catch: (cause) =>
-                new ChatStreamDeliveryError({ operation: "read", cause }),
+              catch: (cause) => {
+                readFailed = true;
+                return new ChatStreamDeliveryError({
+                  operation: "read",
+                  cause,
+                });
+              },
             });
             return result.done
               ? yield* Cause.done()

@@ -49,6 +49,8 @@
   border-radius: calc(var(--radius) - 4px);
   color: var(--muted-foreground);
   transition-property: color, background-color;
+  transition-duration: var(--transition-duration-fast);
+  transition-timing-function: var(--ease-out);
 }
 
 .message-response [data-streamdown="code-block-actions"] button:hover {
