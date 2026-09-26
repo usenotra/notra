@@ -62,6 +62,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { code } from "@streamdown/code";
 import { Streamdown } from "streamdown";
 import {
   MESSAGE_TABLE_COPY_FORMATS,
@@ -728,6 +729,7 @@ export const MessageResponse = memo(
         className,
       )}
       components={{ ...messageResponseComponents, ...components }}
+      plugins={{ code }}
       {...props}
     />
   ),

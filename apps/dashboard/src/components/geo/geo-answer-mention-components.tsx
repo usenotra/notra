@@ -26,6 +26,7 @@ import { GeoAnswerMentionContext } from "@/components/geo/geo-answer-mention-con
 import {
   GEO_ANSWER_MENTION_CLASS,
   GEO_ANSWER_MENTION_LABEL,
+  GEO_ANSWER_MENTION_LIST_ITEM_CLASS,
   GEO_ANSWER_MENTION_TRIGGER_CLASS,
 } from "@/constants/geo-answer-mentions";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
@@ -65,7 +66,18 @@ function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
   return nodes;
 }
 
-function shouldSkipElement(type: unknown): boolean {
+function markdownTagName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || !("tagName" in node)) {
+    return undefined;
+  }
+  return typeof node.tagName === "string" ? node.tagName : undefined;
+}
+
+function shouldSkipElement(type: unknown, node: unknown): boolean {
+  const tagName = markdownTagName(node);
+  if (tagName && SKIP_TAGS.has(tagName)) {
+    return true;
+  }
   if (type === MentionMark || type === CompetitorMentionMark) {
     return true;
   }
@@ -96,7 +108,10 @@ function highlightMentionChildren(
     if (!isValidElement<{ children?: ReactNode; node?: unknown }>(child)) {
       return child;
     }
-    if (shouldSkipElement(child.type) || child.props.children == null) {
+    if (
+      shouldSkipElement(child.type, child.props.node) ||
+      child.props.children == null
+    ) {
       return child;
     }
     const { children: nested, node: _node, ...rest } = child.props;
@@ -171,14 +186,22 @@ function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
   );
 }
 
-function mentionHost<Tag extends keyof HTMLElementTagNameMap>(tag: Tag) {
+function mentionHost<Tag extends keyof HTMLElementTagNameMap>(
+  tag: Tag,
+  baseClassName?: string
+) {
   function MentionHost({
     children,
+    className,
     node: _node,
     ...rest
   }: ComponentPropsWithoutRef<Tag> & { node?: unknown }) {
     const { terms } = use(GeoAnswerMentionContext);
-    return createElement(tag, rest, highlightMentionChildren(children, terms));
+    return createElement(
+      tag,
+      { ...rest, className: cn(baseClassName, className) || undefined },
+      highlightMentionChildren(children, terms)
+    );
   }
   MentionHost.displayName = `${MENTION_HOST_PREFIX}${tag}`;
   return MentionHost;
@@ -201,7 +224,10 @@ function mentionComponent<Props extends { children?: ReactNode }>(
 }
 
 export const GeoAnswerMentionParagraph = mentionHost("p");
-export const GeoAnswerMentionListItem = mentionHost("li");
+export const GeoAnswerMentionListItem = mentionHost(
+  "li",
+  GEO_ANSWER_MENTION_LIST_ITEM_CLASS
+);
 export const GeoAnswerMentionTableCell = mentionComponent(
   MessageTableCell,
   "td"
