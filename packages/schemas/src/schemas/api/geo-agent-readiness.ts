@@ -37,6 +37,29 @@ const readinessReportSchema = z
     scoreLabel: z.string().nullable(),
     scoreBreakdown: readinessScoreBreakdownSchema.nullable(),
     issues: z.array(readinessIssueSchema),
+    crawlability: z
+      .object({
+        checkedAt: z.string(),
+        pageLimit: z.number().int(),
+        discovery: z.array(z.string()),
+        pages: z.array(
+          z.object({
+            url: z.string(),
+            finalUrl: z.string().nullable(),
+            status: z.number().int().nullable(),
+            checks: z.array(
+              z.object({
+                id: z.string(),
+                name: z.string(),
+                result: z.enum(["passed", "blocked", "review", "unknown"]),
+                evidence: z.string(),
+                recommendation: z.string().nullable(),
+              })
+            ),
+          })
+        ),
+      })
+      .nullable(),
     eligibleChecks: z.number().int().nullable(),
     reportUrl: z.string().nullable(),
     errorMessage: z.string().nullable(),

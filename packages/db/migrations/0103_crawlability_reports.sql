@@ -1,0 +1,1 @@
+ALTER TABLE "geo_agent_readiness_reports" ADD COLUMN "crawlability" jsonb DEFAULT 'null'::jsonb;

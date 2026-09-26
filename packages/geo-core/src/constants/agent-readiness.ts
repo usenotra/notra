@@ -18,13 +18,13 @@ export const AGENT_READINESS_NEEDS_IMPROVEMENT_THRESHOLD = 50;
 
 export const AGENT_READINESS_SCAN_DIALOG_TITLE = "Run a public scan?";
 export const AGENT_READINESS_SCAN_DIALOG_BODY =
-  "The scan runs through is-agentic.com, an open service by Vercel Labs. It only reads the public parts of your website and changes nothing. The resulting report is publicly retrievable on is-agentic.com by anyone who knows your domain.";
+  "The scan runs through is-agentic.com, an open service by Vercel Labs. It only reads the public parts of your website and changes nothing. The resulting report is publicly retrievable on is-agentic.com by anyone who knows your domain. Notra also checks public crawler rules and a sample of up to 20 pages from your sitemap.";
 export const AGENT_READINESS_SCAN_DIALOG_CONFIRM = "Start scan";
 export const AGENT_READINESS_SCAN_DIALOG_CANCEL = "Cancel";
 
 export const AGENT_READINESS_PAGE_TITLE = "Agent Readiness";
 export const AGENT_READINESS_PAGE_DESCRIPTION =
-  "How well AI agents can discover, understand, and use your website";
+  "Check crawler access, readable page content, and how AI agents can use your website";
 
 export const AGENT_READINESS_MUST_DO_LABEL = "Must do";
 export const AGENT_READINESS_MUST_DO_HINT = "Agents need these to use the site";

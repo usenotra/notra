@@ -21,6 +21,7 @@ import type {
   AgentReadinessSseFrameBoundary,
 } from "../types/agent-readiness";
 import { toAgentReadinessApiErrorMessage } from "../utils/agent-readiness";
+import { scanCrawlability } from "../utils/crawlability-scan";
 import { checkFeedbackMarkdown } from "../utils/feedback-md";
 
 function parseApiReport(
@@ -229,6 +230,9 @@ export function makeAgentReadinessNetwork(fetchRequest: AgentReadinessFetch) {
     AgentReadinessNetwork,
     Effect.sync(() =>
       AgentReadinessNetwork.of({
+        crawlability: Effect.fn("AgentReadinessNetwork.crawlability")((url) =>
+          readinessNetwork((signal) => scanCrawlability(url, signal))
+        ),
         report: Effect.fn("AgentReadinessNetwork.report")((url) =>
           readinessNetwork((signal) =>
             fetchStoredReport(url, signal, fetchRequest)
