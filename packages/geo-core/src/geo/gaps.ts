@@ -12,7 +12,19 @@ import {
   posts,
 } from "@notra/db/schema";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
-import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  like,
+  not,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -61,6 +73,8 @@ import { geoDb } from "./effect";
 import { GeoSettingsMissingError } from "./errors";
 import { requireGeoProject } from "./projects";
 import {
+  CUSTOM_PROMPT_SCAN_ID_PREFIX,
+  SEQUENCE_PROMPT_SCAN_ID_PREFIX,
   customPromptScanId,
   findPromptMentionEntry,
   shouldSkipUnmatchedGapScan,
@@ -237,9 +251,12 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
 });
 
 const loadAiSearchChecks = Effect.fn("geo.gaps.aiSearchChecks")(function* (
-  projectId: string
+  projectId: string,
+  activeScanIds: readonly string[],
+  removedAutoPromptIds: readonly string[]
 ) {
   const queries = sql`${geoMentionChecks.grounding}->'queries'`;
+  const promptId = geoMentionChecks.promptId;
   const rows: AiSearchCheck[] = yield* geoDb(
     "AI search checks lookup failed",
     () =>
@@ -259,6 +276,14 @@ const loadAiSearchChecks = Effect.fn("geo.gaps.aiSearchChecks")(function* (
             eq(geoMentionChecks.projectId, projectId),
             eq(geoMentionChecks.turn, 0),
             gte(geoMentionChecks.capturedAt, lookbackSince()),
+            or(
+              inArray(promptId, [...activeScanIds]),
+              and(
+                not(like(promptId, `${CUSTOM_PROMPT_SCAN_ID_PREFIX}%`)),
+                not(like(promptId, `${SEQUENCE_PROMPT_SCAN_ID_PREFIX}%`)),
+                notInArray(promptId, [...removedAutoPromptIds])
+              )
+            ),
             sql`case when jsonb_typeof(${queries}) = 'array' then jsonb_array_length(${queries}) else 0 end > 0`
           )
         )
@@ -587,15 +612,24 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
   const projectId = scope.projectId;
 
   const [
-    mentionInputs,
-    aiSearchChecks,
+    { aiSearchChecks, ...mentionInputs },
     pending,
     briefs,
     competitorRows,
     collisionCandidates,
   ] = yield* Effect.all([
-    loadMentionGapInputs(projectId),
-    loadAiSearchChecks(projectId),
+    loadMentionGapInputs(projectId).pipe(
+      Effect.flatMap((inputs) =>
+        loadAiSearchChecks(
+          projectId,
+          inputs.prompts.flatMap((prompt) => [
+            prompt.id,
+            customPromptScanId(prompt.id),
+          ]),
+          [...inputs.removedAutoPromptIds]
+        ).pipe(Effect.map((checks) => ({ ...inputs, aiSearchChecks: checks })))
+      )
+    ),
     geoDb("prompt suggestions lookup failed", () =>
       db
         .select({
@@ -764,22 +798,8 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     recommendation: searchGapRecommendation(suggestion, collisionCandidates),
   }));
 
-  const activePromptScanIds = new Set(
-    prompts.flatMap((prompt) => [prompt.id, customPromptScanId(prompt.id)])
-  );
   const aiSearchGaps = toAiSearchGapRows(
-    aggregateAiSearches(
-      aiSearchChecks.filter(
-        (check) =>
-          activePromptScanIds.has(check.promptId) ||
-          !shouldSkipUnmatchedGapScan(
-            check.promptId,
-            activePromptScanIds,
-            removedAutoPromptIds
-          )
-      ),
-      brandTerms
-    ),
+    aggregateAiSearches(aiSearchChecks, brandTerms),
     trackedAliases,
     (key) => briefBySource.get(sourceKey("ai_search", key))
   );

@@ -11,8 +11,8 @@ import {
   stripBrandTerms,
 } from "./suggestion-keywords";
 
-const CUSTOM_PROMPT_SCAN_ID_PREFIX = "custom-";
-const SEQUENCE_PROMPT_SCAN_ID_PREFIX = "sequence-";
+export const CUSTOM_PROMPT_SCAN_ID_PREFIX = "custom-";
+export const SEQUENCE_PROMPT_SCAN_ID_PREFIX = "sequence-";
 
 const GEO_AUTO_PROMPT_IDS = [
   "best-tools",
