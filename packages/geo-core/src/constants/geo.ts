@@ -89,6 +89,7 @@ export const GEO_WRITER_BRIEF_POLL_INTERVAL_MS = 3000;
 export const GEO_WRITER_BRIEFS_LIMIT = 20;
 export const GEO_GAPS_MAX_CHECKS = 400;
 export const GEO_GAPS_SEARCH_LIMIT = 100;
+export const GEO_GAPS_ENGINE_QUERY_LIMIT = 12;
 /** Fallback before the gaps table measures remaining viewport height. */
 export const GEO_GAPS_TABLE_HEIGHT = 420;
 export const GEO_GAPS_METER_STEPS = 5;

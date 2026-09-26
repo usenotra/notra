@@ -220,8 +220,20 @@ function gapSearchValues(row: {
   prompt: string;
   title: string | null;
   brief: GeoGapBriefRef | null;
+  searchQueries?: string[];
 }): string[] {
-  return [row.prompt, row.title ?? "", row.brief?.workingTitle ?? ""];
+  return [
+    row.prompt,
+    row.title ?? "",
+    row.brief?.workingTitle ?? "",
+    ...(row.searchQueries ?? []),
+  ];
+}
+
+export function gapSearchQueriesLabel(
+  queries: readonly string[]
+): string | null {
+  return queries.length === 0 ? null : `AI searched: ${queries.join(", ")}`;
 }
 
 function filterGapsByQuery<

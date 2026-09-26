@@ -100,6 +100,7 @@ import {
   gapOpportunityDetail,
   gapVisibleOnLabel,
   gapWriteAction,
+  gapSearchQueriesLabel,
   gapWriteLabel,
   geoGapsEmptyKind,
   searchGapActionOrder,
@@ -834,7 +835,12 @@ export function GeoGapsTable({
       minWidth: "12rem",
       cell: (row) => {
         const headline = row.brief?.workingTitle ?? row.title;
-        return <ContentCell subtitle={null} title={headline ?? row.prompt} />;
+        return (
+          <ContentCell
+            subtitle={gapSearchQueriesLabel(row.searchQueries)}
+            title={headline ?? row.prompt}
+          />
+        );
       },
       sortValue: (row) => row.brief?.workingTitle ?? row.title ?? row.prompt,
       sortable: true,
