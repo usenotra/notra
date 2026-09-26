@@ -196,6 +196,7 @@ export async function streamChatResponseStep(
   const timing: { firstChunkAt: number | null } = { firstChunkAt: null };
   const usageSnapshot: ChatUsageSnapshot = {};
   let streamFailed = false;
+  let streamCompleted = false;
   let streamAborted = false;
   let terminalPublished = false;
   const terminalChunks: UIMessageChunk[] = [];
@@ -399,6 +400,7 @@ export async function streamChatResponseStep(
       },
       onEnd: async ({ messages: responseMessages, outcome }) => {
         streamFailed ||= outcome.status === "failed";
+        streamCompleted = outcome.status === "completed";
         streamAborted ||= outcome.status === "aborted";
         const saved = await replaceChatHistory(
           organizationId,
@@ -428,7 +430,6 @@ export async function streamChatResponseStep(
         if (done) {
           break;
         }
-        streamFailed ||= value.type === "error";
         streamAborted ||= value.type === "abort";
         // AI SDK also ends the client request on error chunks. Hold all
         // terminal output until history is saved and the lease is released.
@@ -474,7 +475,13 @@ export async function streamChatResponseStep(
       terminalChunks.push({ type: "finish", finishReason: "error" });
     }
 
-    await publishTerminal(terminalChunks);
+    // Source error chunks can be recoverable. Only the SDK's final outcome
+    // confirms success; forwarding those errors would still abort the client.
+    await publishTerminal(
+      streamCompleted
+        ? terminalChunks.filter((chunk) => chunk.type !== "error")
+        : terminalChunks
+    );
     return abortController.signal.aborted || streamAborted
       ? { status: "aborted" }
       : { status: streamFailed ? "failed" : "completed" };

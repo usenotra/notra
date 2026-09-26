@@ -32,17 +32,17 @@ beforeEach(() => {
 });
 
 describe("GEO billing gate", () => {
-  test("keeps nested GEO page children while billing loads", () => {
+  test("renders a skeleton without mounting page children while billing loads", () => {
     const html = renderToStaticMarkup(
       <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );
 
-    expect(html).toContain("Protected page content");
-    expect(html).not.toContain("How AI engines talk about your brand");
+    expect(html).not.toContain("Protected page content");
+    expect(html).toContain('data-slot="skeleton"');
     expect(html).not.toContain("Upgrade required");
-    expect(GeoPage).toHaveBeenCalled();
+    expect(GeoPage).not.toHaveBeenCalled();
   });
 
   test("renders the page for a confirmed entitled customer", () => {
