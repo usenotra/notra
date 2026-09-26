@@ -1684,23 +1684,33 @@ export interface GeoGapScore {
   opportunity: number;
 }
 
-export interface GeoAiSearchCheck {
-  promptId: string;
-  engine: string;
-  prompt: string;
-  mentioned: boolean;
-  ownedSourceCited: boolean;
-  competitors: string[];
-  queries: string[];
+export type GeoAiSearchQueryDbRow = {
+  query: string;
+  check_ids: string[];
+  mentioned_check_ids: string[];
+  covered_check_ids: string[];
+  engines: string[];
+  prompts: string[];
+  competitors: string[][];
+};
+
+export interface GeoAiSearchQueryRow {
+  query: string;
+  checkIds: string[];
+  mentionedCheckIds: string[];
+  coveredCheckIds: string[];
+  engines: string[];
+  prompts: string[];
+  competitors: string[][];
 }
 
 export interface GeoAiSearchAgg {
   variants: Map<string, number>;
   prompts: Set<string>;
   engines: Set<string>;
-  searches: number;
-  mentioned: number;
-  covered: number;
+  checkIds: Set<string>;
+  mentionedCheckIds: Set<string>;
+  coveredCheckIds: Set<string>;
   competitors: string[];
 }
 

@@ -14,6 +14,7 @@ export const REUSABLE_BRIEF_STATUSES = [
 ] as const satisfies readonly GeoContentBriefStatus[];
 
 const AI_SEARCH_TOKEN_SPLIT_REGEX = /[^\p{L}\p{N}\p{M}]+/u;
+const AI_SEARCH_YEAR_REGEX = /^(?:19|20)\d{2}$/;
 
 const OPEN_BRIEF_STATUSES = new Set<GeoContentBriefStatus>(
   REUSABLE_BRIEF_STATUSES
@@ -96,7 +97,7 @@ export function toGapBriefBaseline(value: unknown): GeoGapBriefBaseline | null {
   return { mentionedEngines, totalEngines };
 }
 
-export function aiSearchQueryKey(query: string): string {
+function aiSearchQueryTokens(query: string): string[] {
   const tokens = query
     .normalize("NFC")
     .toLowerCase()
@@ -104,7 +105,17 @@ export function aiSearchQueryKey(query: string): string {
     .filter(
       (token) => token.length > 0 && !GEO_AI_SEARCH_QUERY_STOPWORDS.has(token)
     );
-  return [...new Set(tokens)].sort().join(" ");
+  return [...new Set(tokens)].sort();
+}
+
+export function aiSearchQueryKey(query: string): string {
+  return aiSearchQueryTokens(query).join(" ");
+}
+
+export function aiSearchGroupKey(query: string): string {
+  return aiSearchQueryTokens(query)
+    .filter((token) => !AI_SEARCH_YEAR_REGEX.test(token))
+    .join(" ");
 }
 
 export function interleaveSearchQueries(
