@@ -305,11 +305,19 @@ Thanks for helping improve Notra.
 
 ## Vercel build selection
 
-Keep Vercel's **Skip unaffected projects** setting enabled for all five deployed
-apps (`web`, `dashboard`, `agent`, `onboarding-agent`, and `ui`). Vercel uses the
-workspace dependency graph to skip projects whose source and dependencies have
-not changed. Each workspace must have a unique package name and explicitly
-declare its internal dependencies in `package.json`.
+Keep Vercel's **Skip unaffected projects** setting enabled for the Git-deployed
+apps (`web`, `dashboard`, and `ui`). Vercel uses the workspace dependency graph
+to skip projects whose source and dependencies have not changed. Each workspace
+must have a unique package name and explicitly declare its internal dependencies
+in `package.json`.
+
+`agent` and `onboarding-agent` have `git.deploymentEnabled: false` in their
+`vercel.json` files. Pushes and merges do not deploy them. For a production
+release, open the agent's Vercel project → **Deployments** → **Create Deployment**
+and select its configured production branch (usually `main`), then verify the
+deployment is marked **Production**. Alternatively, from the linked agent app
+directory run `vercel deploy --prod`. A different branch or `vercel deploy`
+without `--prod` may only create a preview and will not update the production URL.
 
 The app configs do not set an `ignoreCommand`; build selection relies on
 [Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
@@ -318,8 +326,8 @@ Ignored Build Step setting at its default so it does not run an old custom
 command after the repository override is removed.
 
 Changes outside the workspace definitions, such as root documentation, can
-trigger deployments for all apps. Built-in skipping may also select builds that
-the previous secondary check skipped for unrelated Bun lockfile changes.
+trigger deployments for the Git-deployed apps. Built-in skipping may also select
+builds that the previous secondary check skipped for unrelated Bun lockfile changes.
 
 Root install configuration and the prepare script remain declared in
 `turbo.json#globalDependencies` for build cache invalidation. Declare any new
