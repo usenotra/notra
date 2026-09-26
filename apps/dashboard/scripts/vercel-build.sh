@@ -11,6 +11,7 @@ if [ "${VERCEL_ENV:-}" = "production" ]; then
   fi
 fi
 turbo run build --filter=dashboard
+bun apps/dashboard/scripts/prune-build-cache.ts
 echo "=== CACHE REPORT"
 du -sh node_modules apps/dashboard/.next/cache apps/dashboard/.next/cache/* .turbo ~/.bun/install/cache ~/.cache 2>/dev/null || true
 du -sm node_modules/.bun/* | sort -n | tail -8
