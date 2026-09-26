@@ -48,6 +48,7 @@ import {
 import {
   aiSearchQueryKey,
   gapOpportunityScore,
+  interleaveSearchQueries,
   isMissingMajority,
   searchGapClicks,
   searchGapImpressions,
@@ -90,7 +91,7 @@ interface PromptGapAgg {
   missing: string[];
   mentionedEngines: string[];
   competitors: string[];
-  searchQueries: Map<string, string>;
+  searchQueriesByEngine: string[][];
 }
 
 interface AiSearchAgg {
@@ -253,15 +254,10 @@ function aggregateMentionChecks(
       missing: [] as string[],
       mentionedEngines: [] as string[],
       competitors: [] as string[],
-      searchQueries: new Map<string, string>(),
+      searchQueriesByEngine: [] as string[][],
     };
     entry.total += 1;
-    for (const query of check.grounding.queries) {
-      const key = query.trim().toLowerCase();
-      if (key.length > 0 && !entry.searchQueries.has(key)) {
-        entry.searchQueries.set(key, query.trim());
-      }
-    }
+    entry.searchQueriesByEngine.push(check.grounding.queries);
     if (check.mentioned) {
       entry.mentioned += 1;
       entry.mentionedEngines.push(check.engine);
@@ -677,8 +673,8 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
       mentionedEngines: entry.mentionedEngines,
       competitors: tracked,
       discoveredCompetitors: discovered,
-      searchQueries: [...entry.searchQueries.values()].slice(
-        0,
+      searchQueries: interleaveSearchQueries(
+        entry.searchQueriesByEngine,
         GEO_GAPS_ENGINE_QUERY_LIMIT
       ),
       ownMentionRate,

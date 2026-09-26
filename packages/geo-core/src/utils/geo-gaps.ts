@@ -117,3 +117,27 @@ export function aiSearchQueryKey(query: string): string {
     .sort()
     .join(" ");
 }
+
+export function interleaveSearchQueries(
+  lists: readonly (readonly string[])[],
+  limit: number
+): string[] {
+  const picked: string[] = [];
+  const seen = new Set<string>();
+  const longest = Math.max(0, ...lists.map((list) => list.length));
+  for (let index = 0; index < longest && picked.length < limit; index += 1) {
+    for (const list of lists) {
+      const query = list[index]?.trim() ?? "";
+      const key = query.toLowerCase();
+      if (key.length === 0 || seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      picked.push(query);
+      if (picked.length >= limit) {
+        break;
+      }
+    }
+  }
+  return picked;
+}
