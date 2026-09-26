@@ -2,6 +2,7 @@ import {
   existsSync,
   lstatSync,
   readdirSync,
+  readFileSync,
   readlinkSync,
   rmSync,
   statSync,
@@ -49,24 +50,62 @@ const directorySize = (dir: string): number =>
       0
     );
 
+const DEPENDENCY_FIELDS = [
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+] as const;
+
+const workspaceDirs = (): string[] =>
+  [
+    repoRoot,
+    ...["apps", "packages"].flatMap((group) =>
+      listDir(path.join(repoRoot, group)).map((workspace) =>
+        path.join(repoRoot, group, workspace)
+      )
+    ),
+  ].filter((dir) => existsSync(path.join(dir, "package.json")));
+
+const declaredDependencyLinks = (workspaceDir: string): string[] => {
+  const manifest: Partial<
+    Record<(typeof DEPENDENCY_FIELDS)[number], Record<string, string>>
+  > = JSON.parse(readFileSync(path.join(workspaceDir, "package.json"), "utf8"));
+  const names = new Set(
+    DEPENDENCY_FIELDS.flatMap((field) => Object.keys(manifest[field] ?? {}))
+  );
+  return [...names]
+    .map((name) => path.join(workspaceDir, "node_modules", name))
+    .filter((link) => {
+      try {
+        return lstatSync(link).isSymbolicLink();
+      } catch {
+        return false;
+      }
+    });
+};
+
+const removeDanglingLinks = (nodeModulesDir: string): number => {
+  const links = [
+    ...listPackageLinks(nodeModulesDir),
+    ...listDir(path.join(nodeModulesDir, ".bin")).map((name) =>
+      path.join(nodeModulesDir, ".bin", name)
+    ),
+  ].filter((link) => !existsSync(link));
+  for (const link of links) {
+    rmSync(link, { force: true });
+  }
+  return links.length;
+};
+
 const pruneBunStore = (): void => {
   if (!existsSync(storeDir)) {
     return;
   }
 
-  const workspaceNodeModules = ["apps", "packages"].flatMap((group) =>
-    listDir(path.join(repoRoot, group)).map((workspace) =>
-      path.join(repoRoot, group, workspace, "node_modules")
-    )
-  );
-  const roots = [
-    path.join(repoRoot, "node_modules"),
-    path.join(storeDir, "node_modules"),
-    ...workspaceNodeModules,
-  ];
-
+  const workspaces = workspaceDirs();
   const reachable = new Set<string>();
-  const queue = roots.flatMap(listPackageLinks);
+  const queue = workspaces.flatMap(declaredDependencyLinks);
   while (queue.length > 0) {
     const link = queue.pop();
     const entry = link ? toStoreEntry(link) : undefined;
@@ -83,8 +122,12 @@ const pruneBunStore = (): void => {
   for (const entry of stale) {
     rmSync(path.join(storeDir, entry), { force: true, recursive: true });
   }
+  const danglingLinks = [
+    path.join(storeDir, "node_modules"),
+    ...workspaces.map((dir) => path.join(dir, "node_modules")),
+  ].reduce((total, dir) => total + removeDanglingLinks(dir), 0);
   console.log(
-    `Pruned ${stale.length} stale bun store entries, kept ${reachable.size}`
+    `Pruned ${stale.length} stale bun store entries and ${danglingLinks} dangling links, kept ${reachable.size}`
   );
 };
 
