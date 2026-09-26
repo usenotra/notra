@@ -131,7 +131,7 @@ import type {
   UserImageGridProps,
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
-import { getChatActivity } from "@/utils/chat-activity";
+import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import {
   hasPendingApproval,
   isTerminalToolState,
@@ -500,6 +500,7 @@ function StandaloneChatPageClient({
     [customMcpData?.servers, mcpStoreData?.integrations]
   );
   const [pendingMessageId, setPendingMessageId] = useState<string | null>(null);
+  const [historyStreamId, setHistoryStreamId] = useState<string | null>(null);
   const isHydrated = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -674,7 +675,9 @@ function StandaloneChatPageClient({
     stop,
   } = useChat<ChatUIMessage>({
     id: stableChatId,
-    resume: Boolean(initialChatId && pendingMessageId),
+    resume: Boolean(
+      initialChatId && historyStreamId && pendingMessageId === historyStreamId
+    ),
     experimental_throttle: 90,
     transport,
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
@@ -1028,8 +1031,10 @@ function StandaloneChatPageClient({
       setWasStoppedByUser
     );
     if (chatHistoryData.activeStreamId) {
+      setHistoryStreamId(chatHistoryData.activeStreamId);
       setPendingMessageId(chatHistoryData.activeStreamId);
     } else {
+      setHistoryStreamId(null);
       setPendingMessageId(null);
     }
   }, [chatHistoryData, setMessages]);
@@ -2079,7 +2084,9 @@ function StandaloneChatPageClient({
       }
 
       return (
-        <MessageResponse key={`${messageId}-text-${index}`}>
+        <MessageResponse
+          isAnimating={messageId === chatActivity.activeMessageId}
+        >
           {text}
         </MessageResponse>
       );
@@ -2596,12 +2603,10 @@ function StandaloneChatPageClient({
   }
 
   const lastMessage = messages.at(-1);
-  const { lastAssistantHasNoVisibleContent, showThinkingIndicator } =
-    chatActivity;
-  const visibleMessages =
-    showThinkingIndicator && lastAssistantHasNoVisibleContent
-      ? messages.slice(0, -1)
-      : messages;
+  const { showThinkingIndicator } = chatActivity;
+  const visibleMessages = messages.filter((message) =>
+    hasVisibleChatContent(message)
+  );
 
   return (
     <>
@@ -2734,6 +2739,9 @@ function StandaloneChatPageClient({
                             ) : (
                               <MessageContent>
                                 <ChatAssistantParts
+                                  activityTimings={
+                                    message.metadata?.activityTimings
+                                  }
                                   durationMs={
                                     message.metadata?.generationDurationMs
                                   }

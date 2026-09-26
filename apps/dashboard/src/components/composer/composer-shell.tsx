@@ -15,11 +15,9 @@ import type { ComponentProps } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
-  COMPOSER_FRAME_NUDGE_PADDING,
   COMPOSER_FRAME_TRANSITION,
   COMPOSER_INNER_FRAME,
   COMPOSER_NUDGE_ENTER,
-  COMPOSER_NUDGE_GRID_TRANSITION,
   COMPOSER_SEND_BUTTON,
   COMPOSER_TOOLBAR_BUTTON,
 } from "@/constants/composer";
@@ -43,22 +41,14 @@ function ComposerFrame({
   return (
     <div
       className={cn(
-        "w-full min-w-0 rounded-2xl",
+        "w-full min-w-0 rounded-2xl p-1",
         COMPOSER_FRAME_TRANSITION,
-        hasNudge ? COMPOSER_FRAME_NUDGE_PADDING : "bg-transparent p-0",
+        hasNudge ? "bg-muted" : "bg-transparent",
         connectedTop ? "rounded-t-none" : null,
         className
       )}
     >
-      <div
-        className={cn(
-          "grid",
-          COMPOSER_NUDGE_GRID_TRANSITION,
-          hasNudge ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
-        <div className="min-h-0 overflow-hidden">{nudge}</div>
-      </div>
+      {nudge}
       <div
         className={cn(
           COMPOSER_INNER_FRAME,

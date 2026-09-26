@@ -59,7 +59,7 @@ import type {
   ContentChatActivityHeaderProps,
   ContentChatHistoryItemsProps,
 } from "@/types/components/content-chat-activity-panel";
-import { getChatActivity } from "@/utils/chat-activity";
+import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import { getChatFilePartFields } from "@/utils/chat-message-parts";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
@@ -241,6 +241,7 @@ function ContentChatActivityMessage({
           <MessageContent>
             {message.role === "assistant" ? (
               <ChatAssistantParts
+                activityTimings={assistantMetadata?.activityTimings}
                 durationMs={assistantMetadata?.generationDurationMs}
                 elapsedSeconds={elapsedSeconds}
                 isLoading={isLoading}
@@ -252,7 +253,10 @@ function ContentChatActivityMessage({
                     return null;
                   }
                   return (
-                    <MessageResponse key={`${message.id}-${index}`}>
+                    <MessageResponse
+                      isAnimating={isLoading}
+                      key={`${message.id}-${index}`}
+                    >
                       {part.text}
                     </MessageResponse>
                   );
@@ -537,15 +541,13 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
     activeChatId ?? "",
     lastMessage?.role === "assistant" ? lastMessage.id : undefined
   );
-  const { lastAssistantHasNoVisibleContent, showThinkingIndicator } =
-    getChatActivity(messages, isAgentBusy, {
-      isStandaloneTool: isContentEditorStandaloneTool,
-      includeFileParts: false,
-    });
-  const visibleMessages =
-    showThinkingIndicator && lastAssistantHasNoVisibleContent
-      ? messages.slice(0, -1)
-      : messages;
+  const { showThinkingIndicator } = getChatActivity(messages, isAgentBusy, {
+    isStandaloneTool: isContentEditorStandaloneTool,
+    includeFileParts: false,
+  });
+  const visibleMessages = messages.filter((message) =>
+    hasVisibleChatContent(message, false)
+  );
   const lastVisibleMessage = visibleMessages.at(-1);
   const lastAssistantMessageId =
     lastVisibleMessage?.role === "assistant"

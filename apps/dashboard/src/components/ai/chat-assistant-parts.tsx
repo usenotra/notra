@@ -11,6 +11,7 @@ import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import type { ChatAssistantPartsProps } from "@/types/components/chat-activity-group";
 import {
   getAssistantActivityStep,
+  getActivityGroupDuration,
   groupAssistantMessageParts,
   isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
@@ -18,6 +19,7 @@ import {
 } from "@/utils/group-assistant-message-parts";
 
 export function ChatAssistantParts({
+  activityTimings,
   durationMs,
   elapsedSeconds,
   isLoading,
@@ -28,9 +30,8 @@ export function ChatAssistantParts({
   renderTool,
 }: ChatAssistantPartsProps) {
   const segments = groupAssistantMessageParts(parts, { isStandaloneTool });
-  const activityCount = segments.filter(
-    (segment) => segment.kind === "activity"
-  ).length;
+  const hasSingleActivityGroup =
+    segments.filter((segment) => segment.kind === "activity").length === 1;
   const lastActivityIndex = segments.findLastIndex(
     (segment) => segment.kind === "activity"
   );
@@ -55,7 +56,11 @@ export function ChatAssistantParts({
       isLoading,
       segmentIndex === lastActivityIndex
     );
-    const forceOpen = isAssistantActivityForceOpen(segment.items);
+    const forceOpen =
+      isAssistantActivityForceOpen(segment.items) ||
+      segment.items.some(
+        ({ part }) => isToolUIPart(part) && part.state === "approval-requested"
+      );
     const details = stackAssistantActivityItems(segment.items)
       .map((item) => {
         if (item.kind === "searches") {
@@ -96,14 +101,15 @@ export function ChatAssistantParts({
 
     return (
       <ChatActivityGroup
-        durationMs={activityCount === 1 ? durationMs : undefined}
-        elapsedSeconds={
-          segmentIndex === lastActivityIndex ? elapsedSeconds : undefined
+        durationMs={
+          getActivityGroupDuration(segment.items, parts, activityTimings) ??
+          (hasSingleActivityGroup ? durationMs : undefined)
         }
+        elapsedSeconds={hasSingleActivityGroup ? elapsedSeconds : undefined}
         forceOpen={forceOpen}
         groupId={`${messageId}-${segment.startIndex}`}
         hasDetails={details.length > 0}
-        isLoading={isLoading}
+        isLoading={isStreaming}
         isStreaming={isStreaming}
         step={getAssistantActivityStep(parts)}
         key={`${messageId}-activity-${segment.startIndex}`}

@@ -3,6 +3,22 @@ import { isToolUIPart, type UIMessage } from "ai";
 import type { ChatActivityOptions } from "@/types/chat-activity";
 import { groupAssistantMessageParts } from "@/utils/group-assistant-message-parts";
 
+export function hasVisibleChatContent(
+  message: UIMessage,
+  includeFileParts = true
+) {
+  return (
+    message.role !== "assistant" ||
+    message.parts.some(
+      (part) =>
+        (part.type === "text" && Boolean(part.text.trim())) ||
+        part.type === "reasoning" ||
+        (includeFileParts && part.type === "file") ||
+        isToolUIPart(part)
+    )
+  );
+}
+
 export function getChatActivity(
   messages: UIMessage[],
   isRunning: boolean,
@@ -17,14 +33,7 @@ export function getChatActivity(
       (segment) => segment.kind === "activity"
     );
   const lastAssistantHasNoVisibleContent =
-    isAssistant &&
-    !lastMessage.parts.some(
-      (part) =>
-        (part.type === "text" && Boolean(part.text.trim())) ||
-        part.type === "reasoning" ||
-        (includeFileParts && part.type === "file") ||
-        isToolUIPart(part)
-    );
+    isAssistant && !hasVisibleChatContent(lastMessage, includeFileParts);
   const lastPart = lastMessage?.parts.findLast(
     (part) =>
       part.type === "step-start" ||

@@ -21,6 +21,7 @@ import {
   webSearchInputSchema,
   webSearchOutputSchema,
 } from "@notra/schemas/dashboard/ai/chat-tool-block";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Avatar,
   AvatarFallback,
@@ -941,7 +942,9 @@ export function ChatToolBlock({
         disabled={!hasDetails}
       >
         {toolIcon}
-        <span className="min-w-0 truncate leading-5">{subtitle}</span>
+        <span className="min-w-0 truncate leading-5">
+          {isStreaming ? <Shimmer as="span">{subtitle}</Shimmer> : subtitle}
+        </span>
         {showElapsedTimer && (
           <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
             {formatElapsedSeconds(elapsedSeconds)}

@@ -1,3 +1,4 @@
+import type { ChatMessageMetadata } from "@notra/ai/types/chat";
 import type { UIMessage } from "ai";
 import type { ReactNode } from "react";
 
@@ -30,6 +31,7 @@ export interface ChatSearchStackProps {
 }
 
 export interface ChatAssistantPartsProps {
+  activityTimings?: ChatMessageMetadata["activityTimings"];
   durationMs?: number;
   elapsedSeconds?: number;
   isLoading: boolean;

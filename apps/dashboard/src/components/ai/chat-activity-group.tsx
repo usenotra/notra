@@ -52,7 +52,13 @@ function useWorkedDurationSeconds(
       if (startedAtRef.current === null) {
         startedAtRef.current = Date.now();
       }
-      return;
+      setElapsedSeconds(0);
+      const interval = window.setInterval(() => {
+        setElapsedSeconds(
+          Math.floor((Date.now() - (startedAtRef.current ?? Date.now())) / 1000)
+        );
+      }, 1000);
+      return () => window.clearInterval(interval);
     }
 
     if (startedAtRef.current !== null) {
@@ -63,7 +69,7 @@ function useWorkedDurationSeconds(
     }
   }, [isStreaming]);
 
-  return fromMetadata ?? elapsedSeconds;
+  return isStreaming ? (elapsedSeconds ?? 0) : (fromMetadata ?? elapsedSeconds);
 }
 
 export function ChatActivityGroup({
@@ -78,9 +84,8 @@ export function ChatActivityGroup({
   step,
 }: ChatActivityGroupProps) {
   const measuredSeconds = useWorkedDurationSeconds(isStreaming, durationMs);
-  const durationSeconds =
-    elapsedSeconds && !isStreaming ? elapsedSeconds : measuredSeconds;
-  const [isOpen, setIsOpen] = useState(isLoading || forceOpen);
+  const durationSeconds = measuredSeconds ?? elapsedSeconds ?? null;
+  const [isOpen, setIsOpen] = useState(forceOpen);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   if (forceOpen && !isOpen) {
@@ -98,14 +103,15 @@ export function ChatActivityGroup({
   }, [forceOpen, hasInteracted, isLoading]);
 
   const label = isStreaming ? step : formatWorkedDurationLabel(durationSeconds);
+  const active = isStreaming && step !== "Waiting for approval";
 
-  if (!hasDetails) {
+  if (!hasDetails || (active && !forceOpen)) {
     return (
       <div data-activity-group={groupId}>
         <ChatActivityStatus
-          active={isStreaming && step !== "Waiting for approval"}
+          active={active}
           label={label}
-          seconds={elapsedSeconds ?? measuredSeconds ?? 0}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
         />
       </div>
     );
@@ -122,9 +128,9 @@ export function ChatActivityGroup({
     >
       <CollapsibleTrigger className="text-muted-foreground hover:text-foreground group flex w-full min-w-0 items-center gap-1 text-sm transition-colors">
         <ChatActivityStatus
-          active={isStreaming && step !== "Waiting for approval"}
+          active={active}
           label={label}
-          seconds={elapsedSeconds ?? measuredSeconds ?? 0}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
         >
           <HugeiconsIcon
             aria-hidden
