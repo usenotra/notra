@@ -1,0 +1,826 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "notra",
+  "homepage": "https://ui.usenotra.com",
+  "items": [
+    {
+      "name": "ai-overview",
+      "type": "registry:component",
+      "title": "AI Overview",
+      "description": "The AI Overview root, built on shadcn Collapsible and Button, with a collapsible Show more.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "collapsible"],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        }
+      ],
+      "css": {
+        "@layer base": {
+          "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
+            "cursor": "pointer"
+          }
+        }
+      }
+    },
+    {
+      "name": "ai-overview-header",
+      "type": "registry:component",
+      "title": "AI Overview Header",
+      "description": "The sparkle icon and AI Overview heading.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "collapsible"],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-header.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-header.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ai-overview-content",
+      "type": "registry:component",
+      "title": "AI Overview Content",
+      "description": "Paragraph, heading, list and link styles for AI Overview answers.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "collapsible"],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-content.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-content.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ai-overview-highlight",
+      "type": "registry:component",
+      "title": "AI Overview Highlight",
+      "description": "A mark that sweeps in Google's blue highlight.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "collapsible"],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-highlight.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-highlight.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ai-overview-citation",
+      "type": "registry:component",
+      "title": "AI Overview Citation",
+      "description": "A source chip built on shadcn Badge and HoverCard.",
+      "dependencies": ["cn"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "collapsible",
+        "hover-card",
+        "separator"
+      ],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-citation.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-citation.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-favicon.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-favicon.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-source-action.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-source-action.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ai-overview-skeleton",
+      "type": "registry:component",
+      "title": "AI Overview Skeleton",
+      "description": "A loading state built on shadcn Skeleton.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "collapsible", "skeleton"],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-skeleton.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-skeleton.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/constants/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/constants/google-ai-overview.ts"
+        }
+      ]
+    },
+    {
+      "name": "google-ai-overview",
+      "type": "registry:block",
+      "title": "Google AI Overview",
+      "description": "A full recreation of Google's AI Overview built from the AI Overview components on shadcn Base UI.",
+      "dependencies": ["cn"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "collapsible",
+        "hover-card",
+        "separator",
+        "skeleton",
+        "sonner"
+      ],
+      "cssVars": {
+        "theme": {
+          "color-aio-bg": "var(--aio-bg)",
+          "color-aio-fg": "var(--aio-fg)",
+          "color-aio-label": "var(--aio-label)",
+          "color-aio-heading": "var(--aio-heading)",
+          "color-aio-muted": "var(--aio-muted)",
+          "color-aio-link": "var(--aio-link)",
+          "color-aio-mark": "var(--aio-mark)",
+          "color-aio-mark-fg": "var(--aio-mark-fg)",
+          "color-aio-chip": "var(--aio-chip)",
+          "color-aio-chip-hover": "var(--aio-chip-hover)",
+          "color-aio-border": "var(--aio-border)",
+          "color-aio-sparkle": "var(--aio-sparkle)",
+          "color-aio-button-border": "var(--aio-button-border)",
+          "color-aio-button-fg": "var(--aio-button-fg)",
+          "color-aio-button-icon": "var(--aio-button-icon)",
+          "color-aio-focus": "var(--aio-focus)",
+          "color-aio-hover": "var(--aio-hover)",
+          "color-aio-popover": "var(--aio-popover)",
+          "color-aio-popover-fg": "var(--aio-popover-fg)",
+          "color-aio-popover-muted": "var(--aio-popover-muted)",
+          "color-aio-action": "var(--aio-action)",
+          "font-aio": "\"Google Sans\", \"Google Sans Flex\", Roboto, Arial, sans-serif"
+        },
+        "light": {
+          "aio-bg": "#ffffff",
+          "aio-fg": "#0a0a0a",
+          "aio-label": "#1f1f1f",
+          "aio-heading": "#001d35",
+          "aio-muted": "#56595e",
+          "aio-link": "#1a0dab",
+          "aio-mark": "#d3e3fd",
+          "aio-mark-fg": "#001d35",
+          "aio-chip": "#e9ebf0",
+          "aio-chip-hover": "#e1e3e8",
+          "aio-border": "#d2d2d2",
+          "aio-sparkle": "#3179ed",
+          "aio-button-border": "#a3c9ff",
+          "aio-button-fg": "#001d35",
+          "aio-button-icon": "#0b57d0",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#f3f5f6",
+          "aio-popover": "#f7f8fa",
+          "aio-popover-fg": "#1f1f1f",
+          "aio-popover-muted": "#636363",
+          "aio-action": "#545d7e"
+        },
+        "dark": {
+          "aio-bg": "#22242a",
+          "aio-fg": "#e6e8f0",
+          "aio-label": "#e8e8e8",
+          "aio-heading": "#eef0ff",
+          "aio-muted": "#adafb8",
+          "aio-link": "#99c3ff",
+          "aio-mark": "#203da0",
+          "aio-mark-fg": "#eef0ff",
+          "aio-chip": "#363840",
+          "aio-chip-hover": "#50525b",
+          "aio-border": "#444746",
+          "aio-sparkle": "#7aacff",
+          "aio-button-border": "#515a7b",
+          "aio-button-fg": "#eef0ff",
+          "aio-button-icon": "#a8c7fa",
+          "aio-focus": "#336ef3",
+          "aio-hover": "#36383f",
+          "aio-popover": "#2c2e34",
+          "aio-popover-fg": "#e8e8e8",
+          "aio-popover-muted": "#9e9e9e",
+          "aio-action": "#9e9e9e"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-icons.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-icons.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/types/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/types/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-header.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-header.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-content.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-content.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-highlight.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-highlight.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-citation.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-citation.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-favicon.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-favicon.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-skeleton.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-skeleton.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/constants/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/constants/google-ai-overview.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/constants/vercel-sources.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/constants/vercel-sources.ts"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/components/ai-overview-source-action.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/components/ai-overview-source-action.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/examples/google-ai-overview-demo.tsx",
+          "type": "registry:component",
+          "target": "components/google-ai-overview/examples/google-ai-overview-demo.tsx"
+        },
+        {
+          "path": "public/google-ai-overview/vercel.svg",
+          "type": "registry:file",
+          "target": "~/public/google-ai-overview/vercel.svg"
+        },
+        {
+          "path": "public/google-ai-overview/github.svg",
+          "type": "registry:file",
+          "target": "~/public/google-ai-overview/github.svg"
+        },
+        {
+          "path": "public/google-ai-overview/youtube.svg",
+          "type": "registry:file",
+          "target": "~/public/google-ai-overview/youtube.svg"
+        },
+        {
+          "path": "public/google-ai-overview/nextjs.svg",
+          "type": "registry:file",
+          "target": "~/public/google-ai-overview/nextjs.svg"
+        }
+      ],
+      "css": {
+        "@layer base": {
+          "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
+            "cursor": "pointer"
+          }
+        }
+      }
+    }
+  ]
+}

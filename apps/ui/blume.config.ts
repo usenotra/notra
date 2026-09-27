@@ -25,6 +25,10 @@ export default defineConfig({
     sources: [filesystem({ root: "docs" })],
   },
   description: "Notra UI package showcase, powered by Blume.",
+  examples: {
+    css: "src/styles/examples.css",
+    source: "registry/notra/**/examples/*",
+  },
   feedback: false,
   github: {
     dir: "apps/ui",
