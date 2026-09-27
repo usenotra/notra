@@ -4,7 +4,7 @@ import { HERO_DITHER } from "../constants/hero-dither";
 
 <notra-hero-dither aria-hidden="true" class="pointer-events-none absolute inset-0 block">
   <div
-    class="absolute inset-0 hidden motion-reduce:block"
+    class="absolute inset-0 hidden motion-reduce:block" data-dither-fallback
     style={{
       backgroundImage: `radial-gradient(circle, ${HERO_DITHER.colorFront} 0.046875rem, transparent 0.0625rem)`,
       backgroundSize: "0.25rem 0.25rem",
@@ -111,6 +111,12 @@ import { HERO_DITHER } from "../constants/hero-dither";
         });
       };
 
+      const run = () => {
+        start().catch(() => {
+          this.querySelector("[data-dither-fallback]")?.classList.remove("hidden");
+        });
+      };
+
       const observer = new IntersectionObserver(
         (entries) => {
           isInView = entries.some((entry) => entry.isIntersecting);
@@ -122,9 +128,9 @@ import { HERO_DITHER } from "../constants/hero-dither";
       document.addEventListener("visibilitychange", syncSpeed);
 
       if (isMobile) {
-        whenLoadedAndIdle(start);
+        whenLoadedAndIdle(run);
       } else {
-        start();
+        run();
       }
 
       this.cleanup = () => {

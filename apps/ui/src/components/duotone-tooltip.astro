@@ -15,7 +15,7 @@ const id = `duotone-tooltip-${crypto.randomUUID()}`;
   </button>
   <span
     class:list={[
-      "pointer-events-none absolute top-full left-1/2 z-50 mt-2 w-72 -translate-x-1/2 text-left transition duration-150 ease-out",
+      "pointer-events-none absolute top-full left-1/2 z-50 mt-2 w-72 max-w-[calc(100vw-7rem)] -translate-x-1/2 text-left transition duration-150 ease-out",
       open
         ? "visible translate-y-0 opacity-100"
         : "invisible translate-y-1 opacity-0 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100",
