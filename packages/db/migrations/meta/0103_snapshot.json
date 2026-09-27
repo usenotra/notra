@@ -1,5 +1,5 @@
 {
-  "id": "c2793d90-6f7a-41b0-a634-63408c8144d7",
+  "id": "43d76477-b280-4273-8bc1-3fcce58e3eb9",
   "prevId": "a77d35a1-e56a-4953-bc60-ff699802b169",
   "version": "7",
   "dialect": "postgresql",
@@ -12270,8 +12270,7 @@
           "name": "locale",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'en'"
+          "notNull": false
         },
         "workos_user_id": {
           "name": "workos_user_id",

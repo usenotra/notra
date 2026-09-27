@@ -6,5 +6,3 @@ export const DASHBOARD_LOCALE_OPTIONS: readonly DashboardLocaleOption[] = [
 ];
 
 export const LOCALE_AUTO_VALUE = "auto";
-
-export const LOCALE_AUTO_FLAG = "🌐";

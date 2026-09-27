@@ -365,9 +365,8 @@
     },
     "language": {
       "label": "Dashboard-Sprache",
-      "description": "Wähl die Sprache für das Dashboard. Automatisch folgt deiner Browsersprache.",
-      "updateFailed": "Sprache konnte nicht geändert werden. Bitte versuch es nochmal.",
-      "automatic": "Automatisch"
+      "description": "Wähl die Sprache für das Dashboard",
+      "updateFailed": "Sprache konnte nicht geändert werden. Bitte versuch es nochmal."
     },
     "shared": {
       "goToDashboard": "Zum Dashboard",
