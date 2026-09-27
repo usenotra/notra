@@ -74,7 +74,7 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
   const tGeoShared = useTranslations("geo.shared");
   return (
     <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
-      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight text-pretty @sm/hero:text-base @sm/hero:leading-6">
+      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight text-pretty">
         {metric.label}
       </p>
       {metric.value === null ? (

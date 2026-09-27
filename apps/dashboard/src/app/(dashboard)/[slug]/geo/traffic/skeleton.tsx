@@ -41,9 +41,9 @@ export function GeoTrafficSkeleton() {
             >
               {GEO_TRAFFIC_FUNNEL_STAGES.map((stage) => (
                 <div className={TRAFFIC_HERO_METRIC_CELL_CLASS} key={stage.key}>
-                  <Skeleton className="h-5 w-28 @sm/hero:h-6 @sm/hero:w-32" />
+                  <Skeleton className="h-5 w-28" />
                   <div className="flex min-w-0 flex-wrap items-center gap-3">
-                    <Skeleton className="h-8 w-16 @4xl/hero:h-9 @4xl/hero:w-20" />
+                    <Skeleton className="h-6 w-14 @4xl/hero:h-8 @4xl/hero:w-16" />
                     <Skeleton className="h-7 w-12 rounded-md" />
                   </div>
                 </div>
