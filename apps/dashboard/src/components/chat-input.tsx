@@ -178,7 +178,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
           <section aria-label="Chat input drop area">
             <ChatQuotePreview />
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
               className="hidden"
               multiple
               onChange={onFileInputChange}

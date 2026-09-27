@@ -1,4 +1,5 @@
 import "server-only";
+import convertHeic from "heic-convert";
 import sharp from "sharp";
 
 import {
@@ -23,6 +24,17 @@ const FORMAT_MIME = {
 } as const satisfies Record<string, ContentImageMimeType>;
 
 const PIXEL_LIMIT = 40_000_000;
+
+// Recognize HEIC by its container signature rather than trusting a browser-supplied filename or MIME type.
+export function isHeic(bytes: Uint8Array) {
+  return (
+    bytes.byteLength >= 16 &&
+    Buffer.from(bytes.subarray(4, 8)).toString("ascii") === "ftyp" &&
+    /heic|heix|hevc|hevx/.test(
+      Buffer.from(bytes.subarray(8, 32)).toString("ascii")
+    )
+  );
+}
 
 function mimeFromFormat(
   format: string | undefined
@@ -61,12 +73,7 @@ async function encode(
   return image.webp({ effort: 6, lossless: true }).toBuffer();
 }
 
-/**
- * Shrinks a content image a little before it is stored.
- * PNG and WebP stay lossless. JPEG is re-encoded at high quality.
- * GIF and AVIF are kept as uploaded so animation and an already-small
- * encode are not thrown away.
- */
+/** Convert Apple photos and optimize supported images for browser display and GitHub storage. */
 export async function compressContentImage(bytes: Uint8Array): Promise<{
   bytes: Buffer;
   mimeType: ContentImageMimeType;
@@ -75,11 +82,18 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
     throw new Error(contentImageTooLargeMessage("image/jpeg"));
   }
 
+  // Decode Apple photos to a browser- and GitHub-compatible format before Sharp optimizes them.
+  const source = isHeic(bytes)
+    ? Buffer.from(
+        await convertHeic({ buffer: bytes, format: "JPEG", quality: 0.9 })
+      )
+    : bytes;
+
   let metadata: Awaited<
     ReturnType<ReturnType<typeof sharp>["metadata"]>
   > | null = null;
   try {
-    metadata = await sharp(bytes, {
+    metadata = await sharp(source, {
       limitInputPixels: PIXEL_LIMIT,
     }).metadata();
   } catch {
@@ -87,7 +101,7 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
   }
   const mimeType = mimeFromFormat(metadata?.format);
   if (!mimeType || !(mimeType in CONTENT_IMAGE_MIME_EXTENSIONS)) {
-    throw new Error("Use a JPEG, PNG, GIF, WebP, or AVIF image");
+    throw new Error("Use a JPEG, PNG, GIF, WebP, AVIF, or HEIC image");
   }
 
   const passthrough =
@@ -95,25 +109,25 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
     mimeType === "image/avif" ||
     (metadata?.pages ?? 1) > 1;
   if (passthrough) {
-    if (bytes.byteLength > GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES) {
+    if (source.byteLength > GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES) {
       throw new Error(
         mimeType === "image/gif" || mimeType === "image/avif"
           ? contentImageTooLargeMessage(mimeType)
           : `Animated images must be ${GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES / (1024 * 1024)}MB or smaller`
       );
     }
-    return { bytes: Buffer.from(bytes), mimeType };
+    return { bytes: Buffer.from(source), mimeType };
   }
 
-  const encoded = await encode(bytes, mimeType, null);
+  const encoded = await encode(source, mimeType, null);
   // ponytail: keep the smaller file. A larger recompress can still hold EXIF.
   let chosen =
-    encoded.byteLength < bytes.byteLength ? encoded : Buffer.from(bytes);
+    encoded.byteLength < source.byteLength ? encoded : Buffer.from(source);
   if (chosen.byteLength <= GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES) {
     return { bytes: chosen, mimeType };
   }
 
-  chosen = await encode(bytes, mimeType, CONTENT_IMAGE_FALLBACK_MAX_EDGE);
+  chosen = await encode(source, mimeType, CONTENT_IMAGE_FALLBACK_MAX_EDGE);
   if (chosen.byteLength > GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES) {
     throw new Error(contentImageCompressedTooLargeMessage());
   }

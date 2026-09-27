@@ -82,6 +82,7 @@ import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
+import { MAX_CONTENT_IMAGE_INPUT_BYTES } from "@/constants/content-image";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
@@ -118,6 +119,7 @@ import {
   getIntegrationReferenceValue,
   getReferenceDisplay,
 } from "@/utils/integration-reference";
+import { prepareChatImage } from "@/utils/prepare-chat-image";
 import {
   extractSkillDraftTokens,
   parseSkillDraftNames,
@@ -1399,7 +1401,11 @@ export function ChatInputAdvanced({
 
       const accepted: File[] = [];
       for (const file of files.slice(0, remainingSlots)) {
-        if (!isAllowedChatMimeType(file.type, model)) {
+        if (
+          !isAllowedChatMimeType(file.type, model) &&
+          !/\.heic$/i.test(file.name) &&
+          file.type !== "image/heic"
+        ) {
           toast.error(
             file.type === "text/plain" || file.type === "text/markdown"
               ? getUnsupportedAttachmentMessage(currentModel.label)
@@ -1407,9 +1413,13 @@ export function ChatInputAdvanced({
           );
           continue;
         }
-        if (file.size > MAX_CHAT_FILE_SIZE) {
+        const maxBytes =
+          /\.heic$/i.test(file.name) || file.type === "image/heic"
+            ? MAX_CONTENT_IMAGE_INPUT_BYTES
+            : MAX_CHAT_FILE_SIZE;
+        if (file.size > maxBytes) {
           toast.error(
-            `${file.name} exceeds the ${MAX_CHAT_FILE_SIZE / 1024 / 1024}MB limit.`
+            `${file.name} exceeds the ${maxBytes / 1024 / 1024}MB limit.`
           );
           continue;
         }
@@ -1433,13 +1443,14 @@ export function ChatInputAdvanced({
             return false;
           }
           try {
-            const result = await uploadFile({ file, type: "chat" });
+            const readyFile = await prepareChatImage(file);
+            const result = await uploadFile({ file: readyFile, type: "chat" });
             const uploadedAttachment = {
               url: result.url,
               key: result.key,
-              filename: file.name,
-              mediaType: file.type,
-              size: file.size,
+              filename: readyFile.name,
+              mediaType: readyFile.type,
+              size: readyFile.size,
             };
             completedUploadsRef.current.set(placeholder.id, uploadedAttachment);
 
@@ -2615,7 +2626,7 @@ export function ChatInputAdvanced({
           <section aria-label="Chat input drop area">
             <ChatQuotePreview disabled={isQueued} />
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
               className="hidden"
               multiple
               onChange={onFileInputChange}

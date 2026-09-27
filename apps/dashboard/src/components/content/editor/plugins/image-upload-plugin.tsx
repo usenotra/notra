@@ -5,6 +5,7 @@ import { mergeRegister } from "@lexical/utils";
 import {
   $createParagraphNode,
   $getNodeByKey,
+  $getNearestNodeFromDOMNode,
   $getRoot,
   $getSelection,
   $isRangeSelection,
@@ -58,7 +59,7 @@ const EDITOR_MEDIA: Record<
   }
 > = {
   image: {
-    accept: Object.keys(CONTENT_IMAGE_MIME_EXTENSIONS).join(","),
+    accept: `${Object.keys(CONTENT_IMAGE_MIME_EXTENSIONS).join(",")},image/heic,.heic`,
     command: OPEN_CONTENT_IMAGE_UPLOAD_COMMAND,
     createNode: (file, url) =>
       $createContentImageNode({
@@ -92,8 +93,10 @@ function isVideoFile(file: File) {
   );
 }
 
+// Include Apple photos in the editor's existing image upload path even when browsers omit their MIME type.
 function isImageFile(file: File) {
   return (
+    /\.heic$/i.test(file.name) ||
     file.type === "" ||
     file.type in CONTENT_IMAGE_MIME_EXTENSIONS ||
     file.type.startsWith("image/")
@@ -189,6 +192,7 @@ async function insertUploadedFiles(
   return key;
 }
 
+// Keep media insertion bound to the editor's own selection and drop target when an agent is also open.
 export function ImageUploadPlugin() {
   const [editor] = useLexicalComposerContext();
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -202,11 +206,42 @@ export function ImageUploadPlugin() {
   const rememberSelection = useCallback(() => {
     editor.getEditorState().read(() => {
       const selection = $getSelection();
-      anchorKeyRef.current = $isRangeSelection(selection)
-        ? selection.anchor.getNode().getKey()
-        : null;
+      if ($isRangeSelection(selection)) {
+        anchorKeyRef.current = selection.anchor.getNode().getKey();
+      }
     });
   }, [editor]);
+
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          anchorKeyRef.current = selection.anchor.getNode().getKey();
+        }
+      });
+    });
+  }, [editor]);
+
+  // Resolve the blog insertion block from the drop point instead of a stale selection.
+  const rememberDropPosition = useCallback(
+    (event: DragEvent) => {
+      const root = editor.getRootElement();
+      const caret = document.caretRangeFromPoint?.(
+        event.clientX,
+        event.clientY
+      );
+      if (!root || !caret || !root.contains(caret.startContainer)) {
+        anchorKeyRef.current = null;
+        return;
+      }
+      editor.read(() => {
+        anchorKeyRef.current =
+          $getNearestNodeFromDOMNode(caret.startContainer)?.getKey() ?? null;
+      });
+    },
+    [editor]
+  );
 
   const insertUploaded = (
     files: File[],
@@ -322,14 +357,14 @@ export function ImageUploadPlugin() {
           if (!editor.isEditable()) {
             return true;
           }
-          rememberSelection();
+          rememberDropPosition(event);
           insertFromDom(files);
           return true;
         },
         COMMAND_PRIORITY_HIGH
       )
     );
-  }, [editor, rememberSelection]);
+  }, [editor, rememberDropPosition, rememberSelection]);
 
   if (!editable) {
     return null;
