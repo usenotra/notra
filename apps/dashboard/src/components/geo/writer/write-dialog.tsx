@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Loading03Icon,
-  SidebarLeft01Icon,
-  SidebarRight01Icon,
-} from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 /**
  * WriteDialog is the GEO write entry: a sidebar of sections that jump to
@@ -13,14 +9,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
  * After plan, go to `geoContentPath`. Do not send users to
  * `/geo/write?brief=`.
  */
-import {
-  GEO_WRITE_PANEL_FOOTER_CLASS,
-  GEO_WRITE_PANEL_FOOTER_ROW_CLASS,
-  GEO_WRITE_PANEL_HEADER_CLASS,
-  GEO_WRITE_PANEL_HEADER_ROW_CLASS,
-  GEO_WRITE_SIDEBAR_SHORTCUT,
-  GEO_WRITER_TOPIC_MIN_LENGTH,
-} from "@notra/geo-core/constants/geo";
+import { GEO_WRITER_TOPIC_MIN_LENGTH } from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   ResponsiveDialog,
@@ -73,7 +62,6 @@ import { WriteBrandSelect } from "./write-brand-select";
 import { WriteCompetitorChoices } from "./write-competitor-choices";
 import { WriteOptionCard } from "./write-option-card";
 import { WritePromptInput } from "./write-prompt-input";
-import { WriteSectionSidebar } from "./write-section-sidebar";
 import { WriteSitemapSection } from "./write-sitemap-section";
 
 const FOOTER_STATUS_TRANSITION = { duration: 0.18, ease: "easeOut" } as const;
@@ -132,7 +120,6 @@ function WriteDialogForm({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] =
     useState<WriteDialogSectionId>("prompt");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pendingAction, setPendingAction] = useState<WriteAction | null>(null);
   const openedRef = useRef(false);
   const initialSourceKind = initial?.sourceKind ?? "manual";
@@ -150,24 +137,6 @@ function WriteDialogForm({
     });
   }, [entry, hasInitialTopic, initialSourceKind, open]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key !== GEO_WRITE_SIDEBAR_SHORTCUT ||
-        !(event.metaKey || event.ctrlKey)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      setSidebarCollapsed((current) => !current);
-    };
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [open]);
   const {
     prompts,
     topic,
@@ -260,190 +229,196 @@ function WriteDialogForm({
 
   return (
     <ResponsiveDialogContent
-      className="flex h-[min(46rem,88svh)] max-h-[88svh] flex-col gap-0 overflow-visible bg-transparent p-0 shadow-none ring-0 sm:max-w-4xl"
-      drawerClassName="bg-background p-3 ring-1 ring-foreground/10"
+      className="flex h-[min(44rem,88svh)] max-h-[88svh] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl md:flex-row"
+      showCloseButton={false}
     >
-      <div className="flex min-h-0 flex-1 gap-3">
-        <WriteSectionSidebar
-          activeSection={activeSection}
-          collapsed={sidebarCollapsed}
-          onJump={jumpToSection}
-        />
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className={GEO_WRITE_PANEL_HEADER_CLASS}>
-            <div
+      <nav
+        aria-label="Write sections"
+        className="hidden w-56 shrink-0 flex-col gap-1 border-r p-2 pt-3 md:flex"
+      >
+        <p className="text-muted-foreground px-2 pt-1 text-[11px] font-medium uppercase">
+          Overview
+        </p>
+        {GEO_WRITE_DIALOG_SECTIONS.map((item) => {
+          const active = activeSection === item.id;
+          return (
+            <button
+              aria-current={active ? "location" : undefined}
               className={cn(
-                GEO_WRITE_PANEL_HEADER_ROW_CLASS,
-                "gap-2 pr-12 pl-2"
+                "duration-fast hover:bg-muted/80 flex min-h-8 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] transition-colors",
+                active
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
+              key={item.id}
+              onClick={() => jumpToSection(item.id)}
+              type="button"
             >
-              <Button
-                aria-expanded={!sidebarCollapsed}
-                aria-label={
-                  sidebarCollapsed ? "Show sections" : "Hide sections"
-                }
-                className="hidden size-7 md:inline-flex"
-                onClick={() => setSidebarCollapsed((current) => !current)}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
-                <HugeiconsIcon
-                  className="size-4"
-                  icon={
-                    sidebarCollapsed ? SidebarRight01Icon : SidebarLeft01Icon
+              <HugeiconsIcon
+                className="size-4 shrink-0"
+                icon={item.icon}
+                strokeWidth={active ? 2 : 1.5}
+              />
+              <span className="truncate">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
+          <div className="min-w-0 space-y-1">
+            <ResponsiveDialogTitle className="text-sm leading-none font-medium">
+              Write article
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Plan or write an article from a prompt, content type, brand
+              identity, and competitors.
+            </ResponsiveDialogDescription>
+            <div className="flex gap-1 overflow-x-auto pt-2 md:hidden">
+              {GEO_WRITE_DIALOG_SECTIONS.map((item) => (
+                <button
+                  className={cn(
+                    "shrink-0 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors",
+                    activeSection === item.id
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/60"
+                  )}
+                  key={item.id}
+                  onClick={() => jumpToSection(item.id)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Button
+            aria-label="Close"
+            className="shrink-0"
+            onClick={() => onOpenChange(false)}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+          </Button>
+        </header>
+
+        <div
+          className="scrollbar-floating divide-border min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain scroll-smooth"
+          ref={scrollRef}
+        >
+          <WritePromptInput
+            badgeLabel={promptBadgeLabel}
+            onPromptSelect={selectPrompt}
+            onTopicChange={changeTopic}
+            prompts={prompts}
+            sourceId={sourceId}
+            sourceKind={sourceKind}
+            topic={topic}
+            topicId={`${fieldId}-topic`}
+          >
+            <WriteSectionHeader
+              description="Pick a tracked prompt or write your own. The article answers this question."
+              htmlFor={`${fieldId}-topic`}
+              id="prompt"
+            />
+          </WritePromptInput>
+
+          <section
+            className="scroll-mt-2 space-y-4 px-6 py-6"
+            data-section="type"
+          >
+            <WriteSectionHeader description={recommendation.reason} id="type" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {GEO_WRITE_CONTENT_SUBTYPES.map((option) => (
+                <WriteOptionCard
+                  badge={
+                    option.id === recommendation.id
+                      ? GEO_WRITE_RECOMMENDED_BADGE
+                      : null
                   }
-                  strokeWidth={1.8}
-                />
-              </Button>
-              <ResponsiveDialogTitle className="text-base font-semibold tracking-tight max-md:sr-only">
-                Write article
-              </ResponsiveDialogTitle>
-              <ResponsiveDialogDescription className="sr-only">
-                Plan or write an article from a prompt, content type, brand
-                identity, and competitors.
-              </ResponsiveDialogDescription>
-              <div className="flex gap-1 overflow-x-auto md:hidden">
-                {GEO_WRITE_DIALOG_SECTIONS.map((item) => (
-                  <button
-                    className={cn(
-                      "shrink-0 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors",
-                      activeSection === item.id
-                        ? "bg-background text-foreground font-medium"
-                        : "text-muted-foreground hover:bg-background/60"
-                    )}
-                    key={item.id}
-                    onClick={() => jumpToSection(item.id)}
-                    type="button"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-border bg-background relative -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border">
-            <div
-              className="scrollbar-floating divide-border min-h-0 flex-1 divide-y overflow-y-auto scroll-smooth"
-              ref={scrollRef}
-            >
-              <WritePromptInput
-                badgeLabel={promptBadgeLabel}
-                onPromptSelect={selectPrompt}
-                onTopicChange={changeTopic}
-                prompts={prompts}
-                sourceId={sourceId}
-                sourceKind={sourceKind}
-                topic={topic}
-                topicId={`${fieldId}-topic`}
-              >
-                <WriteSectionHeader
-                  description="Pick a tracked prompt or write your own. The article answers this question."
-                  htmlFor={`${fieldId}-topic`}
-                  id="prompt"
-                />
-              </WritePromptInput>
-
-              <section
-                className="scroll-mt-2 space-y-4 px-6 py-6"
-                data-section="type"
-              >
-                <WriteSectionHeader
-                  description={recommendation.reason}
-                  id="type"
-                />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {GEO_WRITE_CONTENT_SUBTYPES.map((option) => (
-                    <WriteOptionCard
-                      badge={
-                        option.id === recommendation.id
-                          ? GEO_WRITE_RECOMMENDED_BADGE
-                          : null
-                      }
-                      description={option.description}
-                      icon={
-                        <HugeiconsIcon
-                          className={cn("size-5", option.iconClass)}
-                          icon={option.icon}
-                          strokeWidth={1.8}
-                        />
-                      }
-                      key={option.id}
-                      label={option.label}
-                      onToggle={() => setContentSubtype(option.id)}
-                      selected={contentSubtype === option.id}
+                  description={option.description}
+                  icon={
+                    <HugeiconsIcon
+                      className={cn("size-5", option.iconClass)}
+                      icon={option.icon}
+                      strokeWidth={1.8}
                     />
-                  ))}
-                </div>
-              </section>
-
-              <section
-                className="scroll-mt-2 space-y-4 px-6 py-6"
-                data-section="brand"
-              >
-                <WriteSectionHeader
-                  description="The brand whose voice and facts the article uses."
-                  htmlFor={voices.length > 0 ? `${fieldId}-brand` : undefined}
-                  id="brand"
+                  }
+                  key={option.id}
+                  label={option.label}
+                  onToggle={() => setContentSubtype(option.id)}
+                  selected={contentSubtype === option.id}
                 />
-                <WriteBrandSelect
-                  id={`${fieldId}-brand`}
-                  onChange={setBrandVoiceId}
-                  projectBrandId={project?.brandSettingsId}
-                  value={brandVoiceId}
-                  voices={voices}
-                />
-              </section>
-
-              <section
-                className="scroll-mt-2 space-y-4 px-6 py-6"
-                data-section="sitemap"
-              >
-                <WriteSectionHeader
-                  description="The writer links to real pages from the brand identity's sitemap."
-                  id="sitemap"
-                />
-                <WriteSitemapSection
-                  brandIdentityHref={`/${organizationSlug}/brand/identity`}
-                  brandVoiceId={brandVoiceId}
-                  isPending={isSitemapPending}
-                  onSelect={setSitemapId}
-                  organizationId={organizationId}
-                  selectedSitemapId={effectiveSitemapId}
-                  sitemaps={sitemaps}
-                  voiceName={selectedVoice?.name ?? null}
-                  voiceWebsiteUrl={selectedVoice?.websiteUrl ?? null}
-                />
-              </section>
-
-              <WriteCompetitorChoices
-                competitors={competitors}
-                mentionedCompetitors={mentionedCompetitors}
-                onChange={(ids) => {
-                  setCompetitorsTouched(true);
-                  setCompetitorIds(ids);
-                }}
-                selectedIds={competitorIds}
-              >
-                <WriteSectionHeader
-                  description="Competitors the article can mention when it compares options."
-                  id="competitors"
-                />
-              </WriteCompetitorChoices>
+              ))}
             </div>
-          </div>
+          </section>
 
-          <WriteDialogFooter
-            canSubmit={canSubmit}
-            onSubmit={(action) => {
-              handleSubmit(action).catch(() => undefined);
+          <section
+            className="scroll-mt-2 space-y-4 px-6 py-6"
+            data-section="brand"
+          >
+            <WriteSectionHeader
+              description="The brand whose voice and facts the article uses."
+              htmlFor={voices.length > 0 ? `${fieldId}-brand` : undefined}
+              id="brand"
+            />
+            <WriteBrandSelect
+              id={`${fieldId}-brand`}
+              onChange={setBrandVoiceId}
+              projectBrandId={project?.brandSettingsId}
+              value={brandVoiceId}
+              voices={voices}
+            />
+          </section>
+
+          <section
+            className="scroll-mt-2 space-y-4 px-6 py-6"
+            data-section="sitemap"
+          >
+            <WriteSectionHeader
+              description="The writer links to real pages from the brand identity's sitemap."
+              id="sitemap"
+            />
+            <WriteSitemapSection
+              brandIdentityHref={`/${organizationSlug}/brand/identity`}
+              brandVoiceId={brandVoiceId}
+              isPending={isSitemapPending}
+              onSelect={setSitemapId}
+              organizationId={organizationId}
+              selectedSitemapId={effectiveSitemapId}
+              sitemaps={sitemaps}
+              voiceName={selectedVoice?.name ?? null}
+              voiceWebsiteUrl={selectedVoice?.websiteUrl ?? null}
+            />
+          </section>
+
+          <WriteCompetitorChoices
+            competitors={competitors}
+            mentionedCompetitors={mentionedCompetitors}
+            onChange={(ids) => {
+              setCompetitorsTouched(true);
+              setCompetitorIds(ids);
             }}
-            pendingAction={pendingAction}
-          />
+            selectedIds={competitorIds}
+          >
+            <WriteSectionHeader
+              description="Competitors the article can mention when it compares options."
+              id="competitors"
+            />
+          </WriteCompetitorChoices>
         </div>
-      </div>
+
+        <WriteDialogFooter
+          canSubmit={canSubmit}
+          onSubmit={(action) => {
+            handleSubmit(action).catch(() => undefined);
+          }}
+          pendingAction={pendingAction}
+        />
+      </section>
     </ResponsiveDialogContent>
   );
 }
@@ -505,50 +480,43 @@ function WriteDialogFooter({
     ? GEO_WRITE_ACTION_PENDING[pendingAction].status
     : `${GEO_WRITE_ACTION_HELP.plan} ${GEO_WRITE_ACTION_HELP.write}`;
   return (
-    <div className={GEO_WRITE_PANEL_FOOTER_CLASS}>
-      <div
-        className={cn(
-          GEO_WRITE_PANEL_FOOTER_ROW_CLASS,
-          "justify-between gap-3 px-4"
-        )}
-      >
-        <LazyMotion features={loadMotionFeatures} strict>
-          <AnimatePresence initial={false} mode="wait">
-            <m.p
-              animate={{ opacity: 1, y: 0 }}
-              aria-live="polite"
-              className={cn(
-                "hidden min-w-0 truncate text-xs sm:block",
-                pendingAction ? "text-foreground" : "text-muted-foreground"
-              )}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
-              key={pendingAction ?? "help"}
-              transition={FOOTER_STATUS_TRANSITION}
-            >
-              {statusText}
-            </m.p>
-          </AnimatePresence>
-        </LazyMotion>
-        <div className="flex shrink-0 gap-2">
-          <WriteActionButton
-            action="plan"
-            disabled={!canSubmit}
-            onClick={() => onSubmit("plan")}
-            pendingAction={pendingAction}
-            variant="outline"
+    <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-t px-4 py-2.5 md:px-5">
+      <LazyMotion features={loadMotionFeatures} strict>
+        <AnimatePresence initial={false} mode="wait">
+          <m.p
+            animate={{ opacity: 1, y: 0 }}
+            aria-live="polite"
+            className={cn(
+              "hidden min-w-0 truncate text-xs sm:block",
+              pendingAction ? "text-foreground" : "text-muted-foreground"
+            )}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
+            key={pendingAction ?? "help"}
+            transition={FOOTER_STATUS_TRANSITION}
           >
-            Plan
-          </WriteActionButton>
-          <WriteActionButton
-            action="write"
-            disabled={!canSubmit}
-            onClick={() => onSubmit("write")}
-            pendingAction={pendingAction}
-          >
-            Write
-          </WriteActionButton>
-        </div>
+            {statusText}
+          </m.p>
+        </AnimatePresence>
+      </LazyMotion>
+      <div className="flex shrink-0 gap-2">
+        <WriteActionButton
+          action="plan"
+          disabled={!canSubmit}
+          onClick={() => onSubmit("plan")}
+          pendingAction={pendingAction}
+          variant="outline"
+        >
+          Plan
+        </WriteActionButton>
+        <WriteActionButton
+          action="write"
+          disabled={!canSubmit}
+          onClick={() => onSubmit("write")}
+          pendingAction={pendingAction}
+        >
+          Write
+        </WriteActionButton>
       </div>
     </div>
   );

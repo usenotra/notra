@@ -158,9 +158,3 @@ export interface WriterExecuteState {
 export interface WriterExecuteActions {
   execute: () => void;
 }
-
-export interface WriteSectionSidebarProps {
-  activeSection: WriteDialogSectionId;
-  collapsed: boolean;
-  onJump: (section: WriteDialogSectionId) => void;
-}
