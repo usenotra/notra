@@ -5,6 +5,7 @@ import type {
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 
@@ -19,6 +20,7 @@ export function useCollections(
   page: number,
   initialProjectId: string | null
 ) {
+  const tToast = useTranslations("content.toasts");
   const { projectId, isResolved } = useActiveProject();
   // The server already resolved the same project the switcher will settle on.
   // Waiting for the projects collection first made the list a second round trip.
@@ -45,11 +47,12 @@ export function useCollections(
       )
         ? GENERATING_POLL_INTERVAL
         : false,
-    meta: { errorMessage: "Failed to load collections" },
+    meta: { errorMessage: tToast("loadCollectionsFailed") },
   });
 }
 
 export function useCollection(organizationId: string, collectionId: string) {
+  const tToast = useTranslations("content.toasts");
   return useQuery<{ collection: PostCollectionDetail }>({
     ...dashboardOrpc.content.collections.get.queryOptions({
       input: { organizationId, collectionId },
@@ -59,6 +62,6 @@ export function useCollection(organizationId: string, collectionId: string) {
       query.state.data?.collection.isGenerating
         ? GENERATING_POLL_INTERVAL
         : false,
-    meta: { errorMessage: "Failed to load collection" },
+    meta: { errorMessage: tToast("loadCollectionFailed") },
   });
 }

@@ -11,6 +11,7 @@ import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ function DashboardAgentPanelSkeleton() {
 }
 
 function DashboardAgentHostLoading() {
+  const t = useTranslations("dashboard.agent");
   const { active, closePanel, expanded } = useRightPanel();
   const isDesktop = useDesktopBreakpoint();
 
@@ -92,9 +94,9 @@ function DashboardAgentHostLoading() {
         showCloseButton={false}
       >
         <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("loadingTitle")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Loading the dashboard agent.
+            {t("loadingDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <DashboardAgentPanelSkeleton />
@@ -162,6 +164,7 @@ export function DashboardShell({
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
+  const t = useTranslations("dashboard.onboardingBanner");
   const { activeOrganization } = useOrganizationsContext();
   const { expanded, hasOpened } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
@@ -205,10 +208,7 @@ export function DashboardShell({
     runAgent.mutate(
       { organizationId },
       {
-        onError: (error) =>
-          toast.error(
-            error.message || "Couldn't start the setup agent. Try again later."
-          ),
+        onError: (error) => toast.error(error.message || t("startFailed")),
       }
     );
   };

@@ -58,6 +58,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -83,12 +84,10 @@ import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useChatModelLabels } from "@/lib/hooks/use-chat-model-labels";
 import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  dragEventHasFiles,
-  getUnsupportedAttachmentMessage,
-} from "@/lib/upload/chat";
+import { dragEventHasFiles } from "@/lib/upload/chat";
 import {
   deleteChatUpload as deleteChatUploadFile,
   uploadFile,
@@ -106,11 +105,7 @@ import type {
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
-import {
-  CHAT_INPUT_LIMIT_MESSAGE,
-  contextItemKey,
-  contextItemsEqual,
-} from "@/utils/chat-input";
+import { contextItemKey, contextItemsEqual } from "@/utils/chat-input";
 import {
   extractIntegrationReferences,
   getIntegrationReferenceValue,
@@ -168,13 +163,6 @@ export function ModelIcon({
 const THINKING_LEVELS = ["off", "low", "medium", "high"] as const;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 
-const THINKING_LABELS: Record<ThinkingLevel, string> = {
-  off: "None",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
-
 function getSubmitTooltipText({
   canQueue,
   isEmpty,
@@ -189,23 +177,47 @@ function getSubmitTooltipText({
   isQueued: boolean;
   isStopping: boolean;
   isUsageBlocked: boolean;
-}): string {
+}):
+  | "stopping"
+  | "queuedPending"
+  | "stopGenerating"
+  | "noCredits"
+  | "queueHint"
+  | "sendHint" {
   if (isLoading && isStopping) {
-    return "Stopping...";
+    return "stopping";
   }
   if (isQueued) {
-    return "Will send once uploads finish. Click to cancel.";
+    return "queuedPending";
   }
   if (isLoading && isEmpty) {
-    return "Stop generating";
+    return "stopGenerating";
   }
   if (isUsageBlocked) {
-    return CHAT_INPUT_LIMIT_MESSAGE;
+    return "noCredits";
   }
   if (canQueue) {
-    return "Enter to queue this message. It will send once the AI finishes.";
+    return "queueHint";
   }
-  return "Enter to send. Shift+Enter for a new line.";
+  return "sendHint";
+}
+
+function getSendLabelKey({
+  canQueue,
+  isEmpty,
+  isLoading,
+}: {
+  canQueue: boolean;
+  isEmpty: boolean;
+  isLoading: boolean;
+}): "stopGenerating" | "queueMessage" | "sendMessage" {
+  if (isLoading && isEmpty) {
+    return "stopGenerating";
+  }
+  if (canQueue) {
+    return "queueMessage";
+  }
+  return "sendMessage";
 }
 
 function getComposerSendState({
@@ -261,20 +273,13 @@ function getComposerSendState({
     icon = "stop";
   }
 
-  let label = "Send message";
-  if (isLoading && isEmpty) {
-    label = "Stop generating";
-  } else if (canQueue) {
-    label = "Queue message";
-  }
-
   return {
     busy: Boolean(isLoading && isStopping),
     disabled,
     icon,
-    label,
+    labelKey: getSendLabelKey({ canQueue, isEmpty, isLoading }),
     onClick,
-    tooltip: getSubmitTooltipText({
+    tooltipKey: getSubmitTooltipText({
       canQueue,
       isEmpty,
       isLoading,
@@ -310,6 +315,7 @@ function ChatComposerSendButton({
   onStop?: () => void;
   pendingUploadCount: number;
 }) {
+  const t = useTranslations("chat.input.send");
   const send = getComposerSendState({
     attachmentCount,
     hasUnsupportedAttachments,
@@ -328,9 +334,9 @@ function ChatComposerSendButton({
     <Composer.Send
       busy={send.busy}
       disabled={send.disabled}
-      label={send.label}
+      label={t(send.labelKey)}
       onClick={send.onClick}
-      tooltip={send.tooltip}
+      tooltip={t(send.tooltipKey)}
     >
       {send.icon === "queued" ? (
         <Loader2Icon className="size-4 animate-spin" />
@@ -345,15 +351,12 @@ function ChatComposerSendButton({
   );
 }
 
-function getContextPickerDisabledReason(
-  isLoading: boolean,
-  isQueued: boolean
-): string | null {
+function getContextPickerDisabledReason(isLoading: boolean, isQueued: boolean) {
   if (isQueued) {
-    return "Cancel the pending message before changing tools or context.";
+    return "disabledQueued";
   }
   if (isLoading) {
-    return "Wait for the current response before changing tools or context.";
+    return "disabledLoading";
   }
   return null;
 }
@@ -363,6 +366,7 @@ function getChatComposerUsage({
   customer,
   externalError,
   internalError,
+  limitMessage,
 }: {
   checkResult: {
     allowed?: boolean;
@@ -371,6 +375,7 @@ function getChatComposerUsage({
   customer: Parameters<typeof hasIncludedChatPlan>[0];
   externalError?: string | null;
   internalError: string | null;
+  limitMessage: string;
 }) {
   const chatIncludedInPlan = hasIncludedChatPlan(customer);
   const remainingChatCredits =
@@ -392,7 +397,7 @@ function getChatComposerUsage({
       externalError ??
       internalError ??
       (checkResult?.allowed === false && !chatIncludedInPlan
-        ? CHAT_INPUT_LIMIT_MESSAGE
+        ? limitMessage
         : null),
   };
 }
@@ -459,6 +464,9 @@ function ChatMentionMenu({
   mentionListRef: Ref<HTMLDivElement>;
   organizationSlug?: string;
 }) {
+  const t = useTranslations("chat.input");
+  const tChatShared = useTranslations("chat.shared");
+  const tCommon2 = useTranslations("common");
   return (
     <div
       className="absolute bottom-full left-1 z-50 mb-1 w-72"
@@ -466,7 +474,7 @@ function ChatMentionMenu({
     >
       <div className="border-border bg-popover text-popover-foreground overflow-hidden rounded-md border shadow-md">
         <div
-          aria-label="Context"
+          aria-label={tChatShared("context")}
           className={
             filteredMentionItems.length > 0
               ? "max-h-64 overflow-y-auto p-1"
@@ -486,7 +494,9 @@ function ChatMentionMenu({
               <div key={option.id}>
                 {startsGroup ? (
                   <div className="px-2 py-1.5 text-xs font-semibold">
-                    {option.kind === "mcp" ? "MCP tools" : "Context"}
+                    {option.kind === "mcp"
+                      ? t("contextPicker.mcpGroup")
+                      : tChatShared("context")}
                   </div>
                 ) : null}
                 <button
@@ -506,7 +516,9 @@ function ChatMentionMenu({
                 >
                   <ChatContextOptionContent option={option} />
                   {inContext ? (
-                    <span className="text-success shrink-0 text-xs">Added</span>
+                    <span className="text-success shrink-0 text-xs">
+                      {tCommon2("labels.added")}
+                    </span>
                   ) : null}
                 </button>
               </div>
@@ -522,7 +534,7 @@ function ChatMentionMenu({
                 event.stopPropagation();
               }}
             >
-              Manage integrations
+              {tChatShared("manageIntegrations")}
             </Link>
           </div>
         ) : null}
@@ -530,15 +542,15 @@ function ChatMentionMenu({
           <div className="flex flex-col items-center gap-1 px-3 py-4 text-center">
             <span className="text-muted-foreground text-xs">
               {contextOptionsCount === 0
-                ? "No context or MCP tools connected"
-                : "No matches found"}
+                ? t("mention.noneConnected")
+                : t("mention.noMatches")}
             </span>
             {contextOptionsCount === 0 && organizationSlug ? (
               <Link
                 className="text-primary text-xs hover:underline"
                 href={`/${organizationSlug}/integrations`}
               >
-                Connect integrations
+                {t("mention.connectIntegrations")}
               </Link>
             ) : null}
           </div>
@@ -589,6 +601,9 @@ function ChatComposerNudge({
   untagSkill?: (name: string) => void;
   usageLimitError: string | null;
 }) {
+  const tChatShared = useTranslations("chat.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const hasQueuedChips = queuedMessages.length > 0;
   const hasContextChips = context.length > 0 || taggedSkills.length > 0;
   const hasAttachmentChips =
@@ -603,7 +618,7 @@ function ChatComposerNudge({
             size="xs"
             variant="outline"
           >
-            Upgrade
+            {tCommon("upgrade")}
           </Button>
         ) : null
       }
@@ -613,7 +628,9 @@ function ChatComposerNudge({
         !hasContextChips &&
         !hasAttachmentChips &&
         !usageLimitError
-          ? `${remainingChatCredits} chat messages left`
+          ? tChatShared("countPluralOneChatMessage", {
+              count: remainingChatCredits,
+            })
           : undefined
       }
     >
@@ -645,7 +662,7 @@ function ChatComposerNudge({
                         removeContext(item);
                       }
                 }
-                removeLabel={`Remove ${label}`}
+                removeLabel={tCommon2("labels.removeLabel", { label })}
               />
             );
           })}
@@ -691,7 +708,9 @@ function ChatComposerNudge({
           ))}
           {shouldShowLowCredits ? (
             <span className="text-muted-foreground text-xs">
-              {remainingChatCredits} chat messages left
+              {tChatShared("countPluralOneChatMessage", {
+                count: remainingChatCredits,
+              })}
             </span>
           ) : null}
         </>
@@ -728,6 +747,8 @@ function ChatComposerModelPicker({
   onModelChange?: (model: string) => void;
   setIsModelPickerOpen: (open: boolean) => void;
 }) {
+  const t = useTranslations("chat.input.modelPicker");
+  const modelLabels = useChatModelLabels();
   return (
     <Popover onOpenChange={setIsModelPickerOpen} open={isModelPickerOpen}>
       <PopoverTrigger
@@ -739,9 +760,9 @@ function ChatComposerModelPicker({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-0" sideOffset={6}>
         <Command>
-          <CommandInput placeholder="Search models..." />
+          <CommandInput placeholder={t("searchPlaceholder")} />
           <CommandList>
-            <CommandEmpty>No models found.</CommandEmpty>
+            <CommandEmpty>{t("empty")}</CommandEmpty>
             <CommandGroup>
               {(availableModels.some(
                 (availableModel) => availableModel.id === model
@@ -755,7 +776,7 @@ function ChatComposerModelPicker({
                   keywords={[
                     availableModel.label,
                     availableModel.provider,
-                    availableModel.description,
+                    modelLabels.description(availableModel),
                   ]}
                   onSelect={() => {
                     onModelChange?.(availableModel.id);
@@ -770,10 +791,10 @@ function ChatComposerModelPicker({
                   <div className="flex min-w-0 flex-col">
                     <span className="text-sm">{availableModel.label}</span>
                     <span className="text-muted-foreground text-xs">
-                      {availableModel.description}
+                      {modelLabels.description(availableModel)}
                     </span>
                     <span className="text-muted-foreground/70 text-[0.625rem]">
-                      {availableModel.pricing}
+                      {modelLabels.pricing(availableModel)}
                     </span>
                   </div>
                 </CommandItem>
@@ -797,26 +818,32 @@ function ChatComposerThinkingMenu({
   onThinkingLevelChange?: (level: ThinkingLevel) => void;
   thinkingLevel: ThinkingLevel;
 }) {
+  const t = useTranslations("chat.input.thinking");
+  const tCommon2 = useTranslations("common");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={<Composer.ToolbarButton disabled={isLoading || isQueued} />}
       >
         <HugeiconsIcon className="size-3.5" icon={AiBrain01Icon} />
-        {THINKING_LABELS[thinkingLevel]}
+        {thinkingLevel === "off"
+          ? t("off")
+          : tCommon2(`labels.${thinkingLevel}`)}
         <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-44">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Thinking effort</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("label")}</DropdownMenuLabel>
         </DropdownMenuGroup>
         {THINKING_LEVELS.map((level) => (
           <DropdownMenuItem
             key={level}
             onClick={() => onThinkingLevelChange?.(level)}
           >
-            <span className="text-sm capitalize">
-              {level === "off" ? "Off" : THINKING_LABELS[level]}
+            <span className="text-sm">
+              {level === "off"
+                ? tCommon2("labels.off")
+                : tCommon2(`labels.${level}`)}
             </span>
             {thinkingLevel === level ? (
               <HugeiconsIcon
@@ -860,6 +887,8 @@ function ChatComposerContextPicker({
   removeContext: (item: ContextItem) => void;
   setIsContextPickerOpen: (open: boolean) => void;
 }) {
+  const t = useTranslations("chat.input.contextPicker");
+  const tChatShared = useTranslations("chat.shared");
   return (
     <Tooltip disabled={isContextPickerOpen}>
       <TooltipTrigger
@@ -868,7 +897,7 @@ function ChatComposerContextPicker({
             // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
             <span
               aria-disabled="true"
-              aria-label="Add tools or context"
+              aria-label={tChatShared("addToolsOrContext")}
               className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
               role="button"
               tabIndex={0}
@@ -888,7 +917,7 @@ function ChatComposerContextPicker({
                 aria-controls={contextPickerId}
                 aria-expanded={isContextPickerOpen}
                 aria-haspopup="listbox"
-                aria-label="Add tools or context"
+                aria-label={tChatShared("addToolsOrContext")}
                 className="size-7 justify-center px-0"
                 disabled={isLoading || isQueued}
                 role="combobox"
@@ -904,12 +933,14 @@ function ChatComposerContextPicker({
             sideOffset={6}
           >
             <Command>
-              <CommandInput placeholder="Search tools and context..." />
+              <CommandInput
+                placeholder={tChatShared("searchToolsAndContext")}
+              />
               <CommandList>
                 <CommandEmpty>
                   {contextOptions.length === 0
-                    ? "No matching integrations."
-                    : "No matching tools or context found."}
+                    ? tChatShared("noMatchingIntegrations")
+                    : tChatShared("noMatchingToolsOrContext")}
                 </CommandEmpty>
                 {contextOptions.length === 0 && organizationSlug ? (
                   <ChatContextConnectSuggestions
@@ -918,7 +949,7 @@ function ChatComposerContextPicker({
                   />
                 ) : null}
                 {integrationContextOptions.length > 0 ? (
-                  <CommandGroup heading="Context">
+                  <CommandGroup heading={tChatShared("context")}>
                     {integrationContextOptions.map((option) => {
                       const inContext = isInContext(option.contextItem);
                       return (
@@ -943,7 +974,7 @@ function ChatComposerContextPicker({
                   </CommandGroup>
                 ) : null}
                 {mcpToolOptions.length > 0 ? (
-                  <CommandGroup heading="MCP tools">
+                  <CommandGroup heading={t("mcpGroup")}>
                     {mcpToolOptions.map((option) => {
                       const inContext = isInContext(option.contextItem);
                       return (
@@ -975,7 +1006,7 @@ function ChatComposerContextPicker({
                     href={`/${organizationSlug}/integrations`}
                     onClick={() => setIsContextPickerOpen(false)}
                   >
-                    Manage integrations
+                    {tChatShared("manageIntegrations")}
                   </Link>
                 </div>
               ) : null}
@@ -984,7 +1015,7 @@ function ChatComposerContextPicker({
         </Popover>
       </TooltipTrigger>
       <TooltipContent>
-        {contextPickerDisabledReason ?? "Tools and context"}
+        {contextPickerDisabledReason ?? tChatShared("toolsAndContext")}
       </TooltipContent>
     </Tooltip>
   );
@@ -1125,6 +1156,7 @@ function sendOrQueueComposer({
   attachments,
   pendingUploads,
   taggedSkillNames,
+  limitMessage,
 }: {
   attachments: ChatAttachment[];
   chatIncludedInPlan: boolean;
@@ -1146,6 +1178,7 @@ function sendOrQueueComposer({
   setInternalError: Dispatch<SetStateAction<string | null>>;
   setPendingSend: Dispatch<SetStateAction<QueuedSendSnapshot | null>>;
   taggedSkillNames: readonly string[];
+  limitMessage: string;
 }) {
   if (isLoading) {
     const outbound = prependTaggedSkills(
@@ -1158,7 +1191,7 @@ function sendOrQueueComposer({
     }
     clearError();
     if (isUsageBlocked) {
-      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+      setInternalError(limitMessage);
       return;
     }
     if (customer && !chatIncludedInPlan) {
@@ -1167,7 +1200,7 @@ function sendOrQueueComposer({
         requiredBalance: 1,
       });
       if (result?.allowed === false) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+        setInternalError(limitMessage);
         return;
       }
     }
@@ -1191,7 +1224,7 @@ function sendOrQueueComposer({
       return;
     }
     if (isUsageBlocked) {
-      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+      setInternalError(limitMessage);
       return;
     }
     clearError();
@@ -1234,6 +1267,10 @@ export function ChatInputAdvanced({
   draftStorageKey,
   ref,
 }: ChatInputAdvancedProps) {
+  const t = useTranslations("chat.input");
+  const tCommon2 = useTranslations("common");
+  const tChatShared = useTranslations("chat.shared");
+  const limitMessage = t("send.noCredits");
   const contextPickerId = useId();
   const slashListId = useId();
   const mentionListId = useId();
@@ -1244,8 +1281,8 @@ export function ChatInputAdvanced({
     ({
       id: "auto",
       label: model,
-      description: "",
-      pricing: "",
+      description: null,
+      pricing: null,
       provider: model.startsWith("openai/") ? "openai" : "anthropic",
     } satisfies ChatModelOption);
   const [isModelPickerOpen, setIsModelPickerOpen] = useState(false);
@@ -1298,10 +1335,13 @@ export function ChatInputAdvanced({
     useState<ChatAttachment | null>(null);
   const isUploading = pendingUploads.length > 0;
   const isQueued = pendingSend !== null;
-  const contextPickerDisabledReason = getContextPickerDisabledReason(
+  const contextPickerDisabledReasonKey = getContextPickerDisabledReason(
     isLoading,
     isQueued
   );
+  const contextPickerDisabledReason = contextPickerDisabledReasonKey
+    ? t(`contextPicker.${contextPickerDisabledReasonKey}`)
+    : null;
   const attachmentsRef = useRef(attachments);
   const pendingUploadsRef = useRef(pendingUploads);
 
@@ -1337,8 +1377,8 @@ export function ChatInputAdvanced({
   );
   const attachmentTooltipText =
     model === "openai/gpt-5.4"
-      ? "Attach images or PDFs"
-      : "Attach images, PDFs, or text";
+      ? t("attach.imagesPdfs")
+      : t("attach.imagesPdfsText");
 
   const cleanupChatUpload = useCallback(async (key: string) => {
     try {
@@ -1385,9 +1425,7 @@ export function ChatInputAdvanced({
         attachmentsRef.current.length -
         pendingUploadsRef.current.length;
       if (remainingSlots <= 0) {
-        toast.error(
-          `You can attach at most ${MAX_CHAT_ATTACHMENTS} files per message.`
-        );
+        toast.error(t("upload.maxAttachments", { max: MAX_CHAT_ATTACHMENTS }));
         return false;
       }
 
@@ -1396,14 +1434,17 @@ export function ChatInputAdvanced({
         if (!isAllowedChatMimeType(file.type, model)) {
           toast.error(
             file.type === "text/plain" || file.type === "text/markdown"
-              ? getUnsupportedAttachmentMessage(currentModel.label)
-              : `Unsupported file type: ${file.name}`
+              ? t("upload.unsupportedText", { model: currentModel.label })
+              : t("upload.unsupportedType", { name: file.name })
           );
           continue;
         }
         if (file.size > MAX_CHAT_FILE_SIZE) {
           toast.error(
-            `${file.name} exceeds the ${MAX_CHAT_FILE_SIZE / 1024 / 1024}MB limit.`
+            t("upload.tooLarge", {
+              name: file.name,
+              size: MAX_CHAT_FILE_SIZE / 1024 / 1024,
+            })
           );
           continue;
         }
@@ -1461,8 +1502,10 @@ export function ChatInputAdvanced({
             return true;
           } catch (err) {
             const message =
-              err instanceof Error ? err.message : "Upload failed";
-            toast.error(`Failed to upload ${file.name}: ${message}`);
+              err instanceof Error
+                ? err.message
+                : tCommon2("labels.uploadFailed");
+            toast.error(t("upload.failed", { name: file.name, message }));
             updatePendingUploads(
               pendingUploadsRef.current.filter(
                 (pending) => pending.id !== placeholder.id
@@ -1474,7 +1517,7 @@ export function ChatInputAdvanced({
       );
       return results.every(Boolean);
     },
-    [cleanupChatUpload, currentModel.label, model, updatePendingUploads]
+    [cleanupChatUpload, currentModel.label, model, t, updatePendingUploads]
   );
 
   const onFileInputChange = useCallback(
@@ -1589,6 +1632,7 @@ export function ChatInputAdvanced({
     customer,
     externalError,
     internalError,
+    limitMessage,
   });
   const chatIncludedInPlan = chatUsage.chatIncludedInPlan === true;
   const remainingChatCredits = chatUsage.remainingChatCredits;
@@ -1664,7 +1708,7 @@ export function ChatInputAdvanced({
         id: `github-${repo.id}`,
         kind: "github",
         label,
-        description: "GitHub repository",
+        description: t("options.githubRepository"),
         searchText: `${label} GitHub repository`,
         contextItem: {
           type: "github-repo",
@@ -1680,7 +1724,7 @@ export function ChatInputAdvanced({
         id: `linear-${integration.integrationId}`,
         kind: "linear",
         label: integration.displayName,
-        description: "Linear team",
+        description: t("options.linearTeam"),
         searchText: `${integration.displayName} ${integration.teamName ?? ""} Linear team`,
         contextItem: {
           type: "linear-team",
@@ -1699,7 +1743,9 @@ export function ChatInputAdvanced({
         id: `mcp-${server.id}`,
         kind: "mcp",
         label: server.name,
-        description: `Custom MCP server · ${toolLabel}`,
+        description: t("options.customMcp", {
+          count: server.indexedToolCount,
+        }),
         searchText: `${server.name} ${server.description ?? ""} custom MCP ${toolLabel}`,
         contextItem: {
           type: "mcp-server",
@@ -1721,7 +1767,9 @@ export function ChatInputAdvanced({
         id: `mcp-${connection.id}`,
         kind: "mcp",
         label: integration.name,
-        description: `Marketplace MCP server · ${toolLabel}`,
+        description: t("options.marketplaceMcp", {
+          count: connection.indexedToolCount,
+        }),
         searchText: `${integration.name} ${integration.description ?? ""} ${integration.author ?? ""} marketplace MCP ${toolLabel}`,
         contextItem: {
           type: "mcp-server",
@@ -1739,6 +1787,7 @@ export function ChatInputAdvanced({
     enabledLinearIntegrations,
     enabledRepos,
     mcpStoreData?.integrations,
+    t,
   ]);
 
   const integrationContextOptions = useMemo(
@@ -2237,7 +2286,7 @@ export function ChatInputAdvanced({
         return false;
       }
       if (isUsageBlocked) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+        setInternalError(limitMessage);
         return false;
       }
       if (customer && !chatIncludedInPlan) {
@@ -2246,7 +2295,7 @@ export function ChatInputAdvanced({
           requiredBalance: 1,
         });
         if (result?.allowed === false) {
-          setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+          setInternalError(limitMessage);
           return false;
         }
       }
@@ -2266,6 +2315,7 @@ export function ChatInputAdvanced({
       chatIncludedInPlan,
       isLoading,
       isUsageBlocked,
+      limitMessage,
       model,
       onSend,
     ]
@@ -2305,6 +2355,7 @@ export function ChatInputAdvanced({
       isUploading,
       isUsageBlocked,
       onSend,
+      limitMessage,
       pendingUploads: pendingUploadsRef.current,
       performSend,
       setInternalError,
@@ -2321,6 +2372,7 @@ export function ChatInputAdvanced({
     isUploading,
     hasUnsupportedAttachmentsForModel,
     isUsageBlocked,
+    limitMessage,
     onSend,
     performSend,
     taggedSkillNames,
@@ -2342,9 +2394,7 @@ export function ChatInputAdvanced({
 
     if (resolvedAttachments.length !== pendingSend.pendingUploadIds.length) {
       setPendingSend(null);
-      setInternalError(
-        "Some attachments failed to upload. Please remove or retry them before sending."
-      );
+      setInternalError(t("upload.someFailed"));
       return;
     }
 
@@ -2352,7 +2402,7 @@ export function ChatInputAdvanced({
       ...pendingSend.attachments,
       ...resolvedAttachments,
     ]);
-  }, [isUploading, pendingSend, sendSnapshot]);
+  }, [isUploading, pendingSend, sendSnapshot, t]);
 
   const handlePaste = useCallback(
     (event: React.ClipboardEvent<HTMLDivElement>) => {
@@ -2597,7 +2647,7 @@ export function ChatInputAdvanced({
             ) : null
           }
         >
-          <section aria-label="Chat input drop area">
+          <section aria-label={tChatShared("chatInputDropArea")}>
             <input
               accept={allowedChatMimeTypes.join(",")}
               className="hidden"
@@ -2617,14 +2667,14 @@ export function ChatInputAdvanced({
                     aria-disabled={isQueued}
                     aria-expanded={isComposerPopupOpen}
                     aria-haspopup={isComposerPopupOpen ? "listbox" : undefined}
-                    aria-label="Send a message"
+                    aria-label={tChatShared("sendAMessage")}
                     className="text-foreground caret-foreground data-[empty=true]:before:text-muted-foreground relative max-h-50 min-h-12 w-full min-w-0 overflow-y-auto rounded-t-[12px] px-3 py-2 text-sm leading-6 wrap-anywhere whitespace-pre-wrap outline-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[empty=true]:before:pointer-events-none data-[empty=true]:before:absolute data-[empty=true]:before:top-2 data-[empty=true]:before:left-3 data-[empty=true]:before:content-[attr(data-placeholder)]"
                     contentEditable={!isQueued}
                     data-empty={isEmpty ? "true" : "false"}
                     data-placeholder={
                       isLoading
-                        ? "Queue a message..."
-                        : "Send a message... (type @ for tools, / for skills)"
+                        ? tChatShared("queueAMessage")
+                        : t("editor.placeholder")
                     }
                     onBlur={() => {
                       setTimeout(() => {

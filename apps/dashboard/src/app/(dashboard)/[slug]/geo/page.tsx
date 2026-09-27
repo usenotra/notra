@@ -1,5 +1,6 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -16,9 +17,10 @@ import { dehydrateGeoOverviewQueries } from "@/utils/geo-prefetch.server";
 import PageClient from "./page-client";
 import { GeoPageSkeleton } from "./skeleton";
 
-export const metadata: Metadata = {
-  title: "GEO",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return { title: tCommon("labels.geo") };
+}
 
 export const instant = true;
 

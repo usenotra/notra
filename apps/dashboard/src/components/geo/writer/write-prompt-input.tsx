@@ -11,8 +11,8 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
-import { GEO_WRITE_EDIT_NOTE } from "@/constants/geo-writer";
 import type { WritePromptInputProps } from "@/types/components/geo-writer";
 
 export function WritePromptInput({
@@ -26,6 +26,7 @@ export function WritePromptInput({
   onPromptSelect,
   children,
 }: WritePromptInputProps) {
+  const t = useTranslations("geo.writer.writePromptInput");
   const isTracked = sourceKind === "prompt" || sourceKind === "gap";
   const selectedPrompt = isTracked
     ? prompts.find((item) => item.id === sourceId)
@@ -50,7 +51,10 @@ export function WritePromptInput({
           }}
           value={selectedPrompt?.id ?? "manual"}
         >
-          <SelectTrigger aria-label="Tracked prompt" className="h-10 w-full">
+          <SelectTrigger
+            aria-label={t("trackedPrompt")}
+            className="h-10 w-full"
+          >
             <SelectValue>
               <span
                 className={cn(
@@ -58,12 +62,12 @@ export function WritePromptInput({
                   !selectedPrompt && "text-muted-foreground"
                 )}
               >
-                {selectedPrompt?.prompt ?? "Write a custom prompt"}
+                {selectedPrompt?.prompt ?? t("customPrompt")}
               </span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
-            <SelectItem value="manual">Write a custom prompt</SelectItem>
+            <SelectItem value="manual">{t("customPrompt")}</SelectItem>
             {prompts.map((prompt) => (
               <SelectItem key={prompt.id} value={prompt.id}>
                 <span className="line-clamp-2 whitespace-normal">
@@ -79,11 +83,11 @@ export function WritePromptInput({
         id={topicId}
         maxLength={GEO_WRITER_TOPIC_MAX_LENGTH}
         onChange={(event) => onTopicChange(event.target.value)}
-        placeholder="e.g. Which tools are best for sharing music demos?"
+        placeholder={t("placeholder")}
         value={topic}
       />
       {sourceId && isTracked ? (
-        <p className="text-muted-foreground text-xs">{GEO_WRITE_EDIT_NOTE}</p>
+        <p className="text-muted-foreground text-xs">{t("editNote")}</p>
       ) : null}
     </section>
   );

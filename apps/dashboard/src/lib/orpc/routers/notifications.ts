@@ -3,6 +3,7 @@ import { organizationNotificationSettings } from "@notra/db/schema";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import { updateNotificationSettingsInputSchema } from "@notra/schemas/dashboard/notification-settings";
 import { eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
@@ -48,9 +49,8 @@ export const notificationsRouter = {
       });
 
       if (access.membership.role !== "owner") {
-        throw forbidden(
-          "Only the organization owner can update notification settings"
-        );
+        const tErrors = await getTranslations("errors.notifications");
+        throw forbidden(tErrors("ownerOnly"));
       }
 
       // Owners must still be able to opt out after their subscription expires.

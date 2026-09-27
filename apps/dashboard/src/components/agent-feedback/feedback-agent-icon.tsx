@@ -16,8 +16,8 @@ import { Playwright } from "@notra/ui/components/ui/svgs/playwright";
 import { Vercel } from "@notra/ui/components/ui/svgs/vercel";
 import { Windsurf } from "@notra/ui/components/ui/svgs/windsurf";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
-import { AGENT_FEEDBACK_UNSPECIFIED_LABEL } from "@/constants/agent-feedback";
 import type {
   AgentFeedbackAgentIconProps,
   AgentFeedbackAgentProps,
@@ -103,7 +103,8 @@ export function AgentFeedbackAgent({
   client,
   className,
 }: AgentFeedbackAgentProps) {
-  const label = client ?? AGENT_FEEDBACK_UNSPECIFIED_LABEL;
+  const t = useTranslations("feedback");
+  const label = client ?? t("unspecified");
 
   return (
     <span

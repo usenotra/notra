@@ -15,11 +15,13 @@ export function AuthPendingStep({
   verifyEmailCode,
   verifyMfaCode,
   redeemBackupCode,
+  labels,
 }: AuthPendingStepProps) {
   switch (step.status) {
     case "verification-required":
       return (
         <EmailVerificationForm
+          labels={labels?.emailVerification}
           onResult={onResult}
           returnTo={returnTo}
           step={step}
@@ -29,6 +31,7 @@ export function AuthPendingStep({
     case "mfa-required":
       return (
         <MfaChallengeForm
+          labels={labels?.mfaChallenge}
           onBack={onBack}
           onFinish={onFinish}
           onRecovered={onRecovered}
@@ -42,6 +45,7 @@ export function AuthPendingStep({
     case "mfa-enrollment-required":
       return (
         <MfaEnrollmentForm
+          labels={labels?.mfaEnrollment}
           onBack={onBack}
           onFinish={onFinish}
           onResult={onResult}

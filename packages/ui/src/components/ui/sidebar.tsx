@@ -4,6 +4,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { SidebarLeftIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Separator } from "@notra/ui/components/ui/separator";
@@ -195,6 +196,7 @@ function Sidebar({
 	collapsible?: "offExamples" | "icon" | "none";
 }) {
 	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	const labels = useUiLabels();
 
 	if (collapsible === "none") {
 		return (
@@ -227,8 +229,8 @@ function Sidebar({
 					}
 				>
 					<SheetHeader className="sr-only">
-						<SheetTitle>Sidebar</SheetTitle>
-						<SheetDescription>Displays the mobile sidebar.</SheetDescription>
+						<SheetTitle>{labels.sidebarTitle}</SheetTitle>
+						<SheetDescription>{labels.sidebarDescription}</SheetDescription>
 					</SheetHeader>
 					<div className="flex h-full w-full flex-col">{children}</div>
 				</SheetContent>
@@ -290,6 +292,7 @@ function SidebarTrigger({
 	...props
 }: React.ComponentProps<typeof Button>) {
 	const { toggleSidebar } = useSidebar();
+	const labels = useUiLabels();
 
 	return (
 		<Button
@@ -305,17 +308,18 @@ function SidebarTrigger({
 			{...props}
 		>
 			<HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={2} />
-			<span className="sr-only">Toggle Sidebar</span>
+			<span className="sr-only">{labels.toggleSidebar}</span>
 		</Button>
 	);
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 	const { toggleSidebar } = useSidebar();
+	const labels = useUiLabels();
 
 	return (
 		<button
-			aria-label="Toggle Sidebar"
+			aria-label={labels.toggleSidebar}
 			className={cn(
 				"absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
 				"in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
@@ -329,7 +333,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 			data-slot="sidebar-rail"
 			onClick={toggleSidebar}
 			tabIndex={-1}
-			title="Toggle Sidebar"
+			title={labels.toggleSidebar}
 			{...props}
 		/>
 	);

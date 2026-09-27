@@ -4,6 +4,7 @@ import { normalizeCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { ONBOARDING_STEP_COMPETITORS } from "@/constants/onboarding";
@@ -20,9 +21,10 @@ import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { CompetitorsForm } from "./competitors-form";
 
-export const metadata: Metadata = {
-  title: "Pick your competitors",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("onboarding.competitors");
+  return { title: t("metaTitle") };
+}
 
 export default async function OnboardingCompetitorsPage({
   searchParams,

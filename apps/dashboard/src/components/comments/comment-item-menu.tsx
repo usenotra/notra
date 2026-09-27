@@ -8,6 +8,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { COMMENT_REACTIONS } from "@/constants/comments";
@@ -22,19 +23,21 @@ export function CommentItemMenu({
   onStartEdit,
   onDelete,
 }: CommentItemMenuProps) {
+  const t = useTranslations("comments");
+  const tCommon = useTranslations("common.actions");
   return (
     <ContextMenuContent>
       {comment.depth < 5 ? (
         <ContextMenuItem disabled={disabled} onClick={() => onReply(comment)}>
-          Reply
+          {t("reply")}
         </ContextMenuItem>
       ) : null}
       <ContextMenuSub>
         <ContextMenuSubTrigger disabled={disabled}>
-          Add reaction
+          {t("addReaction")}
         </ContextMenuSubTrigger>
         <ContextMenuSubContent>
-          {COMMENT_REACTIONS.map(({ emoji, label }) => (
+          {COMMENT_REACTIONS.map(({ emoji, key }) => (
             <ContextMenuItem
               key={emoji}
               onClick={() =>
@@ -49,7 +52,7 @@ export function CommentItemMenu({
                 )
               }
             >
-              {emoji} {label}
+              {emoji} {t(`reactions.${key}`)}
             </ContextMenuItem>
           ))}
         </ContextMenuSubContent>
@@ -58,16 +61,16 @@ export function CommentItemMenu({
         onClick={() => {
           void navigator.clipboard
             .writeText(comment.body)
-            .catch(() => toast.error("Could not copy comment"));
+            .catch(() => toast.error(t("copyFailed")));
         }}
       >
-        Copy text
+        {t("copyText")}
       </ContextMenuItem>
       {comment.userId === currentUserId ? (
         <>
           <ContextMenuSeparator />
           <ContextMenuItem disabled={disabled} onClick={onStartEdit}>
-            Edit
+            {tCommon("edit")}
           </ContextMenuItem>
           <ContextMenuItem
             disabled={disabled}
@@ -76,7 +79,7 @@ export function CommentItemMenu({
               void onDelete(comment.id);
             }}
           >
-            Delete
+            {tCommon("delete")}
           </ContextMenuItem>
         </>
       ) : null}

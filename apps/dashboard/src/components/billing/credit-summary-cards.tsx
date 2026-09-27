@@ -4,11 +4,9 @@ import { FEATURES } from "@notra/ai/billing/features";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { cn } from "@notra/ui/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
 
-import {
-  CREDIT_RANGE_LABELS,
-  type CreditSummaryCardsProps,
-} from "@/types/billing/credits";
+import type { CreditSummaryCardsProps } from "@/types/billing/credits";
 import { formatDollars, usageBarColor } from "@/utils/format";
 
 export function CreditSummaryCards({
@@ -18,6 +16,10 @@ export function CreditSummaryCards({
   range,
   balanceAction,
 }: CreditSummaryCardsProps) {
+  const t = useTranslations("billing.creditSummary");
+  const tCommon = useTranslations("common");
+  const tBillingShared = useTranslations("billing.shared");
+  const locale = useLocale();
   const aiCredits = customer?.balances?.[FEATURES.AI_CREDITS];
   const balance =
     typeof aiCredits?.remaining === "number" ? aiCredits.remaining : null;
@@ -47,15 +49,15 @@ export function CreditSummaryCards({
         accentColor="#10b981"
         action={balanceAction}
         className="min-w-0"
-        heading="Current Balance"
+        heading={tBillingShared("currentBalance")}
       >
         <div>
           <p className="text-3xl font-bold tracking-tight wrap-anywhere tabular-nums">
-            {balance !== null ? formatDollars(balance) : "-"}
+            {balance !== null ? formatDollars(balance, locale) : "-"}
           </p>
           {included !== null && (
             <p className="text-muted-foreground mt-1 text-sm wrap-anywhere">
-              of {formatDollars(included)} included
+              {t("included", { amount: formatDollars(included, locale) })}
             </p>
           )}
         </div>
@@ -63,24 +65,24 @@ export function CreditSummaryCards({
       <TitleCard
         accentColor="#8b5cf6"
         className="min-w-0"
-        heading="Used This Period"
+        heading={t("usedThisPeriod")}
       >
         <div>
           <p className="text-3xl font-bold tracking-tight wrap-anywhere tabular-nums">
-            {formatDollars(totalUsage)}
+            {formatDollars(totalUsage, locale)}
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
-            in the last {CREDIT_RANGE_LABELS[range]}
+            {t("inTheLast", { range })}
           </p>
         </div>
       </TitleCard>
-      <TitleCard className="min-w-0" heading="Usage">
+      <TitleCard className="min-w-0" heading={tCommon("labels.usage")}>
         <div>
           <div className="flex items-baseline gap-2">
             <p className="text-3xl font-bold tracking-tight tabular-nums">
               {Math.round(usagePercent)}%
             </p>
-            <p className="text-muted-foreground text-sm">of plan</p>
+            <p className="text-muted-foreground text-sm">{t("ofPlan")}</p>
           </div>
           <div className="bg-muted mt-3 h-2 w-full overflow-hidden rounded-full">
             <div

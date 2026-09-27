@@ -6,6 +6,7 @@ import {
   TOTP_CODE_LENGTH,
 } from "@notra/schemas/constants/dashboard/auth";
 import { normalizeBackupCode } from "@notra/schemas/utils/auth";
+import { DEFAULT_MFA_CHALLENGE_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 
 import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
@@ -23,8 +24,6 @@ import { CtaButton } from "../cta-button";
 import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { TotpCodeInput } from "./totp-code-input";
-
-const MFA_ERROR_FALLBACK = "That code didn't work. Please try again.";
 
 function SubmitButton({
   isPending,
@@ -55,7 +54,9 @@ export function MfaChallengeForm({
   onRecovered,
   verifyMfaCode,
   redeemBackupCode,
+  labels,
 }: MfaChallengeFormProps) {
+  const l = { ...DEFAULT_MFA_CHALLENGE_FORM_LABELS, ...labels };
   const [mode, setMode] = useState<ChallengeMode>("totp");
   const [code, setCode] = useState("");
   const [backupCode, setBackupCode] = useState("");
@@ -76,7 +77,7 @@ export function MfaChallengeForm({
   }
 
   function fail(message: string | undefined) {
-    setFormError(message || MFA_ERROR_FALLBACK);
+    setFormError(message || l.errorFallback);
     setCode("");
     setBackupCode("");
     setIsPending(false);
@@ -144,13 +145,14 @@ export function MfaChallengeForm({
     return (
       <div className="flex w-full flex-col gap-5">
         <AuthFormHeader
-          description="You're signed in. Save these backup codes now: each one lets you in once if you lose your authenticator app."
-          title="Your backup codes"
+          description={l.issuedCodesDescription}
+          title={l.issuedCodesTitle}
         />
         <BackupCodesPanel
           accountLabel={step.email || undefined}
           codes={issuedCodes.codes}
-          doneLabel="Continue"
+          doneLabel={l.issuedCodesDone}
+          labels={l.backupCodesPanel}
           onDone={() => onFinish(issuedCodes.redirectTo)}
         />
       </div>
@@ -161,8 +163,8 @@ export function MfaChallengeForm({
     return (
       <div className="flex w-full flex-col gap-5">
         <AuthFormHeader
-          description="Enter one of the backup codes you saved when you set up two-factor authentication. Each code works once."
-          title="Use a backup code"
+          description={l.backupDescription}
+          title={l.backupTitle}
         />
         <form
           aria-busy={isPending}
@@ -174,7 +176,7 @@ export function MfaChallengeForm({
           }}
         >
           <div className="grid gap-1.5">
-            <Label htmlFor="backup-code">Backup code</Label>
+            <Label htmlFor="backup-code">{l.backupCodeLabel}</Label>
             <Input
               autoCapitalize="off"
               autoComplete="off"
@@ -183,7 +185,7 @@ export function MfaChallengeForm({
               disabled={isPending}
               id="backup-code"
               onChange={(event) => setBackupCode(event.target.value)}
-              placeholder="xxxx-xxxx"
+              placeholder={l.backupCodePlaceholder}
               spellCheck={false}
               value={backupCode}
             />
@@ -193,8 +195,8 @@ export function MfaChallengeForm({
             <SubmitButton
               disabled={isPending || !backupCodeReady}
               isPending={isPending}
-              label="Use backup code"
-              pendingLabel="Checking..."
+              label={l.backupSubmit}
+              pendingLabel={l.backupSubmitting}
             />
           </div>
         </form>
@@ -205,21 +207,19 @@ export function MfaChallengeForm({
           type="button"
           variant="link"
         >
-          Use my authenticator app instead
+          {l.useAuthenticator}
         </Button>
       </div>
     );
   }
 
-  const description = step.email
-    ? `Enter the 6-digit code from your authenticator app to finish signing in as ${step.email}.`
-    : "Enter the 6-digit code from your authenticator app to finish signing in.";
+  const description = l.description(step.email || undefined);
 
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
         description={description}
-        title="Two-factor authentication"
+        title={l.title}
       />
       <form
         aria-busy={isPending}
@@ -236,7 +236,7 @@ export function MfaChallengeForm({
           disabled={isPending}
           error={formError}
           id="mfa-code"
-          label="Authentication code"
+          label={l.codeLabel}
           onChange={setCode}
           onComplete={handleVerify}
           value={code}
@@ -244,8 +244,8 @@ export function MfaChallengeForm({
         <SubmitButton
           disabled={isPending || code.length !== TOTP_CODE_LENGTH}
           isPending={isPending}
-          label="Verify code"
-          pendingLabel="Verifying..."
+          label={l.submit}
+          pendingLabel={l.submitting}
         />
       </form>
       <div className="flex flex-col items-center gap-1">
@@ -256,7 +256,7 @@ export function MfaChallengeForm({
           type="button"
           variant="link"
         >
-          Lost your device? Use a backup code
+          {l.useBackupCode}
         </Button>
         {onBack && (
           <Button
@@ -266,7 +266,7 @@ export function MfaChallengeForm({
             type="button"
             variant="link"
           >
-            Back to sign in
+            {l.backToSignIn}
           </Button>
         )}
       </div>

@@ -1,6 +1,14 @@
 import type { UIMessage } from "ai";
 import type { ReactNode } from "react";
 
+export type AssistantActivityStep =
+  | "writingResponse"
+  | "thinking"
+  | "waitingForApproval"
+  | "searchingWeb"
+  | "executingTools"
+  | "runningTool";
+
 export interface ChatActivityStatusProps {
   children?: ReactNode;
   seconds: number;
@@ -16,7 +24,7 @@ export interface ChatActivityGroupProps {
   groupId: string;
   isLoading: boolean;
   isStreaming: boolean;
-  step: string;
+  step: AssistantActivityStep;
 }
 
 export interface ChatSearchStackProps {

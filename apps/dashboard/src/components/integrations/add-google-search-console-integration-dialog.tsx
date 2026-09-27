@@ -11,6 +11,7 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Google } from "@notra/ui/components/ui/svgs/google";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -23,6 +24,9 @@ export function AddGoogleSearchConsoleIntegrationDialog({
   onOpenChange: controlledOnOpenChange,
   reauth = false,
 }: GoogleSearchConsoleConnectDialogProps) {
+  const t = useTranslations("integrations.gscDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -35,26 +39,20 @@ export function AddGoogleSearchConsoleIntegrationDialog({
             <Google className="size-7" />
             <div>
               <ResponsiveDialogTitle className="text-xl">
-                {reauth
-                  ? "Reconnect Google Search Console"
-                  : "Connect Google Search Console"}
+                {reauth ? t("titleReconnect") : t("titleConnect")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Turn the search queries you already rank for into AI prompt
-                suggestions.
+                {t("description")}
               </ResponsiveDialogDescription>
             </div>
           </div>
         </ResponsiveDialogHeader>
         <div className="space-y-3 py-4">
-          <p className="text-muted-foreground text-sm">
-            You will be redirected to Google to authorize read access to Search
-            Console. Once authorized, choose which property Notra should sync.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("redirectNote")}</p>
         </div>
         <ResponsiveDialogFooter>
           <ResponsiveDialogClose render={<Button variant="outline" />}>
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
           <Button
             onClick={() => {
@@ -65,7 +63,9 @@ export function AddGoogleSearchConsoleIntegrationDialog({
               });
             }}
           >
-            {reauth ? "Reconnect" : "Connect"}
+            {reauth
+              ? tIntegrationsShared("reconnect")
+              : tCommon("actions.connect")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

@@ -6,9 +6,9 @@ import type {
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { tween } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
@@ -54,6 +54,7 @@ export function GapAnswerPanel({
   const [engine, setEngine] = useState("");
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const reduceMotion = useReducedMotion();
+  const tGeoShared = useTranslations("geo.shared");
   const history = useGeoPromptHistory(organizationId, promptId, {
     enabled: Boolean(organizationId),
   });
@@ -88,10 +89,9 @@ export function GapAnswerPanel({
     return (
       <div className="flex min-h-48 flex-1 items-center justify-center px-6">
         <p className="text-muted-foreground text-center text-sm text-pretty">
-          {geoScanEmptyMessage(
-            isScanning,
-            "Run a scan to see how engines answer this"
-          )}
+          {isScanning
+            ? tGeoShared("scanningEngines")
+            : tGeoShared("runAScanToSeeAnswers")}
         </p>
       </div>
     );

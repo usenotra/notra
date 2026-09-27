@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
@@ -35,6 +36,9 @@ export function ShelfPlacementsTable({
   onSetPlacementStatus,
   disabled,
 }: GeoShelfPlacementsTableProps) {
+  const t = useTranslations("geo.shelf.shelfPlacementsTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const placements = [
     ...(row.ownPlacement ? [row.ownPlacement] : []),
     ...row.competitorPlacements,
@@ -43,7 +47,7 @@ export function ShelfPlacementsTable({
   const columns: TableColumn<GeoShelfPlacement>[] = [
     {
       key: "brandName",
-      header: "Brand",
+      header: tCommon("labels.brand"),
       width: "1fr",
       minWidth: "12rem",
       cell: (placement) => {
@@ -62,7 +66,7 @@ export function ShelfPlacementsTable({
               {brandName}
               {isOwn ? (
                 <span className="text-muted-foreground ml-1 font-normal">
-                  (You)
+                  {tGeoShared("you")}
                 </span>
               ) : null}
             </span>
@@ -72,7 +76,7 @@ export function ShelfPlacementsTable({
     },
     {
       key: "status",
-      header: "On the page",
+      header: t("onThePage"),
       width: "12rem",
       cell: (placement) => (
         <Select
@@ -87,7 +91,7 @@ export function ShelfPlacementsTable({
           value={placement.status}
         >
           <SelectTrigger
-            aria-label={`Presence of ${placement.brandName}`}
+            aria-label={t("presenceOf", { brand: placement.brandName })}
             className="w-40"
             size="sm"
           >
@@ -107,7 +111,7 @@ export function ShelfPlacementsTable({
     },
     {
       key: "position",
-      header: "Position",
+      header: tCommon("labels.position"),
       width: "7rem",
       align: "right",
       cell: (placement) => (
@@ -123,13 +127,13 @@ export function ShelfPlacementsTable({
     },
     {
       key: "hasLink",
-      header: "Link",
+      header: tCommon("labels.link"),
       width: "8rem",
       cell: (placement) =>
         placement.hasLink ? (
           <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
             <HugeiconsIcon className="size-3.5" icon={Link04Icon} />
-            Outbound
+            {t("outbound")}
           </span>
         ) : (
           <span className="text-muted-foreground">—</span>

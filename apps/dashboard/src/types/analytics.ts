@@ -202,6 +202,17 @@ export type AnalyticsRangePreset =
   | "all"
   | "custom";
 
+export interface AnalyticsRangePresetLabel {
+  label: string;
+  compact: string;
+  hint: string;
+}
+
+export type AnalyticsRangePresetLabels = Record<
+  Exclude<AnalyticsRangePreset, "custom">,
+  AnalyticsRangePresetLabel
+>;
+
 export interface AnalyticsRangeState {
   preset: AnalyticsRangePreset;
   range: AnalyticsDateRange;
@@ -209,6 +220,7 @@ export interface AnalyticsRangeState {
 
 export interface AnalyticsRangeControl extends AnalyticsRangeState {
   label: string;
+  hint: string;
   includesToday: boolean;
   setPreset: (preset: Exclude<AnalyticsRangePreset, "custom">) => void;
   setCustom: (range: AnalyticsDateRange) => void;
@@ -410,7 +422,15 @@ export interface AccountIdentity {
 }
 
 export interface LeaderboardDetailMetric {
-  label: string;
+  labelKey:
+    | "followers"
+    | "impressions"
+    | "likes"
+    | "replies"
+    | "reposts"
+    | "quotes"
+    | "bookmarks"
+    | "engagementRate";
   value: string;
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { Table } from "@/components/motion/table";
@@ -25,6 +26,7 @@ export function DataTable<TData>({
   onSortChange,
   totalCount,
 }: DataTableProps<TData>) {
+  const t = useTranslations("settings.logs");
   const totalItems = totalCount ?? data.length;
   const rowCount =
     isLoading && data.length === 0 ? LOGS_SKELETON_ROW_COUNT : data.length;
@@ -57,13 +59,13 @@ export function DataTable<TData>({
             )}
           </div>
         ) : (
-          "No results."
+          t("noResults")
         )
       }
       footer={
         totalPages > 1 || data.length > 0 ? (
           <TablePagination
-            itemLabel="logs"
+            itemLabel={t("itemLabel")}
             page={page}
             pageCount={totalPages}
             pageRowCount={data.length}

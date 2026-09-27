@@ -7,11 +7,12 @@ import type {
 } from "@/types/geo";
 
 export function buildGeoCompetitorPoints(
-  points: readonly GeoCompetitorTimeseriesPoint[]
+  points: readonly GeoCompetitorTimeseriesPoint[],
+  locale: string
 ): GeoCompetitorDetailPoint[] {
   const byDay = new Map(points.map((point) => [point.day, point.mentions]));
   return [...byDay.keys()].sort().map((day) => ({
-    day: formatDayLabel(day),
+    day: formatDayLabel(day, locale),
     rawDay: day,
     mentions: byDay.get(day) ?? 0,
   }));

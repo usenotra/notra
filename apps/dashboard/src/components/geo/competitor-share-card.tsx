@@ -1,7 +1,7 @@
 "use client";
 
-import { GEO_SHARE_OF_VOICE_TRACKING_HINT } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
+import { useTranslations } from "next-intl";
 
 import { ShareOfVoiceChart } from "@/components/geo/share-of-voice-chart";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
@@ -18,6 +18,8 @@ export function CompetitorShareCard({
   organizationSlug,
   organizationId,
 }: CompetitorShareCardProps) {
+  const t = useTranslations("geo.competitorShareCard");
+  const tGeoShared = useTranslations("geo.shared");
   const navigation = useGeoCompetitorRowNavigation(
     organizationSlug,
     organizationId
@@ -39,9 +41,9 @@ export function CompetitorShareCard({
 
   return (
     <InstrumentSection
-      description="Your share of AI mentions compared with other brands."
-      eyebrow="Share of voice"
-      hint={GEO_SHARE_OF_VOICE_TRACKING_HINT}
+      description={t("description")}
+      eyebrow={tGeoShared("shareOfVoice")}
+      hint={tGeoShared("discoveredBrandsComeFromScan")}
     >
       <ShareOfVoiceChart
         aliases={aliases}

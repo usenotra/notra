@@ -26,10 +26,16 @@ const PURPOSE_ICONS: Record<string, typeof QuotesIcon> = {
   "assistant-referral": CursorPointer02Icon,
 };
 
-export function PurposeBadge({ category }: PurposeBadgeProps) {
+export function PurposeBadge({
+  category,
+  label: labelOverride,
+  description: descriptionOverride,
+}: PurposeBadgeProps) {
   const icon = PURPOSE_ICONS[category];
-  const label = AI_TRAFFIC_PURPOSE_LABELS[category] ?? category;
-  const description = AI_TRAFFIC_PURPOSE_DESCRIPTIONS[category] ?? category;
+  const label =
+    labelOverride ?? AI_TRAFFIC_PURPOSE_LABELS[category] ?? category;
+  const description =
+    descriptionOverride ?? AI_TRAFFIC_PURPOSE_DESCRIPTIONS[category] ?? category;
 
   return (
     <Tooltip>

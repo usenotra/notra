@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { SPRING } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
 
@@ -112,9 +113,10 @@ export function ExpandableTabs({
   value,
   defaultValue,
   onValueChange,
-  label = "Choose an option",
+  label,
   className,
 }: ExpandableTabsProps) {
+  const labels = useUiLabels();
   const layoutId = useId();
   const [internalValue, setInternalValue] = useState(
     defaultValue ?? items[0]?.value
@@ -130,7 +132,7 @@ export function ExpandableTabs({
     <div className="flex justify-center">
       <LazyMotion features={domMax}>
         <menu
-          aria-label={label}
+          aria-label={label ?? labels.chooseOption}
           className={cn(
             "m-0 flex max-w-full list-none items-center gap-1.5 overflow-x-auto overscroll-none rounded-2xl border bg-muted/50 p-1.5 [scrollbar-width:none] sm:flex-wrap sm:justify-center sm:overflow-visible [&::-webkit-scrollbar]:hidden",
             className

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { validateOrganizationAccess } from "@/lib/auth/actions";
@@ -7,9 +8,10 @@ import type { AgentReadinessPageProps } from "@/types/agent-readiness";
 import PageClient from "./page-client";
 import { AgentReadinessSkeleton } from "./skeleton";
 
-export const metadata: Metadata = {
-  title: "Agent Readiness",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return { title: tCommon("labels.agentReadiness") };
+}
 
 export const instant = true;
 

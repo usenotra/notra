@@ -11,6 +11,7 @@ import {
 } from "@notra/ui/components/ui/dialog";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { type ComponentType, useId, useState } from "react";
 
@@ -22,11 +23,10 @@ import { SettingsModalNav } from "@/components/settings/settings-modal-nav";
 import {
   DEFAULT_SETTINGS_SECTION,
   SETTINGS_NAV_GROUPS,
-  SETTINGS_SECTION_DESCRIPTIONS,
-  SETTINGS_SECTION_LABELS,
 } from "@/constants/settings";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { useSettingsNavLabels } from "@/lib/hooks/use-settings-nav-labels";
 import type {
   SettingsModalBodyProps,
   SettingsModalSessionProps,
@@ -224,14 +224,20 @@ function SettingsModalSession({
   setSection,
   titleId,
 }: SettingsModalSessionProps) {
+  const labels = useSettingsNavLabels();
   const { hasAiCredits } = useHasAiCreditsFeature();
   const [query, setQuery] = useState("");
   const searchInputId = useId();
-  const groups = filterSettingsNavGroups(
-    SETTINGS_NAV_GROUPS,
-    query,
-    hasAiCredits
-  );
+  const navGroups = SETTINGS_NAV_GROUPS.map((group) => ({
+    ...group,
+    label: labels.groups[group.id],
+    items: group.items.map((item) => ({
+      ...item,
+      label: labels.sections[item.id].label,
+      description: labels.sections[item.id].description,
+    })),
+  }));
+  const groups = filterSettingsNavGroups(navGroups, query, hasAiCredits);
 
   const activeSection = resolveSettingsSection(
     section ?? DEFAULT_SETTINGS_SECTION
@@ -240,7 +246,7 @@ function SettingsModalSession({
   function handleQueryChange(nextQuery: string) {
     setQuery(nextQuery);
     const nextGroups = filterSettingsNavGroups(
-      SETTINGS_NAV_GROUPS,
+      navGroups,
       nextQuery,
       hasAiCredits
     );
@@ -288,6 +294,8 @@ function SettingsModalBody({
   section,
   titleId,
 }: SettingsModalBodyProps) {
+  const t = useTranslations("settings");
+  const labels = useSettingsNavLabels();
   const { titleAccessory } = useSettingsHeader();
 
   return (
@@ -299,7 +307,7 @@ function SettingsModalBody({
               className="text-sm leading-none font-medium"
               id={titleId}
             >
-              {SETTINGS_SECTION_LABELS[activeSection]}
+              {labels.sections[activeSection].label}
             </DialogTitle>
             {titleAccessory}
           </div>
@@ -307,11 +315,11 @@ function SettingsModalBody({
             className="text-muted-foreground text-xs"
             id={descriptionId}
           >
-            {SETTINGS_SECTION_DESCRIPTIONS[activeSection]}
+            {labels.sections[activeSection].modalDescription}
           </DialogDescription>
         </div>
         <Button
-          aria-label="Close settings"
+          aria-label={t("modal.close")}
           className="shrink-0"
           onClick={closeSettings}
           size="icon-sm"

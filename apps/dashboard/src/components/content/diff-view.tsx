@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 
@@ -9,6 +10,8 @@ interface DiffViewProps {
 }
 
 export function DiffView({ originalMarkdown, currentMarkdown }: DiffViewProps) {
+  const t = useTranslations("content.detail.diff");
+  const tCommon = useTranslations("common");
   const { resolvedTheme } = useTheme();
 
   const hasChanges = originalMarkdown !== currentMarkdown;
@@ -16,7 +19,7 @@ export function DiffView({ originalMarkdown, currentMarkdown }: DiffViewProps) {
   if (!hasChanges) {
     return (
       <div className="text-muted-foreground flex items-center justify-center py-12">
-        No changes to display
+        {t("noChanges")}
       </div>
     );
   }
@@ -27,10 +30,10 @@ export function DiffView({ originalMarkdown, currentMarkdown }: DiffViewProps) {
     <div className="overflow-auto rounded-lg text-sm">
       <ReactDiffViewer
         compareMethod={DiffMethod.WORDS}
-        leftTitle="Original"
+        leftTitle={t("original")}
         newValue={currentMarkdown}
         oldValue={originalMarkdown}
-        rightTitle="Current"
+        rightTitle={tCommon("labels.current")}
         splitView={true}
         styles={{
           variables: {

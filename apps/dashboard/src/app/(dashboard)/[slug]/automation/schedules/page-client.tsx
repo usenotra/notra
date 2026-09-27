@@ -10,7 +10,6 @@ import {
   PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -44,6 +43,7 @@ import {
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -65,57 +65,28 @@ import {
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
 import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
+import { useScheduleFrequencyLabel } from "@/lib/hooks/use-schedule-frequency-label";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SchedulePresetId } from "@/types/automation/schedule";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
 import { indexBrandVoices } from "@/utils/brand-voices";
-import { formatRelative } from "@/utils/format-relative";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
+import { OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
 import { countEnabled } from "@/utils/trigger-status";
 
 import { SchedulePageSkeleton } from "./skeleton";
-
-function formatFrequency(cron?: Trigger["sourceConfig"]["cron"]) {
-  if (!cron) {
-    return "Not set";
-  }
-  const time = `${String(cron.hour).padStart(2, "0")}:${String(cron.minute).padStart(2, "0")} UTC`;
-  if (cron.frequency === "weekly") {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return `Weekly - ${days[cron.dayOfWeek ?? 0]} @ ${time}`;
-  }
-  if (cron.frequency === "monthly") {
-    return `Monthly - Day ${cron.dayOfMonth ?? 1} @ ${time}`;
-  }
-  if (cron.frequency === "custom") {
-    return `Every ${cron.intervalDays ?? CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS} days @ ${time}`;
-  }
-  return `Daily @ ${time}`;
-}
-
-function normalizeIntegrationError(error: unknown): Error {
-  const errorWithCode = error as Error & { code?: string };
-  if (
-    errorWithCode?.code === "INTEGRATION_NOT_FOUND" ||
-    (error instanceof Error &&
-      error.message.includes("integrations have been deleted"))
-  ) {
-    const integrationError = new Error(
-      error instanceof Error ? error.message : "Integration not found"
-    ) as Error & { code?: string };
-    integrationError.code = "INTEGRATION_NOT_FOUND";
-    return integrationError;
-  }
-  return error instanceof Error ? error : new Error(String(error));
-}
 
 interface PageClientProps {
   organizationSlug: string;
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("automation.schedules.page");
+  const tAutomationShared = useTranslations("automation.shared");
+  const tCommon2 = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id;
@@ -173,32 +144,25 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       const lookbackWindow = trigger.lookbackWindow ?? "last_7_days";
       const outputConfig = trigger.outputConfig ?? {};
 
-      try {
-        return await dashboardOrpc.automation.schedules.update.call({
-          organizationId,
-          triggerId: trigger.id,
-          name: trigger.name,
-          sourceType: "cron",
-          sourceConfig: { cron: cronConfig },
-          targets: trigger.targets,
-          outputType: trigger.outputType,
-          lookbackWindow,
-          outputConfig,
-          enabled: !trigger.enabled,
-          autoPublish: trigger.autoPublish,
-        });
-      } catch (error) {
-        throw normalizeIntegrationError(error);
-      }
+      return dashboardOrpc.automation.schedules.update.call({
+        organizationId,
+        triggerId: trigger.id,
+        name: trigger.name,
+        sourceType: "cron",
+        sourceConfig: { cron: cronConfig },
+        targets: trigger.targets,
+        outputType: trigger.outputType,
+        lookbackWindow,
+        outputConfig,
+        enabled: !trigger.enabled,
+        autoPublish: trigger.autoPublish,
+      });
     },
     onError: (error) => {
-      const errorWithCode = error as Error & { code?: string };
-      if (errorWithCode.code === "INTEGRATION_NOT_FOUND") {
-        toast.error(
-          "Cannot enable schedule: The integration has been deleted. Please edit the schedule and select a different integration."
-        );
+      if (getOrpcErrorDataCode(error) === "INTEGRATION_NOT_FOUND") {
+        toast.error(t("integrationDeleted"));
       } else {
-        toast.error("Failed to update schedule");
+        toast.error(tAutomationShared("failedToUpdateSchedule"));
       }
     },
     onSettled: () => {
@@ -273,10 +237,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           context.previousData
         );
       }
-      toast.error("Failed to delete schedule");
+      toast.error(t("deleteFailed"));
     },
     onSuccess: () => {
-      toast.success("Schedule removed");
+      toast.success(t("removed"));
       setDeleteTriggerId(null);
     },
     onSettled: () => {
@@ -298,7 +262,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const runNowMutation = useMutation({
     mutationFn: async (triggerId: string) => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
 
       return dashboardOrpc.automation.schedules.runNow.call({
@@ -307,7 +271,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       });
     },
     onSuccess: () => {
-      toast.success("Schedule triggered! Content will be generated shortly.");
+      toast.success(t("triggered"));
       if (organizationId) {
         const key = dashboardOrpc.content.activeGenerations.list.queryKey({
           input: { organizationId },
@@ -320,9 +284,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to run schedule"
-      );
+      toast.error(error instanceof Error ? error.message : t("runFailed"));
     },
   });
 
@@ -366,8 +328,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeading
-          description="Configure cron schedules that run daily, weekly, or monthly"
-          title="Schedules"
+          description={t("description")}
+          title={tCommon2("labels.schedules")}
         >
           <CreateScheduleDialog
             onOpenChange={(open) => {
@@ -399,7 +361,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               <Button className="w-fit gap-2">
                 <span className="inline-flex items-center gap-1.5">
                   <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                  Create Schedule
+                  {t("create")}
                 </span>
                 <Kbd className="hidden sm:inline-flex">C</Kbd>
               </Button>
@@ -547,6 +509,8 @@ function SchedulesPageBody({
   scheduleTriggers: Trigger[];
   updatingTriggerId?: string;
 }) {
+  const t = useTranslations("automation.schedules.page");
+  const tAutomationShared = useTranslations("automation.shared");
   if (isPending) {
     return <SchedulePageSkeleton />;
   }
@@ -562,19 +526,19 @@ function SchedulesPageBody({
               trigger={
                 <Button className="gap-1.5" variant="outline">
                   <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                  Create Schedule
+                  {t("create")}
                 </Button>
               }
             />
           }
-          description="Create your first schedule to automate recurring content."
+          description={t("emptyDescription")}
           preview={
             <EmptyStateTablePreview
               columns={EMPTY_STATE_TABLE_COLUMNS.schedule}
               rows={EMPTY_STATE_TABLE_ROWS}
             />
           }
-          title="No schedules yet"
+          title={t("emptyTitle")}
         />
       ) : null}
       <ScheduleQuickStart onSelect={onSelectPreset} />
@@ -585,10 +549,10 @@ function SchedulesPageBody({
         >
           <TabsList variant="line">
             <TabsTrigger value="active">
-              Active ({activeCounts.active})
+              {tAutomationShared("activeCount", { count: activeCounts.active })}
             </TabsTrigger>
             <TabsTrigger value="paused">
-              Paused ({activeCounts.paused})
+              {tAutomationShared("pausedCount", { count: activeCounts.paused })}
             </TabsTrigger>
           </TabsList>
 
@@ -652,40 +616,50 @@ function ScheduleDeleteDialog({
   open: boolean;
   triggerToDelete: Trigger | null | undefined;
 }) {
+  const t = useTranslations("automation.schedules.page");
+  const tCommon = useTranslations("common.actions");
+  const formatFrequency = useScheduleFrequencyLabel();
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle>
-            Delete schedule?
+            {t("deleteTitle")}
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            This will permanently delete{" "}
-            {triggerToDelete ? (
-              <Tooltip>
-                <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
-                  {triggerToDelete.name}
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs" side="top">
-                  <div className="space-y-1 text-xs wrap-anywhere">
-                    <p>
-                      Runs: {formatFrequency(triggerToDelete.sourceConfig.cron)}
-                    </p>
-                    <p>
-                      Repositories: {deleteTriggerRepositoryNames.join(", ")}
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              "this schedule"
-            )}
-            . This action cannot be undone.
+            {t.rich("deleteDescription", {
+              target: () =>
+                triggerToDelete ? (
+                  <Tooltip>
+                    <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
+                      {triggerToDelete.name}
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs" side="top">
+                      <div className="space-y-1 text-xs wrap-anywhere">
+                        <p>
+                          {t("runs", {
+                            value: formatFrequency(
+                              triggerToDelete.sourceConfig.cron
+                            ),
+                          })}
+                        </p>
+                        <p>
+                          {t("repositories", {
+                            value: deleteTriggerRepositoryNames.join(", "),
+                          })}
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  t("thisSchedule")
+                ),
+            })}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isPending}>
-            Cancel
+            {tCommon("cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             disabled={isPending}
@@ -695,10 +669,10 @@ function ScheduleDeleteDialog({
             {isPending ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Deleting...
+                {tCommon("deleting")}
               </>
             ) : (
-              "Delete"
+              tCommon("delete")
             )}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
@@ -744,21 +718,27 @@ function ScheduleTable({
   runningTriggerId?: string;
   loading?: boolean;
 }) {
+  const t = useTranslations("automation.schedules.page");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const format = useFormatter();
+  const formatFrequency = useScheduleFrequencyLabel();
+  const outputTypeLabel = useOutputTypeLabel();
   const columns: TableColumn<Trigger>[] = [
     {
       key: "name",
-      header: "Name",
+      header: tCommon2("labels.name"),
       width: "1fr",
       minWidth: "4rem",
       cell: (trigger) => (
         <TruncateWithTooltip className="text-sm font-medium">
-          {trigger.name ?? "Untitled Schedule"}
+          {trigger.name ?? t("untitled")}
         </TruncateWithTooltip>
       ),
     },
     {
       key: "schedule",
-      header: "Schedule",
+      header: tCommon2("labels.schedule"),
       width: "10rem",
       cell: (trigger) => (
         <TruncateWithTooltip className="text-muted-foreground">
@@ -768,7 +748,7 @@ function ScheduleTable({
     },
     {
       key: "identity",
-      header: "Identity",
+      header: tCommon2("labels.identity"),
       width: "5.5rem",
       cell: (trigger) => {
         const explicitBrandVoiceId = trigger.outputConfig?.brandVoiceId;
@@ -787,21 +767,21 @@ function ScheduleTable({
     },
     {
       key: "output",
-      header: "Output",
+      header: tCommon2("labels.output"),
       width: "8.5rem",
       cell: (trigger) => (
-        <span className="text-muted-foreground flex items-center gap-1.5 capitalize">
+        <span className="text-muted-foreground flex items-center gap-1.5">
           <OutputTypeIcon
             className="size-3.5"
             outputType={trigger.outputType}
           />
-          {getOutputTypeLabel(trigger.outputType)}
+          {outputTypeLabel(trigger.outputType)}
         </span>
       ),
     },
     {
       key: "sources",
-      header: "Sources",
+      header: tCommon2("labels.sources"),
       width: "5.5rem",
       cell: (trigger) => (
         <span className="text-muted-foreground">
@@ -814,19 +794,19 @@ function ScheduleTable({
     },
     {
       key: "status",
-      header: "Status",
+      header: tCommon2("labels.status"),
       width: "5rem",
       cell: (trigger) => <TriggerStatusBadge enabled={trigger.enabled} />,
     },
     {
       key: "createdAt",
-      header: "Created",
+      header: tCommon2("labels.created"),
       sortable: true,
       sortValue: (trigger) => new Date(trigger.createdAt).getTime(),
       width: "6.5rem",
       cell: (trigger) => (
         <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-          {formatRelative(trigger.createdAt)}
+          {format.relativeTime(new Date(trigger.createdAt))}
         </span>
       ),
     },
@@ -845,7 +825,9 @@ function ScheduleTable({
             <DropdownMenuTrigger
               render={
                 <Button
-                  aria-label={`Actions for ${trigger.name ?? "schedule"}`}
+                  aria-label={tCommon2("labels.actionsForName", {
+                    name: trigger.name ?? t("scheduleFallback"),
+                  })}
                   disabled={isThisUpdating || isThisRunning}
                   size="icon"
                   variant="ghost"
@@ -864,14 +846,14 @@ function ScheduleTable({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(trigger)}>
                 <HugeiconsIcon className="size-4" icon={Edit02Icon} />
-                Edit
+                {tCommon("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={isRunning || !trigger.enabled}
                 onClick={() => onRunNow(trigger.id)}
               >
                 <HugeiconsIcon className="size-4" icon={PlayCircleIcon} />
-                Run now
+                {tCommon2("labels.runNow")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={isUpdating}
@@ -881,7 +863,7 @@ function ScheduleTable({
                   className="size-4"
                   icon={trigger.enabled ? PauseIcon : PlayIcon}
                 />
-                {trigger.enabled ? "Pause" : "Enable"}
+                {trigger.enabled ? tCommon2("labels.pause") : tCommon("enable")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -890,7 +872,7 @@ function ScheduleTable({
                 variant="destructive"
               >
                 <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                Delete
+                {tCommon("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -904,7 +886,7 @@ function ScheduleTable({
       className="rounded-2xl"
       columns={columns}
       data={triggers}
-      emptyState="No schedules in this category."
+      emptyState={t("emptyCategory")}
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length, SCHEDULE_TABLE_ROW_HEIGHT)}
       loading={loading}

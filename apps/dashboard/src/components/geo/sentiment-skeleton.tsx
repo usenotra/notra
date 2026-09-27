@@ -1,14 +1,16 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import type { SentimentSkeletonProps } from "@/types/geo-sentiment";
 
 export function SentimentSkeleton({ compact = false }: SentimentSkeletonProps) {
+  const t = useTranslations("geo.sentimentSkeleton");
   if (compact) {
     return (
       <div
         className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]"
         role="status"
-        aria-label="Loading sentiment"
+        aria-label={t("loading")}
       >
         <div className="space-y-2">
           <Skeleton className="h-9 w-24" />
@@ -27,7 +29,7 @@ export function SentimentSkeleton({ compact = false }: SentimentSkeletonProps) {
     );
   }
   return (
-    <div className="space-y-4" role="status" aria-label="Loading sentiment">
+    <div className="space-y-4" role="status" aria-label={t("loading")}>
       <Skeleton className="h-40 w-full" />
     </div>
   );

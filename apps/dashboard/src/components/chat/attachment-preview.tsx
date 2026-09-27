@@ -12,6 +12,7 @@ import {
 } from "@notra/ui/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,12 +30,13 @@ import {
 import { formatBytes } from "@/utils/format";
 
 function TextPreview({ url }: { url: string }) {
+  const t = useTranslations("chat.attachmentPreview");
   const { data: content, error } = useQuery({
     queryKey: ["attachment-text-preview", url],
     queryFn: async ({ signal }) => {
       const response = await fetch(url, { signal });
       if (!response.ok) {
-        throw new Error(`Failed to load (${response.status})`);
+        throw new Error(t("loadFailed", { status: response.status }));
       }
       return await response.text();
     },
@@ -79,6 +81,10 @@ export function AttachmentPreviewDialog({
   open,
   onOpenChange,
 }: AttachmentPreviewDialogProps) {
+  const t = useTranslations("chat.attachmentPreview");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const locale = useLocale();
   const [isCopying, setIsCopying] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -100,9 +106,9 @@ export function AttachmentPreviewDialog({
     setIsCopying(true);
     try {
       await copyImageToClipboard(attachment.url);
-      toast.success("Image copied");
+      toast.success(t("imageCopied"));
     } catch {
-      toast.error("Failed to copy image");
+      toast.error(t("copyFailed"));
     }
     setIsCopying(false);
   }
@@ -117,7 +123,9 @@ export function AttachmentPreviewDialog({
         ? buildImageDownloadFilename(attachment.filename, attachment.mediaType)
         : attachment.filename;
       await downloadFileFromUrl(attachment.url, filename);
-      toast.success(isImage ? "Downloaded image" : "Downloaded file");
+      toast.success(
+        isImage ? tCommon2("labels.downloadedImage") : t("downloadedFile")
+      );
     } catch {
       window.open(attachment.url, "_blank", "noopener,noreferrer");
     }
@@ -137,7 +145,7 @@ export function AttachmentPreviewDialog({
             </DialogTitle>
             <p className="text-muted-foreground mt-1 text-xs">
               {typeof attachment.size === "number"
-                ? `${typeLabel} · ${formatBytes(attachment.size)}`
+                ? `${typeLabel} · ${formatBytes(attachment.size, locale)}`
                 : typeLabel}
             </p>
           </div>
@@ -150,7 +158,7 @@ export function AttachmentPreviewDialog({
                 variant="outline"
               >
                 <HugeiconsIcon icon={Copy01Icon} />
-                Copy image
+                {t("copyImage")}
               </Button>
             ) : null}
             <Button
@@ -160,7 +168,7 @@ export function AttachmentPreviewDialog({
               variant="outline"
             >
               <HugeiconsIcon icon={Download01Icon} />
-              {isImage ? "Download image" : "Download"}
+              {isImage ? tCommon2("labels.downloadImage") : tCommon("download")}
             </Button>
           </div>
         </div>
@@ -189,9 +197,9 @@ export function AttachmentPreviewDialog({
           {isText ? <TextPreview url={attachment.url} /> : null}
           {canPreview ? null : (
             <div className="bg-muted/20 flex h-full flex-col items-center justify-center gap-1 px-6 text-center">
-              <p className="text-sm font-medium">Preview isn't available</p>
+              <p className="text-sm font-medium">{t("unavailableTitle")}</p>
               <p className="text-muted-foreground text-xs">
-                Download this file to open it on your device.
+                {t("unavailableDescription")}
               </p>
             </div>
           )}

@@ -2,11 +2,7 @@
 
 import { Clock01Icon, CpuIcon, FlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type {
-  ChatMessageMetadata,
-  ChatModel,
-  ThinkingLevel,
-} from "@notra/ai/types/chat";
+import type { ChatMessageMetadata, ChatModel } from "@notra/ai/types/chat";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { OpenaiDark } from "@notra/ui/components/ui/svgs/openaiDark";
@@ -16,9 +12,11 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
+import { formatOneDecimal } from "@/utils/format";
 
 const MODEL_LABELS = {
   auto: "Auto",
@@ -54,44 +52,15 @@ function getModelContextWindow(model: string): number | null {
   return MODEL_CONTEXT_WINDOWS[model as ChatModel] ?? null;
 }
 
-function formatContextWindow(tokens: number): string {
-  if (tokens >= 1_000_000) {
-    const millions = tokens / 1_000_000;
-    return `${Number.isInteger(millions) ? millions : millions.toFixed(1)}M`;
-  }
-  if (tokens >= 1000) {
-    return `${Math.round(tokens / 1000)}K`;
-  }
-  return String(tokens);
+function formatCompactTokens(tokens: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(tokens);
 }
-
-const THINKING_LEVEL_LABELS: Record<ThinkingLevel, string | null> = {
-  off: null,
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
 
 function getModelLabel(model: string): string {
   return MODEL_LABELS[model as ChatModel] ?? model;
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) {
-    return `${Math.round(ms)} ms`;
-  }
-  const seconds = ms / 1000;
-  if (seconds < 10) {
-    return `${seconds.toFixed(1)} sec`;
-  }
-  return `${Math.round(seconds)} sec`;
-}
-
-function formatTokens(tokens: number): string {
-  if (tokens >= 1000) {
-    return `${(tokens / 1000).toFixed(1)}k`;
-  }
-  return String(tokens);
 }
 
 function ModelBadgeIcon({ model }: { model: string }) {
@@ -113,6 +82,10 @@ interface AssistantMetadataHoverProps {
 export function AssistantMetadataHover({
   metadata,
 }: AssistantMetadataHoverProps) {
+  const t = useTranslations("chat.metadata");
+  const tCommon = useTranslations("common");
+  const tChatShared = useTranslations("chat.shared");
+  const locale = useLocale();
   const { showAgentStats } = useShowAgentStats();
 
   if (!metadata) {
@@ -123,16 +96,21 @@ export function AssistantMetadataHover({
 
   if (metadata.model) {
     const modelLabel = getModelLabel(metadata.model);
-    const thinkingLabel = metadata.thinkingLevel
-      ? THINKING_LEVEL_LABELS[metadata.thinkingLevel]
-      : null;
+    const thinkingLabel =
+      metadata.thinkingLevel && metadata.thinkingLevel !== "off"
+        ? tCommon(`labels.${metadata.thinkingLevel}`)
+        : null;
 
     items.push(
       <div className="flex items-center gap-1.5" key="model">
         <ModelBadgeIcon model={metadata.model} />
         <span>
-          {modelLabel}
-          {thinkingLabel ? ` (${thinkingLabel})` : ""}
+          {thinkingLabel
+            ? t("modelWithThinking", {
+                model: modelLabel,
+                thinking: thinkingLabel,
+              })
+            : modelLabel}
         </span>
       </div>
     );
@@ -142,7 +120,13 @@ export function AssistantMetadataHover({
     items.push(
       <div className="flex items-center gap-1" key="tps">
         <HugeiconsIcon className="size-3" icon={FlashIcon} />
-        <span>{metadata.tokensPerSecond.toFixed(2)} tok/sec</span>
+        <span>
+          {t("tokensPerSecond", {
+            value: new Intl.NumberFormat(locale, {
+              maximumFractionDigits: 2,
+            }).format(metadata.tokensPerSecond),
+          })}
+        </span>
       </div>
     );
   }
@@ -162,7 +146,11 @@ export function AssistantMetadataHover({
           render={
             <div className="flex cursor-default items-center gap-1">
               <HugeiconsIcon className="size-3" icon={CpuIcon} />
-              <span>{formatTokens(metadata.outputTokens)} tokens</span>
+              <span>
+                {t("tokens", {
+                  value: formatCompactTokens(metadata.outputTokens, locale),
+                })}
+              </span>
             </div>
           }
         />
@@ -171,20 +159,26 @@ export function AssistantMetadataHover({
             <div className="flex flex-col gap-0.5 text-xs">
               {typeof metadata.inputTokens === "number" ? (
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Input</span>
-                  <span>{metadata.inputTokens.toLocaleString()}</span>
+                  <span className="text-muted-foreground">
+                    {tCommon("labels.input")}
+                  </span>
+                  <span>{metadata.inputTokens.toLocaleString(locale)}</span>
                 </div>
               ) : null}
               {typeof metadata.outputTokens === "number" ? (
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Output</span>
-                  <span>{metadata.outputTokens.toLocaleString()}</span>
+                  <span className="text-muted-foreground">
+                    {tCommon("labels.output")}
+                  </span>
+                  <span>{metadata.outputTokens.toLocaleString(locale)}</span>
                 </div>
               ) : null}
               {contextWindow !== null ? (
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Context</span>
-                  <span>{formatContextWindow(contextWindow)}</span>
+                  <span className="text-muted-foreground">
+                    {tChatShared("context")}
+                  </span>
+                  <span>{formatCompactTokens(contextWindow, locale)}</span>
                 </div>
               ) : null}
             </div>
@@ -195,10 +189,19 @@ export function AssistantMetadataHover({
   }
 
   if (showAgentStats && typeof metadata.ttftMs === "number") {
+    const ttftSeconds = metadata.ttftMs / 1000;
+    let duration = t("durationSec", { value: Math.round(ttftSeconds) });
+    if (metadata.ttftMs < 1000) {
+      duration = t("durationMs", { value: Math.round(metadata.ttftMs) });
+    } else if (ttftSeconds < 10) {
+      duration = t("durationSec", {
+        value: formatOneDecimal(ttftSeconds, locale),
+      });
+    }
     items.push(
       <div className="flex items-center gap-1" key="ttft">
         <HugeiconsIcon className="size-3" icon={Clock01Icon} />
-        <span>Time to First Token: {formatDuration(metadata.ttftMs)}</span>
+        <span>{t("timeToFirstToken", { duration })}</span>
       </div>
     );
   }

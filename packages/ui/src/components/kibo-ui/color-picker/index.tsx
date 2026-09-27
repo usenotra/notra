@@ -28,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { DEFAULT_COLOR_PICKER_LABELS } from "@notra/ui/constants/kibo-ui-labels";
 import { cn } from "@notra/ui/lib/utils";
+import type { ColorPickerLabels } from "@notra/ui/types/kibo-ui";
 
 type ColorState = {
   hue: number;
@@ -39,6 +41,7 @@ type ColorState = {
 
 type ColorPickerContextValue = ColorState & {
   mode: string;
+  labels: ColorPickerLabels;
   commit: (partial: Partial<ColorState>) => void;
   setHue: (hue: number) => void;
   setSaturation: (saturation: number) => void;
@@ -65,6 +68,7 @@ export type ColorPickerProps = HTMLAttributes<HTMLDivElement> & {
   value?: Parameters<typeof Color>[0];
   defaultValue?: Parameters<typeof Color>[0];
   onChange?: (value: Parameters<typeof Color.rgb>[0]) => void;
+  labels?: Partial<ColorPickerLabels>;
 };
 
 export const ColorPicker = ({
@@ -72,6 +76,7 @@ export const ColorPicker = ({
   defaultValue = "#000000",
   onChange,
   className,
+  labels,
   ...props
 }: ColorPickerProps) => {
   const [initialState] = useState<ColorState>(() => {
@@ -141,6 +146,7 @@ export const ColorPicker = ({
       lightness,
       alpha,
       mode,
+      labels: { ...DEFAULT_COLOR_PICKER_LABELS, ...labels },
       commit,
       setHue: (nextHue: number) => commit({ hue: nextHue }),
       setSaturation: (nextSaturation: number) =>
@@ -150,7 +156,7 @@ export const ColorPicker = ({
       setAlpha: (nextAlpha: number) => commit({ alpha: nextAlpha }),
       setMode,
     }),
-    [hue, saturation, lightness, alpha, mode, commit],
+    [hue, saturation, lightness, alpha, mode, commit, labels],
   );
 
   return (
@@ -169,7 +175,7 @@ export const ColorPickerSelection = memo(
   ({ className, ...props }: ColorPickerSelectionProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const { hue, saturation, lightness, commit } = useColorPicker();
+    const { hue, saturation, lightness, commit, labels } = useColorPicker();
 
     const [, hsvSaturation = 0, hsvValue = 0] = Color.hsl(
       hue,
@@ -265,11 +271,14 @@ export const ColorPickerSelection = memo(
 
     return (
       <div
-        aria-label="Color saturation and lightness"
+        aria-label={labels.selection}
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={Math.round(saturation)}
-        aria-valuetext={`Saturation ${Math.round(saturation)}%, Lightness ${Math.round(lightness)}%`}
+        aria-valuetext={labels.selectionValue(
+          Math.round(saturation),
+          Math.round(lightness),
+        )}
         className={cn(
           "relative size-full cursor-crosshair rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
           className,
@@ -312,7 +321,7 @@ export const ColorPickerHue = ({
   className,
   ...props
 }: ColorPickerHueProps) => {
-  const { hue, setHue } = useColorPicker();
+  const { hue, setHue, labels } = useColorPicker();
 
   return (
     <Slider.Root
@@ -327,7 +336,7 @@ export const ColorPickerHue = ({
         <Slider.Track className="relative my-0.5 h-3 w-full grow rounded-full bg-[linear-gradient(90deg,#FF0000,#FFFF00,#00FF00,#00FFFF,#0000FF,#FF00FF,#FF0000)]">
           <Slider.Indicator className="absolute h-full" />
           <Slider.Thumb
-            aria-label="Hue"
+            aria-label={labels.hue}
             className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring data-disabled:pointer-events-none data-disabled:opacity-50"
           />
         </Slider.Track>
@@ -345,7 +354,8 @@ export const ColorPickerAlpha = ({
   className,
   ...props
 }: ColorPickerAlphaProps) => {
-  const { alpha, setAlpha, hue, saturation, lightness } = useColorPicker();
+  const { alpha, setAlpha, hue, saturation, lightness, labels } =
+    useColorPicker();
 
   return (
     <Slider.Root
@@ -366,7 +376,7 @@ export const ColorPickerAlpha = ({
           />
           <Slider.Indicator className="absolute h-full rounded-full bg-transparent" />
           <Slider.Thumb
-            aria-label="Opacity"
+            aria-label={labels.opacity}
             className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring data-disabled:pointer-events-none data-disabled:opacity-50"
           />
         </Slider.Track>
@@ -382,7 +392,7 @@ export const ColorPickerEyeDropper = ({
   onClick,
   ...props
 }: ColorPickerEyeDropperProps) => {
-  const { commit } = useColorPicker();
+  const { commit, labels } = useColorPicker();
   const isSupported = useSyncExternalStore(
     emptySubscribe,
     () => "EyeDropper" in window,
@@ -409,7 +419,7 @@ export const ColorPickerEyeDropper = ({
 
   return (
     <Button
-      aria-label="Pick a color from the screen"
+      aria-label={labels.eyeDropper}
       className={cn("shrink-0 text-muted-foreground", className)}
       size="icon"
       type="button"
@@ -438,7 +448,7 @@ export const ColorPickerOutput = ({
   className,
   ...props
 }: ColorPickerOutputProps) => {
-  const { mode, setMode } = useColorPicker();
+  const { mode, setMode, labels } = useColorPicker();
 
   return (
     <Select
@@ -453,7 +463,7 @@ export const ColorPickerOutput = ({
         className={cn("h-8 w-20 shrink-0 text-xs", className)}
         {...props}
       >
-        <SelectValue placeholder="Mode" />
+        <SelectValue placeholder={labels.mode} />
       </SelectTrigger>
       <SelectContent>
         {formats.map((format) => (

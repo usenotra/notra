@@ -2,12 +2,9 @@
 
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AGENT_READINESS_PAGE_DESCRIPTION,
-  AGENT_READINESS_PAGE_TITLE,
-} from "@notra/geo-core/constants/agent-readiness";
 import { getAgentReadinessScanErrorMessage } from "@notra/geo-core/utils/agent-readiness";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
@@ -34,6 +31,9 @@ function ReadinessBody({
   isScanPending,
   onRequestScan,
 }: AgentReadinessBodyProps) {
+  const t = useTranslations("geo.pages.agentReadiness");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
   const { report, scan, targetUrl, history } = data;
   const isScanning = isScanPending || scan?.status === "running";
   const previousScore =
@@ -50,24 +50,25 @@ function ReadinessBody({
     return (
       <EmptyState
         actionLabel={
-          scan?.status === "failed" ? "Try again" : "Scan your website"
+          scan?.status === "failed" ? tCommon("tryAgain") : t("scanWebsite")
         }
         description={
-          scan?.status === "failed" ? (
-            scanErrorMessage
-          ) : (
-            <>
-              Check how ready{" "}
-              <strong className="font-semibold wrap-anywhere">
-                {stripWebsiteProtocol(targetUrl)}
-              </strong>{" "}
-              is for AI agents. The scan is public and takes a few minutes.
-            </>
-          )
+          scan?.status === "failed"
+            ? scanErrorMessage
+            : t.rich("emptyDescription", {
+                url: stripWebsiteProtocol(targetUrl),
+                strong: (chunks) => (
+                  <strong className="font-semibold wrap-anywhere">
+                    {chunks}
+                  </strong>
+                ),
+              })
         }
         onActionClick={onRequestScan}
         preview={<EmptyStateReadinessPreview />}
-        title={scan?.status === "failed" ? "Scan failed" : "No scan yet"}
+        title={
+          scan?.status === "failed" ? t("scanFailed") : tGeoShared("noScanYet")
+        }
         titleIcon={
           scan?.status === "failed" ? (
             <HugeiconsIcon
@@ -85,8 +86,7 @@ function ReadinessBody({
     <div className="flex flex-col gap-6">
       {scan?.status === "failed" ? (
         <p className="text-destructive bg-destructive/5 rounded-xl border px-4 py-3 text-sm">
-          The latest rescan failed: {scanErrorMessage} Showing the last
-          completed report.
+          {t("rescanFailed", { message: scanErrorMessage })}
         </p>
       ) : null}
       <AgentReadinessScoreCard
@@ -101,6 +101,9 @@ function ReadinessBody({
 }
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
+  const t = useTranslations("geo.pages.agentReadiness");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -121,17 +124,15 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
         <div className="w-full space-y-6 px-4 lg:px-6">
           <header className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">
-              {AGENT_READINESS_PAGE_TITLE}
+              {tCommon2("labels.agentReadiness")}
             </h1>
-            <p className="text-muted-foreground">
-              {AGENT_READINESS_PAGE_DESCRIPTION}
-            </p>
+            <p className="text-muted-foreground">{t("description")}</p>
           </header>
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
-            description="The scan uses the website from your GEO project. Set up GEO tracking first."
+            description={t("setupDescription")}
             preview={<EmptyStateReadinessPreview />}
-            title="Set up GEO tracking"
+            title={tGeoShared("setUpGeoTracking")}
           />
         </div>
       </PageContainer>
@@ -147,11 +148,9 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">
-            {AGENT_READINESS_PAGE_TITLE}
+            {tCommon2("labels.agentReadiness")}
           </h1>
-          <p className="text-muted-foreground">
-            {AGENT_READINESS_PAGE_DESCRIPTION}
-          </p>
+          <p className="text-muted-foreground">{t("description")}</p>
         </header>
 
         {readinessQuery.data ? (
@@ -162,9 +161,9 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
           />
         ) : (
           <EmptyState
-            description="Agent readiness could not be loaded. Make sure your brand settings include a website URL."
+            description={t("loadFailedDescription")}
             preview={<EmptyStateReadinessPreview />}
-            title="Nothing to show"
+            title={t("nothingToShow")}
           />
         )}
       </div>

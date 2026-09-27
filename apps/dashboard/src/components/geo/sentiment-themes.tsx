@@ -1,8 +1,11 @@
+import { useTranslations } from "next-intl";
+
 import { Button } from "@/components/button";
 import { SentimentResultsTable } from "@/components/geo/sentiment-results-table";
 import { SentimentThemesEmpty } from "@/components/geo/sentiment-themes-empty";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
+import { GEO_SENTIMENT_EMPTY_LABEL_KEYS } from "@/constants/geo-sentiment";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type { SentimentThemesProps } from "@/types/geo-sentiment";
 import { sentimentThemesState } from "@/utils/geo-sentiment";
@@ -12,6 +15,8 @@ export function SentimentThemes({
   summary,
   aggregatePending = false,
 }: SentimentThemesProps) {
+  const t = useTranslations("geo.sentimentThemes");
+  const tGeoShared = useTranslations("geo.shared");
   const { query, isAnalyzing, analyze, mutationError, scopeKey } =
     useGeoSentimentAnalysis(organizationId);
   const state = query.data;
@@ -24,18 +29,32 @@ export function SentimentThemes({
     aggregatePending,
   });
   const themes = state?.result?.themes ?? [];
+  let statusText = "";
+  if (view.statusKey === "finding") {
+    statusText = tGeoShared("findingThemes");
+  } else if (view.statusKey) {
+    statusText = t(`status.${view.statusKey}`);
+  }
+  let message = "";
+  if (view.message?.kind === "text") {
+    message = view.message.text;
+  } else if (view.message?.kind === "key") {
+    message = t(`messages.${view.message.key}`);
+  } else if (view.message?.kind === "empty") {
+    message = tGeoShared(GEO_SENTIMENT_EMPTY_LABEL_KEYS[view.message.key]);
+  }
   const retrying = state?.status === "failed" || mutationError;
   const analyzing = isAnalyzing || state?.status === "pending";
   return (
     <div id="sentiment-themes" className="scroll-mt-24">
       <InstrumentSection
-        eyebrow="Sentiment themes"
+        eyebrow={t("eyebrow")}
         readout={
           (view.pending && !view.showEmpty) ||
           (view.showResults && analyzing) ? (
             <span className="inline-flex items-center gap-2">
               <StatusSpinner />
-              {view.showResults ? "Updating themes…" : view.statusText}
+              {view.showResults ? t("updating") : statusText}
             </span>
           ) : undefined
         }
@@ -45,8 +64,8 @@ export function SentimentThemes({
           view.canAnalyze && view.showResults ? (
             <SentimentThemesEmpty
               inline
-              title={view.title}
-              message={view.message}
+              title={t("noThemesTitle")}
+              message={message}
               canAnalyze={view.canAnalyze}
               retrying={retrying}
               analyze={analyze}
@@ -59,15 +78,15 @@ export function SentimentThemes({
             role="alert"
             className="flex flex-wrap items-center gap-2 text-sm"
           >
-            Could not load analysis.
+            {tGeoShared("couldNotLoadAnalysis")}
             <Button variant="ghost" size="sm" onClick={() => query.refetch()}>
-              Retry analysis lookup
+              {t("retryLookup")}
             </Button>
           </div>
         ) : null}
         {mutationError ? (
           <p role="alert" className="text-sm">
-            Analysis request failed. Try again.
+            {t("requestFailed")}
           </p>
         ) : null}
         {view.showTable ? (
@@ -80,8 +99,8 @@ export function SentimentThemes({
         {view.showEmpty ? (
           <SentimentThemesEmpty
             key={`empty:${scopeKey}`}
-            title={view.title}
-            message={view.message}
+            title={t("noThemesTitle")}
+            message={message}
             canAnalyze={view.canAnalyze}
             analyzing={analyzing}
             retrying={retrying}
@@ -89,7 +108,7 @@ export function SentimentThemes({
           />
         ) : null}
         <p role="status" className="sr-only">
-          {view.statusText}
+          {statusText}
         </p>
       </InstrumentSection>
     </div>

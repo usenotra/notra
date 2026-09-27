@@ -1,17 +1,30 @@
 import {
-  IRIS_CAPABILITY_LABELS,
-  IRIS_RUN_STATUS_LABELS,
-  IRIS_SIGNAL_KIND_LABELS,
-  IRIS_SIGNAL_STATUS_LABELS,
+  IRIS_CAPABILITY_COMMON_LABEL_KEYS,
+  IRIS_CAPABILITY_LABEL_KEYS,
+  IRIS_RUN_STATUS_COMMON_LABEL_KEYS,
+  IRIS_RUN_STATUS_LABEL_KEYS,
+  IRIS_SIGNAL_KIND_COMMON_LABEL_KEYS,
+  IRIS_SIGNAL_KIND_LABEL_KEYS,
+  IRIS_SIGNAL_STATUS_COMMON_LABEL_KEYS,
+  IRIS_SIGNAL_STATUS_LABEL_KEYS,
   IRIS_SLACK_TERMINAL_ERRORS,
-  IRIS_TASK_STATUS_LABELS,
-  IRIS_TRIGGER_LABELS,
+  IRIS_TASK_STATUS_COMMON_LABEL_KEYS,
+  IRIS_TASK_STATUS_LABEL_KEYS,
+  IRIS_TRIGGER_COMMON_LABEL_KEYS,
+  IRIS_TRIGGER_LABEL_KEYS,
 } from "@/constants/iris";
+import type {
+  CommonLabelKey,
+  CommonLabelsTranslator,
+  CommonTranslator,
+} from "@/types/i18n";
 import type {
   IrisDecisionCopy,
   IrisOutboxNotice,
   IrisRunOutboxView,
   IrisRunView,
+  IrisMessageKey,
+  IrisTranslator,
 } from "@/types/iris";
 
 const SEPARATORS = /[.\-_]+/;
@@ -28,68 +41,146 @@ function titleCase(value: string): string {
   return [first.charAt(0).toUpperCase() + first.slice(1), ...rest].join(" ");
 }
 
-export function humanizeIrisCapability(capabilityName: string): string {
-  return IRIS_CAPABILITY_LABELS[capabilityName] ?? titleCase(capabilityName);
+function humanizeIrisLabel(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  value: string,
+  labelKeys: Record<string, IrisMessageKey>,
+  commonLabelKeys: Record<string, CommonLabelKey>
+): string {
+  const commonKey = commonLabelKeys[value];
+  if (commonKey) {
+    return tLabels(commonKey);
+  }
+  const key = labelKeys[value];
+  return key ? t(key) : titleCase(value);
+}
+
+export function humanizeIrisCapability(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  capabilityName: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    capabilityName,
+    IRIS_CAPABILITY_LABEL_KEYS,
+    IRIS_CAPABILITY_COMMON_LABEL_KEYS
+  );
 }
 
 export function humanizeIrisContentType(contentType: string): string {
   return titleCase(contentType);
 }
 
-export function humanizeIrisSignalKind(kind: string): string {
-  return IRIS_SIGNAL_KIND_LABELS[kind] ?? titleCase(kind);
+export function humanizeIrisSignalKind(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  kind: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    kind,
+    IRIS_SIGNAL_KIND_LABEL_KEYS,
+    IRIS_SIGNAL_KIND_COMMON_LABEL_KEYS
+  );
 }
 
-export function humanizeIrisTrigger(trigger: string): string {
-  return IRIS_TRIGGER_LABELS[trigger] ?? titleCase(trigger);
+export function humanizeIrisTrigger(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  trigger: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    trigger,
+    IRIS_TRIGGER_LABEL_KEYS,
+    IRIS_TRIGGER_COMMON_LABEL_KEYS
+  );
 }
 
-export function humanizeIrisRunStatus(status: string): string {
-  return IRIS_RUN_STATUS_LABELS[status] ?? titleCase(status);
+export function humanizeIrisRunStatus(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  status: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    status,
+    IRIS_RUN_STATUS_LABEL_KEYS,
+    IRIS_RUN_STATUS_COMMON_LABEL_KEYS
+  );
 }
 
-export function humanizeIrisTaskStatus(status: string): string {
-  return IRIS_TASK_STATUS_LABELS[status] ?? titleCase(status);
+export function humanizeIrisTaskStatus(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  status: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    status,
+    IRIS_TASK_STATUS_LABEL_KEYS,
+    IRIS_TASK_STATUS_COMMON_LABEL_KEYS
+  );
 }
 
-export function humanizeIrisSignalStatus(status: string): string {
-  return IRIS_SIGNAL_STATUS_LABELS[status] ?? titleCase(status);
+export function humanizeIrisSignalStatus(
+  t: IrisTranslator,
+  tLabels: CommonLabelsTranslator,
+  status: string
+): string {
+  return humanizeIrisLabel(
+    t,
+    tLabels,
+    status,
+    IRIS_SIGNAL_STATUS_LABEL_KEYS,
+    IRIS_SIGNAL_STATUS_COMMON_LABEL_KEYS
+  );
 }
 
 export function formatIrisRelativeTime(
+  t: IrisTranslator,
+  tCommon: CommonTranslator,
   isoDate: string | null,
   now = Date.now()
 ): string {
   if (!isoDate) {
-    return "Never";
+    return tCommon("labels.never");
   }
 
   const elapsed = now - new Date(isoDate).getTime();
   if (Number.isNaN(elapsed)) {
-    return "Never";
+    return tCommon("labels.never");
   }
   if (elapsed < MINUTE_MS) {
-    return "Just now";
+    return tCommon("labels.justNow");
   }
   if (elapsed < HOUR_MS) {
-    return `${Math.floor(elapsed / MINUTE_MS)} min ago`;
+    return t("relativeTime.minutesAgo", {
+      count: Math.floor(elapsed / MINUTE_MS),
+    });
   }
   if (elapsed < DAY_MS) {
-    const hours = Math.floor(elapsed / HOUR_MS);
-    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+    return t("relativeTime.hoursAgo", {
+      count: Math.floor(elapsed / HOUR_MS),
+    });
   }
 
-  const days = Math.floor(elapsed / DAY_MS);
-  return days === 1 ? "1 day ago" : `${days} days ago`;
+  return t("relativeTime.daysAgo", { count: Math.floor(elapsed / DAY_MS) });
 }
 
-function describeSignalCount(count: number): string {
-  return count === 1 ? "1 signal" : `${count} signals`;
-}
-
-export function describeIrisDecision(run: IrisRunView): IrisDecisionCopy {
+export function describeIrisDecision(
+  t: IrisTranslator,
+  run: IrisRunView
+): IrisDecisionCopy {
   if (run.status === "planning") {
-    return { headline: "Iris is thinking it over", detail: run.reason };
+    return { headline: t("decision.thinking"), detail: run.reason };
   }
 
   if (run.decision === "no_op") {
@@ -97,51 +188,52 @@ export function describeIrisDecision(run: IrisRunView): IrisDecisionCopy {
     return {
       headline:
         reviewed > 0
-          ? `Reviewed ${describeSignalCount(reviewed)} and decided to wait`
-          : "Reviewed the latest activity and decided to wait",
+          ? t("decision.reviewedSignals", { count: reviewed })
+          : t("decision.reviewedLatest"),
       detail: run.reason,
     };
   }
 
   if (run.decision === "escalate") {
-    return { headline: "Asked for your input on Slack", detail: run.reason };
+    return { headline: t("decision.escalated"), detail: run.reason };
   }
 
   if (run.decision === "plan") {
     if (run.status === "failed") {
       return {
         headline: run.goal?.title
-          ? `Plan did not finish: ${run.goal.title}`
-          : "The plan did not finish",
+          ? t("decision.planNotFinishedWithTitle", { title: run.goal.title })
+          : t("decision.planNotFinished"),
         detail: run.reason ?? run.goal?.summary ?? null,
       };
     }
     if (run.status === "canceled") {
       return {
         headline: run.goal?.title
-          ? `Run canceled: ${run.goal.title}`
-          : "Run canceled",
+          ? t("decision.runCanceledWithTitle", { title: run.goal.title })
+          : t("decision.runCanceled"),
         detail: run.reason ?? null,
       };
     }
     return {
-      headline: run.goal?.title ?? "Iris put a plan together",
+      headline: run.goal?.title ?? t("decision.planReady"),
       detail: run.reason ?? run.goal?.summary ?? null,
     };
   }
 
   if (run.status === "failed") {
-    return { headline: "Planning failed", detail: run.reason };
+    return { headline: t("decision.planningFailed"), detail: run.reason };
   }
 
   if (run.status === "canceled") {
-    return { headline: "Run canceled", detail: run.reason };
+    return { headline: t("decision.runCanceled"), detail: run.reason };
   }
 
-  return { headline: "Iris is getting to work", detail: run.reason };
+  return { headline: t("decision.gettingToWork"), detail: run.reason };
 }
 
 export function describeIrisOutbox(
+  t: IrisTranslator,
   messages: IrisRunOutboxView[]
 ): IrisOutboxNotice | null {
   const slackMessage = messages.find(
@@ -154,7 +246,7 @@ export function describeIrisOutbox(
   if (slackMessage.status === "delivered") {
     return {
       tone: "info",
-      message: "Reported to Slack",
+      message: t("outbox.delivered"),
       needsSlackFix: false,
     };
   }
@@ -167,14 +259,15 @@ export function describeIrisOutbox(
     if (needsSlackFix) {
       return {
         tone: "warning",
-        message:
-          "Iris could not post to Slack. Pick a notification channel and invite Iris to it.",
+        message: t("outbox.needsSlackFix"),
         needsSlackFix: true,
       };
     }
     return {
       tone: "danger",
-      message: `Slack delivery failed${lastError ? `: ${lastError}` : ""}`,
+      message: lastError
+        ? t("outbox.failedWithError", { error: lastError })
+        : t("outbox.failed"),
       needsSlackFix: false,
     };
   }
@@ -182,14 +275,14 @@ export function describeIrisOutbox(
   if (slackMessage.status === "canceled") {
     return {
       tone: "info",
-      message: "Slack report canceled",
+      message: t("outbox.canceled"),
       needsSlackFix: false,
     };
   }
 
   return {
     tone: "info",
-    message: "Reporting to Slack",
+    message: t("outbox.reporting"),
     needsSlackFix: false,
   };
 }

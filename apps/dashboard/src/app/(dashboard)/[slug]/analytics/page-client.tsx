@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AccountSeriesChartCard } from "@/components/analytics/account-series-chart-card";
@@ -30,6 +31,10 @@ import {
 const REVEAL_DELAY = 120;
 
 export default function PageClient() {
+  const t = useTranslations("analytics.overview");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const {
     organizationId,
     accounts,
@@ -106,9 +111,10 @@ export default function PageClient() {
         visibleKeys,
         engagement?.points ?? [],
         (point) =>
-          (point.likes ?? 0) + (point.replies ?? 0) + (point.reposts ?? 0)
+          (point.likes ?? 0) + (point.replies ?? 0) + (point.reposts ?? 0),
+        locale
       ),
-    [engagementTimeline, visibleKeys, engagement?.points]
+    [engagementTimeline, visibleKeys, engagement?.points, locale]
   );
   const impressionRows = useMemo(
     () =>
@@ -116,9 +122,10 @@ export default function PageClient() {
         impressionsTimeline,
         visibleKeys,
         impressionSeries?.points ?? [],
-        (point) => point.impressions ?? 0
+        (point) => point.impressions ?? 0,
+        locale
       ),
-    [impressionsTimeline, visibleKeys, impressionSeries?.points]
+    [impressionsTimeline, visibleKeys, impressionSeries?.points, locale]
   );
   const postRows = useMemo(
     () =>
@@ -126,22 +133,29 @@ export default function PageClient() {
         volumeTimeline,
         visibleKeys,
         volumeSeries?.points ?? [],
-        (point) => point.posts
+        (point) => point.posts,
+        locale
       ),
-    [volumeTimeline, visibleKeys, volumeSeries?.points]
+    [volumeTimeline, visibleKeys, volumeSeries?.points, locale]
   );
 
+  const markerLabels = useMemo(
+    () => ({ joined: t("joinedNotra"), firstPost: t("firstNotraPost") }),
+    [t]
+  );
   const engagementMarkers = useMemo(
-    () => buildAdoptionMarkers(engagementTimeline, adoption),
-    [engagementTimeline, adoption]
+    () =>
+      buildAdoptionMarkers(engagementTimeline, adoption, markerLabels, locale),
+    [engagementTimeline, adoption, markerLabels, locale]
   );
   const impressionsMarkers = useMemo(
-    () => buildAdoptionMarkers(impressionsTimeline, adoption),
-    [impressionsTimeline, adoption]
+    () =>
+      buildAdoptionMarkers(impressionsTimeline, adoption, markerLabels, locale),
+    [impressionsTimeline, adoption, markerLabels, locale]
   );
   const volumeMarkers = useMemo(
-    () => buildAdoptionMarkers(volumeTimeline, adoption),
-    [volumeTimeline, adoption]
+    () => buildAdoptionMarkers(volumeTimeline, adoption, markerLabels, locale),
+    [volumeTimeline, adoption, markerLabels, locale]
   );
 
   const colorForKey = useCallback(
@@ -156,8 +170,8 @@ export default function PageClient() {
           action={<AnalyticsRangePicker control={engagementRange} />}
           allKeys={allKeys}
           config={accountConfig}
-          description="Likes, replies and reposts across your accounts"
-          emptyMessage="No engagement data for this time frame"
+          description={t("engagementDescription")}
+          emptyMessage={t("engagementEmpty")}
           hero
           hiddenKeys={hiddenKeys}
           kind="area"
@@ -165,7 +179,7 @@ export default function PageClient() {
           markIncompleteTail={engagementRange.includesToday}
           onToggleSeries={toggleAccount}
           rows={engagementRows}
-          title="Engagement"
+          title={tAnalyticsShared("engagement")}
         />
       </InstrumentReveal>
       <InstrumentReveal active={revealed} className="lg:col-span-4" order={1}>
@@ -189,7 +203,7 @@ export default function PageClient() {
           action={<AnalyticsRangePicker control={impressionsRange} />}
           allKeys={allKeys}
           config={accountConfig}
-          emptyMessage="No impression data for this time frame"
+          emptyMessage={t("impressionsEmpty")}
           hero
           hiddenKeys={hiddenKeys}
           kind="area"
@@ -197,7 +211,7 @@ export default function PageClient() {
           markIncompleteTail={impressionsRange.includesToday}
           onToggleSeries={toggleAccount}
           rows={impressionRows}
-          title="Impressions"
+          title={tCommon("labels.impressions")}
         />
       </InstrumentReveal>
       <InstrumentReveal active={revealed} className="lg:col-span-6" order={4}>
@@ -205,14 +219,14 @@ export default function PageClient() {
           action={<AnalyticsRangePicker control={volumeRange} />}
           allKeys={allKeys}
           config={accountConfig}
-          emptyMessage="No posts for this time frame"
+          emptyMessage={tAnalyticsShared("noPostsForThisTime")}
           hiddenKeys={hiddenKeys}
           kind="bar"
           markers={volumeMarkers}
           markIncompleteTail={volumeRange.includesToday}
           onToggleSeries={toggleAccount}
           rows={postRows}
-          title="Publishing volume"
+          title={t("volume")}
         />
       </InstrumentReveal>
       <InstrumentReveal active={revealed} className="lg:col-span-6" order={5}>

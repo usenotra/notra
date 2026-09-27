@@ -3,6 +3,7 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { ConnectGitHubDialog } from "@/components/integrations/github/connect-github-dialog";
@@ -17,6 +18,8 @@ import type { GitHubSettingsPageProps } from "@/types/integrations/github-settin
 export default function PageClient({
   organizationSlug,
 }: GitHubSettingsPageProps) {
+  const t = useTranslations("integrations.github.page");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const settings = useGitHubSettings(organizationSlug);
   const {
     githubIntegrations,
@@ -46,7 +49,9 @@ export default function PageClient({
               }
             >
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              {isConnected ? "Add repositories" : "Connect GitHub"}
+              {isConnected
+                ? t("addRepositories")
+                : tIntegrationsShared("connectGithub")}
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           ) : null}
@@ -69,7 +74,7 @@ export default function PageClient({
         }
         error={
           settings.catalogQuery.isError && !settings.catalogQuery.data
-            ? "Unable to load repositories from GitHub."
+            ? tIntegrationsShared("unableToLoadRepositoriesFrom")
             : undefined
         }
         onRetry={() => settings.catalogQuery.refetch()}

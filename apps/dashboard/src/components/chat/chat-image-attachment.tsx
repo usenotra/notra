@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChatImageAttachmentProps } from "@notra/ai/types/chat";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -12,6 +13,8 @@ export function ChatImageAttachment({
   mediaType,
   onClick,
 }: ChatImageAttachmentProps) {
+  const t = useTranslations("chat.attachments");
+  const tCommon = useTranslations("common");
   const [hasError, setHasError] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -19,7 +22,9 @@ export function ChatImageAttachment({
     return (
       <div className="border-border bg-muted/40 text-muted-foreground my-1 inline-flex max-w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs">
         <span className="truncate">
-          {filename ?? mediaType ?? "Attachment"} is unavailable
+          {t("unavailable", {
+            name: filename ?? mediaType ?? tCommon("labels.attachment"),
+          })}
         </span>
       </div>
     );
@@ -32,7 +37,7 @@ export function ChatImageAttachment({
       type="button"
     >
       <Image
-        alt={filename ?? "attachment"}
+        alt={filename ?? t("fallbackAlt")}
         className={cn(
           "duration-slow block h-auto max-h-72 w-auto max-w-full transition-opacity motion-reduce:transition-none",
           hasLoaded ? "opacity-100" : "opacity-0"

@@ -19,6 +19,7 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
 import type { SessionUser } from "@/types/auth/session";
 import type {
@@ -52,6 +53,7 @@ export async function updateUserAction(
         image: string | null;
         hidePersonalData: boolean;
         showAgentStats: boolean;
+        locale: string;
       }> = {};
 
       if (input.name !== undefined) {
@@ -66,6 +68,9 @@ export async function updateUserAction(
       if (input.showAgentStats !== undefined) {
         updates.showAgentStats = input.showAgentStats;
       }
+      if (input.locale !== undefined) {
+        updates.locale = input.locale;
+      }
 
       const [updated] = yield* tryAction(
         () =>
@@ -79,7 +84,11 @@ export async function updateUserAction(
 
       if (!updated) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "User not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.userNotFound"
+            ),
+          })
         );
       }
 

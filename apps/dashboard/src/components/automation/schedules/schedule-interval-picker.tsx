@@ -9,6 +9,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { ScheduleIntervalPickerProps } from "@/types/automation/schedule";
@@ -26,6 +27,7 @@ export function ScheduleIntervalPicker({
   intervalDays,
   onIntervalDaysChange,
 }: ScheduleIntervalPickerProps) {
+  const t = useTranslations("automation.schedules.interval");
   const [draft, setDraft] = useState(
     intervalDays === undefined ? "" : String(intervalDays)
   );
@@ -53,7 +55,7 @@ export function ScheduleIntervalPicker({
   return (
     <div className="space-y-2">
       <Label className="text-muted-foreground text-xs" htmlFor="interval-days">
-        Repeat every
+        {t("repeatEvery")}
       </Label>
       <div className="flex items-center gap-2">
         <div
@@ -65,7 +67,7 @@ export function ScheduleIntervalPicker({
           )}
         >
           <button
-            aria-label="Fewer days"
+            aria-label={t("fewer")}
             className="text-muted-foreground hover:text-foreground disabled:text-muted-foreground/40 flex size-10 items-center justify-center rounded-l-lg transition-colors disabled:cursor-not-allowed"
             disabled={!canDecrement}
             onClick={() => {
@@ -94,7 +96,7 @@ export function ScheduleIntervalPicker({
             value={draft}
           />
           <button
-            aria-label="More days"
+            aria-label={t("more")}
             className="text-muted-foreground hover:text-foreground disabled:text-muted-foreground/40 flex size-10 items-center justify-center rounded-r-lg transition-colors disabled:cursor-not-allowed"
             disabled={!canIncrement}
             onClick={() => {
@@ -107,12 +109,14 @@ export function ScheduleIntervalPicker({
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
           </button>
         </div>
-        <span className="text-muted-foreground text-sm">days</span>
+        <span className="text-muted-foreground text-sm">{t("days")}</span>
       </div>
       {isInvalid ? (
         <p className="text-destructive text-xs">
-          Pick between {CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS} and{" "}
-          {CUSTOM_SCHEDULE_MAX_INTERVAL_DAYS} days.
+          {t("invalid", {
+            min: CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS,
+            max: CUSTOM_SCHEDULE_MAX_INTERVAL_DAYS,
+          })}
         </p>
       ) : null}
     </div>

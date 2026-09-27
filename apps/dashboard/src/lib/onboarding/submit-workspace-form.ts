@@ -33,7 +33,7 @@ async function setOrganizationLogo(organizationId: string, logoUrl: string) {
   });
 
   if (result.error) {
-    throw new Error(result.error.message ?? "Failed to set workspace logo");
+    throw new Error(result.error.message);
   }
 }
 
@@ -61,9 +61,7 @@ export async function submitWorkspaceForm({
   const parsed = onboardingWorkspaceSchema.safeParse(value);
 
   if (!parsed.success) {
-    throw new Error(
-      parsed.error.issues[0]?.message ?? "Please check your inputs"
-    );
+    throw new Error(parsed.error.issues[0]?.message);
   }
 
   let organizationId: string;
@@ -83,7 +81,7 @@ export async function submitWorkspaceForm({
     });
 
     if (error || !data) {
-      throw new Error(error?.message ?? "Failed to create workspace");
+      throw new Error(error?.message);
     }
 
     organizationId = data.id;

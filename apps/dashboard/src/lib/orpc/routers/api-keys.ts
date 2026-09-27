@@ -9,6 +9,7 @@ import type {
   KeyResponseData,
   V2ApisListKeysResponseBody,
 } from "@unkey/api/models/components";
+import { getTranslations } from "next-intl/server";
 
 import { API_KEY_EXPIRATION_MS } from "@/constants/api-keys";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -54,14 +55,11 @@ function inferExpirationOption(createdAt: number, expires: number | null) {
   return "90d" as const;
 }
 
-function requireUnkeyConfig() {
-  if (!unkey) {
-    throw serviceUnavailable("API key service is not configured");
-  }
-
+async function requireUnkeyConfig() {
   const apiId = process.env.UNKEY_API_ID;
-  if (!apiId) {
-    throw serviceUnavailable("API key service is not configured");
+  if (!(unkey && apiId)) {
+    const tErrors = await getTranslations("common.errors");
+    throw serviceUnavailable(tErrors("generic"));
   }
 
   return {
@@ -122,7 +120,7 @@ export const apiKeysRouter = {
         user: context.user,
       });
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
       const keysData = await listOrganizationKeys(
         client,
         apiId,
@@ -165,7 +163,7 @@ export const apiKeysRouter = {
       });
       await assertActiveSubscription(input.organizationId);
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
       const expiresMs = API_KEY_EXPIRATION_MS[input.expiration];
       const expires = expiresMs ? Date.now() + expiresMs : undefined;
       const permissions = getApiKeyPermissionsForAccessMode(
@@ -223,10 +221,12 @@ export const apiKeysRouter = {
       });
       await assertActiveSubscription(input.organizationId);
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
 
       if (input.payload.keyId !== input.keyIdParam) {
-        throw badRequest("Key ID mismatch");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
 
       const key = await findOrganizationKey(
@@ -312,10 +312,12 @@ export const apiKeysRouter = {
         user: context.user,
       });
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
 
       if (input.payload.keyId !== input.keyIdParam) {
-        throw badRequest("Key ID mismatch");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
 
       const key = await findOrganizationKey(

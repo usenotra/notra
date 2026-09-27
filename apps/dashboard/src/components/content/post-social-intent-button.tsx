@@ -2,6 +2,7 @@
 
 import { Linkedin } from "@notra/ui/components/ui/svgs/linkedin";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { LINKEDIN_BRAND_PRIMARY } from "@/constants/linkedin";
@@ -19,6 +20,7 @@ export function PostSocialIntentButton({
   content,
   className,
 }: PostSocialIntentButtonProps) {
+  const t = useTranslations("content.postSocial");
   const label = SOCIAL_PLATFORM_LABELS[platform];
   const isTwitter = platform === "twitter";
   const BrandIcon = isTwitter ? XTwitter : Linkedin;
@@ -40,7 +42,7 @@ export function PostSocialIntentButton({
             target="_blank"
           >
             <BrandIcon className="size-4" />
-            Post to {label}
+            {t("postTo", { platform: label })}
           </a>
         ) : (
           <a
@@ -50,7 +52,7 @@ export function PostSocialIntentButton({
             target="_blank"
           >
             <BrandIcon className="size-4" />
-            Post to {label}
+            {t("postTo", { platform: label })}
           </a>
         )
       }

@@ -10,6 +10,7 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -28,12 +29,14 @@ export function RepositoryMultiSelect({
   onChange,
   isLoading = false,
   disabled = false,
-  placeholder = "Search repositories...",
+  placeholder,
   accounts,
   selectedAccountId,
   onSelectAccount,
   onAddAccount,
 }: RepositoryMultiSelectProps) {
+  const t = useTranslations("integrations.github.multiSelect");
+  const tCommon = useTranslations("common");
   const showAccountSelect = !!accounts && accounts.length > 0;
   const [query, setQuery] = useState("");
 
@@ -102,11 +105,11 @@ export function RepositoryMultiSelect({
             icon={Search01Icon}
           />
           <Input
-            aria-label="Search repositories"
+            aria-label={tCommon("labels.searchRepositories")}
             className="h-9 pl-9"
             disabled={disabled}
             onChange={(event) => setQuery(event.currentTarget.value)}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t("searchPlaceholder")}
             value={query}
           />
         </div>
@@ -146,7 +149,11 @@ export function RepositoryMultiSelect({
                   </div>
 
                   <Button
-                    aria-label={`${selected ? "Selected" : "Select"}: ${repo.fullName}`}
+                    aria-label={
+                      selected
+                        ? t("selectedAriaLabel", { repository: repo.fullName })
+                        : t("selectAriaLabel", { repository: repo.fullName })
+                    }
                     aria-pressed={selected}
                     className="min-w-20 shrink-0 gap-1.5"
                     disabled={disabled}
@@ -158,14 +165,16 @@ export function RepositoryMultiSelect({
                     {selected ? (
                       <HugeiconsIcon className="size-3.5" icon={Tick02Icon} />
                     ) : null}
-                    {selected ? "Selected" : "Select"}
+                    {selected
+                      ? tCommon("labels.selected")
+                      : tCommon("actions.select")}
                   </Button>
                 </div>
               );
             })
           ) : (
             <div className="text-muted-foreground px-3 py-8 text-center text-sm">
-              No repositories found.
+              {tCommon("labels.noRepositoriesFound")}
             </div>
           )}
         </div>
@@ -173,8 +182,7 @@ export function RepositoryMultiSelect({
 
       {repositories.length > MAX_VISIBLE_REPOSITORIES ? (
         <p className="text-muted-foreground text-xs">
-          Showing up to {MAX_VISIBLE_REPOSITORIES} repositories. Search to
-          narrow the list.
+          {t("limitNotice", { max: MAX_VISIBLE_REPOSITORIES })}
         </p>
       ) : null}
     </div>

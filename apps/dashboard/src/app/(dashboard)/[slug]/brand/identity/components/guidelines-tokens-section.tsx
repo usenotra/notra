@@ -2,10 +2,10 @@
 
 import { DashboardSquare01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
-import { TOKEN_TYPE_LABELS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesTokensSectionProps } from "@/types/brand-identity";
 import type { BrandGuidelineToken } from "@/types/hooks/brand-guidelines";
 import { groupTokensByType } from "@/utils/brand-guideline-display";
@@ -17,6 +17,8 @@ export function GuidelinesTokensSection({
   organizationId,
   voiceId,
 }: GuidelinesTokensSectionProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon = useTranslations("common");
   const [editing, setEditing] = useState<BrandGuidelineToken | null>(null);
 
   if (tokens.length === 0) {
@@ -32,7 +34,7 @@ export function GuidelinesTokensSection({
           className="text-muted-foreground size-4"
           icon={DashboardSquare01Icon}
         />
-        <h2 className="text-sm font-semibold">UI Tokens</h2>
+        <h2 className="text-sm font-semibold">{t("tokens.title")}</h2>
         <span className="text-muted-foreground text-xs tabular-nums">
           {tokens.length}
         </span>
@@ -42,7 +44,9 @@ export function GuidelinesTokensSection({
         {groups.map((group) => (
           <div className="space-y-2" key={group.type}>
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              {TOKEN_TYPE_LABELS[group.type]}
+              {group.type === "unknown"
+                ? tCommon("labels.other")
+                : t(`tokenTypes.${group.type}`)}
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {group.tokens.map((token) => (
@@ -60,7 +64,9 @@ export function GuidelinesTokensSection({
                     {token.value}
                   </span>
                   <Button
-                    aria-label={`Edit ${token.name}`}
+                    aria-label={tCommon("labels.editName", {
+                      name: token.name,
+                    })}
                     className="shrink-0"
                     onClick={() => setEditing(token)}
                     size="icon-xs"

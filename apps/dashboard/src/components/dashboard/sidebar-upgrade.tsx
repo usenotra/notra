@@ -4,6 +4,7 @@ import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { useListPlans } from "autumn-js/react";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +25,8 @@ import {
 } from "@/utils/sidebar-upgrade";
 
 export function SidebarUpgrade() {
+  const t = useTranslations("nav.upgrade");
+  const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const { openSettings } = useSettingsModal();
   const orgId = activeOrganization?.id ?? "";
@@ -61,11 +64,15 @@ export function SidebarUpgrade() {
   const targetGroup = nextPlanGroup(groupBillingPlans(plans), activePlanId);
   const targetPlan = targetGroup?.monthly ?? targetGroup?.annual ?? null;
 
-  const { buttonLabel, description, heading } = sidebarUpgradeCopy({
-    hasNoPlan,
-    isLoading: loading,
-    planName: targetGroup?.name,
-  });
+  const { buttonLabel, description, heading } = sidebarUpgradeCopy(
+    {
+      hasNoPlan,
+      isLoading: loading,
+      planName: targetGroup?.name,
+    },
+    t,
+    tCommon
+  );
 
   const isVisible =
     !customerLoading &&
@@ -139,7 +146,7 @@ export function SidebarUpgrade() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not update billing. Please try again."
+          : tCommon("messages.couldNotUpdateBillingPlease")
       );
       return;
     }

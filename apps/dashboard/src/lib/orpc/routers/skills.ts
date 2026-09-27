@@ -11,6 +11,7 @@ import {
 } from "@notra/schemas/dashboard/skills";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { getTranslations } from "next-intl/server";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
@@ -115,7 +116,8 @@ export const skillsRouter = {
       });
 
       if (existing) {
-        throw conflict(`A skill named "${input.payload.name}" already exists`);
+        const tErrors = await getTranslations("errors.skills");
+        throw conflict(tErrors("nameTaken", { name: input.payload.name }));
       }
 
       const [created] = await db
@@ -171,7 +173,8 @@ export const skillsRouter = {
       const isRename = nextName !== input.name;
 
       if (isRename && row.isSystem) {
-        throw forbidden("System skills cannot be renamed");
+        const tErrors = await getTranslations("errors.skills");
+        throw forbidden(tErrors("systemSkillRename"));
       }
 
       if (isRename) {
@@ -184,7 +187,8 @@ export const skillsRouter = {
         });
 
         if (conflictRow) {
-          throw conflict(`A skill named "${nextName}" already exists`);
+          const tErrors = await getTranslations("errors.skills");
+          throw conflict(tErrors("nameTaken", { name: nextName }));
         }
       }
 
@@ -240,7 +244,8 @@ export const skillsRouter = {
       }
 
       if (row.isSystem) {
-        throw forbidden("System skills cannot be deleted");
+        const tErrors = await getTranslations("errors.skills");
+        throw forbidden(tErrors("systemSkillDelete"));
       }
 
       await db
@@ -272,11 +277,13 @@ export const skillsRouter = {
         pathname = sourceUrl.pathname.replace(/^\/+|\/+$/g, "");
         sourceHost = sourceUrl.hostname;
       } catch {
-        throw badRequest("Invalid URL");
+        const tErrors = await getTranslations("errors.skills");
+        throw badRequest(tErrors("invalidUrl"));
       }
 
       if (!pathname) {
-        throw badRequest("URL must point to a specific skill");
+        const tErrors = await getTranslations("errors.skills");
+        throw badRequest(tErrors("urlNotSkill"));
       }
 
       const apiKey = process.env.SKILLS_SH_API_KEY;
@@ -290,10 +297,9 @@ export const skillsRouter = {
         response = await fetch(`${SKILLS_SH_API_BASE}/${pathname}`, {
           headers,
         });
-      } catch (error) {
-        throw serviceUnavailable(
-          `Failed to reach skills.sh: ${(error as Error).message}`
-        );
+      } catch {
+        const tErrors = await getTranslations("errors.skills");
+        throw serviceUnavailable(tErrors("skillsShUnavailable"));
       }
 
       if (response.status === 404) {
@@ -301,15 +307,15 @@ export const skillsRouter = {
       }
 
       if (!response.ok) {
-        throw serviceUnavailable(
-          `skills.sh returned ${response.status} ${response.statusText}`
-        );
+        const tErrors = await getTranslations("errors.skills");
+        throw serviceUnavailable(tErrors("skillsShUnavailable"));
       }
 
       const data = (await response.json()) as SkillsShSkill;
       const file = pickPrimarySkillFile(data.files ?? []);
       if (!file) {
-        throw badRequest("Skill has no importable files");
+        const tErrors = await getTranslations("errors.skills");
+        throw badRequest(tErrors("noImportableFiles"));
       }
 
       const parsed = parseSkillFrontmatter(file.contents);

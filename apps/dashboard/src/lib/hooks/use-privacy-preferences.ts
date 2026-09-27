@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth/client";
@@ -13,13 +14,14 @@ function usePrivacyField(field: PrivacyField): {
   isUpdating: boolean;
   setValue: (value: boolean) => void;
 } {
+  const t = useTranslations("settings.toasts");
   const { data: session, isPending, refetch } = authClient.useSession();
 
   const mutation = useMutation({
     mutationFn: async (value: boolean) => {
       const { error } = await authClient.updateUser({ [field]: value });
       if (error) {
-        throw new Error(error.message ?? "Failed to update preference");
+        throw new Error(error.message ?? t("updatePreferenceFailed"));
       }
       await refetch();
       return value;
@@ -28,7 +30,7 @@ function usePrivacyField(field: PrivacyField): {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to update preference. Please try again."
+          : t("updatePreferenceFailedRetry")
       );
     },
   });

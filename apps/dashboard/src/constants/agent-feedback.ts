@@ -30,30 +30,13 @@ export const AGENT_FEEDBACK_PACKAGE = "@usenotra/geo";
 export const AGENT_FEEDBACK_PACKAGE_ENTRY = `${AGENT_FEEDBACK_PACKAGE}/feedback`;
 export const AGENT_FEEDBACK_STATUS_FILTERS: {
   value: AgentFeedbackStatusFilter;
-  label: string;
 }[] = [
-  { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "triaged", label: "Triaged" },
-  { value: "resolved", label: "Resolved" },
-  { value: "archived", label: "Archived" },
+  { value: "all" },
+  { value: "new" },
+  { value: "triaged" },
+  { value: "resolved" },
+  { value: "archived" },
 ];
-
-export const AGENT_FEEDBACK_STATUS_LABELS: Record<AgentFeedbackStatus, string> =
-  {
-    new: "New",
-    triaged: "Triaged",
-    resolved: "Resolved",
-    archived: "Archived",
-  };
-
-export const AGENT_FEEDBACK_KIND_LABELS: Record<AgentFeedbackKind, string> = {
-  bug: "Bug",
-  feature: "Feature",
-  praise: "Praise",
-  question: "Question",
-  other: "Other",
-};
 
 export const AGENT_FEEDBACK_KIND_ICONS: Record<
   AgentFeedbackKind,
@@ -64,15 +47,6 @@ export const AGENT_FEEDBACK_KIND_ICONS: Record<
   praise: ThumbsUpIcon,
   question: HelpCircleIcon,
   other: MoreHorizontalCircle01Icon,
-};
-
-export const AGENT_FEEDBACK_SENTIMENT_LABELS: Record<
-  AgentFeedbackSentiment,
-  string
-> = {
-  negative: "Negative",
-  neutral: "Neutral",
-  positive: "Positive",
 };
 
 export const AGENT_FEEDBACK_SENTIMENT_ICONS: Record<
@@ -89,12 +63,11 @@ export const AGENT_FEEDBACK_DEFAULT_SNIPPET_TAB: AgentFeedbackSnippetKey =
 
 export const AGENT_FEEDBACK_SNIPPET_TABS: {
   value: AgentFeedbackSnippetKey;
-  label: string;
   filename: string;
 }[] = [
-  { value: "mcp", label: "SDK", filename: "server.ts" },
-  { value: "fetch", label: "No SDK", filename: "server.ts" },
-  { value: "curl", label: "curl", filename: "terminal" },
+  { value: "mcp", filename: "server.ts" },
+  { value: "fetch", filename: "server.ts" },
+  { value: "curl", filename: "terminal" },
 ];
 
 export const AGENT_FEEDBACK_SNIPPET_FILENAMES: Record<

@@ -1,5 +1,6 @@
 export function firstFieldErrorMessage(
-  errors: readonly unknown[]
+  errors: readonly unknown[],
+  fallback: string
 ): string | null {
   const [error] = errors;
   if (!error) {
@@ -8,8 +9,12 @@ export function firstFieldErrorMessage(
   if (typeof error === "string") {
     return error;
   }
-  if (typeof error === "object" && "message" in error) {
-    return typeof error.message === "string" ? error.message : "Invalid value";
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
   }
-  return "Invalid value";
+  return fallback;
 }

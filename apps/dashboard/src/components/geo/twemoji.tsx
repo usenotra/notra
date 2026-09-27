@@ -1,3 +1,4 @@
+import { useLocale } from "next-intl";
 import Image from "next/image";
 
 import { TWEMOJI_FLAG_BASE, TWEMOJI_FLAG_SIZE } from "@/constants/country";
@@ -27,6 +28,7 @@ export function Twemoji({ emoji, label, className }: TwemojiProps) {
 }
 
 export function CountryFlag({ code, className }: CountryFlagProps) {
+  const locale = useLocale();
   const codePoints = countryFlagCodePoints(code);
   if (!codePoints) {
     return null;
@@ -34,7 +36,7 @@ export function CountryFlag({ code, className }: CountryFlagProps) {
 
   return (
     <Image
-      alt={countryName(code)}
+      alt={countryName(code, locale)}
       className={className}
       height={TWEMOJI_FLAG_SIZE}
       src={`${TWEMOJI_FLAG_BASE}/${codePoints}.svg`}

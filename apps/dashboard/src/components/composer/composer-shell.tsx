@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
@@ -112,6 +113,8 @@ function ComposerChip({
   className,
   labelClassName,
 }: ComposerChipProps) {
+  const t = useTranslations("composer");
+  const tCommon = useTranslations("common");
   const labelClasses = cn("max-w-[12rem] truncate", labelClassName);
 
   return (
@@ -125,7 +128,7 @@ function ComposerChip({
     >
       {onClick ? (
         <button
-          aria-label={`Preview ${label}`}
+          aria-label={t("preview", { label })}
           className="hover:text-foreground flex min-w-0 items-center gap-1.5 rounded-sm text-left transition-colors"
           onClick={onClick}
           type="button"
@@ -145,7 +148,7 @@ function ComposerChip({
       )}
       {onSteer && !pending ? (
         <button
-          aria-label={steerLabel ?? `Steer with ${label}`}
+          aria-label={steerLabel ?? t("steerWith", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onSteer}
           type="button"
@@ -155,7 +158,7 @@ function ComposerChip({
       ) : null}
       {onEdit && !pending ? (
         <button
-          aria-label={editLabel ?? `Edit ${label}`}
+          aria-label={editLabel ?? tCommon("labels.editLabel", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onEdit}
           type="button"
@@ -165,7 +168,7 @@ function ComposerChip({
       ) : null}
       {onRemove ? (
         <button
-          aria-label={removeLabel ?? `Remove ${label}`}
+          aria-label={removeLabel ?? tCommon("labels.removeLabel", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onRemove}
           type="button"

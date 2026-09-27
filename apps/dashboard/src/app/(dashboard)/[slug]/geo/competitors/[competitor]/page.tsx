@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { CompetitorDetailView } from "@/components/geo/competitor-detail-view";
@@ -6,9 +7,10 @@ import { PageContainer } from "@/components/layout/container";
 
 import { CompetitorDetailSkeleton } from "../skeleton";
 
-export const metadata: Metadata = {
-  title: "Competitor",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tGeoShared = await getTranslations("geo.shared");
+  return { title: tGeoShared("competitor") };
+}
 
 export const instant = true;
 

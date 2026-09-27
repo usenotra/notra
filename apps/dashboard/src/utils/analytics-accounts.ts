@@ -106,7 +106,8 @@ export function buildAccountIdentity(
 
 export function buildAccountEngagementPoints(
   points: readonly EngagementTimeseriesPoint[],
-  identity: AccountIdentity | null
+  identity: AccountIdentity | null,
+  locale: string
 ): AccountEngagementPoint[] {
   if (!identity) {
     return [];
@@ -125,7 +126,10 @@ export function buildAccountEngagementPoints(
   }
   return [...totals.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([day, engagement]) => ({ day: formatDayLabel(day), engagement }));
+    .map(([day, engagement]) => ({
+      day: formatDayLabel(day, locale),
+      engagement,
+    }));
 }
 
 export function postsForAccount(

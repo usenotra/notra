@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import PageClient from "./page-client";
 import { GeoGapsSkeleton } from "./skeleton";
 
-export const metadata: Metadata = {
-  title: "GEO Content Gaps",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("geo.pages.gaps");
+  return { title: t("metaTitle") };
+}
 
 export const instant = true;
 

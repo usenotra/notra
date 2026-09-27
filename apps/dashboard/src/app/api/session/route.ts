@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       role: data.user.role,
       hidePersonalData: data.user.hidePersonalData,
       showAgentStats: data.user.showAgentStats,
+      locale: data.user.locale,
       createdAt: data.user.createdAt,
     },
   };

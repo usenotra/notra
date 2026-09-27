@@ -10,7 +10,3 @@ export function dragEventHasFiles(event: DragEvent): boolean {
   }
   return false;
 }
-
-export function getUnsupportedAttachmentMessage(modelLabel: string) {
-  return `${modelLabel} only supports image and PDF attachments. Remove text files or choose a Claude model.`;
-}

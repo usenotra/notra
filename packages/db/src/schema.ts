@@ -93,6 +93,7 @@ export const users = pgTable("users", {
   banExpires: timestamp("ban_expires"),
   hidePersonalData: boolean("hide_personal_data").default(false).notNull(),
   showAgentStats: boolean("show_agent_stats").default(false).notNull(),
+  locale: text("locale").default("en").notNull(),
   workosUserId: text("workos_user_id").unique(),
 });
 

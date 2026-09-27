@@ -1,8 +1,11 @@
 "use client";
 
+import type { GeoCompetitor } from "@notra/geo-core/types/geo";
+import { useTranslations } from "next-intl";
+
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import type { WriteCompetitorChoicesProps } from "@/types/components/geo-writer";
-import { writerCompetitorDetail } from "@/utils/geo-writer";
+import { isWriterCompetitorMentioned } from "@/utils/geo-writer";
 
 import { WriteOptionCard } from "./write-option-card";
 
@@ -13,6 +16,16 @@ export function WriteCompetitorChoices({
   onChange,
   children,
 }: WriteCompetitorChoicesProps) {
+  const t = useTranslations("geo.writer.writeCompetitorChoices");
+  const tGeoShared = useTranslations("geo.shared");
+  const competitorDetail = (competitor: GeoCompetitor) => {
+    const detail = isWriterCompetitorMentioned(competitor, mentionedCompetitors)
+      ? t("mentioned")
+      : tGeoShared("tracked");
+    return competitor.domain
+      ? t("withDomain", { detail, domain: competitor.domain })
+      : detail;
+  };
   const allSelected =
     competitors.length > 0 && selectedIds.length === competitors.length;
   const selected = new Set(selectedIds);
@@ -32,24 +45,20 @@ export function WriteCompetitorChoices({
             }
             type="button"
           >
-            {allSelected ? "Clear all" : "Select all"}
+            {allSelected ? t("clearAll") : tGeoShared("selectAll")}
           </button>
         ) : null}
       </div>
       {competitors.length === 0 ? (
         <p className="border-border text-muted-foreground rounded-lg border border-dashed px-3 py-2.5 text-sm">
-          No competitors tracked yet. Add them in GEO settings to mention
-          alternatives.
+          {t("empty")}
         </p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {competitors.map((competitor) => (
             <WriteOptionCard
               compact
-              description={writerCompetitorDetail(
-                competitor,
-                mentionedCompetitors
-              )}
+              description={competitorDetail(competitor)}
               icon={
                 <CompetitorLogo
                   className="size-5"

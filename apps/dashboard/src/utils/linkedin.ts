@@ -2,6 +2,7 @@ import { toast } from "sonner";
 
 import type { LinkedInPostAuthor } from "@/types/content/linkedin-post";
 import type { ConnectedAccount } from "@/types/hooks/connected-accounts";
+import { commonToastMessage } from "@/utils/toast-message";
 
 const LINKEDIN_FEED_URL = "https://www.linkedin.com/feed/";
 
@@ -40,10 +41,10 @@ export async function copyLinkedInPostToClipboard(text: string) {
 export function copyLinkedInPostForPublishing(text: string) {
   copyLinkedInPostToClipboard(text).then((copied) => {
     if (copied) {
-      toast.success("Copied post to clipboard");
+      toast.success(commonToastMessage("linkedinPostCopied"));
       return;
     }
 
-    toast.error("Could not copy post. Copy it manually before posting.");
+    toast.error(commonToastMessage("linkedinPostCopyFailed"));
   });
 }

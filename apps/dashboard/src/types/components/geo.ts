@@ -30,6 +30,14 @@ export interface SuggestionColumnsOptions {
   onAccept: (suggestionId: string) => void;
   onDismiss: (suggestion: GeoPromptSuggestion) => void;
   onOpen: (suggestion: GeoPromptSuggestion) => void;
+  locale: string;
+  labels: {
+    prompt: string;
+    impressions: string;
+    clicks: string;
+    position: string;
+    openDetails: (prompt: string) => string;
+  };
 }
 
 export interface SearchConsoleToolbarProps {

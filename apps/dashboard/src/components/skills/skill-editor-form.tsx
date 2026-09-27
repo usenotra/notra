@@ -13,6 +13,7 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 
 import { DiffView } from "@/components/content/diff-view";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
@@ -34,11 +35,13 @@ export function SkillEditorForm({
   onDescriptionChange,
   onContentChange,
 }: SkillEditorFormProps) {
+  const t = useTranslations("skills.editor");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-8">
       <div className="max-w-2xl space-y-5">
         <Field>
-          <FieldLabel>Name</FieldLabel>
+          <FieldLabel>{tCommon("labels.name")}</FieldLabel>
           <Input
             className="max-w-md font-mono"
             disabled={isSystem || savePending}
@@ -47,19 +50,14 @@ export function SkillEditorForm({
             value={nameInput}
           />
           {isSystem ? (
-            <FieldDescription>
-              System skills keep a fixed name.
-            </FieldDescription>
+            <FieldDescription>{t("systemNameHint")}</FieldDescription>
           ) : (
-            <FieldDescription>
-              Lowercase letters, digits, and hyphens. Renaming may affect
-              references to this skill by name.
-            </FieldDescription>
+            <FieldDescription>{t("nameHint")}</FieldDescription>
           )}
         </Field>
         <Field>
           <FieldLabel>
-            Description
+            {tCommon("labels.description")}
             <span className="text-destructive">*</span>
           </FieldLabel>
           <Textarea
@@ -79,12 +77,16 @@ export function SkillEditorForm({
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <FieldLabel>
-              Content
+              {tCommon("labels.contentSingular")}
               <span className="text-destructive">*</span>
             </FieldLabel>
             <TabsList variant="line">
-              <TabsTrigger value={SKILL_EDITOR_VIEWS[0]}>Edit</TabsTrigger>
-              <TabsTrigger value={SKILL_EDITOR_VIEWS[1]}>Diff</TabsTrigger>
+              <TabsTrigger value={SKILL_EDITOR_VIEWS[0]}>
+                {tCommon("actions.edit")}
+              </TabsTrigger>
+              <TabsTrigger value={SKILL_EDITOR_VIEWS[1]}>
+                {t("tabs.diff")}
+              </TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="edit">

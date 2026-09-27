@@ -3,24 +3,12 @@ import { ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES } from "@notra/schemas/constants/d
 import { slugSchema } from "@notra/schemas/dashboard/organization";
 import type { OnboardingHeardAboutNotraSource } from "@notra/schemas/types/dashboard/onboarding";
 
-import { ONBOARDING_HEARD_ABOUT_NOTRA_LABELS } from "@/constants/onboarding";
-
 export function isHeardAboutNotraSource(
   value: string | null | undefined
 ): value is OnboardingHeardAboutNotraSource {
   return ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES.some(
     (source) => source === value
   );
-}
-
-export function getHeardAboutNotraLabel(value: string | null | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  return isHeardAboutNotraSource(value)
-    ? ONBOARDING_HEARD_ABOUT_NOTRA_LABELS[value]
-    : value;
 }
 
 export function stripWebsitePrefix(value: string): string {

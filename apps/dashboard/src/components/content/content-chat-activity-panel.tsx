@@ -38,6 +38,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { getToolName, isToolUIPart } from "ai";
+import { useTranslations } from "next-intl";
 import { Fragment, type ReactNode, useState } from "react";
 
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
@@ -58,6 +59,7 @@ import type {
   ContentChatActivityHeaderProps,
   ContentChatHistoryItemsProps,
 } from "@/types/components/content-chat-activity-panel";
+import { displayChatTitle } from "@/utils/chat-history-groups";
 import { getChatFilePartFields } from "@/utils/chat-message-parts";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
@@ -149,6 +151,8 @@ function ContentChatActivityMessage({
   onApproveTool,
   onDenyTool,
 }: ContentChatActivityMessageProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
   const [previewAttachment, setPreviewAttachment] = useState<{
     url: string;
     filename: string;
@@ -198,7 +202,7 @@ function ContentChatActivityMessage({
       <Message from={message.role}>
         {showAttachments ? (
           <div
-            aria-label="Attached context"
+            aria-label={t("attachedContext")}
             className="ml-auto flex max-w-full flex-wrap justify-end gap-1.5"
           >
             <ChatInputContextRow
@@ -222,7 +226,7 @@ function ContentChatActivityMessage({
                   onClick={() =>
                     setPreviewAttachment({
                       url,
-                      filename: filename ?? "attachment",
+                      filename: filename ?? tCommon("labels.attachment"),
                       mediaType,
                     })
                   }
@@ -292,7 +296,9 @@ function ContentChatActivityMessage({
                           target="_blank"
                         >
                           <span className="truncate">
-                            {filename ?? mediaType ?? "Attachment"}
+                            {filename ??
+                              mediaType ??
+                              tCommon("labels.attachment")}
                           </span>
                         </a>
                       );
@@ -327,26 +333,32 @@ function ContentChatHistoryItems({
   status,
   onSelectChat,
 }: ContentChatHistoryItemsProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
   if (isHistoryLoading) {
     return (
       <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-        Loading chats...
+        {t("loadingChats")}
       </p>
     );
   }
   if (sessions.length === 0) {
     return (
       <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-        No previous chats
+        {t("noPreviousChats")}
       </p>
     );
   }
   const isAgentBusy = status === "streaming" || status === "submitted";
   return getContentChatHistoryGroups(sessions).map((group, groupIndex) => (
-    <Fragment key={group.label}>
+    <Fragment key={group.key}>
       {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
       <DropdownMenuGroup>
-        <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {group.key === "previousSevenDays"
+            ? t("historyGroups.previousSevenDays")
+            : tCommon(`labels.${group.key}`)}
+        </DropdownMenuLabel>
         {group.sessions.map((session) => (
           <DropdownMenuItem
             className="data-[active=true]:bg-accent/70"
@@ -354,9 +366,11 @@ function ContentChatHistoryItems({
             disabled={isAgentBusy}
             key={session.chatId}
             onClick={() => onSelectChat(session.chatId)}
-            title={session.title}
+            title={displayChatTitle(session.title, tCommon("labels.newChat"))}
           >
-            <span className="min-w-0 flex-1 truncate">{session.title}</span>
+            <span className="min-w-0 flex-1 truncate">
+              {displayChatTitle(session.title, tCommon("labels.newChat"))}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuGroup>
@@ -374,8 +388,11 @@ function ContentChatActivityHeader({
   onClose,
   onOpenChat,
   showHistory = true,
-  title = "Content Agent",
+  title: titleProp,
 }: ContentChatActivityHeaderProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
+  const title = titleProp ?? t("defaultTitle");
   const { expanded, toggleExpanded } = useRightPanel();
   const opensInChat = Boolean(onOpenChat);
   const isAgentBusy = status === "streaming" || status === "submitted";
@@ -396,14 +413,14 @@ function ContentChatActivityHeader({
               />
             }
           >
-            <span className="sr-only">Start a new chat</span>
+            <span className="sr-only">{t("startNewChat")}</span>
             <HugeiconsIcon
               className="size-4"
               icon={PlusSignIcon}
               strokeWidth={1.8}
             />
           </TooltipTrigger>
-          <TooltipContent>New chat</TooltipContent>
+          <TooltipContent>{tCommon("labels.newChat")}</TooltipContent>
         </Tooltip>
         {showHistory ? (
           <DropdownMenu>
@@ -417,14 +434,14 @@ function ContentChatActivityHeader({
                   />
                 }
               >
-                <span className="sr-only">Open chat history</span>
+                <span className="sr-only">{t("openHistory")}</span>
                 <HugeiconsIcon
                   className="size-4"
                   icon={Clock01Icon}
                   strokeWidth={1.8}
                 />
               </TooltipTrigger>
-              <TooltipContent>Chat history</TooltipContent>
+              <TooltipContent>{t("history")}</TooltipContent>
             </Tooltip>
             <DropdownMenuContent
               align="end"
@@ -449,7 +466,7 @@ function ContentChatActivityHeader({
                   icon={PlusSignIcon}
                   strokeWidth={1.8}
                 />
-                <span>New chat</span>
+                <span>{tCommon("labels.newChat")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -468,10 +485,10 @@ function ContentChatActivityHeader({
           >
             <span className="sr-only">
               {opensInChat
-                ? "Open in Chat"
+                ? t("openInChat")
                 : expanded
-                  ? `Exit fullscreen ${title}`
-                  : `Open ${title} fullscreen`}
+                  ? t("exitFullscreenTitle", { title })
+                  : t("openFullscreenTitle", { title })}
             </span>
             <HugeiconsIcon
               className="size-4"
@@ -483,10 +500,10 @@ function ContentChatActivityHeader({
           </TooltipTrigger>
           <TooltipContent>
             {opensInChat
-              ? "Open in Chat"
+              ? t("openInChat")
               : expanded
-                ? "Exit fullscreen"
-                : "Expand agent"}
+                ? t("exitFullscreen")
+                : t("expandAgent")}
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -500,14 +517,14 @@ function ContentChatActivityHeader({
               />
             }
           >
-            <span className="sr-only">Close {title}</span>
+            <span className="sr-only">{t("closeTitle", { title })}</span>
             <HugeiconsIcon
               className="size-4"
               icon={Cancel01Icon}
               strokeWidth={1.8}
             />
           </TooltipTrigger>
-          <TooltipContent>Close {title}</TooltipContent>
+          <TooltipContent>{t("closeTitle", { title })}</TooltipContent>
         </Tooltip>
       </div>
     </header>

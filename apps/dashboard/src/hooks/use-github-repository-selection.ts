@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ export function useGitHubRepositorySelection({
   initialAccountId = null,
   onSaved,
 }: UseGitHubRepositorySelectionOptions) {
+  const t = useTranslations("integrations.github.toasts");
   const queryClient = useQueryClient();
   const [selectedAccountId, setSelectedAccountId] = useState(initialAccountId);
   const query = useQuery(
@@ -78,10 +80,10 @@ export function useGitHubRepositorySelection({
         }),
       ]);
       onSaved();
-      toast.success("GitHub repositories saved");
+      toast.success(t("repositoriesSaved"));
     },
     onError: (error) =>
-      toast.error(error.message || "Failed to save GitHub repositories"),
+      toast.error(error.message || t("repositoriesSaveFailed")),
   });
   return {
     query,

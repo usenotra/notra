@@ -4,9 +4,10 @@ import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
-import { BRAND_TAB_HEADERS } from "@/constants/brand-identity";
+import { BRAND_IDENTITY_TAB_LABEL_KEYS } from "@/constants/brand-identity";
 import type {
   BrandIdentityHeaderProps,
   BrandTab,
@@ -20,19 +21,22 @@ export function BrandIdentityHeader({
   onRefreshGuidelines,
   isRefreshingGuidelines,
 }: BrandIdentityHeaderProps) {
+  const t = useTranslations("brand.identity.header");
+  const tBrandShared = useTranslations("brand.shared");
+  const tLabels = useTranslations("common.labels");
   const actionByTab: Partial<
     Record<BrandTab, { label: string; onClick: () => void }>
   > = {
     identity: {
-      label: "Create Identity",
+      label: tBrandShared("createIdentity"),
       onClick: onAddIdentity,
     },
     references: {
-      label: "Add Reference",
+      label: tBrandShared("addReference"),
       onClick: onAddReference,
     },
     sitemap: {
-      label: "Add Sitemap",
+      label: tBrandShared("addSitemap"),
       onClick: onAddSitemap,
     },
   };
@@ -42,10 +46,10 @@ export function BrandIdentityHeader({
     <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {BRAND_TAB_HEADERS[activeTab].title}
+          {tLabels(BRAND_IDENTITY_TAB_LABEL_KEYS[activeTab])}
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-          {BRAND_TAB_HEADERS[activeTab].description}
+          {t(`tabs.${activeTab}.description`)}
         </p>
       </div>
       {activeTab === "guidelines" ? (
@@ -55,7 +59,7 @@ export function BrandIdentityHeader({
           ) : (
             <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
           )}
-          Refresh Guidelines
+          {tBrandShared("refreshGuidelines")}
         </Button>
       ) : null}
       {action ? (

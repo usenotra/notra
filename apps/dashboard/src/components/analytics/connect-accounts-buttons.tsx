@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { CONNECT_X_CLASS } from "@/constants/analytics";
@@ -32,6 +33,7 @@ const SPLIT_SEGMENT_CLASS =
 export function ConnectAccountsButtons({
   organizationId,
 }: ConnectAccountsButtonsProps) {
+  const t = useTranslations("analytics.connect");
   const twitter = useHandleConnectSocialAccount(organizationId, "twitter");
   const linkedin = useHandleConnectSocialAccount(organizationId, "linkedin");
 
@@ -52,13 +54,13 @@ export function ConnectAccountsButtons({
         ) : (
           <HugeiconsIcon className="size-4" icon={NewTwitterIcon} />
         )}
-        Connect X
+        {t("connectX")}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label="Connect another platform"
+              aria-label={t("another")}
               className={cn(
                 CONNECT_X_CLASS,
                 SPLIT_SEGMENT_CLASS,
@@ -84,7 +86,7 @@ export function ConnectAccountsButtons({
             ) : (
               <HugeiconsIcon className="size-4" icon={Linkedin02Icon} />
             )}
-            <span className="whitespace-nowrap">Connect LinkedIn</span>
+            <span className="whitespace-nowrap">{t("connectLinkedIn")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

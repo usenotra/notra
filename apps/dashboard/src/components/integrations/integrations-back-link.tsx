@@ -3,12 +3,14 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 
 import { PageContainer } from "@/components/layout/container";
 
 export function IntegrationsBackLink() {
+  const t = useTranslations("integrations");
   const segment = useSelectedLayoutSegment();
   const { slug } = useParams<{ slug: string }>();
 
@@ -27,7 +29,7 @@ export function IntegrationsBackLink() {
           variant="ghost"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
-          Back to integrations
+          {t("backLink")}
         </Button>
       </div>
     </PageContainer>

@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import { useReducer } from "react";
 import { toast } from "sonner";
 
@@ -46,6 +47,9 @@ export function GuidelinesTokenEditDialog({
   open,
   onOpenChange,
 }: GuidelinesTokenEditDialogProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const update = useUpdateGuidelineToken(organizationId, voiceId);
   const [state, setState] = useReducer(updateTokenDialogState, {
     name: token.name,
@@ -62,11 +66,11 @@ export function GuidelinesTokenEditDialog({
         name: name.trim(),
         value: value.trim(),
       });
-      toast.success("Token updated");
+      toast.success(t("tokenDialog.updated"));
       onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update token"
+        error instanceof Error ? error.message : t("tokenDialog.updateFailed")
       );
     }
   };
@@ -75,36 +79,46 @@ export function GuidelinesTokenEditDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Edit token</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {t("tokenDialog.title")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Update this design token.
+            {t("tokenDialog.description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="token-name">Name</Label>
+            <Label htmlFor="token-name">{tCommon2("labels.name")}</Label>
             <Input
               id="token-name"
               onChange={(event) => setState({ name: event.target.value })}
-              placeholder="e.g. spacing-md"
+              placeholder={t("tokenDialog.namePlaceholder")}
               value={name}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="token-value">Value</Label>
+            <Label htmlFor="token-value">{t("tokenDialog.value")}</Label>
             <Input
               id="token-value"
               onChange={(event) => setState({ value: event.target.value })}
-              placeholder="e.g. 16px"
+              placeholder={t("tokenDialog.valuePlaceholder")}
               value={value}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{tCommon2("labels.type")}</Label>
             <Select
+              items={Object.fromEntries(
+                TOKEN_TYPE_OPTIONS.map((option) => [
+                  option.value,
+                  option.value === "unknown"
+                    ? tCommon2("labels.other")
+                    : t(`tokenTypes.${option.value}`),
+                ])
+              )}
               onValueChange={(next) => {
                 const option = TOKEN_TYPE_OPTIONS.find((o) => o.value === next);
                 if (option) {
@@ -114,12 +128,14 @@ export function GuidelinesTokenEditDialog({
               value={type}
             >
               <SelectTrigger>
-                <SelectValue className="capitalize" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {TOKEN_TYPE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {option.value === "unknown"
+                      ? tCommon2("labels.other")
+                      : t(`tokenTypes.${option.value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -133,10 +149,10 @@ export function GuidelinesTokenEditDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={update.isPending} onClick={handleSave}>
-            {update.isPending ? "Saving…" : "Save"}
+            {update.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

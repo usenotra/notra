@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -8,6 +9,7 @@ export function useGitHubRepositoryMigration(
   organizationId: string,
   startInstall: () => Promise<void>
 ) {
+  const t = useTranslations("integrations.github.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (integration: GitHubIntegration) => {
@@ -15,7 +17,7 @@ export function useGitHubRepositoryMigration(
         .call({ organizationId })
         .catch(() => null);
       if (!app) {
-        throw new Error("Unable to load GitHub repositories. Try again.");
+        throw new Error(t("migrationLoadFailed"));
       }
       const repositoryIds = integration.repositories.map(
         (legacyRepository) =>
@@ -28,14 +30,10 @@ export function useGitHubRepositoryMigration(
           )?.id
       );
       if (repositoryIds.length === 0) {
-        throw new Error(
-          "Configure a repository before switching to the GitHub App."
-        );
+        throw new Error(t("migrationNoRepository"));
       }
       if (repositoryIds.some((id) => !id)) {
-        toast.info(
-          "Allow the Notra GitHub App to access this repository, then return here and switch again."
-        );
+        toast.info(t("migrationAllowAccess"));
         await startInstall();
         return false;
       }
@@ -60,13 +58,8 @@ export function useGitHubRepositoryMigration(
           queryKey: dashboardOrpc.integrations.key(),
         }),
       ]);
-      toast.success(
-        "Switched to GitHub App. Your repository settings were kept."
-      );
+      toast.success(t("migrated"));
     },
-    onError: () =>
-      toast.error(
-        "Unable to switch to the GitHub App. Refresh the page and try again."
-      ),
+    onError: () => toast.error(t("migrationFailed")),
   });
 }

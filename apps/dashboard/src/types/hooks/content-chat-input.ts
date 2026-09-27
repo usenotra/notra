@@ -16,6 +16,15 @@ import type { ChatContextOption } from "@/types/components/chat-input";
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
 import type { SkillSlashOption } from "@/types/skills/slash";
 
+export interface ContentChatInputChromeLabels {
+  contextUnavailable: string;
+  stopGenerating: string;
+  queueMessage: string;
+  queueHint: string;
+  sendMessage: string;
+  sendHint: string;
+}
+
 export interface ContentChatInputChrome {
   contextPickerDisabledReason: string | null;
   hasAttachmentChips: boolean;

@@ -1,9 +1,7 @@
 import {
   GEO_GAPS_ENGINE_FILTER_ALL,
   GEO_GAPS_METER_STEPS,
-  GEO_GAPS_WRITE_LABELS,
   GEO_SEARCH_GAP_ACTION_ORDER,
-  GEO_SEARCH_GAP_WRITE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoAiSearchGapRow,
@@ -83,19 +81,6 @@ export function gapMeterLevel(
   return Math.max(1, Math.min(steps, Math.round(intensity * steps)));
 }
 
-export function gapOpportunityDetail(row: GeoPromptGapRow): string {
-  const missing = gapMissingEngineFamilies(row.engines).length;
-  const visible = gapMissingEngineFamilies(row.mentionedEngines).length;
-  const total = missing + visible;
-  const competitorCount =
-    row.competitors.length + row.discoveredCompetitors.length;
-  const competitorPart =
-    competitorCount === 0
-      ? "no other brands recommended"
-      : `${competitorCount} ${competitorCount === 1 ? "brand" : "brands"} recommended instead`;
-  return `Not visible on ${missing} of ${total} ${total === 1 ? "engine" : "engines"} · ${competitorPart}`;
-}
-
 export function gapVisibleOnLabel(
   mentionedEngines: readonly string[],
   missingEngines: readonly string[]
@@ -154,10 +139,6 @@ export function gapWriteAction(
   return "write";
 }
 
-export function gapWriteLabel(action: GeoGapWriteAction): string {
-  return GEO_GAPS_WRITE_LABELS[action];
-}
-
 export function gapCanRescan(brief: GeoGapBriefRef | null): boolean {
   return brief?.status === "completed" && brief.postId !== null;
 }
@@ -186,10 +167,6 @@ export function gapLiftTone(delta: number): GeoGapLiftTone {
     return "down";
   }
   return "flat";
-}
-
-export function searchGapWriteLabel(action: GeoSearchGapAction): string {
-  return GEO_SEARCH_GAP_WRITE_LABELS[action];
 }
 
 export function searchGapActionOrder(action: GeoSearchGapAction): number {
@@ -248,12 +225,6 @@ function gapSearchValues(row: {
   ];
 }
 
-export function gapSearchQueriesLabel(
-  queries: readonly string[]
-): string | null {
-  return queries.length === 0 ? null : `AI searched: ${queries.join(", ")}`;
-}
-
 function filterGapsByQuery<T>(
   rows: readonly T[],
   query: string,
@@ -308,15 +279,6 @@ function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
     ...row.prompts,
     row.brief?.workingTitle ?? "",
   ];
-}
-
-export function aiSearchGapSubtitle(row: GeoAiSearchGapRow): string | null {
-  const [first] = row.prompts;
-  if (!first) {
-    return null;
-  }
-  const more = row.prompts.length - 1;
-  return more > 0 ? `From "${first}" and ${more} more` : `From "${first}"`;
 }
 
 export function uniqueGapEngineFamilies(

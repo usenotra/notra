@@ -9,6 +9,7 @@ import {
 import type { GeoIngestPackageManager } from "@notra/geo-core/types/geo";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -32,6 +33,8 @@ export function AgentFeedbackSetup({
   className,
   showPromptAction = true,
 }: AgentFeedbackSetupPanelProps) {
+  const t = useTranslations("feedback.setup");
+  const tCommon = useTranslations("common");
   const [snippetKey, setSnippetKey] = useState<AgentFeedbackSnippetKey>(
     AGENT_FEEDBACK_DEFAULT_SNIPPET_TAB
   );
@@ -48,7 +51,9 @@ export function AgentFeedbackSetup({
     <div className={cn("space-y-5", className)}>
       <section className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">Install the package</h3>
+          <h3 className="text-sm font-medium">
+            {tCommon("labels.installThePackage")}
+          </h3>
           <Tabs
             className="shrink-0 gap-0"
             onValueChange={(value) => {
@@ -58,7 +63,7 @@ export function AgentFeedbackSetup({
             }}
             value={packageManager}
           >
-            <TabsList aria-label="Package manager">
+            <TabsList aria-label={tCommon("labels.packageManager")}>
               {GEO_INGEST_PACKAGE_MANAGER_OPTIONS.map((option) => (
                 <TabsTrigger
                   aria-label={option.label}
@@ -76,15 +81,14 @@ export function AgentFeedbackSetup({
         <CodeSnippet code={installCommand} variant="command" />
       </section>
       <section className="space-y-2">
-        <h3 className="text-sm font-medium">Your feedback URL</h3>
+        <h3 className="text-sm font-medium">{t("feedbackUrl")}</h3>
         <p className="text-muted-foreground text-xs">
-          Agents POST JSON to this URL. It is unique to your organization and
-          needs no token or API key.
+          {t("feedbackUrlDescription")}
         </p>
         {setup ? (
           <CodeSnippet
             code={setup.apiUrl}
-            label="feedback URL"
+            label={t("feedbackUrlLabel")}
             variant="command"
           />
         ) : (
@@ -93,9 +97,7 @@ export function AgentFeedbackSetup({
       </section>
       <section className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">
-            Add the tool to your MCP server
-          </h3>
+          <h3 className="text-sm font-medium">{t("addTool")}</h3>
           <Tabs
             className="shrink-0 gap-0"
             onValueChange={(value) => {
@@ -105,14 +107,14 @@ export function AgentFeedbackSetup({
             }}
             value={snippetKey}
           >
-            <TabsList aria-label="Snippet">
+            <TabsList aria-label={t("snippet")}>
               {AGENT_FEEDBACK_SNIPPET_TABS.map((item) => (
                 <TabsTrigger
                   className="px-2 text-xs"
                   key={item.value}
                   value={item.value}
                 >
-                  {item.label}
+                  {t(`snippetTabs.${item.value}`)}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -131,7 +133,9 @@ export function AgentFeedbackSetup({
         <div className="space-y-2">
           <div aria-hidden className="flex items-center gap-3 py-1">
             <span className="bg-border/80 h-px flex-1" />
-            <span className="text-muted-foreground text-xs">or</span>
+            <span className="text-muted-foreground text-xs">
+              {tCommon("labels.or")}
+            </span>
             <span className="bg-border/80 h-px flex-1" />
           </div>
           <Button
@@ -142,7 +146,9 @@ export function AgentFeedbackSetup({
             variant="ghost"
           >
             <HugeiconsIcon icon={copied ? Tick01Icon : AiMagicIcon} size={14} />
-            {copied ? "Prompt copied" : "Copy agent prompt"}
+            {copied
+              ? tCommon("labels.promptCopied")
+              : tCommon("labels.copyAgentPrompt")}
           </Button>
         </div>
       ) : null}

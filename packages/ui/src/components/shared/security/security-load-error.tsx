@@ -1,13 +1,18 @@
+import { DEFAULT_SECURITY_LOAD_ERROR_RETRY_LABEL } from "@notra/ui/constants/security-labels";
 import type { SecurityLoadErrorProps } from "../../../types/security";
 import { Button } from "../../ui/button";
 
-export function SecurityLoadError({ message, onRetry }: SecurityLoadErrorProps) {
+export function SecurityLoadError({
+  message,
+  retryLabel = DEFAULT_SECURITY_LOAD_ERROR_RETRY_LABEL,
+  onRetry,
+}: SecurityLoadErrorProps) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
       <p className="text-destructive text-sm">{message}</p>
       {onRetry && (
         <Button onClick={onRetry} size="sm" type="button" variant="outline">
-          Try again
+          {retryLabel}
         </Button>
       )}
     </div>

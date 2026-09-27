@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
@@ -79,6 +80,8 @@ function BrandIdentityAvatar({
 }
 
 export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
+  const t = useTranslations("dashboard.brandSelector");
+  const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const router = useRouter();
@@ -114,7 +117,7 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
   if (voices.length === 0 || !activeVoice) {
     return (
       <BreadcrumbPage className="block min-w-0 truncate">
-        Company Info
+        {tCommon("labels.companyInfo")}
       </BreadcrumbPage>
     );
   }
@@ -146,7 +149,9 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
         sideOffset={8}
       >
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Brand identities</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {tCommon("labels.brandIdentities")}
+          </DropdownMenuLabel>
           {voices.map((voice) => (
             <DropdownMenuItem
               className="cursor-pointer gap-2 pr-8"
@@ -163,7 +168,7 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
                   className="shrink-0 px-1.5 py-0 text-[10px] font-medium"
                   variant="secondary"
                 >
-                  Default
+                  {tCommon("labels.default")}
                 </Badge>
               ) : null}
               {activeVoice.id === voice.id ? (
@@ -181,7 +186,7 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
           onClick={() => router.push(`${brandBasePath}?new=1`)}
         >
           <HugeiconsIcon icon={PlusSignIcon} />
-          Create identity
+          {t("createIdentity")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

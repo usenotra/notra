@@ -2,7 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_FAMILY_IMPROVE_CTA_GAPS } from "@notra/geo-core/constants/geo";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { buttonVariants } from "@/components/button";
@@ -13,6 +13,7 @@ export function FamilyImproveCard({
   insight,
   gapsHref,
 }: FamilyImproveCardProps) {
+  const t = useTranslations("geo.familyImproveCard");
   return (
     <section className="bg-muted/50 @container/improve rounded-2xl px-4 py-3">
       <div className="flex flex-col items-start gap-3 @min-[24rem]/improve:flex-row @min-[24rem]/improve:items-center @min-[24rem]/improve:gap-4">
@@ -30,7 +31,7 @@ export function FamilyImproveCard({
             )}
             href={gapsHref}
           >
-            {GEO_FAMILY_IMPROVE_CTA_GAPS}
+            {t("closeGaps")}
             <HugeiconsIcon data-icon="inline-end" icon={ArrowRight01Icon} />
           </Link>
         ) : null}

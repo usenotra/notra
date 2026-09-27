@@ -1,13 +1,22 @@
+import type { useTranslations } from "next-intl";
+
+export type ToolBlockTranslator = ReturnType<
+  typeof useTranslations<"ai.toolBlock">
+>;
+
 export interface ToolCopy {
-  verbs: readonly [present: string, past: string];
-  noun: string;
   subtitle?: (params: {
     input: unknown;
     output: unknown;
     isStreaming: boolean;
     isError: boolean;
+    t: ToolBlockTranslator;
   }) => string | undefined;
-  suffix?: (input: unknown, output: unknown) => string | undefined;
+  suffix?: (
+    input: unknown,
+    output: unknown,
+    t: ToolBlockTranslator
+  ) => string | undefined;
 }
 
 export interface ChatToolBlockProps {

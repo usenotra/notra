@@ -4,6 +4,7 @@ import {
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type {
@@ -15,6 +16,7 @@ function FooterStatus({
   errorMessage,
   repositoryCount,
 }: EventTriggerFooterStatusProps) {
+  const t = useTranslations("automation.events.dialog");
   if (errorMessage) {
     return (
       <span className="text-destructive flex items-center gap-1.5 text-xs font-medium">
@@ -26,8 +28,8 @@ function FooterStatus({
   return (
     <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
       {repositoryCount === 0
-        ? "No repositories selected yet"
-        : `${repositoryCount} ${repositoryCount === 1 ? "repository" : "repositories"} selected`}
+        ? t("noRepositoriesSelected")
+        : t("repositoriesSelected", { count: repositoryCount })}
     </span>
   );
 }
@@ -39,6 +41,9 @@ export function EventTriggerDialogFooter({
   onCancel,
   repositoryCount,
 }: EventTriggerDialogFooterProps) {
+  const t = useTranslations("automation.events.dialog");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   return (
     <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
       <div className="flex items-center justify-between gap-3">
@@ -54,7 +59,7 @@ export function EventTriggerDialogFooter({
             type="button"
             variant="ghost"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={isPending} type="submit">
             {isPending ? (
@@ -63,12 +68,12 @@ export function EventTriggerDialogFooter({
                   className="size-4 animate-spin"
                   icon={Loading03Icon}
                 />
-                {isEditMode ? "Saving..." : "Adding..."}
+                {isEditMode ? tCommon("saving") : tCommon2("labels.adding")}
               </>
             ) : (
               <>
                 <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                {isEditMode ? "Save changes" : "Add trigger"}
+                {isEditMode ? tCommon("saveChanges") : t("add")}
               </>
             )}
           </Button>

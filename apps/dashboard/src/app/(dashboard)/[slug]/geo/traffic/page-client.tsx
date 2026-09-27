@@ -8,6 +8,7 @@ import {
 } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
@@ -59,26 +60,26 @@ function TrafficPageView({
   trafficPages,
   ingestSetup,
 }: TrafficPageViewProps) {
+  const t = useTranslations("geo.pages.traffic");
+  const tShared = useTranslations("geo.pages.shared");
   if (!settings) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
           <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
-            <p className="text-muted-foreground text-sm">
-              AI crawlers and referrals visiting your site
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground text-sm">{t("description")}</p>
           </header>
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
-            description="Set up GEO tracking first, then watch AI crawlers and referrals as they arrive."
+            description={t("setupDescription")}
             preview={
               <EmptyStateTablePreview
                 columns={EMPTY_STATE_TABLE_COLUMNS.traffic}
                 rows={EMPTY_STATE_TABLE_ROWS}
               />
             }
-            title="Not set up yet"
+            title={tShared("notSetUpTitle")}
           />
         </div>
       </PageContainer>
@@ -89,11 +90,9 @@ function TrafficPageView({
     <header className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 space-y-1">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          AI Traffic
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground text-sm">
-          AI crawlers and referrals visiting your site
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
       <GeoRangePicker control={geoRange} />
     </header>

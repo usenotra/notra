@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import type { MouseEvent } from "react";
 
 import {
@@ -31,6 +32,7 @@ export function NavModeSwitch({
   onModeChange,
   onPrefetchMode,
 }: NavModeSwitchProps) {
+  const t = useTranslations("nav.modes");
   const handleModeSelect = (
     next: SidebarMode,
     event: MouseEvent<HTMLAnchorElement>
@@ -68,7 +70,7 @@ export function NavModeSwitch({
             return (
               <SidebarNavLink
                 aria-current={isActive ? "page" : undefined}
-                title={`${option.label} · ${option.description}`}
+                title={`${option.label} · ${t(option.descriptionKey)}`}
                 className={cn(
                   "duration-fast relative z-10 flex h-7 items-center justify-center gap-1.5 rounded-md text-xs transition-colors",
                   isActive
@@ -118,7 +120,7 @@ export function NavModeSwitch({
                   <SidebarLabel>{option.label}</SidebarLabel>
                 </SidebarNavLink>
               }
-              tooltip={`${option.label} · ${option.description}`}
+              tooltip={`${option.label} · ${t(option.descriptionKey)}`}
             />
           </SidebarMenuItem>
         ))}

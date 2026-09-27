@@ -2,6 +2,7 @@
 
 import { GEO_TRAFFIC_FUNNEL_STAGES } from "@notra/geo-core/constants/geo";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import {
   GeoSectionSkeleton,
@@ -22,16 +23,17 @@ const PAGE_ROW_COUNT = 4;
 const CITATION_ROW_COUNT = 6;
 
 export function GeoTrafficSkeleton() {
+  const t = useTranslations("geo.pages.traffic");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
         <header className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            AI Traffic
+            {t("title")}
           </h1>
-          <p className="text-muted-foreground text-sm">
-            AI crawlers and referrals visiting your site
-          </p>
+          <p className="text-muted-foreground text-sm">{t("description")}</p>
         </header>
         <div className="flex flex-col gap-6">
           <div className={TRAFFIC_HERO_FRAME_CLASS}>
@@ -57,19 +59,19 @@ export function GeoTrafficSkeleton() {
           </div>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-36" />}
-            eyebrow="Sources"
+            eyebrow={tCommon("labels.sources")}
           >
             <GeoTableSkeleton rows={SOURCE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-8" />}
-            eyebrow="Top pages by AI source"
+            eyebrow={tGeoShared("topPagesByAiSource")}
           >
             <GeoTableSkeleton rows={PAGE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-24" />}
-            eyebrow="Recent AI requests"
+            eyebrow={tGeoShared("recentAiRequests")}
           >
             <GeoTableSkeleton rows={CITATION_ROW_COUNT} />
           </GeoSectionSkeleton>

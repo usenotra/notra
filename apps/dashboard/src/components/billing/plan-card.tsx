@@ -11,12 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale } from "next-intl";
 import { useId, useState } from "react";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import { Button } from "@/components/button";
 import type { PlanCardProps } from "@/types/billing/plan";
 import { planCardClassName } from "@/utils/billing-plans";
+import { currencyAffix } from "@/utils/format";
 
 export function PlanCard({
   name,
@@ -33,6 +35,8 @@ export function PlanCard({
   const listId = useId();
   const addonId = `${listId}-addon`;
   const [consentOpen, setConsentOpen] = useState(false);
+  const locale = useLocale();
+  const currency = currencyAffix(locale, price);
 
   const handleAddonChange = (checked: boolean) => {
     if (!addon) {
@@ -57,7 +61,11 @@ export function PlanCard({
             {description}
           </p>
           <div className="mt-2 flex items-end">
-            <span className="text-3xl leading-none font-bold">$</span>
+            {currency.position === "prefix" ? (
+              <span className="text-3xl leading-none font-bold">
+                {currency.symbol}
+              </span>
+            ) : null}
             <Counter
               fontSize={30}
               fontWeight={700}
@@ -66,6 +74,11 @@ export function PlanCard({
               padding={0}
               value={price}
             />
+            {currency.position === "suffix" ? (
+              <span className="ml-1 text-3xl leading-none font-bold">
+                {currency.symbol}
+              </span>
+            ) : null}
             <span className="text-muted-foreground mb-0.5 ml-1 text-sm font-normal">
               /{intervalLabel}
             </span>

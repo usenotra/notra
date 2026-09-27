@@ -9,6 +9,7 @@ import { SENTIMENT_FAMILY_ORDER } from "@/constants/geo-sentiment";
 import type {
   SentimentFamilyRow,
   SentimentTrendCardProps,
+  SentimentThemesMessage,
   SentimentThemesStateInput,
 } from "@/types/geo-sentiment";
 
@@ -36,9 +37,9 @@ export function sentimentSummaryShowsEmpty(
   return Boolean(summary && !sentimentHasDisplayableData(summary));
 }
 
-export function sentimentEmptyMessage(
+export function sentimentEmptyMessageKey(
   summary?: GeoSentimentResponse["summary"]
-) {
+): "noSavedAnswers" | "noRatedMentions" {
   if (
     summary &&
     summary.classifiedMentions +
@@ -46,9 +47,9 @@ export function sentimentEmptyMessage(
       summary.notMentioned ===
       0
   ) {
-    return "No saved answers. Run a scan or change the date range.";
+    return "noSavedAnswers";
   }
-  return "No rated mentions in this period.";
+  return "noRatedMentions";
 }
 
 export function sentimentThemesState({
@@ -62,29 +63,32 @@ export function sentimentThemesState({
   const busy = !isError && (isAnalyzing || state?.status === "pending");
   const loading = !isError && (isPending || aggregatePending);
   const noRatings = summary?.classifiedMentions === 0;
-  let message = "";
+  let message: SentimentThemesMessage | null = null;
   if (state?.status === "ready") {
-    message = "No supported themes in the sampled answers.";
+    message = { kind: "key", key: "noSupportedThemes" };
   }
   if (state?.status === "failed") {
-    message = state.message ?? "Could not find themes. Try again.";
+    message = state.message
+      ? { kind: "text", text: state.message }
+      : { kind: "key", key: "couldNotFind" };
   }
   if (noRatings) {
-    message = sentimentEmptyMessage(summary);
+    message = { kind: "empty", key: sentimentEmptyMessageKey(summary) };
   }
   if (state?.status === "unavailable") {
-    message =
-      state.message ?? "Theme analysis is not configured for this project.";
+    message = state.message
+      ? { kind: "text", text: state.message }
+      : { kind: "key", key: "notConfigured" };
   }
   const settled = !loading && !isError && !busy && !noRatings;
   const showResults =
     !isError && !noRatings && (state?.result?.themes.length ?? 0) > 0;
-  let statusText = "";
+  let statusKey: "loading" | "finding" | null = null;
   if (loading) {
-    statusText = "Loading analysis…";
+    statusKey = "loading";
   }
   if (busy) {
-    statusText = "Finding themes…";
+    statusKey = "finding";
   }
   const canAnalyze =
     settled &&
@@ -92,9 +96,8 @@ export function sentimentThemesState({
     (state?.status === "stale" || state?.status === "failed");
   return {
     pending: (busy || loading) && !showResults,
-    title: "No themes yet",
     message,
-    statusText,
+    statusKey,
     showResults,
     showTable: loading || showResults,
     showEmpty: !loading && !isError && !showResults,

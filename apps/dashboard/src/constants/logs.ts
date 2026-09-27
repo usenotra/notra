@@ -7,44 +7,49 @@ export const LOGS_PAGE_SIZE = 10;
 export const LOG_SEARCH_DEBOUNCE_MS = 150;
 export const LOGS_OVERVIEW_STALE_TIME_MS = 30_000;
 
-export const LOG_STATUS_DESCRIPTIONS = {
-  success: "This event completed successfully.",
-  failed:
-    "This event could not complete. Review the error below before retrying the automation.",
-  pending:
-    "This event was recorded as pending. Refresh the logs to check for a later result.",
-  skipped:
-    "No content was generated for this event. Review the reason below and the source activity for this run.",
-};
+export const LOG_CONTEXT_FIELD_KEYS = [
+  "triggerName",
+  "outputType",
+  "lookbackWindow",
+  "repositoryCount",
+  "companyName",
+  "checks",
+  "mentions",
+  "prompts",
+  "engines",
+  "keywords",
+  "suggestionsAdded",
+  "url",
+  "stage",
+  "runId",
+  "repository",
+  "issueNumber",
+  "senderLogin",
+  "destinationMode",
+  "commitSha",
+  "commentUrl",
+  "commentSnippet",
+  "replySnippet",
+  "postId",
+  "pullRequestUrl",
+  "mentionStatus",
+  "durationMs",
+] as const;
 
-export const LOG_CONTEXT_FIELDS = {
-  triggerName: "Automation",
-  outputType: "Content type",
-  lookbackWindow: "Lookback window",
-  repositoryCount: "Repositories checked",
-  companyName: "Project",
-  checks: "Checks run",
-  mentions: "Mentions found",
-  prompts: "Prompts scanned",
-  engines: "AI engines",
-  keywords: "Keywords synced",
-  suggestionsAdded: "Suggestions created",
-  url: "URL",
-  stage: "Stage",
-  runId: "Run ID",
-  repository: "Repository",
-  issueNumber: "Issue",
-  senderLogin: "Commenter",
-  destinationMode: "Destination",
-  commitSha: "Commit",
-  commentUrl: "Comment URL",
-  commentSnippet: "Comment",
-  replySnippet: "Reply",
-  postId: "Post",
-  pullRequestUrl: "Pull request",
-  mentionStatus: "Mention result",
-  durationMs: "Duration (ms)",
-} as const;
+export const LOG_CONTEXT_FIELD_COMMON_LABEL_KEYS = {
+  triggerName: "automation",
+  outputType: "contentType",
+  lookbackWindow: "lookbackWindow",
+  companyName: "project",
+  engines: "aiEngines",
+  url: "url",
+  repository: "repository",
+  issueNumber: "issue",
+  commitSha: "commit",
+  postId: "post",
+} as const satisfies Partial<
+  Record<(typeof LOG_CONTEXT_FIELD_KEYS)[number], string>
+>;
 
 export const LOG_CONTEXT_ALIASES: Record<string, string> = {
   runId: "workflowRunId",
@@ -65,6 +70,17 @@ export const SOURCE_VALUES = [
   "brand",
 ] as const satisfies readonly LogSourceFilter[];
 
+export const LOG_SOURCE_COMMON_LABEL_KEYS = {
+  all: "allSources",
+  github: "github",
+  manual: "manual",
+  schedule: "schedule",
+  events: "events",
+  geo: "geo",
+  "agent-readiness": "agentReadiness",
+  brand: "brand",
+} as const satisfies Partial<Record<LogSourceFilter, string>>;
+
 export const STATUS_VALUES = [
   "all",
   "success",
@@ -72,25 +88,3 @@ export const STATUS_VALUES = [
   "pending",
   "skipped",
 ] as const satisfies readonly LogStatusFilter[];
-
-export const SOURCE_LABELS: Record<LogSourceFilter, string> = {
-  all: "All sources",
-  github: "GitHub",
-  linear: "Linear",
-  webhook: "Webhook",
-  manual: "Manual",
-  schedule: "Schedule",
-  events: "Events",
-  geo: "GEO",
-  "agent-readiness": "Agent Readiness",
-  "search-console": "Search Console",
-  brand: "Brand",
-};
-
-export const STATUS_LABELS: Record<LogStatusFilter, string> = {
-  all: "All statuses",
-  success: "Success",
-  failed: "Failed",
-  pending: "Pending",
-  skipped: "Skipped",
-};

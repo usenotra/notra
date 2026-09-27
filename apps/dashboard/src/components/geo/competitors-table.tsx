@@ -4,7 +4,6 @@ import { Delete02Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   COMPETITOR_TYPE_FILTER_VALUES,
-  COMPETITOR_TYPE_FILTERS,
   COMPETITORS_TABLE_HEIGHT,
   COMPETITORS_TABLE_ROW_HEIGHT,
 } from "@notra/geo-core/constants/geo";
@@ -18,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
@@ -33,20 +33,7 @@ import type { GeoCompetitorRowEntry } from "@/types/geo-competitors";
 import {
   buildCompetitorRows,
   findOwnBrandDomain,
-  formatCompetitorKind,
 } from "@/utils/geo-competitors";
-
-const COMPETITOR_NOUNS = {
-  singular: "competitor",
-  plural: "competitors",
-} as const;
-
-function competitorRemoveDescription(items: string[]): string {
-  if (items.length > 1) {
-    return "These brands will no longer be called out in GEO scans. Historical mentions stay in your results.";
-  }
-  return `"${items[0]}" will no longer be called out in GEO scans. Historical mentions stay in your results.`;
-}
 
 function toTypeFilter(value: string): GeoCompetitorTypeFilter {
   if (value === "direct" || value === "indirect") {
@@ -67,6 +54,22 @@ export function CompetitorsTable({
   aliases,
   ownDomain: projectDomain,
 }: CompetitorsTableProps) {
+  const t = useTranslations("geo.competitorsTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const typeFilterLabels: Record<GeoCompetitorTypeFilter, string> = {
+    all: t("typeFilters.all"),
+    direct: tGeoShared("direct"),
+    indirect: tGeoShared("indirect"),
+  };
+  const competitorNouns = {
+    singular: t("nounSingular"),
+    plural: t("nounPlural"),
+  };
+  const competitorRemoveDescription = (items: string[]): string =>
+    items.length > 1
+      ? t("removeDescriptionMany")
+      : t("removeDescriptionOne", { name: items[0] ?? "" });
   const { pendingCompetitorIds, removeCompetitor } =
     useGeoCompetitorsDb(organizationId);
   const { openRow, prefetchRow } = useGeoCompetitorRowNavigation(
@@ -113,7 +116,7 @@ export function CompetitorsTable({
       key: "name",
       header: (
         <span className="inline-flex items-center gap-1.5">
-          Brand
+          {tCommon("labels.brand")}
           <span className="text-muted-foreground font-normal tabular-nums">
             ({rows.length})
           </span>
@@ -140,7 +143,9 @@ export function CompetitorsTable({
           <span className="truncate font-medium">
             {row.name}
             {row.isOwnBrand && (
-              <span className="text-muted-foreground ml-1">(You)</span>
+              <span className="text-muted-foreground ml-1">
+                {tGeoShared("you")}
+              </span>
             )}
           </span>
         </span>
@@ -148,7 +153,7 @@ export function CompetitorsTable({
     },
     {
       key: "domain",
-      header: "Domain",
+      header: tGeoShared("domain"),
       width: "1.2fr",
       cell: (row) =>
         row.domain ? (
@@ -167,7 +172,7 @@ export function CompetitorsTable({
     },
     {
       key: "kind",
-      header: "Type",
+      header: tGeoShared("type"),
       width: "7rem",
       sortable: true,
       cell: (row) =>
@@ -175,13 +180,15 @@ export function CompetitorsTable({
           <span className="text-muted-foreground">-</span>
         ) : (
           <Badge variant={row.kind === "direct" ? "default" : "secondary"}>
-            {formatCompetitorKind(row.kind)}
+            {row.kind === "direct"
+              ? tGeoShared("direct")
+              : tGeoShared("indirect")}
           </Badge>
         ),
     },
     {
       key: "synonyms",
-      header: "Synonyms",
+      header: tGeoShared("synonyms"),
       width: "1fr",
       cell: (row) =>
         row.synonyms.length > 0 ? (
@@ -204,7 +211,7 @@ export function CompetitorsTable({
       cell: (row) =>
         row.isOwnBrand ? null : (
           <Button
-            aria-label={`Remove ${row.name}`}
+            aria-label={tCommon("labels.removeName", { name: row.name })}
             disabled={pendingCompetitorIds.has(row.id)}
             onClick={(event) => {
               event.stopPropagation();
@@ -229,10 +236,10 @@ export function CompetitorsTable({
             size={15}
           />
           <Input
-            aria-label="Filter competitors by name"
+            aria-label={t("filterLabel")}
             className="pl-9"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Filter by name..."
+            placeholder={t("filterPlaceholder")}
             value={search}
           />
         </div>
@@ -240,24 +247,20 @@ export function CompetitorsTable({
           onValueChange={(value) => setTypeFilter(toTypeFilter(value ?? "all"))}
           value={typeFilter}
         >
-          <SelectTrigger className="w-40 capitalize">
-            <SelectValue>
-              {COMPETITOR_TYPE_FILTERS.find(
-                (option) => option.value === typeFilter
-              )?.label ?? "All types"}
-            </SelectValue>
+          <SelectTrigger className="w-40">
+            <SelectValue>{typeFilterLabels[typeFilter]}</SelectValue>
           </SelectTrigger>
           <SelectContent className="w-64">
-            {COMPETITOR_TYPE_FILTERS.map((option) => (
+            {COMPETITOR_TYPE_FILTER_VALUES.map((value) => (
               <SelectItem
                 className="items-start py-1.5"
-                key={option.value}
-                value={option.value}
+                key={value}
+                value={value}
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span>{option.label}</span>
+                  <span>{typeFilterLabels[value]}</span>
                   <span className="text-muted-foreground text-xs whitespace-normal">
-                    {option.description}
+                    {t(`typeFilters.${value}Description`)}
                   </span>
                 </span>
               </SelectItem>
@@ -271,7 +274,7 @@ export function CompetitorsTable({
             variant="outline"
           >
             <HugeiconsIcon icon={Delete02Icon} size={14} />
-            Remove ({selectedNames.length})
+            {tGeoShared("removeCount", { count: selectedNames.length })}
           </Button>
         )}
       </div>
@@ -282,7 +285,7 @@ export function CompetitorsTable({
           columns={columns}
           data={rows}
           defaultSort={{ key: "name", direction: "asc" }}
-          emptyState="No competitors match these filters"
+          emptyState={t("empty")}
           getRowId={(row) => row.id}
           height={COMPETITORS_TABLE_HEIGHT}
           isRowPinned={isOwnBrandRow}
@@ -310,7 +313,7 @@ export function CompetitorsTable({
         description={competitorRemoveDescription}
         isPending={false}
         items={pendingDeleteNames}
-        nouns={COMPETITOR_NOUNS}
+        nouns={competitorNouns}
         onConfirm={() => {
           const idsByName = new Map(
             competitors.map((competitor) => [competitor.name, competitor.id])

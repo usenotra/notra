@@ -7,6 +7,7 @@ import { FEATURES } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useAggregateEvents } from "autumn-js/react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -35,6 +36,8 @@ const CreditUsageChart = dynamic(
 );
 
 export function CreditsSettingsPane() {
+  const tCommon = useTranslations("common");
+  const tSettingsShared = useTranslations("settings.shared");
   const { slug } = useParams<{ slug: string }>();
   const [success] = useQueryState("success", parseAsBoolean.withDefault(false));
   const [range, setRange] = useState<CreditRangeOption>("30d");
@@ -98,13 +101,15 @@ export function CreditsSettingsPane() {
         <div className="flex max-w-md flex-col items-center gap-4 text-center">
           <HugeiconsIcon className="text-success size-12" icon={Tick02Icon} />
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold">Credits Added!</h2>
+            <h2 className="text-2xl font-bold">
+              {tCommon("labels.creditsAdded")}
+            </h2>
             <p className="text-muted-foreground">
-              Your AI credits have been topped up and are ready to use.
+              {tCommon("messages.yourAiCreditsHaveBeen")}
             </p>
           </div>
           <Button nativeButton={false} render={<Link href={`/${slug}`} />}>
-            Go to dashboard
+            {tSettingsShared("goToDashboard")}
           </Button>
         </div>
       </div>
@@ -116,7 +121,7 @@ export function CreditsSettingsPane() {
       <CreditSummaryCards
         balanceAction={
           <Button
-            aria-label="Top up credits"
+            aria-label={tCommon("labels.topUpCredits")}
             onClick={() => setTopupOpen(true)}
             size="icon-sm"
             variant="ghost"

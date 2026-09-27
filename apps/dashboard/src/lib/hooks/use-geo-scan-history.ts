@@ -2,6 +2,7 @@
 
 import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
@@ -12,6 +13,7 @@ export function useGeoScanRuns(
   offset = 0,
   enabled = true
 ) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const isScanning = useIsGeoScanning(organizationId);
   return useQuery({
@@ -24,7 +26,7 @@ export function useGeoScanRuns(
       query.state.data?.runs.some((run) => run.status === "running")
         ? GEO_SCAN_POLL_INTERVAL_MS
         : false,
-    meta: { errorMessage: "Failed to load recent scans" },
+    meta: { errorMessage: tToast("loadRecentScansFailed") },
   });
 }
 
@@ -35,6 +37,7 @@ export function useGeoScanRun(
   engine?: string,
   pendingOffset = 0
 ) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery({
     ...dashboardOrpc.geo.scanRun.queryOptions({
@@ -54,6 +57,6 @@ export function useGeoScanRun(
       query.state.data?.status === "running"
         ? GEO_SCAN_POLL_INTERVAL_MS
         : false,
-    meta: { errorMessage: "Failed to load scan results" },
+    meta: { errorMessage: tToast("loadScanResultsFailed") },
   });
 }

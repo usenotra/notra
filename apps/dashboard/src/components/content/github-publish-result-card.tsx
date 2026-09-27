@@ -3,6 +3,7 @@
 import { ArrowUpRight01Icon, GitCommitIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
+import { useTranslations } from "next-intl";
 
 import type { GitHubPublishResultCardProps } from "@/types/content/detail";
 
@@ -11,9 +12,13 @@ export function GitHubPublishResultCard({
   repositoryLabel,
   title,
 }: GitHubPublishResultCardProps) {
+  const t = useTranslations("content.githubPublish");
+  const tCommon = useTranslations("common");
   const wasCreated = pullRequest.operation === "created";
   const prTitle = `docs: add ${title}`;
-  const pathLabel = `${wasCreated ? "Added" : "Updated"} ${pullRequest.path}`;
+  const pathLabel = wasCreated
+    ? t("pathAdded", { path: pullRequest.path })
+    : t("pathUpdated", { path: pullRequest.path });
 
   return (
     <div className="bg-muted/20 max-w-full min-w-0 overflow-hidden rounded-lg border">
@@ -27,11 +32,13 @@ export function GitHubPublishResultCard({
           </p>
           <p className="text-muted-foreground mt-1 truncate text-xs">
             {repositoryLabel}#{pullRequest.pullRequestNumber} ·{" "}
-            {wasCreated ? "Created as draft" : "Updated"}
+            {wasCreated ? t("createdAsDraft") : tCommon("labels.updated")}
           </p>
         </div>
         <a
-          aria-label={`Open pull request #${pullRequest.pullRequestNumber} on GitHub`}
+          aria-label={t("openPullRequestAria", {
+            number: pullRequest.pullRequestNumber,
+          })}
           className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:ring-2 focus-visible:outline-none"
           href={pullRequest.pullRequestUrl}
           rel="noopener noreferrer"

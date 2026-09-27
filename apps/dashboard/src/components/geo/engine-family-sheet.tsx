@@ -1,19 +1,9 @@
 "use client";
 
 import {
-  GEO_AVG_POSITION_LABEL,
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
-  GEO_FAMILY_ALL_MODES_LABEL,
-  GEO_FAMILY_BRANDS_HINT,
-  GEO_FAMILY_BRANDS_LABEL,
-  GEO_FAMILY_STAT_TREND_HINT,
-  GEO_MENTION_RATE_LABEL,
-  GEO_MENTIONS_LABEL,
-  GEO_PROMPT_RECEIPT_LABELS,
-  GEO_SEARCH_LABEL,
   GEO_SPARKLINE_MIN_POINTS,
-  GEO_WITHOUT_SEARCH_LABEL,
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoEngineFamily,
@@ -33,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -55,6 +46,7 @@ import {
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useEngineFamilySheet } from "@/lib/hooks/use-engine-family-sheet";
+import { useGeoSparklineModeLabels } from "@/lib/hooks/use-geo-sparkline-mode-labels";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
@@ -79,7 +71,7 @@ import {
   engineFamilyTotals,
   formatChartPercent,
   formatMentionRate,
-  mentionTrendEmptyLabel,
+  mentionTrendEmptyState,
 } from "@/utils/geo-charts";
 import { tableHeightFor } from "@/utils/table";
 
@@ -93,12 +85,6 @@ const FAMILY_SHEET_CONTENT_CLASS =
 const BRAND_ROW_CLASS =
   "grid h-9 grid-cols-[1.25rem_minmax(0,1fr)_minmax(4rem,7.5rem)_3rem] items-center gap-3 border-b text-sm last:border-b-0";
 const RIVAL_BAR_FILL_CLASS = "bg-foreground/25";
-
-const MODE_LABEL: Record<GeoSparklineMode, string> = {
-  all: GEO_FAMILY_ALL_MODES_LABEL,
-  search: GEO_SEARCH_LABEL,
-  memory: GEO_WITHOUT_SEARCH_LABEL,
-};
 
 function modeSeriesColors(mode: GeoSparklineMode) {
   if (mode === "search") {
@@ -126,6 +112,7 @@ function Stat({
   kind: GeoStatDeltaKind;
   hero?: boolean;
 }) {
+  const tGeoShared2 = useTranslations("geo.shared");
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <p className="text-muted-foreground text-xs">{label}</p>
@@ -141,7 +128,7 @@ function Stat({
         <GeoStatDelta
           className="mb-px"
           delta={delta}
-          hint={GEO_FAMILY_STAT_TREND_HINT}
+          hint={tGeoShared2("vsFirstHalfOfThis")}
           kind={kind}
           label={label}
         />
@@ -160,6 +147,8 @@ function FamilyStats({
   const totals = engineFamilyTotals(family);
   const position = engineFamilyAvgPosition(family);
   const trends = engineFamilyStatTrends(points, family.family);
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
 
   return (
     <div className="@container/stats">
@@ -168,19 +157,19 @@ function FamilyStats({
           delta={trends.ratePts}
           hero
           kind="rate"
-          label={GEO_MENTION_RATE_LABEL}
+          label={tGeoShared("brandVisibility")}
           value={totals ? formatMentionRate(totals.rate) : "—"}
         />
         <Stat
           delta={trends.visibilityDelta}
           kind="mentions"
-          label={GEO_MENTIONS_LABEL}
+          label={tCommon("labels.visibility")}
           value={totals ? `${totals.visible}/${totals.checks}` : "—"}
         />
         <Stat
           delta={trends.positionDelta}
           kind="position"
-          label={GEO_AVG_POSITION_LABEL}
+          label={tGeoShared("avgPosition")}
           value={position === null ? "—" : `#${position}`}
         />
       </div>
@@ -189,13 +178,17 @@ function FamilyStats({
 }
 
 function FamilySheetDescription({ family }: { family: GeoEngineFamily }) {
+  const t = useTranslations("geo.engineFamilySheet");
+  const locale = useLocale();
   const lastChecked = engineFamilyLastCheckedAt(family);
   let description =
     family.variants.length > 1
-      ? "How each model makes your brand visible"
-      : "How this engine makes your brand visible";
+      ? t("descriptionModels")
+      : t("descriptionEngine");
   if (lastChecked) {
-    description = `Last checked ${formatAiTrafficTimestamp(lastChecked)}`;
+    description = t("lastChecked", {
+      time: formatAiTrafficTimestamp(lastChecked, locale),
+    });
   }
 
   return (
@@ -216,6 +209,7 @@ function ModeToggle({
   active: boolean;
   onToggle: () => void;
 }) {
+  const modeLabels = useGeoSparklineModeLabels();
   return (
     <button
       aria-pressed={active}
@@ -228,7 +222,7 @@ function ModeToggle({
       type="button"
     >
       <GeoModeIcon className="size-3" mode={mode} />
-      {MODE_LABEL[mode]}
+      {modeLabels[mode]}
       {totals ? (
         <span className="text-muted-foreground font-normal tabular-nums">
           {formatMentionRate(totals.rate)}
@@ -245,11 +239,15 @@ function FamilyTrend({
   family: GeoEngineFamily;
   points: readonly GeoTimeseriesPoint[];
 }) {
+  const t = useTranslations("geo.engineFamilySheet");
+  const modeLabels = useGeoSparklineModeLabels();
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const searchTotals = engineFamilyModeTotals(family, "search");
   const memoryTotals = engineFamilyModeTotals(family, "memory");
   const allTotals = engineFamilyTotals(family);
   const splitModes = searchTotals !== null && memoryTotals !== null;
-  const rows = buildEngineFamilyModeTrendRows(points, family.family);
+  const rows = buildEngineFamilyModeTrendRows(points, family.family, locale);
   // A family that only ever answers one way has nothing to compare, so it
   // keeps the single line instead of three copies of it.
   const modeKeys: GeoSparklineMode[] = splitModes ? TREND_MODES : ["all"];
@@ -282,7 +280,7 @@ function FamilyTrend({
     modeKeys.map((mode) => [
       mode,
       {
-        label: `${GEO_MENTION_RATE_LABEL} \u00b7 ${MODE_LABEL[mode]}`,
+        label: t("seriesLabel", { mode: modeLabels[mode] }),
         colors: modeSeriesColors(mode),
       },
     ])
@@ -299,7 +297,7 @@ function FamilyTrend({
       action={
         splitModes ? (
           <div
-            aria-label="Answer mode"
+            aria-label={t("answerMode")}
             className="flex flex-wrap items-center gap-x-3 gap-y-1"
           >
             {modeKeys.map((mode) => (
@@ -314,7 +312,7 @@ function FamilyTrend({
           </div>
         ) : undefined
       }
-      eyebrow={GEO_MENTION_RATE_LABEL}
+      eyebrow={tGeoShared("brandVisibility")}
     >
       <EChartsAreaChart
         animation={false}
@@ -348,8 +346,10 @@ function FamilyTrend({
         <EChartsAreaChart.Tooltip
           barMax={CHART_PERCENT_SCALE}
           confine={false}
-          emptyLabel={(row) => mentionTrendEmptyLabel(row, visibleModes)}
-          labelFormatter={formatFullDayLabel}
+          emptyLabel={(row) =>
+            tGeoShared(mentionTrendEmptyState(row, visibleModes))
+          }
+          labelFormatter={(day: string) => formatFullDayLabel(day, locale)}
           labelKey="rawDay"
           layout="activity"
           position="fixed"
@@ -374,6 +374,7 @@ function BrandRow({
   max: number;
   scope: EngineFamilyBrandScope;
 }) {
+  const tGeoShared = useTranslations("geo.shared");
   const muted = row.mentions === 0;
   return (
     <li className={BRAND_ROW_CLASS}>
@@ -398,7 +399,9 @@ function BrandRow({
           {row.name}
         </span>
         {row.own ? (
-          <span className="text-muted-foreground shrink-0 text-xs">(You)</span>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            {tGeoShared("you")}
+          </span>
         ) : null}
       </span>
       <GeoBar
@@ -428,16 +431,18 @@ function FamilyBrands({
   answers: number;
   scope: EngineFamilyBrandScope;
 }) {
+  const t = useTranslations("geo.engineFamilySheet");
+  const tGeoShared = useTranslations("geo.shared");
   if (rows.length === 0) {
     return null;
   }
   const max = rows.reduce((peak, row) => Math.max(peak, row.share), 0);
-  const readout = `${answers.toLocaleString()} answer${answers === 1 ? "" : "s"}`;
+  const readout = tGeoShared("countPluralOneAnswerOther", { count: answers });
 
   return (
     <InstrumentSection
-      eyebrow={GEO_FAMILY_BRANDS_LABEL}
-      hint={GEO_FAMILY_BRANDS_HINT}
+      eyebrow={tGeoShared("brandRanking")}
+      hint={t("brandsHint")}
       readout={readout}
     >
       <ol className="rounded-2xl border px-3">
@@ -455,19 +460,6 @@ function FamilyBrands({
   );
 }
 
-function promptResultLabel(hit: EngineFamilyPromptHit): string {
-  if (hit.mentioned && hit.ownedSourceCited) {
-    return GEO_PROMPT_RECEIPT_LABELS.mentionedAndCited;
-  }
-  if (!hit.mentioned && hit.ownedSourceCited) {
-    return GEO_PROMPT_RECEIPT_LABELS.cited;
-  }
-  if (!hit.mentioned) {
-    return "Miss";
-  }
-  return hit.position === null ? "Mentioned" : `#${hit.position}`;
-}
-
 function PromptHits({
   hits,
   onOpen,
@@ -477,13 +469,28 @@ function PromptHits({
   onOpen: (promptId: string) => void;
   onWrite?: (hit: EngineFamilyPromptHit) => void;
 }) {
+  const t = useTranslations("geo.engineFamilySheet");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const promptResultLabel = (hit: EngineFamilyPromptHit): string => {
+    if (hit.mentioned && hit.ownedSourceCited) {
+      return tGeoShared("mentionedAndCited");
+    }
+    if (!hit.mentioned && hit.ownedSourceCited) {
+      return tGeoShared("ownedSourceCited");
+    }
+    if (!hit.mentioned) {
+      return t("result.miss");
+    }
+    return hit.position === null ? tGeoShared("mentioned") : `#${hit.position}`;
+  };
   const columns: TableColumn<EngineFamilyPromptHit>[] = [
     {
       key: "prompt",
       header:
         hits.length > 0
-          ? `Prompts (${hits.length.toLocaleString()})`
-          : "Prompts",
+          ? t("promptsCount", { count: hits.length })
+          : tCommon("labels.prompts"),
       width: "1fr",
       minWidth: "8rem",
       sortable: true,
@@ -496,7 +503,7 @@ function PromptHits({
     },
     {
       key: "result",
-      header: "Result",
+      header: t("resultHeader"),
       // Fits "Mentioned and cited" plus the outcome icon and cell padding.
       width: "13rem",
       sortable: true,
@@ -540,7 +547,7 @@ function PromptHits({
             size="sm"
             variant="ghost"
           >
-            Write
+            {tCommon("labels.write")}
           </Button>
         ),
     });
@@ -556,7 +563,7 @@ function PromptHits({
       columns={columns}
       data={[...hits]}
       defaultSort={{ key: "result", direction: "asc" }}
-      emptyState="No prompts scanned yet"
+      emptyState={t("emptyPrompts")}
       getRowId={(row) => row.promptId}
       height={tableHeightFor(hits.length)}
       onRowClick={(row) => onOpen(row.promptId)}

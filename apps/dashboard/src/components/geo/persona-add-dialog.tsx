@@ -13,6 +13,7 @@ import {
   ResponsiveDialogFooter,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -25,6 +26,9 @@ export function PersonaAddDialog({
   onSubmit,
   isPending,
 }: PersonaAddDialogProps) {
+  const t = useTranslations("geo.personaAddDialog");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const id = useId();
   const [brief, setBrief] = useState("");
   return (
@@ -43,15 +47,14 @@ export function PersonaAddDialog({
           }}
         >
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Add persona</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Describe the buyer you have in mind. We’ll fill in their profile
-              and memories.
+              {t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <div className="flex flex-col gap-3">
             <label className="text-sm font-medium" htmlFor={id}>
-              Who should this persona represent?
+              {t("label")}
             </label>
             <Textarea
               id={id}
@@ -60,13 +63,12 @@ export function PersonaAddDialog({
               required
               maxLength={GEO_PERSONA_BRIEF_MAX_LENGTH}
               disabled={isPending}
-              placeholder="An agency founder comparing AI visibility tools for clients, with a tight budget and little time for setup…"
+              placeholder={t("placeholder")}
               className="max-h-80 min-h-28 resize-none overflow-y-auto"
             />
             {atLimit ? (
               <p className="text-destructive text-sm" role="alert">
-                You’ve reached the {GEO_PERSONA_MAX_COUNT}-persona limit. Delete
-                one to generate this persona; your description will stay here.
+                {t("limitReached", { max: GEO_PERSONA_MAX_COUNT })}
               </p>
             ) : null}
           </div>
@@ -77,10 +79,10 @@ export function PersonaAddDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={isPending || atLimit}>
-              {isPending ? "Starting…" : "Generate persona"}
+              {isPending ? tCommon2("labels.starting") : t("generate")}
             </Button>
           </ResponsiveDialogFooter>
         </form>

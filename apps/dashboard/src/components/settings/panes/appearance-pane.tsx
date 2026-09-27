@@ -2,6 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 
 import { SettingsPane } from "@/components/settings/settings-pane";
@@ -54,6 +55,9 @@ function AppearancePreview({ mode }: AppearancePreviewProps) {
 }
 
 export function AppearanceSettingsPane() {
+  const t = useTranslations("settings.panes.appearance");
+  const tLabels = useTranslations("common.labels");
+  const tCommon = useTranslations("common");
   const { setTheme, theme } = useTheme();
   const selectedMode: AppearanceMode =
     theme === "light" || theme === "dark" || theme === "system"
@@ -63,7 +67,9 @@ export function AppearanceSettingsPane() {
   return (
     <SettingsPane>
       <fieldset className="space-y-3">
-        <legend className="text-sm font-medium">Mode</legend>
+        <legend className="text-sm font-medium">
+          {tCommon("labels.mode")}
+        </legend>
         <div className="grid gap-3 sm:grid-cols-3">
           {APPEARANCE_OPTIONS.map((option) => {
             const selected = selectedMode === option.value;
@@ -93,9 +99,11 @@ export function AppearanceSettingsPane() {
                     icon={option.icon}
                     strokeWidth={2}
                   />
-                  {option.label}
+                  {tLabels(option.value)}
                 </span>
-                <span className="sr-only">{option.description}</span>
+                <span className="sr-only">
+                  {t(`options.${option.value}.description`)}
+                </span>
               </label>
             );
           })}

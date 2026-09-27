@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -23,10 +24,11 @@ function PageContent() {
 }
 
 export default function Page() {
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <Suspense
       fallback={
-        <CompetitorModal title="Competitor">
+        <CompetitorModal title={tGeoShared("competitor")}>
           <CompetitorDetailSkeleton />
         </CompetitorModal>
       }

@@ -1,6 +1,7 @@
 "use client";
 
 import { SidebarRail, useSidebar } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
 import {
@@ -18,6 +19,7 @@ export function SidebarResizeHandle({
   onWidthChangeStart,
   width,
 }: SidebarResizeHandleProps) {
+  const t = useTranslations("nav.sidebar");
   const { setOpen, state } = useSidebar();
   const currentWidthRef = useRef<number | null>(null);
   const startWidthRef = useRef(0);
@@ -115,12 +117,14 @@ export function SidebarResizeHandle({
 
   return (
     <SidebarRail
-      aria-label="Resize sidebar"
+      aria-label={t("resize")}
       aria-orientation="vertical"
       aria-valuemax={SIDEBAR_MAX_WIDTH}
       aria-valuemin={0}
       aria-valuenow={state === "collapsed" ? 0 : width}
-      aria-valuetext={state === "collapsed" ? "Collapsed" : `${width} pixels`}
+      aria-valuetext={
+        state === "collapsed" ? t("collapsed") : t("widthPixels", { width })
+      }
       className="touch-none group-data-[collapsible=icon]:-right-5.5! after:hidden max-sm:hidden"
       onClick={(event) => {
         // A mouse click must not move the rail before the second click lands.
@@ -141,7 +145,7 @@ export function SidebarResizeHandle({
       onPointerUp={finishResize}
       role="separator"
       tabIndex={0}
-      title="Drag to resize or collapse sidebar. Double-click to reset."
+      title={t("resizeHint")}
     />
   );
 }

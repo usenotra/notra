@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import type { GeoProjectBrandSelectionProps } from "@/types/geo";
@@ -19,21 +20,23 @@ export function GeoProjectBrandSelection({
   disabled,
   onSelect,
 }: GeoProjectBrandSelectionProps) {
+  const t = useTranslations("geo.projectBrandSelection");
+  const tGeoShared = useTranslations("geo.shared");
   const id = useId();
 
   return (
     <div className="space-y-2">
       {identities.length > 0 ? (
         <>
-          <Label htmlFor={id}>Project brand identity</Label>
+          <Label htmlFor={id}>{tGeoShared("projectBrandIdentity")}</Label>
           <Select
             disabled={disabled}
             onValueChange={onSelect}
             value={selectedIdentity?.id ?? ""}
           >
             <SelectTrigger className="w-full" id={id}>
-              <SelectValue placeholder="Choose an identity">
-                {selectedIdentity?.name ?? "Choose an identity"}
+              <SelectValue placeholder={t("placeholder")}>
+                {selectedIdentity?.name ?? t("placeholder")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -46,21 +49,18 @@ export function GeoProjectBrandSelection({
           </Select>
           <p className="text-muted-foreground text-xs">
             {selectedIdentity
-              ? `Uses the existing identity and website: ${selectedIdentity.websiteUrl}`
-              : "Several identities use this website. Choose one for this project."}
+              ? t("usesExisting", { url: selectedIdentity.websiteUrl ?? "" })
+              : t("multipleMatches")}
           </p>
         </>
       ) : (
         <p className="text-muted-foreground text-sm">
-          We will create a brand identity named{" "}
-          {projectName.trim() || "after this project"} and analyze this website
-          to fill it in. The analysis runs in the background.
+          {projectName.trim()
+            ? t("willCreateNamed", { name: projectName.trim() })
+            : t("willCreateUnnamed")}
         </p>
       )}
-      <p className="text-muted-foreground text-xs">
-        New articles use the project identity. You can choose another identity
-        for an individual article.
-      </p>
+      <p className="text-muted-foreground text-xs">{t("articlesNote")}</p>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { StoreIntegrationLogo } from "@/components/integrations/store-integration-logo";
@@ -21,6 +22,9 @@ export function ConnectStoreIntegrationDialog({
   onOpenChange,
   open,
 }: ConnectStoreIntegrationDialogProps) {
+  const t = useTranslations("integrations.store");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-md">
@@ -31,22 +35,22 @@ export function ConnectStoreIntegrationDialog({
             </span>
             <div className="flex min-w-0 flex-col gap-0.5 text-left">
               <ResponsiveDialogTitle className="truncate">
-                Connect {integration.name}
+                {tIntegrationsShared("connectName", { name: integration.name })}
               </ResponsiveDialogTitle>
               {integration.author ? (
                 <span className="text-muted-foreground truncate text-xs">
-                  By {integration.author}
+                  {t("byAuthor", { author: integration.author })}
                 </span>
               ) : null}
             </div>
           </div>
           <ResponsiveDialogDescription className="pt-2 text-left">
-            {integration.description ??
-              "MCP server from the integration store."}
+            {integration.description ?? t("connectDialog.fallbackDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <p className="text-muted-foreground text-sm">
           {getStoreIntegrationConnectHint(
+            t,
             integration.authType,
             integration.name
           )}
@@ -57,10 +61,10 @@ export function ConnectStoreIntegrationDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("actions.cancel")}
           </Button>
           <Button disabled={connecting} onClick={onConnect}>
-            {connecting ? "Connecting..." : "Connect"}
+            {connecting ? t("connecting") : tCommon("actions.connect")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

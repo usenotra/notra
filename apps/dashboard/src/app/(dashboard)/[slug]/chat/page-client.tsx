@@ -43,6 +43,7 @@ import {
 } from "ai";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
+import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -155,13 +156,14 @@ import {
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
-import { formatLongDate, getGreeting } from "@/utils/dashboard-greeting";
+import { formatLongDate } from "@/utils/dashboard-greeting";
+import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 import {
   getReferenceDisplay,
   parseReferenceValue,
 } from "@/utils/integration-reference";
-import { getOutputTypeLabel } from "@/utils/output-types";
+import { getOutputTypePromptLabel } from "@/utils/output-types";
 import { buildPublishedChatMessage } from "@/utils/social-publish";
 
 import { ChatPageSkeleton } from "./skeleton";
@@ -196,9 +198,10 @@ const emptySubscribe = () => () => {
 };
 
 function SlackMirrorNotice() {
+  const t = useTranslations("chat.page");
   return (
     <div className="border-border bg-muted/40 text-muted-foreground rounded-lg border px-4 py-3 text-center text-sm">
-      Mirrored from a Slack thread.
+      {t("slackMirrorNotice")}
     </div>
   );
 }
@@ -206,11 +209,12 @@ function SlackMirrorNotice() {
 function CreateToolPendingIndicator({
   toolCallId,
 }: Pick<RenderableToolPart, "toolCallId">) {
+  const t = useTranslations("chat.page");
   const elapsedSeconds = useElapsedSeconds(true, toolCallId);
 
   return (
     <div className="text-muted-foreground flex items-center gap-2 text-xs">
-      <span>Working</span>
+      <span>{t("working")}</span>
       {elapsedSeconds >= TOOL_TIMER_THRESHOLD_SECONDS && (
         <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
           {formatElapsedSeconds(elapsedSeconds)}
@@ -291,6 +295,7 @@ function getSendableMessages(messages: ChatUIMessage[]): ChatUIMessage[] {
 }
 
 function UserImageGrid({ children }: UserImageGridProps) {
+  const t = useTranslations("chat.page");
   const [isExpanded, setIsExpanded] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -362,7 +367,7 @@ function UserImageGrid({ children }: UserImageGridProps) {
       {!isExpanded && hiddenImageCount > 0 && (
         <m.button
           animate={{ opacity: 1 }}
-          aria-label={`Show ${hiddenImageCount} more ${hiddenImageCount === 1 ? "image" : "images"}`}
+          aria-label={t("showMoreImages", { count: hiddenImageCount })}
           className="focus-visible:ring-ring absolute right-0 bottom-0 z-10 flex aspect-square w-[calc((100%_-_0.75rem)/3)] items-center justify-center rounded-lg border border-white/15 bg-black/60 text-xl font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset motion-reduce:transition-none"
           initial={reduceMotion ? false : { opacity: 0 }}
           onClick={() => setIsExpanded(true)}
@@ -379,9 +384,10 @@ function UserImageGrid({ children }: UserImageGridProps) {
 }
 
 function ProjectScopeLoadingInput() {
+  const t = useTranslations("chat.page");
   return (
     <Skeleton
-      aria-label="Loading project"
+      aria-label={t("loadingProject")}
       className="bg-muted/50 h-24 rounded-xl"
       role="status"
     />
@@ -415,6 +421,11 @@ function StandaloneChatPageClient({
   organizationSlug,
   chatId: initialChatId,
 }: StandaloneChatPageClientProps) {
+  const t = useTranslations("chat.page");
+  const tCommon = useTranslations("common");
+  const tHome = useTranslations("home");
+  const tChatErrors = useTranslations("chat.errors");
+  const locale = useLocale();
   const router = useRouter();
   const [initialQuery, setInitialQuery] = useQueryState(
     "q",
@@ -679,7 +690,14 @@ function StandaloneChatPageClient({
         queryClient,
         removePendingChatSession,
       });
-      handleStandaloneChatError(err, { setChatError, setPendingMessageId });
+      handleStandaloneChatError(err, {
+        setChatError,
+        setPendingMessageId,
+        messages: {
+          usageLimit: tChatErrors("usageLimit"),
+          fallback: tChatErrors("fallback"),
+        },
+      });
     },
   });
   const replaceChatMessages = useEffectEvent((next: []) => {
@@ -920,7 +938,7 @@ function StandaloneChatPageClient({
     onError: (_error, input) => {
       setMessages((prev) => prev.filter((item) => item.id !== input.tempId));
       setIsMirrorWorking(false);
-      setChatError("Sending to Slack failed. Try again.");
+      setChatError(t("slackSendFailed"));
     },
   });
   const relayMessage = useCallback(
@@ -2093,7 +2111,7 @@ function StandaloneChatPageClient({
           target="_blank"
         >
           <span className="truncate">
-            {filename ?? mediaType ?? "Attachment"}
+            {filename ?? mediaType ?? tCommon("labels.attachment")}
           </span>
         </a>
       );
@@ -2121,7 +2139,7 @@ function StandaloneChatPageClient({
         const input = toolPart.input as
           | { title?: string; markdown?: string }
           | undefined;
-        const title = input?.title ?? "Untitled";
+        const title = input?.title ?? tCommon("labels.untitled");
         const markdown = input?.markdown ?? "";
 
         if (
@@ -2144,7 +2162,7 @@ function StandaloneChatPageClient({
             >
               <div className="bg-destructive/10 text-destructive flex w-fit items-center gap-1.5 rounded-md px-2 py-1 text-xs">
                 <HugeiconsIcon className="size-3.5" icon={X} />
-                <span>Draft generation failed. The assistant will retry.</span>
+                <span>{t("draftGenerationFailed")}</span>
               </div>
             </CompletedToolTimer>
           );
@@ -2237,7 +2255,7 @@ function StandaloneChatPageClient({
                   }
                 );
                 if (!response.ok) {
-                  throw new Error("Failed to save post");
+                  throw new Error(tCommon("errors.generic"));
                 }
                 try {
                   await addToolApprovalResponse({
@@ -2265,7 +2283,7 @@ function StandaloneChatPageClient({
               payload: { title: string; markdown: string }
             ) => {
               trackDraftAction("regenerate");
-              const regeneratePrompt = `Regenerate the ${getOutputTypeLabel(contentType)} with these changes: ${instructions}\n\nCurrent title: ${payload.title}\n\nCurrent draft:\n${payload.markdown}`;
+              const regeneratePrompt = `Regenerate the ${getOutputTypePromptLabel(contentType)} with these changes: ${instructions}\n\nCurrent title: ${payload.title}\n\nCurrent draft:\n${payload.markdown}`;
               if (isSlackMirrored) {
                 const sent = await relayMessage(regeneratePrompt);
                 if (sent) {
@@ -2316,7 +2334,7 @@ function StandaloneChatPageClient({
                 onPublished={handlePublished}
                 onRegenerate={handleRegenerate}
                 organization={{
-                  name: organization?.name ?? "Your Name",
+                  name: organization?.name ?? tCommon("labels.yourName"),
                   logo: organization?.logo ?? null,
                 }}
                 organizationId={organizationId}
@@ -2342,7 +2360,7 @@ function StandaloneChatPageClient({
                 onPublished={handlePublished}
                 onRegenerate={handleRegenerate}
                 organization={{
-                  name: organization?.name ?? "Your Name",
+                  name: organization?.name ?? tCommon("labels.yourName"),
                   logo: organization?.logo ?? null,
                 }}
                 organizationId={organizationId}
@@ -2470,11 +2488,17 @@ function StandaloneChatPageClient({
     }
 
     const now = isHydrated ? new Date() : null;
-    const greeting = now ? getGreeting(now) : "Welcome";
     const userName = isHydrated
       ? session?.user?.name?.split(" ")[0]
       : undefined;
-    const dateStr = now ? formatLongDate(now) : "\u00A0";
+    const period = now ? getGreetingPeriod(now) : null;
+    let greeting = t("welcome");
+    if (period && userName) {
+      greeting = tHome("greetingWithName", { period, name: userName });
+    } else if (period) {
+      greeting = tHome("greeting", { period });
+    }
+    const dateStr = now ? formatLongDate(now, locale) : "\u00A0";
 
     return (
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center px-4">
@@ -2483,7 +2507,6 @@ function StandaloneChatPageClient({
             <p className="text-muted-foreground text-xs">{dateStr}</p>
             <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">
               {greeting}
-              {userName ? `, ${userName}` : ""}
             </h1>
           </div>
           <div className="w-full min-w-0">
@@ -2771,7 +2794,7 @@ function StandaloneChatPageClient({
                     <div className="mx-auto w-full max-w-2xl">
                       <div className="bg-destructive/10 text-destructive flex w-fit items-center gap-1.5 rounded-md px-2 py-1 text-xs">
                         <HugeiconsIcon className="size-3.5" icon={X} />
-                        <span>Response stopped by user</span>
+                        <span>{t("responseStopped")}</span>
                       </div>
                     </div>
                   )}
@@ -2790,7 +2813,7 @@ function StandaloneChatPageClient({
                               className="size-3.5"
                               icon={ArrowReloadHorizontalIcon}
                             />
-                            <span>Retry</span>
+                            <span>{tCommon("actions.retry")}</span>
                           </button>
                         )}
                       </div>
@@ -2806,7 +2829,11 @@ function StandaloneChatPageClient({
                           >
                             <ChatActivityStatus
                               active={!isStopping}
-                              label={isStopping ? "Stopping" : "Thinking"}
+                              label={
+                                isStopping
+                                  ? t("stopping")
+                                  : tCommon("labels.thinkingLabel")
+                              }
                               seconds={activitySeconds ?? 0}
                             />
                           </span>
@@ -2831,7 +2858,7 @@ function StandaloneChatPageClient({
                   className="text-muted-foreground mx-auto mb-2 w-full max-w-2xl text-xs"
                   role="status"
                 >
-                  Waiting for the previous response to finish before sending.
+                  {t("waitingForPreviousResponse")}
                 </p>
               )}
               {isSlackMirrored && (

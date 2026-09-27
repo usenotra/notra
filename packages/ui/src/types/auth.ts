@@ -14,6 +14,8 @@ import type {
 
 import type { ReactNode } from "react";
 
+import type { BackupCodesPanelLabels } from "./security";
+
 export type SocialProvider = "google" | "github";
 export type AuthMethod = "email" | SocialProvider;
 export type ChallengeMode = "totp" | "backup";
@@ -30,6 +32,8 @@ export interface CopyValueFieldProps {
   label: string;
   value: string;
   display?: string;
+  copyLabel: string;
+  copiedLabel: string;
 }
 
 export interface StepActionsProps {
@@ -72,7 +76,12 @@ export interface AuthSocialButtonsProps {
   authMethod: AuthMethod | null;
   disabled: boolean;
   lastMethod?: string | null;
+  lastUsedLabel?: string;
   onSelect: (provider: SocialProvider) => void;
+}
+
+export interface AuthOrDividerProps {
+  label?: string;
 }
 
 export interface AuthFieldErrorProps {
@@ -98,6 +107,7 @@ export interface AuthEmailFieldProps {
 
 export interface AuthPasswordFieldProps {
   id: string;
+  label?: string;
   value: string;
   error?: string;
   disabled: boolean;
@@ -124,6 +134,7 @@ export interface EmailVerificationFormProps {
   returnTo?: string | null;
   onResult: ApplyAuthResult;
   verifyEmailCode: VerifyEmailCode;
+  labels?: Partial<EmailVerificationFormLabels>;
 }
 
 export interface MfaChallengeFormProps {
@@ -135,6 +146,7 @@ export interface MfaChallengeFormProps {
   onRecovered: (email: string) => void;
   verifyMfaCode: VerifyMfaCode;
   redeemBackupCode: RedeemBackupCode;
+  labels?: Partial<MfaChallengeFormLabels>;
 }
 
 export interface MfaEnrollmentFormProps {
@@ -144,6 +156,7 @@ export interface MfaEnrollmentFormProps {
   onFinish: (redirectTo: string) => void;
   onBack?: () => void;
   verifyMfaCode: VerifyMfaCode;
+  labels?: Partial<MfaEnrollmentFormLabels>;
 }
 
 export interface TotpEnrollmentPanelProps {
@@ -157,6 +170,7 @@ export interface TotpEnrollmentPanelProps {
   onSubmit: (submission: TotpEnrollmentSubmission) => Promise<TotpVerifyResult>;
   onCancel?: () => void;
   onDone?: () => void;
+  labels?: Partial<TotpEnrollmentPanelLabels>;
 }
 
 export interface AuthPendingStepProps {
@@ -169,6 +183,7 @@ export interface AuthPendingStepProps {
   verifyEmailCode: VerifyEmailCode;
   verifyMfaCode: VerifyMfaCode;
   redeemBackupCode: RedeemBackupCode;
+  labels?: Partial<AuthPendingStepLabels>;
 }
 
 export interface LoginFieldValidators {
@@ -192,4 +207,93 @@ export interface LoginFormProps {
   verifyMfaCode: VerifyMfaCode;
   redeemBackupCode: RedeemBackupCode;
   startSocialSignIn: StartSocialSignIn;
+  labels?: Partial<LoginFormLabels>;
+}
+
+export interface EmailVerificationFormLabels {
+  title: string;
+  description: (email?: string) => string;
+  codeLabel: string;
+  submit: string;
+  submitting: string;
+  errorFallback: string;
+}
+
+export interface MfaChallengeFormLabels {
+  title: string;
+  description: (email?: string) => string;
+  codeLabel: string;
+  submit: string;
+  submitting: string;
+  useBackupCode: string;
+  backToSignIn: string;
+  backupTitle: string;
+  backupDescription: string;
+  backupCodeLabel: string;
+  backupCodePlaceholder: string;
+  backupSubmit: string;
+  backupSubmitting: string;
+  useAuthenticator: string;
+  issuedCodesTitle: string;
+  issuedCodesDescription: string;
+  issuedCodesDone: string;
+  errorFallback: string;
+  backupCodesPanel: Partial<BackupCodesPanelLabels>;
+}
+
+export interface TotpEnrollmentPanelLabels {
+  submit: string;
+  cancel: string;
+  done: string;
+  back: string;
+  continue: string;
+  scanInstructions: string;
+  qrAlt: (accountLabel?: string) => string;
+  cantScan: string;
+  manualInstructions: string;
+  setupKey: string;
+  setupUri: string;
+  copyValue: (label: string) => string;
+  valueCopied: (label: string) => string;
+  scanInstead: string;
+  codeLabel: string;
+  errorFallback: string;
+  backupCodesPanel: Partial<BackupCodesPanelLabels>;
+}
+
+export interface MfaEnrollmentFormLabels {
+  title: string;
+  description: (email?: string) => string;
+  submit: string;
+  cancel: string;
+  done: string;
+  errorFallback: string;
+  enrollmentPanel: Partial<TotpEnrollmentPanelLabels>;
+}
+
+export interface AuthPendingStepLabels {
+  emailVerification: Partial<EmailVerificationFormLabels>;
+  mfaChallenge: Partial<MfaChallengeFormLabels>;
+  mfaEnrollment: Partial<MfaEnrollmentFormLabels>;
+}
+
+export interface LoginFormLabels {
+  title: string;
+  description: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  passwordLabel: string;
+  passwordPlaceholder: string;
+  or: string;
+  lastUsed: string;
+  submit: string;
+  submitting: string;
+  forgotPassword: string;
+  resetPassword: string;
+  noAccount: string;
+  register: string;
+  loginErrorFallback: string;
+  socialErrorFallback: string;
+  backupCodeRecovered: (email: string) => string;
+  pendingStep: Partial<AuthPendingStepLabels>;
 }

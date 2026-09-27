@@ -28,11 +28,13 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useReducer } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { LexicalEditor } from "@/components/content/editor/lexical-editor";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import type {
   BlogChangelogPreviewAction,
   BlogChangelogPreviewState,
@@ -42,7 +44,7 @@ import {
   blogPreviewEffectiveState,
   isBlogPreviewBusy,
 } from "@/utils/blog-preview-state";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { OutputTypeIcon } from "@/utils/output-types";
 
 function blogChangelogPreviewReducer(
   state: BlogChangelogPreviewState,
@@ -102,6 +104,9 @@ export function BlogChangelogPreview({
   onPersist,
   onRegenerate,
 }: BlogChangelogPreviewProps) {
+  const t = useTranslations("ai.preview");
+  const tCommon = useTranslations("common");
+  const outputTypeLabel = useOutputTypeLabel();
   const [
     {
       userAction,
@@ -144,7 +149,7 @@ export function BlogChangelogPreview({
   const handleApprove = useCallback(async () => {
     dispatch({ type: "userActionChanged", userAction: "saving" });
     dispatch({ type: "openChanged", open: false });
-    const toastId = toast.loading("Saving draft...");
+    const toastId = toast.loading(t("savingDraft"));
     try {
       if (onPersist) {
         await onPersist("draft", {
@@ -155,21 +160,21 @@ export function BlogChangelogPreview({
         onApprove();
       }
       dispatch({ type: "userActionChanged", userAction: "none" });
-      toast.success("Saved as draft", { id: toastId });
+      toast.success(t("savedAsDraft"), { id: toastId });
     } catch {
       dispatch({ type: "userActionChanged", userAction: "save-failed" });
-      toast.error("Failed to save draft", { id: toastId });
+      toast.error(t("saveDraftFailed"), { id: toastId });
     }
-  }, [draftMarkdown, draftTitle, onApprove, onPersist]);
+  }, [draftMarkdown, draftTitle, onApprove, onPersist, t]);
 
   const handlePublish = useCallback(async () => {
     dispatch({ type: "userActionChanged", userAction: "publishing" });
     dispatch({ type: "openChanged", open: false });
-    const toastId = toast.loading("Publishing post...");
+    const toastId = toast.loading(t("publishingPost"));
     try {
       if (!onPersist) {
         dispatch({ type: "userActionChanged", userAction: "save-failed" });
-        toast.error("Publish is not available", { id: toastId });
+        toast.error(t("publishUnavailable"), { id: toastId });
         return;
       }
       await onPersist("published", {
@@ -177,17 +182,17 @@ export function BlogChangelogPreview({
         markdown: draftMarkdown,
       });
       dispatch({ type: "userActionChanged", userAction: "none" });
-      toast.success("Post published", { id: toastId });
+      toast.success(tCommon("labels.postPublished"), { id: toastId });
     } catch {
       dispatch({ type: "userActionChanged", userAction: "save-failed" });
-      toast.error("Failed to publish post", { id: toastId });
+      toast.error(tCommon("labels.failedToPublishPost"), { id: toastId });
     }
-  }, [draftMarkdown, draftTitle, onPersist]);
+  }, [draftMarkdown, draftTitle, onPersist, t]);
 
   const handleDeny = useCallback(() => {
     onDeny?.();
-    toast("Canceled");
-  }, [onDeny]);
+    toast(tCommon("labels.canceled"));
+  }, [onDeny, t]);
 
   const handleRegenerate = useCallback(() => {
     const instructions = regenerateInstructions.trim();
@@ -196,12 +201,12 @@ export function BlogChangelogPreview({
       return;
     }
     dispatch({ type: "userActionChanged", userAction: "generating" });
-    toast("Generating post...");
+    toast(t("generatingPostToast"));
     onRegenerate?.(instructions, {
       title: draftTitle,
       markdown: draftMarkdown,
     });
-  }, [draftMarkdown, draftTitle, onRegenerate, regenerateInstructions]);
+  }, [draftMarkdown, draftTitle, onRegenerate, regenerateInstructions, t]);
 
   const isFinished = effectiveState === "finished";
   const isEditable = !isFinished && !readOnly;
@@ -225,15 +230,15 @@ export function BlogChangelogPreview({
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               {showStatusBadge && (
                 <Badge className="text-[0.625rem]" variant="outline">
-                  {persistedStatus}
+                  {t(`status.${persistedStatus}`)}
                 </Badge>
               )}
               <Badge
-                className="flex items-center gap-1 text-[0.625rem] capitalize"
+                className="flex items-center gap-1 text-[0.625rem]"
                 variant="secondary"
               >
                 <OutputTypeIcon className="size-3" outputType={contentType} />
-                {getOutputTypeLabel(contentType)}
+                {outputTypeLabel(contentType)}
               </Badge>
             </div>
           </CollapsibleTrigger>
@@ -242,7 +247,7 @@ export function BlogChangelogPreview({
             <div className="mx-2 mb-2 space-y-2">
               {isEditable && (
                 <input
-                  aria-label="Post title"
+                  aria-label={tCommon("labels.postTitle")}
                   className="border-border bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2"
                   onChange={(event) =>
                     dispatch({
@@ -255,12 +260,16 @@ export function BlogChangelogPreview({
               )}
               <Tabs defaultValue="markdown">
                 <TabsList variant="line">
-                  <TabsTrigger value="markdown">Markdown</TabsTrigger>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                  <TabsTrigger value="markdown">
+                    {tCommon("labels.markdown")}
+                  </TabsTrigger>
+                  <TabsTrigger value="preview">
+                    {tCommon("labels.preview")}
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent className="mt-2" value="markdown">
                   <textarea
-                    aria-label="Post content"
+                    aria-label={t("postContent")}
                     className="border-border bg-background focus-visible:ring-ring field-sizing-content max-h-80 min-h-72 w-full resize-none overflow-y-auto rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2"
                     onChange={(event) =>
                       dispatch({
@@ -290,7 +299,7 @@ export function BlogChangelogPreview({
               </Tabs>
               {regenerateOpen && isEditable && (
                 <input
-                  aria-label="Regeneration instructions"
+                  aria-label={t("regenerationInstructions")}
                   autoFocus
                   className="border-border bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2"
                   onChange={(event) =>
@@ -304,7 +313,7 @@ export function BlogChangelogPreview({
                       handleRegenerate();
                     }
                   }}
-                  placeholder="What should change?"
+                  placeholder={t("regeneratePlaceholder")}
                   value={regenerateInstructions}
                 />
               )}
@@ -315,7 +324,11 @@ export function BlogChangelogPreview({
             <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
               {userAction === "generating" && (
                 <div className="text-muted-foreground mr-auto flex min-w-0 items-center gap-2 text-xs">
-                  <BrailleLoader className="text-xs" label="Generating post" />
+                  <BrailleLoader
+                    className="text-xs"
+                    ariaLabel={t("generatingPost")}
+                    label={t("generatingPost")}
+                  />
                 </div>
               )}
               {effectiveState === "draft" && (
@@ -324,7 +337,7 @@ export function BlogChangelogPreview({
                     <TooltipTrigger
                       render={
                         <Button
-                          aria-label="Regenerate"
+                          aria-label={tCommon("labels.regenerate")}
                           onClick={() =>
                             dispatch({ type: "regenerateOpenToggled" })
                           }
@@ -338,11 +351,13 @@ export function BlogChangelogPreview({
                         icon={ArrowReloadHorizontalIcon}
                       />
                     </TooltipTrigger>
-                    <TooltipContent>Regenerate</TooltipContent>
+                    <TooltipContent>
+                      {tCommon("labels.regenerate")}
+                    </TooltipContent>
                   </Tooltip>
                   <Button onClick={handleDeny} size="sm" variant="ghost">
                     <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-                    Discard
+                    {tCommon("labels.discard")}
                   </Button>
                 </div>
               )}
@@ -356,7 +371,7 @@ export function BlogChangelogPreview({
                   {effectiveState === "loading" ? (
                     <>
                       <Loader2Icon className="size-4 animate-spin" />
-                      Saving
+                      {tCommon("labels.saving")}
                     </>
                   ) : (
                     <>
@@ -364,7 +379,7 @@ export function BlogChangelogPreview({
                         className="size-4"
                         icon={CheckmarkSquare01Icon}
                       />
-                      Save as draft
+                      {t("saveAsDraft")}
                     </>
                   )}
                 </Button>
@@ -377,10 +392,10 @@ export function BlogChangelogPreview({
                   userAction === "publishing" ? (
                     <>
                       <Loader2Icon className="size-4 animate-spin" />
-                      Publishing
+                      {t("publishing")}
                     </>
                   ) : (
-                    "Publish"
+                    tCommon("labels.publish")
                   )}
                 </Button>
               </div>

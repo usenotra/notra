@@ -1,4 +1,4 @@
-import { GEO_TRAFFIC_STAT_TREND_HINT } from "@notra/geo-core/constants/geo";
+import { useLocale, useTranslations } from "next-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
@@ -24,6 +24,8 @@ export function JourneyStatCard({
   emptySeed,
   children,
 }: JourneyStatCardProps) {
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const empty = emptyDescription ? (
     <JourneyEmpty
       className="h-full"
@@ -47,14 +49,14 @@ export function JourneyStatCard({
         <div className="flex h-full flex-col gap-5">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
-              {total.toLocaleString()}
+              {total.toLocaleString(locale)}
             </p>
             <p className="text-muted-foreground text-sm">{caption}</p>
             {delta === undefined ? null : (
               <GeoStatDelta
                 className="self-center"
                 delta={delta}
-                hint={GEO_TRAFFIC_STAT_TREND_HINT}
+                hint={tGeoShared("vsPreviousPeriodOfThe")}
                 label={eyebrow}
               />
             )}

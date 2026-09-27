@@ -1,5 +1,6 @@
 "use client";
 
+import { UiLabelsProvider } from "@notra/ui/components/shared/ui-labels-provider";
 import { Toaster } from "@notra/ui/components/ui/sonner";
 import { TooltipProvider } from "@notra/ui/components/ui/tooltip";
 import {
@@ -7,6 +8,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import dynamic from "next/dynamic";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -15,6 +17,8 @@ import { toast } from "sonner";
 
 import { PostHogIdentity } from "@/components/providers/posthog-identity";
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
+import { useUiLabelsTranslations } from "@/lib/i18n/ui-labels";
+import { configureZodLocale } from "@/lib/i18n/zod";
 
 const DatabuddyAnalytics = dynamic(
   () =>
@@ -35,6 +39,11 @@ const ReactQueryDevtools =
       )
     : null;
 
+function RetryToastLabel() {
+  const t = useTranslations("common.actions");
+  return t("retry");
+}
+
 function createProviderClients() {
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
@@ -48,7 +57,7 @@ function createProviderClients() {
             duration: showRetryAction ? Number.POSITIVE_INFINITY : undefined,
             action: showRetryAction
               ? {
-                  label: "Retry",
+                  label: <RetryToastLabel />,
                   onClick: () => {
                     query.fetch().catch(() => undefined);
                   },
@@ -85,23 +94,27 @@ function createProviderClients() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(createProviderClients);
+  configureZodLocale(useLocale());
+  const uiLabels = useUiLabelsTranslations();
 
   return (
     <QueryClientProvider client={queryClient}>
       {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
-        <TooltipProvider delay={500}>
-          <NuqsAdapter>
-            {children}
-            {POSTHOG_PROJECT_TOKEN ? (
-              <Suspense fallback={null}>
-                <PostHogIdentity />
-              </Suspense>
-            ) : null}
-          </NuqsAdapter>
-          <Toaster position="bottom-right" />
-          <DatabuddyAnalytics />
-        </TooltipProvider>
+        <UiLabelsProvider labels={uiLabels}>
+          <TooltipProvider delay={500}>
+            <NuqsAdapter>
+              {children}
+              {POSTHOG_PROJECT_TOKEN ? (
+                <Suspense fallback={null}>
+                  <PostHogIdentity />
+                </Suspense>
+              ) : null}
+            </NuqsAdapter>
+            <Toaster position="bottom-right" />
+            <DatabuddyAnalytics />
+          </TooltipProvider>
+        </UiLabelsProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

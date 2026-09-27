@@ -35,15 +35,18 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { type ReactNode, useState } from "react";
 
 import { McpIcon } from "@/components/integrations/mcp-icon";
+import { CHAT_TOOL_LABEL_ALIASES } from "@/constants/chat-tool-labels";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { getChatToolIcon } from "@/utils/chat-tool-icon";
 import { isFailedToolOutput } from "@/utils/chat-tool-output";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
+import { hasOwnKey } from "@/utils/has-own-key";
 
 import {
   getMcpToolActionPhrase,
@@ -53,7 +56,11 @@ import {
 } from "./chat-tool-block/mcp/utils";
 import { ToolDraftPreview } from "./chat-tool-block/tool-draft-preview";
 import { ToolOutputImages } from "./chat-tool-block/tool-output-images";
-import type { ChatToolBlockProps, ToolCopy } from "./chat-tool-block/types";
+import type {
+  ChatToolBlockProps,
+  ToolBlockTranslator,
+  ToolCopy,
+} from "./chat-tool-block/types";
 import { resolveChatToolBlockVisuals } from "./chat-tool-block/visuals";
 
 const TOOL_DETAILS_PANEL_CLASSNAME =
@@ -163,9 +170,11 @@ function memoryPathSuffix(input: MemoryToolInput): string | undefined {
 function memoryToolSubtitle({
   input,
   isStreaming,
+  t,
 }: {
   input: unknown;
   isStreaming: boolean;
+  t: ToolBlockTranslator;
 }): string | undefined {
   const parsed = memoryToolInputSchema.safeParse(input);
   const command = parsed.success ? parsed.data.command : undefined;
@@ -178,35 +187,41 @@ function memoryToolSubtitle({
       ]))
     : undefined;
 
-  const withSuffix = (label: string) => (suffix ? `${label} ${suffix}` : label);
+  const state = isStreaming ? "running" : "done";
+  const withSuffix = (label: string) =>
+    suffix ? t("withSuffix", { label, suffix }) : label;
 
   switch (command) {
     case "view":
-      return withSuffix(isStreaming ? "Viewing memory" : "Viewed memory");
+      return withSuffix(t("memory.view", { state }));
     case "create":
-      return withSuffix(isStreaming ? "Saving memory" : "Saved memory");
+      return withSuffix(t("memory.create", { state }));
     case "delete":
-      return withSuffix(isStreaming ? "Deleting memory" : "Deleted memory");
+      return withSuffix(t("memory.delete", { state }));
     case "rename":
-      return withSuffix(isStreaming ? "Renaming memory" : "Renamed memory");
+      return withSuffix(t("memory.rename", { state }));
     case "insert":
     case "str_replace":
-      return withSuffix(isStreaming ? "Updating memory" : "Updated memory");
+      return withSuffix(t("memory.update", { state }));
     default:
-      return withSuffix(isStreaming ? "Using memory" : "Used memory");
+      return withSuffix(t("memory.use", { state }));
   }
 }
 
-function webSearchSuffix(input: unknown, output: unknown): string | undefined {
+function webSearchSuffix(
+  input: unknown,
+  output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   const parsedInput = webSearchInputSchema.safeParse(input);
   const query = parsedInput.success
     ? quotedSuffixFromFields(parsedInput.data, ["query"])
     : undefined;
   const count = getWebSearchResultCount(output);
   if (query && count !== undefined) {
-    return `for ${query} (${count} ${count === 1 ? "result" : "results"})`;
+    return t("suffix.forQueryWithCount", { query, count });
   }
-  return query ? `for ${query}` : undefined;
+  return query ? t("suffix.forQuery", { query }) : undefined;
 }
 
 function getWebSearchResultCount(output: unknown): number | undefined {
@@ -278,113 +293,107 @@ function getToolObjectNames(value: unknown, key: string): string[] {
 }
 
 function countSuffix(
-  count: number | undefined,
-  singular: string,
-  plural: string
+  t: ToolBlockTranslator,
+  unit: "results" | "tools" | "projects" | "pages" | "urls",
+  count: number | undefined
 ) {
   if (count === undefined) {
     return undefined;
   }
-  return `(${count} ${count === 1 ? singular : plural})`;
+  return t(`suffix.count.${unit}`, { count });
 }
 
-function toolSearchSuffix(input: unknown, output: unknown): string | undefined {
+function toolSearchSuffix(
+  input: unknown,
+  output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   const query = quotedSuffix(input, ["query"]);
   const count = getArrayLength(output, "results");
-  const resultCount = countSuffix(count, "result", "results");
-  if (query && resultCount) {
-    return `for ${query} ${resultCount}`;
+  if (query && count !== undefined) {
+    return t("suffix.forQueryWithCount", { query, count });
   }
-  return query ?? resultCount;
+  return query ?? countSuffix(t, "results", count);
 }
 
-function activatedToolsSuffix(output: unknown): string | undefined {
+function activatedToolsSuffix(
+  output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   const names = getToolObjectNames(output, "activated");
   if (names.length === 0) {
-    return countSuffix(getArrayLength(output, "activated"), "tool", "tools");
+    return countSuffix(t, "tools", getArrayLength(output, "activated"));
   }
   if (names.length === 1) {
     return names[0];
   }
-  return `(${names.length} tools)`;
+  return countSuffix(t, "tools", names.length);
 }
 
-function activeToolsSuffix(output: unknown): string | undefined {
+function activeToolsSuffix(
+  output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   const names = [
     ...getStringArray(output, "activeTools"),
     ...getToolObjectNames(output, "activeTools"),
   ];
   if (names.length === 0) {
-    return countSuffix(getArrayLength(output, "activeTools"), "tool", "tools");
+    return countSuffix(t, "tools", getArrayLength(output, "activeTools"));
   }
-  return `(${names.length} active)`;
+  return t("suffix.activeCount", { count: names.length });
 }
 
-function deactivatedToolsSuffix(output: unknown): string | undefined {
+function deactivatedToolsSuffix(
+  output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   return countSuffix(
+    t,
+    "tools",
     getArrayLength(output, "deactivated") ??
       getNumericValue(output, "deactivated") ??
       getArrayLength(output, "removed") ??
-      getNumericValue(output, "removed"),
-    "tool",
-    "tools"
+      getNumericValue(output, "removed")
   );
 }
 
-function geoDaysSuffix(input: unknown): string | undefined {
+function geoDaysSuffix(
+  input: unknown,
+  _output: unknown,
+  t: ToolBlockTranslator
+): string | undefined {
   const days = getNumericValue(input, "days");
-  return days === undefined ? undefined : `from the last ${days} days`;
+  return days === undefined ? undefined : t("suffix.lastDays", { days });
 }
 
-const TOOL_COPY: Record<string, ToolCopy> = {
-  code_mode: {
-    verbs: ["Executing", "Executed"],
-    noun: "tools",
-  },
-  // Notra tool provisioning was replaced by code_mode; kept for older chats.
+const TOOL_COPY = {
+  code_mode: {},
   searchNotraTools: {
-    verbs: ["Searching", "Searched"],
-    noun: "tools",
     suffix: toolSearchSuffix,
   },
   activateNotraTools: {
-    verbs: ["Loading", "Loaded"],
-    noun: "tool",
-    suffix: (_input, output) => activatedToolsSuffix(output),
+    suffix: (_input, output, t) => activatedToolsSuffix(output, t),
   },
   listActiveNotraTools: {
-    verbs: ["Checking", "Checked"],
-    noun: "active tools",
-    suffix: (_input, output) => activeToolsSuffix(output),
+    suffix: (_input, output, t) => activeToolsSuffix(output, t),
   },
   deactivateNotraTools: {
-    verbs: ["Unloading", "Unloaded"],
-    noun: "tools",
-    suffix: (_input, output) => deactivatedToolsSuffix(output),
+    suffix: (_input, output, t) => deactivatedToolsSuffix(output, t),
   },
   searchMcpTools: {
-    verbs: ["Searching", "Searched"],
-    noun: "MCP tools",
     suffix: toolSearchSuffix,
   },
   activateMcpTools: {
-    verbs: ["Loading", "Loaded"],
-    noun: "MCP tool",
-    suffix: (_input, output) => activatedToolsSuffix(output),
+    suffix: (_input, output, t) => activatedToolsSuffix(output, t),
   },
   listActiveMcpTools: {
-    verbs: ["Checking", "Checked"],
-    noun: "active MCP tools",
-    suffix: (_input, output) => activeToolsSuffix(output),
+    suffix: (_input, output, t) => activeToolsSuffix(output, t),
   },
   deactivateMcpTools: {
-    verbs: ["Unloading", "Unloaded"],
-    noun: "MCP tools",
-    suffix: (_input, output) => deactivatedToolsSuffix(output),
+    suffix: (_input, output, t) => deactivatedToolsSuffix(output, t),
   },
   getPullRequests: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "pull request",
     suffix: (input, output) => {
       const parsedOutput = pullRequestOutputSchema.safeParse(output);
       const repo = parsedOutput.success
@@ -404,8 +413,6 @@ const TOOL_COPY: Record<string, ToolCopy> = {
     },
   },
   getReleaseByTag: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "release",
     suffix: (input, output) => {
       const parsedOutput = releaseOutputSchema.safeParse(output);
       const repo = parsedOutput.success
@@ -422,241 +429,153 @@ const TOOL_COPY: Record<string, ToolCopy> = {
     },
   },
   getCommitsByTimeframe: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "commits",
-    suffix: (input) => {
+    suffix: (input, _output, t) => {
       const parsed = commitsByTimeframeInputSchema.safeParse(input);
       const days = parsed.success ? parsed.data.days : undefined;
-      return days ? `from the last ${days} days` : undefined;
+      return days ? t("suffix.lastDays", { days }) : undefined;
     },
   },
-  getLinearIssues: { verbs: ["Fetching", "Fetched"], noun: "issues" },
-  getLinearProjects: { verbs: ["Fetching", "Fetched"], noun: "projects" },
-  getLinearCycles: { verbs: ["Fetching", "Fetched"], noun: "cycles" },
+  getLinearIssues: {},
+  getLinearProjects: {},
+  getLinearCycles: {},
   viewPost: {
-    verbs: ["Viewing", "Viewed"],
-    noun: "post",
     suffix: (input) => idSuffix(input, ["id", "postId"]),
   },
   updatePost: {
-    verbs: ["Updating", "Updated"],
-    noun: "post",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
-  getAvailablePosts: { verbs: ["Loading", "Loaded"], noun: "posts" },
+  getAvailablePosts: {},
   getPost: {
-    verbs: ["Loading", "Loaded"],
-    noun: "post",
     suffix: (input) => idSuffix(input, ["id", "postId", "identifier"]),
   },
   createImage: {
-    verbs: ["Generating", "Generated"],
-    noun: "image",
-    subtitle: ({ isStreaming }) =>
-      isStreaming ? "Generating image — usually 3–8 minutes" : undefined,
+    subtitle: ({ isStreaming, t }) =>
+      isStreaming ? t("imageGenerating") : undefined,
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createBlogPost: {
-    verbs: ["Drafting", "Drafted"],
-    noun: "blog post",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createChangelog: {
-    verbs: ["Drafting", "Drafted"],
-    noun: "changelog",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createTwitterPost: {
-    verbs: ["Drafting", "Drafted"],
-    noun: "Twitter post",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createLinkedInPost: {
-    verbs: ["Drafting", "Drafted"],
-    noun: "LinkedIn post",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createInvestorUpdate: {
-    verbs: ["Drafting", "Drafted"],
-    noun: "investor update",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
   createSchedule: {
-    verbs: ["Creating", "Created"],
-    noun: "schedule",
     suffix: (input) => quotedSuffix(input, ["name"]),
   },
-  listSchedules: {
-    verbs: ["Listing", "Listed"],
-    noun: "schedules",
-  },
+  listSchedules: {},
   reviseImage: {
-    verbs: ["Revising", "Revised"],
-    noun: "image",
-    subtitle: ({ isStreaming }) =>
-      isStreaming ? "Revising image — usually 3–8 minutes" : undefined,
+    subtitle: ({ isStreaming, t }) =>
+      isStreaming ? t("imageRevising") : undefined,
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
-  listBrandIdentities: {
-    verbs: ["Listing", "Listed"],
-    noun: "brand identities",
-  },
+  listBrandIdentities: {},
   getBrandIdentity: {
-    verbs: ["Loading", "Loaded"],
-    noun: "brand identity",
     suffix: (input) => quotedSuffix(input, ["name", "id"]),
   },
-  getAvailableBrandReferences: {
-    verbs: ["Loading", "Loaded"],
-    noun: "brand references",
-  },
-  getBrandReferences: {
-    verbs: ["Loading", "Loaded"],
-    noun: "brand references",
-  },
+  getAvailableBrandReferences: {},
+  getBrandReferences: {},
   searchBrandReferences: {
-    verbs: ["Searching", "Searched"],
-    noun: "brand references",
     suffix: (input) => quotedSuffix(input, ["query"]),
   },
-  getAvailableIntegrations: {
-    verbs: ["Checking", "Checked"],
-    noun: "integrations",
-  },
+  getAvailableIntegrations: {},
   listGeoProjects: {
-    verbs: ["Listing", "Listed"],
-    noun: "GEO projects",
-    suffix: (_input, output) =>
-      countSuffix(getNumericValue(output, "count"), "project", "projects"),
+    suffix: (_input, output, t) =>
+      countSuffix(t, "projects", getNumericValue(output, "count")),
   },
   getGeoOverview: {
-    verbs: ["Loading", "Loaded"],
-    noun: "GEO overview",
     suffix: geoDaysSuffix,
   },
   getGeoTimeseries: {
-    verbs: ["Loading", "Loaded"],
-    noun: "GEO trends",
     suffix: geoDaysSuffix,
   },
   getGeoPromptResults: {
-    verbs: ["Loading", "Loaded"],
-    noun: "GEO prompt results",
     suffix: geoDaysSuffix,
   },
   getGeoCompetitorShare: {
-    verbs: ["Loading", "Loaded"],
-    noun: "GEO competitor share",
     suffix: geoDaysSuffix,
   },
   getGeoProjectContext: {
-    verbs: ["Loading", "Loaded"],
-    noun: "GEO project context",
     suffix: (input) => idSuffix(input, ["projectId"]),
   },
   getSitemapPages: {
-    verbs: ["Listing", "Listed"],
-    noun: "sitemap pages",
-    suffix: (input, output) =>
+    suffix: (input, output, t) =>
       quotedSuffix(input, ["query"]) ??
-      countSuffix(getNumericValue(output, "total"), "page", "pages"),
+      countSuffix(t, "pages", getNumericValue(output, "total")),
   },
   fetchSitemapPage: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "sitemap page",
     suffix: (input) => quotedSuffix(input, ["url"]),
   },
   crawlSitemap: {
-    verbs: ["Crawling", "Crawled"],
-    noun: "sitemap",
-    suffix: (input, output) =>
+    suffix: (input, output, t) =>
       quotedSuffix(input, ["domain"]) ??
-      countSuffix(getNumericValue(output, "total"), "URL", "URLs"),
+      countSuffix(t, "urls", getNumericValue(output, "total")),
   },
-  getMarkdown: { verbs: ["Reading", "Read"], noun: "document" },
-  editMarkdown: { verbs: ["Editing", "Edited"], noun: "document" },
-  listAvailableSkills: { verbs: ["Listing", "Listed"], noun: "skills" },
+  getMarkdown: {},
+  editMarkdown: {},
+  listAvailableSkills: {},
   getSkillByName: {
-    verbs: ["Loading", "Loaded"],
-    noun: "skill",
     suffix: (input) => quotedSuffix(input, ["name"]),
   },
   fetchWebpage: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "webpage",
     suffix: (input) => quotedSuffix(input, ["url"]),
   },
   webSearch: {
-    verbs: ["Searching", "Searched"],
-    noun: "web",
     suffix: webSearchSuffix,
   },
   search: {
-    verbs: ["Searching", "Searched"],
-    noun: "web",
     suffix: webSearchSuffix,
   },
   searchMemories: {
-    verbs: ["Searching", "Searched"],
-    noun: "memory",
     suffix: (input) => quotedSuffix(input, ["informationToGet", "query", "q"]),
   },
   recall: {
-    verbs: ["Searching", "Searched"],
-    noun: "memory",
     suffix: (input) => quotedSuffix(input, ["informationToGet", "query", "q"]),
   },
   addMemory: {
-    verbs: ["Saving", "Saved"],
-    noun: "memory",
     suffix: (input, output) =>
       quotedSuffix(input, ["memory", "content", "text"]) ??
       memoryIdSuffix(input, output),
   },
   fetchMemory: {
-    verbs: ["Fetching", "Fetched"],
-    noun: "memory",
     suffix: memoryIdSuffix,
   },
   getProfile: {
-    verbs: ["Checking", "Checked"],
-    noun: "memory profile",
     suffix: (input) => quotedSuffix(input, ["query", "containerTag"]),
   },
-  whoAmI: {
-    verbs: ["Checking", "Checked"],
-    noun: "memory account",
-  },
+  whoAmI: {},
   documentList: {
-    verbs: ["Listing", "Listed"],
-    noun: "memory documents",
     suffix: (input) => quotedSuffix(input, ["containerTag", "status"]),
   },
   documentAdd: {
-    verbs: ["Saving", "Saved"],
-    noun: "memory document",
     suffix: (input, output) =>
       quotedSuffix(input, ["title", "description", "content"]) ??
       memoryIdSuffix(input, output),
   },
   documentDelete: {
-    verbs: ["Deleting", "Deleted"],
-    noun: "memory document",
     suffix: (input) => idSuffix(input, ["documentId"]),
   },
   memoryForget: {
-    verbs: ["Forgetting", "Forgot"],
-    noun: "memory",
     suffix: (input) =>
       idSuffix(input, ["memoryId"]) ??
       quotedSuffix(input, ["memoryContent", "reason"]),
   },
   memory: {
-    verbs: ["Using", "Used"],
-    noun: "memory",
     subtitle: memoryToolSubtitle,
   },
-};
+} satisfies Record<string, ToolCopy>;
+
+function isToolCopyName(toolName: string): toolName is keyof typeof TOOL_COPY {
+  return Object.hasOwn(TOOL_COPY, toolName);
+}
 
 function getSubtitle({
   toolName,
@@ -666,6 +585,7 @@ function getSubtitle({
   isError,
   isAwaitingApproval,
   toolMetadata,
+  t,
 }: {
   toolName: string;
   input: unknown;
@@ -674,45 +594,57 @@ function getSubtitle({
   isError: boolean;
   isAwaitingApproval: boolean;
   toolMetadata?: unknown;
+  t: ToolBlockTranslator;
 }): string {
-  const copy = TOOL_COPY[toolName];
-  const failurePrefix = isError ? "Failed to call" : undefined;
-  if (!copy) {
+  if (!isToolCopyName(toolName)) {
     if (isMcpToolName(toolName)) {
       const label = getMcpToolLabel(toolName, toolMetadata);
       if (isAwaitingApproval) {
-        return `Approve ${label}`;
+        return t("fallback.approve", { name: label });
       }
-      if (failurePrefix) {
-        return `${failurePrefix} ${label}`;
+      if (isError) {
+        return t("fallback.failed", { name: label });
       }
       const actionPhrase = getMcpToolActionPhrase(toolMetadata, isStreaming);
       if (actionPhrase) {
         return actionPhrase;
       }
-      return isStreaming ? `Calling ${label}` : `Called ${label}`;
+      return t("fallback.mcpCall", {
+        name: label,
+        state: isStreaming ? "running" : "done",
+      });
     }
     if (isAwaitingApproval) {
-      return `Approve ${toolName}`;
+      return t("fallback.approve", { name: toolName });
     }
-    if (failurePrefix) {
-      return `${failurePrefix} ${toolName}`;
+    if (isError) {
+      return t("fallback.failed", { name: toolName });
     }
-    return isStreaming ? `Running ${toolName}` : `Ran ${toolName}`;
+    return t("fallback.run", {
+      name: toolName,
+      state: isStreaming ? "running" : "done",
+    });
   }
-  const suffix = copy.suffix?.(input, isStreaming ? undefined : output);
+  const copy: ToolCopy = TOOL_COPY[toolName];
+  const suffix = copy.suffix?.(input, isStreaming ? undefined : output, t);
+  const withSuffix = (label: string) =>
+    suffix ? t("withSuffix", { label, suffix }) : label;
+  const labelTool = hasOwnKey(CHAT_TOOL_LABEL_ALIASES, toolName)
+    ? CHAT_TOOL_LABEL_ALIASES[toolName]
+    : toolName;
   if (isAwaitingApproval) {
-    return suffix ? `Approve ${copy.noun} ${suffix}` : `Approve ${copy.noun}`;
+    return withSuffix(t(`tools.${labelTool}`, { state: "approve" }));
   }
   if (isError) {
-    return suffix ? `Failed ${copy.noun} ${suffix}` : `Failed ${copy.noun}`;
+    return withSuffix(t(`tools.${labelTool}`, { state: "failed" }));
   }
-  const subtitle = copy.subtitle?.({ input, output, isStreaming, isError });
+  const subtitle = copy.subtitle?.({ input, output, isStreaming, isError, t });
   if (subtitle) {
     return subtitle;
   }
-  const verb = copy.verbs[isStreaming ? 0 : 1];
-  return suffix ? `${verb} ${copy.noun} ${suffix}` : `${verb} ${copy.noun}`;
+  return withSuffix(
+    t(`tools.${labelTool}`, { state: isStreaming ? "running" : "done" })
+  );
 }
 
 const JSON_TOKEN_RE =
@@ -728,17 +660,18 @@ function stringifyForDisplay(value: unknown): string | undefined {
 }
 
 function JsonView({ value }: { value: unknown }) {
+  const t = useTranslations("ai.toolBlock");
   const raw = stringifyForDisplay(value);
   if (raw === undefined) {
     return (
       <pre className="text-muted-foreground overflow-x-auto font-mono text-[0.75rem]">
-        Unable to display value
+        {t("unableToDisplay")}
       </pre>
     );
   }
   const truncated = raw.length > MAX_JSON_RENDER_CHARS;
   const text = truncated
-    ? `${raw.slice(0, MAX_JSON_RENDER_CHARS)}\n… (${raw.length - MAX_JSON_RENDER_CHARS} more characters truncated)`
+    ? `${raw.slice(0, MAX_JSON_RENDER_CHARS)}\n${t("truncated", { count: raw.length - MAX_JSON_RENDER_CHARS })}`
     : raw;
 
   const parts: Array<{ text: string; className: string; key: string }> = [];
@@ -817,6 +750,8 @@ export function ChatToolBlock({
   mcpLogoLightUrl,
   toolMetadata,
 }: ChatToolBlockProps) {
+  const t = useTranslations("ai.toolBlock");
+  const tCommon = useTranslations("common");
   const isAwaitingApproval = state === "approval-requested";
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isOpen = isAwaitingApproval || isDetailsOpen;
@@ -835,13 +770,16 @@ export function ChatToolBlock({
     isError,
     isAwaitingApproval,
     toolMetadata,
+    t,
   });
   const isLongRunningImage =
     isStreaming &&
     elapsedSeconds >= 8 * 60 &&
     (toolName === "createImage" || toolName === "reviseImage");
   const subtitle = isLongRunningImage
-    ? `${toolName === "reviseImage" ? "Revising" : "Generating"} image — still working; large repos can take longer`
+    ? t("imageLongRunning", {
+        action: toolName === "reviseImage" ? "revise" : "generate",
+      })
     : defaultSubtitle;
   const hasInput = input != null;
   const hasOutput = output != null;
@@ -972,17 +910,20 @@ export function ChatToolBlock({
       <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
         <div className="mt-3 space-y-4">
           {showJsonDetails && showJsonInput ? (
-            <ToolDataSection label="Input" value={input} />
+            <ToolDataSection label={tCommon("labels.input")} value={input} />
           ) : null}
           {showJsonDetails && showJsonOutput ? (
-            <ToolDataSection label="Output" value={detailsOutput} />
+            <ToolDataSection
+              label={tCommon("labels.output")}
+              value={detailsOutput}
+            />
           ) : null}
           {hasApprovalActions ? (
             <div className="flex flex-wrap items-center gap-2">
               {onApprove ? (
                 <Button onClick={onApprove} size="sm" type="button">
                   <HugeiconsIcon icon={Tick02Icon} className="size-3.5" />
-                  Allow
+                  {t("allow")}
                 </Button>
               ) : null}
               {onDeny ? (
@@ -993,7 +934,7 @@ export function ChatToolBlock({
                   variant="ghost"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
-                  Deny
+                  {t("deny")}
                 </Button>
               ) : null}
             </div>

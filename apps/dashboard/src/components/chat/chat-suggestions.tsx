@@ -12,6 +12,7 @@ import {
   useIsPresent,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -53,6 +54,7 @@ function SuggestionCard({
   onSelect,
 }: SuggestionCardProps) {
   const isPresent = useIsPresent();
+  const t = useTranslations("chat.suggestions.items");
 
   return (
     <button
@@ -68,10 +70,10 @@ function SuggestionCard({
       />
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="text-foreground text-sm font-medium tracking-tight">
-          {suggestion.title}
+          {t(`${suggestion.id}.title`)}
         </span>
         <span className="text-muted-foreground text-xs leading-snug">
-          {suggestion.description}
+          {t(`${suggestion.id}.description`)}
         </span>
       </span>
     </button>
@@ -85,6 +87,7 @@ function SuggestionListItem({
   onSelect,
   reduceMotion,
 }: SuggestionCardProps) {
+  const t = useTranslations("chat.suggestions.items");
   const fromBelow = reduceMotion
     ? faded
     : {
@@ -115,7 +118,7 @@ function SuggestionListItem({
             className="pointer-events-none absolute inset-0 flex items-center gap-2.5 px-3"
             exit={toAbove}
             initial={fromBelow}
-            key={suggestion.title}
+            key={suggestion.id}
             transition={swapTransition}
           >
             <HugeiconsIcon
@@ -123,7 +126,7 @@ function SuggestionListItem({
               icon={suggestion.icon}
             />
             <span className="text-foreground min-w-0 truncate text-sm font-medium tracking-tight">
-              {suggestion.title}
+              {t(`${suggestion.id}.title`)}
             </span>
           </m.span>
         </AnimatePresence>
@@ -143,6 +146,7 @@ export function ChatSuggestions({
   rotateIntervalMs = CHAT_SUGGESTION_ROTATE_MS,
   visibleCount = CHAT_SUGGESTION_VISIBLE_COUNT,
 }: ChatSuggestionsProps) {
+  const t = useTranslations("chat.suggestions");
   const shouldReduceMotion = useReducedMotion();
   const { dismissed, dismiss } = useChatSuggestionsDismissal(dismissStorageKey);
   const [page, setPage] = useState(0);
@@ -192,7 +196,7 @@ export function ChatSuggestions({
             : { opacity: hidden ? 0 : 1, y: hidden ? -2 : 0 }
         }
         aria-hidden={hidden}
-        aria-label="Example prompts"
+        aria-label={t("ariaLabel")}
         className={cn("flex w-full flex-col", isList ? "gap-1.5" : "gap-2")}
         initial={false}
         onBlurCapture={(event) => {
@@ -215,11 +219,9 @@ export function ChatSuggestions({
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-center justify-between gap-3">
-          <p className="text-muted-foreground text-sm">
-            Get started with some examples
-          </p>
+          <p className="text-muted-foreground text-sm">{t("heading")}</p>
           <Button
-            aria-label="Dismiss examples"
+            aria-label={t("dismiss")}
             disabled={disabled || hidden}
             onClick={dismiss}
             size="icon-xs"
@@ -263,7 +265,7 @@ export function ChatSuggestions({
                   initial={
                     shouldReduceMotion ? undefined : { opacity: 0, y: 4 }
                   }
-                  key={suggestion.title}
+                  key={suggestion.id}
                   transition={{
                     duration: 0.35,
                     delay: 0.05 + index * 0.05,

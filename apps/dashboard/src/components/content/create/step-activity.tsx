@@ -12,6 +12,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import { cn } from "@notra/ui/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { Button } from "@/components/button";
@@ -76,6 +77,9 @@ export function StepActivity(props: ActivityStepProps) {
     searchQuery,
     onSearchQueryChange,
   } = props;
+  const t = useTranslations("content.create.stepActivity");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   const visibleRepos = useMemo(() => {
     return (repositories ?? []).map((r) => filterRepo(r, searchQuery));
@@ -117,12 +121,8 @@ export function StepActivity(props: ActivityStepProps) {
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">
-          Pick the activity to include
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Search recent activity and pick the events to package.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       <div className="relative">
@@ -133,7 +133,7 @@ export function StepActivity(props: ActivityStepProps) {
         <Input
           className="pl-9"
           onChange={(e) => onSearchQueryChange(e.target.value)}
-          placeholder="Search by title, author, or label..."
+          placeholder={t("searchPlaceholder")}
           value={searchQuery}
         />
       </div>
@@ -150,7 +150,7 @@ export function StepActivity(props: ActivityStepProps) {
 
             {!isLoadingIntegrations && integrationOptions.length === 0 && (
               <span className="text-muted-foreground text-xs">
-                No integrations connected yet.
+                {tCommon("labels.noIntegrationsConnectedYet")}
               </span>
             )}
 
@@ -182,7 +182,7 @@ export function StepActivity(props: ActivityStepProps) {
                     />
                   )}
                 </div>
-                <span>All sources</span>
+                <span>{tCommon("labels.allSources")}</span>
               </button>
             )}
 
@@ -237,14 +237,14 @@ export function StepActivity(props: ActivityStepProps) {
           variant="outline"
         >
           <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
-          <span className="sr-only">Add integration</span>
+          <span className="sr-only">{t("addIntegration")}</span>
         </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {!hasSelectedIntegrations && (
           <div className="text-muted-foreground flex h-full items-center justify-center p-8 text-center text-sm">
-            Pick a source above to load activity.
+            {t("pickSource")}
           </div>
         )}
 
@@ -258,7 +258,7 @@ export function StepActivity(props: ActivityStepProps) {
 
         {hasSelectedIntegrations && !isLoadingPreview && isPreviewError && (
           <div className="border-destructive/50 bg-destructive/10 flex flex-col items-center gap-3 rounded-xl border p-6 text-center text-sm">
-            <p>Failed to load events.</p>
+            <p>{t("loadFailed")}</p>
             <Button
               onClick={onRetryPreview}
               size="sm"
@@ -269,7 +269,7 @@ export function StepActivity(props: ActivityStepProps) {
                 className="size-3.5"
                 icon={ArrowReloadHorizontalIcon}
               />
-              Retry
+              {tCommon("actions.retry")}
             </Button>
           </div>
         )}
@@ -307,9 +307,13 @@ export function StepActivity(props: ActivityStepProps) {
                       <div className="divide-y">
                         {li.issues.map((issue) => {
                           const key = `${li.integrationId}:${issue.id}`;
-                          const metaParts = [issue.assignee ?? "Unassigned"];
+                          const metaParts = [
+                            issue.assignee ?? tCommon("labels.unassigned"),
+                          ];
                           if (issue.completedAt) {
-                            metaParts.push(formatEventDate(issue.completedAt));
+                            metaParts.push(
+                              formatEventDate(issue.completedAt, locale)
+                            );
                           }
                           return (
                             <EventRow
@@ -329,9 +333,7 @@ export function StepActivity(props: ActivityStepProps) {
             </div>
           ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center p-8 text-center text-sm">
-              {searchQuery
-                ? "No events match your search."
-                : "No events in this timeframe."}
+              {searchQuery ? t("noSearchResults") : t("noEvents")}
             </div>
           ))}
       </div>

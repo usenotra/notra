@@ -15,6 +15,7 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,6 +36,9 @@ export function EditLinearIntegrationDialog({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: EditLinearIntegrationDialogProps) {
+  const t = useTranslations("integrations.editLinearDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -63,7 +67,7 @@ export function EditLinearIntegrationDialog({
           },
         }),
       });
-      toast.success("Integration updated successfully");
+      toast.success(tIntegrationsShared("integrationUpdatedSuccessfully"));
       setOpen(false);
     },
     onError: (error: Error) => {
@@ -89,10 +93,10 @@ export function EditLinearIntegrationDialog({
       <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-[500px] [&>*]:min-w-0">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="text-2xl">
-            Edit Integration
+            {tIntegrationsShared("editIntegration")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Update your Linear integration settings
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -107,9 +111,9 @@ export function EditLinearIntegrationDialog({
               {(field) => (
                 <div className="flex items-center justify-between space-x-2">
                   <div className="space-y-0.5">
-                    <Label>Enable Integration</Label>
+                    <Label>{tIntegrationsShared("enableIntegration")}</Label>
                     <p className="text-muted-foreground text-sm">
-                      When disabled, no outputs will be generated
+                      {tIntegrationsShared("whenDisabledNoOutputsWill")}
                     </p>
                   </div>
                   <Switch
@@ -124,12 +128,12 @@ export function EditLinearIntegrationDialog({
             <form.Field name="displayName">
               {(field) => (
                 <Field>
-                  <FieldLabel>Display Name</FieldLabel>
+                  <FieldLabel>{tIntegrationsShared("displayName")}</FieldLabel>
                   <Input
                     disabled={mutation.isPending}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="My Linear Integration"
+                    placeholder={t("displayNamePlaceholder")}
                     value={field.state.value}
                   />
                 </Field>
@@ -141,7 +145,7 @@ export function EditLinearIntegrationDialog({
               disabled={mutation.isPending}
               render={<Button variant="outline" />}
             >
-              Cancel
+              {tCommon("actions.cancel")}
             </ResponsiveDialogClose>
             <form.Subscribe selector={(state) => [state.canSubmit]}>
               {([canSubmit]) => (
@@ -153,7 +157,9 @@ export function EditLinearIntegrationDialog({
                   }}
                   type="button"
                 >
-                  {mutation.isPending ? "Saving..." : "Save Changes"}
+                  {mutation.isPending
+                    ? tCommon("actions.saving")
+                    : tCommon("actions.saveChanges")}
                 </Button>
               )}
             </form.Subscribe>

@@ -5,39 +5,24 @@ import type {
 
 import type { PersonaDialogView } from "@/types/geo-personas-ui";
 
-export const GEO_PERSONAS_PAGE_TITLE = "Personas";
 export const GEO_PERSONA_RESULTS_POLL_MS = 15_000;
 export const GEO_PERSONA_FORECAST_DAYS = 7;
 export const GEO_PERSONA_FORECAST_SAMPLE_DAYS = 7;
-export const GEO_PERSONAS_PAGE_DESCRIPTION =
-  "Distinct buyer types researching your category in AI engines";
-export const GEO_PERSONAS_EMPTY_TITLE = "No personas yet";
-export const GEO_PERSONAS_EMPTY_DESCRIPTION =
-  "Generate five buyer types from your site and audience, each with its own priorities, tool stack, and buying criteria. They research your category in your selected AI engines.";
 export const GEO_PERSONA_DIALOG_VIEWS = [
-  { value: "conversation", label: "Conversation" },
-  { value: "prompts", label: "Prompts" },
-  { value: "profile", label: "Profile" },
-] as const satisfies readonly { value: PersonaDialogView; label: string }[];
-export const GEO_PERSONA_CONVERSATION_EMPTY_TITLE = "No conversation yet";
-export const GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION =
-  "Personas talk to every engine during a scan.";
-export const GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION =
-  "This persona is paused. Include it in scans to start a conversation.";
-export const GEO_PERSONA_PROMPTS_DESCRIPTION =
-  "Every engine receives these exact messages in the same order. They are generated from the persona’s profile and memories.";
-export const GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION =
-  "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories.";
+  "conversation",
+  "prompts",
+  "profile",
+] as const satisfies readonly PersonaDialogView[];
 
 /**
  * Generation is one model call with no server-side progress, so the counter
  * is paced on elapsed time. The last step holds until the response lands.
  */
 export const GEO_PERSONA_GENERATION_STEPS = [
-  { label: "Reading your site", afterMs: 0 },
-  { label: "Writing profiles", afterMs: 12_000 },
-  { label: "Writing memories", afterMs: 35_000 },
-  { label: "Indexing memories", afterMs: 65_000 },
+  { key: "readingSite", afterMs: 0 },
+  { key: "writingProfiles", afterMs: 12_000 },
+  { key: "writingMemories", afterMs: 35_000 },
+  { key: "indexingMemories", afterMs: 65_000 },
 ] as const;
 export const GEO_PERSONA_GENERATION_TICK_MS = 500;
 
@@ -59,16 +44,6 @@ export const GEO_PERSONA_AVATAR_BACKGROUNDS = [
   "#ffdfbf",
 ] as const;
 
-export const GEO_PERSONA_MEMORY_KIND_LABELS: Record<
-  GeoPersonaMemoryKind,
-  string
-> = {
-  background: "Background",
-  experience: "Experience",
-  preference: "Preference",
-  constraint: "Constraint",
-};
-
 /** Order the memory groups appear in on the detail dialog. */
 export const GEO_PERSONA_MEMORY_KIND_ORDER: readonly GeoPersonaMemoryKind[] = [
   "background",
@@ -78,12 +53,11 @@ export const GEO_PERSONA_MEMORY_KIND_ORDER: readonly GeoPersonaMemoryKind[] = [
 ];
 
 export const GEO_PERSONA_PROFILE_SECTIONS = [
-  { key: "goals", label: "Goals" },
-  { key: "painPoints", label: "Pain points" },
-  { key: "currentStack", label: "Current stack" },
-  { key: "buyingTriggers", label: "Buying triggers" },
-  { key: "objections", label: "Objections" },
+  { key: "goals" },
+  { key: "painPoints" },
+  { key: "currentStack" },
+  { key: "buyingTriggers" },
+  { key: "objections" },
 ] as const satisfies readonly {
   key: keyof GeoPersonaProfile;
-  label: string;
 }[];

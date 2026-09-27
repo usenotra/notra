@@ -7,6 +7,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -31,6 +32,8 @@ export function RowHandle({
   onEnter: () => void;
   onLeave: () => void;
 }) {
+  const t = useTranslations("shared.table");
+  const tCommon = useTranslations("common");
   useEffect(() => {
     window.addEventListener("scroll", onLeave, true);
     return () => window.removeEventListener("scroll", onLeave, true);
@@ -54,17 +57,17 @@ export function RowHandle({
       }}
     >
       <TableMenu
-        ariaLabel={`Row ${index + 1} options`}
+        ariaLabel={t("rowOptions", { row: index + 1 })}
         items={[
           ...(onInsertRow
             ? [
                 {
-                  label: "Insert before",
+                  label: t("insertBefore"),
                   icon: <HugeiconsIcon icon={ArrowUpToLineIcon} size={16} />,
                   onSelect: () => onInsertRow(index, "before"),
                 },
                 {
-                  label: "Insert after",
+                  label: t("insertAfter"),
                   icon: <HugeiconsIcon icon={ArrowDownToLineIcon} size={16} />,
                   onSelect: () => onInsertRow(index, "after"),
                 },
@@ -73,7 +76,7 @@ export function RowHandle({
           ...(onDeleteRow
             ? [
                 {
-                  label: "Delete row",
+                  label: tCommon("labels.deleteRow"),
                   icon: <HugeiconsIcon icon={Delete02Icon} size={16} />,
                   destructive: true,
                   onSelect: () => onDeleteRow(id, index),

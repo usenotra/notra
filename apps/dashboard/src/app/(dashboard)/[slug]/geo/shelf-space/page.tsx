@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import PageClient from "./page-client";
 import { GeoShelfSkeleton } from "./skeleton";
 
-export const metadata: Metadata = {
-  title: "GEO Shelf Space",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("geo.pages.shelfSpace");
+  return { title: t("metaTitle") };
+}
 
 export const instant = true;
 

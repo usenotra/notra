@@ -1,13 +1,15 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 export function ContentDetailSkeleton() {
+  const tContentShared = useTranslations("content.shared");
   const id = useId();
   return (
     <div className="flex flex-1 flex-col" role="status">
-      <span className="sr-only">Loading content</span>
+      <span className="sr-only">{tContentShared("loadingContent")}</span>
       <div
         aria-hidden="true"
         className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6"

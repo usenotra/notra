@@ -12,7 +12,6 @@ import {
   API_KEY_GEO_SCOPES,
   API_KEY_PERMISSIONS,
   API_KEY_SCOPE_LEVEL,
-  API_KEY_SCOPE_LEVEL_LABELS,
   API_KEY_SCOPE_RESOURCES,
 } from "@/constants/api-keys";
 import type {
@@ -31,19 +30,16 @@ export const API_KEY_SCOPE_GROUPS: ApiKeyScopeGroup[] =
     levels: [
       {
         value: API_KEY_SCOPE_LEVEL.none,
-        label: API_KEY_SCOPE_LEVEL_LABELS.none,
         tone: "neutral",
         scopes: [],
       },
       {
         value: API_KEY_SCOPE_LEVEL.read,
-        label: API_KEY_SCOPE_LEVEL_LABELS.read,
         tone: "success",
         scopes: [resource.readScope],
       },
       {
         value: API_KEY_SCOPE_LEVEL.write,
-        label: API_KEY_SCOPE_LEVEL_LABELS.write,
         tone: "warning",
         scopes: [resource.readScope, resource.writeScope],
       },

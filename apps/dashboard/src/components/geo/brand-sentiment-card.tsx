@@ -1,15 +1,12 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import { SentimentSummary } from "@/components/geo/sentiment-summary";
 import { SentimentThemes } from "@/components/geo/sentiment-themes";
 import { SentimentTrendCard } from "@/components/geo/sentiment-trend-card";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
-import {
-  SENTIMENT_ANALYZE_ACTION,
-  SENTIMENT_POLARITY_CTA,
-  SENTIMENT_POLARITY_STYLES,
-  SENTIMENT_SCORE_HINT,
-} from "@/constants/geo-sentiment";
+import { SENTIMENT_POLARITY_STYLES } from "@/constants/geo-sentiment";
 import {
   useGeoSentiment,
   useGeoSentimentAnalysis,
@@ -21,11 +18,18 @@ import {
 } from "@/utils/geo-sentiment";
 import { sentimentAnalysisStatus } from "@/utils/sentiment-analysis";
 
-function formatPolarityShare(share: number | null | undefined): string {
+function formatPolarityShare(
+  share: number | null | undefined,
+  locale: string
+): string {
   if (share == null) {
     return "—";
   }
-  return `${(share * 100).toFixed(1)}%`;
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(share);
 }
 
 function PolarityThemeContent({
@@ -43,10 +47,13 @@ function PolarityThemeContent({
   analysisReady: boolean;
   hideEmpty: boolean;
 }) {
-  const cta = SENTIMENT_POLARITY_CTA[polarity];
+  const t = useTranslations("geo.brandSentimentCard");
+  const tCommon = useTranslations("common");
 
   if (loading) {
-    return <p className="text-muted-foreground text-xs">Loading themes…</p>;
+    return (
+      <p className="text-muted-foreground text-xs">{t("loadingThemes")}</p>
+    );
   }
   if (themes.length > 0) {
     return (
@@ -68,12 +75,12 @@ function PolarityThemeContent({
   if (canAnalyze) {
     return (
       <p className="text-muted-foreground text-xs text-balance">
-        {cta.subtext}{" "}
+        {t(`cta.${polarity}`)}{" "}
         <a
           className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
           href="#sentiment-themes"
         >
-          {SENTIMENT_ANALYZE_ACTION}
+          {tCommon("labels.analyze")}
         </a>
       </p>
     );
@@ -83,27 +90,30 @@ function PolarityThemeContent({
   }
   return (
     <p className="text-muted-foreground text-xs text-balance">
-      {analysisReady ? "No themes found" : "Run analysis to find themes"}
+      {analysisReady ? t("noThemes") : t("runAnalysis")}
     </p>
   );
 }
 
 function PolarityPreview() {
+  const t = useTranslations("geo.brandSentimentCard");
+  const tCommon = useTranslations("common");
+
   return (
     <div className="flex min-h-64 flex-1 flex-col divide-y">
       <div className="flex flex-1 flex-col justify-center gap-2 px-5 py-5">
         <p
           className={`text-sm font-medium ${SENTIMENT_POLARITY_STYLES.positive.text}`}
         >
-          — Positive
+          — {tCommon("labels.positive")}
         </p>
         <p className="text-muted-foreground text-xs text-balance">
-          {SENTIMENT_POLARITY_CTA.positive.subtext}{" "}
+          {t("cta.positive")}{" "}
           <a
             className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
             href="#sentiment-themes"
           >
-            {SENTIMENT_ANALYZE_ACTION}
+            {tCommon("labels.analyze")}
           </a>
         </p>
       </div>
@@ -111,15 +121,15 @@ function PolarityPreview() {
         <p
           className={`text-sm font-medium ${SENTIMENT_POLARITY_STYLES.negative.text}`}
         >
-          — Negative
+          — {tCommon("labels.negative")}
         </p>
         <p className="text-muted-foreground text-xs text-balance">
-          {SENTIMENT_POLARITY_CTA.negative.subtext}{" "}
+          {t("cta.negative")}{" "}
           <a
             className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
             href="#sentiment-themes"
           >
-            {SENTIMENT_ANALYZE_ACTION}
+            {tCommon("labels.analyze")}
           </a>
         </p>
       </div>
@@ -131,6 +141,10 @@ export function BrandSentimentCard({
   organizationId,
   isScanning,
 }: BrandSentimentCardProps) {
+  const t = useTranslations("geo.brandSentimentCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const query = useGeoSentiment(organizationId);
   const data = query.isSuccess ? query.data : undefined;
   const analysis = useGeoSentimentAnalysis(organizationId);
@@ -144,9 +158,16 @@ export function BrandSentimentCard({
     isError: analysis.query.isError,
     aggregatePending: query.isPending,
   });
-  const themeStatus = analysis.query.isError
-    ? "Could not load analysis."
-    : sentimentAnalysisStatus(analysis.query.data);
+  const themeStatusKey = sentimentAnalysisStatus(analysis.query.data);
+  let themeStatus = "";
+  if (analysis.query.isError) {
+    themeStatus = tGeoShared("couldNotLoadAnalysis");
+  } else if (themeStatusKey) {
+    themeStatus =
+      themeStatusKey === "finding"
+        ? tGeoShared("findingThemes")
+        : t(`analysisStatus.${themeStatusKey}`);
+  }
   const showThemeStatus =
     themeStatus &&
     (analysis.query.isError || analysis.query.data?.status !== "pending");
@@ -154,8 +175,8 @@ export function BrandSentimentCard({
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <InstrumentModule
-        eyebrow="Brand sentiment"
-        hint={SENTIMENT_SCORE_HINT}
+        eyebrow={tCommon("labels.brandSentiment")}
+        hint={t("scoreHint")}
         variant="table"
         className="h-full"
         bodyClassName="min-w-0 p-0"
@@ -205,9 +226,11 @@ export function BrandSentimentCard({
                       className="flex flex-1 flex-col justify-center gap-2 px-5 py-3"
                     >
                       <p
-                        className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                        className={`text-sm font-medium ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
                       >
-                        {formatPolarityShare(share)} {polarity}
+                        {t(`polarityShare.${polarity}`, {
+                          share: formatPolarityShare(share, locale),
+                        })}
                       </p>
                       <PolarityThemeContent
                         analysisReady={analysis.query.data?.status === "ready"}
@@ -244,12 +267,14 @@ export function BrandSentimentCard({
                     (polarity) => (
                       <span
                         key={polarity}
-                        className={`capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                        className={`${SENTIMENT_POLARITY_STYLES[polarity].text}`}
                       >
-                        {formatPolarityShare(
-                          data?.summary?.[`${polarity}Share`]
-                        )}{" "}
-                        {polarity}
+                        {t(`polarityShare.${polarity}`, {
+                          share: formatPolarityShare(
+                            data?.summary?.[`${polarity}Share`],
+                            locale
+                          ),
+                        })}
                       </span>
                     )
                   )}

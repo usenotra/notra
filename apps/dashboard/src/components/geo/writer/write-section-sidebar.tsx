@@ -7,8 +7,10 @@ import {
   GEO_WRITE_SIDEBAR_WIDTH,
 } from "@notra/geo-core/constants/geo";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 import { GEO_WRITE_DIALOG_SECTIONS } from "@/constants/geo-writer";
+import { useWriteSectionLabels } from "@/lib/hooks/use-write-section-labels";
 import type { WriteSectionSidebarProps } from "@/types/components/geo-writer";
 
 export function WriteSectionSidebar({
@@ -16,10 +18,13 @@ export function WriteSectionSidebar({
   collapsed,
   onJump,
 }: WriteSectionSidebarProps) {
+  const t = useTranslations("geo.writer.writeSectionSidebar");
+  const sectionLabels = useWriteSectionLabels();
+  const tCommon = useTranslations("common");
   return (
     <nav
       aria-hidden={collapsed}
-      aria-label="Write sections"
+      aria-label={t("ariaLabel")}
       className={cn(
         "duration-slow hidden shrink-0 flex-col overflow-hidden transition-[width,margin-right,opacity] ease-out will-change-[width] motion-reduce:transition-none md:flex",
         collapsed ? "-mr-3 w-0 opacity-0" : "mr-0 opacity-100"
@@ -37,7 +42,7 @@ export function WriteSectionSidebar({
               "text-muted-foreground px-4 text-xs"
             )}
           >
-            Overview
+            {tCommon("labels.overview")}
           </p>
         </div>
         <div className="border-border bg-background -mt-5 flex min-h-0 flex-1 flex-col gap-0.5 rounded-2xl border p-2">
@@ -62,7 +67,7 @@ export function WriteSectionSidebar({
                   icon={item.icon}
                   strokeWidth={1.8}
                 />
-                <span>{item.label}</span>
+                <span>{sectionLabels[item.id]}</span>
               </button>
             );
           })}

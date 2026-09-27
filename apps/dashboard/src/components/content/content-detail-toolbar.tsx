@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
@@ -38,7 +39,6 @@ import type {
   ContentDetailImageActionsProps,
 } from "@/types/components/content-detail-toolbar";
 import type { ImageExportTarget } from "@/types/content/image-export";
-import { getPublishButtonLabel } from "@/utils/content-detail";
 import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
 import {
   getImageExportTargetLabel,
@@ -50,6 +50,8 @@ function ContentDetailImageActions({
   contentId,
   document,
 }: ContentDetailImageActionsProps) {
+  const t = useTranslations("content.toolbar");
+  const tCommon2 = useTranslations("common");
   const imageExportHtml = getImageExportHtml(content);
   const imageExportHtmlUrl = content.htmlUrl;
   const imageDownloadUrl = isHttpImageContent(content.content)
@@ -100,7 +102,7 @@ function ContentDetailImageActions({
         variant="outline"
       >
         <HugeiconsIcon className="size-4" icon={Download01Icon} />
-        Download image
+        {tCommon2("labels.downloadImage")}
       </Button>
       <ButtonGroup
         onFocusCapture={() =>
@@ -117,13 +119,15 @@ function ContentDetailImageActions({
             className="size-4"
             target={document.imageExportTarget}
           />
-          Copy for {getImageExportTargetLabel(document.imageExportTarget)}
+          {t("copyFor", {
+            target: getImageExportTargetLabel(document.imageExportTarget),
+          })}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={<Button size="icon-sm" variant="outline" />}
           >
-            <span className="sr-only">Select export target</span>
+            <span className="sr-only">{t("selectExportTarget")}</span>
             <HugeiconsIcon className="size-4" icon={ArrowDown01Icon} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
@@ -149,10 +153,14 @@ function ContentDetailImageActions({
                       target={target}
                     />
                     <span className="flex flex-col">
-                      <span>Copy for {getImageExportTargetLabel(target)}</span>
+                      <span>
+                        {t("copyFor", {
+                          target: getImageExportTargetLabel(target),
+                        })}
+                      </span>
                       {isWonder ? (
                         <span className="text-muted-foreground text-xs">
-                          Coming soon
+                          {t("comingSoon")}
                         </span>
                       ) : null}
                     </span>
@@ -174,6 +182,13 @@ function ContentDetailPublishActions({
   organizationId,
   organizationSlug,
 }: ContentDetailToolbarProps) {
+  const tCommon2 = useTranslations("common");
+  let publishLabel = tCommon2("labels.publish");
+  if (document.isTogglingStatus) {
+    publishLabel = tCommon2("labels.updating");
+  } else if (content.status === "published") {
+    publishLabel = tCommon2("labels.moveToDraft");
+  }
   if (document.isGeoWriterPlanMode) {
     return document.isGeoWriterBriefMissing ? null : <WriterExecute.Button />;
   }
@@ -228,7 +243,7 @@ function ContentDetailPublishActions({
         size="sm"
         variant={content.status === "draft" ? "default" : "outline"}
       >
-        {getPublishButtonLabel(document.isTogglingStatus, content.status)}
+        {publishLabel}
         <HugeiconsIcon
           className="size-4"
           icon={content.status === "published" ? TextIcon : SentIcon}
@@ -240,12 +255,14 @@ function ContentDetailPublishActions({
 
 export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
   const { content, document, organizationId } = props;
+  const t = useTranslations("content.toolbar");
+  const tCommon = useTranslations("common.actions");
   const updatesLinkedPullRequest = Boolean(content.githubPublish);
-  let saveLabel = "Save changes";
+  let saveLabel = tCommon("saveChanges");
   if (updatesLinkedPullRequest) {
-    saveLabel = document.isSaving ? "Updating PR…" : "Save and update PR";
+    saveLabel = document.isSaving ? t("updatingPr") : t("saveAndUpdatePr");
   } else if (document.isSaving) {
-    saveLabel = "Saving…";
+    saveLabel = tCommon("saving");
   }
   return (
     <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -260,7 +277,7 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
             size="sm"
             variant="ghost"
           >
-            Discard changes
+            {t("discardChanges")}
           </Button>
           <Button
             aria-keyshortcuts="Meta+S Control+S"

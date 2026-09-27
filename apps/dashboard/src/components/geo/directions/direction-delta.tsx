@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 import {
   GEO_DIRECTIONS_DELTA_CLASS,
@@ -14,6 +15,7 @@ import {
 } from "@/utils/geo-directions";
 
 export function DirectionDelta({ delta, className }: DirectionDeltaProps) {
+  const t = useTranslations("geo.directions.delta");
   const tone = directionDeltaTone(delta);
 
   return (
@@ -26,7 +28,7 @@ export function DirectionDelta({ delta, className }: DirectionDeltaProps) {
       variant="outline"
     >
       <span aria-hidden="true">{GEO_DIRECTIONS_DELTA_GLYPH[tone]}</span>
-      {formatDirectionDelta(delta)} pts
+      {t("points", { delta: formatDirectionDelta(delta) })}
     </Badge>
   );
 }

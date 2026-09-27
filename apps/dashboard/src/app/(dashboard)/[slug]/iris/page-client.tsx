@@ -6,6 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,6 +33,9 @@ function toErrorMessage(error: unknown, fallback: string): string {
 }
 
 export default function PageClient({ organizationSlug }: IrisPageClientProps) {
+  const t = useTranslations("iris");
+  const tIrisShared = useTranslations("iris.shared");
+  const tCommon = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id ?? "";
@@ -91,29 +95,29 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
   const startMutation = useMutation({
     mutationFn: () => dashboardOrpc.iris.start.call({ organizationId }),
     onSuccess: () => {
-      toast.success("Iris is on duty");
+      toast.success(tIrisShared("irisIsOnDuty"));
       invalidateIris();
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Iris could not be started"));
+      toast.error(toErrorMessage(error, t("toasts.startFailed")));
     },
   });
 
   const runNowMutation = useMutation({
     mutationFn: () => dashboardOrpc.iris.runNow.call({ organizationId }),
     onSuccess: () => {
-      toast.success("Iris is on it");
+      toast.success(t("toasts.runNow"));
       invalidateIris();
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Iris could not start a run"));
+      toast.error(toErrorMessage(error, t("toasts.runNowFailed")));
     },
   });
 
   const pauseMutation = useMutation({
     mutationFn: () => {
       if (!mandate) {
-        throw new Error("Iris is not running");
+        throw new Error(t("toasts.notRunning"));
       }
       return dashboardOrpc.iris.pause.call({
         organizationId,
@@ -121,19 +125,19 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       });
     },
     onSuccess: () => {
-      toast.success("Iris is paused");
+      toast.success(tIrisShared("irisIsPaused"));
       setPauseOpen(false);
       invalidateIris();
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Iris could not be paused"));
+      toast.error(toErrorMessage(error, t("toasts.pauseFailed")));
     },
   });
 
   const resumeMutation = useMutation({
     mutationFn: () => {
       if (!mandate) {
-        throw new Error("Iris is not running");
+        throw new Error(t("toasts.notRunning"));
       }
       return dashboardOrpc.iris.resume.call({
         organizationId,
@@ -141,11 +145,11 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       });
     },
     onSuccess: () => {
-      toast.success("Iris is back on duty");
+      toast.success(t("toasts.resumed"));
       invalidateIris();
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Iris could not be resumed"));
+      toast.error(toErrorMessage(error, t("toasts.resumeFailed")));
     },
   });
 
@@ -164,6 +168,9 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
     organizationSlug,
     slackReady: overview?.slackReady ?? false,
     githubConnected,
+    t,
+    manageLabel: tCommon("actions.manage"),
+    connectLabel: tCommon("actions.connect"),
   });
 
   const content = (() => {

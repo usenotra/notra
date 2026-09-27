@@ -3,6 +3,7 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import type { ContextItem } from "@notra/ai/types/chat";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   type ClipboardEvent,
   type KeyboardEvent,
@@ -30,7 +31,6 @@ import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
 import {
   buildContentChatContextOptions,
-  CHAT_INPUT_LIMIT_MESSAGE,
   contextItemsEqual,
   getComposerValue,
   getContentChatInputChrome,
@@ -69,6 +69,8 @@ export function useContentChatInput({
   onRemoveQueued,
   onSteerQueued,
 }: ChatInputProps): UseContentChatInputResult {
+  const tInput = useTranslations("chat.input");
+  const tSend = useTranslations("chat.input.send");
   const contextPickerId = useId();
   const [isFocused, setIsFocused] = useState(false);
   const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
@@ -142,7 +144,8 @@ export function useContentChatInput({
   const usageLimitError = resolveUsageLimitError(
     externalError,
     internalError,
-    isUsageBlocked
+    isUsageBlocked,
+    tSend("noCredits")
   );
   const clearError = useCallback(() => {
     setInternalError(null);
@@ -272,8 +275,12 @@ export function useContentChatInput({
       buildContentChatContextOptions({
         enabledLinear,
         enabledRepos,
+        labels: {
+          githubRepository: tInput("options.githubRepository"),
+          linearTeam: tInput("options.linearTeam"),
+        },
       }),
-    [enabledLinear, enabledRepos]
+    [enabledLinear, enabledRepos, tInput]
   );
 
   const isInContext = useCallback(
@@ -331,7 +338,7 @@ export function useContentChatInput({
     clearError();
 
     if (isUsageBlocked) {
-      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+      setInternalError(tSend("noCredits"));
       return;
     }
 
@@ -342,7 +349,7 @@ export function useContentChatInput({
       });
 
       if (sendCheckResult?.allowed === false) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+        setInternalError(tSend("noCredits"));
         return;
       }
     }
@@ -374,6 +381,7 @@ export function useContentChatInput({
     setValue,
     taggedSkillNames,
     value,
+    tSend,
   ]);
 
   useHotkeys(
@@ -422,6 +430,14 @@ export function useContentChatInput({
     isLoading,
     isUploading,
     isUsageBlocked,
+    labels: {
+      contextUnavailable: tInput("contextUnavailable"),
+      stopGenerating: tSend("stopGenerating"),
+      queueMessage: tSend("queueMessage"),
+      queueHint: tSend("queueHint"),
+      sendMessage: tSend("sendMessage"),
+      sendHint: tSend("sendHint"),
+    },
     onStop,
     pendingUploadCount: pendingUploads.length,
     queuedCount: queuedMessages.length,

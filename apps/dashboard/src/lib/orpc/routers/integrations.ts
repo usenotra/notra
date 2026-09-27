@@ -116,10 +116,14 @@ import {
 import { PublicUrlValidationError } from "@notra/utils/url";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
 import * as z from "zod";
 
-import { GITHUB_API_VERSION_HEADERS } from "@/constants/github";
+import {
+  GITHUB_API_VERSION_HEADERS,
+  REPOSITORY_ALREADY_CONNECTED_CODE,
+} from "@/constants/github";
 import {
   INTEGRATION_AUTH_KINDS,
   INTEGRATION_PROVIDERS,
@@ -160,9 +164,8 @@ import {
 async function assertMcpConnectionRateLimit(organizationId: string) {
   const { success } = await ratelimit.mcpConnection.limit(organizationId);
   if (!success) {
-    throw tooManyRequests(
-      "Too many connection attempts. Wait a minute and try again."
-    );
+    const tErrors = await getTranslations("errors.integrations");
+    throw tooManyRequests(tErrors("tooManyConnectionAttempts"));
   }
 }
 
@@ -355,36 +358,41 @@ async function getAffectedSchedulesForIntegration(
   });
 }
 
-function mapKnownIntegrationError(error: unknown): never {
+async function toKnownIntegrationError(error: unknown): Promise<Error> {
   if (
     error instanceof Error &&
     error.message === "Repository already connected"
   ) {
-    throw conflict("Repository already connected");
+    const tCommon = await getTranslations("common");
+    return conflict(tCommon("labels.repositoryAlreadyConnected"), {
+      code: REPOSITORY_ALREADY_CONNECTED_CODE,
+    });
   }
 
   if (
     error instanceof Error &&
     error.message.includes("exactly one repository")
   ) {
-    throw badRequest("Please select exactly one repository");
+    const tErrors = await getTranslations("errors.integrations");
+    return badRequest(tErrors("selectOneRepository"));
   }
 
   if (error instanceof GitHubBranchNotFoundError) {
-    throw badRequest(error.message);
+    const tErrors = await getTranslations("errors.integrations");
+    return badRequest(tErrors("branchNotFound"));
   }
 
   if (error instanceof GitHubRepositoryNotFoundError) {
-    throw badRequest(
-      "Unable to access repository. It may be private and require a Personal Access Token, or the name is incorrect."
-    );
+    const tErrors = await getTranslations("errors.integrations");
+    return badRequest(tErrors("repositoryInaccessible"));
   }
 
   if (error instanceof Error) {
-    throw badRequest(error.message);
+    const tCommonErrors = await getTranslations("common.errors");
+    return badRequest(tCommonErrors("generic"));
   }
 
-  throw internalServerError("Internal server error", error);
+  return internalServerError("Internal server error", error);
 }
 
 export const integrationsRouter = {
@@ -444,7 +452,7 @@ export const integrationsRouter = {
 
         return serializeIntegration(integration);
       } catch (error) {
-        mapKnownIntegrationError(error);
+        throw await toKnownIntegrationError(error);
       }
     }),
   get: baseProcedure
@@ -501,7 +509,10 @@ export const integrationsRouter = {
           );
 
           if (conflictingRepo) {
-            throw conflict("Repository already connected");
+            const tCommon = await getTranslations("common");
+            throw conflict(tCommon("labels.repositoryAlreadyConnected"), {
+              code: REPOSITORY_ALREADY_CONNECTED_CODE,
+            });
           }
 
           await validateRepositoryAccess({
@@ -523,9 +534,8 @@ export const integrationsRouter = {
 
         if (normalizedBranch !== undefined) {
           if (integration.repositories.length !== 1) {
-            throw badRequest(
-              "Branch can only be edited for integrations with a single repository"
-            );
+            const tErrors = await getTranslations("errors.integrations");
+            throw badRequest(tErrors("branchSingleRepoOnly"));
           }
 
           if (!repository) {
@@ -580,7 +590,7 @@ export const integrationsRouter = {
 
         return serializeIntegration(updated);
       } catch (error) {
-        mapKnownIntegrationError(error);
+        throw await toKnownIntegrationError(error);
       }
     }),
   delete: baseProcedure
@@ -693,7 +703,7 @@ export const integrationsRouter = {
             auth.user.id
           );
         } catch (error) {
-          mapKnownIntegrationError(error);
+          throw await toKnownIntegrationError(error);
         }
       }),
     add: baseProcedure
@@ -723,7 +733,7 @@ export const integrationsRouter = {
 
           return repository;
         } catch (error) {
-          mapKnownIntegrationError(error);
+          throw await toKnownIntegrationError(error);
         }
       }),
     get: baseProcedure
@@ -789,7 +799,7 @@ export const integrationsRouter = {
 
           return serializeRepository(refreshed);
         } catch (error) {
-          mapKnownIntegrationError(error);
+          throw await toKnownIntegrationError(error);
         }
       }),
     branches: {
@@ -818,9 +828,8 @@ export const integrationsRouter = {
               (error instanceof Error &&
                 error.message === "GitHub App installation not found")
             ) {
-              throw forbidden(
-                "GitHub authentication failed. Reconnect GitHub and try again."
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("githubAuthFailed"));
             }
             throw internalServerError(
               "Failed to authenticate with GitHub",
@@ -859,7 +868,8 @@ export const integrationsRouter = {
               throw notFound("GitHub repository not found");
             }
             if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
-              throw forbidden("GitHub repository access denied");
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("repositoryAccessDenied"));
             }
             throw internalServerError("Failed to load GitHub branches", error);
           }
@@ -879,9 +889,8 @@ export const integrationsRouter = {
           );
           const baseBranch = repository.defaultBranch;
           if (!baseBranch) {
-            throw badRequest(
-              "Choose a publishing branch before creating a new branch"
-            );
+            const tErrors = await getTranslations("errors.integrations");
+            throw badRequest(tErrors("publishingBranchRequired"));
           }
 
           let token: string | null;
@@ -897,9 +906,8 @@ export const integrationsRouter = {
               (error instanceof Error &&
                 error.message === "GitHub App installation not found")
             ) {
-              throw forbidden(
-                "GitHub authentication failed. Reconnect GitHub and try again."
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("githubAuthFailed"));
             }
             throw internalServerError(
               "Failed to authenticate with GitHub",
@@ -928,14 +936,12 @@ export const integrationsRouter = {
             });
           } catch (error) {
             if (hasGitHubStatus(error, 409)) {
-              throw badRequest(
-                "The publishing branch does not have an initial commit"
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw badRequest(tErrors("publishingBranchEmpty"));
             }
             if (hasGitHubStatus(error, 422)) {
-              throw conflict(
-                "This branch already exists or its name is not valid"
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw conflict(tErrors("branchInvalid"));
             }
             if (hasGitHubStatus(error, 404)) {
               throw notFound(
@@ -943,9 +949,8 @@ export const integrationsRouter = {
               );
             }
             if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
-              throw forbidden(
-                "GitHub needs write access to create this branch"
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("writeAccessRequired"));
             }
             throw internalServerError("Failed to create GitHub branch", error);
           }
@@ -1069,7 +1074,8 @@ export const integrationsRouter = {
             input.repositoryId
           );
           if (!(repository.enabled && repository.integration.enabled)) {
-            throw forbidden("This GitHub repository is disabled");
+            const tErrors = await getTranslations("errors.integrations");
+            throw forbidden(tErrors("repositoryDisabled"));
           }
           let token: string | null;
           try {
@@ -1084,9 +1090,8 @@ export const integrationsRouter = {
               (error instanceof Error &&
                 error.message === "GitHub App installation not found")
             ) {
-              throw forbidden(
-                "GitHub authentication failed. Reconnect GitHub and try again."
-              );
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("githubAuthFailed"));
             }
             throw internalServerError(
               "Failed to authenticate with GitHub",
@@ -1095,9 +1100,8 @@ export const integrationsRouter = {
           }
 
           if (!token) {
-            throw forbidden(
-              "GitHub authentication failed. Reconnect GitHub and try again."
-            );
+            const tErrors = await getTranslations("errors.integrations");
+            throw forbidden(tErrors("githubAuthFailed"));
           }
 
           try {
@@ -1125,7 +1129,8 @@ export const integrationsRouter = {
                 });
 
             if (!Array.isArray(data)) {
-              throw badRequest("The selected path is not a directory");
+              const tErrors = await getTranslations("errors.integrations");
+              throw badRequest(tErrors("notADirectory"));
             }
 
             return {
@@ -1146,7 +1151,8 @@ export const integrationsRouter = {
               return { directories: [], exists: false };
             }
             if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
-              throw forbidden("GitHub denied access to this repository");
+              const tErrors = await getTranslations("errors.integrations");
+              throw forbidden(tErrors("githubAccessDenied"));
             }
             throw error;
           }
@@ -1224,7 +1230,7 @@ export const integrationsRouter = {
               throw notFound("Webhook not configured");
             }
 
-            mapKnownIntegrationError(error);
+            throw await toKnownIntegrationError(error);
           }
         }),
       generateSecret: baseProcedure
@@ -1259,7 +1265,7 @@ export const integrationsRouter = {
 
             return secret;
           } catch (error) {
-            mapKnownIntegrationError(error);
+            throw await toKnownIntegrationError(error);
           }
         }),
     },
@@ -1708,9 +1714,8 @@ export const integrationsRouter = {
           input.organizationId
         );
         if (!success) {
-          throw tooManyRequests(
-            "Too many connection attempts. Wait a minute and try again."
-          );
+          const tErrors = await getTranslations("errors.integrations");
+          throw tooManyRequests(tErrors("tooManyConnectionAttempts"));
         }
 
         const verification = await verifyGranolaApiKey(input.apiKey);
@@ -1726,7 +1731,9 @@ export const integrationsRouter = {
               error_code: "invalid_api_key",
             },
           });
-          throw badRequest(verification.error ?? "Invalid Granola API key");
+          throw badRequest(
+            (await getTranslations("errors.integrations"))("granolaKeyRejected")
+          );
         }
 
         const integration = await createGranolaIntegration({
@@ -1936,10 +1943,12 @@ export const integrationsRouter = {
           storeIntegration.authType !== "none" &&
           storeIntegration.authType !== "headers"
         ) {
-          throw badRequest("This MCP store integration requires OAuth");
+          const tErrors = await getTranslations("errors.integrations");
+          throw badRequest(tErrors("mcpOAuthRequired"));
         }
         if (storeIntegration && input.authType !== storeIntegration.authType) {
-          throw badRequest("Use the approved authentication method");
+          const tErrors = await getTranslations("errors.integrations");
+          throw badRequest(tErrors("useApprovedAuth"));
         }
 
         try {
@@ -1994,10 +2003,13 @@ export const integrationsRouter = {
             },
           });
           if (isUniqueConstraintError(error)) {
-            throw conflict("An MCP server with this name already exists");
+            const tErrors = await getTranslations("errors.integrations");
+            throw conflict(tErrors("mcpNameTaken"));
           }
           if (error instanceof PublicUrlValidationError) {
-            throw badRequest(error.message);
+            throw badRequest(
+              (await getTranslations("errors.integrations"))("publicUrlInvalid")
+            );
           }
           if (error instanceof McpStoreListingUnavailableError) {
             throw notFound(error.message);
@@ -2042,10 +2054,13 @@ export const integrationsRouter = {
           );
         } catch (error) {
           if (isUniqueConstraintError(error)) {
-            throw conflict("An MCP server with this name already exists");
+            const tErrors = await getTranslations("errors.integrations");
+            throw conflict(tErrors("mcpNameTaken"));
           }
           if (error instanceof PublicUrlValidationError) {
-            throw badRequest(error.message);
+            throw badRequest(
+              (await getTranslations("errors.integrations"))("publicUrlInvalid")
+            );
           }
 
           throw internalServerError("Failed to update MCP server", error);
@@ -2095,7 +2110,8 @@ export const integrationsRouter = {
           throw notFound("MCP store integration not found");
         }
         if (storeIntegration && storeIntegration.authType !== "oauth") {
-          throw badRequest("This MCP store integration does not use OAuth");
+          const tErrors = await getTranslations("errors.integrations");
+          throw badRequest(tErrors("mcpOAuthNotSupported"));
         }
 
         try {
@@ -2117,13 +2133,20 @@ export const integrationsRouter = {
             error instanceof McpOAuthAuthorizationError ||
             error instanceof PublicUrlValidationError
           ) {
-            throw badRequest(error.message);
+            throw badRequest(
+              (await getTranslations("errors.integrations"))(
+                "mcpAuthorizationFailed"
+              )
+            );
           }
           if (isUniqueConstraintError(error)) {
-            throw conflict("An MCP server with this name already exists");
+            const tErrors = await getTranslations("errors.integrations");
+            throw conflict(tErrors("mcpNameTaken"));
           }
           if (error instanceof McpOAuthNameConflictError) {
-            throw conflict(error.message);
+            throw conflict(
+              (await getTranslations("errors.integrations"))("mcpNameTaken")
+            );
           }
           throw internalServerError("Failed to start MCP OAuth", error);
         }
@@ -2173,7 +2196,11 @@ export const integrationsRouter = {
             error instanceof McpOAuthAuthorizationError ||
             error instanceof PublicUrlValidationError
           ) {
-            throw badRequest(error.message);
+            throw badRequest(
+              (await getTranslations("errors.integrations"))(
+                "mcpAuthorizationFailed"
+              )
+            );
           }
           throw internalServerError("Failed to restart MCP OAuth", error);
         }
@@ -2262,7 +2289,9 @@ export const integrationsRouter = {
           };
         } catch (error) {
           if (error instanceof PublicUrlValidationError) {
-            throw badRequest(error.message);
+            throw badRequest(
+              (await getTranslations("errors.integrations"))("publicUrlInvalid")
+            );
           }
 
           throw internalServerError("Failed to refresh MCP tools", error);

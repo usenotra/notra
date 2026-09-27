@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 import type { WriteBrandSelectProps } from "@/types/components/geo-writer";
 
@@ -19,11 +20,13 @@ export function WriteBrandSelect({
   projectBrandId,
   onChange,
 }: WriteBrandSelectProps) {
+  const t = useTranslations("geo.writer.writeBrandSelect");
+  const tGeoShared = useTranslations("geo.shared");
   const selected = voices.find((voice) => voice.id === value);
   if (voices.length === 0) {
     return (
       <p className="border-border text-muted-foreground rounded-lg border border-dashed px-3 py-2.5 text-sm">
-        No brand identities yet. The writer will use your GEO project brand.
+        {t("empty")}
       </p>
     );
   }
@@ -33,7 +36,7 @@ export function WriteBrandSelect({
       value={value ?? ""}
     >
       <SelectTrigger className="h-10 w-full" id={id}>
-        <SelectValue placeholder="Select a brand identity">
+        <SelectValue placeholder={tGeoShared("selectABrandIdentity")}>
           {selected ? (
             <WriteBrandOption
               isDefault={selected.id === projectBrandId}
@@ -41,7 +44,7 @@ export function WriteBrandSelect({
               websiteUrl={selected.websiteUrl}
             />
           ) : (
-            "Select a brand identity"
+            tGeoShared("selectABrandIdentity")
           )}
         </SelectValue>
       </SelectTrigger>

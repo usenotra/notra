@@ -1,22 +1,21 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PRESENCE_LABELS } from "@notra/geo-core/constants/geo";
-import { geoPromptIntentLabel } from "@notra/geo-core/utils/geo-prompt-intent";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 import {
   GEO_PROMPT_INTENT_ICONS,
   GEO_PROMPT_INTENT_PILL_CLASS,
   GEO_PROMPT_LABEL_PILL_CLASS,
-  GEO_PROMPT_PRESENCE_HINTS,
   GEO_PROMPT_PRESENCE_ICONS,
   GEO_PROMPT_PRESENCE_PILL_CLASS,
 } from "@/constants/geo-prompts";
+import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { cn } from "@/lib/utils";
 import type {
   PromptIntentBadgeProps,
@@ -24,6 +23,7 @@ import type {
 } from "@/types/geo";
 
 export function PromptIntentBadge({ intent }: PromptIntentBadgeProps) {
+  const intentLabel = useGeoPromptIntentLabel();
   return (
     <span
       className={cn(
@@ -37,19 +37,21 @@ export function PromptIntentBadge({ intent }: PromptIntentBadgeProps) {
         icon={GEO_PROMPT_INTENT_ICONS[intent]}
         strokeWidth={2}
       />
-      {geoPromptIntentLabel(intent)}
+      {intentLabel(intent)}
     </span>
   );
 }
 
 export function PromptPresenceBadge({ status }: PromptPresenceBadgeProps) {
+  const t = useTranslations("geo.promptBadges");
+  const tGeoShared = useTranslations("geo.shared");
   if (!status) {
     return <span className="text-muted-foreground">-</span>;
   }
-  const label = GEO_PRESENCE_LABELS[status];
-  if (!label) {
-    return <span className="text-muted-foreground">-</span>;
-  }
+  const label =
+    status === "invisible"
+      ? tGeoShared("notMentioned")
+      : t(`presence.${status}`);
   return (
     <Tooltip>
       <TooltipTrigger
@@ -73,7 +75,7 @@ export function PromptPresenceBadge({ status }: PromptPresenceBadgeProps) {
       />
       <TooltipContent className="max-w-xs text-pretty">
         <span className="block font-medium">{label}</span>
-        {GEO_PROMPT_PRESENCE_HINTS[status]}
+        {t(`presenceHint.${status}`)}
       </TooltipContent>
     </Tooltip>
   );

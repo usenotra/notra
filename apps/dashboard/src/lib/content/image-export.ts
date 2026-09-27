@@ -7,6 +7,10 @@ import {
   sanitizeDownloadFilename,
 } from "@/utils/download";
 import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
+import {
+  commonLabelToastMessage,
+  imageExportToastMessage,
+} from "@/utils/toast-message";
 
 type CopyAsFigma = (typeof import("@notra/kiwi"))["copyAsFigma"];
 type CopyAsPaper = (typeof import("@notra/kiwi/paper"))["copyAsPaper"];
@@ -166,7 +170,7 @@ export async function copyImageAsFigma(
     await preloadImageExportCopy("figma");
     const copyAsFigma = copyAsFigmaFn;
     if (!copyAsFigma) {
-      toast.error("Copy is still loading. Try again in a moment.");
+      toast.error(imageExportToastMessage("copyLoading"));
       return;
     }
     const copied = await withExportElement(
@@ -178,13 +182,13 @@ export async function copyImageAsFigma(
       }
     );
     if (!copied) {
-      toast.error("Image is not ready yet");
+      toast.error(imageExportToastMessage("imageNotReady"));
       return;
     }
-    toast.success("Copied for Figma. Paste it into your Figma file.");
+    toast.success(imageExportToastMessage("figmaCopied"));
   } catch (error) {
     console.error("Failed to copy image for Figma", error);
-    toast.error("Failed to copy for Figma");
+    toast.error(imageExportToastMessage("figmaCopyFailed"));
   }
 }
 
@@ -198,7 +202,7 @@ export async function copyImageAsPaper(
     await preloadImageExportCopy("paper");
     const copyAsPaper = copyAsPaperFn;
     if (!copyAsPaper) {
-      toast.error("Copy is still loading. Try again in a moment.");
+      toast.error(imageExportToastMessage("copyLoading"));
       return;
     }
     const copied = await withExportElement(
@@ -210,13 +214,13 @@ export async function copyImageAsPaper(
       }
     );
     if (!copied) {
-      toast.error("Image is not ready yet");
+      toast.error(imageExportToastMessage("imageNotReady"));
       return;
     }
-    toast.success("Copied for Paper. Paste it into your Paper file.");
+    toast.success(imageExportToastMessage("paperCopied"));
   } catch (error) {
     console.error("Failed to copy image for Paper", error);
-    toast.error("Failed to copy for Paper");
+    toast.error(imageExportToastMessage("paperCopyFailed"));
   }
 }
 
@@ -225,7 +229,7 @@ export async function downloadImage(
   label?: string
 ): Promise<void> {
   if (!imageUrl) {
-    toast.error("Image is not ready yet");
+    toast.error(imageExportToastMessage("imageNotReady"));
     return;
   }
 
@@ -239,9 +243,9 @@ export async function downloadImage(
 
     const blob = await response.blob();
     downloadBlob(blob, buildImageDownloadFilename(baseName, blob.type, "png"));
-    toast.success("Downloaded image");
+    toast.success(commonLabelToastMessage("downloadedImage"));
   } catch (error) {
     console.error("Failed to download image", error);
-    toast.error("Failed to download image");
+    toast.error(imageExportToastMessage("downloadFailed"));
   }
 }

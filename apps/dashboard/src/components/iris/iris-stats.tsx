@@ -5,43 +5,56 @@ import {
   Satellite02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
-import type { IrisStats, IrisStatsRowProps, IrisStatTile } from "@/types/iris";
+import type { CommonTranslator } from "@/types/i18n";
+import type {
+  IrisStats,
+  IrisStatsRowProps,
+  IrisStatTile,
+  IrisTranslator,
+} from "@/types/iris";
 import { formatIrisRelativeTime } from "@/utils/iris-copy";
 
-function buildTiles(stats: IrisStats): IrisStatTile[] {
+function buildTiles(
+  t: IrisTranslator,
+  tCommon: CommonTranslator,
+  stats: IrisStats
+): IrisStatTile[] {
   return [
     {
       key: "runs",
-      label: "Runs, last 30 days",
+      label: t("stats.runs"),
       value: String(stats.runs30d),
       icon: Satellite02Icon,
     },
     {
       key: "artifacts",
-      label: "Drafts, last 30 days",
+      label: t("stats.artifacts"),
       value: String(stats.artifacts30d),
       icon: Note01Icon,
     },
     {
       key: "signals",
-      label: "Signals waiting",
+      label: t("stats.signals"),
       value: String(stats.signalsPending),
       icon: RssIcon,
     },
     {
       key: "last-run",
-      label: "Last run",
-      value: formatIrisRelativeTime(stats.lastRunAt),
+      label: t("stats.lastRun"),
+      value: formatIrisRelativeTime(t, tCommon, stats.lastRunAt),
       icon: Clock01Icon,
     },
   ];
 }
 
 export function IrisStatsRow({ stats }: IrisStatsRowProps) {
+  const t = useTranslations("iris");
+  const tCommon = useTranslations("common");
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {buildTiles(stats).map((tile) => (
+      {buildTiles(t, tCommon, stats).map((tile) => (
         <div
           className="border-border space-y-2 rounded-xl border px-4 py-3"
           key={tile.key}

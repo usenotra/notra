@@ -1,6 +1,11 @@
 import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
+import type { useTranslations } from "next-intl";
 import type React from "react";
+
+export type IntegrationsSharedTranslator = ReturnType<
+  typeof useTranslations<"integrations.shared">
+>;
 
 export interface RepositoryOutput {
   id: string;

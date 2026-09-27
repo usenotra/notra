@@ -48,14 +48,16 @@ export function pivotChartSeries(
   });
 }
 
-function formatRankNumber(value: number): string {
-  return Number.isInteger(value)
-    ? String(value)
-    : value.toFixed(1).replace(/\.0$/, "");
+function formatRankNumber(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(
+    value
+  );
 }
 
 export function rankBarChartSegments(
-  segments: readonly ChartSegment[]
+  segments: readonly ChartSegment[],
+  formatWithoutSearch: (engine: string) => string,
+  locale: string
 ): ToolOutputRankRow[] {
   const maxValue = Math.max(0, ...segments.map((segment) => segment.value));
   const asPercent = maxValue <= CHART_PERCENT_SCALE;
@@ -75,11 +77,15 @@ export function rankBarChartSegments(
     const showSearchMode = (nameCounts.get(baseName) ?? 0) > 1;
     return {
       engine: segment.label,
-      name: formatChartEngineRankLabel(segment.label, showSearchMode),
+      name: formatChartEngineRankLabel(
+        segment.label,
+        showSearchMode,
+        formatWithoutSearch
+      ),
       value: segment.value,
       valueLabel: asPercent
-        ? `${formatRankNumber(segment.value)}%`
-        : formatRankNumber(segment.value),
+        ? `${formatRankNumber(segment.value, locale)}%`
+        : formatRankNumber(segment.value, locale),
       widthPercent: (segment.value / scale) * CHART_PERCENT_SCALE,
     };
   });

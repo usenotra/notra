@@ -1,6 +1,7 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import { ScanActivityStatus } from "@/components/geo/scan-activity-status";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
@@ -13,6 +14,7 @@ const SCAN_SKELETON_ROWS = 3;
 
 /** The latest scan as a regular section: status header plus its answers table. */
 export function ScanActivity({ organizationId }: GeoScanActivityProps) {
+  const tGeoShared = useTranslations("geo.shared");
   const isScanning = useIsGeoScanning(organizationId);
   const latest = useGeoScanRuns(organizationId);
   const newest = latest.data?.runs[0];
@@ -34,7 +36,7 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
   }
 
   return (
-    <section aria-label="Scans" className="min-w-0 space-y-3">
+    <section aria-label={tGeoShared("scans")} className="min-w-0 space-y-3">
       <ScanActivityStatus run={newest} />
       {newest ? (
         <ScanRunDetail
