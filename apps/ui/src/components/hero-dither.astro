@@ -105,6 +105,7 @@ import { HERO_DITHER } from "../constants/hero-dither";
           isMobile ? 1 : undefined,
           isMobile ? HERO_DITHER_MOBILE_MAX_PIXELS : undefined
         );
+        this.querySelector("[data-dither-fallback]")?.classList.add("hidden");
         syncSpeed();
         requestAnimationFrame(() => {
           requestAnimationFrame(() => layer.classList.replace("opacity-0", "opacity-100"));

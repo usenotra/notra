@@ -36,10 +36,28 @@ const id = `duotone-tooltip-${crypto.randomUUID()}`;
 </span>
 
 <script>
+  import { DUOTONE_TOOLTIP_VIEWPORT_GUTTER_REM } from "../constants/duotone-tooltip";
+
   const rootOf = (target: EventTarget | null) =>
     target instanceof Element ? target.closest<HTMLElement>("[data-duotone-tooltip]") : null;
 
   const tooltipOf = (root: HTMLElement | null) => root?.querySelector<HTMLElement>("[role=tooltip]");
+
+  const place = (event: Event) => {
+    const tooltip = tooltipOf(rootOf(event.target));
+    if (!tooltip) {
+      return;
+    }
+    tooltip.style.marginLeft = "";
+    const gutter =
+      Number.parseFloat(getComputedStyle(document.documentElement).fontSize) * DUOTONE_TOOLTIP_VIEWPORT_GUTTER_REM;
+    const { left, right } = tooltip.getBoundingClientRect();
+    const shift =
+      Math.max(gutter - left, 0) - Math.max(right - (document.documentElement.clientWidth - gutter), 0);
+    if (shift !== 0) {
+      tooltip.style.marginLeft = `${shift}px`;
+    }
+  };
 
   document.addEventListener("keydown", (event) => {
     const tooltip = tooltipOf(rootOf(event.target));
@@ -51,11 +69,18 @@ const id = `duotone-tooltip-${crypto.randomUUID()}`;
   const resetOnExit = (event: FocusEvent | PointerEvent) => {
     const root = rootOf(event.target);
     const tooltip = tooltipOf(root);
-    if (tooltip && rootOf(event.relatedTarget) !== root) {
+    if (!root || !tooltip || rootOf(event.relatedTarget) === root) {
+      return;
+    }
+    const stillFocused = event instanceof PointerEvent && root.contains(document.activeElement);
+    const stillHovered = event instanceof FocusEvent && root.matches(":hover");
+    if (!stillFocused && !stillHovered) {
       tooltip.hidden = false;
     }
   };
 
+  document.addEventListener("focusin", place);
+  document.addEventListener("pointerover", place);
   document.addEventListener("focusout", resetOnExit);
   document.addEventListener("pointerout", resetOnExit);
 </script>
