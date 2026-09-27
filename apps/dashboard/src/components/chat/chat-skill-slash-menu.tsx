@@ -2,6 +2,7 @@
 
 import { MagicWand01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { ChatSkillSlashMenuProps } from "@/types/components/chat-skill-slash-menu";
@@ -15,13 +16,15 @@ export function ChatSkillSlashMenu({
   slashIndex,
   slashListRef,
 }: ChatSkillSlashMenuProps) {
+  const t = useTranslations("chat.skills");
+  const tCommon = useTranslations("common");
   return (
     <div
       className="absolute inset-x-0 bottom-full z-50 mb-1"
       ref={slashListRef}
     >
       <div
-        aria-label="Skills"
+        aria-label={tCommon("labels.skills")}
         className="border-border bg-background max-h-64 overflow-y-auto rounded-xl border p-1 shadow-sm dark:shadow-none"
         id={listboxId}
         role="listbox"
@@ -73,7 +76,7 @@ export function ChatSkillSlashMenu({
           })
         ) : (
           <div className="text-muted-foreground px-2 py-3 text-center text-xs">
-            {skillCount === 0 ? "No skills yet" : "No matching skills"}
+            {skillCount === 0 ? tCommon("labels.noSkillsYet") : t("noMatches")}
           </div>
         )}
       </div>

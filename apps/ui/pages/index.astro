@@ -5,11 +5,12 @@ import PageLayout from "blume/components/layout/PageLayout.astro";
 import DuotoneTooltip from "../src/components/duotone-tooltip.astro";
 import HeroDither from "../src/components/hero-dither.astro";
 import ThemeHotkey from "../src/components/theme-hotkey.astro";
+import AIOverviewPreview from "../src/components/previews/ai-overview-preview.astro";
 import TooltipPreview from "../src/components/previews/tooltip-preview.astro";
-import { LANDING_COMPONENTS } from "../src/constants/landing";
+import { LANDING_SECTIONS } from "../src/constants/landing";
 
 const { config, navigation } = data;
-const previews = { tooltip: TooltipPreview };
+const previews = { "ai-overview": AIOverviewPreview, tooltip: TooltipPreview };
 const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
 ---
 
@@ -18,7 +19,7 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
   favicon={config.favicon}
   fontCssVars={data.fontCssVars}
   logo={config.logo}
-  navigation={navigation}
+  navigation={{ ...navigation, tabs: [{ label: "Docs", path: "/introduction" }] }}
   page={{
     description: config.description,
     route: "/",
@@ -57,7 +58,7 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
       </div>
     </div>
 
-    <div class="relative flex h-80 items-start justify-center overflow-hidden rounded-2xl border-2 border-border border-b-border/50 bg-background/70 shadow-sm pt-16 backdrop-blur-sm dot-grid">
+    <div class="relative flex h-80 items-start justify-center overflow-hidden rounded-2xl border border-border border-b-border/50 bg-background/70 shadow-sm pt-16 backdrop-blur-sm dot-grid">
       <DuotoneTooltip aside="Last 7 days" label="Weekly summary" open title="Visits">
         <span class="block text-2xl font-semibold tabular-nums text-foreground">12,480</span>
         <span class="mt-1 block">Up 18% on the previous week, led by returning readers.</span>
@@ -67,33 +68,41 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
     </div>
   </section>
 
-  <section class="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-20">
-    <h2 class="font-display text-2xl font-semibold tracking-tight text-foreground">Components</h2>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        LANDING_COMPONENTS.map((component) => {
-          const Preview = previews[component.preview];
-          return (
-            <div class="group relative">
-              <div
-                class="pointer-events-none invisible absolute inset-x-0 bottom-full z-10 mb-3 flex h-56 translate-y-1 items-start justify-center overflow-hidden rounded-2xl border border-border bg-muted pt-6 opacity-0 dot-grid shadow-md transition duration-150 ease-out group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none"
-                inert
-              >
-                <Preview />
-              </div>
-              <a
-                class="flex flex-col gap-2 rounded-2xl border-2 border-border border-b-border/50 p-5 shadow-sm no-underline transition-colors hover:bg-muted/50"
-                href={component.href}
-              >
-                <span class="text-sm font-semibold text-foreground">{component.title}</span>
-                <span class="text-sm text-muted-foreground">{component.description}</span>
-              </a>
-            </div>
-          );
-        })
-      }
-    </div>
-  </section>
+  <div class="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-20">
+  {
+    LANDING_SECTIONS.map((section) => (
+      <section class="flex flex-col gap-6">
+        <h2 class="font-display text-2xl font-semibold tracking-tight text-foreground">{section.title}</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            section.items.map((item) => {
+              const Preview = item.preview ? previews[item.preview] : undefined;
+              return (
+                <div class="group relative">
+                  {Preview && (
+                    <div
+                      class="pointer-events-none invisible absolute inset-x-0 bottom-full z-10 mb-3 flex h-56 translate-y-1 items-start justify-center overflow-hidden rounded-2xl border border-border bg-muted pt-6 opacity-0 dot-grid shadow-md transition duration-150 ease-out group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none"
+                      inert
+                    >
+                      <Preview />
+                    </div>
+                  )}
+                  <a
+                    class="flex flex-col gap-2 rounded-2xl border border-border border-b-border/50 p-5 shadow-sm no-underline transition-colors hover:bg-muted/50"
+                    href={item.href}
+                  >
+                    <span class="text-sm font-semibold text-foreground">{item.title}</span>
+                    <span class="text-sm text-muted-foreground">{item.description}</span>
+                  </a>
+                </div>
+              );
+            })
+          }
+        </div>
+      </section>
+    ))
+  }
+  </div>
   <ThemeHotkey slot="footer" />
 </PageLayout>
 

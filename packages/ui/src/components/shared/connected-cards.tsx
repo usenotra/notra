@@ -12,6 +12,7 @@ type ConnectedCardItem = {
   description?: string;
   docsLabel?: string;
   docsHref?: string;
+  selectLabel?: string;
 };
 
 type ConnectedCardsProps = {
@@ -30,7 +31,7 @@ function PrimaryOverlay({
 }) {
   return (
     <button
-      aria-label={`Create ${item.title} API key`}
+      aria-label={item.selectLabel ?? `Create ${item.title} API key`}
       className="absolute inset-0 z-0 cursor-pointer rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:focus-visible:ring-white/30"
       onClick={() => onSelect?.(item.id)}
       type="button"
@@ -115,7 +116,7 @@ function ConnectedCards({ items, className, onSelect, onDocs }: ConnectedCardsPr
                 </p>
               ) : null}
             </div>
-            <DocsAction item={item} onDocs={onDocs} />
+            {item.docsHref || onDocs ? <DocsAction item={item} onDocs={onDocs} /> : null}
           </div>
         </div>
       ))}

@@ -5,16 +5,19 @@ import {
   DialogContent,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 export function ContentImageView({ alt, src }: { alt: string; src: string }) {
+  const t = useTranslations("content.editor.media");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
-  const label = alt || "Image";
+  const label = alt || tCommon("labels.image");
 
   return (
     <>
       <button
-        aria-label={`Expand ${label}`}
+        aria-label={t("expand", { label })}
         className="focus-visible:ring-ring/50 block w-full cursor-zoom-in rounded-xl text-left outline-none focus-visible:ring-2"
         onClick={() => setOpen(true)}
         onMouseDown={(event) => event.preventDefault()}

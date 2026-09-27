@@ -4,6 +4,7 @@ import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import type {
@@ -57,6 +58,8 @@ export function SettingsModalNav({
   onSelect,
   searchInputId,
 }: SettingsModalNavProps) {
+  const t = useTranslations("settings.nav");
+  const tCommon = useTranslations("common");
   const isSearching = query.trim().length > 0;
   const flatItems = groups.flatMap((group) => group.items);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -142,7 +145,7 @@ export function SettingsModalNav({
 
   return (
     <nav
-      aria-label="Settings"
+      aria-label={tCommon("actions.settings")}
       className="flex w-full shrink-0 flex-col border-b pt-[env(safe-area-inset-top)] md:min-h-0 md:w-56 md:border-b-0 md:pt-0"
     >
       <div className="p-3 pb-2">
@@ -159,7 +162,7 @@ export function SettingsModalNav({
                 : undefined
             }
             aria-controls={`${searchInputId}-results`}
-            aria-label="Search settings"
+            aria-label={t("searchLabel")}
             autoComplete="off"
             className={cn(
               "bg-muted/50 h-8 pl-8",
@@ -168,7 +171,7 @@ export function SettingsModalNav({
             id={searchInputId}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={onSearchKeyDown}
-            placeholder="Search settings"
+            placeholder={t("searchLabel")}
             ref={searchRef}
             spellCheck={false}
             type="text"
@@ -176,7 +179,7 @@ export function SettingsModalNav({
           />
           {isSearching ? (
             <button
-              aria-label="Clear search"
+              aria-label={tCommon("labels.clearSearch")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm"
               onClick={() => onQueryChange("")}
               type="button"
@@ -201,7 +204,7 @@ export function SettingsModalNav({
         >
           {groups.length === 0 ? (
             <p className="text-muted-foreground px-2 py-3 text-xs">
-              No matching settings
+              {t("noMatches")}
             </p>
           ) : (
             groups.map((group) => (

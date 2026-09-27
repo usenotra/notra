@@ -10,9 +10,10 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 import { startTransition, useId, useOptimistic } from "react";
 
-import { GEO_SHELF_VIEW_LABELS, GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
+import { GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";
 import type { GeoShelfViewToggleProps } from "@/types/geo-shelf";
 
@@ -27,6 +28,8 @@ export function ShelfViewToggle({
   view,
   onViewChange,
 }: GeoShelfViewToggleProps) {
+  const t = useTranslations("geo.shelf.shelfViewToggle");
+  const tLabels = useTranslations("common.labels");
   const layoutId = useId();
   const reduceMotion = useReducedMotion();
   const pillTransition = reduceMotion ? INSTANT : SPRING.indicatorFlat;
@@ -36,7 +39,7 @@ export function ShelfViewToggle({
     <LazyMotion features={domMax} strict>
       <LayoutGroup id={layoutId}>
         <div
-          aria-label="Shelf view"
+          aria-label={t("ariaLabel")}
           className="bg-muted inline-flex items-center rounded-lg p-0.5"
           role="group"
         >
@@ -74,7 +77,7 @@ export function ShelfViewToggle({
                 ) : null}
                 <span className="relative z-10 inline-flex items-center gap-1">
                   <HugeiconsIcon className="size-3.5" icon={VIEW_ICONS[id]} />
-                  {GEO_SHELF_VIEW_LABELS[id]}
+                  {id === "table" ? tLabels("table") : t(`views.${id}`)}
                 </span>
               </button>
             );

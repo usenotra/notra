@@ -17,9 +17,9 @@ import {
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
 import { COMPANY_LOGO_LOOKUP_TIMEOUT_MS } from "@/constants/company-logo";
-import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   getOnboardingAgentState,
@@ -60,8 +60,9 @@ export const onboardingRouter = {
         `${context.user.id}:${input.query.toLowerCase()}`
       );
       if (!withinLimit) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message: "Too many logo lookups. Please try again shortly.",
+          message: tErrors("tooManyLogoLookups"),
         });
       }
 
@@ -196,9 +197,9 @@ export const onboardingRouter = {
         input.organizationId
       );
       if (!withinLimit) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message:
-            "Too many onboarding agent requests. Please try again shortly.",
+          message: tErrors("tooManyAgentRequests"),
         });
       }
 
@@ -212,8 +213,9 @@ export const onboardingRouter = {
         (result.reason === "no-company-domain" ||
           result.reason === "website-unreachable")
       ) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("BAD_REQUEST", {
-          message: SELF_SERVE_AGENT_ERROR_MESSAGES[result.reason],
+          message: tErrors(`selfServeAgent.${result.reason}`),
         });
       }
 

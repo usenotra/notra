@@ -9,6 +9,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +22,8 @@ export function ApiKeyRevealField({
   value,
   className,
 }: ApiKeyRevealFieldProps) {
+  const t = useTranslations("apiKeys.reveal");
+  const tCommon = useTranslations("common");
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -36,7 +39,7 @@ export function ApiKeyRevealField({
 
   const handleCopy = async () => {
     if (!navigator.clipboard) {
-      toast.error("Clipboard not supported");
+      toast.error(tCommon("toasts.clipboardUnsupported"));
       return;
     }
 
@@ -44,7 +47,7 @@ export function ApiKeyRevealField({
       await navigator.clipboard.writeText(value);
     } catch {
       setCopied(false);
-      toast.error("Failed to copy to clipboard");
+      toast.error(tCommon("toasts.copyFailed"));
       return;
     }
 
@@ -65,7 +68,7 @@ export function ApiKeyRevealField({
       />
       <div className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">
         <Button
-          aria-label={revealed ? "Hide API key" : "Show API key"}
+          aria-label={revealed ? t("hide") : t("show")}
           className="text-muted-foreground size-7"
           onClick={() => setRevealed((current) => !current)}
           size="icon"
@@ -78,7 +81,7 @@ export function ApiKeyRevealField({
           />
         </Button>
         <Button
-          aria-label="Copy API key"
+          aria-label={t("copy")}
           className={cn(
             "text-muted-foreground size-7",
             copied && "text-success"

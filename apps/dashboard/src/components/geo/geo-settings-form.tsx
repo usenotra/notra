@@ -1,19 +1,12 @@
 "use client";
 
 import {
-  GEO_CONVERSION_PATHS_DESCRIPTION,
-  GEO_CONVERSION_PATHS_LABEL,
   GEO_CONVERSION_PATHS_PLACEHOLDER,
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
   GEO_MAX_DOMAINS,
-  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT,
-  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL,
-  GEO_PROJECT_DOMAINS_DESCRIPTION,
-  GEO_PROJECT_DOMAINS_LABEL,
   GEO_PROJECT_DOMAINS_PLACEHOLDER,
   GEO_SCAN_DEFAULT_INTERVAL_HOURS,
-  GEO_SCAN_SIZE_MESSAGES,
   GEO_SETTINGS_AUTO_SAVE_MS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
@@ -26,6 +19,7 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 import { GeoEnginePicker } from "@/components/geo/geo-engine-picker";
@@ -57,6 +51,8 @@ export function GeoSettingsForm({
   hideHeader = false,
   section,
 }: GeoSettingsFormProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   const id = useId();
   const [companyName, setCompanyName] = useState(
     () => settings?.companyName ?? ""
@@ -125,7 +121,10 @@ export function GeoSettingsForm({
             "text-warning": warningSeverity === "warn",
             "text-destructive": warningSeverity === "danger",
           }),
-          text: `About ${scanSize.toLocaleString()} checks per scan, including web-search checks and conversation turns.${warningSeverity ? ` ${GEO_SCAN_SIZE_MESSAGES[warningSeverity]}` : ""}`,
+          text: t("scanSize", {
+            count: scanSize,
+            severity: warningSeverity ?? "none",
+          }),
         };
 
   const showBrand = section === undefined || section === "brand";
@@ -137,10 +136,10 @@ export function GeoSettingsForm({
       {hideHeader ? null : (
         <header className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">GEO Settings</h1>
-            <p className="text-muted-foreground">
-              How your brand is identified and where prompts are scanned.
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {tCommon("labels.geoSettings")}
+            </h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </div>
         </header>
       )}
@@ -384,14 +383,18 @@ function GeoBrandSection({
   onDomainsChange,
   savedAt,
 }: GeoBrandSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   return (
     <>
-      <TitleCard as="section" heading="Brand" headingAs="h2">
+      <TitleCard as="section" heading={tCommon("labels.brand")} headingAs="h2">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor={`${id}-name`}>Company name</Label>
+            <Label htmlFor={`${id}-name`}>
+              {tCommon("labels.companyName")}
+            </Label>
             <p className="text-muted-foreground text-xs">
-              The primary name we match in answers.
+              {t("brand.companyNameHint")}
             </p>
             <Input
               aria-invalid={nameMissing && savedAt !== null}
@@ -402,9 +405,9 @@ function GeoBrandSection({
             />
           </div>
           <GeoTagList
-            description="Other spellings, product names, or the bare domain."
+            description={t("brand.aliasesHint")}
             id={`${id}-aliases`}
-            label="Aliases"
+            label={t("brand.aliases")}
             max={GEO_MAX_ALIASES}
             onChange={onAliasesChange}
             placeholder="usenotra"
@@ -413,27 +416,28 @@ function GeoBrandSection({
         </div>
       </TitleCard>
       <SettingsSection
-        description={GEO_PROJECT_DOMAINS_DESCRIPTION}
-        title={GEO_PROJECT_DOMAINS_LABEL}
+        description={t("domains.description")}
+        title={t("domains.title")}
       >
         {brandDomain ? (
           <div className="flex flex-wrap items-center gap-2">
             <Badge
-              aria-label={`${GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}: ${brandDomain}`}
+              aria-label={t("domains.brandWebsiteLabel", {
+                domain: brandDomain,
+              })}
               className="h-7 max-w-full text-xs"
               variant="secondary"
             >
               <span className="truncate">{brandDomain}</span>
             </Badge>
             <p className="text-muted-foreground text-xs">
-              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}.{" "}
-              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT}
+              {t("domains.brandWebsiteHint")}
             </p>
           </div>
         ) : null}
         <GeoTagList
           id={`${id}-domains`}
-          label={GEO_PROJECT_DOMAINS_LABEL}
+          label={t("domains.title")}
           labeled={false}
           max={GEO_MAX_DOMAINS}
           onChange={onDomainsChange}
@@ -442,12 +446,12 @@ function GeoBrandSection({
         />
       </SettingsSection>
       <SettingsSection
-        description={GEO_CONVERSION_PATHS_DESCRIPTION}
-        title={GEO_CONVERSION_PATHS_LABEL}
+        description={t("conversionPaths.description")}
+        title={t("conversionPaths.title")}
       >
         <GeoTagList
           id={`${id}-conversion-paths`}
-          label={GEO_CONVERSION_PATHS_LABEL}
+          label={t("conversionPaths.title")}
           labeled={false}
           max={GEO_MAX_CONVERSION_PATHS}
           onChange={onConversionPathsChange}
@@ -463,10 +467,12 @@ function GeoLanguagesSection({
   languages,
   onLanguagesChange,
 }: GeoLanguagesSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   return (
     <SettingsSection
-      description="Languages your prompts are scanned in. English is on by default."
-      title="Languages"
+      description={t("languages.description")}
+      title={tCommon("labels.languages")}
     >
       <GeoLanguagePicker
         labeled={false}
@@ -494,6 +500,8 @@ function GeoModelsSection({
   scanIntervalHours,
   scanSizeNote,
 }: GeoModelsSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   return (
     <TitleCard
       action={
@@ -504,14 +512,13 @@ function GeoModelsSection({
         />
       }
       as="section"
-      heading="Models"
+      heading={tCommon("labels.models")}
       headingAs="h2"
     >
       <div className="space-y-4">
         <div className="space-y-1">
           <p className="text-muted-foreground text-sm text-pretty">
-            Each enabled provider runs on every prompt, on the frequency you set
-            here.
+            {t("models.description")}
           </p>
           {scanSizeNote ? (
             <p className={scanSizeNote.className} role="note">

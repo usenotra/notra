@@ -60,6 +60,7 @@ import type {
   ShareOfVoiceRow,
 } from "@notra/geo-core/types/geo";
 import type { GeoRequestPayload } from "@usenotra/geo";
+import type { useTranslations } from "next-intl";
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
@@ -206,6 +207,11 @@ export interface GeoScanSpinnerProps {
   visible: boolean;
 }
 
+export interface GeoStatDeltaLabels {
+  new: string;
+  points: (value: number) => string;
+}
+
 export interface GeoStatDeltaProps {
   delta: number | null;
   kind?: GeoStatDeltaKind;
@@ -250,9 +256,10 @@ export interface GeoPromptTableFilters {
   source: GeoPromptSourceFilter;
 }
 
-export interface GeoPromptFilterOption<T extends string> {
-  value: T;
-  label: string;
+export interface PromptFiltersSummaryLabels {
+  all: string;
+  intent: (intent: GeoPromptIntent) => string;
+  source: (source: GeoPromptSource) => string;
 }
 
 export interface GeoPromptSavedView {
@@ -551,6 +558,19 @@ export interface SheetStat {
 
 export interface SheetStatGridProps {
   stats: readonly SheetStat[];
+}
+
+export type JourneyGroupSheetStat =
+  | {
+      key: "journeys" | "deepCrawls" | "entryPage" | "ofAllJourneys";
+      value: string;
+      delta?: number | null;
+    }
+  | { key: "avgDepth"; depth: number };
+
+export interface JourneyPageKindStat {
+  kind: "docs" | "blog" | "other";
+  pages: number;
 }
 
 export interface JourneyGroupContentProps {
@@ -861,6 +881,10 @@ export interface FamilyImproveInsight {
   body: string;
 }
 
+export type FamilyImproveTranslator = ReturnType<
+  typeof useTranslations<"geo.familyImproveCard.insights">
+>;
+
 export interface FamilyImproveCardProps {
   insight: FamilyImproveInsight;
   gapsHref?: string;
@@ -919,7 +943,6 @@ export interface GeoQueryScope {
 }
 
 export interface GeoRangeControl extends GeoRangeState {
-  label: string;
   days: number;
   query: GeoRangeQuery;
   param: string | null;
@@ -1801,12 +1824,13 @@ export interface GeoChangesSummaryRowProps {
   summary: GeoChangesSummary;
 }
 
+export type GeoChangeStateLabel =
+  | { key: "new" | "notMentioned" | "mentioned" | "cited" | "notCited" }
+  | { key: "position"; position: number };
+
 export interface GeoChangeDetail {
-  title: string;
-  engine: string;
-  before: string;
-  after: string;
-  note: string | null;
+  before: GeoChangeStateLabel;
+  after: GeoChangeStateLabel;
 }
 
 export interface GeoChangeCellProps {
@@ -1815,4 +1839,19 @@ export interface GeoChangeCellProps {
 
 export interface GeoChangeCompetitorsCellProps extends GeoChangeCellProps {
   competitors: readonly GeoCompetitor[];
+}
+
+export interface GeoImportResultPart {
+  key: "imported" | "updated" | "skipped" | "nothingNew";
+  count: number;
+}
+
+export interface GscSyncResultMessage {
+  key:
+    | "failed"
+    | "skipped"
+    | "noData"
+    | "noNewSuggestions"
+    | "suggestionsAdded";
+  count: number;
 }

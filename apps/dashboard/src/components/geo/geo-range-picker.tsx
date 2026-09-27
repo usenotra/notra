@@ -14,14 +14,17 @@ import {
 } from "@notra/ui/components/ui/popover";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { Calendar } from "@/components/calendar";
+import { GEO_RANGE_PRESET_LABEL_KEYS } from "@/constants/geo-analytics";
 import { useAnimatedSize } from "@/lib/hooks/use-animated-size";
 import type { GeoRangePickerProps } from "@/types/geo";
 import {
   geoCalendarDefaultMonth,
+  geoCustomRangeLabel,
   localDayString,
   parseLocalDay,
 } from "@/utils/geo-range";
@@ -30,6 +33,9 @@ const loadMotionFeatures = () =>
   import("@/lib/motion-features").then((mod) => mod.default);
 
 export function GeoRangePicker({ control }: GeoRangePickerProps) {
+  const t = useTranslations("geo.geoRangePicker");
+  const tLabels = useTranslations("common.labels");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>();
   const reduceMotion = useReducedMotion();
@@ -54,7 +60,7 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
   return (
     <Popover onOpenChange={handleOpenChange} open={open}>
       <PopoverTrigger
-        aria-label="Date range"
+        aria-label={t("label")}
         className={GEO_FILTER_TRIGGER_CLASS}
       >
         <HugeiconsIcon
@@ -62,7 +68,11 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
           icon={Calendar03Icon}
           size={12}
         />
-        <span className="tabular-nums">{control.label}</span>
+        <span className="tabular-nums">
+          {control.preset === "custom"
+            ? geoCustomRangeLabel(control.range, locale)
+            : tLabels(GEO_RANGE_PRESET_LABEL_KEYS[control.preset])}
+        </span>
         <HugeiconsIcon
           className="text-muted-foreground"
           icon={ArrowDown01Icon}
@@ -94,7 +104,7 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
                       control.preset === preset.value ? "secondary" : "ghost"
                     }
                   >
-                    {preset.label}
+                    {tLabels(GEO_RANGE_PRESET_LABEL_KEYS[preset.value])}
                   </Button>
                 ))}
               </div>

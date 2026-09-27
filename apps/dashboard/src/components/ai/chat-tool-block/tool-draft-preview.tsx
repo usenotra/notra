@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { TOOL_DRAFT_PREVIEW_MAX_CHARS } from "@/constants/chat-tool-draft";
@@ -20,6 +21,8 @@ export function ToolDraftPreview({
   onApprove,
   onDeny,
 }: ToolDraftPreviewProps) {
+  const t = useTranslations("ai.toolBlock");
+  const tCommon = useTranslations("common");
   const excerpt = draftExcerpt(markdown);
 
   return (
@@ -36,12 +39,12 @@ export function ToolDraftPreview({
         <div className="flex flex-wrap items-center gap-2">
           {onApprove ? (
             <Button onClick={onApprove} size="sm" type="button">
-              Save draft
+              {t("saveDraft")}
             </Button>
           ) : null}
           {onDeny ? (
             <Button onClick={onDeny} size="sm" type="button" variant="ghost">
-              Discard
+              {tCommon("labels.discard")}
             </Button>
           ) : null}
           {editorHref ? (
@@ -51,7 +54,7 @@ export function ToolDraftPreview({
               size="sm"
               variant="outline"
             >
-              Open in editor
+              {t("openInEditor")}
             </Button>
           ) : null}
         </div>

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type AddRepositoryFormValues,
-  addRepositoryFormSchema,
-} from "@notra/schemas/dashboard/integrations";
+import type { AddRepositoryFormValues } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -20,17 +17,21 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useTranslations } from "next-intl";
 import type React from "react";
-import { isValidElement, useRef, useState } from "react";
+import { isValidElement, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { REPOSITORY_ALREADY_CONNECTED_CODE } from "@/constants/github";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseGitHubUrl } from "@/lib/utils/github";
+import { createAddRepositoryFormSchema } from "@/schemas/github-integration-forms";
 import type {
   AddRepositoryDialogProps,
   AvailableRepo,
 } from "@/types/integrations";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 
 function RepositorySelector({
   field,
@@ -45,6 +46,8 @@ function RepositorySelector({
   availableRepos: AvailableRepo[];
   mutation: { isPending: boolean };
 }) {
+  const t = useTranslations("integrations.addRepository");
+  const tCommon2 = useTranslations("common");
   const parentRef = useRef<HTMLDivElement>(null);
   const shouldVirtualize = availableRepos.length > 20;
 
@@ -99,7 +102,7 @@ function RepositorySelector({
                 >
                   <span className="min-w-0 truncate">{repo.fullName}</span>
                   {repo.private ? (
-                    <span className="shrink-0">(Private)</span>
+                    <span className="shrink-0">{t("private")}</span>
                   ) : null}
                 </button>
               );
@@ -111,7 +114,7 @@ function RepositorySelector({
             {typeof field.state.meta.errors[0] === "string"
               ? field.state.meta.errors[0]
               : ((field.state.meta.errors[0] as { message?: string })
-                  ?.message ?? "Invalid value")}
+                  ?.message ?? tCommon2("labels.invalidValue"))}
           </p>
         ) : null}
       </>
@@ -127,10 +130,10 @@ function RepositorySelector({
         onChange={(e) => field.handleChange(e.target.value)}
         value={field.state.value}
       >
-        <option value="">Select a repository...</option>
+        <option value="">{t("selectPlaceholder")}</option>
         {availableRepos.map((repo) => (
           <option key={repo.fullName} value={repo.fullName}>
-            {repo.fullName} {repo.private ? "(Private)" : ""}
+            {repo.fullName} {repo.private ? t("private") : ""}
           </option>
         ))}
       </select>
@@ -139,7 +142,7 @@ function RepositorySelector({
           {typeof field.state.meta.errors[0] === "string"
             ? field.state.meta.errors[0]
             : ((field.state.meta.errors[0] as { message?: string })?.message ??
-              "Invalid value")}
+              tCommon2("labels.invalidValue"))}
         </p>
       ) : null}
     </>
@@ -154,6 +157,14 @@ export function AddRepositoryDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: AddRepositoryDialogProps) {
+  const t = useTranslations("integrations.addRepository");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tForms = useTranslations("integrations.githubForms");
+  const tCommon = useTranslations("common");
+  const addRepositoryFormSchema = useMemo(
+    () => createAddRepositoryFormSchema(tForms),
+    [tForms]
+  );
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -167,7 +178,7 @@ export function AddRepositoryDialog({
   } else if (controlledOpen === undefined) {
     triggerElement = (
       <ResponsiveDialogTrigger render={<Button size="sm" variant="outline" />}>
-        Add Repository
+        {tIntegrationsShared("addRepository")}
       </ResponsiveDialogTrigger>
     );
   }
@@ -192,7 +203,7 @@ export function AddRepositoryDialog({
     mutationFn: async (values: AddRepositoryFormValues) => {
       const parsed = parseGitHubUrl(values.repository);
       if (!parsed) {
-        throw new Error("Invalid repository format");
+        throw new Error(t("invalidFormat"));
       }
 
       const normalizedOwner = parsed.owner.trim();
@@ -227,15 +238,15 @@ export function AddRepositoryDialog({
             input: { organizationId, integrationId },
           }),
       });
-      toast.success("Repository added successfully");
+      toast.success(t("added"));
       setOpen(false);
       form.reset();
       onSuccess?.();
     },
     onError: (error: Error) => {
       const message =
-        error.message === "Repository already connected"
-          ? "Repository already connected"
+        getOrpcErrorDataCode(error) === REPOSITORY_ALREADY_CONNECTED_CODE
+          ? tCommon("labels.repositoryAlreadyConnected")
           : error.message;
       toast.error(message);
     },
@@ -259,11 +270,13 @@ export function AddRepositoryDialog({
       {triggerElement}
       <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto [&>*]:min-w-0">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Add Repository</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tIntegrationsShared("addRepository")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             {availableRepos.length > 0
-              ? "Select a repository from your GitHub account to enable integrations."
-              : "Enter a repository in the format owner/repo (e.g., facebook/react) or paste a GitHub URL. For private repositories, ensure your integration has a valid access token."}
+              ? t("descriptionSelect")
+              : t("descriptionManual")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -284,7 +297,7 @@ export function AddRepositoryDialog({
                 if (loadingRepos) {
                   return (
                     <Field>
-                      <FieldLabel>Repository</FieldLabel>
+                      <FieldLabel>{tCommon("labels.repository")}</FieldLabel>
                       <Skeleton className="h-10 w-full" />
                     </Field>
                   );
@@ -293,7 +306,7 @@ export function AddRepositoryDialog({
                 if (availableRepos.length > 0) {
                   return (
                     <Field>
-                      <FieldLabel>Repository</FieldLabel>
+                      <FieldLabel>{tCommon("labels.repository")}</FieldLabel>
                       <RepositorySelector
                         availableRepos={availableRepos}
                         field={field}
@@ -305,12 +318,12 @@ export function AddRepositoryDialog({
 
                 return (
                   <Field>
-                    <FieldLabel>Repository</FieldLabel>
+                    <FieldLabel>{tCommon("labels.repository")}</FieldLabel>
                     <Input
                       disabled={mutation.isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="facebook/react or https://github.com/facebook/react"
+                      placeholder={t("manualPlaceholder")}
                       value={field.state.value}
                     />
                     {field.state.meta.errors.length > 0 ? (
@@ -319,12 +332,11 @@ export function AddRepositoryDialog({
                           ? field.state.meta.errors[0]
                           : ((
                               field.state.meta.errors[0] as { message?: string }
-                            )?.message ?? "Invalid value")}
+                            )?.message ?? tCommon("labels.invalidValue"))}
                       </p>
                     ) : null}
                     <p className="text-muted-foreground mt-1 text-xs">
-                      No access token available. Enter the repository as
-                      owner/repo or paste a GitHub URL.
+                      {t("noToken")}
                     </p>
                   </Field>
                 );
@@ -336,7 +348,7 @@ export function AddRepositoryDialog({
               disabled={mutation.isPending}
               render={<Button variant="outline" />}
             >
-              Cancel
+              {tCommon("actions.cancel")}
             </ResponsiveDialogClose>
             <form.Subscribe selector={(state) => [state.canSubmit]}>
               {([canSubmit]) => (
@@ -348,7 +360,9 @@ export function AddRepositoryDialog({
                   }}
                   type="button"
                 >
-                  {mutation.isPending ? "Adding..." : "Add Repository"}
+                  {mutation.isPending
+                    ? tCommon("labels.adding")
+                    : tIntegrationsShared("addRepository")}
                 </Button>
               )}
             </form.Subscribe>

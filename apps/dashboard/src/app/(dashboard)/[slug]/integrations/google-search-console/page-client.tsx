@@ -31,6 +31,7 @@ import {
 } from "@notra/ui/components/ui/table";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -52,6 +53,7 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import {
   useGeoSuggestions,
   useGscDisconnect,
@@ -61,7 +63,6 @@ import {
   useGscSync,
 } from "@/lib/hooks/use-geo";
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
-import { GSC_ERROR_MESSAGES } from "@/lib/integrations/google-search-console/oauth-errors";
 import type {
   GoogleSearchConsoleAddedSuggestionsProps,
   GoogleSearchConsoleChangePropertyDialogProps,
@@ -74,7 +75,7 @@ import type {
   GoogleSearchConsoleQueryTableProps,
   GoogleSearchConsoleSyncButtonProps,
 } from "@/types/integrations/pages";
-import { formatRelative } from "@/utils/format-relative";
+import { formatCount, formatOneDecimal } from "@/utils/format";
 import { formatGscSiteUrl } from "@/utils/gsc-site-url";
 
 import { GoogleSearchConsolePageSkeleton } from "./skeleton";
@@ -87,10 +88,6 @@ const searchConsoleEmptyPreview = (
     rows={EMPTY_STATE_TABLE_ROWS}
   />
 );
-
-function formatCount(value: number): string {
-  return value.toLocaleString("en-US");
-}
 
 function summarizeQueries(queries: readonly GscQueryRow[]) {
   let clicks = 0;
@@ -116,14 +113,14 @@ function displayStat(loading: boolean, value: string): string {
   return value;
 }
 
-function connectionLabel(status: GeoSearchConsoleStatus): string {
+function connectionLabelKey(status: GeoSearchConsoleStatus) {
   if (status.status === "reauth_required") {
-    return "Needs reconnect";
+    return "needsReconnect";
   }
   if (!status.siteUrl) {
-    return "Choose property";
+    return "chooseProperty";
   }
-  return "Enabled";
+  return "enabled";
 }
 
 function ChangePropertyDialog({
@@ -132,6 +129,7 @@ function ChangePropertyDialog({
   open,
   organizationId,
 }: GoogleSearchConsoleChangePropertyDialogProps) {
+  const tCommon2 = useTranslations("common");
   const sites = useGscSites(organizationId, open);
   const authorizeUrl = `${GSC_OAUTH_AUTHORIZE_PATH}?${new URLSearchParams({
     organizationId,
@@ -141,8 +139,8 @@ function ChangePropertyDialog({
   let body = (
     <p className="text-muted-foreground px-4 text-sm md:px-0">
       {sites.isError
-        ? "Search Console properties could not be loaded. Reconnect Google and try again."
-        : "No properties were found for this Google account."}
+        ? tCommon2("messages.searchConsolePropertiesCouldNot")
+        : tCommon2("messages.noPropertiesWereFoundFor")}
     </p>
   );
 
@@ -150,7 +148,7 @@ function ChangePropertyDialog({
     body = (
       <div className="text-muted-foreground flex items-center gap-2 px-4 py-3 text-sm md:px-0">
         <StatusSpinner />
-        Loading properties…
+        {tCommon2("labels.loadingProperties")}
       </div>
     );
   } else if (sites.data?.sites.length) {
@@ -171,10 +169,10 @@ function ChangePropertyDialog({
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            Change Search Console property
+            {tCommon2("labels.changeSearchConsoleProperty")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Your current property stays connected until you confirm a new one.
+            {tCommon2("messages.yourCurrentPropertyStaysConnected")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         {sites.isPending || sites.data?.sites.length ? (
@@ -186,7 +184,11 @@ function ChangePropertyDialog({
               <Button
                 className="w-full"
                 nativeButton={false}
-                render={<a href={authorizeUrl}>Reconnect Google</a>}
+                render={
+                  <a href={authorizeUrl}>
+                    {tCommon2("labels.reconnectGoogle")}
+                  </a>
+                }
                 variant="outline"
               />
             </div>
@@ -198,7 +200,8 @@ function ChangePropertyDialog({
 }
 
 function SyncNowButton({ busy, onSync }: GoogleSearchConsoleSyncButtonProps) {
-  const label = busy ? "Syncing…" : "Sync now";
+  const tCommon2 = useTranslations("common");
+  const label = busy ? tCommon2("labels.syncing") : tCommon2("labels.syncNow");
   return (
     <Button disabled={busy} onClick={onSync} size="sm" variant="outline">
       {busy ? <StatusSpinner /> : null}
@@ -208,6 +211,9 @@ function SyncNowButton({ busy, onSync }: GoogleSearchConsoleSyncButtonProps) {
 }
 
 function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tCommon2 = useTranslations("common");
+  const locale = useLocale();
   if (queries.length === 0) {
     return null;
   }
@@ -218,10 +224,16 @@ function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Query</TableHead>
-            <TableHead className="text-right">Clicks</TableHead>
-            <TableHead className="text-right">Impressions</TableHead>
-            <TableHead className="text-right">Position</TableHead>
+            <TableHead>{tCommon2("labels.query")}</TableHead>
+            <TableHead className="text-right">
+              {tCommon2("labels.clicks")}
+            </TableHead>
+            <TableHead className="text-right">
+              {tCommon2("labels.impressions")}
+            </TableHead>
+            <TableHead className="text-right">
+              {tCommon2("labels.position")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -237,17 +249,17 @@ function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 <span className="tabular-nums">
-                  {formatCount(query.clicks)}
+                  {formatCount(query.clicks, locale)}
                 </span>
               </TableCell>
               <TableCell className="text-right">
                 <span className="tabular-nums">
-                  {formatCount(query.impressions)}
+                  {formatCount(query.impressions, locale)}
                 </span>
               </TableCell>
               <TableCell className="text-right">
                 <span className="tabular-nums">
-                  {query.position.toFixed(1)}
+                  {formatOneDecimal(query.position, locale)}
                 </span>
               </TableCell>
             </TableRow>
@@ -256,7 +268,10 @@ function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
       </Table>
       {queries.length > VISIBLE_QUERIES ? (
         <p className="text-muted-foreground border-t px-3 py-2 text-xs">
-          Showing {VISIBLE_QUERIES} of {formatCount(queries.length)} queries
+          {t("table.showing", {
+            visible: VISIBLE_QUERIES,
+            total: formatCount(queries.length, locale),
+          })}
         </p>
       ) : null}
     </div>
@@ -269,16 +284,19 @@ function AddedSuggestions({
   organizationSlug,
   suggestions,
 }: GoogleSearchConsoleAddedSuggestionsProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tCommon = useTranslations("common");
+
   if (isError) {
     return (
       <EmptyState
         action={
           <Button onClick={onRetry} size="sm" variant="outline">
-            Retry
+            {tCommon("actions.retry")}
           </Button>
         }
-        description="Prompt suggestions from the last sync could not be loaded."
-        title="Failed to load suggestions"
+        description={t("suggestions.loadFailedDescription")}
+        title={t("suggestions.loadFailedTitle")}
       />
     );
   }
@@ -291,20 +309,20 @@ function AddedSuggestions({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-4">
-        <h3 className="text-sm font-medium">Added</h3>
+        <h3 className="text-sm font-medium">{tCommon("labels.added")}</h3>
         <Link
           className="text-muted-foreground text-sm underline underline-offset-4"
           href={`/${organizationSlug}/geo/prompts`}
         >
-          Prompts
+          {tCommon("labels.prompts")}
         </Link>
       </div>
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Prompt suggestion</TableHead>
-              <TableHead>From query</TableHead>
+              <TableHead>{t("suggestions.promptSuggestion")}</TableHead>
+              <TableHead>{t("suggestions.fromQuery")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -336,6 +354,10 @@ function LastSyncPanel({
   organizationId,
   organizationSlug,
 }: GoogleSearchConsoleLastSyncPanelProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const keywords = useGscKeywords(organizationId);
   const suggestions = useGeoSuggestions(organizationId);
   const queries = keywords.data?.keywords ?? [];
@@ -352,12 +374,12 @@ function LastSyncPanel({
             size="sm"
             variant="outline"
           >
-            Retry
+            {tCommon("actions.retry")}
           </Button>
         }
-        description="Search Console queries could not be loaded."
+        description={t("lastSync.loadFailedDescription")}
         preview={searchConsoleEmptyPreview}
-        title="Failed to load sync"
+        title={t("lastSync.loadFailedTitle")}
       />
     );
   }
@@ -369,44 +391,65 @@ function LastSyncPanel({
         action={<SyncNowButton busy={busy} onSync={onSync} />}
         description={
           syncedBefore
-            ? "Search Console returned no queries for this property. Sync again after the site has search traffic."
-            : "Sync this property to pull the queries you rank for and the prompt suggestions they turn into."
+            ? t("lastSync.noQueriesDescription")
+            : t("lastSync.noSyncDescription")
         }
         preview={searchConsoleEmptyPreview}
-        title={syncedBefore ? "No queries in this sync" : "No sync yet"}
+        title={
+          syncedBefore
+            ? t("lastSync.noQueriesTitle")
+            : t("lastSync.noSyncTitle")
+        }
       />
     );
   }
 
   const position =
-    summary.position === null ? "—" : summary.position.toFixed(1);
-  const suggestionCount = suggestions.isError ? "—" : formatCount(added.length);
+    summary.position === null
+      ? "—"
+      : formatOneDecimal(summary.position, locale);
+  const suggestionCount = suggestions.isError
+    ? "—"
+    : formatCount(added.length, locale);
   const stats = [
     {
-      label: "Queries",
-      value: displayStat(loading, formatCount(summary.queries)),
+      key: "queries",
+      label: t("lastSync.queries"),
+      value: displayStat(loading, formatCount(summary.queries, locale)),
     },
     {
-      label: "Clicks",
-      value: displayStat(loading, formatCount(summary.clicks)),
+      key: "clicks",
+      label: tCommon("labels.clicks"),
+      value: displayStat(loading, formatCount(summary.clicks, locale)),
     },
     {
-      label: "Impressions",
-      value: displayStat(loading, formatCount(summary.impressions)),
+      key: "impressions",
+      label: tCommon("labels.impressions"),
+      value: displayStat(loading, formatCount(summary.impressions, locale)),
     },
-    { label: "Avg. position", value: displayStat(loading, position) },
-    { label: "Suggestions", value: displayStat(loading, suggestionCount) },
+    {
+      key: "position",
+      label: tCommon("labels.avgPosition"),
+      value: displayStat(loading, position),
+    },
+    {
+      key: "suggestions",
+      label: tCommon("labels.suggestions"),
+      value: displayStat(loading, suggestionCount),
+    },
   ];
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold">Last sync</h2>
+        <h2 className="text-lg font-semibold">
+          {tIntegrationsShared("lastSync")}
+        </h2>
         <SyncNowButton busy={busy} onSync={onSync} />
       </div>
       <div className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border sm:grid-cols-5">
         {stats.map((stat) => (
-          <div className="bg-background px-4 py-3" key={stat.label}>
+          <div className="bg-background px-4 py-3" key={stat.key}>
             <p className="text-muted-foreground text-xs">{stat.label}</p>
             <p className="mt-1 text-lg font-medium tabular-nums">
               {stat.value}
@@ -437,19 +480,30 @@ function ConnectionFact({ label, value }: GoogleSearchConsoleFactProps) {
 }
 
 function ConnectionFacts({ status }: { status: GeoSearchConsoleStatus }) {
+  const t = useTranslations("integrations.gscPage");
+  const tCommon2 = useTranslations("common");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const formatRelative = useFormatRelative();
   const lastSync = status.lastSyncedAt
     ? formatRelative(status.lastSyncedAt)
-    : "Not yet";
+    : tCommon2("labels.notYet");
   return (
     <dl className="grid gap-4 sm:grid-cols-3">
       <ConnectionFact
-        label="Account"
-        value={status.email ?? "Google account"}
+        label={tCommon2("labels.account")}
+        value={status.email ?? t("facts.googleAccount")}
       />
-      <ConnectionFact label="Last sync" value={lastSync} />
       <ConnectionFact
-        label="Schedule"
-        value={status.weeklySyncScheduled ? "Weekly" : "Manual"}
+        label={tIntegrationsShared("lastSync")}
+        value={lastSync}
+      />
+      <ConnectionFact
+        label={tCommon2("labels.schedule")}
+        value={
+          status.weeklySyncScheduled
+            ? tCommon2("labels.weekly")
+            : tCommon2("labels.manual")
+        }
       />
     </dl>
   );
@@ -462,11 +516,12 @@ function PropertyNotice({
   organizationId: string;
   status: GeoSearchConsoleStatus;
 }) {
+  const t = useTranslations("integrations.gscPage");
+  const tCommon2 = useTranslations("common");
+
   if (status.status === "reauth_required") {
     return (
-      <p className="text-muted-foreground text-sm">
-        Google access expired. Reconnect to keep syncing.
-      </p>
+      <p className="text-muted-foreground text-sm">{t("accessExpired")}</p>
     );
   }
   if (status.lastError) {
@@ -490,7 +545,7 @@ function PropertyNotice({
   }
   return (
     <p className="text-muted-foreground text-sm">
-      No properties were found for this Google account.
+      {tCommon2("messages.noPropertiesWereFoundFor")}
     </p>
   );
 }
@@ -504,12 +559,15 @@ function ConnectionMenu({
   onDisconnect,
   onReconnect,
 }: GoogleSearchConsoleConnectionMenuProps) {
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       <Badge variant={needsReconnect ? "secondary" : "default"}>{label}</Badge>
       {needsReconnect ? (
         <Button onClick={onReconnect} size="sm">
-          Reconnect
+          {tIntegrationsShared("reconnect")}
         </Button>
       ) : null}
       <DropdownMenu>
@@ -517,7 +575,7 @@ function ConnectionMenu({
           render={
             <Button disabled={busy} size="icon-sm" variant="ghost">
               <HugeiconsIcon
-                aria-label="More options"
+                aria-label={tIntegrationsShared("moreOptions")}
                 className="size-4"
                 icon={MoreHorizontalIcon}
               />
@@ -530,7 +588,7 @@ function ConnectionMenu({
               className="cursor-pointer"
               onClick={onChangeProperty}
             >
-              Change property
+              {tCommon("labels.changeProperty")}
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem
@@ -538,7 +596,7 @@ function ConnectionMenu({
             onClick={onDisconnect}
             variant="destructive"
           >
-            Disconnect
+            {tCommon("actions.disconnect")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -553,10 +611,13 @@ function GoogleSearchConsoleIntegrationCard({
   organizationSlug,
   status,
 }: GoogleSearchConsoleIntegrationCardProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tCommon = useTranslations("common");
   const [propertyDialogOpen, setPropertyDialogOpen] = useState(false);
   const sync = useGscSync(organizationId);
   const disconnect = useGscDisconnect(organizationId);
   const busy = sync.isPending || disconnect.isPending;
+  const labelKey = connectionLabelKey(status);
   const needsReconnect = status.status === "reauth_required";
   const hasProperty = Boolean(status.siteUrl) && !needsReconnect;
   const title = status.siteUrl
@@ -571,7 +632,13 @@ function GoogleSearchConsoleIntegrationCard({
             <ConnectionMenu
               busy={busy}
               hasProperty={hasProperty}
-              label={connectionLabel(status)}
+              label={
+                labelKey === "enabled"
+                  ? tCommon("states.enabled")
+                  : labelKey === "chooseProperty"
+                    ? tCommon("labels.chooseProperty")
+                    : t(`status.${labelKey}`)
+              }
               needsReconnect={needsReconnect}
               onChangeProperty={() => setPropertyDialogOpen(true)}
               onDisconnect={() => disconnect.mutate()}
@@ -619,6 +686,10 @@ function GoogleSearchConsolePageBody({
   showLoading,
   status,
 }: GoogleSearchConsolePageBodyProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   if (showLoading) {
     return <GoogleSearchConsolePageSkeleton />;
   }
@@ -627,11 +698,11 @@ function GoogleSearchConsolePageBody({
       <EmptyState
         action={
           <Button onClick={onRetry} size="sm" variant="outline">
-            Retry
+            {tCommon("actions.retry")}
           </Button>
         }
-        description="Something went wrong while loading Google Search Console."
-        title="Failed to load integration"
+        description={t("loadFailedDescription")}
+        title={t("loadFailedTitle")}
       />
     );
   }
@@ -642,17 +713,17 @@ function GoogleSearchConsolePageBody({
         action={
           unconfigured ? null : (
             <Button onClick={onConnect} size="sm" variant="outline">
-              Connect Search Console
+              {tCommon("labels.connectSearchConsole")}
             </Button>
           )
         }
         description={
           unconfigured
-            ? GSC_ERROR_MESSAGES.gsc_not_configured
-            : "Connect Google Search Console to suggest prompts from the queries you already rank for."
+            ? tIntegrationsShared("googleSearchConsoleIsNot")
+            : t("emptyDescription")
         }
         preview={<EmptyStateCardsPreview count={2} variant="integration" />}
-        title="No integration yet"
+        title={t("emptyTitle")}
       />
     );
   }
@@ -672,6 +743,9 @@ function GoogleSearchConsolePageBody({
 export default function PageClient({
   organizationSlug,
 }: GoogleSearchConsolePageClientProps) {
+  const t = useTranslations("integrations.gscPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon2 = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const pathname = usePathname();
@@ -708,14 +782,13 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeading
-          description="Turn the search queries you already rank for into AI prompt suggestions"
-          title="Google Search Console"
-        >
+        <PageHeading description={t("description")} title={t("title")}>
           {canConnect ? (
             <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              {needsReconnect ? "Reconnect" : "Connect Search Console"}
+              {needsReconnect
+                ? tIntegrationsShared("reconnect")
+                : tCommon2("labels.connectSearchConsole")}
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           ) : null}

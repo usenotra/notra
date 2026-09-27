@@ -1,8 +1,10 @@
 import { toast } from "sonner";
 
+import { commonToastMessage } from "@/utils/toast-message";
+
 export function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text);
-  toast.success("Copied to clipboard");
+  toast.success(commonToastMessage("copied"));
 }
 
 export async function copyTextToClipboard(
@@ -10,13 +12,13 @@ export async function copyTextToClipboard(
   successMessage: string
 ): Promise<void> {
   if (!navigator.clipboard?.writeText) {
-    toast.error("Clipboard not supported");
+    toast.error(commonToastMessage("clipboardUnsupported"));
     return;
   }
   try {
     await navigator.clipboard.writeText(text);
   } catch {
-    toast.error("Failed to copy to clipboard");
+    toast.error(commonToastMessage("copyFailed"));
     return;
   }
   toast.success(successMessage);

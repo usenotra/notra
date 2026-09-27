@@ -14,11 +14,6 @@ const YEAR_STRING_LENGTH = 4;
 const DAY_MS = 86_400_000;
 const CUSTOM_PARAM_REGEX = /^custom_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})$/;
 
-const rangeLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
-
 export function localDayString(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(DAY_PAD_LENGTH, "0");
   const day = String(date.getDate()).padStart(DAY_PAD_LENGTH, "0");
@@ -93,15 +88,16 @@ export function serializeGeoRangeState(state: GeoRangeState): string | null {
   return state.preset === GEO_DEFAULT_RANGE ? null : state.preset;
 }
 
-export function geoRangeLabel(state: GeoRangeState): string {
-  if (state.preset !== "custom") {
-    const preset = GEO_RANGE_PRESETS.find(
-      (entry) => entry.value === state.preset
-    );
-    return preset?.label ?? state.preset;
-  }
-  const from = rangeLabelFormatter.format(parseLocalDay(state.range.dateFrom));
-  const to = rangeLabelFormatter.format(parseLocalDay(state.range.dateTo));
+export function geoCustomRangeLabel(
+  range: GeoDateRange,
+  locale: string
+): string {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  });
+  const from = formatter.format(parseLocalDay(range.dateFrom));
+  const to = formatter.format(parseLocalDay(range.dateTo));
   return from === to ? from : `${from} - ${to}`;
 }
 

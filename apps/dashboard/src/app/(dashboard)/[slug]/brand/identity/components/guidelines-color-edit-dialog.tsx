@@ -17,11 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import { useReducer } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { COLOR_ROLE_OPTIONS } from "@/constants/brand-guideline-ui";
+import { useBrandColorRoleLabels } from "@/lib/hooks/use-brand-color-role-labels";
 import {
   useCreateGuidelineColor,
   useUpdateGuidelineColor,
@@ -53,6 +55,11 @@ export function GuidelinesColorEditDialog({
   open,
   onOpenChange,
 }: GuidelinesColorEditDialogProps) {
+  const t = useTranslations("brand.guidelines");
+  const colorRoleLabels = useBrandColorRoleLabels();
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const update = useUpdateGuidelineColor(organizationId, voiceId);
   const create = useCreateGuidelineColor(organizationId, voiceId);
   const isCreate = color === null;
@@ -75,7 +82,9 @@ export function GuidelinesColorEditDialog({
       usage: usage.trim() || null,
     };
 
-    const successMessage = isCreate ? "Color added" : "Color updated";
+    const successMessage = isCreate
+      ? t("colorDialog.added")
+      : t("colorDialog.updated");
 
     try {
       if (color) {
@@ -87,7 +96,7 @@ export function GuidelinesColorEditDialog({
       onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save color"
+        error instanceof Error ? error.message : t("colorDialog.saveFailed")
       );
     }
   };
@@ -97,21 +106,23 @@ export function GuidelinesColorEditDialog({
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {isCreate ? "Add color" : "Edit color"}
+            {isCreate ? tBrandShared("addColor") : t("colorDialog.editTitle")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             {isCreate
-              ? "Add a brand color and how it is used."
-              : "Update this brand color and how it is used."}
+              ? t("colorDialog.addDescription")
+              : t("colorDialog.editDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="color-light-value">Light color</Label>
+            <Label htmlFor="color-light-value">
+              {t("colorDialog.lightColor")}
+            </Label>
             <div className="flex items-center gap-2">
               <input
-                aria-label="Light color picker"
+                aria-label={t("colorDialog.lightColorPicker")}
                 className="size-9 shrink-0 cursor-pointer rounded-lg border bg-transparent"
                 onChange={(event) =>
                   setState({ lightValue: event.target.value })
@@ -131,10 +142,12 @@ export function GuidelinesColorEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="color-dark-value">Dark color</Label>
+            <Label htmlFor="color-dark-value">
+              {t("colorDialog.darkColor")}
+            </Label>
             <div className="flex items-center gap-2">
               <input
-                aria-label="Dark color picker"
+                aria-label={t("colorDialog.darkColorPicker")}
                 className="size-9 shrink-0 cursor-pointer rounded-lg border bg-transparent"
                 onChange={(event) =>
                   setState({ darkValue: event.target.value })
@@ -147,25 +160,31 @@ export function GuidelinesColorEditDialog({
                 onChange={(event) =>
                   setState({ darkValue: event.target.value })
                 }
-                placeholder="Optional dark value"
+                placeholder={t("colorDialog.darkPlaceholder")}
                 value={darkValue}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="color-name">Name</Label>
+            <Label htmlFor="color-name">{tCommon2("labels.name")}</Label>
             <Input
               id="color-name"
               onChange={(event) => setState({ name: event.target.value })}
-              placeholder="Optional name"
+              placeholder={t("colorDialog.namePlaceholder")}
               value={name}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Role</Label>
+            <Label>{tCommon2("labels.role")}</Label>
             <Select
+              items={Object.fromEntries(
+                COLOR_ROLE_OPTIONS.map((option) => [
+                  option.value,
+                  colorRoleLabels[option.value],
+                ])
+              )}
               onValueChange={(next) => {
                 const option = COLOR_ROLE_OPTIONS.find((o) => o.value === next);
                 if (option) {
@@ -175,12 +194,12 @@ export function GuidelinesColorEditDialog({
               value={role}
             >
               <SelectTrigger>
-                <SelectValue className="capitalize" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {COLOR_ROLE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {colorRoleLabels[option.value]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -188,11 +207,11 @@ export function GuidelinesColorEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="color-usage">Usage</Label>
+            <Label htmlFor="color-usage">{t("colorDialog.usage")}</Label>
             <Input
               id="color-usage"
               onChange={(event) => setState({ usage: event.target.value })}
-              placeholder="e.g. Primary buttons"
+              placeholder={t("colorDialog.usagePlaceholder")}
               value={usage}
             />
           </div>
@@ -204,10 +223,10 @@ export function GuidelinesColorEditDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={isPending} onClick={handleSave}>
-            {isPending ? "Saving…" : "Save"}
+            {isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

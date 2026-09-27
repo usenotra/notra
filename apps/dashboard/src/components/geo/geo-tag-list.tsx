@@ -10,6 +10,7 @@ import {
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { GeoTagListProps } from "@/types/geo";
@@ -27,6 +28,7 @@ export function GeoTagList({
   inputClassName,
   inline = false,
 }: GeoTagListProps) {
+  const t = useTranslations("geo.geoTagList");
   const [draft, setDraft] = useState("");
   const atLimit = values.length >= max;
 
@@ -58,7 +60,7 @@ export function GeoTagList({
           >
             <span className="truncate">{value}</span>
             <button
-              aria-label={`Remove ${value}`}
+              aria-label={t("remove", { value })}
               className="hover:bg-background focus-visible:ring-ring flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
               disabled={disabled}
               onClick={() => onChange(removeValue(values, value))}

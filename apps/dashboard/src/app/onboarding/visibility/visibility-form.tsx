@@ -9,6 +9,7 @@ import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -48,6 +49,9 @@ function VisibilityReview({
   nextHref,
   skipHref,
 }: VisibilityReviewProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tOnboardingShared = useTranslations("onboarding.shared");
+  const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
   const [companyName, setCompanyName] = useState(
@@ -113,14 +117,14 @@ function VisibilityReview({
       }}
     >
       <div className="grid gap-2">
-        <Label htmlFor={`${id}-company`}>Brand name</Label>
+        <Label htmlFor={`${id}-company`}>{t("brandName")}</Label>
         <Input
           aria-invalid={companyName.trim().length === 0}
           className={ONBOARDING_FIELD_CLASS}
           disabled={busy}
           id={`${id}-company`}
           onChange={(event) => setCompanyName(event.target.value)}
-          placeholder="Acme"
+          placeholder={t("brandNamePlaceholder")}
           value={companyName}
         />
       </div>
@@ -128,10 +132,16 @@ function VisibilityReview({
       {prompts.length > 0 ? (
         <div className="grid gap-2">
           <p className="text-sm font-medium">
-            {websiteHost ? `Questions from ${websiteHost}` : "Questions"}{" "}
-            <span className="text-muted-foreground text-xs font-normal">
-              ({selectedPrompts.length} of {prompts.length})
-            </span>
+            {t.rich(websiteHost ? "questionsFrom" : "questions", {
+              host: websiteHost,
+              selected: selectedPrompts.length,
+              total: prompts.length,
+              muted: (chunks) => (
+                <span className="text-muted-foreground text-xs font-normal">
+                  {chunks}
+                </span>
+              ),
+            })}
           </p>
           <ul className="w-full max-w-full min-w-0 space-y-1.5 overflow-hidden">
             {prompts.map((entry) => {
@@ -154,10 +164,10 @@ function VisibilityReview({
         {busy ? (
           <>
             <Loader2Icon className="size-4 animate-spin" />
-            Saving
+            {tOnboardingShared("saving")}
           </>
         ) : (
-          "Continue"
+          tCommon("actions.continue")
         )}
       </CtaButton>
 
@@ -175,7 +185,7 @@ function VisibilityReview({
           size="sm"
           variant="link"
         >
-          Skip this step
+          {t("skipStep")}
         </Button>
       </div>
     </form>
@@ -192,6 +202,8 @@ export function VisibilityForm({
   inOnboardingFlow,
   progressHrefs,
 }: VisibilityFormProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tCommon2 = useTranslations("common");
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
     stripWebsitePrefix(websiteUrl)
@@ -260,14 +272,13 @@ export function VisibilityForm({
           />
         </div>
 
-        <AuthFormHeader
-          description="We ask ChatGPT, Claude, Gemini and Perplexity what your buyers ask them, then check if you come up."
-          title="See what AI says about you"
-        />
+        <AuthFormHeader description={t("description")} title={t("title")} />
 
         <div className="mt-2 space-y-5">
           <div className="grid gap-2">
-            <Label htmlFor={`${id}-website`}>Website</Label>
+            <Label htmlFor={`${id}-website`}>
+              {tCommon2("labels.website")}
+            </Label>
             <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px]">
               <label
                 className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -299,13 +310,12 @@ export function VisibilityForm({
             </div>
             {isAnalyzing ? (
               <p className="text-muted-foreground text-xs wrap-anywhere">
-                Reading {analyzedHost}. Takes about 20 seconds.
+                {t("reading", { host: analyzedHost })}
               </p>
             ) : null}
             {discover.isError ? (
               <p className="text-destructive text-sm wrap-anywhere">
-                Could not read {analyzedHost}. Check the address, or just type
-                your brand name below.
+                {t("readFailed", { host: analyzedHost })}
               </p>
             ) : null}
           </div>

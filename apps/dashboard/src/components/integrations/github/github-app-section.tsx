@@ -1,5 +1,6 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { GitHubIntegrationSkeleton } from "@/app/(dashboard)/[slug]/integrations/github/skeleton";
 import { Button } from "@/components/button";
@@ -19,22 +20,26 @@ function GitHubAccounts({
   handleOpenConnect,
   setLegacyOpen,
 }: GitHubAppSectionProps) {
+  const t = useTranslations("integrations.github.appSection");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   if (githubAppQuery.isError && !githubAppQuery.data) {
     return (
       <div
         role="alert"
         className="flex min-h-36 flex-col items-center justify-center gap-3 px-5 py-6 text-center"
       >
-        <p className="text-muted-foreground text-sm">
-          Unable to load GitHub accounts.
-        </p>
+        <p className="text-muted-foreground text-sm">{t("loadFailed")}</p>
         <Button
           disabled={githubAppQuery.isFetching}
           variant="outline"
           size="sm"
           onClick={() => githubAppQuery.refetch()}
         >
-          {githubAppQuery.isFetching ? "Retrying" : "Retry"}
+          {githubAppQuery.isFetching
+            ? tCommon("labels.retrying")
+            : tCommon("actions.retry")}
         </Button>
       </div>
     );
@@ -45,7 +50,7 @@ function GitHubAccounts({
   if (isConnected) {
     return (
       <section
-        aria-label="Connected GitHub accounts"
+        aria-label={t("connectedAccounts")}
         className="bg-muted/40 grid gap-2 rounded-2xl px-5 py-2"
       >
         {accounts.map((account) => (
@@ -70,13 +75,13 @@ function GitHubAccounts({
   }
   return (
     <div className="bg-muted/40 space-y-3 rounded-2xl p-5">
-      <h3 className="text-sm font-medium">Connect the GitHub App</h3>
+      <h3 className="text-sm font-medium">{t("connectTitle")}</h3>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" onClick={handleOpenConnect}>
-          Connect GitHub
+          {tIntegrationsShared("connectGithub")}
         </Button>
         <Button variant="ghost" onClick={() => setLegacyOpen(true)}>
-          Connect with access token
+          {t("connectWithToken")}
         </Button>
       </div>
     </div>
@@ -84,6 +89,8 @@ function GitHubAccounts({
 }
 
 export function GitHubAppSection(props: GitHubAppSectionProps) {
+  const t = useTranslations("integrations.github.appSection");
+  const tIntegrationsShared2 = useTranslations("integrations.shared");
   const { isConnected, handleOpenConnect, setLegacyOpen } = props;
   return (
     <section
@@ -92,7 +99,7 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
     >
       <div className="space-y-1">
         <h2 id="github-app-heading" className="text-base font-semibold">
-          GitHub App
+          {t("title")}
         </h2>
       </div>
       <div className="min-w-0 space-y-4">
@@ -101,10 +108,10 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={handleOpenConnect}>
               <HugeiconsIcon icon={PlusSignIcon} className="size-4" />
-              Add GitHub account
+              {tIntegrationsShared2("addGithubAccount")}
             </Button>
             <Button variant="ghost" onClick={() => setLegacyOpen(true)}>
-              Connect with access token
+              {t("connectWithToken")}
             </Button>
           </div>
         ) : null}

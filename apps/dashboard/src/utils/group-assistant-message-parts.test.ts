@@ -12,7 +12,7 @@ import {
 test("current step follows the latest streamed part, not a completed tool", () => {
   expect(
     getAssistantActivityStep([reasoning("Checking sources", "streaming")])
-  ).toBe("Thinking");
+  ).toBe("thinking");
   expect(
     getAssistantActivityStep([
       reasoning("Checking sources"),
@@ -23,7 +23,7 @@ test("current step follows the latest streamed part, not a completed tool", () =
         input: { query: "news" },
       },
     ])
-  ).toBe("Searching web");
+  ).toBe("searchingWeb");
   expect(
     getAssistantActivityStep([
       reasoning("Checking sources"),
@@ -34,12 +34,12 @@ test("current step follows the latest streamed part, not a completed tool", () =
         input: {},
       },
     ])
-  ).toBe("Executing tools");
-  expect(getAssistantActivityStep([tool("webSearch")])).toBe("Thinking");
+  ).toBe("executingTools");
+  expect(getAssistantActivityStep([tool("webSearch")])).toBe("thinking");
   expect(
     getAssistantActivityStep([tool("webSearch"), text("Here is the answer")])
-  ).toBe("Writing response");
-  expect(getAssistantActivityStep([])).toBe("Thinking");
+  ).toBe("writingResponse");
+  expect(getAssistantActivityStep([])).toBe("thinking");
 });
 
 function text(value: string) {

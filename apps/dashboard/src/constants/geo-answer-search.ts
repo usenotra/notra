@@ -1,5 +1,3 @@
-export const GEO_ANSWER_SEARCHED_THE_WEB = "Searched the web";
-
 export const GEO_ANSWER_SEARCH_SKIN_CLASS = {
   chatgpt: {
     root: "font-sans",

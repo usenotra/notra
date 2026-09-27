@@ -7,6 +7,7 @@ import { logoLinkUrl } from "@notra/utils/logo-link";
 import type {
   GetMcpIconUrlsInput,
   McpIconUrls,
+  StoreIntegrationTranslator,
 } from "@/types/integrations/mcp";
 
 export const MCP_ACCENT_COLOR = "#9333EA";
@@ -47,7 +48,7 @@ export function getMcpIconUrls({
   };
 }
 
-export function getMcpFormErrorMessage(error: unknown) {
+export function getMcpFormErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") {
     return error;
   }
@@ -56,7 +57,7 @@ export function getMcpFormErrorMessage(error: unknown) {
     return String(error.message);
   }
 
-  return "Invalid value";
+  return fallback;
 }
 
 export function buildMcpHeaders(
@@ -75,14 +76,18 @@ export function buildMcpHeaders(
   return headers;
 }
 
-export function getStoreIntegrationConnectHint(authType: string, name: string) {
+export function getStoreIntegrationConnectHint(
+  t: StoreIntegrationTranslator,
+  authType: string,
+  name: string
+) {
   if (authType === "oauth") {
-    return `You will be redirected to ${name} to authorize the connection.`;
+    return t("connectHint.oauth", { name });
   }
   if (authType === "headers") {
-    return `You will need your own ${name} credentials to finish connecting.`;
+    return t("connectHint.headers", { name });
   }
-  return `${name} connects instantly and needs no credentials.`;
+  return t("connectHint.none", { name });
 }
 
 export function toMcpFormAuthType(

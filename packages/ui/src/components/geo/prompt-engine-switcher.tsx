@@ -15,7 +15,7 @@ import { LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useId } from "react";
 import { Button } from "@notra/ui/components/ui/button";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
-import { GEO_SEARCH_LABEL } from "@notra/ui/constants/geo";
+import { DEFAULT_PROMPT_ENGINE_SWITCHER_LABELS } from "@notra/ui/constants/geo";
 import { adjacentPromptEngine } from "@notra/ui/lib/geo-prompt-engines";
 import { SPRING } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
@@ -27,7 +27,12 @@ export function PromptEngineSwitcher({
   items,
   active,
   onChange,
+  labels,
 }: PromptEngineSwitcherProps) {
+  const resolvedLabels = {
+    ...DEFAULT_PROMPT_ENGINE_SWITCHER_LABELS,
+    ...labels,
+  };
   const engines = items.map((item) => item.engine);
   const layoutId = useId();
   const reduceMotion = useReducedMotion();
@@ -38,7 +43,7 @@ export function PromptEngineSwitcher({
     <div className="flex items-start gap-3">
       <LayoutGroup id={layoutId}>
         <div
-          aria-label="Engines"
+          aria-label={resolvedLabels.engines}
           className="flex min-w-0 flex-1 flex-wrap items-center gap-1 p-0.5"
           role="tablist"
         >
@@ -89,7 +94,7 @@ export function PromptEngineSwitcher({
                             strokeWidth={2}
                           />
                         </TooltipTrigger>
-                        <TooltipContent>{GEO_SEARCH_LABEL}</TooltipContent>
+                        <TooltipContent>{resolvedLabels.search}</TooltipContent>
                       </Tooltip>
                     ) : null}
                   </span>
@@ -102,7 +107,7 @@ export function PromptEngineSwitcher({
       {items.length > 1 ? (
         <div className="flex shrink-0 items-center gap-0.5 pt-0.5">
           <Button
-            aria-label="Previous engine"
+            aria-label={resolvedLabels.previousEngine}
             onClick={() =>
               onChange(adjacentPromptEngine(engines, active, -1), -1)
             }
@@ -113,7 +118,7 @@ export function PromptEngineSwitcher({
             <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
           </Button>
           <Button
-            aria-label="Next engine"
+            aria-label={resolvedLabels.nextEngine}
             onClick={() =>
               onChange(adjacentPromptEngine(engines, active, 1), 1)
             }

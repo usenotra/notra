@@ -2,6 +2,7 @@
 
 import { GEO_TRAFFIC_FUNNEL_STAGES } from "@notra/geo-core/constants/geo";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import {
   GeoSectionSkeleton,
@@ -23,13 +24,13 @@ const PAGE_ROW_COUNT = 4;
 const CITATION_ROW_COUNT = 6;
 
 export function GeoTrafficSkeleton() {
+  const t = useTranslations("geo.pages.traffic");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
-        <PageHeader
-          description="AI crawlers and referrals visiting your site"
-          title="AI Traffic"
-        />
+        <PageHeader description={t("description")} title={t("title")} />
         <div className="flex flex-col gap-6">
           <div className={TRAFFIC_HERO_FRAME_CLASS}>
             <div
@@ -40,10 +41,10 @@ export function GeoTrafficSkeleton() {
             >
               {GEO_TRAFFIC_FUNNEL_STAGES.map((stage) => (
                 <div className={TRAFFIC_HERO_METRIC_CELL_CLASS} key={stage.key}>
-                  <Skeleton className="h-5 w-28 @sm/hero:h-6 @sm/hero:w-32" />
+                  <Skeleton className="h-5 w-28" />
                   <div className="flex min-w-0 flex-wrap items-center gap-3">
-                    <Skeleton className="h-8 w-16 @4xl/hero:h-9 @4xl/hero:w-20" />
-                    <Skeleton className="h-7 w-12 rounded-md" />
+                    <Skeleton className="h-6 w-14 @4xl/hero:h-8 @4xl/hero:w-16" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
                   </div>
                 </div>
               ))}
@@ -54,19 +55,19 @@ export function GeoTrafficSkeleton() {
           </div>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-36" />}
-            eyebrow="Sources"
+            eyebrow={tCommon("labels.sources")}
           >
             <GeoTableSkeleton rows={SOURCE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-8" />}
-            eyebrow="Top pages by AI source"
+            eyebrow={tGeoShared("topPagesByAiSource")}
           >
             <GeoTableSkeleton rows={PAGE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-24" />}
-            eyebrow="Recent AI requests"
+            eyebrow={tGeoShared("recentAiRequests")}
           >
             <GeoTableSkeleton rows={CITATION_ROW_COUNT} />
           </GeoSectionSkeleton>

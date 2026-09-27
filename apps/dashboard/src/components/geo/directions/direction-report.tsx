@@ -1,7 +1,8 @@
 "use client";
 
-import { GEO_SEARCH_LABEL } from "@notra/geo-core/constants/geo";
 import { formatGeoJourneyChip } from "@notra/geo-core/utils/ai-traffic";
+import { useFormatter, useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 
 import { DirectionDonut } from "@/components/geo/directions/direction-donut";
 import { DirectionEngineBars } from "@/components/geo/directions/direction-engine-bars";
@@ -13,82 +14,95 @@ import {
   GEO_DIRECTIONS_JOURNEYS,
   GEO_DIRECTIONS_VISIBILITY,
   GEO_DIRECTIONS_VISIBILITY_DELTA,
-  GEO_DIRECTIONS_WEEK_LABEL,
+  GEO_DIRECTIONS_LAST_SCAN,
 } from "@/constants/geo-directions";
 import { formatMentionRate } from "@/utils/geo-charts";
 
 const LEAD_JOURNEY = GEO_DIRECTIONS_JOURNEYS[0];
 
 export function DirectionReport() {
+  const t = useTranslations("geo.directions");
+  const tGeoShared = useTranslations("geo.shared");
+  const format = useFormatter();
+  const search = tGeoShared("search");
+  const strong = (chunks: ReactNode) => (
+    <span className="text-foreground font-semibold">{chunks}</span>
+  );
+
   return (
     <article className="mx-auto max-w-2xl space-y-10">
       <header className="space-y-4">
-        <p className="text-muted-foreground text-xs capitalize">
-          GEO · {GEO_DIRECTIONS_WEEK_LABEL} · {GEO_DIRECTIONS_CHECK_COUNT}{" "}
-          checks across {GEO_DIRECTIONS_ENGINE_COUNT} engines
+        <p className="text-muted-foreground text-xs first-letter:uppercase">
+          {t("report.meta", {
+            week: t("report.weekOf", {
+              date: format.dateTime(new Date(GEO_DIRECTIONS_LAST_SCAN), {
+                month: "short",
+                day: "numeric",
+              }),
+            }),
+            checks: GEO_DIRECTIONS_CHECK_COUNT,
+            engines: GEO_DIRECTIONS_ENGINE_COUNT,
+          })}
         </p>
         <h1 className="text-2xl leading-snug font-semibold tracking-tight">
-          AI engines mention {GEO_DIRECTIONS_COMPANY} in{" "}
-          {formatMentionRate(GEO_DIRECTIONS_VISIBILITY)} of answers,{" "}
-          <span className="text-geo-up">
-            up {GEO_DIRECTIONS_VISIBILITY_DELTA} points
-          </span>{" "}
-          this week.
+          {t.rich("report.headline", {
+            company: GEO_DIRECTIONS_COMPANY,
+            rate: formatMentionRate(GEO_DIRECTIONS_VISIBILITY),
+            delta: GEO_DIRECTIONS_VISIBILITY_DELTA,
+            up: (chunks) => <span className="text-geo-up">{chunks}</span>,
+          })}
         </h1>
       </header>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">
-          ChatGPT {GEO_SEARCH_LABEL} is where you win.
+          {t("report.winTitle", { search })}
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {GEO_SEARCH_LABEL} names you in{" "}
-          <span className="text-foreground font-semibold">71%</span> of answers,
-          while ChatGPT without search gets you to{" "}
-          <span className="text-foreground font-semibold">62%</span>.
+          {t.rich("report.winBody", { search, strong })}
         </p>
         <DirectionEngineBars />
       </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">
-          Your changelog is the front door for AI traffic.
+          {t("report.changelogTitle")}
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          One page took{" "}
-          <span className="text-foreground font-semibold">10,412</span> of your{" "}
-          <span className="text-foreground font-semibold">18,226</span> AI
-          visits this week.
+          {t.rich("report.changelogBody", { strong })}
         </p>
         <DirectionPagesTable />
       </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">
-          You own about a third of the conversation.
+          {t("report.shareTitle")}
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          Across competitor comparisons you take{" "}
-          <span className="text-foreground font-semibold">31%</span> of
-          mentions, ahead of Jasper at{" "}
-          <span className="text-foreground font-semibold">24%</span>.
+          {t.rich("report.shareBody", { strong })}
         </p>
         <DirectionDonut />
       </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">
-          Agents are reading you deeply, not just fetching one page.
+          {t("report.agentsTitle")}
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          One GPTBot journey{" "}
-          <span className="bg-muted text-muted-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs">
-            {formatGeoJourneyChip(LEAD_JOURNEY?.journeyId ?? "")}
-          </span>{" "}
-          read <span className="text-foreground font-semibold">14 pages</span>{" "}
-          in <span className="text-foreground font-semibold">22 minutes</span>,
-          starting at{" "}
-          <span className="text-foreground font-mono text-xs">/changelog</span>.
+          {t.rich("report.agentsBody", {
+            journey: formatGeoJourneyChip(LEAD_JOURNEY?.journeyId ?? ""),
+            strong,
+            chip: (chunks) => (
+              <span className="bg-muted text-muted-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs">
+                {chunks}
+              </span>
+            ),
+            path: (chunks) => (
+              <span className="text-foreground font-mono text-xs">
+                {chunks}
+              </span>
+            ),
+          })}
         </p>
       </section>
     </article>

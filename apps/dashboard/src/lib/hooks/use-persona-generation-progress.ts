@@ -46,6 +46,6 @@ export function usePersonaGenerationProgress(
   return {
     step: step + 1,
     total: GEO_PERSONA_GENERATION_STEPS.length,
-    label: entry?.label ?? "",
+    stepKey: entry?.key ?? "readingSite",
   };
 }

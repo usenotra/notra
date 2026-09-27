@@ -5,10 +5,16 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { buttonVariants } from "@/components/button";
+import { DEFAULT_ERROR_CONTENT_COPY } from "@/constants/error-content";
 import { trackClientException } from "@/lib/analytics/posthog-client";
 import type { ErrorContentProps } from "@/types/components/error";
 
-export function ErrorContent({ error, reset, className }: ErrorContentProps) {
+export function ErrorContent({
+  error,
+  reset,
+  className,
+  copy = DEFAULT_ERROR_CONTENT_COPY,
+}: ErrorContentProps) {
   useEffect(() => {
     trackClientException(error, { digest: error.digest });
   }, [error]);
@@ -21,17 +27,18 @@ export function ErrorContent({ error, reset, className }: ErrorContentProps) {
       )}
     >
       <div className="text-center">
-        <p className="text-muted-foreground text-sm font-medium">Error</p>
+        <p className="text-muted-foreground text-sm font-medium">
+          {copy.eyebrow}
+        </p>
         <h1 className="text-foreground mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-          Something went wrong
+          {copy.title}
         </h1>
         <p className="text-muted-foreground mx-auto mt-4 max-w-md text-base">
-          We hit an unexpected problem loading this page. You can try again or
-          head back home.
+          {copy.description}
         </p>
         {error.digest ? (
           <p className="text-muted-foreground mt-2 font-mono text-xs">
-            Reference {error.digest}
+            {copy.reference(error.digest)}
           </p>
         ) : null}
         <div className="mt-8 flex items-center justify-center gap-3">
@@ -40,10 +47,10 @@ export function ErrorContent({ error, reset, className }: ErrorContentProps) {
             onClick={() => reset()}
             type="button"
           >
-            Try again
+            {copy.tryAgain}
           </button>
           <Link className={cn(buttonVariants({ variant: "outline" }))} href="/">
-            Go home
+            {copy.goHome}
           </Link>
         </div>
       </div>

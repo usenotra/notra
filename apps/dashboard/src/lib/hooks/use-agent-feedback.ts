@@ -9,6 +9,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -34,6 +35,7 @@ export function useAgentFeedbackList(
   organizationId: string,
   status: AgentFeedbackStatusFilter
 ) {
+  const t = useTranslations("feedback.toasts");
   return useInfiniteQuery({
     ...dashboardOrpc.agentFeedback.list.infiniteOptions({
       input: (cursor: string | undefined) =>
@@ -43,11 +45,12 @@ export function useAgentFeedbackList(
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load feedback" },
+    meta: { errorMessage: t("loadFailed") },
   });
 }
 
 export function useAgentFeedbackUpdateStatus(organizationId: string) {
+  const t = useTranslations("feedback.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: { feedbackId: string; status: AgentFeedbackStatus }) =>
@@ -61,12 +64,13 @@ export function useAgentFeedbackUpdateStatus(organizationId: string) {
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update feedback");
+      toast.error(error.message || t("updateFailed"));
     },
   });
 }
 
 export function useAgentFeedbackDelete(organizationId: string) {
+  const t = useTranslations("feedback.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (feedbackId: string) =>
@@ -78,10 +82,10 @@ export function useAgentFeedbackDelete(organizationId: string) {
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.agentFeedback.list.key(),
       });
-      toast.success("Feedback deleted");
+      toast.success(t("deleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete feedback");
+      toast.error(error.message || t("deleteFailed"));
     },
   });
 }

@@ -3,14 +3,11 @@
 import { Add01Icon, Image01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 
-import {
-  ASSET_KIND_LABELS,
-  ASSET_SLOTS,
-  ASSET_VARIANT_LABELS,
-} from "@/constants/brand-guideline-ui";
+import { ASSET_SLOTS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesAssetsSectionProps } from "@/types/brand-identity";
 import type {
   BrandGuidelineAsset,
@@ -28,6 +25,9 @@ export function GuidelinesAssetsSection({
   organizationId,
   voiceId,
 }: GuidelinesAssetsSectionProps) {
+  const t = useTranslations("brand.guidelines");
+  const tLabels = useTranslations("common.labels");
+  const tBrandShared = useTranslations("brand.shared");
   const [editing, setEditing] = useState<BrandGuidelineAsset | null>(null);
   const [creatingSlot, setCreatingSlot] = useState<{
     kind: BrandGuidelineAssetKind;
@@ -48,7 +48,7 @@ export function GuidelinesAssetsSection({
           className="text-muted-foreground size-4"
           icon={Image01Icon}
         />
-        <h2 className="text-sm font-semibold">Logo Assets</h2>
+        <h2 className="text-sm font-semibold">{t("assets.title")}</h2>
         <span className="text-muted-foreground text-xs tabular-nums">
           {assets.length}
         </span>
@@ -62,9 +62,11 @@ export function GuidelinesAssetsSection({
             variant: asset.variant,
           });
           const meta = joinMeta([
-            ASSET_KIND_LABELS[asset.kind],
+            asset.kind === "logo"
+              ? tLabels("logo")
+              : t(`assetKinds.${asset.kind}`),
             asset.format?.toUpperCase(),
-            ASSET_VARIANT_LABELS[asset.variant],
+            tLabels(asset.variant),
             formatDimensions(asset.width, asset.height),
           ]);
 
@@ -122,11 +124,10 @@ export function GuidelinesAssetsSection({
             </div>
             <div className="w-full border-t border-dashed p-3">
               <p className="text-muted-foreground truncate text-sm font-medium">
-                {ASSET_VARIANT_LABELS[slot.variant]}{" "}
-                {ASSET_KIND_LABELS[slot.kind]}
+                {t(`assets.slots.${slot.kind}.${slot.variant}`)}
               </p>
               <p className="text-muted-foreground/70 truncate text-xs">
-                Add asset
+                {tBrandShared("addAsset")}
               </p>
             </div>
           </button>

@@ -79,9 +79,8 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   (its own oRPC `/rpc`, Better Auth `/api/auth`, chat). Run with
   `bun run dev --filter=dashboard`. This is the app to exercise end-to-end.
 - `apps/web` (port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
-  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard),
-  `packages/email` preview (`bun run email:dev`, port 3002) — all optional for the
-  core flow.
+  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard) — all
+  optional for the core flow.
 
 ### Auth note
 - Email/password sign-up works without OAuth/email providers and does not require email

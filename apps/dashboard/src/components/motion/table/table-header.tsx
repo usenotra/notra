@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import {
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
@@ -26,6 +27,7 @@ import { createPortal } from "react-dom";
 import { Checkbox } from "@/components/motion/checkbox";
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";
 import { cn } from "@/lib/utils";
+import type { CommonTranslator } from "@/types/i18n";
 
 import { TableMenu } from "./table-menu";
 import type {
@@ -76,19 +78,23 @@ export interface TableHeaderProps<T> {
 function columnMenuItems<T>(
   column: TableColumn<T>,
   index: number,
-  onInsertColumn?: (index: number, position: InsertPosition) => void,
-  onDeleteColumn?: (columnKey: string, index: number) => void
+  onInsertColumn:
+    | ((index: number, position: InsertPosition) => void)
+    | undefined,
+  onDeleteColumn: ((columnKey: string, index: number) => void) | undefined,
+  t: ReturnType<typeof useTranslations<"shared.table">>,
+  tCommon: CommonTranslator
 ) {
   return [
     ...(onInsertColumn
       ? [
           {
-            label: "Insert before",
+            label: t("insertBefore"),
             icon: <HugeiconsIcon icon={ArrowLeftToLineIcon} size={16} />,
             onSelect: () => onInsertColumn(index, "before"),
           },
           {
-            label: "Insert after",
+            label: t("insertAfter"),
             icon: <HugeiconsIcon icon={ArrowRightToLineIcon} size={16} />,
             onSelect: () => onInsertColumn(index, "after"),
           },
@@ -97,7 +103,7 @@ function columnMenuItems<T>(
     ...(onDeleteColumn
       ? [
           {
-            label: "Delete column",
+            label: tCommon("labels.deleteColumn"),
             icon: <HugeiconsIcon icon={Delete02Icon} size={16} />,
             destructive: true,
             onSelect: () => onDeleteColumn(column.key, index),
@@ -126,6 +132,8 @@ function ColumnHandle<T>({
   onEnter: () => void;
   onLeave: () => void;
 }) {
+  const t = useTranslations("shared.table");
+  const tCommon = useTranslations("common");
   useEffect(() => {
     window.addEventListener("scroll", onLeave, true);
     return () => window.removeEventListener("scroll", onLeave, true);
@@ -150,8 +158,15 @@ function ColumnHandle<T>({
       }}
     >
       <TableMenu
-        ariaLabel={`${column.key} column options`}
-        items={columnMenuItems(column, index, onInsertColumn, onDeleteColumn)}
+        ariaLabel={t("columnOptions", { column: column.key })}
+        items={columnMenuItems(
+          column,
+          index,
+          onInsertColumn,
+          onDeleteColumn,
+          t,
+          tCommon
+        )}
         trigger={<HugeiconsIcon icon={MoreHorizontalIcon} size={12} />}
         triggerClassName="flex h-2 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
       />
@@ -232,6 +247,7 @@ export function TableHeader<T>({
   onColumnActivate,
   onColumnDeactivate,
 }: TableHeaderProps<T>) {
+  const t = useTranslations("shared.table");
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
   const activeIndex = columns.findIndex((c) => c.key === activeColumn);
   const activeColumnDef = activeIndex >= 0 ? columns[activeIndex] : undefined;
@@ -254,7 +270,7 @@ export function TableHeader<T>({
             <th className="bg-muted">
               <div className="flex items-center justify-center">
                 <Checkbox
-                  aria-label="Select all rows"
+                  aria-label={t("selectAllRows")}
                   checked={allSelected}
                   className="size-6"
                   indeterminate={!allSelected && someSelected}
@@ -319,7 +335,7 @@ export function TableHeader<T>({
                 >
                   {reorderable ? (
                     <button
-                      aria-label={`Reorder ${column.key} column`}
+                      aria-label={t("reorderColumn", { column: column.key })}
                       className="text-muted-foreground/60 hover:text-foreground flex h-full w-6 cursor-grab touch-none items-center justify-center transition-colors active:cursor-grabbing"
                       onPointerDown={(e) => onReorderStart(column.key, e)}
                       onPointerMove={onReorderMove}
@@ -367,7 +383,7 @@ export function TableHeader<T>({
                   ) : null}
                   {!column.sortable && onColumnRename ? (
                     <input
-                      aria-label={`Rename ${column.key} column`}
+                      aria-label={t("renameColumn", { column: column.key })}
                       className={cn(
                         "text-muted-foreground focus:bg-muted focus:text-foreground min-w-0 flex-1 appearance-none truncate rounded-md border-0 bg-transparent px-4 font-medium transition-colors outline-none",
                         alignText(column.align)
@@ -396,7 +412,12 @@ export function TableHeader<T>({
                 </motion.div>
                 {resizable ? (
                   <button
-                    aria-label={`Resize ${column.key} column`}
+                    aria-label={t("resizeColumn", {
+                      column:
+                        typeof column.header === "string"
+                          ? column.header
+                          : column.key,
+                    })}
                     className="hover:bg-primary/40 absolute top-0 right-0 h-full w-1.5 cursor-col-resize touch-none bg-transparent transition-colors"
                     onPointerDown={(e) => onResizeStart(column.key, e)}
                     onPointerMove={onResizeMove}

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  GEO_SEARCH_GAP_ACTION_CLASS,
-  GEO_SEARCH_GAP_ACTION_LABELS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_SEARCH_GAP_ACTION_CLASS } from "@notra/geo-core/constants/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Sheet,
@@ -14,18 +11,24 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { Table } from "@/components/motion/table";
+import { GEO_SEARCH_GAP_ACTION_LABEL_KEYS } from "@/constants/geo-gaps";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoSearchGapDetailSheetProps } from "@/types/components/geo-gaps";
-import { formatCount, formatPercent } from "@/utils/format";
+import { formatCount, formatOneDecimal, formatPercent } from "@/utils/format";
 
 export function SearchGapDetailSheet({
   row,
   actions,
   onOpenChange,
 }: GeoSearchGapDetailSheetProps) {
+  const t = useTranslations("geo.searchGapDetail");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const payload = useMemo(
     () => (row ? { row, actions } : null),
     [row, actions]
@@ -50,9 +53,9 @@ export function SearchGapDetailSheet({
         variant="inset"
       >
         <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
-          <SheetDescription>Search gap · Source question</SheetDescription>
+          <SheetDescription>{t("eyebrow")}</SheetDescription>
           <SheetTitle className="leading-snug text-balance wrap-anywhere">
-            {gap?.prompt ?? "Search gap"}
+            {gap?.prompt ?? t("fallbackTitle")}
           </SheetTitle>
         </SheetHeader>
 
@@ -64,59 +67,71 @@ export function SearchGapDetailSheet({
             <div className="space-y-4">
               <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
                 <div className="bg-muted/70 border-b px-4 py-3">
-                  <h3 className="text-sm font-medium">Search performance</h3>
+                  <h3 className="text-sm font-medium">
+                    {tGeoShared("searchPerformance")}
+                  </h3>
                 </div>
                 <dl className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-4">
                   <div className="space-y-1">
                     <dt className="text-muted-foreground text-xs">
-                      Impressions
+                      {tCommon("labels.impressions")}
                     </dt>
                     <dd className="text-xl font-medium tabular-nums">
                       {gap.impressions === null
                         ? "—"
-                        : formatCount(gap.impressions)}
-                    </dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-muted-foreground text-xs">Clicks</dt>
-                    <dd className="text-xl font-medium tabular-nums">
-                      {gap.clicks === null ? "—" : formatCount(gap.clicks)}
+                        : formatCount(gap.impressions, locale)}
                     </dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="text-muted-foreground text-xs">
-                      Click-through rate
+                      {tCommon("labels.clicks")}
                     </dt>
                     <dd className="text-xl font-medium tabular-nums">
-                      {ctr === null ? "—" : `${formatPercent(ctr)}%`}
+                      {gap.clicks === null
+                        ? "—"
+                        : formatCount(gap.clicks, locale)}
                     </dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="text-muted-foreground text-xs">
-                      Avg. position
+                      {tGeoShared("clickThroughRate")}
+                    </dt>
+                    <dd className="text-xl font-medium tabular-nums">
+                      {ctr === null ? "—" : `${formatPercent(ctr, locale)}%`}
+                    </dd>
+                  </div>
+                  <div className="space-y-1">
+                    <dt className="text-muted-foreground text-xs">
+                      {tCommon("labels.avgPosition")}
                     </dt>
                     <dd className="text-xl font-medium tabular-nums">
                       {gap.position === null
                         ? "—"
-                        : `#${gap.position.toFixed(1)}`}
+                        : `#${formatOneDecimal(gap.position, locale)}`}
                     </dd>
                   </div>
                 </dl>
                 <p className="text-muted-foreground px-4 pb-4 text-xs">
-                  Across this gap's Google Search queries.
+                  {t("acrossQueries")}
                 </p>
               </section>
 
               <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
                 <div className="bg-muted/70 flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
-                  <h3 className="text-sm font-medium">Recommendation</h3>
+                  <h3 className="text-sm font-medium">
+                    {tCommon("labels.recommendation")}
+                  </h3>
                   <Badge
                     className={
                       GEO_SEARCH_GAP_ACTION_CLASS[gap.recommendation.action]
                     }
                     variant="outline"
                   >
-                    {GEO_SEARCH_GAP_ACTION_LABELS[gap.recommendation.action]}
+                    {tGeoShared(
+                      GEO_SEARCH_GAP_ACTION_LABEL_KEYS[
+                        gap.recommendation.action
+                      ]
+                    )}
                   </Badge>
                 </div>
                 <div className="space-y-3 p-4">
@@ -127,8 +142,8 @@ export function SearchGapDetailSheet({
                     <div className="space-y-1 border-t pt-3">
                       <p className="text-muted-foreground text-xs">
                         {gap.brief?.workingTitle
-                          ? "Draft title"
-                          : "Suggested title"}
+                          ? t("draftTitle")
+                          : tGeoShared("suggestedTitle")}
                       </p>
                       <p className="text-sm leading-relaxed wrap-anywhere">
                         {title}
@@ -143,7 +158,9 @@ export function SearchGapDetailSheet({
                   className="rounded-2xl"
                   toolbar={
                     <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
-                      <h3 className="text-sm font-medium">Search queries</h3>
+                      <h3 className="text-sm font-medium">
+                        {tGeoShared("searchQueries")}
+                      </h3>
                       <span className="text-muted-foreground text-xs tabular-nums">
                         {gap.queries.length}
                       </span>
@@ -152,7 +169,7 @@ export function SearchGapDetailSheet({
                   columns={[
                     {
                       key: "query",
-                      header: "Query",
+                      header: tCommon("labels.query"),
                       width: "1fr",
                       minWidth: "10rem",
                       sortable: true,
@@ -164,32 +181,33 @@ export function SearchGapDetailSheet({
                     },
                     {
                       key: "impressions",
-                      header: "Impressions",
+                      header: tCommon("labels.impressions"),
                       width: "8.5rem",
                       align: "right",
                       sortable: true,
-                      cell: (query) => formatCount(query.impressions),
+                      cell: (query) => formatCount(query.impressions, locale),
                     },
                     {
                       key: "clicks",
-                      header: "Clicks",
+                      header: tCommon("labels.clicks"),
                       width: "6rem",
                       align: "right",
                       sortable: true,
-                      cell: (query) => formatCount(query.clicks),
+                      cell: (query) => formatCount(query.clicks, locale),
                     },
                     {
                       key: "position",
-                      header: "Position",
+                      header: tCommon("labels.position"),
                       width: "6.5rem",
                       align: "right",
                       sortable: true,
-                      cell: (query) => `#${query.position.toFixed(1)}`,
+                      cell: (query) =>
+                        `#${formatOneDecimal(query.position, locale)}`,
                     },
                   ]}
                   data={gap.queries}
                   defaultSort={{ key: "impressions", direction: "desc" }}
-                  emptyState="No query-level data available for this gap."
+                  emptyState={t("noQueryData")}
                   getRowId={(query) => query.query}
                   height={360}
                   rowSizing="content"
@@ -198,7 +216,7 @@ export function SearchGapDetailSheet({
 
               <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
                 <div className="bg-muted/70 flex items-center justify-between gap-3 border-b px-4 py-3">
-                  <h3 className="text-sm font-medium">Related pages</h3>
+                  <h3 className="text-sm font-medium">{t("relatedPages")}</h3>
                   <span className="text-muted-foreground text-xs tabular-nums">
                     {gap.recommendation.targets.length}
                   </span>
@@ -213,11 +231,13 @@ export function SearchGapDetailSheet({
                         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                           <p className="text-muted-foreground text-xs">
                             {target.kind === "post"
-                              ? "Content"
-                              : "Website page"}
+                              ? tCommon("labels.content")
+                              : t("websitePage")}
                           </p>
                           <span className="text-muted-foreground text-xs tabular-nums">
-                            · {Math.round(target.score * 100)}% match
+                            {t("match", {
+                              percent: Math.round(target.score * 100),
+                            })}
                           </span>
                         </div>
                         {target.url ? (
@@ -232,7 +252,7 @@ export function SearchGapDetailSheet({
                           </a>
                         ) : (
                           <p className="text-sm leading-relaxed wrap-anywhere">
-                            {target.title || "Untitled content"}
+                            {target.title || t("untitledContent")}
                           </p>
                         )}
                         {target.url && target.title ? (
@@ -245,7 +265,7 @@ export function SearchGapDetailSheet({
                   </ul>
                 ) : (
                   <p className="text-muted-foreground p-4 text-sm">
-                    No related page found.
+                    {t("noRelatedPage")}
                   </p>
                 )}
               </section>

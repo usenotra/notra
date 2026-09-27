@@ -1,6 +1,7 @@
 "use client";
 
 import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
+import { useTranslations } from "next-intl";
 
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
 import { Composer } from "@/components/composer/composer-shell";
@@ -37,6 +38,7 @@ export function ChatQueue({
   authorsById,
   showAuthorAvatars = false,
 }: ChatQueueProps) {
+  const t = useTranslations("chat.queue");
   const hasPendingSteer = messages.some((message) => message.steering);
 
   if (messages.length === 0) {
@@ -45,14 +47,14 @@ export function ChatQueue({
 
   return (
     <div
-      aria-label="Queued messages"
+      aria-label={t("label")}
       className="flex w-full min-w-0 flex-col gap-1.5"
       role="group"
     >
       {messages.map((message) => (
         <Composer.Chip
           className={COMPOSER_QUEUED_CHIP}
-          editLabel="Edit queued message"
+          editLabel={t("edit")}
           icon={
             showAuthorAvatars && message.authorUserId ? (
               <MessageAuthorAvatar
@@ -73,10 +75,8 @@ export function ChatQueue({
             hasPendingSteer || !onSteer ? undefined : () => onSteer(message)
           }
           pending={Boolean(message.steering)}
-          removeLabel={
-            message.steering ? "Cancel steering" : "Remove from queue"
-          }
-          steerLabel="Steer with this message"
+          removeLabel={message.steering ? t("cancelSteering") : t("remove")}
+          steerLabel={t("steer")}
         />
       ))}
     </div>

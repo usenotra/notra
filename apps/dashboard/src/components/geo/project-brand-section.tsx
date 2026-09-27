@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -20,6 +21,10 @@ export function GeoProjectBrandSection({
   organizationId,
   project,
 }: GeoProjectBrandSectionProps) {
+  const t = useTranslations("geo.projectBrandSection");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const id = useId();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,21 +45,21 @@ export function GeoProjectBrandSection({
       await updateProjectBrand(project.id, voice.id);
       setSelectedId(null);
     } catch {
-      setError("Could not change the project identity. Try again.");
+      setError(t("changeFailed"));
     }
     setIsSaving(false);
   };
 
   return (
-    <TitleCard as="section" heading="Project brand identity" headingAs="h2">
+    <TitleCard
+      as="section"
+      heading={tGeoShared("projectBrandIdentity")}
+      headingAs="h2"
+    >
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">
-          This identity supplies the project's brand website and the default
-          voice and sitemaps for new articles. You can choose another identity
-          for an individual article.
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
         <div className="space-y-2">
-          <Label htmlFor={id}>Brand identity</Label>
+          <Label htmlFor={id}>{tCommon2("labels.brandIdentity")}</Label>
           <Select
             disabled={isSaving}
             onValueChange={(value) => {
@@ -64,8 +69,8 @@ export function GeoProjectBrandSection({
             value={voiceId}
           >
             <SelectTrigger className="w-full" id={id}>
-              <SelectValue placeholder="Select a brand identity">
-                {voice?.name ?? "Select a brand identity"}
+              <SelectValue placeholder={tGeoShared("selectABrandIdentity")}>
+                {voice?.name ?? tGeoShared("selectABrandIdentity")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -85,14 +90,11 @@ export function GeoProjectBrandSection({
         {hasChange || isSaving ? (
           <div className="space-y-3">
             <p className="text-muted-foreground text-sm">
-              Changing the identity does not regenerate the company name,
-              aliases, competitors, or tracking prompts. Review those settings
-              after saving. Existing articles and scan history stay as they are.
-              For a different business, create a new project instead.
+              {t("changeWarning")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button disabled={isSaving} onClick={save}>
-                {isSaving ? "Changing identity" : "Change project identity"}
+                {isSaving ? t("changing") : t("change")}
               </Button>
               <Button
                 disabled={isSaving}
@@ -102,7 +104,7 @@ export function GeoProjectBrandSection({
                 }}
                 variant="outline"
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
             </div>
           </div>

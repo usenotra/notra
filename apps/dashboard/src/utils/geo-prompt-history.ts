@@ -1,9 +1,3 @@
-import {
-  GEO_PROMPT_HISTORY_CHANGE_LABELS,
-  GEO_PROMPT_HISTORY_LIST_LOCALE,
-  GEO_PROMPT_RECEIPT_LABELS,
-  GEO_SENTIMENT_LABELS,
-} from "@notra/geo-core/constants/geo";
 import type {
   GeoPromptHistoryCheck,
   GeoPromptResultSummary,
@@ -37,17 +31,6 @@ export function promptHistoryForScanLanguage(
     : scanChecks;
   return { languages, selectedLanguage, visibleChecks };
 }
-
-export function promptPositionLabel(position: number | null): string {
-  return position === null
-    ? GEO_PROMPT_RECEIPT_LABELS.notRanked
-    : `#${position}`;
-}
-
-const nameListFormatter = new Intl.ListFormat(GEO_PROMPT_HISTORY_LIST_LOCALE, {
-  style: "long",
-  type: "conjunction",
-});
 
 function changesBetween(
   current: GeoPromptHistoryCheck,
@@ -99,46 +82,6 @@ export function promptHistoryChanges(
   });
 }
 
-export function promptHistoryChangeLabel(change: PromptHistoryChange): string {
-  switch (change.kind) {
-    case "gained":
-      return change.position === null
-        ? GEO_PROMPT_HISTORY_CHANGE_LABELS.gainedMention
-        : `${GEO_PROMPT_HISTORY_CHANGE_LABELS.gainedMention} ${GEO_PROMPT_HISTORY_CHANGE_LABELS.gainedMentionAt} ${promptPositionLabel(change.position)}`;
-    case "lost":
-      return GEO_PROMPT_HISTORY_CHANGE_LABELS.lostMention;
-    case "position":
-      return `${GEO_PROMPT_HISTORY_CHANGE_LABELS.moved} ${promptPositionLabel(change.from)} → ${promptPositionLabel(change.to)}`;
-    case "none":
-      return GEO_PROMPT_HISTORY_CHANGE_LABELS.noChange;
-    case "first":
-      return GEO_PROMPT_HISTORY_CHANGE_LABELS.firstScan;
-    default:
-      return "";
-  }
-}
-
-function changeSentence(change: PromptHistoryChange): string {
-  const label = promptHistoryChangeLabel(change);
-  if (change.kind === "first" || change.kind === "none") {
-    return label;
-  }
-  return `${label}.`;
-}
-
-/** Plain-text form of a history row, for tooltips and receipts. */
-export function promptHistoryChangeText(
-  entry: Pick<PromptHistoryEntry, "changes" | "newCompetitors">
-): string {
-  const sentences = entry.changes.map(changeSentence);
-  if (entry.newCompetitors.length > 0) {
-    sentences.push(
-      `${nameListFormatter.format(entry.newCompetitors)} ${GEO_PROMPT_HISTORY_CHANGE_LABELS.newlyRecommended}.`
-    );
-  }
-  return sentences.join(" ");
-}
-
 export function latestPromptResults(
   results: readonly GeoPromptResultSummary[],
   checks: readonly GeoPromptHistoryCheck[],
@@ -166,24 +109,28 @@ export function latestPromptResults(
   return [...latest.values()];
 }
 
-export function promptSentimentLabel(sentiment: string | null): string {
-  if (!sentiment) {
-    return GEO_PROMPT_RECEIPT_LABELS.noSentiment;
+export function promptSentimentKey(
+  sentiment: string | null
+): "positive" | "neutral" | "negative" | null {
+  if (
+    sentiment === "positive" ||
+    sentiment === "neutral" ||
+    sentiment === "negative"
+  ) {
+    return sentiment;
   }
-  return GEO_SENTIMENT_LABELS[sentiment] ?? sentiment;
+  return null;
 }
 
-export function promptOutcomeLabel(
+export function promptOutcomeKey(
   mentioned: boolean,
   ownedSourceCited = false
-): string {
+): "mentionedAndCited" | "mentioned" | "cited" | "notMentioned" {
   if (mentioned && ownedSourceCited) {
-    return GEO_PROMPT_RECEIPT_LABELS.mentionedAndCited;
+    return "mentionedAndCited";
   }
   if (mentioned) {
-    return GEO_PROMPT_RECEIPT_LABELS.mentioned;
+    return "mentioned";
   }
-  return ownedSourceCited
-    ? GEO_PROMPT_RECEIPT_LABELS.cited
-    : GEO_PROMPT_RECEIPT_LABELS.notMentioned;
+  return ownedSourceCited ? "cited" : "notMentioned";
 }

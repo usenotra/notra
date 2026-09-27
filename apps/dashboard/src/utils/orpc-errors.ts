@@ -33,3 +33,16 @@ export function getConflictRevision(error: unknown): {
   }
   return { isConflict: true, updatedAt: null };
 }
+
+export function getOrpcErrorDataCode(error: unknown): string | null {
+  const { data } = toORPCError(error);
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "code" in data &&
+    typeof data.code === "string"
+  ) {
+    return data.code;
+  }
+  return null;
+}

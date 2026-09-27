@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { DiscussionComposer } from "@/components/comments/discussion-composer";
 import { DiscussionList } from "@/components/comments/discussion-list";
 import { useDiscussion } from "@/lib/hooks/use-discussion";
@@ -17,23 +19,25 @@ function DiscussionFeed({
   onDelete,
   onReact,
 }: DiscussionFeedProps) {
+  const t = useTranslations("comments");
+  const tCommon = useTranslations("common.actions");
   if (isPending) {
     return (
       <p className="sr-only" role="status">
-        Loading comments
+        {t("loading")}
       </p>
     );
   }
   if (isError) {
     return (
       <p className="text-muted-foreground py-2 text-sm" role="alert">
-        Could not load comments.{" "}
+        {t("loadFailed")}{" "}
         <button
           className="text-foreground underline-offset-4 hover:underline"
           onClick={onRetry}
           type="button"
         >
-          Try again
+          {tCommon("tryAgain")}
         </button>
       </p>
     );
@@ -71,15 +75,16 @@ export function Discussion(target: CommentTarget) {
     deleteComment,
     reactToComment,
   } = useDiscussion(target);
+  const t = useTranslations("comments");
 
   return (
     <section
       ref={section}
       className="w-full border-t pt-6"
-      aria-label="Comments"
+      aria-label={t("title")}
     >
       <div className="mb-4 flex items-baseline gap-2">
-        <h3 className="text-sm font-medium">Comments</h3>
+        <h3 className="text-sm font-medium">{t("title")}</h3>
         {items.length ? (
           <span className="text-muted-foreground text-xs tabular-nums">
             {items.filter((item) => !item.deletedAt).length}

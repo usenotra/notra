@@ -26,6 +26,17 @@ export type StandardSettingsSectionId = Exclude<
 
 export type SettingsNavGroupId = "account" | "organization" | "geo" | "dev";
 
+export interface SettingsSectionLabels {
+  label: string;
+  description: string;
+  modalDescription: string;
+}
+
+export interface SettingsNavLabels {
+  groups: Record<SettingsNavGroupId, string>;
+  sections: Record<SettingsSectionId, SettingsSectionLabels>;
+}
+
 export interface SettingsNavItem {
   id: SettingsSectionId;
   label: string;
@@ -39,6 +50,16 @@ export interface SettingsNavGroup {
   id: SettingsNavGroupId;
   label: string;
   items: readonly SettingsNavItem[];
+}
+
+export type SettingsNavItemConfig = Omit<
+  SettingsNavItem,
+  "label" | "description"
+>;
+
+export interface SettingsNavGroupConfig {
+  id: SettingsNavGroupId;
+  items: readonly SettingsNavItemConfig[];
 }
 
 export interface SettingsModalNavProps {

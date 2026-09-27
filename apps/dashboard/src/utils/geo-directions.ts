@@ -18,10 +18,6 @@ import {
   groupEngineFamilies,
 } from "@/utils/geo-charts";
 
-export function formatDirectionCount(value: number): string {
-  return value.toLocaleString("en-US");
-}
-
 export function formatDirectionDelta(delta: number): string {
   if (delta > 0) {
     return `+${delta}`;

@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { CommentItem } from "@/components/comments/comment-item";
@@ -12,6 +13,7 @@ import { COMMENT_REPLY_PREVIEW_COUNT } from "@/constants/comments";
 import type { CommentRepliesProps } from "@/types/comments";
 
 export function CommentReplies({ replies, itemProps }: CommentRepliesProps) {
+  const t = useTranslations("comments");
   const [expanded, setExpanded] = useState(false);
   const [seenCount, setSeenCount] = useState(replies.length);
   if (replies.length !== seenCount) {
@@ -60,8 +62,8 @@ export function CommentReplies({ replies, itemProps }: CommentRepliesProps) {
             )}
             <CollapsibleTrigger className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 ml-11 inline-flex min-h-6 items-center rounded-sm text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none">
               {expanded
-                ? "Show fewer comments"
-                : `View ${remainingCount} more ${remainingCount === 1 ? "comment" : "comments"}`}
+                ? t("showFewer")
+                : t("viewMore", { count: remainingCount })}
             </CollapsibleTrigger>
           </div>
         </Collapsible>

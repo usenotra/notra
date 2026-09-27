@@ -52,10 +52,12 @@ function SourceRow({
   source,
   className,
   style,
+  openLabel,
 }: {
   source: OpencodeSource;
   className?: string;
   style?: CSSProperties;
+  openLabel?: (title: string, domain: string) => string;
 }) {
   const href = sourceHref(source.url);
   const urlLabel = source.url ? citedSourceUrl(source.url) : source.title;
@@ -80,7 +82,11 @@ function SourceRow({
     <li className={className} style={style}>
       {href ? (
         <a
-          aria-label={`Open ${source.title} on ${source.domain}`}
+          aria-label={
+            openLabel
+              ? openLabel(source.title, source.domain)
+              : `Open ${source.title} on ${source.domain}`
+          }
           className="grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] items-baseline gap-3 rounded-sm text-[12px] leading-5 outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--opencode-purple)]/60"
           href={href}
           rel="noopener noreferrer"
@@ -110,6 +116,7 @@ export function OpencodeSources({
   sequential = false,
   reducedMotion = false,
   className,
+  labels,
 }: OpencodeSourcesProps) {
   const colors = darkSurface ? OPENCODE_DARK_SOURCE_COLORS : OPENCODE_COLORS;
   const shouldSequence = sequential && !reducedMotion;
@@ -164,8 +171,11 @@ export function OpencodeSources({
     return null;
   }
 
-  const countLabel =
-    sources.length === 1 ? "1 cited source" : `${sources.length} cited sources`;
+  const countLabel = labels
+    ? labels.citedSources(sources.length)
+    : sources.length === 1
+      ? "1 cited source"
+      : `${sources.length} cited sources`;
   const visibleQueries = queries.slice(0, visibleQueryCount);
 
   return (
@@ -202,6 +212,7 @@ export function OpencodeSources({
               <SourceRow
                 className={shouldSequence ? ENTER_CLASS : undefined}
                 key={source.url ?? `${source.domain}-${source.title}`}
+                openLabel={labels?.openSource}
                 source={source}
                 style={
                   shouldSequence

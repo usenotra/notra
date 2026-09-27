@@ -19,6 +19,7 @@ import {
 import { Label } from "@notra/ui/components/ui/label";
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, LazyMotion, m, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   type ComponentProps,
@@ -37,29 +38,25 @@ import {
 } from "@/components/shared/split-modal";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import {
-  GEO_WRITE_ACTION_HELP,
-  GEO_WRITE_ACTION_PENDING,
   GEO_WRITE_CONTENT_SUBTYPES,
   GEO_WRITE_DIALOG_SECTIONS,
-  GEO_WRITE_RECOMMENDED_BADGE,
 } from "@/constants/geo-writer";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoWriterPlan } from "@/lib/hooks/use-geo-writer";
+import { useWriteSectionLabels } from "@/lib/hooks/use-write-section-labels";
 import { useWriterBrandSelection } from "@/lib/hooks/use-writer-brand-selection";
 import { useWriterPromptSelection } from "@/lib/hooks/use-writer-prompt-selection";
 import type {
+  WriteAction,
   WriteDialogProps,
   WriteDialogSectionId,
 } from "@/types/components/geo-writer";
 import { existingPageLabel } from "@/utils/geo-gaps";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoContentPath } from "@/utils/geo-write-entry";
-import {
-  recommendedContentSubtype,
-  writerBaselineLabel,
-} from "@/utils/geo-writer";
+import { recommendedContentSubtype } from "@/utils/geo-writer";
 
 import { WriteBrandSelect } from "./write-brand-select";
 import { WriteCompetitorChoices } from "./write-competitor-choices";
@@ -70,8 +67,6 @@ import { WriteSitemapSection } from "./write-sitemap-section";
 const FOOTER_STATUS_TRANSITION = { duration: 0.18, ease: "easeOut" } as const;
 const loadMotionFeatures = () =>
   import("@/lib/motion-features").then((mod) => mod.default);
-
-type WriteAction = keyof typeof GEO_WRITE_ACTION_PENDING;
 
 const sectionMeta = (id: WriteDialogSectionId) =>
   GEO_WRITE_DIALOG_SECTIONS.find((item) => item.id === id);
@@ -116,6 +111,11 @@ function WriteDialogForm({
   initial,
   entry,
 }: WriteDialogProps) {
+  const t = useTranslations("geo.writer.writeDialog");
+  const tLabels = useTranslations("common.labels");
+  const tActions = useTranslations("common.actions");
+  const tGeoShared = useTranslations("geo.shared");
+  const sectionLabels = useWriteSectionLabels();
   const router = useRouter();
   const { projectId } = useGeoProjectScope();
   const { project } = useGeoActiveProject(organizationId);
@@ -151,10 +151,17 @@ function WriteDialogForm({
     setContentSubtype,
   } = useWriterPromptSelection({ organizationId, open, initial });
   const recommendation = recommendedContentSubtype(topic);
-  const baselineLabel = writerBaselineLabel(initial?.baseline);
+  const baseline = initial?.baseline;
+  const baselineLabel =
+    baseline && baseline.totalEngines > 0
+      ? t("baseline", {
+          mentioned: baseline.mentionedEngines,
+          total: baseline.totalEngines,
+        })
+      : null;
   const existingPageUrl = initial?.existingPageUrl;
   const promptBadgeLabel = existingPageUrl
-    ? `Updating ${existingPageLabel(existingPageUrl)}`
+    ? t("updating", { page: existingPageLabel(existingPageUrl) })
     : baselineLabel;
   const mentionedCompetitors = initial?.mentionedCompetitors ?? [];
   const {
@@ -236,11 +243,11 @@ function WriteDialogForm({
       responsive
     >
       <nav
-        aria-label="Write sections"
+        aria-label={t("sectionsAriaLabel")}
         className="hidden w-56 shrink-0 flex-col gap-1 p-2 pt-3 md:flex"
       >
         <p className="text-muted-foreground px-2 pt-1 text-[11px] font-medium uppercase">
-          Overview
+          {tLabels("overview")}
         </p>
         {GEO_WRITE_DIALOG_SECTIONS.map((item) => {
           const active = activeSection === item.id;
@@ -262,7 +269,7 @@ function WriteDialogForm({
                 icon={item.icon}
                 strokeWidth={active ? 2 : 1.5}
               />
-              <span className="truncate">{item.label}</span>
+              <span className="truncate">{sectionLabels[item.id]}</span>
             </button>
           );
         })}
@@ -272,11 +279,10 @@ function WriteDialogForm({
         <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
           <div className="min-w-0 space-y-1">
             <ResponsiveDialogTitle className="text-sm leading-none font-medium">
-              Write article
+              {tGeoShared("writeArticle")}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Plan or write an article from a prompt, content type, brand
-              identity, and competitors.
+              {t("description")}
             </ResponsiveDialogDescription>
             <div className="flex gap-1 overflow-x-auto pt-2 md:hidden">
               {GEO_WRITE_DIALOG_SECTIONS.map((item) => (
@@ -291,13 +297,13 @@ function WriteDialogForm({
                   onClick={() => jumpToSection(item.id)}
                   type="button"
                 >
-                  {item.label}
+                  {sectionLabels[item.id]}
                 </button>
               ))}
             </div>
           </div>
           <Button
-            aria-label="Close"
+            aria-label={tActions("close")}
             className="shrink-0"
             onClick={() => onOpenChange(false)}
             size="icon-sm"
@@ -323,7 +329,7 @@ function WriteDialogForm({
             topicId={`${fieldId}-topic`}
           >
             <WriteSectionHeader
-              description="Pick a tracked prompt or write your own. The article answers this question."
+              description={t("promptDescription")}
               htmlFor={`${fieldId}-topic`}
               id="prompt"
             />
@@ -333,16 +339,17 @@ function WriteDialogForm({
             className="scroll-mt-2 space-y-4 px-6 py-6"
             data-section="type"
           >
-            <WriteSectionHeader description={recommendation.reason} id="type" />
+            <WriteSectionHeader
+              description={t(`formatReasons.${recommendation.id}`)}
+              id="type"
+            />
             <div className="grid gap-3 sm:grid-cols-2">
               {GEO_WRITE_CONTENT_SUBTYPES.map((option) => (
                 <WriteOptionCard
                   badge={
-                    option.id === recommendation.id
-                      ? GEO_WRITE_RECOMMENDED_BADGE
-                      : null
+                    option.id === recommendation.id ? t("recommended") : null
                   }
-                  description={option.description}
+                  description={t(`subtypes.${option.id}.description`)}
                   icon={
                     <HugeiconsIcon
                       className={cn("size-5", option.iconClass)}
@@ -351,7 +358,7 @@ function WriteDialogForm({
                     />
                   }
                   key={option.id}
-                  label={option.label}
+                  label={tLabels(option.id)}
                   onToggle={() => setContentSubtype(option.id)}
                   selected={contentSubtype === option.id}
                 />
@@ -364,7 +371,7 @@ function WriteDialogForm({
             data-section="brand"
           >
             <WriteSectionHeader
-              description="The brand whose voice and facts the article uses."
+              description={t("brandDescription")}
               htmlFor={voices.length > 0 ? `${fieldId}-brand` : undefined}
               id="brand"
             />
@@ -382,7 +389,7 @@ function WriteDialogForm({
             data-section="sitemap"
           >
             <WriteSectionHeader
-              description="The writer links to real pages from the brand identity's sitemap."
+              description={t("sitemapDescription")}
               id="sitemap"
             />
             <WriteSitemapSection
@@ -408,7 +415,7 @@ function WriteDialogForm({
             selectedIds={competitorIds}
           >
             <WriteSectionHeader
-              description="Competitors the article can mention when it compares options."
+              description={t("competitorsDescription")}
               id="competitors"
             />
           </WriteCompetitorChoices>
@@ -435,6 +442,7 @@ function WriteSectionHeader({
   description: string;
   htmlFor?: string;
 }) {
+  const sectionLabels = useWriteSectionLabels();
   const meta = sectionMeta(id);
   if (!meta) {
     return null;
@@ -446,7 +454,7 @@ function WriteSectionHeader({
         icon={meta.icon}
         strokeWidth={1.8}
       />
-      <span>{meta.label}</span>
+      <span>{sectionLabels[meta.id]}</span>
       {meta.required ? <span className="text-destructive">*</span> : null}
     </>
   );
@@ -478,10 +486,12 @@ function WriteDialogFooter({
   onSubmit: (action: WriteAction) => void;
   pendingAction: WriteAction | null;
 }) {
+  const t = useTranslations("geo.writer.writeDialog");
+  const tCommon = useTranslations("common");
   const reduceMotion = useReducedMotion();
   const statusText = pendingAction
-    ? GEO_WRITE_ACTION_PENDING[pendingAction].status
-    : `${GEO_WRITE_ACTION_HELP.plan} ${GEO_WRITE_ACTION_HELP.write}`;
+    ? t(`pending.${pendingAction}.status`)
+    : t("help");
   return (
     <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-t px-4 py-2.5 md:px-5">
       <LazyMotion features={loadMotionFeatures} strict>
@@ -510,7 +520,7 @@ function WriteDialogFooter({
           pendingAction={pendingAction}
           variant="outline"
         >
-          Plan
+          {t("plan")}
         </WriteActionButton>
         <WriteActionButton
           action="write"
@@ -518,7 +528,7 @@ function WriteDialogFooter({
           onClick={() => onSubmit("write")}
           pendingAction={pendingAction}
         >
-          Write
+          {tCommon("labels.write")}
         </WriteActionButton>
       </div>
     </div>
@@ -535,6 +545,7 @@ function WriteActionButton({
   pendingAction: WriteAction | null;
   children: ReactNode;
 }) {
+  const t = useTranslations("geo.writer.writeDialog");
   const isPending = pendingAction === action;
   return (
     <Button aria-busy={isPending} {...props}>
@@ -545,7 +556,7 @@ function WriteActionButton({
             className="size-4 animate-spin"
             icon={Loading03Icon}
           />
-          {GEO_WRITE_ACTION_PENDING[action].label}
+          {t(`pending.${action}.label`)}
         </>
       ) : (
         children

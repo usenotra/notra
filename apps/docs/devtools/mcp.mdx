@@ -47,20 +47,15 @@ The server accepts bearer credentials in the `Authorization` header. Two kinds w
     https://mcp.usenotra.com/.well-known/oauth-protected-resource
     ```
 
-    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes, and the bearer method. The authorization server supports dynamic client registration, the authorization code flow with PKCE, and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
+    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes, and the bearer method. The authorization server supports dynamic client registration, client ID metadata documents, the authorization code flow with PKCE, and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
 
-    An OAuth session acts as you, inside the organization you chose at sign-in, with the scopes granted on the consent screen. The scopes a client can request are:
+    Request these two scopes and nothing else:
 
     ```text
-    offline_access
-    posts.read posts.write
-    brand-identities.read brand-identities.write
-    integrations.read integrations.write
-    schedules.read schedules.write
-    event-triggers.read event-triggers.write
-    chats.read chats.write
-    skills.read skills.write
+    openid offline_access
     ```
+
+    Permissions like `posts.read` or `projects.write` are not OAuth scopes, and asking for them fails with `invalid_scope`. You pick the organization and an access level (Read only, Write only, or Full access) on the consent screen instead. Notra signs that choice into the access token and maps it to the same [permissions](/api/authentication#scopes) API keys use, so the session acts as you, in that organization, with that access level.
 
     <Note>
       Access tokens are short-lived. Clients should include `offline_access` in the requested scope so they receive a refresh token; without it the connection drops when the access token expires and you have to sign in again.

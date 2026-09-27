@@ -10,7 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 
-import { GEO_SHELF_OPPORTUNITY_STATUS_LABELS } from "@/constants/geo-shelf";
+import { useGeoShelfStatusLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import { cn } from "@/lib/utils";
 import type { GeoShelfTicketBadgeProps } from "@/types/geo-shelf";
 
@@ -43,6 +43,7 @@ export function ShelfTicketMark({
   status,
   className,
 }: GeoShelfTicketBadgeProps) {
+  const statusLabels = useGeoShelfStatusLabels();
   return (
     <span
       className={cn(
@@ -58,7 +59,7 @@ export function ShelfTicketMark({
         icon={TICKET_ICONS[status]}
         strokeWidth={2}
       />
-      {GEO_SHELF_OPPORTUNITY_STATUS_LABELS[status]}
+      {statusLabels[status]}
     </span>
   );
 }
@@ -67,6 +68,7 @@ export function ShelfTicketBadge({
   status,
   className,
 }: GeoShelfTicketBadgeProps) {
+  const statusLabels = useGeoShelfStatusLabels();
   return (
     <Badge
       className={cn(
@@ -76,7 +78,7 @@ export function ShelfTicketBadge({
       )}
       variant="outline"
     >
-      {GEO_SHELF_OPPORTUNITY_STATUS_LABELS[status]}
+      {statusLabels[status]}
     </Badge>
   );
 }

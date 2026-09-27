@@ -2,8 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_FAMILY_STAT_TREND_HINT } from "@notra/geo-core/constants/geo";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -61,6 +60,9 @@ function ShareOfVoiceRankingRow({
   onPrefetch,
   onTrack,
 }: ShareOfVoiceRankingRowProps) {
+  const t = useTranslations("geo.shareOfVoiceChart");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   return (
     <tr
       className={cn(
@@ -118,14 +120,14 @@ function ShareOfVoiceRankingRow({
         {formatUsageShare(row.share)}
       </td>
       <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @md:table-cell">
-        {formatChartInteger(row.mentions)}
-        <span className="sr-only"> mentions</span>
+        {formatChartInteger(row.mentions, locale)}
+        <span className="sr-only"> {t("mentionsSr")}</span>
       </td>
       <td className="w-24 py-2 pr-3 align-middle whitespace-nowrap">
         <span className="flex h-7 items-center justify-end">
           {row.own ? (
             <span className="bg-primary/10 text-primary inline-flex h-6 items-center rounded-md px-2 text-xs font-medium">
-              You
+              {tGeoShared("youLabel")}
             </span>
           ) : null}
           {!row.own && !row.tracked && onTrack ? (
@@ -147,6 +149,10 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
     onSlicePointerEnter,
     organizationId,
   } = props;
+  const t = useTranslations("geo.shareOfVoiceChart");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [otherOpen, setOtherOpen] = useState(false);
   const [trackBrand, setTrackBrand] = useState<string | null>(null);
   const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
@@ -163,7 +169,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
     mentionSparklines,
     shareDelta,
     rankDelta,
-  } = buildShareOfVoiceChartModel(props);
+  } = buildShareOfVoiceChartModel(props, tGeoShared("otherBrands"));
   const summary = own ?? ranking[0];
 
   if (totalMentions === 0) {
@@ -171,10 +177,11 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
       <InstrumentEmpty
         busy={isScanning}
         className="h-64"
-        message={geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see your share of voice"
-        )}
+        message={
+          isScanning
+            ? tGeoShared("scanningEngines")
+            : tGeoShared("runAScanToSeeShareOfVoice")
+        }
         seed="Share of voice"
       />
     );
@@ -186,10 +193,8 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
         <div className="grid items-stretch gap-4 @3xl:grid-cols-2">
           <InstrumentModule
             className="@container"
-            eyebrow={
-              companyName ? "Your share of voice" : "Leading share of voice"
-            }
-            hint="Share of recorded brand mentions in the selected period."
+            eyebrow={companyName ? t("yourShare") : t("leadingShare")}
+            hint={t("shareHint")}
             variant="table"
             bodyClassName="flex flex-col p-5"
           >
@@ -200,9 +205,9 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
               {own ? (
                 <GeoStatDelta
                   delta={shareDelta}
-                  hint={GEO_FAMILY_STAT_TREND_HINT}
+                  hint={tGeoShared("vsFirstHalfOfThis")}
                   kind="rate"
-                  label="Share of voice"
+                  label={tGeoShared("shareOfVoice")}
                 />
               ) : null}
             </div>
@@ -230,16 +235,16 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
               </EChartsPieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <span className="text-xl font-medium tabular-nums">
-                  {formatChartInteger(totalMentions)}
+                  {formatChartInteger(totalMentions, locale)}
                 </span>
                 <span className="text-muted-foreground text-xs">
-                  Total mentions
+                  {t("totalMentions")}
                 </span>
               </div>
             </div>
             <ChartColorScope className="mt-auto" config={config}>
               <ul
-                aria-label="Share of voice chart legend"
+                aria-label={t("legendLabel")}
                 className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-2"
               >
                 {slices.map((row) => (
@@ -268,8 +273,8 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
           </InstrumentModule>
           <InstrumentModule
             className="@container"
-            eyebrow={companyName ? "Your rank" : "Brand ranking"}
-            hint="Rank by total mentions in the selected period. Brands with equal mentions share a rank."
+            eyebrow={companyName ? t("yourRank") : tGeoShared("brandRanking")}
+            hint={t("rankHint")}
             variant="table"
             bodyClassName="flex flex-col p-5"
           >
@@ -281,38 +286,40 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                 {own ? (
                   <GeoStatDelta
                     delta={rankDelta}
-                    hint={GEO_FAMILY_STAT_TREND_HINT}
+                    hint={tGeoShared("vsFirstHalfOfThis")}
                     kind="position"
-                    label="Rank"
+                    label={tCommon("labels.rank")}
                   />
                 ) : null}
               </span>
               {summary?.rank ? (
                 <span className="text-muted-foreground text-xs tabular-nums">
-                  of {formatChartInteger(brandCount)} brands
+                  {t("ofBrands", {
+                    count: formatChartInteger(brandCount, locale),
+                  })}
                 </span>
               ) : null}
             </div>
             <table
-              aria-label="Brand ranking by share of voice"
+              aria-label={t("tableLabel")}
               className="mb-4 w-full border-collapse"
             >
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-[0.6875rem]">
                   <th className="w-9 py-0 pr-2 pb-2 pl-3 font-normal">
-                    <span className="sr-only">Rank</span>
+                    <span className="sr-only">{tCommon("labels.rank")}</span>
                   </th>
                   <th className="min-w-0 py-0 pr-3 pb-2 text-left font-normal">
-                    Brand
+                    {tCommon("labels.brand")}
                   </th>
                   <th className="py-0 pr-3 pb-2 text-right font-normal">
-                    Share
+                    {tGeoShared("share")}
                   </th>
                   <th className="hidden py-0 pr-3 pb-2 text-right font-normal @md:table-cell">
-                    Mentions
+                    {tGeoShared("mentionsLabel")}
                   </th>
                   <th className="w-24 py-0 pr-3 pb-2 font-normal">
-                    <span className="sr-only">Tracking</span>
+                    <span className="sr-only">{tGeoShared("tracking")}</span>
                   </th>
                 </tr>
               </thead>
@@ -337,7 +344,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   size="sm"
                   variant="outline"
                 >
-                  View {others.length} more
+                  {t("viewMore", { count: others.length })}
                   <HugeiconsIcon
                     aria-hidden="true"
                     className="size-3.5"

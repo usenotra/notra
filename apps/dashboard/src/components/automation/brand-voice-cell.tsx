@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import { getBrandFaviconUrl } from "@/utils/brand";
@@ -19,17 +20,19 @@ export function BrandVoiceCell({
   voice?: BrandSettings;
   isDefault?: boolean;
 }) {
+  const t = useTranslations("automation.brandVoice");
+  const tCommon = useTranslations("common");
   if (!voice) {
     if (isDefault) {
       return (
         <Tooltip>
           <TooltipTrigger className="max-w-full cursor-help truncate text-sm">
-            None
+            {tCommon("states.none")}
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p className="font-medium">No identity</p>
+            <p className="font-medium">{t("noIdentity")}</p>
             <p className="text-muted-foreground">
-              No identity has been configured for this workspace yet.
+              {t("noIdentityDescription")}
             </p>
           </TooltipContent>
         </Tooltip>
@@ -44,7 +47,7 @@ export function BrandVoiceCell({
         {voice.name}
         {isDefault && (
           <span className="text-muted-foreground/60 ml-1 text-xs">
-            (Default)
+            {t("defaultSuffix")}
           </span>
         )}
       </TooltipTrigger>
@@ -60,11 +63,19 @@ export function BrandVoiceCell({
         </Avatar>
         <div className="min-w-0 space-y-0.5 wrap-anywhere">
           <p className="font-medium">{voice.name}</p>
-          {voice.toneProfile && <p>Tone: {voice.toneProfile}</p>}
-          {voice.language && <p>Language: {voice.language}</p>}
-          {voice.companyName && <p>Company: {voice.companyName}</p>}
+          {voice.toneProfile && (
+            <p>{tCommon("labels.toneValue", { value: voice.toneProfile })}</p>
+          )}
+          {voice.language && (
+            <p>{tCommon("labels.languageValue", { value: voice.language })}</p>
+          )}
+          {voice.companyName && (
+            <p>
+              {tCommon("labels.companyValue", { value: voice.companyName })}
+            </p>
+          )}
           {isDefault && (
-            <p className="text-muted-foreground">Default identity</p>
+            <p className="text-muted-foreground">{t("defaultIdentity")}</p>
           )}
         </div>
       </TooltipContent>

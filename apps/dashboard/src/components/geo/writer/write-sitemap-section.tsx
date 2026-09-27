@@ -6,6 +6,7 @@ import { GEO_WRITE_SITEMAP_SKELETON_KEYS } from "@notra/geo-core/constants/geo";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
@@ -18,19 +19,8 @@ import {
   normalizeSitemapUrl,
 } from "@/lib/sitemap/sitemap-url";
 import type { WriteSitemapSectionProps } from "@/types/components/geo-writer";
-import type { Sitemap } from "@/types/hooks/brand-sitemaps";
 
 import { WriteOptionCard } from "./write-option-card";
-
-function sitemapSummary(sitemap: Sitemap): string {
-  if (sitemap.status === "failed") {
-    return "Crawl failed";
-  }
-  if (sitemap.status === "ready") {
-    return `${sitemap.indexedPages} pages indexed`;
-  }
-  return "Crawling pages";
-}
 
 export function WriteSitemapSection({
   organizationId,
@@ -43,30 +33,47 @@ export function WriteSitemapSection({
   selectedSitemapId,
   onSelect,
 }: WriteSitemapSectionProps) {
+  const t = useTranslations("geo.writer.writeSitemapSection");
+  const tCommon = useTranslations("common");
   const [url, setUrl] = useState("");
   const createSitemap = useCreateSitemap(organizationId, brandVoiceId ?? "");
 
   if (!brandVoiceId) {
     return (
       <p className="border-border text-muted-foreground rounded-lg border border-dashed px-3 py-2.5 text-sm">
-        Sitemaps belong to a brand identity. Pick one above first.
+        {t("needsBrand")}
       </p>
     );
   }
 
-  const ownerName = voiceName ?? "this brand identity";
+  const ownerName = voiceName ?? t("thisBrandIdentity");
   const ownerLine = (
     <p className="text-muted-foreground text-sm">
-      These sitemaps belong to{" "}
-      <span className="text-foreground font-medium">{ownerName}</span>.{" "}
-      <Link
-        className="text-foreground font-medium underline underline-offset-2"
-        href={brandIdentityHref}
-      >
-        Manage in brand identity
-      </Link>
+      {t.rich("ownerLine", {
+        name: ownerName,
+        strong: (chunks) => (
+          <span className="text-foreground font-medium">{chunks}</span>
+        ),
+        link: (chunks) => (
+          <Link
+            className="text-foreground font-medium underline underline-offset-2"
+            href={brandIdentityHref}
+          >
+            {chunks}
+          </Link>
+        ),
+      })}
     </p>
   );
+  const sitemapSummary = (status: string, indexedPages: number) => {
+    if (status === "failed") {
+      return t("crawlFailed");
+    }
+    if (status === "ready") {
+      return t("pagesIndexed", { count: indexedPages });
+    }
+    return t("crawling");
+  };
 
   if (isPending) {
     return (
@@ -98,10 +105,12 @@ export function WriteSitemapSection({
       });
       setUrl("");
       onSelect(sitemap.id);
-      toast.success("Sitemap added");
+      toast.success(tCommon("labels.sitemapAdded"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to add sitemap"
+        error instanceof Error
+          ? error.message
+          : tCommon("labels.failedToAddSitemap")
       );
     }
   };
@@ -121,7 +130,7 @@ export function WriteSitemapSection({
           {sitemaps.map((sitemap) => (
             <WriteOptionCard
               compact
-              description={sitemapSummary(sitemap)}
+              description={sitemapSummary(sitemap.status, sitemap.indexedPages)}
               icon={
                 <HugeiconsIcon
                   className="text-muted-foreground size-5"
@@ -141,7 +150,7 @@ export function WriteSitemapSection({
         <div className="flex gap-2">
           <Input
             aria-invalid={isOffHost}
-            aria-label="Sitemap or site URL"
+            aria-label={tCommon("labels.sitemapOrSiteUrl")}
             onChange={(event) => setUrl(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
@@ -161,14 +170,14 @@ export function WriteSitemapSection({
             {createSitemap.isPending ? (
               <Loader2Icon className="size-4 animate-spin" />
             ) : null}
-            {sitemaps.length > 0 ? "Add another" : "Add sitemap"}
+            {sitemaps.length > 0 ? t("addAnother") : t("addSitemap")}
           </Button>
         </div>
         {isOffHost ? (
           <p className="text-destructive text-xs">
             {brandHost
-              ? `URLs must stay on ${brandHost} or its subdomains.`
-              : "Set a website on this brand identity first."}
+              ? tCommon("messages.urlsMustStayOnHost", { host: brandHost })
+              : tCommon("messages.setAWebsiteOnThis")}
           </p>
         ) : null}
       </div>

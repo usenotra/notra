@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import { useReducer } from "react";
 import { toast } from "sonner";
 
@@ -48,6 +49,9 @@ export function GuidelinesFontEditDialog({
   open,
   onOpenChange,
 }: GuidelinesFontEditDialogProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const update = useUpdateGuidelineFont(organizationId, voiceId);
   const [state, setState] = useReducer(updateFontDialogState, {
     family: font.family,
@@ -69,11 +73,11 @@ export function GuidelinesFontEditDialog({
     };
     try {
       await update.mutateAsync(payload);
-      toast.success("Font updated");
+      toast.success(t("fontDialog.updated"));
       onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update font"
+        error instanceof Error ? error.message : t("fontDialog.updateFailed")
       );
     }
   };
@@ -82,26 +86,34 @@ export function GuidelinesFontEditDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Edit font</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("fontDialog.title")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Update this typeface and its role.
+            {t("fontDialog.description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="font-family">Family</Label>
+            <Label htmlFor="font-family">{t("fontDialog.family")}</Label>
             <Input
               id="font-family"
               onChange={(event) => setState({ family: event.target.value })}
-              placeholder="e.g. Inter"
+              placeholder={t("fontDialog.familyPlaceholder")}
               value={family}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Role</Label>
+            <Label>{tCommon2("labels.role")}</Label>
             <Select
+              items={Object.fromEntries(
+                FONT_ROLE_OPTIONS.map((option) => [
+                  option.value,
+                  option.value === "unknown"
+                    ? tCommon2("states.unknown")
+                    : t(`fontRoles.${option.value}`),
+                ])
+              )}
               onValueChange={(next) => {
                 const option = FONT_ROLE_OPTIONS.find((o) => o.value === next);
                 if (option) {
@@ -111,12 +123,14 @@ export function GuidelinesFontEditDialog({
               value={role}
             >
               <SelectTrigger>
-                <SelectValue className="capitalize" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {FONT_ROLE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {option.value === "unknown"
+                      ? tCommon2("states.unknown")
+                      : t(`fontRoles.${option.value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -125,7 +139,7 @@ export function GuidelinesFontEditDialog({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="font-weight">Weight</Label>
+              <Label htmlFor="font-weight">{tCommon2("labels.weight")}</Label>
               <Input
                 id="font-weight"
                 onChange={(event) => setState({ weight: event.target.value })}
@@ -134,7 +148,7 @@ export function GuidelinesFontEditDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="font-size">Size</Label>
+              <Label htmlFor="font-size">{tCommon2("labels.size")}</Label>
               <Input
                 id="font-size"
                 onChange={(event) => setState({ size: event.target.value })}
@@ -143,7 +157,9 @@ export function GuidelinesFontEditDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="font-line-height">Line height</Label>
+              <Label htmlFor="font-line-height">
+                {t("fontDialog.lineHeight")}
+              </Label>
               <Input
                 id="font-line-height"
                 onChange={(event) =>
@@ -162,10 +178,10 @@ export function GuidelinesFontEditDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={update.isPending} onClick={handleSave}>
-            {update.isPending ? "Saving…" : "Save"}
+            {update.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

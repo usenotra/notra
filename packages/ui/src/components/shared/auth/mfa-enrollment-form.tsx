@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_MFA_ENROLLMENT_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useRef } from "react";
 
 import type {
@@ -10,8 +11,6 @@ import type {
 import { AuthFormHeader } from "./auth-form-header";
 import { TotpEnrollmentPanel } from "./totp-enrollment-panel";
 
-const ENROLLMENT_ERROR_FALLBACK = "That code didn't work. Please try again.";
-
 export function MfaEnrollmentForm({
   step,
   returnTo,
@@ -19,7 +18,9 @@ export function MfaEnrollmentForm({
   onFinish,
   onBack,
   verifyMfaCode,
+  labels,
 }: MfaEnrollmentFormProps) {
+  const l = { ...DEFAULT_MFA_ENROLLMENT_FORM_LABELS, ...labels };
   const redirectToRef = useRef<string | null>(null);
 
   async function handleSubmit({
@@ -33,7 +34,7 @@ export function MfaEnrollmentForm({
     }).catch(() => null);
 
     if (!result) {
-      return { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
+      return { ok: false, message: l.errorFallback };
     }
     if (result.status === "enrolled") {
       redirectToRef.current = result.redirectTo;
@@ -46,25 +47,24 @@ export function MfaEnrollmentForm({
       ok: false,
       message:
         result.status === "error"
-          ? result.message || ENROLLMENT_ERROR_FALLBACK
-          : ENROLLMENT_ERROR_FALLBACK,
+          ? result.message || l.errorFallback
+          : l.errorFallback,
     };
   }
 
-  const description = step.email
-    ? `Your organization requires a second step when signing in as ${step.email}.`
-    : "Your organization requires a second step when signing in.";
+  const description = l.description(step.email || undefined);
 
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
         description={description}
-        title="Set up two-factor authentication"
+        title={l.title}
       />
       <TotpEnrollmentPanel
         accountLabel={step.email || undefined}
-        cancelLabel="Back to sign in"
-        doneLabel="Continue to Notra"
+        cancelLabel={l.cancel}
+        doneLabel={l.done}
+        labels={l.enrollmentPanel}
         onCancel={onBack}
         onDone={() => {
           if (redirectToRef.current) {
@@ -75,7 +75,7 @@ export function MfaEnrollmentForm({
         otpauthUri={step.otpauthUri}
         qrCode={step.qrCode}
         secret={step.secret}
-        submitLabel="Verify and sign in"
+        submitLabel={l.submit}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { ContentDetailSourceMetadata } from "@/components/content/content-detail-source-metadata";
@@ -31,6 +32,9 @@ export function LongFormEditor({
   reviewPreviousMarkdown = null,
   organizationId,
 }: ContentEditorProps) {
+  const t = useTranslations("content.editors");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const slugInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -64,7 +68,7 @@ export function LongFormEditor({
     <div className="w-full">
       <div className="flex items-start gap-2 text-2xl leading-tight md:text-3xl">
         <textarea
-          aria-label="Post title"
+          aria-label={tCommon("labels.postTitle")}
           className="placeholder:text-muted-foreground/40 block h-auto min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 font-semibold tracking-tight outline-none"
           onChange={(e) => actions.setEditingTitle(e.target.value)}
           onFocus={(e) => {
@@ -82,7 +86,7 @@ export function LongFormEditor({
               titleInputRef.current?.blur();
             }
           }}
-          placeholder="Untitled"
+          placeholder={tCommon("labels.untitled")}
           readOnly={readOnly}
           ref={titleInputRef}
           rows={1}
@@ -99,7 +103,7 @@ export function LongFormEditor({
           <div className="text-muted-foreground flex min-w-0 flex-1 items-start gap-1 font-mono text-xs">
             <span className="shrink-0 leading-5">/</span>
             <textarea
-              aria-label="Post slug"
+              aria-label={t("postSlug")}
               className="placeholder:text-muted-foreground/50 focus:text-foreground min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 text-base leading-5 break-all outline-none sm:text-sm"
               onBlur={() => {
                 if (state.editingSlug !== null) {
@@ -131,7 +135,7 @@ export function LongFormEditor({
                   slugInputRef.current?.blur();
                 }
               }}
-              placeholder="add-a-slug"
+              placeholder={t("slugPlaceholder")}
               readOnly={readOnly}
               ref={slugInputRef}
               rows={1}
@@ -143,7 +147,7 @@ export function LongFormEditor({
           className="text-muted-foreground mt-2 block text-sm"
           dateTime={content.date}
         >
-          {formatArticleDate(new Date(content.date))}
+          {formatArticleDate(new Date(content.date), locale)}
         </time>
         {organizationId ? (
           <ContentDetailSourceMetadata

@@ -15,6 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -24,10 +25,11 @@ import type {
 } from "@/types/instrument";
 
 function EyebrowHint({ hint }: { hint: ReactNode }) {
+  const t = useTranslations("geo.instrument.instrumentModule");
   return (
     <Tooltip>
       <TooltipTrigger
-        aria-label="More info"
+        aria-label={t("moreInfo")}
         className="text-muted-foreground hover:text-foreground inline-flex cursor-help"
       >
         <HugeiconsIcon icon={InformationCircleIcon} size={14} />
@@ -77,7 +79,7 @@ export function InstrumentModule({
         )}
       >
         <CardHeader className={headerClassName}>
-          <CardTitle className={tableHeader ? "text-sm capitalize" : undefined}>
+          <CardTitle className={tableHeader ? "text-sm" : undefined}>
             <span className="inline-flex items-center gap-1.5">
               {eyebrow}
               {hint ? <EyebrowHint hint={hint} /> : null}
@@ -110,7 +112,7 @@ export function InstrumentModule({
   return (
     <Card className={cn("min-w-0 flex-1", className)}>
       <CardHeader className="items-center">
-        <CardTitle className="text-sm capitalize">
+        <CardTitle className="text-sm">
           <span className="inline-flex items-center gap-1.5">
             {eyebrow}
             {hint ? <EyebrowHint hint={hint} /> : null}
@@ -119,7 +121,7 @@ export function InstrumentModule({
         {(readout || action) && (
           <CardAction className="flex min-w-0 items-center gap-2 self-center">
             {readout && (
-              <span className="text-muted-foreground truncate text-xs capitalize tabular-nums">
+              <span className="text-muted-foreground truncate text-xs tabular-nums first-letter:uppercase">
                 {readout}
               </span>
             )}
@@ -169,7 +171,7 @@ export function InstrumentSection({
         >
           <h2
             className={cn(
-              "text-foreground flex items-center gap-1.5 text-sm font-medium capitalize",
+              "text-foreground flex items-center gap-1.5 text-sm font-medium",
               !description && (readout || action) && "leading-none"
             )}
           >
@@ -183,7 +185,7 @@ export function InstrumentSection({
         {(readout || action) && (
           <div className="flex w-full min-w-0 flex-wrap items-center gap-2 @min-[32rem]/instrument:w-auto @min-[32rem]/instrument:justify-end">
             {readout && (
-              <span className="text-muted-foreground truncate text-xs capitalize tabular-nums">
+              <span className="text-muted-foreground truncate text-xs tabular-nums first-letter:uppercase">
                 {readout}
               </span>
             )}
@@ -257,7 +259,9 @@ export function InstrumentEmpty({
               </svg>
             </span>
           ) : null}
-          <p className="text-muted-foreground text-sm capitalize">{message}</p>
+          <p className="text-muted-foreground text-sm first-letter:uppercase">
+            {message}
+          </p>
         </div>
       ) : null}
       {action && !busy ? <div className="relative z-10">{action}</div> : null}

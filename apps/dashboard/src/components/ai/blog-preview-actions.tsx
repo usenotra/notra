@@ -1,4 +1,5 @@
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
@@ -15,16 +16,21 @@ export function BlogPreviewActions({
   canSave,
   savedStatus,
 }: BlogPreviewActionsProps) {
+  const t = useTranslations("ai.preview");
+  const tLabels = useTranslations("common.labels");
+  const tToolBlock = useTranslations("ai.toolBlock");
   if (isFinished) {
     return (
       <div className="border-border bg-muted/30 flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
         {savedStatus === "published" ? (
-          <span className="text-muted-foreground text-xs">Published</span>
+          <span className="text-muted-foreground text-xs">
+            {tLabels("published")}
+          </span>
         ) : null}
         <div className="ml-auto flex items-center gap-2">
           {onRevise ? (
             <Button onClick={onRevise} size="sm" variant="ghost">
-              Ask for changes
+              {t("askForChanges")}
             </Button>
           ) : null}
           {postId ? (
@@ -33,7 +39,7 @@ export function BlogPreviewActions({
               render={<Link href={`/${organizationSlug}/content/${postId}`} />}
               size="sm"
             >
-              Open in editor
+              {tToolBlock("openInEditor")}
             </Button>
           ) : null}
         </div>
@@ -53,7 +59,7 @@ export function BlogPreviewActions({
           size="sm"
           variant="ghost"
         >
-          Discard
+          {tLabels("discard")}
         </Button>
       ) : null}
       <Button
@@ -63,7 +69,7 @@ export function BlogPreviewActions({
         size="sm"
       >
         {isSaving ? <Loader2Icon className="size-4 animate-spin" /> : null}
-        {isSaving ? "Saving draft" : "Save as draft"}
+        {isSaving ? t("savingDraft") : t("saveAsDraft")}
       </Button>
     </div>
   );

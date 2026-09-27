@@ -1,12 +1,14 @@
 import { chatErrorPayloadSchema } from "@notra/ai/schemas/chat";
 
-import {
-  CHAT_FALLBACK_ERROR_MESSAGE,
-  CHAT_USAGE_LIMIT_MESSAGE,
-} from "@/utils/chat-error-constants";
-import type { HandleStandaloneChatErrorOptions } from "@/utils/chat-error-types";
+import type {
+  ChatErrorMessages,
+  HandleStandaloneChatErrorOptions,
+} from "@/utils/chat-error-types";
 
-function getStandaloneChatErrorMessage(err: Error) {
+function getStandaloneChatErrorMessage(
+  err: Error,
+  messages: ChatErrorMessages
+) {
   const errorMessage = err.message || String(err);
 
   const parsed = (() => {
@@ -19,7 +21,7 @@ function getStandaloneChatErrorMessage(err: Error) {
 
   if (parsed?.success && parsed.data.code === "USAGE_LIMIT_REACHED") {
     return {
-      message: CHAT_USAGE_LIMIT_MESSAGE,
+      message: messages.usageLimit,
       shouldLog: false,
       isUsageLimit: true,
     };
@@ -38,14 +40,14 @@ function getStandaloneChatErrorMessage(err: Error) {
     errorMessage.includes("Usage limit reached")
   ) {
     return {
-      message: CHAT_USAGE_LIMIT_MESSAGE,
+      message: messages.usageLimit,
       shouldLog: false,
       isUsageLimit: true,
     };
   }
 
   return {
-    message: errorMessage.trim() ? errorMessage : CHAT_FALLBACK_ERROR_MESSAGE,
+    message: errorMessage.trim() ? errorMessage : messages.fallback,
     shouldLog: true,
     isUsageLimit: false,
   };
@@ -53,10 +55,16 @@ function getStandaloneChatErrorMessage(err: Error) {
 
 export function handleStandaloneChatError(
   err: Error,
-  { setChatError, setPendingMessageId }: HandleStandaloneChatErrorOptions
+  {
+    setChatError,
+    setPendingMessageId,
+    messages,
+  }: HandleStandaloneChatErrorOptions
 ) {
-  const { message, shouldLog, isUsageLimit } =
-    getStandaloneChatErrorMessage(err);
+  const { message, shouldLog, isUsageLimit } = getStandaloneChatErrorMessage(
+    err,
+    messages
+  );
 
   if (shouldLog) {
     console.error("Standalone chat error:", err);

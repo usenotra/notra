@@ -19,6 +19,7 @@ import {
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -49,6 +50,8 @@ function FloatingToolbar({
   isLinkEditMode,
   setIsLinkEditMode,
 }: FloatingToolbarProps) {
+  const t = useTranslations("content.editor.toolbar");
+  const tCommon = useTranslations("common");
   const toolbarRef = useRef<HTMLDivElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
   const [linkUrl, setLinkUrl] = useState("https://");
@@ -222,58 +225,58 @@ function FloatingToolbar({
       style={{ pointerEvents: "auto" }}
     >
       <button
-        aria-label="Format bold"
+        aria-label={t("bold")}
         className={buttonClass(isBold)}
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
-        title="Bold (Ctrl+B)"
+        title={t("boldTitle")}
         type="button"
       >
         <HugeiconsIcon icon={TextBoldIcon} className="size-4" />
       </button>
       <button
-        aria-label="Format italic"
+        aria-label={t("italic")}
         className={buttonClass(isItalic)}
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic")}
-        title="Italic (Ctrl+I)"
+        title={t("italicTitle")}
         type="button"
       >
         <HugeiconsIcon icon={TextItalicIcon} className="size-4" />
       </button>
       <button
-        aria-label="Format underline"
+        aria-label={t("underline")}
         className={buttonClass(isUnderline)}
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline")}
-        title="Underline (Ctrl+U)"
+        title={t("underlineTitle")}
         type="button"
       >
         <HugeiconsIcon icon={TextUnderlineIcon} className="size-4" />
       </button>
       <button
-        aria-label="Format strikethrough"
+        aria-label={t("strikethrough")}
         className={buttonClass(isStrikethrough)}
         onClick={() =>
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough")
         }
-        title="Strikethrough"
+        title={t("strikethroughTitle")}
         type="button"
       >
         <HugeiconsIcon icon={TextStrikethroughIcon} className="size-4" />
       </button>
       <button
-        aria-label="Format code"
+        aria-label={t("code")}
         className={buttonClass(isCode)}
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "code")}
-        title="Code"
+        title={t("codeTitle")}
         type="button"
       >
         <HugeiconsIcon icon={CodeIcon} className="size-4" />
       </button>
       <div className="bg-border mx-1 h-4 w-px" />
       <button
-        aria-label="Insert link"
+        aria-label={t("insertLink")}
         className={buttonClass(isLink || isLinkEditMode)}
         onClick={handleLinkClick}
-        title="Link"
+        title={tCommon("labels.link")}
         type="button"
       >
         <HugeiconsIcon icon={Link01Icon} className="size-4" />
@@ -281,22 +284,22 @@ function FloatingToolbar({
       {isLinkEditMode && (
         <div className="ml-1 flex items-center gap-1">
           <input
-            aria-label="URL"
+            aria-label={tCommon("labels.url")}
             className="bg-background focus:ring-primary h-7 w-40 rounded border px-2 text-sm outline-none focus:ring-1"
             onChange={(e) => setLinkUrl(e.target.value)}
             onKeyDown={handleLinkKeyDown}
-            placeholder="Enter URL"
+            placeholder={t("urlPlaceholder")}
             ref={linkInputRef}
             type="url"
             value={linkUrl}
           />
           <button
-            aria-label="Apply link"
+            aria-label={t("applyLink")}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-2 py-1 text-xs"
             onClick={submitLink}
             type="button"
           >
-            Apply
+            {t("apply")}
           </button>
         </div>
       )}

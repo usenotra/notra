@@ -15,6 +15,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { BRAND_GUIDELINE_POLL_INTERVAL_MS } from "@/constants/brand-guidelines";
@@ -86,6 +87,7 @@ export function useRefreshBrandGuidelinesAction(
   organizationId: string,
   voiceId: string
 ) {
+  const tToast = useTranslations("brand.toasts");
   const refresh = useRefreshBrandGuidelines(organizationId, voiceId);
 
   const refreshGuidelines = async () => {
@@ -95,10 +97,12 @@ export function useRefreshBrandGuidelinesAction(
 
     try {
       await refresh.mutateAsync();
-      toast.success("Guideline generation started");
+      toast.success(tToast("guidelineGenerationStarted"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to refresh guidelines"
+        error instanceof Error
+          ? error.message
+          : tToast("refreshGuidelinesFailed")
       );
     }
   };

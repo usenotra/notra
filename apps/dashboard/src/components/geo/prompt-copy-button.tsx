@@ -2,9 +2,9 @@
 
 import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PROMPT_COPY_LABELS } from "@notra/geo-core/constants/geo";
 import { SPRING } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +21,10 @@ const INSTANT = { duration: 0 } as const;
  * prompt keeps the box at its original width so the header never reflows.
  */
 export function PromptCopyButton({ prompt }: PromptCopyButtonProps) {
+  const t = useTranslations("geo.promptCopyButton");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef(0);
   const reduceMotion = useReducedMotion();
@@ -29,13 +33,13 @@ export function PromptCopyButton({ prompt }: PromptCopyButtonProps) {
 
   async function copy() {
     if (!navigator.clipboard?.writeText) {
-      toast.error(GEO_PROMPT_COPY_LABELS.unsupported);
+      toast.error(tCommon2("toasts.clipboardUnsupported"));
       return;
     }
     try {
       await navigator.clipboard.writeText(prompt);
     } catch {
-      toast.error(GEO_PROMPT_COPY_LABELS.failed);
+      toast.error(tCommon2("toasts.copyFailed"));
       return;
     }
     setCopied(true);
@@ -52,10 +56,10 @@ export function PromptCopyButton({ prompt }: PromptCopyButtonProps) {
 
   return (
     <button
-      aria-label={`${GEO_PROMPT_COPY_LABELS.action}: ${prompt}`}
+      aria-label={t("actionAria", { prompt })}
       className="bg-background hover:bg-muted/50 focus-visible:ring-ring duration-fast inline-flex max-w-full cursor-pointer items-center rounded-md border px-2 py-1 text-left shadow-xs transition-[background-color,scale] ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.97]"
       onClick={copy}
-      title={GEO_PROMPT_COPY_LABELS.action}
+      title={tGeoShared("copyPrompt")}
       type="button"
     >
       <span className="relative grid min-w-0 items-center overflow-hidden">
@@ -91,7 +95,7 @@ export function PromptCopyButton({ prompt }: PromptCopyButtonProps) {
                   icon={Tick02Icon}
                   strokeWidth={2}
                 />
-                {GEO_PROMPT_COPY_LABELS.copied}
+                {tCommon("copied")}
               </>
             ) : (
               prompt

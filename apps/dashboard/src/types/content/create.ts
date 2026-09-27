@@ -11,6 +11,11 @@ import type {
 
 export type WizardStep = "formats" | "activity" | "identities";
 
+export interface WizardStepLabel {
+  title: string;
+  label: string;
+}
+
 export interface WizardFormValues {
   formats: OnDemandContentType[];
   lookbackWindow: LookbackWindow;

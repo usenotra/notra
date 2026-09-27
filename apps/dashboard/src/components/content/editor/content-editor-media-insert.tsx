@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 import type { RefObject } from "react";
 
 import { Button } from "@/components/button";
@@ -26,12 +27,14 @@ export function ContentEditorMediaInsert({
 }: {
   editorRef: RefObject<EditorRefHandle | null>;
 }) {
+  const t = useTranslations("content.editor.media");
+  const tCommon = useTranslations("common");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button
-            aria-label="Add image or video"
+            aria-label={t("addMedia")}
             className="shrink-0"
             size="icon-sm"
             variant="ghost"
@@ -60,7 +63,7 @@ export function ContentEditorMediaInsert({
             icon={Image01Icon}
             strokeWidth={2}
           />
-          Image
+          {tCommon("labels.image")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
@@ -76,7 +79,7 @@ export function ContentEditorMediaInsert({
             icon={Video01Icon}
             strokeWidth={2}
           />
-          Video
+          {tCommon("labels.video")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

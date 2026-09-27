@@ -6,7 +6,10 @@ import type { ReactNode } from "react";
 import { createContext, useContext, useMemo } from "react";
 import type { DropEvent, DropzoneOptions, FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { buttonVariants } from "@notra/ui/components/ui/button";
+import { DEFAULT_DROPZONE_LABELS } from "@notra/ui/constants/kibo-ui-labels";
+import type { DropzoneLabels } from "@notra/ui/types/kibo-ui";
 import { cn } from "@notra/ui/lib/utils";
 
 type DropzoneContextType = {
@@ -16,8 +19,6 @@ type DropzoneContextType = {
   minSize?: DropzoneOptions["minSize"];
   maxFiles?: DropzoneOptions["maxFiles"];
 };
-
-const listFormatter = new Intl.ListFormat("en");
 
 const renderBytes = (bytes: number) => {
   const units = ["B", "KB", "MB", "GB", "TB", "PB"];
@@ -115,6 +116,7 @@ const useDropzoneContext = () => {
 export type DropzoneContentProps = {
   children?: ReactNode;
   className?: string;
+  labels?: Partial<DropzoneLabels>;
 };
 
 const maxLabelItems = 3;
@@ -122,8 +124,12 @@ const maxLabelItems = 3;
 export const DropzoneContent = ({
   children,
   className,
+  labels,
 }: DropzoneContentProps) => {
   const { src } = useDropzoneContext();
+  const { locale } = useUiLabels();
+  const resolvedLabels = { ...DEFAULT_DROPZONE_LABELS, ...labels };
+  const listFormatter = new Intl.ListFormat(locale ?? "en");
 
   if (!src || src.length === 0) {
     return null;
@@ -140,13 +146,16 @@ export const DropzoneContent = ({
       </div>
       <p className="my-2 w-full truncate font-medium text-sm">
         {src.length > maxLabelItems
-          ? `${listFormatter.format(
-              src.slice(0, maxLabelItems).map((file) => file.name),
-            )} and ${src.length - maxLabelItems} more`
+          ? resolvedLabels.selectedFilesWithMore(
+              listFormatter.format(
+                src.slice(0, maxLabelItems).map((file) => file.name),
+              ),
+              src.length - maxLabelItems,
+            )
           : listFormatter.format(src.map((file) => file.name))}
       </p>
       <p className="w-full text-wrap text-muted-foreground text-xs">
-        Drag and drop or click to replace
+        {resolvedLabels.replaceHint}
       </p>
     </div>
   );
@@ -155,13 +164,17 @@ export const DropzoneContent = ({
 export type DropzoneEmptyStateProps = {
   children?: ReactNode;
   className?: string;
+  labels?: Partial<DropzoneLabels>;
 };
 
 export const DropzoneEmptyState = ({
   children,
   className,
+  labels,
 }: DropzoneEmptyStateProps) => {
   const { src, accept, maxSize, minSize, maxFiles } = useDropzoneContext();
+  const { locale } = useUiLabels();
+  const resolvedLabels = { ...DEFAULT_DROPZONE_LABELS, ...labels };
 
   if (src && src.length > 0) {
     return null;
@@ -171,20 +184,13 @@ export const DropzoneEmptyState = ({
     return children;
   }
 
-  let caption = "";
-
-  if (accept) {
-    caption += "Accepts ";
-    caption += listFormatter.format(Object.keys(accept));
-  }
-
-  if (minSize && maxSize) {
-    caption += ` between ${renderBytes(minSize)} and ${renderBytes(maxSize)}`;
-  } else if (minSize) {
-    caption += ` at least ${renderBytes(minSize)}`;
-  } else if (maxSize) {
-    caption += ` less than ${renderBytes(maxSize)}`;
-  }
+  const caption = resolvedLabels.caption({
+    accept: accept
+      ? new Intl.ListFormat(locale ?? "en").format(Object.keys(accept))
+      : undefined,
+    minSize: minSize ? renderBytes(minSize) : undefined,
+    maxSize: maxSize ? renderBytes(maxSize) : undefined,
+  });
 
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
@@ -192,13 +198,13 @@ export const DropzoneEmptyState = ({
         <HugeiconsIcon icon={Upload01Icon} size={16} />
       </div>
       <p className="my-2 w-full truncate text-wrap font-medium text-sm">
-        Upload {maxFiles === 1 ? "a file" : "files"}
+        {resolvedLabels.uploadTitle(maxFiles ?? 0)}
       </p>
       <p className="w-full truncate text-wrap text-muted-foreground text-xs">
-        Drag and drop or click to upload
+        {resolvedLabels.uploadHint}
       </p>
       {caption && (
-        <p className="text-wrap text-muted-foreground text-xs">{caption}.</p>
+        <p className="text-wrap text-muted-foreground text-xs">{caption}</p>
       )}
     </div>
   );

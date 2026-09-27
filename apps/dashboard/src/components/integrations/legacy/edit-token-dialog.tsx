@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type EditGitHubTokenFormValues,
-  editGitHubTokenFormSchema,
-} from "@notra/schemas/dashboard/integrations";
+import type { EditGitHubTokenFormValues } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -18,12 +15,14 @@ import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import type React from "react";
-import { isValidElement, useState } from "react";
+import { isValidElement, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { createEditGitHubTokenFormSchema } from "@/schemas/github-integration-forms";
 import type { EditTokenDialogProps } from "@/types/integrations";
 
 export function LegacyEditTokenDialog({
@@ -33,6 +32,13 @@ export function LegacyEditTokenDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: EditTokenDialogProps) {
+  const t = useTranslations("integrations.legacy.editToken");
+  const tForms = useTranslations("integrations.githubForms");
+  const tCommon = useTranslations("common");
+  const editGitHubTokenFormSchema = useMemo(
+    () => createEditGitHubTokenFormSchema(tForms),
+    [tForms]
+  );
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -59,7 +65,7 @@ export function LegacyEditTokenDialog({
           },
         }),
       });
-      toast.success("Personal access token updated");
+      toast.success(t("updated"));
       form.reset();
       setOpen(false);
     },
@@ -93,12 +99,14 @@ export function LegacyEditTokenDialog({
         <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-[500px] [&>*]:min-w-0">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="text-2xl">
-              Update Personal Access Token
+              {t("title")}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               {repository
-                ? `Replace the GitHub token used for ${repository.owner}/${repository.repo}.`
-                : "Replace the GitHub token used for this integration."}
+                ? t("descriptionWithRepo", {
+                    repository: `${repository.owner}/${repository.repo}`,
+                  })
+                : t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form
@@ -117,7 +125,7 @@ export function LegacyEditTokenDialog({
               >
                 {(field) => (
                   <Field>
-                    <FieldLabel>GitHub Personal Access Token</FieldLabel>
+                    <FieldLabel>{t("label")}</FieldLabel>
                     <Input
                       autoComplete="off"
                       disabled={mutation.isPending}
@@ -133,19 +141,25 @@ export function LegacyEditTokenDialog({
                           ? field.state.meta.errors[0]
                           : ((
                               field.state.meta.errors[0] as { message?: string }
-                            )?.message ?? "Invalid value")}
+                            )?.message ?? tCommon("labels.invalidValue"))}
                       </p>
                     ) : null}
                     <p className="text-muted-foreground mt-2 text-xs">
-                      <a
-                        className="text-primary hover:underline"
-                        href="https://github.com/settings/tokens/new?scopes=repo&description=Notra%20Integration"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Generate a token on GitHub
-                      </a>{" "}
-                      with <code className="text-xs">repo</code> scope.
+                      {t.rich("help", {
+                        link: (chunks) => (
+                          <a
+                            className="text-primary hover:underline"
+                            href="https://github.com/settings/tokens/new?scopes=repo&description=Notra%20Integration"
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            {chunks}
+                          </a>
+                        ),
+                        code: (chunks) => (
+                          <code className="text-xs">{chunks}</code>
+                        ),
+                      })}
                     </p>
                   </Field>
                 )}
@@ -156,7 +170,7 @@ export function LegacyEditTokenDialog({
                 disabled={mutation.isPending}
                 render={<Button variant="outline" />}
               >
-                Cancel
+                {tCommon("actions.cancel")}
               </ResponsiveDialogClose>
               <form.Subscribe selector={(state) => [state.canSubmit]}>
                 {([canSubmit]) => (
@@ -168,7 +182,7 @@ export function LegacyEditTokenDialog({
                     }}
                     type="button"
                   >
-                    {mutation.isPending ? "Saving..." : "Save Token"}
+                    {mutation.isPending ? tCommon("actions.saving") : t("save")}
                   </Button>
                 )}
               </form.Subscribe>

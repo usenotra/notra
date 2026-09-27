@@ -37,19 +37,24 @@ interface DigitProps {
   value: number;
   height: number;
   digitStyle?: React.CSSProperties;
+  decimalSeparator: string;
 }
 
-function Digit({ place, value, height, digitStyle }: DigitProps) {
+function Separator({ symbol, height, digitStyle }: { symbol: string; height: number; digitStyle?: React.CSSProperties }) {
+  return (
+    <span
+      className="relative inline-flex items-center justify-center"
+      style={{ height, width: 'fit-content', ...digitStyle }}
+    >
+      {symbol}
+    </span>
+  );
+}
+
+function Digit({ place, value, height, digitStyle, decimalSeparator }: DigitProps) {
   // Decimal point digit
   if (place === '.') {
-    return (
-      <span
-        className="relative inline-flex items-center justify-center"
-        style={{ height, width: 'fit-content', ...digitStyle }}
-      >
-        .
-      </span>
-    );
+    return <Separator symbol={decimalSeparator} height={height} digitStyle={digitStyle} />;
   }
 
   // Numeric digit
@@ -100,6 +105,25 @@ interface CounterProps {
   gradientTo?: string;
   topGradientStyle?: React.CSSProperties;
   bottomGradientStyle?: React.CSSProperties;
+  locale?: string;
+}
+
+function numberSeparators(locale: string | undefined) {
+  if (!locale) {
+    return { group: null, decimal: '.' };
+  }
+  const parts = new Intl.NumberFormat(locale).formatToParts(1000.5);
+  return {
+    group: parts.find((part) => part.type === 'group')?.value ?? null,
+    decimal: parts.find((part) => part.type === 'decimal')?.value ?? '.'
+  };
+}
+
+function startsDigitGroup(place: PlaceValue) {
+  if (place === '.' || place < 1000) {
+    return false;
+  }
+  return Math.round(Math.log10(place)) % 3 === 0;
 }
 
 export default function Counter({
@@ -130,9 +154,11 @@ export default function Counter({
   gradientFrom = 'black',
   gradientTo = 'transparent',
   topGradientStyle,
-  bottomGradientStyle
+  bottomGradientStyle,
+  locale
 }: CounterProps) {
   const height = fontSize + padding;
+  const separators = numberSeparators(locale);
 
   const defaultContainerStyle: React.CSSProperties = {
     position: 'relative',
@@ -175,7 +201,18 @@ export default function Counter({
     <span style={{ ...defaultContainerStyle, ...containerStyle }}>
       <span style={{ ...defaultCounterStyle, ...counterStyle }}>
         {places.map((place, index) => (
-          <Digit key={index} place={place} value={value} height={height} digitStyle={digitStyle} />
+          <span key={index} style={{ display: 'contents' }}>
+            <Digit
+              place={place}
+              value={value}
+              height={height}
+              digitStyle={digitStyle}
+              decimalSeparator={separators.decimal}
+            />
+            {separators.group && startsDigitGroup(place) ? (
+              <Separator symbol={separators.group} height={height} digitStyle={digitStyle} />
+            ) : null}
+          </span>
         ))}
       </span>
       <span style={gradientContainerStyle}>

@@ -3,6 +3,7 @@
 import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
+import { useTranslations } from "next-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { Table } from "@/components/motion/table";
@@ -27,6 +28,7 @@ export function DataTable<TData>({
   onSortChange,
   totalCount,
 }: DataTableProps<TData>) {
+  const t = useTranslations("settings.logs");
   const totalItems = totalCount ?? data.length;
   const rowCount =
     isLoading && data.length === 0 ? LOGS_SKELETON_ROW_COUNT : data.length;
@@ -57,11 +59,11 @@ export function DataTable<TData>({
       columns={columns}
       data={data}
       defaultSort={{ key: "createdAt", direction: "desc" }}
-      emptyState="No results."
+      emptyState={t("noResults")}
       footer={
         totalPages > 1 || data.length > 0 ? (
           <TablePagination
-            itemLabel="logs"
+            itemLabel={t("itemLabel")}
             page={page}
             pageCount={totalPages}
             pageRowCount={data.length}

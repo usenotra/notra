@@ -2,6 +2,7 @@
 
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";
@@ -31,6 +32,8 @@ export function Checkbox({
   id: idProp,
   "aria-label": ariaLabel,
 }: CheckboxProps) {
+  const t = useTranslations("shared.checkbox");
+  const tCommon = useTranslations("common");
   const autoId = useId();
   const id = idProp ?? autoId;
   const reduce = useReducedMotion();
@@ -94,7 +97,11 @@ export function Checkbox({
               viewBox="0 0 24 24"
               width="12"
             >
-              <title>{indeterminate ? "Partially selected" : "Selected"}</title>
+              <title>
+                {indeterminate
+                  ? t("partiallySelected")
+                  : tCommon("labels.selected")}
+              </title>
               <motion.path
                 animate={{ pathLength: 1 }}
                 d={path}

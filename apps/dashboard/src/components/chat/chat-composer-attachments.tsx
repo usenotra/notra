@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
@@ -31,12 +32,13 @@ export function ChatComposerAttachButton({
   pendingUploadCount,
   tooltip,
 }: ChatComposerAttachButtonProps) {
+  const t = useTranslations("chat.attachments");
   return (
     <Tooltip>
       <TooltipTrigger
         render={
           <Composer.ToolbarButton
-            aria-label="Attach files"
+            aria-label={t("attachFiles")}
             className="size-7 justify-center px-0"
             disabled={
               disabled ||
@@ -56,6 +58,7 @@ export function ChatComposerAttachButton({
 export function ChatComposerDropOverlay({
   acceptedFileTypesLabel,
 }: ChatComposerDropOverlayProps) {
+  const t = useTranslations("chat.attachments");
   if (typeof document === "undefined") {
     return null;
   }
@@ -73,14 +76,14 @@ export function ChatComposerDropOverlay({
         />
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="text-foreground text-2xl font-semibold tracking-tight">
-            Add Attachment
+            {t("dropTitle")}
           </p>
           <p className="text-muted-foreground text-sm">
-            Drop a file here to attach it to your message
+            {t("dropDescription")}
           </p>
           {acceptedFileTypesLabel ? (
             <p className="text-muted-foreground/70 text-xs">
-              Accepted file types: {acceptedFileTypesLabel}
+              {t("acceptedTypes", { types: acceptedFileTypesLabel })}
             </p>
           ) : null}
         </div>

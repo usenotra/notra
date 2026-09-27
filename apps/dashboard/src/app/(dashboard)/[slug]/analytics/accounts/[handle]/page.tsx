@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { AccountDetailView } from "@/components/analytics/account-detail-view";
 import { PageContainer } from "@/components/layout/container";
 
-export const metadata: Metadata = {
-  title: "Account",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return {
+    title: tCommon("labels.account"),
+  };
+}
 
 async function Page({
   params,

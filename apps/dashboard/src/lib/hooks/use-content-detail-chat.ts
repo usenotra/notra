@@ -22,6 +22,7 @@ import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { nanoid } from "nanoid";
+import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -34,7 +35,6 @@ import { toast } from "sonner";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { ContentDetailChatComposerProps } from "@/components/content/content-detail-chat-shell";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { CONTENT_PLAN_CHAT_PLACEHOLDER } from "@/constants/content-plan";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import {
   applyContentChatToolOutputEffect,
@@ -70,6 +70,9 @@ export function useContentDetailChat({
   content,
   contentDocument,
 }: UseContentDetailChatParams) {
+  const tToast = useTranslations("chat.toasts");
+  const tChatErrors = useTranslations("chat.errors");
+  const tPlan = useTranslations("content.plan");
   const {
     editedMarkdown,
     editedMarkdownRef,
@@ -245,9 +248,13 @@ export function useContentDetailChat({
 
       const { isUsageLimit } = handleStandaloneChatError(err, {
         setChatError,
+        messages: {
+          usageLimit: tChatErrors("usageLimit"),
+          fallback: tChatErrors("fallback"),
+        },
       });
       if (!isUsageLimit) {
-        toast.error("Failed to edit content");
+        toast.error(tToast("editContentFailed"));
       }
       if (
         shouldDrainQueueAfterError({
@@ -788,7 +795,7 @@ export function useContentDetailChat({
     organizationId,
     organizationSlug,
     placeholder: isGeoWriterPlanReviewableNow
-      ? CONTENT_PLAN_CHAT_PLACEHOLDER
+      ? tPlan("chatPlaceholder")
       : undefined,
     queuedMessages,
     selection,

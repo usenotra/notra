@@ -19,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type {
@@ -34,20 +35,22 @@ export function PersonaTableRowActions({
   onRestore,
   restoreDisabled,
 }: PersonaTableRowActionsProps) {
+  const t = useTranslations("geo.personaTableActions");
+  const tGeoShared = useTranslations("geo.shared");
   if (persona.archivedAt) {
     const reactivateDisabled = disabled || restoreDisabled;
-    let tooltip = "Reactivate persona";
+    let tooltip = t("reactivate");
     if (restoreDisabled) {
-      tooltip = `You can have up to ${GEO_PERSONA_MAX_COUNT} active personas. Archive one before reactivating this one.`;
+      tooltip = t("restoreLimit", { max: GEO_PERSONA_MAX_COUNT });
     } else if (disabled) {
-      tooltip = "Wait for the current persona action to finish.";
+      tooltip = t("waitForAction");
     }
     return (
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
-              aria-label={`Reactivate ${persona.name}`}
+              aria-label={t("reactivateAria", { name: persona.name })}
               disabled={reactivateDisabled}
               focusableWhenDisabled
               onClick={(event) => {
@@ -75,7 +78,7 @@ export function PersonaTableRowActions({
         <TooltipTrigger
           render={
             <Button
-              aria-label={`Regenerate ${persona.name}`}
+              aria-label={t("regenerateAria", { name: persona.name })}
               disabled={disabled}
               onClick={(event) => {
                 event.stopPropagation();
@@ -89,13 +92,13 @@ export function PersonaTableRowActions({
             </Button>
           }
         />
-        <TooltipContent>Regenerate persona</TooltipContent>
+        <TooltipContent>{t("regenerate")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
-              aria-label={`Archive ${persona.name}`}
+              aria-label={t("archiveAria", { name: persona.name })}
               disabled={disabled}
               onClick={(event) => {
                 event.stopPropagation();
@@ -109,7 +112,7 @@ export function PersonaTableRowActions({
             </Button>
           }
         />
-        <TooltipContent>Archive persona</TooltipContent>
+        <TooltipContent>{tGeoShared("archivePersona")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -127,6 +130,8 @@ export function PersonaTableContextMenu({
   onView,
   restoreDisabled,
 }: PersonaTableContextMenuProps) {
+  const t = useTranslations("geo.personaTableActions");
+  const tGeoShared = useTranslations("geo.shared");
   if (persona.archivedAt) {
     return (
       <ContextMenuItem
@@ -134,7 +139,7 @@ export function PersonaTableContextMenu({
         onClick={() => onRestore(persona.id)}
       >
         <HugeiconsIcon icon={ArchiveRestoreIcon} />
-        Reactivate persona
+        {t("reactivate")}
       </ContextMenuItem>
     );
   }
@@ -143,28 +148,28 @@ export function PersonaTableContextMenu({
     <>
       <ContextMenuItem onClick={() => onView(persona)}>
         <HugeiconsIcon icon={ViewIcon} />
-        View persona
+        {t("view")}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={scanDisabled}
         onClick={() => onRun(persona.id)}
       >
         <HugeiconsIcon icon={PlayIcon} />
-        Run scan
+        {tGeoShared("runScan")}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={mutationDisabled}
         onClick={() => onToggle(persona)}
       >
         <HugeiconsIcon icon={persona.enabled ? PauseIcon : PlayIcon} />
-        {persona.enabled ? "Pause scans" : "Include in scans"}
+        {persona.enabled ? t("pauseScans") : t("includeInScans")}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={mutationDisabled}
         onClick={() => onRegenerate(persona.id)}
       >
         <HugeiconsIcon icon={Refresh03Icon} />
-        Regenerate persona
+        {t("regenerate")}
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
@@ -172,7 +177,7 @@ export function PersonaTableContextMenu({
         onClick={() => onDelete(persona)}
       >
         <HugeiconsIcon icon={Archive02Icon} />
-        Archive persona
+        {tGeoShared("archivePersona")}
       </ContextMenuItem>
     </>
   );

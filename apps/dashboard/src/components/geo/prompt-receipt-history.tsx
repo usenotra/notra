@@ -1,14 +1,10 @@
 "use client";
 
 import {
-  GEO_PROMPT_HISTORY_ANSWER_LABELS,
-  GEO_PROMPT_HISTORY_CHANGE_LABELS,
-  GEO_PROMPT_HISTORY_COLUMN_LABELS,
   GEO_PROMPT_HISTORY_EMPTY_COMPETITORS,
   GEO_PROMPT_HISTORY_EMPTY_POSITION,
   GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE,
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
-  GEO_PROMPT_RECEIPT_LABELS,
 } from "@notra/geo-core/constants/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
@@ -16,10 +12,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { Table } from "@/components/motion/table";
+import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
@@ -29,10 +27,7 @@ import type {
   PromptHistoryNewCompetitorsCellProps,
   PromptReceiptHistoryProps,
 } from "@/types/geo";
-import {
-  promptHistoryChangeLabel,
-  promptOutcomeLabel,
-} from "@/utils/geo-prompt-history";
+import { promptOutcomeKey } from "@/utils/geo-prompt-history";
 import { tableHeightFor } from "@/utils/table";
 
 /** Shared first-line box so icons, chips, and text sit on one baseline. */
@@ -49,10 +44,11 @@ function PositionChip({
   position: number | null;
   tone?: "neutral" | "up";
 }) {
+  const tGeoShared = useTranslations("geo.shared");
   if (position === null) {
     return (
       <span className="text-muted-foreground/70">
-        {GEO_PROMPT_RECEIPT_LABELS.notRanked}
+        {tGeoShared("notRanked")}
       </span>
     );
   }
@@ -88,17 +84,42 @@ function BrandToken({ name, competitors }: PromptHistoryBrandTokenProps) {
   );
 }
 
+function ChangeLabel({ change }: { change: PromptHistoryChange }) {
+  const t = useTranslations("geo.promptReceiptHistory");
+  const tGeoShared = useTranslations("geo.shared");
+  const position = (value: number | null) =>
+    value === null ? tGeoShared("notRanked") : `#${value}`;
+  switch (change.kind) {
+    case "gained":
+      return change.position === null
+        ? t("gainedMention")
+        : t("gainedLabel", { position: position(change.position) });
+    case "lost":
+      return t("lostMention");
+    case "position":
+      return t("movedLabel", {
+        from: position(change.from),
+        to: position(change.to),
+      });
+    case "none":
+      return t("noChange");
+    case "first":
+      return t("firstScan");
+    default:
+      return null;
+  }
+}
+
 function ChangeWords({ change }: { change: PromptHistoryChange }) {
+  const t = useTranslations("geo.promptReceiptHistory");
   switch (change.kind) {
     case "gained":
       return (
         <>
-          <span className="text-geo-up font-medium">
-            {GEO_PROMPT_HISTORY_CHANGE_LABELS.gainedMention}
-          </span>
+          <span className="text-geo-up font-medium">{t("gainedMention")}</span>
           {change.position === null ? null : (
             <>
-              <span>{GEO_PROMPT_HISTORY_CHANGE_LABELS.gainedMentionAt}</span>
+              <span>{t("gainedMentionAt")}</span>
               <PositionChip position={change.position} tone="up" />
             </>
           )}
@@ -106,14 +127,12 @@ function ChangeWords({ change }: { change: PromptHistoryChange }) {
       );
     case "lost":
       return (
-        <span className="text-geo-down font-medium">
-          {GEO_PROMPT_HISTORY_CHANGE_LABELS.lostMention}
-        </span>
+        <span className="text-geo-down font-medium">{t("lostMention")}</span>
       );
     case "position":
       return (
         <>
-          <span>{GEO_PROMPT_HISTORY_CHANGE_LABELS.moved}</span>
+          <span>{t("moved")}</span>
           <PositionChip position={change.from} />
           <span>→</span>
           <PositionChip position={change.to} />
@@ -122,7 +141,7 @@ function ChangeWords({ change }: { change: PromptHistoryChange }) {
     default:
       return (
         <span className="text-muted-foreground/70">
-          {promptHistoryChangeLabel(change)}
+          <ChangeLabel change={change} />
         </span>
       );
   }
@@ -139,7 +158,9 @@ function ChangesCell({ entry }: { entry: PromptHistoryEntry }) {
           )}
           key={`${entry.check.id}-${change.kind}`}
         >
-          <span className="sr-only">{promptHistoryChangeLabel(change)}</span>
+          <span className="sr-only">
+            <ChangeLabel change={change} />
+          </span>
           <span aria-hidden="true" className="contents">
             <ChangeWords change={change} />
           </span>
@@ -153,10 +174,14 @@ function MoreCompetitors({
   names,
   competitors,
 }: PromptHistoryNewCompetitorsCellProps) {
+  const t = useTranslations("geo.promptReceiptHistory");
   return (
     <Tooltip>
       <TooltipTrigger
-        aria-label={`${names.length} more: ${names.join(", ")}`}
+        aria-label={t("moreAria", {
+          count: names.length,
+          names: names.join(", "),
+        })}
         render={
           <span
             className={cn(
@@ -218,10 +243,14 @@ export function PromptReceiptHistory({
   competitors,
   onSelect,
 }: PromptReceiptHistoryProps) {
+  const t = useTranslations("geo.promptReceiptHistory");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const footer =
     !isLoading && entries.length === 1 ? (
       <p className="text-muted-foreground px-4 py-3 text-xs">
-        {GEO_PROMPT_RECEIPT_LABELS.singleScan}
+        {t("singleScan")}
       </p>
     ) : undefined;
 
@@ -230,13 +259,16 @@ export function PromptReceiptHistory({
       columns={[
         {
           key: "scan",
-          header: GEO_PROMPT_HISTORY_COLUMN_LABELS.date,
+          header: t("columns.date"),
           // Fits "Sep 17, 11:41 AM" plus the button and cell padding on one
           // line. No `minWidth`: that raises the table floor, and the five
           // columns together already only just fit the sheet.
           width: "160px",
           cell: ({ check }) => {
-            const timestamp = formatAiTrafficTimestamp(check.capturedAt);
+            const timestamp = formatAiTrafficTimestamp(
+              check.capturedAt,
+              locale
+            );
             const date = (
               <time
                 className="whitespace-nowrap tabular-nums"
@@ -249,7 +281,7 @@ export function PromptReceiptHistory({
 
             return onSelect ? (
               <button
-                aria-label={`${GEO_PROMPT_HISTORY_ANSWER_LABELS.viewAnswer} · ${timestamp}`}
+                aria-label={t("viewAnswerAria", { timestamp })}
                 className={cn(
                   HISTORY_LINE_CLASS,
                   "focus-visible:ring-ring cursor-pointer rounded-sm text-left underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
@@ -258,7 +290,7 @@ export function PromptReceiptHistory({
                   event.stopPropagation();
                   onSelect(check);
                 }}
-                title={GEO_PROMPT_HISTORY_ANSWER_LABELS.viewAnswer}
+                title={t("viewAnswer")}
                 type="button"
               >
                 {date}
@@ -270,7 +302,7 @@ export function PromptReceiptHistory({
         },
         {
           key: "outcome",
-          header: GEO_PROMPT_HISTORY_COLUMN_LABELS.outcome,
+          header: tGeoShared("outcome"),
           width: "168px",
           minWidth: "168px",
           cell: ({ check }) => (
@@ -285,14 +317,18 @@ export function PromptReceiptHistory({
                     : "text-muted-foreground"
                 }
               >
-                {promptOutcomeLabel(check.mentioned, check.ownedSourceCited)}
+                {tGeoShared(
+                  GEO_PROMPT_OUTCOME_LABEL_KEYS[
+                    promptOutcomeKey(check.mentioned, check.ownedSourceCited)
+                  ]
+                )}
               </span>
             </span>
           ),
         },
         {
           key: "position",
-          header: GEO_PROMPT_HISTORY_COLUMN_LABELS.position,
+          header: tCommon("labels.position"),
           width: "80px",
           // The position also shows up inside the "What changed" chips.
           collapsePriority: 1,
@@ -304,7 +340,7 @@ export function PromptReceiptHistory({
         },
         {
           key: "changes",
-          header: GEO_PROMPT_HISTORY_COLUMN_LABELS.changes,
+          header: tGeoShared("whatChanged"),
           // Flexible so the narrowest sheet can squeeze it instead of scrolling.
           width: "1fr",
           minWidth: "192px",
@@ -312,7 +348,7 @@ export function PromptReceiptHistory({
         },
         {
           key: "newCompetitors",
-          header: GEO_PROMPT_HISTORY_COLUMN_LABELS.newCompetitors,
+          header: t("columns.newCompetitors"),
           width: "1fr",
           minWidth: "128px",
           collapsePriority: 2,
@@ -325,7 +361,7 @@ export function PromptReceiptHistory({
         },
       ]}
       data={entries}
-      emptyState={GEO_PROMPT_RECEIPT_LABELS.noHistory}
+      emptyState={t("noHistory")}
       footer={footer}
       getRowId={(entry) => entry.check.id}
       height={

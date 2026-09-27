@@ -36,6 +36,7 @@ import {
   $isRangeSelection,
   type TextNode,
 } from "lexical";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -112,6 +113,8 @@ function ComponentPickerMenuItem({
 }
 
 export function ComponentPickerPlugin() {
+  const t = useTranslations("content.editor.blocks");
+  const tCommon = useTranslations("common");
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
 
@@ -121,7 +124,7 @@ export function ComponentPickerPlugin() {
 
   const baseOptions = useMemo(() => {
     return [
-      new ComponentPickerOption("Paragraph", {
+      new ComponentPickerOption(t("paragraph"), {
         icon: <HugeiconsIcon icon={ParagraphIcon} className="size-4" />,
         keywords: ["normal", "text", "p"],
         onSelect: () =>
@@ -132,7 +135,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Heading 1", {
+      new ComponentPickerOption(t("heading1"), {
         icon: <HugeiconsIcon icon={Heading01Icon} className="size-4" />,
         keywords: ["h1", "header", "title"],
         onSelect: () =>
@@ -143,7 +146,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Heading 2", {
+      new ComponentPickerOption(t("heading2"), {
         icon: <HugeiconsIcon icon={Heading02Icon} className="size-4" />,
         keywords: ["h2", "header", "subtitle"],
         onSelect: () =>
@@ -154,7 +157,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Heading 3", {
+      new ComponentPickerOption(t("heading3"), {
         icon: <HugeiconsIcon icon={Heading03Icon} className="size-4" />,
         keywords: ["h3", "header", "subheading"],
         onSelect: () =>
@@ -165,7 +168,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Bulleted List", {
+      new ComponentPickerOption(t("bulletedList"), {
         icon: (
           <HugeiconsIcon
             icon={ParagraphBulletsPoint01Icon}
@@ -176,7 +179,7 @@ export function ComponentPickerPlugin() {
         onSelect: () =>
           editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined),
       }),
-      new ComponentPickerOption("Numbered List", {
+      new ComponentPickerOption(t("numberedList"), {
         icon: (
           <HugeiconsIcon icon={LeftToRightListNumberIcon} className="size-4" />
         ),
@@ -184,7 +187,7 @@ export function ComponentPickerPlugin() {
         onSelect: () =>
           editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined),
       }),
-      new ComponentPickerOption("Quote", {
+      new ComponentPickerOption(t("quote"), {
         icon: <HugeiconsIcon icon={QuoteUpIcon} className="size-4" />,
         keywords: ["blockquote", "quotation"],
         onSelect: () =>
@@ -195,7 +198,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Code Block", {
+      new ComponentPickerOption(t("codeBlock"), {
         icon: <HugeiconsIcon icon={CodeIcon} className="size-4" />,
         keywords: ["code", "codeblock", "snippet"],
         onSelect: () =>
@@ -207,7 +210,7 @@ export function ComponentPickerPlugin() {
             }
           }),
       }),
-      new ComponentPickerOption("Table", {
+      new ComponentPickerOption(tCommon("labels.table"), {
         icon: <HugeiconsIcon icon={Table01Icon} className="size-4" />,
         keywords: ["table", "grid", "spreadsheet", "rows", "columns"],
         onSelect: () =>
@@ -217,7 +220,7 @@ export function ComponentPickerPlugin() {
             includeHeaders: { rows: true, columns: false },
           }),
       }),
-      new ComponentPickerOption("Image", {
+      new ComponentPickerOption(tCommon("labels.image"), {
         icon: <HugeiconsIcon icon={ImageAdd01Icon} className="size-4" />,
         keywords: ["image", "photo", "picture", "upload", "img"],
         onSelect: () => {
@@ -229,7 +232,7 @@ export function ComponentPickerPlugin() {
           });
         },
       }),
-      new ComponentPickerOption("Video", {
+      new ComponentPickerOption(tCommon("labels.video"), {
         icon: <HugeiconsIcon icon={Film01Icon} className="size-4" />,
         keywords: ["video", "movie", "mp4", "webm", "clip"],
         onSelect: () => {
@@ -241,14 +244,14 @@ export function ComponentPickerPlugin() {
           });
         },
       }),
-      new ComponentPickerOption("Divider", {
+      new ComponentPickerOption(t("divider"), {
         icon: <HugeiconsIcon icon={MinusSignIcon} className="size-4" />,
         keywords: ["hr", "horizontal", "rule", "line", "divider"],
         onSelect: () =>
           editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined),
       }),
     ];
-  }, [editor]);
+  }, [editor, t]);
 
   const options = useMemo(() => {
     if (queryString === null) {

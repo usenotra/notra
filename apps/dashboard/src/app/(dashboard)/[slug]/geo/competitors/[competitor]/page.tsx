@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { CompetitorDetailView } from "@/components/geo/competitor-detail-view";
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { PageContainer } from "@/components/layout/container";
 
 import { CompetitorDetailSkeleton } from "../skeleton";
 
-export const metadata: Metadata = {
-  title: "Competitor",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tGeoShared = await getTranslations("geo.shared");
+  return { title: tGeoShared("competitor") };
+}
 
 export const instant = true;
 
@@ -37,7 +40,9 @@ function Page({
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full px-4 lg:px-6">
         <Suspense fallback={<CompetitorDetailSkeleton />}>
-          <PageContent params={params} />
+          <GeoPageGate fallback={<CompetitorDetailSkeleton />}>
+            <PageContent params={params} />
+          </GeoPageGate>
         </Suspense>
       </div>
     </PageContainer>

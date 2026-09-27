@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
 import { Button } from "@/components/button";
@@ -28,6 +29,8 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 }
 
 function GeoGapsPageContent({ organizationSlug }: GeoPageClientProps) {
+  const t = useTranslations("geo.pages.gaps");
+  const tCommon2 = useTranslations("common");
   const page = useGeoGapsPage(organizationSlug);
 
   if (page.status === "error") {
@@ -39,9 +42,9 @@ function GeoGapsPageContent({ organizationSlug }: GeoPageClientProps) {
   if (page.status === "empty") {
     return (
       <GeoWriterNeedsSetup
-        description="Questions engines answer without mentioning you"
+        description={t("description")}
         organizationId={page.organizationId}
-        title="Content Gaps"
+        title={tCommon2("labels.contentGaps")}
       />
     );
   }
@@ -54,15 +57,18 @@ function GeoGapsPageContent({ organizationSlug }: GeoPageClientProps) {
 }
 
 function GeoGapsLoadError({ isRetrying, onRetry }: GeoGapsLoadErrorProps) {
+  const t = useTranslations("geo.pages.gaps");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:py-6">
       <div className="space-y-4 px-4 lg:px-6" role="alert">
         <PageHeader
-          description="We couldn't load content gaps. Try again."
-          title="Content Gaps"
+          description={t("loadFailed")}
+          title={tCommon2("labels.contentGaps")}
         />
         <Button disabled={isRetrying} onClick={onRetry} variant="outline">
-          Retry
+          {tCommon("retry")}
         </Button>
       </div>
     </PageContainer>
@@ -70,6 +76,8 @@ function GeoGapsLoadError({ isRetrying, onRetry }: GeoGapsLoadErrorProps) {
 }
 
 function GeoGapsLoaded({ page }: GeoGapsLoadedProps) {
+  const t = useTranslations("geo.pages.gaps");
+  const tCommon2 = useTranslations("common");
   return (
     <PageContainer
       className="flex h-full min-h-full flex-1 flex-col overflow-hidden py-4 md:py-6"
@@ -77,8 +85,8 @@ function GeoGapsLoaded({ page }: GeoGapsLoadedProps) {
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
         <PageHeader
-          description="Questions engines answer without mentioning you"
-          title="Content Gaps"
+          description={t("description")}
+          title={tCommon2("labels.contentGaps")}
         />
 
         {page.isGapsPending ? (

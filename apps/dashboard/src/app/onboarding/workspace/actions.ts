@@ -16,6 +16,7 @@ import { onboardingWorkspaceAttributionSchema } from "@notra/schemas/dashboard/o
 import { ORPCError } from "@orpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
@@ -295,11 +296,12 @@ export async function saveOnboardingAttribution(
   rawInput: SaveOnboardingAttributionInput
 ): Promise<SaveOnboardingAttributionResult> {
   const parsed = saveOnboardingAttributionSchema.safeParse(rawInput);
+  const t = await getTranslations("onboarding.actions");
 
   if (!parsed.success) {
     return {
       success: false,
-      error: parsed.error.issues[0]?.message ?? "Invalid attribution details",
+      error: t("invalidAttribution"),
     };
   }
 
@@ -327,7 +329,7 @@ export async function saveOnboardingAttribution(
   if (membershipRole !== "owner") {
     return {
       success: false,
-      error: "Only the organization owner can set this",
+      error: t("ownerOnly"),
     };
   }
 
@@ -375,12 +377,12 @@ export async function saveOnboardingNotificationSettings(
   rawInput: SaveOnboardingNotificationSettingsInput
 ): Promise<SaveOnboardingNotificationSettingsResult> {
   const parsed = saveOnboardingNotificationSettingsSchema.safeParse(rawInput);
+  const t = await getTranslations("onboarding.actions");
 
   if (!parsed.success) {
     return {
       success: false,
-      error:
-        parsed.error.issues[0]?.message ?? "Invalid notification preferences",
+      error: t("invalidNotificationPrefs"),
     };
   }
 
@@ -406,7 +408,7 @@ export async function saveOnboardingNotificationSettings(
   if (membershipRole !== "owner") {
     return {
       success: false,
-      error: "Only the organization owner can set this",
+      error: t("ownerOnly"),
     };
   }
 

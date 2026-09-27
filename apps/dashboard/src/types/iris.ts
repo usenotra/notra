@@ -19,6 +19,11 @@ import type {
   PlannedTaskRecord,
 } from "@notra/ai/types/autonomy";
 import type { autonomyMandates } from "@notra/db/schema";
+import type { useTranslations } from "next-intl";
+
+import type { MessageLeafKey } from "@/types/i18n";
+
+import type messages from "../../messages/en.json";
 
 export type IrisMandateRow = typeof autonomyMandates.$inferSelect;
 
@@ -232,11 +237,16 @@ export interface IrisSignalView {
   processedAt: string | null;
 }
 
+export type IrisTranslator = ReturnType<typeof useTranslations<"iris">>;
+
+type IrisMessages = (typeof messages)["iris"];
+
+export type IrisMessageKey = MessageLeafKey<IrisMessages>;
+export type IrisExplainerKey = keyof IrisMessages["explainer"];
+
 export interface IrisExplainerStep {
-  key: string;
+  key: IrisExplainerKey;
   icon: IconSvgElement;
-  title: string;
-  description: string;
 }
 
 export interface IrisReadinessItem {

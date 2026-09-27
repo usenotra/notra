@@ -2,6 +2,7 @@ import { AiScanIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import { useTranslations } from "next-intl";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import type { AgentReadinessScanningNoticeProps } from "@/types/agent-readiness";
@@ -9,12 +10,14 @@ import type { AgentReadinessScanningNoticeProps } from "@/types/agent-readiness"
 export function AgentReadinessScanningNotice({
   targetUrl,
 }: AgentReadinessScanningNoticeProps) {
+  const t = useTranslations("geo.agentReadiness.scanningNotice");
+  const tGeoShared = useTranslations("geo.shared");
   const domain = stripWebsiteProtocol(targetUrl);
 
   return (
     <div
       aria-busy="true"
-      aria-label={`Scanning ${domain}`}
+      aria-label={t("ariaLabel", { domain })}
       aria-live="polite"
       className="flex min-h-[28rem] items-center justify-center px-6 py-12 text-center"
     >
@@ -31,12 +34,12 @@ export function AgentReadinessScanningNotice({
             <StatusSpinner />
           </span>
           <span>
-            <Shimmer as="span">Scanning...</Shimmer>{" "}
+            <Shimmer as="span">{tGeoShared("scanning")}</Shimmer>{" "}
             <span className="break-all">{domain}</span>
           </span>
         </h2>
         <p className="text-muted-foreground mt-2 max-w-lg text-base leading-relaxed text-pretty">
-          Checking how AI agents understand your website.
+          {t("description")}
         </p>
       </div>
     </div>

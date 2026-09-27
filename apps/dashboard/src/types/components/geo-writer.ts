@@ -101,9 +101,10 @@ export interface WriteDialogBaseline {
 }
 
 export interface WriteFormatRecommendation {
-  id: GeoContentSubtype;
-  reason: string;
+  id: Extract<GeoContentSubtype, "comparison" | "listicle" | "guide">;
 }
+
+export type WriteAction = "plan" | "write";
 
 export type WriteDialogSourceKind = GeoWriterSourceKind;
 

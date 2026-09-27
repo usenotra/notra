@@ -11,11 +11,11 @@ import {
   ResponsiveAlertDialogTitle,
   ResponsiveAlertDialogTrigger,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 
 import {
-  getOrganizationMembershipActionDescription,
-  getOrganizationMembershipActionLabel,
+  getOrganizationMembershipActionDescriptionKey,
   type OrganizationMembershipAction,
 } from "@/lib/organizations/membership-action";
 
@@ -34,7 +34,8 @@ export function OrganizationMembershipActionDialog({
   onConfirm,
   trigger,
 }: OrganizationMembershipActionDialogProps) {
-  const actionLabel = getOrganizationMembershipActionLabel(action);
+  const t = useTranslations("settings.membershipAction");
+  const tCommon = useTranslations("common.actions");
 
   return (
     <ResponsiveAlertDialog>
@@ -42,22 +43,26 @@ export function OrganizationMembershipActionDialog({
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle className="wrap-anywhere">
-            {actionLabel} {organizationName}?
+            {t("title", { action, name: organizationName })}
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            {getOrganizationMembershipActionDescription(
-              action,
-              hasOtherMembers
+            {t(
+              getOrganizationMembershipActionDescriptionKey(
+                action,
+                hasOtherMembers
+              )
             )}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogCancel>
+            {tCommon("cancel")}
+          </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={onConfirm}
           >
-            {actionLabel} Organization
+            {t("confirm", { action })}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>

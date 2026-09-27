@@ -16,6 +16,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 import {
   createContext,
   useContext,
@@ -44,6 +45,7 @@ export function ChatQuoteProvider({
   children,
   conversationId,
 }: ChatQuoteProviderProps) {
+  const t = useTranslations("chat.quote");
   const scopeId = useId();
   const [quote, setQuote] = useState<string | null>(null);
   const [selection, setSelection] = useState<ChatQuoteSelection | null>(null);
@@ -160,13 +162,13 @@ export function ChatQuoteProvider({
             className="z-50"
           >
             <Popover.Popup
-              aria-label="Quote selected text"
+              aria-label={t("quoteSelection")}
               initialFocus={false}
               finalFocus={false}
               className="bg-popover text-popover-foreground duration-fast ease-emphasized rounded-md border p-0.5 opacity-100 shadow-sm transition-opacity outline-none data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none"
             >
               <Button
-                aria-label="Quote selected text"
+                aria-label={t("quoteSelection")}
                 ref={buttonRef}
                 size="icon-xs"
                 variant="ghost"
@@ -195,6 +197,7 @@ export function ChatQuoteMessage(props: MessageProps) {
 
 // This short accordion resizes the composer so the input moves with the quote.
 export function ChatQuotePreview({ disabled = false }: ChatQuotePreviewProps) {
+  const t = useTranslations("chat.quote");
   const context = useChatQuote();
   const reduceMotion = useReducedMotion();
   return (
@@ -219,7 +222,7 @@ export function ChatQuotePreview({ disabled = false }: ChatQuotePreviewProps) {
                 {context.quote}
               </blockquote>
               <Button
-                aria-label="Remove quote"
+                aria-label={t("removeQuote")}
                 disabled={disabled}
                 size="icon-sm"
                 variant="ghost"

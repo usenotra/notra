@@ -40,18 +40,6 @@ export function getBrandGuidelineAssetFormat(file: File) {
   return null;
 }
 
-export function formatBrandGuidelineAssetFileSize(bytes: number) {
-  if (bytes < 1024) {
-    return `${bytes}B`;
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)}KB`;
-  }
-
-  return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
-}
-
 export function getBrandGuidelineAssetTypeLabel(file: File) {
   const format = getBrandGuidelineAssetFormat(file);
 
@@ -63,7 +51,7 @@ export function getBrandGuidelineAssetTypeLabel(file: File) {
     return format.toUpperCase();
   }
 
-  return "image";
+  return null;
 }
 
 export function getBrandGuidelineImageDimensions(file: File) {

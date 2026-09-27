@@ -3,6 +3,7 @@ import { brandSettings } from "@notra/db/schema";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
@@ -19,9 +20,10 @@ import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { VisibilityForm } from "./visibility-form";
 
-export const metadata: Metadata = {
-  title: "Track your AI visibility",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("onboarding.visibility");
+  return { title: t("metaTitle") };
+}
 
 export default async function OnboardingVisibilityPage({
   searchParams,

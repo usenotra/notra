@@ -1,13 +1,10 @@
 "use client";
 
 import {
-  GEO_PROMPT_RECEIPT_VIEW_GROUP_LABEL,
-  GEO_PROMPT_RECEIPT_VIEW_LABELS,
-} from "@notra/geo-core/constants/geo";
-import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
+import { useTranslations } from "next-intl";
 
 import type { PromptReceiptViewSwitchProps } from "@/types/geo";
 
@@ -15,10 +12,11 @@ export function PromptReceiptViewSwitch({
   view,
   onChange,
 }: PromptReceiptViewSwitchProps) {
+  const t = useTranslations("geo.promptReceiptViewSwitch");
   return (
     <PermissionRow
       className="w-fit shrink-0"
-      label={GEO_PROMPT_RECEIPT_VIEW_GROUP_LABEL}
+      label={t("groupLabel")}
       layout="compact"
       onValueChange={(value) => {
         if (value === "analysis" || value === "raw") {
@@ -27,12 +25,8 @@ export function PromptReceiptViewSwitch({
       }}
       value={view}
     >
-      <PermissionOption value="analysis">
-        {GEO_PROMPT_RECEIPT_VIEW_LABELS.analysis}
-      </PermissionOption>
-      <PermissionOption value="raw">
-        {GEO_PROMPT_RECEIPT_VIEW_LABELS.raw}
-      </PermissionOption>
+      <PermissionOption value="analysis">{t("analysis")}</PermissionOption>
+      <PermissionOption value="raw">{t("raw")}</PermissionOption>
     </PermissionRow>
   );
 }

@@ -48,6 +48,7 @@
 @source "../../../../packages/ui/src/components/shared/cta-button.tsx";
 @source "../../../../packages/ui/src/components/shared/orbit-images.tsx";
 @source "../../../../packages/ui/src/components/shared/responsive-dialog.tsx";
+@source "../../../../packages/ui/src/components/shared/ui-labels-provider.tsx";
 @source "../../../../packages/ui/src/components/ui/avatar.tsx";
 @source "../../../../packages/ui/src/components/ui/badge.tsx";
 @source "../../../../packages/ui/src/components/ui/button-group.tsx";
@@ -148,11 +149,13 @@
 @source "../../../../packages/ui/src/constants/command-tabs.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
+@source "../../../../packages/ui/src/constants/kibo-ui-labels.ts";
 @source "../../../../packages/ui/src/constants/message-animation.ts";
 @source "../../../../packages/ui/src/constants/message-code.ts";
 @source "../../../../packages/ui/src/constants/message-table.ts";
 @source "../../../../packages/ui/src/constants/perplexity-models.ts";
 @source "../../../../packages/ui/src/constants/table.ts";
+@source "../../../../packages/ui/src/constants/ui-labels.ts";
 @source "../../../../packages/ui/src/hooks/use-mobile.tsx";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";
 @source "../../../../packages/ui/src/lib/claude-chat-model.ts";
@@ -177,5 +180,7 @@
 @source "../../../../packages/ui/src/types/gemini.ts";
 @source "../../../../packages/ui/src/types/geo.ts";
 @source "../../../../packages/ui/src/types/instrument.ts";
+@source "../../../../packages/ui/src/types/kibo-ui.ts";
 @source "../../../../packages/ui/src/types/message-table.ts";
 @source "../../../../packages/ui/src/types/perplexity.ts";
+@source "../../../../packages/ui/src/types/ui-labels.ts";

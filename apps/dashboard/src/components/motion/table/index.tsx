@@ -2,6 +2,7 @@
 // beui.dev/components/motion/table
 
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
 import { useTableViewport } from "@/lib/hooks/use-table-viewport";
@@ -70,7 +71,7 @@ export function Table<T>({
   loading = false,
   loadingMore: loadingMoreProp,
   skeletonRows = 3,
-  emptyState = "No data",
+  emptyState: emptyStateProp,
   onRowClick,
   isRowClickable,
   renderRowContextMenu,
@@ -87,6 +88,8 @@ export function Table<T>({
   scrollFade = true,
   className,
 }: TableProps<T>) {
+  const tCommon = useTranslations("common");
+  const emptyState = emptyStateProp ?? tCommon("labels.noData");
   const reduce = useReducedMotion();
   const thRefs: HeaderCellRefs = useRef<
     Record<string, HTMLTableCellElement | null>

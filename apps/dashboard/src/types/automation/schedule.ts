@@ -63,8 +63,6 @@ export type SchedulePresetValues = Pick<
 export interface SchedulePreset {
   id: SchedulePresetId;
   icon: IconSvgElement;
-  label: string;
-  description: string;
   values: SchedulePresetValues;
 }
 

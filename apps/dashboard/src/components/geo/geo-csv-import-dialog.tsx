@@ -33,6 +33,7 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Effect } from "effect";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -49,9 +50,10 @@ import type {
   GeoImportDialogProps,
 } from "@/types/components/geo";
 import { downloadBlob } from "@/utils/download";
-import { formatCsvFileSize, geoImportNoun } from "@/utils/geo-import";
+import { formatCsvFileSize } from "@/utils/geo-import";
 
 function CsvIssueList({ issues }: { issues: GeoCsvIssue[] }) {
+  const t = useTranslations("geo.geoCsvImportDialog");
   const visible = issues.slice(0, GEO_CSV_IMPORT_MAX_ISSUES_SHOWN);
   const hidden = issues.length - visible.length;
   return (
@@ -61,12 +63,16 @@ function CsvIssueList({ issues }: { issues: GeoCsvIssue[] }) {
           className="text-muted-foreground flex gap-2"
           key={`${issue.line}:${issue.message}`}
         >
-          <span className="shrink-0 tabular-nums">Line {issue.line}</span>
+          <span className="shrink-0 tabular-nums">
+            {t("line", { line: issue.line })}
+          </span>
           <span className="text-foreground">{issue.message}</span>
         </li>
       ))}
       {hidden > 0 ? (
-        <li className="text-muted-foreground">and {hidden} more</li>
+        <li className="text-muted-foreground">
+          {t("moreIssues", { count: hidden })}
+        </li>
       ) : null}
     </ul>
   );
@@ -102,6 +108,14 @@ function GeoCsvImportDialog<TRow>({
   onImport,
   isPending,
 }: GeoCsvImportDialogProps<TRow>) {
+  const t = useTranslations("geo.geoCsvImportDialog");
+  const tCommon = useTranslations("common.actions");
+  const tGeoShared = useTranslations("geo.shared");
+  const importLabel =
+    kind === "prompts"
+      ? tGeoShared("importPrompts")
+      : tGeoShared("importCompetitors");
+  const locale = useLocale();
   const [selection, setSelection] = useState<GeoCsvSelection<TRow> | null>(
     null
   );
@@ -125,7 +139,7 @@ function GeoCsvImportDialog<TRow>({
       readGeoCsvFile(file, parse).pipe(
         Effect.match({
           onSuccess: setSelection,
-          onFailure: () => toast.error("Could not read that file"),
+          onFailure: () => toast.error(t("readFailed")),
         })
       )
     );
@@ -166,9 +180,9 @@ function GeoCsvImportDialog<TRow>({
     >
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{copy.title}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{importLabel}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {copy.description}
+            {t(`kinds.${kind}.description`)}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="space-y-3 px-4 md:px-0">
@@ -182,7 +196,13 @@ function GeoCsvImportDialog<TRow>({
             maxFiles={1}
             maxSize={GEO_CSV_IMPORT_MAX_BYTES}
             onDrop={handleDrop}
-            onError={(error) => toast.error(error.message)}
+            onError={() =>
+              toast.error(
+                t("fileRejected", {
+                  size: formatCsvFileSize(GEO_CSV_IMPORT_MAX_BYTES, locale),
+                })
+              )
+            }
             src={selection ? [selection.file] : undefined}
           >
             {selection ? (
@@ -195,8 +215,9 @@ function GeoCsvImportDialog<TRow>({
                     {selection.file.name}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {formatCsvFileSize(selection.file.size)} · Drop another file
-                    to replace
+                    {t("replaceHint", {
+                      size: formatCsvFileSize(selection.file.size, locale),
+                    })}
                   </p>
                 </div>
               </div>
@@ -205,24 +226,25 @@ function GeoCsvImportDialog<TRow>({
                 <div className="bg-muted text-muted-foreground flex size-9 items-center justify-center rounded-lg">
                   <HugeiconsIcon className="size-4" icon={Upload01Icon} />
                 </div>
-                <p className="text-sm font-medium">Drop your CSV here</p>
+                <p className="text-sm font-medium">{t("dropTitle")}</p>
                 <p className="text-muted-foreground text-xs">
-                  or click to browse · up to{" "}
-                  {formatCsvFileSize(GEO_CSV_IMPORT_MAX_BYTES)}
+                  {t("dropHint", {
+                    size: formatCsvFileSize(GEO_CSV_IMPORT_MAX_BYTES, locale),
+                  })}
                 </p>
               </div>
             )}
           </Dropzone>
           {selection ? (
             <div className="divide-y rounded-lg border text-sm">
-              <CsvSummaryRow label="Ready to import" value={rows.length} />
+              <CsvSummaryRow label={t("ready")} value={rows.length} />
               {duplicates > 0 ? (
-                <CsvSummaryRow label="Duplicates skipped" value={duplicates} />
+                <CsvSummaryRow label={t("duplicates")} value={duplicates} />
               ) : null}
               {issues.length > 0 ? (
                 <div className="space-y-2 pb-3">
                   <CsvSummaryRow
-                    label="Rows with problems"
+                    label={t("problems")}
                     tone="warning"
                     value={issues.length}
                   />
@@ -242,7 +264,7 @@ function GeoCsvImportDialog<TRow>({
               variant="link"
             >
               <HugeiconsIcon className="size-3" icon={Download01Icon} />
-              Download template
+              {t("downloadTemplate")}
             </Button>
           </div>
         </div>
@@ -253,13 +275,13 @@ function GeoCsvImportDialog<TRow>({
             type="button"
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={!canImport} onClick={handleImport} type="button">
             {isPending ? <StatusSpinner /> : null}
             {rows.length > 0
-              ? `Import ${rows.length} ${geoImportNoun(kind, rows.length)}`
-              : `Import ${copy.nounPlural}`}
+              ? t(`kinds.${kind}.importCount`, { count: rows.length })
+              : importLabel}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

@@ -23,16 +23,13 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { GeoProjectCreateDialog } from "@/components/geo/project-create-dialog";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import {
-  GEO_SETTINGS_NAV_LINK,
-  NAV_NEW_PROJECT_LABEL,
-  NAV_PROJECTS_MENU_LABEL,
-} from "@/constants/nav";
+import { GEO_SETTINGS_NAV_LINK } from "@/constants/nav";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
@@ -51,6 +48,7 @@ import { SidebarLabel } from "./sidebar-label";
 const GEO_SETTINGS_ITEM = resolveNavItems([GEO_SETTINGS_NAV_LINK]).at(0);
 
 export function SidebarProjectSwitcher() {
+  const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const slug = activeOrganization?.slug ?? "";
@@ -171,7 +169,9 @@ export function SidebarProjectSwitcher() {
               sideOffset={4}
             >
               <DropdownMenuGroup>
-                <DropdownMenuLabel>{NAV_PROJECTS_MENU_LABEL}</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {tCommon("labels.projects")}
+                </DropdownMenuLabel>
                 {projects.map((project) => (
                   <DropdownMenuItem
                     className="cursor-pointer gap-2 pr-8"
@@ -208,7 +208,7 @@ export function SidebarProjectSwitcher() {
                 onClick={() => setCreateOpen(true)}
               >
                 <HugeiconsIcon icon={PlusSignIcon} />
-                {NAV_NEW_PROJECT_LABEL}
+                {tCommon("labels.newProject")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer gap-2"
@@ -217,7 +217,9 @@ export function SidebarProjectSwitcher() {
                 <HugeiconsIcon
                   icon={GEO_SETTINGS_ITEM?.icon ?? Settings01Icon}
                 />
-                {GEO_SETTINGS_ITEM?.label ?? "GEO settings"}
+                {tCommon(
+                  `labels.${GEO_SETTINGS_ITEM?.labelKey ?? "geoSettings"}`
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -6,6 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import type {
@@ -30,12 +31,13 @@ function browserTimezone(): string {
 }
 
 export function useSocialOverview(organizationId: string) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<SocialOverviewResponse>({
     ...dashboardOrpc.analytics.overview.queryOptions({
       input: { organizationId },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load analytics overview" },
+    meta: { errorMessage: tToast("loadAnalyticsOverviewFailed") },
   });
 }
 
@@ -43,6 +45,7 @@ export function useEngagementTimeseries(
   organizationId: string,
   range?: AnalyticsDateRange
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<EngagementTimeseriesResponse>({
     ...dashboardOrpc.analytics.engagementTimeseries.queryOptions({
       input: {
@@ -54,7 +57,7 @@ export function useEngagementTimeseries(
       },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load engagement data" },
+    meta: { errorMessage: tToast("loadEngagementDataFailed") },
   });
 }
 
@@ -63,6 +66,7 @@ export function useTopPosts(
   limit?: number,
   range?: AnalyticsDateRange
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<TopPostsResponse>({
     ...dashboardOrpc.analytics.topPosts.queryOptions({
       input: {
@@ -75,7 +79,7 @@ export function useTopPosts(
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load top posts" },
+    meta: { errorMessage: tToast("loadTopPostsFailed") },
   });
 }
 
@@ -83,6 +87,7 @@ export function useFollowerGrowth(
   organizationId: string,
   range?: AnalyticsDateRange
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<FollowerGrowthResponse>({
     ...dashboardOrpc.analytics.followerGrowth.queryOptions({
       input: {
@@ -94,7 +99,7 @@ export function useFollowerGrowth(
       },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load follower growth" },
+    meta: { errorMessage: tToast("loadFollowerGrowthFailed") },
   });
 }
 
@@ -104,6 +109,7 @@ export function usePostingPerformance(
   organizationId: string,
   range?: AnalyticsDateRange
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<PostingPerformanceResponse>({
     ...dashboardOrpc.analytics.postingPerformance.queryOptions({
       input: {
@@ -115,7 +121,7 @@ export function usePostingPerformance(
       },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load posting performance" },
+    meta: { errorMessage: tToast("loadPostingPerformanceFailed") },
   });
 }
 
@@ -123,12 +129,13 @@ export function useLeaderboard(
   organizationId: string,
   days: LeaderboardWindow
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<LeaderboardResponse>({
     ...dashboardOrpc.analytics.leaderboard.queryOptions({
       input: { organizationId, days },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load leaderboard" },
+    meta: { errorMessage: tToast("loadLeaderboardFailed") },
   });
 }
 
@@ -136,6 +143,7 @@ export function useLeaderboardRange(
   organizationId: string,
   range: AnalyticsDateRange
 ) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<LeaderboardResponse>({
     ...dashboardOrpc.analytics.leaderboard.queryOptions({
       input: {
@@ -147,11 +155,12 @@ export function useLeaderboardRange(
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load leaderboard" },
+    meta: { errorMessage: tToast("loadLeaderboardFailed") },
   });
 }
 
 export function useUntrackAccount(organizationId: string) {
+  const tToast = useTranslations("analytics.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (trackedAccountId: string) =>
@@ -168,18 +177,19 @@ export function useUntrackAccount(organizationId: string) {
       toast.error(
         error instanceof Error && error.message
           ? error.message
-          : "Failed to stop tracking account"
+          : tToast("stopTrackingAccountFailed")
       );
     },
   });
 }
 
 export function useNotraAdoption(organizationId: string) {
+  const tToast = useTranslations("analytics.toasts");
   return useQuery<NotraAdoptionResponse>({
     ...dashboardOrpc.analytics.adoption.queryOptions({
       input: { organizationId },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load adoption data" },
+    meta: { errorMessage: tToast("loadAdoptionDataFailed") },
   });
 }

@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 import type { SitemapSelectorProps } from "@/types/hooks/brand-sitemaps";
 
@@ -15,6 +16,7 @@ export function SitemapSelector({
   selectedSitemapId,
   onSelect,
 }: SitemapSelectorProps) {
+  const t = useTranslations("brand.sitemap");
   const value =
     selectedSitemapId &&
     sitemaps.some((sitemap) => sitemap.id === selectedSitemapId)
@@ -36,10 +38,10 @@ export function SitemapSelector({
       value={value}
     >
       <SelectTrigger
-        aria-label="Select sitemap"
+        aria-label={t("selectSitemap")}
         className="w-full min-w-0 sm:w-72"
       >
-        <SelectValue placeholder="Select sitemap" />
+        <SelectValue placeholder={t("selectSitemap")} />
       </SelectTrigger>
       <SelectContent>
         {sitemaps.map((sitemap) => (

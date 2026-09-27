@@ -4,7 +4,9 @@ import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { OnDemandContentType } from "@notra/schemas/dashboard/content";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
+import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
 import { FORMAT_CARD_META } from "@/constants/content-formats";
 import { OutputTypeIcon } from "@/utils/output-types";
 
@@ -15,6 +17,8 @@ interface FormatCardProps {
 }
 
 export function FormatCard({ format, selected, onToggle }: FormatCardProps) {
+  const t = useTranslations("content.create.formats");
+  const tLabels = useTranslations("common.labels");
   const meta = FORMAT_CARD_META[format];
 
   return (
@@ -51,9 +55,11 @@ export function FormatCard({ format, selected, onToggle }: FormatCardProps) {
         </div>
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-medium">{meta.label}</p>
+        <p className="text-sm font-medium">
+          {tLabels(OUTPUT_TYPE_LABEL_KEYS[format])}
+        </p>
         <p className="text-muted-foreground text-xs leading-relaxed">
-          {meta.description}
+          {t(`${format}.description`)}
         </p>
       </div>
     </button>

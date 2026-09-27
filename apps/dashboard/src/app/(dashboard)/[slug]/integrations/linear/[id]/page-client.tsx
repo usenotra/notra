@@ -9,11 +9,13 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { LinearIntegration } from "@/types/integrations";
 
@@ -76,14 +78,15 @@ export default function PageClient({ integrationId }: PageClientProps) {
 }
 
 function LinearIntegrationMissing() {
+  const t = useTranslations("integrations.detailPage");
+
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="rounded-xl border border-dashed p-12 text-center">
-          <h3 className="text-lg font-medium">Integration not found</h3>
+          <h3 className="text-lg font-medium">{t("notFoundTitle")}</h3>
           <p className="text-muted-foreground text-sm">
-            This integration may have been deleted or you don't have access to
-            it.
+            {t("notFoundDescription")}
           </p>
         </div>
       </div>
@@ -102,11 +105,22 @@ function LinearIntegrationLoaded({
   onEditOpenChange: (open: boolean) => void;
   organizationId: string;
 }) {
-  const formattedDate = format(new Date(integration.createdAt), "MMM d, yyyy");
+  const t = useTranslations("integrations.detailPage");
+  const tCard = useTranslations("integrations.card");
+  const tCommon = useTranslations("common");
+  const dateFnsLocale = useDateFnsLocale();
+  const formattedDate = format(new Date(integration.createdAt), "MMM d, yyyy", {
+    locale: dateFnsLocale,
+  });
   const createdLabel = integration.createdByUser
-    ? `Added by ${integration.createdByUser.name} on ${formattedDate}`
-    : `Created on ${formattedDate}`;
-  const statusLabel = integration.enabled ? "Enabled" : "Disabled";
+    ? tCard("addedBy", {
+        name: integration.createdByUser.name,
+        date: formattedDate,
+      })
+    : tCard("createdOn", { date: formattedDate });
+  const statusLabel = integration.enabled
+    ? tCommon("states.enabled")
+    : tCommon("states.disabled");
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -149,9 +163,7 @@ function LinearIntegrationLoaded({
                 ) : null}
               </div>
             ) : null}
-            <p className="text-muted-foreground">
-              Configure your Linear integration settings
-            </p>
+            <p className="text-muted-foreground">{t("linearSubtitle")}</p>
           </div>
           <Button
             onClick={() => onEditOpenChange(true)}
@@ -168,11 +180,11 @@ function LinearIntegrationLoaded({
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <title>Edit icon</title>
+              <title>{t("editIcon")}</title>
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
-            <span className="ml-2">Edit</span>
+            <span className="ml-2">{tCommon("actions.edit")}</span>
           </Button>
         </div>
 
@@ -185,11 +197,13 @@ function LinearIntegrationLoaded({
 
         <div className="space-y-6">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Details</h2>
+            <h2 className="text-lg font-semibold">{t("details")}</h2>
             <div className="divide-y rounded-lg border">
               {integration.linearOrganizationName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
-                  <span className="text-sm font-medium">Workspace</span>
+                  <span className="text-sm font-medium">
+                    {tCommon("labels.workspace")}
+                  </span>
                   <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearOrganizationName}
                   </span>
@@ -197,20 +211,24 @@ function LinearIntegrationLoaded({
               ) : null}
               {integration.linearTeamName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
-                  <span className="text-sm font-medium">Team</span>
+                  <span className="text-sm font-medium">{t("team")}</span>
                   <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearTeamName}
                   </span>
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <span className="text-sm font-medium">Status</span>
+                <span className="text-sm font-medium">
+                  {tCommon("labels.status")}
+                </span>
                 <Badge variant={integration.enabled ? "default" : "secondary"}>
                   {statusLabel}
                 </Badge>
               </div>
               <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <span className="text-sm font-medium">Created</span>
+                <span className="text-sm font-medium">
+                  {tCommon("labels.created")}
+                </span>
                 <span className="text-muted-foreground text-sm">
                   {createdLabel}
                 </span>

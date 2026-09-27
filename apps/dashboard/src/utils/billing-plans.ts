@@ -4,25 +4,26 @@ import {
   ANNUAL_ADDON_SUFFIX,
   ANNUAL_PLAN_SUFFIXES,
   BILLING_PRICE_REGEX,
-  BILLING_SCENARIO_TEXT,
+  INVOICE_CREDITS_TOP_UP_PRODUCT_ID,
   INVOICE_PRODUCT_NAME_FALLBACKS,
   LEGACY_PLAN_TIERS,
   PLAN_NAME_BILLING_INTERVAL_SUFFIX,
-  PLAN_TIER_DESCRIPTIONS,
-  PLAN_TIER_FEATURES,
+  PLAN_TIER_LIMITS,
   ZDR_ADDON_BY_TIER,
-  ZDR_ADDON_HINT,
   ZDR_ADDON_PREFIX,
-  ZDR_ADDON_TITLE,
+  ZDR_ADDON_PRICE_PERCENT,
 } from "@/constants/billing";
 import type {
   BillingPlan,
   BillingPlanGroup,
   BillingPlanPrice,
+  BillingTranslator,
   BillingSubscription,
   PlanCardAddon,
+  PlanTierLimits,
 } from "@/types/billing/plan";
 import type { ProductFeature } from "@/types/hooks/billing";
+import { formatDollars } from "@/utils/format";
 
 const MONTHS_PER_YEAR = 12;
 
@@ -70,13 +71,55 @@ export function getProductPrice(
   };
 }
 
+function tierFeatures(
+  limits: PlanTierLimits,
+  t: BillingTranslator
+): ProductFeature[] {
+  return [
+    { text: t("plans.features.aiAnswers", { count: limits.aiAnswers }) },
+    {
+      text: t("plans.features.imageGenerations", {
+        count: limits.imageGenerations,
+      }),
+    },
+    {
+      text: t("plans.features.longFormPosts", { count: limits.longFormPosts }),
+    },
+    { text: t("plans.features.unlimitedSocialPosts") },
+    {
+      text: t("plans.features.pullRequestCredits", {
+        amount: limits.pullRequestCredits,
+      }),
+    },
+    { text: t("plans.features.projects", { count: limits.projects }) },
+    {
+      text: t("plans.features.references", { count: limits.references }),
+      overageText: t("plans.features.referencesOverage", {
+        price: limits.referenceOveragePrice,
+      }),
+    },
+    {
+      text: limits.prioritySupport
+        ? t("plans.features.prioritySupport")
+        : t("plans.features.standardSupport"),
+    },
+    {
+      text: t("plans.features.zdrAvailable", {
+        percent: ZDR_ADDON_PRICE_PERCENT,
+      }),
+    },
+  ];
+}
+
 export function getProductFeatures(
-  plan: BillingPlan | null | undefined
+  plan: BillingPlan | null | undefined,
+  t: BillingTranslator,
+  locale: string
 ): ProductFeature[] {
   const tier = planTierId(plan?.id);
-  const tierFeatures = tier ? PLAN_TIER_FEATURES[tier] : undefined;
-  if (tierFeatures) {
-    return tierFeatures;
+  const limits = tier ? PLAN_TIER_LIMITS[tier] : undefined;
+  if (limits) {
+    return tierFeatures(limits, t);
   }
 
   if (!plan?.items) {
@@ -98,11 +141,11 @@ export function getProductFeatures(
       if (item.featureId === FEATURES.AI_CREDITS) {
         const cents = item.included ?? 0;
         if (cents > 0) {
-          const dollars = new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(cents / 100);
-          return { text: `${dollars} AI Credits` };
+          return {
+            text: t("plans.features.aiCredits", {
+              amount: formatDollars(cents, locale),
+            }),
+          };
         }
         return null;
       }
@@ -117,16 +160,27 @@ export function getProductFeatures(
       }
 
       if (item.unlimited) {
-        return { text: `Unlimited ${featureName.toLowerCase()}` };
+        return {
+          text: t("plans.features.unlimitedFeature", {
+            feature: featureName.toLowerCase(),
+          }),
+        };
       }
 
       const includedUsage = item.included;
       if (includedUsage > 0) {
-        const interval = item.reset?.interval
-          ? `per ${item.reset.interval}`
-          : "";
+        const interval = item.reset?.interval;
         return {
-          text: `${includedUsage} ${featureName} ${interval}`.trim(),
+          text: interval
+            ? t("plans.features.includedFeaturePerInterval", {
+                count: includedUsage,
+                feature: featureName,
+                interval,
+              })
+            : t("plans.features.includedFeature", {
+                count: includedUsage,
+                feature: featureName,
+              }),
           overageText,
         };
       }
@@ -136,17 +190,16 @@ export function getProductFeatures(
     .filter((feature): feature is ProductFeature => feature !== null);
 }
 
-export function getPricingButtonText(plan: BillingPlan): string {
-  const attachAction = plan.customerEligibility?.attachAction;
-
+export function getPricingButtonText(
+  plan: BillingPlan,
+  t: BillingTranslator
+): string {
   if (plan.freeTrial && plan.customerEligibility?.trialAvailable) {
-    return "Start Free Trial";
+    return t("plans.button", { action: "trial" });
   }
-  if (attachAction === "purchase") {
-    return "Purchase";
-  }
-
-  return BILLING_SCENARIO_TEXT[attachAction ?? ""] ?? "Get Started";
+  return t("plans.button", {
+    action: plan.customerEligibility?.attachAction ?? "new",
+  });
 }
 
 function monthlyEquivalent(group: BillingPlanGroup): number {
@@ -206,8 +259,14 @@ export function selectPlanVariant(
   return group.monthly;
 }
 
-export function planGroupDescription(group: BillingPlanGroup): string {
-  return group.description ?? PLAN_TIER_DESCRIPTIONS[group.id] ?? "";
+export function planGroupDescription(
+  group: BillingPlanGroup,
+  t: BillingTranslator
+): string {
+  if (PLAN_TIER_LIMITS[group.id]) {
+    return t("plans.tierDescription", { tier: group.id });
+  }
+  return group.description ?? "";
 }
 
 export function isPlanInGroup(
@@ -248,10 +307,14 @@ export function planCardClassName(
   return "transition-all hover:ring-2 hover:ring-muted-foreground/20";
 }
 
-export function formatInvoiceProductName(
+function formatInvoiceProductName(
   productId: string,
-  plans: BillingPlan[] | undefined
+  plans: BillingPlan[] | undefined,
+  t: BillingTranslator
 ): string {
+  if (productId === INVOICE_CREDITS_TOP_UP_PRODUCT_ID) {
+    return t("plans.invoiceCreditsTopUp");
+  }
   const plan = plans?.find((entry) => entry.id === productId);
   return (
     planDisplayName(plan?.name) ??
@@ -262,13 +325,14 @@ export function formatInvoiceProductName(
 
 export function getInvoiceDescription(
   productIds: string[] | undefined,
-  plans: BillingPlan[] | undefined
+  plans: BillingPlan[] | undefined,
+  t: BillingTranslator
 ): string {
   if (!productIds?.length) {
-    return "Subscription";
+    return t("plans.invoiceSubscription");
   }
   return productIds
-    .map((productId) => formatInvoiceProductName(productId, plans))
+    .map((productId) => formatInvoiceProductName(productId, plans, t))
     .join(", ");
 }
 
@@ -287,8 +351,8 @@ export function isZdrAddonPlanId(planId: string | undefined): boolean {
   return Boolean(planId?.startsWith(ZDR_ADDON_PREFIX));
 }
 
-export function formatUsd(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatUsd(amount: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
@@ -309,16 +373,21 @@ export function findZdrAddonPlan(
 export function zdrAddonToggle(
   addonPlan: BillingPlan | null,
   checked: boolean,
-  onCheckedChange: (checked: boolean) => void
+  onCheckedChange: (checked: boolean) => void,
+  t: BillingTranslator,
+  locale: string
 ): PlanCardAddon | undefined {
   if (!addonPlan) {
     return undefined;
   }
   const price = getProductPrice(addonPlan);
   return {
-    label: ZDR_ADDON_TITLE,
-    description: `+${formatUsd(price.amount)}/${price.interval}`,
-    hint: ZDR_ADDON_HINT,
+    label: t("shared.zeroDataRetention"),
+    description: t("plans.addonPrice", {
+      price: formatUsd(price.amount, locale),
+      interval: price.interval,
+    }),
+    hint: t("zdrAddon.hint"),
     checked,
     onCheckedChange,
   };

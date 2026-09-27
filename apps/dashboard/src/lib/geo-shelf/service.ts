@@ -17,12 +17,10 @@ import {
 } from "@notra/schemas/utils/dashboard/shelf-url";
 import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
 
-import {
-  GEO_SHELF_DUPLICATE_URL_MESSAGE,
-  GEO_SHELF_OPEN_STATUSES,
-} from "@/constants/geo-shelf";
+import { GEO_SHELF_OPEN_STATUSES } from "@/constants/geo-shelf";
 import { isUniqueConstraintError } from "@/lib/db/errors";
 import { queryCitedShelfPages } from "@/lib/geo-shelf/citation-query";
 import { citationsEqual, emptyShelfCitations } from "@/lib/geo-shelf/citations";
@@ -528,12 +526,19 @@ export async function createGeoShelfSource(
   input: GeoShelfCreateInput,
   userId: string
 ): Promise<GeoShelfSource> {
-  assertGeoShelfOpportunityMembers(seed.members, input.opportunity, null);
+  const tErrors = await getTranslations("errors.geo");
+  const tCommon = await getTranslations("common");
+  assertGeoShelfOpportunityMembers(
+    seed.members,
+    input.opportunity,
+    null,
+    tErrors("notOrganizationMember")
+  );
   const nowIso = new Date().toISOString();
   const url = canonicalizeShelfUrl(input.url);
   const key = storeKey(seed);
   if (await isGeoShelfUrlOnShelf(seed, url)) {
-    throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
+    throw conflict(tCommon("messages.thisPageIsAlreadyOn"));
   }
   // Validate before touching the store: a rejected record must not end up in
   // the shelf list of the organization.
@@ -560,7 +565,7 @@ export async function createGeoShelfSource(
     return await insertGeoShelfSource(key, source);
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
+      throw conflict(tCommon("messages.thisPageIsAlreadyOn"));
     }
     throw error;
   }
@@ -572,6 +577,9 @@ export async function updateGeoShelfSource(
   userId: string
 ): Promise<GeoShelfUpdateResult | null> {
   const nowIso = new Date().toISOString();
+  const notMemberMessage = (await getTranslations("errors.geo"))(
+    "notOrganizationMember"
+  );
   const resolveOpportunity = (
     current: GeoShelfOpportunity | null
   ): GeoShelfOpportunity | null => {
@@ -590,7 +598,12 @@ export async function updateGeoShelfSource(
       dueAt: current?.dueAt ?? null,
       ...input.opportunity,
     } satisfies GeoShelfOpportunityWrite;
-    assertGeoShelfOpportunityMembers(seed.members, input.opportunity, current);
+    assertGeoShelfOpportunityMembers(
+      seed.members,
+      input.opportunity,
+      current,
+      notMemberMessage
+    );
     return buildOpportunity(write, userId, nowIso, current);
   };
   let assigneeChanged = false;

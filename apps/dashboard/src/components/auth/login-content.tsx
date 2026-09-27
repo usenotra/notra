@@ -1,9 +1,10 @@
 import type { PendingAuthStep } from "@notra/schemas/types/dashboard/auth";
+import { getTranslations } from "next-intl/server";
 
 import { LoginErrorTracker } from "@/components/auth/login-error-tracker";
 import { LoginForm } from "@/components/auth/login-form";
 import { SocialEnrollmentResume } from "@/components/auth/social-enrollment-resume";
-import { LOGIN_ERROR_MESSAGES } from "@/constants/login-error-messages";
+import { LOGIN_ERROR_KEYS } from "@/constants/login-error-messages";
 import { LOGIN_MFA_QUERY_KEY } from "@/constants/security";
 import { readPendingMfaFlow } from "@/lib/auth/mfa-cookies";
 import type { LoginPageProps, LoginPageStart } from "@/types/auth/login-page";
@@ -36,6 +37,7 @@ async function resolveStart(
 
 export async function LoginContent({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = await searchParams;
+  const t = await getTranslations("auth.loginErrors");
 
   const readParam = (key: string) => {
     const value = resolvedSearchParams[key];
@@ -48,7 +50,7 @@ export async function LoginContent({ searchParams }: LoginPageProps) {
   const errorKey = readParam("error");
   const mfa = readParam(LOGIN_MFA_QUERY_KEY);
   const knownErrorKey =
-    errorKey && Object.hasOwn(LOGIN_ERROR_MESSAGES, errorKey)
+    errorKey && LOGIN_ERROR_KEYS.some((key) => key === errorKey)
       ? errorKey
       : undefined;
   const start = await resolveStart(mfa, verify, email);
@@ -64,7 +66,11 @@ export async function LoginContent({ searchParams }: LoginPageProps) {
       ) : (
         <LoginForm
           initialError={
-            knownErrorKey ? LOGIN_ERROR_MESSAGES[knownErrorKey] : undefined
+            knownErrorKey === "social-sign-in-failed"
+              ? t("socialSignInFailed")
+              : knownErrorKey
+                ? t("externalLoginFailed")
+                : undefined
           }
           initialPending={start.pending}
           returnTo={returnTo}

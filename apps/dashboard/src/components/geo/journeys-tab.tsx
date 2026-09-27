@@ -4,6 +4,7 @@ import { GEO_JOURNEY_OVERVIEW_ROWS } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { JourneyDetailSheet } from "@/components/geo/journey-detail-sheet";
@@ -47,14 +48,17 @@ function JourneyStatCardSkeleton({ eyebrow }: { eyebrow: string }) {
 }
 
 function JourneysTabSkeleton() {
+  const t = useTranslations("geo.journeysTab");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <div aria-busy="true" className="mt-6 flex flex-col gap-6">
-      <span className="sr-only">Loading agent journeys</span>
+      <span className="sr-only">{t("loading")}</span>
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
-        <JourneyStatCardSkeleton eyebrow="Journeys" />
-        <JourneyStatCardSkeleton eyebrow="Fetched pages" />
+        <JourneyStatCardSkeleton eyebrow={tCommon("labels.journeys")} />
+        <JourneyStatCardSkeleton eyebrow={tGeoShared("fetchedPages")} />
       </div>
-      <GeoSectionSkeleton eyebrow="Agent journeys">
+      <GeoSectionSkeleton eyebrow={tGeoShared("agentJourneys")}>
         <GeoTableSkeleton rows={JOURNEY_TABLE_SKELETON_ROWS} />
       </GeoSectionSkeleton>
     </div>

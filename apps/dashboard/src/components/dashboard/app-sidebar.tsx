@@ -13,6 +13,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -36,31 +37,37 @@ import { SidebarSwap } from "./sidebar-swap";
 const ChatHistoryNav = dynamic(
   () => import("./chat-history-nav").then((module) => module.ChatHistoryNav),
   {
-    loading: () => (
-      <div
-        aria-label="Loading chat history"
-        className="space-y-2 p-3"
-        role="status"
-      >
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-4/5" />
-      </div>
-    ),
+    loading: () => <ChatHistoryNavLoading />,
   }
 );
 
+function ChatHistoryNavLoading() {
+  const t = useTranslations("nav.sidebar");
+  return (
+    <div
+      aria-label={t("loadingChatHistory")}
+      className="space-y-2 p-3"
+      role="status"
+    >
+      <Skeleton className="h-5 w-24" />
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-4/5" />
+    </div>
+  );
+}
+
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
+  const t = useTranslations("common.actions");
   return (
     <div className="bg-sidebar sticky top-0 z-10 p-2">
       <SidebarMenu>
         <SidebarMenuButton
           className="hover:bg-sidebar-accent duration-normal cursor-pointer transition-colors [&>*]:group-data-[collapsible=icon]:-translate-x-px"
           onClick={onBack}
-          tooltip="Back"
+          tooltip={t("back")}
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} />
-          <SidebarLabel>Back</SidebarLabel>
+          <SidebarLabel>{t("back")}</SidebarLabel>
         </SidebarMenuButton>
       </SidebarMenu>
     </div>

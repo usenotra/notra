@@ -1,0 +1,30 @@
+import { cookies } from "next/headers";
+
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/constants/cookies";
+import { LOCALE_AUTO_VALUE } from "@/constants/locales";
+import type { LocalePreference } from "@/types/i18n";
+import { isDashboardLocale } from "@/utils/i18n";
+
+export async function readLocaleCookie(): Promise<
+  LocalePreference | undefined
+> {
+  const value = (await cookies()).get(LOCALE_COOKIE)?.value;
+  if (value === LOCALE_AUTO_VALUE) {
+    return null;
+  }
+  return isDashboardLocale(value) ? value : undefined;
+}
+
+export async function writeLocaleCookie(preference: LocalePreference) {
+  (await cookies()).set(LOCALE_COOKIE, preference ?? LOCALE_AUTO_VALUE, {
+    httpOnly: true,
+    maxAge: LOCALE_COOKIE_MAX_AGE,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+export async function clearLocaleCookie() {
+  (await cookies()).delete({ name: LOCALE_COOKIE, path: "/" });
+}

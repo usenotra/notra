@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { postCollectionSummarySchema } from "@notra/schemas/dashboard/content";
+import { createTranslator } from "next-intl";
 
 import {
   collectionHref,
@@ -9,7 +10,14 @@ import {
   collectionTitle,
 } from "@/utils/content-collections";
 
+import messages from "../messages/en.json";
 import { SINGLE_POST_COLLECTION } from "./constants/content-collections";
+
+const t = createTranslator({
+  locale: "en",
+  messages,
+  namespace: "content.collections",
+});
 
 describe("content overview destinations", () => {
   test("a finished single post uses its post ID and title, not the collection's", () => {
@@ -18,7 +26,7 @@ describe("content overview destinations", () => {
     );
     expect(collectionHref("acme", collection)).toBe("/acme/content/post-17");
     expect(collectionTitle(collection)).toBe("A quieter way to work");
-    expect(collectionMeta(collection)).toBe("Manual · Single post");
+    expect(collectionMeta(collection, t)).toBe("Manual · Single post");
   });
 
   test("a partially generated batch stays a collection even when one post is ready", () => {
@@ -32,7 +40,7 @@ describe("content overview destinations", () => {
     );
     expect(collectionTitle(collection)).toBe("Blog post - September 20th 2026");
     expect(collectionStatus(collection)).toBe("generating");
-    expect(collectionMeta(collection)).toBe("Manual · 1 of 3 posts ready");
+    expect(collectionMeta(collection, t)).toBe("Manual · 1 of 3 posts ready");
   });
 
   test.each([0, 2])("%i posts open the collection", (postCount) => {

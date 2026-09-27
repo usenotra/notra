@@ -19,6 +19,7 @@ import {
   useDbClient,
   useLiveQuery,
 } from "@tanstack/react-db";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -93,6 +94,7 @@ export function useGeoPromptsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -117,13 +119,17 @@ export function useGeoPromptsDb(
       collection.update(promptId, (draft) => {
         draft.enabled = enabled;
       }),
-      "Failed to update prompt"
+      tToast("updatePromptFailed")
     );
   };
 
   const removePrompts = (promptIds: string[]) => {
     for (const promptId of promptIds) {
-      track(promptId, collection.delete(promptId), "Failed to remove prompt");
+      track(
+        promptId,
+        collection.delete(promptId),
+        tToast("removePromptFailed")
+      );
     }
   };
 
@@ -133,7 +139,7 @@ export function useGeoPromptsDb(
       collection.update(promptId, (draft) => {
         draft.tags = tags;
       }),
-      "Failed to update tags"
+      tToast("updateTagsFailed")
     );
   };
 
@@ -144,7 +150,7 @@ export function useGeoPromptsDb(
         collection.update(promptId, (draft) => {
           draft.tags = mergePromptTags(draft.tags, tags);
         }),
-        "Failed to update tags"
+        tToast("updateTagsFailed")
       );
     }
   };
@@ -161,7 +167,7 @@ export function useGeoPromptsDb(
         tags: [],
         createdAt: new Date().toISOString(),
       }),
-      "Failed to add prompt"
+      tToast("addPromptFailed")
     );
   };
 
@@ -181,6 +187,8 @@ export function useGeoProjectsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
+  const tCommon = useTranslations("common");
   const isEnabled = options?.enabled ?? true;
   const scope = { organizationId };
   const collectionId = geoCollectionId("projects", scope);
@@ -233,7 +241,7 @@ export function useGeoProjectsDb(
     });
     const createdPromise = waitForProjectCreateHandoff(transaction.id);
     void createdPromise.catch(() => undefined);
-    track(tempId, transaction, "Failed to create project");
+    track(tempId, transaction, tCommon("labels.failedToCreateProject"));
 
     let persistError: unknown;
     await Promise.race([
@@ -255,19 +263,23 @@ export function useGeoProjectsDb(
 
     if (persistError) {
       if (persistError instanceof GeoProjectCreateTimeoutError) {
-        toast.error(toErrorMessage(persistError, "Failed to create project"));
+        toast.error(
+          toErrorMessage(persistError, tCommon("labels.failedToCreateProject"))
+        );
       }
       throw persistError;
     }
 
     const created = await createdPromise.catch(() => null);
     if (!created) {
-      const error = new Error("Failed to resolve created project");
-      toast.error(toErrorMessage(error, "Failed to create project"));
+      const error = new Error(tToast("resolveCreatedProjectFailed"));
+      toast.error(
+        toErrorMessage(error, tCommon("labels.failedToCreateProject"))
+      );
       throw error;
     }
 
-    toast.success("Project created");
+    toast.success(tToast("projectCreated"));
     return created;
   };
 
@@ -275,7 +287,7 @@ export function useGeoProjectsDb(
     const transaction = collection.update(projectId, (draft) => {
       draft.brandSettingsId = brandSettingsId;
     });
-    track(projectId, transaction, "Failed to update project brand identity");
+    track(projectId, transaction, tToast("updateProjectBrandIdentityFailed"));
     return transaction.isPersisted.promise;
   };
 
@@ -287,10 +299,10 @@ export function useGeoProjectsDb(
 
     setIsDeleting(true);
     const transaction = collection.delete(projectId);
-    track(projectId, transaction, "Failed to delete project");
+    track(projectId, transaction, tToast("deleteProjectFailed"));
     await transaction.isPersisted.promise
       .then(() => {
-        toast.success("Project deleted");
+        toast.success(tToast("projectDeleted"));
       })
       .finally(() => {
         clearPendingDeleteSnapshot(collectionId, projectId);
@@ -316,6 +328,7 @@ export function useGeoCompetitorsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -344,14 +357,14 @@ export function useGeoCompetitorsDb(
           Object.assign(draft, competitor);
         })
       : collection.insert(competitor);
-    track(competitor.id, transaction, "Failed to save competitor");
+    track(competitor.id, transaction, tToast("saveCompetitorFailed"));
   };
 
   const removeCompetitor = (competitorId: string) => {
     track(
       competitorId,
       collection.delete(competitorId),
-      "Failed to remove competitor"
+      tToast("removeCompetitorFailed")
     );
   };
 
@@ -367,6 +380,7 @@ export function useGeoSequencesDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -396,7 +410,7 @@ export function useGeoSequencesDb(
         enabled: true,
         createdAt: new Date().toISOString(),
       }),
-      "Failed to add conversation"
+      tToast("addConversationFailed")
     );
   };
 
@@ -409,7 +423,7 @@ export function useGeoSequencesDb(
       collection.update(sequenceId, (draft) => {
         Object.assign(draft, changes);
       }),
-      "Failed to update conversation"
+      tToast("updateConversationFailed")
     );
   };
 
@@ -417,7 +431,7 @@ export function useGeoSequencesDb(
     track(
       sequenceId,
       collection.delete(sequenceId),
-      "Failed to remove conversation"
+      tToast("removeConversationFailed")
     );
   };
 

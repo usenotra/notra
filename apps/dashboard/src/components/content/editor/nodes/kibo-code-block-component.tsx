@@ -21,6 +21,7 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
 } from "lexical";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -72,6 +73,7 @@ export default function KiboCodeBlockComponent({
   language,
   nodeKey,
 }: KiboCodeBlockComponentProps) {
+  const t = useTranslations("content.editor.codeBlock");
   const [editor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey);
@@ -210,7 +212,7 @@ export default function KiboCodeBlockComponent({
       <div className="bg-secondary flex items-center justify-between border-b px-1 py-1">
         <Select onValueChange={handleLanguageChange} value={normalizedLanguage}>
           <SelectTrigger
-            aria-label="Select code language"
+            aria-label={t("selectLanguage")}
             className="text-muted-foreground h-7 w-fit gap-1 border-none bg-transparent text-xs shadow-none"
             size="sm"
           >
@@ -219,13 +221,13 @@ export default function KiboCodeBlockComponent({
           <SelectContent>
             {Object.entries(CODE_LANGUAGES).map(([key, label]) => (
               <SelectItem key={key} value={key}>
-                {label}
+                {key === "plain" ? t("plainText") : label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Button
-          aria-label={isCopied ? "Code copied" : "Copy code"}
+          aria-label={isCopied ? t("copied") : t("copy")}
           className="h-7 shrink-0"
           onClick={handleCopy}
           size="icon"
@@ -251,7 +253,7 @@ export default function KiboCodeBlockComponent({
           className="block flex-1 resize-none bg-transparent py-4 pr-4 pl-3 font-mono text-sm leading-relaxed outline-none"
           onChange={handleCodeChange}
           onKeyDown={handleKeyDown}
-          placeholder="Enter code here..."
+          placeholder={t("placeholder")}
           ref={textareaRef}
           rows={1}
           spellCheck={false}

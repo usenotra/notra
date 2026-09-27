@@ -1,4 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
+import type { useTranslations } from "next-intl";
 
 import type { SettingsSectionId } from "@/types/settings/modal";
 
@@ -10,8 +11,40 @@ export type CommandSection =
   | "Manage"
   | "Settings";
 
+export type CommandRouteId =
+  | "home"
+  | "chat"
+  | "analytics"
+  | "geo"
+  | "geo-traffic"
+  | "geo-prompts"
+  | "geo-personas"
+  | "geo-gaps"
+  | "geo-shelf-space"
+  | "geo-competitors"
+  | "geo-write"
+  | "geo-settings-brand"
+  | "geo-settings-languages"
+  | "geo-settings-models"
+  | "content"
+  | "brand-company-info"
+  | "brand-references"
+  | "automation-schedules"
+  | "automation-events"
+  | "api-keys"
+  | "integrations"
+  | "github-integration"
+  | "logs"
+  | "settings-account"
+  | "settings-general"
+  | "settings-members"
+  | "settings-notifications"
+  | "settings-billing"
+  | "settings-usage"
+  | "settings-credits";
+
 export interface CommandRoute {
-  id: string;
+  id: CommandRouteId;
   label: string;
   keywords: string[];
   icon: IconSvgElement;
@@ -74,10 +107,16 @@ export interface CommandPaletteSearchData {
 }
 
 export type EntityHitSection =
-  | "Posts"
-  | "Brand voices"
-  | "References"
-  | "Integrations";
+  | "posts"
+  | "brandVoices"
+  | "references"
+  | "integrations";
+
+export type CommandPaletteTranslator = ReturnType<
+  typeof useTranslations<"commandPalette">
+>;
+
+export type CommandPaletteNavigatingLabelKey = "opening" | "openingChat";
 
 export type EntityHitsBySection = Record<EntityHitSection, EntityHit[]>;
 
@@ -86,7 +125,7 @@ export interface CommandPaletteDialogProps {
   aiState:
     | { status: "idle" }
     | { status: "loading" }
-    | { status: "navigating"; label: string }
+    | { status: "navigating"; labelKey: CommandPaletteNavigatingLabelKey }
     | { status: "error" };
   entityHitsBySection: EntityHitsBySection;
   handleOpenChange: (open: boolean) => void;
@@ -103,7 +142,7 @@ export interface CommandPaletteDialogProps {
     state:
       | { status: "idle" }
       | { status: "loading" }
-      | { status: "navigating"; label: string }
+      | { status: "navigating"; labelKey: CommandPaletteNavigatingLabelKey }
       | { status: "error" }
   ) => void;
   setQuery: (value: string) => void;

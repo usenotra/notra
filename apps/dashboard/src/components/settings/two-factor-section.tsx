@@ -9,11 +9,17 @@ import type {
 import type {
   BackupCodesOutcome,
   SecurityActionOutcome,
+  TwoFactorSettingsLabels,
 } from "@notra/ui/types/security";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth/client";
+import {
+  useBackupCodesPanelLabels,
+  useTotpEnrollmentPanelLabels,
+} from "@/lib/i18n/use-auth-labels";
 import { errorMessageOr } from "@/lib/utils";
 import type {
   ActiveTotpEnrollment,
@@ -27,6 +33,12 @@ export function TwoFactorSection({
   status,
   onRefresh,
 }: TwoFactorSectionProps) {
+  const t = useTranslations("settings.twoFactor");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const enrollmentPanel = useTotpEnrollmentPanelLabels();
+  const backupCodesPanel = useBackupCodesPanelLabels();
   const [enrollment, setEnrollment] = useState<ActiveTotpEnrollment | null>(
     null
   );
@@ -56,12 +68,7 @@ export function TwoFactorSection({
       .catch(() => null);
     setIsStartingEnrollment(false);
     if (!result || result.error) {
-      toast.error(
-        errorMessageOr(
-          result?.error?.message,
-          "Couldn't start two-factor setup"
-        )
-      );
+      toast.error(errorMessageOr(result?.error?.message, t("startFailed")));
       return;
     }
     setEnrollment({ kind: "scanning", ...result.data });
@@ -77,13 +84,13 @@ export function TwoFactorSection({
       .catch(() => null);
     if (!result) {
       setRemovingFactorId(null);
-      return { ok: false, message: "Couldn't remove the authenticator app" };
+      return { ok: false, message: t("removeFailed") };
     }
     if (result.error) {
       setRemovingFactorId(null);
       return { ok: false, message: result.error.message };
     }
-    toast.success("Two-factor authentication turned off");
+    toast.success(t("turnedOff"));
     await onRefresh();
     setRemovingFactorId(null);
     return { ok: true };
@@ -93,7 +100,7 @@ export function TwoFactorSection({
     code,
   }: TotpEnrollmentSubmission): Promise<TotpVerifyResult> {
     if (!enrollment) {
-      return { ok: false, message: "Start the setup again." };
+      return { ok: false, message: t("startAgain") };
     }
 
     const result = await authClient.security.verifyTotpEnrollment({
@@ -110,7 +117,7 @@ export function TwoFactorSection({
     if (result.data.warning) {
       toast.warning(result.data.warning);
     } else {
-      toast.success("Two-factor authentication is on");
+      toast.success(t("turnedOn"));
     }
     return { ok: true, backupCodes: result.data.backupCodes ?? undefined };
   }
@@ -147,8 +154,44 @@ export function TwoFactorSection({
     return { ok: true, codes: result.data.codes };
   }
 
+  const labels: TwoFactorSettingsLabels = {
+    loadError: t("settings.loadError"),
+    retry: tCommon("actions.tryAgain"),
+    title: tSettingsShared("authenticatorApp"),
+    enabled: t("settings.enabled"),
+    enabledDescription: t("settings.enabledDescription"),
+    disabledDescription: t("settings.disabledDescription"),
+    setUp: tCommon("labels.setUp"),
+    dialogTitle: t("settings.dialogTitle"),
+    dialogDescription: t("settings.dialogDescription"),
+    defaultFactorName: tSettingsShared("authenticatorApp"),
+    addedOn: (date) => t("settings.addedOn", { date }),
+    remove: tCommon("actions.remove"),
+    removeTitle: t("settings.removeTitle"),
+    removeDescription: (factorName) =>
+      t("settings.removeDescription", { factorName }),
+    removeConfirm: t("settings.removeConfirm"),
+    backupCodesTitle: t("settings.backupCodesTitle"),
+    backupCodesDescription: t("settings.backupCodesDescription"),
+    backupCodesRemaining: (count) =>
+      t("settings.backupCodesRemaining", { count }),
+    backupCodesExhausted: t("settings.backupCodesExhausted"),
+    regenerate: tCommon("labels.regenerate"),
+    regenerateTitle: t("settings.regenerateTitle"),
+    regenerateDescription: t("settings.regenerateDescription"),
+    regenerateConfirm: t("settings.regenerateConfirm"),
+    enrollmentPanel,
+    backupCodesPanel,
+    secondFactorConfirm: {
+      codeLabel: t("confirm.codeLabel"),
+      codePlaceholder: t("confirm.codePlaceholder"),
+      cancel: tCommon("actions.cancel"),
+      errorFallback: tSettingsShared("thatCodeDidnTWork"),
+    },
+  };
+
   return (
-    <TitleCard heading="Two-factor authentication">
+    <TitleCard heading={tCommon("labels.twoFactorAuthentication")}>
       <div className="space-y-4">
         <TwoFactorSettings
           accountLabel={accountLabel}
@@ -156,6 +199,8 @@ export function TwoFactorSection({
           enrollment={enrollment}
           factors={factors}
           isStartingEnrollment={isStartingEnrollment}
+          labels={labels}
+          locale={locale}
           onCancelEnrollment={cancelEnrollment}
           onEnrollmentDone={finishEnrollment}
           onRegenerateBackupCodes={regenerateBackupCodes}

@@ -4,7 +4,6 @@ import {
   GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_DOCS_PREFIXES,
   GEO_JOURNEY_HOME_PATHS,
-  GEO_JOURNEY_PATH_KIND_LABELS,
   GEO_JOURNEY_PATH_KINDS,
   GEO_JOURNEY_PATH_LABEL_MAX,
   GEO_JOURNEY_SEARCH_PREFIXES,
@@ -27,24 +26,23 @@ import type {
   GeoJourneyPathRow,
   GeoJourneySourceRow,
   GeoJourneyTreeNode,
-  SheetStat,
+  JourneyGroupSheetStat,
+  JourneyPageKindStat,
 } from "@/types/geo";
 
 const WWW_PREFIX = /^www\./;
 const SEARCH_QUERY = /[?&](?:q|query|s|search)=/i;
 
-const clockFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
-export function formatGeoJourneyClock(value: string): string {
+export function formatGeoJourneyClock(value: string, locale: string): string {
   const date = parseClickHouseDateTime(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return clockFormatter.format(date);
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
 }
 
 export function formatGeoRefererSource(referer: string): string {
@@ -227,28 +225,6 @@ export function buildJourneyOverview(
   };
 }
 
-export function formatJourneyKindSummary(
-  kindCounts: readonly GeoJourneyKindCount[]
-): string {
-  return kindCounts
-    .map(
-      (entry) =>
-        `${entry.paths} ${GEO_JOURNEY_PATH_KIND_LABELS[entry.kind].toLowerCase()}`
-    )
-    .join(" · ");
-}
-
-export function buildJourneyDepthSummary(
-  journeys: readonly GeoJourney[]
-): string {
-  if (journeys.length === 0) {
-    return "";
-  }
-  const overview = buildJourneyOverview(journeys);
-  const share = (value: number) => `${Math.round(value * 100)}%`;
-  return `median ${overview.medianPages} ${overview.medianPages === 1 ? "page" : "pages"} · ${share(overview.deepShare)} crawl ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ · ${share(overview.singleFetchShare)} single-fetch`;
-}
-
 function refererPath(event: GeoJourneyEvent): string | null {
   const referer = event.referer.trim();
   if (!referer) {
@@ -349,18 +325,16 @@ export function countJourneyBranches(roots: readonly GeoJourneyTreeNode[]) {
 export function journeyPageKindStats(
   kindCounts: readonly GeoJourneyKindCount[],
   totalPages: number
-) {
+): JourneyPageKindStat[] {
   const count = (kind: GeoJourneyPathKind) =>
     kindCounts.find((entry) => entry.kind === kind)?.paths ?? 0;
   const docs = count("docs");
   const posts = count("blog");
   const other = Math.max(0, totalPages - docs - posts);
-  const label = (value: number) =>
-    `${value.toLocaleString()} ${value === 1 ? "page" : "pages"}`;
   return [
-    { label: GEO_JOURNEY_PATH_KIND_LABELS.docs, value: label(docs) },
-    { label: GEO_JOURNEY_PATH_KIND_LABELS.blog, value: label(posts) },
-    { label: "Other", value: label(other) },
+    { kind: "docs", pages: docs },
+    { kind: "blog", pages: posts },
+    { kind: "other", pages: other },
   ];
 }
 
@@ -446,11 +420,15 @@ export function journeyTotals(sources: readonly GeoJourneySourceStats[]) {
   };
 }
 
-export function formatJourneyDepth(pages: number, journeys: number): string {
+export function journeyAverageDepth(pages: number, journeys: number): number {
   if (journeys === 0) {
-    return "0 pages";
+    return 0;
   }
-  const average = Math.round((pages / journeys) * 10) / 10;
+  return Math.round((pages / journeys) * 10) / 10;
+}
+
+export function formatJourneyDepth(pages: number, journeys: number): string {
+  const average = journeyAverageDepth(pages, journeys);
   return `${average.toLocaleString()} ${average === 1 ? "page" : "pages"}`;
 }
 
@@ -462,25 +440,26 @@ export function journeyGroupSheetStats(input: {
   sourceRow: GeoJourneySourceStats | undefined;
   pageRow: GeoJourneyPageStats | undefined;
   totalJourneys: number;
-}): SheetStat[] {
+  locale: string;
+}): JourneyGroupSheetStat[] {
   const row = input.sourceRow ?? input.pageRow;
-  const journeyStat: SheetStat = {
-    label: "Journeys",
-    value: row ? row.journeys.toLocaleString() : "—",
+  const journeyStat: JourneyGroupSheetStat = {
+    key: "journeys",
+    value: row ? row.journeys.toLocaleString(input.locale) : "—",
     delta: row ? trafficVisitDelta(row.journeys, row.previousJourneys) : null,
   };
   if (input.sourceRow) {
     return [
       journeyStat,
       {
-        label: "Avg. depth",
-        value: formatJourneyDepth(
+        key: "avgDepth",
+        depth: journeyAverageDepth(
           input.sourceRow.pages,
           input.sourceRow.journeys
         ),
       },
       {
-        label: `Crawled ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ pages`,
+        key: "deepCrawls",
         value: formatJourneyShare(
           input.sourceRow.deepCrawls,
           input.sourceRow.journeys
@@ -492,14 +471,14 @@ export function journeyGroupSheetStats(input: {
     return [
       journeyStat,
       {
-        label: "Entry page",
+        key: "entryPage",
         value: formatJourneyShare(
           input.pageRow.entries,
           input.pageRow.journeys
         ),
       },
       {
-        label: "Of all journeys",
+        key: "ofAllJourneys",
         value: formatJourneyShare(input.pageRow.journeys, input.totalJourneys),
       },
     ];

@@ -12,11 +12,28 @@ import type { SkillSlashOption } from "@/types/skills/slash";
 
 export type ChatModelProvider = "anthropic" | "openai" | "auto";
 
+export type ChatModelDescriptionKey =
+  | "auto"
+  | "latestOpus"
+  | "everyday"
+  | "fast"
+  | "advancedReasoning"
+  | "fastAffordable"
+  | "zdrRoute"
+  | "previousOpus"
+  | "previousSonnet"
+  | "previousOpenai";
+
+export interface ChatModelPricing {
+  input: string;
+  output: string;
+}
+
 export interface ChatModelOption {
   id: ChatModel;
   label: string;
-  description: string;
-  pricing: string;
+  description: ChatModelDescriptionKey | null;
+  pricing: ChatModelPricing | "varies" | null;
   provider: ChatModelProvider;
   beta?: boolean;
 }
@@ -117,7 +134,6 @@ export type ChatContextSuggestedIntegrationId = "github" | "linear" | "mcp";
 export interface ChatContextSuggestedIntegration {
   id: ChatContextSuggestedIntegrationId;
   name: string;
-  description: string;
   href: string;
   keywords: readonly string[];
 }

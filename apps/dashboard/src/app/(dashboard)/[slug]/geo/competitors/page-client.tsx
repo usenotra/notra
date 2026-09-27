@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useHotkey } from "@tanstack/react-hotkeys";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
@@ -42,20 +43,28 @@ const CompetitorShareCard = dynamic(
       (module) => module.CompetitorShareCard
     ),
   {
-    loading: () => (
-      <GeoSectionSkeleton eyebrow="Share of voice">
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </GeoSectionSkeleton>
-    ),
+    loading: () => <CompetitorShareCardLoading />,
     ssr: false,
   }
 );
+
+function CompetitorShareCardLoading() {
+  const tGeoShared = useTranslations("geo.shared");
+  return (
+    <GeoSectionSkeleton eyebrow={tGeoShared("shareOfVoice")}>
+      <Skeleton className="h-64 w-full rounded-xl" />
+    </GeoSectionSkeleton>
+  );
+}
 
 interface PageClientProps {
   organizationSlug: string;
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("geo.pages.competitors");
+  const tCommon = useTranslations("common");
+  const tShared = useTranslations("geo.pages.shared");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -93,19 +102,19 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
           <PageHeading
-            description="Who AI engines recommend instead of you"
-            title="Competitors"
+            description={t("description")}
+            title={tCommon("labels.competitors")}
           />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
-            description="Set up GEO tracking first, then track which competitors AI engines surface."
+            description={t("setupDescription")}
             preview={
               <EmptyStateTablePreview
                 columns={EMPTY_STATE_TABLE_COLUMNS.competitors}
                 rows={EMPTY_STATE_TABLE_ROWS}
               />
             }
-            title="Not set up yet"
+            title={tShared("notSetUpTitle")}
           />
         </div>
       </PageContainer>
@@ -116,8 +125,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeading
-          description="Who AI engines recommend instead of you"
-          title="Competitors"
+          description={t("description")}
+          title={tCommon("labels.competitors")}
         >
           <CompetitorsHeadingActions
             geoRange={geoRange}
@@ -169,16 +178,18 @@ function CompetitorsHeadingActions({
   onAdd: () => void;
   onImport: () => void;
 }) {
+  const tGeoShared2 = useTranslations("geo.shared");
+  const tShared = useTranslations("geo.pages.shared");
   return (
     <div className="flex flex-wrap items-center gap-2">
       <GeoRangePicker control={geoRange} />
       <Button className="gap-1.5" onClick={onImport} variant="outline">
         <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-        Import CSV
+        {tShared("importCsv")}
       </Button>
       <Button className="gap-1.5" onClick={onAdd}>
         <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-        Add Competitor
+        {tGeoShared2("addCompetitor")}
         <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
       </Button>
     </div>

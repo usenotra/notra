@@ -1,8 +1,8 @@
 "use client";
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
@@ -22,6 +22,7 @@ import {
   accountSeriesColorPair,
   accountSeriesColors,
 } from "@/utils/chart-colors";
+import { formatOneDecimal } from "@/utils/format";
 import {
   buildPersonaActivityRows,
   buildPersonaActivitySeries,
@@ -33,6 +34,10 @@ export function PersonaActivityCard({
   organizationId,
   personas,
 }: PersonasTableProps) {
+  const t = useTranslations("geo.personaActivityCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
+  const locale = useLocale();
   const [hiddenPersonas, setHiddenPersonas] = useState<string[]>([]);
   const hiddenPersonaIds = new Set(hiddenPersonas);
   const range = useGeoRange();
@@ -51,7 +56,7 @@ export function PersonaActivityCard({
     config[item.dataKey] = { label: item.label, colors };
     if (item.isCurrent) {
       config[personaForecastKey(item.personaId, item.snapshotVersion)] = {
-        label: `${item.label} (forecast)`,
+        label: t("forecastLabel", { name: item.label }),
         colors,
       };
     }
@@ -74,7 +79,7 @@ export function PersonaActivityCard({
   );
   return (
     <InstrumentModule
-      eyebrow="Persona visibility"
+      eyebrow={t("eyebrow")}
       action={<GeoRangePicker control={range} />}
       variant="table"
       bodyClassName="px-4 pb-4 pt-2"
@@ -82,7 +87,7 @@ export function PersonaActivityCard({
       {isPending ? <Skeleton className="h-64 w-full" /> : null}
       {isError ? (
         <div className="flex h-64 flex-col items-center justify-center gap-3 text-sm">
-          <p>Could not load persona activity.</p>
+          <p>{t("loadFailed")}</p>
           <button
             type="button"
             className="underline underline-offset-4"
@@ -90,7 +95,7 @@ export function PersonaActivityCard({
               refetch();
             }}
           >
-            Try again
+            {tCommon("tryAgain")}
           </button>
         </div>
       ) : null}
@@ -136,7 +141,7 @@ export function PersonaActivityCard({
                     <span className="truncate">{persona.name}</span>
                   </button>
                   <p className="text-xl font-semibold tabular-nums">
-                    {rate === null ? "—" : `${rate.toFixed(1)}%`}
+                    {rate === null ? "—" : `${formatOneDecimal(rate, locale)}%`}
                   </p>
                 </div>
               );
@@ -153,7 +158,7 @@ export function PersonaActivityCard({
             <EChartsAreaChart.Grid variant="solid" />
             <EChartsAreaChart.XAxis
               dataKey="day"
-              tickFormatter={formatDayLabel}
+              tickFormatter={(day: string) => formatDayLabel(day, locale)}
               hideDots
             />
             <EChartsAreaChart.YAxis
@@ -197,22 +202,24 @@ export function PersonaActivityCard({
                 );
               })}
             <EChartsAreaChart.Tooltip
-              labelFormatter={formatFullDayLabel}
-              valueFormatter={(value) => `${Number(value).toFixed(1)}%`}
+              labelFormatter={(day: string) => formatFullDayLabel(day, locale)}
+              valueFormatter={(value) =>
+                `${formatOneDecimal(Number(value), locale)}%`
+              }
             />
           </EChartsAreaChart>
           {hasForecast ? (
             <div className="text-muted-foreground mt-2 flex justify-end gap-4 text-xs">
               <span className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="bg-border h-px w-5" />
-                Actual
+                {t("actual")}
               </span>
               <span className="flex items-center gap-1.5">
                 <span
                   aria-hidden="true"
                   className="border-border w-5 border-t border-dashed"
                 />
-                Forecast
+                {t("forecast")}
               </span>
             </div>
           ) : null}
@@ -222,10 +229,7 @@ export function PersonaActivityCard({
         <InstrumentEmpty
           busy={isScanning}
           className="min-h-64"
-          message={geoScanEmptyMessage(
-            isScanning,
-            "Run a scan to see your visibility by persona"
-          )}
+          message={isScanning ? tGeoShared("scanningEngines") : t("runScan")}
           preview={<EmptyStateTrendPreview />}
           seed="Persona visibility"
         />

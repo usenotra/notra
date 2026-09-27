@@ -7,6 +7,7 @@ import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -18,37 +19,32 @@ export function LoginDetailsSection({
   email,
   hasPasswordAccount,
 }: LoginDetailsSectionProps) {
+  const t = useTranslations("settings.loginDetails");
+  const tCommon = useTranslations("common");
   // react-doctor-disable-next-line query-mutation-missing-invalidation
   const passwordResetMutation = useMutation({
     mutationFn: async () => {
       const result = await authClient.requestPasswordReset();
 
       if (result.error) {
-        throw new Error(
-          errorMessageOr(
-            result.error.message,
-            "Failed to send password reset email"
-          )
-        );
+        throw new Error(errorMessageOr(result.error.message, t("resetFailed")));
       }
 
       return result.data;
     },
     onSuccess: () => {
-      toast.success("Password reset email sent");
+      toast.success(t("resetSent"));
     },
     onError: (error) => {
-      toast.error(
-        errorMessageOr(error.message, "Failed to send password reset email")
-      );
+      toast.error(errorMessageOr(error.message, t("resetFailed")));
     },
   });
 
   return (
-    <TitleCard heading="Login Details">
+    <TitleCard heading={t("heading")}>
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="account-email">Email</Label>
+          <Label htmlFor="account-email">{tCommon("labels.email")}</Label>
           <div className="flex items-center gap-2">
             <Input
               id="account-email"
@@ -67,9 +63,9 @@ export function LoginDetailsSection({
 
         {hasPasswordAccount && (
           <div className="border-t pt-4">
-            <p className="text-sm font-medium">Password</p>
+            <p className="text-sm font-medium">{tCommon("labels.password")}</p>
             <p className="text-muted-foreground mt-1 text-xs">
-              We will email you a link to reset your password.
+              {t("passwordHint")}
             </p>
             <Button
               className="mt-4"
@@ -79,10 +75,10 @@ export function LoginDetailsSection({
               {passwordResetMutation.isPending ? (
                 <>
                   <Loader2Icon className="size-4 animate-spin" />
-                  Sending...
+                  {t("sending")}
                 </>
               ) : (
-                "Send password reset email"
+                t("sendReset")
               )}
             </Button>
           </div>

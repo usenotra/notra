@@ -14,10 +14,18 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { createORPCContext, type ORPCRequestMemo } from "@/lib/orpc/context";
 import { dashboardRouter } from "@/lib/orpc/router";
+import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
 import { isServerFailureError } from "@/utils/orpc-errors";
 
 const handler = new RPCHandler(dashboardRouter, {
   interceptors: [
+    async ({ next }) => {
+      try {
+        return await next();
+      } catch (error) {
+        throw await localizeServerFailure(error);
+      }
+    },
     onError((error, options) => {
       console.error("[oRPC]", error);
       if (isServerFailureError(error)) {

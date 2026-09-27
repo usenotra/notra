@@ -6,6 +6,7 @@ import { Kbd } from "@notra/ui/components/ui/kbd";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +27,8 @@ interface PageClientProps {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("integrations.mcp.page");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id ?? "";
@@ -61,9 +64,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }),
     onSuccess: (_, variables) => {
       invalidate();
-      toast.success(
-        variables.enabled ? "MCP server enabled" : "MCP server disabled"
-      );
+      toast.success(variables.enabled ? t("enabled") : t("disabled"));
     },
     onError: (error) => {
       toast.error(error.message);
@@ -78,7 +79,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }),
     onSuccess: () => {
       invalidate();
-      toast.success("MCP server deleted");
+      toast.success(t("deleted"));
     },
     onError: (error) => {
       toast.error(error.message);
@@ -93,7 +94,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }),
     onSuccess: (result) => {
       invalidate();
-      toast.success(`Indexed ${result.indexedToolCount} MCP tools`);
+      toast.success(t("indexed", { count: result.indexedToolCount }));
     },
     onError: (error) => {
       invalidate();
@@ -117,7 +118,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       oauthPopup.close();
       setReauthorizingServerId((current) => (current === id ? null : current));
       toast.error(
-        error instanceof Error ? error.message : "Could not restart OAuth"
+        error instanceof Error
+          ? error.message
+          : tIntegrationsShared("couldNotRestartOauth")
       );
     }
   }
@@ -129,12 +132,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeading
-          description="Connect custom Model Context Protocol servers to bring your own tools and context into Notra"
-          title="MCP Servers"
+          description={t("description")}
+          title={tIntegrationsShared("mcpServers")}
         >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Connect MCP Server
+            {t("connect")}
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
         </PageHeading>
@@ -150,10 +153,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   size="sm"
                   variant="outline"
                 >
-                  Connect MCP Server
+                  {t("connect")}
                 </Button>
               }
-              description="Connect a custom MCP server to extend Notra with tools and data from your own systems."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateCardsPreview
                   columns={3}
@@ -161,7 +164,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   variant="integration"
                 />
               }
-              title="No custom servers yet"
+              title={t("emptyTitle")}
             />
           ) : null}
 

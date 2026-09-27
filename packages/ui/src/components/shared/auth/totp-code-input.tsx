@@ -1,6 +1,7 @@
 "use client";
 
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
+import { DEFAULT_TOTP_CODE_INPUT_LABEL } from "@notra/ui/constants/auth-labels";
 import { cn } from "@notra/ui/lib/utils";
 import type { TotpCodeInputProps } from "../../../types/auth";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "../../ui/input-otp";
@@ -17,7 +18,7 @@ export function TotpCodeInput({
   value,
   onChange,
   onComplete,
-  label = "Verification code",
+  label = DEFAULT_TOTP_CODE_INPUT_LABEL,
   error,
   disabled = false,
   autoFocus = false,

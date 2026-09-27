@@ -20,6 +20,7 @@ import {
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useState } from "react";
@@ -54,6 +55,11 @@ function LinearIntegrationCard({
   organizationSlug: string;
   onUpdate?: () => void;
 }) {
+  const t = useTranslations("integrations.linearPage");
+  const tCard = useTranslations("integrations.card");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -72,11 +78,11 @@ function LinearIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(enabled ? tCard("enabledToast") : tCard("disabledToast"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update integration");
+      toast.error(tCard("updateFailed"));
     },
   });
 
@@ -93,11 +99,11 @@ function LinearIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success("Integration deleted");
+      toast.success(tCard("deleted"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to delete integration");
+      toast.error(tCard("deleteFailed"));
     },
   });
 
@@ -133,17 +139,18 @@ function LinearIntegrationCard({
             {integration.displayName}
           </CardTitle>
           <CardDescription>
-            {integration.createdByUser ? (
-              <>
-                Added by {integration.createdByUser.name} on{" "}
-                {new Date(integration.createdAt).toLocaleDateString()}
-              </>
-            ) : (
-              <>
-                Created on{" "}
-                {new Date(integration.createdAt).toLocaleDateString()}
-              </>
-            )}
+            {integration.createdByUser
+              ? tCard("addedBy", {
+                  name: integration.createdByUser.name,
+                  date: new Date(integration.createdAt).toLocaleDateString(
+                    locale
+                  ),
+                })
+              : tCard("createdOn", {
+                  date: new Date(integration.createdAt).toLocaleDateString(
+                    locale
+                  ),
+                })}
           </CardDescription>
           <CardAction>
             {/* biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier */}
@@ -156,14 +163,16 @@ function LinearIntegrationCard({
               tabIndex={-1}
             >
               <Badge variant={integration.enabled ? "default" : "secondary"}>
-                {integration.enabled ? "Enabled" : "Disabled"}
+                {integration.enabled
+                  ? tCommon("states.enabled")
+                  : tCommon("states.disabled")}
               </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button disabled={isLoading} size="icon-sm" variant="ghost">
                       <svg
-                        aria-label="More options"
+                        aria-label={tIntegrationsShared("moreOptions")}
                         fill="none"
                         stroke="currentColor"
                         strokeLinecap="round"
@@ -172,7 +181,7 @@ function LinearIntegrationCard({
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <title>More options</title>
+                        <title>{tIntegrationsShared("moreOptions")}</title>
                         <circle cx="12" cy="12" r="1" />
                         <circle cx="12" cy="5" r="1" />
                         <circle cx="12" cy="19" r="1" />
@@ -188,7 +197,9 @@ function LinearIntegrationCard({
                       handleToggle();
                     }}
                   >
-                    {integration.enabled ? "Disable" : "Enable"}
+                    {integration.enabled
+                      ? tCommon("actions.disable")
+                      : tCommon("actions.enable")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
@@ -198,7 +209,7 @@ function LinearIntegrationCard({
                     }}
                     variant="destructive"
                   >
-                    Delete
+                    {tCommon("actions.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -215,7 +226,7 @@ function LinearIntegrationCard({
                   : ""}
               </p>
             ) : (
-              <p>Linear workspace connected</p>
+              <p>{t("workspaceConnected")}</p>
             )}
           </div>
         </CardContent>
@@ -234,6 +245,8 @@ function LinearIntegrationCard({
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("integrations.linearPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const pathname = usePathname();
@@ -263,12 +276,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeading
-          description="Manage your Linear integrations for automated content"
-          title="Linear Integrations"
+          description={t("description")}
+          title={tIntegrationsShared("linearIntegrations")}
         >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Connect Linear
+            {t("connect")}
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
         </PageHeading>
@@ -284,14 +297,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   size="sm"
                   variant="outline"
                 >
-                  Connect Linear
+                  {t("connect")}
                 </Button>
               }
-              description="Connect Linear to start syncing issues and updates."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateCardsPreview count={2} variant="integration" />
               }
-              title="No integrations yet"
+              title={tIntegrationsShared("noIntegrationsYet")}
             />
           ) : null}
 

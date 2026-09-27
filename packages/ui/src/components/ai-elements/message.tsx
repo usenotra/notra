@@ -78,6 +78,7 @@ import type {
   MessageTableCopyFormat,
   MessageTableData,
 } from "@notra/ui/types/message-table";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { cn } from "@notra/ui/lib/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -298,10 +299,11 @@ export const MessageBranchPrevious = ({
   ...props
 }: MessageBranchPreviousProps) => {
   const { goToPrevious, totalBranches } = useMessageBranch();
+  const labels = useUiLabels();
 
   return (
     <Button
-      aria-label="Previous branch"
+      aria-label={labels.previousBranch}
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
       size="icon-sm"
@@ -320,10 +322,11 @@ export const MessageBranchNext = ({
   ...props
 }: MessageBranchNextProps) => {
   const { goToNext, totalBranches } = useMessageBranch();
+  const labels = useUiLabels();
 
   return (
     <Button
-      aria-label="Next branch"
+      aria-label={labels.nextBranch}
       disabled={totalBranches <= 1}
       onClick={goToNext}
       size="icon-sm"
@@ -416,6 +419,12 @@ function MessageMarkdownTable({
   node: _node,
   ...props
 }: MarkdownTableProps) {
+  const labels = useUiLabels();
+  const formatLabels: Record<MessageTableCopyFormat, string> = {
+    csv: labels.tableFormatCsv,
+    markdown: labels.tableFormatMarkdown,
+    plain: labels.tableFormatPlain,
+  };
   const tableRef = useRef<HTMLTableElement>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
@@ -518,11 +527,11 @@ function MessageMarkdownTable({
                   className="size-3.5"
                   icon={copied ? Tick01Icon : Copy01Icon}
                 />
-                <span className="sr-only">Copy table as Markdown</span>
+                <span className="sr-only">{labels.copyTableAsMarkdown}</span>
               </ContextMenuTrigger>
               {copyMenuOpen ? null : (
                 <TooltipContent>
-                  {copied ? "Copied" : "Copy table as Markdown"}
+                  {copied ? labels.copied : labels.copyTableAsMarkdown}
                 </TooltipContent>
               )}
             </Tooltip>
@@ -540,7 +549,7 @@ function MessageMarkdownTable({
                     icon={format.icon}
                     strokeWidth={2}
                   />
-                  {format.label}
+                  {formatLabels[format.id]}
                 </ContextMenuItem>
               ))}
             </ContextMenuContent>
@@ -558,22 +567,22 @@ function MessageMarkdownTable({
                 }
               >
                 <HugeiconsIcon icon={Download01Icon} className="size-3.5" />
-                <span className="sr-only">Download table</span>
+                <span className="sr-only">{labels.downloadTable}</span>
               </TooltipTrigger>
-              <TooltipContent>Download table</TooltipContent>
+              <TooltipContent>{labels.downloadTable}</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className="w-44 min-w-44">
               <DropdownMenuItem
                 className="whitespace-nowrap"
                 onClick={downloadCsv}
               >
-                CSV
+                {labels.tableFormatCsv}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="whitespace-nowrap"
                 onClick={downloadMarkdown}
               >
-                Markdown
+                {labels.tableFormatMarkdown}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -590,9 +599,9 @@ function MessageMarkdownTable({
                   icon={ArrowExpandDiagonal02Icon}
                   className="size-3.5"
                 />
-                <span className="sr-only">View table fullscreen</span>
+                <span className="sr-only">{labels.viewTableFullscreen}</span>
               </TooltipTrigger>
-              <TooltipContent>View table fullscreen</TooltipContent>
+              <TooltipContent>{labels.viewTableFullscreen}</TooltipContent>
             </Tooltip>
             <ResponsiveDialogContent
               className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] max-w-[min(calc(100vw-2rem),1200px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),1200px)]"
@@ -600,12 +609,12 @@ function MessageMarkdownTable({
               showCloseButton={false}
             >
               <ResponsiveDialogHeader className="flex shrink-0 flex-row items-center justify-between border-b px-4 py-2">
-                <ResponsiveDialogTitle>Table</ResponsiveDialogTitle>
+                <ResponsiveDialogTitle>{labels.table}</ResponsiveDialogTitle>
                 <ResponsiveDialogClose
                   render={<Button size="icon-sm" variant="ghost" />}
                 >
                   <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-                  <span className="sr-only">Close</span>
+                  <span className="sr-only">{labels.close}</span>
                 </ResponsiveDialogClose>
               </ResponsiveDialogHeader>
               <div className="min-h-0 flex-1 overflow-auto p-4">
@@ -763,7 +772,9 @@ export function MessageAttachment({
   const mediaType =
     data.mediaType?.startsWith("image/") && data.url ? "image" : "file";
   const isImage = mediaType === "image";
-  const attachmentLabel = filename || (isImage ? "Image" : "Attachment");
+  const labels = useUiLabels();
+  const attachmentLabel =
+    filename || (isImage ? labels.image : labels.attachment);
 
   return (
     <div
@@ -776,7 +787,7 @@ export function MessageAttachment({
       {isImage ? (
         <>
           <Image
-            alt={filename || "attachment"}
+            alt={filename || labels.attachment}
             className="size-full object-cover"
             height={100}
             src={data.url}
@@ -784,7 +795,7 @@ export function MessageAttachment({
           />
           {onRemove && (
             <Button
-              aria-label="Remove attachment"
+              aria-label={labels.removeAttachment}
               className="absolute top-2 right-2 size-6 rounded-full bg-background/80 p-0 opacity-0 backdrop-blur-sm transition-opacity hover:bg-background group-hover:opacity-100 [&>svg]:size-3"
               onClick={(e) => {
                 e.stopPropagation();
@@ -793,7 +804,7 @@ export function MessageAttachment({
               variant="ghost"
             >
               <HugeiconsIcon icon={Cancel01Icon} />
-              <span className="sr-only">Remove</span>
+              <span className="sr-only">{labels.remove}</span>
             </Button>
           )}
         </>
@@ -813,7 +824,7 @@ export function MessageAttachment({
           </Tooltip>
           {onRemove && (
             <Button
-              aria-label="Remove attachment"
+              aria-label={labels.removeAttachment}
               className="size-6 shrink-0 rounded-full p-0 opacity-0 transition-opacity hover:bg-accent group-hover:opacity-100 [&>svg]:size-3"
               onClick={(e) => {
                 e.stopPropagation();
@@ -822,7 +833,7 @@ export function MessageAttachment({
               variant="ghost"
             >
               <HugeiconsIcon icon={Cancel01Icon} />
-              <span className="sr-only">Remove</span>
+              <span className="sr-only">{labels.remove}</span>
             </Button>
           )}
         </>

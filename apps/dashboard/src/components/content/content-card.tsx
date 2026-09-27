@@ -7,6 +7,7 @@ import {
   TextIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { BlogPostSubtype } from "@notra/db/types/content";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -26,11 +27,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useState } from "react";
 
-import { BLOG_POST_SUBTYPE_LABELS } from "@/constants/content-formats";
+import { useBlogPostSubtypeLabels } from "@/lib/hooks/use-blog-post-subtype-labels";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { cn } from "@/lib/utils";
 import type { ContentCardProps, ContentCardType } from "@/types/content/card";
@@ -48,25 +50,19 @@ const CONTENT_TYPES = [
 ] as const satisfies readonly ContentCardType[];
 
 function getContentSubtypeLabel(
-  contentSubtype: string | null | undefined
+  contentSubtype: string | null | undefined,
+  subtypeLabel: (subtype: BlogPostSubtype) => string
 ): string | null {
   if (!contentSubtype) {
     return null;
   }
   return isBlogPostSubtype(contentSubtype)
-    ? BLOG_POST_SUBTYPE_LABELS[contentSubtype]
+    ? subtypeLabel(contentSubtype)
     : formatSnakeCaseLabel(contentSubtype);
 }
 
-function getContentTypeLabel(contentType: string): string {
-  if (contentType === "twitter_post") {
-    return "tweet";
-  }
-
-  return formatSnakeCaseLabel(contentType);
-}
-
 function ContentCardEmptyPreview() {
+  const t = useTranslations("content.card");
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 px-3 pt-2 pb-4 text-center">
       <span
@@ -80,7 +76,7 @@ function ContentCardEmptyPreview() {
         </span>
       </span>
       <p className="text-muted-foreground text-xs font-medium">
-        Nothing written yet
+        {t("nothingWritten")}
       </p>
     </div>
   );
@@ -137,7 +133,14 @@ const ContentCard = memo(function ContentCard({
   href,
   imagePreviewSrc,
 }: ContentCardProps) {
-  const subtypeLabel = getContentSubtypeLabel(contentSubtype);
+  const t = useTranslations("content.card");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const subtypeLabels = useBlogPostSubtypeLabels();
+  const subtypeLabel = getContentSubtypeLabel(
+    contentSubtype,
+    (subtype) => subtypeLabels[subtype]
+  );
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { deletePost, isDeleting, isTogglingStatus, togglePostStatus } =
     usePostActions(organizationId);
@@ -176,7 +179,9 @@ const ContentCard = memo(function ContentCard({
                     onClick={(e) => e.preventDefault()}
                     variant="ghost"
                   >
-                    <span className="sr-only">Open menu</span>
+                    <span className="sr-only">
+                      {tCommon2("labels.openMenu")}
+                    </span>
                     <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
                   </Button>
                 }
@@ -193,7 +198,9 @@ const ContentCard = memo(function ContentCard({
                     className="mr-2 size-4"
                     icon={status === "published" ? TextIcon : SentIcon}
                   />
-                  {status === "published" ? "Move to draft" : "Publish"}
+                  {status === "published"
+                    ? tCommon2("labels.moveToDraft")
+                    : tCommon2("labels.publish")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -205,7 +212,7 @@ const ContentCard = memo(function ContentCard({
                   variant="destructive"
                 >
                   <HugeiconsIcon className="mr-2 size-4" icon={Delete02Icon} />
-                  Delete
+                  {tCommon("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -220,18 +227,15 @@ const ContentCard = memo(function ContentCard({
         })}
       </div>
       <div className="flex flex-wrap items-center gap-1.5 px-1 pb-0.5">
-        <Badge
-          className="capitalize"
-          variant={status === "published" ? "default" : "outline"}
-        >
-          {status}
+        <Badge variant={status === "published" ? "default" : "outline"}>
+          {t("status", { status })}
         </Badge>
-        <Badge
-          className="flex items-center gap-1 capitalize"
-          variant="secondary"
-        >
+        <Badge className="flex items-center gap-1" variant="secondary">
           <OutputTypeIcon className="size-3" outputType={contentType} />
-          {getContentTypeLabel(contentType)}
+          {t("type", {
+            type: contentType,
+            fallback: formatSnakeCaseLabel(contentType),
+          })}
         </Badge>
         {subtypeLabel ? <Badge variant="outline">{subtypeLabel}</Badge> : null}
       </div>
@@ -262,23 +266,22 @@ const ContentCard = memo(function ContentCard({
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
             <ResponsiveAlertDialogTitle>
-              Delete post?
+              {tCommon2("labels.deletePost")}
             </ResponsiveAlertDialogTitle>
             <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{title}&quot;. This action
-              cannot be undone.
+              {tCommon2("messages.thisWillPermanentlyDeleteTitle", { title })}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
             <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
               onClick={handleDelete}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? tCommon("deleting") : tCommon("delete")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>
@@ -287,5 +290,5 @@ const ContentCard = memo(function ContentCard({
   );
 });
 
-export { ContentCard, CONTENT_TYPES, getContentTypeLabel };
+export { ContentCard, CONTENT_TYPES };
 export type { ContentCardProps, ContentCardType } from "@/types/content/card";

@@ -21,6 +21,7 @@ import { PerplexityActions } from "@notra/ui/components/brainless/perplexity/per
 import { PerplexityComposer } from "@notra/ui/components/brainless/perplexity/perplexity-composer";
 import { PerplexityMessage } from "@notra/ui/components/brainless/perplexity/perplexity-message";
 import { PerplexitySearch } from "@notra/ui/components/brainless/perplexity/perplexity-search";
+import { DEFAULT_GEO_ANSWER_THREAD_LABELS } from "@notra/ui/constants/geo";
 import { geoAnswerEmptyClassName, geoAnswerMarkdownFontClass } from "@notra/ui/lib/geo-answer-font";
 import {
   chatgptModelForEngine,
@@ -53,12 +54,6 @@ function ignoreFollowUp(_text: string): void {
   // The composer is visual chrome; follow-ups are not sent.
 }
 
-function emptyAnswerCopy(mentioned: boolean): string {
-  return mentioned
-    ? "Mentioned, but no excerpt was captured."
-    : "This engine did not mention you.";
-}
-
 function AnswerMarkdown({ text, skin }: { text: string; skin: GeoChatSkin }) {
   return (
     <MessageResponse
@@ -71,11 +66,11 @@ function AnswerMarkdown({ text, skin }: { text: string; skin: GeoChatSkin }) {
 
 function AssistantBody({
   excerpt,
-  mentioned,
+  emptyText,
   skin,
 }: {
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
   skin: GeoChatSkin;
 }) {
   if (excerpt.length > 0) {
@@ -84,7 +79,7 @@ function AssistantBody({
 
   return (
     <p className={cn("text-muted-foreground", geoAnswerEmptyClassName(skin))}>
-      {emptyAnswerCopy(mentioned)}
+      {emptyText}
     </p>
   );
 }
@@ -92,12 +87,12 @@ function AssistantBody({
 function ClaudeAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
   timestamp,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
   timestamp: string;
 }) {
   return (
@@ -111,7 +106,7 @@ function ClaudeAnswerThread({
         }
         from="assistant"
       >
-        <AssistantBody excerpt={excerpt} mentioned={mentioned} skin="claude" />
+        <AssistantBody excerpt={excerpt} emptyText={emptyText} skin="claude" />
       </ClaudeChatMessage>
     </>
   );
@@ -120,11 +115,11 @@ function ClaudeAnswerThread({
 function ChatgptAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   return (
     <>
@@ -135,7 +130,7 @@ function ChatgptAnswerThread({
         }
         from="assistant"
       >
-        <AssistantBody excerpt={excerpt} mentioned={mentioned} skin="chatgpt" />
+        <AssistantBody excerpt={excerpt} emptyText={emptyText} skin="chatgpt" />
       </ChatgptMessage>
     </>
   );
@@ -144,11 +139,11 @@ function ChatgptAnswerThread({
 function GeminiAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   return (
     <>
@@ -159,7 +154,7 @@ function GeminiAnswerThread({
         }
         from="assistant"
       >
-        <AssistantBody excerpt={excerpt} mentioned={mentioned} skin="gemini" />
+        <AssistantBody excerpt={excerpt} emptyText={emptyText} skin="gemini" />
       </GeminiMessage>
     </>
   );
@@ -168,11 +163,11 @@ function GeminiAnswerThread({
 function PerplexityAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   const sources = perplexitySourcesFromExcerpt(excerpt);
 
@@ -196,7 +191,7 @@ function PerplexityAnswerThread({
       >
         <AssistantBody
           excerpt={excerpt}
-          mentioned={mentioned}
+          emptyText={emptyText}
           skin="perplexity"
         />
       </PerplexityMessage>
@@ -207,11 +202,11 @@ function PerplexityAnswerThread({
 function OpencodeAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   const sources = perplexitySourcesFromExcerpt(excerpt);
 
@@ -228,7 +223,7 @@ function OpencodeAnswerThread({
       >
         <AssistantBody
           excerpt={excerpt}
-          mentioned={mentioned}
+          emptyText={emptyText}
           skin="opencode"
         />
       </OpencodeMessage>
@@ -239,11 +234,11 @@ function OpencodeAnswerThread({
 function ClaudeCodeAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   const sources = perplexitySourcesFromExcerpt(excerpt);
 
@@ -257,7 +252,7 @@ function ClaudeCodeAnswerThread({
         <ClaudeMessage from="assistant">
           <AssistantBody
             excerpt={excerpt}
-            mentioned={mentioned}
+            emptyText={emptyText}
             skin="claude-code"
           />
         </ClaudeMessage>
@@ -269,11 +264,11 @@ function ClaudeCodeAnswerThread({
 function CodexAnswerThread({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
 }) {
   const sources = perplexitySourcesFromExcerpt(excerpt);
 
@@ -285,7 +280,7 @@ function CodexAnswerThread({
           <OpencodeSources darkSurface queries={[prompt]} sources={sources} />
         ) : null}
         <CodexMessage from="assistant">
-          <AssistantBody excerpt={excerpt} mentioned={mentioned} skin="codex" />
+          <AssistantBody excerpt={excerpt} emptyText={emptyText} skin="codex" />
         </CodexMessage>
       </div>
     </>
@@ -349,13 +344,13 @@ function SkinComposer({ engine, skin }: { engine: string; skin: GeoChatSkin }) {
 function ThreadMessages({
   prompt,
   excerpt,
-  mentioned,
+  emptyText,
   skin,
   timestamp,
 }: {
   prompt: string;
   excerpt: string;
-  mentioned: boolean;
+  emptyText: string;
   skin: GeoChatSkin;
   timestamp: string;
 }) {
@@ -363,7 +358,7 @@ function ThreadMessages({
     return (
       <ClaudeAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
         timestamp={timestamp}
       />
@@ -373,7 +368,7 @@ function ThreadMessages({
     return (
       <GeminiAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
       />
     );
@@ -382,7 +377,7 @@ function ThreadMessages({
     return (
       <PerplexityAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
       />
     );
@@ -391,7 +386,7 @@ function ThreadMessages({
     return (
       <OpencodeAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
       />
     );
@@ -400,7 +395,7 @@ function ThreadMessages({
     return (
       <ClaudeCodeAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
       />
     );
@@ -409,7 +404,7 @@ function ThreadMessages({
     return (
       <CodexAnswerThread
         excerpt={excerpt}
-        mentioned={mentioned}
+        emptyText={emptyText}
         prompt={prompt}
       />
     );
@@ -417,7 +412,7 @@ function ThreadMessages({
   return (
     <ChatgptAnswerThread
       excerpt={excerpt}
-      mentioned={mentioned}
+      emptyText={emptyText}
       prompt={prompt}
     />
   );
@@ -427,9 +422,14 @@ export function GeoPromptAnswerThread({
   prompt,
   result,
   timestamp,
+  labels,
 }: GeoPromptAnswerThreadProps) {
   const skin = geoChatSkin(result.engine);
   const excerpt = result.excerpt.trim();
+  const resolvedLabels = { ...DEFAULT_GEO_ANSWER_THREAD_LABELS, ...labels };
+  const emptyText = result.mentioned
+    ? resolvedLabels.mentionedWithoutExcerpt
+    : resolvedLabels.notMentioned;
 
   return (
     <div
@@ -442,7 +442,7 @@ export function GeoPromptAnswerThread({
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
           <ThreadMessages
             excerpt={excerpt}
-            mentioned={result.mentioned}
+            emptyText={emptyText}
             prompt={prompt}
             skin={skin}
             timestamp={timestamp}

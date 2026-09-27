@@ -407,26 +407,22 @@ export function shelfMemberInitial(member: GeoShelfMember): string {
   return (member.name || member.email).charAt(0).toUpperCase();
 }
 
-const shelfDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-});
-
-const shelfDueDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-export function formatShelfDate(iso: string | null): string {
+export function formatShelfDate(iso: string | null, locale: string): string {
   if (!iso) {
     return "-";
   }
-  return shelfDateFormatter.format(new Date(iso));
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(iso));
 }
 
-export function formatShelfDueDate(iso: string): string {
-  return shelfDueDateFormatter.format(new Date(iso));
+export function formatShelfDueDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(iso));
 }
 
 export function shelfDueDateToIso(date: Date): string {

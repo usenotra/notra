@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
 import {
@@ -11,6 +13,7 @@ export async function OnboardingSplitLayout({
   children,
   step,
 }: OnboardingStepLayoutProps) {
+  const tOnboardingShared = await getTranslations("onboarding.shared");
   const organization = await getLastActiveOrganization();
   const member = organization
     ? (await validateOrganizationAccess(organization.slug)).member
@@ -31,7 +34,7 @@ export async function OnboardingSplitLayout({
               className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
               type="submit"
             >
-              Skip onboarding
+              {tOnboardingShared("skipOnboarding")}
             </button>
           </form>
         ) : (

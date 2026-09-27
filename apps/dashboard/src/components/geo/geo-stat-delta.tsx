@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { GeoStatDeltaProps } from "@/types/geo";
@@ -73,12 +74,18 @@ export function GeoStatDelta({
   hint,
   className,
 }: GeoStatDeltaProps) {
+  const locale = useLocale();
+  const tCommon = useTranslations("common");
+  const tUnits = useTranslations("common.units");
   if (delta === null) {
     return null;
   }
 
   const tone = geoStatDeltaTone(delta, kind);
-  const formatted = formatGeoStatDelta(delta, kind);
+  const formatted = formatGeoStatDelta(delta, kind, locale, {
+    new: tCommon("labels.new"),
+    points: (value) => tUnits("points", { value }),
+  });
   const isNew = isGeoStatDeltaNew(delta);
   const displayedValue =
     variant === "plain" ? formatted.replace(/^[+-]/, "") : formatted;

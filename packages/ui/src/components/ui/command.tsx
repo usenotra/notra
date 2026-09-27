@@ -2,6 +2,7 @@
 
 import { SearchIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import {
   Dialog,
   DialogContent,
@@ -34,8 +35,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Command Palette",
-  description = "Search for a command to run...",
+  title,
+  description,
   children,
   className,
   showCloseButton = false,
@@ -47,11 +48,15 @@ function CommandDialog({
   showCloseButton?: boolean;
   children: React.ReactNode;
 }) {
+  const labels = useUiLabels();
+
   return (
     <Dialog {...props}>
       <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
+        <DialogTitle>{title ?? labels.commandPaletteTitle}</DialogTitle>
+        <DialogDescription>
+          {description ?? labels.commandPaletteDescription}
+        </DialogDescription>
       </DialogHeader>
       <DialogContent
         className={cn("overflow-hidden rounded-xl! p-0", className)}

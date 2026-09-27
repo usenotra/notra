@@ -19,6 +19,7 @@ import {
 import { Dithering } from "@paper-design/shaders-react";
 import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 
@@ -42,6 +43,8 @@ export function OnboardingAgentBanner({
   starting,
   state,
 }: OnboardingAgentBannerProps) {
+  const t = useTranslations("dashboard.onboardingBanner");
+  const tCommon = useTranslations("common.actions");
   const { resolvedTheme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -54,7 +57,7 @@ export function OnboardingAgentBanner({
   };
 
   return (
-    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white dark:bg-[#131316]">
+    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white pr-11 pl-3 dark:bg-[#131316]">
       <Dithering
         className="absolute -inset-px -z-10 size-[calc(100%+2px)] min-h-full min-w-full"
         colorBack={colors.colorBack}
@@ -71,19 +74,17 @@ export function OnboardingAgentBanner({
             aria-hidden
             className="size-4 animate-spin motion-reduce:animate-none"
           />
-          <span className="text-sm font-medium">
-            We are setting up your workspace
-          </span>
+          <span className="text-sm font-medium">{t("running")}</span>
         </output>
       ) : (
-        <div className="text-foreground flex items-center gap-3">
-          <span className="text-sm font-medium">
-            We can set up your workspace for you
+        <div className="text-foreground flex min-w-0 items-center gap-3">
+          <span className="min-w-0 text-sm leading-tight font-medium text-pretty max-sm:line-clamp-2 max-sm:text-xs">
+            {t("prompt")}
           </span>
           <ResponsiveDialog onOpenChange={setConfirmOpen} open={confirmOpen}>
             <ResponsiveDialogTrigger
               disabled={starting}
-              render={<Button size="sm" />}
+              render={<Button className="shrink-0" size="sm" />}
             >
               {starting ? (
                 <Loader2Icon
@@ -91,16 +92,15 @@ export function OnboardingAgentBanner({
                   className="size-4 animate-spin motion-reduce:animate-none"
                 />
               ) : null}
-              Start Setup
+              {t("start")}
             </ResponsiveDialogTrigger>
             <ResponsiveDialogContent>
               <ResponsiveDialogHeader>
                 <ResponsiveDialogTitle className="text-lg font-semibold">
-                  Let us set up your workspace
+                  {t("dialogTitle")}
                 </ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>
-                  We visit your website, work out what your company does, and
-                  set Notra up to match. It takes a few minutes.
+                  {t("dialogDescription")}
                 </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
               <ul className="space-y-2.5">
@@ -113,7 +113,7 @@ export function OnboardingAgentBanner({
                         strokeWidth={2.5}
                       />
                     </span>
-                    <span className="text-sm">{item}</span>
+                    <span className="text-sm">{t(`pros.${item}`)}</span>
                   </li>
                 ))}
                 {EVE_SETUP_CONS.map((item) => (
@@ -125,20 +125,20 @@ export function OnboardingAgentBanner({
                         strokeWidth={2.5}
                       />
                     </span>
-                    <span className="text-sm">{item}</span>
+                    <span className="text-sm">{t(`cons.${item}`)}</span>
                   </li>
                 ))}
               </ul>
               <ResponsiveDialogFooter className="sm:justify-center">
                 <ResponsiveDialogClose render={<Button variant="outline" />}>
-                  Cancel
+                  {tCommon("cancel")}
                 </ResponsiveDialogClose>
-                <Button onClick={handleConfirm}>Start Setup</Button>
+                <Button onClick={handleConfirm}>{t("start")}</Button>
               </ResponsiveDialogFooter>
             </ResponsiveDialogContent>
           </ResponsiveDialog>
           <Button
-            aria-label="Dismiss workspace setup banner"
+            aria-label={t("dismiss")}
             className="absolute top-1/2 right-3 -translate-y-1/2"
             onClick={onDismiss}
             size="icon-sm"

@@ -11,9 +11,10 @@ import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
@@ -59,15 +60,12 @@ function DashboardAgentPanelSkeleton() {
 }
 
 function DashboardAgentHostLoading() {
+  const t = useTranslations("dashboard.agent");
   const { active, closePanel, expanded } = useRightPanel();
   const isDesktop = useDesktopBreakpoint();
 
   if (isDesktop) {
-    return (
-      <RightPanel id="agent">
-        <DashboardAgentPanelSkeleton />
-      </RightPanel>
-    );
+    return <DashboardAgentPanelSkeleton />;
   }
 
   return (
@@ -93,9 +91,9 @@ function DashboardAgentHostLoading() {
         showCloseButton={false}
       >
         <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("loadingTitle")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Loading the dashboard agent.
+            {t("loadingDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <DashboardAgentPanelSkeleton />
@@ -104,16 +102,39 @@ function DashboardAgentHostLoading() {
   );
 }
 
-const DashboardAgentHost = dynamic(
-  () =>
-    import("@/components/dashboard/dashboard-agent-panel").then(
-      (module) => module.DashboardAgentHost
-    ),
-  {
-    loading: DashboardAgentHostLoading,
-    ssr: false,
+function loadDashboardAgentHost() {
+  return import("@/components/dashboard/dashboard-agent-panel").then(
+    (module) => module.DashboardAgentHost
+  );
+}
+
+const DashboardAgentHost = dynamic(loadDashboardAgentHost, {
+  loading: DashboardAgentHostLoading,
+  ssr: false,
+});
+
+function DashboardAgentSlot() {
+  const { hasOpened } = useRightPanel();
+  const [slotReady, setSlotReady] = useState(false);
+
+  useLayoutEffect(() => {
+    setSlotReady(true);
+  }, []);
+
+  // The slot has to exist before the first open. A panel that mounts already
+  // open has no previous width, so the CSS width transition never runs.
+  // Keep the host under this slot at every width. Moving it between the dock
+  // and the mobile dialog remounts the chat and drops the in-flight thread.
+  if (!slotReady) {
+    return null;
   }
-);
+
+  return (
+    <RightPanel id="agent">
+      {hasOpened.agent ? <DashboardAgentHost /> : null}
+    </RightPanel>
+  );
+}
 
 function DashboardOnboardingBanner({
   available,
@@ -185,8 +206,9 @@ export function DashboardShell({
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
+  const t = useTranslations("dashboard.onboardingBanner");
   const { activeOrganization } = useOrganizationsContext();
-  const { expanded, hasOpened } = useRightPanel();
+  const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
   const { data } = useOnboardingAgentRun(
     organizationId,
@@ -228,10 +250,7 @@ export function DashboardShell({
     runAgent.mutate(
       { organizationId },
       {
-        onError: (error) =>
-          toast.error(
-            error.message || "Couldn't start the setup agent. Try again later."
-          ),
+        onError: (error) => toast.error(error.message || t("startFailed")),
       }
     );
   };
@@ -304,7 +323,7 @@ export function DashboardShell({
           </DashboardPageViewport>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
-        {hasOpened.agent ? <DashboardAgentHost /> : null}
+        <DashboardAgentSlot />
       </SidebarProvider>
     </div>
   );

@@ -14,16 +14,16 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId } from "react";
 
 import {
   USAGE_ANSWERS_CHART_CONFIG,
   USAGE_CHART_ACCENT,
-  USAGE_RANGE_TAB_LABELS,
   USAGE_RANGES,
 } from "@/constants/billing";
 import type { UsageBreakdownChartProps } from "@/types/hooks/billing";
-import { formatCount, formatShortDate, isCreditRange } from "@/utils/format";
+import { formatCount, isCreditRange } from "@/utils/format";
 
 export function UsageBreakdownChart({
   data,
@@ -31,6 +31,8 @@ export function UsageBreakdownChart({
   range,
   onRangeChange,
 }: UsageBreakdownChartProps) {
+  const t = useTranslations("billing.usageBreakdown");
+  const tLabels = useTranslations("common.labels");
   return (
     <TitleCard
       accentClassName="duration-0"
@@ -44,17 +46,17 @@ export function UsageBreakdownChart({
           }}
           value={range}
         >
-          <TabsList aria-label="Usage range">
+          <TabsList aria-label={t("rangeLabel")}>
             {USAGE_RANGES.map((value) => (
               <TabsTrigger key={value} value={value}>
-                {USAGE_RANGE_TAB_LABELS[value]}
+                {tLabels(`n${value}`)}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       }
       className="min-w-0"
-      heading="Usage breakdown"
+      heading={t("title")}
       headingAs="h2"
     >
       <UsageBreakdownChartBody data={data} loading={loading} />
@@ -66,6 +68,22 @@ function UsageBreakdownChartBody({
   data,
   loading,
 }: Pick<UsageBreakdownChartProps, "data" | "loading">) {
+  const t = useTranslations("billing.usageBreakdown");
+  const tBillingShared = useTranslations("billing.shared");
+  const locale = useLocale();
+  const format = useFormatter();
+  const chartConfig = {
+    ai_answers: {
+      ...USAGE_ANSWERS_CHART_CONFIG.ai_answers,
+      label: tBillingShared("aiAnswers"),
+    },
+  };
+  const formatShortDate = (timestamp: number) =>
+    format.dateTime(new Date(timestamp), {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
   const gradientId = `ai-answers-bar-${useId().replaceAll(":", "")}`;
 
   if (loading) {
@@ -75,7 +93,7 @@ function UsageBreakdownChartBody({
   if (data.length === 0) {
     return (
       <div className="text-muted-foreground flex h-[240px] items-center justify-center text-sm">
-        No AI Answers usage in this period
+        {t("empty")}
       </div>
     );
   }
@@ -83,7 +101,7 @@ function UsageBreakdownChartBody({
   return (
     <ChartContainer
       className="aspect-auto h-[240px] w-full"
-      config={USAGE_ANSWERS_CHART_CONFIG}
+      config={chartConfig}
     >
       <BarChart
         accessibilityLayer
@@ -121,7 +139,7 @@ function UsageBreakdownChartBody({
         <YAxis
           axisLine={false}
           className="text-muted-foreground/60 text-xs"
-          tickFormatter={(value: number) => formatCount(value)}
+          tickFormatter={(value: number) => formatCount(value, locale)}
           tickLine={false}
           tickMargin={8}
           width={56}
@@ -129,7 +147,7 @@ function UsageBreakdownChartBody({
         <ChartTooltip
           content={
             <ChartTooltipContent
-              formatter={(value) => formatCount(Number(value))}
+              formatter={(value) => formatCount(Number(value), locale)}
               indicator="dot"
               labelFormatter={(_, payload) => {
                 const item = payload?.[0]?.payload as
