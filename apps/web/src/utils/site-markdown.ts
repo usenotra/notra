@@ -267,7 +267,7 @@ export function buildBrandMarkdown() {
     (color) => `- ${color.name}: ${color.hex} (${color.value}) - ${color.usage}`
   );
   const fontLines = BRAND_FONTS.map(
-    (font) => `- [${font.name}](${font.googleFontsUrl}) - ${font.role}`
+    (font) => `- [${font.name}](${font.sourceUrl}) - ${font.role}`
   );
 
   return [

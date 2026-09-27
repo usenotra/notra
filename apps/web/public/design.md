@@ -108,7 +108,7 @@ Light is the default. Dark keeps the same roles.
 | `primary-foreground` | near white | near white | Text on primary |
 | `destructive` | `hsl(0 84.2% 60.2%)` | `hsl(358 100% 50%)` | Destructive action |
 
-`primary` is `#8B5CF6`. One primary action per view. Links and a selected control may use it too. Body text stays ink or `foreground`.
+`primary` is `#8B5CF6`. A marketing band uses it on one pill. In the product, the main action, links, and the selected control use it together, including on a dense GEO screen. Body text stays ink or `foreground`.
 
 ### GEO signals
 
@@ -209,7 +209,7 @@ Errors say what happened and what to do next. Toasts name the object that change
 | --- | --- |
 | Build hierarchy with `muted` + `card` / `background` | Add a third gray to separate regions |
 | Overlap the body onto the shell by 20px or 36px | Stack the two fills with a gap |
-| Keep violet for the action and the Search series | Wash product pages in violet |
+| Keep violet for the main action, links, selection, and the Search series | Wash product pages in violet |
 | Keep Memory teal for that series only | Recolor a competitor in Search violet |
 | Use Inter in the product, Satoshi for marketing display | Set dashboard UI in Satoshi or Instrument Serif |
 | Use `tabular-nums` on aligned numbers | Let digits jump as values change |
