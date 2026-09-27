@@ -31,6 +31,7 @@ import { CONTENT_MEDIA } from "@/constants/content-media";
 import { CONTENT_VIDEO_MIME_EXTENSIONS } from "@/constants/content-video";
 import { uploadContentMedia } from "@/lib/upload/client";
 import type { ContentMediaKind } from "@/types/content/media";
+import { contentDropCaretNode } from "@/utils/content-drop-caret";
 import {
   contentImageMaxBytes,
   contentImageTooLargeMessage,
@@ -227,17 +228,14 @@ export function ImageUploadPlugin() {
   const rememberDropPosition = useCallback(
     (event: DragEvent) => {
       const root = editor.getRootElement();
-      const caret = document.caretRangeFromPoint?.(
-        event.clientX,
-        event.clientY
-      );
-      if (!root || !caret || !root.contains(caret.startContainer)) {
+      const node = contentDropCaretNode(document, event.clientX, event.clientY);
+      if (!root || !node || !root.contains(node)) {
         anchorKeyRef.current = null;
         return;
       }
       editor.read(() => {
         anchorKeyRef.current =
-          $getNearestNodeFromDOMNode(caret.startContainer)?.getKey() ?? null;
+          $getNearestNodeFromDOMNode(node)?.getKey() ?? null;
       });
     },
     [editor]

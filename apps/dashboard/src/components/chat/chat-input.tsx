@@ -82,7 +82,7 @@ import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
-import { MAX_CONTENT_IMAGE_INPUT_BYTES } from "@/constants/content-image";
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
@@ -1414,7 +1414,7 @@ export function ChatInputAdvanced({
         }
         const maxBytes =
           /\.heic$/i.test(file.name) || file.type === "image/heic"
-            ? MAX_CONTENT_IMAGE_INPUT_BYTES
+            ? MAX_CHAT_HEIC_INPUT_BYTES
             : MAX_CHAT_FILE_SIZE;
         if (file.size > maxBytes) {
           toast.error(

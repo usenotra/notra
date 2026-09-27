@@ -177,6 +177,7 @@
         "free-email-domains-list": "^1.0.16",
         "gray-matter": "^4.0.3",
         "heic-convert": "2.1.0",
+        "heic-decode": "2.1.0",
         "lexical": "^0.39.0",
         "lucide-react": "^0.562.0",
         "mailchecker": "^6.0.19",
@@ -212,6 +213,7 @@
         "@notra/typescript-config": "workspace:*",
         "@tailwindcss/postcss": "^4",
         "@types/heic-convert": "^2.1.1",
+        "@types/heic-decode": "2.0.0",
         "@types/node": "^20",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.5",
@@ -2537,6 +2539,8 @@
     "@types/hast": ["@types/hast@3.0.4", "", { "dependencies": { "@types/unist": "*" } }, "sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ=="],
 
     "@types/heic-convert": ["@types/heic-convert@2.1.1", "", {}, "sha512-+s14762Nf62z9zziIs7ItvAkSUCS3ls4Z5XPT9BlVve3Q3S4DAnf6qekffMTvEWycSUF+kulkGaSN65fK6eKvg=="],
+
+    "@types/heic-decode": ["@types/heic-decode@2.0.0", "", {}, "sha512-Zj/zngTwbbIE84GsJ9hBI3VmvQRGOe65QV/xVdmLEAGB9bswOBxTMhQVcqNLcxnQhzOmAro5KBg7trrLaYe5Jg=="],
 
     "@types/http-cache-semantics": ["@types/http-cache-semantics@4.2.0", "", {}, "sha512-L3LgimLHXtGkWikKnsPg0/VFx9OGZaC+eN1u4r+OB1XRqH3meBIAVC2zr1WdMH+RHmnRkqliQAOHNJ/E0j/e0Q=="],
 

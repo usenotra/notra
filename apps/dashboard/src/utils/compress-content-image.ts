@@ -1,5 +1,6 @@
 import "server-only";
 import convertHeic from "heic-convert";
+import decodeHeic from "heic-decode";
 import sharp from "sharp";
 
 import {
@@ -9,6 +10,7 @@ import {
   MAX_CONTENT_IMAGE_INPUT_BYTES,
 } from "@/constants/content-image";
 import { GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES } from "@/constants/github";
+import type { HeicImageMetadata } from "@/types/content/heic-image";
 import {
   contentImageCompressedTooLargeMessage,
   contentImageTooLargeMessage,
@@ -82,12 +84,30 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
     throw new Error(contentImageTooLargeMessage("image/jpeg"));
   }
 
-  // Decode Apple photos to a browser- and GitHub-compatible format before Sharp optimizes them.
-  const source = isHeic(bytes)
-    ? Buffer.from(
-        await convertHeic({ buffer: bytes, format: "JPEG", quality: 0.9 })
-      )
-    : bytes;
+  let source: Uint8Array = bytes;
+  if (isHeic(bytes)) {
+    const images = (await decodeHeic.all({
+      buffer: bytes,
+    })) as unknown as HeicImageMetadata;
+    try {
+      const image = images[0];
+      if (
+        !image ||
+        !Number.isSafeInteger(image.width) ||
+        !Number.isSafeInteger(image.height) ||
+        image.width <= 0 ||
+        image.height <= 0 ||
+        image.height > PIXEL_LIMIT / image.width
+      ) {
+        throw new Error("HEIC image exceeds the 40 megapixel limit");
+      }
+    } finally {
+      images.dispose();
+    }
+    source = Buffer.from(
+      await convertHeic({ buffer: bytes, format: "JPEG", quality: 0.9 })
+    );
+  }
 
   let metadata: Awaited<
     ReturnType<ReturnType<typeof sharp>["metadata"]>

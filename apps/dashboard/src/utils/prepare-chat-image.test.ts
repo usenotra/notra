@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
 
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
+
 import { prepareChatImage } from "./prepare-chat-image";
 
 test("converts Apple photos to a JPEG attachment before chat upload", async () => {
@@ -31,4 +33,12 @@ test("converts Apple photos to a JPEG attachment before chat upload", async () =
 test("leaves supported chat images unchanged", async () => {
   const file = new File(["jpeg"], "photo.jpg", { type: "image/jpeg" });
   expect(await prepareChatImage(file)).toBe(file);
+});
+
+test("rejects HEIC chat requests too large for a Vercel function before fetching", async () => {
+  const file = new File(
+    [new Uint8Array(MAX_CHAT_HEIC_INPUT_BYTES + 1)],
+    "photo.heic"
+  );
+  await expect(prepareChatImage(file)).rejects.toThrow("4MB or smaller");
 });

@@ -4,6 +4,9 @@ export const CONTENT_IMAGE_ROUTE = "/api/uploads/content-images";
 /** Reject uploads before Sharp reads them. */
 export const MAX_CONTENT_IMAGE_INPUT_BYTES = 20 * 1024 * 1024;
 
+/** Leave room for multipart framing below Vercel's 4.5 MB function request limit. */
+export const MAX_CHAT_HEIC_INPUT_BYTES = 4 * 1024 * 1024;
+
 /**
  * Longest edge used only when a lossless-enough encode still exceeds GitHub's
  * per-file cap. Blog images stay full size below that cap.

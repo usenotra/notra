@@ -17,7 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { MAX_CONTENT_IMAGE_INPUT_BYTES } from "@/constants/content-image";
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { dragEventHasFiles } from "@/lib/upload/chat";
 import {
   deleteChatUpload as deleteChatUploadFile,
@@ -155,7 +155,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
         }
         const maxBytes =
           /\.heic$/i.test(file.name) || file.type === "image/heic"
-            ? MAX_CONTENT_IMAGE_INPUT_BYTES
+            ? MAX_CHAT_HEIC_INPUT_BYTES
             : MAX_CHAT_FILE_SIZE;
         if (file.size > maxBytes) {
           toast.error(

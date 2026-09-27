@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 
-import { MAX_CONTENT_IMAGE_INPUT_BYTES } from "@/constants/content-image";
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { assertAuthenticated } from "@/lib/auth/organization";
 import { compressContentImage, isHeic } from "@/utils/compress-content-image";
 
@@ -10,8 +10,17 @@ export const maxDuration = 30;
 export async function POST(request: Request) {
   try {
     await assertAuthenticated({ headers: request.headers });
+    if (
+      Number(request.headers.get("content-length")) >
+      MAX_CHAT_HEIC_INPUT_BYTES + 16 * 1024
+    ) {
+      return Response.json(
+        { message: "Invalid or oversized image" },
+        { status: 413 }
+      );
+    }
     const file = (await request.formData()).get("file");
-    if (!(file instanceof File) || file.size > MAX_CONTENT_IMAGE_INPUT_BYTES) {
+    if (!(file instanceof File) || file.size > MAX_CHAT_HEIC_INPUT_BYTES) {
       return Response.json(
         { message: "Invalid or oversized image" },
         { status: 400 }
