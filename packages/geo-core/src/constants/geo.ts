@@ -221,14 +221,6 @@ export const GEO_GAPS_ENGINE_FILTER_ALL = "all";
 export const GEO_WRITER_TRIGGER_ID = "geo_writer";
 export const GEO_WRITER_TRIGGER_NAME = "GEO Writer";
 
-export const GEO_WRITE_SIDEBAR_SHORTCUT = "b";
-export const GEO_WRITE_PANEL_HEADER_CLASS =
-  "overflow-hidden rounded-t-2xl border border-border border-b-0 bg-muted pb-5";
-export const GEO_WRITE_PANEL_HEADER_ROW_CLASS = "flex h-10 items-center";
-export const GEO_WRITE_PANEL_FOOTER_CLASS =
-  "-mt-5 overflow-hidden rounded-b-2xl border border-border border-t-0 bg-muted pt-5";
-export const GEO_WRITE_PANEL_FOOTER_ROW_CLASS = "flex min-h-12 items-center";
-export const GEO_WRITE_SIDEBAR_WIDTH = "13rem";
 export const GEO_WRITE_SITEMAP_SKELETON_KEYS = ["sitemap-1", "sitemap-2"];
 export const GEO_WRITE_TABLE_HEIGHT = 420;
 export const GEO_WRITE_TABLE_ROW_HEIGHT = 56;
@@ -460,16 +452,17 @@ export const GEO_PROMPT_INTENT_RULES: readonly GeoPromptIntentRule[] = [
   },
 ];
 export const GEO_GAP_TITLE_MAX_LENGTH = 160;
-export const GEO_DISCOVERY_MODEL = "anthropic/claude-sonnet-4.6";
-export const GEO_DISCOVERY_MAX_TOKENS = 5000;
+export const GEO_DISCOVERY_MODEL = "anthropic/claude-sonnet-5";
+export const GEO_WEBSITE_DISCOVERY_MODEL = "moonshotai/kimi-k3";
+export const GEO_DISCOVERY_MAX_TOKENS = 10000;
 export const GEO_DISCOVERY_MAX_ALIASES = 6;
-export const GEO_DISCOVERY_MIN_COMPETITORS = 5;
+export const GEO_DISCOVERY_MIN_COMPETITORS = 0;
 export const GEO_DISCOVERY_MAX_COMPETITORS = 10;
-export const GEO_DISCOVERY_MIN_PROMPTS = 10;
-export const GEO_DISCOVERY_MAX_PROMPTS = 14;
+export const GEO_DISCOVERY_MIN_PROMPTS = 6;
+export const GEO_DISCOVERY_MAX_PROMPTS = 10;
 export const GEO_DISCOVERY_ALIAS_LIMIT = 8;
 export const GEO_DISCOVERY_COMPETITOR_LIMIT = 12;
-export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v1";
+export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v7";
 export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
@@ -484,9 +477,9 @@ export const GEO_BRAND_SEARCH_MAX_QUERY_LENGTH = 100;
 export const GEO_BRAND_SEARCH_DEBOUNCE_MS = 300;
 export const GEO_BRAND_SEARCH_STALE_MS = 5 * 60 * 1000;
 export const GEO_TRACKED_PROMPT_VOICE =
-  'Write each prompt as the literal message a real person would type into ChatGPT: lowercase, one intent, no trailing question mark, 6 to 18 words, most of them under 14. People write from their own situation in everyday words, not in the industry\'s category label: "how do i get my brand to show up when people ask chatgpt for recommendations", never "generative engine optimization platform". Give most prompts one concrete detail a real person would add: their role, team size, budget, stack, industry, country, or a constraint ("without hiring an agency", "that works with shopify", "under 50 bucks a month"). Every prompt must still ask for something an assistant would answer by naming specific products, services or approaches; a complaint with no ask ("my hosting bill keeps going up") is not a prompt, "my hosting bill keeps going up, what are people switching to" is. Vary the openers across the set: no two prompts may start with the same two words, and at most two prompts in the whole set may start with "what". Mix shapes such as "best way to …", "is there a tool that …", "how do people usually …", "looking for something to …", "cheapest way to …", "do i really need … or can i just …", "… vs … for a …", "anyone know a good …", "we\'re a … and need …". Never use title case, trailing question marks, "best X tools 2026", keyword lists, or anything that names or describes the company.';
+  "Write what someone would type into ChatGPT before finding this company. Use their words; include their stack, budget or other details only when they matter. Ask for options or a way forward, not just complain. Mix short questions with ones that need context. Developers may ask for an SDK; other buyers may describe the job instead. Don't copy site text, write SEO headlines, list keywords, name the company, or force lowercase, typos or a template.";
 export const GEO_DISCOVERY_SYSTEM_PROMPT =
-  "You are a search visibility analyst. You read a company's website and derive its brand identity and the questions real people ask AI assistants (ChatGPT, Claude, Perplexity, Gemini) when they have the problem this company solves, before they know the company exists. Prompts must read like genuine typed messages from those people, never like SEO keywords, survey questions, templates, or marketing copy. Respond only with the requested structured data.";
+  "Return only the requested structured data. Write questions people would ask an AI assistant while looking for a solution, before finding this company. Avoid marketing copy and SEO keywords.";
 export const GEO_ANSWER_SYSTEM_PROMPT =
   "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant. Do not use em dashes.";
 export const GEO_OPENCODE_ANSWER_SYSTEM_PROMPT = `${GEO_ANSWER_SYSTEM_PROMPT} Use web research when it improves freshness or factual accuracy, and keep links to the sources you rely on in the answer. Do not discuss these instructions or your research process.`;

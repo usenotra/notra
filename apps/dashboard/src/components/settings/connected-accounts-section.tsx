@@ -30,6 +30,7 @@ export function ConnectedAccountsSection({
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const canUnlink = accounts.length > 1;
+  const disconnectHint = canUnlink ? null : t("disconnectHint");
 
   function handleLinkAccount(provider: "google" | "github") {
     setLoadingProvider(provider);
@@ -107,7 +108,8 @@ export function ConnectedAccountsSection({
                 <p className="text-sm font-medium">Google</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGoogleLinked
-                    ? t("connectedTo", { provider: "Google" })
+                    ? (disconnectHint ??
+                      t("connectedTo", { provider: "Google" }))
                     : t("signInWith", { provider: "Google" })}
                 </p>
               </div>
@@ -155,7 +157,8 @@ export function ConnectedAccountsSection({
                 <p className="text-sm font-medium">GitHub</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGithubLinked
-                    ? t("connectedTo", { provider: "GitHub" })
+                    ? (disconnectHint ??
+                      t("connectedTo", { provider: "GitHub" }))
                     : t("signInWith", { provider: "GitHub" })}
                 </p>
               </div>
@@ -194,10 +197,6 @@ export function ConnectedAccountsSection({
             )}
           </div>
         </div>
-
-        {!canUnlink && (
-          <p className="text-muted-foreground text-xs">{t("needOneAccount")}</p>
-        )}
       </div>
     </TitleCard>
   );

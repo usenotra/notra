@@ -54,11 +54,12 @@ export function GeoProjectDeleteSection({
       heading={tGeoShared("deleteProject")}
       headingAs="h2"
     >
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p className="text-muted-foreground text-sm text-pretty">
           {isLastProject ? t("onlyProject") : t("description")}
         </p>
         <Button
+          className="self-end"
           disabled={isLastProject}
           onClick={() => setOpen(true)}
           type="button"

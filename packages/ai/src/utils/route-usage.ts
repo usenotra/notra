@@ -34,18 +34,24 @@ export async function summarizeRouteUsage(
   let pricedSteps = 0;
 
   for (const step of steps) {
+    const routeMetadata = getRouteMetadata(step.providerMetadata);
+    const stepRoute = routeMetadata
+      ? await enrichRouteMetadata(routeMetadata)
+      : undefined;
+    if (stepRoute) {
+      route = stepRoute;
+    }
+
     const usage = stepUsage(step);
     if (usage) {
       pricedSteps += 1;
       maxPromptTokens = Math.max(maxPromptTokens, promptTokensOf(usage));
-      tokenCostUsd += calculateTokenCostUsd(usage, modelId);
+      tokenCostUsd += calculateTokenCostUsd(
+        usage,
+        stepRoute?.model ?? modelId,
+        stepRoute?.gateway
+      );
     }
-    const routeMetadata = getRouteMetadata(step.providerMetadata);
-    if (!routeMetadata) {
-      continue;
-    }
-    const metadata = await enrichRouteMetadata(routeMetadata);
-    route = metadata;
   }
 
   if (pricedSteps === 0) {

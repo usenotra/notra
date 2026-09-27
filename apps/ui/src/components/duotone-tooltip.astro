@@ -1,0 +1,86 @@
+---
+import type { DuotoneTooltipProps as Props } from "../types/duotone-tooltip";
+
+const { aside, label, open = false, title } = Astro.props;
+const id = `duotone-tooltip-${crypto.randomUUID()}`;
+---
+
+<span class="group relative inline-flex" data-duotone-tooltip={open ? undefined : ""}>
+  <button
+    aria-describedby={id}
+    class="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
+    type="button"
+  >
+    {label}
+  </button>
+  <span
+    class:list={[
+      "absolute top-full left-1/2 z-50 w-72 max-w-[calc(100vw-7rem)] -translate-x-1/2 pt-2 text-left transition duration-150 ease-out motion-reduce:transition-none",
+      open
+        ? "visible translate-y-0 opacity-100"
+        : "invisible translate-y-1 opacity-0 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100",
+    ]}
+    id={id}
+    role="tooltip"
+  >
+    <span class="block rounded-t-2xl border border-b-0 border-border bg-muted pb-5">
+      <span class="flex items-center justify-between gap-3 px-3 py-2">
+        <span class="truncate text-sm font-semibold text-foreground">{title}</span>
+        {aside && <span class="shrink-0 text-xs tabular-nums text-muted-foreground">{aside}</span>}
+      </span>
+    </span>
+    <span class="-mt-5 block rounded-2xl border border-border bg-background px-3 py-2.5 text-xs text-muted-foreground shadow-md">
+      <slot />
+    </span>
+  </span>
+</span>
+
+<script>
+  import { DUOTONE_TOOLTIP_VIEWPORT_GUTTER_REM } from "../constants/duotone-tooltip";
+
+  const rootOf = (target: EventTarget | null) =>
+    target instanceof Element ? target.closest<HTMLElement>("[data-duotone-tooltip]") : null;
+
+  const tooltipOf = (root: HTMLElement | null) => root?.querySelector<HTMLElement>("[role=tooltip]");
+
+  const place = (event: Event) => {
+    const tooltip = tooltipOf(rootOf(event.target));
+    if (!tooltip) {
+      return;
+    }
+    tooltip.style.marginLeft = "";
+    const gutter =
+      Number.parseFloat(getComputedStyle(document.documentElement).fontSize) * DUOTONE_TOOLTIP_VIEWPORT_GUTTER_REM;
+    const { left, right } = tooltip.getBoundingClientRect();
+    const shift =
+      Math.max(gutter - left, 0) - Math.max(right - (document.documentElement.clientWidth - gutter), 0);
+    if (shift !== 0) {
+      tooltip.style.marginLeft = `${shift}px`;
+    }
+  };
+
+  document.addEventListener("keydown", (event) => {
+    const tooltip = tooltipOf(rootOf(event.target));
+    if (event.key === "Escape" && tooltip) {
+      tooltip.hidden = true;
+    }
+  });
+
+  const resetOnExit = (event: FocusEvent | PointerEvent) => {
+    const root = rootOf(event.target);
+    const tooltip = tooltipOf(root);
+    if (!root || !tooltip || rootOf(event.relatedTarget) === root) {
+      return;
+    }
+    const stillFocused = event instanceof PointerEvent && root.contains(document.activeElement);
+    const stillHovered = event instanceof FocusEvent && root.matches(":hover");
+    if (!stillFocused && !stillHovered) {
+      tooltip.hidden = false;
+    }
+  };
+
+  document.addEventListener("focusin", place);
+  document.addEventListener("pointerover", place);
+  document.addEventListener("focusout", resetOnExit);
+  document.addEventListener("pointerout", resetOnExit);
+</script>

@@ -15,7 +15,7 @@
   "dependencies": {
     "@ai-sdk/devtools": "1.0.22",
     "@ai-sdk/gateway": "4.0.85",
-    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@linear/sdk": "^80.0.0",
     "@notra/ai": "workspace:*",
     "@notra/db": "workspace:*",
@@ -24,18 +24,18 @@
     "@octokit/core": "^7.0.6",
     "@resvg/resvg-js": "^2.6.2",
     "@upstash/box": "^0.5.0",
-    "@upstash/redis": "^1.35.7",
+    "@upstash/redis": "^1.38.4",
     "@vercel/oidc": "^3.8.0",
     "ai": "7.0.105",
     "drizzle-orm": "^0.45.2",
     "effect": "4.0.0-rc.112",
     "eve": "0.58.1",
     "marked": "^17.0.1",
-    "pg": "^8.20.0",
-    "sanitize-html": "^2.17.1",
+    "pg": "^8.23.0",
+    "sanitize-html": "^2.17.7",
     "satori": "^0.26.0",
     "satori-html": "^0.3.2",
-    "zod": "^4.4.3"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",

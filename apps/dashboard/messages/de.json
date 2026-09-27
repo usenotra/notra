@@ -159,11 +159,11 @@
       },
       "logs": {
         "loadFailed": "Logs konnten nicht geladen werden. Lade die Seite neu.",
-        "noMatchTitle": "Keine Logs entsprechen deinen Filtern",
-        "noMatchDescription": "Versuche eine andere Suche, Quelle oder einen anderen Status.",
+        "noMatchTitle": "Keine passenden Logs",
+        "noMatchDescription": "Versuche eine andere Suche oder setze deine Filter zurück.",
         "resetFilters": "Filter zurücksetzen",
-        "emptyTitle": "Noch keine Logs",
-        "emptyDescription": "Aktivitäten aus deinen Integrationen, Automatisierungen, GEO-Scans und Syncs erscheinen hier."
+        "emptyTitle": "Noch keine Aktivität",
+        "emptyDescription": "Events aus Integrationen, Automatisierungen, GEO-Scans und Syncs erscheinen hier, sobald sie laufen."
       }
     },
     "logs": {
@@ -199,7 +199,6 @@
       "heading": "Anmeldedaten",
       "resetFailed": "E-Mail zum Zurücksetzen des Passworts konnte nicht gesendet werden",
       "resetSent": "E-Mail zum Zurücksetzen des Passworts gesendet",
-      "emailHint": "Mit deiner E-Mail meldest du dich an und erhältst Benachrichtigungen",
       "passwordHint": "Wir senden dir per E-Mail einen Link, um dein Passwort zurückzusetzen.",
       "sending": "Wird gesendet…",
       "sendReset": "E-Mail zum Zurücksetzen senden"
@@ -260,13 +259,11 @@
       }
     },
     "chat": {
-      "description": "Passe an, wie Antworten des Assistenten im Chat angezeigt werden",
       "agentStats": "Agent-Statistiken",
       "agentStatsDescription": "Zeigt Tokens pro Sekunde, Gesamt-Tokens und Zeit bis zum ersten Token unter Antworten des Assistenten an. Inspiriert von <link>t3.chat</link>."
     },
     "privacy": {
       "heading": "Datenschutz",
-      "description": "Lege fest, wie deine persönlichen Daten angezeigt werden",
       "hidePersonalData": "Persönliche Daten ausblenden",
       "hidePersonalDataDescription": "Verwischt deine E-Mail und deinen Namen in der Seitenleiste. Praktisch, wenn du deinen Bildschirm teilst."
     },
@@ -304,7 +301,7 @@
       "description": "Verknüpfe deine Social-Konten für eine einfachere Anmeldung",
       "connectedTo": "Mit deinem {provider}-Konto verbunden",
       "signInWith": "Mit {provider} anmelden",
-      "needOneAccount": "Du brauchst mindestens ein verknüpftes Konto oder ein Passwort, um dich anzumelden"
+      "disconnectHint": "Verknüpfe eine weitere Anmeldemethode, um diese zu trennen"
     },
     "organizations": {
       "description": "Organisationen, in denen du Mitglied bist",
@@ -3471,9 +3468,8 @@
         "withDomain": "{detail} · {domain}"
       },
       "writeDialog": {
-        "showSections": "Abschnitte anzeigen",
-        "hideSections": "Abschnitte ausblenden",
         "description": "Plane oder schreibe einen Artikel aus einem Prompt, Inhaltstyp, einer Markenidentität und Wettbewerbern.",
+        "sectionsAriaLabel": "Abschnitte zum Schreiben",
         "updating": "Aktualisiert {page}",
         "baseline": "Aktuell: {mentioned}/{total} KI-Engines · Ziel: {total}/{total}",
         "promptDescription": "Wähle einen getrackten Prompt oder schreibe deinen eigenen. Der Artikel beantwortet diese Frage.",
@@ -3515,9 +3511,6 @@
         "customPrompt": "Eigenen Prompt schreiben",
         "placeholder": "z. B. Welche Tools eignen sich am besten zum Teilen von Musikdemos?",
         "editNote": "Wenn du den Text bearbeitest, entsteht eine eigene Variante, die nicht mehr mit dem getrackten Prompt verknüpft ist."
-      },
-      "writeSectionSidebar": {
-        "ariaLabel": "Abschnitte zum Schreiben"
       },
       "writeSitemapSection": {
         "crawlFailed": "Crawling fehlgeschlagen",

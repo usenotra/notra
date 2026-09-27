@@ -44,7 +44,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { CreditBalanceMenuItem } from "@/components/billing/credit-balance-button";
@@ -493,12 +493,14 @@ export function OrgSelector() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {isClient ? (
-          <CreateOrgModal
-            onOpenChange={setIsCreateModalOpen}
-            open={isCreateModalOpen}
-          />
-        ) : null}
+        <Suspense fallback={null}>
+          {isClient ? (
+            <CreateOrgModal
+              onOpenChange={setIsCreateModalOpen}
+              open={isCreateModalOpen}
+            />
+          ) : null}
+        </Suspense>
 
         <CreditTopupModal
           onOpenChange={setIsTopupModalOpen}

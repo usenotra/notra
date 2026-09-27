@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
@@ -20,6 +19,10 @@ import {
   useSettingsHeader,
 } from "@/components/settings/settings-header-context";
 import { SettingsModalNav } from "@/components/settings/settings-modal-nav";
+import {
+  SplitModalContent,
+  SplitModalPane,
+} from "@/components/shared/split-modal";
 import {
   DEFAULT_SETTINGS_SECTION,
   SETTINGS_NAV_GROUPS,
@@ -191,17 +194,16 @@ export function SettingsModal() {
       }}
       open={isOpen}
     >
-      <DialogContent
+      <SplitModalContent
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         className={cn(
-          "flex! max-w-none min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-none",
+          "flex! max-w-none sm:max-w-none",
           "top-0 right-0 bottom-0 left-0 h-auto w-auto translate-none rounded-none",
-          "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl",
+          "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2",
           "transition-shadow data-nested-dialog-open:shadow-[0_0_0_100vmax_rgb(0_0_0/0.4)]",
           "after:pointer-events-none after:absolute after:inset-0 after:bg-black/0 after:transition-colors data-nested-dialog-open:after:bg-black/40"
         )}
-        showCloseButton={false}
       >
         {isOpen ? (
           <SettingsModalSession
@@ -212,7 +214,7 @@ export function SettingsModal() {
             titleId={titleId}
           />
         ) : null}
-      </DialogContent>
+      </SplitModalContent>
     </Dialog>
   );
 }
@@ -299,7 +301,7 @@ function SettingsModalBody({
   const { titleAccessory } = useSettingsHeader();
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <SplitModalPane>
       <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-1.5">
@@ -333,6 +335,6 @@ function SettingsModalBody({
           <SettingsSectionContent key={activeSection} section={activeSection} />
         ) : null}
       </div>
-    </section>
+    </SplitModalPane>
   );
 }

@@ -1,9 +1,8 @@
 export const ASSISTANT_MODEL_ID = "anthropic/claude-sonnet-5";
-export const ASSISTANT_FAST_MODEL_ID = "openai/gpt-5.6-luna";
-export const ASSISTANT_DEEP_MODEL_ID = "anthropic/claude-opus-5";
+export const ASSISTANT_FAST_MODEL_ID = "openai/gpt-6-luna";
+export const ASSISTANT_DEEP_MODEL_ID = "anthropic/claude-opus-5.5";
 /** The image designer subagent stays on a fixed model; it never routes. */
-export const IMAGE_DESIGNER_MODEL_ID = "anthropic/claude-sonnet-4.6";
-export const SONNET_4_6_CONTEXT_WINDOW_TOKENS = 200_000;
+export const IMAGE_DESIGNER_MODEL_ID = "anthropic/claude-sonnet-5";
 export const SONNET_5_CONTEXT_WINDOW_TOKENS = 1_000_000;
 
 /**

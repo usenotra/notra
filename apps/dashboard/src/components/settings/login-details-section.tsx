@@ -2,6 +2,7 @@
 
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation } from "@tanstack/react-query";
@@ -43,21 +44,21 @@ export function LoginDetailsSection({
     <TitleCard heading={t("heading")}>
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label>{tCommon("labels.email")}</Label>
+          <Label htmlFor="account-email">{tCommon("labels.email")}</Label>
           <div className="flex items-center gap-2">
-            <div
-              className="bg-muted/50 flex-1 truncate rounded-lg border px-3 py-2 text-sm"
+            <Input
+              id="account-email"
+              readOnly
               title={email}
-            >
-              {email}
-            </div>
+              type="email"
+              value={email}
+            />
             <HugeiconsIcon
               className="text-success shrink-0"
               icon={CheckmarkCircle02Icon}
               size={20}
             />
           </div>
-          <p className="text-muted-foreground text-xs">{t("emailHint")}</p>
         </div>
 
         {hasPasswordAccount && (

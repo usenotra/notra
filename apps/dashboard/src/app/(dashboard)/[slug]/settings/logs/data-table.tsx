@@ -1,9 +1,11 @@
 "use client";
 
+import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { useTranslations } from "next-intl";
 
-import { Button } from "@/components/button";
+import { EmptyState } from "@/components/empty-state";
 import { Table } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { DataTableProps } from "@/types/logs/data-table";
@@ -31,37 +33,33 @@ export function DataTable<TData>({
   const rowCount =
     isLoading && data.length === 0 ? LOGS_SKELETON_ROW_COUNT : data.length;
 
+  if (data.length === 0 && !isLoading && emptyState) {
+    return (
+      <EmptyState
+        actionLabel={emptyState.actionLabel}
+        actionVariant="outline"
+        className="min-h-64"
+        description={emptyState.description ?? ""}
+        onActionClick={emptyState.onActionClick}
+        title={emptyState.title}
+        titleIcon={
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="text-muted-foreground size-5"
+            icon={AnalyticsUpIcon}
+          />
+        }
+      />
+    );
+  }
+
   return (
     <Table
       className="rounded-2xl"
       columns={columns}
       data={data}
       defaultSort={{ key: "createdAt", direction: "desc" }}
-      emptyState={
-        emptyState ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-2 text-center">
-            <p className="text-sm font-medium">{emptyState.title}</p>
-            {emptyState.description && (
-              <p className="text-muted-foreground text-sm">
-                {emptyState.description}
-              </p>
-            )}
-            {emptyState.actionLabel && emptyState.onActionClick && (
-              <Button
-                className="mt-2"
-                onClick={emptyState.onActionClick}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                {emptyState.actionLabel}
-              </Button>
-            )}
-          </div>
-        ) : (
-          t("noResults")
-        )
-      }
+      emptyState={t("noResults")}
       footer={
         totalPages > 1 || data.length > 0 ? (
           <TablePagination

@@ -159,11 +159,11 @@
       },
       "logs": {
         "loadFailed": "Unable to load logs. Try refreshing.",
-        "noMatchTitle": "No logs match your filters",
-        "noMatchDescription": "Try a different search, source or status.",
+        "noMatchTitle": "No matching logs",
+        "noMatchDescription": "Try another search or reset your filters.",
         "resetFilters": "Reset filters",
-        "emptyTitle": "No logs yet",
-        "emptyDescription": "Activity from your integrations, automations, GEO scans and syncs will show up here."
+        "emptyTitle": "No activity yet",
+        "emptyDescription": "Events from integrations, automations, GEO scans and syncs will appear here when they run."
       }
     },
     "logs": {
@@ -199,7 +199,6 @@
       "heading": "Login details",
       "resetFailed": "Failed to send password reset email",
       "resetSent": "Password reset email sent",
-      "emailHint": "Your email is used to sign in and receive notifications",
       "passwordHint": "We will email you a link to reset your password.",
       "sending": "Sending…",
       "sendReset": "Send password reset email"
@@ -260,13 +259,11 @@
       }
     },
     "chat": {
-      "description": "Customize how assistant messages appear in chat",
       "agentStats": "Agent stats",
       "agentStatsDescription": "Show tokens per second, total tokens and time to first token under assistant messages. Inspired by <link>t3.chat</link>."
     },
     "privacy": {
       "heading": "Privacy",
-      "description": "Control how your personal information is displayed",
       "hidePersonalData": "Hide personal data",
       "hidePersonalDataDescription": "Blur your email and name in the sidebar. Useful when sharing your screen."
     },
@@ -304,7 +301,7 @@
       "description": "Connect your social accounts for easier sign-in",
       "connectedTo": "Connected to your {provider} account",
       "signInWith": "Sign in with {provider}",
-      "needOneAccount": "You need at least one connected account or password to sign in"
+      "disconnectHint": "Connect another sign-in method to disconnect"
     },
     "organizations": {
       "description": "Organizations you are a member of",
@@ -3471,9 +3468,8 @@
         "withDomain": "{detail} · {domain}"
       },
       "writeDialog": {
-        "showSections": "Show sections",
-        "hideSections": "Hide sections",
         "description": "Plan or write an article from a prompt, content type, brand identity and competitors.",
+        "sectionsAriaLabel": "Write sections",
         "updating": "Updating {page}",
         "baseline": "Current: {mentioned}/{total} engines · target: {total}/{total}",
         "promptDescription": "Pick a tracked prompt or write your own. The article answers this question.",
@@ -3515,9 +3511,6 @@
         "customPrompt": "Write a custom prompt",
         "placeholder": "e.g. Which tools are best for sharing music demos?",
         "editNote": "Editing the text creates a custom variant that is no longer linked to the tracked prompt."
-      },
-      "writeSectionSidebar": {
-        "ariaLabel": "Write sections"
       },
       "writeSitemapSection": {
         "crawlFailed": "Crawl failed",

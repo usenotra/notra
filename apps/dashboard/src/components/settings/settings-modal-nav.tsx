@@ -146,7 +146,7 @@ export function SettingsModalNav({
   return (
     <nav
       aria-label={tCommon("actions.settings")}
-      className="flex w-full shrink-0 flex-col border-b pt-[env(safe-area-inset-top)] md:min-h-0 md:w-56 md:border-r md:border-b-0 md:pt-0"
+      className="flex w-full shrink-0 flex-col border-b pt-[env(safe-area-inset-top)] md:min-h-0 md:w-56 md:border-b-0 md:pt-0"
     >
       <div className="p-3 pb-2">
         <div className="relative">

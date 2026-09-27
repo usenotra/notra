@@ -47,7 +47,7 @@ export const AVAILABLE_MODELS = [
     id: "openai/gpt-5.6-sol",
     label: "GPT-5.6 Sol",
     description: "zdrRoute",
-    pricing: { input: "2", output: "10" },
+    pricing: { input: "2–4", output: "10–20" },
     provider: "openai",
   },
 ] satisfies [ChatModelOption, ...ChatModelOption[]];
