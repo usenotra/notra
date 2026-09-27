@@ -17,25 +17,22 @@ import { toast } from "sonner";
 
 import { PostHogIdentity } from "@/components/providers/posthog-identity";
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
+import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useUiLabelsTranslations } from "@/lib/i18n/ui-labels";
 import { configureZodLocale } from "@/lib/i18n/zod";
 
-const DatabuddyAnalytics = dynamic(
-  () =>
-    import("@/components/providers/databuddy-analytics").then(
-      (module) => module.DatabuddyAnalytics
-    ),
-  { ssr: false }
+const DatabuddyAnalytics = dynamic(() =>
+  import("@/components/providers/databuddy-analytics").then(
+    (module) => module.DatabuddyAnalytics
+  )
 );
 
 const ReactQueryDevtools =
   process.env.NODE_ENV === "development"
-    ? dynamic(
-        () =>
-          import("@tanstack/react-query-devtools").then(
-            (mod) => mod.ReactQueryDevtools
-          ),
-        { ssr: false }
+    ? dynamic(() =>
+        import("@tanstack/react-query-devtools").then(
+          (mod) => mod.ReactQueryDevtools
+        )
       )
     : null;
 
@@ -96,10 +93,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(createProviderClients);
   configureZodLocale(useLocale());
   const uiLabels = useUiLabelsTranslations();
+  const isClient = useIsClient();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+      {isClient && ReactQueryDevtools ? (
+        <ReactQueryDevtools initialIsOpen={false} />
+      ) : null}
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
         <UiLabelsProvider labels={uiLabels}>
           <TooltipProvider delay={500}>
@@ -112,7 +112,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               ) : null}
             </NuqsAdapter>
             <Toaster position="bottom-right" />
-            <DatabuddyAnalytics />
+            {isClient ? <DatabuddyAnalytics /> : null}
           </TooltipProvider>
         </UiLabelsProvider>
       </ThemeProvider>

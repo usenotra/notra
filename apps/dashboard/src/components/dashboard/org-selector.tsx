@@ -53,6 +53,7 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { cn, errorMessageOr } from "@/lib/utils";
 import type { OrganizationOptionsListProps } from "@/types/dashboard";
@@ -66,12 +67,10 @@ import {
   useOrganizationsContext,
 } from "../providers/organization-provider";
 
-const CreateOrgModal = dynamic(
-  () =>
-    import("./create-org-modal").then((mod) => ({
-      default: mod.CreateOrgModal,
-    })),
-  { ssr: false }
+const CreateOrgModal = dynamic(() =>
+  import("./create-org-modal").then((mod) => ({
+    default: mod.CreateOrgModal,
+  }))
 );
 
 function OverflowAwareText({
@@ -277,6 +276,7 @@ export function OrgSelector() {
   const t = useTranslations("nav.orgSelector");
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
+  const isClient = useIsClient();
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -493,10 +493,12 @@ export function OrgSelector() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <CreateOrgModal
-          onOpenChange={setIsCreateModalOpen}
-          open={isCreateModalOpen}
-        />
+        {isClient ? (
+          <CreateOrgModal
+            onOpenChange={setIsCreateModalOpen}
+            open={isCreateModalOpen}
+          />
+        ) : null}
 
         <CreditTopupModal
           onOpenChange={setIsTopupModalOpen}
