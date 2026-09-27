@@ -93,7 +93,6 @@ export function SelectRepositoriesDialog({
               <RepositoryMultiSelect
                 accounts={accounts}
                 isLoading={isLoading}
-                key={selectedAccountId}
                 onAddAccount={onAddAccount}
                 onChange={setSelected}
                 onSelectAccount={onSelectAccount}

@@ -94,7 +94,14 @@ export function RepositoryMultiSelect({
               accounts={accounts}
               disabled={disabled}
               onAddAccount={onAddAccount}
-              onSelectAccount={onSelectAccount}
+              onSelectAccount={(accountId) => {
+                setQuery("");
+                setVisibleCount(MAX_VISIBLE_REPOSITORIES);
+                if (listRef.current) {
+                  listRef.current.scrollTop = 0;
+                }
+                onSelectAccount?.(accountId);
+              }}
               selectedAccountId={selectedAccountId}
             />
           </div>
@@ -126,7 +133,10 @@ export function RepositoryMultiSelect({
           className="max-h-80 overflow-y-auto"
           onScroll={(event) => {
             const list = event.currentTarget;
-            if (list.scrollHeight - list.scrollTop - list.clientHeight < 80) {
+            if (
+              visibleRepositories.length > visibleCount &&
+              list.scrollHeight - list.scrollTop - list.clientHeight < 80
+            ) {
               setVisibleCount((count) =>
                 Math.min(
                   count + MAX_VISIBLE_REPOSITORIES,
