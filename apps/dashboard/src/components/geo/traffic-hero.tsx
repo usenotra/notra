@@ -107,7 +107,6 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
             value={metric.value}
           />
           <GeoStatDelta
-            className="rounded-md px-2 py-1.5 text-xs leading-4 [&>span]:hidden"
             delta={metric.delta}
             hint={tGeoShared("vsPreviousPeriodOfThe")}
             label={metric.label}

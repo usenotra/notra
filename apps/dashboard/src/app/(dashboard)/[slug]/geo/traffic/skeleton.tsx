@@ -44,7 +44,7 @@ export function GeoTrafficSkeleton() {
                   <Skeleton className="h-5 w-28" />
                   <div className="flex min-w-0 flex-wrap items-center gap-3">
                     <Skeleton className="h-6 w-14 @4xl/hero:h-8 @4xl/hero:w-16" />
-                    <Skeleton className="h-7 w-12 rounded-md" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
                   </div>
                 </div>
               ))}
