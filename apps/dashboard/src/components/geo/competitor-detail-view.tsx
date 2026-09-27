@@ -25,6 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -71,13 +72,6 @@ import {
 import { promptTableRowForId } from "@/utils/geo-prompts";
 import { tableHeightFor } from "@/utils/table";
 
-const CHART_CONFIG: ChartConfig = {
-  [GEO_COMPETITOR_DETAIL_SERIES_KEY]: {
-    label: "Mentions",
-    colors: seriesColors(CHART_PRIMARY_COLOR),
-  },
-};
-
 function CompetitorMentionsChart({
   competitor,
   points,
@@ -91,10 +85,19 @@ function CompetitorMentionsChart({
   showLoading: boolean;
   unavailable: boolean;
 }) {
+  const t = useTranslations("geo.competitorDetailView");
+  const tGeoShared = useTranslations("geo.shared");
+  const chartConfig: ChartConfig = {
+    [GEO_COMPETITOR_DETAIL_SERIES_KEY]: {
+      label: tGeoShared("mentionsLabel"),
+      colors: seriesColors(CHART_PRIMARY_COLOR),
+    },
+  };
+
   if (unavailable) {
     return (
       <p className="text-muted-foreground text-sm">
-        Mentions for {competitor} could not be loaded.
+        {t("mentionsUnavailable", { competitor })}
       </p>
     );
   }
@@ -112,7 +115,7 @@ function CompetitorMentionsChart({
       <EChartsBarChart
         animation={false}
         className={cn("w-full", GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS)}
-        config={CHART_CONFIG}
+        config={chartConfig}
         data={points}
         key={competitor}
         xDataKey="day"
@@ -131,7 +134,7 @@ function CompetitorMentionsChart({
 
   return (
     <p className="text-muted-foreground text-sm">
-      Not enough scans yet to chart {competitor}.
+      {t("notEnoughScans", { competitor })}
     </p>
   );
 }
@@ -141,21 +144,23 @@ function CompetitorMentionStats({
 }: {
   stats: GeoCompetitorMentionStats;
 }) {
+  const t = useTranslations("geo.competitorDetailView");
+  const locale = useLocale();
   return (
     <dl className="flex items-baseline gap-4 text-sm tabular-nums">
       <div className="flex items-baseline gap-1.5">
-        <dt className="sr-only">Latest on {stats.latestDay}</dt>
+        <dt className="sr-only">{t("latestOn", { day: stats.latestDay })}</dt>
         <dd>
           <span className="text-foreground font-semibold">
-            {stats.latest.toLocaleString()}
+            {stats.latest.toLocaleString(locale)}
           </span>{" "}
           <span className="text-muted-foreground">{stats.latestDay}</span>
         </dd>
       </div>
       <div className="flex items-baseline gap-1.5">
-        <dt className="text-muted-foreground">Peak</dt>
+        <dt className="text-muted-foreground">{t("peak")}</dt>
         <dd className="text-foreground font-medium">
-          {stats.peak.toLocaleString()}
+          {stats.peak.toLocaleString(locale)}
         </dd>
       </div>
     </dl>
@@ -167,6 +172,10 @@ function CompetitorSummaryStats({
   summary,
   unavailable,
 }: CompetitorSummaryStatsProps) {
+  const t = useTranslations("geo.competitorDetailView.stats");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const withYouShare =
     summary && summary.answers > 0
       ? Math.round((summary.ownMentioned / summary.answers) * 100)
@@ -174,25 +183,28 @@ function CompetitorSummaryStats({
   const missing = unavailable ? "—" : undefined;
   const stats = [
     {
-      label: "Answers",
-      value: summary?.answers.toLocaleString() ?? missing,
-      detail: `latest answers naming ${competitor}`,
+      label: tGeoShared("answers"),
+      value: summary?.answers.toLocaleString(locale) ?? missing,
+      detail: t("answersDetail", { competitor }),
     },
     {
-      label: "Prompts",
-      value: summary?.prompts.toLocaleString() ?? missing,
-      detail: "tracked prompts",
+      label: tCommon("labels.prompts"),
+      value: summary?.prompts.toLocaleString(locale) ?? missing,
+      detail: t("promptsDetail"),
     },
     {
-      label: "Engines",
-      value: summary?.engines.toLocaleString() ?? missing,
-      detail: "AI engines",
+      label: tGeoShared("engines"),
+      value: summary?.engines.toLocaleString(locale) ?? missing,
+      detail: tCommon("labels.aiEngines"),
     },
     {
-      label: "With your brand",
+      label: tGeoShared("withYourBrand"),
       value: summary ? `${withYouShare ?? 0}%` : missing,
       detail: summary
-        ? `${summary.ownMentioned.toLocaleString()} of ${summary.answers.toLocaleString()} answers`
+        ? t("withYourBrandDetail", {
+            own: summary.ownMentioned.toLocaleString(locale),
+            total: summary.answers.toLocaleString(locale),
+          })
         : "",
     },
   ];
@@ -222,6 +234,7 @@ function CompetitorPromptAppearances({
   unavailable,
   onRowClick,
 }: CompetitorPromptAppearancesProps) {
+  const t = useTranslations("geo.competitorDetailView");
   return (
     <Table
       className="rounded-2xl"
@@ -230,8 +243,8 @@ function CompetitorPromptAppearances({
       defaultSort={{ key: "capturedAt", direction: "desc" }}
       emptyState={
         unavailable
-          ? "Prompt appearances could not be loaded."
-          : `${competitor} has not shown up in your tracked prompts yet.`
+          ? t("promptsUnavailable")
+          : t("promptsEmpty", { competitor })
       }
       getRowId={(row) => `${row.promptId}-${row.engine}`}
       height={showLoading ? tableHeightFor(3) : tableHeight}
@@ -241,9 +254,11 @@ function CompetitorPromptAppearances({
       rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
       toolbar={
         <div className="space-y-0.5 px-4 py-3">
-          <h2 className="text-sm font-medium">Where {competitor} shows up</h2>
-          <p className="text-muted-foreground text-xs">
-            Latest answer per prompt and engine that named {competitor}
+          <h2 className="text-sm font-medium wrap-anywhere">
+            {t("whereShowsUp", { competitor })}
+          </h2>
+          <p className="text-muted-foreground text-xs wrap-anywhere">
+            {t("whereShowsUpDescription", { competitor })}
           </p>
         </div>
       }
@@ -256,6 +271,9 @@ export function CompetitorDetailView({
   competitor,
   variant = "modal",
 }: CompetitorDetailViewProps) {
+  const t = useTranslations("geo.competitorDetailView");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -308,8 +326,8 @@ export function CompetitorDetailView({
     ? promptTableRowForId(selectedAnswer.promptId, promptResults?.results ?? [])
     : null;
   const points = useMemo(
-    () => buildGeoCompetitorPoints(data?.points ?? []),
-    [data]
+    () => buildGeoCompetitorPoints(data?.points ?? [], locale),
+    [data, locale]
   );
   const stats = useMemo(
     () => (showLoading || unavailable ? null : competitorMentionStats(points)),
@@ -325,9 +343,9 @@ export function CompetitorDetailView({
       key: "prompt",
       header: (
         <span className="inline-flex items-center gap-1.5">
-          Prompt
+          {tGeoShared("prompt")}
           <span className="text-muted-foreground font-normal tabular-nums">
-            ({prompts.length.toLocaleString()})
+            ({prompts.length.toLocaleString(locale)})
           </span>
         </span>
       ),
@@ -348,7 +366,7 @@ export function CompetitorDetailView({
     },
     {
       key: "engine",
-      header: "Engine",
+      header: tGeoShared("engine"),
       width: "11rem",
       sortable: true,
       cell: (row) => (
@@ -360,16 +378,18 @@ export function CompetitorDetailView({
     },
     {
       key: "position",
-      header: "Your brand",
+      header: tGeoShared("yourBrand"),
       width: "8.5rem",
       sortable: true,
       cell: (row) => {
         if (!row.mentioned) {
-          return <span className="text-muted-foreground">Absent</span>;
+          return <span className="text-muted-foreground">{t("absent")}</span>;
         }
         return (
           <span className="tabular-nums">
-            {row.position === null ? "Mentioned" : `#${row.position}`}
+            {row.position === null
+              ? tGeoShared("mentioned")
+              : `#${row.position}`}
           </span>
         );
       },
@@ -382,12 +402,12 @@ export function CompetitorDetailView({
     },
     {
       key: "capturedAt",
-      header: "Last seen",
+      header: tGeoShared("lastSeen"),
       width: "9.375rem",
       sortable: true,
       cell: (row) => (
         <span className="text-muted-foreground text-xs tabular-nums">
-          {formatAiTrafficTimestamp(row.capturedAt)}
+          {formatAiTrafficTimestamp(row.capturedAt, locale)}
         </span>
       ),
     },
@@ -429,7 +449,7 @@ export function CompetitorDetailView({
                 <TooltipTrigger
                   render={
                     <Button
-                      aria-label={`Edit ${competitor}`}
+                      aria-label={t("editNamed", { competitor })}
                       className="text-muted-foreground size-7 shrink-0"
                       onClick={() => setEditOpen(true)}
                       size="icon-sm"
@@ -443,18 +463,23 @@ export function CompetitorDetailView({
                     strokeWidth={1.5}
                   />
                 </TooltipTrigger>
-                <TooltipContent>Edit competitor</TooltipContent>
+                <TooltipContent>{t("editCompetitor")}</TooltipContent>
               </Tooltip>
             ) : null}
           </div>
           {domain ? (
             <a
-              className="group text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
+              className="group text-muted-foreground hover:text-foreground inline-flex max-w-full items-center gap-1 text-xs transition-colors"
               href={`https://${domain}`}
               rel="noopener"
               target="_blank"
             >
-              <span className="underline underline-offset-4">{domain}</span>
+              <span
+                className="min-w-0 truncate underline underline-offset-4"
+                title={domain}
+              >
+                {domain}
+              </span>
               <HugeiconsIcon
                 className="opacity-0 transition-opacity group-hover:opacity-100"
                 icon={ArrowUpRight01Icon}
@@ -463,7 +488,7 @@ export function CompetitorDetailView({
             </a>
           ) : (
             <span className="text-muted-foreground text-xs">
-              No website yet
+              {t("noWebsite")}
             </span>
           )}
         </div>
@@ -478,7 +503,7 @@ export function CompetitorDetailView({
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-base font-semibold text-pretty">
-            Mentions over time
+            {tGeoShared("mentionsOverTime")}
           </h2>
           {stats ? <CompetitorMentionStats stats={stats} /> : null}
         </div>

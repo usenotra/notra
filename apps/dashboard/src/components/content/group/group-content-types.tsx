@@ -7,15 +7,12 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
 
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import type {
   GroupContentTypesProps,
   GroupTypeIconProps,
 } from "@/types/content/collection";
-import {
-  getOutputTypeIconClass,
-  getOutputTypeLabel,
-  OutputTypeIcon,
-} from "@/utils/output-types";
+import { getOutputTypeIconClass, OutputTypeIcon } from "@/utils/output-types";
 
 const MAX_VISIBLE_TYPES = 4;
 
@@ -29,6 +26,7 @@ function GroupTypeIcon({ type, className = "size-4" }: GroupTypeIconProps) {
 }
 
 export function GroupContentTypes({ contentTypes }: GroupContentTypesProps) {
+  const outputTypeLabel = useOutputTypeLabel();
   if (contentTypes.length === 0) {
     return <span className="text-muted-foreground text-sm">—</span>;
   }
@@ -47,7 +45,7 @@ export function GroupContentTypes({ contentTypes }: GroupContentTypesProps) {
               </span>
             }
           />
-          <TooltipContent>{getOutputTypeLabel(type)}</TooltipContent>
+          <TooltipContent>{outputTypeLabel(type)}</TooltipContent>
         </Tooltip>
       ))}
       {hiddenCount > 0 && (

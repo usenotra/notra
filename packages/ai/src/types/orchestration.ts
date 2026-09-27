@@ -135,6 +135,7 @@ export interface LinearContext {
 
 export interface OrchestrateInput {
   organizationId: string;
+  chatId?: string;
   messages: UIMessage[];
   currentMarkdown: string;
   contentType?: string;

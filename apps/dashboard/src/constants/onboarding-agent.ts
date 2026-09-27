@@ -12,20 +12,11 @@ export const WEBSITE_REACHABILITY_TIMEOUT_MS = 5000;
 export const WEBSITE_REACHABILITY_MAX_REDIRECTS = 5;
 export const EVE_ACCENT_COLOR = "#9333EA";
 export const EVE_SETUP_PROS = [
-  "Brand colors and voice pulled from your website",
-  "Writing skills matched to your product and audience",
-  "References and examples to guide future content",
+  "brandColors",
+  "writingSkills",
+  "references",
 ] as const;
-export const EVE_SETUP_CONS = [
-  "Skills you already edited may be overwritten",
-  "Custom colors and references may be replaced",
-] as const;
-export const SELF_SERVE_AGENT_ERROR_MESSAGES = {
-  "no-company-domain":
-    "We couldn't determine your company website. Add a website URL to your brand identity first.",
-  "website-unreachable":
-    "We couldn't reach your company website. Check the website URL in your brand identity.",
-} as const;
+export const EVE_SETUP_CONS = ["skillsOverwritten", "colorsReplaced"] as const;
 export const EVE_BANNER_COLORS_LIGHT = {
   colorBack: "#FFFFFF",
   colorFront: "#CBB6EF",

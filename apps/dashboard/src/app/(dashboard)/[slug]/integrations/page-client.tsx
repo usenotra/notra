@@ -10,6 +10,7 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
@@ -56,6 +57,8 @@ const IntegrationCard = memo(function IntegrationCard({
   activeCount: number;
   isPending?: boolean;
 }) {
+  const t = useTranslations("integrations.overview");
+  const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const organizationSlug = activeOrganization?.slug;
@@ -98,7 +101,9 @@ const IntegrationCard = memo(function IntegrationCard({
               size="sm"
               variant="outline"
             >
-              {integration.connectLabel ?? "Connect"}
+              {integration.connectLabelKey
+                ? t(integration.connectLabelKey)
+                : tCommon("actions.connect")}
             </Button>
           ) : null}
         </div>
@@ -121,7 +126,7 @@ const IntegrationCard = memo(function IntegrationCard({
       icon={integration.icon}
     >
       <p className="text-muted-foreground line-clamp-2 text-sm">
-        {integration.description}
+        {t(`catalog.${integration.descriptionKey}`)}
       </p>
     </TitleCard>
   );
@@ -156,6 +161,8 @@ export default function PageClient({
   organizationSlug,
   connectSlug,
 }: IntegrationsPageClientProps) {
+  const t = useTranslations("integrations.overview");
+  const tCommon2 = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id;
@@ -182,10 +189,10 @@ export default function PageClient({
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
-            <p className="text-muted-foreground">
-              Please select an organization to view integrations
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {tCommon2("labels.integrations")}
+            </h1>
+            <p className="text-muted-foreground">{t("selectOrganization")}</p>
           </div>
         </div>
       </PageContainer>
@@ -208,17 +215,19 @@ export default function PageClient({
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
-          <p className="text-muted-foreground">
-            Connect external services to automate your workflows
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {tCommon2("labels.integrations")}
+          </h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
 
         <Tabs onValueChange={(value) => setActiveTab(value)} value={activeTab}>
           <TabsList variant="line">
             {INTEGRATION_CATEGORY_TABS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
+                {tab.value === "extension"
+                  ? t("tabs.extension")
+                  : tCommon2(`labels.${tab.value}`)}
               </TabsTrigger>
             ))}
           </TabsList>

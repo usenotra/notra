@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_RECENT_LIMIT,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
@@ -18,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
@@ -35,6 +37,7 @@ import type {
   JourneyGroupHeadingProps,
   JourneyGroupSectionTitleProps,
   JourneyGroupSheetProps,
+  SheetStat,
 } from "@/types/geo";
 import {
   buildJourneyOverview,
@@ -47,58 +50,6 @@ import { tableHeightFor } from "@/utils/table";
 
 const GROUP_TABLE_MAX_ROWS = 6;
 
-const PAGE_COLUMNS: TableColumn<GeoJourneyPathRow>[] = [
-  {
-    key: "path",
-    header: "Page",
-    width: "1fr",
-    cell: (row) => (
-      <TruncateWithTooltip className="font-mono text-xs">
-        {row.path}
-      </TruncateWithTooltip>
-    ),
-  },
-  {
-    key: "journeys",
-    header: "Journeys",
-    width: "7rem",
-    align: "right",
-    cell: (row) => (
-      <span className="text-sm tabular-nums">
-        {row.journeys.toLocaleString()}
-      </span>
-    ),
-  },
-];
-
-const SOURCE_COLUMNS: TableColumn<GeoJourneySourceRow>[] = [
-  {
-    key: "source",
-    header: "Source",
-    width: "1fr",
-    cell: (row) => (
-      <span className="flex min-w-0 items-center gap-2 text-sm">
-        <EngineIcon engine={row.source} />
-        <span className="truncate">{formatGeoSource(row.source)}</span>
-        <span className="text-muted-foreground shrink-0 text-xs">
-          {row.visitorType === "crawler" ? "Crawler" : "AI referral"}
-        </span>
-      </span>
-    ),
-  },
-  {
-    key: "journeys",
-    header: "Journeys",
-    width: "7rem",
-    align: "right",
-    cell: (row) => (
-      <span className="text-sm tabular-nums">
-        {row.journeys.toLocaleString()}
-      </span>
-    ),
-  },
-];
-
 function SectionTitle({ title, meta }: JourneyGroupSectionTitleProps) {
   return (
     <div className="flex items-baseline justify-between gap-3">
@@ -108,64 +59,13 @@ function SectionTitle({ title, meta }: JourneyGroupSectionTitleProps) {
   );
 }
 
-function journeyColumns(showSource: boolean): TableColumn<GeoJourney>[] {
-  const columns: TableColumn<GeoJourney>[] = [];
-  if (showSource) {
-    columns.push({
-      key: "source",
-      header: "Source",
-      width: "1fr",
-      cell: (row) => (
-        <span className="flex min-w-0 items-center gap-2 text-sm">
-          <EngineIcon engine={row.source} />
-          <span className="truncate">{formatGeoSource(row.source)}</span>
-        </span>
-      ),
-    });
-  } else {
-    columns.push({
-      key: "entryPath",
-      header: "Path",
-      width: "1fr",
-      cell: (row) => (
-        <JourneyPathSummary
-          distinctPaths={row.distinctPaths}
-          entryPath={row.entryPath}
-          paths={row.samplePaths}
-        />
-      ),
-    });
-  }
-  columns.push(
-    {
-      key: "pages",
-      header: "Pages",
-      width: "5.5rem",
-      align: "right",
-      cell: (row) => (
-        <span className="text-sm tabular-nums">
-          {row.pages.toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      key: "lastSeenAt",
-      header: "Last seen",
-      width: "9.5rem",
-      cell: (row) => (
-        <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt)}
-        </span>
-      ),
-    }
-  );
-  return columns;
-}
-
 function JourneyGroupHeading({
   selection,
   lastSeen,
 }: JourneyGroupHeadingProps) {
+  const t = useTranslations("geo.journeyGroupSheet");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   return (
     <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
       <SheetTitle className="flex min-w-0 items-center gap-2 text-base leading-snug">
@@ -176,7 +76,9 @@ function JourneyGroupHeading({
               {formatGeoSource(selection.source)}
             </span>
             <Badge variant="secondary">
-              {selection.visitorType === "crawler" ? "Crawler" : "AI referral"}
+              {selection.visitorType === "crawler"
+                ? tGeoShared("crawler")
+                : tGeoShared("aiReferral")}
             </Badge>
           </>
         ) : (
@@ -188,8 +90,10 @@ function JourneyGroupHeading({
       <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         <span>
           {lastSeen
-            ? `Last seen ${formatAiTrafficTimestamp(lastSeen)}`
-            : "No journeys in this range"}
+            ? tGeoShared("lastSeenTime", {
+                time: formatAiTrafficTimestamp(lastSeen, locale),
+              })
+            : t("noJourneysInRange")}
         </span>
       </SheetDescription>
     </SheetHeader>
@@ -201,13 +105,60 @@ function JourneyGroupBreakdown({
   sampleMeta,
   overview,
 }: JourneyGroupBreakdownProps) {
+  const t = useTranslations("geo.journeyGroupSheet");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const journeysColumn = {
+    key: "journeys",
+    header: tCommon("labels.journeys"),
+    width: "7rem",
+    align: "right",
+    cell: (row: { journeys: number }) => (
+      <span className="text-sm tabular-nums">
+        {row.journeys.toLocaleString(locale)}
+      </span>
+    ),
+  } as const;
+  const pageColumns: TableColumn<GeoJourneyPathRow>[] = [
+    {
+      key: "path",
+      header: tGeoShared("page"),
+      width: "1fr",
+      cell: (row) => (
+        <TruncateWithTooltip className="font-mono text-xs">
+          {row.path}
+        </TruncateWithTooltip>
+      ),
+    },
+    journeysColumn,
+  ];
+  const sourceColumns: TableColumn<GeoJourneySourceRow>[] = [
+    {
+      key: "source",
+      header: tCommon("labels.source"),
+      width: "1fr",
+      cell: (row) => (
+        <span className="flex min-w-0 items-center gap-2 text-sm">
+          <EngineIcon engine={row.source} />
+          <span className="truncate">{formatGeoSource(row.source)}</span>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            {row.visitorType === "crawler"
+              ? tGeoShared("crawler")
+              : tGeoShared("aiReferral")}
+          </span>
+        </span>
+      ),
+    },
+    journeysColumn,
+  ];
   if (isSource) {
     return (
       <section className="space-y-3">
-        <SectionTitle meta={sampleMeta} title="Pages fetched" />
+        <SectionTitle meta={sampleMeta} title={t("pagesFetched")} />
         <Table
           className="rounded-2xl"
-          columns={PAGE_COLUMNS}
+          columns={pageColumns}
           data={overview.paths}
           getRowId={(row) => row.path}
           height={tableHeightFor(
@@ -220,10 +171,10 @@ function JourneyGroupBreakdown({
   }
   return (
     <section className="space-y-3">
-      <SectionTitle meta={sampleMeta} title="Sources" />
+      <SectionTitle meta={sampleMeta} title={tCommon("labels.sources")} />
       <Table
         className="rounded-2xl"
-        columns={SOURCE_COLUMNS}
+        columns={sourceColumns}
         data={overview.sources}
         getRowId={(row) => `${row.source}-${row.visitorType}`}
         height={tableHeightFor(
@@ -243,6 +194,10 @@ function JourneyGroupContent({
   onOpenJourney,
   onPrefetchJourney,
 }: JourneyGroupContentProps) {
+  const t = useTranslations("geo.journeyGroupSheet");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const journeys = useMemo(
     () => journeysForGroup(allJourneys, selection),
     [allJourneys, selection]
@@ -270,13 +225,85 @@ function JourneyGroupContent({
   );
   const sampled = allJourneys.length >= GEO_JOURNEY_RECENT_LIMIT;
   const sampleMeta = sampled
-    ? `From the latest ${allJourneys.length.toLocaleString()} journeys`
+    ? t("sampleMeta", { count: allJourneys.length.toLocaleString(locale) })
     : undefined;
-  const stats = journeyGroupSheetStats({
+  const stats: SheetStat[] = journeyGroupSheetStats({
     sourceRow,
     pageRow,
     totalJourneys,
+    locale,
+  }).map((stat) => {
+    if (stat.key === "avgDepth") {
+      return {
+        label: tGeoShared("avgDepth"),
+        value: tGeoShared("countPluralOnePageOther", { count: stat.depth }),
+      };
+    }
+    if (stat.key === "journeys") {
+      return {
+        label: tCommon("labels.journeys"),
+        value: stat.value,
+        delta: stat.delta,
+      };
+    }
+    return {
+      label:
+        stat.key === "deepCrawls"
+          ? tGeoShared("crawledPagesPages", {
+              pages: GEO_JOURNEY_DEEP_CRAWL_PAGES,
+            })
+          : t(`stats.${stat.key}`),
+      value: stat.value,
+      delta: stat.delta,
+    };
   });
+  const journeyColumns: TableColumn<GeoJourney>[] = [
+    isSource
+      ? {
+          key: "entryPath",
+          header: tGeoShared("path"),
+          width: "1fr",
+          cell: (row) => (
+            <JourneyPathSummary
+              distinctPaths={row.distinctPaths}
+              entryPath={row.entryPath}
+              paths={row.samplePaths}
+            />
+          ),
+        }
+      : {
+          key: "source",
+          header: tCommon("labels.source"),
+          width: "1fr",
+          cell: (row) => (
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <EngineIcon engine={row.source} />
+              <span className="truncate">{formatGeoSource(row.source)}</span>
+            </span>
+          ),
+        },
+    {
+      key: "pages",
+      header: tGeoShared("pages"),
+      width: "5.5rem",
+      align: "right",
+      cell: (row) => (
+        <span className="text-sm tabular-nums">
+          {row.pages.toLocaleString(locale)}
+        </span>
+      ),
+    },
+    {
+      key: "lastSeenAt",
+      header: tGeoShared("lastSeen"),
+      width: "9.5rem",
+      cell: (row) => (
+        <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
+          {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -287,8 +314,11 @@ function JourneyGroupContent({
 
         {trend.length >= GEO_SPARKLINE_MIN_POINTS ? (
           <section className="space-y-3">
-            <SectionTitle title="Journeys per day" />
-            <DailyTrendChart label="Journeys" points={trend} />
+            <SectionTitle title={t("journeysPerDay")} />
+            <DailyTrendChart
+              label={tCommon("labels.journeys")}
+              points={trend}
+            />
           </section>
         ) : null}
 
@@ -299,12 +329,12 @@ function JourneyGroupContent({
         />
 
         <section className="space-y-3">
-          <SectionTitle meta={sampleMeta} title="Recent journeys" />
+          <SectionTitle meta={sampleMeta} title={t("recentJourneys")} />
           <Table
             className="rounded-2xl"
-            columns={journeyColumns(!isSource)}
+            columns={journeyColumns}
             data={journeys}
-            emptyState="No journeys in this range"
+            emptyState={t("noJourneysInRange")}
             getRowId={(row) => row.journeyId}
             height={tableHeightFor(
               Math.min(journeys.length, GROUP_TABLE_MAX_ROWS)

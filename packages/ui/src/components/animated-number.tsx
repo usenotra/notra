@@ -1,6 +1,7 @@
 "use client";
 
 import { TRANSITION } from "@notra/ui/lib/motion";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import type { AnimatedNumberProps } from "@notra/ui/types/animated-number";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -14,17 +15,16 @@ const rest = {
 };
 
 /**
- * Pinned, not the visitor's locale: this renders on the server too, and a
- * visitor on de-DE would hydrate "1.234" over a server-rendered "1,234".
- */
-const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
-
-/**
  * Rolls only the characters that changed. Each character sits in a slot keyed
  * by its position from the right, so 98 → 99 animates just the last digit and
  * 98 → 107 animates every digit (plus the new leading slot).
  */
-export function AnimatedNumber({ value, className }: AnimatedNumberProps) {
+export function AnimatedNumber({
+  value,
+  className,
+  locale,
+}: AnimatedNumberProps) {
+  const labels = useUiLabels();
   const reduceMotion = useReducedMotion();
   const previousValue = useRef(value);
   /*
@@ -36,7 +36,9 @@ export function AnimatedNumber({ value, className }: AnimatedNumberProps) {
    */
   const [hasMounted, setHasMounted] = useState(false);
   const direction = value >= previousValue.current ? 1 : -1;
-  const formattedValue = NUMBER_FORMATTER.format(value);
+  const formattedValue = new Intl.NumberFormat(
+    locale ?? labels.locale ?? "en-US"
+  ).format(value);
   const chars = Array.from(formattedValue);
 
   useEffect(() => {

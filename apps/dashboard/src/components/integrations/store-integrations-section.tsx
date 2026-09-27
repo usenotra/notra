@@ -4,6 +4,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ export function StoreIntegrationsSection({
   organizationSlug,
   connectSlug,
 }: StoreIntegrationsSectionProps) {
+  const t = useTranslations("integrations.store.section");
   const queryClient = useQueryClient();
   const router = useRouter();
   const [connectingIntegration, setConnectingIntegration] =
@@ -86,7 +88,7 @@ export function StoreIntegrationsSection({
       setConfirmingIntegration(null);
       dismissDeeplink();
       invalidateIntegrations();
-      toast.success("Integration connected");
+      toast.success(t("connectedToast"));
     },
     onError: (error) => {
       toast.error(error.message);
@@ -161,13 +163,8 @@ export function StoreIntegrationsSection({
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">
-          From the integration store
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          MCP servers published by the Notra community. Connect them with your
-          own credentials.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       <StoreIntegrationsGrid

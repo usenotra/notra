@@ -6,6 +6,7 @@ import {
 } from "@notra/schemas/dashboard/integrations";
 import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId } from "react";
 import { toast } from "sonner";
 
@@ -13,7 +14,7 @@ import { Button } from "@/components/button";
 import type { GitHubPublishingPathFieldsProps } from "@/types/integrations/github";
 
 export function GitHubPublishingPathFields({
-  contentLabel,
+  contentType,
   contentPath,
   directory,
   disabled = false,
@@ -21,6 +22,8 @@ export function GitHubPublishingPathFields({
   isSaving = false,
   onSave,
 }: GitHubPublishingPathFieldsProps) {
+  const t = useTranslations("integrations.github.pathFields");
+  const tCommon = useTranslations("common");
   const contentPathId = useId();
   const imagePathId = useId();
 
@@ -37,10 +40,10 @@ export function GitHubPublishingPathFields({
       : null;
     const error =
       (parsedContentPath && !parsedContentPath.success
-        ? parsedContentPath.error.issues[0]?.message
+        ? t("contentPathInvalid")
         : null) ??
       (parsedImagePath && !parsedImagePath.success
-        ? parsedImagePath.error.issues[0]?.message
+        ? t("imagePathInvalid")
         : null);
     if (error) {
       toast.error(error);
@@ -56,7 +59,7 @@ export function GitHubPublishingPathFields({
   return (
     <form className="max-w-xl space-y-4" onSubmit={handleSubmit}>
       <Field>
-        <FieldLabel htmlFor={contentPathId}>Content file path</FieldLabel>
+        <FieldLabel htmlFor={contentPathId}>{t("contentPath")}</FieldLabel>
         <Input
           defaultValue={contentPath ?? ""}
           disabled={disabled || isSaving}
@@ -67,7 +70,7 @@ export function GitHubPublishingPathFields({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={imagePathId}>Image file path</FieldLabel>
+        <FieldLabel htmlFor={imagePathId}>{t("imagePath")}</FieldLabel>
         <Input
           defaultValue={imagePath ?? ""}
           disabled={disabled || isSaving}
@@ -83,7 +86,9 @@ export function GitHubPublishingPathFields({
         type="submit"
         variant="outline"
       >
-        {isSaving ? "Saving…" : `Save ${contentLabel.toLowerCase()} paths`}
+        {isSaving
+          ? tCommon("actions.saving")
+          : t("save", { type: contentType })}
       </Button>
     </form>
   );

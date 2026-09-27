@@ -220,6 +220,8 @@ export async function runBackgroundGen(
     posts: postToolsResult.posts,
     usage: {
       ...toAgentTokenUsage(result.usage),
+      maxPromptTokens: routeUsage.maxPromptTokens,
+      tokenCostUsd: routeUsage.tokenCostUsd,
       route: routeUsage.route,
       raw: result.usage,
     },

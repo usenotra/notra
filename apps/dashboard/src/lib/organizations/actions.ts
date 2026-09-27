@@ -2,10 +2,6 @@
 
 import { autumn } from "@notra/ai/billing/autumn";
 import { checkTeamMembersLimit } from "@notra/ai/billing/team-members";
-import {
-  TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
-  TEAM_MEMBER_LIMIT_ERROR_MESSAGE,
-} from "@notra/ai/constants/billing-limits";
 import { seedSystemSkills } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
@@ -27,8 +23,10 @@ import type { Invitation } from "@workos-inc/node";
 import { and, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { isValid as isNotDisposableEmail } from "mailchecker";
+import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 
+import { ACTION_ERROR_CODES } from "@/constants/actions";
 import { QUOTA_FEATURES } from "@/constants/analytics-events";
 import {
   LAST_VISITED_ORGANIZATION_COOKIE,
@@ -43,6 +41,7 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { readWorkOSError } from "@/lib/auth/workos-error";
+import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import {
   requireManagerMembership,
   requireMembership,
@@ -80,7 +79,7 @@ const enforceTeamMembersLimit = Effect.fn(
     try: () => checkTeamMembersLimit(organizationId),
     catch: (cause) =>
       new ActionFailure({
-        message: TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
+        message: "Team member limit check failed",
         cause,
       }),
   });
@@ -88,14 +87,21 @@ const enforceTeamMembersLimit = Effect.fn(
   if (status === "check-unavailable") {
     return yield* Effect.fail(
       new ActionFailure({
-        message: TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
+        message: yield* organizationActionMessage(
+          "actions.organizations.teamMemberLimitCheckUnavailable"
+        ),
       })
     );
   }
 
   if (status === "limit-reached") {
     return yield* Effect.fail(
-      new ActionFailure({ message: TEAM_MEMBER_LIMIT_ERROR_MESSAGE })
+      new ActionFailure({
+        code: ACTION_ERROR_CODES.TEAM_MEMBER_LIMIT,
+        message: (yield* Effect.promise(() => getTranslations("members")))(
+          "teamMemberLimit"
+        ),
+      })
     );
   }
 });
@@ -215,7 +221,11 @@ const requireInvitationManagement = Effect.fn(
 
   if (!invitation.organizationId) {
     return yield* Effect.fail(
-      new ActionFailure({ message: "Invitation not found" })
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.invitationNotFound"
+        ),
+      })
     );
   }
 
@@ -230,7 +240,11 @@ const requireInvitationManagement = Effect.fn(
 
   if (!organization) {
     return yield* Effect.fail(
-      new ActionFailure({ message: "Organization not found" })
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.organizationNotFound"
+        ),
+      })
     );
   }
 
@@ -266,7 +280,9 @@ export async function createOrganizationAction(
       if (existing) {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "An organization with this slug already exists",
+            message: (yield* Effect.promise(() =>
+              getTranslations("errors.actions.organizations")
+            ))("slugTaken"),
           })
         );
       }
@@ -304,7 +320,9 @@ export async function createOrganizationAction(
       if (!organization) {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "Organization creation returned no row",
+            message: (yield* Effect.promise(() =>
+              getTranslations("nav.createOrg")
+            ))("createFailed"),
           })
         );
       }
@@ -444,7 +462,11 @@ export async function updateOrganizationAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -542,7 +564,11 @@ export async function setActiveOrganizationAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -583,7 +609,11 @@ export async function getOrganizationSummaryAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -722,7 +752,11 @@ export async function updateMemberRoleAction(
 
       if (!member) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "Member not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.memberNotFound"
+            ),
+          })
         );
       }
 
@@ -734,7 +768,9 @@ export async function updateMemberRoleAction(
       if (input.role === "owner" && callerMembership.role !== "owner") {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "Only the organization owner can assign the owner role",
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleOwnerOnly"
+            ),
           })
         );
       }
@@ -742,7 +778,9 @@ export async function updateMemberRoleAction(
       if (member.role === "owner" && input.role !== "owner") {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "The organization owner role cannot be changed",
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleLocked"
+            ),
           })
         );
       }
@@ -841,7 +879,11 @@ export async function removeMemberAction(
 
       if (!member) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "Member not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.memberNotFound"
+            ),
+          })
         );
       }
 
@@ -854,7 +896,9 @@ export async function removeMemberAction(
       if (member.role === "owner") {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "The organization owner cannot be removed",
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerNotRemovable"
+            ),
           })
         );
       }
@@ -936,7 +980,9 @@ export async function inviteMemberAction(
       if (input.role === "owner" && callerMembership.role !== "owner") {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "Only the organization owner can assign the owner role",
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleOwnerOnly"
+            ),
           })
         );
       }
@@ -944,7 +990,9 @@ export async function inviteMemberAction(
       if (!isNotDisposableEmail(input.email)) {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "Disposable email addresses are not allowed",
+            message: yield* organizationActionMessage(
+              "actions.organizations.disposableEmail"
+            ),
           })
         );
       }
@@ -952,7 +1000,7 @@ export async function inviteMemberAction(
       yield* enforceTeamMembersLimit(organizationId).pipe(
         Effect.catch((error) =>
           Effect.gen(function* () {
-            if (error.message === TEAM_MEMBER_LIMIT_ERROR_MESSAGE) {
+            if (error.code === ACTION_ERROR_CODES.TEAM_MEMBER_LIMIT) {
               const memberCount =
                 yield* countOrganizationMembers(organizationId);
               yield* trackOrganizationEvent({

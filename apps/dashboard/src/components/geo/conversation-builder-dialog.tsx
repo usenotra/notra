@@ -17,6 +17,7 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -45,6 +46,10 @@ export function ConversationBuilderDialog({
   organizationId,
   sequence,
 }: ConversationBuilderDialogProps) {
+  const t = useTranslations("geo.conversationBuilderDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const nameId = useId();
   const { addSequence, sequences, updateSequence } = useGeoSequencesDb(
     organizationId,
@@ -90,26 +95,27 @@ export function ConversationBuilderDialog({
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
-            {sequence ? `Edit ${sequence.name}` : "New conversation"}
+          <ResponsiveDialogTitle className="wrap-anywhere">
+            {sequence
+              ? tCommon2("labels.editName", { name: sequence.name })
+              : tGeoShared("newConversation")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            A real buyer conversation: an opening question and the follow-ups
-            that decide the purchase. Every turn is checked for your brand.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="space-y-4 px-4 md:px-0">
           <div className="space-y-1.5">
-            <Label htmlFor={nameId}>Name</Label>
+            <Label htmlFor={nameId}>{tCommon2("labels.name")}</Label>
             <Input
               id={nameId}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Changelog tool research"
+              placeholder={t("namePlaceholder")}
               value={name}
             />
           </div>
           <div className="space-y-2">
-            <Label>Turns</Label>
+            <Label>{tGeoShared("turns")}</Label>
             <div className="space-y-2">
               {steps.map((step, index) => (
                 <div className="flex items-start gap-2" key={step.id}>
@@ -130,8 +136,8 @@ export function ConversationBuilderDialog({
                       }
                       placeholder={
                         index === 0
-                          ? "What is the best tool to automate changelogs?"
-                          : "Which of those is the cheapest?"
+                          ? t("firstTurnPlaceholder")
+                          : t("followUpPlaceholder")
                       }
                       rows={2}
                       value={step.text}
@@ -139,7 +145,7 @@ export function ConversationBuilderDialog({
                   </div>
                   {steps.length > 1 && (
                     <Button
-                      aria-label={`Remove turn ${index + 1}`}
+                      aria-label={t("removeTurn", { number: index + 1 })}
                       className="mt-1 shrink-0"
                       onClick={() =>
                         setSteps((previous) =>
@@ -167,14 +173,14 @@ export function ConversationBuilderDialog({
                 variant="outline"
               >
                 <HugeiconsIcon icon={PlusSignIcon} size={14} />
-                Add follow-up
+                {t("addFollowUp")}
               </Button>
             )}
           </div>
         </div>
         <ResponsiveDialogFooter>
           <Button disabled={!canSave} onClick={handleSave} type="button">
-            {sequence ? "Save changes" : "Create conversation"}
+            {sequence ? tCommon("saveChanges") : t("create")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

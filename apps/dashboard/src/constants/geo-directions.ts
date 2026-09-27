@@ -1,7 +1,3 @@
-import {
-  GEO_SEARCH_LABEL,
-  GEO_WITHOUT_SEARCH_LABEL,
-} from "@notra/geo-core/constants/geo";
 import type {
   GeoCompetitorSharePoint,
   GeoJourney,
@@ -34,10 +30,10 @@ import {
 } from "@/utils/geo-directions";
 
 export const GEO_DIRECTION_TABS: readonly GeoDirectionTab[] = [
-  { key: "instrument", label: "Instrument" },
-  { key: "leaderboard", label: "Leaderboard" },
-  { key: "cockpit", label: "Cockpit" },
-  { key: "report", label: "Report" },
+  { key: "instrument" },
+  { key: "leaderboard" },
+  { key: "cockpit" },
+  { key: "report" },
 ];
 
 export const GEO_DIRECTIONS_COMPANY = "Notra";
@@ -47,9 +43,7 @@ export const GEO_DIRECTIONS_PROMPT_COUNT = 14;
 export const GEO_DIRECTIONS_CHECK_COUNT = 312;
 export const GEO_DIRECTIONS_ENGINE_COUNT = 8;
 export const GEO_DIRECTIONS_LAST_SCAN = "2026-08-04T09:41:00Z";
-export const GEO_DIRECTIONS_LAST_SCAN_LABEL = "Aug 4 09:41";
-export const GEO_DIRECTIONS_NEXT_SCAN_LABEL = "14 h";
-export const GEO_DIRECTIONS_WEEK_LABEL = "Week of Aug 4";
+export const GEO_DIRECTIONS_NEXT_SCAN_HOURS = 14;
 
 export const GEO_DIRECTIONS_DELTA_GLYPH: Record<GeoDirectionTone, string> = {
   up: "▲",
@@ -152,18 +146,16 @@ export const GEO_DIRECTIONS_TIMESERIES = buildDirectionTimeseries(
 );
 
 export const GEO_DIRECTIONS_TREND_ROWS = buildDirectionTrendRows(
-  GEO_DIRECTIONS_TREND_DAYS.map(formatDayLabel),
+  GEO_DIRECTIONS_TREND_DAYS.map((day) => formatDayLabel(day)),
   GEO_DIRECTIONS_GROUNDED_SERIES,
   GEO_DIRECTIONS_TRAINING_SERIES
 );
 
 export const GEO_DIRECTIONS_TREND_CONFIG: ChartConfig = {
   grounded: {
-    label: GEO_SEARCH_LABEL,
     colors: seriesColors(CHART_PRIMARY_COLOR),
   },
   training: {
-    label: GEO_WITHOUT_SEARCH_LABEL,
     colors: seriesColors(CHART_SECONDARY_COLOR),
   },
 };
@@ -335,10 +327,10 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
 ];
 
 export const GEO_DIRECTIONS_KPIS: readonly GeoDirectionKpi[] = [
-  { label: "AI visits", value: 18_226, hint: "crawlers and referrals" },
-  { label: "AI referrals", value: 5741, hint: "humans from an AI answer" },
-  { label: "Crawler hits", value: 12_485, hint: "bots fetching your pages" },
-  { label: "Journeys", value: 1082, hint: "linked agent sessions" },
+  { key: "aiVisits", value: 18_226 },
+  { key: "aiReferrals", value: 5741 },
+  { key: "crawlerHits", value: 12_485 },
+  { key: "journeys", value: 1082 },
 ];
 
 export const GEO_DIRECTIONS_JOURNEYS: readonly GeoJourney[] = [

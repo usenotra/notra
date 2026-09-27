@@ -1,3 +1,4 @@
+import type { ChatMessageMetadata } from "@notra/ai/types/chat";
 import { getToolName, isToolUIPart } from "ai";
 
 import type {
@@ -7,6 +8,7 @@ import type {
   AssistantPartRef,
   GroupAssistantMessagePartsOptions,
 } from "@/types/chat-activity";
+import type { AssistantActivityStep } from "@/types/components/chat-activity-group";
 import {
   isSearchToolPart,
   isStackableSearchPart,
@@ -41,7 +43,20 @@ export function groupAssistantMessageParts(
   options: GroupAssistantMessagePartsOptions = {}
 ): AssistantMessageSegment[] {
   const segments: AssistantMessageSegment[] = [];
-  const activity: AssistantPartRef[] = [];
+  let activity: AssistantPartRef[] = [];
+
+  function flushActivity() {
+    const first = activity[0];
+    if (!first) {
+      return;
+    }
+    segments.push({
+      kind: "activity",
+      startIndex: first.index,
+      items: activity,
+    });
+    activity = [];
+  }
 
   parts.forEach((part, index) => {
     if (isSkippablePart(part)) {
@@ -51,6 +66,7 @@ export function groupAssistantMessageParts(
       activity.push({ part, index });
       return;
     }
+    flushActivity();
     segments.push({
       kind: "standalone",
       startIndex: index,
@@ -59,15 +75,32 @@ export function groupAssistantMessageParts(
     });
   });
 
-  const first = activity[0];
-  if (first) {
-    segments.unshift({
-      kind: "activity",
-      startIndex: first.index,
-      items: activity,
-    });
-  }
+  flushActivity();
   return segments;
+}
+
+export function getActivityGroupDuration(
+  items: AssistantPartRef[],
+  parts: AssistantMessagePart[],
+  timings: ChatMessageMetadata["activityTimings"]
+): number | undefined {
+  if (!timings || items.length === 0) {
+    return undefined;
+  }
+  let startedAt = Number.POSITIVE_INFINITY;
+  let finishedAt = 0;
+  for (const { part, index } of items) {
+    const key = isToolUIPart(part)
+      ? `tool:${part.toolCallId}`
+      : `reasoning:${parts.slice(0, index).filter((item) => item.type === "reasoning").length}`;
+    const span = timings[key];
+    if (!span || span.finishedAt === undefined) {
+      return undefined;
+    }
+    startedAt = Math.min(startedAt, span.startedAt);
+    finishedAt = Math.max(finishedAt, span.finishedAt);
+  }
+  return Math.max(0, finishedAt - startedAt);
 }
 
 export function stackAssistantActivityItems(
@@ -106,7 +139,7 @@ export function isAssistantActivityStreaming(
 
 export function getAssistantActivityStep(
   parts: AssistantMessagePart[]
-): string {
+): AssistantActivityStep {
   for (let index = parts.length - 1; index >= 0; index--) {
     const part = parts[index];
     if (!part || part.type === "step-start") {
@@ -114,32 +147,32 @@ export function getAssistantActivityStep(
     }
     if (part.type === "text") {
       if (part.text.trim()) {
-        return "Writing response";
+        return "writingResponse";
       }
       continue;
     }
     if (part.type === "reasoning") {
-      return "Thinking";
+      return "thinking";
     }
     if (isToolUIPart(part)) {
       if (part.state === "approval-requested") {
-        return "Waiting for approval";
+        return "waitingForApproval";
       }
       if (
         part.state === "input-streaming" ||
         part.state === "input-available"
       ) {
         if (isSearchToolPart(part)) {
-          return "Searching web";
+          return "searchingWeb";
         }
         return getToolName(part) === "code_mode"
-          ? "Executing tools"
-          : "Running tool";
+          ? "executingTools"
+          : "runningTool";
       }
-      return "Thinking";
+      return "thinking";
     }
   }
-  return "Thinking";
+  return "thinking";
 }
 
 export function isAssistantActivityForceOpen(

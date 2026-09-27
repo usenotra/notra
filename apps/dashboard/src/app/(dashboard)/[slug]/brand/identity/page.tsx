@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import Loading from "./loading";
 import PageClient from "./page-client";
 
-export const metadata: Metadata = {
-  title: "Brand Identity",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return {
+    title: tCommon("labels.brandIdentity"),
+  };
+}
 
 async function Page({
   params,

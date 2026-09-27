@@ -63,7 +63,13 @@ export interface OpencodeSource {
   url?: string;
 }
 
+export interface OpencodeSourcesLabels {
+  citedSources: (count: number) => string;
+  openSource: (title: string, domain: string) => string;
+}
+
 export interface OpencodeSourcesProps {
+  labels?: OpencodeSourcesLabels;
   darkSurface?: boolean;
   sources: readonly OpencodeSource[];
   queries?: readonly string[];

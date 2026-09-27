@@ -21,6 +21,10 @@ import { Effect } from "effect";
 
 import { PASSWORD_RESET_OUTCOMES } from "@/constants/analytics-events";
 import {
+  authActionMessage,
+  workOSFailureMessage,
+} from "@/lib/auth/action-messages";
+import {
   completeAuthentication,
   getWorkOSClientId,
   runAuthFlow,
@@ -33,7 +37,6 @@ import { readWorkOSError } from "@/lib/auth/workos-error";
 import { isRateLimited, ratelimit } from "@/utils/ratelimit";
 
 const NAME_SPLIT_REGEX = /\s+/;
-const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
 
 export async function signInWithPasswordAction(
   rawInput: SignInWithPasswordInput
@@ -43,12 +46,12 @@ export async function signInWithPasswordAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid credentials",
+      message: await authActionMessage("invalidInput"),
     };
   }
 
   if (await isRateLimited(ratelimit.signIn, parsed.data.email)) {
-    return { status: "error", message: RATE_LIMITED_MESSAGE };
+    return { status: "error", message: await authActionMessage("rateLimited") };
   }
 
   return runAuthFlow(
@@ -77,12 +80,12 @@ export async function signUpWithPasswordAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid details",
+      message: await authActionMessage("invalidInput"),
     };
   }
 
   if (await isRateLimited(ratelimit.signUp, parsed.data.email)) {
-    return { status: "error", message: RATE_LIMITED_MESSAGE };
+    return { status: "error", message: await authActionMessage("rateLimited") };
   }
 
   const [firstName, ...rest] = (parsed.data.name ?? "")
@@ -124,7 +127,7 @@ export async function verifyEmailCodeAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid code",
+      message: await authActionMessage("invalidCode"),
     };
   }
 
@@ -210,7 +213,7 @@ export async function resetPasswordAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid password reset",
+      message: await authActionMessage("invalidInput"),
     };
   }
 
@@ -237,10 +240,15 @@ export async function resetPasswordAction(
             outcome: PASSWORD_RESET_OUTCOMES.ERROR,
           })
         ).pipe(
-          Effect.as<AuthFlowResult>({
+          Effect.andThen(
+            Effect.promise(() =>
+              workOSFailureMessage(readWorkOSError(error.error))
+            )
+          ),
+          Effect.map((message): AuthFlowResult => ({
             status: "error",
-            message: readWorkOSError(error.error).message,
-          })
+            message,
+          }))
         )
       )
     )

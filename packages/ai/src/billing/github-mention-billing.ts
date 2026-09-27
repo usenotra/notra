@@ -182,8 +182,9 @@ export async function confirmGitHubMentionBilling(input: {
   const cost = input.usage
     ? calculateAiCreditCostCents(
         input.usage,
-        input.usage.modelId,
-        reservation.useMarkup
+        input.usage.route?.model ?? input.usage.modelId,
+        reservation.useMarkup,
+        input.usage.route?.gateway
       )
     : null;
   const costCents = Math.max(

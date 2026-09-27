@@ -2,19 +2,19 @@
 
 import type { AuthFlowResult } from "@notra/schemas/types/dashboard/auth";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { resumeSocialEnrollmentAction } from "@/lib/auth/mfa-actions";
 import type { SocialEnrollmentResumeProps } from "@/types/auth/login-page";
 
-const RESUME_ERROR_FALLBACK =
-  "Couldn't continue the two-factor setup. Please sign in again.";
-
 export function SocialEnrollmentResume({
   flowId,
   returnTo,
 }: SocialEnrollmentResumeProps) {
+  const t = useTranslations("auth.socialEnrollment");
+  const resumeErrorFallback = t("resumeFailed");
   const [result, setResult] = useState<AuthFlowResult | null>(null);
   const startedRef = useRef(false);
 
@@ -26,9 +26,9 @@ export function SocialEnrollmentResume({
     resumeSocialEnrollmentAction({ flowId, returnTo })
       .then(setResult)
       .catch(() => {
-        setResult({ status: "error", message: RESUME_ERROR_FALLBACK });
+        setResult({ status: "error", message: resumeErrorFallback });
       });
-  }, [flowId, returnTo]);
+  }, [flowId, returnTo, resumeErrorFallback]);
 
   if (!result) {
     return (
@@ -38,7 +38,7 @@ export function SocialEnrollmentResume({
         role="status"
       >
         <Loader2Icon aria-hidden className="size-5 animate-spin" />
-        <span className="sr-only">Preparing two-factor setup</span>
+        <span className="sr-only">{t("preparing")}</span>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function SocialEnrollmentResume({
   return (
     <LoginForm
       initialError={
-        result.status === "error" ? result.message : RESUME_ERROR_FALLBACK
+        result.status === "error" ? result.message : resumeErrorFallback
       }
       returnTo={returnTo}
     />

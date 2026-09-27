@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useState } from "react";
@@ -37,6 +38,10 @@ export function IntegrationCard({
   organizationSlug,
   onUpdate,
 }: IntegrationCardProps) {
+  const t = useTranslations("integrations.card");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -67,11 +72,11 @@ export function IntegrationCard({
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.integrations.key(),
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(enabled ? t("enabledToast") : t("disabledToast"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update integration");
+      toast.error(t("updateFailed"));
     },
   });
 
@@ -92,16 +97,14 @@ export function IntegrationCard({
 
       const disabledCount = data.disabledSchedules?.length ?? 0;
       if (disabledCount > 0) {
-        toast.success(
-          `Integration deleted. ${disabledCount} schedule${disabledCount === 1 ? " was" : "s were"} disabled.`
-        );
+        toast.success(t("deletedWithSchedules", { count: disabledCount }));
       } else {
-        toast.success("Integration deleted");
+        toast.success(t("deleted"));
       }
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to delete integration");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -137,27 +140,30 @@ export function IntegrationCard({
         onClick={handleCardClick}
       >
         <CardHeader>
-          <CardTitle>{integration.displayName}</CardTitle>
+          <CardTitle className="wrap-anywhere">
+            {integration.displayName}
+          </CardTitle>
           <CardDescription>
             {integration.connectionMethod === "unauthenticated" ? (
-              <span className="block">
-                No saved credentials. Connect the GitHub App to publish.
-              </span>
+              <span className="block">{t("noCredentials")}</span>
             ) : null}
             {integration.connectionMethod === "personal-access-token" ? (
-              <span className="block">Personal access token</span>
+              <span className="block">
+                {tIntegrationsShared("personalAccessToken")}
+              </span>
             ) : null}
-            {integration.createdByUser ? (
-              <>
-                Added by {integration.createdByUser.name} on{" "}
-                {new Date(integration.createdAt).toLocaleDateString()}
-              </>
-            ) : (
-              <>
-                Created on{" "}
-                {new Date(integration.createdAt).toLocaleDateString()}
-              </>
-            )}
+            {integration.createdByUser
+              ? t("addedBy", {
+                  name: integration.createdByUser.name,
+                  date: new Date(integration.createdAt).toLocaleDateString(
+                    locale
+                  ),
+                })
+              : t("createdOn", {
+                  date: new Date(integration.createdAt).toLocaleDateString(
+                    locale
+                  ),
+                })}
           </CardDescription>
           <CardAction>
             {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier */}
@@ -171,14 +177,16 @@ export function IntegrationCard({
               tabIndex={-1}
             >
               <Badge variant={integration.enabled ? "default" : "secondary"}>
-                {integration.enabled ? "Enabled" : "Disabled"}
+                {integration.enabled
+                  ? tCommon("states.enabled")
+                  : tCommon("states.disabled")}
               </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button disabled={isLoading} size="icon-sm" variant="ghost">
                       <svg
-                        aria-label="More options"
+                        aria-label={tIntegrationsShared("moreOptions")}
                         fill="none"
                         stroke="currentColor"
                         strokeLinecap="round"
@@ -187,7 +195,7 @@ export function IntegrationCard({
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <title>More options</title>
+                        <title>{tIntegrationsShared("moreOptions")}</title>
                         <circle cx="12" cy="12" r="1" />
                         <circle cx="12" cy="5" r="1" />
                         <circle cx="12" cy="19" r="1" />
@@ -204,8 +212,8 @@ export function IntegrationCard({
                     }}
                   >
                     {integration.connectionMethod === "unauthenticated"
-                      ? "Add personal access token"
-                      : "Edit personal access token"}
+                      ? t("addToken")
+                      : t("editToken")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
@@ -214,7 +222,9 @@ export function IntegrationCard({
                       handleToggle();
                     }}
                   >
-                    {integration.enabled ? "Disable" : "Enable"}
+                    {integration.enabled
+                      ? tCommon("actions.disable")
+                      : tCommon("actions.enable")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
@@ -224,7 +234,7 @@ export function IntegrationCard({
                     }}
                     variant="destructive"
                   >
-                    Delete
+                    {tCommon("actions.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -234,14 +244,12 @@ export function IntegrationCard({
         <CardContent>
           <div className="text-muted-foreground text-sm">
             {integration.repositories.length === 0 ? (
-              <p>No repositories configured</p>
+              <p>{t("noRepositories")}</p>
             ) : (
               <p>
-                {integration.repositories.length}{" "}
-                {integration.repositories.length === 1
-                  ? "repository"
-                  : "repositories"}{" "}
-                configured
+                {t("repositoriesConfigured", {
+                  count: integration.repositories.length,
+                })}
               </p>
             )}
           </div>

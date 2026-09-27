@@ -5,9 +5,10 @@ import type {
   EnabledLinear,
   EnabledRepo,
 } from "@/types/components/chat-input";
-import type { ContentChatInputChrome } from "@/types/hooks/content-chat-input";
-
-export const CHAT_INPUT_LIMIT_MESSAGE = "No chat credits left.";
+import type {
+  ContentChatInputChrome,
+  ContentChatInputChromeLabels,
+} from "@/types/hooks/content-chat-input";
 
 export function getRemainingChatCredits(remaining: unknown): number | null {
   if (typeof remaining === "number") {
@@ -38,7 +39,8 @@ export function shouldShowLowChatCredits(
 export function resolveUsageLimitError(
   externalError: string | null | undefined,
   internalError: string | null,
-  isUsageBlocked: boolean
+  isUsageBlocked: boolean,
+  limitMessage: string
 ): string | null {
   if (externalError) {
     return externalError;
@@ -47,7 +49,7 @@ export function resolveUsageLimitError(
     return internalError;
   }
   if (isUsageBlocked) {
-    return CHAT_INPUT_LIMIT_MESSAGE;
+    return limitMessage;
   }
   return null;
 }
@@ -70,6 +72,7 @@ export function getContentChatInputChrome({
   isLoading,
   isUploading,
   isUsageBlocked,
+  labels,
   onStop,
   pendingUploadCount,
   queuedCount,
@@ -85,6 +88,7 @@ export function getContentChatInputChrome({
   isLoading: boolean;
   isUploading: boolean;
   isUsageBlocked: boolean;
+  labels: ContentChatInputChromeLabels;
   onStop?: () => void;
   pendingUploadCount: number;
   queuedCount: number;
@@ -105,10 +109,10 @@ export function getContentChatInputChrome({
     hasAttachmentChips ||
     shouldShowLowCredits ||
     Boolean(usageLimitError);
-  const sendChrome = getComposerSendChrome(showStop, canQueue);
+  const sendChrome = getComposerSendChrome(showStop, canQueue, labels);
   return {
     contextPickerDisabledReason: isInputLocked
-      ? "Context is unavailable right now."
+      ? labels.contextUnavailable
       : null,
     hasAttachmentChips,
     hasContextChips,
@@ -125,23 +129,26 @@ export function getContentChatInputChrome({
   };
 }
 
-export function getComposerSendChrome(showStop: boolean, canQueue: boolean) {
+export function getComposerSendChrome(
+  showStop: boolean,
+  canQueue: boolean,
+  labels: ContentChatInputChromeLabels
+) {
   if (showStop) {
     return {
-      sendLabel: "Stop generating",
-      sendTooltip: "Stop generating",
+      sendLabel: labels.stopGenerating,
+      sendTooltip: labels.stopGenerating,
     };
   }
   if (canQueue) {
     return {
-      sendLabel: "Queue message",
-      sendTooltip:
-        "Enter to queue this message. It will send once the AI finishes.",
+      sendLabel: labels.queueMessage,
+      sendTooltip: labels.queueHint,
     };
   }
   return {
-    sendLabel: "Send message",
-    sendTooltip: "Enter to send. Shift+Enter for a new line.",
+    sendLabel: labels.sendMessage,
+    sendTooltip: labels.sendHint,
   };
 }
 
@@ -200,9 +207,11 @@ export function contextItemKey(item: ContextItem): string {
 export function buildContentChatContextOptions({
   enabledRepos,
   enabledLinear,
+  labels,
 }: {
   enabledRepos: EnabledRepo[];
   enabledLinear: EnabledLinear[];
+  labels: { githubRepository: string; linearTeam: string };
 }): ChatContextOption[] {
   const options: ChatContextOption[] = [];
 
@@ -212,7 +221,7 @@ export function buildContentChatContextOptions({
       id: `github-${repo.id}`,
       kind: "github",
       label,
-      description: "GitHub repository",
+      description: labels.githubRepository,
       searchText: `${label} GitHub repository`,
       contextItem: toGithubContextItem(repo),
     });
@@ -223,7 +232,7 @@ export function buildContentChatContextOptions({
       id: `linear-${integration.integrationId}`,
       kind: "linear",
       label: integration.displayName,
-      description: "Linear team",
+      description: labels.linearTeam,
       searchText: `${integration.displayName} ${integration.teamName ?? ""} Linear team`,
       contextItem: {
         type: "linear-team",

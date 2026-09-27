@@ -34,6 +34,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -65,6 +66,9 @@ export function VoiceSelector({
   onRequestDelete,
   onDeleteDialogChange,
 }: VoiceSelectorProps) {
+  const t = useTranslations("brand.identity.voiceSelector");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const updateMutation = useUpdateBrandSettings(organizationId);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [identityName, setIdentityName] = useState("");
@@ -75,7 +79,7 @@ export function VoiceSelector({
     const trimmedName = identityName.trim();
 
     if (!trimmedName) {
-      toast.error("Please enter an identity name");
+      toast.error(tBrandShared("enterAnIdentityName"));
       return;
     }
 
@@ -84,12 +88,10 @@ export function VoiceSelector({
         id: activeVoiceId,
         name: trimmedName,
       });
-      toast.success("Identity name updated");
+      toast.success(t("nameUpdated"));
       setEditDialogOpen(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update identity"
-      );
+      toast.error(error instanceof Error ? error.message : t("updateFailed"));
     }
   };
 
@@ -103,7 +105,7 @@ export function VoiceSelector({
 
           return (
             <button
-              className={`group flex min-w-40 shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border py-2.5 pr-2 pl-3 text-left transition-colors ${
+              className={`group flex max-w-72 min-w-40 shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border py-2.5 pr-2 pl-3 text-left transition-colors ${
                 isActive
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/40"
@@ -131,17 +133,14 @@ export function VoiceSelector({
                         </span>
                       }
                     />
-                    <TooltipContent className="max-w-64 space-y-1">
+                    <TooltipContent className="max-w-64 space-y-1 wrap-anywhere">
                       {voice.toneProfile && (
-                        <p>Tone Profile: {voice.toneProfile}</p>
+                        <p>{t("toneProfile", { tone: voice.toneProfile })}</p>
                       )}
-                      {voice.language && <p>Language: {voice.language}</p>}
-                      {voice.isDefault && (
-                        <p>
-                          Default brand identity used when no specific identity
-                          is selected.
-                        </p>
+                      {voice.language && (
+                        <p>{t("language", { language: voice.language })}</p>
                       )}
+                      {voice.isDefault && <p>{t("defaultTooltip")}</p>}
                     </TooltipContent>
                   </Tooltip>
                 ) : (
@@ -187,7 +186,7 @@ export function VoiceSelector({
                     }}
                   >
                     <HugeiconsIcon className="size-4" icon={Edit02Icon} />
-                    Edit identity name
+                    {t("editName")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={!voice.websiteUrl?.trim() || isReanalyzing}
@@ -200,7 +199,7 @@ export function VoiceSelector({
                     }}
                   >
                     <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
-                    Re-analyze
+                    {t("reanalyze")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -212,9 +211,7 @@ export function VoiceSelector({
                     }}
                   >
                     <HugeiconsIcon className="size-4" icon={StarIcon} />
-                    {voice.isDefault
-                      ? "Already default identity"
-                      : "Set as default identity"}
+                    {voice.isDefault ? t("alreadyDefault") : t("setDefault")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={voice.isDefault}
@@ -225,7 +222,7 @@ export function VoiceSelector({
                     variant="destructive"
                   >
                     <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                    Delete identity
+                    {t("deleteIdentity")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -245,9 +242,9 @@ export function VoiceSelector({
       >
         <ResponsiveDialogContent className="sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Edit identity name</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("editName")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Update the name used to identify this brand profile.
+              {t("editDescription")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form
@@ -258,12 +255,12 @@ export function VoiceSelector({
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="identity-name">Identity name</Label>
+              <Label htmlFor="identity-name">{t("nameLabel")}</Label>
               <Input
                 autoFocus
                 id="identity-name"
                 onChange={(event) => setIdentityName(event.target.value)}
-                placeholder="e.g. Default, Marketing, Technical"
+                placeholder={t("namePlaceholder")}
                 value={identityName}
               />
             </div>
@@ -277,14 +274,14 @@ export function VoiceSelector({
                   />
                 }
               >
-                Cancel
+                {tCommon("cancel")}
               </ResponsiveDialogClose>
               <Button
                 className="w-full justify-center sm:w-auto"
                 disabled={!identityName.trim() || updateMutation.isPending}
                 type="submit"
               >
-                {updateMutation.isPending ? "Saving..." : "Save"}
+                {updateMutation.isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </ResponsiveDialogFooter>
           </form>
@@ -297,10 +294,9 @@ export function VoiceSelector({
       >
         <ResponsiveDialogContent className="sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Delete identity?</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("deleteTitle")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              This removes this brand identity and its saved profile settings.
-              This action cannot be undone.
+              {t("deleteDescription")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
@@ -321,7 +317,7 @@ export function VoiceSelector({
                 />
               }
             >
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveDialogClose>
             <Button
               className="w-full justify-center sm:w-auto"
@@ -332,7 +328,7 @@ export function VoiceSelector({
               }}
               variant="destructive"
             >
-              {isDeleting ? "Deleting..." : "Delete identity"}
+              {isDeleting ? tCommon("deleting") : t("deleteIdentity")}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

@@ -2,6 +2,7 @@
 
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
@@ -40,6 +41,8 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 }
 
 function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
+  const t = useTranslations("geo.pages.overview");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -56,14 +59,14 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
               >
                 <span className="inline-flex items-center gap-1.5">
                   <GeoScanSpinner visible={page.isScanning} />
-                  Run Scan
+                  {tGeoShared("runScan")}
                 </span>
                 <Kbd className="hidden sm:inline-flex">R</Kbd>
               </Button>
             </div>
           </div>
           <p className="text-muted-foreground">
-            How AI engines talk about {page.companyName}
+            {t("description", { companyName: page.companyName })}
           </p>
         </header>
 

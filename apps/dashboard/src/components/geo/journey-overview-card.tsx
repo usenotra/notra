@@ -8,6 +8,7 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
+import { useTranslations } from "next-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
@@ -16,8 +17,8 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneyOverviewCardProps } from "@/types/geo";
 import {
-  formatJourneyDepth,
   formatJourneyShare,
+  journeyAverageDepth,
   journeyTotals,
 } from "@/utils/geo-journey";
 import { tableHeightFor } from "@/utils/table";
@@ -32,11 +33,14 @@ export function JourneyOverviewCard({
   onOpenSource,
   loading = false,
 }: JourneyOverviewCardProps) {
+  const t = useTranslations("geo.journeyOverviewCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const totals = journeyTotals(sources);
   const columns: TableColumn<GeoJourneySourceStats>[] = [
     {
       key: "source",
-      header: "Source",
+      header: tCommon("labels.source"),
       width: "1fr",
       sortable: true,
       sortValue: (row) => formatGeoSource(row.source),
@@ -45,14 +49,16 @@ export function JourneyOverviewCard({
           <EngineIcon engine={row.source} />
           <span className="truncate">{formatGeoSource(row.source)}</span>
           <span className="text-muted-foreground shrink-0 text-xs">
-            {row.visitorType === "crawler" ? "Crawler" : "AI referral"}
+            {row.visitorType === "crawler"
+              ? tGeoShared("crawler")
+              : tGeoShared("aiReferral")}
           </span>
         </span>
       ),
     },
     {
       key: "journeys",
-      header: "Journeys",
+      header: tCommon("labels.journeys"),
       width: "9.5rem",
       align: "right",
       sortable: true,
@@ -68,32 +74,32 @@ export function JourneyOverviewCard({
 
   return (
     <JourneyStatCard
-      caption={totals.journeys === 1 ? "journey" : "journeys"}
+      caption={t("caption", { count: totals.journeys })}
       delta={trafficVisitDelta(totals.journeys, totals.previousJourneys)}
-      emptyMessage={
-        failed ? "Could not load agent journeys" : "No journeys yet"
-      }
-      emptyDescription={
-        failed ? undefined : "See the paths AI agents take through your site."
-      }
+      emptyMessage={failed ? t("loadFailed") : t("empty")}
+      emptyDescription={failed ? undefined : t("emptyDescription")}
       emptyMedia={
         failed ? undefined : (
           <HugeiconsIcon icon={Route01Icon} className="size-5" />
         )
       }
       emptySeed="geo-journey-overview"
-      eyebrow="Journeys"
+      eyebrow={tCommon("labels.journeys")}
       stats={[
         {
-          label: "Avg. depth",
-          value: formatJourneyDepth(totals.pages, totals.journeys),
+          label: tGeoShared("avgDepth"),
+          value: tGeoShared("countPluralOnePageOther", {
+            count: journeyAverageDepth(totals.pages, totals.journeys),
+          }),
         },
         {
-          label: "Single fetch",
+          label: t("stats.singleFetch"),
           value: formatJourneyShare(totals.singleFetch, totals.journeys),
         },
         {
-          label: `Crawled ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ pages`,
+          label: tGeoShared("crawledPagesPages", {
+            pages: GEO_JOURNEY_DEEP_CRAWL_PAGES,
+          }),
           value: formatJourneyShare(totals.deepCrawls, totals.journeys),
         },
       ]}

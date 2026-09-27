@@ -325,7 +325,7 @@ export async function onDemandContentWorkflow(
         action: "confirm",
         units: createdPosts.length,
         usage: contentResult.usage,
-        fallbackModelId: "anthropic/claude-sonnet-4.6",
+        fallbackModelId: "anthropic/claude-sonnet-5",
         properties: {
           source: "manual",
           output_type: contentType,

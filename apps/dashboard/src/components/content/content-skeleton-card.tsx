@@ -2,7 +2,6 @@
 
 import { CodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ContentType } from "@notra/ai/schemas/content";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
@@ -11,9 +10,10 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import { getContentTypeLabel } from "@/components/content/content-card";
 import { cn } from "@/lib/utils";
+import { formatSnakeCaseLabel } from "@/utils/format";
 import { OutputTypeIcon } from "@/utils/output-types";
 
 interface ContentSkeletonCardProps {
@@ -27,6 +27,7 @@ export function ContentSkeletonCard({
   className,
   source,
 }: ContentSkeletonCardProps) {
+  const t = useTranslations("content.card");
   return (
     <div
       className={cn(
@@ -40,7 +41,7 @@ export function ContentSkeletonCard({
           <div className="flex min-w-0 items-center gap-2">
             <Loader2Icon className="text-muted-foreground size-4 shrink-0 animate-spin" />
             <p className="text-muted-foreground truncate text-base font-medium">
-              Generating content...
+              {t("generating")}
             </p>
           </div>
           {source === "api" && (
@@ -48,7 +49,7 @@ export function ContentSkeletonCard({
               <TooltipTrigger className="border-border/60 bg-muted/80 text-muted-foreground hover:bg-muted -mt-0.5 inline-flex shrink-0 items-center justify-center rounded-md border p-1 transition-colors">
                 <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
               </TooltipTrigger>
-              <TooltipContent side="top">Queued via API</TooltipContent>
+              <TooltipContent side="top">{t("queuedViaApi")}</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -59,15 +60,13 @@ export function ContentSkeletonCard({
         </div>
       </div>
       <div className="flex items-center gap-1.5 px-1 pb-0.5">
-        <Badge className="capitalize" variant="outline">
-          draft
-        </Badge>
-        <Badge
-          className="flex items-center gap-1 capitalize"
-          variant="secondary"
-        >
+        <Badge variant="outline">{t("status", { status: "draft" })}</Badge>
+        <Badge className="flex items-center gap-1" variant="secondary">
           <OutputTypeIcon className="size-3" outputType={outputType} />
-          {getContentTypeLabel(outputType as ContentType)}
+          {t("type", {
+            type: outputType,
+            fallback: formatSnakeCaseLabel(outputType),
+          })}
         </Badge>
       </div>
     </div>

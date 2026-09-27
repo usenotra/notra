@@ -6,6 +6,7 @@ import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,9 +24,13 @@ export function ConnectedAccountsSection({
   isError,
   onAccountsChange,
 }: ConnectedAccountsSectionProps) {
+  const t = useTranslations("settings.connectedAccounts");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common.actions");
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const canUnlink = accounts.length > 1;
+  const disconnectHint = canUnlink ? null : t("disconnectHint");
 
   function handleLinkAccount(provider: "google" | "github") {
     setLoadingProvider(provider);
@@ -37,16 +42,17 @@ export function ConnectedAccountsSection({
         return;
       }
       setLoadingProvider(null);
-      toast.error("Could not start the connection. Please try again.");
+      toast.error(t("connectFailed"));
     });
   }
 
   async function handleUnlinkAccount(provider: "google" | "github") {
     if (!canUnlink) {
-      toast.error("You must have at least one login method");
+      toast.error(t("needOneLoginMethod"));
       return;
     }
 
+    const providerName = provider === "google" ? "Google" : "GitHub";
     setLoadingProvider(provider);
     try {
       const result = await authClient.unlinkAccount({
@@ -56,39 +62,41 @@ export function ConnectedAccountsSection({
       if (result.error) {
         const message = errorMessageOr(
           result.error.message,
-          `Failed to unlink ${provider}`
+          t("unlinkFailed", { provider: providerName })
         );
         toast.error(message);
         setLoadingProvider(null);
         return;
       }
 
-      toast.success(`${provider} account unlinked`);
+      toast.success(t("unlinked", { provider: providerName }));
       onAccountsChange();
     } catch {
-      toast.error(`Failed to unlink ${provider}`);
+      toast.error(t("unlinkFailed", { provider: providerName }));
     }
     setLoadingProvider(null);
   }
 
   if (isError) {
     return (
-      <TitleCard className="lg:col-span-2" heading="Connected Accounts">
+      <TitleCard
+        className="lg:col-span-2"
+        heading={tSettingsShared("connectedAccounts")}
+      >
         <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4 text-center">
-          <p className="text-destructive text-sm">
-            Failed to load connected accounts. Please refresh the page.
-          </p>
+          <p className="text-destructive text-sm">{t("loadFailed")}</p>
         </div>
       </TitleCard>
     );
   }
 
   return (
-    <TitleCard className="lg:col-span-2" heading="Connected Accounts">
+    <TitleCard
+      className="lg:col-span-2"
+      heading={tSettingsShared("connectedAccounts")}
+    >
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">
-          Connect your social accounts for easier sign-in
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
 
         <div className="space-y-3">
           <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
@@ -100,8 +108,9 @@ export function ConnectedAccountsSection({
                 <p className="text-sm font-medium">Google</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGoogleLinked
-                    ? "Connected to your Google account"
-                    : "Sign in with Google"}
+                    ? (disconnectHint ??
+                      t("connectedTo", { provider: "Google" }))
+                    : t("signInWith", { provider: "Google" })}
                 </p>
               </div>
             </div>
@@ -118,7 +127,7 @@ export function ConnectedAccountsSection({
                 ) : (
                   <>
                     <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                    Disconnect
+                    {tCommon("disconnect")}
                   </>
                 )}
               </Button>
@@ -133,7 +142,7 @@ export function ConnectedAccountsSection({
                 {loadingProvider === "google" ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : (
-                  "Connect"
+                  tCommon("connect")
                 )}
               </Button>
             )}
@@ -148,8 +157,9 @@ export function ConnectedAccountsSection({
                 <p className="text-sm font-medium">GitHub</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGithubLinked
-                    ? "Connected to your GitHub account"
-                    : "Sign in with GitHub"}
+                    ? (disconnectHint ??
+                      t("connectedTo", { provider: "GitHub" }))
+                    : t("signInWith", { provider: "GitHub" })}
                 </p>
               </div>
             </div>
@@ -166,7 +176,7 @@ export function ConnectedAccountsSection({
                 ) : (
                   <>
                     <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                    Disconnect
+                    {tCommon("disconnect")}
                   </>
                 )}
               </Button>
@@ -181,18 +191,12 @@ export function ConnectedAccountsSection({
                 {loadingProvider === "github" ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : (
-                  "Connect"
+                  tCommon("connect")
                 )}
               </Button>
             )}
           </div>
         </div>
-
-        {!canUnlink && (
-          <p className="text-muted-foreground text-xs">
-            You need at least one connected account or password to sign in
-          </p>
-        )}
       </div>
     </TitleCard>
   );

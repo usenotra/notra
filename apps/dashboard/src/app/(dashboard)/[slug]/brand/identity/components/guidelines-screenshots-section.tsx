@@ -3,10 +3,10 @@
 import { ComputerIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 
-import { SCREENSHOT_KIND_LABELS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesScreenshotsSectionProps } from "@/types/brand-identity";
 import type { BrandGuidelineScreenshot } from "@/types/hooks/brand-guidelines";
 import { joinMeta } from "@/utils/brand-guideline-display";
@@ -55,7 +55,8 @@ function getScrollOffset(screenshot: BrandGuidelineScreenshot) {
 }
 
 function getDisplayScreenshots(
-  screenshots: BrandGuidelineScreenshot[]
+  screenshots: BrandGuidelineScreenshot[],
+  t: ReturnType<typeof useTranslations<"brand.guidelines">>
 ): DisplayScreenshot[] {
   return screenshots.flatMap((screenshot) => {
     const slices = getScreenshotMetadata(screenshot).slices?.filter(
@@ -74,7 +75,7 @@ function getDisplayScreenshots(
           height: screenshot.height,
           id: screenshot.id,
           kind: screenshot.kind,
-          label: SCREENSHOT_KIND_LABELS[screenshot.kind],
+          label: t(`screenshotKinds.${screenshot.kind}`),
           scrollOffset: getScrollOffset(screenshot),
           url: screenshot.url,
           width: screenshot.width,
@@ -89,7 +90,7 @@ function getDisplayScreenshots(
       height: slice.height ?? screenshot.height,
       id: `${screenshot.id}:${slice.scrollOffset ?? index}`,
       kind: screenshot.kind,
-      label: `Desktop ${index + 1}`,
+      label: t("screenshots.desktopSlice", { index: index + 1 }),
       scrollOffset:
         typeof slice.scrollOffset === "number" ? slice.scrollOffset : null,
       url: slice.url,
@@ -104,7 +105,8 @@ export function GuidelinesScreenshotsSection({
   voiceId,
 }: GuidelinesScreenshotsSectionProps) {
   const [editing, setEditing] = useState<BrandGuidelineScreenshot | null>(null);
-  const displayScreenshots = getDisplayScreenshots(screenshots);
+  const t = useTranslations("brand.guidelines");
+  const displayScreenshots = getDisplayScreenshots(screenshots, t);
 
   if (displayScreenshots.length === 0) {
     return null;
@@ -117,18 +119,18 @@ export function GuidelinesScreenshotsSection({
           className="text-muted-foreground size-4"
           icon={ComputerIcon}
         />
-        <h2 className="text-sm font-semibold">Desktop Screenshots</h2>
+        <h2 className="text-sm font-semibold">{t("screenshots.title")}</h2>
         <span className="text-muted-foreground text-xs tabular-nums">
           {displayScreenshots.length}
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {displayScreenshots.map((screenshot) => {
           const meta = joinMeta([
             `${screenshot.width}×${screenshot.height}`,
             screenshot.format.toUpperCase(),
-            screenshot.fullPage ? "Full page" : null,
+            screenshot.fullPage ? t("screenshots.fullPage") : null,
           ]);
 
           return (

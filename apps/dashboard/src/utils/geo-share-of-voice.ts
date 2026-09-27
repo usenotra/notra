@@ -110,14 +110,17 @@ export function shareOfVoiceOwnTrends(
   };
 }
 
-export function buildShareOfVoiceChartModel({
-  points,
-  timeseries = [],
-  competitors,
-  companyName,
-  aliases,
-  limit = SHARE_OF_VOICE_RANKING_LIMIT,
-}: ShareOfVoiceChartProps) {
+export function buildShareOfVoiceChartModel(
+  {
+    points,
+    timeseries = [],
+    competitors,
+    companyName,
+    aliases,
+    limit = SHARE_OF_VOICE_RANKING_LIMIT,
+  }: ShareOfVoiceChartProps,
+  otherLabel?: string
+) {
   const ownBrand = { companyName, aliases };
   // Mentions under an own-brand alias count for the company name, both in
   // the totals and in the daily series behind the change indicators.
@@ -138,6 +141,7 @@ export function buildShareOfVoiceChartModel({
     companyName,
     aliases,
     limit: points.length,
+    otherLabel,
   });
   const ranked: ShareOfVoiceRankingRow[] = rows.map((row) => ({
     ...row,
@@ -174,7 +178,7 @@ export function buildShareOfVoiceChartModel({
       ? {
           id: SHARE_OF_VOICE_AGGREGATE_ID,
           kind: "aggregate",
-          brand: SHARE_OF_VOICE_AGGREGATE_LABEL,
+          brand: otherLabel ?? SHARE_OF_VOICE_AGGREGATE_LABEL,
           mentions: otherMentions,
           share: totalMentions > 0 ? otherMentions / totalMentions : 0,
           trend: [],

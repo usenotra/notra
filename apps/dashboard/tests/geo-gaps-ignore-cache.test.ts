@@ -16,6 +16,7 @@ function gap(id: string, opportunity: number): GeoPromptGapRow {
     mentionedEngines: [],
     competitors: [],
     discoveredCompetitors: [],
+    searchQueries: [],
     ownMentionRate: 0,
     engineCoverage: 1,
     opportunity,
@@ -25,7 +26,7 @@ function gap(id: string, opportunity: number): GeoPromptGapRow {
 }
 
 function response(promptGaps: GeoPromptGapRow[]): GeoContentGapsResponse {
-  return { promptGaps, searchGaps: [], hasScanData: true };
+  return { promptGaps, searchGaps: [], aiSearchGaps: [], hasScanData: true };
 }
 
 describe("prompt gap ignore cache", () => {

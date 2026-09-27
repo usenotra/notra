@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import type { IgnoreCommitPatternsFieldProps } from "@/types/automation/event-trigger";
@@ -51,6 +52,8 @@ export function IgnoreCommitPatternsField({
   errors,
   fieldName,
 }: IgnoreCommitPatternsFieldProps) {
+  const t = useTranslations("automation.events.ignorePatterns");
+  const tStates = useTranslations("common.states");
   const hasErrors = errors.length > 0;
   const [sampleMessage, setSampleMessage] = useState("");
 
@@ -65,21 +68,22 @@ export function IgnoreCommitPatternsField({
   function renderTesterResult() {
     if (matchedPattern === undefined) {
       return (
-        <p className="text-muted-foreground text-xs">
-          Type a commit message to check it.
-        </p>
+        <p className="text-muted-foreground text-xs">{t("typeToCheck")}</p>
       );
     }
     if (matchedPattern === null) {
-      return <p className="text-xs">Not skipped. Nothing matches.</p>;
+      return <p className="text-xs">{t("notSkipped")}</p>;
     }
     return (
-      <p className="text-xs">
-        Skipped. Matches{" "}
-        <code className="bg-muted rounded px-1 py-0.5 font-mono text-[11px]">
-          {matchedPattern}
-        </code>
-        .
+      <p className="text-xs wrap-anywhere">
+        {t.rich("skipped", {
+          pattern: matchedPattern,
+          code: (chunks) => (
+            <code className="bg-muted rounded px-1 py-0.5 font-mono text-[11px]">
+              {chunks}
+            </code>
+          ),
+        })}
       </p>
     );
   }
@@ -87,13 +91,13 @@ export function IgnoreCommitPatternsField({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Label htmlFor={fieldName}>Ignore commits matching</Label>
+        <Label htmlFor={fieldName}>{t("label")}</Label>
         <span className="text-muted-foreground rounded-full border px-2 py-0.5 text-[11px] font-medium">
-          Optional
+          {tStates("optional")}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-muted-foreground text-xs">Add a prefix:</span>
+        <span className="text-muted-foreground text-xs">{t("addPrefix")}</span>
         {IGNORE_COMMIT_PATTERN_PRESET_PREFIXES.map((prefix) => {
           const pattern = buildIgnoreCommitPrefixPattern(prefix);
           const added = lines.includes(pattern);
@@ -127,7 +131,7 @@ export function IgnoreCommitPatternsField({
               />
               <TooltipContent side="top">
                 <code className="font-mono">
-                  {added ? `Remove ${pattern}` : `Add ${pattern}`}
+                  {added ? t("remove", { pattern }) : t("add", { pattern })}
                 </code>
               </TooltipContent>
             </Tooltip>
@@ -135,7 +139,7 @@ export function IgnoreCommitPatternsField({
         })}
       </div>
       <Textarea
-        aria-label="Ignore commits matching"
+        aria-label={t("label")}
         aria-invalid={hasErrors}
         className="min-h-20 font-mono text-xs"
         id={fieldName}
@@ -143,20 +147,19 @@ export function IgnoreCommitPatternsField({
         onChange={(event) => {
           onChange(event.target.value);
         }}
-        placeholder={`e.g. ${IGNORE_COMMIT_PATTERNS_PLACEHOLDER} (separated by comma)`}
+        placeholder={t("placeholder", {
+          example: IGNORE_COMMIT_PATTERNS_PLACEHOLDER,
+        })}
         value={value}
       />
       {hasErrors ? (
         <FieldError className="text-xs" errors={errors} />
       ) : (
-        <p className="text-muted-foreground text-xs">
-          If every commit in a push matches one of these, the push is skipped.
-          Separate patterns with commas. Case doesn't matter.
-        </p>
+        <p className="text-muted-foreground text-xs">{t("hint")}</p>
       )}
       <div className="space-y-1.5 rounded-lg border p-3">
         <Label className="text-xs font-medium" htmlFor={`${fieldName}-tester`}>
-          Try a commit message
+          {t("tryLabel")}
         </Label>
         <Input
           className="font-mono text-xs"
@@ -164,7 +167,7 @@ export function IgnoreCommitPatternsField({
           onChange={(event) => {
             setSampleMessage(event.target.value);
           }}
-          placeholder="e.g. chore: bump dependencies"
+          placeholder={t("tryPlaceholder")}
           value={sampleMessage}
         />
         {renderTesterResult()}

@@ -286,6 +286,7 @@ async function searchBrandReferenceContainer(input: {
     signal: AbortSignal.timeout(SUPERMEMORY_REQUEST_TIMEOUT_MS),
     body: JSON.stringify({
       q: input.query,
+      searchMode: "hybrid",
       limit: input.limit,
       threshold: 0.2,
       rerank: true,
@@ -313,13 +314,13 @@ async function searchBrandReferenceContainer(input: {
                     : [
                         {
                           key: "applicableToAll",
-                          value: true,
+                          value: "true",
                         },
                         ...(applicableToMetadataKey
                           ? [
                               {
                                 key: applicableToMetadataKey,
-                                value: true,
+                                value: "true",
                               },
                             ]
                           : []),

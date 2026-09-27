@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { FormatCard } from "@/components/content/create/format-card";
 import { FORMAT_ORDER } from "@/constants/content-formats";
 import type { EventTriggerFormSectionProps } from "@/types/automation/event-trigger";
@@ -5,12 +7,13 @@ import type { EventTriggerFormSectionProps } from "@/types/automation/event-trig
 export function EventTriggerFormatSection({
   form,
 }: EventTriggerFormSectionProps) {
+  const t = useTranslations("automation.schedules.dialog");
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-base font-semibold">Content format</h3>
+        <h3 className="text-base font-semibold">{t("contentFormat")}</h3>
         <p className="text-muted-foreground text-sm">
-          What should we generate?
+          {t("contentFormatHint")}
         </p>
       </div>
       <form.Field name="outputType">

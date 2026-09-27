@@ -2,6 +2,7 @@
 
 import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,8 @@ import { dashboardOrpc } from "../orpc/query";
  * posts (cards, sidebar) so the toasts and cache invalidations stay identical.
  */
 export function usePostActions(organizationId: string) {
+  const tToast = useTranslations("content.toasts");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
@@ -49,19 +52,19 @@ export function usePostActions(organizationId: string) {
       return dashboardOrpc.content.delete
         .call({ organizationId, contentId })
         .then(async () => {
-          toast.success("Post deleted");
+          toast.success(tToast("postDeleted"));
           await invalidateLists();
           return true;
         })
         .catch(() => {
-          toast.error("Failed to delete post");
+          toast.error(tToast("deletePostFailed"));
           return false;
         })
         .finally(() => {
           setIsDeleting(false);
         });
     },
-    [invalidateLists, organizationId]
+    [invalidateLists, organizationId, tToast]
   );
 
   const togglePostStatus = useCallback(
@@ -77,8 +80,8 @@ export function usePostActions(organizationId: string) {
         .then(async () => {
           toast.success(
             nextStatus === "published"
-              ? "Post published"
-              : "Post moved to drafts"
+              ? tCommon("labels.postPublished")
+              : tToast("postMovedToDrafts")
           );
           await Promise.all([
             invalidateLists(),
@@ -91,14 +94,14 @@ export function usePostActions(organizationId: string) {
           return true;
         })
         .catch(() => {
-          toast.error("Failed to update post status");
+          toast.error(tToast("updatePostStatusFailed"));
           return false;
         })
         .finally(() => {
           setIsTogglingStatus(false);
         });
     },
-    [invalidateLists, organizationId, queryClient]
+    [invalidateLists, organizationId, queryClient, tToast]
   );
 
   return { deletePost, isDeleting, isTogglingStatus, togglePostStatus };

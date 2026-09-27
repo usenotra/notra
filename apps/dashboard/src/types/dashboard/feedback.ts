@@ -3,7 +3,6 @@ export type FeedbackSentiment = "sad_crying" | "sad" | "happy" | "excited";
 export interface FeedbackSentimentOption {
   value: FeedbackSentiment;
   emoji: string;
-  label: string;
 }
 
 export interface FeedbackContextValue {

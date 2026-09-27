@@ -13,6 +13,7 @@ import {
 import type { ComposeOption, ImagePatternObject } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "next-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -29,6 +30,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip, withLocaleValueAxis } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import { CHART_SCRUB_POSITION_LERP } from "@/constants/charts";
 import {
@@ -2065,7 +2067,11 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   const [hoveredDataKey, setHoveredDataKey] = useState<string | null>(null);
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleValueAxis(withLocaleTooltip(collectConfig(children), locale), locale),
+    [children, locale]
+  );
   const {
     areas,
     xAxis: xAxisSlot,

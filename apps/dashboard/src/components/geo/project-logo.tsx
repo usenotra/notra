@@ -4,6 +4,7 @@ import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { projectLogoSources } from "@notra/geo-core/geo/logo";
 import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -18,6 +19,7 @@ function ProjectLogoInner({
   className,
   fallbackClassName,
 }: GeoProjectLogoProps & { logo: string | null }) {
+  const tCommon = useTranslations("common");
   const sources = projectLogoSources(domain, name.toLowerCase(), logo);
   const [sourceIndex, setSourceIndex] = useState(0);
   const activeIndex = Math.min(sourceIndex, sources.length - 1);
@@ -34,7 +36,7 @@ function ProjectLogoInner({
       data-slot="avatar"
     >
       <Image
-        alt={`${name} logo`}
+        alt={tCommon("labels.nameLogo", { name })}
         className="size-full object-contain"
         height={GEO_LOGO_SIZE_PX}
         onError={() => {

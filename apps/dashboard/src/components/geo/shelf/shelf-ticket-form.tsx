@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { ShelfDueDateField } from "@/components/geo/shelf/shelf-due-date-field";
@@ -22,7 +23,6 @@ import { ShelfTicketMark } from "@/components/geo/shelf/shelf-ticket-badge";
 import {
   GEO_SHELF_NO_PRIORITY,
   GEO_SHELF_NOTES_SAVE_DEBOUNCE_MS,
-  GEO_SHELF_PRIORITY_LABELS,
 } from "@/constants/geo-shelf";
 import type {
   GeoShelfOpportunityStatus,
@@ -64,6 +64,9 @@ export function ShelfTicketForm({
   onChange,
   disabled,
 }: GeoShelfTicketFormProps) {
+  const t = useTranslations("geo.shelf.shelfTicketForm");
+  const tCommon = useTranslations("common");
+  const tLabels = useTranslations("geo.shelf.labels");
   const id = useId();
   const status = opportunity?.status ?? "open";
   const priority = opportunity?.priority ?? null;
@@ -118,7 +121,7 @@ export function ShelfTicketForm({
   return (
     <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
       <div className="space-y-2">
-        <Label htmlFor={`${id}-status`}>Status</Label>
+        <Label htmlFor={`${id}-status`}>{tCommon("labels.status")}</Label>
         <Select
           disabled={disabled}
           onValueChange={(value) =>
@@ -141,7 +144,7 @@ export function ShelfTicketForm({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`${id}-priority`}>Priority</Label>
+        <Label htmlFor={`${id}-priority`}>{t("priority")}</Label>
         <Select
           disabled={disabled}
           onValueChange={(value) =>
@@ -151,14 +154,16 @@ export function ShelfTicketForm({
         >
           <SelectTrigger className="w-full" id={`${id}-priority`}>
             <SelectValue>
-              {priority ? GEO_SHELF_PRIORITY_LABELS[priority] : "No priority"}
+              {priority ? tCommon(`labels.${priority}`) : t("noPriority")}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={GEO_SHELF_NO_PRIORITY}>No priority</SelectItem>
+            <SelectItem value={GEO_SHELF_NO_PRIORITY}>
+              {t("noPriority")}
+            </SelectItem>
             {GEO_SHELF_PRIORITIES.map((option) => (
               <SelectItem key={option} value={option}>
-                {GEO_SHELF_PRIORITY_LABELS[option]}
+                {tCommon(`labels.${option}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -166,7 +171,7 @@ export function ShelfTicketForm({
       </div>
       <div className="space-y-2">
         <span className="flex items-center justify-between">
-          <Label htmlFor={`${id}-assignee`}>Assignee</Label>
+          <Label htmlFor={`${id}-assignee`}>{t("assignee")}</Label>
           {currentMemberId && assigneeMemberId !== currentMemberId ? (
             <button
               className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
@@ -174,12 +179,12 @@ export function ShelfTicketForm({
               onClick={() => onChange({ assigneeMemberId: currentMemberId })}
               type="button"
             >
-              Assign to me
+              {tLabels("assignToMe")}
             </button>
           ) : null}
         </span>
         <ShelfMemberSelect
-          ariaLabel="Assignee"
+          ariaLabel={t("assignee")}
           disabled={disabled}
           id={`${id}-assignee`}
           members={members}
@@ -188,10 +193,10 @@ export function ShelfTicketForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`${id}-poc`}>Point of contact</Label>
+        <Label htmlFor={`${id}-poc`}>{t("pointOfContact")}</Label>
         <ShelfMemberSelect
           allowSameAsAssignee
-          ariaLabel="Point of contact"
+          ariaLabel={t("pointOfContact")}
           disabled={disabled}
           id={`${id}-poc`}
           members={members}
@@ -206,7 +211,7 @@ export function ShelfTicketForm({
         onChange={(nextDueAt) => onChange({ dueAt: nextDueAt })}
       />
       <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor={`${id}-notes`}>Notes</Label>
+        <Label htmlFor={`${id}-notes`}>{t("notes")}</Label>
         <Textarea
           className="max-h-80 resize-none overflow-y-auto"
           id={`${id}-notes`}
@@ -215,7 +220,7 @@ export function ShelfTicketForm({
           onChange={(event) => {
             handleNotesChange(event.target.value);
           }}
-          placeholder="Who you contacted, what they said, what happens next"
+          placeholder={t("notesPlaceholder")}
           rows={3}
           value={draftNotes}
         />

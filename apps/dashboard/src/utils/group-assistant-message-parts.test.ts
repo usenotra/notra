@@ -12,7 +12,7 @@ import {
 test("current step follows the latest streamed part, not a completed tool", () => {
   expect(
     getAssistantActivityStep([reasoning("Checking sources", "streaming")])
-  ).toBe("Thinking");
+  ).toBe("thinking");
   expect(
     getAssistantActivityStep([
       reasoning("Checking sources"),
@@ -23,7 +23,7 @@ test("current step follows the latest streamed part, not a completed tool", () =
         input: { query: "news" },
       },
     ])
-  ).toBe("Searching web");
+  ).toBe("searchingWeb");
   expect(
     getAssistantActivityStep([
       reasoning("Checking sources"),
@@ -34,12 +34,12 @@ test("current step follows the latest streamed part, not a completed tool", () =
         input: {},
       },
     ])
-  ).toBe("Executing tools");
-  expect(getAssistantActivityStep([tool("webSearch")])).toBe("Thinking");
+  ).toBe("executingTools");
+  expect(getAssistantActivityStep([tool("webSearch")])).toBe("thinking");
   expect(
     getAssistantActivityStep([tool("webSearch"), text("Here is the answer")])
-  ).toBe("Writing response");
-  expect(getAssistantActivityStep([])).toBe("Thinking");
+  ).toBe("writingResponse");
+  expect(getAssistantActivityStep([])).toBe("thinking");
 });
 
 function text(value: string) {
@@ -79,7 +79,7 @@ describe("groupAssistantMessageParts", () => {
     expect(segments[0].items).toHaveLength(3);
   });
 
-  test("keeps one activity above commentary across tool steps", () => {
+  test("keeps activity groups in chronological order around commentary", () => {
     const parts = [
       text("Let me fetch this page."),
       tool("fetchWebpage"),
@@ -91,20 +91,25 @@ describe("groupAssistantMessageParts", () => {
     const segments = groupAssistantMessageParts(parts);
 
     expect(segments.map((segment) => segment.kind)).toEqual([
+      "standalone",
       "activity",
       "standalone",
-      "standalone",
+      "activity",
       "standalone",
     ]);
-    expect(segments[0]).toMatchObject({
+    expect(segments[1]).toMatchObject({
       kind: "activity",
-      items: [{ index: 1 }, { index: 3 }, { index: 4 }],
+      items: [{ index: 1 }],
     });
-    expect(segments.slice(1).map((segment) => segment.startIndex)).toEqual([
-      0, 2, 5,
+    expect(segments[3]).toMatchObject({
+      kind: "activity",
+      items: [{ index: 3 }, { index: 4 }],
+    });
+    expect(segments.map((segment) => segment.startIndex)).toEqual([
+      0, 1, 2, 3, 5,
     ]);
-    expect(groupAssistantMessageParts(parts.slice(0, 2))[0]?.startIndex).toBe(
-      segments[0]?.startIndex
+    expect(groupAssistantMessageParts(parts.slice(0, 2))[1]?.startIndex).toBe(
+      segments[1]?.startIndex
     );
   });
 

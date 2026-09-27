@@ -4,6 +4,7 @@ import { ArrowLeft02Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Button } from "@notra/ui/components/ui/button";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -28,6 +29,12 @@ export default function PageClient({
   organizationId,
   organizationSlug,
 }: CollectionDetailPageClientProps) {
+  const t = useTranslations("content.collections.detail");
+  const tCommon = useTranslations("common");
+  const tContentShared = useTranslations("content.shared");
+  const tDetail = useTranslations("content.detail");
+  const tStates = useTranslations("common.states");
+  const locale = useLocale();
   const { data, isPending, error } = useCollection(
     organizationId,
     collectionId
@@ -60,12 +67,12 @@ export default function PageClient({
             action={
               <Link href={`/${organizationSlug}/content`}>
                 <Button tabIndex={-1} variant="outline">
-                  Back to Content
+                  {tDetail("backToContent")}
                 </Button>
               </Link>
             }
-            description="This collection may have been deleted or you don't have access to it."
-            title="Collection not found"
+            description={t("notFoundDescription")}
+            title={t("notFoundTitle")}
           />
         </div>
       </PageContainer>
@@ -73,9 +80,9 @@ export default function PageClient({
   }
 
   const collection = data.collection;
-  const postCountLabel = `${collection.posts.length} ${
-    collection.posts.length === 1 ? "post" : "posts"
-  }`;
+  const postCountLabel = tCommon("messages.countPluralOnePostOther", {
+    count: collection.posts.length,
+  });
 
   const pendingCount =
     collection.isGenerating && collection.expectedPostCount !== null
@@ -98,13 +105,13 @@ export default function PageClient({
             href={`/${organizationSlug}/content`}
           >
             <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
-            Content
+            {tCommon("labels.content")}
           </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 space-y-2">
               <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="min-w-0 text-3xl font-bold tracking-tight wrap-anywhere">
                   {collection.name}
                 </h1>
                 <Button
@@ -113,7 +120,9 @@ export default function PageClient({
                   size="icon-sm"
                   variant="ghost"
                 >
-                  <span className="sr-only">Rename collection</span>
+                  <span className="sr-only">
+                    {tContentShared("renameCollection")}
+                  </span>
                   <HugeiconsIcon className="size-4" icon={PencilEdit02Icon} />
                 </Button>
               </div>
@@ -121,7 +130,7 @@ export default function PageClient({
                 <span>{postCountLabel}</span>
                 <span aria-hidden>·</span>
                 <time dateTime={collection.createdAt}>
-                  {formatLongDate(collection.createdAt)}
+                  {formatLongDate(collection.createdAt, locale)}
                 </time>
               </div>
             </div>
@@ -160,7 +169,7 @@ export default function PageClient({
 
         {!hasContent && (
           <EmptyState
-            description="This collection has no posts."
+            description={t("emptyDescription")}
             preview={
               <EmptyStateCardsPreview
                 columns={3}
@@ -168,7 +177,7 @@ export default function PageClient({
                 variant="content"
               />
             }
-            title="Nothing here yet"
+            title={tStates("empty")}
           />
         )}
       </div>

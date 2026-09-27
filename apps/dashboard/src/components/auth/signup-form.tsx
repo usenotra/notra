@@ -1,7 +1,6 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { signupSchema } from "@notra/schemas/dashboard/auth/credentials";
 import { AuthEmailField } from "@notra/ui/components/shared/auth/auth-email-field";
 import { AuthFormError } from "@notra/ui/components/shared/auth/auth-form-error";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
@@ -16,13 +15,13 @@ import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
 import type { AuthMethod, SocialProvider } from "@notra/ui/types/auth";
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useQueryStates } from "nuqs";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import * as z from "zod";
 
-import { SignupCreditsBanner } from "@/components/auth/signup-credits-banner";
-import { SHOW_SIGNUP_CREDITS_BANNER } from "@/constants/signup-credits";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   redeemBackupCodeAction,
@@ -34,6 +33,7 @@ import {
 } from "@/lib/auth/password-actions";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
+import { useAuthPendingStepLabels } from "@/lib/i18n/use-auth-labels";
 import { errorMessageOr } from "@/lib/utils";
 import {
   marketingAttributionSearchParams,
@@ -41,8 +41,6 @@ import {
   readMarketingAttributionFromValues,
 } from "@/utils/marketing-attribution";
 import { marketingAttributionUrlKeys } from "@/utils/marketing-attribution-keys";
-
-const SIGNUP_ERROR_FALLBACK = "Failed to sign up. Please try again.";
 
 export interface SignupFormProps {
   title?: string;
@@ -54,13 +52,32 @@ export interface SignupFormProps {
 }
 
 export function SignupForm({
-  title = "Create your account",
-  description = "Start turning what you ship into what you publish.",
+  title,
+  description,
   onSuccess,
   returnTo,
   showLoginLink = true,
   showForgotPasswordLink = false,
 }: SignupFormProps) {
+  const t = useTranslations("auth.signup");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("auth.validation");
+  const tLogin = useTranslations("auth.loginForm");
+  const pendingStepLabels = useAuthPendingStepLabels();
+  const signupErrorFallback = t("failed");
+  const emailSchema = z
+    .string()
+    .min(1, tValidation("emailRequired"))
+    .email(tValidation("emailInvalid"));
+  const passwordSchema = z
+    .string()
+    .min(1, tValidation("passwordRequired"))
+    .min(10, tValidation("passwordMinSignup"))
+    .max(128, tValidation("passwordMax"));
+  const signupSchema = z.object({
+    email: emailSchema,
+    password: passwordSchema,
+  });
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const flow = useAuthFlow({ onSuccess });
@@ -129,7 +146,7 @@ export function SignupForm({
       }
       authInFlightRef.current = false;
       setAuthMethod(null);
-      setFormError("Social sign-up failed. Please try again.");
+      setFormError(t("socialFailed"));
     });
   }
 
@@ -166,7 +183,7 @@ export function SignupForm({
         });
 
         if (result.status === "error") {
-          setFormError(errorMessageOr(result.message, SIGNUP_ERROR_FALLBACK));
+          setFormError(errorMessageOr(result.message, signupErrorFallback));
           authInFlightRef.current = false;
           setAuthMethod(null);
           return;
@@ -185,7 +202,7 @@ export function SignupForm({
         }
       } catch (error) {
         console.error("Email signup error:", error);
-        setFormError(SIGNUP_ERROR_FALLBACK);
+        setFormError(signupErrorFallback);
         authInFlightRef.current = false;
         setAuthMethod(null);
       }
@@ -195,13 +212,12 @@ export function SignupForm({
   if (flow.pending) {
     return (
       <AuthPendingStep
+        labels={pendingStepLabels}
         onBack={flow.reset}
         onFinish={flow.finish}
         onRecovered={(email) => {
           flow.reset();
-          setFormError(
-            `Backup code accepted. Two-factor authentication was turned off for ${email}. Sign in to continue.`
-          );
+          setFormError(t("backupCodeAccepted", { email }));
         }}
         onResult={flow.applyResult}
         redeemBackupCode={redeemBackupCodeAction}
@@ -215,18 +231,20 @@ export function SignupForm({
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <AuthFormHeader description={description} title={title} />
-
-      {SHOW_SIGNUP_CREDITS_BANNER && <SignupCreditsBanner />}
+      <AuthFormHeader
+        description={description ?? t("description")}
+        title={title ?? t("title")}
+      />
 
       <div className="grid gap-4">
         <AuthSocialButtons
           authMethod={authMethod}
           disabled={isAuthLoading}
+          lastUsedLabel={tLogin("lastUsed")}
           onSelect={handleSocialSignup}
         />
 
-        <AuthOrDivider />
+        <AuthOrDivider label={t("or")} />
 
         <form
           aria-busy={isAuthLoading}
@@ -244,12 +262,10 @@ export function SignupForm({
               validators={{
                 onBlur: ({ value }) =>
                   value.length > 0
-                    ? signupSchema.shape.email.safeParse(value).error?.issues[0]
-                        ?.message
+                    ? emailSchema.safeParse(value).error?.issues[0]?.message
                     : undefined,
                 onSubmit: ({ value }) =>
-                  signupSchema.shape.email.safeParse(value).error?.issues[0]
-                    ?.message,
+                  emailSchema.safeParse(value).error?.issues[0]?.message,
               }}
             >
               {(field) => (
@@ -257,10 +273,10 @@ export function SignupForm({
                   disabled={isAuthLoading}
                   error={field.state.meta.errors[0]}
                   id={field.name}
-                  label="Email"
+                  label={tCommon("labels.email")}
                   onBlur={field.handleBlur}
                   onChange={field.handleChange}
-                  placeholder="jane@company.com"
+                  placeholder={t("emailPlaceholder")}
                   value={field.state.value}
                 />
               )}
@@ -270,12 +286,10 @@ export function SignupForm({
               validators={{
                 onBlur: ({ value }) =>
                   value.length > 0
-                    ? signupSchema.shape.password.safeParse(value).error
-                        ?.issues[0]?.message
+                    ? passwordSchema.safeParse(value).error?.issues[0]?.message
                     : undefined,
                 onSubmit: ({ value }) =>
-                  signupSchema.shape.password.safeParse(value).error?.issues[0]
-                    ?.message,
+                  passwordSchema.safeParse(value).error?.issues[0]?.message,
               }}
             >
               {(field) => (
@@ -285,8 +299,9 @@ export function SignupForm({
                   error={field.state.meta.errors[0]}
                   id={field.name}
                   onBlur={field.handleBlur}
+                  label={tCommon("labels.password")}
                   onChange={field.handleChange}
-                  placeholder="At least 10 characters"
+                  placeholder={t("passwordPlaceholder")}
                   value={field.state.value}
                 />
               )}
@@ -303,10 +318,10 @@ export function SignupForm({
             {authMethod === "email" ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Creating account...
+                {t("creating")}
               </>
             ) : (
-              "Create account"
+              t("submit")
             )}
           </CtaButton>
         </form>
@@ -316,25 +331,31 @@ export function SignupForm({
         <div className="text-muted-foreground flex flex-col gap-4 px-8 text-center text-xs">
           {showForgotPasswordLink && (
             <p>
-              Forgot your password?{" "}
-              <Link
-                className="hover:text-primary underline underline-offset-4"
-                href="/forgot-password"
-              >
-                Reset Your Password
-              </Link>
+              {t.rich("forgotPassword", {
+                link: (chunks) => (
+                  <Link
+                    className="hover:text-primary underline underline-offset-4"
+                    href="/forgot-password"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           )}
           {showForgotPasswordLink && showLoginLink && <Separator />}
           {showLoginLink && (
             <p>
-              Already have an account?{" "}
-              <Link
-                className="hover:text-primary underline underline-offset-4"
-                href="/login"
-              >
-                Log in
-              </Link>
+              {t.rich("haveAccount", {
+                link: (chunks) => (
+                  <Link
+                    className="hover:text-primary underline underline-offset-4"
+                    href="/login"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           )}
         </div>

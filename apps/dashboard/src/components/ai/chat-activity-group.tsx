@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
@@ -27,20 +28,19 @@ import type {
 } from "@/types/components/chat-activity-group";
 import {
   getSearchQuery,
-  getSearchRowLabel,
   getSearchSources,
-  getSearchStackLabel,
   isPublicSearchDomain,
   uniqueSearchSources,
 } from "@/utils/chat-search-activity";
-import { formatWorkedDurationLabel } from "@/utils/format-worked-duration";
+import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 
 const NESTED_ROW_CLASSNAME =
   "text-muted-foreground flex min-w-0 items-center gap-2 text-sm leading-5";
 
 function useWorkedDurationSeconds(
   isStreaming: boolean,
-  durationMs: number | undefined
+  durationMs: number | undefined,
+  liveSeconds: number | undefined
 ): number | null {
   const fromMetadata =
     durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
@@ -52,7 +52,13 @@ function useWorkedDurationSeconds(
       if (startedAtRef.current === null) {
         startedAtRef.current = Date.now();
       }
-      return;
+      setElapsedSeconds(0);
+      const interval = window.setInterval(() => {
+        setElapsedSeconds(
+          Math.floor((Date.now() - (startedAtRef.current ?? Date.now())) / 1000)
+        );
+      }, 1000);
+      return () => window.clearInterval(interval);
     }
 
     if (startedAtRef.current !== null) {
@@ -63,7 +69,9 @@ function useWorkedDurationSeconds(
     }
   }, [isStreaming]);
 
-  return fromMetadata ?? elapsedSeconds;
+  return isStreaming
+    ? (liveSeconds ?? elapsedSeconds ?? 0)
+    : (fromMetadata ?? elapsedSeconds);
 }
 
 export function ChatActivityGroup({
@@ -72,14 +80,20 @@ export function ChatActivityGroup({
   elapsedSeconds,
   forceOpen = false,
   groupId,
+  hasDetails,
   isLoading,
   isStreaming,
   step,
 }: ChatActivityGroupProps) {
-  const measuredSeconds = useWorkedDurationSeconds(isStreaming, durationMs);
-  const durationSeconds =
-    elapsedSeconds && !isStreaming ? elapsedSeconds : measuredSeconds;
-  const [isOpen, setIsOpen] = useState(isLoading || forceOpen);
+  const t = useTranslations("ai.activity");
+  const tLabels = useTranslations("common.labels");
+  const measuredSeconds = useWorkedDurationSeconds(
+    isStreaming,
+    durationMs,
+    elapsedSeconds
+  );
+  const durationSeconds = measuredSeconds ?? elapsedSeconds ?? null;
+  const [isOpen, setIsOpen] = useState(forceOpen);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   if (forceOpen && !isOpen) {
@@ -96,7 +110,26 @@ export function ChatActivityGroup({
     return () => window.clearTimeout(closeTimer);
   }, [forceOpen, hasInteracted, isLoading]);
 
-  const label = isStreaming ? step : formatWorkedDurationLabel(durationSeconds);
+  const workedLabel =
+    durationSeconds && durationSeconds > 0
+      ? t("workedFor", { duration: formatElapsedSeconds(durationSeconds) })
+      : t("worked");
+  const stepLabel =
+    step === "thinking" ? tLabels("thinkingLabel") : t(`steps.${step}`);
+  const label = isStreaming ? stepLabel : workedLabel;
+  const active = isStreaming && step !== "waitingForApproval";
+
+  if (!hasDetails || (active && !forceOpen)) {
+    return (
+      <div data-activity-group={groupId}>
+        <ChatActivityStatus
+          active={active}
+          label={label}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <Collapsible
@@ -109,9 +142,9 @@ export function ChatActivityGroup({
     >
       <CollapsibleTrigger className="text-muted-foreground hover:text-foreground group flex w-full min-w-0 items-center gap-1 text-sm transition-colors">
         <ChatActivityStatus
-          active={isStreaming && step !== "Waiting for approval"}
+          active={active}
           label={label}
-          seconds={elapsedSeconds ?? measuredSeconds ?? 0}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
         >
           <HugeiconsIcon
             aria-hidden
@@ -158,13 +191,16 @@ function SearchFavicon({ domain }: { domain?: string }) {
 }
 
 export function ChatSearchStack({ items }: ChatSearchStackProps) {
+  const t = useTranslations("ai.activity");
   const [showAllSources, setShowAllSources] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const isStreaming = items.some(
     (item) =>
       item.state === "input-streaming" || item.state === "input-available"
   );
-  const label = getSearchStackLabel(items.length, isStreaming);
+  const label = isStreaming
+    ? t("searchStackRunning", { count: items.length })
+    : t("searchStackDone", { count: items.length });
   const queries = items.map((item) => getSearchQuery(item.input));
   const uniqueSources = uniqueSearchSources(
     items.flatMap((item) => getSearchSources(item.output))
@@ -204,12 +240,18 @@ export function ChatSearchStack({ items }: ChatSearchStackProps) {
                   strokeWidth={1.8}
                 />
                 <span className="min-w-0 truncate">
-                  {getSearchRowLabel(
-                    query,
-                    item.state === "input-streaming" ||
-                      item.state === "input-available",
-                    isStreaming
-                  )}
+                  {query
+                    ? t("searchRowQuery", {
+                        query,
+                        state:
+                          item.state === "input-streaming" ||
+                          item.state === "input-available"
+                            ? "running"
+                            : "done",
+                      })
+                    : t("searchRow", {
+                        state: isStreaming ? "running" : "done",
+                      })}
                 </span>
               </div>
             );
@@ -222,7 +264,7 @@ export function ChatSearchStack({ items }: ChatSearchStackProps) {
                   {source.title}
                 </span>
                 {source.domain ? (
-                  <span className="text-muted-foreground/70 shrink-0">
+                  <span className="text-muted-foreground/70 max-w-[45%] shrink-0 truncate">
                     {source.domain}
                   </span>
                 ) : null}
@@ -256,7 +298,7 @@ export function ChatSearchStack({ items }: ChatSearchStackProps) {
               onClick={() => setShowAllSources(true)}
               type="button"
             >
-              +{hiddenSourceCount} more
+              {t("moreSources", { count: hiddenSourceCount })}
             </button>
           ) : null}
         </div>

@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import {
   getSearchQuery,
   getSearchSources,
-  getSearchStackLabel,
   isPublicSearchDomain,
 } from "./chat-search-activity";
 
@@ -76,13 +75,6 @@ describe("chat-search-activity", () => {
         domain: "futureagi.com",
       },
     ]);
-  });
-
-  test("labels stacked searches by count and streaming state", () => {
-    expect(getSearchStackLabel(1, true)).toBe("Searching web");
-    expect(getSearchStackLabel(3, true)).toBe("Running 3 searches");
-    expect(getSearchStackLabel(1, false)).toBe("Ran 1 search");
-    expect(getSearchStackLabel(3, false)).toBe("Ran 3 searches");
   });
 
   test("skips private and untrusted domains for favicons", () => {

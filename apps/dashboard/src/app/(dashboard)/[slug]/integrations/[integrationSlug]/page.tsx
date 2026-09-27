@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -7,9 +8,10 @@ import { resolveOrganizationIntegrationConnect } from "@/lib/integrations/deepli
 
 import PageClient from "../page-client";
 
-export const metadata: Metadata = {
-  title: "Integrations",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return { title: tCommon("labels.integrations") };
+}
 
 async function Page({
   params,

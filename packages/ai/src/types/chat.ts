@@ -1,5 +1,5 @@
 import type { Redis } from "@upstash/redis";
-import type { LanguageModelUsage, UIMessage } from "ai";
+import type { LanguageModelUsage, UIMessage, UIMessageChunk } from "ai";
 import type * as z from "zod";
 
 import type {
@@ -87,6 +87,7 @@ export type ChatMessagePart =
     };
 
 export interface BuildChatFinishMetadataInput {
+  activityTimings?: ChatMessageMetadata["activityTimings"];
   streamStartedAt: number;
   firstChunkAt: number | null;
   finishedAt: number;
@@ -96,6 +97,12 @@ export interface BuildChatFinishMetadataInput {
   requestedModel?: ChatModel | string;
   thinkingLevel?: ThinkingLevel;
   requestedThinkingLevel?: ThinkingLevel;
+}
+
+export interface ChatActivityTimingEvent {
+  type: string;
+  id?: string;
+  toolCallId?: string;
 }
 
 export interface ChatConfig {
@@ -108,4 +115,16 @@ export interface StartChatAbortPollingArgs {
   streamId: string;
   onAbort: () => void;
   intervalMs?: number;
+}
+
+export type ChatStreamLifecycleInput = Omit<
+  StartChatAbortPollingArgs,
+  "onAbort"
+> & {
+  abortSignal?: AbortSignal;
+};
+
+export interface ForwardChatStreamInput {
+  stream: ReadableStream<UIMessageChunk>;
+  emit: (chunks: UIMessageChunk[]) => Promise<unknown>;
 }

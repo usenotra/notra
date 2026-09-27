@@ -10,6 +10,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "next-intl";
 
 import { CreditTopupContent } from "@/components/billing/credit-topup-content";
 import { Button } from "@/components/button";
@@ -27,6 +28,9 @@ export function CreditTopupModal({
   success,
   onSuccess,
 }: CreditTopupModalProps) {
+  const t = useTranslations("billing.topup");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   if (success) {
     return (
       <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
@@ -53,9 +57,11 @@ export function CreditTopupModal({
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <HugeiconsIcon className="text-success size-12" icon={Tick02Icon} />
             <div className="space-y-1">
-              <h2 className="text-xl font-bold">Credits Added!</h2>
+              <h2 className="text-xl font-bold">
+                {tCommon2("labels.creditsAdded")}
+              </h2>
               <p className="text-muted-foreground text-sm">
-                Your AI credits have been topped up and are ready to use.
+                {tCommon2("messages.yourAiCreditsHaveBeen")}
               </p>
             </div>
             <Button
@@ -63,7 +69,7 @@ export function CreditTopupModal({
               onClick={() => onOpenChange(false)}
               size="sm"
             >
-              Continue
+              {tCommon("continue")}
             </Button>
           </div>
         </ResponsiveDialogContent>
@@ -77,10 +83,10 @@ export function CreditTopupModal({
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="flex items-center gap-2">
             <HugeiconsIcon className="size-5" icon={CreditCardIcon} />
-            Top Up Credits
+            {tCommon2("labels.topUpCredits")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Purchase additional AI credits for your workspace
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <CreditTopupContent

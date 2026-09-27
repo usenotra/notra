@@ -22,6 +22,10 @@ import { Effect } from "effect";
 import { ANALYTICS_AUTH_METHODS } from "@/constants/analytics-events";
 import { TOTP_FACTOR_TYPE } from "@/constants/security";
 import {
+  authActionMessage,
+  workOSFailureMessage,
+} from "@/lib/auth/action-messages";
+import {
   completeAuthentication,
   getWorkOSClientId,
   runAuthFlow,
@@ -48,12 +52,6 @@ import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 import type { MfaAttempt } from "@/types/auth/mfa-cookies";
 import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
-
-const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
-const ATTEMPT_EXPIRED_MESSAGE =
-  "This sign-in attempt expired. Please start again.";
-const BACKUP_CODE_REJECTED_MESSAGE =
-  "That backup code isn't valid or was already used.";
 
 async function isMfaVerifyRateLimited(attempt: MfaAttempt) {
   if (
@@ -95,7 +93,7 @@ export async function verifyMfaCodeAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid code",
+      message: await authActionMessage("invalidCode"),
     };
   }
 
@@ -103,10 +101,13 @@ export async function verifyMfaCodeAction(
     parsed.data.authenticationChallengeId
   );
   if (!attempt) {
-    return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
+    return {
+      status: "error",
+      message: await authActionMessage("attemptExpired"),
+    };
   }
   if (await isMfaVerifyRateLimited(attempt)) {
-    return { status: "error", message: RATE_LIMITED_MESSAGE };
+    return { status: "error", message: await authActionMessage("rateLimited") };
   }
 
   return runAuthFlow(
@@ -160,7 +161,7 @@ export async function redeemBackupCodeAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Invalid backup code",
+      message: await authActionMessage("backupCodeRejected"),
     };
   }
 
@@ -168,17 +169,20 @@ export async function redeemBackupCodeAction(
     parsed.data.authenticationChallengeId
   );
   if (!attempt) {
-    return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
+    return {
+      status: "error",
+      message: await authActionMessage("attemptExpired"),
+    };
   }
   const { workosUserId, startedAt } = attempt;
 
   if (await isAccountRateLimited(ratelimit.backupCode, workosUserId)) {
-    return { status: "error", message: RATE_LIMITED_MESSAGE };
+    return { status: "error", message: await authActionMessage("rateLimited") };
   }
 
   const rejected: RedeemBackupCodeResult = {
     status: "error",
-    message: BACKUP_CODE_REJECTED_MESSAGE,
+    message: await authActionMessage("backupCodeRejected"),
   };
 
   return Effect.runPromise(
@@ -244,10 +248,14 @@ export async function redeemBackupCodeAction(
       };
     }).pipe(
       Effect.catch((error) =>
-        Effect.succeed<RedeemBackupCodeResult>({
-          status: "error",
-          message: readWorkOSError(error.error).message,
-        })
+        Effect.promise(() =>
+          workOSFailureMessage(readWorkOSError(error.error))
+        ).pipe(
+          Effect.map((message): RedeemBackupCodeResult => ({
+            status: "error",
+            message,
+          }))
+        )
       )
     )
   );
@@ -258,12 +266,18 @@ export async function resumeSocialEnrollmentAction(
 ): Promise<AuthFlowResult> {
   const parsed = resumeSocialEnrollmentInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
+    return {
+      status: "error",
+      message: await authActionMessage("attemptExpired"),
+    };
   }
 
   const flow = await readPendingMfaFlow(parsed.data.flowId);
   if (flow?.kind !== "enrollment") {
-    return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
+    return {
+      status: "error",
+      message: await authActionMessage("attemptExpired"),
+    };
   }
   if (
     await isAccountRateLimited(
@@ -271,7 +285,7 @@ export async function resumeSocialEnrollmentAction(
       `enrollment:${flow.workosUserId}`
     )
   ) {
-    return { status: "error", message: RATE_LIMITED_MESSAGE };
+    return { status: "error", message: await authActionMessage("rateLimited") };
   }
   await clearPendingMfaFlow(parsed.data.flowId);
 

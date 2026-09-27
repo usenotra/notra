@@ -2,6 +2,7 @@
 
 import { useDbClient, useLiveQuery } from "@tanstack/react-db";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ import { pendingOutputId } from "@/utils/github-outputs";
 export function useGitHubRepositoriesDb(
   organizationId: string
 ): GitHubRepositoriesDbApi {
+  const t = useTranslations("integrations.github.toasts");
   const isEnabled = organizationId.length > 0;
   const dbClient = useDbClient();
   const queryClient = useQueryClient();
@@ -91,7 +93,7 @@ export function useGitHubRepositoriesDb(
         repository.enabled = enabled;
       }
     });
-    await persist(integrationId, transaction, "Failed to update repository");
+    await persist(integrationId, transaction, t("repositoryUpdateFailed"));
     await queryClient.invalidateQueries({
       queryKey: dashboardOrpc.github.app.get.queryKey({
         input: { organizationId },
@@ -134,12 +136,12 @@ export function useGitHubRepositoriesDb(
       }
       repository.outputs = outputs;
     });
-    await persist(integration.id, transaction, "Failed to update publishing");
+    await persist(integration.id, transaction, t("publishingUpdateFailed"));
   };
 
   const removeRepository = async (integrationId: string) => {
     const transaction = collection.delete(integrationId);
-    await persist(integrationId, transaction, "Failed to remove repository");
+    await persist(integrationId, transaction, t("repositoryRemoveFailed"));
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.github.app.get.queryKey({

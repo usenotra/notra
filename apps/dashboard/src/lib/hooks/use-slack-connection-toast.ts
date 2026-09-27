@@ -1,18 +1,24 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-const SLACK_ERROR_MESSAGES: Record<string, string> = {
-  workspace_already_connected: "This Slack workspace is already connected",
-  workspace_connected_elsewhere:
-    "This Slack workspace is already connected to another organization",
-  slack_not_configured:
-    "Slack OAuth is not configured. Set SLACK_AGENT_CLIENT_ID and SLACK_AGENT_CLIENT_SECRET.",
-};
+const SLACK_ERROR_MESSAGE_KEYS = {
+  workspace_already_connected: "slackAlreadyConnected",
+  workspace_connected_elsewhere: "slackConnectedElsewhere",
+  slack_not_configured: "slackNotConfigured",
+} as const;
+
+function isSlackErrorCode(
+  value: string
+): value is keyof typeof SLACK_ERROR_MESSAGE_KEYS {
+  return Object.hasOwn(SLACK_ERROR_MESSAGE_KEYS, value);
+}
 
 export function useSlackConnectionToast() {
+  const t = useTranslations("integrations.connectionToasts");
   const [{ slackConnected, error }, setParams] = useQueryStates(
     { slackConnected: parseAsBoolean, error: parseAsString },
     { history: "replace" }
@@ -20,11 +26,11 @@ export function useSlackConnectionToast() {
 
   useEffect(() => {
     if (slackConnected) {
-      toast.success("Slack workspace connected successfully");
+      toast.success(t("slackConnected"));
       void setParams({ slackConnected: null, error: null });
-    } else if (error && Object.hasOwn(SLACK_ERROR_MESSAGES, error)) {
-      toast.error(SLACK_ERROR_MESSAGES[error]);
+    } else if (error && isSlackErrorCode(error)) {
+      toast.error(t(SLACK_ERROR_MESSAGE_KEYS[error]));
       void setParams({ slackConnected: null, error: null });
     }
-  }, [slackConnected, error, setParams]);
+  }, [slackConnected, error, setParams, t]);
 }

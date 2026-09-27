@@ -1,11 +1,11 @@
 import { cn } from "@notra/ui/lib/utils";
 import type { StatTilesProps } from "@notra/ui/types/geo";
 
-function formatTileValue(value: string | number): string {
-  return typeof value === "number" ? value.toLocaleString() : value;
+function formatTileValue(value: string | number, locale?: string): string {
+  return typeof value === "number" ? value.toLocaleString(locale) : value;
 }
 
-export function StatTiles({ tiles, className }: StatTilesProps) {
+export function StatTiles({ tiles, className, locale }: StatTilesProps) {
   return (
     <div
       className={cn(
@@ -18,7 +18,7 @@ export function StatTiles({ tiles, className }: StatTilesProps) {
           <p className="text-muted-foreground text-xs">{tile.label}</p>
           <div className="mt-1 flex gap-x-2">
             <span className="font-semibold text-3xl tabular-nums leading-none tracking-tight">
-              {formatTileValue(tile.value)}
+              {formatTileValue(tile.value, locale)}
             </span>
           </div>
         </div>

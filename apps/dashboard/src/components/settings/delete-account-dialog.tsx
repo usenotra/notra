@@ -26,6 +26,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
@@ -44,6 +45,9 @@ export function DeleteAccountDialog({
   open,
   onOpenChange,
 }: DeleteAccountDialogProps): ReactElement {
+  const t = useTranslations("settings.deleteAccount");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const invalidateSession = authClient.useSessionInvalidation();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -105,7 +109,7 @@ export function DeleteAccountDialog({
           });
         } catch (fetchError) {
           console.error("Failed to process organizations:", fetchError);
-          toast.error("Failed to process organizations. Please try again.");
+          toast.error(t("processOrgsFailed"));
           setIsDeleting(false);
           return;
         }
@@ -116,16 +120,16 @@ export function DeleteAccountDialog({
       deleteError = result.error;
     } catch (error) {
       console.error("Delete account error:", error);
-      toast.error("Failed to delete account");
+      toast.error(t("deleteFailed"));
       setIsDeleting(false);
       return;
     }
     if (deleteError) {
-      toast.error(deleteError.message ?? "Failed to delete account");
+      toast.error(deleteError.message ?? t("deleteFailed"));
       setIsDeleting(false);
       return;
     }
-    toast.success("Account deleted successfully");
+    toast.success(t("deleted"));
     handleOpenChange(false);
     invalidateSession();
     router.push("/login");
@@ -149,10 +153,10 @@ export function DeleteAccountDialog({
       <ResponsiveAlertDialogContent className="max-w-lg">
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle>
-            Delete Account
+            {tCommon2("labels.deleteAccount")}
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            You're about to delete your account. This action cannot be undone.
+            {t("dialogDescription")}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
 
@@ -168,7 +172,7 @@ export function DeleteAccountDialog({
                 <div className="text-warning flex items-center gap-2">
                   <HugeiconsIcon icon={Alert01Icon} size={18} />
                   <p className="text-sm font-medium">
-                    You own organizations with other members:
+                    {t("ownsOrgsWithMembers")}
                   </p>
                 </div>
 
@@ -179,7 +183,7 @@ export function DeleteAccountDialog({
                       key={org.id}
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar className="size-8 rounded-lg after:rounded-lg">
+                        <Avatar className="size-8 shrink-0 rounded-lg after:rounded-lg">
                           <AvatarImage
                             alt={org.name}
                             className="rounded-lg"
@@ -189,11 +193,17 @@ export function DeleteAccountDialog({
                             {org.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">{org.name}</p>
+                        <div className="min-w-0">
+                          <p
+                            className="truncate text-sm font-medium"
+                            title={org.name}
+                          >
+                            {org.name}
+                          </p>
                           <p className="text-muted-foreground text-xs">
-                            {org.memberCount} member
-                            {org.memberCount !== 1 ? "s" : ""}
+                            {tCommon2("messages.countPluralOneMemberOther", {
+                              count: org.memberCount,
+                            })}
                           </p>
                         </div>
                       </div>
@@ -213,17 +223,20 @@ export function DeleteAccountDialog({
                             value="transfer"
                           />
                           <Label
-                            className="cursor-pointer text-sm leading-tight font-normal"
+                            className="min-w-0 cursor-pointer text-sm leading-tight font-normal wrap-anywhere"
                             htmlFor={`transfer-${org.id}`}
                           >
-                            Transfer ownership
-                            {org.nextOwnerCandidate && (
-                              <span className="text-muted-foreground">
-                                {" "}
-                                to {org.nextOwnerCandidate.name} (
-                                {org.nextOwnerCandidate.role})
-                              </span>
-                            )}
+                            {org.nextOwnerCandidate
+                              ? t.rich("transferOwnershipTo", {
+                                  name: org.nextOwnerCandidate.name,
+                                  role: org.nextOwnerCandidate.role,
+                                  muted: (chunks) => (
+                                    <span className="text-muted-foreground">
+                                      {chunks}
+                                    </span>
+                                  ),
+                                })
+                              : t("transferOwnership")}
                           </Label>
                         </div>
                         <div className="flex items-start gap-2">
@@ -235,7 +248,7 @@ export function DeleteAccountDialog({
                             className="text-destructive cursor-pointer text-sm leading-tight font-normal"
                             htmlFor={`delete-${org.id}`}
                           >
-                            Delete this organization
+                            {t("deleteThisOrganization")}
                           </Label>
                         </div>
                       </RadioGroup>
@@ -250,14 +263,14 @@ export function DeleteAccountDialog({
                 <div className="text-muted-foreground flex items-center gap-2">
                   <HugeiconsIcon icon={Building06Icon} size={18} />
                   <p className="text-sm font-medium">
-                    These organizations will be deleted:
+                    {t("orgsWillBeDeleted")}
                   </p>
                 </div>
 
                 <div className="space-y-2 rounded-lg border border-dashed p-3">
                   {soleOwnerOrgs.map((org) => (
                     <div className="flex items-center gap-2" key={org.id}>
-                      <Avatar className="size-6 rounded after:rounded">
+                      <Avatar className="size-6 shrink-0 rounded after:rounded">
                         <AvatarImage
                           alt={org.name}
                           className="rounded"
@@ -267,24 +280,24 @@ export function DeleteAccountDialog({
                           {org.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="text-sm">{org.name}</p>
-                      <span className="text-muted-foreground text-xs">
-                        (only you)
+                      <p className="min-w-0 truncate text-sm" title={org.name}>
+                        {org.name}
+                      </p>
+                      <span className="text-muted-foreground shrink-0 text-xs">
+                        {t("onlyYou")}
                       </span>
                     </div>
                   ))}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  You are the only member of these organizations. They will be
-                  permanently deleted with your account.
+                  {t("soleMemberNote")}
                 </p>
               </div>
             )}
 
             {ownedOrganizations.length === 0 && (
               <p className="text-muted-foreground py-2 text-sm">
-                This will permanently delete your account and remove your data
-                from our servers.
+                {t("noOrgsNote")}
               </p>
             )}
           </div>
@@ -292,7 +305,7 @@ export function DeleteAccountDialog({
 
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isDeleting}>
-            Cancel
+            {tCommon("cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -302,10 +315,10 @@ export function DeleteAccountDialog({
             {isDeleting ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Deleting...
+                {tCommon("deleting")}
               </>
             ) : (
-              "Delete Account"
+              tCommon2("labels.deleteAccount")
             )}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>

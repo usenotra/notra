@@ -5,6 +5,7 @@ import { ArrowReloadHorizontalIcon, X } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ContentType } from "@notra/ai/schemas/content";
+import { createdPostToolOutputSchema } from "@notra/ai/schemas/post";
 import type {
   ChatAttachment,
   ChatInputHandle,
@@ -14,9 +15,9 @@ import type {
   ExternalChannelId,
   MirrorChatStatus,
 } from "@notra/ai/types/chat";
+import { linkSavedChatPosts } from "@notra/ai/utils/chat-post";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
-  Message,
   MessageContent,
   MessageResponse,
 } from "@notra/ui/components/ai-elements/message";
@@ -43,6 +44,7 @@ import {
 } from "ai";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
+import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -73,6 +75,11 @@ import {
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
+import {
+  ChatQuoteProvider,
+  ChatQuoteMessage as Message,
+} from "@/components/chat/chat-quote";
+import { ChatScrollOnSend } from "@/components/chat/chat-scroll-on-send";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { renderTextWithIntegrationReferences } from "@/components/chat/integration-reference";
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
@@ -125,6 +132,7 @@ import type {
   UserImageGridProps,
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
+import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import {
   hasPendingApproval,
   isTerminalToolState,
@@ -155,13 +163,14 @@ import {
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
-import { formatLongDate, getGreeting } from "@/utils/dashboard-greeting";
+import { formatLongDate } from "@/utils/dashboard-greeting";
+import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 import {
   getReferenceDisplay,
   parseReferenceValue,
 } from "@/utils/integration-reference";
-import { getOutputTypeLabel } from "@/utils/output-types";
+import { getOutputTypePromptLabel } from "@/utils/output-types";
 import { buildPublishedChatMessage } from "@/utils/social-publish";
 
 import { ChatPageSkeleton } from "./skeleton";
@@ -196,9 +205,10 @@ const emptySubscribe = () => () => {
 };
 
 function SlackMirrorNotice() {
+  const t = useTranslations("chat.page");
   return (
     <div className="border-border bg-muted/40 text-muted-foreground rounded-lg border px-4 py-3 text-center text-sm">
-      Mirrored from a Slack thread.
+      {t("slackMirrorNotice")}
     </div>
   );
 }
@@ -206,11 +216,12 @@ function SlackMirrorNotice() {
 function CreateToolPendingIndicator({
   toolCallId,
 }: Pick<RenderableToolPart, "toolCallId">) {
+  const t = useTranslations("chat.page");
   const elapsedSeconds = useElapsedSeconds(true, toolCallId);
 
   return (
     <div className="text-muted-foreground flex items-center gap-2 text-xs">
-      <span>Working</span>
+      <span>{t("working")}</span>
       {elapsedSeconds >= TOOL_TIMER_THRESHOLD_SECONDS && (
         <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
           {formatElapsedSeconds(elapsedSeconds)}
@@ -291,6 +302,7 @@ function getSendableMessages(messages: ChatUIMessage[]): ChatUIMessage[] {
 }
 
 function UserImageGrid({ children }: UserImageGridProps) {
+  const t = useTranslations("chat.page");
   const [isExpanded, setIsExpanded] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -362,7 +374,7 @@ function UserImageGrid({ children }: UserImageGridProps) {
       {!isExpanded && hiddenImageCount > 0 && (
         <m.button
           animate={{ opacity: 1 }}
-          aria-label={`Show ${hiddenImageCount} more ${hiddenImageCount === 1 ? "image" : "images"}`}
+          aria-label={t("showMoreImages", { count: hiddenImageCount })}
           className="focus-visible:ring-ring absolute right-0 bottom-0 z-10 flex aspect-square w-[calc((100%_-_0.75rem)/3)] items-center justify-center rounded-lg border border-white/15 bg-black/60 text-xl font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset motion-reduce:transition-none"
           initial={reduceMotion ? false : { opacity: 0 }}
           onClick={() => setIsExpanded(true)}
@@ -379,9 +391,10 @@ function UserImageGrid({ children }: UserImageGridProps) {
 }
 
 function ProjectScopeLoadingInput() {
+  const t = useTranslations("chat.page");
   return (
     <Skeleton
-      aria-label="Loading project"
+      aria-label={t("loadingProject")}
       className="bg-muted/50 h-24 rounded-xl"
       role="status"
     />
@@ -415,6 +428,11 @@ function StandaloneChatPageClient({
   organizationSlug,
   chatId: initialChatId,
 }: StandaloneChatPageClientProps) {
+  const t = useTranslations("chat.page");
+  const tCommon = useTranslations("common");
+  const tHome = useTranslations("home");
+  const tChatErrors = useTranslations("chat.errors");
+  const locale = useLocale();
   const router = useRouter();
   const [initialQuery, setInitialQuery] = useQueryState(
     "q",
@@ -493,6 +511,7 @@ function StandaloneChatPageClient({
     [customMcpData?.servers, mcpStoreData?.integrations]
   );
   const [pendingMessageId, setPendingMessageId] = useState<string | null>(null);
+  const [historyStreamId, setHistoryStreamId] = useState<string | null>(null);
   const isHydrated = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -617,7 +636,7 @@ function StandaloneChatPageClient({
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
   const hasPendingChatNavigationRef = useRef(false);
-  const navigateToNewChatRef = useRef<() => void>(() => {
+  const navigateToNewChatRef = useRef<(message: ChatUIMessage) => void>(() => {
     // Populated after the queue refs are defined below.
   });
 
@@ -634,13 +653,26 @@ function StandaloneChatPageClient({
       queryClient.invalidateQueries({
         queryKey: ["chat-sessions", organizationId],
       });
+      for (const part of message.parts) {
+        if (!isToolUIPart(part) || part.state !== "output-available") {
+          continue;
+        }
+        const savedPost = createdPostToolOutputSchema.safeParse(part.output);
+        if (savedPost.success) {
+          queryClient.invalidateQueries({
+            queryKey: dashboardOrpc.content.get.queryKey({
+              input: { organizationId, contentId: savedPost.data.postId },
+            }),
+          });
+        }
+      }
       isDrainingRef.current = false;
       if (steerAfterStopRef.current) {
         flushSteerAfterStopRef.current();
         return;
       }
       drainQueueRef.current();
-      navigateToNewChatRef.current();
+      navigateToNewChatRef.current(message);
     },
     [organizationId, queryClient]
   );
@@ -654,7 +686,9 @@ function StandaloneChatPageClient({
     stop,
   } = useChat<ChatUIMessage>({
     id: stableChatId,
-    resume: Boolean(initialChatId && pendingMessageId),
+    resume: Boolean(
+      initialChatId && historyStreamId && pendingMessageId === historyStreamId
+    ),
     experimental_throttle: 90,
     transport,
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
@@ -679,7 +713,14 @@ function StandaloneChatPageClient({
         queryClient,
         removePendingChatSession,
       });
-      handleStandaloneChatError(err, { setChatError, setPendingMessageId });
+      handleStandaloneChatError(err, {
+        setChatError,
+        setPendingMessageId,
+        messages: {
+          usageLimit: tChatErrors("usageLimit"),
+          fallback: tChatErrors("fallback"),
+        },
+      });
     },
   });
   const replaceChatMessages = useEffectEvent((next: []) => {
@@ -920,7 +961,7 @@ function StandaloneChatPageClient({
     onError: (_error, input) => {
       setMessages((prev) => prev.filter((item) => item.id !== input.tempId));
       setIsMirrorWorking(false);
-      setChatError("Sending to Slack failed. Try again.");
+      setChatError(t("slackSendFailed"));
     },
   });
   const relayMessage = useCallback(
@@ -1008,8 +1049,10 @@ function StandaloneChatPageClient({
       setWasStoppedByUser
     );
     if (chatHistoryData.activeStreamId) {
+      setHistoryStreamId(chatHistoryData.activeStreamId);
       setPendingMessageId(chatHistoryData.activeStreamId);
     } else {
+      setHistoryStreamId(null);
       setPendingMessageId(null);
     }
   }, [chatHistoryData, setMessages]);
@@ -1707,42 +1750,42 @@ function StandaloneChatPageClient({
     ]
   );
 
-  const handleUpdateQueued = useCallback((id: string, text: string) => {
-    const next = queuedMessagesRef.current.map((m) =>
-      m.id === id ? { ...m, text } : m
-    );
-    queuedMessagesRef.current = next;
-    setQueuedMessages(next);
-  }, []);
-
   useEffect(() => {
     flushSteerAfterStopRef.current = flushSteerAfterStop;
   }, [flushSteerAfterStop]);
 
-  const navigateToNewChat = useCallback(() => {
-    if (
-      !hasPendingChatNavigationRef.current ||
-      isDrainingRef.current ||
-      isWaitingForActiveStreamRef.current ||
-      queuedMessagesRef.current.length > 0
-    ) {
-      return;
-    }
-    hasPendingChatNavigationRef.current = false;
-    queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
-      messages: messagesRef.current,
-      lastResponseStopped: wasStoppedByUserRef.current,
-      activeStreamId: null,
-      externalChannelId: null,
-      slackThreadUrl: null,
-    });
-    router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
-      scroll: false,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["chat-sessions", organizationId],
-    });
-  }, [organizationId, organizationSlug, queryClient, router, stableChatId]);
+  const navigateToNewChat = useCallback(
+    (finishedMessage: ChatUIMessage) => {
+      if (
+        !hasPendingChatNavigationRef.current ||
+        isDrainingRef.current ||
+        isWaitingForActiveStreamRef.current ||
+        queuedMessagesRef.current.length > 0
+      ) {
+        return;
+      }
+      hasPendingChatNavigationRef.current = false;
+      queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
+        messages: [
+          ...messagesRef.current.filter(
+            (message) => message.id !== finishedMessage.id
+          ),
+          finishedMessage,
+        ],
+        lastResponseStopped: wasStoppedByUserRef.current,
+        activeStreamId: null,
+        externalChannelId: null,
+        slackThreadUrl: null,
+      });
+      router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
+        scroll: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["chat-sessions", organizationId],
+      });
+    },
+    [organizationId, organizationSlug, queryClient, router, stableChatId]
+  );
 
   useEffect(() => {
     navigateToNewChatRef.current = navigateToNewChat;
@@ -2023,6 +2066,14 @@ function StandaloneChatPageClient({
     await handleRetryMessage(lastUserMessage.id);
   }, [handleRetryMessage]);
 
+  const chatActivity = getChatActivity(messages, isLoading || isMirrorWorking, {
+    isStandaloneTool: (part) =>
+      isContentEditorStandaloneTool(part) ||
+      (isToolUIPart(part) &&
+        part.type !== "dynamic-tool" &&
+        (isCreateTool(part.type) || part.type === "tool-createImage")),
+  });
+
   function renderPart(
     part: ChatUIMessage["parts"][number],
     messageId: string,
@@ -2051,7 +2102,10 @@ function StandaloneChatPageClient({
       }
 
       return (
-        <MessageResponse key={`${messageId}-text-${index}`}>
+        <MessageResponse
+          isAnimating={messageId === chatActivity.activeMessageId}
+          key={`${messageId}-text-${index}`}
+        >
           {text}
         </MessageResponse>
       );
@@ -2093,7 +2147,7 @@ function StandaloneChatPageClient({
           target="_blank"
         >
           <span className="truncate">
-            {filename ?? mediaType ?? "Attachment"}
+            {filename ?? mediaType ?? tCommon("labels.attachment")}
           </span>
         </a>
       );
@@ -2121,13 +2175,28 @@ function StandaloneChatPageClient({
         const input = toolPart.input as
           | { title?: string; markdown?: string }
           | undefined;
-        const title = input?.title ?? "Untitled";
+        const title = input?.title ?? tCommon("labels.untitled");
         const markdown = input?.markdown ?? "";
 
         if (
           toolPart.state === "input-streaming" ||
           toolPart.state === "input-available"
         ) {
+          if (messageId !== chatActivity.activeMessageId) {
+            return (
+              <CompletedToolTimer
+                key={toolPart.toolCallId}
+                toolCallId={toolPart.toolCallId}
+              >
+                <span className="text-muted-foreground text-sm">
+                  Draft generation interrupted
+                </span>
+              </CompletedToolTimer>
+            );
+          }
+          if (chatActivity.hasInlineActivity) {
+            return null;
+          }
           return (
             <CreateToolPendingIndicator
               key={toolPart.toolCallId}
@@ -2144,7 +2213,7 @@ function StandaloneChatPageClient({
             >
               <div className="bg-destructive/10 text-destructive flex w-fit items-center gap-1.5 rounded-md px-2 py-1 text-xs">
                 <HugeiconsIcon className="size-3.5" icon={X} />
-                <span>Draft generation failed. The assistant will retry.</span>
+                <span>{t("draftGenerationFailed")}</span>
               </div>
             </CompletedToolTimer>
           );
@@ -2168,6 +2237,12 @@ function StandaloneChatPageClient({
           );
         }
 
+        const savedPostResult = createdPostToolOutputSchema.safeParse(
+          toolPart.output
+        );
+        const savedPost = savedPostResult.success
+          ? savedPostResult.data
+          : undefined;
         const previewState: "draft" | "finished" =
           toolPart.state === "output-available" ||
           toolPart.approval?.reason === "manual-draft" ||
@@ -2175,6 +2250,7 @@ function StandaloneChatPageClient({
             ? "finished"
             : "draft";
         const persistedStatus: "draft" | "published" =
+          savedPost?.status === "published" ||
           toolPart.approval?.reason === "manual-published"
             ? "published"
             : "draft";
@@ -2195,7 +2271,10 @@ function StandaloneChatPageClient({
           ? () => {
               trackDraftAction("approve");
               return isSlackMirrored
-                ? relayApproval(approvalId, true)
+                ? relayApprovalMutation.mutateAsync({
+                    requestId: approvalId,
+                    approved: true,
+                  })
                 : addToolApprovalResponse({
                     id: approvalId,
                     approved: true,
@@ -2231,29 +2310,30 @@ function StandaloneChatPageClient({
                     body: JSON.stringify({
                       ...payload,
                       chatId: stableChatId,
+                      toolCallId: toolPart.toolCallId,
                       contentType,
                       status,
                     }),
                   }
                 );
                 if (!response.ok) {
-                  throw new Error("Failed to save post");
+                  throw new Error(tCommon("errors.generic"));
                 }
-                try {
-                  await addToolApprovalResponse({
-                    id: approvalId,
-                    approved: false,
-                    reason:
-                      status === "published"
-                        ? "manual-published"
-                        : "manual-draft",
-                  });
-                } catch (error) {
-                  console.error(
-                    "[Chat] Failed to mark persisted post approval:",
-                    error
-                  );
-                }
+                const savedPost = createdPostToolOutputSchema.parse(
+                  await response.json()
+                );
+                setMessages((current) =>
+                  linkSavedChatPosts(current, [
+                    {
+                      postId: savedPost.postId,
+                      toolCallId: toolPart.toolCallId,
+                      title: payload.title,
+                      markdown: payload.markdown,
+                      contentType,
+                      status,
+                    },
+                  ])
+                );
                 queryClient.invalidateQueries({
                   queryKey: ["chat-sessions", organizationId],
                 });
@@ -2265,7 +2345,7 @@ function StandaloneChatPageClient({
               payload: { title: string; markdown: string }
             ) => {
               trackDraftAction("regenerate");
-              const regeneratePrompt = `Regenerate the ${getOutputTypeLabel(contentType)} with these changes: ${instructions}\n\nCurrent title: ${payload.title}\n\nCurrent draft:\n${payload.markdown}`;
+              const regeneratePrompt = `Regenerate the ${getOutputTypePromptLabel(contentType)} with these changes: ${instructions}\n\nCurrent title: ${payload.title}\n\nCurrent draft:\n${payload.markdown}`;
               if (isSlackMirrored) {
                 const sent = await relayMessage(regeneratePrompt);
                 if (sent) {
@@ -2316,7 +2396,7 @@ function StandaloneChatPageClient({
                 onPublished={handlePublished}
                 onRegenerate={handleRegenerate}
                 organization={{
-                  name: organization?.name ?? "Your Name",
+                  name: organization?.name ?? tCommon("labels.yourName"),
                   logo: organization?.logo ?? null,
                 }}
                 organizationId={organizationId}
@@ -2342,7 +2422,7 @@ function StandaloneChatPageClient({
                 onPublished={handlePublished}
                 onRegenerate={handleRegenerate}
                 organization={{
-                  name: organization?.name ?? "Your Name",
+                  name: organization?.name ?? tCommon("labels.yourName"),
                   logo: organization?.logo ?? null,
                 }}
                 organizationId={organizationId}
@@ -2361,11 +2441,20 @@ function StandaloneChatPageClient({
           >
             <BlogChangelogPreview
               contentType={contentType}
+              organizationId={organizationId}
+              organizationSlug={organizationSlug}
+              postId={savedPost?.postId}
+              onRevise={() => {
+                if (isInputEmpty) {
+                  chatInputRef.current?.setText(t("revisePrefill", { title }));
+                } else {
+                  chatInputRef.current?.focus();
+                }
+              }}
               markdown={markdown}
               onApprove={handleApprove}
               onDeny={handleDeny}
               onPersist={handlePersist}
-              onRegenerate={handleRegenerate}
               persistedStatus={persistedStatus}
               state={previewState}
               title={title}
@@ -2428,6 +2517,7 @@ function StandaloneChatPageClient({
         return (
           <ChatToolBlock
             input={toolPart.input}
+            isActive={messageId === chatActivity.activeMessageId}
             isMcp={toolName.startsWith("mcp_")}
             key={toolPart.toolCallId}
             mcpLogoDarkUrl={mcpLogos?.darkUrl}
@@ -2470,20 +2560,25 @@ function StandaloneChatPageClient({
     }
 
     const now = isHydrated ? new Date() : null;
-    const greeting = now ? getGreeting(now) : "Welcome";
     const userName = isHydrated
       ? session?.user?.name?.split(" ")[0]
       : undefined;
-    const dateStr = now ? formatLongDate(now) : "\u00A0";
+    const period = now ? getGreetingPeriod(now) : null;
+    let greeting = t("welcome");
+    if (period && userName) {
+      greeting = tHome("greetingWithName", { period, name: userName });
+    } else if (period) {
+      greeting = tHome("greeting", { period });
+    }
+    const dateStr = now ? formatLongDate(now, locale) : "\u00A0";
 
     return (
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center px-4">
         <div className="mx-auto flex w-full max-w-2xl min-w-0 flex-col gap-4">
           <div className="w-full space-y-1">
             <p className="text-muted-foreground text-xs">{dateStr}</p>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">
               {greeting}
-              {userName ? `, ${userName}` : ""}
             </h1>
           </div>
           <div className="w-full min-w-0">
@@ -2511,7 +2606,6 @@ function StandaloneChatPageClient({
                 onSteerQueued={handleSteerQueued}
                 onStop={handleStop}
                 onThinkingLevelChange={handleThinkingLevelChange}
-                onUpdateQueued={handleUpdateQueued}
                 organizationId={organizationId}
                 organizationSlug={organizationSlug}
                 queuedMessages={queuedMessages}
@@ -2532,59 +2626,31 @@ function StandaloneChatPageClient({
   }
 
   const lastMessage = messages.at(-1);
-  const lastAssistantHasNoVisibleContent =
-    lastMessage?.role === "assistant" &&
-    !lastMessage.parts.some(
-      (p) =>
-        (p.type === "text" && p.text.trim()) ||
-        p.type === "file" ||
-        p.type === "reasoning" ||
-        isToolUIPart(p)
-    );
-  const lastPart = lastMessage?.parts.at(-1);
-  const isAwaitingAssistantContinuation =
-    lastMessage?.role === "assistant" &&
-    lastPart != null &&
-    (lastPart.type === "step-start" ||
-      (isToolUIPart(lastPart) &&
-        (isTerminalToolState(lastPart.state) ||
-          lastPart.state === "approval-responded")));
-  const showThinkingIndicator =
-    (isLoading || isMirrorWorking) &&
-    lastMessage != null &&
-    (lastMessage.role === "user" ||
-      lastAssistantHasNoVisibleContent ||
-      (isAwaitingAssistantContinuation &&
-        !lastMessage.parts.some(
-          (part) =>
-            part.type === "reasoning" ||
-            (isToolUIPart(part) &&
-              !isContentEditorStandaloneTool(part) &&
-              (part.type === "dynamic-tool" ||
-                (!isCreateTool(part.type) && part.type !== "tool-createImage")))
-        )));
-  const visibleMessages =
-    showThinkingIndicator && lastAssistantHasNoVisibleContent
-      ? messages.slice(0, -1)
-      : messages;
+  const { showThinkingIndicator } = chatActivity;
+  const visibleMessages = messages.filter((message) =>
+    hasVisibleChatContent(message)
+  );
 
   return (
     <>
       <LazyMotion features={loadMotionFeatures} strict>
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <MessageScrollerProvider autoScroll>
+            <ChatScrollOnSend
+              lastUserMessageId={
+                visibleMessages.findLast((message) => message.role === "user")
+                  ?.id
+              }
+            />
             <MessageScroller className="min-h-0 flex-1">
               <MessageScrollerViewport className="min-w-0 overflow-x-hidden">
-                <MessageScrollerContent className="gap-4 px-4 pt-6 pb-6">
+                <MessageScrollerContent className="gap-8 px-4 pt-6 pb-8">
                   {(() => {
                     const branchPointIndex = branchSwitchSignal
                       ? visibleMessages.findIndex(
                           (m) => m.id === branchSwitchSignal.userMessageId
                         )
                       : -1;
-                    const lastUserMessageId = [...visibleMessages]
-                      .reverse()
-                      .find((m) => m.role === "user")?.id;
                     const lastVisibleMessage = visibleMessages.at(-1);
                     const lastAssistantMessageId =
                       lastVisibleMessage?.role === "assistant"
@@ -2637,12 +2703,10 @@ function StandaloneChatPageClient({
                           className="mx-auto w-full max-w-2xl"
                           key={branchFadeKey}
                           messageId={message.id}
-                          scrollAnchor={
-                            isUser && message.id === lastUserMessageId
-                          }
                         >
                           <Message
                             className={cn(
+                              "group/message relative",
                               isDownstreamOfBranchSwitch &&
                                 "chat-branch-fade-in"
                             )}
@@ -2698,6 +2762,9 @@ function StandaloneChatPageClient({
                             ) : (
                               <MessageContent>
                                 <ChatAssistantParts
+                                  activityTimings={
+                                    message.metadata?.activityTimings
+                                  }
                                   durationMs={
                                     message.metadata?.generationDurationMs
                                   }
@@ -2771,7 +2838,7 @@ function StandaloneChatPageClient({
                     <div className="mx-auto w-full max-w-2xl">
                       <div className="bg-destructive/10 text-destructive flex w-fit items-center gap-1.5 rounded-md px-2 py-1 text-xs">
                         <HugeiconsIcon className="size-3.5" icon={X} />
-                        <span>Response stopped by user</span>
+                        <span>{t("responseStopped")}</span>
                       </div>
                     </div>
                   )}
@@ -2790,7 +2857,7 @@ function StandaloneChatPageClient({
                               className="size-3.5"
                               icon={ArrowReloadHorizontalIcon}
                             />
-                            <span>Retry</span>
+                            <span>{tCommon("actions.retry")}</span>
                           </button>
                         )}
                       </div>
@@ -2806,7 +2873,11 @@ function StandaloneChatPageClient({
                           >
                             <ChatActivityStatus
                               active={!isStopping}
-                              label={isStopping ? "Stopping" : "Thinking"}
+                              label={
+                                isStopping
+                                  ? t("stopping")
+                                  : tCommon("labels.thinkingLabel")
+                              }
                               seconds={activitySeconds ?? 0}
                             />
                           </span>
@@ -2831,7 +2902,7 @@ function StandaloneChatPageClient({
                   className="text-muted-foreground mx-auto mb-2 w-full max-w-2xl text-xs"
                   role="status"
                 >
-                  Waiting for the previous response to finish before sending.
+                  {t("waitingForPreviousResponse")}
                 </p>
               )}
               {isSlackMirrored && (
@@ -2864,7 +2935,6 @@ function StandaloneChatPageClient({
                   onSteerQueued={handleSteerQueued}
                   onStop={handleStop}
                   onThinkingLevelChange={handleThinkingLevelChange}
-                  onUpdateQueued={handleUpdateQueued}
                   organizationId={organizationId}
                   organizationSlug={organizationSlug}
                   queuedMessages={queuedMessages}
@@ -2903,10 +2973,12 @@ function getPinnedModelFromAutoMetadata(
 
 export default function PageClient(props: StandaloneChatPageClientProps) {
   return (
-    <StandaloneChatPageClient
-      chatId={props.chatId}
-      key={props.chatId ?? "__new"}
-      organizationSlug={props.organizationSlug}
-    />
+    <ChatQuoteProvider key={props.chatId ?? "__new"}>
+      <StandaloneChatPageClient
+        chatId={props.chatId}
+        key={props.chatId ?? "__new"}
+        organizationSlug={props.organizationSlug}
+      />
+    </ChatQuoteProvider>
   );
 }

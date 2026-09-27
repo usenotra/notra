@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { ChartColorScope } from "@/components/charts/chart-color-scope";
@@ -27,6 +28,7 @@ export function ImpressionsShareCard({
   organizationId,
   colorForKey,
 }: ImpressionsShareCardProps) {
+  const t = useTranslations("analytics.impressionsShare");
   const { data } = useLeaderboard(organizationId, WINDOW_DAYS);
 
   const { rows, config, total, caption } = useMemo(() => {
@@ -62,17 +64,20 @@ export function ImpressionsShareCard({
       total: shareTotal,
       caption:
         top && shareTotal > 0
-          ? `${top.account} · ${Math.round((top.impressions / shareTotal) * PERCENT)}% of impressions`
+          ? t("caption", {
+              account: top.account,
+              percent: Math.round((top.impressions / shareTotal) * PERCENT),
+            })
           : null,
     };
-  }, [colorForKey, data?.entries]);
+  }, [colorForKey, data?.entries, t]);
 
   return (
-    <InstrumentModule eyebrow="Impressions share" variant="panel">
+    <InstrumentModule eyebrow={t("title")} variant="panel">
       {rows.length === 0 ? (
         <InstrumentEmpty
           className="h-56"
-          message="No impression data yet"
+          message={t("empty")}
           seed="Impressions share"
         />
       ) : (

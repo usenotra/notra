@@ -30,11 +30,15 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { getMcpFaviconUrl, MCP_ACCENT_COLOR } from "@/lib/integrations/mcp";
-import type { McpServerCardProps } from "@/types/integrations/mcp";
+import type {
+  McpServerCardProps,
+  McpServerCardTranslator,
+} from "@/types/integrations/mcp";
 
 export function McpServerCard({
   server,
@@ -45,6 +49,9 @@ export function McpServerCard({
   refreshing = false,
   reauthorizing = false,
 }: McpServerCardProps) {
+  const t = useTranslations("integrations.mcp.serverCard");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const needsReauthorization =
     server.authType === "oauth" && server.oauthStatus !== "connected";
@@ -56,7 +63,9 @@ export function McpServerCard({
         action={
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Badge variant={server.enabled ? "default" : "secondary"}>
-              {server.enabled ? "Enabled" : "Disabled"}
+              {server.enabled
+                ? tCommon("states.enabled")
+                : tCommon("states.disabled")}
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -74,7 +83,9 @@ export function McpServerCard({
                   className="cursor-pointer"
                   onClick={() => onToggle?.(server.id, !server.enabled)}
                 >
-                  {server.enabled ? "Disable" : "Enable"}
+                  {server.enabled
+                    ? tCommon("actions.disable")
+                    : tCommon("actions.enable")}
                 </DropdownMenuItem>
                 {server.authType === "oauth" ? (
                   <DropdownMenuItem
@@ -86,7 +97,7 @@ export function McpServerCard({
                       className={`size-4 ${reauthorizing ? "animate-spin" : ""}`}
                       icon={Refresh03Icon}
                     />
-                    Reauthorize
+                    {tIntegrationsShared("reauthorize")}
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
@@ -98,7 +109,7 @@ export function McpServerCard({
                     className={`size-4 ${refreshing ? "animate-spin" : ""}`}
                     icon={Refresh03Icon}
                   />
-                  Refresh tools
+                  {tIntegrationsShared("refreshTools")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer"
@@ -109,7 +120,7 @@ export function McpServerCard({
                   variant="destructive"
                 >
                   <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                  Delete
+                  {tCommon("actions.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -119,17 +130,17 @@ export function McpServerCard({
         footer={
           needsReauthorization ? (
             <>
-              <p className="text-warning text-sm">
-                Access expired. Reauthorize to keep tools working.
-              </p>
+              <p className="text-warning text-sm">{t("accessExpired")}</p>
               <Button
-                aria-label={`Reauthorize ${server.name}`}
+                aria-label={t("reauthorizeAriaLabel", { name: server.name })}
                 disabled={reauthorizing}
                 onClick={() => onReauthorize?.(server.id)}
                 size="sm"
                 variant="outline"
               >
-                {reauthorizing ? "Redirecting..." : "Reauthorize"}
+                {reauthorizing
+                  ? tIntegrationsShared("redirecting")
+                  : tIntegrationsShared("reauthorize")}
               </Button>
             </>
           ) : undefined
@@ -156,7 +167,7 @@ export function McpServerCard({
               className="text-xs font-normal"
               variant={needsReauthorization ? "destructive" : "outline"}
             >
-              {getAuthLabel(server)}
+              {getAuthLabel(t, tIntegrationsShared, server)}
             </Badge>
             <Badge
               className="text-xs font-normal"
@@ -164,17 +175,23 @@ export function McpServerCard({
                 server.toolSyncStatus === "error" ? "destructive" : "secondary"
               }
             >
-              {getSyncLabel(server.toolSyncStatus)}
+              {getSyncLabel(t, server.toolSyncStatus)}
             </Badge>
             <Badge className="text-xs font-normal" variant="outline">
-              {server.indexedToolCount ?? 0} tools
+              {t("toolCount", { count: server.indexedToolCount ?? 0 })}
             </Badge>
           </div>
-          <p className="text-muted-foreground truncate font-mono text-xs">
+          <p
+            className="text-muted-foreground truncate font-mono text-xs"
+            title={server.url}
+          >
             {server.url}
           </p>
           {server.toolSyncError ? (
-            <p className="text-destructive truncate text-xs">
+            <p
+              className="text-destructive truncate text-xs"
+              title={server.toolSyncError}
+            >
               {server.toolSyncError}
             </p>
           ) : null}
@@ -188,15 +205,16 @@ export function McpServerCard({
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
             <ResponsiveAlertDialogTitle>
-              Delete MCP server?
+              {t("deleteTitle")}
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently remove &quot;{server.name}&quot; from this
-              organization.
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
+              {t("deleteDescription", { name: server.name })}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+            <ResponsiveAlertDialogCancel>
+              {tCommon("actions.cancel")}
+            </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
@@ -204,7 +222,7 @@ export function McpServerCard({
                 setShowDeleteDialog(false);
               }}
             >
-              Delete
+              {tCommon("actions.delete")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>
@@ -213,22 +231,31 @@ export function McpServerCard({
   );
 }
 
-function getAuthLabel(server: McpServerCardProps["server"]) {
+function getAuthLabel(
+  t: McpServerCardTranslator,
+  tShared: ReturnType<typeof useTranslations<"integrations.shared">>,
+  server: McpServerCardProps["server"]
+) {
   if (server.authType === "oauth") {
-    return server.oauthStatus === "connected" ? "OAuth" : "Reauthorize needed";
+    return server.oauthStatus === "connected"
+      ? tShared("oauth")
+      : t("auth.reauthorizeNeeded");
   }
-  return server.authType === "headers" ? "API key" : "No auth";
+  return server.authType === "headers" ? tShared("apiKey") : t("auth.none");
 }
 
-function getSyncLabel(status: McpServerCardProps["server"]["toolSyncStatus"]) {
+function getSyncLabel(
+  t: McpServerCardTranslator,
+  status: McpServerCardProps["server"]["toolSyncStatus"]
+) {
   switch (status) {
     case "syncing":
-      return "Syncing";
+      return t("sync.syncing");
     case "synced":
-      return "Synced";
+      return t("sync.synced");
     case "error":
-      return "Sync error";
+      return t("sync.error");
     default:
-      return "Not synced";
+      return t("sync.notSynced");
   }
 }

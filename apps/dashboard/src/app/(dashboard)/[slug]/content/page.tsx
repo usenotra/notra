@@ -1,5 +1,6 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 
@@ -11,9 +12,10 @@ import { geoRequestedProjectId } from "@/utils/geo-hydration";
 import Loading from "./loading";
 import PageClient from "./page-client";
 
-export const metadata: Metadata = {
-  title: "Content",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return { title: tCommon("labels.content") };
+}
 
 export const instant = true;
 

@@ -15,6 +15,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
@@ -33,6 +34,8 @@ import {
 } from "@/utils/geo-ingest";
 
 export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
+  const t = useTranslations("geo.geoIngestSetup");
+  const tCommon = useTranslations("common");
   const [framework, setFramework] = useState(GEO_INGEST_DEFAULT_FRAMEWORK);
   const [packageManager, setPackageManager] = useState(
     GEO_INGEST_DEFAULT_PACKAGE_MANAGER
@@ -72,7 +75,9 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
     <div className={cn("space-y-5", className)}>
       <section className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">Install the package</h3>
+          <h3 className="text-sm font-medium">
+            {tCommon("labels.installThePackage")}
+          </h3>
           <Tabs
             className="shrink-0 gap-0"
             onValueChange={(value) =>
@@ -80,7 +85,7 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
             }
             value={packageManager}
           >
-            <TabsList aria-label="Package manager">
+            <TabsList aria-label={tCommon("labels.packageManager")}>
               {GEO_INGEST_PACKAGE_MANAGER_OPTIONS.map((option) => (
                 <TabsTrigger
                   aria-label={option.label}
@@ -103,24 +108,23 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
       </section>
       {token ? (
         <section className="space-y-2">
-          <h3 className="text-sm font-medium">Set your token</h3>
+          <h3 className="text-sm font-medium">{t("tokenTitle")}</h3>
           <p className="text-muted-foreground text-xs">
-            Add this as {GEO_INGEST_TOKEN_ENV} on every domain this project
-            tracks.
+            {t("tokenDescription", { env: GEO_INGEST_TOKEN_ENV })}
           </p>
           <ApiKeyRevealField value={token} />
         </section>
       ) : null}
       <section className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">Add the proxy</h3>
+          <h3 className="text-sm font-medium">{t("proxyTitle")}</h3>
           <Tabs
             className="shrink-0 gap-0"
             onValueChange={(value) => setFramework(value as GeoIngestFramework)}
             value={framework}
           >
             <TabsList
-              aria-label="Framework"
+              aria-label={t("framework")}
               className="h-auto min-h-8 flex-wrap justify-end"
             >
               {GEO_INGEST_FRAMEWORK_OPTIONS.map((option) => (
@@ -144,7 +148,9 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
       <div className="space-y-2">
         <div aria-hidden className="flex items-center gap-3 py-1">
           <span className="bg-border/80 h-px flex-1" />
-          <span className="text-muted-foreground text-xs">or</span>
+          <span className="text-muted-foreground text-xs">
+            {tCommon("labels.or")}
+          </span>
           <span className="bg-border/80 h-px flex-1" />
         </div>
         <Button
@@ -157,7 +163,9 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
           variant="ghost"
         >
           <HugeiconsIcon icon={copied ? Tick01Icon : AiMagicIcon} size={14} />
-          {copied ? "Prompt copied" : "Copy agent prompt"}
+          {copied
+            ? tCommon("labels.promptCopied")
+            : tCommon("labels.copyAgentPrompt")}
         </Button>
       </div>
     </div>

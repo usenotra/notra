@@ -2,12 +2,8 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_BRAND_DISCOVERED_LABEL,
-  GEO_BRAND_TRACK_ACTION,
-  GEO_BRAND_TRACKED_LABEL,
-} from "@notra/geo-core/constants/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
@@ -20,12 +16,13 @@ export function BrandTrackingBadge({
   tracked,
   className,
 }: BrandTrackingBadgeProps) {
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <Badge
       className={cn("text-muted-foreground shrink-0 font-normal", className)}
       variant={tracked ? "secondary" : "outline"}
     >
-      {tracked ? GEO_BRAND_TRACKED_LABEL : GEO_BRAND_DISCOVERED_LABEL}
+      {tracked ? tGeoShared("tracked") : tGeoShared("discovered")}
     </Badge>
   );
 }
@@ -35,9 +32,11 @@ export function TrackBrandButton({
   onTrack,
   className,
 }: TrackBrandButtonProps) {
+  const t = useTranslations("geo.shareOfVoiceBrandTag");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <Button
-      aria-label={`${GEO_BRAND_TRACK_ACTION} ${brand}`}
+      aria-label={t("trackBrand", { brand })}
       className={cn("h-7 shrink-0 gap-1 px-2 text-xs", className)}
       onClick={(event) => {
         event.stopPropagation();
@@ -52,7 +51,7 @@ export function TrackBrandButton({
         className="size-3.5"
         icon={PlusSignIcon}
       />
-      <span data-track-label>{GEO_BRAND_TRACK_ACTION}</span>
+      <span data-track-label>{tGeoShared("track")}</span>
     </Button>
   );
 }

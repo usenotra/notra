@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
+import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
@@ -15,7 +16,6 @@ import type { TableColumn } from "@/components/motion/table/types";
 import {
   AGENT_FEEDBACK_LABEL_PILL_CLASS,
   AGENT_FEEDBACK_SENTIMENT_ICONS,
-  AGENT_FEEDBACK_SENTIMENT_LABELS,
   AGENT_FEEDBACK_SENTIMENT_PILL_CLASS,
 } from "@/constants/agent-feedback";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -32,6 +32,7 @@ function SentimentPolarityPill({
 }: {
   polarity: SentimentDetailRow["polarity"];
 }) {
+  const tLabels = useTranslations("common.labels");
   return (
     <span
       className={`${AGENT_FEEDBACK_LABEL_PILL_CLASS} ${AGENT_FEEDBACK_SENTIMENT_PILL_CLASS[polarity]}`}
@@ -42,7 +43,7 @@ function SentimentPolarityPill({
         icon={AGENT_FEEDBACK_SENTIMENT_ICONS[polarity]}
         strokeWidth={2}
       />
-      {AGENT_FEEDBACK_SENTIMENT_LABELS[polarity]}
+      {tLabels(polarity)}
     </span>
   );
 }
@@ -51,6 +52,8 @@ export function SentimentResultsTable({
   themes,
   pending,
 }: SentimentThemeTableProps) {
+  const t = useTranslations("geo.sentimentResultsTable");
+  const tCommon = useTranslations("common");
   const isMobile = useIsMobile();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -64,14 +67,14 @@ export function SentimentResultsTable({
     () => [
       {
         key: "polarity",
-        header: "Sentiment",
+        header: tCommon("labels.sentiment"),
         width: "9rem",
         sortable: true,
         cell: (row) => <SentimentPolarityPill polarity={row.polarity} />,
       },
       {
         key: "title",
-        header: "Claim",
+        header: t("columns.claim"),
         width: "1fr",
         minWidth: "8rem",
         sortable: true,
@@ -91,7 +94,7 @@ export function SentimentResultsTable({
       },
       {
         key: "models",
-        header: "Models",
+        header: tCommon("labels.models"),
         width: "8rem",
         collapsePriority: 1,
         cell: (row) => (
@@ -117,7 +120,7 @@ export function SentimentResultsTable({
       },
       {
         key: "answers",
-        header: "Evidence",
+        header: t("columns.evidence"),
         width: "9rem",
         align: "right",
         sortable: true,
@@ -130,7 +133,7 @@ export function SentimentResultsTable({
         ),
       },
     ],
-    [isMobile]
+    [isMobile, t]
   );
 
   return (
@@ -163,7 +166,7 @@ export function SentimentResultsTable({
         loading={pending}
         resizable
         skeletonRows={3}
-        emptyState="No sentiment themes yet."
+        emptyState={t("empty")}
         onRowClick={(row) => {
           returnFocus.current =
             document.activeElement instanceof HTMLElement
@@ -187,10 +190,8 @@ export function SentimentResultsTable({
           className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
         >
           <SheetHeader className="border-b p-5 pr-12">
-            <SheetTitle>{selected?.title}</SheetTitle>
-            <SheetDescription>
-              Exact quotes from the analyzed sample of saved answers.
-            </SheetDescription>
+            <SheetTitle className="wrap-anywhere">{selected?.title}</SheetTitle>
+            <SheetDescription>{t("sheetDescription")}</SheetDescription>
           </SheetHeader>
           <ul className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             {selected?.evidence.map((evidence) => (
@@ -207,7 +208,9 @@ export function SentimentResultsTable({
                     className="ml-auto shrink-0 tabular-nums"
                     dateTime={evidence.capturedAt}
                   >
-                    {evidence.capturedAt.slice(0, 10)} UTC
+                    {t("capturedAt", {
+                      date: evidence.capturedAt.slice(0, 10),
+                    })}
                   </time>
                 </div>
                 <p className="text-sm [overflow-wrap:anywhere]">

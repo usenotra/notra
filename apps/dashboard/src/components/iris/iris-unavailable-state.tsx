@@ -3,15 +3,13 @@
 import { RainbowIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
-import {
-  IRIS_UNAVAILABLE_DESCRIPTION,
-  IRIS_UNAVAILABLE_TITLE,
-} from "@/constants/iris";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 
 export function IrisUnavailableState() {
+  const t = useTranslations("iris.unavailable");
   const viewedRef = useRef(false);
 
   useEffect(() => {
@@ -27,11 +25,9 @@ export function IrisUnavailableState() {
       <span className="border-border inline-flex size-11 items-center justify-center rounded-2xl border">
         <HugeiconsIcon className="size-5" icon={RainbowIcon} />
       </span>
-      <h1 className="text-xl font-semibold tracking-tight">
-        {IRIS_UNAVAILABLE_TITLE}
-      </h1>
+      <h1 className="text-xl font-semibold tracking-tight">{t("title")}</h1>
       <p className="text-muted-foreground text-sm text-balance">
-        {IRIS_UNAVAILABLE_DESCRIPTION}
+        {t("description")}
       </p>
     </div>
   );

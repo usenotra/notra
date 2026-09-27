@@ -77,7 +77,6 @@ export function buildBrandIdentityNavItems(input: {
 }): NavBrandIdentityItem[] {
   return BRAND_IDENTITY_NAV_ITEMS.map((item) => ({
     tab: item.tab,
-    label: item.label,
     icon: item.icon,
     href: buildBrandIdentityHref(
       input.basePath,

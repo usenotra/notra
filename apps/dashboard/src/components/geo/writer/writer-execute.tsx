@@ -9,13 +9,10 @@ import {
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import { createContext, use, useEffect, useLayoutEffect, useRef } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import {
-  CONTENT_PLAN_WRITE_LABEL,
-  CONTENT_PLAN_WRITING_LABEL,
-} from "@/constants/content-plan";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoWriterBrief,
@@ -131,6 +128,7 @@ function WriterExecuteRoot({
 }
 
 function WriterExecuteBanner() {
+  const t = useTranslations("geo.writer.writerExecute");
   const {
     state: { status, error },
   } = useWriterExecute();
@@ -139,10 +137,8 @@ function WriterExecuteBanner() {
     return (
       <Alert>
         <StatusSpinner />
-        <AlertTitle>Writing the article</AlertTitle>
-        <AlertDescription>
-          The writer is drafting this post. It stays a draft until you publish.
-        </AlertDescription>
+        <AlertTitle>{t("writingTitle")}</AlertTitle>
+        <AlertDescription>{t("writingDescription")}</AlertDescription>
       </Alert>
     );
   }
@@ -151,11 +147,8 @@ function WriterExecuteBanner() {
     return (
       <Alert variant="destructive">
         <HugeiconsIcon icon={Alert02Icon} />
-        <AlertTitle>Writing failed</AlertTitle>
-        <AlertDescription>
-          {error ??
-            "The writer could not finish this article. Retry Execute to try again."}
-        </AlertDescription>
+        <AlertTitle>{t("failedTitle")}</AlertTitle>
+        <AlertDescription>{error ?? t("failedDescription")}</AlertDescription>
       </Alert>
     );
   }
@@ -164,6 +157,9 @@ function WriterExecuteBanner() {
 }
 
 function WriterExecuteButton() {
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tActions = useTranslations("common.actions");
   const {
     state: { status, isBusy, isStarting, isPending, hasUnsavedChanges },
     actions: { execute },
@@ -176,15 +172,15 @@ function WriterExecuteButton() {
   const isFailed = status === "failed";
   const label = (() => {
     if (isStarting) {
-      return "Starting...";
+      return tCommon("labels.starting");
     }
     if (status === "writing" || status === "approved") {
-      return CONTENT_PLAN_WRITING_LABEL;
+      return tGeoShared("writingInProgress");
     }
     if (isFailed) {
-      return "Retry";
+      return tActions("retry");
     }
-    return CONTENT_PLAN_WRITE_LABEL;
+    return tGeoShared("writeArticle");
   })();
 
   return (

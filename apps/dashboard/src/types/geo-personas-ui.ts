@@ -4,16 +4,12 @@ import type {
   GeoPersonaMemory,
   GeoPersonaScanSummary,
 } from "@notra/geo-core/types/geo-personas";
-import type { ReactNode } from "react";
 
+import type { GEO_PERSONA_GENERATION_STEPS } from "@/constants/geo-personas";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 
 export interface GeoPersonasPageProps {
   params: Promise<{ slug: string }>;
-}
-
-export interface GeoPersonasPageHeaderProps {
-  action?: ReactNode;
 }
 
 export interface PersonaGenerationCounterProps {
@@ -101,7 +97,6 @@ export interface PersonaProfileEditorProps extends PersonaProfileProps {
 /** Memories of one kind, ready to render as a labelled group. */
 export interface PersonaMemoryGroup {
   kind: GeoPersonaMemoryKind;
-  label: string;
   memories: GeoPersonaMemory[];
 }
 
@@ -109,7 +104,7 @@ export interface PersonaGenerationProgress {
   /** 1-based step shown to the user. */
   step: number;
   total: number;
-  label: string;
+  stepKey: (typeof GEO_PERSONA_GENERATION_STEPS)[number]["key"];
 }
 
 export interface GeneratePersonasButtonProps {

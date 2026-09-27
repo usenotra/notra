@@ -2,6 +2,7 @@ import type { Balance } from "autumn-js";
 
 import type { AgentTokenUsage } from "../types/agents";
 import type { ModelPricing } from "../types/billing";
+import type { GatewayId } from "../types/router";
 
 /** OpenAI charges double above this prompt size on its long-context models. */
 const OPENAI_LONG_CONTEXT_PROMPT_TOKENS = 272_000;
@@ -203,6 +204,25 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
       cacheWritePerMillionTokens: 5.0,
     },
   },
+  "vercel/openai/gpt-5.6-sol": {
+    inputPerMillionTokens: 4.0,
+    outputPerMillionTokens: 20.0,
+    cacheReadPerMillionTokens: 0.4,
+    cacheWritePerMillionTokens: 5.0,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 8.0,
+      outputPerMillionTokens: 30.0,
+      cacheReadPerMillionTokens: 0.8,
+      cacheWritePerMillionTokens: 10.0,
+    },
+  },
+  "moonshotai/kimi-k3": {
+    inputPerMillionTokens: 3.0,
+    outputPerMillionTokens: 15.0,
+    cacheReadPerMillionTokens: 0.3,
+    cacheWritePerMillionTokens: 0,
+  },
   "openai/gpt-oss-120b": {
     inputPerMillionTokens: 0.1,
     outputPerMillionTokens: 0.5,
@@ -232,9 +252,10 @@ const MINIMUM_COST_CENTS = 1;
 export function calculateTokenCostCents(
   usage: AgentTokenUsage,
   modelId?: string,
-  applyMarkup = true
+  applyMarkup = true,
+  gateway?: GatewayId
 ): number {
-  const baseCostDollars = calculateTokenCostUsd(usage, modelId);
+  const baseCostDollars = calculateTokenCostUsd(usage, modelId, gateway);
 
   const multiplier = applyMarkup ? MARKUP_MULTIPLIER : 1;
   const costCents = Math.ceil(baseCostDollars * multiplier * 100);
@@ -245,13 +266,14 @@ export function calculateTokenCostCents(
 /** Unrounded token cost; round and apply markup only when settling the total. */
 export function calculateTokenCostUsd(
   usage: AgentTokenUsage,
-  modelId?: string
+  modelId?: string,
+  gateway?: GatewayId
 ): number {
   if (usage.tokenCostUsd !== undefined) {
     return usage.tokenCostUsd;
   }
 
-  const pricing = resolvePricingTier(getModelPricing(modelId), usage);
+  const pricing = resolvePricingTier(getModelPricing(modelId, gateway), usage);
 
   const inputCostDollars =
     (usage.inputTokens / 1_000_000) * pricing.inputPerMillionTokens;
@@ -285,8 +307,17 @@ export function shouldApplyMarkup(balance: Balance | null): boolean {
   return false;
 }
 
-export function getModelPricing(modelId?: string): ModelPricing {
-  return (modelId && MODEL_PRICING[modelId]) || DEFAULT_PRICING;
+export function getModelPricing(
+  modelId?: string,
+  gateway?: GatewayId
+): ModelPricing {
+  const routedModelId =
+    gateway && modelId ? `${gateway}/${modelId}` : undefined;
+  return (
+    (routedModelId && MODEL_PRICING[routedModelId]) ||
+    (modelId && MODEL_PRICING[modelId]) ||
+    DEFAULT_PRICING
+  );
 }
 
 /** Everything the model read for one call: fresh, cache-read and cache-write. */

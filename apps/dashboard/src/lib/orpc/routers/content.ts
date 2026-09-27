@@ -1,7 +1,4 @@
-import {
-  checkContentBilling,
-  describeContentBillingDenial,
-} from "@notra/ai/billing/content-billing";
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
 import {
   getGitHubAppBotLogin,
   getGitHubAppInstallationPublishAccess,
@@ -88,6 +85,7 @@ import {
 } from "drizzle-orm";
 import { marked } from "marked";
 import { nanoid } from "nanoid";
+import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
 
 import {
@@ -130,7 +128,10 @@ import {
 } from "@/lib/integrations/github/pull-request-body";
 import { baseProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
-import { toGitHubPublishOrpcError } from "@/lib/orpc/utils/github-publish-error";
+import {
+  getGitHubRecoveryMessage,
+  toGitHubPublishOrpcError,
+} from "@/lib/orpc/utils/github-publish-error";
 import {
   startContentPublicationReconciliation,
   startOnDemandRun,
@@ -609,7 +610,9 @@ export const contentRouter = {
       const dateRange = getUtcDayRange(input.date ?? null);
 
       if (input.date && !dateRange) {
-        throw badRequest("Invalid date");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
 
       const baseFilters = [eq(posts.organizationId, input.organizationId)];
@@ -728,11 +731,12 @@ export const contentRouter = {
         input.projectId &&
         !(await isProjectInOrganization(input.organizationId, input.projectId))
       ) {
-        throw badRequest("Project not found");
+        throw badRequest((await getTranslations("errors.server"))("notFound"));
       }
 
       if (input.slug && !supportsPostSlug(input.contentType)) {
-        throw badRequest("Slug can only be set for blog posts and changelogs");
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("slugNotSupported"));
       }
 
       const now = new Date();
@@ -783,7 +787,8 @@ export const contentRouter = {
           "code" in error &&
           error.code === "23505"
         ) {
-          throw conflict("A post with this slug already exists");
+          const tErrors = await getTranslations("errors.content");
+          throw conflict(tErrors("slugTaken"));
         }
         throw error;
       }
@@ -833,9 +838,8 @@ export const contentRouter = {
 
       if (input.slug !== undefined) {
         if (!supportsPostSlug(existingPost.contentType)) {
-          throw badRequest(
-            "Slug can only be set for blog posts and changelogs"
-          );
+          const tErrors = await getTranslations("errors.content");
+          throw badRequest(tErrors("slugNotSupported"));
         }
         updateData.slug = input.slug;
       }
@@ -927,7 +931,8 @@ export const contentRouter = {
           "code" in error &&
           error.code === "23505"
         ) {
-          throw conflict("A post with this slug already exists");
+          const tErrors = await getTranslations("errors.content");
+          throw conflict(tErrors("slugTaken"));
         }
         throw error;
       }
@@ -949,9 +954,8 @@ export const contentRouter = {
           `${auth.user.id}:${input.organizationId}`
         );
         if (!withinLimit) {
-          throw tooManyRequests(
-            "Too many GitHub publish requests. Please try again shortly."
-          );
+          const tErrors = await getTranslations("errors.content");
+          throw tooManyRequests(tErrors("tooManyPublishRequests"));
         }
       }
 
@@ -1022,28 +1026,29 @@ export const contentRouter = {
         throw notFound("Content not found");
       }
       if (post.contentType !== input.contentType) {
-        throw badRequest("Content type does not match the saved post");
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("contentTypeMismatch"));
       }
       if (!post.markdown) {
-        throw badRequest("Save the content before publishing it to GitHub");
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("saveBeforePublishing"));
       }
       const savedMarkdown = post.markdown;
       if (!(integration?.owner && integration.repo)) {
         throw notFound("Selected GitHub repository not found");
       }
       if (!integration.defaultBranch) {
-        throw badRequest(
-          "Selected GitHub repository does not have a default branch"
-        );
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("noDefaultBranch"));
       }
       const connectionMethod = isGitHubAppConfigured()
         ? "github-app"
         : getGitHubConnectionMethod(integration);
       if (connectionMethod === "unauthenticated") {
-        throw forbidden(
-          "Connect this repository through the GitHub App before publishing.",
-          { code: "github_repository_connection_required" }
-        );
+        const tErrors = await getTranslations("errors.content");
+        throw forbidden(tErrors("connectViaGithubApp"), {
+          code: "github_repository_connection_required",
+        });
       }
       let contentOutput = integration.outputId
         ? {
@@ -1054,7 +1059,8 @@ export const contentRouter = {
         : null;
       if (!contentOutput) {
         if (!DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED[input.contentType]) {
-          throw forbidden("GitHub content publishing is paused", {
+          const tErrors = await getTranslations("errors.content");
+          throw forbidden(tErrors("publishingPaused"), {
             code: "github_content_publishing_paused",
           });
         }
@@ -1087,7 +1093,8 @@ export const contentRouter = {
         throw internalServerError("Failed to configure GitHub publishing");
       }
       if (!contentOutput.enabled) {
-        throw forbidden("GitHub content publishing is paused", {
+        const tErrors = await getTranslations("errors.content");
+        throw forbidden(tErrors("publishingPaused"), {
           code: "github_content_publishing_paused",
         });
       }
@@ -1109,9 +1116,8 @@ export const contentRouter = {
         title: post.title,
       });
       if (path.length > GITHUB_CONTENT_PATH_MAX_LENGTH) {
-        throw badRequest(
-          "The configured directory and content slug exceed GitHub's file path limit"
-        );
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("filePathTooLong"));
       }
 
       const contentSlug =
@@ -1143,7 +1149,10 @@ export const contentRouter = {
             installationAccountType: publishInstallationAccountType,
             installationAccountLogin: publishInstallationAccountLogin,
           });
-          throw forbidden(recovery.message, recovery.data);
+          throw forbidden(
+            await getGitHubRecoveryMessage(recovery.data),
+            recovery.data
+          );
         }
       }
 
@@ -1212,9 +1221,8 @@ export const contentRouter = {
                 (asset) => asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
               )
             ) {
-              throw badRequest(
-                "The configured image path exceeds GitHub's path limit"
-              );
+              const tErrors = await getTranslations("errors.content");
+              throw badRequest(tErrors("imagePathTooLong"));
             }
             return preparedContent;
           },
@@ -1240,7 +1248,9 @@ export const contentRouter = {
           repositoryId: integration.id,
         });
         if (!githubPublish.success) {
-          throw badRequest("GitHub did not return a linkable pull request");
+          throw badRequest(
+            (await getTranslations("errors.github"))("pullRequestUnavailable")
+          );
         }
         await db
           .update(posts)
@@ -2014,7 +2024,7 @@ export const contentRouter = {
         input.projectId &&
         !(await isProjectInOrganization(input.organizationId, input.projectId))
       ) {
-        throw badRequest("Project not found");
+        throw badRequest((await getTranslations("errors.server"))("notFound"));
       }
 
       const now = new Date();
@@ -2063,7 +2073,8 @@ export const contentRouter = {
         !input.dataPoints.includeReleases &&
         !input.dataPoints.includeLinearData
       ) {
-        throw badRequest("At least one data source must be enabled.");
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("dataSourceRequired"));
       }
 
       if (input.selectedItems) {
@@ -2074,7 +2085,8 @@ export const contentRouter = {
           (input.selectedItems.linearIssueIds?.length ?? 0) > 0;
 
         if (!hasAnySelected) {
-          throw badRequest("At least one event must be selected.");
+          const tErrors = await getTranslations("errors.content");
+          throw badRequest(tErrors("eventRequired"));
         }
       }
 
@@ -2099,7 +2111,9 @@ export const contentRouter = {
             format: input.contentType,
           },
         });
-        throw paymentRequired(describeContentBillingDenial(billing));
+        throw paymentRequired(
+          (await getTranslations("errors.billing"))("contentLimitReached")
+        );
       }
 
       const runId = generateRunId("manual_on_demand");

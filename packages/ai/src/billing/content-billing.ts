@@ -24,7 +24,7 @@ import { hasActivePaidPlan } from "./chat-billing";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "./features";
 import { shouldApplyMarkup } from "./token-pricing";
 
-const DEFAULT_FALLBACK_MODEL_ID = "anthropic/claude-sonnet-4.6";
+const DEFAULT_FALLBACK_MODEL_ID = "anthropic/claude-sonnet-5";
 
 const PLAN_INCLUDED_RESERVATION: ContentBillingReservation = {
   allowed: true,
@@ -251,10 +251,12 @@ export async function confirmContentBilling(
   const costCents = input.usage
     ? calculateAiCreditCostCents(
         input.usage,
-        input.usage.modelId ??
+        input.usage.route?.model ??
+          input.usage.modelId ??
           input.fallbackModelId ??
           DEFAULT_FALLBACK_MODEL_ID,
-        reservation.useMarkup
+        reservation.useMarkup,
+        input.usage.route?.gateway
       ).costCents
     : 1;
   await finalizeAutumnLock(

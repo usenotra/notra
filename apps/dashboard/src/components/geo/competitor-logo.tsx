@@ -5,6 +5,7 @@ import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
 import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -36,6 +37,7 @@ function CompetitorLogoInner({
   className,
   onSettled,
 }: CompetitorLogoProps & { logo: string | null }) {
+  const tCommon = useTranslations("common");
   const sources = competitorLogoSources(domain ?? null, logo);
   const [sourceIndex, setSourceIndex] = useState(0);
   const src = sources[sourceIndex] ?? null;
@@ -52,7 +54,7 @@ function CompetitorLogoInner({
   return (
     <span className={cn(shellClassName, "bg-muted")}>
       <Image
-        alt={`${name} logo`}
+        alt={tCommon("labels.nameLogo", { name })}
         className="size-full object-contain"
         height={GEO_LOGO_SIZE_PX}
         onError={() => {

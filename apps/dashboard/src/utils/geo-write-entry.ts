@@ -6,6 +6,7 @@ import type {
   GeoGapsWriteEntry,
   WriteDialogInitialState,
 } from "@/types/components/geo-writer";
+import { normalizeGeoProjectId } from "@/utils/geo-hydration";
 import { isNotFoundError } from "@/utils/orpc-errors";
 
 /**
@@ -63,7 +64,7 @@ export function parseGeoWriterDraft(sourceMetadata: unknown): {
   }
   return {
     briefId: parsed.data.briefId,
-    projectId: parsed.data.projectId,
+    projectId: normalizeGeoProjectId(parsed.data.projectId),
   };
 }
 

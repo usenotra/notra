@@ -1,8 +1,10 @@
 import type { createOctokit } from "@notra/ai/utils/octokit";
 import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
+import type { useTranslations } from "next-intl";
 import type React from "react";
 
+import type messages from "../../../messages/en.json";
 import type { GitHubIntegration, GitHubRepository } from "../integrations";
 
 export interface GitHubRepositoryRowProps {
@@ -207,9 +209,7 @@ export interface GitHubBranchPanelTransitionProps {
 }
 
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
-  contentLabel: string;
   contentType: GitHubPublishContentType;
-  pluralLabel: string;
 }
 
 export interface GitHubContentDirectoryMutationVariables {
@@ -224,7 +224,7 @@ export interface GitHubContentPathMutationVariables {
 }
 
 export interface GitHubPublishingPathFieldsProps {
-  contentLabel: string;
+  contentType: GitHubPublishContentType;
   contentPath: string | null;
   directory: string;
   disabled?: boolean;
@@ -237,7 +237,7 @@ export interface GitHubPublishingPathFieldsProps {
 }
 
 export interface GitHubDirectoryPickerProps {
-  contentLabel: string;
+  contentType: GitHubPublishContentType;
   directory: string;
   disabled?: boolean;
   isSaving?: boolean;
@@ -498,3 +498,10 @@ export interface UseGitHubRepositorySelectionOptions {
   initialAccountId?: string | null;
   onSaved: () => void;
 }
+
+export type GitHubFormsTranslator = ReturnType<
+  typeof useTranslations<"integrations.githubForms">
+>;
+
+export type GitHubCallbackErrorMessageKey =
+  keyof (typeof messages)["integrations"]["github"]["callbackErrors"];

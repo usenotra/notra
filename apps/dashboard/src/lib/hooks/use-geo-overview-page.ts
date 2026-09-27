@@ -4,6 +4,7 @@ import type { GeoTab } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -100,6 +101,7 @@ function useGeoOverviewViewed(input: {
 export function useGeoOverviewPage(
   organizationSlug: string
 ): GeoOverviewPageModel {
+  const tToast = useTranslations("geo.toasts");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
     organizationSlug,
@@ -237,9 +239,7 @@ export function useGeoOverviewPage(
         void (async () => {
           try {
             await startScan.mutateAsync(engines ? { engines } : undefined);
-            toast.success(
-              "Scan started. It runs in the background. You can leave this page."
-            );
+            toast.success(tToast("scanStarted"));
           } catch {
             // The mutation reports the error itself.
           }

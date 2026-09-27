@@ -4,7 +4,6 @@ import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_CHAT_SKIN_SURFACE,
-  GEO_PROMPT_HISTORY_ANSWER_LABELS,
   GEO_PROMPT_MAX_TAGS,
 } from "@notra/geo-core/constants/geo";
 import type {
@@ -13,9 +12,7 @@ import type {
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
-import { geoPromptIntentLabel } from "@notra/geo-core/utils/geo-prompt-intent";
 import { normalizePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   Sheet,
@@ -24,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -49,10 +47,11 @@ import {
 } from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
-import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
+import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
@@ -121,20 +120,26 @@ function HistoryAnswerBanner({
   check: GeoPromptHistoryCheck;
   onBack: () => void;
 }) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const locale = useLocale();
   return (
     <div className="bg-muted/40 flex shrink-0 items-center justify-between gap-3 border-b px-6 py-2 text-sm">
       <p className="text-muted-foreground">
-        {GEO_PROMPT_HISTORY_ANSWER_LABELS.scanFrom}{" "}
-        <time
-          className="text-foreground tabular-nums"
-          dateTime={check.capturedAt}
-        >
-          {formatAiTrafficTimestamp(check.capturedAt)}
-        </time>
+        {t.rich("scanFrom", {
+          date: formatAiTrafficTimestamp(check.capturedAt, locale),
+          time: (chunks) => (
+            <time
+              className="text-foreground tabular-nums"
+              dateTime={check.capturedAt}
+            >
+              {chunks}
+            </time>
+          ),
+        })}
       </p>
       <Button onClick={onBack} size="sm" type="button" variant="ghost">
         <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-        {GEO_PROMPT_HISTORY_ANSWER_LABELS.backToLatest}
+        {t("backToLatest")}
       </Button>
     </div>
   );
@@ -151,6 +156,11 @@ function PromptAnswerHeader({
   onSelectEngine,
   onSelectView,
 }: PromptAnswerHeaderProps) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const intentLabel = useGeoPromptIntentLabel();
+  const locale = useLocale();
   const answerMode = sharedEngineAnswerMode(
     results.map((result) => result.engine)
   );
@@ -164,15 +174,17 @@ function PromptAnswerHeader({
         </SheetTitle>
         <SheetDescription className="sr-only">
           {answerMode
-            ? `Latest ${answerMode} answer from each engine`
-            : "Latest answer from each engine"}
+            ? t("latestAnswerMode", {
+                mode: tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[answerMode]),
+              })
+            : t("latestAnswer")}
         </SheetDescription>
         {latestCheck ? (
           <time
             className="text-muted-foreground shrink-0 text-xs tabular-nums"
             dateTime={latestCheck}
           >
-            {formatAiTrafficTimestamp(latestCheck)}
+            {formatAiTrafficTimestamp(latestCheck, locale)}
           </time>
         ) : null}
         <div className="ml-auto flex shrink-0 items-center gap-1">
@@ -185,13 +197,17 @@ function PromptAnswerHeader({
       </div>
       <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <div className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">Intent</dt>
-          <dd className="font-medium">{geoPromptIntentLabel(row.intent)}</dd>
+          <dt className="text-muted-foreground">{tCommon("labels.intent")}</dt>
+          <dd className="font-medium">{intentLabel(row.intent)}</dd>
         </div>
         <div className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">Best position</dt>
+          <dt className="text-muted-foreground">
+            {tGeoShared("bestPosition")}
+          </dt>
           <dd className="font-medium tabular-nums">
-            {row.bestPosition === null ? "Not ranked" : `#${row.bestPosition}`}
+            {row.bestPosition === null
+              ? tGeoShared("notRanked")
+              : `#${row.bestPosition}`}
           </dd>
         </div>
       </dl>
@@ -288,6 +304,7 @@ function PromptAnswerEmpty({
   view,
   onRetry,
 }: PromptAnswerEmptyProps) {
+  const tGeoShared2 = useTranslations("geo.shared");
   if (detailState.status === "loading") {
     return <GeoPromptAnswerSkeleton view={view} />;
   }
@@ -297,10 +314,9 @@ function PromptAnswerEmpty({
   return (
     <div className="flex min-h-48 items-center justify-center px-6">
       <p className="text-muted-foreground text-center text-sm text-pretty">
-        {geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see how engines answer this"
-        )}
+        {isScanning
+          ? tGeoShared2("scanningEngines")
+          : tGeoShared2("runAScanToSeeAnswers")}
       </p>
     </div>
   );
@@ -311,10 +327,11 @@ function PromptAnswerLanguageBar({
   selectedLanguage,
   onSelect,
 }: PromptAnswerLanguageBarProps) {
+  const t = useTranslations("geo.promptDetailDialog");
   return (
     <div
       className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-2"
-      aria-label="Answer language"
+      aria-label={t("answerLanguage")}
       role="group"
     >
       {languages.map((item) => (
@@ -339,17 +356,19 @@ function PromptAnswerTagsFooter({
   pending,
   onChange,
 }: PromptAnswerTagsFooterProps) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <section
       className="bg-muted/20 shrink-0 space-y-3 border-t px-4 pt-3 pb-4"
       aria-labelledby={`${tagsInputId}-heading`}
     >
       <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
-        Tags
+        {tGeoShared("tags")}
       </h3>
       {row.source === "auto" ? (
         <p className="text-sm break-words">
-          {tags.length > 0 ? tags.join(", ") : "No tags"}
+          {tags.length > 0 ? tags.join(", ") : t("noTags")}
         </p>
       ) : (
         <GeoTagList
@@ -357,11 +376,11 @@ function PromptAnswerTagsFooter({
           id={tagsInputId}
           inline
           inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
-          label={GEO_PROMPT_TAGS_COPY.label}
+          label={tGeoShared("tags")}
           labeled={false}
           max={GEO_PROMPT_MAX_TAGS}
           onChange={onChange}
-          placeholder="Add a tag…"
+          placeholder={t("addTag")}
           values={tags}
         />
       )}

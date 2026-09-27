@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  createOrganizationSchema,
-  slugSchema,
-} from "@notra/schemas/dashboard/organization";
+import { slugSchema } from "@notra/schemas/dashboard/organization";
 import {
   Dialog,
   DialogContent,
@@ -16,13 +13,15 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
 import { errorMessageOr, generateOrganizationAvatar } from "@/lib/utils";
+import { createOrganizationFormSchema } from "@/schemas/create-organization-form";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
@@ -36,9 +35,18 @@ interface CreateOrgModalProps {
 }
 
 export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
+  const t = useTranslations("nav.createOrg");
+  const tNavShared = useTranslations("nav.shared");
+  const tCommon2 = useTranslations("common");
+  const tValidation = useTranslations("nav.createOrg.validation");
+  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  const createOrganizationSchema = useMemo(
+    () => createOrganizationFormSchema(tValidation, tCommon2),
+    [tValidation, tCommon2]
+  );
 
   const form = useForm({
     defaultValues: {
@@ -58,15 +66,13 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
 
         if (error) {
           setIsCreating(false);
-          toast.error(
-            errorMessageOr(error.message, "Failed to create organization")
-          );
+          toast.error(errorMessageOr(error.message, t("createFailed")));
           return;
         }
 
         if (!data) {
           setIsCreating(false);
-          toast.error("Failed to create organization");
+          toast.error(t("createFailed"));
           return;
         }
 
@@ -88,7 +94,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
           }),
         ]);
 
-        toast.success("Organization created successfully");
+        toast.success(t("created"));
 
         onOpenChange(false);
 
@@ -97,7 +103,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
         router.push(`/${data.slug}`);
       } catch (_error) {
         setIsCreating(false);
-        toast.error("Failed to create organization");
+        toast.error(t("createFailed"));
         return;
       }
       setIsCreating(false);
@@ -108,10 +114,8 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[85svh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Organization</DialogTitle>
-          <DialogDescription>
-            Create a new organization to collaborate with your team.
-          </DialogDescription>
+          <DialogTitle>{tNavShared("createOrganization")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <form
@@ -134,8 +138,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
               {(field) => (
                 <div className="grid min-w-0 gap-2">
                   <Label htmlFor="name">
-                    Organization Name{" "}
-                    <span className="text-destructive">*</span>
+                    {t("nameLabel")} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     aria-invalid={field.state.meta.errors.length > 0}
@@ -153,7 +156,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
                         form.setFieldValue("slug", slugify(e.target.value));
                       }
                     }}
-                    placeholder="Acme Inc"
+                    placeholder={tCommon2("labels.acmeInc")}
                     type="text"
                     value={field.state.value}
                   />
@@ -177,8 +180,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
               {(field) => (
                 <div className="grid min-w-0 gap-2">
                   <Label htmlFor="slug">
-                    Organization Slug{" "}
-                    <span className="text-destructive">*</span>
+                    {t("slugLabel")} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     aria-invalid={field.state.meta.errors.length > 0}
@@ -187,7 +189,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
                     id="slug"
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="acme-inc"
+                    placeholder={tCommon2("labels.acmeIncSlug")}
                     type="text"
                     value={field.state.value}
                   />
@@ -197,8 +199,9 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
                     </p>
                   ) : null}
                   <p className="text-muted-foreground text-xs break-all">
-                    Used in URLs: app.usenotra.com/
-                    {field.state.value || "your-slug"}
+                    {t("slugHint", {
+                      slug: field.state.value || tCommon2("labels.yourSlug"),
+                    })}
                   </p>
                 </div>
               )}
@@ -220,7 +223,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
             >
               {(field) => (
                 <div className="grid min-w-0 gap-2">
-                  <Label htmlFor="website">Website (optional)</Label>
+                  <Label htmlFor="website">{t("websiteLabel")}</Label>
                   <div
                     className={`focus-within:border-ring focus-within:ring-ring/50 flex w-full min-w-0 flex-row items-center rounded-md border transition-colors ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-border"}`}
                   >
@@ -258,10 +261,12 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
               type="button"
               variant="outline"
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button disabled={isCreating} type="submit">
-              {isCreating ? "Creating..." : "Create Organization"}
+              {isCreating
+                ? tCommon("creating")
+                : tNavShared("createOrganization")}
             </Button>
           </DialogFooter>
         </form>

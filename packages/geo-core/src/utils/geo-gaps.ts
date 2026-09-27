@@ -1,6 +1,9 @@
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 
-import { GEO_GAPS_COMPETITOR_SIGNAL_CAP } from "../constants/geo";
+import {
+  GEO_AI_SEARCH_QUERY_STOPWORDS,
+  GEO_GAPS_COMPETITOR_SIGNAL_CAP,
+} from "../constants/geo";
 import type { GeoGapBriefBaseline, GeoGapOpportunityInput } from "../types/geo";
 
 export const REUSABLE_BRIEF_STATUSES = [
@@ -9,6 +12,9 @@ export const REUSABLE_BRIEF_STATUSES = [
   "writing",
   "failed",
 ] as const satisfies readonly GeoContentBriefStatus[];
+
+const AI_SEARCH_TOKEN_SPLIT_REGEX = /[^\p{L}\p{N}\p{M}]+/u;
+const AI_SEARCH_YEAR_REGEX = /^(?:19|20)\d{2}$/;
 
 const OPEN_BRIEF_STATUSES = new Set<GeoContentBriefStatus>(
   REUSABLE_BRIEF_STATUSES
@@ -89,4 +95,60 @@ export function toGapBriefBaseline(value: unknown): GeoGapBriefBaseline | null {
     return null;
   }
   return { mentionedEngines, totalEngines };
+}
+
+function aiSearchQueryTokens(query: string): string[] {
+  const tokens = query
+    .normalize("NFC")
+    .toLowerCase()
+    .split(AI_SEARCH_TOKEN_SPLIT_REGEX)
+    .filter(
+      (token) => token.length > 0 && !GEO_AI_SEARCH_QUERY_STOPWORDS.has(token)
+    );
+  return [...new Set(tokens)].sort();
+}
+
+export function aiSearchGroupKey(query: string): string {
+  return aiSearchQueryTokens(query)
+    .filter((token) => !AI_SEARCH_YEAR_REGEX.test(token))
+    .join(" ");
+}
+
+export function aiSearchGapId(
+  groupKey: string,
+  queries: Iterable<string>
+): string {
+  let latestYear = "";
+  for (const query of queries) {
+    for (const token of aiSearchQueryTokens(query)) {
+      if (AI_SEARCH_YEAR_REGEX.test(token) && token > latestYear) {
+        latestYear = token;
+      }
+    }
+  }
+  return latestYear ? `${groupKey} ${latestYear}` : groupKey;
+}
+
+export function interleaveSearchQueries(
+  lists: readonly (readonly string[])[],
+  limit: number
+): string[] {
+  const picked: string[] = [];
+  const seen = new Set<string>();
+  const longest = Math.max(0, ...lists.map((list) => list.length));
+  for (let index = 0; index < longest && picked.length < limit; index += 1) {
+    for (const list of lists) {
+      const query = list[index]?.trim() ?? "";
+      const key = query.toLowerCase();
+      if (key.length === 0 || seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      picked.push(query);
+      if (picked.length >= limit) {
+        break;
+      }
+    }
+  }
+  return picked;
 }

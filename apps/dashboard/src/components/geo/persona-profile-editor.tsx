@@ -8,6 +8,7 @@ import { hasGeoPersonaDetailsChanged } from "@notra/geo-core/utils/geo-personas"
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -25,15 +26,20 @@ export function PersonaProfileEditor({
   organizationId,
   onCancel,
 }: PersonaProfileEditorProps) {
+  const t = useTranslations("geo.personaProfileEditor");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
+  const tLabels = useTranslations("common.labels");
   const id = useId();
   const update = useGeoPersonaUpdate(organizationId);
   const generatePersona = useGeoPersonasGenerate(organizationId);
   const isPending = update.isPending || generatePersona.isPending;
-  let submitLabel = "Save persona";
+  let submitLabel = t("savePersona");
   if (update.isPending) {
-    submitLabel = "Saving…";
+    submitLabel = tCommon("saving");
   } else if (generatePersona.isPending) {
-    submitLabel = "Regenerating prompts…";
+    submitLabel = t("regeneratingPrompts");
   }
   const [error, setError] = useState<string | null>(null);
   const [stack, setStack] = useState(() => [
@@ -80,7 +86,7 @@ export function PersonaProfileEditor({
         if (!hasGeoPersonaDetailsChanged(persona, parsed.data)) {
           setStack([...new Set(parsed.data.profile.currentStack)]);
           setStackDraft("");
-          toast.success("Persona saved");
+          toast.success(t("saved"));
           onCancel();
           return;
         }
@@ -90,7 +96,7 @@ export function PersonaProfileEditor({
             onSuccess: () => {
               setStack([...new Set(parsed.data.profile.currentStack)]);
               setStackDraft("");
-              toast.success("Persona saved. Regenerating prompts…");
+              toast.success(t("savedRegenerating"));
               generatePersona.mutate({
                 personaId: persona.id,
                 promptsOnly: true,
@@ -107,7 +113,7 @@ export function PersonaProfileEditor({
       >
         <div className="space-y-1.5">
           <label className="text-sm font-medium" htmlFor={`${id}-name`}>
-            Name
+            {tCommon2("labels.name")}
           </label>
           <Input
             id={`${id}-name`}
@@ -118,11 +124,11 @@ export function PersonaProfileEditor({
           />
         </div>
         <section className="space-y-2">
-          <h3 className="text-base font-semibold">Employment</h3>
+          <h3 className="text-base font-semibold">{t("employment")}</h3>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor={`${id}-role`}>
-                Job title
+                {t("jobTitle")}
               </label>
               <Input
                 id={`${id}-role`}
@@ -134,7 +140,7 @@ export function PersonaProfileEditor({
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor={`${id}-company`}>
-                Company profile
+                {t("companyProfile")}
               </label>
               <Textarea
                 className="resize-none"
@@ -149,11 +155,11 @@ export function PersonaProfileEditor({
           </div>
         </section>
         <section className="space-y-2">
-          <h3 className="text-base font-semibold">Behavior</h3>
+          <h3 className="text-base font-semibold">{t("behavior")}</h3>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor={`${id}-summary`}>
-                Motivations
+                {t("motivations")}
               </label>
               <Textarea
                 className="resize-none"
@@ -170,7 +176,7 @@ export function PersonaProfileEditor({
                 className="text-sm font-medium"
                 htmlFor={`${id}-searchStyle`}
               >
-                How they search
+                {t("howTheySearch")}
               </label>
               <Textarea
                 className="resize-none"
@@ -188,7 +194,7 @@ export function PersonaProfileEditor({
                   className="text-sm font-medium"
                   htmlFor={`${id}-${section.key}`}
                 >
-                  {section.label}
+                  {t(`sections.${section.key}`)}
                 </label>
                 {section.key === "currentStack" ? (
                   <div className="border-input flex flex-wrap items-center gap-1.5 rounded-lg border p-2">
@@ -202,7 +208,7 @@ export function PersonaProfileEditor({
                         <button
                           type="button"
                           className="hover:bg-muted focus-visible:ring-ring flex size-6 shrink-0 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
-                          aria-label={`Remove ${tool}`}
+                          aria-label={t("removeTool", { tool })}
                           onClick={() => {
                             setStack((items) =>
                               items.filter((item) => item !== tool)
@@ -218,7 +224,7 @@ export function PersonaProfileEditor({
                       ref={stackInput}
                       id={`${id}-${section.key}`}
                       className="placeholder:text-muted-foreground focus-visible:ring-ring min-h-8 min-w-24 flex-1 rounded-sm bg-transparent px-1 text-base outline-none focus-visible:ring-2 md:text-sm"
-                      placeholder="Add tool…"
+                      placeholder={t("addTool")}
                       maxLength={200}
                       value={stackDraft}
                       onChange={(event) => setStackDraft(event.target.value)}
@@ -239,9 +245,7 @@ export function PersonaProfileEditor({
                           return;
                         }
                         if (stack.length >= 6) {
-                          setError(
-                            "Current stack can contain up to six tools."
-                          );
+                          setError(t("stackLimit"));
                           return;
                         }
                         setStack((items) => [...items, tool]);
@@ -266,7 +270,7 @@ export function PersonaProfileEditor({
         {persona.memories.length > 0 ? (
           <details className="group/memories border-t pt-4">
             <summary className="hover:bg-muted/50 focus-visible:ring-ring -mx-2 flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-              <span>Memories</span>
+              <span>{tGeoShared("memories")}</span>
               <span className="text-muted-foreground bg-muted rounded-md px-1.5 py-0.5 text-xs font-normal tabular-nums">
                 {persona.memories.length}
               </span>
@@ -281,7 +285,9 @@ export function PersonaProfileEditor({
               {groupPersonaMemories(persona.memories).map((group) => (
                 <section className="space-y-2" key={group.kind}>
                   <h4 className="text-muted-foreground text-xs font-medium">
-                    {group.label}
+                    {group.kind === "background"
+                      ? tLabels("background")
+                      : t(`memoryKinds.${group.kind}`)}
                   </h4>
                   <ul className="bg-muted/20 divide-border/60 divide-y rounded-lg border px-3">
                     {group.memories.map((memory) => (
@@ -312,7 +318,7 @@ export function PersonaProfileEditor({
             disabled={isPending}
             onClick={onCancel}
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
             {submitLabel}

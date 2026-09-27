@@ -7,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
@@ -18,11 +19,11 @@ import {
 } from "@/components/geo/prompt-detail-dialog";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { GEO_PROMPT_DEFAULT_FILTERS } from "@/constants/geo-prompts";
+import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoScanAnswerProps } from "@/types/geo-scan-activity";
-import { formatEngineWithMode } from "@/utils/geo-charts";
 import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import { buildPromptTableRows } from "@/utils/geo-prompts";
 
@@ -33,6 +34,8 @@ export function ScanAnswerSheet({
   scanId,
   initialLanguage,
 }: GeoScanAnswerProps) {
+  const t = useTranslations("geo.scanAnswerSheet");
+  const formatEngineWithMode = useEngineModeLabel();
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const open = checkIdProp !== null;
   const [checkId, releaseCheckId] = useRetainedValue(checkIdProp);
@@ -79,11 +82,11 @@ export function ScanAnswerSheet({
                 {result ? (
                   <PromptCopyButton prompt={result.prompt} />
                 ) : (
-                  "Scan answer"
+                  t("title")
                 )}
               </SheetTitle>
               <SheetDescription className="sr-only">
-                Saved prompt result from this scan
+                {t("description")}
               </SheetDescription>
               {result ? (
                 <div className="flex flex-wrap items-center justify-between gap-3">

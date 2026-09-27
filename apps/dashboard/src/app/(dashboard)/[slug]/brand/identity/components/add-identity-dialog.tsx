@@ -9,6 +9,7 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
@@ -30,6 +31,10 @@ export function AddIdentityDialog({
   onCreated,
   startPolling,
 }: AddIdentityDialogProps) {
+  const t = useTranslations("brand.identity.addIdentity");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const createMutation = useCreateBrandVoice(organizationId);
@@ -42,12 +47,12 @@ export function AddIdentityDialog({
     const trimmedUrl = url.trim();
 
     if (!trimmedName) {
-      toast.error("Please enter an identity name");
+      toast.error(tBrandShared("enterAnIdentityName"));
       return;
     }
 
     if (!trimmedUrl) {
-      toast.error("Please enter a website URL");
+      toast.error(tCommon2("messages.enterAWebsiteUrl"));
       return;
     }
 
@@ -58,7 +63,7 @@ export function AddIdentityDialog({
 
     const parseRes = z.url().safeParse(websiteUrl);
     if (!parseRes.success) {
-      toast.error("Please enter a valid website URL");
+      toast.error(tCommon2("messages.enterAValidWebsite"));
       return;
     }
 
@@ -80,17 +85,15 @@ export function AddIdentityDialog({
           url: websiteUrl,
           voiceId: voice.id,
         });
-        toast.success("Brand identity created, analysis started");
+        toast.success(tCommon2("messages.brandIdentityCreatedAnalysisStarted"));
       } catch {
-        toast.error(
-          "Brand identity created, but failed to start analysis. You can re-analyze from the identity settings."
-        );
+        toast.error(tCommon2("messages.brandIdentityCreatedButFailed"));
       }
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to create brand identity"
+          : tCommon2("messages.failedToCreateBrandIdentity")
       );
     }
   };
@@ -99,10 +102,9 @@ export function AddIdentityDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-md [&>*]:min-w-0">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Add Brand Identity</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Create a new brand identity with a different tone, audience, or
-            language for your content.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -113,17 +115,17 @@ export function AddIdentityDialog({
           }}
         >
           <div className="space-y-2">
-            <Label htmlFor="voice-name">Name</Label>
+            <Label htmlFor="voice-name">{tCommon2("labels.name")}</Label>
             <Input
               autoFocus
               id="voice-name"
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Marketing, Technical, Internal"
+              placeholder={t("namePlaceholder")}
               value={name}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="voice-url">Website</Label>
+            <Label htmlFor="voice-url">{tCommon2("labels.website")}</Label>
             <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full min-w-0 flex-row items-center rounded-md border transition-colors">
               <label
                 className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"
@@ -140,9 +142,7 @@ export function AddIdentityDialog({
                 value={url}
               />
             </div>
-            <p className="text-muted-foreground text-xs">
-              We'll analyze this website to extract your brand identity.
-            </p>
+            <p className="text-muted-foreground text-xs">{t("websiteHint")}</p>
           </div>
           <ResponsiveDialogFooter>
             <ResponsiveDialogClose
@@ -154,14 +154,16 @@ export function AddIdentityDialog({
                 />
               }
             >
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveDialogClose>
             <Button
               className="w-full justify-center sm:w-auto"
               disabled={!name.trim() || !url.trim() || isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Creating..." : "Create Identity"}
+              {isSubmitting
+                ? tCommon("creating")
+                : tBrandShared("createIdentity")}
             </Button>
           </ResponsiveDialogFooter>
         </form>

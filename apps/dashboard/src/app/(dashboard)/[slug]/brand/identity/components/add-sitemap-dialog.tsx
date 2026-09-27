@@ -13,6 +13,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
 
@@ -32,6 +33,10 @@ export function AddSitemapDialog({
   voiceId,
   voiceWebsiteUrl,
 }: AddSitemapDialogProps) {
+  const t = useTranslations("brand.sitemap.addDialog");
+  const tCommon2 = useTranslations("common");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
   const createSitemap = useCreateSitemap(organizationId, voiceId);
@@ -50,15 +55,13 @@ export function AddSitemapDialog({
 
   const handleSubmit = async () => {
     if (!trimmedUrl) {
-      toast.error("Please enter a sitemap URL");
+      toast.error(t("urlRequired"));
       return;
     }
 
     if (!isUrlWithinBrandHost(trimmedUrl, voiceWebsiteUrl)) {
       toast.error(
-        brandHost
-          ? `Sitemaps must stay on ${brandHost} or its subdomains`
-          : "Set a website on this brand identity first"
+        brandHost ? t("offHostToast", { host: brandHost }) : t("noWebsite")
       );
       return;
     }
@@ -71,11 +74,13 @@ export function AddSitemapDialog({
         url: normalizedUrl,
         label: trimmedLabel,
       });
-      toast.success("Sitemap added");
+      toast.success(tCommon2("labels.sitemapAdded"));
       handleClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to add sitemap"
+        error instanceof Error
+          ? error.message
+          : tCommon2("labels.failedToAddSitemap")
       );
     }
   };
@@ -91,15 +96,19 @@ export function AddSitemapDialog({
     <ResponsiveDialog onOpenChange={handleClose} open={open}>
       <ResponsiveDialogContent className="[&>*]:min-w-0">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Add Sitemap</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tBrandShared("addSitemap")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Track indexed pages and monitor site health for AI discovery.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="sitemap-url">Sitemap or site URL</Label>
+            <Label htmlFor="sitemap-url">
+              {tCommon2("labels.sitemapOrSiteUrl")}
+            </Label>
             <Input
               aria-invalid={isOffHost}
               id="sitemap-url"
@@ -115,26 +124,26 @@ export function AddSitemapDialog({
             {isOffHost ? (
               <p className="text-destructive text-xs">
                 {brandHost
-                  ? `URLs must stay on ${brandHost} or its subdomains.`
-                  : "Set a website on this brand identity first."}
+                  ? tCommon2("messages.urlsMustStayOnHost", { host: brandHost })
+                  : tCommon2("messages.setAWebsiteOnThis")}
               </p>
             ) : (
               <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
                 <HugeiconsIcon className="size-3.5" icon={GlobalIcon} />
                 {brandHost
-                  ? `Scoped to ${brandHost} and its subdomains`
-                  : "Scoped to this brand identity's website"}
+                  ? t("scopedToHost", { host: brandHost })
+                  : t("scopedToWebsite")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sitemap-label">Label (optional)</Label>
+            <Label htmlFor="sitemap-label">{t("labelLabel")}</Label>
             <Input
               id="sitemap-label"
               onChange={(event) => setLabel(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Marketing site"
+              placeholder={t("labelPlaceholder")}
               value={label}
             />
           </div>
@@ -142,7 +151,7 @@ export function AddSitemapDialog({
 
         <ResponsiveDialogFooter>
           <Button onClick={handleClose} variant="outline">
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button
             disabled={createSitemap.isPending || !trimmedUrl || isOffHost}
@@ -151,10 +160,10 @@ export function AddSitemapDialog({
             {createSitemap.isPending ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Adding...
+                {tCommon2("labels.adding")}
               </>
             ) : (
-              "Add Sitemap"
+              tBrandShared("addSitemap")
             )}
           </Button>
         </ResponsiveDialogFooter>

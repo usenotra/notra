@@ -8,6 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@notra/ui/components/ui/combobox";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { CompetitorBrandLogo } from "@/components/onboarding/competitor-brand-logo";
@@ -21,12 +22,14 @@ function SearchRetryNotice({
   onRetry,
   searchFetching,
 }: SearchRetryNoticeProps) {
+  const t = useTranslations("onboarding.competitorSearch");
+  const tCommon = useTranslations("common");
   return (
     <div
       aria-live="polite"
       className="flex items-center justify-between gap-3 border-b px-2.5 py-2"
     >
-      <span className="text-muted-foreground text-xs">Search unavailable</span>
+      <span className="text-muted-foreground text-xs">{t("unavailable")}</span>
       <Button
         className="h-7 shrink-0 px-2 text-xs"
         disabled={searchFetching}
@@ -43,7 +46,7 @@ function SearchRetryNotice({
           className={searchFetching ? "size-3 animate-spin" : "size-3"}
           icon={Refresh03Icon}
         />
-        {searchFetching ? "Retrying" : "Retry search"}
+        {searchFetching ? tCommon("labels.retrying") : t("retry")}
       </Button>
     </div>
   );
@@ -53,6 +56,7 @@ function CompetitorSearchResultRow({
   entry,
   searchUnavailable,
 }: CompetitorSearchResultRowProps) {
+  const t = useTranslations("onboarding.competitorSearch");
   if (entry.source === "manual") {
     return (
       <span className="flex w-full min-w-0 items-center gap-2.5">
@@ -60,11 +64,11 @@ function CompetitorSearchResultRow({
           <HugeiconsIcon icon={Add01Icon} className="size-3.5" />
         </span>
         <span className="min-w-0 flex-1 truncate font-medium">
-          Add “{entry.name}” manually
+          {t("addManually", { name: entry.name })}
         </span>
         {searchUnavailable ? (
           <span className="text-muted-foreground ml-auto shrink-0 text-xs">
-            Search unavailable
+            {t("unavailable")}
           </span>
         ) : null}
       </span>
@@ -94,12 +98,13 @@ export function CompetitorSearchContent({
   searchFetching,
   searching,
 }: CompetitorSearchContentProps) {
+  const t = useTranslations("onboarding.competitorSearch");
   return (
     <ComboboxContent className="min-w-(--anchor-width)">
       {searchError ? (
         <SearchRetryNotice onRetry={onRetry} searchFetching={searchFetching} />
       ) : null}
-      <ComboboxEmpty>{searching ? "Looking" : "No matches"}</ComboboxEmpty>
+      <ComboboxEmpty>{searching ? t("looking") : t("noMatches")}</ComboboxEmpty>
       <ComboboxList>
         {items.map((entry) => (
           <ComboboxItem

@@ -7,6 +7,7 @@ import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -36,6 +37,10 @@ export function JourneysCard({
   onPrefetchJourney,
   loading = false,
 }: JourneysCardProps) {
+  const t = useTranslations("geo.journeysCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const [limit, setLimit] = useState(JOURNEYS_PAGE_SIZE);
   const { projectId } = useGeoProjectScope();
   const hasMore = limit < journeys.length;
@@ -43,12 +48,15 @@ export function JourneysCard({
   const columns: TableColumn<GeoJourney>[] = [
     {
       key: "source",
-      header: "Source",
+      header: tCommon("labels.source"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
         <button
-          aria-label={`Open ${formatGeoSource(row.source)} journey from ${formatAiTrafficTimestamp(row.lastSeenAt)}`}
+          aria-label={t("openJourney", {
+            source: formatGeoSource(row.source),
+            time: formatAiTrafficTimestamp(row.lastSeenAt, locale),
+          })}
           className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center gap-2 rounded-sm text-left text-sm hover:underline focus-visible:ring-2"
           onClick={() => onOpenJourney(row)}
           type="button"
@@ -61,25 +69,25 @@ export function JourneysCard({
     },
     {
       key: "pages",
-      header: "Pages",
+      header: tGeoShared("pages"),
       width: "5.625rem",
       sortable: true,
       cell: (row) => <span className="text-sm tabular-nums">{row.pages}</span>,
     },
     {
       key: "lastSeenAt",
-      header: "Last seen",
+      header: tGeoShared("lastSeen"),
       width: "9.375rem",
       sortable: true,
       cell: (row) => (
         <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt)}
+          {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
         </span>
       ),
     },
     {
       key: "entryPath",
-      header: "Path",
+      header: tGeoShared("path"),
       width: "2fr",
       cell: (row) => (
         <JourneyPathSummary
@@ -94,10 +102,10 @@ export function JourneysCard({
 
   if (journeys.length === 0) {
     return (
-      <InstrumentModule eyebrow="Agent journeys">
+      <InstrumentModule eyebrow={tGeoShared("agentJourneys")}>
         {failed ? (
           <InstrumentEmpty
-            message="Could not load agent journeys. Try refreshing the page."
+            message={t("loadFailed")}
             seed="geo-journeys-error"
           />
         ) : (
@@ -114,13 +122,13 @@ export function JourneysCard({
                   />
                 }
               >
-                View AI traffic
+                {t("viewAiTraffic")}
               </Button>
             }
             className="min-h-72 px-6 py-10 [&_h3]:text-lg"
-            description="Journeys appear when AI traffic reaches your site."
+            description={t("emptyDescription")}
             media={<HugeiconsIcon icon={Route01Icon} className="size-5" />}
-            title="See how AI agents explore your site"
+            title={t("emptyTitle")}
           />
         )}
       </InstrumentModule>
@@ -128,13 +136,13 @@ export function JourneysCard({
   }
 
   return (
-    <InstrumentSection eyebrow="Agent journeys">
+    <InstrumentSection eyebrow={tGeoShared("agentJourneys")}>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={journeys}
         defaultSort={{ key: "lastSeenAt", direction: "desc" }}
-        emptyState="No agent journeys captured yet"
+        emptyState={tGeoShared("noAgentJourneysCapturedYet")}
         getRowId={(row) => row.journeyId}
         height={tableHeightFor(journeys.length)}
         loading={loading}

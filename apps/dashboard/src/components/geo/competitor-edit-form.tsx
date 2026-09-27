@@ -8,10 +8,7 @@ import {
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  COMPETITOR_KIND_HINT,
-  GEO_COLOR_DEBOUNCE_MS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_COLOR_DEBOUNCE_MS } from "@notra/geo-core/constants/geo";
 import { normalizeCompetitorDomain } from "@notra/geo-core/geo/domain";
 import type { GeoCompetitorKind } from "@notra/geo-core/types/geo";
 import {
@@ -35,6 +32,7 @@ import { useForm } from "@tanstack/react-form";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import Color from "color";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { type ComponentProps, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -46,10 +44,7 @@ import type { CompetitorEditFormProps } from "@/types/geo";
 
 const INSTANT_TRANSITION = { duration: 0 } as const;
 
-const COMPETITOR_KIND_OPTIONS = [
-  { value: "direct", label: "Direct competitor" },
-  { value: "indirect", label: "Indirect competitor" },
-] as const;
+const COMPETITOR_KIND_OPTIONS = ["direct", "indirect"] as const;
 
 function swatchInk(hex: string): string {
   try {
@@ -66,12 +61,14 @@ function CompetitorKindToggle({
   value: GeoCompetitorKind;
   onChange: (next: GeoCompetitorKind) => void;
 }) {
+  const t = useTranslations("geo.competitorEditForm");
+  const tGeoShared = useTranslations("geo.shared");
   const layoutId = useId();
   const reduceMotion = useReducedMotion();
 
   return (
     <div
-      aria-label="Competitor type"
+      aria-label={t("competitorType")}
       className="bg-muted grid grid-cols-2 rounded-lg p-[3px]"
       onKeyDown={(event) => {
         if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
@@ -83,7 +80,7 @@ function CompetitorKindToggle({
       role="radiogroup"
     >
       {COMPETITOR_KIND_OPTIONS.map((option) => {
-        const active = value === option.value;
+        const active = value === option;
         return (
           // biome-ignore lint/a11y/useSemanticElements: segmented control uses the radiogroup pattern; native radios cannot host the sliding pill.
           <button
@@ -96,8 +93,8 @@ function CompetitorKindToggle({
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
-            key={option.value}
-            onClick={() => onChange(option.value)}
+            key={option}
+            onClick={() => onChange(option)}
             role="radio"
             tabIndex={active ? 0 : -1}
             type="button"
@@ -111,7 +108,11 @@ function CompetitorKindToggle({
                 }
               />
             ) : null}
-            <span className="relative z-10">{option.label}</span>
+            <span className="relative z-10">
+              {option === "direct"
+                ? tGeoShared("directCompetitor")
+                : tGeoShared("indirectCompetitor")}
+            </span>
           </button>
         );
       })}
@@ -168,6 +169,9 @@ function CompetitorSynonymsField({
   synonyms: string[];
   onChange: (next: string[]) => void;
 }) {
+  const t = useTranslations("geo.competitorEditForm");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
   const draftRef = useRef(draft);
@@ -221,14 +225,17 @@ function CompetitorSynonymsField({
   return (
     <div className="space-y-1.5">
       <Label htmlFor={adding ? id : undefined}>
-        Synonyms <span className="text-muted-foreground">(Optional)</span>
+        {tGeoShared("synonyms")}{" "}
+        <span className="text-muted-foreground">
+          {tCommon2("labels.optional")}
+        </span>
       </Label>
       <div className="flex flex-wrap items-center gap-1.5">
         {synonyms.map((synonym) => (
           <Badge className="gap-1 pr-1" key={synonym} variant="secondary">
             {synonym}
             <button
-              aria-label={`Remove ${synonym}`}
+              aria-label={t("removeSynonym", { synonym })}
               className="hover:bg-background rounded-full p-0.5"
               onClick={() =>
                 onChange(synonyms.filter((item) => item !== synonym))
@@ -274,7 +281,7 @@ function CompetitorSynonymsField({
                     stopAdding(true);
                   }
                 }}
-                placeholder="Another name"
+                placeholder={t("synonymPlaceholder")}
                 ref={inputRef}
                 value={draft}
               />
@@ -282,7 +289,7 @@ function CompetitorSynonymsField({
           ) : (
             <motion.button
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              aria-label="Add synonym"
+              aria-label={t("addSynonym")}
               className="border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground inline-flex h-8 cursor-pointer items-center gap-0.5 rounded-lg border border-dashed px-2.5 text-xs transition-colors active:scale-[0.96]"
               exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
               initial={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
@@ -293,7 +300,7 @@ function CompetitorSynonymsField({
               type="button"
             >
               <HugeiconsIcon icon={PlusSignIcon} size={12} strokeWidth={2} />
-              Add
+              {tCommon2("actions.add")}
             </motion.button>
           )}
         </AnimatePresence>
@@ -309,6 +316,11 @@ export function CompetitorEditForm({
   onDone,
   onCancel,
 }: CompetitorEditFormProps) {
+  const t = useTranslations("geo.competitorEditForm");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
+  const tColorPicker = useTranslations("ui.colorPicker");
   const { saveCompetitor } = useGeoCompetitorsDb(organizationId);
   const nameId = useId();
   const websiteId = useId();
@@ -354,7 +366,7 @@ export function CompetitorEditForm({
       <form.Field name="name">
         {(field) => (
           <div className="space-y-1.5">
-            <Label htmlFor={nameId}>Name</Label>
+            <Label htmlFor={nameId}>{tCommon2("labels.name")}</Label>
             <Input
               id={nameId}
               onChange={(event) => field.handleChange(event.target.value)}
@@ -367,7 +379,7 @@ export function CompetitorEditForm({
       <form.Field name="website">
         {(field) => (
           <div className="space-y-1.5">
-            <Label htmlFor={websiteId}>Website</Label>
+            <Label htmlFor={websiteId}>{tCommon2("labels.website")}</Label>
             <div className="flex items-center gap-2">
               <CompetitorLogoPreview
                 className="size-8"
@@ -402,13 +414,13 @@ export function CompetitorEditForm({
             !COMPETITOR_SWATCHES.includes(field.state.value);
           return (
             <div className="space-y-2">
-              <Label>Chart color</Label>
+              <Label>{t("chartColor")}</Label>
               <div className="flex flex-wrap items-center gap-1.5">
                 {COMPETITOR_SWATCHES.map((swatch) => (
                   <CompetitorSwatch
                     color={swatch}
                     key={swatch}
-                    label={`Use ${swatch}`}
+                    label={t("useColor", { color: swatch })}
                     onClick={() => field.handleChange(swatch)}
                     selected={field.state.value === swatch}
                   />
@@ -418,7 +430,7 @@ export function CompetitorEditForm({
                     render={
                       <CompetitorSwatch
                         color={isCustom ? field.state.value : "#ffffff"}
-                        label="Pick a custom color"
+                        label={t("customColor")}
                         selected={isCustom}
                       />
                     }
@@ -430,6 +442,18 @@ export function CompetitorEditForm({
                   >
                     <ColorPicker
                       className="w-full gap-3"
+                      labels={{
+                        selection: tColorPicker("selection"),
+                        selectionValue: (saturation, lightness) =>
+                          tColorPicker("selectionValue", {
+                            saturation,
+                            lightness,
+                          }),
+                        hue: tColorPicker("hue"),
+                        opacity: tColorPicker("opacity"),
+                        eyeDropper: tColorPicker("eyeDropper"),
+                        mode: tCommon2("labels.mode"),
+                      }}
                       onChange={(value) =>
                         debouncedColorChange(Color.rgb(value).hex())
                       }
@@ -462,9 +486,9 @@ export function CompetitorEditForm({
                 delay={500}
                 render={
                   <Label className="inline-flex w-fit items-center gap-1">
-                    Type
+                    {tGeoShared("type")}
                     <span className="text-muted-foreground font-normal">
-                      (Optional)
+                      {tCommon2("labels.optional")}
                     </span>
                     <HugeiconsIcon
                       className="text-muted-foreground"
@@ -474,7 +498,7 @@ export function CompetitorEditForm({
                   </Label>
                 }
               />
-              <TooltipContent>{COMPETITOR_KIND_HINT}</TooltipContent>
+              <TooltipContent>{t("kindHint")}</TooltipContent>
             </TooltipPrimitive.Root>
             <CompetitorKindToggle
               onChange={field.handleChange}
@@ -487,11 +511,11 @@ export function CompetitorEditForm({
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && (
           <Button onClick={onCancel} type="button" variant="outline">
-            Cancel
+            {tCommon("cancel")}
           </Button>
         )}
         <Button type="submit">
-          {competitor ? "Save changes" : "Add competitor"}
+          {competitor ? tCommon("saveChanges") : tGeoShared("addCompetitor")}
         </Button>
       </div>
     </form>

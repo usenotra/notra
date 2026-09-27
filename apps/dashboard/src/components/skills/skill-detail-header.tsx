@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
@@ -22,6 +23,9 @@ export function SkillDetailHeader({
   deleteDisabled,
   onDelete,
 }: SkillDetailHeaderProps) {
+  const t = useTranslations("skills");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   return (
     <div className="space-y-4">
       <Link
@@ -29,12 +33,15 @@ export function SkillDetailHeader({
         href={`/${slug}/skills`}
       >
         <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
-        Skills
+        {tCommon2("labels.skills")}
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h1 className="truncate font-mono text-2xl font-bold tracking-tight">
+        <div className="flex max-w-full min-w-0 items-center gap-2.5">
+          <h1
+            className="truncate font-mono text-2xl font-bold tracking-tight"
+            title={name}
+          >
             {name}
           </h1>
           {isSystem ? (
@@ -43,13 +50,11 @@ export function SkillDetailHeader({
                 <TooltipTrigger
                   render={
                     <Badge className="whitespace-nowrap" variant="secondary">
-                      System
+                      {tCommon2("labels.system")}
                     </Badge>
                   }
                 />
-                <TooltipContent>
-                  System skills cannot be renamed or deleted.
-                </TooltipContent>
+                <TooltipContent>{t("detail.systemTooltip")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           ) : null}
@@ -62,7 +67,7 @@ export function SkillDetailHeader({
             variant="outline"
           >
             <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-            Delete
+            {tCommon("delete")}
           </Button>
         ) : null}
       </div>

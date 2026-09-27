@@ -2,6 +2,7 @@
 
 import { Add01Icon, ArrowReloadHorizontalIcon, Delete02Icon, SmartPhone01Icon, SquareLockPasswordIcon, TwoFactorAccessIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DEFAULT_TWO_FACTOR_SETTINGS_LABELS } from "@notra/ui/constants/security-labels";
 import { Loader2Icon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
@@ -23,6 +24,7 @@ import {
 } from "../responsive-dialog";
 import { BackupCodesPanel } from "./backup-codes-panel";
 import { SecondFactorConfirm } from "./second-factor-confirm";
+import { useUiLabels } from "../ui-labels-provider";
 import { StepTransition } from "./step-transition";
 import { formatSecurityDate } from "./format-security-date";
 import { SecurityLoadError } from "./security-load-error";
@@ -31,6 +33,7 @@ import { SecurityMethodRow } from "./security-method-row";
 function BackupCodesRow({
   remaining,
   accountLabel,
+  labels,
   onRegenerate,
 }: BackupCodesRowProps) {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -46,11 +49,11 @@ function BackupCodesRow({
     return { ok: true as const };
   }
 
-  let description = "One-time codes for when your device isn't around.";
+  let description = labels.backupCodesDescription;
   if (typeof remaining === "number" && remaining > 0) {
-    description = `${remaining} unused ${remaining === 1 ? "code" : "codes"} left.`;
+    description = labels.backupCodesRemaining(remaining);
   } else if (remaining === 0) {
-    description = "All codes used. Generate a new set.";
+    description = labels.backupCodesExhausted;
   }
 
   let body: ReactNode = null;
@@ -61,6 +64,7 @@ function BackupCodesRow({
       <BackupCodesPanel
         accountLabel={accountLabel}
         codes={codes}
+        labels={labels.backupCodesPanel}
         onDone={() => setCodes(null)}
       />
     );
@@ -68,11 +72,12 @@ function BackupCodesRow({
     bodyKey = "confirm";
     body = (
       <SecondFactorConfirm
-        confirmLabel="Generate new codes"
-        description="Your current codes stop working once new ones are generated. Confirm with your authenticator app or an unused backup code."
+        confirmLabel={labels.regenerateConfirm}
+        description={labels.regenerateDescription}
+        labels={labels.secondFactorConfirm}
         onCancel={() => setIsConfirming(false)}
         onConfirm={regenerate}
-        title="Regenerate backup codes?"
+        title={labels.regenerateTitle}
       />
     );
   }
@@ -91,13 +96,13 @@ function BackupCodesRow({
               data-icon="inline-start"
               icon={ArrowReloadHorizontalIcon}
             />
-            Regenerate
+            {labels.regenerate}
           </Button>
         )
       }
       description={description}
       icon={SquareLockPasswordIcon}
-      title="Backup codes"
+      title={labels.backupCodesTitle}
     >
       {body && <StepTransition stepKey={bodyKey}>{body}</StepTransition>}
     </SecurityMethodRow>
@@ -107,6 +112,8 @@ function BackupCodesRow({
 function FactorList({
   factors,
   removingFactorId,
+  labels,
+  locale,
   onRemoveFactor,
 }: FactorListProps) {
   const [confirmingFactorId, setConfirmingFactorId] = useState<string | null>(
@@ -124,10 +131,10 @@ function FactorList({
   return (
     <ul className="divide-y rounded-lg border bg-muted/30">
       {factors.map((factor) => {
-        const addedOn = formatSecurityDate(factor.createdAt);
+        const addedOn = formatSecurityDate(factor.createdAt, locale);
         const isRemoving = removingFactorId === factor.id;
         const isConfirming = confirmingFactorId === factor.id;
-        const factorName = factor.issuer ?? "Authenticator app";
+        const factorName = factor.issuer ?? labels.defaultFactorName;
         return (
           <li className="grid gap-3 px-3 py-2.5 text-sm" key={factor.id}>
             <div className="flex items-center justify-between gap-3">
@@ -141,7 +148,7 @@ function FactorList({
                   <p className="truncate font-medium">{factorName}</p>
                   {addedOn && (
                     <p className="text-muted-foreground text-xs">
-                      Added {addedOn}
+                      {labels.addedOn(addedOn)}
                     </p>
                   )}
                 </div>
@@ -158,17 +165,18 @@ function FactorList({
                 ) : (
                   <HugeiconsIcon data-icon="inline-start" icon={Delete02Icon} />
                 )}
-                Remove
+                {labels.remove}
               </Button>
             </div>
             {isConfirming && (
               <SecondFactorConfirm
-                confirmLabel="Remove authenticator"
-                description={`Signing in will no longer ask for a code from ${factorName}. Confirm with a code from your authenticator app or an unused backup code.`}
+                confirmLabel={labels.removeConfirm}
+                description={labels.removeDescription(factorName)}
                 destructive
+                labels={labels.secondFactorConfirm}
                 onCancel={() => setConfirmingFactorId(null)}
                 onConfirm={(code) => remove(factor.id, code)}
-                title="Turn off two-factor authentication?"
+                title={labels.removeTitle}
               />
             )}
           </li>
@@ -193,7 +201,11 @@ export function TwoFactorSettings({
   onRetry,
   backupCodesRemaining,
   onRegenerateBackupCodes,
+  labels,
+  locale,
 }: TwoFactorSettingsProps) {
+  const uiLabels = useUiLabels();
+  const l = { ...DEFAULT_TWO_FACTOR_SETTINGS_LABELS, ...labels };
   if (status === "loading") {
     return <Skeleton className="h-[4.5rem] rounded-lg" />;
   }
@@ -201,8 +213,9 @@ export function TwoFactorSettings({
   if (status === "error") {
     return (
       <SecurityLoadError
-        message="Couldn't load your two-factor settings."
+        message={l.loadError}
         onRetry={onRetry}
+        retryLabel={l.retry}
       />
     );
   }
@@ -212,6 +225,8 @@ export function TwoFactorSettings({
   const body: ReactNode = isEnabled ? (
     <FactorList
       factors={factors}
+      labels={l}
+      locale={locale ?? uiLabels.locale}
       onRemoveFactor={onRemoveFactor}
       removingFactorId={removingFactorId}
     />
@@ -230,7 +245,7 @@ export function TwoFactorSettings({
       ) : (
         <HugeiconsIcon data-icon="inline-start" icon={Add01Icon} />
       )}
-      Set up
+      {l.setUp}
     </Button>
   );
 
@@ -248,16 +263,18 @@ export function TwoFactorSettings({
       >
         <ResponsiveDialogContent className="dialog-stacked sm:max-w-md">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              Set up two-factor authentication
-            </ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{l.dialogTitle}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Adds a code check whenever you sign in with your password.
+              {l.dialogDescription}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           {enrollment && (
             <TotpEnrollmentPanel
               accountLabel={accountLabel}
+              labels={{
+                backupCodesPanel: l.backupCodesPanel,
+                ...l.enrollmentPanel,
+              }}
               onCancel={onCancelEnrollment}
               onDone={onEnrollmentDone}
               onSubmit={onVerifyEnrollment}
@@ -271,15 +288,13 @@ export function TwoFactorSettings({
       <SecurityMethodRow
         action={action}
         description={
-          isEnabled
-            ? "Required when you sign in with your password."
-            : "Codes from 1Password, Google Authenticator, or Authy."
+          isEnabled ? l.enabledDescription : l.disabledDescription
         }
         icon={TwoFactorAccessIcon}
         title={
           <span className="flex items-center gap-2">
-            Authenticator app
-            {isEnabled && <Badge variant="success">On</Badge>}
+            {l.title}
+            {isEnabled && <Badge variant="success">{l.enabled}</Badge>}
           </span>
         }
       >
@@ -288,6 +303,7 @@ export function TwoFactorSettings({
       {isEnabled && (
         <BackupCodesRow
           accountLabel={accountLabel}
+          labels={l}
           onRegenerate={onRegenerateBackupCodes}
           remaining={backupCodesRemaining}
         />

@@ -6,7 +6,6 @@ export type GeoDirectionKey =
 
 export interface GeoDirectionTab {
   key: GeoDirectionKey;
-  label: string;
 }
 
 export type GeoDirectionTone = "up" | "flat" | "down";
@@ -54,9 +53,8 @@ export interface GeoDirectionSourceRow {
 }
 
 export interface GeoDirectionKpi {
-  label: string;
+  key: "aiVisits" | "aiReferrals" | "crawlerHits" | "journeys";
   value: number;
-  hint: string;
 }
 
 export interface DirectionDeltaProps {

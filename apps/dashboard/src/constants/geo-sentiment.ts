@@ -9,17 +9,6 @@ import {
   CHART_SECONDARY_COLOR,
 } from "./charts";
 
-export const SENTIMENT_SCORE_HINT =
-  "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50, and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage.";
-export const SENTIMENT_POLARITY_CTA = {
-  positive: {
-    subtext: "See what's working in saved answers.",
-  },
-  negative: {
-    subtext: "Catch what's hurting before it spreads.",
-  },
-} as const;
-export const SENTIMENT_ANALYZE_ACTION = "Analyze";
 export const SENTIMENT_SCORE_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
 });
@@ -37,26 +26,22 @@ export const SENTIMENT_POLARITY_STYLES = {
   neutral: { fill: "bg-muted-foreground/30", text: "text-muted-foreground" },
   negative: { fill: "bg-geo-down", text: "text-geo-down" },
 };
-export const SENTIMENT_DELTA_FORMAT = new Intl.NumberFormat("en", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-  signDisplay: "exceptZero",
-});
 export const SENTIMENT_CHART_CONFIG: ChartConfig = {
   score: {
-    label: "Score",
     colors: seriesColors(CHART_PRIMARY_COLOR),
   },
   previous: {
-    label: "Previous period",
     colors: seriesColors(CHART_SECONDARY_COLOR),
   },
   estimate: {
-    label: "Estimated score",
     colors: seriesColors(CHART_PRIMARY_COLOR),
   },
   noData: {
-    label: "No data",
     colors: seriesColors(CHART_MUTED_COLOR),
   },
 };
+
+export const GEO_SENTIMENT_EMPTY_LABEL_KEYS = {
+  noSavedAnswers: "noSavedAnswersRunA",
+  noRatedMentions: "noRatedMentionsInThis",
+} as const;

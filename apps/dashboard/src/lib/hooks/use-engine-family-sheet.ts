@@ -9,6 +9,7 @@ import {
   engineFamilyLabel,
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -45,6 +46,8 @@ export function useEngineFamilySheet({
 }: Omit<EngineFamilySheetProps, "family" | "open" | "onOpenChange"> & {
   family: GeoEngineFamily;
 }) {
+  const tImprove = useTranslations("geo.familyImproveCard.insights");
+  const tShared = useTranslations("geo.shared");
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
   const [writeInitial, setWriteInitial] =
@@ -79,7 +82,8 @@ export function useEngineFamilySheet({
   const brandRows = engineFamilyBrandRows(
     family.family,
     promptResults,
-    brandScope
+    brandScope,
+    tShared("youLabel")
   );
   const missedCount = promptHits.filter(
     (hit) => !(hit.mentioned || hit.ownedSourceCited)
@@ -89,6 +93,7 @@ export function useEngineFamilySheet({
     search: engineFamilyModeTotals(family, "search"),
     memory: engineFamilyModeTotals(family, "memory"),
     missed: missedCount,
+    t: tImprove,
   });
   const gapsHref =
     canWrite && organizationSlug

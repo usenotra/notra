@@ -2,6 +2,7 @@
 
 
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
+import { DEFAULT_EMAIL_VERIFICATION_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 
 import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
@@ -10,14 +11,14 @@ import { CtaButton } from "../cta-button";
 import { AuthFormHeader } from "./auth-form-header";
 import { TotpCodeInput } from "./totp-code-input";
 
-const VERIFY_ERROR_FALLBACK = "Verification failed. Please try again.";
-
 export function EmailVerificationForm({
   step,
   returnTo,
   onResult,
   verifyEmailCode,
+  labels,
 }: EmailVerificationFormProps) {
+  const l = { ...DEFAULT_EMAIL_VERIFICATION_FORM_LABELS, ...labels };
   const [code, setCode] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -45,7 +46,7 @@ export function EmailVerificationForm({
       return;
     }
     setFormError(
-      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK,
+      result?.status === "error" ? result.message : l.errorFallback,
     );
     setCode("");
     setIsPending(false);
@@ -54,8 +55,8 @@ export function EmailVerificationForm({
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
-        description={`We sent a 6-digit code to ${step.email || "your email address"}. Enter it below to continue.`}
-        title="Check your email"
+        description={l.description(step.email || undefined)}
+        title={l.title}
       />
 
       <form
@@ -72,7 +73,7 @@ export function EmailVerificationForm({
           disabled={isPending}
           error={formError}
           id="verification-code"
-          label="Verification code"
+          label={l.codeLabel}
           onChange={setCode}
           onComplete={handleVerify}
           value={code}
@@ -87,10 +88,10 @@ export function EmailVerificationForm({
             {isPending ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Verifying...
+                {l.submitting}
               </>
             ) : (
-              "Verify email"
+              l.submit
             )}
           </CtaButton>
         </div>

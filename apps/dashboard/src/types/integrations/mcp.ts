@@ -2,12 +2,25 @@ import type {
   AddMcpServerFormValues,
   beginMcpOAuthRequestSchema,
 } from "@notra/schemas/dashboard/integrations";
+import type { useTranslations } from "next-intl";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { z } from "zod";
 
 import type { useMcpServerForm } from "@/lib/hooks/use-mcp-server-form";
 
 export type BeginMcpOAuthRequest = z.infer<typeof beginMcpOAuthRequestSchema>;
+
+export type McpFormTranslator = ReturnType<
+  typeof useTranslations<"integrations.mcp.form">
+>;
+
+export type McpServerCardTranslator = ReturnType<
+  typeof useTranslations<"integrations.mcp.serverCard">
+>;
+
+export type StoreIntegrationTranslator = ReturnType<
+  typeof useTranslations<"integrations.store">
+>;
 
 export type McpTestStatus = "idle" | "testing" | "success" | "error";
 

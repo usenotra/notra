@@ -271,6 +271,10 @@ export const geoProjectDeleteInputSchema = object({
   projectId: string().min(1),
 });
 
+export const geoProjectUpdateInputSchema = geoProjectDeleteInputSchema.extend({
+  brandSettingsId: string().min(1),
+});
+
 export const geoPromptResultDetailInputSchema =
   geoOrganizationInputSchema.extend({
     checkId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
@@ -545,6 +549,7 @@ export const geoWriterPlanInputSchema = geoOrganizationInputSchema.extend({
     "gap",
     "prompt",
     "search_console",
+    "ai_search",
   ]).optional(),
   sourceId: string().min(1).optional(),
   existingPageUrl: url().max(GEO_EXISTING_PAGE_URL_MAX_LENGTH).optional(),

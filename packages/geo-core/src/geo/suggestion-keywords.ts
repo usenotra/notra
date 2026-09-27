@@ -105,6 +105,10 @@ export function buildBrandTerms(
   });
 }
 
+export function isNavigationalQuery(query: string): boolean {
+  return NAVIGATIONAL_QUERY.test(query);
+}
+
 function opportunityScore(row: GscQueryRow): number {
   const ctr =
     row.impressions > 0
@@ -143,7 +147,7 @@ export function selectKeywordsForModel(
       (row) =>
         row.impressions >= GSC_SYNC_MIN_IMPRESSIONS &&
         !promptMentionsBrand(row.query, brandTerms) &&
-        !NAVIGATIONAL_QUERY.test(row.query)
+        !isNavigationalQuery(row.query)
     )
     .sort(
       (left, right) =>

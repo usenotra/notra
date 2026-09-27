@@ -5,12 +5,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { type ComponentType, useId, useState } from "react";
 
@@ -20,13 +20,16 @@ import {
 } from "@/components/settings/settings-header-context";
 import { SettingsModalNav } from "@/components/settings/settings-modal-nav";
 import {
+  SplitModalContent,
+  SplitModalPane,
+} from "@/components/shared/split-modal";
+import {
   DEFAULT_SETTINGS_SECTION,
   SETTINGS_NAV_GROUPS,
-  SETTINGS_SECTION_DESCRIPTIONS,
-  SETTINGS_SECTION_LABELS,
 } from "@/constants/settings";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { useSettingsNavLabels } from "@/lib/hooks/use-settings-nav-labels";
 import type {
   SettingsModalBodyProps,
   SettingsModalSessionProps,
@@ -191,17 +194,16 @@ export function SettingsModal() {
       }}
       open={isOpen}
     >
-      <DialogContent
+      <SplitModalContent
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         className={cn(
-          "flex! max-w-none min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-none",
+          "flex! max-w-none sm:max-w-none",
           "top-0 right-0 bottom-0 left-0 h-auto w-auto translate-none rounded-none",
-          "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl",
+          "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2",
           "transition-shadow data-nested-dialog-open:shadow-[0_0_0_100vmax_rgb(0_0_0/0.4)]",
           "after:pointer-events-none after:absolute after:inset-0 after:bg-black/0 after:transition-colors data-nested-dialog-open:after:bg-black/40"
         )}
-        showCloseButton={false}
       >
         {isOpen ? (
           <SettingsModalSession
@@ -212,7 +214,7 @@ export function SettingsModal() {
             titleId={titleId}
           />
         ) : null}
-      </DialogContent>
+      </SplitModalContent>
     </Dialog>
   );
 }
@@ -224,14 +226,20 @@ function SettingsModalSession({
   setSection,
   titleId,
 }: SettingsModalSessionProps) {
+  const labels = useSettingsNavLabels();
   const { hasAiCredits } = useHasAiCreditsFeature();
   const [query, setQuery] = useState("");
   const searchInputId = useId();
-  const groups = filterSettingsNavGroups(
-    SETTINGS_NAV_GROUPS,
-    query,
-    hasAiCredits
-  );
+  const navGroups = SETTINGS_NAV_GROUPS.map((group) => ({
+    ...group,
+    label: labels.groups[group.id],
+    items: group.items.map((item) => ({
+      ...item,
+      label: labels.sections[item.id].label,
+      description: labels.sections[item.id].description,
+    })),
+  }));
+  const groups = filterSettingsNavGroups(navGroups, query, hasAiCredits);
 
   const activeSection = resolveSettingsSection(
     section ?? DEFAULT_SETTINGS_SECTION
@@ -240,7 +248,7 @@ function SettingsModalSession({
   function handleQueryChange(nextQuery: string) {
     setQuery(nextQuery);
     const nextGroups = filterSettingsNavGroups(
-      SETTINGS_NAV_GROUPS,
+      navGroups,
       nextQuery,
       hasAiCredits
     );
@@ -288,10 +296,12 @@ function SettingsModalBody({
   section,
   titleId,
 }: SettingsModalBodyProps) {
+  const t = useTranslations("settings");
+  const labels = useSettingsNavLabels();
   const { titleAccessory } = useSettingsHeader();
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <SplitModalPane>
       <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-1.5">
@@ -299,7 +309,7 @@ function SettingsModalBody({
               className="text-sm leading-none font-medium"
               id={titleId}
             >
-              {SETTINGS_SECTION_LABELS[activeSection]}
+              {labels.sections[activeSection].label}
             </DialogTitle>
             {titleAccessory}
           </div>
@@ -307,11 +317,11 @@ function SettingsModalBody({
             className="text-muted-foreground text-xs"
             id={descriptionId}
           >
-            {SETTINGS_SECTION_DESCRIPTIONS[activeSection]}
+            {labels.sections[activeSection].modalDescription}
           </DialogDescription>
         </div>
         <Button
-          aria-label="Close settings"
+          aria-label={t("modal.close")}
           className="shrink-0"
           onClick={closeSettings}
           size="icon-sm"
@@ -325,6 +335,6 @@ function SettingsModalBody({
           <SettingsSectionContent key={activeSection} section={activeSection} />
         ) : null}
       </div>
-    </section>
+    </SplitModalPane>
   );
 }

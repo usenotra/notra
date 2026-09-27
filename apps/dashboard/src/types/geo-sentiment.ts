@@ -88,3 +88,15 @@ export interface AnswerSentimentProps {
     "mentioned" | "sentiment" | "answer" | "excerpt"
   >;
 }
+
+export type SentimentThemesMessage =
+  | { kind: "text"; text: string }
+  | { kind: "key"; key: "noSupportedThemes" | "couldNotFind" | "notConfigured" }
+  | { kind: "empty"; key: "noSavedAnswers" | "noRatedMentions" };
+
+export type SentimentAnalysisStatusKey =
+  | "finding"
+  | "stalePrevious"
+  | "failedPrevious"
+  | "failedRetry"
+  | "unavailable";

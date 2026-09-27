@@ -1,5 +1,14 @@
+import type { ChatMessageMetadata } from "@notra/ai/types/chat";
 import type { UIMessage } from "ai";
 import type { ReactNode } from "react";
+
+export type AssistantActivityStep =
+  | "writingResponse"
+  | "thinking"
+  | "waitingForApproval"
+  | "searchingWeb"
+  | "executingTools"
+  | "runningTool";
 
 export interface ChatActivityStatusProps {
   children?: ReactNode;
@@ -14,9 +23,10 @@ export interface ChatActivityGroupProps {
   elapsedSeconds?: number;
   forceOpen?: boolean;
   groupId: string;
+  hasDetails: boolean;
   isLoading: boolean;
   isStreaming: boolean;
-  step: string;
+  step: AssistantActivityStep;
 }
 
 export interface ChatSearchStackProps {
@@ -29,6 +39,7 @@ export interface ChatSearchStackProps {
 }
 
 export interface ChatAssistantPartsProps {
+  activityTimings?: ChatMessageMetadata["activityTimings"];
   durationMs?: number;
   elapsedSeconds?: number;
   isLoading: boolean;

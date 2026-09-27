@@ -98,7 +98,7 @@
     "@tanstack/react-start": "1.168.51",
     "tsup": "^8.5.1",
     "typescript": "5.9.2",
-    "zod": "^4.4.3"
+    "zod": "^4.6.5"
   },
   "peerDependencies": {
     "zod": "^4.0.0"

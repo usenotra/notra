@@ -6,6 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type * as React from "react";
+import { UiLabel } from "@notra/ui/components/shared/ui-labels-provider";
 import { cn } from "@notra/ui/lib/utils";
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
@@ -112,7 +113,9 @@ function BreadcrumbEllipsis({
       {...props}
     >
       <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
-      <span className="sr-only">More</span>
+      <span className="sr-only">
+        <UiLabel name="more" />
+      </span>
     </span>
   );
 }

@@ -29,6 +29,7 @@ import { Kbd } from "@notra/ui/components/ui/kbd";
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -40,6 +41,10 @@ import {
 
 import { useFeedback } from "@/components/dashboard/feedback-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import {
+  COMMAND_ROUTE_LABEL_KEYS,
+  COMMAND_SECTION_LABEL_KEYS,
+} from "@/constants/command-palette";
 import { COMMAND_PALETTE_AI_ERROR_ACTION } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
@@ -49,14 +54,17 @@ import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   AiResult,
+  CommandPaletteNavigatingLabelKey,
   CommandPaletteDialogProps,
   CommandPalettePanelProps,
   CommandPaletteSearchData,
+  CommandPaletteTranslator,
   CommandSection,
   EntityHit,
   EntityHitSection,
   EntityHitsBySection,
 } from "@/types/components/command-palette";
+import type { CommonTranslator } from "@/types/i18n";
 import { truncateSnippet } from "@/utils/format";
 import { isGeoDashboardPath, withGeoProject } from "@/utils/geo-paths";
 
@@ -72,11 +80,9 @@ const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
 const REFERENCE_SNIPPET_MAX = 80;
 
-const REFERENCE_TYPE_LABEL: Record<string, string> = {
+const REFERENCE_TYPE_BRAND_LABEL: Record<string, string> = {
   twitter_post: "Twitter",
   linkedin_post: "LinkedIn",
-  blog_post: "Blog",
-  custom: "Custom",
 };
 const BRAILLE_FRAMES = [
   "⠋",
@@ -92,11 +98,29 @@ const BRAILLE_FRAMES = [
 ] as const;
 const BRAILLE_INTERVAL_MS = 80;
 const ENTITY_SECTION_ORDER: readonly EntityHitSection[] = [
-  "Posts",
-  "Brand voices",
-  "References",
-  "Integrations",
+  "posts",
+  "brandVoices",
+  "references",
+  "integrations",
 ];
+
+function referenceTypeLabel(
+  type: string,
+  t: CommandPaletteTranslator,
+  tCommon: CommonTranslator
+): string {
+  const brandLabel = REFERENCE_TYPE_BRAND_LABEL[type];
+  if (brandLabel) {
+    return brandLabel;
+  }
+  if (type === "blog_post") {
+    return tCommon("labels.blog");
+  }
+  if (type === "custom") {
+    return tCommon("labels.customOwn");
+  }
+  return t("entities.reference");
+}
 
 const GROUPED_ROUTES = (() => {
   const groups: Record<CommandSection, typeof COMMAND_ROUTES> = {
@@ -131,7 +155,9 @@ function collectEntityHits(
   data: CommandPaletteSearchData | undefined,
   slug: string,
   isProjectResolved: boolean,
-  debouncedQuery: string
+  debouncedQuery: string,
+  t: CommandPaletteTranslator,
+  tCommon: CommonTranslator
 ): EntityHit[] {
   if (!(data && slug && isProjectResolved)) {
     return [];
@@ -141,7 +167,10 @@ function collectEntityHits(
     hits.push({
       key: `post:${post.id}`,
       label: post.title,
-      sublabel: post.status === "published" ? "Published" : "Draft",
+      sublabel:
+        post.status === "published"
+          ? tCommon("labels.published")
+          : tCommon("labels.draft"),
       icon: NoteIcon,
       path: `/${slug}/content/${post.id}`,
       keywords: ["post", "content", post.slug ?? "", debouncedQuery],
@@ -154,7 +183,7 @@ function collectEntityHits(
     hits.push({
       key: `voice:${voice.id}`,
       label: voice.name,
-      sublabel: parts || "Brand voice",
+      sublabel: parts || tCommon("labels.brandVoice"),
       icon: CorporateIcon,
       path: `/${slug}/brand/identity`,
       keywords: [
@@ -167,7 +196,7 @@ function collectEntityHits(
     });
   }
   for (const reference of data.references) {
-    const typeLabel = REFERENCE_TYPE_LABEL[reference.type] ?? "Reference";
+    const typeLabel = referenceTypeLabel(reference.type, t, tCommon);
     hits.push({
       key: `reference:${reference.id}`,
       label: truncateSnippet(reference.content, REFERENCE_SNIPPET_MAX),
@@ -229,20 +258,20 @@ function groupEntityHits(
   entityHits: readonly EntityHit[]
 ): EntityHitsBySection {
   const groups: EntityHitsBySection = {
-    Posts: [],
-    "Brand voices": [],
-    References: [],
-    Integrations: [],
+    posts: [],
+    brandVoices: [],
+    references: [],
+    integrations: [],
   };
   for (const hit of entityHits) {
     if (hit.key.startsWith("post:")) {
-      groups.Posts.push(hit);
+      groups.posts.push(hit);
     } else if (hit.key.startsWith("voice:")) {
-      groups["Brand voices"].push(hit);
+      groups.brandVoices.push(hit);
     } else if (hit.key.startsWith("reference:")) {
-      groups.References.push(hit);
+      groups.references.push(hit);
     } else {
-      groups.Integrations.push(hit);
+      groups.integrations.push(hit);
     }
   }
   return groups;
@@ -296,6 +325,8 @@ function BrailleSpinner({ className }: { className?: string }) {
 }
 
 export function CommandPalette() {
+  const t = useTranslations("commandPalette");
+  const tCommon = useTranslations("common");
   const { open, setOpen, openSourceRef } = useCommandPalette();
   const { activeOrganization } = useOrganizationsContext();
   const { hasAiCredits } = useHasAiCreditsFeature();
@@ -310,7 +341,7 @@ export function CommandPalette() {
   const [aiState, setAiState] = useState<
     | { status: "idle" }
     | { status: "loading" }
-    | { status: "navigating"; label: string }
+    | { status: "navigating"; labelKey: CommandPaletteNavigatingLabelKey }
     | { status: "error" }
   >({ status: "idle" });
   const [, startNavigation] = useTransition();
@@ -373,7 +404,9 @@ export function CommandPalette() {
     searchResults.data,
     slug,
     isProjectResolved,
-    debouncedQuery
+    debouncedQuery,
+    t,
+    tCommon
   );
 
   const entityHitCount = entityHits.length;
@@ -415,8 +448,11 @@ export function CommandPalette() {
     router.push(scopedPath(path));
   };
 
-  const navigateFromAi = (path: string, label: string) => {
-    setAiState({ status: "navigating", label });
+  const navigateFromAi = (
+    path: string,
+    labelKey: CommandPaletteNavigatingLabelKey
+  ) => {
+    setAiState({ status: "navigating", labelKey });
     startNavigation(() => {
       router.push(scopedPath(path));
     });
@@ -478,12 +514,12 @@ export function CommandPalette() {
       query_length: trimmed.length,
     });
     if (result.action === "navigate" && result.path) {
-      navigateFromAi(result.path, "Opening");
+      navigateFromAi(result.path, "opening");
       return;
     }
     if (result.action === "chat") {
       const qs = trimmed ? `?q=${encodeURIComponent(trimmed)}` : "";
-      navigateFromAi(`/${slug}/chat${qs}`, "Opening chat");
+      navigateFromAi(`/${slug}/chat${qs}`, "openingChat");
       return;
     }
     setAiState({ status: "error" });
@@ -533,6 +569,8 @@ function CommandPaletteDialog({
   setQuery,
   slug,
 }: CommandPaletteDialogProps) {
+  const t = useTranslations("commandPalette");
+  const tCommon = useTranslations("common");
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length > 0;
   const isLoading =
@@ -547,10 +585,8 @@ function CommandPaletteDialog({
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
-          <DialogTitle>Command Palette</DialogTitle>
-          <DialogDescription>
-            Search pages, jump to tools, or ask AI.
-          </DialogDescription>
+          <DialogTitle>{tCommon("labels.commandPalette")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <CommandPrimitive
           className="bg-popover text-popover-foreground flex size-full flex-col"
@@ -586,14 +622,14 @@ function CommandPaletteDialog({
                   setAiState({ status: "idle" });
                 }
               }}
-              placeholder="Search pages, settings, actions, or ask AI…"
+              placeholder={t("placeholder")}
               value={query}
             />
             {hasQuery ? (
               <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
                 <Kbd>{aiModifierLabel}</Kbd>
                 <Kbd>↵</Kbd>
-                <span>for AI</span>
+                <span>{t("forAi")}</span>
               </div>
             ) : null}
           </div>
@@ -633,15 +669,15 @@ function CommandPaletteDialog({
                     strokeWidth={2}
                   />
                 </Kbd>
-                <span className="ml-0.5">Navigate</span>
+                <span className="ml-0.5">{t("footer.navigate")}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Kbd>↵</Kbd>
-                <span className="ml-0.5">Select</span>
+                <span className="ml-0.5">{tCommon("actions.select")}</span>
               </div>
               <div className="hidden items-center gap-1 sm:flex">
                 <Kbd className="px-1 text-[9.5px]">esc</Kbd>
-                <span className="ml-0.5">Close</span>
+                <span className="ml-0.5">{tCommon("actions.close")}</span>
               </div>
             </div>
           </div>
@@ -706,21 +742,23 @@ function CommandPaletteLoading({
   isNavigatingAi: boolean;
   trimmedQuery: string;
 }) {
+  const t = useTranslations("commandPalette");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex h-[14rem] flex-col items-center justify-center px-6 text-center">
       <div className="text-foreground grid grid-cols-[1.125rem_auto_1.125rem] items-center gap-2 text-sm">
         <BrailleSpinner className="text-[18px] leading-none" />
         <Shimmer as="span" className="font-medium">
-          {isNavigatingAi
-            ? `${(aiState as { status: "navigating"; label: string }).label}…`
-            : "Thinking…"}
+          {aiState.status === "navigating"
+            ? t(`ai.${aiState.labelKey}`)
+            : tCommon("labels.thinking")}
         </Shimmer>
         <span aria-hidden="true" />
       </div>
       <p className="text-muted-foreground mt-3 max-w-xs text-xs">
         {isNavigatingAi
-          ? "Hang tight, almost there."
-          : `Figuring out where to take you for “${trimmedQuery}”.`}
+          ? t("ai.almostThere")
+          : t("ai.figuringOut", { query: trimmedQuery })}
       </p>
     </div>
   );
@@ -742,6 +780,8 @@ function CommandPaletteList({
   slug,
   trimmedQuery,
 }: Omit<CommandPalettePanelProps, "isNavigatingAi">) {
+  const t = useTranslations("commandPalette");
+  const tCommon = useTranslations("common");
   const hasQuery = trimmedQuery.length > 0;
   return (
     <CommandPrimitive.List
@@ -760,11 +800,11 @@ function CommandPaletteList({
             />
           </div>
           <div className="space-y-1">
-            <p className="text-foreground text-sm font-medium">
-              No matches for &ldquo;{trimmedQuery}&rdquo;
+            <p className="text-foreground text-sm font-medium wrap-anywhere">
+              {t("empty.title", { query: trimmedQuery })}
             </p>
             <p className="text-muted-foreground text-xs">
-              Let AI navigate for you or open a chat with your question.
+              {t("empty.description")}
             </p>
           </div>
           <div className="flex w-full flex-col gap-1.5">
@@ -783,7 +823,7 @@ function CommandPaletteList({
                 strokeWidth={2}
               />
               <span className="flex-1 font-medium">
-                {isLoading ? "Thinking…" : "Navigate with AI"}
+                {isLoading ? tCommon("labels.thinking") : t("ai.navigate")}
               </span>
               <div className="flex items-center gap-1">
                 <Kbd>{aiModifierLabel}</Kbd>
@@ -800,7 +840,7 @@ function CommandPaletteList({
                 icon={Message01Icon}
                 strokeWidth={2}
               />
-              <span className="flex-1 font-medium">Ask AI chat</span>
+              <span className="flex-1 font-medium">{t("ai.askChat")}</span>
               <HugeiconsIcon
                 className="text-muted-foreground size-4 transition-transform group-hover:translate-x-0.5"
                 icon={ArrowRight01Icon}
@@ -809,9 +849,7 @@ function CommandPaletteList({
             </button>
           </div>
           {aiState.status === "error" ? (
-            <p className="text-destructive text-xs">
-              AI search failed. Try the chat fallback.
-            </p>
+            <p className="text-destructive text-xs">{t("ai.failed")}</p>
           ) : null}
         </div>
       </CommandPrimitive.Empty>
@@ -826,45 +864,50 @@ function CommandPaletteList({
         return (
           <CommandPrimitive.Group
             className="text-foreground [&_[cmdk-group-heading]]:text-muted-foreground px-1 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:uppercase"
-            heading={section}
+            heading={tCommon(COMMAND_SECTION_LABEL_KEYS[section])}
             key={section}
           >
-            {items.map((item) => (
-              <CommandPrimitive.Item
-                className={cn(
-                  "group/item relative flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none select-none",
-                  "data-[selected=true]:bg-muted data-[selected=true]:text-foreground",
-                  "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50"
-                )}
-                key={item.id}
-                keywords={item.keywords}
-                onSelect={() => {
-                  trackEvent(POSTHOG_EVENTS.COMMAND_PALETTE_RESULT_SELECTED, {
-                    kind: "route",
-                    id: item.id,
-                  });
-                  if (item.settingsSection) {
-                    handleOpenChange(false);
-                    openSettings(item.settingsSection);
-                    return;
-                  }
-                  navigate(item.path(slug));
-                }}
-                value={item.label}
-              >
-                <HugeiconsIcon
-                  className="text-muted-foreground group-data-[selected=true]/item:text-foreground size-4 shrink-0 transition-colors"
-                  icon={item.icon}
-                  strokeWidth={2}
-                />
-                <span className="flex-1 truncate">{item.label}</span>
-                <HugeiconsIcon
-                  className="text-muted-foreground size-3 opacity-0 transition-opacity group-data-[selected=true]/item:opacity-60"
-                  icon={ArrowRight01Icon}
-                  strokeWidth={2}
-                />
-              </CommandPrimitive.Item>
-            ))}
+            {items.map((item) => {
+              const label = tCommon(
+                `labels.${COMMAND_ROUTE_LABEL_KEYS[item.id]}`
+              );
+              return (
+                <CommandPrimitive.Item
+                  className={cn(
+                    "group/item relative flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none select-none",
+                    "data-[selected=true]:bg-muted data-[selected=true]:text-foreground",
+                    "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50"
+                  )}
+                  key={item.id}
+                  keywords={[item.label, ...item.keywords]}
+                  onSelect={() => {
+                    trackEvent(POSTHOG_EVENTS.COMMAND_PALETTE_RESULT_SELECTED, {
+                      kind: "route",
+                      id: item.id,
+                    });
+                    if (item.settingsSection) {
+                      handleOpenChange(false);
+                      openSettings(item.settingsSection);
+                      return;
+                    }
+                    navigate(item.path(slug));
+                  }}
+                  value={label}
+                >
+                  <HugeiconsIcon
+                    className="text-muted-foreground group-data-[selected=true]/item:text-foreground size-4 shrink-0 transition-colors"
+                    icon={item.icon}
+                    strokeWidth={2}
+                  />
+                  <span className="flex-1 truncate">{label}</span>
+                  <HugeiconsIcon
+                    className="text-muted-foreground size-3 opacity-0 transition-opacity group-data-[selected=true]/item:opacity-60"
+                    icon={ArrowRight01Icon}
+                    strokeWidth={2}
+                  />
+                </CommandPrimitive.Item>
+              );
+            })}
           </CommandPrimitive.Group>
         );
       })}
@@ -877,7 +920,11 @@ function CommandPaletteList({
         return (
           <CommandPrimitive.Group
             className="text-foreground [&_[cmdk-group-heading]]:text-muted-foreground px-1 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:uppercase"
-            heading={section}
+            heading={
+              section === "brandVoices"
+                ? t("entitySections.brandVoices")
+                : tCommon(`labels.${section}`)
+            }
             key={section}
           >
             {items.map((hit) => (
@@ -921,7 +968,7 @@ function CommandPaletteList({
 
       <CommandPrimitive.Group
         className="text-foreground [&_[cmdk-group-heading]]:text-muted-foreground px-1 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:uppercase"
-        heading="Actions"
+        heading={tCommon("labels.actions")}
       >
         <CommandPrimitive.Item
           className="group/item data-[selected=true]:bg-muted data-[selected=true]:text-foreground relative flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none select-none"
@@ -934,7 +981,9 @@ function CommandPaletteList({
             icon={Message01Icon}
             strokeWidth={2}
           />
-          <span className="flex-1 truncate">Send feedback</span>
+          <span className="flex-1 truncate">
+            {tCommon("labels.sendFeedback")}
+          </span>
           <HugeiconsIcon
             className="text-muted-foreground size-3 opacity-0 transition-opacity group-data-[selected=true]/item:opacity-60"
             icon={ArrowRight01Icon}
@@ -946,7 +995,7 @@ function CommandPaletteList({
       {hasQuery ? (
         <CommandPrimitive.Group
           className="text-foreground [&_[cmdk-group-heading]]:text-muted-foreground px-1 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:uppercase"
-          heading="AI"
+          heading={t("sections.ai")}
         >
           <CommandPrimitive.Item
             className="group/item data-[selected=true]:bg-muted data-[selected=true]:text-foreground relative flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none select-none"
@@ -963,7 +1012,9 @@ function CommandPaletteList({
               strokeWidth={2}
             />
             <span className="flex-1 truncate">
-              {isLoading ? "Thinking…" : `Navigate with AI: "${trimmedQuery}"`}
+              {isLoading
+                ? tCommon("labels.thinking")
+                : t("ai.navigateQuery", { query: trimmedQuery })}
             </span>
             <div className="flex items-center gap-1">
               <Kbd>{aiModifierLabel}</Kbd>
@@ -981,7 +1032,7 @@ function CommandPaletteList({
               icon={Message01Icon}
               strokeWidth={2}
             />
-            <span className="flex-1 truncate">Ask AI chat about this</span>
+            <span className="flex-1 truncate">{t("ai.askChatAbout")}</span>
             <HugeiconsIcon
               className="text-muted-foreground size-3 opacity-0 transition-opacity group-data-[selected=true]/item:opacity-60"
               icon={ArrowRight01Icon}

@@ -3,7 +3,6 @@
 import {
   GEO_SHELF_SOURCE_KINDS,
   GEO_SHELF_TITLE_MAX_LENGTH,
-  GEO_SHELF_URL_INVALID_MESSAGE,
   GEO_SHELF_URL_MAX_LENGTH,
 } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
@@ -29,6 +28,7 @@ import {
 } from "@notra/ui/components/ui/select";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef } from "react";
 
 import { Button } from "@/components/button";
@@ -36,25 +36,21 @@ import { ShelfPresenceFields } from "@/components/geo/shelf/shelf-presence-field
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { ShelfTitleField } from "@/components/geo/shelf/shelf-title-field";
 import {
-  GEO_SHELF_DUPLICATE_URL_MESSAGE,
   GEO_SHELF_PREVIEW_DEBOUNCE_MS,
-  GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE,
-  GEO_SHELF_PREVIEW_UNAVAILABLE_MESSAGE,
-  GEO_SHELF_SOURCE_KIND_LABELS,
-  GEO_SHELF_TITLE_TOO_LONG_MESSAGE,
-  GEO_SHELF_URL_TOO_LONG_MESSAGE,
+  GEO_SHELF_PREVIEW_RATE_LIMIT_CODE,
 } from "@/constants/geo-shelf";
 import {
   useGeoShelfPreview,
   useGeoShelfUrlCheck,
 } from "@/lib/hooks/use-geo-shelf";
+import { useGeoShelfKindLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import type {
   GeoShelfAddDialogProps,
   GeoShelfNewSourceDraft,
   GeoShelfOpportunity,
   GeoShelfSourceKind,
 } from "@/types/geo-shelf";
-import { toErrorMessage } from "@/utils/error-message";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 
 function toKind(value: string): GeoShelfSourceKind {
   return GEO_SHELF_SOURCE_KINDS.find((kind) => kind === value) ?? "other";
@@ -65,52 +61,37 @@ function canonicalizeShelfUrlSafe(raw: string): string {
   return isAllowedShelfUrl(raw) ? canonicalizeShelfUrl(raw) : raw;
 }
 
-function validateShelfUrl(
-  value: string,
-  existingUrls: readonly string[]
-): string | undefined {
+function validateShelfUrl(value: string, existingUrls: readonly string[]) {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
     return undefined;
   }
   if (value.length > GEO_SHELF_URL_MAX_LENGTH) {
-    return GEO_SHELF_URL_TOO_LONG_MESSAGE;
+    return "urlTooLong" as const;
   }
   if (!isAllowedShelfUrl(trimmed)) {
-    return GEO_SHELF_URL_INVALID_MESSAGE;
+    return "urlInvalid" as const;
   }
   const canonical = canonicalizeShelfUrl(trimmed);
   const isDuplicate = existingUrls.some(
     (existing) => canonicalizeShelfUrlSafe(existing) === canonical
   );
-  return isDuplicate ? GEO_SHELF_DUPLICATE_URL_MESSAGE : undefined;
+  return isDuplicate ? ("duplicateUrl" as const) : undefined;
 }
 
 function resolveShelfUrlError(
   errors: readonly unknown[],
-  isServerDuplicate: boolean
+  isServerDuplicate: boolean,
+  duplicateMessage: string
 ): string | null {
   if (errors.length > 0) {
     return String(errors[0]);
   }
-  return isServerDuplicate ? GEO_SHELF_DUPLICATE_URL_MESSAGE : null;
+  return isServerDuplicate ? duplicateMessage : null;
 }
 
-function validateShelfTitle(value: string): string | undefined {
-  return value.length > GEO_SHELF_TITLE_MAX_LENGTH
-    ? GEO_SHELF_TITLE_TOO_LONG_MESSAGE
-    : undefined;
-}
-
-/**
- * The preview is a nice-to-have: surface the rate limit verbatim, and keep every
- * other failure as a hint that the title can be typed by hand.
- */
-function previewErrorHint(error: unknown): string {
-  const message = toErrorMessage(error, GEO_SHELF_PREVIEW_UNAVAILABLE_MESSAGE);
-  return message === GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE
-    ? message
-    : GEO_SHELF_PREVIEW_UNAVAILABLE_MESSAGE;
+function isPreviewRateLimited(error: unknown): boolean {
+  return getOrpcErrorDataCode(error) === GEO_SHELF_PREVIEW_RATE_LIMIT_CODE;
 }
 
 function toPreviewOpportunity(
@@ -137,6 +118,12 @@ export function ShelfAddDialog({
   existingUrls,
   onSubmit,
 }: GeoShelfAddDialogProps) {
+  const t = useTranslations("geo.shelf.shelfAddDialog");
+  const tCommon2 = useTranslations("common");
+  const tLabels = useTranslations("geo.shelf.labels");
+  const kindLabels = useGeoShelfKindLabels();
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
   const id = useId();
   const previewTitleRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -202,8 +189,24 @@ export function ShelfAddDialog({
     titleValue.trim().length === 0 && previewTitle !== null;
   const previewError =
     previewUrl !== null && preview.isError
-      ? previewErrorHint(preview.error)
+      ? isPreviewRateLimited(preview.error)
+        ? tCommon2("messages.tooManyPageLookupsPlease")
+        : t("previewUnavailable")
       : null;
+  const validateUrlField = (value: string) => {
+    const errorKey = validateShelfUrl(value, existingUrls);
+    if (errorKey === "urlTooLong") {
+      return t("urlTooLong", { max: GEO_SHELF_URL_MAX_LENGTH });
+    }
+    if (errorKey === "duplicateUrl") {
+      return tCommon2("messages.thisPageIsAlreadyOn");
+    }
+    return errorKey ? t(errorKey) : undefined;
+  };
+  const validateTitleField = (value: string) =>
+    value.length > GEO_SHELF_TITLE_MAX_LENGTH
+      ? t("titleTooLong", { max: GEO_SHELF_TITLE_MAX_LENGTH })
+      : undefined;
 
   const closeDialog = () => {
     form.reset();
@@ -226,11 +229,10 @@ export function ShelfAddDialog({
       <ResponsiveDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="text-xl font-semibold">
-            Add a shelf
+            {t("title")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            A page you want {ownBrandName || "your brand"} to be listed on. Tick
-            the competitors already there and hand the ticket to someone.
+            {t("description", { brand: ownBrandName || t("yourBrand") })}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -245,17 +247,18 @@ export function ShelfAddDialog({
             <form.Field
               name="url"
               validators={{
-                onChange: ({ value }) => validateShelfUrl(value, existingUrls),
+                onChange: ({ value }) => validateUrlField(value),
               }}
             >
               {(field) => {
                 const urlError = resolveShelfUrlError(
                   field.state.meta.errors,
-                  isServerDuplicate
+                  isServerDuplicate,
+                  tCommon2("messages.thisPageIsAlreadyOn")
                 );
                 return (
                   <div className="space-y-1.5">
-                    <Label htmlFor={`${id}-url`}>Page URL</Label>
+                    <Label htmlFor={`${id}-url`}>{t("pageUrl")}</Label>
                     <Input
                       aria-describedby={
                         urlError ? `${id}-url-error` : undefined
@@ -287,7 +290,9 @@ export function ShelfAddDialog({
             <form.Field name="kind">
               {(field) => (
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-kind`}>Kind</Label>
+                  <Label htmlFor={`${id}-kind`}>
+                    {tCommon2("labels.kind")}
+                  </Label>
                   <Select
                     onValueChange={(value) =>
                       field.handleChange(toKind(value ?? "other"))
@@ -295,14 +300,12 @@ export function ShelfAddDialog({
                     value={field.state.value}
                   >
                     <SelectTrigger className="w-full" id={`${id}-kind`}>
-                      <SelectValue>
-                        {GEO_SHELF_SOURCE_KIND_LABELS[field.state.value]}
-                      </SelectValue>
+                      <SelectValue>{kindLabels[field.state.value]}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {GEO_SHELF_SOURCE_KINDS.map((kind) => (
                         <SelectItem key={kind} value={kind}>
-                          {GEO_SHELF_SOURCE_KIND_LABELS[kind]}
+                          {kindLabels[kind]}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -314,7 +317,7 @@ export function ShelfAddDialog({
 
           <form.Field
             name="title"
-            validators={{ onChange: ({ value }) => validateShelfTitle(value) }}
+            validators={{ onChange: ({ value }) => validateTitleField(value) }}
           >
             {(field) => (
               <ShelfTitleField
@@ -352,7 +355,7 @@ export function ShelfAddDialog({
           </form.Field>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Ticket</p>
+            <p className="text-sm font-medium">{tLabels("ticket")}</p>
             <form.Field name="opportunity">
               {(field) => (
                 <ShelfTicketForm
@@ -370,7 +373,7 @@ export function ShelfAddDialog({
 
           <ResponsiveDialogFooter className="gap-2 sm:justify-end">
             <Button onClick={closeDialog} type="button" variant="outline">
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <form.Subscribe
               selector={(state) => [state.values.url, state.canSubmit] as const}
@@ -382,7 +385,7 @@ export function ShelfAddDialog({
                   }
                   type="submit"
                 >
-                  Add shelf
+                  {tGeoShared("addShelf")}
                 </Button>
               )}
             </form.Subscribe>

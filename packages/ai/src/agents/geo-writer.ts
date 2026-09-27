@@ -48,6 +48,7 @@ import type {
   PostToolsConfig,
   PostToolsResult,
 } from "@notra/ai/types/post-tools";
+import type { RouteUsageSummary } from "@notra/ai/types/router";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
@@ -83,12 +84,14 @@ export class GeoWriterError extends Error {
 function toTokenUsage(
   usage: LanguageModelUsage | undefined,
   modelId = GEO_WRITER_MODEL,
-  route?: AgentTokenUsage["route"]
+  routeUsage?: RouteUsageSummary
 ): AgentTokenUsage {
   return {
     ...toAgentTokenUsage(usage),
     modelId,
-    route,
+    maxPromptTokens: routeUsage?.maxPromptTokens,
+    tokenCostUsd: routeUsage?.tokenCostUsd,
+    route: routeUsage?.route,
     raw: usage,
   };
 }
@@ -104,7 +107,15 @@ function mergeTokenUsage(
     cacheReadTokens: base.cacheReadTokens + extra.cacheReadTokens,
     cacheWriteTokens: base.cacheWriteTokens + extra.cacheWriteTokens,
     modelId: base.modelId ?? extra.modelId,
-    route: base.route ?? extra.route,
+    maxPromptTokens: Math.max(
+      base.maxPromptTokens ?? 0,
+      extra.maxPromptTokens ?? 0
+    ),
+    tokenCostUsd:
+      base.tokenCostUsd === undefined && extra.tokenCostUsd === undefined
+        ? undefined
+        : (base.tokenCostUsd ?? 0) + (extra.tokenCostUsd ?? 0),
+    route: extra.route ?? base.route,
     raw: { agent: base.raw, humanizer: extra.raw },
   };
 }
@@ -227,9 +238,13 @@ export async function generateGeoContentBrief(
           }
         ),
       });
+      const routeUsage = await summarizeRouteUsage(
+        result.steps,
+        GEO_WRITER_PLANNER_MODEL
+      );
       usage = mergeTokenUsage(
         usage,
-        toTokenUsage(result.usage, GEO_WRITER_PLANNER_MODEL)
+        toTokenUsage(result.usage, GEO_WRITER_PLANNER_MODEL, routeUsage)
       );
       if (result.finishReason !== "stop") {
         const failure = describeUnfinishedPlan(
@@ -386,7 +401,8 @@ async function humanizeMarkdown(
   });
 
   const humanized = stripDashesFromText(unwrapCodeFence(result.text));
-  const usage = toTokenUsage(result.usage);
+  const routeUsage = await summarizeRouteUsage(result.steps, GEO_WRITER_MODEL);
+  const usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage);
 
   if (!isHumanizedDraftAcceptable(markdown, humanized)) {
     return { markdown: null, usage };
@@ -596,7 +612,7 @@ export async function runGeoWriter(
     prompt: `Research with webSearch first, then write the article "${brief.workingTitle}". Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
   });
   const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage.route);
+  let usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage);
   const primaryPost = postToolsResult.posts?.at(0);
 
   if (!postToolsResult.failReason && primaryPost) {

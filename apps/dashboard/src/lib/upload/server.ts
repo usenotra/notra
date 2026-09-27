@@ -10,6 +10,7 @@ import {
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { getTranslations } from "next-intl/server";
 
 import { GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES } from "@/constants/github";
 import { assertAuthenticated } from "@/lib/auth/organization";
@@ -55,7 +56,7 @@ async function assertUploadAccess({
 
   if (requiresOrganization && !organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
@@ -70,7 +71,9 @@ async function assertUploadAccess({
 
     if (!membership) {
       throw new ORPCError("FORBIDDEN", {
-        message: "You do not have access to this organization",
+        message: (await getTranslations("errors.upload"))(
+          "noOrganizationAccess"
+        ),
       });
     }
   }
@@ -97,7 +100,7 @@ async function resolveUploadTarget({
     type,
   });
 
-  validateUpload({
+  await validateUpload({
     fileSize,
     fileType,
     type,
@@ -126,7 +129,7 @@ async function resolveUploadTarget({
       break;
     default:
       throw new ORPCError("BAD_REQUEST", {
-        message: "Unsupported upload type",
+        message: (await getTranslations("errors.upload"))("fileTypeNotAllowed"),
       });
   }
 
@@ -192,14 +195,14 @@ export async function deleteChatUpload({
 
   if (!organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
   const expectedPrefix = `organization/${organizationId}/chat/`;
   if (!key.startsWith(expectedPrefix)) {
     throw new ORPCError("FORBIDDEN", {
-      message: "You do not have access to this chat upload",
+      message: (await getTranslations("errors.upload"))("noOrganizationAccess"),
     });
   }
 
@@ -243,7 +246,7 @@ export async function recordChatAttachment({
 
   if (!organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
@@ -251,19 +254,21 @@ export async function recordChatAttachment({
 
   if (!key.startsWith(expectedPrefix)) {
     throw new ORPCError("FORBIDDEN", {
-      message: "You do not have access to this chat upload",
+      message: (await getTranslations("errors.upload"))("noOrganizationAccess"),
     });
   }
 
   if (!ALLOWED_CHAT_MIME_TYPES.includes(mediaType as AllowedChatMimeType)) {
     throw new ORPCError("BAD_REQUEST", {
-      message: `Media type ${mediaType} is not allowed in chat`,
+      message: (await getTranslations("errors.upload"))("fileTypeNotAllowed"),
     });
   }
 
   if (size > MAX_CHAT_FILE_SIZE) {
     throw new ORPCError("BAD_REQUEST", {
-      message: `Attachment exceeds maximum size of ${MAX_CHAT_FILE_SIZE / 1024 / 1024}MB`,
+      message: (await getTranslations("errors.upload"))("fileTooLarge", {
+        maxMb: MAX_CHAT_FILE_SIZE / 1024 / 1024,
+      }),
     });
   }
 
@@ -290,7 +295,7 @@ async function requireContentOrganization(headers: Headers) {
   });
   if (!organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
   return organizationId;

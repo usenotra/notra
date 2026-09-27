@@ -1,9 +1,11 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import type { GeoServerPageProps } from "@/types/geo-hydration";
@@ -16,9 +18,10 @@ import { dehydrateGeoTrafficQueries } from "@/utils/geo-prefetch.server";
 import PageClient from "./page-client";
 import { GeoTrafficSkeleton } from "./skeleton";
 
-export const metadata: Metadata = {
-  title: "GEO Traffic",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("geo.pages.traffic");
+  return { title: t("metaTitle") };
+}
 
 export const instant = true;
 
@@ -60,7 +63,9 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
 function Page({ params, searchParams }: GeoServerPageProps) {
   return (
     <Suspense fallback={<GeoTrafficSkeleton />}>
-      <PageContent params={params} searchParams={searchParams} />
+      <GeoPageGate fallback={<GeoTrafficSkeleton />}>
+        <PageContent params={params} searchParams={searchParams} />
+      </GeoPageGate>
     </Suspense>
   );
 }

@@ -12,11 +12,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
-import {
-  GEO_SHELF_PLACEMENT_HINTS,
-  GEO_SHELF_PLACEMENT_LABELS,
-} from "@/constants/geo-shelf";
+import { useGeoShelfPlacementLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import { cn } from "@/lib/utils";
 import type {
   GeoShelfPlacementBadgeProps,
@@ -46,6 +44,7 @@ export function ShelfPlacementMark({
   status,
   className,
 }: GeoShelfPlacementMarkProps) {
+  const placementLabels = useGeoShelfPlacementLabels();
   const resolved = status ?? "unknown";
   return (
     <span
@@ -61,31 +60,23 @@ export function ShelfPlacementMark({
         icon={PLACEMENT_ICONS[resolved]}
         strokeWidth={2}
       />
-      {GEO_SHELF_PLACEMENT_LABELS[resolved]}
+      {placementLabels[resolved]}
     </span>
   );
 }
 
-function evidenceHint(
-  status: keyof typeof GEO_SHELF_PLACEMENT_HINTS,
+function evidenceHintKey(
+  status: GeoShelfPlacementMarkProps["status"],
   evidence: GeoShelfPlacementBadgeProps["evidence"]
-): string | null {
-  if (status === "unknown" || !evidence) {
+) {
+  if (status === "unknown" || status === null || !evidence) {
     return null;
   }
-  return evidence === "manual"
-    ? "Marked by a teammate"
-    : "Verified by fetching the page";
+  return evidence === "manual" ? "markedByTeammate" : "verifiedByFetch";
 }
 
-function placementHintText(
-  label: string,
-  status: keyof typeof GEO_SHELF_PLACEMENT_HINTS,
-  sourceHint: string | null
-): string {
-  return [label, GEO_SHELF_PLACEMENT_HINTS[status], sourceHint]
-    .filter((part): part is string => Boolean(part))
-    .join(". ");
+function placementHintText(parts: (string | null)[]): string {
+  return parts.filter((part): part is string => Boolean(part)).join(". ");
 }
 
 const HINT_TRIGGER_CLASS =
@@ -97,9 +88,14 @@ export function ShelfPlacementBadge({
   className,
   tooltip = true,
 }: GeoShelfPlacementBadgeProps) {
+  const t = useTranslations("geo.shelf.shelfPlacementBadge");
+  const tLabels = useTranslations("geo.shelf.labels");
+  const placementLabels = useGeoShelfPlacementLabels();
   const resolved = status ?? "unknown";
-  const label = GEO_SHELF_PLACEMENT_LABELS[resolved];
-  const sourceHint = evidenceHint(resolved, evidence);
+  const label = placementLabels[resolved];
+  const hint = tLabels(`placementHint.${resolved}`);
+  const sourceHintKey = evidenceHintKey(resolved, evidence);
+  const sourceHint = sourceHintKey ? t(sourceHintKey) : null;
   const badge = (
     <Badge
       className={cn(
@@ -126,14 +122,14 @@ export function ShelfPlacementBadge({
   return (
     <Tooltip>
       <TooltipTrigger
-        aria-label={placementHintText(label, resolved, sourceHint)}
+        aria-label={placementHintText([label, hint, sourceHint])}
         className={HINT_TRIGGER_CLASS}
       >
         {badge}
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-pretty">
         <span className="block font-medium">{label}</span>
-        {GEO_SHELF_PLACEMENT_HINTS[resolved]}
+        {hint}
         {sourceHint ? (
           <span className="text-muted-foreground mt-0.5 block">
             {sourceHint}

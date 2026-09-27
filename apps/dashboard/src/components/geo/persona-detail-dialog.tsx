@@ -22,6 +22,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -31,12 +32,7 @@ import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
 import { PersonaPrompts } from "@/components/geo/persona-prompts";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { GeoConversationSkeleton } from "@/components/geo/skeleton-parts";
-import {
-  GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION,
-  GEO_PERSONA_CONVERSATION_EMPTY_TITLE,
-  GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION,
-  GEO_PERSONA_DIALOG_VIEWS,
-} from "@/constants/geo-personas";
+import { GEO_PERSONA_DIALOG_VIEWS } from "@/constants/geo-personas";
 import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
 import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -79,6 +75,15 @@ function PersonaDetailHeader({
   onEngineChange,
   onViewChange,
 }: PersonaDetailHeaderProps) {
+  const t = useTranslations("geo.personaDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("common.labels");
+  const viewLabels: Record<PersonaDialogView, string> = {
+    conversation: tGeoShared("conversation"),
+    prompts: tLabels("prompts"),
+    profile: t("views.profile"),
+  };
+  const locale = useLocale();
   const latestCheck = latestCheckAt(threads);
   const selectedScan =
     scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
@@ -89,7 +94,7 @@ function PersonaDetailHeader({
         <PersonaAvatar className="mt-0.5 size-12" persona={persona} size="lg" />
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex min-w-0 items-center gap-3">
-            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance">
+            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance wrap-anywhere">
               {persona.name}
             </SheetTitle>
             <Button
@@ -108,7 +113,7 @@ function PersonaDetailHeader({
                 icon={isRunning ? Loading03Icon : PlayIcon}
                 size={14}
               />
-              {isRunning ? "Running…" : "Run scan"}
+              {isRunning ? t("running") : tGeoShared("runScan")}
             </Button>
           </div>
           <SheetDescription className="text-muted-foreground text-sm leading-snug">
@@ -116,7 +121,7 @@ function PersonaDetailHeader({
           </SheetDescription>
           {latestCheck ? (
             <SheetDescription className="text-muted-foreground text-xs leading-snug">
-              {formatAiTrafficTimestamp(latestCheck)}
+              {formatAiTrafficTimestamp(latestCheck, locale)}
             </SheetDescription>
           ) : null}
         </div>
@@ -127,14 +132,14 @@ function PersonaDetailHeader({
           onValueChange={(value) => onViewChange(value as PersonaDialogView)}
           value={view}
         >
-          <TabsList aria-label="View">
+          <TabsList aria-label={t("viewAria")}>
             {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
               <TabsTrigger
                 className="px-2.5 text-xs"
-                key={option.value}
-                value={option.value}
+                key={option}
+                value={option}
               >
-                {option.label}
+                {viewLabels[option]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -153,17 +158,29 @@ function PersonaDetailHeader({
               onValueChange={onSelectScan}
               value={selectedScanId}
             >
-              <SelectTrigger aria-label="Persona scan history" className="w-44">
+              <SelectTrigger aria-label={t("scanHistory")} className="w-44">
                 <SelectValue>
-                  {selectedScan.id === scans.at(0)?.id ? "Latest · " : ""}
-                  {formatAiTrafficTimestamp(selectedScan.capturedAt)}
+                  {selectedScan.id === scans.at(0)?.id
+                    ? t("latestScan", {
+                        time: formatAiTrafficTimestamp(
+                          selectedScan.capturedAt,
+                          locale
+                        ),
+                      })
+                    : formatAiTrafficTimestamp(selectedScan.capturedAt, locale)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {scans.map((scan, index) => (
                   <SelectItem key={scan.id} value={scan.id}>
-                    {index === 0 ? "Latest · " : ""}
-                    {formatAiTrafficTimestamp(scan.capturedAt)}
+                    {index === 0
+                      ? t("latestScan", {
+                          time: formatAiTrafficTimestamp(
+                            scan.capturedAt,
+                            locale
+                          ),
+                        })
+                      : formatAiTrafficTimestamp(scan.capturedAt, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -176,19 +193,16 @@ function PersonaDetailHeader({
 }
 
 function ConversationEmpty({ enabled }: { enabled: boolean }) {
+  const t = useTranslations("geo.personaDetailDialog");
   return (
     <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4 px-6 pb-6">
       <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-full">
         <HugeiconsIcon icon={AiChat01Icon} size={18} />
       </div>
       <div className="space-y-1 text-center">
-        <p className="text-sm font-medium">
-          {GEO_PERSONA_CONVERSATION_EMPTY_TITLE}
-        </p>
+        <p className="text-sm font-medium">{t("emptyTitle")}</p>
         <p className="text-muted-foreground text-sm text-pretty">
-          {enabled
-            ? GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION
-            : GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION}
+          {enabled ? t("emptyDescription") : t("pausedDescription")}
         </p>
       </div>
     </div>
@@ -202,6 +216,7 @@ function PersonaConversation({
   isWaitingForScan,
   enabled,
 }: PersonaConversationProps) {
+  const t = useTranslations("geo.personaDetailDialog");
   if (active) {
     return (
       <ConversationReplayThread
@@ -220,9 +235,7 @@ function PersonaConversation({
           role="status"
           className="text-muted-foreground mx-auto w-full max-w-3xl px-6 pt-6 text-sm"
         >
-          {isWaitingForScan
-            ? "Scan in progress. This persona’s conversation will appear when results are ready."
-            : "Loading conversation…"}
+          {isWaitingForScan ? t("waitingForScan") : t("loadingConversation")}
         </p>
         <GeoConversationSkeleton />
       </div>

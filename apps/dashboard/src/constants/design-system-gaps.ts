@@ -55,6 +55,10 @@ export const DESIGN_SYSTEM_PROMPT_GAP: GeoPromptGapRow = {
   mentionedEngines: DEMO_MENTIONED_ENGINES,
   competitors: DEMO_TRACKED_BRANDS,
   discoveredCompetitors: DEMO_DISCOVERED_BRANDS,
+  searchQueries: [
+    "KI Content Erstellung Tool",
+    "beste KI Tools für Content Marketing 2026",
+  ],
   ownMentionRate: 0.14,
   engineCoverage: 0.14,
   opportunity: 0.92,

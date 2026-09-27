@@ -11,15 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
-  COMPOSER_FRAME_NUDGE_PADDING,
   COMPOSER_FRAME_TRANSITION,
   COMPOSER_INNER_FRAME,
   COMPOSER_NUDGE_ENTER,
-  COMPOSER_NUDGE_GRID_TRANSITION,
   COMPOSER_SEND_BUTTON,
   COMPOSER_TOOLBAR_BUTTON,
 } from "@/constants/composer";
@@ -43,22 +42,14 @@ function ComposerFrame({
   return (
     <div
       className={cn(
-        "w-full min-w-0 rounded-2xl",
+        "w-full min-w-0 rounded-2xl p-1",
         COMPOSER_FRAME_TRANSITION,
-        hasNudge ? COMPOSER_FRAME_NUDGE_PADDING : "bg-transparent p-0",
+        hasNudge ? "bg-muted" : "bg-transparent",
         connectedTop ? "rounded-t-none" : null,
         className
       )}
     >
-      <div
-        className={cn(
-          "grid",
-          COMPOSER_NUDGE_GRID_TRANSITION,
-          hasNudge ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
-        <div className="min-h-0 overflow-hidden">{nudge}</div>
-      </div>
+      {nudge}
       <div
         className={cn(
           COMPOSER_INNER_FRAME,
@@ -84,7 +75,9 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
       )}
     >
       {title && !hasChips ? (
-        <p className="min-w-0 flex-1 text-xs font-medium">{title}</p>
+        <p className="min-w-0 flex-1 text-xs font-medium wrap-anywhere">
+          {title}
+        </p>
       ) : null}
       {hasChips ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
@@ -110,6 +103,8 @@ function ComposerChip({
   className,
   labelClassName,
 }: ComposerChipProps) {
+  const t = useTranslations("composer");
+  const tCommon = useTranslations("common");
   const labelClasses = cn("max-w-[12rem] truncate", labelClassName);
 
   return (
@@ -123,23 +118,27 @@ function ComposerChip({
     >
       {onClick ? (
         <button
-          aria-label={`Preview ${label}`}
+          aria-label={t("preview", { label })}
           className="hover:text-foreground flex min-w-0 items-center gap-1.5 rounded-sm text-left transition-colors"
           onClick={onClick}
           type="button"
         >
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </button>
       ) : (
         <>
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </>
       )}
       {onSteer && !pending ? (
         <button
-          aria-label={steerLabel ?? `Steer with ${label}`}
+          aria-label={steerLabel ?? t("steerWith", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onSteer}
           type="button"
@@ -149,7 +148,7 @@ function ComposerChip({
       ) : null}
       {onEdit && !pending ? (
         <button
-          aria-label={editLabel ?? `Edit ${label}`}
+          aria-label={editLabel ?? tCommon("labels.editLabel", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onEdit}
           type="button"
@@ -159,7 +158,7 @@ function ComposerChip({
       ) : null}
       {onRemove ? (
         <button
-          aria-label={removeLabel ?? `Remove ${label}`}
+          aria-label={removeLabel ?? tCommon("labels.removeLabel", { label })}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
           onClick={onRemove}
           type="button"

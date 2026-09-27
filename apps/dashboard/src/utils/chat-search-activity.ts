@@ -168,26 +168,3 @@ export function uniqueSearchSources(
   }
   return unique;
 }
-
-export function getSearchRowLabel(
-  query: string | undefined,
-  isRowStreaming: boolean,
-  isStackStreaming: boolean
-): string {
-  if (query) {
-    return isRowStreaming
-      ? `Searching web for ${query}`
-      : `Searched web for ${query}`;
-  }
-  return isStackStreaming ? "Searching web" : "Searched web";
-}
-
-export function getSearchStackLabel(
-  count: number,
-  isStreaming: boolean
-): string {
-  if (isStreaming) {
-    return count === 1 ? "Searching web" : `Running ${count} searches`;
-  }
-  return count === 1 ? "Ran 1 search" : `Ran ${count} searches`;
-}

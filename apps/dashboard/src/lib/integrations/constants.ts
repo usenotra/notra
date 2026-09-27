@@ -6,10 +6,10 @@ export const INTEGRATION_TAB_VALUES = [
 ] as const;
 
 export const INTEGRATION_CATEGORY_TABS = [
-  { value: "all", label: "All" },
-  { value: "input", label: "Input" },
-  { value: "output", label: "Output" },
-  { value: "extension", label: "Extensions" },
+  { value: "all" },
+  { value: "input" },
+  { value: "output" },
+  { value: "extension" },
 ] as const;
 
 export const INTEGRATION_CARD_DITHER_HEX_COLOR_PATTERN = /^#[\da-f]{6}$/i;

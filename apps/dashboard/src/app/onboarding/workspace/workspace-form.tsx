@@ -19,6 +19,7 @@ import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,16 +33,20 @@ import {
   ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS,
   ONBOARDING_STEP_WORKSPACE,
 } from "@/constants/onboarding";
+import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
 import { extractDomain } from "@/lib/onboarding/company-logo";
 import {
+  MAX_LOGO_FILE_SIZE_MB,
   readFileAsDataUrl,
   validateLogoFile,
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
-import type { WorkspaceFormProps } from "@/types/onboarding";
+import type {
+  WorkspaceFormField,
+  WorkspaceFormProps,
+} from "@/types/onboarding";
 import { getGoogleFaviconUrl } from "@/utils/brand";
 import {
-  getHeardAboutNotraLabel,
   isHeardAboutNotraSource,
   slugify,
   slugifyWhileTyping,
@@ -49,22 +54,53 @@ import {
 
 const WEBSITE_PREFIX_REGEX = /^https?:\/\//i;
 
-function getValidationMessage(error: unknown) {
-  if (typeof error === "string") {
-    return error;
-  }
-
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message);
-  }
-
-  return "Please check this field";
-}
-
 export function WorkspaceForm({
   existingOrg,
   progressHrefs,
 }: WorkspaceFormProps) {
+  const t = useTranslations("onboarding.workspace");
+  const tCommon = useTranslations("common");
+  const heardAboutLabels = useHeardAboutLabels();
+  const getHeardAboutLabel = (value: string | null | undefined) => {
+    if (!value) {
+      return null;
+    }
+    return isHeardAboutNotraSource(value) ? heardAboutLabels[value] : value;
+  };
+  const getValidationMessage = (field: WorkspaceFormField, error: unknown) => {
+    if (typeof error === "string") {
+      return error;
+    }
+    if (!(error && typeof error === "object")) {
+      return t("validation.checkField");
+    }
+    const code = "code" in error ? error.code : undefined;
+    if (field === "name" && code === "too_small") {
+      return tCommon("messages.organizationNameTooShort");
+    }
+    if (field === "name" && code === "too_big") {
+      return tCommon("messages.organizationNameTooLong");
+    }
+    if (field === "slug" && code === "too_small") {
+      return tCommon("messages.organizationSlugTooShort");
+    }
+    if (field === "slug" && code === "too_big") {
+      return tCommon("messages.organizationSlugTooLong");
+    }
+    if (field === "slug" && code === "custom") {
+      return tCommon("messages.thisSlugIsReservedAnd");
+    }
+    if (field === "websiteUrl") {
+      return t("validation.websiteInvalid");
+    }
+    if (field === "heardAboutNotraOther" && code === "custom") {
+      return t("validation.heardAboutOtherRequired");
+    }
+    if ("message" in error) {
+      return String(error.message);
+    }
+    return t("validation.checkField");
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
@@ -83,7 +119,11 @@ export function WorkspaceForm({
   const handleLogoSelect = async (file: File) => {
     const validationError = validateLogoFile(file);
     if (validationError) {
-      toast.error(validationError);
+      toast.error(
+        validationError === "tooLarge"
+          ? t("logoTooLarge", { size: MAX_LOGO_FILE_SIZE_MB })
+          : t("logoInvalidType")
+      );
       return;
     }
 
@@ -91,12 +131,8 @@ export function WorkspaceForm({
       const dataUrl = await readFileAsDataUrl(file);
       setLogoFile(file);
       setLogoPreviewUrl(dataUrl);
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not read the selected image."
-      );
+    } catch {
+      toast.error(t("logoReadFailed"));
     }
   };
   const existingSource = existingOrg?.heardAboutNotraSource;
@@ -133,7 +169,7 @@ export function WorkspaceForm({
         window.location.assign("/onboarding/visibility");
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to create workspace"
+          err instanceof Error && err.message ? err.message : t("createFailed")
         );
         setIsSubmitting(false);
       }
@@ -154,16 +190,8 @@ export function WorkspaceForm({
       </div>
 
       <AuthFormHeader
-        description={
-          isResuming
-            ? "Your workspace is ready. Add your website and we'll pick up your brand voice."
-            : "Add your website and we'll pick up your brand voice from it."
-        }
-        title={
-          isResuming
-            ? "Finish setting up your workspace"
-            : "Set up your workspace"
-        }
+        description={isResuming ? t("resumeDescription") : t("description")}
+        title={isResuming ? t("resumeTitle") : t("title")}
       />
 
       <form
@@ -182,7 +210,7 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{tCommon("labels.name")}</Label>
               <div className="flex items-center gap-2">
                 <OrgLogoField
                   disabled={isSubmitting}
@@ -206,14 +234,14 @@ export function WorkspaceForm({
                       form.setFieldValue("slug", slugify(e.target.value));
                     }
                   }}
-                  placeholder="Acme Inc"
+                  placeholder={tCommon("labels.acmeInc")}
                   type="text"
                   value={field.state.value}
                 />
               </div>
               {field.state.meta.errors.length > 0 ? (
                 <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -228,7 +256,7 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="slug">Slug</Label>
+              <Label htmlFor="slug">{tCommon("labels.slug")}</Label>
               <div
                 className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
@@ -252,7 +280,7 @@ export function WorkspaceForm({
                   onChange={(e) =>
                     field.handleChange(slugifyWhileTyping(e.target.value))
                   }
-                  placeholder="acme-inc"
+                  placeholder={tCommon("labels.acmeIncSlug")}
                   spellCheck={false}
                   type="text"
                   value={field.state.value}
@@ -260,7 +288,7 @@ export function WorkspaceForm({
               </div>
               {field.state.meta.errors.length > 0 ? (
                 <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -275,7 +303,7 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">{tCommon("labels.website")}</Label>
               <div
                 className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
@@ -302,7 +330,7 @@ export function WorkspaceForm({
               </div>
               {field.state.meta.errors.length > 0 ? (
                 <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -321,10 +349,10 @@ export function WorkspaceForm({
               <div>
                 <div className="grid gap-2">
                   <Label htmlFor="heard-about-notra">
-                    Where did you hear about Notra?{" "}
+                    {t("heardAbout")}{" "}
                     {field.state.value !== "other" ? (
                       <span className="text-muted-foreground text-xs">
-                        (optional)
+                        {tCommon("labels.optional")}
                       </span>
                     ) : null}
                   </Label>
@@ -347,23 +375,26 @@ export function WorkspaceForm({
                       disabled={isSubmitting}
                       id="heard-about-notra"
                     >
-                      <SelectValue placeholder="Select an option">
+                      <SelectValue placeholder={t("selectOption")}>
                         {(value) =>
-                          getHeardAboutNotraLabel(value) ?? "Select an option"
+                          getHeardAboutLabel(value) ?? t("selectOption")
                         }
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {heardAboutLabels[option.value]}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {field.state.meta.errors.length > 0 ? (
                     <p className="text-destructive text-sm">
-                      {getValidationMessage(field.state.meta.errors[0])}
+                      {getValidationMessage(
+                        field.name,
+                        field.state.meta.errors[0]
+                      )}
                     </p>
                   ) : null}
                 </div>
@@ -384,7 +415,7 @@ export function WorkspaceForm({
                       {(otherField) => (
                         <div className="grid gap-2 pt-5">
                           <Label htmlFor="heard-about-notra-other">
-                            Tell us where
+                            {t("tellUsWhere")}
                           </Label>
                           <Textarea
                             aria-invalid={
@@ -399,13 +430,14 @@ export function WorkspaceForm({
                             onChange={(e) =>
                               otherField.handleChange(e.target.value)
                             }
-                            placeholder="Podcast, community, friend, etc."
+                            placeholder={t("tellUsWherePlaceholder")}
                             rows={3}
                             value={otherField.state.value}
                           />
                           {otherField.state.meta.errors.length > 0 ? (
                             <p className="text-destructive text-sm">
                               {getValidationMessage(
+                                otherField.name,
                                 otherField.state.meta.errors[0]
                               )}
                             </p>
@@ -446,10 +478,10 @@ export function WorkspaceForm({
               {isSubmitting ? (
                 <>
                   <Loader2Icon className="size-4 animate-spin" />
-                  Setting up...
+                  {t("settingUp")}
                 </>
               ) : (
-                "Continue"
+                tCommon("actions.continue")
               )}
             </CtaButton>
           )}

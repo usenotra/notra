@@ -19,6 +19,8 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
+import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
 import type { SessionUser } from "@/types/auth/session";
 import type {
@@ -36,6 +38,7 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
 
 export async function signOutAction(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
+  await clearLocaleCookie();
   await signOut(parsed.success ? parsed.data : undefined);
 }
 
@@ -52,6 +55,7 @@ export async function updateUserAction(
         image: string | null;
         hidePersonalData: boolean;
         showAgentStats: boolean;
+        locale: string | null;
       }> = {};
 
       if (input.name !== undefined) {
@@ -66,6 +70,9 @@ export async function updateUserAction(
       if (input.showAgentStats !== undefined) {
         updates.showAgentStats = input.showAgentStats;
       }
+      if (input.locale !== undefined) {
+        updates.locale = input.locale;
+      }
 
       const [updated] = yield* tryAction(
         () =>
@@ -79,8 +86,17 @@ export async function updateUserAction(
 
       if (!updated) {
         return yield* Effect.fail(
-          new ActionFailure({ message: "User not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.userNotFound"
+            ),
+          })
         );
+      }
+
+      if (input.locale !== undefined) {
+        const locale = input.locale;
+        yield* Effect.promise(() => writeLocaleCookie(locale));
       }
 
       if (input.name !== undefined && updated.workosUserId) {
@@ -169,6 +185,7 @@ export async function deleteUserAction(): Promise<
       );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");
+      yield* Effect.promise(clearLocaleCookie);
 
       return { deleted: true };
     })

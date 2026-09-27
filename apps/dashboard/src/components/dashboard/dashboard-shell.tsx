@@ -11,7 +11,9 @@ import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -58,6 +60,7 @@ function DashboardAgentPanelSkeleton() {
 }
 
 function DashboardAgentHostLoading() {
+  const t = useTranslations("dashboard.agent");
   const { active, closePanel, expanded } = useRightPanel();
   const isDesktop = useDesktopBreakpoint();
 
@@ -92,9 +95,9 @@ function DashboardAgentHostLoading() {
         showCloseButton={false}
       >
         <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("loadingTitle")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Loading the dashboard agent.
+            {t("loadingDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <DashboardAgentPanelSkeleton />
@@ -156,12 +159,35 @@ function DashboardOnboardingBanner({
   );
 }
 
+function DashboardPageViewport({
+  children,
+}: Pick<DashboardShellProps, "children">) {
+  const pathname = usePathname();
+  const [, , section, contentId] = pathname.split("/");
+  const pageOwnsScroll =
+    section === "chat" || (section === "content" && Boolean(contentId));
+
+  return (
+    <div
+      className={cn(
+        "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain",
+        pageOwnsScroll
+          ? "overflow-hidden"
+          : "scrollbar-stable scrollbar-thin overflow-x-hidden overflow-y-auto"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function DashboardShell({
   children,
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
+  const t = useTranslations("dashboard.onboardingBanner");
   const { activeOrganization } = useOrganizationsContext();
   const { expanded, hasOpened } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
@@ -205,10 +231,7 @@ export function DashboardShell({
     runAgent.mutate(
       { organizationId },
       {
-        onError: (error) =>
-          toast.error(
-            error.message || "Couldn't start the setup agent. Try again later."
-          ),
+        onError: (error) => toast.error(error.message || t("startFailed")),
       }
     );
   };
@@ -276,9 +299,9 @@ export function DashboardShell({
         >
           <SiteHeader />
           <RestoreSidebarHome />
-          <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
+          <DashboardPageViewport>
             <SubscriptionGate>{children}</SubscriptionGate>
-          </div>
+          </DashboardPageViewport>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
         {hasOpened.agent ? <DashboardAgentHost /> : null}

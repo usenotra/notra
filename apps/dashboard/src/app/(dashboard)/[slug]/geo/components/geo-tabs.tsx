@@ -6,6 +6,7 @@ import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
@@ -25,12 +26,13 @@ import { journeyTotals } from "@/utils/geo-journey";
 import { toGeoTab } from "@/utils/geo-tabs";
 
 function TriggerCount({ count }: { count: number }) {
+  const locale = useLocale();
   if (count <= 0) {
     return null;
   }
   return (
     <span className="text-xs tabular-nums opacity-70">
-      {count.toLocaleString()}
+      {count.toLocaleString(locale)}
     </span>
   );
 }
@@ -78,11 +80,13 @@ export function GeoTabs({
   journeysLoading,
   organizationId,
 }: GeoTabsProps) {
+  const t = useTranslations("geo.pages.tabs");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex min-w-0 flex-col">
       <PermissionRow
         className="w-fit shrink-0"
-        label="GEO sections"
+        label={t("label")}
         layout="compact"
         onValueChange={(value) => {
           const tab = toGeoTab(value);
@@ -91,13 +95,15 @@ export function GeoTabs({
         }}
         value={activeTab}
       >
-        <PermissionOption value="visibility">Visibility</PermissionOption>
+        <PermissionOption value="visibility">
+          {tCommon("labels.visibility")}
+        </PermissionOption>
         <PermissionOption value="brand-sentiment">
-          Brand Sentiment
+          {tCommon("labels.brandSentiment")}
         </PermissionOption>
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
-            Journeys
+            {tCommon("labels.journeys")}
             <TriggerCount
               count={
                 journeyStats

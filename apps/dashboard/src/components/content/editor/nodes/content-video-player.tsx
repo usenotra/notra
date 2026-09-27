@@ -9,6 +9,7 @@ import {
   VolumeOffIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -24,6 +25,8 @@ function formatClock(seconds: number) {
 }
 
 export function ContentVideoPlayer({ src }: { src: string }) {
+  const t = useTranslations("content.editor.video");
+  const tCommon = useTranslations("common");
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -99,7 +102,7 @@ export function ContentVideoPlayer({ src }: { src: string }) {
       >
         {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- uploads do not include a caption file */}
         <video
-          aria-label="Video"
+          aria-label={tCommon("labels.video")}
           className={
             fullscreen ? "h-full w-full object-contain" : "max-h-128 w-full"
           }
@@ -134,7 +137,7 @@ export function ContentVideoPlayer({ src }: { src: string }) {
       </div>
       <div className="border-border bg-background flex items-center gap-1.5 border-t px-2 py-1.5">
         <Button
-          aria-label={playing ? "Pause" : "Play"}
+          aria-label={playing ? t("pause") : t("play")}
           onClick={togglePlay}
           onMouseDown={(event) => event.preventDefault()}
           size="icon-sm"
@@ -153,7 +156,7 @@ export function ContentVideoPlayer({ src }: { src: string }) {
           {formatClock(duration)}
         </span>
         <input
-          aria-label="Seek"
+          aria-label={t("seek")}
           aria-valuemax={Number.isFinite(duration) ? duration : 0}
           aria-valuemin={0}
           aria-valuenow={current}
@@ -167,7 +170,7 @@ export function ContentVideoPlayer({ src }: { src: string }) {
           value={Number.isFinite(current) ? current : 0}
         />
         <Button
-          aria-label={muted ? "Unmute" : "Mute"}
+          aria-label={muted ? t("unmute") : t("mute")}
           aria-pressed={muted}
           onClick={toggleMuted}
           onMouseDown={(event) => event.preventDefault()}
@@ -181,7 +184,7 @@ export function ContentVideoPlayer({ src }: { src: string }) {
           />
         </Button>
         <Button
-          aria-label={fullscreen ? "Exit full screen" : "Full screen"}
+          aria-label={fullscreen ? t("exitFullscreen") : t("fullscreen")}
           onClick={toggleFullscreen}
           onMouseDown={(event) => event.preventDefault()}
           size="icon-sm"

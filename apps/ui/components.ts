@@ -1,7 +1,9 @@
 import { defineComponents } from "blume";
 
-import Header from "./src/components/header.astro";
+import DuotoneTooltip from "./src/components/duotone-tooltip.astro";
+import ThemeHotkey from "./src/components/theme-hotkey.astro";
 
 export default defineComponents({
-  layout: { Header },
+  layout: { Footer: ThemeHotkey },
+  mdx: { DuotoneTooltip },
 });

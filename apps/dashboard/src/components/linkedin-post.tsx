@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import type * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -104,6 +105,24 @@ const LINKEDIN_EDITOR_OVERLAY_STYLE: React.CSSProperties = {
   color: "transparent",
 };
 
+function MockLink({ mockUrl, url }: { mockUrl: string; url: string }) {
+  const t = useTranslations("content.socialPost");
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span className="hover:decoration-foreground cursor-pointer text-blue-600 hover:underline hover:underline-offset-2" />
+        }
+      >
+        {mockUrl}
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="text-xs">{t("mockLink", { url })}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 function formatContentWithHashtagsAndLinks(
   text: string,
   shortenUrls = true
@@ -122,20 +141,7 @@ function formatContentWithHashtagsAndLinks(
     }
     if (part.match(URL_REGEX)) {
       const mockUrl = generateMockLinkedInUrl(part);
-      return (
-        <Tooltip key={index}>
-          <TooltipTrigger
-            render={
-              <span className="hover:decoration-foreground cursor-pointer text-blue-600 hover:underline hover:underline-offset-2" />
-            }
-          >
-            {mockUrl}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">Mock link (actual: {part})</p>
-          </TooltipContent>
-        </Tooltip>
-      );
+      return <MockLink key={index} mockUrl={mockUrl} url={part} />;
     }
     return part;
   });
@@ -154,6 +160,7 @@ function PostContent({
   defaultExpanded?: boolean;
   onSelectionChange?: (selection: TextSelection | null) => void;
 }) {
+  const t = useTranslations("content.socialPost");
   const [expanded, setExpanded] = useState(defaultExpanded);
   const contentRef = useRef<HTMLDivElement>(null);
   const canTruncate = truncate && content.length > truncationLimit;
@@ -222,7 +229,7 @@ function PostContent({
   }, [content, onSelectionChange]);
 
   return (
-    <div className="text-sm" ref={contentRef}>
+    <div className="text-sm wrap-anywhere" ref={contentRef}>
       <span className="whitespace-pre-wrap">
         {formatContentWithHashtagsAndLinks(displayContent)}
       </span>
@@ -232,7 +239,7 @@ function PostContent({
           onClick={() => setExpanded(true)}
           type="button"
         >
-          …more
+          {t("more")}
         </button>
       )}
     </div>
@@ -245,6 +252,7 @@ function LinkedInPostHeader({
   timestamp,
   onClose,
 }: LinkedInPostHeaderProps) {
+  const t = useTranslations("content.socialPost");
   const hasAccountSelector =
     accountSelector !== undefined && accountSelector.accounts.length > 1;
   return (
@@ -274,7 +282,12 @@ function LinkedInPostHeader({
             }
           />
         ) : (
-          <p className="text-sm leading-tight font-semibold">{author.name}</p>
+          <p
+            className="truncate text-sm leading-tight font-semibold"
+            title={author.name}
+          >
+            {author.name}
+          </p>
         )}
         {author.headline && (
           <p className="text-muted-foreground truncate text-xs leading-tight">
@@ -293,7 +306,7 @@ function LinkedInPostHeader({
       </div>
       <div className="flex shrink-0 items-center">
         <Button
-          aria-label="Post actions"
+          aria-label={t("postActions")}
           className="text-muted-foreground"
           size="icon-sm"
           variant="ghost"
@@ -301,7 +314,7 @@ function LinkedInPostHeader({
           <HugeiconsIcon className="size-5" icon={MoreHorizontalIcon} />
         </Button>
         <Button
-          aria-label="Close post"
+          aria-label={t("closePost")}
           className="text-muted-foreground"
           onClick={onClose}
           size="icon-sm"
@@ -319,6 +332,8 @@ function LinkedInPostEngagement({
   comments = 0,
   reposts = 0,
 }: LinkedInPostEngagementProps) {
+  const t = useTranslations("content.socialPost");
+  const locale = useLocale();
   const count = reactions?.count ?? 0;
   if (count <= 0 && comments <= 0 && reposts <= 0) {
     return null;
@@ -334,14 +349,14 @@ function LinkedInPostEngagement({
               ))}
             </div>
             <span className="text-muted-foreground text-xs">
-              {count.toLocaleString()}
+              {count.toLocaleString(locale)}
             </span>
           </>
         )}
       </div>
       <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        {comments > 0 && <span>{comments.toLocaleString()} comments</span>}
-        {reposts > 0 && <span>{reposts.toLocaleString()} reposts</span>}
+        {comments > 0 && <span>{t("comments", { count: comments })}</span>}
+        {reposts > 0 && <span>{t("reposts", { count: reposts })}</span>}
       </div>
     </div>
   );
@@ -369,6 +384,8 @@ function LinkedInPost({
   className,
   ...props
 }: LinkedInPostProps) {
+  const t = useTranslations("content.socialPost");
+  const tCommon = useTranslations("common");
   const isEditable = Boolean(onContentChange);
 
   const [localValue, setLocalValue] = useState(() => content ?? "");
@@ -415,7 +432,7 @@ function LinkedInPost({
                   setLocalValue(value);
                   onContentChange?.(value);
                 }}
-                placeholder="What do you want to talk about?"
+                placeholder={t("linkedinPlaceholder")}
                 spellCheck={false}
                 style={LINKEDIN_EDITOR_OVERLAY_STYLE}
                 value={localValue}
@@ -456,7 +473,7 @@ function LinkedInPost({
             variant="ghost"
           >
             <HugeiconsIcon className="size-4" icon={ThumbsUpIcon} />
-            <span className="text-xs">Like</span>
+            <span className="text-xs">{t("linkedinLike")}</span>
           </Button>
           <Button
             className="text-muted-foreground flex-1 gap-1.5"
@@ -465,7 +482,7 @@ function LinkedInPost({
             variant="ghost"
           >
             <HugeiconsIcon className="size-4" icon={Comment01Icon} />
-            <span className="text-xs">Comment</span>
+            <span className="text-xs">{t("linkedinComment")}</span>
           </Button>
           <Button
             className="text-muted-foreground flex-1 gap-1.5"
@@ -474,7 +491,7 @@ function LinkedInPost({
             variant="ghost"
           >
             <HugeiconsIcon className="size-4" icon={RepostIcon} />
-            <span className="text-xs">Repost</span>
+            <span className="text-xs">{t("linkedinRepost")}</span>
           </Button>
           <Button
             className="text-muted-foreground flex-1 gap-1.5"
@@ -483,7 +500,7 @@ function LinkedInPost({
             variant="ghost"
           >
             <HugeiconsIcon className="size-4" icon={SentIcon} />
-            <span className="text-xs">Send</span>
+            <span className="text-xs">{tCommon("labels.send")}</span>
           </Button>
         </div>
       </div>

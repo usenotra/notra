@@ -6,21 +6,15 @@ import {
 
 export const APPEARANCE_OPTIONS = [
   {
-    description: "Always use the light appearance",
     icon: Sun03Icon,
-    label: "Light",
     value: "light",
   },
   {
-    description: "Always use the dark appearance",
     icon: Moon02Icon,
-    label: "Dark",
     value: "dark",
   },
   {
-    description: "Match your device appearance",
     icon: ComputerIcon,
-    label: "System",
     value: "system",
   },
 ] as const;

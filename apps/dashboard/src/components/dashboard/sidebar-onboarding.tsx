@@ -8,6 +8,7 @@ import {
 import { Progress } from "@notra/ui/components/ui/progress";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -39,6 +40,8 @@ function setStoredCollapsed(storageKey: string, value: boolean) {
 }
 
 export function SidebarOnboarding() {
+  const t = useTranslations("nav.onboarding");
+  const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const orgId = activeOrganization?.id ?? "";
   const slug = activeOrganization?.slug ?? "";
@@ -84,22 +87,22 @@ export function SidebarOnboarding() {
 
   const steps = [
     {
-      label: "Set up brand identity",
+      label: t("steps.brandIdentity"),
       href: `/${slug}/brand/identity`,
       completed: data.hasBrandIdentity,
     },
     {
-      label: "Add an integration",
+      label: t("steps.integration"),
       href: `/${slug}/integrations`,
       completed: data.hasIntegration,
     },
     {
-      label: "Create a schedule",
+      label: t("steps.schedule"),
       href: `/${slug}/automation/schedules`,
       completed: data.hasSchedule,
     },
     {
-      label: "Track AI visibility",
+      label: t("steps.geoTracking"),
       href: geoOnboardingPath(),
       completed: data.hasGeoTracking,
     },
@@ -117,7 +120,7 @@ export function SidebarOnboarding() {
         )}
       >
         <button
-          aria-label={collapsed ? "Expand Getting Started" : "Close"}
+          aria-label={collapsed ? t("expand") : tCommon("actions.close")}
           className={cn(
             "duration-slow flex w-full cursor-pointer items-center gap-2 text-left transition-[padding,background-color,border-color,border-radius,color] ease-out",
             collapsed
@@ -128,10 +131,19 @@ export function SidebarOnboarding() {
           type="button"
         >
           <span className="flex-1 truncate font-medium">
-            Getting Started
-            {collapsed && ` (${completedCount}/${steps.length})`}
+            {collapsed
+              ? t("titleWithProgress", {
+                  completed: completedCount,
+                  total: steps.length,
+                })
+              : t("title")}
           </span>
-          {agentRunning && <BrailleLoader className="text-xs" />}
+          {agentRunning && (
+            <BrailleLoader
+              ariaLabel={tCommon("states.loading")}
+              className="text-xs"
+            />
+          )}
           <svg
             aria-hidden="true"
             className="size-3.5 shrink-0"
@@ -142,7 +154,9 @@ export function SidebarOnboarding() {
             strokeWidth="2"
             viewBox="0 0 24 24"
           >
-            <title>{collapsed ? "Expand" : "Close"}</title>
+            <title>
+              {collapsed ? t("expandShort") : tCommon("actions.close")}
+            </title>
             {collapsed ? (
               <path d="m18 15-6-6-6 6" />
             ) : (
@@ -161,7 +175,7 @@ export function SidebarOnboarding() {
         >
           <div className="min-h-0 overflow-hidden">
             <div className="px-3 pt-3 text-sm font-medium">
-              Complete these steps to get the most out of Notra.
+              {t("description")}
             </div>
           </div>
         </div>
@@ -185,7 +199,7 @@ export function SidebarOnboarding() {
         >
           <div className="min-h-0 overflow-hidden">
             <p className="text-muted-foreground px-3 pt-1 text-xs tabular-nums">
-              {Math.round(progress)}% Completed
+              {t("percentCompleted", { percent: Math.round(progress) })}
             </p>
             <OnboardingChecklistItems className="px-3 pt-3 pb-3">
               {steps.map((step) => (

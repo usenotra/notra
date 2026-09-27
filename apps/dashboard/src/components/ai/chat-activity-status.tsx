@@ -1,5 +1,6 @@
 "use client";
 
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import {
@@ -9,6 +10,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 
 import type { ChatActivityStatusProps } from "@/types/components/chat-activity-group";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
@@ -16,20 +18,22 @@ import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 export function ChatActivityStatus({
   children,
   seconds,
-  label = "Thinking",
+  label,
   active = true,
 }: ChatActivityStatusProps) {
+  const tCommon = useTranslations("common");
   const reduceMotion = useReducedMotion();
+  const resolvedLabel = label ?? tCommon("labels.thinkingLabel");
   return (
     <span className="text-muted-foreground inline-flex min-h-5 items-center gap-2 text-sm leading-5">
       <LazyMotion features={domMax}>
         <span className="relative inline-flex h-5 items-center overflow-hidden">
-          <span className="sr-only">{label}</span>
+          <span className="sr-only">{resolvedLabel}</span>
           <AnimatePresence initial={false} mode="popLayout">
             <m.span
               aria-hidden="true"
               className="inline-flex h-5 items-center whitespace-nowrap"
-              key={label}
+              key={resolvedLabel}
               initial={{
                 opacity: 0,
                 transform: reduceMotion ? "none" : "translateY(50%)",
@@ -45,12 +49,15 @@ export function ChatActivityStatus({
               transition={TRANSITION.enter}
             >
               {active ? (
-                <BrailleLoader
-                  className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
-                  label={label}
-                />
+                <span className="inline-flex items-center gap-2">
+                  <BrailleLoader
+                    className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
+                    ariaLabel={resolvedLabel}
+                  />
+                  <Shimmer as="span">{resolvedLabel}</Shimmer>
+                </span>
               ) : (
-                label
+                resolvedLabel
               )}
             </m.span>
           </AnimatePresence>

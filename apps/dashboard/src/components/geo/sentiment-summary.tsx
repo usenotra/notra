@@ -1,10 +1,12 @@
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 
 import { SentimentScore } from "@/components/geo/sentiment-score";
 import { SentimentSkeleton } from "@/components/geo/sentiment-skeleton";
+import { GEO_SENTIMENT_EMPTY_LABEL_KEYS } from "@/constants/geo-sentiment";
 import type { SentimentSummaryProps } from "@/types/geo-sentiment";
 import {
-  sentimentEmptyMessage,
+  sentimentEmptyMessageKey,
   sentimentHasDisplayableData,
   sentimentSummaryShowsEmpty,
 } from "@/utils/geo-sentiment";
@@ -15,17 +17,19 @@ export function SentimentSummary({
   isError,
   retry,
 }: SentimentSummaryProps) {
+  const t = useTranslations("geo.sentimentSummary");
+  const tGeoShared = useTranslations("geo.shared");
   const summary = data?.summary;
   const showData = sentimentHasDisplayableData(summary);
   const showEmpty = sentimentSummaryShowsEmpty(summary);
   return (
-    <aside aria-label="Sentiment summary" className="min-w-0 px-5 pt-4 pb-1">
+    <aside aria-label={t("label")} className="min-w-0 px-5 pt-4 pb-1">
       {isPending ? <SentimentSkeleton compact /> : null}
       {isError ? (
         <div role="alert" className="space-y-2 text-sm">
-          <p>Could not load sentiment summary.</p>
+          <p>{t("loadError")}</p>
           <Button size="sm" variant="ghost" onClick={retry}>
-            Retry summary
+            {t("retry")}
           </Button>
         </div>
       ) : null}
@@ -42,11 +46,17 @@ export function SentimentSummary({
               <span className="text-muted-foreground text-sm">/ 100</span>
             </div>
             <p className="text-muted-foreground max-w-48 text-xs text-balance">
-              {sentimentEmptyMessage(summary)}
+              {tGeoShared(
+                GEO_SENTIMENT_EMPTY_LABEL_KEYS[
+                  sentimentEmptyMessageKey(summary)
+                ]
+              )}
             </p>
           </div>
           <div className="pt-2 sm:pt-0">
-            <p className="text-muted-foreground mb-2 text-xs">Score position</p>
+            <p className="text-muted-foreground mb-2 text-xs">
+              {tGeoShared("scorePosition")}
+            </p>
             <div className="from-geo-down to-geo-up h-2 rounded-full bg-linear-to-r via-amber-200" />
             <div className="text-muted-foreground mt-2 flex justify-between text-[0.6875rem] tabular-nums">
               <span>0</span>

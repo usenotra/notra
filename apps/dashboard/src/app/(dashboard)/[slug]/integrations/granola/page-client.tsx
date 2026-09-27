@@ -20,6 +20,7 @@ import {
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -46,6 +47,11 @@ function GranolaIntegrationCard({
   organizationId,
   onUpdate,
 }: GranolaIntegrationCardProps) {
+  const t = useTranslations("integrations.granolaPage");
+  const tCard = useTranslations("integrations.card");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -63,11 +69,11 @@ function GranolaIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(enabled ? tCard("enabledToast") : tCard("disabledToast"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update integration");
+      toast.error(tCard("updateFailed"));
     },
   });
 
@@ -84,11 +90,11 @@ function GranolaIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success("Integration deleted");
+      toast.success(tCard("deleted"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to delete integration");
+      toast.error(tCard("deleteFailed"));
     },
   });
 
@@ -107,30 +113,38 @@ function GranolaIntegrationCard({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{integration.displayName}</CardTitle>
+          <CardTitle className="wrap-anywhere">
+            {integration.displayName}
+          </CardTitle>
           <CardDescription>
-            {integration.createdByUser ? (
-              <>
-                Added by {integration.createdByUser.name} on{" "}
-                {formatGranolaIntegrationDate(integration.createdAt)}
-              </>
-            ) : (
-              <>
-                Created on {formatGranolaIntegrationDate(integration.createdAt)}
-              </>
-            )}
+            {integration.createdByUser
+              ? tCard("addedBy", {
+                  name: integration.createdByUser.name,
+                  date: formatGranolaIntegrationDate(
+                    integration.createdAt,
+                    locale
+                  ),
+                })
+              : tCard("createdOn", {
+                  date: formatGranolaIntegrationDate(
+                    integration.createdAt,
+                    locale
+                  ),
+                })}
           </CardDescription>
           <CardAction>
             <div className="flex items-center gap-2">
               <Badge variant={integration.enabled ? "default" : "secondary"}>
-                {integration.enabled ? "Enabled" : "Disabled"}
+                {integration.enabled
+                  ? tCommon("states.enabled")
+                  : tCommon("states.disabled")}
               </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button disabled={isLoading} size="icon-sm" variant="ghost">
                       <svg
-                        aria-label="More options"
+                        aria-label={tIntegrationsShared("moreOptions")}
                         fill="none"
                         stroke="currentColor"
                         strokeLinecap="round"
@@ -139,7 +153,7 @@ function GranolaIntegrationCard({
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <title>More options</title>
+                        <title>{tIntegrationsShared("moreOptions")}</title>
                         <circle cx="12" cy="12" r="1" />
                         <circle cx="12" cy="5" r="1" />
                         <circle cx="12" cy="19" r="1" />
@@ -152,14 +166,16 @@ function GranolaIntegrationCard({
                     className="cursor-pointer"
                     onClick={handleToggle}
                   >
-                    {integration.enabled ? "Disable" : "Enable"}
+                    {integration.enabled
+                      ? tCommon("actions.disable")
+                      : tCommon("actions.enable")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={() => setIsDeleteDialogOpen(true)}
                     variant="destructive"
                   >
-                    Delete
+                    {tCommon("actions.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -171,7 +187,7 @@ function GranolaIntegrationCard({
             <p>
               {integration.workspaceName
                 ? integration.workspaceName
-                : "Granola workspace connected"}
+                : t("workspaceConnected")}
             </p>
           </div>
         </CardContent>
@@ -190,6 +206,9 @@ function GranolaIntegrationCard({
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("integrations.granolaPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -215,12 +234,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeading
-          description="Manage your Granola integrations for meeting-based content"
-          title="Granola Integrations"
+          description={t("description")}
+          title={tIntegrationsShared("granolaIntegrations")}
         >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Connect Granola
+            {t("connect")}
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
         </PageHeading>
@@ -232,11 +251,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             <EmptyState
               action={
                 <Button onClick={() => refetch()} size="sm" variant="outline">
-                  Retry
+                  {tCommon("actions.retry")}
                 </Button>
               }
-              description="Something went wrong while loading your Granola integrations."
-              title="Failed to load integrations"
+              description={t("loadFailedDescription")}
+              title={t("loadFailedTitle")}
             />
           ) : null}
 
@@ -249,14 +268,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   size="sm"
                   variant="outline"
                 >
-                  Connect Granola
+                  {t("connect")}
                 </Button>
               }
-              description="Connect Granola to start pulling meeting notes and summaries."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateCardsPreview count={2} variant="integration" />
               }
-              title="No integrations yet"
+              title={tIntegrationsShared("noIntegrationsYet")}
             />
           ) : null}
 

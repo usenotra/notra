@@ -22,6 +22,7 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -34,18 +35,13 @@ import {
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
+import { ChatQuoteProvider } from "@/components/chat/chat-quote";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DASHBOARD_AGENT_SUGGESTIONS } from "@/constants/chat-suggestions";
-import {
-  DASHBOARD_AGENT_CHAT_ERROR_TOAST,
-  DASHBOARD_AGENT_CHAT_PLACEHOLDER,
-  DASHBOARD_AGENT_STOP_ERROR_TOAST,
-  DASHBOARD_AGENT_TITLE,
-} from "@/constants/dashboard-agent";
 import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
@@ -53,7 +49,6 @@ import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
-import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
 import { buildUserMessageParts } from "@/utils/chat-message-parts";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
@@ -63,6 +58,9 @@ function DashboardAgentChat({
   organizationSlug,
   onClose,
 }: DashboardAgentChatProps) {
+  const t = useTranslations("dashboard.agent");
+  const tCommon = useTranslations("common");
+  const tChatErrors = useTranslations("chat.errors");
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -205,9 +203,13 @@ function DashboardAgentChat({
 
       const { isUsageLimit } = handleStandaloneChatError(err, {
         setChatError,
+        messages: {
+          usageLimit: tChatErrors("usageLimit"),
+          fallback: tChatErrors("fallback"),
+        },
       });
       if (!isUsageLimit) {
-        toast.error(DASHBOARD_AGENT_CHAT_ERROR_TOAST);
+        toast.error(t("sendFailed"));
       }
     },
   });
@@ -247,7 +249,7 @@ function DashboardAgentChat({
       setMessages(history);
       setActiveChatId(chatId);
     } catch {
-      toast.error("Failed to load agent chat history. Try again.");
+      toast.error(t("historyLoadFailed"));
     }
     setIsHydratingHistory(false);
     isAgentBusyRef.current = false;
@@ -333,12 +335,12 @@ function DashboardAgentChat({
           `Failed to stop dashboard agent response: status ${response.status}`
         );
       }
-      toast.error(DASHBOARD_AGENT_STOP_ERROR_TOAST);
+      toast.error(t("stopFailed"));
       return;
     }
 
     stop();
-  }, [activeChatId, organizationId, stop]);
+  }, [activeChatId, organizationId, stop, t]);
 
   const handleSuggestionSelect = (prompt: string) => {
     setChatInputValue(prompt);
@@ -379,57 +381,59 @@ function DashboardAgentChat({
 
   const chat = hasOpened ? (
     <div className="h-full min-h-0 max-w-full min-w-0">
-      <ContentChatActivityPanel
-        activeChatId={activeChatId}
-        isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
-        messages={messages}
-        onApproveTool={handleApproveTool}
-        onClose={onClose}
-        onDenyTool={handleDenyTool}
-        onNewChat={handleNewChat}
-        onOpenChat={handleOpenChat}
-        onSelectChat={handleSelectChat}
-        organizationSlug={organizationSlug}
-        showHistory={false}
-        sessions={sessions}
-        status={status}
-        title={DASHBOARD_AGENT_TITLE}
-      >
-        {showExamplePrompts ? (
-          <div className="px-2">
-            <ChatSuggestions
+      <ChatQuoteProvider key={activeChatId}>
+        <ContentChatActivityPanel
+          activeChatId={activeChatId}
+          isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
+          messages={messages}
+          onApproveTool={handleApproveTool}
+          onClose={onClose}
+          onDenyTool={handleDenyTool}
+          onNewChat={handleNewChat}
+          onOpenChat={handleOpenChat}
+          onSelectChat={handleSelectChat}
+          organizationSlug={organizationSlug}
+          showHistory={false}
+          sessions={sessions}
+          status={status}
+          title={tCommon("labels.agent")}
+        >
+          {showExamplePrompts ? (
+            <div className="px-2">
+              <ChatSuggestions
+                disabled={isChatDisabled}
+                dismissStorageKey={
+                  localStorageKeys.dashboardAgentSuggestionsDismissed
+                }
+                hidden={chatInputValue.trim().length > 0}
+                layout="list"
+                onSelect={handleSuggestionSelect}
+                rotate
+                suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+              />
+            </div>
+          ) : null}
+          <div className="shrink-0 p-2 pt-1">
+            <ChatInput
               disabled={isChatDisabled}
-              dismissStorageKey={
-                localStorageKeys.dashboardAgentSuggestionsDismissed
+              error={chatError}
+              isLoading={isAgentBusy}
+              onClearError={() => setChatError(null)}
+              onSend={handleSend}
+              onStop={handleStop}
+              onValueChange={setChatInputValue}
+              organizationId={organizationId}
+              organizationSlug={
+                chatError && chatError !== tChatErrors("usageLimit")
+                  ? ""
+                  : organizationSlug
               }
-              hidden={chatInputValue.trim().length > 0}
-              layout="list"
-              onSelect={handleSuggestionSelect}
-              rotate
-              suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+              placeholder={t("placeholder")}
+              value={chatInputValue}
             />
           </div>
-        ) : null}
-        <div className="shrink-0 p-2 pt-1">
-          <ChatInput
-            disabled={isChatDisabled}
-            error={chatError}
-            isLoading={isAgentBusy}
-            onClearError={() => setChatError(null)}
-            onSend={handleSend}
-            onStop={handleStop}
-            onValueChange={setChatInputValue}
-            organizationId={organizationId}
-            organizationSlug={
-              chatError && chatError !== CHAT_USAGE_LIMIT_MESSAGE
-                ? ""
-                : organizationSlug
-            }
-            placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
-            value={chatInputValue}
-          />
-        </div>
-      </ContentChatActivityPanel>
+        </ContentChatActivityPanel>
+      </ChatQuoteProvider>
     </div>
   ) : null;
 
@@ -461,9 +465,11 @@ function DashboardAgentChat({
         showCloseButton={false}
       >
         <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>{DASHBOARD_AGENT_TITLE}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tCommon("labels.agent")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Chat with your dashboard agent.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         {chat}

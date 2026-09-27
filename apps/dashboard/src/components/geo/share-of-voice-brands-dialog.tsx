@@ -2,7 +2,6 @@
 
 import { Search01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_FAMILY_STAT_TREND_HINT } from "@notra/geo-core/constants/geo";
 import {
   InputGroup,
   InputGroupAddon,
@@ -18,6 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -50,6 +50,9 @@ function ShareOfVoiceBrandRow({
   onPrefetch,
   onTrack,
 }: ShareOfVoiceBrandRowProps) {
+  const t = useTranslations("geo.shareOfVoiceBrandsDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const tracked = own || row.tracked;
   const brand = (
     <>
@@ -72,7 +75,9 @@ function ShareOfVoiceBrandRow({
           {row.brand}
         </span>
         <span className="text-muted-foreground block text-xs tabular-nums sm:hidden">
-          {formatChartInteger(row.mentions)} mentions
+          {t("mentionsCount", {
+            count: formatChartInteger(row.mentions, locale),
+          })}
         </span>
       </span>
     </>
@@ -98,14 +103,14 @@ function ShareOfVoiceBrandRow({
         )}
       </th>
       <td className="text-muted-foreground hidden px-3 text-right text-sm tabular-nums sm:table-cell">
-        {formatChartInteger(row.mentions)}
+        {formatChartInteger(row.mentions, locale)}
       </td>
       <td className="hidden px-3 sm:table-cell">
         <span className="flex h-7 items-center justify-end">
           <GeoStatDelta
             delta={mentionCountDelta(mentionSeries)}
-            hint={GEO_FAMILY_STAT_TREND_HINT}
-            label={`${row.brand} mentions`}
+            hint={tGeoShared("vsFirstHalfOfThis")}
+            label={tGeoShared("brandMentions", { brand: row.brand })}
           />
         </span>
       </td>
@@ -121,14 +126,16 @@ function ShareOfVoiceBrandRow({
                 className="size-3.5"
                 icon={Tick02Icon}
               />
-              {own ? "Your brand" : "Tracked"}
+              {own ? tGeoShared("yourBrand") : tGeoShared("tracked")}
             </span>
           ) : null}
           {!tracked && onTrack ? (
             <TrackBrandButton brand={row.brand} onTrack={onTrack} />
           ) : null}
           {!tracked && !onTrack ? (
-            <span className="text-muted-foreground text-xs">Discovered</span>
+            <span className="text-muted-foreground text-xs">
+              {tGeoShared("discovered")}
+            </span>
           ) : null}
         </span>
       </td>
@@ -149,6 +156,10 @@ function ShareOfVoiceBrandsContent({
   onBrandPointerEnter,
   onTrackBrand,
 }: ShareOfVoiceBrandsDialogProps) {
+  const t = useTranslations("geo.shareOfVoiceBrandsDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<ShareOfVoiceBrandFilter>("all");
@@ -167,28 +178,32 @@ function ShareOfVoiceBrandsContent({
   return (
     <>
       <SheetHeader className="bg-muted/50 shrink-0 gap-4 border-b p-5 pr-14">
-        <SheetTitle>Additional brands</SheetTitle>
+        <SheetTitle>{t("title")}</SheetTitle>
         <dl className="grid grid-cols-3 gap-4">
           <div>
-            <dt className="text-muted-foreground text-xs">Brands</dt>
+            <dt className="text-muted-foreground text-xs">{t("brands")}</dt>
             <dd className="mt-1 text-xl font-medium tabular-nums">
-              {formatChartInteger(others.length)}
+              {formatChartInteger(others.length, locale)}
             </dd>
           </div>
           <div>
-            <dt className="text-muted-foreground text-xs">Share</dt>
+            <dt className="text-muted-foreground text-xs">
+              {tGeoShared("share")}
+            </dt>
             <dd className="mt-1 text-xl font-medium tabular-nums">
               {formatUsageShare(other.share)}
             </dd>
           </div>
           <div>
-            <dt className="text-muted-foreground text-xs">Mentions</dt>
+            <dt className="text-muted-foreground text-xs">
+              {tGeoShared("mentionsLabel")}
+            </dt>
             <dd className="mt-1 flex items-center gap-2 text-xl font-medium tabular-nums">
-              {formatChartInteger(other.mentions)}
+              {formatChartInteger(other.mentions, locale)}
               <GeoStatDelta
                 delta={mentionCountDelta(mentionSparklines.get(other.id) ?? [])}
-                hint={GEO_FAMILY_STAT_TREND_HINT}
-                label="Other brands mentions"
+                hint={tGeoShared("vsFirstHalfOfThis")}
+                label={t("otherBrandsMentions")}
               />
             </dd>
           </div>
@@ -205,17 +220,17 @@ function ShareOfVoiceBrandsContent({
           </InputGroupAddon>
           <InputGroupInput
             ref={searchRef}
-            aria-label="Search brands"
+            aria-label={tCommon("labels.searchBrands")}
             className="text-base sm:text-sm"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search brands…"
+            placeholder={t("searchPlaceholder")}
             type="search"
             value={search}
           />
         </InputGroup>
         <PermissionRow
           className="w-fit shrink-0"
-          label="Filter brands by tracking status"
+          label={t("filterLabel")}
           layout="compact"
           onValueChange={(value) => {
             if (
@@ -228,45 +243,48 @@ function ShareOfVoiceBrandsContent({
           }}
           value={filter}
         >
-          <PermissionOption value="all">All</PermissionOption>
-          <PermissionOption value="tracked">Tracked</PermissionOption>
-          <PermissionOption value="discovered">Discovered</PermissionOption>
+          <PermissionOption value="all">
+            {tCommon("labels.all")}
+          </PermissionOption>
+          <PermissionOption value="tracked">
+            {tGeoShared("tracked")}
+          </PermissionOption>
+          <PermissionOption value="discovered">
+            {tGeoShared("discovered")}
+          </PermissionOption>
         </PermissionRow>
       </div>
       <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
         <table className="w-full table-fixed border-collapse">
-          <caption className="sr-only">
-            Additional brands sorted by mentions. Share is based on all brand
-            mentions in the selected period.
-          </caption>
+          <caption className="sr-only">{t("caption")}</caption>
           <thead className="bg-background text-muted-foreground sticky top-0 z-10 text-xs">
             <tr className="border-border border-b">
               <th className="py-2 pl-5 text-left font-normal" scope="col">
-                Brand
+                {tCommon("labels.brand")}
               </th>
               <th
                 className="hidden w-24 px-3 py-2 text-right font-normal sm:table-cell"
                 scope="col"
               >
-                Mentions
+                {tGeoShared("mentionsLabel")}
               </th>
               <th
                 className="hidden w-20 px-3 py-2 text-right font-normal sm:table-cell"
                 scope="col"
               >
-                Change
+                {t("change")}
               </th>
               <th
                 className="w-16 px-3 py-2 text-right font-normal sm:w-20"
                 scope="col"
               >
-                Share
+                {tGeoShared("share")}
               </th>
               <th
                 className="w-28 py-2 pr-5 pl-3 text-right font-normal"
                 scope="col"
               >
-                Tracking
+                {tGeoShared("tracking")}
               </th>
             </tr>
           </thead>
@@ -303,12 +321,10 @@ function ShareOfVoiceBrandsContent({
         {rows.length === 0 ? (
           <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-5 text-center">
             <p className="text-sm font-medium">
-              {query ? "No matching brands" : "No brands in this view"}
+              {query ? t("noMatching") : t("noBrandsInView")}
             </p>
             <p className="text-muted-foreground text-xs">
-              {query
-                ? "Try another name or clear your filters."
-                : "Select another tracking status to see more brands."}
+              {query ? t("tryAnother") : t("selectAnother")}
             </p>
             <Button
               className="mt-1"
@@ -320,16 +336,16 @@ function ShareOfVoiceBrandsContent({
               size="sm"
               variant="outline"
             >
-              Clear filters
+              {tGeoShared("clearFilters")}
             </Button>
           </div>
         ) : null}
       </div>
       <div className="border-border text-muted-foreground flex shrink-0 flex-wrap items-center justify-between gap-2 border-t px-5 py-3 text-xs">
         <span role="status">
-          {rows.length} of {others.length} brands
+          {t("rowsOf", { shown: rows.length, total: others.length })}
         </span>
-        <span>Share of all brand mentions</span>
+        <span>{t("shareFooter")}</span>
       </div>
     </>
   );

@@ -3,6 +3,7 @@
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
 import * as React from "react";
 import { cn } from "@notra/ui/lib/utils";
@@ -43,13 +44,16 @@ function SheetContent({
   side = "right",
   variant = "default",
   showCloseButton = true,
+  closeLabel,
   ...props
 }: SheetPrimitive.Popup.Props & {
   variant?: "default" | "inset";
   keepMounted?: boolean;
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
+  closeLabel?: string;
 }) {
+  const labels = useUiLabels();
   return (
     <SheetPortal keepMounted={keepMounted}>
       <SheetOverlay />
@@ -77,7 +81,7 @@ function SheetContent({
             }
           >
             <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{closeLabel ?? labels.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

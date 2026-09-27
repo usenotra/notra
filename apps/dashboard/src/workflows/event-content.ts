@@ -392,7 +392,7 @@ export async function eventContentWorkflow(payload: {
       action: "confirm",
       units: createdPosts.length,
       usage: contentResult.usage,
-      fallbackModelId: "anthropic/claude-sonnet-4.6",
+      fallbackModelId: "anthropic/claude-sonnet-5",
       properties: {
         source: "workflow_event",
         output_type: trigger.outputType,

@@ -1,7 +1,7 @@
 "use client";
 
+import { GRANOLA_API_KEY_PREFIX } from "@notra/ai/constants/granola";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { addGranolaIntegrationFormSchema } from "@notra/schemas/dashboard/granola";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -17,9 +17,11 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Granola } from "@notra/ui/components/ui/svgs/granola";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type React from "react";
-import { isValidElement, useId, useState } from "react";
+import { isValidElement, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/button";
 import { GRANOLA_API_KEYS_DOCS_URL } from "@/constants/granola";
@@ -35,6 +37,27 @@ export function AddGranolaIntegrationDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: AddGranolaIntegrationDialogProps) {
+  const t = useTranslations("integrations.granolaDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        displayName: z
+          .string()
+          .trim()
+          .min(1, tIntegrationsShared("displayNameIsRequired")),
+        apiKey: z
+          .string()
+          .trim()
+          .min(1, t("apiKeyRequired"))
+          .refine(
+            (value) => value.startsWith(GRANOLA_API_KEY_PREFIX),
+            t("apiKeyInvalid", { prefix: GRANOLA_API_KEY_PREFIX })
+          ),
+      }),
+    [t]
+  );
   const queryClient = useQueryClient();
   const displayNameId = useId();
   const apiKeyId = useId();
@@ -66,15 +89,13 @@ export function AddGranolaIntegrationDialog({
           input: { organizationId },
         }),
       });
-      toast.success("Granola connected");
+      toast.success(t("connected"));
       resetForm();
       setOpen(false);
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to connect Granola"
-      );
+      toast.error(error instanceof Error ? error.message : t("connectFailed"));
     },
   });
 
@@ -89,15 +110,13 @@ export function AddGranolaIntegrationDialog({
   };
 
   const handleSubmit = () => {
-    const parsed = addGranolaIntegrationFormSchema.safeParse({
+    const parsed = formSchema.safeParse({
       displayName,
       apiKey,
     });
 
     if (!parsed.success) {
-      setValidationError(
-        parsed.error.issues[0]?.message ?? "Invalid form values"
-      );
+      setValidationError(parsed.error.issues[0]?.message ?? t("invalidForm"));
       return;
     }
 
@@ -122,27 +141,26 @@ export function AddGranolaIntegrationDialog({
             <Granola className="size-7" />
             <div>
               <ResponsiveDialogTitle className="text-xl">
-                Add Granola Integration
+                {t("title")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Connect Granola to pull meeting notes, transcripts, and AI
-                summaries into your content workflows.
+                {t("description")}
               </ResponsiveDialogDescription>
             </div>
           </div>
         </ResponsiveDialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor={displayNameId}>Display name</Label>
+            <Label htmlFor={displayNameId}>{t("displayName")}</Label>
             <Input
               id={displayNameId}
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="e.g. Team meeting notes"
+              placeholder={t("displayNamePlaceholder")}
               value={displayName}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={apiKeyId}>API key</Label>
+            <Label htmlFor={apiKeyId}>{tCommon("labels.apiKey")}</Label>
             <Input
               autoComplete="off"
               id={apiKeyId}
@@ -152,16 +170,18 @@ export function AddGranolaIntegrationDialog({
               value={apiKey}
             />
             <p className="text-muted-foreground text-sm">
-              Create a key in the Granola app under Settings, then Connectors,
-              then API keys.{" "}
-              <a
-                className="hover:text-foreground underline underline-offset-2"
-                href={GRANOLA_API_KEYS_DOCS_URL}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                View guide
-              </a>
+              {t.rich("apiKeyHelp", {
+                link: (chunks) => (
+                  <a
+                    className="hover:text-foreground underline underline-offset-2"
+                    href={GRANOLA_API_KEYS_DOCS_URL}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
             </p>
           </div>
           {validationError ? (
@@ -174,16 +194,16 @@ export function AddGranolaIntegrationDialog({
               <Button disabled={createMutation.isPending} variant="outline" />
             }
           >
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
           <Button disabled={createMutation.isPending} onClick={handleSubmit}>
             {createMutation.isPending ? (
               <>
                 <Loader2Icon className="size-4 animate-spin" />
-                Verifying key
+                {t("verifying")}
               </>
             ) : (
-              "Add Integration"
+              tIntegrationsShared("addIntegration")
             )}
           </Button>
         </ResponsiveDialogFooter>

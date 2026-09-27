@@ -34,6 +34,7 @@ export interface ClientSessionData {
     | "role"
     | "hidePersonalData"
     | "showAgentStats"
+    | "locale"
     | "createdAt"
   >;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { Checkbox } from "@/components/motion/checkbox";
 import type { GeoShelfPresenceFieldsProps } from "@/types/geo-shelf";
@@ -13,15 +15,18 @@ export function ShelfPresenceFields({
   onOwnPresentChange,
   onPresentCompetitorIdsChange,
 }: GeoShelfPresenceFieldsProps) {
+  const t = useTranslations("geo.shelf.shelfPresenceFields");
+  const tGeoShared = useTranslations("geo.shared");
+  const ownLabel = ownBrandName || tGeoShared("youLabel");
   const presentCompetitorIdSet = new Set(presentCompetitorIds);
 
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">Who is already on it</legend>
+      <legend className="text-sm font-medium">{t("legend")}</legend>
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="hover:bg-muted/40 flex items-center gap-2.5 rounded-lg border px-3 py-2">
           <Checkbox
-            aria-label={`${ownBrandName || "You"} is on this page`}
+            aria-label={t("isOnPage", { name: ownLabel })}
             checked={ownPresent}
             id={`${id}-own-present`}
             onCheckedChange={onOwnPresentChange}
@@ -30,9 +35,9 @@ export function ShelfPresenceFields({
             className="min-w-0 flex-1 cursor-pointer truncate text-sm font-medium"
             htmlFor={`${id}-own-present`}
           >
-            {ownBrandName || "You"}
+            {ownLabel}
             <span className="text-muted-foreground ml-1 font-normal">
-              (You)
+              {tGeoShared("you")}
             </span>
           </label>
         </div>
@@ -45,7 +50,7 @@ export function ShelfPresenceFields({
               key={competitor.id}
             >
               <Checkbox
-                aria-label={`${competitor.name} is on this page`}
+                aria-label={t("isOnPage", { name: competitor.name })}
                 checked={checked}
                 id={checkboxId}
                 onCheckedChange={(next) =>
@@ -76,9 +81,7 @@ export function ShelfPresenceFields({
         })}
       </div>
       {competitors.length === 0 ? (
-        <p className="text-muted-foreground text-xs">
-          Add competitors in GEO settings to track who else is on this page.
-        </p>
+        <p className="text-muted-foreground text-xs">{t("noCompetitors")}</p>
       ) : null}
     </fieldset>
   );

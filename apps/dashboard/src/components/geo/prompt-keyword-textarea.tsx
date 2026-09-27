@@ -11,6 +11,7 @@ import {
   HOVER_CARD_DELAY_MS,
 } from "@notra/ui/constants/hover-card";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
+import { useLocale, useTranslations } from "next-intl";
 import {
   forwardRef,
   useEffect,
@@ -43,6 +44,9 @@ export const PromptKeywordTextarea = forwardRef<
   },
   ref
 ) {
+  const t = useTranslations("geo.promptKeywordTextarea");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayContentRef = useRef<HTMLDivElement>(null);
   const markRefs = useRef(new Map<number, HTMLElement>());
@@ -216,7 +220,14 @@ export const PromptKeywordTextarea = forwardRef<
               const triggerId = `${triggerIdPrefix}-${index}`;
               const label = (
                 <button
-                  aria-label={`Search Console metrics for ${keyword.query}: ${keyword.impressions.toLocaleString("en-US")} impressions, ${keyword.clicks.toLocaleString("en-US")} clicks, position ${keyword.position.toLocaleString("en-US", { maximumFractionDigits: 1 })}`}
+                  aria-label={t("metricsAria", {
+                    query: keyword.query,
+                    impressions: keyword.impressions.toLocaleString(locale),
+                    clicks: keyword.clicks.toLocaleString(locale),
+                    position: keyword.position.toLocaleString(locale, {
+                      maximumFractionDigits: 1,
+                    }),
+                  })}
                   className={cn(
                     "pointer-events-none inline rounded-[5px] bg-blue-500/10 text-blue-700 shadow-[inset_0_0_0_1px_rgb(255_255_255_/_0.65),inset_0_1px_2px_rgb(255_255_255_/_0.9),inset_0_-1px_2px_rgb(37_99_235_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 dark:bg-blue-400/15 dark:text-blue-300 dark:shadow-[inset_0_0_0_1px_rgb(255_255_255_/_0.14),inset_0_1px_2px_rgb(255_255_255_/_0.12),inset_0_-1px_2px_rgb(15_23_42_/_0.35)]",
                     !precededByPunctuation && "-ml-0.5 pl-0.5",
@@ -262,28 +273,36 @@ export const PromptKeywordTextarea = forwardRef<
                     render={label}
                   />
                   <TrafficBreakdownCard
-                    aside="Last 28 days"
+                    aside={t("lastDays")}
                     icon={<Google className="size-4" />}
                     onPointerEnter={cancelPointerClose}
                     onPointerLeave={schedulePointerClose}
                     title="Google Search Console"
                   >
                     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-3 py-1.5 text-xs">
-                      <dt className="text-muted-foreground">Query</dt>
+                      <dt className="text-muted-foreground">
+                        {tCommon("labels.query")}
+                      </dt>
                       <dd className="truncate text-right font-medium">
                         {keyword.query}
                       </dd>
-                      <dt className="text-muted-foreground">Impressions</dt>
+                      <dt className="text-muted-foreground">
+                        {tCommon("labels.impressions")}
+                      </dt>
                       <dd className="text-right tabular-nums">
-                        {keyword.impressions.toLocaleString("en-US")}
+                        {keyword.impressions.toLocaleString(locale)}
                       </dd>
-                      <dt className="text-muted-foreground">Clicks</dt>
+                      <dt className="text-muted-foreground">
+                        {tCommon("labels.clicks")}
+                      </dt>
                       <dd className="text-right tabular-nums">
-                        {keyword.clicks.toLocaleString("en-US")}
+                        {keyword.clicks.toLocaleString(locale)}
                       </dd>
-                      <dt className="text-muted-foreground">Position</dt>
+                      <dt className="text-muted-foreground">
+                        {tCommon("labels.position")}
+                      </dt>
                       <dd className="text-right tabular-nums">
-                        {keyword.position.toLocaleString("en-US", {
+                        {keyword.position.toLocaleString(locale, {
                           maximumFractionDigits: 1,
                         })}
                       </dd>

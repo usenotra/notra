@@ -1,9 +1,19 @@
 import path from "node:path";
 
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 
 const nextConfig: NextConfig = {
+  // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
+  // previews should not become routes or bundles in a production build.
+  pageExtensions: [
+    ...(process.env.NODE_ENV === "development" ? ["dev.tsx"] : []),
+    "tsx",
+    "ts",
+    "jsx",
+    "js",
+  ],
   allowedDevOrigins: process.env.APP_URL
     ? [new URL(process.env.APP_URL).hostname]
     : [],
@@ -210,4 +220,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    messages: {
+      path: "./messages",
+      format: "json",
+      locales: ["en", "de"],
+      precompile: true,
+    },
+  },
+});
+
+export default withWorkflow(withNextIntl(nextConfig));

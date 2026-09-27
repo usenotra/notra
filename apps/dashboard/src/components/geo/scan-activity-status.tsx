@@ -1,28 +1,45 @@
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useLocale, useTranslations } from "next-intl";
 
-import type { GeoScanActivityStatusProps } from "@/types/geo-scan-activity";
-import { formatRelative } from "@/utils/format-relative";
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
+import type {
+  GeoScanActivityStatusProps,
+  ScanActivityRelativeFormatter,
+  ScanActivityStatusTranslator,
+} from "@/types/geo-scan-activity";
 import { geoRunProgress } from "@/utils/geo-scan-activity";
 
-function scanSentence(run: GeoScanActivityStatusProps["run"]): string {
+function scanSentence(
+  run: GeoScanActivityStatusProps["run"],
+  t: ScanActivityStatusTranslator,
+  formatRelative: ScanActivityRelativeFormatter,
+  locale: string
+): string {
   if (!run) {
-    return "A scan is starting.";
+    return t("starting");
   }
   if (run.status === "running") {
-    const total = run.plan
-      ? ` of ${run.plan.totalChecks.toLocaleString()}`
-      : "";
-    return `Scanning now, ${run.checks.toLocaleString()}${total} answers saved.`;
+    const checks = run.checks.toLocaleString(locale);
+    return run.plan
+      ? t("runningWithTotal", {
+          checks,
+          total: run.plan.totalChecks.toLocaleString(locale),
+        })
+      : t("running", { checks });
   }
   const when = formatRelative(run.finishedAt ?? run.startedAt);
   return run.status === "failed"
-    ? `The last scan stopped early ${when}.`
-    : `Answers from the last scan, ${when}.`;
+    ? t("failed", { when })
+    : t("finished", { when });
 }
 
 /** Section header for scans: a short status sentence and live progress. */
 export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
+  const t = useTranslations("geo.scanActivityStatus");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const formatRelative = useFormatRelative();
   const running = !run || run.status === "running";
   const progress = run ? geoRunProgress(run) : null;
 
@@ -30,7 +47,7 @@ export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 space-y-1">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          Scans
+          {tGeoShared("scans")}
           {running ? (
             <HugeiconsIcon
               aria-hidden="true"
@@ -41,12 +58,12 @@ export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
           ) : null}
         </h2>
         <p className="text-muted-foreground text-sm tabular-nums">
-          {scanSentence(run)}
+          {scanSentence(run, t, formatRelative, locale)}
         </p>
       </div>
       {running && progress !== null ? (
         <progress
-          aria-label="Saved scan answers"
+          aria-label={t("progressLabel")}
           className="bg-border [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-value]:bg-primary mt-2 h-1 w-32 shrink-0 overflow-hidden rounded-full"
           max={100}
           value={progress}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { ScanModelMenu } from "@/components/geo/scan-model-menu";
 import {
   GeoScanControlsProvider,
@@ -30,20 +32,21 @@ function PromptScanMenu({
   compact = false,
   onPrepare,
 }: PromptScanButtonProps) {
+  const t = useTranslations("geo.promptScanButton");
+  const tGeoShared = useTranslations("geo.shared");
   const controls = useGeoScanControls();
   const { data } = useGeoSettings(organizationId);
   const { data: catalog } = useGeoModelCatalog(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   let disabledReason: string | undefined;
   if (isScanning) {
-    disabledReason =
-      "Wait for the current scan to finish before starting another.";
+    disabledReason = t("scanInProgress");
   } else if (!row.enabled) {
-    disabledReason = "Enable this prompt to run a scan.";
+    disabledReason = t("promptDisabled");
   } else if (!data) {
-    disabledReason = "Scan settings are not available yet.";
+    disabledReason = t("settingsUnavailable");
   } else if (!data.settings?.enabled) {
-    disabledReason = "Enable GEO scanning in settings to run a scan.";
+    disabledReason = t("scanningDisabled");
   }
   return (
     <ScanModelMenu
@@ -54,7 +57,11 @@ function PromptScanMenu({
       enforceZdr={data?.settings?.enforceZdr}
       engines={data?.settings?.engines ?? []}
       nonZdrApprovedEngines={data?.settings?.nonZdrApprovedEngines}
-      label={compact ? `Run scan: ${row.prompt}` : "Run scan"}
+      label={
+        compact
+          ? t("runScanPrompt", { prompt: row.prompt })
+          : tGeoShared("runScan")
+      }
       onContinue={(engines) => {
         onPrepare?.();
         controls?.prepare({

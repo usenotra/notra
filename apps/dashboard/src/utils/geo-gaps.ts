@@ -1,11 +1,10 @@
 import {
   GEO_GAPS_ENGINE_FILTER_ALL,
   GEO_GAPS_METER_STEPS,
-  GEO_GAPS_WRITE_LABELS,
   GEO_SEARCH_GAP_ACTION_ORDER,
-  GEO_SEARCH_GAP_WRITE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type {
+  GeoAiSearchGapRow,
   GeoContentGapsResponse,
   GeoGapBriefRef,
   GeoGapWriteAction,
@@ -54,6 +53,23 @@ export function withRestoredPromptGap(
   };
 }
 
+export function maxGapOpportunity(
+  rows: readonly { opportunity: number }[]
+): number {
+  return Math.max(0, ...rows.map((row) => row.opportunity));
+}
+
+export function gapOpportunityLevel(
+  opportunity: number,
+  maxOpportunity: number
+): number {
+  return gapMeterLevel(maxOpportunity <= 0 ? 0 : opportunity / maxOpportunity);
+}
+
+export function isGeoGapsTab(value: unknown): value is GeoGapsTab {
+  return value === "prompt" || value === "search" || value === "ai";
+}
+
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
 export function gapMeterLevel(
   intensity: number,
@@ -63,19 +79,6 @@ export function gapMeterLevel(
     return 0;
   }
   return Math.max(1, Math.min(steps, Math.round(intensity * steps)));
-}
-
-export function gapOpportunityDetail(row: GeoPromptGapRow): string {
-  const missing = gapMissingEngineFamilies(row.engines).length;
-  const visible = gapMissingEngineFamilies(row.mentionedEngines).length;
-  const total = missing + visible;
-  const competitorCount =
-    row.competitors.length + row.discoveredCompetitors.length;
-  const competitorPart =
-    competitorCount === 0
-      ? "no other brands recommended"
-      : `${competitorCount} ${competitorCount === 1 ? "brand" : "brands"} recommended instead`;
-  return `Not visible on ${missing} of ${total} ${total === 1 ? "engine" : "engines"} · ${competitorPart}`;
 }
 
 export function gapVisibleOnLabel(
@@ -136,10 +139,6 @@ export function gapWriteAction(
   return "write";
 }
 
-export function gapWriteLabel(action: GeoGapWriteAction): string {
-  return GEO_GAPS_WRITE_LABELS[action];
-}
-
 export function gapCanRescan(brief: GeoGapBriefRef | null): boolean {
   return brief?.status === "completed" && brief.postId !== null;
 }
@@ -168,10 +167,6 @@ export function gapLiftTone(delta: number): GeoGapLiftTone {
     return "down";
   }
   return "flat";
-}
-
-export function searchGapWriteLabel(action: GeoSearchGapAction): string {
-  return GEO_SEARCH_GAP_WRITE_LABELS[action];
 }
 
 export function searchGapActionOrder(action: GeoSearchGapAction): number {
@@ -213,35 +208,37 @@ export function geoGapsEmptyKind({
   if (!hasScanData) {
     return "no-scan";
   }
-  return "no-prompt-gaps";
+  return tab === "ai" ? "no-ai-search-gaps" : "no-prompt-gaps";
 }
 
 function gapSearchValues(row: {
   prompt: string;
   title: string | null;
   brief: GeoGapBriefRef | null;
+  searchQueries?: string[];
 }): string[] {
-  return [row.prompt, row.title ?? "", row.brief?.workingTitle ?? ""];
+  return [
+    row.prompt,
+    row.title ?? "",
+    row.brief?.workingTitle ?? "",
+    ...(row.searchQueries ?? []),
+  ];
 }
 
-function filterGapsByQuery<
-  T extends {
-    prompt: string;
-    title: string | null;
-    brief: GeoGapBriefRef | null;
-  },
->(rows: readonly T[], query: string): T[] {
+function filterGapsByQuery<T>(
+  rows: readonly T[],
+  query: string,
+  values: (row: T) => string[]
+): T[] {
   const trimmed = query.trim();
-  const matched = rows.filter((row) =>
-    fuzzyMatches(gapSearchValues(row), trimmed)
-  );
+  const matched = rows.filter((row) => fuzzyMatches(values(row), trimmed));
   if (trimmed.length === 0) {
     return matched;
   }
   return matched
     .map((row) => ({
       row,
-      score: bestFuzzyScore(gapSearchValues(row), trimmed),
+      score: bestFuzzyScore(values(row), trimmed),
     }))
     .sort((left, right) => right.score - left.score)
     .map((entry) => entry.row);
@@ -258,14 +255,30 @@ export function filterPromptGaps(
       : rows.filter((row) =>
           gapMissingEngineFamilies(row.engines).includes(engineFamily)
         );
-  return filterGapsByQuery(byEngine, query);
+  return filterGapsByQuery(byEngine, query, gapSearchValues);
 }
 
 export function filterSearchGaps(
   rows: readonly GeoSearchGapRow[],
   query: string
 ): GeoSearchGapRow[] {
-  return filterGapsByQuery(rows, query);
+  return filterGapsByQuery(rows, query, gapSearchValues);
+}
+
+export function filterAiSearchGaps(
+  rows: readonly GeoAiSearchGapRow[],
+  query: string
+): GeoAiSearchGapRow[] {
+  return filterGapsByQuery(rows, query, aiSearchGapSearchValues);
+}
+
+function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
+  return [
+    row.query,
+    ...row.variants,
+    ...row.prompts,
+    row.brief?.workingTitle ?? "",
+  ];
 }
 
 export function uniqueGapEngineFamilies(

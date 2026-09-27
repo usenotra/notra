@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -23,6 +24,8 @@ export function McpIntegrationCard({
   organizationId,
   organizationSlug,
 }: McpIntegrationCardProps) {
+  const t = useTranslations("integrations.mcp.integrationCard");
+  const tCommon = useTranslations("common");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data, isPending } = useQuery(
@@ -61,7 +64,7 @@ export function McpIntegrationCard({
                 size="sm"
                 variant="outline"
               >
-                Connect
+                {tCommon("actions.connect")}
               </Button>
             </div>
           }
@@ -76,8 +79,7 @@ export function McpIntegrationCard({
           icon={<HugeiconsIcon icon={CpuIcon} />}
         >
           <p className="text-muted-foreground line-clamp-2 text-sm">
-            Bring your own tools and context into Notra with custom Model
-            Context Protocol servers
+            {t("description")}
           </p>
         </TitleCard>
       </Link>

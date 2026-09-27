@@ -7,6 +7,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "next-intl";
 
 import { CompetitorEditForm } from "@/components/geo/competitor-edit-form";
 import type { CompetitorEditDialogProps } from "@/types/geo";
@@ -18,17 +19,20 @@ export function CompetitorEditDialog({
   competitor,
   initialName,
 }: CompetitorEditDialogProps) {
+  const t = useTranslations("geo.competitorEditDialog");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="text-xl font-semibold">
-            {competitor ? `Edit ${competitor.name}` : "Add competitor"}
+          <ResponsiveDialogTitle className="text-xl font-semibold wrap-anywhere">
+            {competitor
+              ? tCommon("labels.editName", { name: competitor.name })
+              : tGeoShared("addCompetitor")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {competitor
-              ? "Name, website, and how this brand shows up in your charts."
-              : "Track a brand AI engines might recommend instead of you."}
+            {competitor ? t("editDescription") : t("addDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <CompetitorEditForm

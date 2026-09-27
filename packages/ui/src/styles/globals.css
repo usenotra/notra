@@ -3,10 +3,12 @@
 @import "shadcn/tailwind.css";
 @import "./cta-button.css";
 @import "./motion.css";
+@import "./message-code.css";
 @import "./opencode.css";
 @import "./skeleton-shimmer.css";
 @import "./status.css";
 @import "./text-shimmer.css";
+@import "streamdown/styles.css";
 
 @source "../../node_modules/streamdown/dist";
 

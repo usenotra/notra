@@ -8,16 +8,19 @@ export type StandaloneChatWorkflowResult =
   | { status: "duplicate_request" }
   | { status: "empty_history" }
   | { status: "missing_message_id" }
+  | { status: "superseded" }
   | { status: "realtime_unavailable" }
   | { status: "usage_limit_reached" };
 
 export interface ResolveChatStreamInput {
+  streamId?: string;
   organizationId: string;
   chatId: string;
 }
 
 export type ResolveChatStreamResult =
   | { status: "ready"; streamId: string }
+  | { status: "superseded" }
   | { status: "empty_history" }
   | { status: "missing_message_id" };
 

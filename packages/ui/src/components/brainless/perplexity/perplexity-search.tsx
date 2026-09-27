@@ -18,7 +18,10 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
-import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import type {
+  PerplexitySearchLabels,
+  PerplexitySearchSource,
+} from "@notra/ui/types/perplexity";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 
@@ -139,6 +142,7 @@ export function PerplexitySearch({
   reducedMotion = false,
   emptyDescription,
   className,
+  labels,
 }: {
   title: string;
   queries: readonly string[];
@@ -149,6 +153,7 @@ export function PerplexitySearch({
   reducedMotion?: boolean;
   emptyDescription?: string;
   className?: string;
+  labels?: PerplexitySearchLabels;
 }) {
   const shouldSequence = sequential && !reducedMotion;
   const visiblePreviewCount = Math.min(
@@ -320,7 +325,9 @@ export function PerplexitySearch({
                       event.stopPropagation();
                     }}
                   >
-                    {extrasOpen ? "Show less" : `+${hiddenCount} more`}
+                    {extrasOpen
+                      ? (labels?.showLess ?? "Show less")
+                      : (labels?.more(hiddenCount) ?? `+${hiddenCount} more`)}
                   </CollapsibleTrigger>
                 </Collapsible>
               ) : hiddenCount > 0 ? (
@@ -330,7 +337,7 @@ export function PerplexitySearch({
                     shouldSequence && ENTER_CLASS
                   )}
                 >
-                  +{hiddenCount} more
+                  {labels?.more(hiddenCount) ?? `+${hiddenCount} more`}
                 </p>
               ) : null}
             </div>

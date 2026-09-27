@@ -2,15 +2,14 @@
 
 import { SquareLock02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_LOCKED_TITLE,
-  GEO_UPGRADE_DESCRIPTION,
-} from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { GeoPageSkeleton } from "@/app/(dashboard)/[slug]/geo/skeleton";
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
+import { Button } from "@/components/button";
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { PAYWALL_KINDS } from "@/constants/analytics-events";
@@ -21,10 +20,17 @@ import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { GeoUpgradeGateProps } from "@/types/components/geo";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
-export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
+export function GeoUpgradeGate({
+  slug,
+  children,
+  fallback,
+}: GeoUpgradeGateProps) {
+  const t = useTranslations("geo.geoUpgradeGate");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
-  const { isLocked, isLoading } = useHasGeoFeature();
+  const { isLocked, isLoading, isUnavailable, isFetching, refetch } =
+    useHasGeoFeature();
   const route = toAnalyticsRoute(pathname, slug);
   const shownRef = useRef(false);
 
@@ -39,7 +45,32 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
     });
   }, [isLocked, route]);
 
-  if (isLoading || !isLocked) {
+  if (isLoading) {
+    return fallback ?? <GeoPageSkeleton />;
+  }
+
+  if (isUnavailable) {
+    return (
+      <PageContainer className="flex flex-1 flex-col gap-4 p-6">
+        <p className="text-muted-foreground text-sm" role="status">
+          {t("verifyFailed")}
+        </p>
+        <Button
+          className="w-fit"
+          disabled={isFetching}
+          onClick={() => {
+            void refetch();
+          }}
+          type="button"
+          variant="outline"
+        >
+          {tCommon("actions.tryAgain")}
+        </Button>
+      </PageContainer>
+    );
+  }
+
+  if (!isLocked) {
     return children;
   }
 
@@ -68,10 +99,10 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
             icon={SquareLock02Icon}
           />
           <h2 className="mt-3 text-lg font-semibold text-balance">
-            {GEO_LOCKED_TITLE}
+            {t("title")}
           </h2>
           <p className="text-muted-foreground mt-1.5 max-w-md text-sm leading-relaxed text-pretty">
-            {GEO_UPGRADE_DESCRIPTION}
+            {tCommon("messages.aiVisibilityTrackingIsIncluded")}
           </p>
         </div>
       </div>

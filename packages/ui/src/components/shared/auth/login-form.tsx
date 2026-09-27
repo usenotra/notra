@@ -1,6 +1,7 @@
 "use client";
 
 
+import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
 
 import { Loader2Icon } from "lucide-react";
@@ -28,9 +29,6 @@ import { AuthPasswordField } from "./auth-password-field";
 import { AuthPendingStep } from "./auth-pending-step";
 import { AuthSocialButtons } from "./auth-social-buttons";
 
-const LOGIN_ERROR_FALLBACK = "Failed to sign in. Please try again.";
-const SOCIAL_ERROR_FALLBACK = "Social sign-in failed. Please try again.";
-
 const noop = () => {
   return;
 };
@@ -43,8 +41,8 @@ const validateFilledField = (
 ) => (value.length > 0 ? validate(value) : undefined);
 
 export function LoginForm({
-  title = "Welcome back",
-  description = "Log in to pick up where your team left off.",
+  title,
+  description,
   onSuccess,
   returnTo,
   showSignupLink = true,
@@ -58,7 +56,9 @@ export function LoginForm({
   verifyMfaCode,
   redeemBackupCode,
   startSocialSignIn,
+  labels,
 }: LoginFormProps) {
+  const l = { ...DEFAULT_LOGIN_FORM_LABELS, ...labels };
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(
     initialError ?? null,
@@ -118,8 +118,8 @@ export function LoginForm({
       if (!flow.applyResult(result)) {
         setFormError(
           result.status === "error"
-            ? result.message || LOGIN_ERROR_FALLBACK
-            : LOGIN_ERROR_FALLBACK,
+            ? result.message || l.loginErrorFallback
+            : l.loginErrorFallback,
         );
       }
       if (result.status !== "success") {
@@ -127,7 +127,7 @@ export function LoginForm({
       }
     } catch (error) {
       console.error("Email login error:", error);
-      setFormError(LOGIN_ERROR_FALLBACK);
+      setFormError(l.loginErrorFallback);
       releaseAuth();
     }
   }
@@ -157,14 +157,13 @@ export function LoginForm({
       await submitPassword(email, password);
       return;
     }
-    setFormError(
-      `Backup code accepted. Two-factor authentication was turned off for ${recoveredEmail}. Sign in again to continue.`,
-    );
+    setFormError(l.backupCodeRecovered(recoveredEmail));
   }
 
   if (flow.pending) {
     return (
       <AuthPendingStep
+        labels={l.pendingStep}
         onBack={resetToSignIn}
         onFinish={flow.finish}
         onRecovered={handleRecovered}
@@ -180,23 +179,27 @@ export function LoginForm({
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <AuthFormHeader description={description} title={title} />
+      <AuthFormHeader
+        description={description ?? l.description}
+        title={title ?? l.title}
+      />
 
       <div className="grid gap-4">
         <AuthSocialButtons
           authMethod={authMethod}
           disabled={isAuthLoading}
           lastMethod={lastMethod}
+          lastUsedLabel={l.lastUsed}
           onSelect={(provider: SocialProvider) =>
             startRedirectSignIn(
               provider,
               () => startSocialSignIn({ provider, returnTo: callbackURL }),
-              SOCIAL_ERROR_FALLBACK,
+              l.socialErrorFallback,
             )
           }
         />
 
-        <AuthOrDivider />
+        <AuthOrDivider label={l.or} />
 
         <form
           aria-busy={isAuthLoading}
@@ -222,10 +225,10 @@ export function LoginForm({
                   disabled={isAuthLoading}
                   error={field.state.meta.errors[0]}
                   id={field.name}
-                  label="Email"
+                  label={l.emailLabel}
                   onBlur={field.handleBlur}
                   onChange={field.handleChange}
-                  placeholder="jane@company.com"
+                  placeholder={l.emailPlaceholder}
                   value={field.state.value}
                 />
               )}
@@ -244,9 +247,10 @@ export function LoginForm({
                   disabled={isAuthLoading}
                   error={field.state.meta.errors[0]}
                   id={field.name}
+                  label={l.passwordLabel}
                   onBlur={field.handleBlur}
                   onChange={field.handleChange}
-                  placeholder="Your password"
+                  placeholder={l.passwordPlaceholder}
                   value={field.state.value}
                 />
               )}
@@ -258,7 +262,7 @@ export function LoginForm({
           <div className="relative mt-4 pt-2">
             {lastMethod === "email" && (
               <Badge className="-right-2 absolute top-0 z-10" variant="default">
-                Last Used
+                {l.lastUsed}
               </Badge>
             )}
             <CtaButton
@@ -269,10 +273,10 @@ export function LoginForm({
               {authMethod === "email" ? (
                 <>
                   <Loader2Icon className="size-4 animate-spin" />
-                  Signing in...
+                  {l.submitting}
                 </>
               ) : (
-                "Log in"
+                l.submit
               )}
             </CtaButton>
           </div>
@@ -283,24 +287,24 @@ export function LoginForm({
         <div className="flex flex-col gap-4 px-8 text-center text-muted-foreground text-xs">
           {showForgotPasswordLink && (
             <p>
-              Forgot your password?{" "}
+              {l.forgotPassword}{" "}
               <Link
                 className="underline underline-offset-4 hover:text-primary"
                 href="/forgot-password"
               >
-                Reset Your Password
+                {l.resetPassword}
               </Link>
             </p>
           )}
           {showForgotPasswordLink && showSignupLink && <Separator />}
           {showSignupLink && (
             <p>
-              Don&apos;t have an account?{" "}
+              {l.noAccount}{" "}
               <Link
                 className="underline underline-offset-4 hover:text-primary"
                 href="/signup"
               >
-                Register
+                {l.register}
               </Link>
             </p>
           )}

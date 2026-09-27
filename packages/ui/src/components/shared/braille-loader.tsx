@@ -6,6 +6,7 @@ interface BrailleLoaderProps {
   className?: string;
   variant?: "wave" | "typewriter" | "shimmer" | "pulse";
   label?: string;
+  ariaLabel?: string;
 }
 
 const STEP_MS = 120;
@@ -57,6 +58,7 @@ export function BrailleLoader({
   className,
   variant = "wave",
   label,
+  ariaLabel = "Loading",
 }: BrailleLoaderProps) {
   const allChars = label
     ? [...BRAILLE_CHARS, " ", ...label.split("")]
@@ -65,7 +67,7 @@ export function BrailleLoader({
 
   return (
     <output
-      aria-label="Loading"
+      aria-label={ariaLabel}
       className={cn("text-muted-foreground inline-flex font-mono", className)}
     >
       <style>{variantStyles[variant]}</style>

@@ -1,15 +1,17 @@
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 
+import type messages from "../../../messages/en.json";
+
 export interface IntegrationConfig {
   id: IntegrationType;
   name: string;
-  description: string;
+  descriptionKey: keyof (typeof messages)["integrations"]["overview"]["catalog"];
   icon: React.ReactNode;
   accentColor: string;
   href: string;
   available: boolean;
   category: "input" | "output" | "extension";
-  connectLabel?: string;
+  connectLabelKey?: "setupGuide";
 }
 
 export interface IntegrationsPageClientProps {
