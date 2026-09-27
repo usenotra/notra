@@ -13,6 +13,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -158,6 +159,28 @@ function DashboardOnboardingBanner({
   );
 }
 
+function DashboardPageViewport({
+  children,
+}: Pick<DashboardShellProps, "children">) {
+  const pathname = usePathname();
+  const [, , section, contentId] = pathname.split("/");
+  const pageOwnsScroll =
+    section === "chat" || (section === "content" && Boolean(contentId));
+
+  return (
+    <div
+      className={cn(
+        "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain",
+        pageOwnsScroll
+          ? "overflow-hidden"
+          : "scrollbar-stable scrollbar-thin overflow-x-hidden overflow-y-auto"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function DashboardShell({
   children,
   initialOnboardingAgentRun,
@@ -276,9 +299,9 @@ export function DashboardShell({
         >
           <SiteHeader />
           <RestoreSidebarHome />
-          <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
+          <DashboardPageViewport>
             <SubscriptionGate>{children}</SubscriptionGate>
-          </div>
+          </DashboardPageViewport>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
         {hasOpened.agent ? <DashboardAgentHost /> : null}

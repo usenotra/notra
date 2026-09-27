@@ -23,6 +23,7 @@ import {
   webSearchInputSchema,
   webSearchOutputSchema,
 } from "@notra/schemas/dashboard/ai/chat-tool-block";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Avatar,
   AvatarFallback,
@@ -37,7 +38,7 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_TOOL_LABEL_ALIASES } from "@/constants/chat-tool-labels";
@@ -58,8 +59,12 @@ import { ToolDraftPreview } from "./chat-tool-block/tool-draft-preview";
 import { ToolOutputImages } from "./chat-tool-block/tool-output-images";
 import type {
   ChatToolBlockProps,
+  ChatToolContentProps,
+  ChatToolIconProps,
+  ChatToolTriggerProps,
   ToolBlockTranslator,
   ToolCopy,
+  ToolDetailsProps,
 } from "./chat-tool-block/types";
 import { resolveChatToolBlockVisuals } from "./chat-tool-block/visuals";
 
@@ -735,10 +740,225 @@ function ToolDataSection({ label, value }: { label: string; value: unknown }) {
   );
 }
 
+function ChatToolIcon({
+  isError,
+  isMcp,
+  iconUrl,
+  mcpLogoDarkUrl,
+  mcpLogoLightUrl,
+  toolMetadata,
+  toolName,
+}: ChatToolIconProps) {
+  if (isError) {
+    return (
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={CancelCircleIcon}
+        strokeWidth={1.8}
+      />
+    );
+  }
+  if (isMcp) {
+    const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
+    return (
+      <McpIcon
+        className="size-3.5"
+        darkUrl={
+          iconUrl ?? mcpLogoDarkUrl ?? mcpLogoLightUrl ?? mcpIconUrls.darkUrl
+        }
+        lightUrl={
+          iconUrl ?? mcpLogoLightUrl ?? mcpLogoDarkUrl ?? mcpIconUrls.lightUrl
+        }
+      />
+    );
+  }
+  if (iconUrl) {
+    return (
+      <Avatar className="size-3.5 shrink-0 rounded-sm after:hidden">
+        <AvatarImage className="rounded-sm" src={iconUrl} />
+        <AvatarFallback className="rounded-sm bg-transparent">
+          <HugeiconsIcon
+            className="size-3.5"
+            icon={CpuIcon}
+            strokeWidth={1.8}
+          />
+        </AvatarFallback>
+      </Avatar>
+    );
+  }
+  return (
+    <HugeiconsIcon
+      className="size-3.5 shrink-0"
+      icon={getChatToolIcon(toolName)}
+      strokeWidth={1.8}
+    />
+  );
+}
+
+function ToolDetails({
+  hasApprovalActions,
+  showJsonDetails,
+  showJsonInput,
+  showJsonOutput,
+  input,
+  output,
+  onApprove,
+  onDeny,
+}: ToolDetailsProps) {
+  const t = useTranslations("ai.toolBlock");
+  const tCommon = useTranslations("common");
+  return (
+    <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
+      <div className="mt-3 space-y-4">
+        {showJsonDetails && showJsonInput ? (
+          <ToolDataSection label={tCommon("labels.input")} value={input} />
+        ) : null}
+        {showJsonDetails && showJsonOutput ? (
+          <ToolDataSection label={tCommon("labels.output")} value={output} />
+        ) : null}
+        {hasApprovalActions ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {onApprove ? (
+              <Button onClick={onApprove} size="sm" type="button">
+                <HugeiconsIcon icon={Tick02Icon} className="size-3.5" />
+                {t("allow")}
+              </Button>
+            ) : null}
+            {onDeny ? (
+              <Button onClick={onDeny} size="sm" type="button" variant="ghost">
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
+                {t("deny")}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </CollapsibleContent>
+  );
+}
+
+function ChatToolContent({
+  editorHref,
+  input,
+  onApprove,
+  onDeny,
+  output,
+  toolName,
+  isAwaitingApproval,
+  isStreaming,
+  visuals,
+}: ChatToolContentProps) {
+  const {
+    chart,
+    documentDiff,
+    draft,
+    showDraftPreview,
+    hasApprovalActions,
+    showJsonInput,
+    showJsonOutput,
+    showJsonDetails,
+    outputImages,
+  } = visuals;
+  const detailsOutput =
+    toolName === "editMarkdown" &&
+    output !== null &&
+    typeof output === "object" &&
+    !Array.isArray(output)
+      ? Object.fromEntries(
+          Object.entries(output as Record<string, unknown>).filter(
+            ([key]) => key !== "previousMarkdown" && key !== "updatedMarkdown"
+          )
+        )
+      : output;
+  return (
+    <>
+      <ToolOutputImages images={outputImages} />
+      {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
+      {documentDiff ? <DocumentDiff {...documentDiff} /> : null}
+      {showDraftPreview && draft ? (
+        <ToolDraftPreview
+          editorHref={editorHref}
+          markdown={draft.markdown}
+          onApprove={isAwaitingApproval ? onApprove : undefined}
+          onDeny={isAwaitingApproval ? onDeny : undefined}
+          title={draft.title}
+        />
+      ) : null}
+      <ToolDetails
+        hasApprovalActions={hasApprovalActions}
+        input={input}
+        onApprove={onApprove}
+        onDeny={onDeny}
+        output={detailsOutput}
+        showJsonDetails={showJsonDetails}
+        showJsonInput={showJsonInput}
+        showJsonOutput={showJsonOutput}
+      />
+    </>
+  );
+}
+
+function ChatToolTrigger({
+  isError,
+  isMcp,
+  iconUrl,
+  mcpLogoDarkUrl,
+  mcpLogoLightUrl,
+  toolMetadata,
+  toolName,
+  isOpen,
+  isStreaming,
+  hasDetails,
+  subtitle,
+  elapsedSeconds,
+  showElapsedTimer,
+}: ChatToolTriggerProps) {
+  return (
+    <CollapsibleTrigger
+      className={cn(
+        "group flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default",
+        isError
+          ? "text-destructive hover:text-destructive disabled:hover:text-destructive"
+          : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
+      )}
+      disabled={!hasDetails}
+    >
+      <ChatToolIcon
+        iconUrl={iconUrl}
+        isError={isError}
+        isMcp={isMcp}
+        mcpLogoDarkUrl={mcpLogoDarkUrl}
+        mcpLogoLightUrl={mcpLogoLightUrl}
+        toolMetadata={toolMetadata}
+        toolName={toolName}
+      />
+      <span className="min-w-0 truncate leading-5">
+        {isStreaming ? <Shimmer as="span">{subtitle}</Shimmer> : subtitle}
+      </span>
+      {showElapsedTimer && (
+        <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
+          {formatElapsedSeconds(elapsedSeconds)}
+        </span>
+      )}
+      {hasDetails ? (
+        <HugeiconsIcon
+          aria-hidden
+          className={cn(
+            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
+            isOpen ? "rotate-180" : "rotate-0 opacity-0 group-hover:opacity-100"
+          )}
+          icon={ArrowDown01Icon}
+        />
+      ) : null}
+    </CollapsibleTrigger>
+  );
+}
+
 export function ChatToolBlock({
   toolCallId,
   toolName,
   state,
+  isActive,
   input,
   output,
   onApprove,
@@ -751,13 +971,12 @@ export function ChatToolBlock({
   toolMetadata,
 }: ChatToolBlockProps) {
   const t = useTranslations("ai.toolBlock");
-  const tCommon = useTranslations("common");
   const isAwaitingApproval = state === "approval-requested";
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isOpen = isAwaitingApproval || isDetailsOpen;
   const isError = state === "output-error" || isFailedToolOutput(output);
-  const isStreaming =
-    state === "input-streaming" || state === "input-available";
+  const isPending = state === "input-streaming" || state === "input-available";
+  const isStreaming = isActive && isPending;
   const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
   const showElapsedTimer =
     isStreaming && elapsedSeconds >= TOOL_TIMER_THRESHOLD_SECONDS;
@@ -776,25 +995,17 @@ export function ChatToolBlock({
     isStreaming &&
     elapsedSeconds >= 8 * 60 &&
     (toolName === "createImage" || toolName === "reviseImage");
-  const subtitle = isLongRunningImage
-    ? t("imageLongRunning", {
-        action: toolName === "reviseImage" ? "revise" : "generate",
-      })
-    : defaultSubtitle;
+  let subtitle = defaultSubtitle;
+  if (isPending && !isActive) {
+    subtitle = t("interrupted");
+  } else if (isLongRunningImage) {
+    subtitle = t("imageLongRunning", {
+      action: toolName === "reviseImage" ? "revise" : "generate",
+    });
+  }
   const hasInput = input != null;
   const hasOutput = output != null;
-  const {
-    chart,
-    documentDiff,
-    draft,
-    showDraftPreview,
-    hasApprovalActions,
-    showJsonInput,
-    showJsonOutput,
-    showJsonDetails,
-    hasDetails,
-    outputImages,
-  } = resolveChatToolBlockVisuals({
+  const visuals = resolveChatToolBlockVisuals({
     toolName,
     input,
     output,
@@ -807,140 +1018,34 @@ export function ChatToolBlock({
     onApprove,
     onDeny,
   });
-  const detailsOutput =
-    toolName === "editMarkdown" &&
-    output !== null &&
-    typeof output === "object" &&
-    !Array.isArray(output)
-      ? Object.fromEntries(
-          Object.entries(output as Record<string, unknown>).filter(
-            ([key]) => key !== "previousMarkdown" && key !== "updatedMarkdown"
-          )
-        )
-      : output;
-  let toolIcon: ReactNode = null;
-
-  if (isError) {
-    toolIcon = (
-      <HugeiconsIcon
-        className="size-3.5 shrink-0"
-        icon={CancelCircleIcon}
-        strokeWidth={1.8}
-      />
-    );
-  } else if (isMcp) {
-    const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
-    toolIcon = (
-      <McpIcon
-        className="size-3.5"
-        darkUrl={
-          iconUrl ?? mcpLogoDarkUrl ?? mcpLogoLightUrl ?? mcpIconUrls.darkUrl
-        }
-        lightUrl={
-          iconUrl ?? mcpLogoLightUrl ?? mcpLogoDarkUrl ?? mcpIconUrls.lightUrl
-        }
-      />
-    );
-  } else if (iconUrl) {
-    toolIcon = (
-      <Avatar className="size-3.5 shrink-0 rounded-sm after:hidden">
-        <AvatarImage className="rounded-sm" src={iconUrl} />
-        <AvatarFallback className="rounded-sm bg-transparent">
-          <HugeiconsIcon
-            className="size-3.5"
-            icon={CpuIcon}
-            strokeWidth={1.8}
-          />
-        </AvatarFallback>
-      </Avatar>
-    );
-  } else {
-    toolIcon = (
-      <HugeiconsIcon
-        className="size-3.5 shrink-0"
-        icon={getChatToolIcon(toolName)}
-        strokeWidth={1.8}
-      />
-    );
-  }
-
   return (
     <Collapsible onOpenChange={setIsDetailsOpen} open={isOpen}>
-      <CollapsibleTrigger
-        className={cn(
-          "group flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default",
-          isError
-            ? "text-destructive hover:text-destructive disabled:hover:text-destructive"
-            : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
-        )}
-        disabled={!hasDetails}
-      >
-        {toolIcon}
-        <span className="min-w-0 truncate leading-5">{subtitle}</span>
-        {showElapsedTimer && (
-          <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
-            {formatElapsedSeconds(elapsedSeconds)}
-          </span>
-        )}
-        {hasDetails ? (
-          <HugeiconsIcon
-            aria-hidden
-            className={cn(
-              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
-              isOpen
-                ? "rotate-180"
-                : "rotate-0 opacity-0 group-hover:opacity-100"
-            )}
-            icon={ArrowDown01Icon}
-          />
-        ) : null}
-      </CollapsibleTrigger>
-      <ToolOutputImages images={outputImages} />
-      {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
-      {documentDiff ? <DocumentDiff {...documentDiff} /> : null}
-      {showDraftPreview && draft ? (
-        <ToolDraftPreview
-          editorHref={editorHref}
-          markdown={draft.markdown}
-          onApprove={isAwaitingApproval ? onApprove : undefined}
-          onDeny={isAwaitingApproval ? onDeny : undefined}
-          title={draft.title}
-        />
-      ) : null}
-      <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
-        <div className="mt-3 space-y-4">
-          {showJsonDetails && showJsonInput ? (
-            <ToolDataSection label={tCommon("labels.input")} value={input} />
-          ) : null}
-          {showJsonDetails && showJsonOutput ? (
-            <ToolDataSection
-              label={tCommon("labels.output")}
-              value={detailsOutput}
-            />
-          ) : null}
-          {hasApprovalActions ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {onApprove ? (
-                <Button onClick={onApprove} size="sm" type="button">
-                  <HugeiconsIcon icon={Tick02Icon} className="size-3.5" />
-                  {t("allow")}
-                </Button>
-              ) : null}
-              {onDeny ? (
-                <Button
-                  onClick={onDeny}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
-                  {t("deny")}
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </CollapsibleContent>
+      <ChatToolTrigger
+        elapsedSeconds={elapsedSeconds}
+        hasDetails={visuals.hasDetails}
+        iconUrl={iconUrl}
+        isError={isError}
+        isMcp={isMcp}
+        isOpen={isOpen}
+        isStreaming={isStreaming}
+        mcpLogoDarkUrl={mcpLogoDarkUrl}
+        mcpLogoLightUrl={mcpLogoLightUrl}
+        showElapsedTimer={showElapsedTimer}
+        subtitle={subtitle}
+        toolMetadata={toolMetadata}
+        toolName={toolName}
+      />
+      <ChatToolContent
+        editorHref={editorHref}
+        input={input}
+        isAwaitingApproval={isAwaitingApproval}
+        isStreaming={isStreaming}
+        onApprove={onApprove}
+        onDeny={onDeny}
+        output={output}
+        toolName={toolName}
+        visuals={visuals}
+      />
     </Collapsible>
   );
 }

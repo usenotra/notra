@@ -2803,7 +2803,8 @@
       "remove": "{value} entfernen"
     },
     "geoUpgradeGate": {
-      "title": "GEO ist in deinem aktuellen Tarif gesperrt"
+      "title": "GEO ist in deinem aktuellen Tarif gesperrt",
+      "verifyFailed": "Dein GEO-Zugang konnte nicht überprüft werden. Versuch es noch einmal."
     },
     "journeyDetailSheet": {
       "columns": {
@@ -4100,7 +4101,7 @@
         "searchPlaceholder": "Repositories durchsuchen…",
         "selectedAriaLabel": "Ausgewählt: {repository}",
         "selectAriaLabel": "Auswählen: {repository}",
-        "limitNotice": "Es werden bis zu {max} Repositories angezeigt. Nutze die Suche, um die Liste einzugrenzen."
+        "limitNotice": "{shown} von {total} Repositories werden angezeigt. Scrolle für mehr."
       },
       "webhookSettings": {
         "secretGenerated": "Webhook-Secret erstellt. Aktualisiere es in GitHub.",
@@ -5570,7 +5571,8 @@
       "welcome": "Willkommen",
       "responseStopped": "Antwort vom Nutzer gestoppt",
       "stopping": "Wird gestoppt",
-      "waitingForPreviousResponse": "Warte auf das Ende der vorherigen Antwort, bevor gesendet wird."
+      "waitingForPreviousResponse": "Warte auf das Ende der vorherigen Antwort, bevor gesendet wird.",
+      "revisePrefill": "Überarbeite „{title}“: "
     },
     "toasts": {
       "editContentFailed": "Inhalt konnte nicht bearbeitet werden",
@@ -5598,6 +5600,10 @@
       },
       "pricing": "{input} $ Input / {output} $ Output pro 1 Mio.",
       "pricingVaries": "Abhängig vom gewählten Modell"
+    },
+    "quote": {
+      "quoteSelection": "Markierten Text zitieren",
+      "removeQuote": "Zitat entfernen"
     }
   },
   "content": {
@@ -6305,7 +6311,8 @@
       "openInEditor": "Im Editor öffnen",
       "changesIn": "Änderungen in {filename}",
       "outputImageAlt": "Bild aus Tool-Ausgabe",
-      "chartEmptySeries": "Keine Datenpunkte zum Darstellen."
+      "chartEmptySeries": "Keine Datenpunkte zum Darstellen.",
+      "interrupted": "Tool-Ausführung unterbrochen"
     },
     "activity": {
       "steps": {
@@ -6329,17 +6336,16 @@
       "saveDraftFailed": "Entwurf konnte nicht gespeichert werden",
       "generatingPostToast": "Beitrag wird generiert…",
       "generatingPost": "Beitrag wird generiert",
-      "publishingPost": "Beitrag wird veröffentlicht…",
-      "publishUnavailable": "Veröffentlichen ist nicht verfügbar",
       "status": {
         "draft": "Entwurf",
         "published": "veröffentlicht"
       },
       "regeneratePlaceholder": "Was soll sich ändern?",
       "saveAsDraft": "Als Entwurf speichern",
-      "publishing": "Veröffentlichen",
-      "postContent": "Beitragsinhalt",
-      "regenerationInstructions": "Anweisungen zum Neugenerieren"
+      "saveDraftFailedRetry": "Entwurf konnte nicht gespeichert werden. Versuch es noch einmal.",
+      "saveDraftFailedInline": "Der Entwurf konnte nicht gespeichert werden. Versuch es noch einmal.",
+      "contentRegion": "Inhalt: {type}",
+      "askForChanges": "Änderungen anfragen"
     }
   },
   "comments": {

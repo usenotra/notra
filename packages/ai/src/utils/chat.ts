@@ -44,6 +44,7 @@ export function stampUserMessageAuthors<T extends UIMessage>(
 }
 
 export function buildChatFinishMetadata({
+  activityTimings,
   streamStartedAt,
   firstChunkAt,
   finishedAt,
@@ -76,6 +77,7 @@ export function buildChatFinishMetadata({
       : undefined;
 
   return {
+    activityTimings,
     model,
     requestedModel,
     thinkingLevel,

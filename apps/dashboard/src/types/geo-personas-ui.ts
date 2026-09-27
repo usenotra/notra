@@ -4,17 +4,12 @@ import type {
   GeoPersonaMemory,
   GeoPersonaScanSummary,
 } from "@notra/geo-core/types/geo-personas";
-import type { ReactNode } from "react";
 
 import type { GEO_PERSONA_GENERATION_STEPS } from "@/constants/geo-personas";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 
 export interface GeoPersonasPageProps {
   params: Promise<{ slug: string }>;
-}
-
-export interface GeoPersonasPageHeaderProps {
-  action?: ReactNode;
 }
 
 export interface PersonaGenerationCounterProps {

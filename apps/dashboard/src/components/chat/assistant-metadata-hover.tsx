@@ -2,7 +2,7 @@
 
 import { Clock01Icon, CpuIcon, FlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ChatMessageMetadata, ChatModel } from "@notra/ai/types/chat";
+import type { ChatModel } from "@notra/ai/types/chat";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { OpenaiDark } from "@notra/ui/components/ui/svgs/openaiDark";
@@ -11,11 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { cn } from "@notra/ui/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
+import type {
+  AssistantMetadataHoverProps,
+  AssistantTokenUsageProps,
+} from "@/types/components/assistant-metadata";
 import { formatOneDecimal } from "@/utils/format";
 
 const MODEL_LABELS = {
@@ -75,18 +78,71 @@ function ModelBadgeIcon({ model }: { model: string }) {
   return <ClaudeAiIcon className="size-3" />;
 }
 
-interface AssistantMetadataHoverProps {
-  metadata: ChatMessageMetadata | undefined;
-}
-
-export function AssistantMetadataHover({
+function AssistantTokenUsage({
   metadata,
-}: AssistantMetadataHoverProps) {
+  outputTokens,
+}: AssistantTokenUsageProps) {
   const t = useTranslations("chat.metadata");
   const tCommon = useTranslations("common");
   const tChatShared = useTranslations("chat.shared");
   const locale = useLocale();
+  const contextWindow = metadata.model
+    ? getModelContextWindow(metadata.model)
+    : null;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <div className="flex cursor-default items-center gap-1">
+            <HugeiconsIcon className="size-3" icon={CpuIcon} />
+            <span>
+              {t("tokens", {
+                value: formatCompactTokens(outputTokens, locale),
+              })}
+            </span>
+          </div>
+        }
+      />
+      <TooltipContent>
+        <div className="flex flex-col gap-0.5 text-xs">
+          {typeof metadata.inputTokens === "number" ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">
+                {tCommon("labels.input")}
+              </span>
+              <span>{metadata.inputTokens.toLocaleString(locale)}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-muted-foreground">
+              {tCommon("labels.output")}
+            </span>
+            <span>{outputTokens.toLocaleString(locale)}</span>
+          </div>
+          {contextWindow !== null ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">
+                {tChatShared("context")}
+              </span>
+              <span>{formatCompactTokens(contextWindow, locale)}</span>
+            </div>
+          ) : null}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function AssistantMetadataHover({
+  metadata,
+  compact = false,
+}: AssistantMetadataHoverProps) {
+  const t = useTranslations("chat.metadata");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { showAgentStats } = useShowAgentStats();
+  const showStats = showAgentStats && !compact;
 
   if (!metadata) {
     return null;
@@ -97,7 +153,7 @@ export function AssistantMetadataHover({
   if (metadata.model) {
     const modelLabel = getModelLabel(metadata.model);
     const thinkingLabel =
-      metadata.thinkingLevel && metadata.thinkingLevel !== "off"
+      !compact && metadata.thinkingLevel && metadata.thinkingLevel !== "off"
         ? tCommon(`labels.${metadata.thinkingLevel}`)
         : null;
 
@@ -116,7 +172,7 @@ export function AssistantMetadataHover({
     );
   }
 
-  if (showAgentStats && typeof metadata.tokensPerSecond === "number") {
+  if (showStats && typeof metadata.tokensPerSecond === "number") {
     items.push(
       <div className="flex items-center gap-1" key="tps">
         <HugeiconsIcon className="size-3" icon={FlashIcon} />
@@ -131,64 +187,17 @@ export function AssistantMetadataHover({
     );
   }
 
-  if (showAgentStats && typeof metadata.outputTokens === "number") {
-    const contextWindow = metadata.model
-      ? getModelContextWindow(metadata.model)
-      : null;
-    const hasBreakdown =
-      typeof metadata.inputTokens === "number" ||
-      typeof metadata.outputTokens === "number" ||
-      contextWindow !== null;
-
+  if (showStats && typeof metadata.outputTokens === "number") {
     items.push(
-      <Tooltip key="tokens">
-        <TooltipTrigger
-          render={
-            <div className="flex cursor-default items-center gap-1">
-              <HugeiconsIcon className="size-3" icon={CpuIcon} />
-              <span>
-                {t("tokens", {
-                  value: formatCompactTokens(metadata.outputTokens, locale),
-                })}
-              </span>
-            </div>
-          }
-        />
-        {hasBreakdown ? (
-          <TooltipContent>
-            <div className="flex flex-col gap-0.5 text-xs">
-              {typeof metadata.inputTokens === "number" ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">
-                    {tCommon("labels.input")}
-                  </span>
-                  <span>{metadata.inputTokens.toLocaleString(locale)}</span>
-                </div>
-              ) : null}
-              {typeof metadata.outputTokens === "number" ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">
-                    {tCommon("labels.output")}
-                  </span>
-                  <span>{metadata.outputTokens.toLocaleString(locale)}</span>
-                </div>
-              ) : null}
-              {contextWindow !== null ? (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">
-                    {tChatShared("context")}
-                  </span>
-                  <span>{formatCompactTokens(contextWindow, locale)}</span>
-                </div>
-              ) : null}
-            </div>
-          </TooltipContent>
-        ) : null}
-      </Tooltip>
+      <AssistantTokenUsage
+        key="tokens"
+        metadata={metadata}
+        outputTokens={metadata.outputTokens}
+      />
     );
   }
 
-  if (showAgentStats && typeof metadata.ttftMs === "number") {
+  if (showStats && typeof metadata.ttftMs === "number") {
     const ttftSeconds = metadata.ttftMs / 1000;
     let duration = t("durationSec", { value: Math.round(ttftSeconds) });
     if (metadata.ttftMs < 1000) {
@@ -199,9 +208,9 @@ export function AssistantMetadataHover({
       });
     }
     items.push(
-      <div className="flex items-center gap-1" key="ttft">
-        <HugeiconsIcon className="size-3" icon={Clock01Icon} />
-        <span>{t("timeToFirstToken", { duration })}</span>
+      <div className="flex min-w-0 items-center gap-1" key="ttft">
+        <HugeiconsIcon className="size-3 shrink-0" icon={Clock01Icon} />
+        <span className="truncate">{t("timeToFirstToken", { duration })}</span>
       </div>
     );
   }
@@ -212,12 +221,8 @@ export function AssistantMetadataHover({
 
   return (
     <div
-      className={cn(
-        "text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs",
-        showAgentStats
-          ? "opacity-100"
-          : "duration-fast opacity-0 transition-opacity group-hover:opacity-100"
-      )}
+      className="text-muted-foreground duration-fast absolute top-full left-0 flex max-w-full items-center gap-3 overflow-clip pt-1 text-xs whitespace-nowrap opacity-0 transition-opacity group-focus-within/message:opacity-100 group-hover/message:opacity-100 motion-reduce:transition-none [&>div:not(:last-child)]:shrink-0 [@media(hover:none)]:opacity-100"
+      data-chat-quote-ignore
     >
       {items}
     </div>

@@ -2803,7 +2803,8 @@
       "remove": "Remove {value}"
     },
     "geoUpgradeGate": {
-      "title": "GEO is locked on your current plan"
+      "title": "GEO is locked on your current plan",
+      "verifyFailed": "Could not verify your GEO access. Try again."
     },
     "journeyDetailSheet": {
       "columns": {
@@ -4100,7 +4101,7 @@
         "searchPlaceholder": "Search repositories…",
         "selectedAriaLabel": "Selected: {repository}",
         "selectAriaLabel": "Select: {repository}",
-        "limitNotice": "Showing up to {max} repositories. Search to narrow the list."
+        "limitNotice": "Showing {shown} of {total} repositories. Scroll for more."
       },
       "webhookSettings": {
         "secretGenerated": "Webhook secret generated. Update it in GitHub.",
@@ -5570,7 +5571,8 @@
       "welcome": "Welcome",
       "responseStopped": "Response stopped by user",
       "stopping": "Stopping",
-      "waitingForPreviousResponse": "Waiting for the previous response to finish before sending."
+      "waitingForPreviousResponse": "Waiting for the previous response to finish before sending.",
+      "revisePrefill": "Revise \"{title}\": "
     },
     "toasts": {
       "editContentFailed": "Failed to edit content",
@@ -5598,6 +5600,10 @@
       },
       "pricing": "${input} input / ${output} output per 1M",
       "pricingVaries": "Varies by selected model"
+    },
+    "quote": {
+      "quoteSelection": "Quote selected text",
+      "removeQuote": "Remove quote"
     }
   },
   "content": {
@@ -6305,7 +6311,8 @@
       "openInEditor": "Open in editor",
       "changesIn": "Changes in {filename}",
       "outputImageAlt": "Tool output image",
-      "chartEmptySeries": "No data points to plot."
+      "chartEmptySeries": "No data points to plot.",
+      "interrupted": "Tool execution interrupted"
     },
     "activity": {
       "steps": {
@@ -6329,17 +6336,16 @@
       "saveDraftFailed": "Failed to save draft",
       "generatingPostToast": "Generating post…",
       "generatingPost": "Generating post",
-      "publishingPost": "Publishing post…",
-      "publishUnavailable": "Publish is not available",
       "status": {
         "draft": "draft",
         "published": "published"
       },
       "regeneratePlaceholder": "What should change?",
       "saveAsDraft": "Save as draft",
-      "publishing": "Publishing",
-      "postContent": "Post content",
-      "regenerationInstructions": "Regeneration instructions"
+      "saveDraftFailedRetry": "Failed to save draft. Try again.",
+      "saveDraftFailedInline": "Could not save the draft. Try again.",
+      "contentRegion": "{type} content",
+      "askForChanges": "Ask for changes"
     }
   },
   "comments": {

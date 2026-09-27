@@ -80,6 +80,15 @@ export const chatMessageMetadataSchema = z.object({
   totalTokens: z.number().int().nonnegative().optional(),
   ttftMs: z.number().nonnegative().optional(),
   generationDurationMs: z.number().nonnegative().optional(),
+  activityTimings: z
+    .record(
+      z.string(),
+      z.object({
+        startedAt: z.number().nonnegative(),
+        finishedAt: z.number().nonnegative().optional(),
+      })
+    )
+    .optional(),
   tokensPerSecond: z.number().nonnegative().optional(),
   createdAt: z.number().int().nonnegative().optional(),
   externalChannelId: externalChannelIdSchema.optional(),
@@ -156,6 +165,7 @@ export const updateChatSessionSchema = z
 
 export const chatWorkflowPayloadSchema = z.object({
   requestId: z.string().min(1),
+  streamId: z.string().min(1).optional(),
   organizationId: z.string().min(1),
   chatId: z.string().min(1),
   userId: z.string().min(1),

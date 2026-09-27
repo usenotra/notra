@@ -5,20 +5,18 @@ import type {
 } from "@/types/content/ai-preview";
 
 export function isBlogPreviewBusy(action: BlogChangelogPreviewUserAction) {
-  return (
-    action === "saving" || action === "publishing" || action === "generating"
-  );
+  return action === "saving";
 }
 
 export function blogPreviewEffectiveState(
   incoming: PreviewIncomingState,
   action: BlogChangelogPreviewUserAction
 ): PreviewEffectiveState {
-  if (incoming === "finished") {
+  if (incoming === "finished" || action === "saved") {
     return "finished";
   }
   if (isBlogPreviewBusy(action)) {
     return "loading";
   }
-  return action === "save-failed" ? "finished" : "draft";
+  return "draft";
 }

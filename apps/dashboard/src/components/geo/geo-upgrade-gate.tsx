@@ -7,7 +7,9 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { GeoPageSkeleton } from "@/app/(dashboard)/[slug]/geo/skeleton";
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
+import { Button } from "@/components/button";
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { PAYWALL_KINDS } from "@/constants/analytics-events";
@@ -23,7 +25,8 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
   const tCommon = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
-  const { isLocked, isLoading } = useHasGeoFeature();
+  const { isLocked, isLoading, isUnavailable, isFetching, refetch } =
+    useHasGeoFeature();
   const route = toAnalyticsRoute(pathname, slug);
   const shownRef = useRef(false);
 
@@ -38,7 +41,32 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
     });
   }, [isLocked, route]);
 
-  if (isLoading || !isLocked) {
+  if (isLoading) {
+    return <GeoPageSkeleton />;
+  }
+
+  if (isUnavailable) {
+    return (
+      <PageContainer className="flex flex-1 flex-col gap-4 p-6">
+        <p className="text-muted-foreground text-sm" role="status">
+          {t("verifyFailed")}
+        </p>
+        <Button
+          className="w-fit"
+          disabled={isFetching}
+          onClick={() => {
+            void refetch();
+          }}
+          type="button"
+          variant="outline"
+        >
+          {tCommon("actions.tryAgain")}
+        </Button>
+      </PageContainer>
+    );
+  }
+
+  if (!isLocked) {
     return children;
   }
 

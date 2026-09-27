@@ -15,6 +15,7 @@ import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -28,28 +29,11 @@ import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
-  GeoPersonasPageHeaderProps,
   PersonaGenerationCounterProps,
 } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
-
-function PageHeader({ action }: GeoPersonasPageHeaderProps) {
-  const t = useTranslations("geo.pages.personas");
-  const tCommon = useTranslations("common");
-  return (
-    <header className="flex flex-wrap items-center justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {tCommon("labels.personas")}
-        </h1>
-        <p className="text-muted-foreground">{t("description")}</p>
-      </div>
-      {action}
-    </header>
-  );
-}
 
 function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
   const reducedMotion = useReducedMotion();
@@ -128,6 +112,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   const t = useTranslations("geo.pages.personas");
   const tShared = useTranslations("geo.pages.shared");
   const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
@@ -167,7 +152,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <PageHeader />
+          <PageHeader
+            description={t("description")}
+            title={tCommon("labels.personas")}
+          />
           <EmptyState
             action={
               <Button
@@ -210,7 +198,12 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeader action={headerAction} />
+        <PageHeader
+          description={t("description")}
+          title={tCommon("labels.personas")}
+        >
+          {headerAction}
+        </PageHeader>
 
         {isLoadingPersonas ? (
           <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />

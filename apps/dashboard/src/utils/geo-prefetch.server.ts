@@ -1,6 +1,8 @@
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
 
+import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { resolveGeoEntitlement } from "@/lib/billing/subscription";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { contentRouter } from "@/lib/orpc/routers/content";
@@ -11,6 +13,21 @@ import {
   geoTrafficHydrationInputs,
 } from "@/utils/geo-hydration";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
+
+async function canPrefetchGeoQueries(organizationId: string, headers: Headers) {
+  await createORPCContext({ headers });
+  // Authorization is mandatory even when the optional billing prefetch fails.
+  await assertOrganizationAccess({ organizationId, headers });
+  try {
+    return (await resolveGeoEntitlement(organizationId, headers)) !== "denied";
+  } catch (error) {
+    console.warn("[geo] Skipping prefetch: entitlement lookup unavailable", {
+      organizationId,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return false;
+  }
+}
 
 /**
  * Starts the GEO overview queries on the server and returns the dehydrated
@@ -23,6 +40,9 @@ export async function dehydrateGeoOverviewQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { content: contentRouter, geo: geoRouter },
@@ -112,6 +132,9 @@ export async function dehydrateGeoTrafficQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoTrafficHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { geo: geoRouter },

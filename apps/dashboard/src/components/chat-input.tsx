@@ -42,6 +42,7 @@ import { ChatContextConnectSuggestions } from "@/components/chat/chat-context-co
 import { ChatContextOptionContent } from "@/components/chat/chat-context-option-content";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
 import { ChatQueue } from "@/components/chat/chat-queue";
+import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import { ChatSkillSlashMenu } from "@/components/chat/chat-skill-slash-menu";
 import { ChatSkillTagChips } from "@/components/chat/chat-skill-tag-chips";
 import { Composer } from "@/components/composer/composer-shell";
@@ -59,6 +60,7 @@ const ChatInput = (props: ChatInputProps) => (
 function ContentChatInputComposer(props: ChatInputProps) {
   const t = useTranslations("chat.promptInput");
   const tChatShared = useTranslations("chat.shared");
+  const quoteContext = useChatQuote();
   const slashListId = useId();
   const {
     acceptedFileTypesLabel,
@@ -132,7 +134,11 @@ function ContentChatInputComposer(props: ChatInputProps) {
           acceptedFileTypesLabel={acceptedFileTypesLabel}
         />
       ) : null}
-      <div className="relative w-full min-w-0" {...dragHandlers}>
+      <div
+        className="relative w-full min-w-0"
+        data-chat-quote-composer={quoteContext?.scopeId}
+        {...dragHandlers}
+      >
         {isSlashMenuOpen ? (
           <ChatSkillSlashMenu
             filteredSkills={filteredSkills}
@@ -173,6 +179,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
           }
         >
           <section aria-label={tChatShared("chatInputDropArea")}>
+            <ChatQuotePreview />
             <input
               accept={allowedChatMimeTypes.join(",")}
               className="hidden"

@@ -148,6 +148,8 @@
 @source "../../../../packages/ui/src/constants/command-tabs.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
+@source "../../../../packages/ui/src/constants/message-animation.ts";
+@source "../../../../packages/ui/src/constants/message-code.ts";
 @source "../../../../packages/ui/src/constants/message-table.ts";
 @source "../../../../packages/ui/src/constants/perplexity-models.ts";
 @source "../../../../packages/ui/src/constants/table.ts";
