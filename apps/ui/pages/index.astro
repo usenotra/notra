@@ -57,7 +57,7 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
       </div>
     </div>
 
-    <div class="relative flex h-80 items-start justify-center overflow-hidden rounded-2xl border border-border bg-background/70 pt-16 backdrop-blur-sm dot-grid">
+    <div class="relative flex h-80 items-start justify-center overflow-hidden rounded-2xl border-2 border-border border-b-border/50 bg-background/70 shadow-sm pt-16 backdrop-blur-sm dot-grid">
       <DuotoneTooltip aside="Last 7 days" label="Weekly summary" open title="Visits">
         <span class="block text-2xl font-semibold tabular-nums text-foreground">12,480</span>
         <span class="mt-1 block">Up 18% on the previous week, led by returning readers.</span>
@@ -82,7 +82,7 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
                 <Preview />
               </div>
               <a
-                class="flex flex-col gap-2 rounded-2xl border border-border p-5 no-underline transition-colors hover:bg-muted/50"
+                class="flex flex-col gap-2 rounded-2xl border-2 border-border border-b-border/50 p-5 shadow-sm no-underline transition-colors hover:bg-muted/50"
                 href={component.href}
               >
                 <span class="text-sm font-semibold text-foreground">{component.title}</span>
