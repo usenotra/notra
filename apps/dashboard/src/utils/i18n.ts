@@ -23,7 +23,10 @@ export function negotiateDashboardLocale(
         .map((param) => param.trim())
         .find((param) => param.startsWith("q="));
       return {
-        language: tag.toLowerCase().split("-")[0] ?? "",
+        language:
+          tag === "*"
+            ? DEFAULT_DASHBOARD_LOCALE
+            : (tag.toLowerCase().split("-")[0] ?? ""),
         quality: quality ? Number(quality.slice(2)) : 1,
       };
     })
