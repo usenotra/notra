@@ -309,6 +309,14 @@ export function BillingSettingsPane() {
     if (!plan) {
       return null;
     }
+    let renewalTerms: "standard" | "trial" | "trialRevert" | undefined;
+    if (plan.id !== activePlanId) {
+      renewalTerms = "standard";
+      if (plan.freeTrial && plan.customerEligibility?.trialAvailable) {
+        renewalTerms =
+          plan.freeTrial.onEnd === "revert" ? "trialRevert" : "trial";
+      }
+    }
     const isCurrent = isPlanInGroup(group, activePlanId);
     const addonPlan = hasZdr ? null : findZdrAddonPlan(plans, plan.id);
     return (
@@ -336,6 +344,7 @@ export function BillingSettingsPane() {
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={renewalTerms}
       />
     );
   }

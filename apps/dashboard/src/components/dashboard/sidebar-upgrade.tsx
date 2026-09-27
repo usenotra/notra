@@ -4,7 +4,7 @@ import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { useListPlans } from "autumn-js/react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -18,7 +18,11 @@ import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useOnboardingStatus } from "@/lib/hooks/use-onboarding";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
-import { groupBillingPlans, nextPlanGroup } from "@/utils/billing-plans";
+import {
+  getProductPrice,
+  groupBillingPlans,
+  nextPlanGroup,
+} from "@/utils/billing-plans";
 import {
   canShowSidebarUpgrade,
   sidebarUpgradeCopy,
@@ -27,6 +31,8 @@ import {
 export function SidebarUpgrade() {
   const t = useTranslations("nav.upgrade");
   const tCommon = useTranslations("common");
+  const tBilling = useTranslations("billing.plans");
+  const format = useFormatter();
   const { activeOrganization } = useOrganizationsContext();
   const { openSettings } = useSettingsModal();
   const orgId = activeOrganization?.id ?? "";
@@ -63,6 +69,11 @@ export function SidebarUpgrade() {
 
   const targetGroup = nextPlanGroup(groupBillingPlans(plans), activePlanId);
   const targetPlan = targetGroup?.monthly ?? targetGroup?.annual ?? null;
+  let renewalTerms: "standard" | "trial" | "trialRevert" = "standard";
+  if (targetPlan?.freeTrial && targetPlan.customerEligibility?.trialAvailable) {
+    renewalTerms =
+      targetPlan.freeTrial.onEnd === "revert" ? "trialRevert" : "trial";
+  }
 
   const { buttonLabel, description, heading } = sidebarUpgradeCopy(
     {
@@ -169,6 +180,20 @@ export function SidebarUpgrade() {
           >
             {buttonLabel}
           </Button>
+          {!hasNoPlan && targetPlan ? (
+            <p className="text-muted-foreground text-xs">
+              {tBilling("renewalTerms", {
+                kind: renewalTerms,
+                price: format.number(getProductPrice(targetPlan).amount, {
+                  style: "currency",
+                  currency: "USD",
+                }),
+                interval: targetGroup?.monthly
+                  ? tCommon("labels.month")
+                  : tCommon("labels.year"),
+              })}
+            </p>
+          ) : null}
         </div>
       </div>
     </SidebarGroup>

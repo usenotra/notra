@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
@@ -31,11 +31,14 @@ export function PlanCard({
   action,
   addon,
   button,
+  renewalTerms,
 }: PlanCardProps) {
   const listId = useId();
   const addonId = `${listId}-addon`;
   const [consentOpen, setConsentOpen] = useState(false);
   const locale = useLocale();
+  const format = useFormatter();
+  const t = useTranslations("billing.plans");
   const currency = currencyAffix(locale, price);
 
   const handleAddonChange = (checked: boolean) => {
@@ -123,6 +126,19 @@ export function PlanCard({
         >
           {button.label}
         </Button>
+        {renewalTerms ? (
+          <p className="text-muted-foreground text-xs">
+            {t("renewalTerms", {
+              kind: renewalTerms,
+              price: format.number(price, {
+                style: "currency",
+                currency: "USD",
+              }),
+              interval: intervalLabel,
+            })}
+            {addon?.checked ? ` ${t("addonExtra")}` : null}
+          </p>
+        ) : null}
 
         <ul className="space-y-2.5 pt-2">
           {features.map((feature) => (

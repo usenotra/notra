@@ -142,6 +142,11 @@ export function PricingClient({
     const hasTrial = Boolean(
       plan.freeTrial && plan.customerEligibility?.trialAvailable
     );
+    let renewalTerms: "standard" | "trial" | "trialRevert" = "standard";
+    if (hasTrial) {
+      renewalTerms =
+        plan.freeTrial?.onEnd === "revert" ? "trialRevert" : "trial";
+    }
     let action: React.ReactNode;
     if (hasTrial) {
       action = <Badge variant="outline">{t("freeTrial")}</Badge>;
@@ -176,6 +181,7 @@ export function PricingClient({
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={renewalTerms}
       />
     );
   }

@@ -1281,6 +1281,7 @@
       },
       "typography": {
         "title": "Typography",
+        "previewUnavailable": "Google-hosted preview unavailable; showing a locally installed font or system fallback.",
         "weight": "Weight {value}",
         "size": "Size {value}",
         "lineHeight": "Line height {value}"
@@ -5195,6 +5196,8 @@
       "quotas": "Remaining quotas on your plan."
     },
     "plans": {
+      "renewalTerms": "{kind, select, trial {After your free trial, your base plan renews at {price}/{interval} until canceled. Cancel before the trial ends to avoid charges.} trialRevert {Your free trial ends without automatic billing. A paid base plan renews at {price}/{interval} only if you subscribe.} other {Your base plan renews at {price}/{interval} until canceled.}} Manage or cancel in Billing settings.",
+      "addonExtra": "Selected add-ons cost extra.",
       "tierDescription": "{tier, select, starter {For founders tracking their first prompts.} growth {For teams tracking prompts across engines and languages.} scale {For agencies and teams running several brands.} other {}}",
       "features": {
         "aiAnswers": "{count, number} AI answers tracked / mo",

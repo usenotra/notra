@@ -1281,6 +1281,7 @@
       },
       "typography": {
         "title": "Typografie",
+        "previewUnavailable": "Google-gehostete Vorschau nicht verfügbar; eine lokal installierte Schrift oder Systemschrift wird angezeigt.",
         "weight": "Stärke {value}",
         "size": "Größe {value}",
         "lineHeight": "Zeilenhöhe {value}"
@@ -5195,6 +5196,8 @@
       "quotas": "Verbleibende Kontingente in deinem Tarif."
     },
     "plans": {
+      "renewalTerms": "{kind, select, trial {Nach deiner kostenlosen Testphase verlängert sich dein Basistarif für {price} pro {interval} automatisch, bis du kündigst. Kündige vor Ende der Testphase, um Kosten zu vermeiden.} trialRevert {Deine kostenlose Testphase endet ohne automatische Zahlung. Ein kostenpflichtiger Basistarif verlängert sich für {price} pro {interval} nur, wenn du ihn abonnierst.} other {Dein Basistarif verlängert sich für {price} pro {interval} automatisch, bis du kündigst.}} Verwalte oder kündige dein Abo in den Abrechnungseinstellungen.",
+      "addonExtra": "Ausgewählte Add-ons kosten zusätzlich.",
       "tierDescription": "{tier, select, starter {Für Gründer, die ihre ersten Prompts tracken.} growth {Für Teams, die Prompts über Engines und Sprachen hinweg tracken.} scale {Für Agenturen und Teams mit mehreren Marken.} other {}}",
       "features": {
         "aiAnswers": "{count, number} getrackte KI-Antworten / Monat",

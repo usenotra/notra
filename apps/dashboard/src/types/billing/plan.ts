@@ -80,6 +80,7 @@ export interface PlanCardProps {
   action?: ReactNode;
   addon?: PlanCardAddon;
   button: PlanCardButton;
+  renewalTerms?: "standard" | "trial" | "trialRevert";
 }
 
 export interface PlanTierLimits {
