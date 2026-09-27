@@ -11,14 +11,23 @@ import {
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useTranslations } from "next-intl";
 
-import { DASHBOARD_LOCALE_OPTIONS } from "@/constants/locales";
+import {
+  DASHBOARD_LOCALE_OPTIONS,
+  LOCALE_AUTO_FLAG,
+  LOCALE_AUTO_VALUE,
+} from "@/constants/locales";
 import { useLocalePreference } from "@/lib/hooks/use-locale-preference";
 import { isDashboardLocale } from "@/utils/i18n";
 
 export function LanguageSection() {
   const t = useTranslations("settings.language");
   const tCommon = useTranslations("common");
-  const { locale, isUpdating, setLocale } = useLocalePreference();
+  const { preference, isUpdating, setPreference } = useLocalePreference();
+  const options = [
+    { value: LOCALE_AUTO_VALUE, label: t("automatic"), flag: LOCALE_AUTO_FLAG },
+    ...DASHBOARD_LOCALE_OPTIONS,
+  ];
+  const value = preference ?? LOCALE_AUTO_VALUE;
 
   return (
     <TitleCard className="lg:col-span-2" heading={tCommon("labels.language")}>
@@ -31,20 +40,23 @@ export function LanguageSection() {
         </div>
         <Select
           disabled={isUpdating}
-          items={DASHBOARD_LOCALE_OPTIONS}
-          onValueChange={(value) => {
-            if (isDashboardLocale(value) && value !== locale) {
-              setLocale(value);
+          items={options}
+          onValueChange={(next) => {
+            if (next === value) {
+              return;
+            }
+            if (next === LOCALE_AUTO_VALUE) {
+              setPreference(null);
+            } else if (isDashboardLocale(next)) {
+              setPreference(next);
             }
           }}
-          value={locale}
+          value={value}
         >
           <SelectTrigger className="min-w-40" id="dashboard-language">
             <SelectValue>
-              {(value) => {
-                const option = DASHBOARD_LOCALE_OPTIONS.find(
-                  (item) => item.value === value
-                );
+              {(selected) => {
+                const option = options.find((item) => item.value === selected);
                 return option ? (
                   <>
                     <span aria-hidden="true" className="text-base leading-none">
@@ -57,7 +69,7 @@ export function LanguageSection() {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {DASHBOARD_LOCALE_OPTIONS.map((option) => (
+            {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 <span aria-hidden="true" className="text-base leading-none">
                   {option.flag}

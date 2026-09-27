@@ -1,11 +1,11 @@
-import type { DashboardLocale } from "@/types/i18n";
+import type { LocalePreference } from "@/types/i18n";
 
 export interface UpdateUserInput {
   name?: string;
   image?: string | null;
   hidePersonalData?: boolean;
   showAgentStats?: boolean;
-  locale?: DashboardLocale;
+  locale?: LocalePreference;
 }
 
 export interface UnlinkAccountInput {

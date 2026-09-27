@@ -26,7 +26,7 @@ export const updateUserInputSchema = z.object({
     .optional(),
   hidePersonalData: z.boolean().optional(),
   showAgentStats: z.boolean().optional(),
-  locale: z.enum(DASHBOARD_LOCALES).optional(),
+  locale: z.enum(DASHBOARD_LOCALES).nullable().optional(),
 });
 
 export const dashboardLocaleSchema = z.enum(DASHBOARD_LOCALES);

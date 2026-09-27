@@ -365,8 +365,9 @@
     },
     "language": {
       "label": "Dashboard language",
-      "description": "Choose the language used across the dashboard",
-      "updateFailed": "Failed to update language. Please try again."
+      "description": "Choose the language used across the dashboard. Automatic follows your browser.",
+      "updateFailed": "Failed to update language. Please try again.",
+      "automatic": "Automatic"
     },
     "shared": {
       "goToDashboard": "Go to dashboard",

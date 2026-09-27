@@ -55,7 +55,7 @@ export async function updateUserAction(
         image: string | null;
         hidePersonalData: boolean;
         showAgentStats: boolean;
-        locale: string;
+        locale: string | null;
       }> = {};
 
       if (input.name !== undefined) {

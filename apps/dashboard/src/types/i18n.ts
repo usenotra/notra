@@ -24,3 +24,5 @@ export type MessageLeafKey<T> = {
     ? K
     : `${K}.${MessageLeafKey<T[K]>}`;
 }[keyof T & string];
+
+export type LocalePreference = DashboardLocale | null;

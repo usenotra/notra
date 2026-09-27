@@ -4,7 +4,7 @@ import { getAuthSession } from "@/lib/auth/server";
 import { buildSessionCorsHeaders } from "@/lib/auth/session-cors";
 import { readLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import type { ClientSessionData } from "@/types/auth/session";
-import { resolveDashboardLocale } from "@/utils/i18n";
+import { isDashboardLocale } from "@/utils/i18n";
 
 export function OPTIONS(request: NextRequest) {
   return new Response(null, {
@@ -25,9 +25,11 @@ export async function GET(request: NextRequest) {
     return Response.json(null, { headers });
   }
 
-  const locale = resolveDashboardLocale(data.user.locale);
-  if ((await readLocaleCookie()) !== locale) {
-    await writeLocaleCookie(locale);
+  const preference = isDashboardLocale(data.user.locale)
+    ? data.user.locale
+    : null;
+  if ((await readLocaleCookie()) !== preference) {
+    await writeLocaleCookie(preference);
   }
 
   const payload: ClientSessionData = {
