@@ -76,6 +76,15 @@ const nextConfig: NextConfig = {
   ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
+    const ingestUrl = process.env.GEO_INGEST_URL?.trim();
+    const beforeFiles = ingestUrl
+      ? [
+          {
+            source: "/api/geo/ingest",
+            destination: new URL("/api/geo/ingest", ingestUrl).toString(),
+          },
+        ]
+      : [];
     const posthogHost =
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
     const posthogAssetsHost = posthogHost.replace(
@@ -94,18 +103,22 @@ const nextConfig: NextConfig = {
     ];
 
     if (process.env.NODE_ENV === "production") {
-      return posthogRewrites;
+      return { beforeFiles, afterFiles: posthogRewrites, fallback: [] };
     }
 
     const agentUrl =
       process.env.EVE_ONBOARDING_AGENT_URL ?? "http://127.0.0.1:3100";
-    return [
-      ...posthogRewrites,
-      {
-        source: "/eve/v1/:path*",
-        destination: `${agentUrl}/eve/v1/:path*`,
-      },
-    ];
+    return {
+      beforeFiles,
+      afterFiles: [
+        ...posthogRewrites,
+        {
+          source: "/eve/v1/:path*",
+          destination: `${agentUrl}/eve/v1/:path*`,
+        },
+      ],
+      fallback: [],
+    };
   },
   async redirects() {
     return [

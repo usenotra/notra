@@ -20,6 +20,7 @@ Notra is a Bun + Turborepo monorepo.
 ```text
 /
 |- apps/
+|  |- ai-traffic-ingest/ # AI traffic collector (Bun, Railway)
 |  |- api/         # Hono API (Cloudflare Worker)
 |  |- dashboard/   # Main Notra product app (Next.js)
 |  |- docs/        # Product docs (Mintlify)

@@ -6,6 +6,7 @@
   "exports": {
     "./deps": "./src/deps.ts",
     "./geo/*": "./src/geo/*.ts",
+    "./ingest/*": "./src/ingest/*.ts",
     "./types/*": "./src/types/*.ts",
     "./constants/*": "./src/constants/*.ts",
     "./schemas/*": "./src/schemas/*.ts",
@@ -25,7 +26,10 @@
     "@notra/ai": "workspace:*",
     "@notra/analytics": "workspace:*",
     "@notra/db": "workspace:*",
+    "@notra/posthog": "workspace:*",
     "@notra/utils": "workspace:*",
+    "@upstash/ratelimit": "^2.1.0",
+    "@upstash/redis": "^1.38.4",
     "@usenotra/geo": "npm:@usenotra/geo@^0.5.0",
     "ai": "7.0.105",
     "drizzle-orm": "^0.45.2",

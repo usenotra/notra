@@ -18,7 +18,7 @@ import type {
   GeoJourneyInput,
   GeoJourneyResolution,
   GeoJourneyTuning,
-} from "@/types/geo";
+} from "../types/ingest";
 
 const MS_PER_SECOND = 1000;
 const ISO_DATE_LENGTH = 10;

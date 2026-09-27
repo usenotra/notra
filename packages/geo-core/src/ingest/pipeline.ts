@@ -9,10 +9,10 @@ import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
 import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
-import { after, type NextRequest } from "next/server";
 
-import { trackGeoIngestAnalytics } from "@/lib/geo-ingest/analytics";
-import { classifyVisitor } from "@/lib/geo-ingest/classify-visitor";
+import type { GeoIngestDefer } from "../types/ingest";
+import { trackGeoIngestAnalytics } from "./analytics";
+import { classifyVisitor } from "./classify-visitor";
 import {
   GeoIngestFailedError,
   GeoIngestInvalidPayloadError,
@@ -20,12 +20,12 @@ import {
   GeoIngestMissingTokenError,
   GeoIngestRateLimitedError,
   GeoIngestUnparseableUrlError,
-} from "@/lib/geo-ingest/errors";
-import { buildGeoTrafficEvent, toCapturedDate } from "@/lib/geo-ingest/event";
-import { loadIngestAllowedHosts } from "@/lib/geo-ingest/hosts";
-import { isGeoIngestIdentityActive } from "@/lib/geo-ingest/identity";
-import { resolveJourneyId } from "@/lib/geo-ingest/journey";
-import { ratelimit } from "@/utils/ratelimit";
+} from "./errors";
+import { buildGeoTrafficEvent, toCapturedDate } from "./event";
+import { loadIngestAllowedHosts } from "./hosts";
+import { isGeoIngestIdentityActive } from "./identity";
+import { resolveJourneyId } from "./journey";
+import { geoIngestRatelimit } from "./ratelimit";
 
 // Dropped (human/unknown) traffic outnumbers stored events by an order of
 // magnitude; log a sample so drop reasons stay visible without paying for a
@@ -37,7 +37,7 @@ function emitIngestLog(fields: Omit<GeoLogEvent, "event">) {
 }
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
-  request: NextRequest
+  request: Request
 ) {
   const header = request.headers.get("authorization");
   const token = header?.startsWith(GEO_INGEST_BEARER_PREFIX)
@@ -60,7 +60,7 @@ const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
   organizationId: string
 ) {
   const { success } = yield* Effect.tryPromise({
-    try: () => ratelimit.geoIngest.limit(organizationId),
+    try: () => geoIngestRatelimit.limit(organizationId),
     catch: (cause) => new GeoIngestFailedError({ cause }),
   });
   if (!success) {
@@ -71,7 +71,7 @@ const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
 });
 
 const readPayload = Effect.fn("geoIngest.readPayload")(function* (
-  request: NextRequest
+  request: Request
 ) {
   const body = yield* Effect.promise(() => request.json().catch(() => null));
   const parsed = geoRequestPayloadSchema.safeParse(body);
@@ -120,7 +120,8 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
 );
 
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
-  request: NextRequest
+  request: Request,
+  defer: GeoIngestDefer
 ) {
   const identity = yield* readBearerIdentity(request);
 
@@ -225,7 +226,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   );
   // Analytics must not hold the 202 open for the site that sent the event.
   yield* Effect.sync(() =>
-    after(async () => {
+    defer(async () => {
       try {
         await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
       } catch (error) {

@@ -3,7 +3,7 @@ import { toClickHouseDateTime } from "@notra/analytics/utils/datetime";
 import { GEO_MAX_STORED_UA_LENGTH } from "@notra/geo-core/constants/geo";
 import { GEO_MARKDOWN_ACCEPT_MATCHERS } from "@notra/geo-core/constants/geo-accept";
 
-import type { GeoTrafficEventInput } from "@/types/geo";
+import type { GeoTrafficEventInput } from "../types/ingest";
 
 export function toCapturedDate(timestamp: string | undefined): Date {
   const parsed = timestamp ? new Date(timestamp) : new Date();

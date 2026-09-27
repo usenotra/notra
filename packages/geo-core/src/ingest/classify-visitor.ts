@@ -21,8 +21,8 @@ import type {
   GeoVisitorClassification,
   GeoVisitorInput,
   GeoVisitorSignals,
-} from "@/types/geo";
-import { normalizeAccept, prefersMarkdown } from "@/utils/geo-accept";
+} from "../types/ingest";
+import { normalizeAccept, prefersMarkdown } from "../utils/geo-accept";
 
 const UNKNOWN_CLASSIFICATION: GeoVisitorClassification = {
   visitorType: "unknown",

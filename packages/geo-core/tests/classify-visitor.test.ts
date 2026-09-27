@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   classifyVisitor,
   resolveAiReferrer,
-} from "../src/lib/geo-ingest/classify-visitor";
+} from "../src/ingest/classify-visitor";
 
 describe("resolveAiReferrer", () => {
   test("attributes meta.ai click-throughs as Meta", () => {

@@ -5,7 +5,7 @@ How AI traffic flows from a customer's site into the journeys you see on the GEO
 ## The pipeline
 
 ```
-customer middleware (@usenotra/geo)          notra dashboard app
+customer middleware (@usenotra/geo)          ai-traffic-ingest service (Railway)
   every GET page request                       POST /api/geo/ingest
   -> request envelope ------------------------> token auth (orgId.hmac bearer)
      url, ip, geo headers, referer,            allowlist host (brand + extras)
@@ -14,7 +14,9 @@ customer middleware (@usenotra/geo)          notra dashboard app
                                                -> Tinybird geo_traffic_events
 ```
 
-The ingest route is a thin adapter: every step (auth, rate limit, payload validation, event build, Tinybird write) is an Effect composed into one program in `pipeline.ts` (`runGeoIngest`), and each way it can fail is a tagged error in `errors.ts` (`GeoIngestMissingToken`, `GeoIngestInvalidToken`, `GeoIngestRateLimited`, `GeoIngestInvalidPayload`, `GeoIngestUnparseableUrl`, `GeoIngestFailed`). The route runs the program with `Effect.result` and maps the failure channel to a status in `response.ts`, so no HTTP concern leaks into the Effect itself.
+The ingest route is a thin adapter: every step (auth, rate limit, payload validation, event build, Tinybird write) is an Effect composed into one program in `pipeline.ts` (`runGeoIngest`), and each way it can fail is a tagged error in `errors.ts`. The service runs the program with `Effect.result` and maps the failure channel to a status in `response.ts`. The pipeline takes a standard `Request` and a background-task scheduler. Bun tracks pending tasks until shutdown; the dashboard's compatibility handler uses Next.js `after`.
+
+Deployment and endpoint migration are documented in `apps/ai-traffic-ingest/README.md`. Without `GEO_INGEST_URL`, the dashboard still executes the shared pipeline locally. Setting that variable forwards the old endpoint to Railway and gives new installs the direct service URL.
 
 A valid token is not enough to write an event. After the URL parses, ingest loads the project's brand website plus `geo_settings.domains` and drops the request (same silent 202 as an untracked visitor) when the host is not on that list. Legacy org-scoped tokens use only the oldest project's hosts; other projects need their own tokens. An empty allowlist drops everything. A host lookup outage fails open for project tokens, but returns an error for legacy org tokens to avoid attributing sibling traffic to the oldest project. Saving GEO settings clears the cached allowlist immediately. The token stays an HMAC of org/project/generation — binding hosts in the signature would rotate on every settings edit.
 

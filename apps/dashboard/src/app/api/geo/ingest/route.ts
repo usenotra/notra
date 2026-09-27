@@ -1,14 +1,15 @@
-import { Effect } from "effect";
-import type { NextRequest, NextResponse } from "next/server";
-
-import { runGeoIngest } from "@/lib/geo-ingest/pipeline";
+import { runGeoIngest } from "@notra/geo-core/ingest/pipeline";
 import {
   toGeoIngestAcceptedResponse,
   toGeoIngestErrorResponse,
-} from "@/lib/geo-ingest/response";
+} from "@notra/geo-core/ingest/response";
+import { Effect } from "effect";
+import { after } from "next/server";
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const outcome = await Effect.runPromise(Effect.result(runGeoIngest(request)));
+export async function POST(request: Request): Promise<Response> {
+  const outcome = await Effect.runPromise(
+    Effect.result(runGeoIngest(request, after))
+  );
 
   if (outcome._tag === "Failure") {
     return toGeoIngestErrorResponse(outcome.failure);

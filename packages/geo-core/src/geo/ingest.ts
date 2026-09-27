@@ -203,7 +203,10 @@ export function buildGeoAppUrl(): string {
 }
 
 export function buildGeoIngestUrl(): string {
-  return new URL(GEO_INGEST_PATH, buildGeoAppUrl()).toString();
+  return new URL(
+    GEO_INGEST_PATH,
+    process.env.GEO_INGEST_URL?.trim() || buildGeoAppUrl()
+  ).toString();
 }
 
 function processTokenExpr(): string {
@@ -353,7 +356,7 @@ export function buildGeoSnippets(appUrl: string): GeoIngestSnippets {
  * holder post events), so the read path builds this and never the token.
  */
 export function buildGeoIngestSetupInfo(): GeoIngestSetupInfo {
-  const snippets = buildGeoSnippets(buildGeoAppUrl());
+  const snippets = buildGeoSnippets(new URL(buildGeoIngestUrl()).origin);
   return {
     ingestUrl: buildGeoIngestUrl(),
     snippet: snippets.next,
