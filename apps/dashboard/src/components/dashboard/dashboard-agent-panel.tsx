@@ -37,7 +37,6 @@ import ChatInput from "@/components/chat-input";
 import { ChatQuoteProvider } from "@/components/chat/chat-quote";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
-import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DASHBOARD_AGENT_SUGGESTIONS } from "@/constants/chat-suggestions";
@@ -437,7 +436,7 @@ function DashboardAgentChat({
   ) : null;
 
   if (isDesktop) {
-    return <RightPanel id="agent">{chat}</RightPanel>;
+    return chat;
   }
 
   return (
