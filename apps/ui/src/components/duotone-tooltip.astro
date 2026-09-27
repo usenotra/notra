@@ -5,7 +5,7 @@ const { aside, label, open = false, title } = Astro.props;
 const id = `duotone-tooltip-${crypto.randomUUID()}`;
 ---
 
-<span class="group relative inline-flex">
+<span class="group relative inline-flex" data-duotone-tooltip={open ? undefined : ""}>
   <button
     aria-describedby={id}
     class="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
@@ -34,3 +34,28 @@ const id = `duotone-tooltip-${crypto.randomUUID()}`;
     </span>
   </span>
 </span>
+
+<script>
+  const rootOf = (target: EventTarget | null) =>
+    target instanceof Element ? target.closest<HTMLElement>("[data-duotone-tooltip]") : null;
+
+  const tooltipOf = (root: HTMLElement | null) => root?.querySelector<HTMLElement>("[role=tooltip]");
+
+  document.addEventListener("keydown", (event) => {
+    const tooltip = tooltipOf(rootOf(event.target));
+    if (event.key === "Escape" && tooltip) {
+      tooltip.hidden = true;
+    }
+  });
+
+  const resetOnExit = (event: FocusEvent | PointerEvent) => {
+    const root = rootOf(event.target);
+    const tooltip = tooltipOf(root);
+    if (tooltip && rootOf(event.relatedTarget) !== root) {
+      tooltip.hidden = false;
+    }
+  };
+
+  document.addEventListener("focusout", resetOnExit);
+  document.addEventListener("pointerout", resetOnExit);
+</script>
