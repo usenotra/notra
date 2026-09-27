@@ -116,7 +116,7 @@ function ConnectedCards({ items, className, onSelect, onDocs }: ConnectedCardsPr
                 </p>
               ) : null}
             </div>
-            <DocsAction item={item} onDocs={onDocs} />
+            {item.docsHref || onDocs ? <DocsAction item={item} onDocs={onDocs} /> : null}
           </div>
         </div>
       ))}

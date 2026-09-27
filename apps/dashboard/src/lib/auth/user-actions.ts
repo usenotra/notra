@@ -19,6 +19,7 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
 import type { SessionUser } from "@/types/auth/session";
@@ -37,6 +38,7 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
 
 export async function signOutAction(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
+  await clearLocaleCookie();
   await signOut(parsed.success ? parsed.data : undefined);
 }
 
@@ -90,6 +92,11 @@ export async function updateUserAction(
             ),
           })
         );
+      }
+
+      if (input.locale !== undefined) {
+        const locale = input.locale;
+        yield* Effect.promise(() => writeLocaleCookie(locale));
       }
 
       if (input.name !== undefined && updated.workosUserId) {

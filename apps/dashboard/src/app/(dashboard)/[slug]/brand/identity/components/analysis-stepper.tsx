@@ -13,10 +13,9 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { ANALYSIS_STEPS } from "@/constants/brand-identity";
 import type { StepIconState } from "@/types/brand-identity";
 import { getStepIconState, getStepperValue } from "@/utils/brand-identity";
-
-import { ANALYSIS_STEP_VALUES } from "../constants/analysis-steps";
 
 const STEP_ICONS: Record<StepIconState, () => ReactNode> = {
   completed: () => <HugeiconsIcon className="size-4" icon={Tick02Icon} />,
@@ -42,7 +41,7 @@ export function AnalysisStepper({ progress }: AnalysisStepperProps) {
       value={getStepperValue(progress.status, progress.currentStep)}
     >
       <StepperList>
-        {ANALYSIS_STEP_VALUES.map((step, index) => {
+        {ANALYSIS_STEPS.map(({ value: step }, index) => {
           const stepNumber = index + 1;
           const iconState = getStepIconState(progress.currentStep, stepNumber);
 

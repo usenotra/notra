@@ -38,15 +38,8 @@ export function EmptyBrandIdentityState({
 }: EmptyBrandIdentityStateProps) {
   const t = useTranslations("brand.identity");
   const tCommon = useTranslations("common");
-  const modalState = getModalState(
-    false,
-    isAnalyzing,
-    effectiveProgress.status
-  );
-  const modalTitle =
-    modalState === "loading"
-      ? tCommon("labels.loading")
-      : t(`modal.${modalState}.title`);
+  const modalState = getModalState(isAnalyzing, effectiveProgress.status);
+  const modalTitle = t(`modal.${modalState}.title`);
   let modalDescription = progressError;
   if (!(modalState === "failed" && progressError)) {
     modalDescription =

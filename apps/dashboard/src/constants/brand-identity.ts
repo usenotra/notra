@@ -16,7 +16,7 @@ export const ANALYSIS_STEPS = [
   { value: "scraping" },
   { value: "extracting" },
   { value: "saving" },
-];
+] as const;
 
 export const TONE_OPTIONS: { value: ToneProfile }[] = [
   { value: "Conversational" },

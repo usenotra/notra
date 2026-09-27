@@ -18,6 +18,11 @@ export async function authActionMessage(
   return t(key);
 }
 
+export async function emailUnverifiedMessage(): Promise<string> {
+  const t = await getTranslations("errors.actions.auth");
+  return t("emailUnverified");
+}
+
 export async function workOSFailureMessage(
   info: WorkOSErrorInfo
 ): Promise<string> {

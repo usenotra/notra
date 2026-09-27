@@ -131,7 +131,7 @@ export const uploadRouter = {
         response.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
       const body = Buffer.from(await response.arrayBuffer());
 
-      validateUpload({
+      await validateUpload({
         type: "logo",
         fileType,
         fileSize: body.byteLength,

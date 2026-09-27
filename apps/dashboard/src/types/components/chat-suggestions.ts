@@ -14,7 +14,6 @@ export type ChatSuggestionId =
 
 export interface ChatSuggestion {
   id: ChatSuggestionId;
-  prompt: string;
   icon: IconSvgElement;
 }
 

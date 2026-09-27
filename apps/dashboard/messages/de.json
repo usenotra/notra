@@ -867,7 +867,8 @@
         "emailTaken": "Es gibt bereits ein Konto mit dieser E-Mail.",
         "differentMethodRequired": "Deine Organisation verlangt eine andere Anmeldemethode.",
         "attemptExpired": "Dieser Anmeldeversuch ist abgelaufen. Bitte starte erneut.",
-        "backupCodeRejected": "Dieser Backup-Code ist ungültig oder wurde bereits verwendet."
+        "backupCodeRejected": "Dieser Backup-Code ist ungültig oder wurde bereits verwendet.",
+        "emailUnverified": "Bestätige deine E-Mail-Adresse, bevor du dich bei diesem Konto anmeldest."
       },
       "invalidInput": "Prüfe deine Eingaben und versuche es erneut.",
       "security": {
@@ -1203,7 +1204,7 @@
         }
       },
       "tabs": {
-        "guidelines": "Guidelines"
+        "guidelines": "Richtlinien"
       },
       "toasts": {
         "deleted": "{count, plural, =0 {Markenidentität gelöscht} one {Markenidentität gelöscht. # Trigger wurde deaktiviert.} other {Markenidentität gelöscht. # Trigger wurden deaktiviert.}}",
@@ -1217,9 +1218,6 @@
         "tryDifferentUrl": "Versuche es mit einer anderen URL erneut"
       },
       "modal": {
-        "loading": {
-          "description": "Deine Markeneinstellungen werden geprüft"
-        },
         "analyzing": {
           "title": "Website wird analysiert",
           "description": "Deine Markeninformationen werden extrahiert"
@@ -1258,8 +1256,7 @@
         "nameLabel": "Name der Identität",
         "namePlaceholder": "z. B. Standard, Marketing, Technik",
         "deleteTitle": "Identität löschen?",
-        "deleteDescription": "Dadurch werden diese Markenidentität und ihre gespeicherten Profileinstellungen entfernt. Das kann nicht rückgängig gemacht werden.",
-        "resourceLabel": "Identität"
+        "deleteDescription": "Dadurch werden diese Markenidentität und ihre gespeicherten Profileinstellungen entfernt. Das kann nicht rückgängig gemacht werden."
       }
     },
     "guidelines": {
@@ -1269,17 +1266,17 @@
       },
       "copyItem": "{name} kopieren",
       "panel": {
-        "generationFailed": "Erstellung der Guidelines fehlgeschlagen",
-        "generationFailedDescription": "Beim Erstellen der Guidelines ist etwas schiefgelaufen.",
-        "loadErrorTitle": "Guidelines nicht verfügbar",
-        "loadErrorDescription": "Die Guidelines dieser Markenidentität konnten nicht geladen werden.",
-        "generate": "Guidelines erstellen",
-        "emptyTitle": "Noch keine Guidelines",
-        "emptyDescription": "Es gibt noch keine Brand Guidelines. Erstelle sie, um Logos, Farben, Typografie und Screenshots der Landingpage von deiner Website zu übernehmen.",
-        "generatingGuidelines": "Guidelines werden erstellt…",
-        "updatingGuidelines": "Guidelines werden aktualisiert…",
+        "generationFailed": "Erstellung der Richtlinien fehlgeschlagen",
+        "generationFailedDescription": "Beim Erstellen der Richtlinien ist etwas schiefgelaufen.",
+        "loadErrorTitle": "Richtlinien nicht verfügbar",
+        "loadErrorDescription": "Die Richtlinien dieser Markenidentität konnten nicht geladen werden.",
+        "generate": "Richtlinien erstellen",
+        "emptyTitle": "Noch keine Richtlinien",
+        "emptyDescription": "Es gibt noch keine Markenrichtlinien. Erstelle sie, um Logos, Farben, Typografie und Screenshots der Landingpage von deiner Website zu übernehmen.",
+        "generatingGuidelines": "Richtlinien werden erstellt…",
+        "updatingGuidelines": "Richtlinien werden aktualisiert…",
         "updatedAt": "Aktualisiert {time}",
-        "noAssetsTitle": "Guidelines sind leer",
+        "noAssetsTitle": "Richtlinien sind leer",
         "noAssetsDescription": "Für diese Identität wurden noch keine Marken-Assets gefunden. Aktualisiere, um die neuesten Logos, Farben und Screenshots zu übernehmen."
       },
       "tokens": {
@@ -1528,7 +1525,7 @@
       "createIdentity": "Identität erstellen",
       "addReference": "Referenz hinzufügen",
       "addSitemap": "Sitemap hinzufügen",
-      "refreshGuidelines": "Guidelines aktualisieren",
+      "refreshGuidelines": "Richtlinien aktualisieren",
       "addColor": "Farbe hinzufügen",
       "addAsset": "Asset hinzufügen",
       "importFromX": "Von X importieren",
@@ -1543,7 +1540,7 @@
       "analysisStarted": "Analyse gestartet",
       "startAnalysisFailed": "Analyse konnte nicht gestartet werden",
       "guidelineGenerationStarted": "Richtlinien-Erstellung gestartet",
-      "refreshGuidelinesFailed": "Guidelines konnten nicht aktualisiert werden",
+      "refreshGuidelinesFailed": "Richtlinien konnten nicht aktualisiert werden",
       "saveChangesFailed": "Änderungen konnten nicht gespeichert werden",
       "analysisFailed": "Analyse fehlgeschlagen"
     }
@@ -5513,43 +5510,53 @@
       "items": {
         "blogPost": {
           "title": "Blogartikel schreiben",
-          "description": "Mach aus einem Thema einen klar umrissenen Artikel"
+          "description": "Mach aus einem Thema einen klar umrissenen Artikel",
+          "prompt": "Hilf mir, einen Blogbeitrag zu schreiben. Stell mir vor dem Entwurf 1-2 Fragen zu Thema und Zielgruppe."
         },
         "releaseNotes": {
           "title": "Release Notes entwerfen",
-          "description": "Fass zusammen, was live ist und warum es zählt"
+          "description": "Fass zusammen, was live ist und warum es zählt",
+          "prompt": "Hilf mir, ein Changelog zu entwerfen. Frag mich, was sich geändert hat und auf welches Release oder Repo ich mich beziehen soll."
         },
         "socialPost": {
           "title": "Social-Beitrag schreiben",
-          "description": "Entwirf ein Update für Twitter oder LinkedIn"
+          "description": "Entwirf ein Update für Twitter oder LinkedIn",
+          "prompt": "Hilf mir, einen Social-Media-Beitrag zu schreiben. Frag mich zuerst, ob er für X oder LinkedIn ist, und dann nach Thema und Blickwinkel."
         },
         "newsletter": {
           "title": "Newsletter gliedern",
-          "description": "Plane die Ausgabe, bevor du sie schreibst"
+          "description": "Plane die Ausgabe, bevor du sie schreibst",
+          "prompt": "Hilf mir, einen Newsletter zu gliedern. Frag mich vor dem Entwurf nach der Zielgruppe und den Themen dieser Ausgabe."
         },
         "comparison": {
           "title": "Wir im Vergleich",
-          "description": "Zeig Käufern den Unterschied"
+          "description": "Zeig Käufern den Unterschied",
+          "prompt": "Hilf mir, einen Vergleich zu schreiben. Frag mich vor dem Entwurf, mit wem wir uns vergleichen und worüber die Leser entscheiden."
         },
         "geoStatus": {
           "title": "Wie läuft GEO?",
-          "description": "Sieh dir Erwähnungstrends über alle Engines an"
+          "description": "Sieh dir Erwähnungstrends über alle Engines an",
+          "prompt": "Wie läuft unser GEO? Lade die Übersicht und den Verlauf der Erwähnungsrate der letzten 30 Tage und sag mir, was besser oder schlechter wird."
         },
         "geoVisibility": {
           "title": "GEO-Sichtbarkeit verbessern",
-          "description": "Schärfe, wie wir in Antworten auftauchen"
+          "description": "Schärfe, wie wir in Antworten auftauchen",
+          "prompt": "Hilf mir, unsere GEO-Sichtbarkeit zu verbessern. Frag mich, auf welchen Prompt oder welches Thema wir uns konzentrieren sollen, und schlag dann Änderungen vor."
         },
         "brandVoice": {
           "title": "Unsere Markenstimme treffen",
-          "description": "Schreib einen Entwurf so um, dass er nach uns klingt"
+          "description": "Schreib einen Entwurf so um, dass er nach uns klingt",
+          "prompt": "Hilf mir, Texte in unserer Markenstimme umzuschreiben. Frag mich vorher nach dem Entwurf und wo er erscheinen soll."
         },
         "thread": {
           "title": "Daraus einen Thread machen",
-          "description": "Teil einen Gedanken in eine Social-Serie auf"
+          "description": "Teil einen Gedanken in eine Social-Serie auf",
+          "prompt": "Hilf mir, aus einem Thema einen Social-Media-Thread zu machen. Frag mich vor dem Entwurf nach der Plattform und der Kernaussage."
         },
         "faq": {
           "title": "FAQ-Seite entwerfen",
-          "description": "Beantworte die Fragen, die Leute wirklich stellen"
+          "description": "Beantworte die Fragen, die Leute wirklich stellen",
+          "prompt": "Hilf mir, ein FAQ zu entwerfen. Frag mich vorher nach dem Produkt und den Fragen, die Kunden wirklich stellen."
         }
       }
     },

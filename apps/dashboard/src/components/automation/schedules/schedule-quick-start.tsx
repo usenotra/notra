@@ -9,13 +9,11 @@ import type { ScheduleQuickStartProps } from "@/types/automation/schedule";
 export function ScheduleQuickStart({ onSelect }: ScheduleQuickStartProps) {
   const t = useTranslations("automation.schedules.quickStart");
   const tCommon = useTranslations("common");
-  const tQuickStart = useTranslations("apiKeys.quickStart");
   const items = SCHEDULE_PRESETS.map((preset) => ({
     id: preset.id,
     icon: preset.icon,
     title: t(`presets.${preset.id}.label`),
     description: t(`presets.${preset.id}.description`),
-    docsLabel: tQuickStart("viewDocs"),
     selectLabel: t("createSchedule", {
       title: t(`presets.${preset.id}.label`),
     }),

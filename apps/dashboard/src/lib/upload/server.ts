@@ -100,7 +100,7 @@ async function resolveUploadTarget({
     type,
   });
 
-  validateUpload({
+  await validateUpload({
     fileSize,
     fileType,
     type,

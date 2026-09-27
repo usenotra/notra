@@ -88,14 +88,7 @@ export function isBrandAnalysisRunning(
   );
 }
 
-export function getModalState(
-  isPendingSettings: boolean,
-  isAnalyzing: boolean,
-  status: string
-) {
-  if (isPendingSettings) {
-    return "loading";
-  }
+export function getModalState(isAnalyzing: boolean, status: string) {
   if (isAnalyzing) {
     return "analyzing";
   }

@@ -57,7 +57,7 @@ export function OnboardingAgentBanner({
   };
 
   return (
-    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white dark:bg-[#131316]">
+    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white px-12 dark:bg-[#131316]">
       <Dithering
         className="absolute -inset-px -z-10 size-[calc(100%+2px)] min-h-full min-w-full"
         colorBack={colors.colorBack}
@@ -77,12 +77,14 @@ export function OnboardingAgentBanner({
           <span className="text-sm font-medium">{t("running")}</span>
         </output>
       ) : (
-        <div className="text-foreground flex items-center gap-3">
-          <span className="text-sm font-medium">{t("prompt")}</span>
+        <div className="text-foreground flex min-w-0 items-center gap-3">
+          <span className="min-w-0 text-sm leading-tight font-medium text-pretty">
+            {t("prompt")}
+          </span>
           <ResponsiveDialog onOpenChange={setConfirmOpen} open={confirmOpen}>
             <ResponsiveDialogTrigger
               disabled={starting}
-              render={<Button size="sm" />}
+              render={<Button className="shrink-0" size="sm" />}
             >
               {starting ? (
                 <Loader2Icon

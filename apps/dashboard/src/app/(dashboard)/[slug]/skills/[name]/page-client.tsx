@@ -13,6 +13,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { SkillDeleteDialog } from "@/components/skills/skill-delete-dialog";
 import { SkillDetailHeader } from "@/components/skills/skill-detail-header";
 import { SkillEditorForm } from "@/components/skills/skill-editor-form";
+import { SkillUnsavedChangesToast } from "@/components/skills/skill-unsaved-changes-toast";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { updateSkillFormSchema } from "@/schemas/skill-form";
@@ -159,23 +160,10 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
     if (hasChanges && !saveToastIdRef.current) {
       saveToastIdRef.current = toast.custom(
         () => (
-          <div className="border-border bg-background rounded-[14px] border p-0.5 shadow-sm">
-            <div className="bg-background flex items-center gap-3 rounded-lg px-4 py-3">
-              <span className="text-muted-foreground text-sm">
-                {t("detail.unsavedChanges")}
-              </span>
-              <Button
-                onClick={() => handleDiscardRef.current?.()}
-                size="sm"
-                variant="ghost"
-              >
-                {tCommon2("labels.discard")}
-              </Button>
-              <Button onClick={() => handleSaveRef.current?.()} size="sm">
-                {tCommon("save")}
-              </Button>
-            </div>
-          </div>
+          <SkillUnsavedChangesToast
+            onDiscard={() => handleDiscardRef.current?.()}
+            onSave={() => handleSaveRef.current?.()}
+          />
         ),
         { duration: Number.POSITIVE_INFINITY, position: "bottom-right" }
       );
@@ -183,7 +171,7 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
       toast.dismiss(saveToastIdRef.current);
       saveToastIdRef.current = null;
     }
-  }, [hasChanges, t, tCommon]);
+  }, [hasChanges]);
 
   useEffect(() => {
     return () => {

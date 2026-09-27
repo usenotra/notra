@@ -9,7 +9,7 @@ interface AffectedTriggersWarningProps {
   schedules: AffectedTrigger[];
   events: AffectedTrigger[];
   isLoading: boolean;
-  resourceLabel: string;
+  resourceLabel: "integration" | "identity";
 }
 
 export function AffectedTriggersWarning({

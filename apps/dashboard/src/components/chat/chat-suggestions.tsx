@@ -60,7 +60,7 @@ function SuggestionCard({
     <button
       className="bg-muted/70 hover:bg-muted disabled:hover:bg-muted/70 duration-normal flex h-full w-full cursor-pointer flex-col items-start gap-2 rounded-xl px-3.5 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       disabled={disabled || hidden || !isPresent}
-      onClick={() => onSelect(suggestion.prompt)}
+      onClick={() => onSelect(t(`${suggestion.id}.prompt`))}
       tabIndex={hidden || !isPresent ? -1 : undefined}
       type="button"
     >
@@ -108,7 +108,7 @@ function SuggestionListItem({
       <button
         className="bg-muted/70 hover:bg-muted disabled:hover:bg-muted/70 duration-normal relative flex h-9 w-full cursor-pointer overflow-hidden rounded-lg text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         disabled={disabled || hidden}
-        onClick={() => onSelect(suggestion.prompt)}
+        onClick={() => onSelect(t(`${suggestion.id}.prompt`))}
         tabIndex={hidden ? -1 : undefined}
         type="button"
       >

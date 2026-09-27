@@ -71,6 +71,7 @@ export function PlanCard({
               fontWeight={700}
               gap={0}
               gradientHeight={0}
+              locale={locale}
               padding={0}
               value={price}
             />

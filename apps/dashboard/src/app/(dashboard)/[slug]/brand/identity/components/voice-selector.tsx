@@ -303,7 +303,7 @@ export function VoiceSelector({
           <AffectedTriggersWarning
             events={affectedEvents}
             isLoading={isLoadingAffected}
-            resourceLabel={t("resourceLabel")}
+            resourceLabel="identity"
             schedules={affectedSchedules}
           />
 

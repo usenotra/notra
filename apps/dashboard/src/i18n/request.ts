@@ -1,11 +1,20 @@
 import { getRequestConfig } from "next-intl/server";
 
 import { getAuthIdentity } from "@/lib/auth/server";
+import { readLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { resolveDashboardLocale } from "@/utils/i18n";
 
-export default getRequestConfig(async () => {
+async function resolveRequestLocale() {
+  const cookieLocale = await readLocaleCookie();
+  if (cookieLocale) {
+    return cookieLocale;
+  }
   const identity = await getAuthIdentity();
-  const locale = resolveDashboardLocale(identity?.user.locale);
+  return resolveDashboardLocale(identity?.user.locale);
+}
+
+export default getRequestConfig(async () => {
+  const locale = await resolveRequestLocale();
 
   return {
     locale,
