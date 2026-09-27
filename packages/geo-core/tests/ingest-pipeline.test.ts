@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
+import type { Ratelimit } from "@upstash/ratelimit";
 import { Effect } from "effect";
 
 const ingestGeoTrafficEvents = mock(async () => null);
@@ -8,7 +9,13 @@ const isGeoIngestIdentityActive = mock(async () => true);
 const loadIngestAllowedHosts = mock(async (): Promise<string[] | null> => [
   "example.com",
 ]);
-const ratelimitLimit = mock(async () => ({ success: true }));
+const ratelimitLimit = mock(
+  async (): Promise<
+    Pick<Awaited<ReturnType<Ratelimit["limit"]>>, "success" | "reason">
+  > => ({
+    success: true,
+  })
+);
 const trackGeoIngestAnalytics = mock(() => Effect.void);
 const geoLogInfo = mock(() => {});
 const flushGeoLog = mock(async () => {});
@@ -143,13 +150,29 @@ describe("runGeoIngest ordering", () => {
     expect(flushGeoLog).toHaveBeenCalledTimes(1);
   });
 
-  test("accepts tracked traffic when the rate-limit transport fails", async () => {
+  test("rejects tracked traffic when the rate-limit transport fails", async () => {
     ratelimitLimit.mockImplementation(async () => {
       throw new Error("Redis unavailable");
     });
     const outcome = await run(ingestRequest());
-    expect(outcome._tag).toBe("Success");
-    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestFailedError);
+    }
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
+  });
+
+  test("rejects Upstash timeout responses even when success is true", async () => {
+    ratelimitLimit.mockImplementation(async () => ({
+      success: true,
+      reason: "timeout",
+    }));
+    const outcome = await run(ingestRequest());
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestFailedError);
+    }
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
   });
 
   test("rejects actual rate-limit hits without writing an event", async () => {
