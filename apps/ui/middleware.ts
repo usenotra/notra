@@ -1,14 +1,19 @@
-import { trackGeoRequest } from "./src/geo-tracker";
+import { createGeoHandler } from "@usenotra/geo/netlify";
 
 interface MiddlewareContext {
   waitUntil(promise: Promise<unknown>): void;
 }
 
+const token = process.env.NOTRA_GEO_TOKEN?.trim();
+const endpoint = process.env.NOTRA_GEO_ENDPOINT?.trim() || undefined;
+
+const trackGeoRequest = token ? createGeoHandler({ token, endpoint }) : null;
+
 export default function middleware(
   request: Request,
   context: MiddlewareContext
 ) {
-  trackGeoRequest(request, context);
+  trackGeoRequest?.(request, context);
 }
 
 export const config = {
