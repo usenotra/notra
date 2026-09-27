@@ -8,6 +8,10 @@ import {
 } from "@/components/ui/hover-card";
 import { Separator } from "@/components/ui/separator";
 
+import {
+  AI_OVERVIEW_HOVER_CLOSE_DELAY_MS,
+  AI_OVERVIEW_HOVER_OPEN_DELAY_MS,
+} from "../constants/google-ai-overview";
 import type {
   AIOverviewCitationProps,
   AIOverviewSource,
@@ -20,7 +24,7 @@ const sourceLabel = (source: AIOverviewSource) =>
 export const AIOverviewCitation = ({
   className,
   preview = true,
-  rel = "noopener",
+  rel = "noopener noreferrer",
   renderSourceAction,
   sources,
   target = "_blank",
@@ -50,6 +54,8 @@ export const AIOverviewCitation = ({
         <HoverCard>
           <HoverCardTrigger
             aria-label={ariaLabel}
+            closeDelay={AI_OVERVIEW_HOVER_CLOSE_DELAY_MS}
+            delay={AI_OVERVIEW_HOVER_OPEN_DELAY_MS}
             className={chipClassName}
             href={source.href}
             rel={rel}

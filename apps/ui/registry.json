@@ -529,6 +529,11 @@
           "path": "registry/notra/google-ai-overview/components/ai-overview-source-action.tsx",
           "type": "registry:component",
           "target": "components/google-ai-overview/components/ai-overview-source-action.tsx"
+        },
+        {
+          "path": "registry/notra/google-ai-overview/constants/google-ai-overview.ts",
+          "type": "registry:lib",
+          "target": "components/google-ai-overview/constants/google-ai-overview.ts"
         }
       ]
     },

@@ -15,7 +15,7 @@ export const AIOverviewHighlight = ({
         "text-aio-mark-fg bg-position-[0_0] font-medium delay-250 starting:bg-position-[100%_0]",
       className
     )}
-    data-active={active}
+    data-active={active || undefined}
     data-slot="ai-overview-highlight"
     {...props}
   />

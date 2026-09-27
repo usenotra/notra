@@ -65,7 +65,7 @@ export const AIOverviewListItem = ({
 export const AIOverviewLink = ({
   children,
   className,
-  rel = "noopener",
+  rel = "noopener noreferrer",
   target = "_blank",
   ...props
 }: ComponentProps<"a">) => (

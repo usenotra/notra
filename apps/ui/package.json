@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "blume dev --port 3006",
-    "build": "shadcn build && blume build",
+    "build": "bun run registry:build && blume build",
     "preview": "blume preview --port 3006",
     "check-types": "blume check",
     "doctor": "blume doctor",

@@ -20,7 +20,7 @@ export const AIOverviewFavicon = ({
   >
     <AvatarImage alt="" className="object-contain p-0.5" src={src} />
     <AvatarFallback className="text-aio-muted bg-white text-[0.5rem] font-medium">
-      {name.charAt(0)}
+      {Array.from(name)[0]}
     </AvatarFallback>
   </Avatar>
 );

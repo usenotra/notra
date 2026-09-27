@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast, useSonner } from "sonner";
 
 import { PREVIEW_TOAST_MESSAGE } from "../constants/preview-toast";
@@ -6,9 +6,14 @@ import type { PreviewToastMessage } from "../types/preview-toast";
 
 export const PreviewToastBridge = () => {
   const { toasts } = useSonner();
+  const forwarded = useRef(new Set<number | string>());
 
   useEffect(() => {
     for (const item of toasts) {
+      if (forwarded.current.has(item.id)) {
+        continue;
+      }
+      forwarded.current.add(item.id);
       const message: PreviewToastMessage = {
         description:
           typeof item.description === "string" ? item.description : undefined,
