@@ -52,7 +52,7 @@ export function PromptEngineSwitcher({
                   "relative inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm",
                   "transition-[color,transform] duration-fast ease-out",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                  "active:scale-[0.96]",
+                  "active:scale-[0.97]",
                   selected
                     ? "font-medium text-foreground"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"

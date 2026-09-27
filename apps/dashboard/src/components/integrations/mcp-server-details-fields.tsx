@@ -89,7 +89,7 @@ export function McpServerDetailsFields({
               Server URL <span className="text-destructive -ml-1">*</span>
             </FieldLabel>
             <div
-              className={`focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-border"}`}
+              className={`focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-lg border transition-colors ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-border"}`}
             >
               <label
                 className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"

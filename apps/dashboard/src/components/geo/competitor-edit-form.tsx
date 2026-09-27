@@ -283,7 +283,7 @@ function CompetitorSynonymsField({
             <motion.button
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
               aria-label="Add synonym"
-              className="border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground inline-flex h-8 cursor-pointer items-center gap-0.5 rounded-lg border border-dashed px-2.5 text-xs transition-colors active:scale-[0.96]"
+              className="border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground inline-flex h-8 cursor-pointer items-center gap-0.5 rounded-lg border border-dashed px-2.5 text-xs transition-colors active:scale-[0.97]"
               exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
               initial={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
               key="synonym-add"

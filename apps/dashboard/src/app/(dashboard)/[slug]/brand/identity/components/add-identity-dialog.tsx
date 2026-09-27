@@ -124,7 +124,7 @@ export function AddIdentityDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="voice-url">Website</Label>
-            <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full min-w-0 flex-row items-center rounded-md border transition-colors">
+            <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full min-w-0 flex-row items-center rounded-lg border transition-colors">
               <label
                 className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"
                 htmlFor="voice-url"

@@ -109,7 +109,7 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
           <Label className="sr-only" htmlFor="identity-url">
             Website
           </Label>
-          <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors focus-within:ring-2">
+          <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-lg border transition-colors focus-within:ring-2">
             <label
               className="border-border text-muted-foreground border-r px-2.5 py-2 text-sm"
               htmlFor="identity-url"

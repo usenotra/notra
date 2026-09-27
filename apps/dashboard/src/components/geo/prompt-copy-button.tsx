@@ -53,7 +53,7 @@ export function PromptCopyButton({ prompt }: PromptCopyButtonProps) {
   return (
     <button
       aria-label={`${GEO_PROMPT_COPY_LABELS.action}: ${prompt}`}
-      className="bg-background hover:bg-muted/50 focus-visible:ring-ring duration-fast inline-flex max-w-full cursor-pointer items-center rounded-md border px-2 py-1 text-left shadow-xs transition-[background-color,scale] ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.96]"
+      className="bg-background hover:bg-muted/50 focus-visible:ring-ring duration-fast inline-flex max-w-full cursor-pointer items-center rounded-md border px-2 py-1 text-left shadow-xs transition-[background-color,scale] ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.97]"
       onClick={copy}
       title={GEO_PROMPT_COPY_LABELS.action}
       type="button"
