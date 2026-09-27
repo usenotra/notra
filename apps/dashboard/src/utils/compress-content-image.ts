@@ -76,64 +76,44 @@ async function encode(
   return image.webp({ effort: 6, lossless: true }).toBuffer();
 }
 
-// Decode only simple HEIC items within the aggregate pixel budget, releasing every handle even on errors.
+// Decode the primary image, including grids, using an Embind pointer and a squared-width pixel cap before releasing native state.
 async function decodeContentHeic(bytes: Uint8Array): Promise<Buffer> {
   validateHeicCodedPixels(bytes);
   const context = libheif.heif_context_alloc();
   if (!context) {
     throw new Error("Could not open HEIC image");
   }
-  const handles: HeicImage[] = [];
-  const images = new Map<number, HeicImage>();
+  let image: HeicImage | null = null;
   try {
     libheif.heif_context_set_maximum_image_size_limit(
-      context,
-      MAX_CONTENT_IMAGE_PIXELS
+      context.$$.ptr,
+      Math.floor(Math.sqrt(MAX_CONTENT_IMAGE_PIXELS))
     );
     const parsed = libheif.heif_context_read_from_memory(context, bytes);
     if (parsed.code !== libheif.heif_error_code.heif_error_Ok) {
       throw new Error("Invalid HEIC image");
     }
-    const ids = libheif.heif_context_get_list_of_item_IDs(context);
     const topLevel =
       libheif.heif_js_context_get_list_of_top_level_image_IDs(context);
-    if (!ids.length || ids.length > 16 || !topLevel.length) {
+    if (!topLevel.length) {
       throw new Error("Unsupported HEIC image");
     }
-    let total = 0;
-    for (const id of ids) {
-      const type = libheif.heif_item_get_item_type(context, id);
-      if (type === "Exif" || type === "mime") {
-        continue;
-      }
-      if (type !== "hvc1") {
-        throw new Error("Unsupported HEIC image layout");
-      }
-      const image = new libheif.HeifImage(
-        libheif.heif_js_context_get_image_handle(context, id)
-      );
-      handles.push(image);
-      images.set(id, image);
-      const width = image.get_width();
-      const height = image.get_height();
-      if (
-        !width ||
-        !height ||
-        height > (MAX_CONTENT_IMAGE_PIXELS - total) / width
-      ) {
-        throw new Error("HEIC image exceeds the 40 megapixel limit");
-      }
-      total += width * height;
-    }
-    const primaryId = topLevel[0];
-    const image = images.get(primaryId);
-    if (!image) {
+    const handle = libheif.heif_js_context_get_image_handle(
+      context,
+      topLevel[0]
+    );
+    if (!handle || (typeof handle === "object" && "code" in handle)) {
       throw new Error("Invalid HEIC image");
     }
-    const width = image.get_width();
-    const height = image.get_height();
+    const primaryImage: HeicImage = new libheif.HeifImage(handle);
+    image = primaryImage;
+    const width = primaryImage.get_width();
+    const height = primaryImage.get_height();
+    if (!width || !height || height > MAX_CONTENT_IMAGE_PIXELS / width) {
+      throw new Error("HEIC image exceeds the 40 megapixel limit");
+    }
     const raw = await new Promise<Uint8ClampedArray>((resolve, reject) => {
-      image.display(
+      primaryImage.display(
         { data: new Uint8ClampedArray(width * height * 4), width, height },
         (result) => {
           if (result) {
@@ -149,9 +129,7 @@ async function decodeContentHeic(bytes: Uint8Array): Promise<Buffer> {
       .toBuffer();
   } finally {
     try {
-      for (const image of handles) {
-        image.free();
-      }
+      image?.free();
     } finally {
       libheif.heif_context_free(context);
     }

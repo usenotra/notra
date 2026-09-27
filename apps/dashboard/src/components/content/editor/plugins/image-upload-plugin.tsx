@@ -235,24 +235,27 @@ export function ImageUploadPlugin() {
         return null;
       }
       let point: ContentDropPoint | null = null;
-      editor.getEditorState().read(() => {
-        const selection = $createRangeSelectionFromDom(
-          {
-            anchorNode: caret.node,
-            anchorOffset: caret.offset,
-            focusNode: caret.node,
-            focusOffset: caret.offset,
-          } as Selection,
-          editor
-        );
-        if (selection) {
-          point = {
-            key: selection.anchor.key,
-            offset: selection.anchor.offset,
-            type: selection.anchor.type,
-          };
-        }
-      });
+      editor.getEditorState().read(
+        () => {
+          const selection = $createRangeSelectionFromDom(
+            {
+              anchorNode: caret.node,
+              anchorOffset: caret.offset,
+              focusNode: caret.node,
+              focusOffset: caret.offset,
+            } as Selection,
+            editor
+          );
+          if (selection) {
+            point = {
+              key: selection.anchor.key,
+              offset: selection.anchor.offset,
+              type: selection.anchor.type,
+            };
+          }
+        },
+        { editor }
+      );
       return point;
     },
     [editor]

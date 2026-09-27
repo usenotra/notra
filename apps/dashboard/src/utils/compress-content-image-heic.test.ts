@@ -32,14 +32,19 @@ const parse = mock(() => {
   throw new Error("malformed item");
 });
 // Track whether oversized metadata is rejected before native context allocation.
-const alloc = mock(() => 123);
+// Emulate the actual Embind context object rather than the old numeric mock.
+const context = { $$: { ptr: 123 } };
+// Observe context allocation after valid-size metadata passes preflight.
+const alloc = mock(() => context);
+// Assert the raw WASM setter receives a pointer and the correct square-root bound.
+const limit = mock(() => {});
 
 mock.module("server-only", () => ({}));
 mock.module("libheif-js/wasm-bundle", () => ({
   default: {
     heif_context_alloc: alloc,
     heif_context_free: freed,
-    heif_context_set_maximum_image_size_limit: () => {},
+    heif_context_set_maximum_image_size_limit: limit,
     heif_context_read_from_memory: parse,
   },
 }));
@@ -53,7 +58,7 @@ test("rejects oversized coded HEIC pixels before native parsing", async () => {
   expect(alloc).not.toHaveBeenCalled();
 });
 
-test("rejects the sum of coded tile properties even when each fits", async () => {
+test("allows distinct coded tile properties within the individual pixel budget", async () => {
   const dimensions = Buffer.alloc(12);
   dimensions.writeUInt32BE(6000, 4);
   dimensions.writeUInt32BE(6000, 8);
@@ -68,10 +73,35 @@ test("rejects the sum of coded tile properties even when each fits", async () =>
       ])
     ),
   ]);
-  await expect(compressContentImage(bytes)).rejects.toThrow(
-    "HEIC image exceeds the 40 megapixel limit"
-  );
-  expect(alloc).not.toHaveBeenCalled();
+  await expect(compressContentImage(bytes)).rejects.toThrow("malformed item");
+  expect(alloc).toHaveBeenCalledTimes(1);
+  expect(limit).toHaveBeenCalledWith(123, 6324);
+});
+
+test("accepts metadata with more than sixteen small tile properties", async () => {
+  const dimensions = Buffer.alloc(12);
+  dimensions.writeUInt32BE(64, 4);
+  dimensions.writeUInt32BE(64, 8);
+  const bytes = Buffer.concat([
+    box("ftyp", Buffer.from("heic0000")),
+    box(
+      "meta",
+      Buffer.concat([
+        Buffer.alloc(4),
+        box(
+          "iprp",
+          box(
+            "ipco",
+            Buffer.concat(
+              Array.from({ length: 24 }, () => box("ispe", dimensions))
+            )
+          )
+        ),
+      ])
+    ),
+  ]);
+  await expect(compressContentImage(bytes)).rejects.toThrow("malformed item");
+  expect(alloc).toHaveBeenCalledTimes(2);
 });
 
 test("frees the native HEIC context if malformed parsing throws", async () => {
@@ -81,6 +111,6 @@ test("frees the native HEIC context if malformed parsing throws", async () => {
   await expect(compressContentImage(validDimensions)).rejects.toThrow(
     "malformed item"
   );
-  expect(alloc).toHaveBeenCalledTimes(1);
-  expect(freed).toHaveBeenCalledWith(123);
+  expect(alloc).toHaveBeenCalledTimes(3);
+  expect(freed).toHaveBeenCalledWith(context);
 });

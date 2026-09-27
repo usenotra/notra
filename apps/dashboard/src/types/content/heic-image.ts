@@ -1,24 +1,28 @@
 // Describe the libheif context and image handles so every decode path can release allocations.
 export type HeicDecoder = {
-  heif_context_alloc: () => number;
-  heif_context_free: (context: number) => void;
+  heif_context_alloc: () => HeicContext;
+  heif_context_free: (context: HeicContext) => void;
   heif_context_set_maximum_image_size_limit: (
-    context: number,
-    pixels: number
+    contextPointer: number,
+    maximumWidth: number
   ) => void;
   heif_context_read_from_memory: (
-    context: number,
+    context: HeicContext,
     bytes: Uint8Array
   ) => { code: unknown };
-  heif_context_get_list_of_item_IDs: (context: number) => number[];
   heif_js_context_get_list_of_top_level_image_IDs: (
-    context: number
+    context: HeicContext
   ) => number[];
-  heif_js_context_get_image_handle: (context: number, id: number) => unknown;
-  heif_item_get_item_type: (context: number, id: number) => string;
+  heif_js_context_get_image_handle: (
+    context: HeicContext,
+    id: number
+  ) => unknown;
   heif_error_code: { heif_error_Ok: unknown };
   HeifImage: new (handle: unknown) => HeicImage;
 };
+
+// Keep the Embind context object distinct from the raw pointer required by the security-limit function.
+export type HeicContext = { $$: { ptr: number } };
 
 // Track native HEIC handles separately from the pixels copied into Sharp.
 export type HeicImage = {
