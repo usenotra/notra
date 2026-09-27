@@ -57,7 +57,7 @@ export function OnboardingAgentBanner({
   };
 
   return (
-    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white px-12 dark:bg-[#131316]">
+    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-white pr-11 pl-3 dark:bg-[#131316]">
       <Dithering
         className="absolute -inset-px -z-10 size-[calc(100%+2px)] min-h-full min-w-full"
         colorBack={colors.colorBack}
@@ -78,7 +78,7 @@ export function OnboardingAgentBanner({
         </output>
       ) : (
         <div className="text-foreground flex min-w-0 items-center gap-3">
-          <span className="min-w-0 text-sm leading-tight font-medium text-pretty">
+          <span className="min-w-0 text-sm leading-tight font-medium text-pretty max-sm:line-clamp-2 max-sm:text-xs">
             {t("prompt")}
           </span>
           <ResponsiveDialog onOpenChange={setConfirmOpen} open={confirmOpen}>

@@ -185,6 +185,7 @@ export async function deleteUserAction(): Promise<
       );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");
+      yield* Effect.promise(clearLocaleCookie);
 
       return { deleted: true };
     })

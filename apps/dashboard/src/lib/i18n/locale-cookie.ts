@@ -20,5 +20,5 @@ export async function writeLocaleCookie(locale: DashboardLocale) {
 }
 
 export async function clearLocaleCookie() {
-  (await cookies()).delete(LOCALE_COOKIE);
+  (await cookies()).delete({ name: LOCALE_COOKIE, path: "/" });
 }
