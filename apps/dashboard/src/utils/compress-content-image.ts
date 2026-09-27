@@ -1,6 +1,5 @@
 import "server-only";
-import convertHeic from "heic-convert";
-import decodeHeic from "heic-decode";
+import libheif from "libheif-js/wasm-bundle";
 import sharp from "sharp";
 
 import {
@@ -8,13 +7,15 @@ import {
   CONTENT_IMAGE_MIME_EXTENSIONS,
   type ContentImageMimeType,
   MAX_CONTENT_IMAGE_INPUT_BYTES,
+  MAX_CONTENT_IMAGE_PIXELS,
 } from "@/constants/content-image";
 import { GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES } from "@/constants/github";
-import type { HeicImageMetadata } from "@/types/content/heic-image";
+import type { HeicImage } from "@/types/content/heic-image";
 import {
   contentImageCompressedTooLargeMessage,
   contentImageTooLargeMessage,
 } from "@/utils/content-image-size";
+import { validateHeicCodedPixels } from "@/utils/heic-coded-pixels";
 
 const FORMAT_MIME = {
   avif: "image/avif",
@@ -24,8 +25,6 @@ const FORMAT_MIME = {
   png: "image/png",
   webp: "image/webp",
 } as const satisfies Record<string, ContentImageMimeType>;
-
-const PIXEL_LIMIT = 40_000_000;
 
 // Recognize HEIC by its container signature rather than trusting a browser-supplied filename or MIME type.
 export function isHeic(bytes: Uint8Array) {
@@ -52,7 +51,9 @@ async function encode(
   mimeType: ContentImageMimeType,
   maxEdge: number | null
 ) {
-  let image = sharp(bytes, { limitInputPixels: PIXEL_LIMIT }).rotate();
+  let image = sharp(bytes, {
+    limitInputPixels: MAX_CONTENT_IMAGE_PIXELS,
+  }).rotate();
   if (maxEdge) {
     image = image.resize({
       fit: "inside",
@@ -75,6 +76,88 @@ async function encode(
   return image.webp({ effort: 6, lossless: true }).toBuffer();
 }
 
+// Decode only simple HEIC items within the aggregate pixel budget, releasing every handle even on errors.
+async function decodeContentHeic(bytes: Uint8Array): Promise<Buffer> {
+  validateHeicCodedPixels(bytes);
+  const context = libheif.heif_context_alloc();
+  if (!context) {
+    throw new Error("Could not open HEIC image");
+  }
+  const handles: HeicImage[] = [];
+  const images = new Map<number, HeicImage>();
+  try {
+    libheif.heif_context_set_maximum_image_size_limit(
+      context,
+      MAX_CONTENT_IMAGE_PIXELS
+    );
+    const parsed = libheif.heif_context_read_from_memory(context, bytes);
+    if (parsed.code !== libheif.heif_error_code.heif_error_Ok) {
+      throw new Error("Invalid HEIC image");
+    }
+    const ids = libheif.heif_context_get_list_of_item_IDs(context);
+    const topLevel =
+      libheif.heif_js_context_get_list_of_top_level_image_IDs(context);
+    if (!ids.length || ids.length > 16 || !topLevel.length) {
+      throw new Error("Unsupported HEIC image");
+    }
+    let total = 0;
+    for (const id of ids) {
+      const type = libheif.heif_item_get_item_type(context, id);
+      if (type === "Exif" || type === "mime") {
+        continue;
+      }
+      if (type !== "hvc1") {
+        throw new Error("Unsupported HEIC image layout");
+      }
+      const image = new libheif.HeifImage(
+        libheif.heif_js_context_get_image_handle(context, id)
+      );
+      handles.push(image);
+      images.set(id, image);
+      const width = image.get_width();
+      const height = image.get_height();
+      if (
+        !width ||
+        !height ||
+        height > (MAX_CONTENT_IMAGE_PIXELS - total) / width
+      ) {
+        throw new Error("HEIC image exceeds the 40 megapixel limit");
+      }
+      total += width * height;
+    }
+    const primaryId = topLevel[0];
+    const image = images.get(primaryId);
+    if (!image) {
+      throw new Error("Invalid HEIC image");
+    }
+    const width = image.get_width();
+    const height = image.get_height();
+    const raw = await new Promise<Uint8ClampedArray>((resolve, reject) => {
+      image.display(
+        { data: new Uint8ClampedArray(width * height * 4), width, height },
+        (result) => {
+          if (result) {
+            resolve(result.data);
+          } else {
+            reject(new Error("Invalid HEIC pixels"));
+          }
+        }
+      );
+    });
+    return sharp(raw, { raw: { width, height, channels: 4 } })
+      .jpeg({ mozjpeg: true, quality: 90 })
+      .toBuffer();
+  } finally {
+    try {
+      for (const image of handles) {
+        image.free();
+      }
+    } finally {
+      libheif.heif_context_free(context);
+    }
+  }
+}
+
 /** Convert Apple photos and optimize supported images for browser display and GitHub storage. */
 export async function compressContentImage(bytes: Uint8Array): Promise<{
   bytes: Buffer;
@@ -86,27 +169,7 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
 
   let source: Uint8Array = bytes;
   if (isHeic(bytes)) {
-    const images = (await decodeHeic.all({
-      buffer: bytes,
-    })) as unknown as HeicImageMetadata;
-    try {
-      const image = images[0];
-      if (
-        !image ||
-        !Number.isSafeInteger(image.width) ||
-        !Number.isSafeInteger(image.height) ||
-        image.width <= 0 ||
-        image.height <= 0 ||
-        image.height > PIXEL_LIMIT / image.width
-      ) {
-        throw new Error("HEIC image exceeds the 40 megapixel limit");
-      }
-    } finally {
-      images.dispose();
-    }
-    source = Buffer.from(
-      await convertHeic({ buffer: bytes, format: "JPEG", quality: 0.9 })
-    );
+    source = await decodeContentHeic(bytes);
   }
 
   let metadata: Awaited<
@@ -114,7 +177,7 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
   > | null = null;
   try {
     metadata = await sharp(source, {
-      limitInputPixels: PIXEL_LIMIT,
+      limitInputPixels: MAX_CONTENT_IMAGE_PIXELS,
     }).metadata();
   } catch {
     metadata = null;

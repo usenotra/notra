@@ -3,10 +3,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import {
-  $createParagraphNode,
-  $getNodeByKey,
-  $getNearestNodeFromDOMNode,
-  $getRoot,
+  $createRangeSelectionFromDom,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_HIGH,
@@ -30,13 +27,14 @@ import { CONTENT_IMAGE_MIME_EXTENSIONS } from "@/constants/content-image";
 import { CONTENT_MEDIA } from "@/constants/content-media";
 import { CONTENT_VIDEO_MIME_EXTENSIONS } from "@/constants/content-video";
 import { uploadContentMedia } from "@/lib/upload/client";
-import type { ContentMediaKind } from "@/types/content/media";
-import { contentDropCaretNode } from "@/utils/content-drop-caret";
+import type { ContentDropPoint, ContentMediaKind } from "@/types/content/media";
+import { contentDropCaret } from "@/utils/content-drop-caret";
 import {
   contentImageMaxBytes,
   contentImageTooLargeMessage,
   guessContentImageMime,
 } from "@/utils/content-image-size";
+import { placeContentBlock } from "@/utils/content-place-block";
 
 import { $createContentImageNode } from "../nodes/content-image-node";
 import { $createContentVideoNode } from "../nodes/content-video-node";
@@ -117,32 +115,6 @@ function kindForFile(file: File) {
   return CONTENT_MEDIA_KINDS.find((kind) => EDITOR_MEDIA[kind].matches(file));
 }
 
-function placeBlock(
-  editor: LexicalEditor,
-  afterKey: string | null,
-  create: () => LexicalNode
-) {
-  let insertedKey = afterKey;
-  editor.update(
-    () => {
-      const block = create();
-      const anchor = insertedKey ? $getNodeByKey(insertedKey) : null;
-      const top = anchor?.getTopLevelElement() ?? anchor;
-      if (top?.getParent()) {
-        top.insertAfter(block);
-      } else {
-        $getRoot().append(block);
-      }
-      const paragraph = $createParagraphNode();
-      block.insertAfter(paragraph);
-      paragraph.select();
-      insertedKey = paragraph.getKey();
-    },
-    { discrete: true }
-  );
-  return insertedKey;
-}
-
 function queuedMedia(files: File[]) {
   const jobs: { file: File; kind: ContentMediaKind }[] = [];
   for (const file of files) {
@@ -168,7 +140,8 @@ function queuedMedia(files: File[]) {
 async function insertUploadedFiles(
   editor: LexicalEditor,
   jobs: { file: File; kind: ContentMediaKind }[],
-  afterKey: string | null
+  afterKey: string | null,
+  dropPoint?: ContentDropPoint
 ) {
   const uploaded = await Promise.all(
     jobs.map(async ({ file, kind }) => {
@@ -182,13 +155,18 @@ async function insertUploadedFiles(
     })
   );
   let key = afterKey;
+  let nextDropPoint = dropPoint;
   for (const item of uploaded) {
     if (!item) {
       continue;
     }
-    key = placeBlock(editor, key, () =>
-      EDITOR_MEDIA[item.kind].createNode(item.file, item.url)
+    key = placeContentBlock(
+      editor,
+      key,
+      () => EDITOR_MEDIA[item.kind].createNode(item.file, item.url),
+      nextDropPoint
     );
+    nextDropPoint = undefined;
   }
   return key;
 }
@@ -199,7 +177,13 @@ export function ImageUploadPlugin() {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const anchorKeyRef = useRef<string | null>(null);
   const uploadingRef = useRef(false);
-  const pendingRef = useRef<{ files: File[]; afterKey: string | null }[]>([]);
+  const pendingRef = useRef<
+    {
+      files: File[];
+      afterKey: string | null;
+      dropPoint?: ContentDropPoint;
+    }[]
+  >([]);
   const [editable, setEditable] = useState(() => editor.isEditable());
 
   useEffect(() => editor.registerEditableListener(setEditable), [editor]);
@@ -228,35 +212,51 @@ export function ImageUploadPlugin() {
   const rememberDropPosition = useCallback(
     (event: DragEvent) => {
       const root = editor.getRootElement();
-      const node = contentDropCaretNode(document, event.clientX, event.clientY);
-      if (!root || !node || !root.contains(node)) {
-        anchorKeyRef.current = null;
-        return;
+      const caret = contentDropCaret(document, event.clientX, event.clientY);
+      if (!root || !caret || !root.contains(caret.node)) {
+        return null;
       }
-      editor.read(() => {
-        anchorKeyRef.current =
-          $getNearestNodeFromDOMNode(node)?.getKey() ?? null;
+      let point: ContentDropPoint | null = null;
+      editor.getEditorState().read(() => {
+        const selection = $createRangeSelectionFromDom(
+          {
+            anchorNode: caret.node,
+            anchorOffset: caret.offset,
+            focusNode: caret.node,
+            focusOffset: caret.offset,
+          } as Selection,
+          editor
+        );
+        if (selection) {
+          point = {
+            key: selection.anchor.key,
+            offset: selection.anchor.offset,
+            type: selection.anchor.type,
+          };
+        }
       });
+      return point;
     },
     [editor]
   );
 
   const insertUploaded = (
     files: File[],
-    afterKey: string | null = anchorKeyRef.current
+    afterKey: string | null = anchorKeyRef.current,
+    dropPoint?: ContentDropPoint
   ) => {
     if (files.length === 0 || !editor.isEditable()) {
       return;
     }
     if (uploadingRef.current) {
-      pendingRef.current.push({ files, afterKey });
+      pendingRef.current.push({ files, afterKey, dropPoint });
       return;
     }
     const jobs = queuedMedia(files);
     const startNext = () => {
       const next = pendingRef.current.shift();
       if (next) {
-        insertUploaded(next.files, next.afterKey);
+        insertUploaded(next.files, next.afterKey, next.dropPoint);
       }
     };
     if (jobs.length === 0) {
@@ -265,7 +265,7 @@ export function ImageUploadPlugin() {
     }
     uploadingRef.current = true;
     const toastId = toast.loading("Uploading…");
-    void insertUploadedFiles(editor, jobs, afterKey)
+    void insertUploadedFiles(editor, jobs, afterKey, dropPoint)
       .then((lastKey) => {
         if (lastKey === afterKey) {
           return;
@@ -355,8 +355,12 @@ export function ImageUploadPlugin() {
           if (!editor.isEditable()) {
             return true;
           }
-          rememberDropPosition(event);
-          insertFromDom(files);
+          const dropPoint = rememberDropPosition(event);
+          insertFromDom(
+            files,
+            dropPoint ? null : anchorKeyRef.current,
+            dropPoint ?? undefined
+          );
           return true;
         },
         COMMAND_PRIORITY_HIGH
