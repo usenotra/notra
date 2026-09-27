@@ -260,14 +260,16 @@ export function ImageUploadPlugin() {
 
   const insertUploaded = (
     files: File[],
-    afterKey: string | null = anchorKeyRef.current,
+    afterKey?: string | null,
     dropPoint?: ContentDropPoint
   ) => {
+    const insertionKey =
+      afterKey === undefined ? anchorKeyRef.current : afterKey;
     if (files.length === 0 || !editor.isEditable()) {
       return;
     }
     if (uploadingRef.current) {
-      pendingRef.current.push({ files, afterKey, dropPoint });
+      pendingRef.current.push({ files, afterKey: insertionKey, dropPoint });
       return;
     }
     const jobs = queuedMedia(files, t);
@@ -286,16 +288,16 @@ export function ImageUploadPlugin() {
     void insertUploadedFiles(
       editor,
       jobs,
-      afterKey,
+      insertionKey,
       tCommon("labels.uploadFailed"),
       dropPoint
     )
       .then((lastKey) => {
-        if (lastKey === afterKey) {
+        if (lastKey === insertionKey) {
           return;
         }
         for (const batch of pendingRef.current) {
-          if (batch.afterKey === afterKey) {
+          if (batch.afterKey === insertionKey) {
             batch.afterKey = lastKey;
           }
         }
