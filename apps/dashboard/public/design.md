@@ -68,7 +68,7 @@ A dualtone block is two stacked surfaces. The shell is `bg-muted` and holds the 
 - A block with no label band is a flat card: `rounded-xl`, `bg-card`, and `ring-1 ring-foreground/10`. Do not add a muted tray to it.
 - Motion-table headers sit on `bg-muted`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`.
 - `TABLE_CHROME_CLASS` is a different wrapper, for chat tables: `bg-muted/80`, `rounded-lg`, `shadow-2xs`. Do not put it on a dualtone table.
-- Table and flat eyebrows are `text-sm font-medium`. Panel titles are `text-base font-medium`. The module applies `capitalize`. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
+- Table and flat eyebrows are `text-sm font-medium capitalize`. Panel titles are `text-base font-medium` and stay as written. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
 
 ## Color
 
@@ -124,7 +124,7 @@ Inter is the theme sans (`--font-sans`). Geist Mono is the theme mono. Put `font
 | Table or flat eyebrow | `text-sm font-medium capitalize` |
 | Panel title | `text-base font-medium` |
 
-Write labels in sentence case. Module eyebrows are then capitalized by the component.
+Write labels in sentence case. Table and flat eyebrows are then capitalized by the component. Panel titles stay as written.
 
 ## Layout
 
@@ -160,7 +160,7 @@ Use the shared scale. The CSS utilities and `DURATION`, `EASE`, and `SPRING` in 
 | `slow` | 300ms | Sidebar, accordion, drawer |
 | `slower` | 500ms | A deliberate reveal |
 
-`ease-out` is for small feedback. `ease-emphasized` (`cubic-bezier(0.22, 1, 0.36, 1)`) is for entrances. `ease-emphasized-in` is for exits. Springs: `indicator` for tab pills, `snappy` for list reorder, `gentle` for large surfaces.
+`ease-out` is for small feedback. `ease-emphasized` (`cubic-bezier(0.22, 1, 0.36, 1)`) is for entrances. `ease-emphasized-in` is for exits. Springs: `indicator` for tab pills, `indicatorFlat` for dense controls (no bounce), `snappy` for list reorder, `gentle` for large surfaces.
 
 Buttons press to `scale(0.97)`. Disabled controls stay still. Honor `prefers-reduced-motion`: drop the transition and keep the end state.
 
@@ -168,7 +168,7 @@ Motion explains a change. A resting screen stays still.
 
 ## Components
 
-**Button.** Variants are `default` (primary, `bg-primary`), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Default size is `h-8` (32px), `text-sm`, `font-medium`, `rounded-lg`. Press scales to `0.97`. Disabled controls do not scale. Hover on the primary variant is `bg-primary/80`.
+**Button.** Variants are `default` (primary, `bg-primary`), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Default size is `h-8` (32px), `text-sm`, `font-medium`, `rounded-lg`. Other heights are `h-6` (xs), `h-7` (sm), and `h-9` (lg). Icon buttons are `size-6` through `size-9`. Press scales to `0.97`. Disabled controls do not scale. A primary control rendered as a link hovers to `bg-primary/80`. A primary button does not change its fill on hover.
 
 **Module.** `flat` is the card above. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content. The dualtone shell clears the card ring (`ring-0`) so only the two borders show.
 
