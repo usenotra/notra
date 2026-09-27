@@ -47,6 +47,7 @@ export function SkillCard({ skill, slug }: SkillCardProps) {
           <time
             className="text-muted-foreground text-xs tabular-nums"
             dateTime={updatedAt.toISOString()}
+            suppressHydrationWarning
             title={updatedAt.toLocaleString(locale)}
           >
             {relative}

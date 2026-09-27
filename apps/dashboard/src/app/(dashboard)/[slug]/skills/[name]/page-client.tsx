@@ -54,7 +54,7 @@ export default function PageClient({
     })
   );
 
-  if (skill && !original) {
+  if (skill?.name === name && original?.name !== skill.name) {
     setOriginal({
       name: skill.name,
       description: skill.description,
