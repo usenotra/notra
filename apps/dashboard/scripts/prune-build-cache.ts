@@ -15,6 +15,10 @@ const turbopackCacheDir = path.join(
   repoRoot,
   "apps/dashboard/.next/cache/turbopack"
 );
+const dashboardNextDir = path.join(
+  repoRoot,
+  "apps/dashboard/node_modules/next"
+);
 const MAX_TURBOPACK_CACHE_BYTES = 2 * 1024 ** 3;
 
 const listDir = (dir: string): string[] =>
@@ -132,24 +136,31 @@ const pruneBunStore = (): void => {
 };
 
 const pruneTurbopackCache = (): void => {
-  const [current, ...stale] = listDir(turbopackCacheDir)
-    .map((name) => path.join(turbopackCacheDir, name))
-    .toSorted((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
-  for (const dir of stale) {
-    rmSync(dir, { force: true, recursive: true });
+  const { version }: { version: string } = JSON.parse(
+    readFileSync(path.join(dashboardNextDir, "package.json"), "utf8")
+  );
+  const cacheDirs = listDir(turbopackCacheDir);
+  const current = cacheDirs.filter((name) => name.startsWith(`v${version}-`));
+  const stale = cacheDirs.filter((name) => !current.includes(name));
+  for (const name of stale) {
+    rmSync(path.join(turbopackCacheDir, name), {
+      force: true,
+      recursive: true,
+    });
   }
   console.log(`Pruned ${stale.length} stale Turbopack caches`);
 
-  if (!current) {
-    return;
+  for (const name of current) {
+    const dir = path.join(turbopackCacheDir, name);
+    const size = directorySize(dir);
+    const reset = size > MAX_TURBOPACK_CACHE_BYTES;
+    if (reset) {
+      rmSync(dir, { force: true, recursive: true });
+    }
+    console.log(
+      `Turbopack cache ${name} is ${Math.round(size / 1024 ** 2)} MB${reset ? ", reset" : ""}`
+    );
   }
-  const size = directorySize(current);
-  if (size > MAX_TURBOPACK_CACHE_BYTES) {
-    rmSync(current, { force: true, recursive: true });
-  }
-  console.log(
-    `Turbopack cache ${path.basename(current)} is ${Math.round(size / 1024 ** 2)} MB${size > MAX_TURBOPACK_CACHE_BYTES ? ", reset" : ""}`
-  );
 };
 
 pruneBunStore();
