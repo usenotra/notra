@@ -113,7 +113,6 @@ const DashboardAgentHost = dynamic(loadDashboardAgentHost, {
 
 function DashboardAgentSlot() {
   const { hasOpened } = useRightPanel();
-  const isDesktop = useDesktopBreakpoint();
   const [slotReady, setSlotReady] = useState(false);
 
   useLayoutEffect(() => {
@@ -124,12 +123,10 @@ function DashboardAgentSlot() {
     void loadDashboardAgentHost();
   }, []);
 
-  if (!isDesktop) {
-    return hasOpened.agent ? <DashboardAgentHost /> : null;
-  }
-
   // The slot has to exist before the first open. A panel that mounts already
   // open has no previous width, so the CSS width transition never runs.
+  // Keep the host under this slot at every width. Moving it between the dock
+  // and the mobile dialog remounts the chat and drops the in-flight thread.
   if (!slotReady) {
     return null;
   }
