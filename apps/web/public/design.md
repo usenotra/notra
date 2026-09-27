@@ -1,352 +1,223 @@
 ---
 version: alpha
 name: Notra
-description: Notra's public design system. Light-first, product-led, and built from violet action color, neutral surfaces, precise borders, structural hatch texture, Inter UI typography, and selective Instrument Serif display type.
+description: Notra's design system for people and agents. Dualtone surfaces, one violet action color, and GEO as the reference for new product UI.
 colors:
   primary: "oklch(0.6056 0.2189 292.7172)"
-  primary-hover: "oklch(0.5 0.22 292.72)"
+  primary-hex: "#8B5CF6"
   primary-foreground: "oklch(0.997 0 0)"
-  primary-border: "color-mix(in oklab, var(--primary) 12%, transparent)"
+  ink: "#1E1E1E"
+  lavender: "#C8B2EE"
+  cream: "#F6F3F1"
   background: "hsl(0 0% 100%)"
   foreground: "hsl(0 0% 9%)"
-  card: "hsl(0 0% 100%)"
-  card-foreground: "hsl(0 0% 9%)"
-  popover: "hsl(0 0% 100%)"
-  popover-foreground: "hsl(0 0% 9%)"
-  secondary: "hsl(0 0% 96.1%)"
-  secondary-foreground: "hsl(0 0% 9%)"
   muted: "hsl(0 0% 96.1%)"
   muted-foreground: "hsl(0 0% 45.1%)"
-  accent: "hsl(0 0% 96.1%)"
-  accent-foreground: "hsl(0 0% 9%)"
   border: "hsl(0 0% 89.8%)"
-  input: "hsl(0 0% 89.8%)"
-  ring: "oklch(0.6056 0.2189 292.7172)"
-  destructive: "hsl(0 84.2% 60.2%)"
-  destructive-foreground: "hsl(0 0% 98%)"
-  logo-lavender: "#C8B2EE"
-  logo-ink: "#1E1E1E"
-  logo-cream: "#F6F3F1"
   dark-background: "hsl(233 7% 8%)"
-  dark-foreground: "hsl(0 0% 98%)"
-  dark-primary-foreground: "oklch(0.985 0 0)"
-  dark-card: "hsl(240 6% 10%)"
-  dark-card-foreground: "hsl(0 0% 98%)"
-  dark-popover: "hsl(233 7% 8%)"
-  dark-popover-foreground: "hsl(0 0% 98%)"
-  dark-secondary: "hsl(0 0% 14.9%)"
-  dark-secondary-foreground: "hsl(0 0% 98%)"
-  dark-muted: "hsl(0 0% 14.9%)"
-  dark-muted-foreground: "hsl(0 0% 63.9%)"
-  dark-accent: "hsl(0 0% 14.9%)"
-  dark-accent-foreground: "hsl(0 0% 98%)"
-  dark-border: "hsl(0 1% 17%)"
-  dark-input: "hsl(0 0% 14.9%)"
-  dark-destructive: "hsl(358 100% 50%)"
-  dark-destructive-foreground: "hsl(0 0% 99%)"
-  chart-1: "oklch(0.646 0.222 41.116)"
-  chart-2: "oklch(0.6 0.118 184.704)"
-  chart-3: "oklch(0.398 0.07 227.392)"
-  chart-4: "oklch(0.828 0.189 84.429)"
-  chart-5: "oklch(0.769 0.188 70.08)"
-typography:
-  display-serif-80:
-    fontFamily: Instrument Serif
-    fontSize: 80px
-    fontWeight: 400
-    lineHeight: 96px
-    letterSpacing: 0
-  display-serif-52:
-    fontFamily: Instrument Serif
-    fontSize: 52px
-    fontWeight: 400
-    lineHeight: 62px
-    letterSpacing: 0
-  heading-56:
-    fontFamily: Inter
-    fontSize: 56px
-    fontWeight: 600
-    lineHeight: 64px
-    letterSpacing: -1.4px
-  heading-48:
-    fontFamily: Inter
-    fontSize: 48px
-    fontWeight: 600
-    lineHeight: 60px
-    letterSpacing: -1.2px
-  heading-36:
-    fontFamily: Inter
-    fontSize: 36px
-    fontWeight: 600
-    lineHeight: 44px
-    letterSpacing: -0.9px
-  heading-30:
-    fontFamily: Inter
-    fontSize: 30px
-    fontWeight: 600
-    lineHeight: 38px
-    letterSpacing: -0.75px
-  heading-24:
-    fontFamily: Inter
-    fontSize: 24px
-    fontWeight: 600
-    lineHeight: 32px
-    letterSpacing: -0.6px
-  heading-20:
-    fontFamily: Inter
-    fontSize: 20px
-    fontWeight: 600
-    lineHeight: 28px
-    letterSpacing: -0.4px
-  heading-18:
-    fontFamily: Inter
-    fontSize: 18px
-    fontWeight: 500
-    lineHeight: 28px
-  copy-20:
-    fontFamily: Inter
-    fontSize: 20px
-    fontWeight: 500
-    lineHeight: 32px
-  copy-18:
-    fontFamily: Inter
-    fontSize: 18px
-    fontWeight: 400
-    lineHeight: 28px
-  copy-16:
-    fontFamily: Inter
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 28px
-  copy-14:
-    fontFamily: Inter
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 24px
-  copy-13:
-    fontFamily: Inter
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 20px
-  label-14:
-    fontFamily: Inter
-    fontSize: 14px
-    fontWeight: 500
-    lineHeight: 20px
-  label-13:
-    fontFamily: Inter
-    fontSize: 13px
-    fontWeight: 500
-    lineHeight: 20px
-  label-12:
-    fontFamily: Inter
-    fontSize: 12px
-    fontWeight: 500
-    lineHeight: 16px
-  code-13:
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 20px
-spacing:
-  1: 4px
-  2: 8px
-  3: 12px
-  4: 16px
-  5: 20px
-  6: 24px
-  8: 32px
-  10: 40px
-  12: 48px
-  16: 64px
-  20: 80px
-  24: 96px
-  32: 128px
-rounded:
-  none: 0px
-  sm: 6px
-  md: 8px
-  lg: 10px
-  xl: 14px
-  squircle: "16px with corner-shape: round"
-  full: 9999px
-components:
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    hoverBackgroundColor: "{colors.primary-hover}"
-    typography: "{typography.label-13}"
-    rounded: "{rounded.squircle}"
-    padding: "0 24px"
-    height: 40px
-  button-primary-large:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    hoverBackgroundColor: "{colors.primary-hover}"
-    typography: "{typography.label-14}"
-    rounded: "{rounded.squircle}"
-    padding: "0 40px"
-    height: 48px
-  button-secondary:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.border}"
-    typography: "{typography.label-13}"
-    rounded: "{rounded.squircle}"
-    padding: "0 24px"
-    height: 40px
-  button-secondary-large:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.border}"
-    typography: "{typography.label-14}"
-    rounded: "{rounded.squircle}"
-    padding: "0 40px"
-    height: 48px
-  input:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.input}"
-    typography: "{typography.copy-14}"
-    rounded: "{rounded.md}"
-    padding: "0 12px"
-    height: 40px
-  input-large:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.input}"
-    typography: "{typography.copy-16}"
-    rounded: "{rounded.md}"
-    padding: "0 14px"
-    height: 48px
-  badge:
-    backgroundColor: "{colors.muted}"
-    textColor: "{colors.muted-foreground}"
-    typography: "{typography.label-12}"
-    rounded: "{rounded.full}"
-    padding: "4px 10px"
-  segmented-control:
-    backgroundColor: "color-mix(in oklab, var(--primary) 10%, transparent)"
-    textColor: "{colors.muted-foreground}"
-    activeBackgroundColor: "{colors.card}"
-    activeTextColor: "{colors.primary}"
-    borderColor: "color-mix(in oklab, var(--primary) 8%, transparent)"
-    typography: "{typography.label-13}"
-    rounded: "{rounded.full}"
-    padding: 2px
-    height: 32px
-  nav-island:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.foreground}"
-    borderColor: "rgba(0,0,0,0.05)"
-    rounded: "{rounded.xl}"
-    shadow: "0 10px 30px rgba(0,0,0,0.08), inset 0 1px rgba(255,255,255,0.9)"
-  menu-card:
-    backgroundColor: "rgba(250,250,250,0.7)"
-    textColor: "{colors.foreground}"
-    borderColor: "rgba(0,0,0,0.08)"
-    typography: "{typography.copy-14}"
-    rounded: "{rounded.xl}"
-    padding: 16px
-  marketing-section:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.border}"
-    typography: "{typography.copy-16}"
-    padding: "64px 24px"
-  section-heading:
-    textColor: "{colors.foreground}"
-    typography: "{typography.heading-48}"
-  product-frame:
-    backgroundColor: "{colors.card}"
-    borderColor: "{colors.border}"
-    rounded: "{rounded.md}"
-    shadow: "0 0 0 1px rgba(0,0,0,0.08)"
-  pricing-card:
-    backgroundColor: "transparent"
-    textColor: "{colors.foreground}"
-    borderColor: "{colors.border}"
-    typography: "{typography.copy-14}"
-    rounded: "{rounded.none}"
-    padding: "20px 24px"
-  pricing-card-featured:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    borderColor: "{colors.primary-border}"
-    typography: "{typography.copy-14}"
-    rounded: "{rounded.none}"
-    padding: "20px 24px"
-  brand-card:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    borderColor: "color-mix(in oklab, var(--border) 70%, transparent)"
-    typography: "{typography.copy-14}"
-    rounded: "{rounded.xl}"
-    padding: 24px
-  prose:
-    backgroundColor: "{colors.background}"
-    textColor: "{colors.foreground}"
-    typography: "{typography.copy-16}"
-    rounded: "{rounded.none}"
-  hatch-pattern:
-    background: "repeating-linear-gradient(45deg, var(--color-border) 0px, var(--color-border) 1px, transparent 1px, transparent 16px)"
-    opacity: 0.6
-  hero-gradient:
-    background: "radial-gradient(125% 125% at 50% 90%, var(--background) 40%, var(--primary) 100%)"
-    height: 100vh
+  geo-search-light: "#8B5CF6"
+  geo-search-dark: "#9C87E3"
+  geo-memory-light: "#18929F"
+  geo-memory-dark: "#20ABBA"
 ---
 
 # Notra
 
+> Dualtone surfaces, one violet for action, ink for type. GEO is the reference for new product UI. Marketing may be louder. It still uses the same two tones and the same violet.
+
+This file is the public design system. Agents building or restyling Notra surfaces should follow it. When this file and a one-off class disagree, the GEO dashboard is the newer source.
+
+## Where it lives
+
+| Surface | What to copy | Source |
+| --- | --- | --- |
+| Marketing site | Display type, pills, lavender wash | `apps/web` |
+| Dashboard, including GEO | Dualtone modules, tables, charts | `apps/dashboard` |
+| Shared UI | Tokens, buttons, table chrome, status color | `packages/ui` |
+| GEO signals | Search, Memory, up, mid, down | `packages/ui/src/styles/status.css` |
+| Motion | Durations, easings, springs | `packages/ui/src/styles/motion.css`, `packages/ui/src/lib/motion.ts` |
+| Logo, wordmark, swatches | Downloadable assets | [/brand](/brand) |
+
 ## Overview
 
-Notra is an AI content-generation platform with a light-first public design language. The system uses neutral surfaces, thin borders, product media, and a single violet action color. Typography is mostly Inter, with Instrument Serif reserved for large editorial display moments.
+Notra shows how a brand shows up in AI answers. The interface should read like an instrument: a label, a number, the evidence under it.
 
-## Color Use
+Hierarchy comes from two fills and a hairline, not from extra color. The muted fill is the shell. The page or card fill is the body that sits on top of it. That pair is the dualtone look. Violet marks the action, the selected state, or the brand's own series. It does not paint large fields.
 
-Use `primary` for actions, selected states, links, and short emphasis. Do not use violet as a general background texture. Use `background`, `card`, and `border` to create most layout hierarchy.
+## Dualtone
 
-Logo colors are separate from UI colors. `logo-lavender`, `logo-ink`, and `logo-cream` are for the Notra mark, wordmark, and brand asset presentation.
+A dualtone block is two stacked surfaces. The top is `bg-muted` and holds the title, toolbar, or metrics. The body is `bg-card` or `bg-background`, overlaps the shell, and holds the data.
 
-Dark mode keeps the same roles with darker surfaces. It should feel like the same system in lower light, not a separate neon palette.
+```html
+<div class="overflow-hidden rounded-t-2xl border border-b-0 border-border bg-muted pb-5">
+  <!-- label, toolbar, or metrics -->
+</div>
+<div class="relative -mt-5 rounded-2xl border border-border bg-card">
+  <!-- the thing the label is about -->
+</div>
+```
 
-## Typography Use
+Use these overlaps:
 
-Inter is the default typeface for interface, prose, navigation, cards, pricing, legal copy, changelogs, and blog content. Instrument Serif is a display accent for hero headlines and rare editorial moments.
+| Shell | Overlap | Body fill | Where |
+| --- | --- | --- | --- |
+| `pb-5`, height about 4.25rem | `-mt-5` | `bg-card` or `bg-background` | Tables, traffic hero, compact modules |
+| `pb-9`, `min-h-24`, `pt-4` | `-mt-9` | `bg-card`, padding 24px | Taller instrument panels |
+| `pb-5`, then a footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-muted` | Tables with a footer band |
 
-Use 400 for body, 500 for labels and supportive emphasis, and 600 for headings. Avoid heavier weights. Use negative letter spacing only on sans headings, not on body copy.
+Rules:
 
-## Layout
+- The shell and the body each get their own 1px `border-border`. The shell drops its bottom border. The body is fully rounded (`rounded-2xl`) so the overlap reads as a card sitting in a tray.
+- Radius on these shells is `rounded-2xl` (16px). Do not mix that with a sharp corner on the same block.
+- One dualtone per group. Do not put a dualtone module inside another dualtone module.
+- A block with no label band is a flat card (`bg-card`, one border). Do not invent a muted tray for it.
+- Table cells stay on `bg-background`. The header row stays on `bg-muted/80`. Hover tints the row with `bg-muted/50`. The shared chrome class is `TABLE_CHROME_CLASS` in `packages/ui/src/constants/table.ts`.
+- Numbers in these modules use `tabular-nums`. Labels are `text-sm font-medium`. Readouts are `text-xs text-muted-foreground`.
 
-Use a 4px spacing scale. Keep tight groups at 8-16px, card padding at 20-32px, section padding at 48-96px, and large hero rhythm at 96-128px.
+GEO traffic, citation tables, and instrument modules are the reference. Copy those before designing a new card.
 
-Public pages should be product-led. Use screenshots, workflow previews, logo strips, pricing tables, docs, and changelog content as proof. Avoid abstract decoration when real product state can carry the page.
+## Color
+
+### The mark
+
+These three colors belong to the logo. They are not UI tokens.
+
+| Name | Hex | Use |
+| --- | --- | --- |
+| Lavender | `#C8B2EE` | Fill of the mark |
+| Ink | `#1E1E1E` | Stroke of the mark, marketing headlines |
+| Cream | `#F6F3F1` | Tile behind the mark on a dark surface |
+
+On a dark surface, put the mark on a cream tile. Do not recolor the mark, add a shadow, or draw it without the ink stroke.
+
+Marketing heroes may wash a panel with lavender at 25% (`#C8B2EE40`, dark `#2a2140`). That wash is for the hero frame only. Product screens stay on `background` and `muted`.
+
+### UI color
+
+Light is the default. Dark keeps the same roles.
+
+| Token | Light | Dark | Use |
+| --- | --- | --- | --- |
+| `background` | `hsl(0 0% 100%)` | `hsl(233 7% 8%)` | Page |
+| `foreground` | `hsl(0 0% 9%)` | `hsl(0 0% 98%)` | Primary text |
+| `card` | white | `hsl(240 6% 10%)` | Lifted body |
+| `muted` | `hsl(0 0% 96.1%)` | `hsl(0 0% 14.9%)` | Dualtone shell, secondary fill |
+| `muted-foreground` | `hsl(0 0% 45.1%)` | `hsl(0 0% 63.9%)` | Secondary text |
+| `border` | `hsl(0 0% 89.8%)` | `hsl(0 1% 17%)` | Hairline |
+| `primary` | `oklch(0.6056 0.2189 292.7172)` | same | Action, links, brand series |
+| `primary-foreground` | near white | near white | Text on primary |
+| `destructive` | `hsl(0 84.2% 60.2%)` | `hsl(358 100% 50%)` | Destructive action |
+
+`primary` is `#8B5CF6`. One primary action per view. Links and a selected control may use it too. Body text stays ink or `foreground`.
+
+### GEO signals
+
+Search, Memory, and the up / mid / down states share one lightness: about L 0.55 in light, about L 0.70 in dark. A badge, an arrow, and a chart stroke should look like one system.
+
+| Token | Meaning | Light | Dark |
+| --- | --- | --- | --- |
+| `geo-search` | Search, and our own brand | `var(--primary)` / `#8B5CF6` | `#9C87E3` |
+| `geo-memory` | In knowledge, ungrounded | `#18929F` | `#20ABBA` |
+| `geo-up` | Up, same as `success` | `oklch(0.55 0.109 155)` | `oklch(0.7 0.125 155)` |
+| `geo-mid` | Mid, same as `warning` | `oklch(0.57 0.113 55)` | `oklch(0.7 0.125 55)` |
+| `geo-down` | Down | `oklch(0.59 0.192 27)` | `oklch(0.7 0.138 27)` |
+
+Search violet and Memory teal are reserved. Competitor and "other" series start at orange `#E0632F`, then green, pink, gold, blue, gray. Do not reuse Search or Memory for a rival.
+
+Status color is a foreground or a 10% tint (`bg-success/10 text-success`), same as destructive. Pair it with a label or an arrow. Color alone is not the state.
+
+`info` is `oklch(0.55 0.13 250)` in light and `oklch(0.7 0.12 250)` in dark. Use it for neutral information, not for emphasis.
+
+## Typography
+
+| Role | Family | Where |
+| --- | --- | --- |
+| UI and body | Inter (`font-sans`) | Dashboard, docs, marketing body |
+| Marketing display | Satoshi (`font-display`) | Headlines, section titles, display buttons |
+| Code and IDs | Geist Mono in the dashboard, system mono elsewhere | Snippets, paths, model ids |
+| Editorial accent | Instrument Serif (`font-instrument`) | A rare word or pull quote |
+
+Weights: 400 body, 500 labels and marketing subcopy, 600 headings and metric values. Do not go heavier.
+
+Marketing headlines use Satoshi medium, tight tracking (`-0.015em` on heroes, `-0.02em` on section titles), ink `#1E1E1E` in light and white in dark. Supporting lines use `#1E1E1E` at about 75% opacity, or `white/70` in dark.
+
+Product type stays in Inter. Section titles inside a module are `text-sm font-medium`, sentence case, often capitalized via the `capitalize` class on instrument eyebrows. Metric values are `text-3xl` to `text-4xl`, semibold, `tabular-nums`, `tracking-tight`.
+
+Instrument Serif is optional and scarce. Do not set a page title in it.
+
+## Shape
+
+| Element | Radius |
+| --- | --- |
+| Product buttons, inputs | `rounded-lg`, with `corner-squircle` on `[data-slot="button"]` |
+| Dualtone shells, product frames, empty states | `rounded-2xl` |
+| Small chips inside a module | `rounded-md` |
+| Marketing CTAs, avatars, pills | `rounded-full` |
+| Marketing hero frame | `rounded-3xl` |
+
+Keep one radius family in a view. A dualtone module is 16px. A marketing hero is a pill button on a 24px frame. Do not drop a squircle button into a sharp grid.
 
 ## Elevation
 
-Depth comes from borders, neutral surfaces, and restrained shadows. Use shadows for floating navigation, menus, dialogs, and active controls. Use borders for cards, pricing, product frames, prose sections, and grids.
+The overlap is the depth. Shadows are for things that float: menus, dialogs, popovers, the active chart popover (`shadow-md`). Dark mode flattens product shadows to none. Do not add a drop shadow to a dualtone card to make it "lift". The muted tray already does that.
 
-The violet `hero-gradient` is the only page-level atmospheric effect. Do not add extra gradient blobs or decorative background orbs.
+Focus stays visible. Product controls use a 3px ring at `ring-ring/50` plus a `border-ring` on focus-visible. Marketing CTAs use `ring-ring/50` at 3px. Do not remove an outline without a ring that replaces it.
 
-## Shapes
+## Motion
 
-Use tight radii. Default controls use `sm` or `md`. Product frames use `md`. Marketing CTAs use `squircle`. Navigation and brand cards may use `xl`. Pricing grids and table-like layouts use `none`. Pills, avatars, badges, and segmented controls use `full`.
+Use the shared scale. CSS utilities (`duration-fast`, `ease-emphasized`) and `DURATION` / `EASE` / `SPRING` in `@notra/ui/lib/motion` are the same numbers.
+
+| Name | Duration | Use |
+| --- | --- | --- |
+| `instant` | 100ms | Menus, tooltips, selects |
+| `fast` | 150ms | Hover, press, color |
+| `normal` | 200ms | Expand, reveal, swap |
+| `slow` | 300ms | Sidebar, accordion, drawer |
+| `slower` | 500ms | A deliberate reveal: score, onboarding |
+
+Easings: `ease-out` for small feedback, `ease-emphasized` (`cubic-bezier(0.22, 1, 0.36, 1)`) for entrances, `ease-emphasized-in` for exits. Springs: `indicator` for tab pills, `snappy` for list reorder, `gentle` for large surfaces.
+
+Product buttons press to `scale(0.97)`. Disabled controls do not scale. Honor `prefers-reduced-motion`: drop the transition, keep the end state.
+
+Motion explains a change. It does not decorate a resting screen.
+
+## Components
+
+**Product button.** One primary (`bg-primary`), then outline, secondary, ghost, destructive, link. Default height is 32px (`h-8`). Do not invent a sixth color.
+
+**Marketing CTA.** Pill, `cta-gradient-primary` (violet, slightly darker toward the bottom) with white type, or `cta-gradient-light` with ink type. One primary pill per band.
+
+**Instrument.** `flat` is a normal card. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the evidence.
+
+**Empty.** Say what is missing and the first action. "No activity yet" plus how to install the tracker. A faded preview of the real module is fine. A generic illustration is not.
+
+**Icons.** Hugeicons, `currentColor`, 16px in controls, 14px for inline hints. Engine marks keep their own artwork.
 
 ## Voice
 
-Copy should be concrete, short, and product-specific. Prefer direct outcomes such as "Turn shipped work into launch posts", "Draft changelogs from product updates", and "Write in your brand voice".
+Write the concrete thing. "Mention rate", "in knowledge", "cited in answer", "search only". Spell GEO as Generative Engine Optimization on first use for a new reader, then GEO.
 
-Avoid generic AI marketing language such as "revolutionize", "unlock", "supercharge", "seamless", "effortless", and "transform your workflow".
+Sentence case for headings, buttons, and labels. Numerals for counts and percents. Name the action with a verb and a noun when the object is not obvious.
 
-## Do's and Don'ts
+Avoid "revolutionize", "unlock", "supercharge", "seamless", "effortless", and "transform your workflow".
 
-- Use the tokens in this file before inventing new visual values.
-- Keep violet scarce and role-based.
-- Keep Instrument Serif special.
-- Use product media as primary visual proof.
-- Keep section structure crisp with borders and hatch texture.
-- Do not use multiple accent colors for marketing emphasis.
-- Do not use decorative gradients beyond `hero-gradient`.
-- Do not nest cards inside cards.
-- Do not center long-form prose.
-- Do not remove visible focus states.
+Errors say what happened and what to do next. Toasts name the object that changed. Empty states point at the first action.
+
+## Do and don't
+
+| Do | Don't |
+| --- | --- |
+| Build hierarchy with `muted` + `card` / `background` | Add a third gray to separate regions |
+| Overlap the body onto the shell by 20px or 36px | Stack the two fills with a gap |
+| Keep violet for the action and the Search series | Wash product pages in violet |
+| Keep Memory teal for that series only | Recolor a competitor in Search violet |
+| Use Inter in the product, Satoshi for marketing display | Set dashboard UI in Satoshi or Instrument Serif |
+| Use `tabular-nums` on aligned numbers | Let digits jump as values change |
+| Copy a GEO module before inventing a card | Nest a card inside a dualtone body |
+| Keep focus rings | Rely on color alone for state |
+
+## Related
+
+- [Brand guidelines](/brand)
+- [Homepage](/)
+- [llms.txt](/llms.txt)
