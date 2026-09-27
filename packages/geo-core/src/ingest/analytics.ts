@@ -51,7 +51,8 @@ export const trackGeoIngestAnalytics = Effect.fn("geoIngest.analytics")(
       });
     }
 
-    if (Math.random() < GEO_INGEST_RECEIVED_SAMPLE_RATE) {
+    const sampled = Math.random() < GEO_INGEST_RECEIVED_SAMPLE_RATE;
+    if (sampled) {
       captureServerEvent({
         ...scope,
         event: POSTHOG_EVENTS.TRAFFIC_INGEST_RECEIVED,
@@ -61,6 +62,8 @@ export const trackGeoIngestAnalytics = Effect.fn("geoIngest.analytics")(
         },
       });
     }
-    yield* Effect.promise(() => flushPostHogServer());
+    if (firstHit || sampled) {
+      yield* Effect.promise(() => flushPostHogServer());
+    }
   }
 );

@@ -63,7 +63,6 @@ const nextConfig: NextConfig = {
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",
-    "@usenotra/geo",
   ],
   serverExternalPackages: [
     // Let Next.js remove the guarded import before devtools filesystem tracing.

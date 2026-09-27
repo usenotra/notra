@@ -59,10 +59,15 @@ const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
 const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
   organizationId: string
 ) {
-  const { success } = yield* Effect.tryPromise({
-    try: () => geoIngestRatelimit.limit(organizationId),
-    catch: (cause) => new GeoIngestFailedError({ cause }),
-  });
+  const { success } = yield* Effect.promise(() =>
+    geoIngestRatelimit.limit(organizationId).catch((error) => {
+      console.warn("[geo-ingest] Rate limit unavailable; accepting traffic", {
+        organizationId,
+        error,
+      });
+      return { success: true };
+    })
+  );
   if (!success) {
     return yield* Effect.fail(
       new GeoIngestRateLimitedError({ organizationId })

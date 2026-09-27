@@ -1,5 +1,8 @@
-export async function startService(env: Record<string, string> = {}) {
-  const child = Bun.spawn([process.execPath, "dist/index.js"], {
+export async function startService(
+  env: Record<string, string> = {},
+  entrypoint = "dist/index.js"
+) {
+  const child = Bun.spawn([process.execPath, entrypoint], {
     cwd: new URL("../../", import.meta.url).pathname,
     env: { PATH: process.env.PATH, NODE_ENV: "production", PORT: "0", ...env },
     stdout: "pipe",
@@ -19,6 +22,7 @@ export async function startService(env: Record<string, string> = {}) {
       reader.releaseLock();
       return {
         url: `http://127.0.0.1:${match[1]}`,
+        child,
         async stop() {
           child.kill("SIGTERM");
           return await child.exited;

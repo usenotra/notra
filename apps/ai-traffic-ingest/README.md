@@ -20,6 +20,8 @@ the pipeline; typed failures are mapped to HTTP responses with `Effect.match`.
 Events receive `202` only after Tinybird accepts the write, or when the pipeline
 deliberately drops them. Analytics run in the background. SIGTERM stops accepting
 requests and waits for active requests and background work before exiting.
+Rate-limit hits return `429`; Redis transport failures are logged and fail open.
+Token generation is still checked against Postgres and fails closed on an outage.
 
 ## Local development
 

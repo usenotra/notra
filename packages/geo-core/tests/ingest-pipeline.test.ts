@@ -52,6 +52,7 @@ const {
   GeoIngestInvalidPayloadError,
   GeoIngestInvalidTokenError,
   GeoIngestFailedError,
+  GeoIngestRateLimitedError,
   GeoIngestUnparseableUrlError,
 } = await import("../src/ingest/errors");
 
@@ -140,6 +141,25 @@ describe("runGeoIngest ordering", () => {
     await tasks[0]?.();
     expect(trackGeoIngestAnalytics).toHaveBeenCalledTimes(1);
     expect(flushGeoLog).toHaveBeenCalledTimes(1);
+  });
+
+  test("accepts tracked traffic when the rate-limit transport fails", async () => {
+    ratelimitLimit.mockImplementation(async () => {
+      throw new Error("Redis unavailable");
+    });
+    const outcome = await run(ingestRequest());
+    expect(outcome._tag).toBe("Success");
+    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
+  });
+
+  test("rejects actual rate-limit hits without writing an event", async () => {
+    ratelimitLimit.mockImplementation(async () => ({ success: false }));
+    const outcome = await run(ingestRequest());
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestRateLimitedError);
+    }
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
   });
 
   test("rejects revoked identities for tracked traffic with 401", async () => {

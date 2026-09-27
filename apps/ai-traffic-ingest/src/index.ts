@@ -5,6 +5,7 @@ import { createIngestApp } from "./http";
 import { missingIngestEnvironment } from "./utils/config";
 
 const pending = new Set<Promise<void>>();
+const active = new Set<Promise<Response>>();
 const missing = missingIngestEnvironment();
 if (missing.length > 0) {
   console.warn(`[geo-ingest] Missing configuration: ${missing.join(", ")}`);
@@ -24,13 +25,19 @@ const server = Bun.serve({
   port: process.env.PORT ?? INGEST_DEFAULT_PORT,
   maxRequestBodySize: INGEST_MAX_BODY_BYTES,
   idleTimeout: 60,
-  fetch: app.fetch,
+  fetch(request) {
+    const response = Promise.resolve(app.fetch(request));
+    active.add(response);
+    return response.finally(() => active.delete(response));
+  },
 });
 
 console.info(`[geo-ingest] Listening on port ${server.port}`);
 
 async function shutdown() {
-  await server.stop();
+  const stopped = server.stop();
+  await Promise.allSettled(active);
+  await stopped;
   await Promise.allSettled(pending);
   await flushGeoLog();
   process.exit(0);
