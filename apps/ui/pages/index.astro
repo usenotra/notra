@@ -6,7 +6,7 @@ import DuotoneTooltip from "../src/components/duotone-tooltip.astro";
 import HeroDither from "../src/components/hero-dither.astro";
 import ThemeHotkey from "../src/components/theme-hotkey.astro";
 import TooltipPreview from "../src/components/previews/tooltip-preview.astro";
-import { LANDING_COMPONENTS, LANDING_PRINCIPLES } from "../src/constants/landing";
+import { LANDING_COMPONENTS } from "../src/constants/landing";
 
 const { config, navigation } = data;
 const previews = { tooltip: TooltipPreview };
@@ -67,26 +67,8 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
     </div>
   </section>
 
-  <section class="mx-auto max-w-6xl px-6">
-    <div class="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3">
-    {
-      LANDING_PRINCIPLES.map((principle) => (
-        <div class="flex flex-col gap-2 bg-background p-6">
-          <h2 class="text-sm font-semibold text-foreground">{principle.title}</h2>
-          <p class="text-sm text-pretty text-muted-foreground">{principle.body}</p>
-        </div>
-      ))
-    }
-    </div>
-  </section>
-
   <section class="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-20">
-    <div class="flex items-end justify-between gap-4">
-      <h2 class="font-display text-2xl font-semibold tracking-tight text-foreground">Components</h2>
-      <a class="text-sm text-muted-foreground no-underline hover:text-foreground" href="/introduction">
-        All docs
-      </a>
-    </div>
+    <h2 class="font-display text-2xl font-semibold tracking-tight text-foreground">Components</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {
         LANDING_COMPONENTS.map((component) => {

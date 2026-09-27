@@ -44,11 +44,22 @@ import { HERO_DITHER } from "../constants/hero-dither";
 
   class NotraHeroDither extends HTMLElement {
     cleanup?: () => void;
+    motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    syncMotion = () => {
+      this.cleanup?.();
+      this.cleanup = undefined;
+      if (!this.motionQuery.matches) {
+        this.mountShader();
+      }
+    };
 
     connectedCallback() {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
+      this.motionQuery.addEventListener("change", this.syncMotion);
+      this.syncMotion();
+    }
+
+    mountShader() {
       const layer = this.querySelector<HTMLElement>("[data-dither-layer]");
       if (!layer) {
         return;
@@ -125,7 +136,9 @@ import { HERO_DITHER } from "../constants/hero-dither";
     }
 
     disconnectedCallback() {
+      this.motionQuery.removeEventListener("change", this.syncMotion);
       this.cleanup?.();
+      this.cleanup = undefined;
     }
   }
 

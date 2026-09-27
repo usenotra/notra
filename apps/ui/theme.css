@@ -23,9 +23,9 @@
 @utility dot-grid {
   background-image: radial-gradient(
     circle,
-    color-mix(in oklab, var(--blume-muted-foreground) 60%, transparent)
-      0.09375rem,
-    transparent 0.09375rem
+    color-mix(in oklab, var(--blume-muted-foreground) 25%, transparent)
+      0.0625rem,
+    transparent 0.0625rem
   );
-  background-size: 1.25rem 1.25rem;
+  background-size: 1.5rem 1.5rem;
 }
