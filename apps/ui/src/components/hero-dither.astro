@@ -1,0 +1,135 @@
+---
+import { HERO_DITHER } from "../constants/hero-dither";
+---
+
+<notra-hero-dither aria-hidden="true" class="pointer-events-none absolute inset-0 block">
+  <div
+    class="absolute inset-0 hidden motion-reduce:block"
+    style={{
+      backgroundImage: `radial-gradient(circle, ${HERO_DITHER.colorFront} 0.046875rem, transparent 0.0625rem)`,
+      backgroundSize: "0.25rem 0.25rem",
+      maskImage: "linear-gradient(155deg, transparent 15%, black 45%, transparent 75%)",
+    }}
+  >
+  </div>
+  <div class="absolute inset-0 opacity-0 transition-opacity duration-300 motion-reduce:hidden" data-dither-layer>
+  </div>
+</notra-hero-dither>
+
+<script>
+  import {
+    HERO_DITHER,
+    HERO_DITHER_IDLE_FALLBACK_MS,
+    HERO_DITHER_MOBILE_MAX_PIXELS,
+    HERO_DITHER_MOBILE_QUERY,
+    HERO_DITHER_VIEWPORT_MARGIN,
+  } from "../constants/hero-dither";
+
+  type ShaderMount = import("@paper-design/shaders").ShaderMount;
+
+  const whenLoadedAndIdle = (callback: () => void) => {
+    const schedule = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(callback, { timeout: HERO_DITHER_IDLE_FALLBACK_MS });
+      } else {
+        window.setTimeout(callback, HERO_DITHER_IDLE_FALLBACK_MS);
+      }
+    };
+    if (document.readyState === "complete") {
+      schedule();
+    } else {
+      window.addEventListener("load", schedule, { once: true });
+    }
+  };
+
+  class NotraHeroDither extends HTMLElement {
+    cleanup?: () => void;
+
+    connectedCallback() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+      const layer = this.querySelector<HTMLElement>("[data-dither-layer]");
+      if (!layer) {
+        return;
+      }
+
+      let disposed = false;
+      let mount: ShaderMount | undefined;
+      let isInView = false;
+      const isMobile = window.matchMedia(HERO_DITHER_MOBILE_QUERY).matches;
+
+      const syncSpeed = () => {
+        const isAnimating = isInView && document.visibilityState === "visible";
+        mount?.setSpeed(isAnimating ? HERO_DITHER.speed : 0);
+      };
+
+      const start = async () => {
+        const shaders = await import("@paper-design/shaders");
+        if (disposed) {
+          return;
+        }
+        mount = new shaders.ShaderMount(
+          layer,
+          shaders.ditheringFragmentShader,
+          {
+            u_colorBack: shaders.getShaderColorFromString(HERO_DITHER.colorBack),
+            u_colorFront: shaders.getShaderColorFromString(HERO_DITHER.colorFront),
+            u_fit: shaders.ShaderFitOptions[HERO_DITHER.fit],
+            u_offsetX: shaders.defaultPatternSizing.offsetX,
+            u_offsetY: shaders.defaultPatternSizing.offsetY,
+            u_originX: shaders.defaultPatternSizing.originX,
+            u_originY: shaders.defaultPatternSizing.originY,
+            u_pxSize: HERO_DITHER.size,
+            u_rotation: shaders.defaultPatternSizing.rotation,
+            u_scale: HERO_DITHER.scale,
+            u_shape: shaders.DitheringShapes[HERO_DITHER.shape],
+            u_type: shaders.DitheringTypes[HERO_DITHER.type],
+            u_worldHeight: shaders.defaultPatternSizing.worldHeight,
+            u_worldWidth: shaders.defaultPatternSizing.worldWidth,
+          },
+          undefined,
+          HERO_DITHER.speed,
+          0,
+          isMobile ? 1 : undefined,
+          isMobile ? HERO_DITHER_MOBILE_MAX_PIXELS : undefined
+        );
+        syncSpeed();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => layer.classList.replace("opacity-0", "opacity-100"));
+        });
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          isInView = entries.some((entry) => entry.isIntersecting);
+          syncSpeed();
+        },
+        { rootMargin: HERO_DITHER_VIEWPORT_MARGIN }
+      );
+      observer.observe(this);
+      document.addEventListener("visibilitychange", syncSpeed);
+
+      if (isMobile) {
+        whenLoadedAndIdle(start);
+      } else {
+        start();
+      }
+
+      this.cleanup = () => {
+        disposed = true;
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", syncSpeed);
+        mount?.dispose();
+      };
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get("notra-hero-dither")) {
+    customElements.define("notra-hero-dither", NotraHeroDither);
+  }
+</script>

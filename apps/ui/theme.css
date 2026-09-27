@@ -1,0 +1,31 @@
+:root {
+  --notra-content-width: 72rem;
+  --notra-content-gutter: 1.5rem;
+}
+
+[data-blume-header] {
+  padding-inline: max(
+    var(--notra-content-gutter),
+    calc((100% - var(--notra-content-width)) / 2 + var(--notra-content-gutter))
+  );
+}
+
+[data-blume-doc-grid] {
+  max-width: calc(var(--notra-content-width) - 2 * var(--notra-content-gutter));
+}
+
+@media (min-width: 80rem) {
+  [data-blume-doc-grid] {
+    grid-template-columns: 15rem minmax(0, 1fr) 14rem;
+  }
+}
+
+@utility dot-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--blume-muted-foreground) 60%, transparent)
+      0.09375rem,
+    transparent 0.09375rem
+  );
+  background-size: 1.25rem 1.25rem;
+}

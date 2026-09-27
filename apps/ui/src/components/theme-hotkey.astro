@@ -1,0 +1,9 @@
+<script>
+  import { HotkeyManager } from "@tanstack/hotkeys";
+
+  HotkeyManager.getInstance().register(
+    "D",
+    () => document.querySelector<HTMLButtonElement>("[data-blume-header] [data-blume-theme-toggle]")?.click(),
+    { ignoreInputs: true, requireReset: true }
+  );
+</script>
