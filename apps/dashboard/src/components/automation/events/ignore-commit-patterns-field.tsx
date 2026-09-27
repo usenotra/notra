@@ -74,7 +74,7 @@ export function IgnoreCommitPatternsField({
       return <p className="text-xs">Not skipped. Nothing matches.</p>;
     }
     return (
-      <p className="text-xs">
+      <p className="text-xs wrap-anywhere">
         Skipped. Matches{" "}
         <code className="bg-muted rounded px-1 py-0.5 font-mono text-[11px]">
           {matchedPattern}

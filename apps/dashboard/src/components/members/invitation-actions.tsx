@@ -187,7 +187,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Resend invitation?</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
+            <ResponsiveDialogDescription className="wrap-anywhere">
               This will resend the invitation email to{" "}
               <span className="font-semibold underline">
                 {invitation.email}
@@ -222,7 +222,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
             <ResponsiveAlertDialogTitle>
               Cancel invitation?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will cancel the invitation sent to {invitation.email}. They
               will no longer be able to accept this invitation.
             </ResponsiveAlertDialogDescription>

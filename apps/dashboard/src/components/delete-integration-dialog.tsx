@@ -54,13 +54,16 @@ export function DeleteIntegrationDialog({
     <ResponsiveAlertDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveAlertDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-[520px] [&>*]:min-w-0">
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle className="text-lg">
+          <ResponsiveAlertDialogTitle className="text-lg wrap-anywhere">
             Delete {integrationName}?
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
             This action permanently removes the integration and all connected
             metadata. Type{" "}
-            <span className="font-semibold">{integrationName}</span> to confirm.
+            <span className="font-semibold wrap-anywhere">
+              {integrationName}
+            </span>{" "}
+            to confirm.
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
 

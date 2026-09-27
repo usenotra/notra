@@ -1,7 +1,8 @@
-import type { withSupermemory } from "@supermemory/tools/ai-sdk";
+import type { WithSupermemoryOptions } from "@supermemory/tools/ai-sdk";
 
-type InferredSupermemoryOptions = NonNullable<
-  Parameters<typeof withSupermemory>[2]
->;
-
-export interface SupermemoryOptions extends InferredSupermemoryOptions {}
+export interface SupermemoryOptions extends Omit<
+  WithSupermemoryOptions,
+  "containerTag" | "customId"
+> {
+  customId?: string;
+}

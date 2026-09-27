@@ -81,12 +81,13 @@ function RepositorySelector({
               }
               return (
                 <button
-                  className={`hover:bg-accent w-full px-3 py-2 text-left ${
+                  className={`hover:bg-accent flex w-full items-center gap-1 px-3 py-2 text-left ${
                     field.state.value === repo.fullName ? "bg-accent" : ""
                   }`}
                   disabled={mutation.isPending}
                   key={virtualRow.key}
                   onClick={() => field.handleChange(repo.fullName)}
+                  title={repo.fullName}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -96,7 +97,10 @@ function RepositorySelector({
                   }}
                   type="button"
                 >
-                  {repo.fullName} {repo.private ? "(Private)" : ""}
+                  <span className="min-w-0 truncate">{repo.fullName}</span>
+                  {repo.private ? (
+                    <span className="shrink-0">(Private)</span>
+                  ) : null}
                 </button>
               );
             })}

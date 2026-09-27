@@ -129,7 +129,10 @@ export function AttachmentPreviewDialog({
       <DialogContent className="flex h-[80vh] max-w-3xl flex-col gap-3 p-4 sm:max-w-3xl">
         <div className="flex min-w-0 items-start justify-between gap-3 pr-8">
           <div className="min-w-0">
-            <DialogTitle className="truncate text-sm">
+            <DialogTitle
+              className="truncate text-sm"
+              title={attachment.filename}
+            >
               {attachment.filename}
             </DialogTitle>
             <p className="text-muted-foreground mt-1 text-xs">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import {
@@ -45,10 +46,10 @@ export function ChatActivityStatus({
               transition={TRANSITION.enter}
             >
               {active ? (
-                <BrailleLoader
-                  className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
-                  label={label}
-                />
+                <span className="inline-flex items-center gap-2">
+                  <BrailleLoader className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!" />
+                  <Shimmer as="span">{label}</Shimmer>
+                </span>
               ) : (
                 label
               )}

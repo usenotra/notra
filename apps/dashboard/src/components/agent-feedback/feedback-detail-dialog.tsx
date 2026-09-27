@@ -45,7 +45,11 @@ function DetailField({
     <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-3 py-1.5">
       <div className="text-muted-foreground pt-0.5 text-xs">{label}</div>
       {children ?? (
-        <p className={cn(mono ? "font-mono text-xs break-all" : "text-sm")}>
+        <p
+          className={cn(
+            mono ? "font-mono text-xs break-all" : "text-sm wrap-anywhere"
+          )}
+        >
           {value}
         </p>
       )}
@@ -131,7 +135,7 @@ export function AgentFeedbackDetailDialog({
 
               <section className="space-y-1.5">
                 <div className="text-muted-foreground text-xs">Message</div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
                   {item.message}
                 </p>
               </section>

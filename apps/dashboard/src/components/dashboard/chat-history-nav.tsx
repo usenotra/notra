@@ -442,7 +442,7 @@ export function ChatHistoryNav() {
             <ResponsiveAlertDialogTitle>
               Delete chat?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will permanently delete &quot;{deleteCandidate?.title}&quot;.
               This action cannot be undone.
             </ResponsiveAlertDialogDescription>

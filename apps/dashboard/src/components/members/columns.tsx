@@ -50,15 +50,15 @@ export const memberColumns: TableColumn<Member>[] = [
       <span className="flex min-w-0 items-center gap-3">
         <Avatar className="size-8 shrink-0">
           <AvatarImage
-            alt={member.user.name}
+            alt={member.user.name || member.user.email}
             src={getUserAvatarUrl(member.user.image, member.user.email)}
           />
           <AvatarFallback>
-            {member.user.name.charAt(0).toUpperCase()}
+            {(member.user.name || member.user.email).charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <TruncateWithTooltip className="font-medium">
-          {member.user.name}
+          {member.user.name || member.user.email}
         </TruncateWithTooltip>
       </span>
     ),

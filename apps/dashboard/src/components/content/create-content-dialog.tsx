@@ -133,7 +133,7 @@ function CreateContentDialogFooter({
   return (
     <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           {step !== "formats" && (
             <Button
               disabled={isPending}
@@ -147,14 +147,17 @@ function CreateContentDialogFooter({
           )}
           <span
             className={cn(
-              "flex items-center gap-1.5 text-xs",
+              "flex min-w-0 items-center gap-1.5 text-xs",
               footer.tone === "warning"
                 ? "text-destructive font-medium"
                 : "text-muted-foreground"
             )}
           >
             {footer.tone === "warning" && (
-              <HugeiconsIcon className="size-3.5" icon={AlertCircleIcon} />
+              <HugeiconsIcon
+                className="size-3.5 shrink-0"
+                icon={AlertCircleIcon}
+              />
             )}
             {footer.text}
           </span>

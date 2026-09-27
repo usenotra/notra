@@ -33,8 +33,11 @@ export function SkillDetailHeader({
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h1 className="truncate font-mono text-2xl font-bold tracking-tight">
+        <div className="flex max-w-full min-w-0 items-center gap-2.5">
+          <h1
+            className="truncate font-mono text-2xl font-bold tracking-tight"
+            title={name}
+          >
             {name}
           </h1>
           {isSystem ? (

@@ -108,7 +108,10 @@ export function GitHubBranchPicker({
         ) : (
           <HugeiconsIcon className="size-3.5" icon={GitBranchIcon} />
         )}
-        <span className="truncate">
+        <span
+          className="truncate"
+          title={repository.defaultBranch ?? undefined}
+        >
           {repository.defaultBranch ?? "Choose branch"}
         </span>
       </PopoverTrigger>

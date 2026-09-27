@@ -48,7 +48,7 @@ function ChartFrame({
 }) {
   return (
     <div className="border-border bg-muted/20 mt-3 overflow-hidden rounded-lg border">
-      <div className="px-3 pt-2.5 pb-1">
+      <div className="px-3 pt-2.5 pb-1 wrap-anywhere">
         <p className="text-foreground text-sm font-medium">{title}</p>
         {subtitle ? (
           <p className="text-muted-foreground text-xs">{subtitle}</p>

@@ -241,8 +241,10 @@ function CompetitorPromptAppearances({
       rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
       toolbar={
         <div className="space-y-0.5 px-4 py-3">
-          <h2 className="text-sm font-medium">Where {competitor} shows up</h2>
-          <p className="text-muted-foreground text-xs">
+          <h2 className="text-sm font-medium wrap-anywhere">
+            Where {competitor} shows up
+          </h2>
+          <p className="text-muted-foreground text-xs wrap-anywhere">
             Latest answer per prompt and engine that named {competitor}
           </p>
         </div>
@@ -449,12 +451,17 @@ export function CompetitorDetailView({
           </div>
           {domain ? (
             <a
-              className="group text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
+              className="group text-muted-foreground hover:text-foreground inline-flex max-w-full items-center gap-1 text-xs transition-colors"
               href={`https://${domain}`}
               rel="noopener"
               target="_blank"
             >
-              <span className="underline underline-offset-4">{domain}</span>
+              <span
+                className="min-w-0 truncate underline underline-offset-4"
+                title={domain}
+              >
+                {domain}
+              </span>
               <HugeiconsIcon
                 className="opacity-0 transition-opacity group-hover:opacity-100"
                 icon={ArrowUpRight01Icon}

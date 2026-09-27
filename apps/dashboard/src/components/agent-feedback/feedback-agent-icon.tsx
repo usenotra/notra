@@ -106,9 +106,16 @@ export function AgentFeedbackAgent({
   const label = client ?? AGENT_FEEDBACK_UNSPECIFIED_LABEL;
 
   return (
-    <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
+    <span
+      className={cn(
+        "inline-flex max-w-full min-w-0 items-center gap-2",
+        className
+      )}
+    >
       <AgentFeedbackAgentIcon client={client} />
-      <span className="truncate">{label}</span>
+      <span className="truncate" title={label}>
+        {label}
+      </span>
     </span>
   );
 }

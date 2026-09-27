@@ -35,7 +35,7 @@ export function SourcesCell({
                 ) : (
                   <Github className="size-3 shrink-0" />
                 )}
-                <span>{label}</span>
+                <span className="min-w-0 wrap-anywhere">{label}</span>
               </li>
             );
           })}

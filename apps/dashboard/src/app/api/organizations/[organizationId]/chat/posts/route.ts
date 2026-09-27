@@ -38,7 +38,8 @@ export async function POST(
     );
   }
 
-  const { chatId, title, contentType, markdown, status } = parsed.data;
+  const { chatId, toolCallId, title, contentType, markdown, status } =
+    parsed.data;
   const slug =
     supportsPostSlug(contentType) && parsed.data.slug ? parsed.data.slug : null;
   const content = sanitizeMarkdownHtml(await marked.parse(markdown));
@@ -96,6 +97,23 @@ export async function POST(
       return null;
     }
 
+    if (toolCallId) {
+      const [existing] = await tx
+        .select({ postId: posts.id, status: posts.status })
+        .from(posts)
+        .where(
+          and(
+            eq(posts.organizationId, organizationId),
+            eq(posts.collectionId, collection.id),
+            eq(sql`${posts.sourceMetadata}->>'toolCallId'`, toolCallId)
+          )
+        )
+        .limit(1);
+      if (existing) {
+        return { ...existing, collectionId: collection.id };
+      }
+    }
+
     if (
       collection.nameSource === "generated" &&
       isLegacyPostCollectionName(collection.name)
@@ -124,10 +142,10 @@ export async function POST(
       markdown,
       contentType,
       status,
-      sourceMetadata: null,
+      sourceMetadata: { chatId, ...(toolCallId ? { toolCallId } : {}) },
     });
 
-    return { postId: id, collectionId: collection.id };
+    return { postId: id, collectionId: collection.id, status };
   });
 
   if (!result) {
@@ -144,5 +162,5 @@ export async function POST(
     });
   });
 
-  return NextResponse.json({ postId: result.postId, status });
+  return NextResponse.json({ postId: result.postId, status: result.status });
 }

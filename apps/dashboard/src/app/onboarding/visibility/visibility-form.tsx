@@ -298,12 +298,12 @@ export function VisibilityForm({
               ) : null}
             </div>
             {isAnalyzing ? (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-xs wrap-anywhere">
                 Reading {analyzedHost}. Takes about 20 seconds.
               </p>
             ) : null}
             {discover.isError ? (
-              <p className="text-destructive text-sm">
+              <p className="text-destructive text-sm wrap-anywhere">
                 Could not read {analyzedHost}. Check the address, or just type
                 your brand name below.
               </p>

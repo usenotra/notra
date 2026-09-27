@@ -139,7 +139,7 @@ export function ProfileSection({
                 src={getUserAvatarUrl(user.image, user.email)}
               />
               <AvatarFallback className="rounded-lg text-xl">
-                {user.name.charAt(0).toUpperCase()}
+                {(user.name || user.email).charAt(0).toUpperCase()}
               </AvatarFallback>
               {isUploadingAvatar && (
                 <span className="bg-background/80 absolute inset-0 flex items-center justify-center rounded-lg">

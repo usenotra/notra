@@ -112,7 +112,7 @@ export function CommentItem(props: CommentItemProps) {
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-24 text-sm leading-5">
-                <span className="text-foreground text-sm font-medium">
+                <span className="text-foreground min-w-0 text-sm font-medium wrap-anywhere">
                   {comment.name}
                 </span>
                 <CommentTimestamp createdAt={comment.createdAt} />

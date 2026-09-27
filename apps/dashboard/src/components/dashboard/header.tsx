@@ -94,8 +94,8 @@ export function SiteHeader() {
   });
 
   return (
-    <header className="relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-2 lg:px-6">
+    <header className="@container/topbar relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 lg:gap-2 lg:px-6 @4xl/topbar:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="flex min-w-0 items-center gap-1 overflow-hidden lg:gap-2">
           <SidebarToggle className="-ml-1" />
           <Separator
@@ -106,7 +106,7 @@ export function SiteHeader() {
         </div>
         <button
           aria-label="Search"
-          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors md:flex lg:w-64 xl:w-80 @[8rem]/search:justify-start @[8rem]/search:px-3"
+          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors @[8rem]/search:justify-start @[8rem]/search:px-3 @4xl/topbar:flex @5xl/topbar:w-64 @6xl/topbar:w-80"
           onClick={() => setCommandPaletteOpen(true)}
           type="button"
         >
@@ -120,14 +120,17 @@ export function SiteHeader() {
           </KbdGroup>
         </button>
         <div className="flex h-full min-w-0 items-center justify-end gap-1 sm:gap-2">
-          <button
-            aria-label="Search"
-            className="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-lg md:hidden"
-            onClick={() => setCommandPaletteOpen(true)}
-            type="button"
-          >
-            <HugeiconsIcon icon={SearchIcon} size={16} />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              aria-label="Search"
+              className="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-7 items-center justify-center rounded-lg @4xl/topbar:hidden"
+              onClick={() => setCommandPaletteOpen(true)}
+              type="button"
+            >
+              <HugeiconsIcon icon={SearchIcon} size={14} strokeWidth={1.8} />
+            </button>
+            <DashboardAgentButton />
+          </div>
           <button
             aria-hidden
             className="hidden"
@@ -137,7 +140,6 @@ export function SiteHeader() {
             tabIndex={-1}
             type="button"
           />
-          <DashboardAgentButton />
           <NavUser />
           <ResponsiveDialog onOpenChange={setFeedbackOpen} open={feedbackOpen}>
             <ResponsiveDialogContent

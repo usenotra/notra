@@ -36,6 +36,7 @@ export async function orchestrateChat(
 ): Promise<OrchestrateResult> {
   const {
     organizationId,
+    chatId,
     messages,
     currentMarkdown,
     contentType,
@@ -101,7 +102,7 @@ export async function orchestrateChat(
   const modelWithMemory = createModel(
     organizationId,
     routingDecision.model,
-    {},
+    { supermemory: { customId: chatId } },
     log
   );
 

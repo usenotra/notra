@@ -1,6 +1,7 @@
 "use client";
 
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
+import { isGeoBriefMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markdown";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,26 +65,34 @@ export function useContentDetailDocument({
   const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
   const geoWriterBriefQuery = useGeoWriterBrief(
     organizationId,
-    geoWriterDraft?.briefId ?? null
+    geoWriterDraft?.briefId ?? null,
+    geoWriterDraft?.projectId
   );
-  const geoWriterUpdate = useGeoWriterUpdate(organizationId, contentId);
+  const geoWriterUpdate = useGeoWriterUpdate(
+    organizationId,
+    contentId,
+    geoWriterDraft?.projectId
+  );
 
   const [isPlanDirty, setIsPlanDirty] = useState(false);
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
+  const serverMarkdown = data?.content?.markdown ?? "";
+  const isPostStillPlan = isGeoBriefMarkdown(serverMarkdown);
   const {
     isBriefError: isGeoWriterBriefError,
+    isBriefMissing: isGeoWriterBriefMissing,
     isChatLocked: isGeoWriterChatLocked,
     isPlanMode: isGeoWriterPlanMode,
     isPlanReviewable: isGeoWriterPlanReviewableNow,
   } = getGeoWriterDocumentState(
     Boolean(geoWriterDraft),
     geoWriterBriefQuery.error,
-    briefStatus
+    briefStatus,
+    isPostStillPlan
   );
 
-  const serverMarkdown = data?.content?.markdown ?? "";
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
   const [originalMarkdown, setOriginalMarkdown] = useState("");
   const [editorKey, setEditorKey] = useState(0);
@@ -102,10 +111,14 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const geoWriterBriefId = geoWriterDraft?.briefId;
+  const isCompletedArticleStale =
+    briefStatus === "completed" &&
+    isPostStillPlan &&
+    loadedArticleBriefId !== geoWriterBriefId;
   if (
     geoWriterBriefId &&
     briefStatus &&
-    briefStatus !== "completed" &&
+    (briefStatus !== "completed" || isCompletedArticleStale) &&
     pendingArticleBriefId !== geoWriterBriefId
   ) {
     setPendingArticleBriefId(geoWriterBriefId);
@@ -630,6 +643,7 @@ export function useContentDetailDocument({
     imageExportTarget,
     invalidateContentQueries,
     isGeoWriterBriefError,
+    isGeoWriterBriefMissing,
     isGeoWriterChatLocked,
     isGeoWriterPlanMode,
     isGeoWriterPlanReviewableNow,

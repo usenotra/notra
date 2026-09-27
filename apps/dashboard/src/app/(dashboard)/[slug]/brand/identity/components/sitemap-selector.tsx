@@ -35,7 +35,10 @@ export function SitemapSelector({
       }}
       value={value}
     >
-      <SelectTrigger aria-label="Select sitemap" className="w-full sm:w-72">
+      <SelectTrigger
+        aria-label="Select sitemap"
+        className="w-full min-w-0 sm:w-72"
+      >
         <SelectValue placeholder="Select sitemap" />
       </SelectTrigger>
       <SelectContent>

@@ -207,6 +207,7 @@
         "zod": "^4.5.0",
       },
       "devDependencies": {
+        "@ai-sdk/devtools": "1.0.22",
         "@notra/typescript-config": "workspace:*",
         "@tailwindcss/postcss": "^4",
         "@types/node": "^20",
@@ -353,7 +354,7 @@
         "@octokit/core": "^7.0.6",
         "@openrouter/ai-sdk-provider": "3.0.0",
         "@resvg/resvg-js": "^2.6.2",
-        "@supermemory/tools": "^1.3.64",
+        "@supermemory/tools": "^2.3.0",
         "@upstash/box": "^0.5.0",
         "@upstash/qstash": "2.9.0-rc",
         "@upstash/realtime": "^1.0.3",
@@ -574,6 +575,7 @@
         "@notra/schemas": "workspace:*",
         "@shadcn/react": "^0.2.0",
         "@shikijs/transformers": "^3.21.0",
+        "@streamdown/code": "^1.1.1",
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/react-form": "^1.33.5",
         "@tanstack/react-virtual": "^3.14.9",
@@ -2222,7 +2224,9 @@
 
     "@stoplight/yaml-ast-parser": ["@stoplight/yaml-ast-parser@0.0.50", "", {}, "sha512-Pb6M8TDO9DtSVla9yXSTAxmo9GVEouq5P40DWXdOie69bXogZTkgvopCq+yEvTMA0F6PEvdJmbtTV3ccIp11VQ=="],
 
-    "@supermemory/tools": ["@supermemory/tools@1.4.8", "", { "dependencies": { "@ai-sdk/anthropic": "^2.0.25", "@ai-sdk/openai": "^2.0.23", "ai": "^5.0.29", "lru-cache": "^11.2.6", "openai": "^4.104.0", "supermemory": "^3.0.0-alpha.26", "zod": "^4.1.5" }, "peerDependencies": { "@ai-sdk/provider": "^2.0.0 || ^3.0.0", "@voltagent/core": "^2.6.12" }, "optionalPeers": ["@voltagent/core"] }, "sha512-qhd9xl5lkbzuJWEqBWgqYq0KOcVXwQEbAMKal85+dvE7jcwc+czv/Jet5oAtz/8RPF6kbvUHxHFjWodVE3bFlg=="],
+    "@streamdown/code": ["@streamdown/code@1.1.1", "", { "dependencies": { "shiki": "^3.19.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0" } }, "sha512-i7HTNuDgZWb+VdrNVOam9gQhIc5MSSDXKWXgbUrn/4vSRaSMM+Rtl10MQj4wLWPNpF7p80waJsAqFP8HZfb0Jg=="],
+
+    "@supermemory/tools": ["@supermemory/tools@2.3.0", "", { "dependencies": { "@ai-sdk/anthropic": "^2.0.25", "@ai-sdk/openai": "^2.0.23", "ai": "^5.0.29", "lru-cache": "^11.2.6", "openai": "^4.104.0", "supermemory": "^4.25.4", "zod": "^4.1.5" }, "peerDependencies": { "@ai-sdk/provider": "^2.0.0 || ^3.0.0", "@voltagent/core": "^2.6.12" }, "optionalPeers": ["@voltagent/core"] }, "sha512-Cp4iSvf5zdWpIRsobLRdoHQyd6pt1KhEaPCWOGI8+nKHahsXQ0eEEK6mTh192lJO95U7ez9iYqlj0pGNH/nMTA=="],
 
     "@superradcompany/microsandbox-darwin-arm64": ["@superradcompany/microsandbox-darwin-arm64@0.6.2", "", { "os": "darwin", "cpu": "arm64" }, "sha512-4Px/MDbas+zLqRoGjLuOMqyBQlZeuWJutXoYtW9P0PNk4AJMTQ5PMZHMKruU4VpjMznUKLyAAEBYZw2cy2FF5A=="],
 
@@ -5128,7 +5132,7 @@
 
     "super-regex": ["super-regex@1.1.0", "", { "dependencies": { "function-timeout": "^1.0.1", "make-asynchronous": "^1.0.1", "time-span": "^5.1.0" } }, "sha512-WHkws2ZflZe41zj6AolvvmaTrWds/VuyeYr9iPVv/oQeaIoVxMKaushfFWpOGDT+GuBrM/sVqF8KUCYQlSSTdQ=="],
 
-    "supermemory": ["supermemory@3.14.0", "", {}, "sha512-gy1C6B4wUHEIOjmvDqW6GRttEdr0TZFFZ2YVU5eTCXELPQ0zjxgwudmg2kLPI6dEIITUxw1Q6n1c+vm4ro0KSg=="],
+    "supermemory": ["supermemory@4.25.4", "", { "bin": { "supermemory": "bin/cli" } }, "sha512-97ME3rlmu7OmsXJTb9OgXOD+3VUv4Wej0ZX9xezG+LKkMwrzi4xeeAZaOJFcr0oI/QQjcHG2WOzm+und1e7MFA=="],
 
     "supports-color": ["supports-color@8.1.1", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q=="],
 

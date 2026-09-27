@@ -1,19 +1,33 @@
 "use client";
 
+import { ChatQuoteProvider } from "@/components/chat/chat-quote";
 import {
   ContentDetailChatPanel,
   ContentDetailFloatingChat,
 } from "@/components/content/content-detail-chat-shell";
 import { ContentDetailLoadedView } from "@/components/content/content-detail-loaded-view";
 import { ContentDetailNotFound } from "@/components/content/content-detail-not-found";
+import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useContentDetailChat } from "@/lib/hooks/use-content-detail-chat";
 import { useContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentDetailPageClientProps } from "@/types/content/detail";
+import { parseGeoWriterDraft } from "@/utils/geo-write-entry";
 
 import { useContent } from "../../../../../lib/hooks/use-content";
 import { ContentDetailSkeleton } from "./skeleton";
 
-export default function PageClient({
+export default function PageClient(props: ContentDetailPageClientProps) {
+  const { data } = useContent(props.organizationId, props.contentId);
+  const draft = parseGeoWriterDraft(data?.content.sourceMetadata);
+
+  return (
+    <GeoProjectProvider projectId={draft?.projectId}>
+      <ContentDetailPage {...props} />
+    </GeoProjectProvider>
+  );
+}
+
+function ContentDetailPage({
   contentId,
   organizationSlug,
   organizationId,
@@ -56,14 +70,18 @@ export default function PageClient({
 
   return (
     <ContentDetailLoadedView
-      chatInputSection={floatingChat}
+      chatInputSection={
+        <ChatQuoteProvider conversationId={chat.chatPanelProps.activeChatId}>
+          {floatingChat}
+          <ContentDetailChatPanel {...chat.chatPanelProps} />
+        </ChatQuoteProvider>
+      }
       contentId={contentId}
       data={data}
       document={document}
       onSelectionChange={chat.handleSelectionChange}
       organizationId={organizationId}
       organizationSlug={organizationSlug}
-      rightPanelSection={<ContentDetailChatPanel {...chat.chatPanelProps} />}
       selectedExcerpt={chat.selection}
     />
   );

@@ -222,7 +222,7 @@ function PostContent({
   }, [content, onSelectionChange]);
 
   return (
-    <div className="text-sm" ref={contentRef}>
+    <div className="text-sm wrap-anywhere" ref={contentRef}>
       <span className="whitespace-pre-wrap">
         {formatContentWithHashtagsAndLinks(displayContent)}
       </span>
@@ -274,7 +274,12 @@ function LinkedInPostHeader({
             }
           />
         ) : (
-          <p className="text-sm leading-tight font-semibold">{author.name}</p>
+          <p
+            className="truncate text-sm leading-tight font-semibold"
+            title={author.name}
+          >
+            {author.name}
+          </p>
         )}
         {author.headline && (
           <p className="text-muted-foreground truncate text-xs leading-tight">

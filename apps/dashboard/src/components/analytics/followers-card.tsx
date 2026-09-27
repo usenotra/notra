@@ -88,7 +88,7 @@ export function FollowersCard({
           seed="Followers"
         />
       ) : (
-        <div className="divide-border flex h-56 flex-col justify-center divide-y">
+        <div className="divide-border flex h-56 flex-col justify-center-safe divide-y overflow-y-auto">
           {visible.map((account) => {
             const key = accountSeriesKey(
               account.provider,

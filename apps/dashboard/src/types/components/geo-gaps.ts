@@ -1,4 +1,5 @@
 import type {
+  GeoAiSearchGapRow,
   GeoCompetitor,
   GeoGapWriteAction,
   GeoPromptGapRow,
@@ -26,7 +27,7 @@ export interface GeoGapsWriteCellProps {
   compact?: boolean;
 }
 
-export type GeoGapsTab = "prompt" | "search";
+export type GeoGapsTab = "prompt" | "search" | "ai";
 
 export interface GeoGapDetailSheetProps {
   prompt: GeoPromptGapRow | null;
@@ -70,11 +71,13 @@ export type GeoGapsEmptyKind =
   | "no-scan"
   | "no-prompt-gaps"
   | "no-search-gaps"
+  | "no-ai-search-gaps"
   | "no-matches";
 
 export interface GeoGapsTableProps {
   promptGaps: GeoPromptGapRow[];
   searchGaps: GeoSearchGapRow[];
+  aiSearchGaps: GeoAiSearchGapRow[];
   competitors: GeoCompetitor[];
   hasScanData: boolean;
   isScanning: boolean;
@@ -83,6 +86,7 @@ export interface GeoGapsTableProps {
   onRunScan: () => void;
   onWritePrompt: (row: GeoPromptGapRow) => void;
   onWriteSearch: (row: GeoSearchGapRow, existingPageUrl?: string) => void;
+  onWriteAiSearch: (row: GeoAiSearchGapRow) => void;
   onDismissSearch: (row: GeoSearchGapRow) => void;
   dismissingSearchId: string | null;
   onRescanPrompt: (row: GeoPromptGapRow) => void;
@@ -113,8 +117,17 @@ export interface GeoGapsEmptyProps {
 export interface GeoGapsTabsProps {
   tab: GeoGapsTab;
   onTabChange: (tab: GeoGapsTab) => void;
-  promptCount: number;
-  searchCount: number;
+  counts: Record<GeoGapsTab, number>;
+}
+
+export interface GeoGapEngineLogosProps {
+  engines: readonly string[];
+  detail: string;
+}
+
+export interface GeoGapCompetitorFields {
+  competitors: string[];
+  discoveredCompetitors: string[];
 }
 
 export interface GeoGapsFiltersProps {

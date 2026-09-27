@@ -41,7 +41,7 @@ export function OrganizationMembershipActionDialog({
       <ResponsiveAlertDialogTrigger render={trigger} />
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogTitle className="wrap-anywhere">
             {actionLabel} {organizationName}?
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>

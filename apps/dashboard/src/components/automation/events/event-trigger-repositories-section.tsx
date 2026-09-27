@@ -64,10 +64,12 @@ export function EventTriggerRepositoriesSection({
                       return null;
                     }
                     return (
-                      <ComboboxChip key={opt.value}>
-                        <span className="flex items-center gap-1.5">
+                      <ComboboxChip className="max-w-full" key={opt.value}>
+                        <span className="flex min-w-0 items-center gap-1.5">
                           <Github className="size-3 shrink-0" />
-                          {opt.label}
+                          <span className="truncate" title={opt.label}>
+                            {opt.label}
+                          </span>
                         </span>
                       </ComboboxChip>
                     );
@@ -79,9 +81,11 @@ export function EventTriggerRepositoriesSection({
                   <ComboboxList>
                     {options.map((opt) => (
                       <ComboboxItem key={opt.value} value={opt.value}>
-                        <span className="flex items-center gap-2">
+                        <span className="flex min-w-0 items-center gap-2">
                           <Github className="size-3.5 shrink-0" />
-                          {opt.label}
+                          <span className="truncate" title={opt.label}>
+                            {opt.label}
+                          </span>
                         </span>
                       </ComboboxItem>
                     ))}

@@ -35,7 +35,7 @@ export function AccountFilter({
           <button
             aria-pressed={selected}
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-sm border py-1 pr-2.5 pl-1 font-mono text-xs transition-colors",
+              "flex max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-sm border py-1 pr-2.5 pl-1 font-mono text-xs transition-colors",
               selected
                 ? "border-border bg-muted/60"
                 : "bg-muted/20 border-transparent opacity-50 hover:opacity-80"
@@ -44,7 +44,7 @@ export function AccountFilter({
             onClick={() => onToggle(key)}
             type="button"
           >
-            <Avatar className="size-6">
+            <Avatar className="size-6 shrink-0">
               {account.profileImageUrl && (
                 <AvatarImage
                   alt={account.username}
@@ -55,9 +55,11 @@ export function AccountFilter({
                 {account.username.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span>@{account.username}</span>
+            <span className="min-w-0 truncate" title={`@${account.username}`}>
+              @{account.username}
+            </span>
             <HugeiconsIcon
-              className="text-muted-foreground"
+              className="text-muted-foreground shrink-0"
               icon={
                 account.provider === "linkedin"
                   ? Linkedin02Icon

@@ -102,7 +102,7 @@ function ShareOfVoiceRankingRow({
       <td className="text-muted-foreground w-9 py-3 pr-2 pl-3 align-middle text-xs tabular-nums">
         {row.rank ?? "—"}
       </td>
-      <td className="min-w-0 py-3 pr-3 align-middle">
+      <td className="w-full max-w-0 py-3 pr-3 align-middle">
         <span className="flex min-w-0 items-center gap-2.5">
           <RankingBrandMark
             competitors={competitors}

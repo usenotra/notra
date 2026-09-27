@@ -8,6 +8,7 @@ import {
   renameChatSession,
   setChatSessionPinned,
 } from "@notra/ai/chat/history";
+import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
 import { updateChatSessionSchema } from "@notra/ai/schemas/chat";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   return NextResponse.json({
     chatId,
-    messages,
+    messages: await hydrateSavedChatPosts(organizationId, chatId, messages),
     lastResponseStopped,
     activeStreamId,
     externalChannelId,

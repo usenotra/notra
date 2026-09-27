@@ -132,11 +132,12 @@ function SourcePills({ sources }: { sources: PerplexitySearchSource[] }) {
     <div className="flex flex-wrap gap-1.5 pt-1">
       {sources.map((source) => (
         <a
-          className="border-border text-muted-foreground hover:text-foreground inline-flex items-center rounded-full border px-2 py-0.5 text-xs transition-colors"
+          className="border-border text-muted-foreground hover:text-foreground max-w-full truncate rounded-full border px-2 py-0.5 text-xs transition-colors"
           href={source.url}
           key={source.url ?? source.domain}
           rel="noopener noreferrer"
           target="_blank"
+          title={source.domain}
         >
           {source.domain}
         </a>

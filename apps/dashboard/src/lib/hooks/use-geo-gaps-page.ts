@@ -165,9 +165,17 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             existingPageUrl,
           });
         },
+        onWriteAiSearch: (row) => {
+          openDialog({
+            sourceKind: "ai_search",
+            sourceId: row.id,
+            topic: row.query,
+          });
+        },
         organizationSlug,
         promptGaps: gapsQuery.data?.promptGaps ?? [],
         searchGaps: gapsQuery.data?.searchGaps ?? [],
+        aiSearchGaps: gapsQuery.data?.aiSearchGaps ?? [],
       },
       dialog: {
         open: dialogOpen,

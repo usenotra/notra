@@ -14,7 +14,7 @@ export function PageHeading({
         className
       )}
     >
-      <div className="min-w-0 space-y-1">
+      <div className="max-w-full min-w-0 space-y-1 wrap-anywhere">
         <h1 className="text-2xl font-bold tracking-tight @min-[40rem]/main:text-3xl">
           {title}
         </h1>

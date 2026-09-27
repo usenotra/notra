@@ -68,7 +68,9 @@ export function LogDetailsSheet({
             ) : null}
             {detail.isError ? (
               <div className="space-y-2" role="alert">
-                <p className="text-sm">{detail.error.message}</p>
+                <p className="text-sm wrap-break-word">
+                  {detail.error.message}
+                </p>
                 <Button
                   variant="outline"
                   size="sm"

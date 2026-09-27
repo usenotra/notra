@@ -58,7 +58,7 @@ function ReadinessBody({
           ) : (
             <>
               Check how ready{" "}
-              <strong className="font-semibold">
+              <strong className="font-semibold wrap-anywhere">
                 {stripWebsiteProtocol(targetUrl)}
               </strong>{" "}
               is for AI agents. The scan is public and takes a few minutes.

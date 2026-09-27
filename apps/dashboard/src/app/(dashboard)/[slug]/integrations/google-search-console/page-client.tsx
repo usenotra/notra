@@ -228,7 +228,10 @@ function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
           {visibleQueries.map((query) => (
             <TableRow key={query.query}>
               <TableCell className="max-w-64">
-                <span className="block truncate font-medium">
+                <span
+                  className="block truncate font-medium"
+                  title={query.query}
+                >
                   {query.query}
                 </span>
               </TableCell>
@@ -308,7 +311,9 @@ function AddedSuggestions({
             {visibleSuggestions.map((suggestion) => (
               <TableRow key={suggestion.id}>
                 <TableCell className="max-w-80">
-                  <span className="block truncate">{suggestion.prompt}</span>
+                  <span className="block truncate" title={suggestion.prompt}>
+                    {suggestion.prompt}
+                  </span>
                 </TableCell>
                 <TableCell className="max-w-48">
                   <span className="text-muted-foreground block truncate">
@@ -424,7 +429,9 @@ function ConnectionFact({ label, value }: GoogleSearchConsoleFactProps) {
   return (
     <div className="min-w-0">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="mt-1 truncate text-sm font-medium">{value}</dd>
+      <dd className="mt-1 truncate text-sm font-medium" title={value}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -464,7 +471,9 @@ function PropertyNotice({
   }
   if (status.lastError) {
     return (
-      <p className="text-destructive text-sm text-pretty">{status.lastError}</p>
+      <p className="text-destructive text-sm text-pretty wrap-anywhere">
+        {status.lastError}
+      </p>
     );
   }
   if (status.siteUrl) {

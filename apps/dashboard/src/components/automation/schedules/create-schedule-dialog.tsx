@@ -546,14 +546,22 @@ export function CreateScheduleDialog({
                                   return null;
                                 }
                                 return (
-                                  <ComboboxChip key={opt.value}>
-                                    <span className="flex items-center gap-1.5">
+                                  <ComboboxChip
+                                    className="max-w-full"
+                                    key={opt.value}
+                                  >
+                                    <span className="flex min-w-0 items-center gap-1.5">
                                       {opt.type === "github" ? (
                                         <Github className="size-3 shrink-0" />
                                       ) : (
                                         <Linear className="size-3 shrink-0" />
                                       )}
-                                      {opt.label}
+                                      <span
+                                        className="truncate"
+                                        title={opt.label}
+                                      >
+                                        {opt.label}
+                                      </span>
                                     </span>
                                   </ComboboxChip>
                                 );
@@ -571,13 +579,18 @@ export function CreateScheduleDialog({
                                     key={opt.value}
                                     value={opt.value}
                                   >
-                                    <span className="flex items-center gap-2">
+                                    <span className="flex min-w-0 items-center gap-2">
                                       {opt.type === "github" ? (
                                         <Github className="size-3.5 shrink-0" />
                                       ) : (
                                         <Linear className="size-3.5 shrink-0" />
                                       )}
-                                      {opt.label}
+                                      <span
+                                        className="truncate"
+                                        title={opt.label}
+                                      >
+                                        {opt.label}
+                                      </span>
                                     </span>
                                   </ComboboxItem>
                                 ))}

@@ -8,6 +8,7 @@ import type {
   GeoZdrMode,
   GeoZdrPolicy,
 } from "../types/geo";
+import { engineModelOf } from "./geo-engine-family";
 import {
   geoDefaultEngines,
   getGeoModelCatalogEntry,
@@ -147,7 +148,9 @@ export function resolveGeoGroundedZdrMode(
   if (coverage !== "none") {
     return "required";
   }
-  return policy.nonZdrApprovedEngines.includes(engine.key) ? "preferred" : null;
+  return policy.nonZdrApprovedEngines.includes(engineModelOf(engine.key))
+    ? "preferred"
+    : null;
 }
 
 /** Gateway pin for models that only one gateway serves, else undefined. */

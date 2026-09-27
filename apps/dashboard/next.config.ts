@@ -4,6 +4,15 @@ import type { NextConfig } from "next";
 import { withWorkflow } from "workflow/next";
 
 const nextConfig: NextConfig = {
+  // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
+  // previews should not become routes or bundles in a production build.
+  pageExtensions: [
+    ...(process.env.NODE_ENV === "development" ? ["dev.tsx"] : []),
+    "tsx",
+    "ts",
+    "jsx",
+    "js",
+  ],
   allowedDevOrigins: process.env.APP_URL
     ? [new URL(process.env.APP_URL).hostname]
     : [],

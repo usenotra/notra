@@ -54,7 +54,7 @@ export function GuidelinesColorsSection({
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {colors.map((color) => {
           const meta = joinMeta([
             color.role !== "custom" ? COLOR_ROLE_LABELS[color.role] : null,

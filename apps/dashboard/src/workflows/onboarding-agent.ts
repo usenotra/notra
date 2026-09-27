@@ -17,7 +17,6 @@ import type { OnboardingAgentWorkflowResult } from "@/types/workflows/onboarding
 
 import {
   getOnboardingAgentStateStep,
-  grantSignupCreditsStep,
   releaseOnboardingAgentReservationStep,
   sendOnboardingSlackInviteStep,
   startOnboardingAgentSessionStep,
@@ -49,10 +48,6 @@ export async function onboardingAgentWorkflow(
 
     if (email && organizationName) {
       await sendOnboardingSlackInviteStep({ email, organizationName });
-    }
-
-    if (email) {
-      await grantSignupCreditsStep({ email, organizationId });
     }
 
     await startOnboardingAgentSessionStep({

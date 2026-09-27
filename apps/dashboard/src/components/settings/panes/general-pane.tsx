@@ -387,8 +387,10 @@ function ConnectedAccountsGroup({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 truncate text-sm font-medium">
-                  {account.displayName}
+                <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                  <span className="truncate" title={account.displayName}>
+                    {account.displayName}
+                  </span>
                   <XVerificationBadge
                     className="size-4 shrink-0"
                     verified={account.verified}

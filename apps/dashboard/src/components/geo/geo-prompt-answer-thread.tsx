@@ -29,6 +29,7 @@ import {
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
+import { GEO_ANSWER_CODE_BLOCK_CLASS } from "@/constants/geo-answer-code-block";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
@@ -93,7 +94,11 @@ export function AnswerMarkdown({
 }) {
   return (
     <MessageResponse
-      className={cn(ANSWER_MARKDOWN_CLASS, geoAnswerMarkdownFontClass(skin))}
+      className={cn(
+        ANSWER_MARKDOWN_CLASS,
+        GEO_ANSWER_CODE_BLOCK_CLASS,
+        geoAnswerMarkdownFontClass(skin)
+      )}
       components={GEO_ANSWER_MENTION_COMPONENTS}
       mode={mode}
     >

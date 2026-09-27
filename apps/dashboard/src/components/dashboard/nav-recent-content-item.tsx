@@ -155,7 +155,7 @@ export function NavRecentContentItem({
             <ResponsiveAlertDialogTitle>
               Delete post?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will permanently delete &quot;{post.title}&quot;. This action
               cannot be undone.
             </ResponsiveAlertDialogDescription>

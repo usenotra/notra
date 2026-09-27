@@ -25,7 +25,7 @@ export function SkillDeleteDialog({
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle>Delete skill?</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
+          <ResponsiveAlertDialogDescription className="wrap-anywhere">
             This will permanently delete the skill "{name}". Schedules that
             reference it will still run, but without its guidance their output
             may be lower quality.

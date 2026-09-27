@@ -1,3 +1,14 @@
+import {
+  type AnyColumn,
+  and,
+  inArray,
+  like,
+  not,
+  notInArray,
+  or,
+  type SQL,
+} from "drizzle-orm";
+
 import { GEO_MAX_PROMPTS } from "../constants/geo";
 import type {
   GeoBrandContext,
@@ -127,6 +138,25 @@ export function shouldSkipUnmatchedGapScan(
     isConversationScanPromptId(scanId) ||
     isCustomPromptScanId(scanId) ||
     removedAutoPromptIds.has(scanId)
+  );
+}
+
+export function gapScanIds(promptId: string): string[] {
+  return [promptId, customPromptScanId(promptId)];
+}
+
+export function activeGapScanFilter(
+  scanIdColumn: AnyColumn,
+  matchedScanIds: readonly string[],
+  removedAutoPromptIds: readonly string[]
+): SQL | undefined {
+  return or(
+    inArray(scanIdColumn, [...matchedScanIds]),
+    and(
+      not(like(scanIdColumn, `${CUSTOM_PROMPT_SCAN_ID_PREFIX}%`)),
+      not(like(scanIdColumn, `${SEQUENCE_PROMPT_SCAN_ID_PREFIX}%`)),
+      notInArray(scanIdColumn, [...removedAutoPromptIds])
+    )
   );
 }
 

@@ -525,8 +525,8 @@ function ImportXStep({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1 truncate text-sm font-medium">
-                    {account.displayName}
+                  <p className="flex items-center gap-1 text-sm font-medium">
+                    <span className="truncate">{account.displayName}</span>
                     {account.verified && (
                       <XVerifiedBadge className="size-4 shrink-0" />
                     )}

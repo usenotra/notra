@@ -23,7 +23,7 @@ export function BrandVoiceCell({
     if (isDefault) {
       return (
         <Tooltip>
-          <TooltipTrigger className="cursor-help truncate text-sm">
+          <TooltipTrigger className="max-w-full cursor-help truncate text-sm">
             None
           </TooltipTrigger>
           <TooltipContent side="top">
@@ -40,7 +40,7 @@ export function BrandVoiceCell({
 
   return (
     <Tooltip>
-      <TooltipTrigger className="cursor-help truncate text-sm">
+      <TooltipTrigger className="max-w-full cursor-help truncate text-sm">
         {voice.name}
         {isDefault && (
           <span className="text-muted-foreground/60 ml-1 text-xs">
@@ -58,7 +58,7 @@ export function BrandVoiceCell({
             {voice.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div className="space-y-0.5">
+        <div className="min-w-0 space-y-0.5 wrap-anywhere">
           <p className="font-medium">{voice.name}</p>
           {voice.toneProfile && <p>Tone: {voice.toneProfile}</p>}
           {voice.language && <p>Language: {voice.language}</p>}

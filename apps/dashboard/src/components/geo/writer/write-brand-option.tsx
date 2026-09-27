@@ -18,7 +18,7 @@ export function WriteBrandOption({
       />
       <span className="truncate">
         {name}
-        {isDefault ? " (default)" : ""}
+        {isDefault ? " (project default)" : ""}
       </span>
     </span>
   );

@@ -42,3 +42,7 @@ export interface ChatSearchSource {
   title: string;
   domain?: string;
 }
+
+export interface ChatActivityOptions extends GroupAssistantMessagePartsOptions {
+  includeFileParts?: boolean;
+}

@@ -15,11 +15,9 @@ import type { ComponentProps } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
-  COMPOSER_FRAME_NUDGE_PADDING,
   COMPOSER_FRAME_TRANSITION,
   COMPOSER_INNER_FRAME,
   COMPOSER_NUDGE_ENTER,
-  COMPOSER_NUDGE_GRID_TRANSITION,
   COMPOSER_SEND_BUTTON,
   COMPOSER_TOOLBAR_BUTTON,
 } from "@/constants/composer";
@@ -43,22 +41,14 @@ function ComposerFrame({
   return (
     <div
       className={cn(
-        "w-full min-w-0 rounded-2xl",
+        "w-full min-w-0 rounded-2xl p-1",
         COMPOSER_FRAME_TRANSITION,
-        hasNudge ? COMPOSER_FRAME_NUDGE_PADDING : "bg-transparent p-0",
+        hasNudge ? "bg-muted" : "bg-transparent",
         connectedTop ? "rounded-t-none" : null,
         className
       )}
     >
-      <div
-        className={cn(
-          "grid",
-          COMPOSER_NUDGE_GRID_TRANSITION,
-          hasNudge ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
-        <div className="min-h-0 overflow-hidden">{nudge}</div>
-      </div>
+      {nudge}
       <div
         className={cn(
           COMPOSER_INNER_FRAME,
@@ -84,7 +74,9 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
       )}
     >
       {title && !hasChips ? (
-        <p className="min-w-0 flex-1 text-xs font-medium">{title}</p>
+        <p className="min-w-0 flex-1 text-xs font-medium wrap-anywhere">
+          {title}
+        </p>
       ) : null}
       {hasChips ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
@@ -129,12 +121,16 @@ function ComposerChip({
           type="button"
         >
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </button>
       ) : (
         <>
           {icon}
-          <span className={labelClasses}>{label}</span>
+          <span className={labelClasses} title={label}>
+            {label}
+          </span>
         </>
       )}
       {onSteer && !pending ? (

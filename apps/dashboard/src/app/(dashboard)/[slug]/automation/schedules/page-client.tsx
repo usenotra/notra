@@ -663,11 +663,11 @@ function ScheduleDeleteDialog({
             This will permanently delete{" "}
             {triggerToDelete ? (
               <Tooltip>
-                <TooltipTrigger className="text-foreground cursor-help font-medium underline decoration-dotted underline-offset-2">
+                <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
                   {triggerToDelete.name}
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs" side="top">
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1 text-xs wrap-anywhere">
                     <p>
                       Runs: {formatFrequency(triggerToDelete.sourceConfig.cron)}
                     </p>

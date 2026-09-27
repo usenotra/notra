@@ -112,12 +112,12 @@ function LinearIntegrationLoaded({
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="min-w-0 text-3xl font-bold tracking-tight wrap-anywhere">
                       <span className="cursor-help">
                         {integration.displayName}
                       </span>
@@ -131,16 +131,20 @@ function LinearIntegrationLoaded({
               </Badge>
             </div>
             {integration.linearOrganizationName ? (
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
                 <Linear className="size-4 shrink-0" />
-                <span>{integration.linearOrganizationName}</span>
+                <span className="min-w-0 wrap-anywhere">
+                  {integration.linearOrganizationName}
+                </span>
                 {integration.linearTeamName ? (
                   <>
                     <span
                       aria-hidden="true"
                       className="bg-muted-foreground/70 size-1 rounded-full"
                     />
-                    <span>{integration.linearTeamName}</span>
+                    <span className="min-w-0 wrap-anywhere">
+                      {integration.linearTeamName}
+                    </span>
                   </>
                 ) : null}
               </div>
@@ -186,7 +190,7 @@ function LinearIntegrationLoaded({
               {integration.linearOrganizationName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
                   <span className="text-sm font-medium">Workspace</span>
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearOrganizationName}
                   </span>
                 </div>
@@ -194,7 +198,7 @@ function LinearIntegrationLoaded({
               {integration.linearTeamName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
                   <span className="text-sm font-medium">Team</span>
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearTeamName}
                   </span>
                 </div>

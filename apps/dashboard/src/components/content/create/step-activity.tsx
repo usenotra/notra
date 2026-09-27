@@ -300,7 +300,7 @@ export function StepActivity(props: ActivityStepProps) {
                     >
                       <div className="bg-muted/30 flex items-center gap-2 px-3 py-2">
                         <Linear className="size-4 shrink-0" />
-                        <span className="text-sm font-medium">
+                        <span className="min-w-0 truncate text-sm font-medium">
                           {li.displayName}
                         </span>
                       </div>

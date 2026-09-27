@@ -7,9 +7,18 @@ import {
 import type { GeoModelCatalog } from "../src/types/geo";
 import { engineModelOf } from "../src/utils/geo-engine-family";
 import {
+  resolveGeoGroundedZdrMode,
+  resolveTrackedEngines,
+  scopeGeoScanEngines,
+} from "../src/utils/geo-engines";
+import {
   resolveGroundedEngineByKey,
   resolveGroundedEngines,
 } from "../src/utils/geo-grounded-engines";
+import {
+  buildGeoModelCatalogFromFeed,
+  seedGeoModelCatalog,
+} from "../src/utils/geo-model-catalog";
 
 const catalog: GeoModelCatalog = {
   providers: [...GEO_MODEL_PROVIDERS],
@@ -123,5 +132,158 @@ describe("selected grounded engines", () => {
     );
     expect(engineModelOf("openai-direct-grounded")).toBe("openai/gpt-5.4");
     expect(engineModelOf("perplexity-sonar")).toBe("perplexity/sonar");
+  });
+
+  test("Sonar uses the gateway without a Perplexity key", () => {
+    const previous = process.env.PERPLEXITY_API_KEY;
+    try {
+      delete process.env.PERPLEXITY_API_KEY;
+      const sonarFeed = {
+        id: "perplexity/sonar",
+        name: "Sonar",
+        owned_by: "perplexity",
+        type: "language",
+        zdr: "none" as const,
+      };
+      const feed = [
+        sonarFeed,
+        {
+          id: "perplexity/sonar-pro",
+          name: "Sonar Pro",
+          owned_by: "perplexity",
+          type: "language",
+          zdr: "none" as const,
+        },
+      ];
+      expect(
+        buildGeoModelCatalogFromFeed(feed)
+          .models.filter((model) => model.provider === "perplexity")
+          .map((model) => model.id)
+      ).toEqual(["perplexity/sonar"]);
+      const partial = buildGeoModelCatalogFromFeed([
+        {
+          id: "openai/gpt-5.6-sol",
+          name: "GPT-5.6 Sol",
+          owned_by: "openai",
+          type: "language",
+          zdr: "some" as const,
+        },
+        ...feed.slice(1),
+      ]);
+      expect(partial.models.map((model) => model.id)).toEqual([
+        "openai/gpt-5.6-sol",
+        "perplexity/sonar",
+      ]);
+      expect(
+        resolveGroundedEngines(["perplexity/sonar"], partial)[0]?.provider
+      ).toBe("gateway-perplexity");
+      for (const ineligible of [
+        { ...sonarFeed, deprecated_at: 1 },
+        { ...sonarFeed, type: "embedding" },
+        { ...sonarFeed, tags: ["image-generation"] },
+      ]) {
+        const available = buildGeoModelCatalogFromFeed([
+          ineligible,
+          ...feed.slice(1),
+        ]);
+        expect(
+          available.models.filter((model) => model.id === "perplexity/sonar")
+        ).toEqual(
+          seedGeoModelCatalog().models.filter(
+            (model) => model.id === "perplexity/sonar"
+          )
+        );
+        expect(
+          resolveGroundedEngines(["perplexity/sonar"], available)[0]?.provider
+        ).toBe("gateway-perplexity");
+      }
+      for (const available of [
+        seedGeoModelCatalog(),
+        buildGeoModelCatalogFromFeed(feed),
+      ]) {
+        const sonar = available.models.find(
+          (model) => model.id === "perplexity/sonar"
+        );
+        expect(sonar?.gateways).toEqual(["vercel"]);
+        const [grounded] = resolveGroundedEngines(
+          ["perplexity/sonar"],
+          available
+        );
+        expect(grounded?.key).toBe("perplexity/sonar-grounded");
+        expect(grounded?.provider).toBe("gateway-perplexity");
+        expect(grounded?.model).toBe("perplexity/sonar");
+        expect(resolveGroundedEngineByKey(grounded?.key ?? "")?.model).toBe(
+          "perplexity/sonar"
+        );
+        if (!grounded) {
+          throw new Error("Sonar should have a grounded route");
+        }
+        expect(
+          resolveGeoGroundedZdrMode(available, grounded, {
+            enforceZdr: true,
+            nonZdrApprovedEngines: [],
+          })
+        ).toBe(null);
+        expect(
+          resolveGeoGroundedZdrMode(available, grounded, {
+            enforceZdr: true,
+            nonZdrApprovedEngines: ["perplexity/sonar"],
+          })
+        ).toBe("preferred");
+      }
+      process.env.PERPLEXITY_API_KEY = "test-key";
+      expect(
+        resolveGroundedEngines(["perplexity/sonar"], seedGeoModelCatalog())[0]
+          ?.provider
+      ).toBe("gateway-perplexity");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.PERPLEXITY_API_KEY;
+      } else {
+        process.env.PERPLEXITY_API_KEY = previous;
+      }
+    }
+  });
+
+  test("older catalog models stay selectable until explicitly retired", () => {
+    const feed = Array.from({ length: 12 }, (_, index) => ({
+      id: `openai/example-${index}.0`,
+      name: `Example ${index}`,
+      owned_by: "openai",
+      type: "language",
+      zdr: "none" as const,
+      released: 1_700_000_000 + index,
+    }));
+    const models = buildGeoModelCatalogFromFeed(feed).models.filter(
+      (model) => model.provider === "openai"
+    );
+    expect(models).toHaveLength(12);
+    expect(
+      models.find((model) => model.id === "openai/example-0.0")?.hidden
+    ).toBeUndefined();
+  });
+
+  test("retired Grok 4.6 is removed from feed and seed, then remapped for scans", () => {
+    const feed = ["spacexai/grok-4.6", "spacexai/grok-4.7"].map((id) => ({
+      id,
+      name: id,
+      owned_by: "spacexai",
+      type: "language",
+      zdr: "none" as const,
+    }));
+    for (const available of [
+      buildGeoModelCatalogFromFeed(feed),
+      seedGeoModelCatalog(),
+    ]) {
+      expect(
+        available.models.some((model) => model.id === "spacexai/grok-4.6")
+      ).toBe(false);
+      expect(resolveTrackedEngines(available, ["spacexai/grok-4.6"])).toEqual([
+        "spacexai/grok-4.7",
+      ]);
+      expect(scopeGeoScanEngines(available, [], ["spacexai/grok-4.6"])).toEqual(
+        ["spacexai/grok-4.7"]
+      );
+    }
   });
 });

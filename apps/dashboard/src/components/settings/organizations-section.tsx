@@ -219,7 +219,12 @@ export function OrganizationsSection() {
                   </Avatar>
                   <div className="min-w-0">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <p className="truncate text-sm font-medium">{org.name}</p>
+                      <p
+                        className="max-w-full min-w-0 truncate text-sm font-medium"
+                        title={org.name}
+                      >
+                        {org.name}
+                      </p>
                       {isActive && (
                         <Badge
                           className="bg-success/10 text-success hover:bg-success/20 px-1.5 py-0 text-[10px] font-semibold"
@@ -229,9 +234,14 @@ export function OrganizationsSection() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-muted-foreground text-xs">{org.slug}</p>
+                    <p
+                      className="text-muted-foreground truncate text-xs"
+                      title={org.slug}
+                    >
+                      {org.slug}
+                    </p>
                     {isOwnedByCurrentUser && heardAboutLabel ? (
-                      <p className="text-muted-foreground mt-1 text-xs">
+                      <p className="text-muted-foreground mt-1 text-xs wrap-anywhere">
                         Heard about Notra: {heardAboutLabel}
                         {ownedOrg?.heardAboutNotraSource === "other" &&
                         ownedOrg.heardAboutNotraOther

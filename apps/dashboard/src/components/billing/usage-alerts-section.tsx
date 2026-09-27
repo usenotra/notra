@@ -181,7 +181,7 @@ export function UsageAlertsSection({
                   )}
                   key={`${alert.featureId ?? "all"}-${alert.name ?? "unnamed"}-${alert.thresholdType}-${alert.threshold}`}
                 >
-                  <TableCell className="max-w-56 font-medium whitespace-normal">
+                  <TableCell className="max-w-56 font-medium wrap-anywhere whitespace-normal">
                     <button
                       className="focus-visible:after:ring-ring text-left outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-inset disabled:pointer-events-none"
                       disabled={controlsDisabled}

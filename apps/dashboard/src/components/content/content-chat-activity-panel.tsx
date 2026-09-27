@@ -10,7 +10,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { isTrustedChatFileUrl } from "@notra/ai/schemas/chat";
 import {
-  Message,
   MessageContent,
   MessageResponse,
 } from "@notra/ui/components/ai-elements/message";
@@ -49,6 +48,8 @@ import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hov
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
+import { ChatQuoteMessage as Message } from "@/components/chat/chat-quote";
+import { ChatScrollOnSend } from "@/components/chat/chat-scroll-on-send";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useChatActivityTimer } from "@/lib/hooks/use-chat-activity-timer";
 import { isImageMimeType } from "@/lib/upload/mime";
@@ -58,6 +59,7 @@ import type {
   ContentChatActivityHeaderProps,
   ContentChatHistoryItemsProps,
 } from "@/types/components/content-chat-activity-panel";
+import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import { getChatFilePartFields } from "@/utils/chat-message-parts";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
@@ -85,7 +87,7 @@ function ContentChatActivityFeed({
       <MessageScroller className="relative min-h-0 min-w-0 flex-1 overflow-x-clip">
         {showDither ? <ChatEmptyDither /> : null}
         <MessageScrollerViewport className="min-w-0 overflow-x-hidden">
-          <MessageScrollerContent className="min-w-0 gap-4 px-4 pt-4 pb-4">
+          <MessageScrollerContent className="min-w-0 gap-8 px-4 pt-4 pb-8">
             {children}
           </MessageScrollerContent>
         </MessageScrollerViewport>
@@ -97,11 +99,13 @@ function ContentChatActivityFeed({
 
 function renderContentChatToolPart({
   part,
+  isActive,
   organizationSlug,
   onApproveTool,
   onDenyTool,
 }: {
   part: Parameters<typeof getToolName>[0];
+  isActive: boolean;
   organizationSlug?: string;
   onApproveTool?: (approvalId: string) => void;
   onDenyTool?: (approvalId: string) => void;
@@ -114,6 +118,7 @@ function renderContentChatToolPart({
   const postId = parseCreatedPostId(output);
   return (
     <ChatToolBlock
+      isActive={isActive}
       editorHref={
         organizationSlug && postId
           ? `/${organizationSlug}/content/${postId}`
@@ -195,7 +200,7 @@ function ContentChatActivityMessage({
 
   return (
     <div className={ACTIVITY_MESSAGE_CLASSNAME}>
-      <Message from={message.role}>
+      <Message className="group/message relative" from={message.role}>
         {showAttachments ? (
           <div
             aria-label="Attached context"
@@ -236,6 +241,7 @@ function ContentChatActivityMessage({
           <MessageContent>
             {message.role === "assistant" ? (
               <ChatAssistantParts
+                activityTimings={assistantMetadata?.activityTimings}
                 durationMs={assistantMetadata?.generationDurationMs}
                 elapsedSeconds={elapsedSeconds}
                 isLoading={isLoading}
@@ -247,7 +253,10 @@ function ContentChatActivityMessage({
                     return null;
                   }
                   return (
-                    <MessageResponse key={`${message.id}-${index}`}>
+                    <MessageResponse
+                      isAnimating={isLoading}
+                      key={`${message.id}-${index}`}
+                    >
                       {part.text}
                     </MessageResponse>
                   );
@@ -256,6 +265,7 @@ function ContentChatActivityMessage({
                   isToolUIPart(part)
                     ? renderContentChatToolPart({
                         part,
+                        isActive: isLoading,
                         organizationSlug,
                         onApproveTool,
                         onDenyTool,
@@ -304,7 +314,7 @@ function ContentChatActivityMessage({
           </MessageContent>
         ) : null}
         {message.role === "assistant" ? (
-          <AssistantMetadataHover metadata={assistantMetadata} />
+          <AssistantMetadataHover compact metadata={assistantMetadata} />
         ) : null}
       </Message>
       <AttachmentPreviewDialog
@@ -382,7 +392,7 @@ function ContentChatActivityHeader({
   return (
     <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
       <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
-        {title}
+        <span className="truncate">{title}</span>
       </h2>
       <div className="-mr-1.5 flex h-full items-center gap-0.5">
         <Tooltip>
@@ -531,24 +541,13 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
     activeChatId ?? "",
     lastMessage?.role === "assistant" ? lastMessage.id : undefined
   );
-  const lastAssistantHasNoVisibleContent =
-    lastMessage?.role === "assistant" &&
-    !lastMessage.parts.some(
-      (part) =>
-        (part.type === "text" && Boolean(part.text.trim())) ||
-        part.type === "reasoning" ||
-        isToolUIPart(part)
-    );
-  const showThinkingIndicator =
-    isAgentBusy &&
-    (lastMessage?.role === "user" || lastAssistantHasNoVisibleContent);
-  const visibleMessages =
-    showThinkingIndicator && lastAssistantHasNoVisibleContent
-      ? messages.slice(0, -1)
-      : messages;
-  const lastUserMessageId = [...visibleMessages]
-    .reverse()
-    .find((message) => message.role === "user")?.id;
+  const { showThinkingIndicator } = getChatActivity(messages, isAgentBusy, {
+    isStandaloneTool: isContentEditorStandaloneTool,
+    includeFileParts: false,
+  });
+  const visibleMessages = messages.filter((message) =>
+    hasVisibleChatContent(message, false)
+  );
   const lastVisibleMessage = visibleMessages.at(-1);
   const lastAssistantMessageId =
     lastVisibleMessage?.role === "assistant"
@@ -564,12 +563,14 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
             scrollKey={activeChatId ?? ""}
             showDither={visibleMessages.length === 0 && !showThinkingIndicator}
           >
+            <ChatScrollOnSend
+              lastUserMessageId={
+                visibleMessages.findLast((message) => message.role === "user")
+                  ?.id
+              }
+            />
             {visibleMessages.map((message) => (
-              <MessageScrollerItem
-                key={message.id}
-                messageId={message.id}
-                scrollAnchor={message.id === lastUserMessageId}
-              >
+              <MessageScrollerItem key={message.id} messageId={message.id}>
                 <ContentChatActivityMessage
                   isLoading={
                     status === "streaming" &&

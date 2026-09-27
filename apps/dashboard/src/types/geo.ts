@@ -102,6 +102,12 @@ export interface GeoProjectQueryProviderProps {
   children: ReactNode;
 }
 
+export interface GeoProjectBrandIdentity {
+  id: string;
+  name: string;
+  websiteUrl: string | null;
+}
+
 export interface GeoProjectCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -109,11 +115,24 @@ export interface GeoProjectCreateDialogProps {
   onCreated: (projectId: string) => void;
 }
 
+export interface GeoProjectBrandSelectionProps {
+  identities: GeoProjectBrandIdentity[];
+  selectedIdentity: GeoProjectBrandIdentity | undefined;
+  projectName: string;
+  disabled: boolean;
+  onSelect: (id: string | null) => void;
+}
+
 export interface GeoProjectDeleteSectionProps {
   organizationId: string;
   project: GeoProject;
   replacementProjectId: string | undefined;
   onDeleted: (projectId: string) => void;
+}
+
+export interface GeoProjectBrandSectionProps {
+  organizationId: string;
+  project: GeoProject;
 }
 
 export interface GeoProjectLogoProps {

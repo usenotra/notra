@@ -120,12 +120,13 @@ export function NavUser() {
                   <span className="-translate-y-px">{userInitial}</span>
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                 <span
                   className={cn(
                     "text-foreground duration-normal truncate font-medium transition-[filter]",
                     hidePersonalData && "hover:blur-0 blur-[5px] select-none"
                   )}
+                  title={hidePersonalData ? undefined : user.name}
                 >
                   {user.name}
                 </span>
@@ -134,6 +135,7 @@ export function NavUser() {
                     "text-muted-foreground duration-normal truncate text-xs transition-[filter]",
                     hidePersonalData && "hover:blur-0 blur-[5px] select-none"
                   )}
+                  title={hidePersonalData ? undefined : user.email}
                 >
                   {user.email}
                 </span>

@@ -266,7 +266,7 @@ export function MemberActions({ member }: MemberActionsProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Change Role</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="wrap-anywhere">
               Update {member.user.name}'s role in {activeOrganization.name}.
             </DialogDescription>
           </DialogHeader>
@@ -326,10 +326,10 @@ export function MemberActions({ member }: MemberActionsProps) {
       >
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
+            <ResponsiveAlertDialogTitle className="wrap-anywhere">
               Remove {member.user.name}?
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
               This will remove {member.user.name} from {activeOrganization.name}
               . They will lose access to all organization content and will need
               to be invited again to rejoin.
