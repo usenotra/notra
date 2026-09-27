@@ -625,7 +625,7 @@ function StandaloneChatPageClient({
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
   const hasPendingChatNavigationRef = useRef(false);
-  const navigateToNewChatRef = useRef<() => void>(() => {
+  const navigateToNewChatRef = useRef<(message: ChatUIMessage) => void>(() => {
     // Populated after the queue refs are defined below.
   });
 
@@ -661,7 +661,7 @@ function StandaloneChatPageClient({
         return;
       }
       drainQueueRef.current();
-      navigateToNewChatRef.current();
+      navigateToNewChatRef.current(message);
     },
     [organizationId, queryClient]
   );
@@ -1744,30 +1744,38 @@ function StandaloneChatPageClient({
     flushSteerAfterStopRef.current = flushSteerAfterStop;
   }, [flushSteerAfterStop]);
 
-  const navigateToNewChat = useCallback(() => {
-    if (
-      !hasPendingChatNavigationRef.current ||
-      isDrainingRef.current ||
-      isWaitingForActiveStreamRef.current ||
-      queuedMessagesRef.current.length > 0
-    ) {
-      return;
-    }
-    hasPendingChatNavigationRef.current = false;
-    queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
-      messages: messagesRef.current,
-      lastResponseStopped: wasStoppedByUserRef.current,
-      activeStreamId: null,
-      externalChannelId: null,
-      slackThreadUrl: null,
-    });
-    router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
-      scroll: false,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["chat-sessions", organizationId],
-    });
-  }, [organizationId, organizationSlug, queryClient, router, stableChatId]);
+  const navigateToNewChat = useCallback(
+    (finishedMessage: ChatUIMessage) => {
+      if (
+        !hasPendingChatNavigationRef.current ||
+        isDrainingRef.current ||
+        isWaitingForActiveStreamRef.current ||
+        queuedMessagesRef.current.length > 0
+      ) {
+        return;
+      }
+      hasPendingChatNavigationRef.current = false;
+      queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
+        messages: [
+          ...messagesRef.current.filter(
+            (message) => message.id !== finishedMessage.id
+          ),
+          finishedMessage,
+        ],
+        lastResponseStopped: wasStoppedByUserRef.current,
+        activeStreamId: null,
+        externalChannelId: null,
+        slackThreadUrl: null,
+      });
+      router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
+        scroll: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["chat-sessions", organizationId],
+      });
+    },
+    [organizationId, organizationSlug, queryClient, router, stableChatId]
+  );
 
   useEffect(() => {
     navigateToNewChatRef.current = navigateToNewChat;
