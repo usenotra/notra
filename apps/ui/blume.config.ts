@@ -44,7 +44,6 @@ export default defineConfig({
     text: "Notra UI",
   },
   navigation: {
-    actions: [{ href: "/introduction", label: "Docs" }],
     sidebar: { display: "group" },
   },
   seo: {
