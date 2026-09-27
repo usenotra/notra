@@ -13,10 +13,13 @@ colors:
   muted-foreground: "hsl(0 0% 45.1%)"
   border: "hsl(0 0% 89.8%)"
   dark-background: "hsl(233 7% 8%)"
-  series-search-light: "#8B5CF6"
-  series-search-dark: "#9C87E3"
-  series-memory-light: "#18929F"
-  series-memory-dark: "#20ABBA"
+  destructive: "hsl(0 84.2% 60.2%)"
+  geo-search: "var(--primary)"
+  geo-memory: "oklch(0.606 0.099 206.2)"
+  chart-search-light: "#8B5CF6"
+  chart-search-dark: "#9C87E3"
+  chart-memory-light: "#18929F"
+  chart-memory-dark: "#20ABBA"
 ---
 
 # Notra
@@ -32,10 +35,14 @@ The product is light-first and quiet. Hierarchy comes from two fills and a hairl
 | What | Source |
 | --- | --- |
 | Surfaces, violet, radius | `packages/ui/src/styles/globals.css` |
-| Status and series color | `packages/ui/src/styles/status.css` |
+| Status color | `packages/ui/src/styles/status.css` |
+| Chart hex | `apps/dashboard/src/constants/charts.ts` |
 | Dualtone tables | `apps/dashboard/src/components/motion/table/table-surfaces.tsx` |
 | Modules | `apps/dashboard/src/components/instrument/instrument-module.tsx` |
+| Buttons | `packages/ui/src/components/ui/button.tsx` |
 | Motion | `packages/ui/src/styles/motion.css`, `packages/ui/src/lib/motion.ts` |
+
+The tables below are the values to follow. The paths are for people working in the repo.
 
 ## Dualtone
 
@@ -58,9 +65,10 @@ A dualtone block is two stacked surfaces. The shell is `bg-muted` and holds the 
 
 - Shell and body each have a 1px `border-border`. The shell has no bottom border. The body is `rounded-2xl`, so it reads as a card in a tray.
 - One dualtone per group. Do not nest a dualtone block inside another.
-- A block with no label band is a flat card: `bg-card` and one border. Do not add a muted tray to it.
-- Table header cells sit on `bg-muted/80`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`. The shared class is `TABLE_CHROME_CLASS` in `packages/ui/src/constants/table.ts`.
-- Labels are `text-sm font-medium`. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
+- A block with no label band is a flat card: `rounded-xl`, `bg-card`, and `ring-1 ring-foreground/10`. Do not add a muted tray to it.
+- Motion-table headers sit on `bg-muted`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`.
+- `TABLE_CHROME_CLASS` is a different wrapper, for chat tables: `bg-muted/80`, `rounded-lg`, `shadow-2xs`. Do not put it on a dualtone table.
+- Table and flat eyebrows are `text-sm font-medium`. Panel titles are `text-base font-medium`. The module applies `capitalize`. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
 
 ## Color
 
@@ -94,22 +102,29 @@ Status and chart colors share one lightness: about L 0.55 in light, about L 0.70
 | `warning` / `geo-mid` | Warning, mid | `oklch(0.57 0.113 55)` | `oklch(0.7 0.125 55)` |
 | `geo-down` | Down | `oklch(0.59 0.192 27)` | `oklch(0.7 0.138 27)` |
 | `info` | Neutral information | `oklch(0.55 0.13 250)` | `oklch(0.7 0.12 250)` |
-| `geo-search` | First series, own brand | `#8B5CF6` | `#9C87E3` |
-| `geo-memory` | Second series | `#18929F` | `#20ABBA` |
+| `geo-search` | First series, own brand | `var(--primary)` | `oklch(0.68 0.134 292.717)` |
+| `geo-memory` | Second series | `oklch(0.606 0.099 206.2)` | `oklch(0.68 0.111 206.2)` |
 
-Search violet and Memory teal stay on those two series. Further series start at orange `#E0632F`, then green, pink, gold, blue, gray.
+In UI, use the tokens (`bg-geo-search`, `text-geo-memory`). Canvas charts use the hex twins in `charts.ts`: Search `#8B5CF6` / `#9C87E3`, Memory `#18929F` / `#20ABBA`.
+
+Search violet and Memory teal stay on those two series. Rival series, in order, are `#E0632F`, `#2E9E5B`, `#D4348B`, `#B68F3C`, `#3A6FF0`, `#6B6B75`. Account charts use a separate list in `ACCOUNT_SERIES_COLORS`, starting at `#358FF3`.
 
 Use status color as a foreground or a 10% tint (`bg-success/10 text-success`). Pair it with a label or an icon.
 
 ## Typography
 
-Inter (`font-sans`) sets the product: UI, headings, and body. Geist Mono sets code, paths, and identifiers.
+Inter is the theme sans (`--font-sans`). Geist Mono is the theme mono. Put `font-sans` on a surface that must be Inter. Put `font-mono` on code, paths, and identifiers.
 
-Weights are 400 for body, 500 for labels, 600 for headings and metric values.
+| Role | Classes |
+| --- | --- |
+| Body | weight 400 |
+| Label | weight 500, often `text-sm` |
+| Metric | `text-3xl` to `text-4xl`, `font-semibold`, `tabular-nums`, `tracking-tight` |
+| Page title | often `font-bold` |
+| Table or flat eyebrow | `text-sm font-medium capitalize` |
+| Panel title | `text-base font-medium` |
 
-A module title is `text-sm font-medium`. A metric is `text-3xl` to `text-4xl`, semibold, `tabular-nums`, `tracking-tight`.
-
-Sentence case for headings, buttons, and labels.
+Write labels in sentence case. Module eyebrows are then capitalized by the component.
 
 ## Layout
 
@@ -119,7 +134,8 @@ Spacing is a 4px scale. Keep 8–16px inside a group and 16–24px of padding in
 
 | Element | Radius |
 | --- | --- |
-| Buttons, inputs | `rounded-lg`, with `corner-squircle` on `[data-slot="button"]` |
+| Buttons | `rounded-lg`, plus `corner-squircle` on `[data-slot="button"]` |
+| Inputs | `rounded-lg`. No squircle |
 | Dualtone shells, frames, empty states | `rounded-2xl` (16px) |
 | Small chips | `rounded-md` |
 | Avatars, count pills | `rounded-full` |
@@ -130,7 +146,7 @@ One radius family per view. A dualtone module stays at 16px.
 
 Depth is the overlap of the two fills. Shadows are for things that float: menus, dialogs, popovers (`shadow-md` on an active popover). Dark mode drops product shadows. Do not add a drop shadow to a dualtone card.
 
-Focus stays visible. Controls use a 3px ring at `ring-ring/50` and `border-ring` on `:focus-visible`. Do not remove an outline unless a ring replaces it.
+Focus stays visible. Buttons use a 3px ring at `ring-ring/50` and `border-ring` on `:focus-visible`. Inputs use a 2px ring. Do not remove an outline unless a ring replaces it.
 
 ## Motion
 
@@ -152,9 +168,9 @@ Motion explains a change. A resting screen stays still.
 
 ## Components
 
-**Button.** Primary (`bg-primary`), then outline, secondary, ghost, destructive, and link. Default height is 32px (`h-8`).
+**Button.** Variants are `default` (primary, `bg-primary`), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Default size is `h-8` (32px), `text-sm`, `font-medium`, `rounded-lg`. Press scales to `0.97`. Disabled controls do not scale. Hover on the primary variant is `bg-primary/80`.
 
-**Module.** `flat` is a single card. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content.
+**Module.** `flat` is the card above. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content. The dualtone shell clears the card ring (`ring-0`) so only the two borders show.
 
 **Empty state.** Name what is missing and the first action. A faded preview of the real module is fine. A generic illustration is not.
 
@@ -164,11 +180,16 @@ Motion explains a change. A resting screen stays still.
 
 Copy is concrete and short. Lead with the thing the reader can do. Use numerals for counts and percents. Name an action with a verb and a noun when the object would otherwise be unclear.
 
-Sentence case everywhere except the product name `Notra`.
+The product name is `Notra`.
 
-Errors say what happened and what to do next. Toasts name the object that changed. Empty states point at the first action.
-
-Skip filler: "revolutionize", "unlock", "supercharge", "seamless", "effortless", "transform your workflow".
+| Rule | Do | Don't |
+| --- | --- | --- |
+| Case | Sentence case in copy. The module capitalizes its eyebrow. | Title Case on buttons and toasts |
+| Numerals | `3 scans`, `12%` | "three scans" |
+| Errors | What happened, then what to do | "Something went wrong" with no next step |
+| Toasts | Name the object that changed | "Successfully updated" |
+| Empty | Name the gap and the first action | A generic illustration with no action |
+| Filler | Concrete verbs | "revolutionize", "unlock", "seamless", "effortless" |
 
 ## Do and don't
 
@@ -178,7 +199,8 @@ Skip filler: "revolutionize", "unlock", "supercharge", "seamless", "effortless",
 | Overlap the body onto the shell by 20px or 36px | Leave a gap between the two fills |
 | Keep violet for the main action, links, selection, and the first series | Wash screens in violet |
 | Keep Memory teal on the second series | Reuse Search or Memory hues for another series |
-| Use Inter for UI and Geist Mono for code | Set the product in a display serif |
+| Use `font-sans` for UI and `font-mono` for code | Set the product in a display serif |
+| Use `bg-muted` on motion-table headers | Put `TABLE_CHROME_CLASS` on a dualtone table |
 | Use `tabular-nums` on aligned numbers | Let digits jump as values change |
 | Keep one dualtone per group | Nest a card inside a dualtone body |
 | Keep the focus ring | Signal state with color alone |
