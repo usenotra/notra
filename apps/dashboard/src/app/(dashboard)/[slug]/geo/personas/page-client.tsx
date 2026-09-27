@@ -14,6 +14,7 @@ import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -33,26 +34,11 @@ import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
-  GeoPersonasPageHeaderProps,
   PersonaGenerationCounterProps,
 } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
-
-function PageHeader({ action }: GeoPersonasPageHeaderProps) {
-  return (
-    <header className="flex flex-wrap items-center justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {GEO_PERSONAS_PAGE_TITLE}
-        </h1>
-        <p className="text-muted-foreground">{GEO_PERSONAS_PAGE_DESCRIPTION}</p>
-      </div>
-      {action}
-    </header>
-  );
-}
 
 function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
   const reducedMotion = useReducedMotion();
@@ -164,7 +150,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <PageHeader />
+          <PageHeader
+            description={GEO_PERSONAS_PAGE_DESCRIPTION}
+            title={GEO_PERSONAS_PAGE_TITLE}
+          />
           <EmptyState
             action={
               <Button
@@ -207,7 +196,12 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeader action={headerAction} />
+        <PageHeader
+          description={GEO_PERSONAS_PAGE_DESCRIPTION}
+          title={GEO_PERSONAS_PAGE_TITLE}
+        >
+          {headerAction}
+        </PageHeader>
 
         {isLoadingPersonas ? (
           <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />

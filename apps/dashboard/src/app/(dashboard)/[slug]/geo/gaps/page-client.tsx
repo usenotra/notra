@@ -6,6 +6,7 @@ import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeader } from "@/components/layout/page-header";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import { useGeoGapsPage } from "@/lib/hooks/use-geo-gaps-page";
 import type {
@@ -56,10 +57,10 @@ function GeoGapsLoadError({ isRetrying, onRetry }: GeoGapsLoadErrorProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:py-6">
       <div className="space-y-4 px-4 lg:px-6" role="alert">
-        <h1 className="text-3xl font-bold tracking-tight">Content Gaps</h1>
-        <p className="text-muted-foreground">
-          We couldn&apos;t load content gaps. Try again.
-        </p>
+        <PageHeader
+          description="We couldn't load content gaps. Try again."
+          title="Content Gaps"
+        />
         <Button disabled={isRetrying} onClick={onRetry} variant="outline">
           Retry
         </Button>
@@ -75,14 +76,10 @@ function GeoGapsLoaded({ page }: GeoGapsLoadedProps) {
       data-geo-gaps-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <header className="flex shrink-0 flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Content Gaps</h1>
-            <p className="text-muted-foreground">
-              Questions engines answer without mentioning you
-            </p>
-          </div>
-        </header>
+        <PageHeader
+          description="Questions engines answer without mentioning you"
+          title="Content Gaps"
+        />
 
         {page.isGapsPending ? (
           <GeoGapsSkeleton embedded />

@@ -1,6 +1,6 @@
-import { Button } from "@notra/ui/components/ui/button";
 import Link from "next/link";
 
+import { buttonVariants } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 
 interface ContentDetailNotFoundProps {
@@ -15,10 +15,11 @@ export function ContentDetailNotFound({
       <div className="mx-auto w-full max-w-5xl space-y-6 px-4 lg:px-6">
         <EmptyState
           action={
-            <Link href={`/${organizationSlug}/content`}>
-              <Button tabIndex={-1} variant="outline">
-                Back to Content
-              </Button>
+            <Link
+              className={buttonVariants({ variant: "outline" })}
+              href={`/${organizationSlug}/content`}
+            >
+              Back to Content
             </Link>
           }
           description="This content may have been deleted or you don't have access to it."

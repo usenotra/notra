@@ -20,6 +20,7 @@ import { TrafficEmpty } from "@/components/geo/traffic-empty";
 import { TrafficPagesCard } from "@/components/geo/traffic-pages-card";
 import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -63,12 +64,10 @@ function TrafficPageView({
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
-            <p className="text-muted-foreground text-sm">
-              AI crawlers and referrals visiting your site
-            </p>
-          </header>
+          <PageHeader
+            description="AI crawlers and referrals visiting your site"
+            title="AI Traffic"
+          />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
             description="Set up GEO tracking first, then watch AI crawlers and referrals as they arrive."
@@ -86,17 +85,12 @@ function TrafficPageView({
   }
 
   const header = (
-    <header className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          AI Traffic
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          AI crawlers and referrals visiting your site
-        </p>
-      </div>
+    <PageHeader
+      description="AI crawlers and referrals visiting your site"
+      title="AI Traffic"
+    >
       <GeoRangePicker control={geoRange} />
-    </header>
+    </PageHeader>
   );
 
   if (isEmptyTraffic) {

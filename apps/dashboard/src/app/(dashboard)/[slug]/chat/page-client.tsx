@@ -1732,14 +1732,6 @@ function StandaloneChatPageClient({
     ]
   );
 
-  const handleUpdateQueued = useCallback((id: string, text: string) => {
-    const next = queuedMessagesRef.current.map((m) =>
-      m.id === id ? { ...m, text } : m
-    );
-    queuedMessagesRef.current = next;
-    setQueuedMessages(next);
-  }, []);
-
   useEffect(() => {
     flushSteerAfterStopRef.current = flushSteerAfterStop;
   }, [flushSteerAfterStop]);
@@ -2591,7 +2583,6 @@ function StandaloneChatPageClient({
                 onSteerQueued={handleSteerQueued}
                 onStop={handleStop}
                 onThinkingLevelChange={handleThinkingLevelChange}
-                onUpdateQueued={handleUpdateQueued}
                 organizationId={organizationId}
                 organizationSlug={organizationSlug}
                 queuedMessages={queuedMessages}
@@ -2917,7 +2908,6 @@ function StandaloneChatPageClient({
                   onSteerQueued={handleSteerQueued}
                   onStop={handleStop}
                   onThinkingLevelChange={handleThinkingLevelChange}
-                  onUpdateQueued={handleUpdateQueued}
                   organizationId={organizationId}
                   organizationSlug={organizationSlug}
                   queuedMessages={queuedMessages}

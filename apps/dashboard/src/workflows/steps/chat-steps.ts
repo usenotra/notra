@@ -31,13 +31,11 @@ import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import type { StandaloneChatContextItem } from "@notra/ai/types/standalone-chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
-import { forwardChatStream } from "@notra/ai/utils/forward-chat-stream";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { flushPostHogServer } from "@notra/posthog/server";
-import { toUIMessageStream } from "ai";
-import { Effect } from "effect";
+import { toUIMessageStream, type UIMessageChunk } from "ai";
 import { nanoid } from "nanoid";
 
 import { AI_CREDITS_SOURCE_STANDALONE_CHAT } from "@/constants/studio-analytics";
@@ -131,6 +129,7 @@ export async function rejectChatGenerationStep(
   );
 
   try {
+    await clearActiveChatStream(organizationId, chatId, streamId);
     if (channel) {
       await channel.emit("ai.chunk", {
         type: "error",
@@ -210,6 +209,47 @@ export async function streamChatResponseStep(
   const streamStartedAt = Date.now();
   const timing: { firstChunkAt: number | null } = { firstChunkAt: null };
   const usageSnapshot: ChatUsageSnapshot = {};
+  let streamFailed = false;
+  let streamCompleted = false;
+  let streamAborted = false;
+  let terminalPublished = false;
+  const terminalChunks: UIMessageChunk[] = [];
+
+  let buffer: UIMessageChunk[] = [];
+  let flushPromise: Promise<void> | null = null;
+
+  const flushBuffer = async () => {
+    while (buffer.length > 0) {
+      const batch = buffer;
+      buffer = [];
+      await channel.emit("ai.chunk", batch as never);
+    }
+  };
+
+  const scheduleFlush = () => {
+    if (flushPromise) {
+      return;
+    }
+    flushPromise = flushBuffer().finally(() => {
+      flushPromise = null;
+    });
+  };
+
+  const drainPendingFlushes = async () => {
+    if (flushPromise) {
+      await flushPromise;
+    }
+    await flushBuffer();
+  };
+
+  const publishTerminal = async (chunks: UIMessageChunk[]) => {
+    await drainPendingFlushes();
+    // onEnd has saved history before the reader reaches EOF. Release only
+    // this generation's lease before clients can drain their queued messages.
+    await clearActiveChatStream(organizationId, chatId, streamId);
+    await channel.emit("ai.chunk", chunks as never);
+    terminalPublished = true;
+  };
 
   try {
     const { stream, routingDecision } = await orchestrateStandaloneChat(
@@ -368,7 +408,10 @@ export async function streamChatResponseStep(
 
         return activityTimings ? { activityTimings } : undefined;
       },
-      onEnd: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages, outcome }) => {
+        streamFailed ||= outcome.status === "failed";
+        streamCompleted = outcome.status === "completed";
+        streamAborted ||= outcome.status === "aborted";
         const saved = await replaceChatHistory(
           organizationId,
           chatId,
@@ -389,14 +432,69 @@ export async function streamChatResponseStep(
       },
     });
 
-    await Effect.runPromise(
-      forwardChatStream({
-        stream: uiStream,
-        emit: (batch) => channel.emit("ai.chunk", batch as never),
-      }),
-      { signal: lifecycle.signal }
+    const reader = uiStream.getReader();
+    try {
+      while (!lifecycle.signal.aborted) {
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- stream chunks must be forwarded in order
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        streamAborted ||= value.type === "abort";
+        // AI SDK also ends the client request on error chunks. Hold all
+        // terminal output until history is saved and the lease is released.
+        if (
+          value.type === "finish" ||
+          value.type === "abort" ||
+          value.type === "error"
+        ) {
+          terminalChunks.push(value);
+        } else {
+          buffer.push(value as UIMessageChunk);
+          scheduleFlush();
+        }
+      }
+    } finally {
+      try {
+        if (lifecycle.signal.aborted) {
+          await reader.cancel();
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    }
+
+    if (lifecycle.signal.aborted || streamAborted) {
+      if (!terminalChunks.some((chunk) => chunk.type === "abort")) {
+        terminalChunks.unshift({
+          type: "abort",
+          reason: lifecycle.signal.aborted ? "user-stopped" : undefined,
+        });
+      }
+      if (!terminalChunks.some((chunk) => chunk.type === "finish")) {
+        terminalChunks.push({ type: "finish", finishReason: "stop" });
+      }
+    } else if (!terminalChunks.some((chunk) => chunk.type === "finish")) {
+      streamFailed = true;
+      if (!terminalChunks.some((chunk) => chunk.type === "error")) {
+        terminalChunks.push({
+          type: "error",
+          errorText: "The response ended unexpectedly. Please try again.",
+        });
+      }
+      terminalChunks.push({ type: "finish", finishReason: "error" });
+    }
+
+    // Source error chunks can be recoverable. Only the SDK's final outcome
+    // confirms success; forwarding those errors would still abort the client.
+    await publishTerminal(
+      streamCompleted
+        ? terminalChunks.filter((chunk) => chunk.type !== "error")
+        : terminalChunks
     );
-    return { status: "completed" };
+    return lifecycle.signal.aborted || streamAborted
+      ? { status: "aborted" }
+      : { status: streamFailed ? "failed" : "completed" };
   } catch (error) {
     const isAbort =
       lifecycle.signal.aborted ||
@@ -404,32 +502,31 @@ export async function streamChatResponseStep(
 
     if (isAbort) {
       console.log(`${LOG_PREFIX} Aborted by user:`, { requestId, chatId });
-      await channel.emit("ai.chunk", {
-        type: "abort",
-        reason: "user-stopped",
-      });
-      await channel.emit("ai.chunk", {
-        type: "finish",
-        finishReason: "stop",
-      });
+      if (!terminalPublished) {
+        await publishTerminal([
+          { type: "abort", reason: "user-stopped" },
+          { type: "finish", finishReason: "stop" },
+        ]);
+      }
     } else {
       console.error(`${LOG_PREFIX} Error:`, {
         requestId,
         chatId,
         error: error instanceof Error ? error.message : String(error),
       });
+      if (!terminalPublished) {
+        await publishTerminal([
+          {
+            type: "error",
+            errorText: "An error occurred while processing your request.",
+          },
+          { type: "finish", finishReason: "error" },
+        ]);
+      }
       await reportStepError(error, {
         workflow: WORKFLOW_ANALYTICS_NAMES.CHAT,
         step: "streamChatResponse",
         organizationId,
-      });
-      await channel.emit("ai.chunk", {
-        type: "error",
-        errorText: "An error occurred while processing your request.",
-      });
-      await channel.emit("ai.chunk", {
-        type: "finish",
-        finishReason: "error",
       });
     }
 

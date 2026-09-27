@@ -8,7 +8,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { Button } from "@notra/ui/components/ui/button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +15,7 @@ import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { RenameCollectionDialogProps } from "@/types/content/collection";
 

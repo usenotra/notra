@@ -4,9 +4,9 @@ import type { StatusWithCode } from "@/types/webhooks/webhooks";
 
 const STATUS_VARIANTS: Record<
   StatusWithCode["label"],
-  "default" | "destructive" | "secondary"
+  "success" | "destructive" | "secondary"
 > = {
-  success: "default",
+  success: "success",
   failed: "destructive",
   pending: "secondary",
   skipped: "secondary",

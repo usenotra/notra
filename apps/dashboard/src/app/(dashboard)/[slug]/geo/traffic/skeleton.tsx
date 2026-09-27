@@ -8,6 +8,7 @@ import {
   GeoTableSkeleton,
 } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   TRAFFIC_HERO_CHART_SURFACE_CLASS,
   TRAFFIC_HERO_FRAME_CLASS,
@@ -25,14 +26,10 @@ export function GeoTrafficSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            AI Traffic
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            AI crawlers and referrals visiting your site
-          </p>
-        </header>
+        <PageHeader
+          description="AI crawlers and referrals visiting your site"
+          title="AI Traffic"
+        />
         <div className="flex flex-col gap-6">
           <div className={TRAFFIC_HERO_FRAME_CLASS}>
             <div
