@@ -8,7 +8,6 @@ import { Effect } from "effect";
 
 import {
   GEO_DISCOVERY_ALIAS_LIMIT,
-  GEO_DISCOVERY_CACHE_PREFIX,
   GEO_DISCOVERY_CACHE_TTL_SECONDS,
   GEO_DISCOVERY_COMPETITOR_LIMIT,
   GEO_DISCOVERY_CONVERSATIONS,
@@ -16,14 +15,12 @@ import {
   GEO_DISCOVERY_MAX_COMPETITORS,
   GEO_DISCOVERY_MAX_PROMPTS,
   GEO_DISCOVERY_MAX_TOKENS,
-  GEO_DISCOVERY_MIN_COMPETITORS,
   GEO_DISCOVERY_MIN_PROMPTS,
-  GEO_DISCOVERY_MODEL,
+  GEO_WEBSITE_DISCOVERY_MODEL,
   GEO_DISCOVERY_SYSTEM_PROMPT,
   GEO_GAP_TITLE_MAX_LENGTH,
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
-  GEO_TRACKED_PROMPT_VOICE,
 } from "../constants/geo";
 import { geoWebsiteDiscoverySchema } from "../schemas/geo";
 import type { DbTransaction } from "../types/db";
@@ -37,6 +34,7 @@ import type {
   GeoWebsiteDiscovery,
 } from "../types/geo";
 import { geoConversationRules } from "../utils/conversation-generation-prompt";
+import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
@@ -70,33 +68,22 @@ Website content:
 ${content}
 """
 
-Derive the brand tracking configuration for this company:
+Return:
+- companyName: the name used on the site.
+- aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} specific names, spellings or domains for this company. No generic terms.
+- competitors: up to ${GEO_DISCOVERY_MAX_COMPETITORS} real products that replace this one. An integration, sponsor or underlying provider is not a competitor. For an SDK, list other SDKs, not the services it connects to. Include a bare domain only when sure; otherwise use null. Zero competitors is fine.
+- audienceType: "technical" for developer tools, APIs, infrastructure and AI products bought by technical teams; "commerce" for products or services consumers buy, book or visit; "general" for other buyers. Classify the buyer, not the industry they serve. Software sold to shops is not "commerce".
+- prompts: ${GEO_DISCOVERY_MIN_PROMPTS} to ${GEO_DISCOVERY_MAX_PROMPTS} distinct buyer questions, each with a "prompt" and "title". Fewer is fine for a narrow product.
+- conversations: exactly ${GEO_DISCOVERY_CONVERSATIONS} conversations with a "name" and ordered "steps". Follow the rules below.
 
-1. companyName: the company or product name exactly as it brands itself.
-2. aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} alternative spellings that identify this company - product names, the bare domain, and common misspellings. Never include generic words that could refer to anything else.
-3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
-4. audienceType: who pays this company, judged by its own buyers and never by the industry it serves. "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "commerce" when consumers find it by searching Google for something to buy, book or visit (online shops, consumer products, restaurants, travel, local businesses and trades). "general" for everyone else (professional services, non-technical B2B, media, education), whose buyers just use whatever model their assistant ships with. Software or services sold to shops, restaurants or other businesses are "general" or "technical", not "commerce": a store builder or an email tool for merchants is "general".
-5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
-6. conversations: exactly ${GEO_DISCOVERY_CONVERSATIONS} multi-turn conversations, each with a "name" and "steps" (the messages in order). Follow the conversation rules below.
+Write questions someone would actually type into ChatGPT before finding this company. Use their words, not SEO phrases. Ask for options or a way forward; a complaint alone is not enough. Write questions before titles.
+- Start with 2 short questions for 6 or 7 prompts, or 3 or 4 for 8 to 10. Keep them around 40 to 90 characters, each about a specific need this product solves. Write a similar number around 90 to 170 characters with one useful detail. Use the remaining slots for longer questions when buyers have real constraints to explain. Don't add a backstory to fill space.
+- Stay at this product's level. A provider-agnostic email library can answer questions about switching or using multiple providers, not which provider to buy, how to fix deliverability or how to schedule sends. A social SDK is not a post scheduler. If this product would not be a direct answer, replace the question.
+- Cover different jobs. No more than two questions about the same problem; changing the provider, role or opener does not make a new question. Mix recommendations with practical questions and tradeoffs.
+- Never name this company, its products, aliases or domain in a prompt. Do not copy its wording. Mention a direct competitor only when a buyer would naturally compare it.
+- Use the audience's language. Do not invent claims about prices, legal deadlines, features or release dates. Each prompt must be ${MIN_PROMPT_LENGTH} to ${MAX_PROMPT_LENGTH} characters; do not append "${year}".
 
-Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
-
-Prompt rules:
-- ${GEO_TRACKED_PROMPT_VOICE}
-- Cover these intents across the set:
-  - 4 or 5 recommendation prompts: someone looking for something to solve this problem, each from a different angle (role, budget, stack, scale, stage, region).
-  - 3 problem-first prompts: describe the pain or the task in the words a person would use, without naming any tool category ("my transactional emails keep landing in spam, what am i doing wrong").
-  - 2 comparison or alternative prompts built on the competitors you listed, phrased the way a person would ("is mailchimp worth it or should i just use something simpler", "switching away from hubspot, what are people using now"). Never compare against the company itself.
-  - 1 or 2 evaluation prompts: how to choose, what it should cost, or whether they need a dedicated tool at all.
-- Never mention the company name, product name, domain, or any alias. Not even once. Never copy taglines, feature names, coined terms, or marketing copy from the website. Do not explain what the company is.
-- Use the words "tool", "software", "platform" or "solution" in at most 4 prompts; real people often describe the outcome instead.
-- Write every prompt in the language the website's audience speaks (a German website gets German prompts). Never mix languages within a prompt. Do not append "${year}".
-- Each prompt must be between ${MIN_PROMPT_LENGTH} and ${MAX_PROMPT_LENGTH} characters.
-
-Title rules:
-- The title is the headline of the article that would win this prompt: specific, publishable and in Title Case, following proven formats such as "Best {Category} Tools in ${year}: {Facets} Compared", "Best {Competitor} Alternatives for {Use Case}", "{A} vs {B}: Features, Pricing & Which to Choose", "How to {Task} (Step-by-Step)", or "What Is {Term}? Definition, Examples & How to Measure It".
-- Use "${year}" only in ranking or comparison titles, never in how-to or definition titles.
-- Write titles in the same language as the prompt and keep each under ${GEO_GAP_TITLE_MAX_LENGTH} characters.
+Give each question a useful article title in the same language, under ${GEO_GAP_TITLE_MAX_LENGTH} characters. Use natural capitalization for that language. Only ranking or comparison titles may include "${year}".
 
 ${geoConversationRules("the company")}`;
 }
@@ -141,7 +128,7 @@ function buildCompetitorSeeds(
   }));
 }
 
-const prepareGeoWebsiteGeneration = Effect.fn(
+export const prepareGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.prepare"
 )(function* (
   discovery: GeoWebsiteDiscovery,
@@ -154,7 +141,10 @@ const prepareGeoWebsiteGeneration = Effect.fn(
     GEO_DISCOVERY_ALIAS_LIMIT
   );
   const companyName = existingCompanyName ?? discovery.companyName;
-  const brandTerms = buildBrandTerms({ companyName, aliases });
+  const brandTerms = buildBrandTerms({
+    companyName: discovery.companyName,
+    aliases: [companyName, ...existingAliases, ...discovery.aliases],
+  });
   const entries: GeoPromptInsert[] = [];
 
   for (const entry of discovery.prompts) {
@@ -209,7 +199,7 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
   const result = yield* Effect.tryPromise({
     try: () =>
       generateText({
-        model: gateway(GEO_DISCOVERY_MODEL, {
+        model: gateway(GEO_WEBSITE_DISCOVERY_MODEL, {
           organizationId,
         }),
         providerOptions: { gateway: { tags: ["geo-discovery"] } },
@@ -229,16 +219,15 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
   return discovery;
 });
 
-function discoveryCacheKey(organizationId: string, url: string): string {
-  return `${GEO_DISCOVERY_CACHE_PREFIX}:${organizationId}:${url}`;
-}
-
 export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   organizationId: string,
-  url: string
+  url: string,
+  fresh = false
 ) {
-  const cacheKey = discoveryCacheKey(organizationId, url);
-  const cached = yield* readGeoCache(cacheKey, geoWebsiteDiscoverySchema);
+  const cacheKey = geoDiscoveryCacheKey(organizationId, url);
+  const cached = fresh
+    ? null
+    : yield* readGeoCache(cacheKey, geoWebsiteDiscoverySchema);
   if (cached) {
     const result: GeoDiscoverWebsiteResult = { url, discovery: cached };
     return result;
@@ -398,7 +387,7 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
 export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
   function* (scopeInput: GeoScopeInput, url: string) {
     const organizationId = scopeInput.organizationId;
-    const { discovery } = yield* discoverGeoWebsite(organizationId, url);
+    const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
 
     const projectId = yield* ensureGeoProject(
       scopeInput,
@@ -494,7 +483,7 @@ export const createGeoProjectFromWebsite = Effect.fn(
   brandSettingsId: string,
   url: string
 ) {
-  const { discovery } = yield* discoverGeoWebsite(organizationId, url);
+  const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
   const { aliases, companyName, entries, conversations } =
     yield* prepareGeoWebsiteGeneration(discovery);
   const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
