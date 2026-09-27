@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Notra
-description: Notra's design system for people and agents. Dualtone surfaces, one violet action color, and GEO as the reference for new product UI.
+description: Notra's brand and design system for humans and agents. Dualtone surfaces, violet #8B5CF6 as the action color, ink for type.
 colors:
   primary: "oklch(0.6056 0.2189 292.7172)"
   primary-hex: "#8B5CF6"
@@ -15,72 +15,72 @@ colors:
   muted-foreground: "hsl(0 0% 45.1%)"
   border: "hsl(0 0% 89.8%)"
   dark-background: "hsl(233 7% 8%)"
-  geo-search-light: "#8B5CF6"
-  geo-search-dark: "#9C87E3"
-  geo-memory-light: "#18929F"
-  geo-memory-dark: "#20ABBA"
+  series-search-light: "#8B5CF6"
+  series-search-dark: "#9C87E3"
+  series-memory-light: "#18929F"
+  series-memory-dark: "#20ABBA"
 ---
 
 # Notra
 
-> Dualtone surfaces, one violet for action, ink for type. GEO is the reference for new product UI. Marketing may be louder. It still uses the same two tones and the same violet.
+> Notra's brand and design system for humans and agents. The signature is dualtone: a muted shell with a lifted surface sitting on it. Violet `#8B5CF6` is the action color. Ink carries the type.
 
-This file is the public design system. Agents building or restyling Notra surfaces should follow it. When this file and a one-off class disagree, the GEO dashboard is the newer source.
+The system is light-first, precise, and quiet. Hierarchy comes from two fills and a hairline. Color is for action, selection, or a data series. Marketing can be larger. It uses the same two tones and the same violet.
 
-## Where it lives
+## Canonical sources
 
-| Surface | What to copy | Source |
+| Surface | System | Source |
 | --- | --- | --- |
-| Marketing site | Display type, pills, lavender wash | `apps/web` |
-| Dashboard, including GEO | Dualtone modules, tables, charts | `apps/dashboard` |
-| Shared UI | Tokens, buttons, table chrome, status color | `packages/ui` |
-| GEO signals | Search, Memory, up, mid, down | `packages/ui/src/styles/status.css` |
+| Marketing site | Satoshi display, pill CTAs, lavender hero wash | `apps/web` |
+| Product UI | Dualtone modules, tables, Inter | `apps/dashboard`, `packages/ui` |
+| Color tokens | Surfaces, violet, status, chart series | `packages/ui/src/styles/globals.css`, `packages/ui/src/styles/status.css` |
 | Motion | Durations, easings, springs | `packages/ui/src/styles/motion.css`, `packages/ui/src/lib/motion.ts` |
-| Logo, wordmark, swatches | Downloadable assets | [/brand](/brand) |
+| Brand assets | Mark, wordmark, swatches | [/brand](/brand) |
 
 ## Overview
 
-Notra shows how a brand shows up in AI answers. The interface should read like an instrument: a label, a number, the evidence under it.
+Notra is a product for people who ship work and want it written in their voice. The interface should feel like a tool you can read at a glance: a label, a value, the thing under it.
 
-Hierarchy comes from two fills and a hairline, not from extra color. The muted fill is the shell. The page or card fill is the body that sits on top of it. That pair is the dualtone look. Violet marks the action, the selected state, or the brand's own series. It does not paint large fields.
+Every decision serves that. Tight tracking on marketing headlines, a 1px border instead of a shadow, one violet for the action. Decoration does not earn a place.
+
+Dark mode keeps the same roles on darker surfaces. It is the same system in lower light.
 
 ## Dualtone
 
-A dualtone block is two stacked surfaces. The top is `bg-muted` and holds the title, toolbar, or metrics. The body is `bg-card` or `bg-background`, overlaps the shell, and holds the data.
+A dualtone block is two stacked surfaces. The shell is `bg-muted` and holds the title, toolbar, or metrics. The body is `bg-card` or `bg-background`. It overlaps the shell and holds the content.
 
 ```html
 <div class="overflow-hidden rounded-t-2xl border border-b-0 border-border bg-muted pb-5">
   <!-- label, toolbar, or metrics -->
 </div>
 <div class="relative -mt-5 rounded-2xl border border-border bg-card">
-  <!-- the thing the label is about -->
+  <!-- content -->
 </div>
 ```
 
-Use these overlaps:
-
-| Shell | Overlap | Body fill | Where |
+| Shell | Overlap | Body | Use |
 | --- | --- | --- | --- |
-| `pb-5`, height about 4.25rem | `-mt-5` | `bg-card` or `bg-background` | Tables, traffic hero, compact modules |
-| `pb-9`, `min-h-24`, `pt-4` | `-mt-9` | `bg-card`, padding 24px | Taller instrument panels |
-| `pb-5`, then a footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-muted` | Tables with a footer band |
+| `pb-5`, about 4.25rem tall | `-mt-5` (20px) | `bg-card` or `bg-background` | Tables, metric bands, compact modules |
+| `pb-9`, `min-h-24`, `pt-4` | `-mt-9` (36px) | `bg-card`, 24px padding | Taller panels |
+| `pb-5`, footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-muted` | Tables with a footer band |
 
-Rules:
-
-- The shell and the body each get their own 1px `border-border`. The shell drops its bottom border. The body is fully rounded (`rounded-2xl`) so the overlap reads as a card sitting in a tray.
-- Radius on these shells is `rounded-2xl` (16px). Do not mix that with a sharp corner on the same block.
-- One dualtone per group. Do not put a dualtone module inside another dualtone module.
-- A block with no label band is a flat card (`bg-card`, one border). Do not invent a muted tray for it.
-- Table cells stay on `bg-background`. The header row stays on `bg-muted/80`. Hover tints the row with `bg-muted/50`. The shared chrome class is `TABLE_CHROME_CLASS` in `packages/ui/src/constants/table.ts`.
-- Numbers in these modules use `tabular-nums`. Labels are `text-sm font-medium`. Readouts are `text-xs text-muted-foreground`.
-
-GEO traffic, citation tables, and instrument modules are the reference. Copy those before designing a new card.
+- Shell and body each have a 1px `border-border`. The shell has no bottom border. The body is `rounded-2xl`, so it reads as a card in a tray.
+- One dualtone per group. Do not nest a dualtone block inside another.
+- A block with no label band is a flat card: `bg-card` and one border. Do not add a muted tray to it.
+- Table header cells sit on `bg-muted/80`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`. The shared class is `TABLE_CHROME_CLASS` in `packages/ui/src/constants/table.ts`.
+- Labels are `text-sm font-medium`. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
 
 ## Color
 
+### Violet
+
+The signature color is `#8B5CF6`, token `primary`, `oklch(0.6056 0.2189 292.7172)`. Use it for the primary action, links, the selected control, and the first data series.
+
+A marketing band has one violet pill. In the product, the main action, links, and the selected control may use violet together. Body text stays ink or `foreground`.
+
 ### The mark
 
-These three colors belong to the logo. They are not UI tokens.
+These three colors belong to the logo. They are not general UI fills.
 
 | Name | Hex | Use |
 | --- | --- | --- |
@@ -88,11 +88,11 @@ These three colors belong to the logo. They are not UI tokens.
 | Ink | `#1E1E1E` | Stroke of the mark, marketing headlines |
 | Cream | `#F6F3F1` | Tile behind the mark on a dark surface |
 
-On a dark surface, put the mark on a cream tile. Do not recolor the mark, add a shadow, or draw it without the ink stroke.
+On a dark surface, place the mark on a cream tile. Do not recolor the mark, add a shadow, or draw it without the ink stroke.
 
-Marketing heroes may wash a panel with lavender at 25% (`#C8B2EE40`, dark `#2a2140`). That wash is for the hero frame only. Product screens stay on `background` and `muted`.
+Marketing heroes may wash one frame with lavender at 25% (`#C8B2EE40`, dark `#2a2140`). That wash is the hero frame only. Product screens stay on `background` and `muted`.
 
-### UI color
+### Surfaces
 
 Light is the default. Dark keeps the same roles.
 
@@ -104,68 +104,71 @@ Light is the default. Dark keeps the same roles.
 | `muted` | `hsl(0 0% 96.1%)` | `hsl(0 0% 14.9%)` | Dualtone shell, secondary fill |
 | `muted-foreground` | `hsl(0 0% 45.1%)` | `hsl(0 0% 63.9%)` | Secondary text |
 | `border` | `hsl(0 0% 89.8%)` | `hsl(0 1% 17%)` | Hairline |
-| `primary` | `oklch(0.6056 0.2189 292.7172)` | same | Action, links, brand series |
+| `primary` | `#8B5CF6` | `#8B5CF6` | Action, links, selection |
 | `primary-foreground` | near white | near white | Text on primary |
 | `destructive` | `hsl(0 84.2% 60.2%)` | `hsl(358 100% 50%)` | Destructive action |
 
-`primary` is `#8B5CF6`. A marketing band uses it on one pill. In the product, the main action, links, and the selected control use it together, including on a dense GEO screen. Body text stays ink or `foreground`.
+### Status and series
 
-### GEO signals
-
-Search, Memory, and the up / mid / down states share one lightness: about L 0.55 in light, about L 0.70 in dark. A badge, an arrow, and a chart stroke should look like one system.
+Status and chart colors share one lightness: about L 0.55 in light, about L 0.70 in dark. A badge, an arrow, and a stroke should look like one system.
 
 | Token | Meaning | Light | Dark |
 | --- | --- | --- | --- |
-| `geo-search` | Search, and our own brand | `var(--primary)` / `#8B5CF6` | `#9C87E3` |
-| `geo-memory` | In knowledge, ungrounded | `#18929F` | `#20ABBA` |
-| `geo-up` | Up, same as `success` | `oklch(0.55 0.109 155)` | `oklch(0.7 0.125 155)` |
-| `geo-mid` | Mid, same as `warning` | `oklch(0.57 0.113 55)` | `oklch(0.7 0.125 55)` |
+| `success` / `geo-up` | Success, up | `oklch(0.55 0.109 155)` | `oklch(0.7 0.125 155)` |
+| `warning` / `geo-mid` | Warning, mid | `oklch(0.57 0.113 55)` | `oklch(0.7 0.125 55)` |
 | `geo-down` | Down | `oklch(0.59 0.192 27)` | `oklch(0.7 0.138 27)` |
+| `info` | Neutral information | `oklch(0.55 0.13 250)` | `oklch(0.7 0.12 250)` |
+| `geo-search` | First series, own brand | `#8B5CF6` | `#9C87E3` |
+| `geo-memory` | Second series | `#18929F` | `#20ABBA` |
 
-Search violet and Memory teal are reserved. Competitor and "other" series start at orange `#E0632F`, then green, pink, gold, blue, gray. Do not reuse Search or Memory for a rival.
+Search violet and Memory teal stay on those two series. Further series start at orange `#E0632F`, then green, pink, gold, blue, gray.
 
-Status color is a foreground or a 10% tint (`bg-success/10 text-success`), same as destructive. Pair it with a label or an arrow. Color alone is not the state.
-
-`info` is `oklch(0.55 0.13 250)` in light and `oklch(0.7 0.12 250)` in dark. Use it for neutral information, not for emphasis.
+Use status color as a foreground or a 10% tint (`bg-success/10 text-success`). Pair it with a label or an icon.
 
 ## Typography
 
-| Role | Family | Where |
+| Role | Family | Use |
 | --- | --- | --- |
-| UI and body | Inter (`font-sans`) | Dashboard, docs, marketing body |
+| UI and body | Inter (`font-sans`) | Product UI, docs, marketing body |
 | Marketing display | Satoshi (`font-display`) | Headlines, section titles, display buttons |
-| Code and IDs | Geist Mono in the dashboard, system mono elsewhere | Snippets, paths, model ids |
+| Code and IDs | Geist Mono in the product, system mono elsewhere | Snippets, paths, identifiers |
 | Editorial accent | Instrument Serif (`font-instrument`) | A rare word or pull quote |
 
-Weights: 400 body, 500 labels and marketing subcopy, 600 headings and metric values. Do not go heavier.
+Weights are 400 for body, 500 for labels and marketing subcopy, 600 for headings and metric values.
 
-Marketing headlines use Satoshi medium, tight tracking (`-0.015em` on heroes, `-0.02em` on section titles), ink `#1E1E1E` in light and white in dark. Supporting lines use `#1E1E1E` at about 75% opacity, or `white/70` in dark.
+Marketing headlines are Satoshi medium, ink `#1E1E1E` in light and white in dark, with tracking `-0.015em` on heroes and `-0.02em` on section titles. Supporting lines use ink at about 75% opacity, or `white/70` in dark.
 
-Product type stays in Inter. Section titles inside a module are `text-sm font-medium`, sentence case, often capitalized via the `capitalize` class on instrument eyebrows. Metric values are `text-3xl` to `text-4xl`, semibold, `tabular-nums`, `tracking-tight`.
+Product type stays in Inter. A module title is `text-sm font-medium`. A metric is `text-3xl` to `text-4xl`, semibold, `tabular-nums`, `tracking-tight`.
 
-Instrument Serif is optional and scarce. Do not set a page title in it.
+Sentence case for headings, buttons, and labels. Instrument Serif does not set a page title.
+
+## Layout
+
+Spacing is a 4px scale. Keep 8–16px inside a group, 20–32px of card padding, and 48–96px between marketing sections.
+
+Center marketing content in a column near 1024–1200px. Product screens use the dashboard shell. Prose stays in a readable measure. Long text is left-aligned.
 
 ## Shape
 
 | Element | Radius |
 | --- | --- |
 | Product buttons, inputs | `rounded-lg`, with `corner-squircle` on `[data-slot="button"]` |
-| Dualtone shells, product frames, empty states | `rounded-2xl` |
-| Small chips inside a module | `rounded-md` |
+| Dualtone shells, frames, empty states | `rounded-2xl` (16px) |
+| Small chips | `rounded-md` |
 | Marketing CTAs, avatars, pills | `rounded-full` |
 | Marketing hero frame | `rounded-3xl` |
 
-Keep one radius family in a view. A dualtone module is 16px. A marketing hero is a pill button on a 24px frame. Do not drop a squircle button into a sharp grid.
+One radius family per view. A dualtone module is 16px. A marketing hero is a pill on a 24px frame.
 
 ## Elevation
 
-The overlap is the depth. Shadows are for things that float: menus, dialogs, popovers, the active chart popover (`shadow-md`). Dark mode flattens product shadows to none. Do not add a drop shadow to a dualtone card to make it "lift". The muted tray already does that.
+Depth is the overlap of the two fills. Shadows are for things that float: menus, dialogs, popovers (`shadow-md` on an active popover). Dark mode drops product shadows. Do not add a drop shadow to a dualtone card.
 
-Focus stays visible. Product controls use a 3px ring at `ring-ring/50` plus a `border-ring` on focus-visible. Marketing CTAs use `ring-ring/50` at 3px. Do not remove an outline without a ring that replaces it.
+Focus stays visible. Product controls use a 3px ring at `ring-ring/50` and `border-ring` on `:focus-visible`. Marketing CTAs use the same ring. Do not remove an outline unless a ring replaces it.
 
 ## Motion
 
-Use the shared scale. CSS utilities (`duration-fast`, `ease-emphasized`) and `DURATION` / `EASE` / `SPRING` in `@notra/ui/lib/motion` are the same numbers.
+Use the shared scale. The CSS utilities and `DURATION`, `EASE`, and `SPRING` in `@notra/ui/lib/motion` are the same numbers.
 
 | Name | Duration | Use |
 | --- | --- | --- |
@@ -173,48 +176,48 @@ Use the shared scale. CSS utilities (`duration-fast`, `ease-emphasized`) and `DU
 | `fast` | 150ms | Hover, press, color |
 | `normal` | 200ms | Expand, reveal, swap |
 | `slow` | 300ms | Sidebar, accordion, drawer |
-| `slower` | 500ms | A deliberate reveal: score, onboarding |
+| `slower` | 500ms | A deliberate reveal |
 
-Easings: `ease-out` for small feedback, `ease-emphasized` (`cubic-bezier(0.22, 1, 0.36, 1)`) for entrances, `ease-emphasized-in` for exits. Springs: `indicator` for tab pills, `snappy` for list reorder, `gentle` for large surfaces.
+`ease-out` is for small feedback. `ease-emphasized` (`cubic-bezier(0.22, 1, 0.36, 1)`) is for entrances. `ease-emphasized-in` is for exits. Springs: `indicator` for tab pills, `snappy` for list reorder, `gentle` for large surfaces.
 
-Product buttons press to `scale(0.97)`. Disabled controls do not scale. Honor `prefers-reduced-motion`: drop the transition, keep the end state.
+Product buttons press to `scale(0.97)`. Disabled controls stay still. Honor `prefers-reduced-motion`: drop the transition and keep the end state.
 
-Motion explains a change. It does not decorate a resting screen.
+Motion explains a change. A resting screen stays still.
 
 ## Components
 
-**Product button.** One primary (`bg-primary`), then outline, secondary, ghost, destructive, link. Default height is 32px (`h-8`). Do not invent a sixth color.
+**Product button.** Primary (`bg-primary`), then outline, secondary, ghost, destructive, and link. Default height is 32px (`h-8`).
 
-**Marketing CTA.** Pill, `cta-gradient-primary` (violet, slightly darker toward the bottom) with white type, or `cta-gradient-light` with ink type. One primary pill per band.
+**Marketing CTA.** A pill. `cta-gradient-primary` is violet, slightly darker toward the bottom, with white type. `cta-gradient-light` is a light fill with ink type. One primary pill per band.
 
-**Instrument.** `flat` is a normal card. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the evidence.
+**Module.** `flat` is a single card. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content.
 
-**Empty.** Say what is missing and the first action. "No activity yet" plus how to install the tracker. A faded preview of the real module is fine. A generic illustration is not.
+**Empty state.** Name what is missing and the first action. A faded preview of the real module is fine. A generic illustration is not.
 
-**Icons.** Hugeicons, `currentColor`, 16px in controls, 14px for inline hints. Engine marks keep their own artwork.
+**Icons.** Hugeicons, `currentColor`, 16px in controls, 14px beside a label. Brand and engine marks keep their own artwork.
 
 ## Voice
 
-Write the concrete thing. "Mention rate", "in knowledge", "cited in answer", "search only". Spell GEO as Generative Engine Optimization on first use for a new reader, then GEO.
+Copy is concrete and short. Lead with the thing the reader can do. Use numerals for counts and percents. Name an action with a verb and a noun when the object would otherwise be unclear.
 
-Sentence case for headings, buttons, and labels. Numerals for counts and percents. Name the action with a verb and a noun when the object is not obvious.
-
-Avoid "revolutionize", "unlock", "supercharge", "seamless", "effortless", and "transform your workflow".
+Sentence case everywhere except product names. The wordmark is `Notra`.
 
 Errors say what happened and what to do next. Toasts name the object that changed. Empty states point at the first action.
+
+Skip filler: "revolutionize", "unlock", "supercharge", "seamless", "effortless", "transform your workflow".
 
 ## Do and don't
 
 | Do | Don't |
 | --- | --- |
-| Build hierarchy with `muted` + `card` / `background` | Add a third gray to separate regions |
-| Overlap the body onto the shell by 20px or 36px | Stack the two fills with a gap |
-| Keep violet for the main action, links, selection, and the Search series | Wash product pages in violet |
-| Keep Memory teal for that series only | Recolor a competitor in Search violet |
-| Use Inter in the product, Satoshi for marketing display | Set dashboard UI in Satoshi or Instrument Serif |
+| Build hierarchy with `muted` and `card` or `background` | Add a third gray to separate regions |
+| Overlap the body onto the shell by 20px or 36px | Leave a gap between the two fills |
+| Keep violet for the main action, links, selection, and the first series | Wash product pages in violet |
+| Keep Memory teal on the second series | Reuse Search or Memory hues for another series |
+| Use Inter in the product and Satoshi for marketing display | Set product UI in Satoshi or Instrument Serif |
 | Use `tabular-nums` on aligned numbers | Let digits jump as values change |
-| Copy a GEO module before inventing a card | Nest a card inside a dualtone body |
-| Keep focus rings | Rely on color alone for state |
+| Keep one dualtone per group | Nest a card inside a dualtone body |
+| Keep the focus ring | Signal state with color alone |
 
 ## Related
 
