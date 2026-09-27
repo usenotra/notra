@@ -3,6 +3,12 @@ import { script } from "blume/analytics";
 import { filesystem } from "blume/sources";
 
 export default defineConfig({
+  agents: {
+    llmsTxt: {
+      details:
+        "Notra UI is a shadcn registry. Install any component or block with `bunx shadcn@latest add https://ui.usenotra.com/r/<name>.json`, for example `bunx shadcn@latest add https://ui.usenotra.com/r/google-ai-overview.json`. The CLI installs missing shadcn dependencies automatically.",
+    },
+  },
   deployment: {
     site: "https://ui.usenotra.com",
   },
@@ -49,7 +55,7 @@ export default defineConfig({
   seo: {
     og: {
       enabled: true,
-      logo: "public/logo.svg",
+      logo: "public/logo-dark.svg",
       palette: {
         accent: "#8b5cf6",
         background: "#0a0a0a",
