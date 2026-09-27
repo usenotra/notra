@@ -140,8 +140,9 @@ const pruneTurbopackCache = (): void => {
     readFileSync(path.join(dashboardNextDir, "package.json"), "utf8")
   );
   const cacheDirs = listDir(turbopackCacheDir);
-  const current = cacheDirs.filter((name) => name.startsWith(`v${version}-`));
-  const stale = cacheDirs.filter((name) => !current.includes(name));
+  const isCurrent = (name: string): boolean => name.startsWith(`v${version}-`);
+  const current = cacheDirs.filter(isCurrent);
+  const stale = cacheDirs.filter((name) => !isCurrent(name));
   for (const name of stale) {
     rmSync(path.join(turbopackCacheDir, name), {
       force: true,
