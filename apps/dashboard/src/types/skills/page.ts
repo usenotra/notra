@@ -1,8 +1,19 @@
 import type { SKILL_EDITOR_VIEWS, SKILL_SORT_KEYS } from "@/constants/skills";
 
+export interface SkillsPageClientProps {
+  slug: string;
+  organizationId: string;
+}
+
 export interface SkillDetailPageClientProps {
   slug: string;
   name: string;
+  organizationId: string;
+}
+
+export interface SkillCardProps {
+  slug: string;
+  skill: SkillListItem;
 }
 
 export type SkillEditorView = (typeof SKILL_EDITOR_VIEWS)[number];
@@ -22,15 +33,6 @@ export type SkillSortDirection = "asc" | "desc";
 export interface SkillSortState {
   key: SkillSortKey;
   direction: SkillSortDirection;
-}
-
-export interface SkillsTableProps {
-  slug: string;
-  skills: SkillListItem[];
-  sort: SkillSortState;
-  onSortChange: (sort: SkillSortState) => void;
-  searchActive: boolean;
-  loading?: boolean;
 }
 
 export interface SkillDetailHeaderProps {

@@ -49,6 +49,7 @@ export function filterSkills<T extends SkillListItem>(
   return skills.filter(
     (skill) =>
       skill.name.toLowerCase().includes(needle) ||
+      skillDisplayName(skill.name).toLowerCase().includes(needle) ||
       skill.description.toLowerCase().includes(needle)
   );
 }

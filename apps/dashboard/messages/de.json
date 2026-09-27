@@ -1602,8 +1602,13 @@
       }
     },
     "table": {
-      "noSearchResults": "Keine Skills passen zu deiner Suche.",
-      "emptyView": "In dieser Ansicht gibt es noch keine Skills."
+      "noSearchResults": "Keine Skills passen zu deiner Suche."
+    },
+    "sort": {
+      "label": "Skills sortieren",
+      "ascending": "aufsteigend",
+      "descending": "absteigend",
+      "selected": "{field}, {direction}"
     },
     "shared": {
       "createSkill": "Skill erstellen"

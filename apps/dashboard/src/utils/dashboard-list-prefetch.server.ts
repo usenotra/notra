@@ -122,9 +122,34 @@ export async function dehydrateSkillsQueries(
   const queryClient = getGeoServerQueryClient();
   const input = { organizationId };
 
-  void queryClient.prefetchQuery({
+  // The list is small. Wait for it so the first HTML includes the cards.
+  // Dehydrating a still-pending query made the browser start a second request
+  // after the page's client bundle hydrated.
+  await queryClient.prefetchQuery({
     ...dashboardOrpc.skills.list.queryOptions({ input }),
     queryFn: () => client.skills.list(input),
+  });
+
+  return dehydrate(queryClient);
+}
+
+export async function dehydrateSkillDetailQuery(
+  organizationId: string,
+  name: string,
+  requestHeaders: Headers,
+  membership?: PrefetchMembership
+) {
+  await seedMembership(organizationId, requestHeaders, membership);
+  const client = createRouterClient(
+    { skills: skillsRouter },
+    { context: routerContext(requestHeaders) }
+  );
+  const queryClient = getGeoServerQueryClient();
+  const input = { organizationId, name };
+
+  await queryClient.prefetchQuery({
+    ...dashboardOrpc.skills.getByName.queryOptions({ input }),
+    queryFn: () => client.skills.getByName(input),
   });
 
   return dehydrate(queryClient);

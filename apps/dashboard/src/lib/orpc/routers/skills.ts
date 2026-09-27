@@ -9,7 +9,7 @@ import {
   listSkillsInputSchema,
   updateSkillInputSchema,
 } from "@notra/schemas/dashboard/skills";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getTranslations } from "next-intl/server";
 
@@ -70,9 +70,13 @@ export const skillsRouter = {
           updatedAt: skills.updatedAt,
         })
         .from(skills)
-        .where(eq(skills.organizationId, input.organizationId));
+        .where(eq(skills.organizationId, input.organizationId))
+        .orderBy(asc(skills.name));
 
-      return rows;
+      return rows.map((row) => ({
+        ...row,
+        updatedAt: row.updatedAt.toISOString(),
+      }));
     }),
 
   getByName: authorizedProcedure

@@ -1602,8 +1602,13 @@
       }
     },
     "table": {
-      "noSearchResults": "No skills match your search.",
-      "emptyView": "No skills in this view yet."
+      "noSearchResults": "No skills match your search."
+    },
+    "sort": {
+      "label": "Sort skills",
+      "ascending": "ascending",
+      "descending": "descending",
+      "selected": "{field}, {direction}"
     },
     "shared": {
       "createSkill": "Create skill"

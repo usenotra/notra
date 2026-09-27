@@ -4,7 +4,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useId } from "react";
 
 import { PageContainer } from "@/components/layout/container";
-import { SKILL_TABLE_SKELETON_ROWS } from "@/constants/skills";
+import { SKILL_CARD_SKELETON_COUNT } from "@/constants/skills";
 
 export function SkillEditorSkeleton() {
   return (
@@ -36,25 +36,16 @@ export function SkillsPageSkeleton() {
   const id = useId();
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <Skeleton className="h-5 w-28" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Skeleton className="h-7 w-56" />
         <Skeleton className="h-9 w-full sm:max-w-72" />
       </div>
-      <div className="border-border/80 overflow-hidden rounded-lg border">
-        <div className="bg-muted/80 flex h-10 items-center gap-4 px-3">
-          <Skeleton className="h-3 w-16" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        {Array.from({ length: SKILL_TABLE_SKELETON_ROWS }).map((_, i) => (
-          <div
-            className="bg-background border-border/60 flex items-center gap-4 border-t px-3 py-3.5"
-            key={`${id}-row-${i}`}
-          >
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-4 flex-1" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-            <Skeleton className="h-4 w-20" />
-          </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: SKILL_CARD_SKELETON_COUNT }).map((_, i) => (
+          <Skeleton
+            className="h-40 rounded-xl"
+            key={`${id}-card-${i.toString()}`}
+          />
         ))}
       </div>
     </div>
