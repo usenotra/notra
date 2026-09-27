@@ -4,6 +4,8 @@ import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { formatDistanceToNowStrict } from "date-fns";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +15,9 @@ import {
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
+import { useDateFnsLocale } from "@/lib/i18n/date-fns";
+import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
 import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,
@@ -23,14 +28,8 @@ import {
   collectionHref,
   collectionTitle,
   collectionStatus,
-  collectionStatusLabel,
 } from "@/utils/content-collections";
-import { formatRelativeDate } from "@/utils/content-preview";
-import {
-  getOutputTypeIconClass,
-  getOutputTypeLabel,
-  OutputTypeIcon,
-} from "@/utils/output-types";
+import { getOutputTypeIconClass, OutputTypeIcon } from "@/utils/output-types";
 import { paginatedTableHeightFor } from "@/utils/table";
 
 function statusVariant(
@@ -46,18 +45,22 @@ function statusVariant(
 }
 
 function CollectionStatusBadge({ status }: { status: CollectionStatus }) {
+  const t = useTranslations("content.collections");
   return (
     <Badge
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
       {status === "generating" ? <StatusSpinner /> : null}
-      {collectionStatusLabel(status)}
+      {t("status", { status })}
     </Badge>
   );
 }
 
 function CollectionTypesCell({ contentTypes }: { contentTypes: string[] }) {
+  const outputTypeLabel = useOutputTypeLabel();
+  const logoStackLabels = useLogoStackLabels();
+  const t = useTranslations("content.collections");
   const singleType = contentTypes.length === 1 ? contentTypes[0] : null;
   if (singleType) {
     return (
@@ -66,16 +69,17 @@ function CollectionTypesCell({ contentTypes }: { contentTypes: string[] }) {
           className={`size-4 shrink-0 ${getOutputTypeIconClass(singleType)}`}
           outputType={singleType}
         />
-        {getOutputTypeLabel(singleType)}
+        {outputTypeLabel(singleType)}
       </span>
     );
   }
   return (
     <span className="text-muted-foreground inline-flex items-center gap-2 text-xs">
       <LogoStack
+        labels={logoStackLabels}
         items={contentTypes.map((type) => ({
           key: type,
-          label: getOutputTypeLabel(type),
+          label: outputTypeLabel(type),
           renderIcon: (className) => (
             <OutputTypeIcon
               className={`${className} ${getOutputTypeIconClass(type)}`}
@@ -86,7 +90,7 @@ function CollectionTypesCell({ contentTypes }: { contentTypes: string[] }) {
         limit={COLLECTION_TYPE_STACK_LIMIT}
       />
       {contentTypes.length > 1 ? (
-        <span>{contentTypes.length} formats</span>
+        <span>{t("formats", { count: contentTypes.length })}</span>
       ) : null}
     </span>
   );
@@ -97,52 +101,18 @@ function CollectionNameCell({
 }: {
   collection: PostCollectionSummary;
 }) {
+  const t = useTranslations("content.collections");
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span className="truncate text-sm leading-snug font-medium">
         {collectionTitle(collection)}
       </span>
       <span className="text-muted-foreground truncate text-xs tabular-nums">
-        {collectionMeta(collection)}
+        {collectionMeta(collection, t)}
       </span>
     </span>
   );
 }
-
-const COLLECTION_COLUMNS: TableColumn<PostCollectionSummary>[] = [
-  {
-    key: "types",
-    header: "Format",
-    width: "10rem",
-    collapsePriority: 2,
-    cell: (collection) => (
-      <CollectionTypesCell contentTypes={collection.contentTypes} />
-    ),
-  },
-  {
-    key: "status",
-    header: "Status",
-    width: "8rem",
-    collapsePriority: 1,
-    cell: (collection) => (
-      <CollectionStatusBadge status={collectionStatus(collection)} />
-    ),
-  },
-  {
-    key: "createdAt",
-    header: "Created",
-    width: "8.5rem",
-    collapsePriority: 3,
-    cell: (collection) => (
-      <span
-        className="text-muted-foreground whitespace-nowrap tabular-nums"
-        suppressHydrationWarning
-      >
-        {formatRelativeDate(collection.createdAt)}
-      </span>
-    ),
-  },
-];
 
 export function CollectionsView({
   collections,
@@ -152,10 +122,52 @@ export function CollectionsView({
   loading = false,
 }: CollectionsViewProps) {
   const router = useRouter();
+  const t = useTranslations("content.collections");
+  const tCommon = useTranslations("common");
+  const dateFnsLocale = useDateFnsLocale();
+  const formatRelativeDate = (dateString: string) =>
+    formatDistanceToNowStrict(new Date(dateString), {
+      addSuffix: true,
+      locale: dateFnsLocale,
+    });
+  const collectionColumns: TableColumn<PostCollectionSummary>[] = [
+    {
+      key: "types",
+      header: tCommon("labels.format"),
+      width: "10rem",
+      collapsePriority: 2,
+      cell: (collection) => (
+        <CollectionTypesCell contentTypes={collection.contentTypes} />
+      ),
+    },
+    {
+      key: "status",
+      header: tCommon("labels.status"),
+      width: "8rem",
+      collapsePriority: 1,
+      cell: (collection) => (
+        <CollectionStatusBadge status={collectionStatus(collection)} />
+      ),
+    },
+    {
+      key: "createdAt",
+      header: tCommon("labels.created"),
+      width: "8.5rem",
+      collapsePriority: 3,
+      cell: (collection) => (
+        <span
+          className="text-muted-foreground whitespace-nowrap tabular-nums"
+          suppressHydrationWarning
+        >
+          {formatRelativeDate(collection.createdAt)}
+        </span>
+      ),
+    },
+  ];
   const columns: TableColumn<PostCollectionSummary>[] = [
     {
       key: "name",
-      header: "Content",
+      header: tCommon("labels.contentSingular"),
       width: "1fr",
       minWidth: "14rem",
       cell: (collection) => (
@@ -169,7 +181,7 @@ export function CollectionsView({
         </Link>
       ),
     },
-    ...COLLECTION_COLUMNS,
+    ...collectionColumns,
   ];
 
   if (view === "grid") {
@@ -201,7 +213,7 @@ export function CollectionsView({
                   {collectionTitle(collection)}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {collectionMeta(collection)}
+                  {collectionMeta(collection, t)}
                 </p>
               </div>
               <time
@@ -216,10 +228,10 @@ export function CollectionsView({
         </div>
         {collections.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center text-sm">
-            No content on this page
+            {t("emptyPage")}
           </p>
         ) : null}
-        <TablePagination {...pagination} itemLabel="items" />
+        <TablePagination {...pagination} itemLabel={t("items")} />
       </div>
     );
   }
@@ -229,8 +241,8 @@ export function CollectionsView({
       className="rounded-xl"
       columns={columns}
       data={collections}
-      emptyState="No content on this page"
-      footer={<TablePagination {...pagination} itemLabel="items" />}
+      emptyState={t("emptyPage")}
+      footer={<TablePagination {...pagination} itemLabel={t("items")} />}
       getRowId={(collection) => collection.id}
       height={paginatedTableHeightFor(
         pagination.pageRowCount,

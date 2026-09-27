@@ -12,6 +12,7 @@ import {
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Field, FieldLabel } from "@notra/ui/components/ui/field";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { isValidElement, useState } from "react";
 
@@ -38,6 +39,8 @@ export function SelectRepositoriesDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: SelectRepositoriesDialogProps) {
+  const t = useTranslations("integrations.github.selectDialog");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -68,7 +71,7 @@ export function SelectRepositoriesDialog({
       {triggerElement}
       <ResponsiveDialogContent className="flex max-h-[85svh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[520px] [&>*]:min-w-0">
         <ResponsiveDialogHeader className="shrink-0 p-4 pb-0">
-          <ResponsiveDialogTitle>Select repositories</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4">
           <div className="space-y-3 py-4">
@@ -83,13 +86,13 @@ export function SelectRepositoriesDialog({
                     onClick={onRetry}
                     variant="outline"
                   >
-                    Retry loading repositories
+                    {t("retry")}
                   </Button>
                 ) : null}
               </div>
             ) : null}
             <Field>
-              <FieldLabel>Repositories</FieldLabel>
+              <FieldLabel>{tCommon("labels.repositories")}</FieldLabel>
               <RepositoryMultiSelect
                 accounts={accounts}
                 isLoading={isLoading}
@@ -107,7 +110,7 @@ export function SelectRepositoriesDialog({
                 onClick={onAddAccount}
                 type="button"
               >
-                Missing a repository? Add access on GitHub
+                {t("missingRepository")}
                 <HugeiconsIcon className="size-3" icon={ArrowUpRight01Icon} />
               </button>
             ) : null}
@@ -118,13 +121,13 @@ export function SelectRepositoriesDialog({
             disabled={isSaving}
             render={<Button variant="outline" />}
           >
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
           <Button
             disabled={isSaving || isLoading || Boolean(error)}
             onClick={() => onSave(selected)}
           >
-            {isSaving ? "Saving…" : "Save repositories"}
+            {isSaving ? tCommon("actions.saving") : t("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

@@ -1,5 +1,6 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 
@@ -16,10 +17,10 @@ interface PageProps {
   }>;
 }
 
-export const metadata: Metadata = {
-  title: "Content Detail",
-  description: "View the details of a specific content item.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("content.detail");
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export const instant = true;
 

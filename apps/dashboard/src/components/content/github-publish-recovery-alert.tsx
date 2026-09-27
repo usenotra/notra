@@ -7,27 +7,22 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
+import { useTranslations } from "next-intl";
 
-import { GITHUB_RECOVERY_COPY } from "@/constants/github";
 import type { GitHubPublishRecoveryAlertProps } from "@/types/content/detail";
 
 export function GitHubPublishRecoveryAlert({
   publishRecovery,
 }: GitHubPublishRecoveryAlertProps) {
-  const recoveryCopy = GITHUB_RECOVERY_COPY[publishRecovery.code];
+  const t = useTranslations("content.githubPublish");
 
   return (
     <Alert variant="destructive">
       <HugeiconsIcon icon={AlertCircleIcon} />
-      <AlertTitle>{recoveryCopy.title}</AlertTitle>
+      <AlertTitle>{t(`recovery.${publishRecovery.code}.title`)}</AlertTitle>
       <AlertDescription>
-        <p>{recoveryCopy.description}</p>
-        {publishRecovery.publishingPaused ? (
-          <p>
-            Publishing was also paused after three failures. Resume it in the
-            GitHub integration after fixing this.
-          </p>
-        ) : null}
+        <p>{t(`recovery.${publishRecovery.code}.description`)}</p>
+        {publishRecovery.publishingPaused ? <p>{t("pausedNote")}</p> : null}
       </AlertDescription>
     </Alert>
   );

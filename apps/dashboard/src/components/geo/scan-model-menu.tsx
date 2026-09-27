@@ -17,10 +17,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { cn } from "@/lib/utils";
 import type {
   GeoScanModelMenuProps,
@@ -58,6 +60,8 @@ function ScanModelRow({
   checked: boolean;
   onToggle: () => void;
 }) {
+  const t = useTranslations("geo.scanModelMenu");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <button
       aria-checked={checked}
@@ -66,22 +70,18 @@ function ScanModelRow({
       disabled={option.zdrBlocked}
       onClick={onToggle}
       role="checkbox"
-      title={
-        option.zdrBlocked
-          ? "No zero-data-retention host. Approve it in GEO settings to scan it."
-          : undefined
-      }
+      title={option.zdrBlocked ? t("zdrBlockedTitle") : undefined}
       type="button"
     >
       <EngineIcon className="size-4" engine={option.id} />
       <span className="min-w-0 flex-1 truncate">{option.label}</span>
       {option.answerMode ? (
         <span className="text-muted-foreground text-xs">
-          {option.answerMode}
+          {tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[option.answerMode])}
         </span>
       ) : null}
       {option.zdrBlocked ? (
-        <span className="text-muted-foreground text-xs">No ZDR</span>
+        <span className="text-muted-foreground text-xs">{t("noZdr")}</span>
       ) : null}
       <HugeiconsIcon
         aria-hidden="true"
@@ -105,9 +105,12 @@ export function ScanModelMenu({
   disabledReason,
   compact,
   primary,
-  label = "Run scan",
+  label: labelProp,
   onContinue,
 }: GeoScanModelMenuProps) {
+  const t = useTranslations("geo.scanModelMenu");
+  const tGeoShared = useTranslations("geo.shared");
+  const label = labelProp ?? tGeoShared("runScan");
   const options = useMemo(
     () =>
       buildScanModelOptions({
@@ -152,10 +155,7 @@ export function ScanModelMenu({
           <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
           {compact ? null : label}
         </TooltipTrigger>
-        <TooltipContent>
-          {disabledReason ??
-            "Add a tracked model in GEO settings to run a scan."}
-        </TooltipContent>
+        <TooltipContent>{disabledReason ?? t("disabledReason")}</TooltipContent>
       </Tooltip>
     );
   }
@@ -244,7 +244,7 @@ export function ScanModelMenu({
               icon={Search01Icon}
             />
             <input
-              aria-label="Search models"
+              aria-label={t("searchModels")}
               className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -253,7 +253,7 @@ export function ScanModelMenu({
                   focusSiblingRow(listRef.current, 1);
                 }
               }}
-              placeholder="Search models"
+              placeholder={t("searchModels")}
               ref={searchRef}
               type="search"
               value={query}
@@ -267,12 +267,12 @@ export function ScanModelMenu({
         >
           {visible.length === 0 ? (
             <p className="text-muted-foreground px-2 py-6 text-center text-sm wrap-anywhere">
-              No models match “{query.trim()}”
+              {t("noMatch", { query: query.trim() })}
             </p>
           ) : (
             <>
-              {renderGroup("Tracked", trackedVisible)}
-              {renderGroup("Other models", otherVisible)}
+              {renderGroup(tGeoShared("tracked"), trackedVisible)}
+              {renderGroup(t("otherModels"), otherVisible)}
             </>
           )}
         </div>
@@ -287,8 +287,7 @@ export function ScanModelMenu({
             size="sm"
             type="button"
           >
-            Continue with {selected.length}{" "}
-            {selected.length === 1 ? "model" : "models"}
+            {t("continueWith", { count: selected.length })}
           </Button>
         </div>
       </PopoverContent>

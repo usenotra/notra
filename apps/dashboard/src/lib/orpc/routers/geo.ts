@@ -2,7 +2,6 @@ import {
   beginGscIntegrationDisconnect,
   claimOrConfirmGscSchedule,
   deleteGscIntegration,
-  GscApiError,
   GscReauthRequiredError,
   getGscIntegration,
   getGscOAuthCredentials,
@@ -243,6 +242,7 @@ import {
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
 
 import {
@@ -255,7 +255,7 @@ import {
   GEO_SHELF_EMPTY_BOARD_COUNTS,
   GEO_SHELF_PREVIEW_CACHE_MS,
   GEO_SHELF_PREVIEW_OUTCOMES,
-  GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE,
+  GEO_SHELF_PREVIEW_RATE_LIMIT_CODE,
   GEO_SHELF_PREVIEW_RATE_LIMIT_SCOPE,
 } from "@/constants/geo-shelf";
 import {
@@ -372,24 +372,27 @@ function geoHandler<
   };
 }
 
-function toGscErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof GeoSearchConsoleError) {
-    if (error.reauthRequired) {
-      return "Google Search Console access expired. Please reconnect.";
-    }
-    return error.status === 403
-      ? "Google denied access to this property. Reconnect or pick another one."
-      : fallback;
+async function toGscErrorMessage(
+  error: unknown,
+  fallback: "sync" | "properties"
+): Promise<string> {
+  const tToasts = await getTranslations("geo.toasts");
+  const fallbackMessage =
+    fallback === "sync"
+      ? tToasts("syncSearchConsoleFailed")
+      : tToasts("loadSearchConsolePropertiesFailed");
+  const reauthRequired =
+    error instanceof GscReauthRequiredError ||
+    (error instanceof GeoSearchConsoleError && error.reauthRequired);
+  if (reauthRequired) {
+    const tGscPage = await getTranslations("integrations.gscPage");
+    return tGscPage("accessExpired");
   }
-  if (error instanceof GscReauthRequiredError) {
-    return "Google Search Console access expired. Please reconnect.";
+  if (error instanceof GeoSearchConsoleError && error.status === 403) {
+    const tErrors = await getTranslations("errors.geo");
+    return tErrors("gscPropertyDenied");
   }
-  // GscApiError messages are curated in the integration layer; anything else
-  // (AI SDK, driver, ...) would leak internals into a user-facing toast.
-  if (error instanceof GscApiError) {
-    return error.message || fallback;
-  }
-  return fallback;
+  return fallbackMessage;
 }
 
 async function runAgentReadinessOrBadRequest<T>(
@@ -398,11 +401,13 @@ async function runAgentReadinessOrBadRequest<T>(
   try {
     return await run();
   } catch (error) {
-    if (
-      error instanceof AgentReadinessTargetMissingError ||
-      error instanceof AgentReadinessApiError
-    ) {
-      throw badRequest(error.message);
+    if (error instanceof AgentReadinessTargetMissingError) {
+      const tErrors = await getTranslations("errors.geo");
+      throw badRequest(tErrors("agentReadinessWebsiteMissing"));
+    }
+    if (error instanceof AgentReadinessApiError) {
+      const tErrors = await getTranslations("errors.geo");
+      throw badRequest(tErrors("agentReadinessFailed"));
     }
     throw error;
   }
@@ -419,9 +424,7 @@ async function runGscSyncOrBadRequest(
       )
     );
   } catch (error) {
-    throw badRequest(
-      toGscErrorMessage(error, "Failed to sync Search Console keywords")
-    );
+    throw badRequest(await toGscErrorMessage(error, "sync"));
   }
 }
 
@@ -439,21 +442,19 @@ async function withGscIntegrationLockOrServiceUnavailable<T>(
       error instanceof GscIntegrationLockBusyError ||
       error instanceof GscIntegrationLockLostError
     ) {
-      throw serviceUnavailable(
-        "Google Search Console is temporarily busy. Please try again."
-      );
+      const tErrors = await getTranslations("errors.geo");
+      throw serviceUnavailable(tErrors("gscBusy"));
     }
     throw error;
   }
 }
 
-function assertGscDisconnectNotInProgress(
+async function assertGscDisconnectNotInProgress(
   integration: GscIntegrationRow
-): void {
+): Promise<void> {
   if (integration.disconnectingAt) {
-    throw serviceUnavailable(
-      "Google Search Console is being disconnected. Please try again."
-    );
+    const tErrors = await getTranslations("errors.geo");
+    throw serviceUnavailable(tErrors("gscDisconnecting"));
   }
 }
 
@@ -770,7 +771,8 @@ export const geoRouter = {
           referencesGeoShelfMembers(input.opportunity),
       });
       if (!seed.settings) {
-        throw badRequest("Configure your brand tracking settings first");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("configureTrackingFirst"));
       }
       const source = await createGeoShelfSource(
         { ...seed, settings: seed.settings },
@@ -804,7 +806,8 @@ export const geoRouter = {
           referencesGeoShelfMembers(input.opportunity),
       });
       if (!seed.settings) {
-        throw badRequest("Configure your brand tracking settings first");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("configureTrackingFirst"));
       }
       const result = await updateGeoShelfSource(
         { ...seed, settings: seed.settings },
@@ -862,7 +865,10 @@ export const geoRouter = {
           event: POSTHOG_EVENTS.GEO_SHELF_PREVIEW_REQUESTED,
           properties: { outcome: GEO_SHELF_PREVIEW_OUTCOMES.RATE_LIMITED },
         });
-        throw tooManyRequests(GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE);
+        const tCommon = await getTranslations("common");
+        throw tooManyRequests(tCommon("messages.tooManyPageLookupsPlease"), {
+          code: GEO_SHELF_PREVIEW_RATE_LIMIT_CODE,
+        });
       }
       const preview = await previewGeoShelfUrl(input.url);
       trackGeoRouterEvent({
@@ -1321,9 +1327,8 @@ export const geoRouter = {
         options.input.organizationId
       );
       if (!rate.success) {
-        throw badRequest(
-          "Too many conversation generations. Please wait a few minutes."
-        );
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyConversationGenerations"));
       }
       return geoHandler(
         (input) => generateGeoSequences(input),
@@ -1409,7 +1414,8 @@ export const geoRouter = {
             rate_limited: true,
           },
         });
-        throw badRequest("Too many runs. Please wait a few minutes.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyRuns"));
       }
 
       const result = await runOrpcEffect(
@@ -1466,9 +1472,8 @@ export const geoRouter = {
           .then((rate) => ({ scope, rate }))
       );
       if (!rate.success) {
-        throw badRequest(
-          "Too many persona generations. Please wait a few minutes."
-        );
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyPersonaGenerations"));
       }
       return startPersonaGeneration(
         scope.organizationId,
@@ -1573,7 +1578,8 @@ export const geoRouter = {
             rate_limited: true,
           },
         });
-        throw badRequest("Too many runs. Please wait a few minutes.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyRuns"));
       }
 
       const result = await runOrpcEffect(
@@ -1701,7 +1707,8 @@ export const geoRouter = {
         options.input.organizationId
       );
       if (!rate.success) {
-        throw badRequest("Too many lookups. Please wait a minute.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyLookups"));
       }
       return geoOpenHandler((input: GeoCompetitorSuggestionsHandlerInput) =>
         suggestGeoCompetitors(input, input.domain)
@@ -1719,7 +1726,8 @@ export const geoRouter = {
         options.input.organizationId
       );
       if (!rate.success) {
-        throw badRequest("Too many searches. Please wait a minute.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManySearches"));
       }
       return geoOpenHandler((input: GeoBrandSearchHandlerInput) =>
         searchGeoBrands(input, input.query)
@@ -1812,7 +1820,8 @@ export const geoRouter = {
           event: POSTHOG_EVENTS.GEO_BRIEF_PLANNED,
           properties: { ...briefTraits, rate_limited: true },
         });
-        throw badRequest("Too many briefs. Please wait a few minutes.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManyBriefs"));
       }
 
       const plan = await runOrpcEffect(
@@ -1948,10 +1957,7 @@ export const geoRouter = {
           sites = await listGscSites(integration);
         } catch (error) {
           console.error("[GSC] Failed to list sites:", error);
-          lastError = toGscErrorMessage(
-            error,
-            "Failed to load Search Console properties"
-          );
+          lastError = await toGscErrorMessage(error, "properties");
         }
         // Listing may have refreshed the access token or flipped the row to
         // reauth_required, so re-read only on that path.
@@ -2012,15 +2018,13 @@ export const geoRouter = {
       if (!integration) {
         throw notFound("Google Search Console is not connected");
       }
-      assertGscDisconnectNotInProgress(integration);
+      await assertGscDisconnectNotInProgress(integration);
 
       try {
         return { sites: await listGscSites(integration) };
       } catch (error) {
         console.error("[GSC] Failed to list sites:", error);
-        throw badRequest(
-          toGscErrorMessage(error, "Failed to load Search Console properties")
-        );
+        throw badRequest(await toGscErrorMessage(error, "properties"));
       }
     }),
   searchConsoleSelectSite: authorizedProcedure
@@ -2036,21 +2040,18 @@ export const geoRouter = {
       if (!integration) {
         throw notFound("Google Search Console is not connected");
       }
-      assertGscDisconnectNotInProgress(integration);
+      await assertGscDisconnectNotInProgress(integration);
 
       let sites: Awaited<ReturnType<typeof listGscSites>>;
       try {
         sites = await listGscSites(integration);
       } catch (error) {
         console.error("[GSC] Failed to verify property:", error);
-        throw badRequest(
-          toGscErrorMessage(error, "Failed to load Search Console properties")
-        );
+        throw badRequest(await toGscErrorMessage(error, "properties"));
       }
       if (!sites.some((site) => site.siteUrl === input.siteUrl)) {
-        throw badRequest(
-          "That property is not available on the connected Google account"
-        );
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("propertyUnavailable"));
       }
       const { projectId } = await runOrpcEffect(
         requireGeoProject(input),
@@ -2071,14 +2072,11 @@ export const geoRouter = {
           "[GSC] Initial sync failed after selecting property:",
           error
         );
-        throw badRequest(
-          toGscErrorMessage(error, "Failed to sync Search Console keywords")
-        );
+        throw badRequest(await toGscErrorMessage(error, "sync"));
       }
       if (synced.status !== "completed") {
-        throw badRequest(
-          "Search Console changed before the property could be connected"
-        );
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("gscChangedBeforeConnect"));
       }
 
       const selectedIntegration = await getGscIntegration(input.organizationId);
@@ -2128,14 +2126,15 @@ export const geoRouter = {
         properties: { rate_limited: !withinLimit },
       });
       if (!withinLimit) {
-        throw badRequest("Too many syncs. Please wait a few minutes.");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("tooManySyncs"));
       }
 
       const integration = await getGscIntegration(input.organizationId);
       if (!integration) {
         throw notFound("Google Search Console is not connected");
       }
-      assertGscDisconnectNotInProgress(integration);
+      await assertGscDisconnectNotInProgress(integration);
       const { projectId } = await runOrpcEffect(
         requireGeoProject(input),
         toGeoOrpcError
@@ -2145,7 +2144,8 @@ export const geoRouter = {
         where: eq(projects.id, projectId),
       });
       if (!project?.gscSiteUrl) {
-        throw badRequest("Select a Search Console property first");
+        const tErrors = await getTranslations("errors.geo");
+        throw badRequest(tErrors("selectPropertyFirst"));
       }
 
       if (!integration.qstashScheduleId) {
@@ -2182,9 +2182,8 @@ export const geoRouter = {
           // Redis lease is lost, so a retry still has the exact token to revoke.
           await assertLockOwned();
           if (!(await revokeGscToken(disconnecting))) {
-            throw serviceUnavailable(
-              "Google Search Console could not be disconnected. Please try again."
-            );
+            const tErrors = await getTranslations("errors.geo");
+            throw serviceUnavailable(tErrors("gscDisconnectFailed"));
           }
           signal.throwIfAborted();
 
@@ -2196,9 +2195,8 @@ export const geoRouter = {
               "[GSC] Failed to remove schedules on disconnect:",
               error
             );
-            throw serviceUnavailable(
-              "Google Search Console could not be disconnected. Please try again."
-            );
+            const tErrors = await getTranslations("errors.geo");
+            throw serviceUnavailable(tErrors("gscDisconnectFailed"));
           }
           signal.throwIfAborted();
 
@@ -2208,9 +2206,8 @@ export const geoRouter = {
             assertLockOwned
           );
           if (!deleted) {
-            throw serviceUnavailable(
-              "Google Search Console changed during disconnect. Please try again."
-            );
+            const tErrors = await getTranslations("errors.geo");
+            throw serviceUnavailable(tErrors("gscChangedDuringDisconnect"));
           }
 
           // Catch a schedule create that settled between the first cleanup and

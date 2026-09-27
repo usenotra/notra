@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { Suspense, useState } from "react";
 
@@ -25,19 +26,23 @@ import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
 function CommandPaletteLoading() {
+  const t = useTranslations("dashboard.overlays");
+  const tCommon2 = useTranslations("common");
   const { open, setOpen } = useCommandPalette();
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogContent className="sm:max-w-sm">
-        <DialogTitle>Command palette</DialogTitle>
-        <p role="status">Loading search…</p>
+        <DialogTitle>{tCommon2("labels.commandPalette")}</DialogTitle>
+        <p role="status">{t("loadingSearch")}</p>
       </DialogContent>
     </Dialog>
   );
 }
 
 function SettingsModalLoading() {
+  const t = useTranslations("dashboard.overlays");
+  const tCommon = useTranslations("common");
   const { isOpen, closeSettings } = useSettingsModal();
 
   return (
@@ -50,8 +55,8 @@ function SettingsModalLoading() {
       open={isOpen}
     >
       <DialogContent className="sm:max-w-sm">
-        <DialogTitle>Settings</DialogTitle>
-        <p role="status">Loading settings…</p>
+        <DialogTitle>{tCommon("actions.settings")}</DialogTitle>
+        <p role="status">{t("loadingSettings")}</p>
       </DialogContent>
     </Dialog>
   );

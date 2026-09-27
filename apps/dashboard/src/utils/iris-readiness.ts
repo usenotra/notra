@@ -1,36 +1,42 @@
-import type { IrisReadinessItem } from "@/types/iris";
+import type { IrisReadinessItem, IrisTranslator } from "@/types/iris";
 
 interface IrisReadinessInput {
   organizationSlug: string;
   slackReady: boolean;
   githubConnected: boolean;
+  t: IrisTranslator;
+  manageLabel: string;
+  connectLabel: string;
 }
 
 export function buildIrisReadiness({
   organizationSlug,
   slackReady,
   githubConnected,
+  t,
+  manageLabel,
+  connectLabel,
 }: IrisReadinessInput): IrisReadinessItem[] {
   return [
     {
       key: "github",
-      label: "Sources connected",
+      label: t("readiness.sources.label"),
       description: githubConnected
-        ? "Iris can see what your team ships."
-        : "Connect a repository so Iris knows what you shipped.",
+        ? t("readiness.sources.ready")
+        : t("readiness.sources.missing"),
       ready: githubConnected,
       href: `/${organizationSlug}/integrations/github`,
-      actionLabel: githubConnected ? "Manage" : "Connect",
+      actionLabel: githubConnected ? manageLabel : connectLabel,
     },
     {
       key: "slack",
-      label: "Slack channel connected",
+      label: t("readiness.slack.label"),
       description: slackReady
-        ? "Iris reports to your Slack notification channel."
-        : "Connect a Slack notification channel so Iris can report to you.",
+        ? t("readiness.slack.ready")
+        : t("readiness.slack.missing"),
       ready: slackReady,
       href: `/${organizationSlug}/integrations/slack`,
-      actionLabel: slackReady ? "Manage" : "Connect",
+      actionLabel: slackReady ? manageLabel : connectLabel,
     },
   ];
 }

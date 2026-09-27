@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";
 import {
@@ -19,16 +20,20 @@ export function ShelfMemberSelect({
   members,
   value,
   onChange,
-  placeholder = "Unassigned",
+  placeholder,
   allowSameAsAssignee = false,
   disabled = false,
   id,
   ariaLabel,
 }: GeoShelfMemberSelectProps) {
+  const t = useTranslations("geo.shelf.shelfMemberSelect");
+  const tCommon = useTranslations("common");
   const emptyValue = allowSameAsAssignee
     ? GEO_SHELF_POC_SAME_AS_ASSIGNEE
     : GEO_SHELF_UNASSIGNED;
-  const emptyLabel = allowSameAsAssignee ? "Same as assignee" : placeholder;
+  const emptyLabel = allowSameAsAssignee
+    ? t("sameAsAssignee")
+    : (placeholder ?? tCommon("labels.unassigned"));
   const selected = value
     ? (members.find((member) => member.id === value) ?? null)
     : null;

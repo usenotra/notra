@@ -1,12 +1,14 @@
 "use client";
 
 import { Card, CardContent } from "@notra/ui/components/ui/card";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import type { AnalyticsStatTile, SummaryStatsProps } from "@/types/analytics";
 import {
   buildAnalyticsHeroSummary,
+  formatEngagementRate,
   formatMetric,
 } from "@/utils/analytics-charts";
 
@@ -15,35 +17,47 @@ export function SummaryStats({
   points,
   rangeHint,
 }: SummaryStatsProps) {
+  const t = useTranslations("analytics.summary");
+  const tCommon = useTranslations("common");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const locale = useLocale();
   const tiles = useMemo<AnalyticsStatTile[]>(() => {
     const summary = buildAnalyticsHeroSummary(accounts, points);
+    const notAvailable = tCommon("labels.nA");
 
     return [
       {
-        label: "Engagement rate",
+        label: t("engagementRate"),
         value:
           summary.engagementRate === null
-            ? "N/A"
-            : `${summary.engagementRate.toFixed(1)}%`,
-        hint: `${formatMetric(summary.interactions)} interactions / ${formatMetric(summary.impressions)} impressions`,
+            ? notAvailable
+            : formatEngagementRate(summary.engagementRate, locale),
+        hint: t("engagementHint", {
+          interactions: formatMetric(
+            summary.interactions,
+            locale,
+            notAvailable
+          ),
+          impressions: formatMetric(summary.impressions, locale, notAvailable),
+        }),
       },
       {
-        label: "Followers",
-        value: formatMetric(summary.followers),
-        hint: `across ${accounts.length} connected ${accounts.length === 1 ? "account" : "accounts"}`,
+        label: tAnalyticsShared("followers"),
+        value: formatMetric(summary.followers, locale, notAvailable),
+        hint: t("followersHint", { count: accounts.length }),
       },
       {
-        label: "Impressions",
-        value: formatMetric(summary.impressions),
-        hint: `posts, ${rangeHint}`,
+        label: tCommon("labels.impressions"),
+        value: formatMetric(summary.impressions, locale, notAvailable),
+        hint: t("impressionsHint", { range: rangeHint }),
       },
       {
-        label: "Interactions",
-        value: formatMetric(summary.interactions),
-        hint: `${summary.posts} posts, ${rangeHint}`,
+        label: tAnalyticsShared("interactions"),
+        value: formatMetric(summary.interactions, locale, notAvailable),
+        hint: t("interactionsHint", { posts: summary.posts, range: rangeHint }),
       },
     ];
-  }, [accounts, points, rangeHint]);
+  }, [accounts, locale, points, rangeHint, t]);
 
   return (
     <InstrumentGrid className="grid-cols-2 lg:grid-cols-4">

@@ -7,6 +7,10 @@ import {
   Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type {
+  GeoPromptIntent,
+  GeoPromptSource,
+} from "@notra/geo-core/types/geo";
 import { GEO_PROMPT_VIEW_NAME_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-prompts";
 import { geoPromptViewNameSchema } from "@notra/schemas/dashboard/geo-prompt-views";
 import {
@@ -28,10 +32,12 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 
 import { Button } from "@/components/button";
-import { GEO_PROMPT_VIEWS_COPY } from "@/constants/geo-prompts";
+import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
+import { useGeoPromptSourceLabels } from "@/lib/hooks/use-geo-prompt-source-labels";
 import type {
   PromptSavedViewsMenuProps,
   PromptSaveViewDialogProps,
@@ -43,6 +49,10 @@ function PromptSaveViewDialog({
   onOpenChange,
   onSave,
 }: PromptSaveViewDialogProps) {
+  const t = useTranslations("geo.promptSavedViewsMenu");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const formId = useId();
   const nameId = useId();
   const [name, setName] = useState("");
@@ -76,10 +86,10 @@ function PromptSaveViewDialog({
       <ResponsiveDialogContent className="sm:max-w-sm">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {GEO_PROMPT_VIEWS_COPY.saveTitle}
+            {tGeoShared("saveView")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {GEO_PROMPT_VIEWS_COPY.saveDescription}
+            {t("saveDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -87,22 +97,22 @@ function PromptSaveViewDialog({
           id={formId}
           onSubmit={handleSubmit}
         >
-          <Label htmlFor={nameId}>{GEO_PROMPT_VIEWS_COPY.nameLabel}</Label>
+          <Label htmlFor={nameId}>{tCommon2("labels.name")}</Label>
           <Input
             autoFocus
             id={nameId}
             maxLength={GEO_PROMPT_VIEW_NAME_MAX_LENGTH}
             onChange={(event) => setName(event.target.value)}
-            placeholder={GEO_PROMPT_VIEWS_COPY.namePlaceholder}
+            placeholder={t("namePlaceholder")}
             value={name}
           />
         </form>
         <ResponsiveDialogFooter>
           <Button onClick={close} type="button" variant="outline">
-            {GEO_PROMPT_VIEWS_COPY.cancel}
+            {tCommon("cancel")}
           </Button>
           <Button disabled={!parsed.success} form={formId} type="submit">
-            {GEO_PROMPT_VIEWS_COPY.confirm}
+            {tGeoShared("saveView")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
@@ -117,6 +127,14 @@ export function PromptSavedViewsMenu({
   onSave,
   onRemove,
 }: PromptSavedViewsMenuProps) {
+  const t = useTranslations("geo.promptSavedViewsMenu");
+  const intentLabel = useGeoPromptIntentLabel();
+  const sourceLabels = useGeoPromptSourceLabels();
+  const summaryLabels = {
+    all: t("allPrompts"),
+    intent: (intent: GeoPromptIntent) => intentLabel(intent),
+    source: (source: GeoPromptSource) => sourceLabels[source],
+  };
   const [saveOpen, setSaveOpen] = useState(false);
 
   return (
@@ -124,7 +142,7 @@ export function PromptSavedViewsMenu({
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
           <HugeiconsIcon icon={Bookmark02Icon} size={14} />
-          {GEO_PROMPT_VIEWS_COPY.trigger}
+          {t("trigger")}
           {views.length > 0 ? (
             <span className="text-muted-foreground tabular-nums">
               {views.length}
@@ -138,10 +156,10 @@ export function PromptSavedViewsMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>{GEO_PROMPT_VIEWS_COPY.saved}</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("saved")}</DropdownMenuLabel>
             {views.length === 0 ? (
               <p className="text-muted-foreground px-1.5 py-1 text-xs">
-                {GEO_PROMPT_VIEWS_COPY.empty}
+                {t("empty")}
               </p>
             ) : (
               views.map((view) => (
@@ -153,11 +171,11 @@ export function PromptSavedViewsMenu({
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate">{view.name}</span>
                     <span className="text-muted-foreground truncate text-xs">
-                      {promptFiltersSummary(view.query)}
+                      {promptFiltersSummary(view.query, summaryLabels)}
                     </span>
                   </span>
                   <Button
-                    aria-label={`${GEO_PROMPT_VIEWS_COPY.remove}: ${view.name}`}
+                    aria-label={t("removeAria", { name: view.name })}
                     className="size-6 shrink-0"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -176,9 +194,9 @@ export function PromptSavedViewsMenu({
           <DropdownMenuItem onClick={() => setSaveOpen(true)}>
             <HugeiconsIcon icon={BookmarkAdd01Icon} size={14} />
             <span className="flex min-w-0 flex-col">
-              <span>{GEO_PROMPT_VIEWS_COPY.save}</span>
+              <span>{t("save")}</span>
               <span className="text-muted-foreground truncate text-xs">
-                {promptFiltersSummary(filters)}
+                {promptFiltersSummary(filters, summaryLabels)}
               </span>
             </span>
           </DropdownMenuItem>

@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { Calendar } from "@/components/calendar";
@@ -20,9 +21,11 @@ export function ShelfDueDateField({
   disabled,
   onChange,
 }: GeoShelfDueDateFieldProps) {
+  const t = useTranslations("geo.shelf.shelfDueDateField");
+  const locale = useLocale();
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Due</Label>
+      <Label htmlFor={id}>{t("due")}</Label>
       <Popover>
         <PopoverTrigger
           render={
@@ -39,9 +42,9 @@ export function ShelfDueDateField({
             icon={Calendar03Icon}
           />
           {dueAt ? (
-            formatShelfDueDate(dueAt)
+            formatShelfDueDate(dueAt, locale)
           ) : (
-            <span className="text-muted-foreground">Pick a date</span>
+            <span className="text-muted-foreground">{t("pickDate")}</span>
           )}
         </PopoverTrigger>
         <PopoverContent
@@ -75,7 +78,7 @@ export function ShelfDueDateField({
                 size="sm"
                 variant="ghost"
               >
-                Clear due date
+                {t("clearDueDate")}
               </Button>
             </div>
           ) : null}

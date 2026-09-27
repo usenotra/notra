@@ -8,6 +8,7 @@ import type {
   AssistantPartRef,
   GroupAssistantMessagePartsOptions,
 } from "@/types/chat-activity";
+import type { AssistantActivityStep } from "@/types/components/chat-activity-group";
 import {
   isSearchToolPart,
   isStackableSearchPart,
@@ -138,7 +139,7 @@ export function isAssistantActivityStreaming(
 
 export function getAssistantActivityStep(
   parts: AssistantMessagePart[]
-): string {
+): AssistantActivityStep {
   for (let index = parts.length - 1; index >= 0; index--) {
     const part = parts[index];
     if (!part || part.type === "step-start") {
@@ -146,32 +147,32 @@ export function getAssistantActivityStep(
     }
     if (part.type === "text") {
       if (part.text.trim()) {
-        return "Writing response";
+        return "writingResponse";
       }
       continue;
     }
     if (part.type === "reasoning") {
-      return "Thinking";
+      return "thinking";
     }
     if (isToolUIPart(part)) {
       if (part.state === "approval-requested") {
-        return "Waiting for approval";
+        return "waitingForApproval";
       }
       if (
         part.state === "input-streaming" ||
         part.state === "input-available"
       ) {
         if (isSearchToolPart(part)) {
-          return "Searching web";
+          return "searchingWeb";
         }
         return getToolName(part) === "code_mode"
-          ? "Executing tools"
-          : "Running tool";
+          ? "executingTools"
+          : "runningTool";
       }
-      return "Thinking";
+      return "thinking";
     }
   }
-  return "Thinking";
+  return "thinking";
 }
 
 export function isAssistantActivityForceOpen(

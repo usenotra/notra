@@ -31,7 +31,6 @@ export interface ApiKeyPreset {
 
 export interface ApiKeyScopeLevel {
   value: string;
-  label: string;
   tone: PermissionTone;
   scopes: ApiKeyGranularScope[];
 }

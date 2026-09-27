@@ -1,25 +1,16 @@
 import { FEATURES } from "@notra/ai/billing/features";
 
-import { USAGE_FEATURE_LABELS, USAGE_FEATURE_ORDER } from "@/constants/billing";
+import { USAGE_FEATURE_ORDER } from "@/constants/billing";
 import type {
   BalanceRecord,
   FeatureData,
   UsageAggregateRow,
   UsageBreakdownPoint,
 } from "@/types/hooks/billing";
-import {
-  formatCount,
-  formatDollars,
-  formatFullDate,
-  formatPercent,
-} from "@/utils/format";
+import { formatDollars } from "@/utils/format";
 
 function formatFeatureName(id: string): string {
   return id.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function usageFeatureLabel(id: string): string {
-  return USAGE_FEATURE_LABELS[id] ?? formatFeatureName(id);
 }
 
 function isLogRetentionFeature(featureId: string) {
@@ -68,7 +59,7 @@ export function featuresFromBalances(
   for (const [id, feature] of Object.entries(balances)) {
     features.push({
       id,
-      name: usageFeatureLabel(id),
+      name: formatFeatureName(id),
       balance:
         typeof feature?.remaining === "number" ? feature.remaining : null,
       included: typeof feature?.granted === "number" ? feature.granted : null,
@@ -119,46 +110,6 @@ export function usageRetentionDays(features: readonly FeatureData[]): number {
   return 7;
 }
 
-function remainingFooter(remaining: number, nextResetAt: number | null) {
-  const remainingLabel = `${formatPercent(remaining)}% remaining`;
-  if (nextResetAt === null) {
-    return remainingLabel;
-  }
-  return `${remainingLabel} · Resets ${formatFullDate(nextResetAt)}`;
-}
-
-export function aiAnswersValue(feature: FeatureData) {
-  if (feature.unlimited) {
-    return "Unlimited";
-  }
-  if (feature.balance !== null) {
-    return formatCount(feature.balance);
-  }
-  return "-";
-}
-
-export function aiAnswersHint(feature: FeatureData) {
-  if (feature.unlimited || feature.included === null) {
-    return undefined;
-  }
-  return `of ${formatCount(feature.included)} this cycle`;
-}
-
-export function aiAnswersFooter(
-  feature: FeatureData,
-  remaining: number | null
-) {
-  if (feature.unlimited) {
-    return "Included in your plan without a usage cap.";
-  }
-  if (remaining === null) {
-    return feature.nextResetAt === null
-      ? undefined
-      : `Resets ${formatFullDate(feature.nextResetAt)}`;
-  }
-  return remainingFooter(remaining, feature.nextResetAt);
-}
-
 export function usageBreakdownPoints(
   rows: readonly UsageAggregateRow[] | null | undefined
 ): UsageBreakdownPoint[] {
@@ -174,13 +125,8 @@ export function usageBreakdownPoints(
   });
 }
 
-export function creditsValue(feature: FeatureData) {
-  return feature.balance !== null ? formatDollars(feature.balance) : "-";
-}
-
-export function remainingCountLabel(feature: FeatureData) {
-  if (feature.balance !== null) {
-    return `${formatCount(feature.balance)} of ${formatCount(feature.included ?? 0)} remaining`;
-  }
-  return `of ${formatCount(feature.included ?? 0)} remaining`;
+export function creditsValue(feature: FeatureData, locale: string) {
+  return feature.balance !== null
+    ? formatDollars(feature.balance, locale)
+    : "-";
 }

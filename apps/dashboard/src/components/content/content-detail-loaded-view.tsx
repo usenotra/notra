@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
@@ -41,6 +42,7 @@ export function ContentDetailLoadedView({
   selectedExcerpt,
   chatInputSection,
 }: ContentDetailLoadedViewProps) {
+  const t = useTranslations("content.detail");
   const content = data.content;
   const isLongForm = ["blog_post", "changelog"].includes(content.contentType);
   const collection = data.collection;
@@ -50,7 +52,7 @@ export function ContentDetailLoadedView({
   const backHref = fromCollection
     ? `/${organizationSlug}/collection/${collection.id}`
     : `/${organizationSlug}/content`;
-  const backLabel = fromCollection ? "Back to collection" : "Back to Content";
+  const backLabel = fromCollection ? t("backToCollection") : t("backToContent");
 
   return (
     <>

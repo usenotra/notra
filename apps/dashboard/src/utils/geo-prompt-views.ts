@@ -1,9 +1,11 @@
-import { GEO_PROMPT_INTENT_LABELS } from "@notra/geo-core/constants/geo";
 import { GEO_PROMPT_FILTER_ALL } from "@notra/schemas/constants/dashboard/geo-prompts";
 import { geoPromptSavedViewsSchema } from "@notra/schemas/dashboard/geo-prompt-views";
 
-import { GEO_PROMPT_SOURCE_LABELS } from "@/constants/geo-prompts";
-import type { GeoPromptSavedView, GeoPromptTableFilters } from "@/types/geo";
+import type {
+  GeoPromptSavedView,
+  GeoPromptTableFilters,
+  PromptFiltersSummaryLabels,
+} from "@/types/geo";
 
 const GEO_PROMPT_VIEWS_EVENT = "notra:geo-prompt-views-change";
 const EMPTY_VIEWS: GeoPromptSavedView[] = [];
@@ -77,19 +79,22 @@ export function promptFiltersActive(filters: GeoPromptTableFilters): boolean {
   );
 }
 
-export function promptFiltersSummary(filters: GeoPromptTableFilters): string {
+export function promptFiltersSummary(
+  filters: GeoPromptTableFilters,
+  labels: PromptFiltersSummaryLabels
+): string {
   const parts: string[] = [];
   if (filters.q.trim().length > 0) {
     parts.push(`"${filters.q.trim()}"`);
   }
   if (filters.intent !== GEO_PROMPT_FILTER_ALL) {
-    parts.push(GEO_PROMPT_INTENT_LABELS[filters.intent]);
+    parts.push(labels.intent(filters.intent));
   }
   if (filters.tag !== GEO_PROMPT_FILTER_ALL) {
     parts.push(`#${filters.tag}`);
   }
   if (filters.source !== GEO_PROMPT_FILTER_ALL) {
-    parts.push(GEO_PROMPT_SOURCE_LABELS[filters.source]);
+    parts.push(labels.source(filters.source));
   }
-  return parts.length > 0 ? parts.join(" · ") : "All prompts";
+  return parts.length > 0 ? parts.join(" · ") : labels.all;
 }

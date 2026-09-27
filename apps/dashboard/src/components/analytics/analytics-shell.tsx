@@ -1,6 +1,7 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useRef } from "react";
 
 import { AnalyticsPageSkeleton } from "@/app/(dashboard)/[slug]/analytics/skeleton";
@@ -13,7 +14,6 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { ANALYTICS_VIEW_STATES } from "@/constants/integration-analytics";
-import { rangeHintLabel } from "@/lib/analytics/date-range";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useAnalyticsRange } from "@/lib/hooks/use-analytics-range";
 import {
@@ -24,13 +24,15 @@ import type { AnalyticsViewState } from "@/types/analytics/integration-events";
 import { accountSeriesKey } from "@/utils/analytics-charts";
 
 function AnalyticsHeader({ organizationId }: { organizationId: string }) {
+  const t = useTranslations("analytics.shell");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">
-          How your X and LinkedIn accounts are performing
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {tCommon("labels.analytics")}
+        </h1>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
       <ConnectAccountsButtons organizationId={organizationId} />
     </div>
@@ -38,6 +40,8 @@ function AnalyticsHeader({ organizationId }: { organizationId: string }) {
 }
 
 export function AnalyticsShell({ children }: { children: ReactNode }) {
+  const t = useTranslations("analytics.shell");
+  const tCommon = useTranslations("common");
   const {
     organizationId,
     organizationSlug,
@@ -90,16 +94,16 @@ export function AnalyticsShell({ children }: { children: ReactNode }) {
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
           <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-            <p className="text-muted-foreground">
-              How your X and LinkedIn accounts are performing
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {tCommon("labels.analytics")}
+            </h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </header>
           <EmptyState
             action={<ConnectAccountsButtons organizationId={organizationId} />}
-            description="Connect an X or LinkedIn account to start tracking followers, impressions, and engagement."
+            description={t("emptyDescription")}
             preview={<EmptyStateAnalyticsPreview />}
-            title="No connected accounts"
+            title={t("emptyTitle")}
           />
         </div>
       </PageContainer>
@@ -120,15 +124,14 @@ export function AnalyticsShell({ children }: { children: ReactNode }) {
 
         {!configured && (
           <p className="border-border text-muted-foreground rounded-md border px-3 py-2 font-mono text-[0.6875rem]">
-            Analytics ingestion is not configured yet. Connected accounts are
-            shown, but stats will appear once the analytics backend is set up.
+            {t("notConfigured")}
           </p>
         )}
 
         <SummaryStats
           accounts={visibleAccounts}
           points={visiblePoints}
-          rangeHint={rangeHintLabel(engagementRange)}
+          rangeHint={engagementRange.hint}
         />
 
         <AnalyticsNav slug={organizationSlug} />

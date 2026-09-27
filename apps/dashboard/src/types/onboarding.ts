@@ -239,3 +239,12 @@ export interface OnboardingEmailPrefsProps {
   onDailySummaryChange: (checked: boolean) => void;
   onMarketingEmailsChange: (checked: boolean) => void;
 }
+
+export type LogoFileValidationError = "invalidType" | "tooLarge";
+
+export type WorkspaceFormField =
+  | "name"
+  | "slug"
+  | "websiteUrl"
+  | "heardAboutNotraSource"
+  | "heardAboutNotraOther";

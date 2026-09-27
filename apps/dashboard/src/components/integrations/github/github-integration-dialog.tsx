@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
@@ -15,6 +16,8 @@ export function GitHubIntegrationDialog({
   open,
   onOpenChange,
 }: GitHubIntegrationDialogProps) {
+  const t = useTranslations("integrations.github");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const {
     query: githubAppQuery,
     catalogQuery,
@@ -40,7 +43,7 @@ export function GitHubIntegrationDialog({
     const result = await startGitHubInstall({ organizationId, callbackPath });
 
     if (!result.started) {
-      toast.error("Failed to start GitHub install");
+      toast.error(t("toasts.installFailed"));
     }
   };
 
@@ -55,7 +58,7 @@ export function GitHubIntegrationDialog({
         }
         error={
           catalogQuery.isError && !catalogQuery.data
-            ? "Unable to load repositories from GitHub."
+            ? tIntegrationsShared("unableToLoadRepositoriesFrom")
             : undefined
         }
         onRetry={() => catalogQuery.refetch()}

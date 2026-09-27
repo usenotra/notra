@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
@@ -32,6 +33,7 @@ function SelectionChip({
   selection: TextSelection;
   onClearSelection?: () => void;
 }) {
+  const t = useTranslations("chat.contextRow");
   const previewText = getSelectionPreview(selection);
   const label = `L${selection.startLine}:${selection.startChar} → L${selection.endLine}:${selection.endChar}`;
 
@@ -47,15 +49,19 @@ function SelectionChip({
           }
           label={label}
           onRemove={onClearSelection}
-          removeLabel="Remove selection"
+          removeLabel={t("removeSelection")}
         />
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
         <div className="space-y-1">
-          <p className="font-medium">Selected text</p>
+          <p className="font-medium">{t("selectedText")}</p>
           <p className="text-xs opacity-70">
-            From line {selection.startLine}, character {selection.startChar} to
-            line {selection.endLine}, character {selection.endChar}
+            {t("selectionRange", {
+              startLine: selection.startLine,
+              startChar: selection.startChar,
+              endLine: selection.endLine,
+              endChar: selection.endChar,
+            })}
           </p>
           <p className="line-clamp-3 text-xs break-all whitespace-pre-wrap opacity-80">
             "{previewText}"
@@ -72,6 +78,7 @@ export function ChatInputContextRow({
   onRemoveContext,
   onClearSelection,
 }: ChatInputContextRowProps) {
+  const tCommon = useTranslations("common");
   if (context.length === 0 && !selection) {
     return null;
   }
@@ -92,7 +99,7 @@ export function ChatInputContextRow({
                   }
                 : undefined
             }
-            removeLabel={`Remove ${label}`}
+            removeLabel={tCommon("labels.removeLabel", { label })}
           />
         );
       })}

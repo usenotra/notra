@@ -7,13 +7,10 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 
-import {
-  CONTENT_NAV_LINK,
-  NAV_RECENT_LABEL,
-  NAV_RECENT_SKELETON_IDS,
-} from "@/constants/nav";
+import { CONTENT_NAV_LINK, NAV_RECENT_SKELETON_IDS } from "@/constants/nav";
 import { useRecentPosts } from "@/lib/hooks/use-posts";
 import type { NavRecentContentProps } from "@/types/components/nav";
 
@@ -25,6 +22,7 @@ export function NavRecentContent({
   organizationId,
   enabled = true,
 }: NavRecentContentProps) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { data, isPending } = useRecentPosts(organizationId, enabled);
   const posts = data?.posts ?? [];
@@ -36,7 +34,7 @@ export function NavRecentContent({
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>
-        <SidebarLabel>{NAV_RECENT_LABEL}</SidebarLabel>
+        <SidebarLabel>{t("recent")}</SidebarLabel>
       </SidebarGroupLabel>
       <SidebarMenu>
         {isPending

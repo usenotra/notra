@@ -17,7 +17,7 @@ apps/api /v2/agent-chats
   └─ create / send / stream sessions 1:1 against this deployment
 
 eve agent (this package, separate Vercel project)
-  ├─ root: Notra assistant (eve autoModel: gpt-5.6-luna / claude-sonnet-5 / claude-opus-5)
+  ├─ root: Notra assistant (eve autoModel: gpt-6-luna / claude-sonnet-5 / claude-opus-5.5)
   ├─ Slack: mentions, DMs, and active thread replies through /eve/v1/slack
   ├─ subagents/content-writer (anthropic/claude-sonnet-5, structured result)
   └─ subagents/image-designer (wraps the @upstash/box sandbox image pipeline)

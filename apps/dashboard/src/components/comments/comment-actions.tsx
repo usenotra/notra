@@ -26,6 +26,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -40,6 +41,8 @@ export function CommentActions({
   onReact,
   onStartEdit,
 }: CommentActionsProps) {
+  const t = useTranslations("comments");
+  const tCommon = useTranslations("common.actions");
   const [pickerOpen, setPickerOpen] = useState(false);
   const disabled = busy || comment.pending;
   const reduceMotion = useReducedMotion();
@@ -57,7 +60,7 @@ export function CommentActions({
           <div className="min-h-0">
             <div className="flex flex-wrap items-center gap-1 pt-2">
               <AnimatePresence initial={false}>
-                {COMMENT_REACTIONS.map(({ emoji, label }) => {
+                {COMMENT_REACTIONS.map(({ emoji, key }) => {
                   const reactions = comment.reactions.filter(
                     (reaction) => reaction.emoji === emoji
                   );
@@ -72,7 +75,10 @@ export function CommentActions({
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
                       transition={transition}
-                      aria-label={`${label}, ${reactions.length} reactions`}
+                      aria-label={t("reactionCount", {
+                        label: t(`reactions.${key}`),
+                        count: reactions.length,
+                      })}
                       aria-pressed={active}
                       className={`flex h-6 items-center gap-1 rounded-md border px-1.5 text-xs transition-colors ${active ? "border-foreground/20 bg-muted" : "border-border hover:bg-muted"}`}
                       disabled={disabled}
@@ -105,7 +111,7 @@ export function CommentActions({
           <PopoverTrigger
             render={
               <Button
-                aria-label="Add reaction"
+                aria-label={t("addReaction")}
                 disabled={disabled}
                 size="icon-sm"
                 variant="ghost"
@@ -120,9 +126,9 @@ export function CommentActions({
             align="end"
             sideOffset={6}
           >
-            {COMMENT_REACTIONS.map(({ emoji, label }) => (
+            {COMMENT_REACTIONS.map(({ emoji, key }) => (
               <button
-                aria-label={label}
+                aria-label={t(`reactions.${key}`)}
                 className="hover:bg-muted focus-visible:outline-ring flex size-7 shrink-0 items-center justify-center rounded-full text-base leading-none focus-visible:outline-2"
                 key={emoji}
                 onClick={() => {
@@ -145,7 +151,7 @@ export function CommentActions({
         </Popover>
         {comment.depth < 5 ? (
           <Button
-            aria-label="Reply to comment"
+            aria-label={t("replyToComment")}
             disabled={disabled}
             size="icon-sm"
             variant="ghost"
@@ -159,7 +165,7 @@ export function CommentActions({
             <DropdownMenuTrigger
               render={
                 <Button
-                  aria-label="Comment actions"
+                  aria-label={t("commentActions")}
                   disabled={disabled}
                   size="icon-sm"
                   variant="ghost"
@@ -171,7 +177,7 @@ export function CommentActions({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onStartEdit}>
                 <HugeiconsIcon icon={PencilEdit02Icon} />
-                Edit
+                {tCommon("edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -181,7 +187,7 @@ export function CommentActions({
                 }}
               >
                 <HugeiconsIcon icon={Delete02Icon} />
-                Delete
+                {tCommon("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

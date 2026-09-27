@@ -4,6 +4,7 @@ import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
@@ -12,19 +13,22 @@ import { PageContainer } from "@/components/layout/container";
 const PROMPT_ROW_COUNT = 6;
 
 export function GeoPromptsSkeleton() {
+  const t = useTranslations("geo.pages.prompts");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Prompts</h1>
-            <p className="text-muted-foreground">
-              The questions we ask AI engines on your behalf
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {tCommon("labels.prompts")}
+            </h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </div>
           <Button className="gap-1.5">
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Add Prompt
+            {tGeoShared("addPrompt")}
             <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
           </Button>
         </header>
@@ -35,9 +39,11 @@ export function GeoPromptsSkeleton() {
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <p className="text-sm font-semibold">Conversations</p>
+              <p className="text-sm font-semibold">
+                {tGeoShared("conversations")}
+              </p>
               <p className="text-muted-foreground text-sm">
-                Multi-turn questions where buying decisions happen
+                {tGeoShared("multiTurnQuestionsWhereBuying")}
               </p>
             </div>
             <Skeleton className="h-8 w-36 rounded-lg" />

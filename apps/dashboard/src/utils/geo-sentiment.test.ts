@@ -6,7 +6,7 @@ import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 import {
   isolatedSentimentPointIndices,
   sentimentFamilyRows,
-  sentimentEmptyMessage,
+  sentimentEmptyMessageKey,
   sentimentHasDisplayableData,
   sentimentSummaryShowsEmpty,
   sentimentThemesState,
@@ -78,7 +78,7 @@ test("analysis in progress keeps existing themes and otherwise shows the analyzi
   expect(pending.pending).toBe(true);
   expect(pending.showTable).toBe(false);
   expect(pending.showEmpty).toBe(true);
-  expect(pending.statusText).toBe("Finding themes…");
+  expect(pending.statusKey).toBe("finding");
 
   const withResults = sentimentThemesState({
     ...base,
@@ -122,7 +122,10 @@ test("lookup failures never render pending ghosts and configuration explanations
       result: null,
     },
   });
-  expect(unavailable.message).toBe("Configure a company name in GEO settings.");
+  expect(unavailable.message).toEqual({
+    kind: "text",
+    text: "Configure a company name in GEO settings.",
+  });
   expect(unavailable.canAnalyze).toBe(false);
   const failed = sentimentThemesState({
     ...base,
@@ -136,11 +139,11 @@ test("lookup failures never render pending ghosts and configuration explanations
 });
 
 test("empty copy distinguishes absent answers from saved but unrated mentions", () => {
-  expect(sentimentEmptyMessage(summarizeSentiment([]))).toBe(
-    "No saved answers. Run a scan or change the date range."
+  expect(sentimentEmptyMessageKey(summarizeSentiment([]))).toBe(
+    "noSavedAnswers"
   );
   expect(
-    sentimentEmptyMessage(
+    sentimentEmptyMessageKey(
       summarizeSentiment([
         {
           positive: 0,
@@ -152,7 +155,7 @@ test("empty copy distinguishes absent answers from saved but unrated mentions", 
         },
       ])
     )
-  ).toBe("No rated mentions in this period.");
+  ).toBe("noRatedMentions");
 });
 
 test("available ratings remain visible when the selected range starts before rating history", () => {

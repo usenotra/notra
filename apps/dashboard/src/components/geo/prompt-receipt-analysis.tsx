@@ -1,23 +1,23 @@
 "use client";
 
-import { GEO_PROMPT_RECEIPT_LABELS } from "@notra/geo-core/constants/geo";
 import type {
   GeoAnswerSource,
   GeoCompetitor,
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptReceiptHistory } from "@/components/geo/prompt-receipt-history";
+import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
 import type { PromptReceiptAnalysisProps } from "@/types/geo";
 import { uniquePromptBrandNames } from "@/utils/geo-prompt-brands";
 import {
   promptHistoryChanges,
-  promptOutcomeLabel,
-  promptPositionLabel,
-  promptSentimentLabel,
+  promptOutcomeKey,
+  promptSentimentKey,
 } from "@/utils/geo-prompt-history";
 import { getSafeReferenceSourceUrl } from "@/utils/reference-source-url";
 
@@ -38,10 +38,11 @@ function CompetitorsCell({
   names: readonly string[];
   competitors: readonly GeoCompetitor[] | undefined;
 }) {
+  const tCommon2 = useTranslations("common");
   if (names.length === 0) {
     return (
       <p className="text-muted-foreground border-t px-4 py-5 text-center text-sm">
-        {GEO_PROMPT_RECEIPT_LABELS.noCompetitors}
+        {tCommon2("states.none")}
       </p>
     );
   }
@@ -72,32 +73,50 @@ function CompetitorsCell({
 }
 
 function OutcomeStrip({ result }: { result: GeoPromptResult }) {
+  const t = useTranslations("geo.promptReceiptAnalysis");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const sentimentKey = promptSentimentKey(result.sentiment);
+  let sentimentLabel = t("noSentiment");
+  if (sentimentKey) {
+    sentimentLabel = tCommon(`labels.${sentimentKey}`);
+  } else if (result.sentiment) {
+    sentimentLabel = result.sentiment;
+  }
   return (
     <section
-      aria-label="Outcome"
+      aria-label={tGeoShared("outcome")}
       className="bg-background flex min-h-24 flex-wrap items-center justify-between gap-5 rounded-xl border p-5 shadow-xs"
     >
       <div className="flex min-w-0 flex-col gap-1">
-        <span className="text-muted-foreground text-xs">Visibility</span>
+        <span className="text-muted-foreground text-xs">
+          {tCommon("labels.visibility")}
+        </span>
         <span className="text-xl font-semibold tracking-tight">
-          {promptOutcomeLabel(result.mentioned, result.ownedSourceCited)}
+          {tGeoShared(
+            GEO_PROMPT_OUTCOME_LABEL_KEYS[
+              promptOutcomeKey(result.mentioned, result.ownedSourceCited)
+            ]
+          )}
         </span>
       </div>
       <dl className="flex items-center gap-6 text-sm">
         <div className="flex flex-col gap-1">
           <dt className="text-muted-foreground text-xs">
-            {GEO_PROMPT_RECEIPT_LABELS.position}
+            {tCommon("labels.position")}
           </dt>
           <dd className="font-medium tabular-nums">
-            {promptPositionLabel(result.position)}
+            {result.position === null
+              ? tGeoShared("notRanked")
+              : `#${result.position}`}
           </dd>
         </div>
         <div className="flex flex-col gap-1">
           <dt className="text-muted-foreground text-xs">
-            {GEO_PROMPT_RECEIPT_LABELS.sentiment}
+            {tCommon("labels.sentiment")}
           </dt>
           <dd className={`font-medium ${sentimentToneClass(result.sentiment)}`}>
-            {promptSentimentLabel(result.sentiment)}
+            {sentimentLabel}
           </dd>
         </div>
       </dl>
@@ -161,13 +180,14 @@ function ReceiptSection({
   count?: number | null;
   children: ReactNode;
 }) {
+  const locale = useLocale();
   return (
     <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
       <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
         <h3 className="text-sm font-medium">{title}</h3>
         {typeof count === "number" ? (
           <span className="text-muted-foreground text-xs tabular-nums">
-            {count.toLocaleString()}
+            {count.toLocaleString(locale)}
           </span>
         ) : null}
       </div>
@@ -186,6 +206,7 @@ export function PromptReceiptAnalysis({
   showHistory = true,
   scrollable = true,
 }: PromptReceiptAnalysisProps) {
+  const t = useTranslations("geo.promptReceiptAnalysis");
   const entries = promptHistoryChanges(history);
   const competitorNames = uniquePromptBrandNames(result.competitors);
 
@@ -199,30 +220,24 @@ export function PromptReceiptAnalysis({
     >
       <div className="flex w-full flex-col gap-4 p-4">
         <OutcomeStrip result={result} />
-        <ReceiptSection
-          count={competitorNames.length}
-          title={GEO_PROMPT_RECEIPT_LABELS.competitors}
-        >
+        <ReceiptSection count={competitorNames.length} title={t("competitors")}>
           <CompetitorsCell competitors={competitors} names={competitorNames} />
         </ReceiptSection>
         {result.searchQueries.length > 0 ? (
           <ReceiptSection
             count={result.searchQueries.length}
-            title={GEO_PROMPT_RECEIPT_LABELS.searches}
+            title={t("searches")}
           >
             <SearchQueries queries={result.searchQueries} />
           </ReceiptSection>
         ) : null}
         {result.sources.length > 0 ? (
-          <ReceiptSection
-            count={result.sources.length}
-            title={GEO_PROMPT_RECEIPT_LABELS.sources}
-          >
+          <ReceiptSection count={result.sources.length} title={t("sources")}>
             <SourcesList sources={result.sources} />
           </ReceiptSection>
         ) : null}
         {showHistory ? (
-          <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.history}>
+          <ReceiptSection title={t("history")}>
             <PromptReceiptHistory
               competitors={competitors}
               entries={entries}

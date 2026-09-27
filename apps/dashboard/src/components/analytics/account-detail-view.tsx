@@ -2,7 +2,6 @@
 
 import { Linkedin02Icon, NewTwitterIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { formatDayLabel } from "@notra/geo-core/utils/day-label";
 import {
   Avatar,
   AvatarFallback,
@@ -14,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
@@ -31,6 +31,8 @@ import {
 } from "@/constants/analytics";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useDayLabel } from "@/lib/hooks/use-day-label";
+import { useFormatMetric } from "@/lib/hooks/use-format-metric";
 import {
   useEngagementTimeseries,
   useLeaderboard,
@@ -38,7 +40,11 @@ import {
   useTopPosts,
 } from "@/lib/hooks/use-social-analytics";
 import { cn } from "@/lib/utils";
-import type { AccountDetailViewProps, TopPostItem } from "@/types/analytics";
+import type {
+  AccountDetailViewProps,
+  LeaderboardDetailMetric,
+  TopPostItem,
+} from "@/types/analytics";
 import type { ChartConfig } from "@/types/charts";
 import {
   buildAccountEngagementPoints,
@@ -48,25 +54,44 @@ import {
   postsForAccount,
 } from "@/utils/analytics-accounts";
 import {
-  formatMetric,
   leaderboardDetailMetrics,
   previewPostContent,
 } from "@/utils/analytics-charts";
 import { seriesColors } from "@/utils/chart-colors";
 import { isSquareTwitterAvatar } from "@/utils/twitter";
 
-const CHART_CONFIG: ChartConfig = {
-  [ACCOUNT_DETAIL_SERIES_KEY]: {
-    label: "Engagement",
-    colors: seriesColors(CHART_PRIMARY_COLOR),
-  },
-};
-
 export function AccountDetailView({
   organizationSlug,
   handle,
   variant = "modal",
 }: AccountDetailViewProps) {
+  const t = useTranslations("analytics.accountDetail");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const tSummary = useTranslations("analytics.summary");
+  const metricLabels: Record<LeaderboardDetailMetric["labelKey"], string> = {
+    followers: tAnalyticsShared("followers"),
+    impressions: tCommon("labels.impressions"),
+    likes: tAnalyticsShared("likes"),
+    replies: tAnalyticsShared("replies"),
+    reposts: t("metrics.reposts"),
+    quotes: t("metrics.quotes"),
+    bookmarks: t("metrics.bookmarks"),
+    engagementRate: t("metrics.engagementRate"),
+  };
+  const format = useFormatter();
+  const formatMetric = useFormatMetric();
+  const formatDayLabel = useDayLabel();
+  const chartConfig = useMemo<ChartConfig>(
+    () => ({
+      [ACCOUNT_DETAIL_SERIES_KEY]: {
+        label: tAnalyticsShared("engagement"),
+        colors: seriesColors(CHART_PRIMARY_COLOR),
+      },
+    }),
+    [t]
+  );
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -102,8 +127,9 @@ export function AccountDetailView({
   );
 
   const points = useMemo(
-    () => buildAccountEngagementPoints(engagement?.points ?? [], identity),
-    [engagement?.points, identity]
+    () =>
+      buildAccountEngagementPoints(engagement?.points ?? [], identity, locale),
+    [engagement?.points, identity, locale]
   );
 
   const posts = useMemo(
@@ -112,15 +138,18 @@ export function AccountDetailView({
   );
 
   const metrics = useMemo(
-    () => (account ? leaderboardDetailMetrics(account) : []),
-    [account]
+    () =>
+      account
+        ? leaderboardDetailMetrics(account, locale, tCommon("labels.nA"))
+        : [],
+    [account, locale, tSummary]
   );
 
   const columns = useMemo<TableColumn<TopPostItem>[]>(
     () => [
       {
         key: "content",
-        header: "Post",
+        header: tCommon("labels.post"),
         width: "2.6fr",
         cell: (row) => (
           <Tooltip>
@@ -137,7 +166,7 @@ export function AccountDetailView({
       },
       {
         key: "postedAt",
-        header: "Posted",
+        header: tAnalyticsShared("posted"),
         width: "7.5rem",
         sortable: true,
         cell: (row) => (
@@ -148,7 +177,7 @@ export function AccountDetailView({
       },
       {
         key: "likes",
-        header: "Likes",
+        header: tAnalyticsShared("likes"),
         width: "5.625rem",
         align: "right",
         sortable: true,
@@ -161,7 +190,7 @@ export function AccountDetailView({
       },
       {
         key: "replies",
-        header: "Replies",
+        header: tAnalyticsShared("replies"),
         width: "5.625rem",
         align: "right",
         sortable: true,
@@ -174,7 +203,7 @@ export function AccountDetailView({
       },
       {
         key: "impressions",
-        header: "Impressions",
+        header: tCommon("labels.impressions"),
         width: "6.875rem",
         align: "right",
         sortable: true,
@@ -187,7 +216,7 @@ export function AccountDetailView({
       },
       {
         key: "engagement",
-        header: "Engagement",
+        header: tAnalyticsShared("engagement"),
         width: "7.5rem",
         align: "right",
         sortable: true,
@@ -198,7 +227,7 @@ export function AccountDetailView({
         ),
       },
     ],
-    []
+    [t, formatDayLabel, formatMetric]
   );
 
   const displayName = identity?.displayName ?? identity?.username ?? handle;
@@ -249,7 +278,9 @@ export function AccountDetailView({
           <p className="text-lg font-semibold tabular-nums">
             {formatMetric(identity?.followersCount ?? null)}
           </p>
-          <p className="text-muted-foreground text-xs">Followers</p>
+          <p className="text-muted-foreground text-xs">
+            {tAnalyticsShared("followers")}
+          </p>
         </div>
       </div>
 
@@ -257,9 +288,9 @@ export function AccountDetailView({
       {!isOverviewLoading && metrics.length > 0 && (
         <dl className="bg-border grid grid-cols-4 gap-px overflow-hidden rounded-2xl sm:grid-cols-8">
           {metrics.map((metric) => (
-            <div className="bg-muted/40 px-2 py-1.5" key={metric.label}>
-              <dt className="text-muted-foreground text-xs capitalize">
-                {metric.label}
+            <div className="bg-muted/40 px-2 py-1.5" key={metric.labelKey}>
+              <dt className="text-muted-foreground text-xs first-letter:uppercase">
+                {metricLabels[metric.labelKey]}
               </dt>
               <dd className="font-mono text-sm tabular-nums">{metric.value}</dd>
             </div>
@@ -268,12 +299,12 @@ export function AccountDetailView({
       )}
 
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Engagement over time</h2>
+        <h2 className="text-base font-semibold">{t("overTime")}</h2>
         {isEngagementLoading && <Skeleton className="h-52 w-full" />}
         {!isEngagementLoading && points.length >= ACCOUNT_DETAIL_MIN_POINTS && (
           <EChartsAreaChart
             className="h-52 w-full"
-            config={CHART_CONFIG}
+            config={chartConfig}
             curveType="monotone"
             data={points}
             enableHoverHighlight
@@ -291,17 +322,22 @@ export function AccountDetailView({
         )}
         {!isEngagementLoading && points.length < ACCOUNT_DETAIL_MIN_POINTS && (
           <p className="text-muted-foreground text-sm wrap-anywhere">
-            Not enough activity in the last {ANALYTICS_TIMESERIES_DAYS} days to
-            chart @{username}
+            {t("notEnoughActivity", {
+              days: ANALYTICS_TIMESERIES_DAYS,
+              handle: username,
+            })}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-base font-semibold">Recent posts</h2>
+          <h2 className="text-base font-semibold">{t("recentPosts")}</h2>
           <span className="text-muted-foreground text-xs tabular-nums">
-            {posts.length.toLocaleString()} posts
+            {t("postCount", {
+              count: posts.length,
+              formatted: format.number(posts.length),
+            })}
           </span>
         </div>
         <Table
@@ -309,7 +345,7 @@ export function AccountDetailView({
           columns={columns}
           data={posts}
           defaultSort={{ key: "postedAt", direction: "desc" }}
-          emptyState={`No tracked posts for @${username} yet`}
+          emptyState={t("noPosts", { handle: username })}
           getRowId={(row) => `${row.provider}:${row.platformPostId}`}
           height={
             variant === "page"

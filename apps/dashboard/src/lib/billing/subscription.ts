@@ -7,12 +7,12 @@ import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
+import { getTranslations } from "next-intl/server";
 
 import {
   ENTITLEMENT_FEATURES,
   ENTITLEMENT_SURFACES,
 } from "@/constants/analytics-events";
-import { GEO_PLAN_REQUIRED_MESSAGE } from "@/constants/billing";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
@@ -153,7 +153,8 @@ export async function assertActiveSubscription(
       organizationId,
       properties: { procedure: procedure ?? null, plan_id: activePlanId },
     });
-    throw paymentRequired("Active subscription required");
+    const tErrors = await getTranslations("errors.billing");
+    throw paymentRequired(tErrors("subscriptionRequired"));
   }
 }
 
@@ -224,7 +225,9 @@ export async function resolveGeoEntitlement(
 }
 
 /** Reports the denial and rejects the request. Call only for confirmed members. */
-export function rejectGeoEntitlementDenied(organizationId: string): never {
+export async function rejectGeoEntitlementDenied(
+  organizationId: string
+): Promise<never> {
   trackServerEvent({
     event: POSTHOG_EVENTS.ENTITLEMENT_DENIED,
     organizationId,
@@ -233,7 +236,8 @@ export function rejectGeoEntitlementDenied(organizationId: string): never {
       surface: ENTITLEMENT_SURFACES.DASHBOARD,
     },
   });
-  throw paymentRequired(GEO_PLAN_REQUIRED_MESSAGE);
+  const tCommon = await getTranslations("common.messages");
+  throw paymentRequired(tCommon("aiVisibilityTrackingIsIncluded"));
 }
 
 /** Call only after confirming organization membership. */
@@ -243,6 +247,6 @@ export async function assertGeoEntitlement(
 ): Promise<void> {
   const outcome = await resolveGeoEntitlement(organizationId, headers);
   if (outcome === "denied") {
-    rejectGeoEntitlementDenied(organizationId);
+    await rejectGeoEntitlementDenied(organizationId);
   }
 }

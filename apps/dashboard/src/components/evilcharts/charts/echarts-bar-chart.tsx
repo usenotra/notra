@@ -13,6 +13,7 @@ import {
 import type { ComposeOption, ImagePatternObject } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "next-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -29,6 +30,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
@@ -1970,7 +1972,11 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
   const [hoveredDataKey, setHoveredDataKey] = useState<string | null>(null);
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleTooltip(collectConfig(children), locale),
+    [children, locale]
+  );
   const {
     bars,
     xAxis: xAxisSlot,
@@ -1991,7 +1997,15 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
 
   // Category axis is x when vertical, y when horizontal; value axis the other.
   const categorySlot = isHorizontal ? yAxisSlot : xAxisSlot;
-  const valueSlot = isHorizontal ? xAxisSlot : yAxisSlot;
+  const valueSlot = useMemo(() => {
+    const slot = isHorizontal ? xAxisSlot : yAxisSlot;
+    return {
+      ...slot,
+      tickFormatter:
+        slot.tickFormatter ??
+        ((value: string) => Number(value).toLocaleString(locale)),
+    };
+  }, [isHorizontal, xAxisSlot, yAxisSlot, locale]);
 
   const seriesKeys = useMemo(() => bars.map((bar) => bar.dataKey), [bars]);
 

@@ -5,6 +5,7 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -41,6 +42,11 @@ export function PricingClient({
   slug,
   progressHrefs,
 }: PricingClientProps) {
+  const t = useTranslations("onboarding.pricing");
+  const tCommon = useTranslations("common");
+  const tOnboardingShared = useTranslations("onboarding.shared");
+  const tBilling = useTranslations("billing");
+  const locale = useLocale();
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -48,7 +54,9 @@ export function PricingClient({
   const [includeZdr, setIncludeZdr] = useState(false);
 
   const planGroups = groupBillingPlans(plans);
-  const intervalLabel = isYearly ? "year" : "month";
+  const intervalLabel = isYearly
+    ? tCommon("labels.year")
+    : tCommon("labels.month");
   const pricingViewedRef = useRef(false);
 
   useEffect(() => {
@@ -119,7 +127,7 @@ export function PricingClient({
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not start checkout. Please try again."
+          : tCommon("messages.couldNotStartCheckoutPlease")
       );
       setLoading(null);
     }
@@ -136,13 +144,13 @@ export function PricingClient({
     );
     let action: React.ReactNode;
     if (hasTrial) {
-      action = <Badge variant="outline">Free trial</Badge>;
+      action = <Badge variant="outline">{t("freeTrial")}</Badge>;
     } else if (featured) {
-      action = <Badge>Most popular</Badge>;
+      action = <Badge>{tCommon("labels.mostPopular")}</Badge>;
     }
-    let label = hasTrial ? "Start free trial" : "Get started";
+    let label = hasTrial ? t("startFreeTrial") : t("getStarted");
     if (loading === plan.id) {
-      label = "Loading...";
+      label = tCommon("states.loading");
     }
     return (
       <PlanCard
@@ -150,7 +158,9 @@ export function PricingClient({
         addon={zdrAddonToggle(
           findZdrAddonPlan(plans, plan.id),
           includeZdr,
-          handleIncludeZdrChange
+          handleIncludeZdrChange,
+          tBilling,
+          locale
         )}
         button={{
           label,
@@ -158,9 +168,9 @@ export function PricingClient({
           variant: featured ? "default" : "outline",
           onClick: () => handleSelectPlan(plan.id),
         }}
-        description={planGroupDescription(group)}
+        description={planGroupDescription(group, tBilling)}
         featured={featured}
-        features={getProductFeatures(plan)}
+        features={getProductFeatures(plan, tBilling, locale)}
         highlighted={false}
         intervalLabel={intervalLabel}
         key={group.id}
@@ -181,14 +191,11 @@ export function PricingClient({
       </div>
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-          Choose your plan
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground">
-          Use feedback for free, or upgrade for AI content and visibility
-          tracking.
-        </p>
+        <p className="text-muted-foreground">{t("description")}</p>
         <Button render={<Link href={`/${slug}/feedback`} />} variant="outline">
-          Continue with free feedback
+          {t("continueFree")}
         </Button>
       </div>
 
@@ -198,11 +205,13 @@ export function PricingClient({
           value={isYearly ? "yearly" : "monthly"}
         >
           <TabsList variant="line">
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="monthly">
+              {tCommon("labels.monthly")}
+            </TabsTrigger>
             <TabsTrigger className="flex items-center gap-1.5" value="yearly">
-              Yearly
+              {tCommon("labels.yearly")}
               <span className="bg-success/10 text-success rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-                Save 20%
+                {tCommon("labels.savePercent", { percent: 20 })}
               </span>
             </TabsTrigger>
           </TabsList>
@@ -210,7 +219,7 @@ export function PricingClient({
       </div>
 
       <p className="text-muted-foreground mt-3 text-center text-xs">
-        Your plan renews automatically every {intervalLabel} until you cancel.
+        {t("renews", { interval: isYearly ? "year" : "month" })}
       </p>
 
       {plansLoading ? (
@@ -233,7 +242,7 @@ export function PricingClient({
             className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
             type="submit"
           >
-            Skip onboarding
+            {tOnboardingShared("skipOnboarding")}
           </button>
         </form>
       )}

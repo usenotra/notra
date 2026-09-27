@@ -23,6 +23,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -42,10 +43,7 @@ import {
   useRefreshConnectedAccount,
 } from "@/lib/hooks/use-connected-accounts";
 import { useSocialConnectCallbackToasts } from "@/lib/hooks/use-social-connect-callback-toasts";
-import {
-  getOrganizationMembershipActionLabel,
-  type OrganizationMembershipAction,
-} from "@/lib/organizations/membership-action";
+import type { OrganizationMembershipAction } from "@/lib/organizations/membership-action";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ConnectedAccountsGroupProps } from "@/types/settings/general";
 import { setLastVisitedOrganization } from "@/utils/cookies";
@@ -53,6 +51,9 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 import { isSquareTwitterAvatar } from "@/utils/twitter";
 
 export function GeneralSettingsPane() {
+  const t = useTranslations("settings.panes.general");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const queryClient = useQueryClient();
   const {
@@ -98,8 +99,8 @@ export function GeneralSettingsPane() {
 
     const successMessage =
       action === "delete"
-        ? `Deleted ${organization.name}`
-        : `Left ${organization.name}`;
+        ? tSettingsShared("deletedName", { name: organization.name })
+        : tSettingsShared("leftName", { name: organization.name });
 
     try {
       await dashboardOrpc.user.membership.applyAction.call({
@@ -132,7 +133,7 @@ export function GeneralSettingsPane() {
 
       const firstOrg = freshOrgs[0];
       if (!firstOrg) {
-        toast.error("You must keep at least one organization");
+        toast.error(tCommon("messages.youMustKeepAtLeast"));
         setIsRemovingOrganization(false);
         return;
       }
@@ -148,7 +149,7 @@ export function GeneralSettingsPane() {
       toast.success(successMessage);
       router.push(`/${firstOrg.slug}?settings=account`);
     } catch (error) {
-      toast.error("Failed to update organization membership");
+      toast.error(tSettingsShared("failedToUpdateOrganizationMembership"));
       console.error(error);
     }
     setIsRemovingOrganization(false);
@@ -170,23 +171,22 @@ export function GeneralSettingsPane() {
 
       <TitleCard
         className="border-destructive/50 bg-destructive/5"
-        heading="Delete Organization"
+        heading={t("deleteOrganization")}
       >
         <div className="space-y-4">
           <p className="text-muted-foreground text-sm">
-            Permanently delete this organization and all its data
+            {t("deleteDescription")}
           </p>
           {!isLoadingOwnedOrganizations && !ownedOrganization && (
             <p className="text-muted-foreground text-xs">
-              Only organization owners can delete this organization.
+              {t("onlyOwnersCanDelete")}
             </p>
           )}
           {!isLoadingOwnedOrganizations &&
             ownedOrganization &&
             organizations.length <= 1 && (
               <p className="text-muted-foreground text-xs">
-                You need at least one organization. Create another before
-                deleting this one.
+                {t("needOneOrganization")}
               </p>
             )}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -205,10 +205,10 @@ export function GeneralSettingsPane() {
                     {isRemovingOrganization ? (
                       <>
                         <Loader2Icon className="size-4 animate-spin" />
-                        Deleting...
+                        {tCommon("actions.deleting")}
                       </>
                     ) : (
-                      `${getOrganizationMembershipActionLabel("delete")} Organization`
+                      t("deleteOrganization")
                     )}
                   </Button>
                 }
@@ -219,7 +219,7 @@ export function GeneralSettingsPane() {
                 disabled
                 variant="destructive"
               >
-                Delete Organization
+                {t("deleteOrganization")}
               </Button>
             )}
           </div>
@@ -234,6 +234,9 @@ function ConnectedAccountsSection({
 }: {
   organizationId: string;
 }) {
+  const t = useTranslations("settings.panes.general.connectedAccounts");
+  const tSettingsShared2 = useTranslations("settings.shared");
+  const tCommon2 = useTranslations("common");
   const { data, isLoading, isError } = useConnectedAccounts(organizationId);
   useSocialConnectCallbackToasts(organizationId);
   const twitterConnect = useHandleConnectSocialAccount(
@@ -250,11 +253,9 @@ function ConnectedAccountsSection({
   const linkedinAccounts = accounts.filter((a) => a.provider === "linkedin");
 
   return (
-    <TitleCard heading="Connected Accounts">
+    <TitleCard heading={tSettingsShared2("connectedAccounts")}>
       <div className="space-y-6">
-        <p className="text-muted-foreground text-sm">
-          X and LinkedIn accounts connected to this organization
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
 
         {isLoading && (
           <div className="space-y-3">
@@ -265,9 +266,7 @@ function ConnectedAccountsSection({
 
         {!isLoading && isError && (
           <div className="rounded-lg border border-dashed py-8 text-center">
-            <p className="text-destructive text-sm">
-              Failed to load connected accounts
-            </p>
+            <p className="text-destructive text-sm">{t("loadFailed")}</p>
           </div>
         )}
 
@@ -275,8 +274,8 @@ function ConnectedAccountsSection({
           <>
             <ConnectedAccountsGroup
               accounts={twitterAccounts}
-              connectLabel="Connect X Account"
-              emptyLabel="No X accounts connected"
+              connectLabel={t("connectX")}
+              emptyLabel={tCommon2("labels.noXAccountsConnected")}
               icon={NewTwitterIcon}
               isConnecting={twitterConnect.isPending}
               label="X"
@@ -285,8 +284,8 @@ function ConnectedAccountsSection({
             />
             <ConnectedAccountsGroup
               accounts={linkedinAccounts}
-              connectLabel="Connect LinkedIn Account"
-              emptyLabel="No LinkedIn accounts connected"
+              connectLabel={t("connectLinkedin")}
+              emptyLabel={t("noLinkedin")}
               icon={Linkedin02Icon}
               isConnecting={linkedinConnect.isPending}
               label="LinkedIn"
@@ -310,6 +309,9 @@ function ConnectedAccountsGroup({
   onConnect,
   isConnecting,
 }: ConnectedAccountsGroupProps) {
+  const t = useTranslations("settings.panes.general.connectedAccounts");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const disconnectMutation = useDisconnectAccount(organizationId);
   const refreshMutation = useRefreshConnectedAccount(organizationId);
 
@@ -327,7 +329,7 @@ function ConnectedAccountsGroup({
             ) : (
               <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
             )}
-            Connect
+            {tCommon("connect")}
           </Button>
         )}
       </div>
@@ -344,7 +346,7 @@ function ConnectedAccountsGroup({
             {isConnecting ? (
               <>
                 <Loader2Icon className="size-3.5 animate-spin" />
-                Connecting...
+                {tCommon2("labels.connecting")}
               </>
             ) : (
               <>
@@ -407,7 +409,9 @@ function ConnectedAccountsGroup({
                 <TooltipTrigger
                   render={
                     <Button
-                      aria-label={`Refresh @${account.username}`}
+                      aria-label={t("refreshAccount", {
+                        username: account.username,
+                      })}
                       disabled={refreshMutation.isPending}
                       onClick={() => refreshMutation.mutate(account.id)}
                       size="icon-sm"
@@ -424,15 +428,18 @@ function ConnectedAccountsGroup({
                     />
                   )}
                 </TooltipTrigger>
-                <TooltipContent>Refresh account details</TooltipContent>
+                <TooltipContent>{t("refreshTooltip")}</TooltipContent>
               </Tooltip>
               <Button
-                aria-label={`Disconnect @${account.username}`}
+                aria-label={t("disconnectAccount", {
+                  username: account.username,
+                })}
                 disabled={disconnectMutation.isPending}
                 onClick={() => {
                   disconnectMutation.mutate(account.id, {
-                    onSuccess: () => toast.success("Account disconnected"),
-                    onError: () => toast.error("Failed to disconnect account"),
+                    onSuccess: () => toast.success(t("disconnected")),
+                    onError: () =>
+                      toast.error(tCommon2("labels.failedToDisconnectAccount")),
                   });
                 }}
                 size="sm"
@@ -441,12 +448,12 @@ function ConnectedAccountsGroup({
                 {isDisconnecting ? (
                   <>
                     <Loader2Icon className="size-3.5 animate-spin" />
-                    Disconnecting...
+                    {t("disconnecting")}
                   </>
                 ) : (
                   <>
                     <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
-                    Disconnect
+                    {tCommon("disconnect")}
                   </>
                 )}
               </Button>

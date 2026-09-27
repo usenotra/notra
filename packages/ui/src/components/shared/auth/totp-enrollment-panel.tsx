@@ -3,6 +3,7 @@
 import { CheckmarkCircle02Icon, Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
+import { DEFAULT_TOTP_ENROLLMENT_PANEL_LABELS } from "@notra/ui/constants/auth-labels";
 
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +20,6 @@ import { BackupCodesPanel } from "../security/backup-codes-panel";
 import { StepTransition } from "../security/step-transition";
 import { TotpCodeInput } from "./totp-code-input";
 
-const ENROLLMENT_ERROR_FALLBACK = "That code didn't work. Please try again.";
 const COPIED_RESET_MS = 2000;
 const QR_CODE_SIZE = 176;
 const WHITESPACE_REGEX = /\s+/g;
@@ -30,7 +30,13 @@ function formatSecret(secret: string) {
   return compact.match(SECRET_GROUP_REGEX)?.join(" ") ?? compact;
 }
 
-function CopyValueField({ label, value, display }: CopyValueFieldProps) {
+function CopyValueField({
+  label,
+  value,
+  display,
+  copyLabel,
+  copiedLabel,
+}: CopyValueFieldProps) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,7 +71,7 @@ function CopyValueField({ label, value, display }: CopyValueFieldProps) {
           {display ?? value}
         </code>
         <Button
-          aria-label={copied ? `${label} copied` : `Copy ${label}`}
+          aria-label={copied ? copiedLabel : copyLabel}
           onClick={copy}
           size="icon-sm"
           type="button"
@@ -95,13 +101,15 @@ export function TotpEnrollmentPanel({
   secret,
   otpauthUri,
   accountLabel,
-  submitLabel = "Turn on two-factor",
-  cancelLabel = "Cancel",
-  doneLabel = "Done",
+  submitLabel,
+  cancelLabel,
+  doneLabel,
   onSubmit,
   onCancel,
   onDone,
+  labels,
 }: TotpEnrollmentPanelProps) {
+  const l = { ...DEFAULT_TOTP_ENROLLMENT_PANEL_LABELS, ...labels };
   const [step, setStep] = useState<EnrollmentStep>("scan");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +135,7 @@ export function TotpEnrollmentPanel({
     try {
       result = await onSubmit({ code: submittedCode });
     } catch {
-      result = { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
+      result = { ok: false, message: l.errorFallback };
     }
     if (!isMountedRef.current) {
       return;
@@ -135,7 +143,7 @@ export function TotpEnrollmentPanel({
     setIsPending(false);
 
     if (!result.ok) {
-      setError(result.message || ENROLLMENT_ERROR_FALLBACK);
+      setError(result.message || l.errorFallback);
       setCode("");
       return;
     }
@@ -165,13 +173,11 @@ export function TotpEnrollmentPanel({
         type="button"
         variant="ghost"
       >
-        {isFirstStep ? cancelLabel : "Back"}
+        {isFirstStep ? (cancelLabel ?? l.cancel) : l.back}
       </Button>
     );
 
-  const qrAltText = accountLabel
-    ? `QR code to add ${accountLabel} to an authenticator app`
-    : "QR code to add this account to an authenticator app";
+  const qrAltText = l.qrAlt(accountLabel);
 
   let content: React.ReactNode;
 
@@ -180,7 +186,8 @@ export function TotpEnrollmentPanel({
       <BackupCodesPanel
         accountLabel={accountLabel}
         codes={backupCodes}
-        doneLabel={doneLabel}
+        doneLabel={doneLabel ?? l.done}
+        labels={l.backupCodesPanel}
         onDone={onDone}
       />
     );
@@ -200,7 +207,7 @@ export function TotpEnrollmentPanel({
           disabled={isPending}
           error={error}
           id="totp-enrollment-code"
-          label="Enter the 6-digit code from your app"
+          label={l.codeLabel}
           onChange={setCode}
           onComplete={handleSubmit}
           value={code}
@@ -214,7 +221,7 @@ export function TotpEnrollmentPanel({
             {isPending && (
               <Loader2Icon className="animate-spin" />
             )}
-            {submitLabel}
+            {submitLabel ?? l.submit}
           </Button>
         </StepActions>
       </form>
@@ -223,15 +230,21 @@ export function TotpEnrollmentPanel({
     content = (
       <div className="grid gap-4">
         <p className="text-muted-foreground text-sm">
-          In your authenticator app, add an account with this key and time-based
-          codes.
+          {l.manualInstructions}
         </p>
         <CopyValueField
+          copiedLabel={l.valueCopied(l.setupKey)}
+          copyLabel={l.copyValue(l.setupKey)}
           display={formatSecret(secret)}
-          label="Setup key"
+          label={l.setupKey}
           value={secret}
         />
-        <CopyValueField label="Setup URI" value={otpauthUri} />
+        <CopyValueField
+          copiedLabel={l.valueCopied(l.setupUri)}
+          copyLabel={l.copyValue(l.setupUri)}
+          label={l.setupUri}
+          value={otpauthUri}
+        />
         <StepActions
           secondary={
             <Button
@@ -240,13 +253,13 @@ export function TotpEnrollmentPanel({
               type="button"
               variant="link"
             >
-              Scan QR code instead
+              {l.scanInstead}
             </Button>
           }
         >
           {secondaryButton}
           <Button onClick={() => setStep("code")} type="button">
-            Continue
+            {l.continue}
           </Button>
         </StepActions>
       </div>
@@ -255,7 +268,7 @@ export function TotpEnrollmentPanel({
     content = (
       <div className="grid gap-4">
         <p className="text-muted-foreground text-sm">
-          Scan this with 1Password, Google Authenticator, or Authy.
+          {l.scanInstructions}
         </p>
         <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-xs ring-1 ring-black/5">
           <img
@@ -275,13 +288,13 @@ export function TotpEnrollmentPanel({
               type="button"
               variant="link"
             >
-              Can&apos;t scan it?
+              {l.cantScan}
             </Button>
           }
         >
           {secondaryButton}
           <Button onClick={() => setStep("code")} type="button">
-            Continue
+            {l.continue}
           </Button>
         </StepActions>
       </div>

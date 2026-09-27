@@ -10,17 +10,3 @@ export function getStatusCodeClassName(statusCode: number | null): string {
   }
   return "text-destructive";
 }
-
-export function formatWordCount(wordCount: number | null): string {
-  if (wordCount === null) {
-    return "—";
-  }
-  return `${wordCount.toLocaleString()} words`;
-}
-
-export function formatTextRatio(textRatio: number | null): string | null {
-  if (textRatio === null) {
-    return null;
-  }
-  return `${Math.round(textRatio * 100)}% text ratio`;
-}

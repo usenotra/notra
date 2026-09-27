@@ -23,6 +23,7 @@ import { normalizeBackupCode } from "@notra/schemas/utils/auth";
 import type { Ratelimit } from "@upstash/ratelimit";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 
 import { SECURITY_ERROR_CODES, TOTP_FACTOR_TYPE } from "@/constants/security";
 import { ActionFailure } from "@/lib/actions/errors";
@@ -48,15 +49,13 @@ import { requireSession } from "@/lib/organizations/guards";
 import type { ActionResult } from "@/types/organizations/actions";
 import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
 
-const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
-const INVALID_TOTP_MESSAGE =
-  "That code didn't work. Check your authenticator app and try again.";
-const INVALID_CONFIRMATION_MESSAGE =
-  "That code didn't work. Enter the code from your authenticator app or an unused backup code.";
-const ENROLLMENT_EXPIRED_MESSAGE =
-  "This setup expired or belongs to another session. Start the setup again.";
-const ALREADY_ENABLED_MESSAGE =
-  "Two-factor authentication is already on. Remove the current authenticator app before adding another.";
+const securityTranslations = Effect.promise(() =>
+  getTranslations("errors.actions.security")
+);
+
+const sharedErrorTranslations = Effect.promise(() =>
+  getTranslations("errors.shared")
+);
 
 const tryWorkOS = <T>(run: () => Promise<T>) =>
   Effect.tryPromise({
@@ -85,7 +84,13 @@ const enforceRateLimit = (limiter: Ratelimit, key: string) =>
   Effect.promise(() => isAccountRateLimited(limiter, key)).pipe(
     Effect.andThen((limited) =>
       limited
-        ? Effect.fail(new ActionFailure({ message: RATE_LIMITED_MESSAGE }))
+        ? sharedErrorTranslations.pipe(
+            Effect.flatMap((t) =>
+              Effect.fail(
+                new ActionFailure({ message: t("tooManyAttemptsPleaseTry") })
+              )
+            )
+          )
         : Effect.void
     )
   );
@@ -98,7 +103,7 @@ const requireSecurityContext = Effect.fn("auth.security.requireContext")(
       return yield* Effect.fail(
         new ActionFailure({
           code: SECURITY_ERROR_CODES.UNAVAILABLE,
-          message: "Security settings aren't available for this account yet.",
+          message: (yield* securityTranslations)("unavailable"),
         })
       );
     }
@@ -181,7 +186,7 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
         return yield* Effect.fail(
           new ActionFailure({
             code: SECURITY_ERROR_CODES.INVALID_CODE,
-            message: INVALID_CONFIRMATION_MESSAGE,
+            message: (yield* securityTranslations)("invalidConfirmation"),
           })
         );
       }
@@ -190,13 +195,13 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
     const backupCode = normalizeBackupCode(code);
     const unused = yield* tryDb(
       () => hasUnusedBackupCode(context.localUserId, backupCode),
-      "Couldn't check the backup code. Please try again."
+      (yield* securityTranslations)("backupCheckFailed")
     );
     if (!unused) {
       return yield* Effect.fail(
         new ActionFailure({
           code: SECURITY_ERROR_CODES.INVALID_CODE,
-          message: INVALID_CONFIRMATION_MESSAGE,
+          message: (yield* securityTranslations)("invalidConfirmation"),
         })
       );
     }
@@ -256,7 +261,9 @@ export async function startTotpEnrollmentAction(): Promise<
       const existing = yield* listTotpFactors(context.workosUserId);
       if (existing.length > 0) {
         return yield* Effect.fail(
-          new ActionFailure({ message: ALREADY_ENABLED_MESSAGE })
+          new ActionFailure({
+            message: (yield* securityTranslations)("alreadyEnabled"),
+          })
         );
       }
       const enrollment = yield* tryWorkOS(() =>
@@ -320,7 +327,9 @@ export async function verifyTotpEnrollmentAction(
           input.authenticationChallengeId;
       if (!isOwnEnrollment) {
         return yield* Effect.fail(
-          new ActionFailure({ message: ENROLLMENT_EXPIRED_MESSAGE })
+          new ActionFailure({
+            message: (yield* securityTranslations)("enrollmentExpired"),
+          })
         );
       }
 
@@ -334,26 +343,26 @@ export async function verifyTotpEnrollmentAction(
         return yield* Effect.fail(
           new ActionFailure({
             code: SECURITY_ERROR_CODES.INVALID_CODE,
-            message: INVALID_TOTP_MESSAGE,
+            message: (yield* securityTranslations)("invalidTotp"),
           })
         );
       }
       if (verification.challenge.authenticationFactorId !== input.factorId) {
         return yield* Effect.fail(
-          new ActionFailure({ message: ENROLLMENT_EXPIRED_MESSAGE })
+          new ActionFailure({
+            message: (yield* securityTranslations)("enrollmentExpired"),
+          })
         );
       }
       yield* Effect.promise(clearTotpEnrollmentInProgress);
 
-      const warnings: string[] = [];
       const backupCodes = yield* attemptDb(() =>
         replaceBackupCodes(context.localUserId)
       );
-      if (backupCodes === null) {
-        warnings.push(
-          "backup codes couldn't be generated. Regenerate them from settings"
-        );
-      }
+      const warning =
+        backupCodes === null
+          ? (yield* securityTranslations)("backupCodesWarning")
+          : null;
       yield* trackSecurityEvent(
         POSTHOG_EVENTS.MFA_FACTOR_ENROLLED,
         context.localUserId
@@ -361,10 +370,7 @@ export async function verifyTotpEnrollmentAction(
       return {
         verified: true as const,
         backupCodes,
-        warning:
-          warnings.length > 0
-            ? `Two-factor is on, but ${warnings.join(" and ")}.`
-            : null,
+        warning,
       };
     })
   );
@@ -384,8 +390,7 @@ export async function regenerateBackupCodesAction(
       if (factors.length === 0) {
         return yield* Effect.fail(
           new ActionFailure({
-            message:
-              "Set up an authenticator app before generating backup codes.",
+            message: (yield* securityTranslations)("setupBeforeBackupCodes"),
           })
         );
       }
@@ -395,7 +400,7 @@ export async function regenerateBackupCodesAction(
         input.confirmationCode,
         tryDb(
           () => replaceBackupCodes(context.localUserId),
-          "Couldn't generate backup codes. Please try again."
+          (yield* securityTranslations)("backupCodesFailed")
         )
       );
       yield* trackSecurityEvent(
@@ -422,7 +427,7 @@ export async function removeAuthFactorAction(
       if (!factors.some((factor) => factor.id === input.factorId)) {
         return yield* Effect.fail(
           new ActionFailure({
-            message: "That authentication method no longer exists.",
+            message: (yield* securityTranslations)("factorMissing"),
           })
         );
       }

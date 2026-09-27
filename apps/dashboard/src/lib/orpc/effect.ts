@@ -4,12 +4,12 @@ import { internalServerError } from "@/lib/orpc/utils/errors";
 
 export async function runOrpcEffect<A, E>(
   effect: Effect.Effect<A, E>,
-  toOrpcError: (failure: E) => Error
+  toOrpcError: (failure: E) => Error | Promise<Error>
 ): Promise<A> {
   const outcome = await Effect.runPromise(Effect.result(effect));
 
   if (outcome._tag === "Failure") {
-    throw toOrpcError(outcome.failure);
+    throw await toOrpcError(outcome.failure);
   }
 
   return outcome.success;

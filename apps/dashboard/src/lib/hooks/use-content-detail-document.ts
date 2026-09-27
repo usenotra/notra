@@ -5,6 +5,7 @@ import { isGeoBriefMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markd
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -60,6 +61,9 @@ export function useContentDetailDocument({
   contentId,
   data,
 }: UseContentDetailDocumentParams) {
+  const tToast = useTranslations("content.toasts");
+  const tContentShared = useTranslations("content.shared");
+  const tCommon = useTranslations("common.actions");
   const queryClient = useQueryClient();
 
   const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
@@ -297,17 +301,14 @@ export function useContentDetailDocument({
         needsNormalizationRef.current = true;
         setEditorKey((key) => key + 1);
       } catch {
-        toast.error(
-          "Couldn't refresh the article. Showing the cached content.",
-          {
-            action: {
-              label: "Retry",
-              onClick: () => {
-                refreshGeoArticle();
-              },
+        toast.error(tToast("refreshArticleFailed"), {
+          action: {
+            label: tCommon("retry"),
+            onClick: () => {
+              refreshGeoArticle();
             },
-          }
-        );
+          },
+        });
       }
       setLoadedArticleBriefId(geoWriterDraft?.briefId ?? null);
     },
@@ -320,6 +321,8 @@ export function useContentDetailDocument({
       setEditingSlugState,
       setEditingTitleState,
       setPersistedSlug,
+      tToast,
+      tCommon,
     ]
   );
 
@@ -429,14 +432,14 @@ export function useContentDetailDocument({
               }
             );
             markClean();
-            toast.success("Pull request updated", {
+            toast.success(tContentShared("pullRequestUpdated"), {
               position: CONTENT_SAVE_TOAST_POSITION,
             });
           } catch (error) {
             const message =
               error instanceof Error && error.message
                 ? error.message
-                : "Couldn't update the linked pull request";
+                : tToast("updatePullRequestFailed");
             toast.error(message, {
               position: CONTENT_SAVE_TOAST_POSITION,
             });
@@ -447,7 +450,7 @@ export function useContentDetailDocument({
         } else {
           markClean();
           if (!silent) {
-            toast.success("Content saved", {
+            toast.success(tToast("contentSaved"), {
               position: CONTENT_SAVE_TOAST_POSITION,
             });
           }
@@ -455,9 +458,12 @@ export function useContentDetailDocument({
         setIsSaving(false);
         return true;
       } catch (error) {
-        toast.error(getSaveContentDetailErrorMessage(error), {
-          position: CONTENT_SAVE_TOAST_POSITION,
-        });
+        toast.error(
+          getSaveContentDetailErrorMessage(error, tToast("saveContentFailed")),
+          {
+            position: CONTENT_SAVE_TOAST_POSITION,
+          }
+        );
         setSaveFailed(true);
         setIsSaving(false);
         return false;
@@ -480,6 +486,7 @@ export function useContentDetailDocument({
       setPersistedTitle,
       linkedGitHubPublish,
       data?.content?.contentType,
+      tToast,
     ]
   );
 
@@ -548,10 +555,10 @@ export function useContentDetailDocument({
         currentStatus,
       });
     } catch {
-      toast.error("Failed to update post status");
+      toast.error(tToast("updatePostStatusFailed"));
     }
     setIsTogglingStatus(false);
-  }, [data?.content?.status, organizationId, contentId, queryClient]);
+  }, [data?.content?.status, organizationId, contentId, queryClient, tToast]);
 
   const handleEditorChange = useCallback((markdown: string) => {
     if (
@@ -600,21 +607,21 @@ export function useContentDetailDocument({
   const resolvePlanConflictLoadLatest = useCallback(async () => {
     const result = await geoWriterBriefQuery.refetch();
     if (result.isError) {
-      toast.error("Failed to load the latest plan");
+      toast.error(tToast("loadLatestPlanFailed"));
       return;
     }
     setPlanEditorVersion((version) => version + 1);
     setHasPlanConflict(false);
-  }, [geoWriterBriefQuery]);
+  }, [geoWriterBriefQuery, tToast]);
 
   const resolvePlanConflictSaveMine = useCallback(async () => {
     const result = await geoWriterBriefQuery.refetch();
     if (result.isError) {
-      toast.error("Failed to refresh the plan");
+      toast.error(tToast("refreshPlanFailed"));
       return;
     }
     setHasPlanConflict(false);
-  }, [geoWriterBriefQuery]);
+  }, [geoWriterBriefQuery, tToast]);
 
   return {
     briefStatus,

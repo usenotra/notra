@@ -11,7 +11,7 @@ import type { JSX } from "react";
 
 import { FORMAT_CARD_META } from "@/constants/content-formats";
 
-const OUTPUT_TYPE_LABELS: Record<string, string> = {
+const OUTPUT_TYPE_PROMPT_LABELS: Record<string, string> = {
   changelog: "Changelog",
   blog_post: "Blog Post",
   twitter_post: "Twitter Post",
@@ -20,8 +20,10 @@ const OUTPUT_TYPE_LABELS: Record<string, string> = {
   image: "Image",
 };
 
-export function getOutputTypeLabel(outputType: string): string {
-  return OUTPUT_TYPE_LABELS[outputType] ?? outputType.replaceAll("_", " ");
+export function getOutputTypePromptLabel(outputType: string): string {
+  return (
+    OUTPUT_TYPE_PROMPT_LABELS[outputType] ?? outputType.replaceAll("_", " ")
+  );
 }
 
 const ICON_CLASS_BY_TYPE: Record<string, string> = Object.fromEntries(
@@ -54,18 +56,5 @@ export function OutputTypeIcon({
       return <HugeiconsIcon className={className} icon={Image01Icon} />;
     default:
       return null;
-  }
-}
-
-export function getWebhookEventLabel(eventType: string): string {
-  switch (eventType) {
-    case "release":
-      return "Release published";
-    case "push":
-      return "Push to default branch";
-    case "ping":
-      return "Webhook ping";
-    default:
-      return eventType.replaceAll("_", " ");
   }
 }

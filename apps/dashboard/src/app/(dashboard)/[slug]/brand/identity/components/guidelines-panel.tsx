@@ -4,6 +4,7 @@ import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -16,7 +17,6 @@ import {
   useRefreshBrandGuidelinesAction,
 } from "@/lib/hooks/use-brand-guidelines";
 import type { GuidelinesPanelProps } from "@/types/brand-identity";
-import { formatRelativeTime } from "@/utils/format";
 
 import { GuidelinesAssetsSection } from "./guidelines-assets-section";
 import { GuidelinesColorsSection } from "./guidelines-colors-section";
@@ -28,6 +28,11 @@ export function GuidelinesPanel({
   organizationId,
   voiceId,
 }: GuidelinesPanelProps) {
+  const t = useTranslations("brand.guidelines.panel");
+  const tCommon2 = useTranslations("common");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
+  const format = useFormatter();
   const { data, isError, isPending, refetch } = useBrandGuidelines(
     organizationId,
     voiceId
@@ -46,12 +51,11 @@ export function GuidelinesPanel({
       return;
     }
 
-    toast.error("Guideline generation failed", {
-      description:
-        generationError ?? "Something went wrong while generating guidelines.",
+    toast.error(t("generationFailed"), {
+      description: generationError ?? t("generationFailedDescription"),
       id: "brand-guideline-generation-failed",
     });
-  }, [isFailed, generationError]);
+  }, [isFailed, generationError, t]);
 
   if (isPending) {
     return (
@@ -73,10 +77,10 @@ export function GuidelinesPanel({
     return (
       <EmptyState
         actionIcon={<HugeiconsIcon className="size-4" icon={Refresh03Icon} />}
-        actionLabel="Retry"
-        description="We couldn't load this brand identity's guidelines."
+        actionLabel={tCommon("retry")}
+        description={t("loadErrorDescription")}
         onActionClick={() => refetch()}
-        title="Guidelines unavailable"
+        title={t("loadErrorTitle")}
       />
     );
   }
@@ -93,12 +97,12 @@ export function GuidelinesPanel({
             ) : (
               <HugeiconsIcon className="size-4" icon={SparklesIcon} />
             )}
-            {isRefreshBusy ? "Generating…" : "Generate Guidelines"}
+            {isRefreshBusy ? tCommon2("labels.generating") : t("generate")}
           </Button>
         }
-        description="Brand guidelines have not been generated yet. Generate them to pull logos, colors, typography, and landing page screenshots from your website."
+        description={t("emptyDescription")}
         preview={<EmptyStateGuidelinesPreview />}
-        title="No guidelines yet"
+        title={t("emptyTitle")}
       />
     );
   }
@@ -116,7 +120,7 @@ export function GuidelinesPanel({
         <div className="flex items-center justify-between gap-3">
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
             <Loader2Icon className="size-4 animate-spin" />
-            Generating guidelines…
+            {t("generatingGuidelines")}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -133,13 +137,15 @@ export function GuidelinesPanel({
       {isGenerating ? (
         <p className="text-muted-foreground flex items-center justify-end gap-2 text-xs">
           <Loader2Icon className="size-3 animate-spin" />
-          Updating guidelines…
+          {t("updatingGuidelines")}
         </p>
       ) : null}
 
       {guideline.lastGeneratedAt && !isGenerating ? (
         <p className="text-muted-foreground text-right text-xs">
-          Updated {formatRelativeTime(new Date(guideline.lastGeneratedAt))}
+          {t("updatedAt", {
+            time: format.relativeTime(new Date(guideline.lastGeneratedAt)),
+          })}
         </p>
       ) : null}
 
@@ -185,12 +191,14 @@ export function GuidelinesPanel({
               ) : (
                 <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
               )}
-              {isRefreshBusy ? "Refreshing…" : "Refresh Guidelines"}
+              {isRefreshBusy
+                ? tCommon2("labels.refreshing")
+                : tBrandShared("refreshGuidelines")}
             </Button>
           }
-          description="No brand assets were detected for this identity yet. Refresh to pull the latest logos, colors, and screenshots."
+          description={t("noAssetsDescription")}
           preview={<EmptyStateGuidelinesPreview />}
-          title="Guidelines are empty"
+          title={t("noAssetsTitle")}
         />
       )}
     </div>

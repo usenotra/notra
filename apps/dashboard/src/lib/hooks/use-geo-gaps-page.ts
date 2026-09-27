@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  GEO_PROMPT_GAP_IGNORED_TOAST,
-  GEO_PROMPT_GAP_RESTORED_TOAST,
-  GEO_SEARCH_GAP_DISMISSED_TOAST,
-} from "@notra/geo-core/constants/geo";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -36,6 +32,7 @@ import {
 } from "@/utils/geo-write-entry";
 
 export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
+  const tToast = useTranslations("geo.toasts");
   const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
@@ -112,9 +109,9 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
           } catch {
             return;
           }
-          toast.success(GEO_PROMPT_GAP_IGNORED_TOAST, {
+          toast.success(tToast("gapIgnored"), {
             action: {
-              label: "Undo",
+              label: tToast("undo"),
               onClick: async () => {
                 try {
                   await ignoreGap.mutateAsync({
@@ -124,7 +121,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
                 } catch {
                   return;
                 }
-                toast.success(GEO_PROMPT_GAP_RESTORED_TOAST);
+                toast.success(tToast("gapRestored"));
               },
             },
           });
@@ -152,7 +149,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             { suggestionId: row.id },
             {
               onSuccess: () => {
-                toast.success(GEO_SEARCH_GAP_DISMISSED_TOAST);
+                toast.success(tToast("searchGapDismissed"));
               },
             }
           );

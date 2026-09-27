@@ -2,12 +2,11 @@
 
 import {
   GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES,
-  GEO_FAMILY_STAT_TREND_HINT,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -46,11 +45,16 @@ export function ShareOfVoiceTable({
   aliases,
   ownDomain,
 }: ShareOfVoiceTableProps) {
+  const t = useTranslations("geo.shareOfVoiceTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const rows = buildShareOfVoiceRows(points, {
     limit,
     competitors,
     companyName,
     aliases,
+    otherLabel: tGeoShared("otherBrands"),
   });
   const mentionSparklines = useMemo(
     () => buildShareOfVoiceMentionSparklines(timeseries, rows, competitors),
@@ -65,7 +69,7 @@ export function ShareOfVoiceTable({
   const columns: TableColumn<ShareOfVoiceRow>[] = [
     {
       key: "brand",
-      header: "Brand",
+      header: tCommon("labels.brand"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
@@ -91,7 +95,7 @@ export function ShareOfVoiceTable({
     },
     {
       key: "share",
-      header: "Share",
+      header: tGeoShared("share"),
       width: "1.3fr",
       sortable: true,
       sortValue: (row) => row.share,
@@ -123,7 +127,7 @@ export function ShareOfVoiceTable({
     },
     {
       key: "mentions",
-      header: "Mentions",
+      header: tGeoShared("mentionsLabel"),
       collapsePriority: 1,
       width: "10.5rem",
       sortable: true,
@@ -133,12 +137,12 @@ export function ShareOfVoiceTable({
         return (
           <span className="flex items-center gap-2">
             <span className="w-12 shrink-0 text-right text-sm tabular-nums">
-              {row.mentions.toLocaleString()}
+              {row.mentions.toLocaleString(locale)}
             </span>
             <GeoStatDelta
               delta={mentionCountDelta(series)}
-              hint={GEO_FAMILY_STAT_TREND_HINT}
-              label={`${row.brand} mentions`}
+              hint={tGeoShared("vsFirstHalfOfThis")}
+              label={tGeoShared("brandMentions", { brand: row.brand })}
             />
           </span>
         );
@@ -146,7 +150,7 @@ export function ShareOfVoiceTable({
     },
     {
       key: "trend",
-      header: "Trend",
+      header: tGeoShared("trendLabel"),
       collapsePriority: 2,
       width: "5.5rem",
       cell: (row) => {
@@ -166,7 +170,7 @@ export function ShareOfVoiceTable({
           <GeoRateSparkline
             className={own ? "text-primary" : undefined}
             color={own ? undefined : color.light}
-            label={`${row.brand} share of voice trend`}
+            label={t("trendLabel", { brand: row.brand })}
             points={row.trend}
           />
         );
@@ -179,10 +183,11 @@ export function ShareOfVoiceTable({
       <InstrumentEmpty
         busy={isScanning}
         className="h-full"
-        message={geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see your share of voice"
-        )}
+        message={
+          isScanning
+            ? tGeoShared("scanningEngines")
+            : tGeoShared("runAScanToSeeShareOfVoice")
+        }
         preview={
           <div className="px-4 pt-2">
             <EmptyStateTablePreview
@@ -202,7 +207,7 @@ export function ShareOfVoiceTable({
       columns={columns}
       data={rows}
       defaultSort={{ key: "share", direction: "desc" }}
-      emptyState="No competitor data yet"
+      emptyState={t("empty")}
       getRowId={(row) => row.id}
       height={GEO_VISIBILITY_TABLE_HEIGHT}
       minHeight={GEO_VISIBILITY_TABLE_HEIGHT}

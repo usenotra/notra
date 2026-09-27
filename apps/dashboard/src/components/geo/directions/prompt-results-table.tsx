@@ -2,6 +2,7 @@
 
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
@@ -22,8 +23,14 @@ import { directionPositionTone } from "@/utils/geo-directions";
 import { tableHeightFor } from "@/utils/table";
 
 function PositionCell({ position }: DirectionPositionCellProps) {
+  const tGeoShared = useTranslations("geo.shared");
+
   if (position === null) {
-    return <span className="text-muted-foreground text-xs">Not mentioned</span>;
+    return (
+      <span className="text-muted-foreground text-xs">
+        {tGeoShared("notMentioned")}
+      </span>
+    );
   }
 
   return (
@@ -46,11 +53,13 @@ function positionFor(row: GeoDirectionPrompt, engine: string): number | null {
 }
 
 export function PromptResultsTable({ className }: PromptResultsTableProps) {
+  const t = useTranslations("geo.directions.promptResultsTable");
+  const tGeoShared = useTranslations("geo.shared");
   const columns = useMemo<TableColumn<GeoDirectionPrompt>[]>(
     () => [
       {
         key: "prompt",
-        header: "Prompt",
+        header: tGeoShared("prompt"),
         width: "1fr",
         sortable: true,
         cell: (row) => (
@@ -79,19 +88,23 @@ export function PromptResultsTable({ className }: PromptResultsTableProps) {
         })
       ),
     ],
-    []
+    [t]
   );
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="text-muted-foreground flex items-center justify-between px-1 text-xs">
-        <span>{GEO_DIRECTIONS_PROMPTS.length.toLocaleString()} prompts</span>
+        <span>
+          {tGeoShared("countPluralOnePromptOther", {
+            count: GEO_DIRECTIONS_PROMPTS.length,
+          })}
+        </span>
       </div>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={[...GEO_DIRECTIONS_PROMPTS]}
-        emptyState="No prompt results yet"
+        emptyState={t("noResults")}
         getRowId={(row) => row.promptId}
         height={tableHeightFor(GEO_DIRECTIONS_PROMPTS.length)}
         resizable

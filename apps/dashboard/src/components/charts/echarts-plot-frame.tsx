@@ -3,6 +3,7 @@
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { tween } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
 
 import { ChartDownloadButton } from "@/components/charts/chart-download-button";
@@ -57,6 +58,7 @@ export function EChartsPlotFrame({
   plotBefore,
   children,
 }: EChartsPlotFrameProps) {
+  const tCommon = useTranslations("common");
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -81,7 +83,7 @@ export function EChartsPlotFrame({
             transition={tween("slow")}
           >
             <div className="border-border border-t-primary h-3 w-3 animate-spin rounded-full border" />
-            <span>Loading</span>
+            <span>{tCommon("states.loading")}</span>
           </motion.div>
         </div>
       ) : null}

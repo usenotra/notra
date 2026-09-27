@@ -2,6 +2,7 @@
 
 import { Input } from "@notra/ui/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,11 +11,15 @@ import { GitHubWebhookRotationDialog } from "@/components/integrations/github/gi
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GitHubWebhookSettingsProps } from "@/types/integrations/github";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
+import { isNotFoundError } from "@/utils/orpc-errors";
 
 export function GitHubWebhookSettings({
   repository,
   organizationId,
 }: GitHubWebhookSettingsProps) {
+  const t = useTranslations("integrations.github.webhookSettings");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const urlId = useId();
   const secretId = useId();
@@ -38,7 +43,7 @@ export function GitHubWebhookSettings({
           input,
         }),
       });
-      toast.success("Webhook secret generated. Update it in GitHub.");
+      toast.success(t("secretGenerated"));
     },
     onError: (error) => toast.error(error.message),
   });
@@ -46,7 +51,7 @@ export function GitHubWebhookSettings({
   if (config.isPending) {
     return (
       <p className="text-muted-foreground text-sm" role="status">
-        Loading webhook settings…
+        {t("loading")}
       </p>
     );
   }
@@ -57,21 +62,22 @@ export function GitHubWebhookSettings({
           className="text-muted-foreground text-sm"
           role={config.isError ? "alert" : undefined}
         >
-          {config.error?.message ?? "No webhook configured."}
+          {config.error && !isNotFoundError(config.error)
+            ? config.error.message
+            : t("notConfigured")}
         </p>
-        {config.error?.message === "Webhook not configured" ||
-        !config.isError ? (
+        {isNotFoundError(config.error) || !config.isError ? (
           <Button
             size="sm"
             variant="outline"
             disabled={generate.isPending}
             onClick={() => generate.mutate()}
           >
-            Generate webhook secret
+            {t("generate")}
           </Button>
         ) : (
           <Button size="sm" variant="outline" onClick={() => config.refetch()}>
-            Retry
+            {tCommon("actions.retry")}
           </Button>
         )}
       </div>
@@ -83,7 +89,7 @@ export function GitHubWebhookSettings({
     <div className="max-w-3xl space-y-4">
       <div className="space-y-1.5">
         <label className="text-sm font-medium" htmlFor={urlId}>
-          Payload URL
+          {tIntegrationsShared("payloadUrl")}
         </label>
         <div className="flex gap-2">
           <Input
@@ -96,16 +102,16 @@ export function GitHubWebhookSettings({
             variant="outline"
             size="sm"
             onClick={() =>
-              copyTextToClipboard(webhook.webhookUrl, "Webhook URL copied")
+              copyTextToClipboard(webhook.webhookUrl, t("urlCopied"))
             }
           >
-            Copy URL
+            {tCommon("labels.copyUrl")}
           </Button>
         </div>
       </div>
       <div className="space-y-1.5">
         <label className="text-sm font-medium" htmlFor={secretId}>
-          Secret
+          {tIntegrationsShared("secret")}
         </label>
         <div className="flex flex-wrap gap-2">
           <Input
@@ -121,19 +127,16 @@ export function GitHubWebhookSettings({
             aria-pressed={revealed}
             onClick={() => setRevealed(!revealed)}
           >
-            {revealed ? "Hide" : "Show"}
+            {revealed ? t("hide") : t("show")}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() =>
-              copyTextToClipboard(
-                webhook.webhookSecret,
-                "Webhook secret copied"
-              )
+              copyTextToClipboard(webhook.webhookSecret, t("secretCopied"))
             }
           >
-            Copy secret
+            {t("copySecret")}
           </Button>
         </div>
       </div>
@@ -144,7 +147,7 @@ export function GitHubWebhookSettings({
           disabled={generate.isPending}
           onClick={() => setConfirmOpen(true)}
         >
-          Regenerate secret
+          {tIntegrationsShared("regenerateSecret")}
         </Button>
         <a
           className="text-sm underline underline-offset-4"
@@ -152,7 +155,7 @@ export function GitHubWebhookSettings({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Open GitHub webhooks
+          {t("openGitHub")}
         </a>
       </div>
       <GitHubWebhookRotationDialog

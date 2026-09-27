@@ -1,6 +1,7 @@
 "use client";
 
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
@@ -18,11 +19,13 @@ import { tableHeightFor } from "@/utils/table";
 const MAX_RATE = 1;
 
 export function DirectionEngineBars({ className }: DirectionBlockProps) {
+  const t = useTranslations("geo.directions.labels");
+  const tGeoShared = useTranslations("geo.shared");
   const columns = useMemo<TableColumn<GeoDirectionEngineRow>[]>(
     () => [
       {
         key: "label",
-        header: "Engine",
+        header: tGeoShared("engine"),
         width: "1fr",
         sortable: true,
         cell: (row) => (
@@ -34,14 +37,14 @@ export function DirectionEngineBars({ className }: DirectionBlockProps) {
       },
       {
         key: "bar",
-        header: "Mention rate",
+        header: t("mentionRate"),
         width: "1.4fr",
         cell: (row) => <GeoBar max={MAX_RATE} value={row.rate} />,
         sortValue: (row) => row.rate,
       },
       {
         key: "rate",
-        header: "Rate",
+        header: t("rate"),
         width: "6rem",
         sortable: true,
         cell: (row) => (
@@ -51,20 +54,22 @@ export function DirectionEngineBars({ className }: DirectionBlockProps) {
         ),
       },
     ],
-    []
+    [t]
   );
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="text-muted-foreground flex items-center justify-between px-1 text-xs">
-        <span>{GEO_DIRECTIONS_ENGINES.length.toLocaleString()} engines</span>
+        <span>
+          {t("enginesCount", { count: GEO_DIRECTIONS_ENGINES.length })}
+        </span>
       </div>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={[...GEO_DIRECTIONS_ENGINES]}
         defaultSort={{ key: "rate", direction: "desc" }}
-        emptyState="No engines scanned yet"
+        emptyState={t("noEngines")}
         getRowId={(row) => row.engine}
         height={tableHeightFor(GEO_DIRECTIONS_ENGINES.length)}
         resizable

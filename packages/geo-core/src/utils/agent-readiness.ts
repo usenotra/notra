@@ -181,20 +181,10 @@ export function getAgentReadinessScoreBand(
   score: number
 ): AgentReadinessScoreBand {
   if (score >= AGENT_READINESS_GREAT_THRESHOLD) {
-    return { key: "great", label: "Great" };
+    return { key: "great" };
   }
   if (score >= AGENT_READINESS_NEEDS_IMPROVEMENT_THRESHOLD) {
-    return { key: "needs-improvement", label: "Needs improvement" };
+    return { key: "needs-improvement" };
   }
-  return { key: "poor", label: "Poor" };
-}
-
-export function formatAgentReadinessDate(value: string): string {
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return { key: "poor" };
 }

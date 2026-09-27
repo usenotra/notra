@@ -1,5 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import { startGitHubInstall } from "@/lib/integrations/github/install";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
 export function useGitHubSettings(organizationSlug: string) {
+  const t = useTranslations("integrations.github.toasts");
   const { getOrganization, isLoading: isLoadingOrganizations } =
     useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
@@ -85,7 +87,7 @@ export function useGitHubSettings(organizationSlug: string) {
     const callbackPath = pathname || `/${organizationSlug}/integrations/github`;
     const result = await startGitHubInstall({ organizationId, callbackPath });
     if (!result.started) {
-      toast.error("Failed to start GitHub install");
+      toast.error(t("installFailed"));
     }
   };
   const migrationMutation = useGitHubRepositoryMigration(
@@ -111,9 +113,9 @@ export function useGitHubSettings(organizationSlug: string) {
           queryKey: dashboardOrpc.integrations.key(),
         }),
       ]);
-      toast.success("GitHub disconnected");
+      toast.success(t("disconnected"));
     },
-    onError: () => toast.error("Failed to disconnect GitHub"),
+    onError: () => toast.error(t("disconnectFailed")),
   });
   const handleOpenConnect = () => setConnectOpen(true);
   const handleOpenRepositories = (accountId?: string) => {

@@ -1,10 +1,10 @@
 export const COMMENT_REACTIONS = [
-  { emoji: "❤️", label: "Heart" },
-  { emoji: "🔥", label: "Fire" },
-  { emoji: "👍", label: "Thumbs up" },
-  { emoji: "👎", label: "Thumbs down" },
-  { emoji: "👀", label: "Eyes" },
-  { emoji: "👑", label: "Crown" },
+  { emoji: "❤️", key: "heart" },
+  { emoji: "🔥", key: "fire" },
+  { emoji: "👍", key: "thumbsUp" },
+  { emoji: "👎", key: "thumbsDown" },
+  { emoji: "👀", key: "eyes" },
+  { emoji: "👑", key: "crown" },
 ] as const;
 
 export const COMMENT_REPLY_PREVIEW_COUNT = 3;

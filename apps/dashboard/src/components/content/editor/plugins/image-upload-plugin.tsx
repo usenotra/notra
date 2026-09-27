@@ -14,6 +14,7 @@ import {
   type LexicalNode,
   PASTE_COMMAND,
 } from "lexical";
+import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -27,11 +28,14 @@ import { CONTENT_IMAGE_MIME_EXTENSIONS } from "@/constants/content-image";
 import { CONTENT_MEDIA } from "@/constants/content-media";
 import { CONTENT_VIDEO_MIME_EXTENSIONS } from "@/constants/content-video";
 import { uploadContentMedia } from "@/lib/upload/client";
-import type { ContentDropPoint, ContentMediaKind } from "@/types/content/media";
+import type {
+  ContentDropPoint,
+  ContentMediaKind,
+  UploadTranslator,
+} from "@/types/content/media";
 import { contentDropCaret } from "@/utils/content-drop-caret";
 import {
   contentImageMaxBytes,
-  contentImageTooLargeMessage,
   guessContentImageMime,
 } from "@/utils/content-image-size";
 import { placeContentBlock } from "@/utils/content-place-block";
@@ -115,7 +119,9 @@ function kindForFile(file: File) {
   return CONTENT_MEDIA_KINDS.find((kind) => EDITOR_MEDIA[kind].matches(file));
 }
 
-function queuedMedia(files: File[]) {
+const BYTES_PER_MEGABYTE = 1024 * 1024;
+
+function queuedMedia(files: File[], t: UploadTranslator) {
   const jobs: { file: File; kind: ContentMediaKind }[] = [];
   for (const file of files) {
     const kind = kindForFile(file);
@@ -125,11 +131,20 @@ function queuedMedia(files: File[]) {
     if (kind === "image") {
       const mime = guessContentImageMime(file);
       if (file.size > contentImageMaxBytes(mime)) {
-        toast.error(contentImageTooLargeMessage(mime));
+        const maxMb = contentImageMaxBytes(mime) / BYTES_PER_MEGABYTE;
+        toast.error(
+          mime === "image/gif" || mime === "image/avif"
+            ? t("animatedTooLarge", { maxMb })
+            : t("imageTooLarge", { maxMb })
+        );
         continue;
       }
     } else if (file.size > CONTENT_MEDIA[kind].maxBytes) {
-      toast.error(CONTENT_MEDIA[kind].tooLarge);
+      toast.error(
+        t("videoTooLarge", {
+          maxMb: CONTENT_MEDIA[kind].maxBytes / BYTES_PER_MEGABYTE,
+        })
+      );
       continue;
     }
     jobs.push({ file, kind });
@@ -141,15 +156,16 @@ async function insertUploadedFiles(
   editor: LexicalEditor,
   jobs: { file: File; kind: ContentMediaKind }[],
   afterKey: string | null,
+  failedMessage: string,
   dropPoint?: ContentDropPoint
 ) {
   const uploaded = await Promise.all(
     jobs.map(async ({ file, kind }) => {
       try {
-        const { url } = await uploadContentMedia(file, kind);
+        const { url } = await uploadContentMedia(file, kind, failedMessage);
         return { file, kind, url };
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Upload failed");
+        toast.error(error instanceof Error ? error.message : failedMessage);
         return null;
       }
     })
@@ -173,6 +189,8 @@ async function insertUploadedFiles(
 
 // Keep media insertion bound to the editor's own selection and drop target when an agent is also open.
 export function ImageUploadPlugin() {
+  const t = useTranslations("content.editor.upload");
+  const tCommon = useTranslations("common");
   const [editor] = useLexicalComposerContext();
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const anchorKeyRef = useRef<string | null>(null);
@@ -252,7 +270,7 @@ export function ImageUploadPlugin() {
       pendingRef.current.push({ files, afterKey, dropPoint });
       return;
     }
-    const jobs = queuedMedia(files);
+    const jobs = queuedMedia(files, t);
     const startNext = () => {
       const next = pendingRef.current.shift();
       if (next) {
@@ -264,8 +282,14 @@ export function ImageUploadPlugin() {
       return;
     }
     uploadingRef.current = true;
-    const toastId = toast.loading("Uploading…");
-    void insertUploadedFiles(editor, jobs, afterKey, dropPoint)
+    const toastId = toast.loading(t("uploading"));
+    void insertUploadedFiles(
+      editor,
+      jobs,
+      afterKey,
+      tCommon("labels.uploadFailed"),
+      dropPoint
+    )
       .then((lastKey) => {
         if (lastKey === afterKey) {
           return;

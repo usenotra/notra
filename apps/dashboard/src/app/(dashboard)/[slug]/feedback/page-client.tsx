@@ -19,6 +19,7 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AgentFeedbackDetailDialog } from "@/components/agent-feedback/feedback-detail-dialog";
@@ -35,6 +36,7 @@ import {
   useAgentFeedbackList,
   useAgentFeedbackUpdateStatus,
 } from "@/lib/hooks/use-agent-feedback";
+import { useAgentFeedbackStatusLabels } from "@/lib/hooks/use-agent-feedback-labels";
 import type {
   AgentFeedbackItem,
   AgentFeedbackPageClientProps,
@@ -52,6 +54,8 @@ const FEEDBACK_CONFETTI_COLORS = [
 ];
 
 export default function PageClient(_props: AgentFeedbackPageClientProps) {
+  const t = useTranslations("feedback");
+  const tCommon2 = useTranslations("common");
   const reduceMotion = useReducedMotion();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
@@ -134,8 +138,8 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
         )}
       >
         <PageHeading
-          description="What AI agents are saying about your product."
-          title="Feedback"
+          description={t("page.description")}
+          title={tCommon2("labels.feedback")}
         >
           {organizationId && !showEmptyState ? (
             <AgentFeedbackSetupDialog organizationId={organizationId} />
@@ -233,6 +237,8 @@ function FeedbackList({
   showEmptyState: boolean;
   statusFilter: AgentFeedbackStatusFilter;
 }) {
+  const tCommon = useTranslations("common");
+  const statusLabels = useAgentFeedbackStatusLabels();
   if (showEmptyState) {
     return <AgentFeedbackEmpty organizationId={organizationId} />;
   }
@@ -241,7 +247,7 @@ function FeedbackList({
     <>
       <PermissionRow
         className="w-fit shrink-0"
-        label="Filter by status"
+        label={tCommon("labels.filterByStatus")}
         layout="compact"
         onValueChange={(value) => {
           if (isAgentFeedbackStatusFilter(value)) {
@@ -254,7 +260,9 @@ function FeedbackList({
           const count = countFor(filter.value);
           return (
             <PermissionOption key={filter.value} value={filter.value}>
-              {filter.label}
+              {filter.value === "all"
+                ? tCommon("labels.all")
+                : statusLabels[filter.value]}
               {count !== null ? (
                 <span className="text-xs tabular-nums opacity-70">{count}</span>
               ) : null}
@@ -287,7 +295,7 @@ function FeedbackList({
             {isFetchingNextPage ? (
               <Loader2Icon className="size-4 animate-spin" />
             ) : null}
-            Load more
+            {tCommon("actions.loadMore")}
           </Button>
         </div>
       ) : null}
@@ -327,6 +335,8 @@ function FeedbackDeleteDialog({
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useTranslations("feedback.delete");
+  const tCommon = useTranslations("common");
   return (
     <ResponsiveAlertDialog
       onOpenChange={onOpenChange}
@@ -334,18 +344,16 @@ function FeedbackDeleteDialog({
     >
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            Delete feedback?
-          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            This will permanently delete &quot;
-            {deleteCandidate?.title ?? deleteCandidate?.message}&quot;. This
-            action cannot be undone.
+            {t("description", {
+              name: deleteCandidate?.title ?? deleteCandidate?.message ?? "",
+            })}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isPending}>
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             disabled={isPending}
@@ -355,7 +363,7 @@ function FeedbackDeleteDialog({
             }}
             variant="destructive"
           >
-            {isPending ? "Deleting..." : "Delete"}
+            {isPending ? tCommon("labels.deleting") : tCommon("actions.delete")}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>

@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { ContentDataPointSettings } from "@notra/schemas/dashboard/content";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { cn } from "@notra/ui/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import type { RepositoryPreview } from "@/types/content/preview";
@@ -37,6 +38,8 @@ export function RepoSection({
   onTogglePr,
   onToggleRelease,
 }: RepoSectionProps) {
+  const t = useTranslations("content.create.stepActivity");
+  const locale = useLocale();
   const showCommits = dataPoints.includeCommits && repo.commits.length > 0;
   const showPrs =
     dataPoints.includePullRequests && repo.pullRequests.length > 0;
@@ -133,7 +136,7 @@ export function RepoSection({
               <EventRow
                 key={releaseKey}
                 label={release.name || release.tagName}
-                meta={`${release.authorLogin} · ${formatEventDate(release.publishedAt)}${release.prerelease ? " · pre-release" : ""}`}
+                meta={`${release.authorLogin} · ${formatEventDate(release.publishedAt, locale)}${release.prerelease ? ` · ${t("preRelease")}` : ""}`}
                 onToggle={() => onToggleRelease(releaseKey)}
                 selected={selectedReleaseKeys.has(releaseKey)}
                 type="Release"
@@ -150,7 +153,7 @@ export function RepoSection({
               <EventRow
                 key={prKey}
                 label={`#${pr.number} ${pr.title}`}
-                meta={`${pr.authorLogin} · ${pr.mergedAt ? formatEventDate(pr.mergedAt) : ""}`}
+                meta={`${pr.authorLogin} · ${pr.mergedAt ? formatEventDate(pr.mergedAt, locale) : ""}`}
                 onToggle={() => onTogglePr(prKey)}
                 selected={selectedPrKeys.has(prKey)}
                 type="PR"
@@ -162,7 +165,7 @@ export function RepoSection({
             <EventRow
               key={commit.sha}
               label={commit.message}
-              meta={`${commit.authorLogin ?? commit.authorName} · ${commit.authoredAt ? formatEventDate(commit.authoredAt) : ""} · ${commit.sha.slice(0, 7)}`}
+              meta={`${commit.authorLogin ?? commit.authorName} · ${commit.authoredAt ? formatEventDate(commit.authoredAt, locale) : ""} · ${commit.sha.slice(0, 7)}`}
               onToggle={() => onToggleCommit(commit.sha)}
               selected={selectedCommitKeys.has(commit.sha)}
               type="Commit"

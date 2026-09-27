@@ -1,4 +1,5 @@
-import { ANALYTICS_UNAVAILABLE_DESCRIPTION } from "@/constants/analytics";
+import { getTranslations } from "next-intl/server";
+
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
@@ -37,6 +38,7 @@ async function assertAnalyticsEnabled(
   }
   const enabled = await evaluation;
   if (!enabled) {
-    throw forbidden(ANALYTICS_UNAVAILABLE_DESCRIPTION);
+    const t = await getTranslations("errors.analytics");
+    throw forbidden(t("unavailable"));
   }
 }

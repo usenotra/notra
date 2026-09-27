@@ -11,6 +11,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,6 +37,9 @@ export function GeoProjectCreateDialog({
   organizationId,
   onCreated,
 }: GeoProjectCreateDialogProps) {
+  const t = useTranslations("geo.projectCreateDialog");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const id = useId();
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
@@ -74,11 +78,11 @@ export function GeoProjectCreateDialog({
       return;
     }
     if (!websiteUrl || !name.trim()) {
-      setError("Enter a valid website and a project name.");
+      setError(t("invalidInput"));
       return;
     }
     if (!brandQuery.isSuccess || (matches.length > 1 && !selectedIdentity)) {
-      setError("Choose a brand identity for this website before continuing.");
+      setError(t("chooseIdentity"));
       return;
     }
 
@@ -105,9 +109,7 @@ export function GeoProjectCreateDialog({
         await analyzeIdentity
           .mutateAsync({ url: websiteUrl, voiceId: brandSettingsId })
           .catch(() => {
-            toast.error(
-              "Project created, but brand analysis could not start. Retry from Brand Identity."
-            );
+            toast.error(t("analysisFailed"));
           });
       }
       reset();
@@ -115,7 +117,9 @@ export function GeoProjectCreateDialog({
       onCreated(project.id);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "Failed to create project"
+        cause instanceof Error
+          ? cause.message
+          : tCommon2("labels.failedToCreateProject")
       );
     }
     setIsSubmitting(false);
@@ -136,10 +140,11 @@ export function GeoProjectCreateDialog({
     >
       <ResponsiveDialogContent className="sm:max-w-sm">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>New project</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tCommon2("labels.newProject")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Start with the website you want to track. We will find competitors,
-            generate prompts, and start the first scan.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -150,7 +155,9 @@ export function GeoProjectCreateDialog({
           }}
         >
           <div className="space-y-2">
-            <Label htmlFor={`${id}-website`}>Website</Label>
+            <Label htmlFor={`${id}-website`}>
+              {tCommon2("labels.website")}
+            </Label>
             <Input
               autoComplete="url"
               disabled={isSubmitting}
@@ -167,7 +174,7 @@ export function GeoProjectCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`${id}-name`}>Project name</Label>
+            <Label htmlFor={`${id}-name`}>{t("nameLabel")}</Label>
             <Input
               disabled={isSubmitting}
               id={`${id}-name`}
@@ -188,13 +195,13 @@ export function GeoProjectCreateDialog({
           ) : null}
           {brandQuery.isError ? (
             <p className="text-destructive text-sm" role="alert">
-              Could not load brand identities.{" "}
+              {t("loadIdentitiesFailed")}{" "}
               <button
                 className="underline"
                 onClick={() => brandQuery.refetch()}
                 type="button"
               >
-                Try again
+                {tCommon("tryAgain")}
               </button>
             </p>
           ) : null}
@@ -205,9 +212,7 @@ export function GeoProjectCreateDialog({
           ) : null}
           {error && createIdentity.isSuccess ? (
             <p className="text-muted-foreground text-sm">
-              The brand identity was saved. Retrying reuses it; its analysis
-              starts after the project is created. You can also manage it in
-              Brand Identity.
+              {t("identitySaved")}
             </p>
           ) : null}
           <ResponsiveDialogFooter>
@@ -220,7 +225,7 @@ export function GeoProjectCreateDialog({
               type="button"
               variant="outline"
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               disabled={isSubmitting || !brandQuery.isSuccess}
@@ -229,7 +234,7 @@ export function GeoProjectCreateDialog({
               {isSubmitting ? (
                 <Loader2Icon className="size-4 animate-spin" />
               ) : null}
-              {isSubmitting ? "Setting up project" : "Create project"}
+              {isSubmitting ? t("settingUp") : t("create")}
             </Button>
           </ResponsiveDialogFooter>
         </form>

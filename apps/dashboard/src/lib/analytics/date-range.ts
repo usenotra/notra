@@ -13,11 +13,6 @@ const DAY_PAD_LENGTH = 2;
 const MAX_TIMELINE_DAYS = 400;
 const CUSTOM_PARAM_REGEX = /^custom_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})$/;
 
-const rangeLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
-
 export function localDayString(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(DAY_PAD_LENGTH, "0");
   const day = String(date.getDate()).padStart(DAY_PAD_LENGTH, "0");
@@ -95,28 +90,6 @@ export function parseRangeParam(
 
 export function serializeCustomRange(range: AnalyticsDateRange): string {
   return `custom_${range.dateFrom}_${range.dateTo}`;
-}
-
-export function rangeLabel(state: AnalyticsRangeState): string {
-  if (state.preset !== "custom") {
-    const preset = ANALYTICS_RANGE_PRESETS.find(
-      (entry) => entry.value === state.preset
-    );
-    return preset?.compact ?? state.preset;
-  }
-  const from = rangeLabelFormatter.format(parseLocalDay(state.range.dateFrom));
-  const to = rangeLabelFormatter.format(parseLocalDay(state.range.dateTo));
-  return from === to ? from : `${from} - ${to}`;
-}
-
-export function rangeHintLabel(state: AnalyticsRangeState): string {
-  if (state.preset === "custom") {
-    return rangeLabel(state);
-  }
-  const preset = ANALYTICS_RANGE_PRESETS.find(
-    (entry) => entry.value === state.preset
-  );
-  return (preset?.label ?? state.preset).toLowerCase();
 }
 
 export function rangeIncludesToday(range: AnalyticsDateRange): boolean {

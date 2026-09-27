@@ -12,6 +12,7 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -25,30 +26,12 @@ interface RaycastSetupGuideDialogProps {
 
 const STEPS = [
   {
-    title: "Install the Notra extension",
-    description:
-      "Open the Raycast Store, search for 'Notra', and install the extension.",
-    link: {
-      label: "View on Raycast Store",
-      href: "https://www.raycast.com/dominikdev/notra",
-    },
+    key: "install",
+    link: { href: "https://www.raycast.com/dominikdev/notra" },
   },
-  {
-    title: "Create a read and write API key",
-    description:
-      "Head to API Keys, create a new key with read and write permissions, and copy it.",
-    internalLink: true,
-  },
-  {
-    title: "Configure the extension",
-    description:
-      "Open Raycast, run any Notra command, and paste your API key when prompted.",
-  },
-  {
-    title: "Start using Notra in Raycast",
-    description:
-      "Search and browse your posts, copy content, and manage workflows — all from Raycast.",
-  },
+  { key: "apiKey", internalLink: true },
+  { key: "configure" },
+  { key: "use" },
 ] as const;
 
 export function RaycastSetupGuideDialog({
@@ -56,6 +39,9 @@ export function RaycastSetupGuideDialog({
   onOpenChange,
   organizationSlug,
 }: RaycastSetupGuideDialogProps) {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("integrations.raycast");
+  const tGuide = useTranslations("integrations.setupGuide");
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
   function toggleStep(index: number) {
@@ -78,10 +64,10 @@ export function RaycastSetupGuideDialog({
             <Raycast className="h-7 w-7" />
             <div>
               <ResponsiveDialogTitle className="text-xl">
-                Raycast setup
+                {t("title")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Access your Notra content from Raycast
+                {t("description")}
               </ResponsiveDialogDescription>
             </div>
           </div>
@@ -94,7 +80,7 @@ export function RaycastSetupGuideDialog({
             return (
               <button
                 className="group hover:bg-muted/60 flex w-full gap-3 rounded-lg p-3 text-left transition-colors"
-                key={step.title}
+                key={step.key}
                 onClick={() => toggleStep(index)}
                 type="button"
               >
@@ -115,10 +101,10 @@ export function RaycastSetupGuideDialog({
                   <p
                     className={`text-sm font-medium ${isCompleted ? "text-muted-foreground" : "text-foreground"}`}
                   >
-                    {step.title}
+                    {t(`steps.${step.key}.title`)}
                   </p>
                   <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-                    {step.description}
+                    {t(`steps.${step.key}.description`)}
                   </p>
                   {"link" in step && step.link ? (
                     <a
@@ -128,7 +114,7 @@ export function RaycastSetupGuideDialog({
                       rel="noopener noreferrer"
                       target="_blank"
                     >
-                      {step.link.label}
+                      {t("linkLabel")}
                       <HugeiconsIcon
                         icon={LinkSquare02Icon}
                         className="h-3 w-3"
@@ -141,7 +127,7 @@ export function RaycastSetupGuideDialog({
                       href={`/${organizationSlug}/api-keys`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Go to API Keys
+                      {tGuide("goToApiKeys")}
                       <HugeiconsIcon
                         icon={LinkSquare02Icon}
                         className="h-3 w-3"
@@ -156,7 +142,7 @@ export function RaycastSetupGuideDialog({
 
         <ResponsiveDialogFooter>
           <ResponsiveDialogClose render={<Button variant="outline" />}>
-            Close
+            {tCommon("actions.close")}
           </ResponsiveDialogClose>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

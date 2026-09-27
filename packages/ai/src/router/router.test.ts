@@ -8,6 +8,7 @@ import {
 } from "@notra/ai/constants/router";
 import type { ZdrMode } from "@notra/ai/types/router";
 
+import { summarizeRouteUsage } from "../utils/route-usage";
 import { createOpenRouterAdapter } from "./adapters/openrouter";
 import { createVercelAdapter } from "./adapters/vercel";
 import {
@@ -90,6 +91,33 @@ function metadataOf(result: { providerMetadata?: Record<string, unknown> }) {
     | Record<string, unknown>
     | undefined;
 }
+
+describe("route usage", () => {
+  test("prices the model served by the gateway instead of the requested model", async () => {
+    const summary = await summarizeRouteUsage(
+      [
+        {
+          providerMetadata: {
+            [ROUTER_METADATA_KEY]: {
+              gateway: "vercel",
+              requestedModel: "openai/gpt-5.6-sol",
+              model: "openai/gpt-5.4-mini",
+              reason: "paid",
+            },
+          },
+          usage: {
+            inputTokens: 100_000,
+            outputTokens: 100_000,
+          },
+        },
+      ],
+      "openai/gpt-5.6-sol"
+    );
+
+    assert.equal(summary.route?.model, "openai/gpt-5.4-mini");
+    assert.equal(summary.tokenCostUsd, 0.525);
+  });
+});
 
 describe("resolveRoute", () => {
   test("paid organization → vercel, free organization → openrouter", async () => {

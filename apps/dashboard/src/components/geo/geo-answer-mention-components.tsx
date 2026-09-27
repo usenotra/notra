@@ -10,6 +10,7 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { useTranslations } from "next-intl";
 import {
   Children,
   createElement,
@@ -25,7 +26,6 @@ import { GeoAnswerMentionCompetitorCard } from "@/components/geo/geo-answer-ment
 import { GeoAnswerMentionContext } from "@/components/geo/geo-answer-mention-context";
 import {
   GEO_ANSWER_MENTION_CLASS,
-  GEO_ANSWER_MENTION_LABEL,
   GEO_ANSWER_MENTION_LIST_ITEM_CLASS,
   GEO_ANSWER_MENTION_TRIGGER_CLASS,
 } from "@/constants/geo-answer-mentions";
@@ -130,6 +130,7 @@ function CompetitorMentionMark({
   const { competitors, organizationId, organizationSlug } = use(
     GeoAnswerMentionContext
   );
+  const t = useTranslations("geo.geoAnswerMentionComponents");
   const competitor = findMentionedCompetitor(competitors, phrase);
   const brand = competitor?.name ?? phrase;
   const [open, setOpen] = useState(false);
@@ -143,7 +144,7 @@ function CompetitorMentionMark({
       <HoverCardTrigger
         render={
           <button
-            aria-label={`${brand}, ${GEO_ANSWER_MENTION_LABEL.competitor} details`}
+            aria-label={t("competitorDetails", { brand })}
             className={cn(
               GEO_ANSWER_MENTION_CLASS.competitor,
               GEO_ANSWER_MENTION_TRIGGER_CLASS
@@ -170,6 +171,7 @@ function CompetitorMentionMark({
 }
 
 function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
+  const tGeoShared = useTranslations("geo.shared");
   if (kind === "competitor") {
     return (
       <CompetitorMentionMark phrase={phrase}>{children}</CompetitorMentionMark>
@@ -179,7 +181,9 @@ function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
   return (
     <mark
       className={GEO_ANSWER_MENTION_CLASS[kind]}
-      title={GEO_ANSWER_MENTION_LABEL[kind]}
+      title={
+        kind === "own" ? tGeoShared("yourBrand") : tGeoShared("competitor")
+      }
     >
       {children}
     </mark>

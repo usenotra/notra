@@ -2,6 +2,7 @@
 
 import { MagicWand01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { Composer } from "@/components/composer/composer-shell";
 import type { ChatSkillTagChipsProps } from "@/types/components/chat-skill-tag-chips";
@@ -11,6 +12,7 @@ export function ChatSkillTagChips({
   onRemove,
   skills,
 }: ChatSkillTagChipsProps) {
+  const tCommon = useTranslations("common");
   return (
     <>
       {skills.map((skill) => {
@@ -32,7 +34,7 @@ export function ChatSkillTagChips({
                   }
                 : undefined
             }
-            removeLabel={`Remove ${label}`}
+            removeLabel={tCommon("labels.removeLabel", { label })}
           />
         );
       })}

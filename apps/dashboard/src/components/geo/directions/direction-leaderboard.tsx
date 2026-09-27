@@ -1,6 +1,5 @@
 "use client";
 
-import { GEO_SEARCH_LABEL } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
@@ -9,6 +8,7 @@ import {
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ChartSparkline } from "@/components/charts/chart-sparkline";
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
@@ -35,18 +35,16 @@ import { tableHeightFor } from "@/utils/table";
 const MAX_RATE = 1;
 
 function SectionHeading({ children }: DirectionSectionHeadingProps) {
-  return (
-    <h2 className="text-foreground text-sm font-medium capitalize">
-      {children}
-    </h2>
-  );
+  return <h2 className="text-foreground text-sm font-medium">{children}</h2>;
 }
 
 function EngineRank() {
+  const t = useTranslations("geo.directions.labels");
+  const tGeoShared2 = useTranslations("geo.shared");
   const columns: TableColumn<GeoDirectionEngineRow>[] = [
     {
       key: "label",
-      header: "Engine",
+      header: tGeoShared2("engine"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
@@ -58,14 +56,14 @@ function EngineRank() {
     },
     {
       key: "bar",
-      header: "Mention rate",
+      header: t("mentionRate"),
       width: "1.4fr",
       cell: (row) => <GeoBar max={MAX_RATE} value={row.rate} />,
       sortValue: (row) => row.rate,
     },
     {
       key: "rate",
-      header: "Rate",
+      header: t("rate"),
       width: "6rem",
       sortable: true,
       cell: (row) => (
@@ -86,14 +84,16 @@ function EngineRank() {
   return (
     <div className="flex flex-col gap-2">
       <div className="text-muted-foreground flex items-center justify-between px-1 text-xs">
-        <span>{GEO_DIRECTIONS_ENGINES.length.toLocaleString()} engines</span>
+        <span>
+          {t("enginesCount", { count: GEO_DIRECTIONS_ENGINES.length })}
+        </span>
       </div>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={[...GEO_DIRECTIONS_ENGINES]}
         defaultSort={{ key: "rate", direction: "desc" }}
-        emptyState="No engines scanned yet"
+        emptyState={t("noEngines")}
         getRowId={(row) => row.engine}
         height={tableHeightFor(GEO_DIRECTIONS_ENGINES.length)}
         resizable
@@ -104,10 +104,15 @@ function EngineRank() {
 }
 
 function JourneysTable() {
+  const t = useTranslations("geo.directions");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tTime = useTranslations("common.time");
+  const locale = useLocale();
   const columns: TableColumn<GeoJourney>[] = [
     {
       key: "journeyId",
-      header: "Journey",
+      header: t("leaderboard.journey"),
       width: "7.5rem",
       cell: (row) => (
         <span className="bg-muted text-muted-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs">
@@ -117,7 +122,7 @@ function JourneysTable() {
     },
     {
       key: "source",
-      header: "Source",
+      header: tCommon("labels.source"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
@@ -130,14 +135,14 @@ function JourneysTable() {
     },
     {
       key: "pages",
-      header: "Pages",
+      header: tGeoShared("pages"),
       width: "5.625rem",
       sortable: true,
       cell: (row) => <span className="text-sm tabular-nums">{row.pages}</span>,
     },
     {
       key: "distinctPaths",
-      header: "Unique",
+      header: t("leaderboard.unique"),
       width: "5.625rem",
       sortable: true,
       cell: (row) => (
@@ -146,28 +151,33 @@ function JourneysTable() {
     },
     {
       key: "span",
-      header: "Span",
+      header: tGeoShared("span"),
       width: "9.5rem",
       cell: (row) => (
         <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatGeoJourneySpan(row.firstSeenAt, row.lastSeenAt)}
+          {formatGeoJourneySpan(
+            row.firstSeenAt,
+            row.lastSeenAt,
+            tTime("underAMinute"),
+            locale
+          )}
         </span>
       ),
     },
     {
       key: "lastSeenAt",
-      header: "Last seen",
+      header: tGeoShared("lastSeen"),
       width: "9.375rem",
       sortable: true,
       cell: (row) => (
         <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt)}
+          {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
         </span>
       ),
     },
     {
       key: "entryPath",
-      header: "Entry path",
+      header: t("leaderboard.entryPath"),
       width: "1.2fr",
       cell: (row) => (
         <span className="block w-full min-w-0 truncate font-mono text-xs">
@@ -181,14 +191,18 @@ function JourneysTable() {
   return (
     <div className="flex flex-col gap-2">
       <div className="text-muted-foreground flex items-center justify-between px-1 text-xs">
-        <span>{GEO_DIRECTIONS_JOURNEYS.length.toLocaleString()} journeys</span>
+        <span>
+          {t("leaderboard.journeysCount", {
+            count: GEO_DIRECTIONS_JOURNEYS.length,
+          })}
+        </span>
       </div>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={[...GEO_DIRECTIONS_JOURNEYS]}
         defaultSort={{ key: "lastSeenAt", direction: "desc" }}
-        emptyState="No agent journeys captured yet"
+        emptyState={tGeoShared("noAgentJourneysCapturedYet")}
         getRowId={(row) => row.journeyId}
         height={tableHeightFor(GEO_DIRECTIONS_JOURNEYS.length)}
         resizable
@@ -199,12 +213,15 @@ function JourneysTable() {
 }
 
 export function DirectionLeaderboard() {
+  const t = useTranslations("geo.directions");
+  const tGeoShared = useTranslations("geo.shared");
+
   return (
     <div className="divide-border divide-y">
       <section className="flex flex-wrap items-end gap-x-10 gap-y-6 pb-8">
         <div className="space-y-2">
-          <p className="text-muted-foreground text-sm capitalize">
-            AI visibility
+          <p className="text-muted-foreground text-sm first-letter:uppercase">
+            {t("labels.aiVisibility")}
           </p>
           <div className="flex items-end gap-3">
             <span className="text-[4.5rem] leading-none font-semibold tracking-tight tabular-nums">
@@ -217,8 +234,8 @@ export function DirectionLeaderboard() {
           </div>
         </div>
         <div className="min-w-[16rem] flex-1 space-y-1">
-          <p className="text-muted-foreground text-xs capitalize">
-            {GEO_SEARCH_LABEL} · last 12 days
+          <p className="text-muted-foreground text-xs first-letter:uppercase">
+            {t("leaderboard.searchLastDays", { search: tGeoShared("search") })}
           </p>
           <ChartSparkline
             className="h-20 w-full"
@@ -229,23 +246,23 @@ export function DirectionLeaderboard() {
       </section>
 
       <section className="space-y-2 py-8">
-        <SectionHeading>Engines, ranked</SectionHeading>
+        <SectionHeading>{t("leaderboard.enginesRanked")}</SectionHeading>
         <EngineRank />
       </section>
 
       <section className="md:divide-border grid gap-8 py-8 md:grid-cols-2 md:gap-10 md:divide-x">
         <div className="space-y-3 md:pr-10">
-          <SectionHeading>Where AI sends people</SectionHeading>
+          <SectionHeading>{t("leaderboard.whereAiSendsPeople")}</SectionHeading>
           <DirectionPagesTable />
         </div>
         <div className="space-y-3">
-          <SectionHeading>Share of voice</SectionHeading>
+          <SectionHeading>{tGeoShared("shareOfVoice")}</SectionHeading>
           <DirectionDonut />
         </div>
       </section>
 
       <section className="space-y-3 py-8">
-        <SectionHeading>Agent journeys</SectionHeading>
+        <SectionHeading>{tGeoShared("agentJourneys")}</SectionHeading>
         <JourneysTable />
       </section>
     </div>

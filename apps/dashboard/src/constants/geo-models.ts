@@ -1,3 +1,5 @@
+import type { GeoEngineAnswerMode } from "@/types/geo-shared";
+
 export const MODELS_DEV_LOGO_BASE = "https://models.dev/logos";
 
 export const MODELS_DEV_LOGO_ALIASES: Record<string, string> = {
@@ -55,3 +57,7 @@ export const MODEL_TOKEN_LABELS: Record<string, string> = {
   turbo: "Turbo",
   ultra: "Ultra",
 };
+
+export const GEO_ENGINE_ANSWER_MODE_LABEL_KEYS = {
+  withoutSearch: "wOSearch",
+} as const satisfies Record<GeoEngineAnswerMode, string>;

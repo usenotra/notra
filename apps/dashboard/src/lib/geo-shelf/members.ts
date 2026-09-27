@@ -85,7 +85,8 @@ export function referencesGeoShelfMembers(
 export function assertGeoShelfOpportunityMembers(
   shelfMembers: GeoShelfMember[],
   opportunity: GeoShelfOpportunityPatch | null | undefined,
-  existing: GeoShelfOpportunity | null
+  existing: GeoShelfOpportunity | null,
+  notMemberMessage: string
 ): void {
   if (!opportunity) {
     return;
@@ -103,7 +104,7 @@ export function assertGeoShelfOpportunityMembers(
       continue;
     }
     if (!memberIds.has(next)) {
-      throw badRequest("That person is not a member of this organization");
+      throw badRequest(notMemberMessage);
     }
   }
 }

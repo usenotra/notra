@@ -1,6 +1,7 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
@@ -12,10 +13,11 @@ import type { CollectionsSkeletonProps } from "@/types/content/collection";
 export function CollectionsPageSkeleton({
   view = "list",
 }: CollectionsSkeletonProps) {
+  const tContentShared = useTranslations("content.shared");
   if (view === "grid") {
     return (
       <div
-        aria-label="Loading content"
+        aria-label={tContentShared("loadingContent")}
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
         role="status"
       >

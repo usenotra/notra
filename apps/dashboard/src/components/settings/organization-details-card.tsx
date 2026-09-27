@@ -2,10 +2,7 @@
 
 import { Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  organizationNameSchema,
-  organizationSlugSchema,
-} from "@notra/schemas/dashboard/organization";
+import { RESERVED_ORGANIZATION_SLUGS } from "@notra/schemas/constants/dashboard/organization";
 import {
   Avatar,
   AvatarFallback,
@@ -17,9 +14,11 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
@@ -40,8 +39,26 @@ export function OrganizationDetailsCard({
   organization,
   slug,
 }: OrganizationDetailsCardProps) {
+  const t = useTranslations("settings.organizationDetails");
+  const tCommon2 = useTranslations("common");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const queryClient = useQueryClient();
+  const organizationNameSchema = z
+    .string()
+    .min(2, tCommon2("messages.organizationNameTooShort"))
+    .max(100, tCommon2("messages.organizationNameTooLong"));
+  const organizationSlugSchema = z
+    .string()
+    .slugify()
+    .min(2, tCommon2("messages.organizationSlugTooShort"))
+    .max(63, tCommon2("messages.organizationSlugTooLong"))
+    .refine(
+      (value) =>
+        !RESERVED_ORGANIZATION_SLUGS.some((reserved) => reserved === value),
+      tCommon2("messages.thisSlugIsReservedAnd")
+    );
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -63,16 +80,13 @@ export function OrganizationDetailsCard({
 
       if (result.error) {
         toast.error(
-          errorMessageOr(
-            result.error.message,
-            "Failed to update organization logo"
-          )
+          errorMessageOr(result.error.message, t("logoUpdateFailed"))
         );
         setIsUploadingLogo(false);
         return;
       }
 
-      toast.success("Organization logo updated");
+      toast.success(t("logoUpdated"));
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.AUTH.organizations,
@@ -94,9 +108,7 @@ export function OrganizationDetailsCard({
     } catch (error) {
       console.error("Logo upload error:", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to upload organization logo"
+        error instanceof Error ? error.message : t("logoUploadFailed")
       );
     }
     setIsUploadingLogo(false);
@@ -119,12 +131,7 @@ export function OrganizationDetailsCard({
         });
 
         if (result.error) {
-          toast.error(
-            errorMessageOr(
-              result.error.message,
-              "Failed to update organization"
-            )
-          );
+          toast.error(errorMessageOr(result.error.message, t("updateFailed")));
           setIsUpdating(false);
           return;
         }
@@ -157,9 +164,9 @@ export function OrganizationDetailsCard({
           router.replace(`/${updatedSlug}?settings=general`);
         }
 
-        toast.success("Organization updated successfully");
+        toast.success(t("updated"));
       } catch {
-        toast.error("Failed to update organization");
+        toast.error(t("updateFailed"));
       }
       setIsUpdating(false);
     },
@@ -173,7 +180,7 @@ export function OrganizationDetailsCard({
   }, [form, organization.name, organization.slug]);
 
   return (
-    <TitleCard heading="Organization Details">
+    <TitleCard heading={t("heading")}>
       <form
         className="space-y-6"
         onSubmit={(e) => {
@@ -191,7 +198,7 @@ export function OrganizationDetailsCard({
             type="file"
           />
           <button
-            aria-label="Upload organization logo"
+            aria-label={t("uploadLogoAria")}
             className="group group/logo relative cursor-pointer disabled:cursor-not-allowed"
             disabled={isUploadingLogo}
             onClick={() => logoInputRef.current?.click()}
@@ -219,9 +226,9 @@ export function OrganizationDetailsCard({
             </Avatar>
           </button>
           <div className="space-y-1">
-            <p className="text-sm font-medium">Logo</p>
+            <p className="text-sm font-medium">{tCommon2("labels.logo")}</p>
             <p className="text-muted-foreground text-xs">
-              {isUploadingLogo ? "Uploading..." : "Click to upload a new logo"}
+              {isUploadingLogo ? tSettingsShared("uploading") : t("uploadHint")}
             </p>
           </div>
         </div>
@@ -235,17 +242,14 @@ export function OrganizationDetailsCard({
         >
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Name</Label>{" "}
-              <p className="text-muted-foreground text-xs">
-                This is the name of your organization as it appears across the
-                platform
-              </p>
+              <Label htmlFor={field.name}>{tCommon2("labels.name")}</Label>{" "}
+              <p className="text-muted-foreground text-xs">{t("nameHint")}</p>
               <Input
                 aria-invalid={field.state.meta.errors.length > 0}
                 id={field.name}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="My Organization"
+                placeholder={t("namePlaceholder")}
                 value={field.state.value}
               />
               {field.state.meta.errors.length > 0 ? (
@@ -266,17 +270,18 @@ export function OrganizationDetailsCard({
         >
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Slug</Label>
+              <Label htmlFor={field.name}>{tCommon2("labels.slug")}</Label>
               <p className="text-muted-foreground text-xs">
-                Used in URLs: https://app.usenotra.com/
-                {field.state.value || "your-slug"}
+                {t("slugHint", {
+                  slug: field.state.value || tCommon2("labels.yourSlug"),
+                })}
               </p>
               <Input
                 aria-invalid={field.state.meta.errors.length > 0}
                 id={field.name}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="my-organization"
+                placeholder={t("slugPlaceholder")}
                 value={field.state.value}
               />
               {field.state.meta.errors.length > 0 ? (
@@ -297,10 +302,10 @@ export function OrganizationDetailsCard({
           {isUpdating ? (
             <>
               <Loader2Icon className="size-4 animate-spin" />
-              Saving...
+              {tCommon("saving")}
             </>
           ) : (
-            "Save Changes"
+            tCommon("saveChanges")
           )}
         </Button>
       </form>

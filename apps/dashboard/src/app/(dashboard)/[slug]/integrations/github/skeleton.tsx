@@ -1,10 +1,13 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 export function GitHubIntegrationSkeleton() {
+  const t = useTranslations("integrations.github.skeleton");
+
   return (
     <div
       aria-busy="true"
-      aria-label="Loading GitHub accounts"
+      aria-label={t("loadingAccounts")}
       role="status"
       className="flex min-h-36 flex-col justify-center px-5 py-2"
     >
@@ -23,10 +26,12 @@ export function GitHubIntegrationSkeleton() {
 }
 
 export function GitHubRepositoriesSkeleton() {
+  const t = useTranslations("integrations.github.skeleton");
+
   return (
     <div
       aria-busy="true"
-      aria-label="Loading repositories"
+      aria-label={t("loadingRepositories")}
       role="status"
       className="space-y-4"
     >

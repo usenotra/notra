@@ -1,8 +1,4 @@
-import {
-  GEO_PROMPT_INTENT_LABELS,
-  GEO_PROMPT_INTENT_RULES,
-  GEO_PROMPT_INTENTS,
-} from "../constants/geo";
+import { GEO_PROMPT_INTENT_RULES, GEO_PROMPT_INTENTS } from "../constants/geo";
 import type { GeoPromptIntent } from "../types/geo";
 
 export function geoPromptIntent(text: string): GeoPromptIntent {
@@ -16,10 +12,6 @@ export function geoPromptIntent(text: string): GeoPromptIntent {
     }
   }
   return "other";
-}
-
-export function geoPromptIntentLabel(intent: GeoPromptIntent): string {
-  return GEO_PROMPT_INTENT_LABELS[intent];
 }
 
 export function isGeoPromptIntent(value: string): value is GeoPromptIntent {

@@ -63,3 +63,8 @@ export interface SkillDeleteDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 }
+
+export interface SkillUnsavedChangesToastProps {
+  onDiscard: () => void;
+  onSave: () => void;
+}

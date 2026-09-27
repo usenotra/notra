@@ -2,10 +2,10 @@
 
 import { Edit02Icon, TextFontIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/button";
-import { FONT_ROLE_LABELS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesTypographySectionProps } from "@/types/brand-identity";
 import type { BrandGuidelineFont } from "@/types/hooks/brand-guidelines";
 import {
@@ -21,6 +21,8 @@ export function GuidelinesTypographySection({
   organizationId,
   voiceId,
 }: GuidelinesTypographySectionProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon = useTranslations("common");
   const [editing, setEditing] = useState<BrandGuidelineFont | null>(null);
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export function GuidelinesTypographySection({
           className="text-muted-foreground size-4"
           icon={TextFontIcon}
         />
-        <h2 className="text-sm font-semibold">Typography</h2>
+        <h2 className="text-sm font-semibold">{t("typography.title")}</h2>
         <span className="text-muted-foreground text-xs tabular-nums">
           {fonts.length}
         </span>
@@ -67,10 +69,12 @@ export function GuidelinesTypographySection({
       <div className="space-y-2">
         {fonts.map((font) => {
           const meta = joinMeta([
-            font.role !== "unknown" ? FONT_ROLE_LABELS[font.role] : null,
-            font.weight ? `Weight ${font.weight}` : null,
-            font.size ? `Size ${font.size}` : null,
-            font.lineHeight ? `Line height ${font.lineHeight}` : null,
+            font.role !== "unknown" ? t(`fontRoles.${font.role}`) : null,
+            font.weight ? t("typography.weight", { value: font.weight }) : null,
+            font.size ? t("typography.size", { value: font.size }) : null,
+            font.lineHeight
+              ? t("typography.lineHeight", { value: font.lineHeight })
+              : null,
           ]);
 
           return (
@@ -96,7 +100,7 @@ export function GuidelinesTypographySection({
               </div>
 
               <Button
-                aria-label={`Edit ${font.family}`}
+                aria-label={tCommon("labels.editName", { name: font.family })}
                 className="shrink-0"
                 onClick={() => setEditing(font)}
                 size="icon-sm"

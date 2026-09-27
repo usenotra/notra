@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { geoSettingsPath } from "@/utils/settings-path";
 
-export const metadata = {
-  title: "GEO Settings",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tCommon = await getTranslations("common");
+  return { title: tCommon("labels.geoSettings") };
+}
 
 export const instant = true;
 

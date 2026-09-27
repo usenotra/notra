@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 
 import { CitationsTable } from "@/components/geo/citations-table";
@@ -28,6 +29,7 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
+import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { TRAFFIC_LOG_FILTER_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoTrafficLog } from "@/lib/hooks/use-geo";
@@ -38,6 +40,9 @@ import { tableHeightFor } from "@/utils/table";
 const LOG_SKELETON_ROWS = 6;
 
 export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
+  const t = useTranslations("geo.aiTrafficLogCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const [filters, setFilters] = useState<GeoTrafficLogFilters>({
     visitorTypes: [],
     categories: [],
@@ -54,12 +59,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
 
   let body: ReactNode;
   if (!isPending && log.length === 0) {
-    body = (
-      <InstrumentEmpty
-        message="No visits match these filters"
-        seed="geo-traffic-log"
-      />
-    );
+    body = <InstrumentEmpty message={t("empty")} seed="geo-traffic-log" />;
   } else {
     body = (
       <CitationsTable
@@ -108,7 +108,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
           icon={FilterHorizontalIcon}
           strokeWidth={2}
         />
-        Filter
+        {tCommon("labels.filter")}
         {activeFilters > 0 ? (
           <span className="bg-primary/15 text-primary rounded-full px-1.5 text-xs tabular-nums">
             {activeFilters}
@@ -117,27 +117,29 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Visitors</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("visitors")}</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_VISITOR_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.visitorTypes.includes(option.value)}
               key={option.value}
               onCheckedChange={() => toggleVisitor(option.value)}
             >
-              {option.label}
+              {option.value === "crawler"
+                ? tGeoShared("aiCrawler")
+                : tGeoShared("aiReferral")}
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Purpose</DropdownMenuLabel>
+          <DropdownMenuLabel>{tGeoShared("purpose")}</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_PURPOSE_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.categories.includes(option.value)}
               key={option.value}
               onCheckedChange={() => togglePurpose(option.value)}
             >
-              {option.label}
+              {tGeoShared(AI_TRAFFIC_PURPOSE_LABEL_KEYS[option.value])}
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
@@ -149,7 +151,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
                 setFilters({ visitorTypes: [], categories: [] });
               }}
             >
-              Clear filters
+              {tGeoShared("clearFilters")}
             </DropdownMenuItem>
           </>
         ) : null}
@@ -158,7 +160,10 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   );
 
   return (
-    <InstrumentSection action={filterRow} eyebrow="Recent AI requests">
+    <InstrumentSection
+      action={filterRow}
+      eyebrow={tGeoShared("recentAiRequests")}
+    >
       {body}
     </InstrumentSection>
   );

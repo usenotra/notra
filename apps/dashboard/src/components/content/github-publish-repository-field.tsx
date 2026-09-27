@@ -12,7 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Button } from "@/components/button";
 import type {
@@ -32,22 +34,27 @@ function GitHubPublishRepositoryStatus({
   selectedPublishingEnabled,
   selectedRepository,
 }: GitHubPublishRepositoryStatusProps) {
+  const t = useTranslations("content.githubPublish");
+  const tCommon = useTranslations("common.actions");
+  const renderLink = (chunks: ReactNode) => (
+    <Link className="underline underline-offset-4" href={githubIntegrationHref}>
+      {chunks}
+    </Link>
+  );
   if (integrationsLoadFailed) {
     return (
       <div
         className="border-destructive/30 flex items-center justify-between gap-3 rounded-lg border p-3"
         role="alert"
       >
-        <p className="text-destructive text-sm">
-          Unable to load GitHub repositories.
-        </p>
+        <p className="text-destructive text-sm">{t("loadFailed")}</p>
         <Button
           onClick={onRetryIntegrations}
           size="sm"
           type="button"
           variant="outline"
         >
-          Retry
+          {tCommon("retry")}
         </Button>
       </div>
     );
@@ -60,14 +67,7 @@ function GitHubPublishRepositoryStatus({
   if (connectedRepositoryCount === 0) {
     return (
       <FieldDescription>
-        No enabled GitHub repositories are connected. Open the{" "}
-        <Link
-          className="underline underline-offset-4"
-          href={githubIntegrationHref}
-        >
-          GitHub integration
-        </Link>{" "}
-        to connect or enable one.
+        {t.rich("noConnected", { link: renderLink })}
       </FieldDescription>
     );
   }
@@ -75,25 +75,13 @@ function GitHubPublishRepositoryStatus({
   if (selectedRepository && !selectedPublishingEnabled) {
     return (
       <FieldDescription>
-        {contentTypeLabel} publishing is off for this repository. Open the{" "}
-        <Link
-          className="underline underline-offset-4"
-          href={githubIntegrationHref}
-        >
-          GitHub integration
-        </Link>{" "}
-        to enable it.
+        {t.rich("publishingOff", { kind: contentTypeLabel, link: renderLink })}
       </FieldDescription>
     );
   }
 
   if (repositoriesCount === 0) {
-    return (
-      <FieldDescription>
-        These repositories need a default branch before they can publish to
-        GitHub.
-      </FieldDescription>
-    );
+    return <FieldDescription>{t("needsDefaultBranch")}</FieldDescription>;
   }
 
   return null;
@@ -112,14 +100,16 @@ export function GitHubPublishRepositoryField({
   selectedPublishingEnabled,
   selectedRepository,
 }: GitHubPublishRepositoryFieldProps) {
+  const t = useTranslations("content.githubPublish");
+  const tCommon2 = useTranslations("common");
   const githubIntegrationHref = `/${organizationSlug}/integrations/github`;
-  const contentTypeLabel =
-    contentLabel === "blog post" ? "Blog post" : "Changelog";
 
   return (
     <div className="space-y-3">
       <Field>
-        <FieldLabel htmlFor="github-publish-repository">Repository</FieldLabel>
+        <FieldLabel htmlFor="github-publish-repository">
+          {tCommon2("labels.repository")}
+        </FieldLabel>
         <Select
           disabled={
             isPublishing || integrationsLoadFailed || repositories.length === 0
@@ -131,8 +121,8 @@ export function GitHubPublishRepositoryField({
             <SelectValue
               placeholder={
                 isLoadingIntegrations
-                  ? "Loading repositories…"
-                  : "Select a repository"
+                  ? t("loadingRepositories")
+                  : t("selectRepository")
               }
             >
               {(value) => {
@@ -140,7 +130,7 @@ export function GitHubPublishRepositoryField({
                   repositories.find((candidate) => candidate.id === value) ??
                   selectedRepository;
                 if (!repository) {
-                  return "Select a repository";
+                  return t("selectRepository");
                 }
                 return formatGitHubRepositoryLabel(repository);
               }}
@@ -156,7 +146,7 @@ export function GitHubPublishRepositoryField({
         </Select>
         <GitHubPublishRepositoryStatus
           connectedRepositoryCount={connectedRepositoryCount}
-          contentTypeLabel={contentTypeLabel}
+          contentTypeLabel={contentLabel}
           githubIntegrationHref={githubIntegrationHref}
           integrationsLoadFailed={integrationsLoadFailed}
           isLoadingIntegrations={isLoadingIntegrations}

@@ -1,11 +1,13 @@
 "use client";
 
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { BlogPreviewActions } from "@/components/ai/blog-preview-actions";
 import { useContent } from "@/lib/hooks/use-content";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import type {
   BlogChangelogPreviewProps,
   BlogChangelogPreviewUserAction,
@@ -14,7 +16,7 @@ import {
   blogPreviewEffectiveState,
   isBlogPreviewBusy,
 } from "@/utils/blog-preview-state";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { OutputTypeIcon } from "@/utils/output-types";
 
 export function BlogChangelogPreview({
   organizationId,
@@ -31,6 +33,8 @@ export function BlogChangelogPreview({
   onDeny,
   onPersist,
 }: BlogChangelogPreviewProps) {
+  const t = useTranslations("ai.preview");
+  const getOutputTypeLabel = useOutputTypeLabel();
   const { data: savedPost } = useContent(organizationId, postId ?? "");
   const title = savedPost?.content.title ?? initialTitle;
   const markdown = savedPost?.content.markdown ?? initialMarkdown;
@@ -44,19 +48,19 @@ export function BlogChangelogPreview({
 
   async function handleSave() {
     setUserAction("saving");
-    const toastId = toast.loading("Saving draft...");
+    const toastId = toast.loading(t("savingDraft"));
     try {
       if (onPersist) {
         await onPersist("draft", { title, markdown });
         setUserAction("saved");
-        toast.success("Saved as draft", { id: toastId });
+        toast.success(t("savedAsDraft"), { id: toastId });
       } else if (onApprove) {
         await onApprove();
         toast.dismiss(toastId);
       }
     } catch {
       setUserAction("save-failed");
-      toast.error("Failed to save draft. Try again.", { id: toastId });
+      toast.error(t("saveDraftFailedRetry"), { id: toastId });
     }
   }
 
@@ -72,7 +76,9 @@ export function BlogChangelogPreview({
         </div>
       </div>
       <div
-        aria-label={`${getOutputTypeLabel(contentType)} content`}
+        aria-label={t("contentRegion", {
+          type: getOutputTypeLabel(contentType),
+        })}
         className="focus-visible:ring-ring max-h-96 overflow-y-auto overscroll-contain px-4 pb-4 focus-visible:ring-2 focus-visible:outline-none"
         role="region"
         // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The scrollable preview must be reachable for keyboard scrolling.
@@ -95,7 +101,7 @@ export function BlogChangelogPreview({
       />
       {!isFinished && userAction === "save-failed" ? (
         <p className="text-destructive px-4 pb-3 text-sm" role="alert">
-          Could not save the draft. Try again.
+          {t("saveDraftFailedInline")}
         </p>
       ) : null}
     </div>

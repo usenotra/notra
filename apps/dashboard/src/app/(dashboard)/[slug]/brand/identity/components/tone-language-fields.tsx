@@ -26,13 +26,10 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 
-import {
-  LANGUAGE_OPTIONS,
-  TONE_OPTIONS,
-  TONE_SCOPE_NOTE,
-  TONE_SELECT_ITEMS,
-} from "@/constants/brand-identity";
+import { LANGUAGE_OPTIONS, TONE_OPTIONS } from "@/constants/brand-identity";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import type { ToneLanguageFieldsProps } from "@/types/brand-identity";
 import { getLanguageFlag } from "@/utils/brand-identity";
 
@@ -40,15 +37,24 @@ export function ToneLanguageFields({
   form,
   userLocales,
 }: ToneLanguageFieldsProps) {
+  const t = useTranslations("brand.identity.form");
+  const tCommon = useTranslations("common");
+  const getLanguageLabel = useLanguageLabel();
+  const toneSelectItems = Object.fromEntries(
+    TONE_OPTIONS.map((option) => [
+      option.value,
+      t(`tones.${option.value}.label`),
+    ])
+  );
   return (
-    <TitleCard heading="Tone & Language">
+    <TitleCard heading={t("toneLanguageHeading")}>
       <div className="space-y-6">
         <form.Field name="useCustomTone">
           {(useCustomToneField) => (
             <form.Field name="toneProfile">
               {(toneProfileField) => (
                 <RadioGroup
-                  aria-label="Tone"
+                  aria-label={t("toneLabel")}
                   onValueChange={(value) => {
                     const useCustomTone = value === "custom";
                     useCustomToneField.handleChange(useCustomTone);
@@ -61,11 +67,13 @@ export function ToneLanguageFields({
                   <div className="space-y-3 pb-4">
                     <div className="flex items-center gap-2">
                       <RadioGroupItem id="tone-preset" value="preset" />
-                      <Label htmlFor="tone-preset">Tone profile</Label>
+                      <Label htmlFor="tone-preset">
+                        {t("toneProfileLabel")}
+                      </Label>
                     </div>
                     <Select
                       disabled={useCustomToneField.state.value}
-                      items={TONE_SELECT_ITEMS}
+                      items={toneSelectItems}
                       onValueChange={(value) => {
                         if (value) {
                           toneProfileField.handleChange(value as ToneProfile);
@@ -74,7 +82,7 @@ export function ToneLanguageFields({
                       value={toneProfileField.state.value}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select tone" />
+                        <SelectValue placeholder={t("selectTone")} />
                       </SelectTrigger>
                       <SelectContent alignItemWithTrigger={false}>
                         {TONE_OPTIONS.map((option) => (
@@ -84,9 +92,9 @@ export function ToneLanguageFields({
                             value={option.value}
                           >
                             <span className="flex min-w-0 flex-col items-start gap-0.5">
-                              <span>{option.label}</span>
+                              <span>{t(`tones.${option.value}.label`)}</span>
                               <span className="text-muted-foreground text-xs whitespace-normal">
-                                {option.description}
+                                {t(`tones.${option.value}.description`)}
                               </span>
                             </span>
                           </SelectItem>
@@ -94,14 +102,16 @@ export function ToneLanguageFields({
                       </SelectContent>
                     </Select>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      {TONE_SCOPE_NOTE}
+                      {t("toneScopeNote")}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <RadioGroupItem id="tone-custom" value="custom" />
-                      <Label htmlFor="tone-custom">Custom tone</Label>
+                      <Label htmlFor="tone-custom">
+                        {t("customToneLabel")}
+                      </Label>
                     </div>
                     <form.Field name="customTone">
                       {(customToneField) => (
@@ -113,7 +123,7 @@ export function ToneLanguageFields({
                           onChange={(event) =>
                             customToneField.handleChange(event.target.value)
                           }
-                          placeholder="Add custom tone notes…"
+                          placeholder={t("customTonePlaceholder")}
                           value={customToneField.state.value}
                         />
                       )}
@@ -128,8 +138,9 @@ export function ToneLanguageFields({
         <form.Field name="language">
           {(field) => (
             <div className="space-y-2">
-              <Label>Language</Label>
+              <Label>{tCommon("labels.language")}</Label>
               <Combobox
+                itemToStringLabel={getLanguageLabel}
                 items={LANGUAGE_OPTIONS}
                 onValueChange={(value) => {
                   if (value) {
@@ -138,7 +149,7 @@ export function ToneLanguageFields({
                 }}
                 value={field.state.value}
               >
-                <ComboboxInput placeholder="Select language…">
+                <ComboboxInput placeholder={t("selectLanguage")}>
                   <InputGroupAddon align="inline-start">
                     <InputGroupText aria-hidden="true">
                       {getLanguageFlag(field.state.value, userLocales)}
@@ -146,7 +157,7 @@ export function ToneLanguageFields({
                   </InputGroupAddon>
                 </ComboboxInput>
                 <ComboboxContent>
-                  <ComboboxEmpty>No language found</ComboboxEmpty>
+                  <ComboboxEmpty>{t("noLanguageFound")}</ComboboxEmpty>
                   <ComboboxList>
                     {(language) => (
                       <ComboboxItem key={language} value={language}>
@@ -156,7 +167,7 @@ export function ToneLanguageFields({
                         >
                           {getLanguageFlag(language, userLocales)}
                         </span>
-                        <span>{language}</span>
+                        <span>{getLanguageLabel(language)}</span>
                       </ComboboxItem>
                     )}
                   </ComboboxList>
@@ -169,13 +180,13 @@ export function ToneLanguageFields({
         <form.Field name="customInstructions">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Custom instructions</Label>
+              <Label htmlFor={field.name}>{t("customInstructionsLabel")}</Label>
               <Textarea
                 className="min-h-25"
                 id={field.name}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
-                placeholder="Add specific instructions for AI-generated content, such as phrases to avoid or features to mention"
+                placeholder={t("customInstructionsPlaceholder")}
                 value={field.state.value}
               />
             </div>

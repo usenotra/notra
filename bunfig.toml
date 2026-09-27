@@ -53,5 +53,12 @@ minimumReleaseAgeExcludes = [
   "@ai-sdk/devtools",
   "@tanstack/db-ivm",
   "@usenotra/geo",
+  "blume",
+  "@scalar/validation",
+  "@scalar/helpers",
+  "@scalar/types",
+  "@scalar/schemas",
+  "@scalar/client-side-rendering",
+  "@scalar/astro",
   "zod",
 ]

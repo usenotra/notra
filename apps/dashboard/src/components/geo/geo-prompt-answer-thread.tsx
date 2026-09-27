@@ -9,6 +9,7 @@ import {
   geoAnswerMarkdownFontClass,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
@@ -52,16 +53,6 @@ const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   h6: GeoAnswerMentionHeading6,
   blockquote: GeoAnswerMentionBlockquote,
 };
-
-function emptyAnswerCopy(mentioned: boolean, ownedSourceCited = false): string {
-  if (mentioned) {
-    return "Mentioned, but no answer was captured.";
-  }
-  if (ownedSourceCited) {
-    return "An owned source was cited, but no answer was captured.";
-  }
-  return "This engine did not mention you.";
-}
 
 function displayAnswer(result: { answer: string; excerpt: string }): string {
   return result.answer.trim() || result.excerpt.trim();
@@ -120,13 +111,20 @@ function AssistantBody({
   mode?: "static" | "streaming";
   skin: GeoChatSkin;
 }) {
+  const t = useTranslations("geo.geoPromptAnswerThread");
   if (answer.length > 0) {
     return <AnswerMarkdown mode={mode} skin={skin} text={answer} />;
+  }
+  let emptyCopy = t("notMentioned");
+  if (mentioned) {
+    emptyCopy = t("mentionedNoAnswer");
+  } else if (ownedSourceCited) {
+    emptyCopy = t("citedNoAnswer");
   }
 
   return (
     <p className={cn("text-muted-foreground", geoAnswerEmptyClassName(skin))}>
-      {emptyAnswerCopy(mentioned, ownedSourceCited)}
+      {emptyCopy}
     </p>
   );
 }

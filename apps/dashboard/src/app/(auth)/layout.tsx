@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
+import { AuthLegalNotice } from "@/components/auth/auth-legal-notice";
 import { AuthThemeHotkey } from "@/components/auth/auth-theme-hotkey";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
@@ -35,27 +35,7 @@ export default async function AuthLayout({
         <AuthWordmark href="https://usenotra.com" />
         <div className="w-full max-w-md">{children}</div>
         <div>
-          <p className="text-muted-foreground px-8 text-center text-xs">
-            By continuing, you agree to our{" "}
-            <Link
-              className="hover:text-primary underline underline-offset-4"
-              href="https://usenotra.com/terms"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              className="hover:text-primary underline underline-offset-4"
-              href="https://usenotra.com/privacy"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
+          <AuthLegalNotice />
         </div>
       </section>
 

@@ -9,6 +9,7 @@ import {
   AGENT_READINESS_MAX_SCORE,
 } from "@notra/geo-core/constants/agent-readiness";
 import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { AgentReadinessScoreGaugeProps } from "@/types/agent-readiness";
@@ -18,6 +19,7 @@ export function AgentReadinessScoreGauge({
   score,
   className,
 }: AgentReadinessScoreGaugeProps) {
+  const t = useTranslations("geo.agentReadiness");
   const band = getAgentReadinessScoreBand(score);
   const clamped = Math.max(0, Math.min(score, AGENT_READINESS_MAX_SCORE));
   const filled =
@@ -25,7 +27,10 @@ export function AgentReadinessScoreGauge({
 
   return (
     <div
-      aria-label={`Readiness score ${score} out of 100 — ${band.label}`}
+      aria-label={t("scoreGauge.ariaLabel", {
+        score,
+        band: t(`band.${band.key}`),
+      })}
       className={cn(
         "relative size-28 shrink-0",
         AGENT_READINESS_BAND_TEXT_CLASS[band.key],

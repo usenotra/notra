@@ -3,6 +3,7 @@
 import { Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COPY_FEEDBACK_MS } from "@notra/geo-core/constants/geo";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { highlight } from "sugar-high";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import type { CodeSnippetProps, CopyCodeButtonProps } from "@/types/geo";
 
 export function useCopyCode(code: string) {
+  const tCommon = useTranslations("common");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copied = copiedCode === code;
@@ -27,14 +29,14 @@ export function useCopyCode(code: string) {
 
   const copy = async () => {
     if (!navigator.clipboard?.writeText) {
-      toast.error("Clipboard not supported");
+      toast.error(tCommon("toasts.clipboardUnsupported"));
       return;
     }
 
     try {
       await navigator.clipboard.writeText(code);
     } catch {
-      toast.error("Failed to copy to clipboard");
+      toast.error(tCommon("toasts.copyFailed"));
       return;
     }
 
@@ -49,11 +51,16 @@ export function useCopyCode(code: string) {
 }
 
 function CopyCodeButton({ code, label, onCopy }: CopyCodeButtonProps) {
+  const tCommon = useTranslations("common");
   const { copied, copy } = useCopyCode(code);
 
   return (
     <Button
-      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      aria-label={
+        copied
+          ? tCommon("labels.labelCopied", { label })
+          : tCommon("labels.copyLabel", { label })
+      }
       className="text-muted-foreground shrink-0"
       onClick={() => {
         onCopy?.();
@@ -71,9 +78,11 @@ function CopyCodeButton({ code, label, onCopy }: CopyCodeButtonProps) {
 function CommandSnippet({
   code,
   className,
-  label = "command",
+  label: labelProp,
   onCopy,
 }: Pick<CodeSnippetProps, "code" | "className" | "label" | "onCopy">) {
+  const t = useTranslations("geo.codeSnippet");
+  const label = labelProp ?? t("command");
   return (
     <div
       className={cn(
@@ -102,6 +111,7 @@ export function CodeSnippet({
   label,
   onCopy,
 }: CodeSnippetProps) {
+  const t = useTranslations("geo.codeSnippet");
   if (variant === "command") {
     return (
       <CommandSnippet
@@ -129,7 +139,7 @@ export function CodeSnippet({
       </div>
       <div className="border-border/60 bg-background relative -mt-3 min-w-0 rounded-lg border">
         <div className="absolute end-1 top-1 z-10">
-          <CopyCodeButton code={code} label="snippet" onCopy={onCopy} />
+          <CopyCodeButton code={code} label={t("snippet")} onCopy={onCopy} />
         </div>
         <pre
           className="scrollbar-floating m-0 overflow-x-auto p-3 pe-10 font-mono text-xs leading-relaxed"

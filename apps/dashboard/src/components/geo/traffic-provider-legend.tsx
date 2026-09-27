@@ -11,6 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import type { TrafficProviderLegendProps } from "@/types/geo";
@@ -20,6 +21,7 @@ export function TrafficProviderLegend({
   hiddenKeys,
   onToggle,
 }: TrafficProviderLegendProps) {
+  const t = useTranslations("geo.trafficProviderLegend");
   const visibleCount = series.filter(
     (entry) => !hiddenKeys.has(entry.key)
   ).length;
@@ -27,14 +29,19 @@ export function TrafficProviderLegend({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Traffic providers, ${visibleCount} of ${series.length} shown`}
+        aria-label={t("ariaLabel", {
+          visible: visibleCount,
+          total: series.length,
+        })}
         className={GEO_FILTER_TRIGGER_CLASS}
       >
         <span>
-          Providers
           {visibleCount === series.length
-            ? ""
-            : ` (${visibleCount}/${series.length})`}
+            ? t("providers")
+            : t("providersFiltered", {
+                visible: visibleCount,
+                total: series.length,
+              })}
         </span>
         <HugeiconsIcon
           className="text-muted-foreground"
@@ -47,7 +54,7 @@ export function TrafficProviderLegend({
         className="max-h-80 w-56 overflow-y-auto"
       >
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Show traffic from</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("showTrafficFrom")}</DropdownMenuLabel>
           {series.map((entry) => (
             <DropdownMenuCheckboxItem
               checked={!hiddenKeys.has(entry.key)}

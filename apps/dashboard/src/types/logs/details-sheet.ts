@@ -16,3 +16,16 @@ export interface LogDetailsSheetProps {
   onOpenChange: (open: boolean) => void;
   open: boolean;
 }
+
+export interface LogDestination {
+  href: string;
+  labelKey:
+    | "openSchedules"
+    | "openEventTriggers"
+    | "openGeo"
+    | "openAgentReadiness"
+    | "openTraffic"
+    | "openBrandIdentity"
+    | "manageIntegration"
+    | "openIntegrations";
+}

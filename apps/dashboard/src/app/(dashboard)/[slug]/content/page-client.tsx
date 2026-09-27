@@ -3,6 +3,7 @@
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo } from "react";
 
@@ -28,6 +29,9 @@ export default function PageClient({
   organizationSlug,
   initialProjectId,
 }: ContentListPageClientProps) {
+  const t = useTranslations("content.list");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -72,9 +76,11 @@ export default function PageClient({
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
           <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Content</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {tCommon2("labels.content")}
+            </h1>
             <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-              Posts and collections in one place.
+              {t("description")}
             </p>
           </div>
           <LazyCreateContentDialog
@@ -86,9 +92,9 @@ export default function PageClient({
 
         <div className="space-y-3">
           <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-medium">All content</h2>
+            <h2 className="text-sm font-medium">{t("allContent")}</h2>
             <div
-              aria-label="Content view"
+              aria-label={t("viewToggle")}
               className="bg-muted inline-flex items-center rounded-lg p-0.5"
               role="group"
             >
@@ -115,7 +121,9 @@ export default function PageClient({
                       className="size-3.5"
                       icon={option === "list" ? ListViewIcon : GridViewIcon}
                     />
-                    {option === "list" ? "List" : "Grid"}
+                    {option === "list"
+                      ? tCommon2("labels.list")
+                      : t("viewGrid")}
                   </button>
                 );
               })}
@@ -133,24 +141,24 @@ export default function PageClient({
                   }}
                   variant="outline"
                 >
-                  Try again
+                  {tCommon("tryAgain")}
                 </Button>
               }
-              description="Please try loading your content again."
-              title="Couldn't load content"
+              description={t("loadFailedDescription")}
+              title={t("loadFailedTitle")}
             />
           ) : null}
 
           {isEmpty ? (
             <EmptyState
-              description="Start with New post to write from scratch, or Generate content to use your sources."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateTablePreview
                   columns={EMPTY_STATE_TABLE_COLUMNS.content}
                   rows={EMPTY_STATE_TABLE_ROWS}
                 />
               }
-              title="No content yet"
+              title={t("emptyTitle")}
             />
           ) : null}
 

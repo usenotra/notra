@@ -9,6 +9,10 @@ import { ANALYTICS_AUTH_METHODS } from "@/constants/analytics-events";
 import { toAnalyticsAuthMethod } from "@/lib/analytics/auth-method";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
+import {
+  emailUnverifiedMessage,
+  workOSFailureMessage,
+} from "@/lib/auth/action-messages";
 import { UserSyncError, WorkOSAuthError } from "@/lib/auth/errors";
 import { resolveMfaFlow } from "@/lib/auth/mfa";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
@@ -95,11 +99,18 @@ export const signedIn = ({
 const mapAuthFailure =
   (email: string) =>
   (error: WorkOSAuthError | UserSyncError | { message: string }) => {
+    if (error instanceof UserSyncError && error.reason === "email_unverified") {
+      return Effect.promise(() => emailUnverifiedMessage()).pipe(
+        Effect.map((message): AuthFlowResult => ({ status: "error", message }))
+      );
+    }
+
     if (!(error instanceof WorkOSAuthError)) {
-      return Effect.succeed<AuthFlowResult>({
-        status: "error",
-        message: error.message,
-      });
+      return Effect.promise(() =>
+        workOSFailureMessage(readWorkOSError(null))
+      ).pipe(
+        Effect.map((message): AuthFlowResult => ({ status: "error", message }))
+      );
     }
 
     const info = readWorkOSError(error.error);
@@ -125,10 +136,12 @@ const mapAuthFailure =
     return resolveMfaFlow(info, email).pipe(
       Effect.flatMap((mfaResult) => {
         if (!mfaResult) {
-          return Effect.succeed<AuthFlowResult>({
-            status: "error",
-            message: info.message,
-          });
+          return Effect.promise(() => workOSFailureMessage(info)).pipe(
+            Effect.map((message): AuthFlowResult => ({
+              status: "error",
+              message,
+            }))
+          );
         }
 
         const event =
@@ -141,10 +154,14 @@ const mapAuthFailure =
         ).pipe(Effect.as(mfaResult));
       }),
       Effect.catch((mfaError) =>
-        Effect.succeed<AuthFlowResult>({
-          status: "error",
-          message: readWorkOSError(mfaError.error).message,
-        })
+        Effect.promise(() =>
+          workOSFailureMessage(readWorkOSError(mfaError.error))
+        ).pipe(
+          Effect.map((message): AuthFlowResult => ({
+            status: "error",
+            message,
+          }))
+        )
       )
     );
   };

@@ -218,7 +218,12 @@ test("copy waits for an in-flight Figma preload then pastes", async () => {
       expect(await pending).toBe(true);
       expect(copyAsFigma).toHaveBeenCalledTimes(1);
       expect(toast.success).toHaveBeenCalledWith(
-        "Copied for Figma. Paste it into your Figma file."
+        expect.objectContaining({
+          props: {
+            namespace: "content.toasts.imageExport",
+            messageKey: "figmaCopied",
+          },
+        })
       );
     });
   } finally {
@@ -309,7 +314,12 @@ test("a failed kiwi import during a skipped copy does not reject unhandled", asy
     expect(figmaImports).toBe(1);
     expect(paperImports).toBe(1);
     expect(toast.error).toHaveBeenCalledWith(
-      "Copy is still loading. Try again in a moment."
+      expect.objectContaining({
+        props: {
+          namespace: "content.toasts.imageExport",
+          messageKey: "copyLoading",
+        },
+      })
     );
   } finally {
     console.error = previousError;

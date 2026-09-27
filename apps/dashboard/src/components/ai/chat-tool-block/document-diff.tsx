@@ -2,6 +2,7 @@
 
 import { cn } from "@notra/ui/lib/utils";
 import { MultiFileDiff } from "@pierre/diffs/react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 
@@ -27,6 +28,7 @@ export function DocumentDiff({
   hideFileHeader,
   className,
 }: DocumentDiffProps) {
+  const t = useTranslations("ai.toolBlock");
   const { resolvedTheme } = useTheme();
   const oldFile = useMemo(
     () => ({ name: filename, contents: previousMarkdown }),
@@ -47,7 +49,7 @@ export function DocumentDiff({
 
   return (
     <div
-      aria-label={`Changes in ${filename}`}
+      aria-label={t("changesIn", { filename })}
       className={cn(DOCUMENT_DIFF_FRAME_CLASSNAME, className)}
     >
       <MultiFileDiff

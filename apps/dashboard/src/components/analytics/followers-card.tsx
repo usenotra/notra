@@ -5,18 +5,20 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { ChartSparkline } from "@/components/charts/chart-sparkline";
 import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
+import { useFormatMetric } from "@/lib/hooks/use-format-metric";
 import { cn } from "@/lib/utils";
 import type {
   FollowerGrowthPoint,
   FollowersCardProps,
 } from "@/types/analytics";
-import { accountSeriesKey, formatMetric } from "@/utils/analytics-charts";
+import { accountSeriesKey } from "@/utils/analytics-charts";
 
 function seriesFor(
   points: FollowerGrowthPoint[],
@@ -35,12 +37,14 @@ function seriesFor(
 }
 
 function DeltaBadge({ series }: { series: number[] }) {
+  const t = useTranslations("analytics.followers");
+  const format = useFormatter();
   const first = series.at(0);
   const last = series.at(-1);
   if (first === undefined || last === undefined || series.length < 2) {
     return (
       <span className="text-muted-foreground font-mono text-[0.6875rem] whitespace-nowrap">
-        tracking started
+        {t("trackingStarted")}
       </span>
     );
   }
@@ -59,7 +63,7 @@ function DeltaBadge({ series }: { series: number[] }) {
         delta > 0 ? "text-success" : "text-destructive"
       )}
     >
-      {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toLocaleString()}
+      {delta > 0 ? "▲" : "▼"} {format.number(Math.abs(delta))}
     </span>
   );
 }
@@ -72,6 +76,9 @@ export function FollowersCard({
   action,
   markIncompleteTail,
 }: FollowersCardProps) {
+  const t = useTranslations("analytics.followers");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const formatMetric = useFormatMetric();
   const visible = accounts.filter(
     (account) =>
       !hiddenKeys.has(
@@ -80,11 +87,15 @@ export function FollowersCard({
   );
 
   return (
-    <InstrumentModule action={action} eyebrow="Followers" variant="panel">
+    <InstrumentModule
+      action={action}
+      eyebrow={tAnalyticsShared("followers")}
+      variant="panel"
+    >
       {visible.length === 0 ? (
         <InstrumentEmpty
           className="h-56"
-          message="No accounts selected"
+          message={t("noAccounts")}
           seed="Followers"
         />
       ) : (

@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubRepositoryMenuProps } from "@/types/integrations/github";
@@ -34,12 +35,14 @@ export function GitHubRepositoryMenu({
   onToggleWebhooks,
   webhooksOpen,
 }: GitHubRepositoryMenuProps) {
+  const t = useTranslations("integrations.github.repositoryMenu");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button
-            aria-label={`Manage ${integration.displayName}`}
+            aria-label={t("ariaLabel", { name: integration.displayName })}
             disabled={isPending}
             size="icon-sm"
             variant="ghost"
@@ -52,21 +55,21 @@ export function GitHubRepositoryMenu({
         {integration.managedByGitHubApp ? (
           <DropdownMenuItem onClick={onManageRepositories}>
             <HugeiconsIcon className="size-4" icon={CheckListIcon} />
-            Manage selection
+            {t("manageSelection")}
           </DropdownMenuItem>
         ) : (
           <>
             <DropdownMenuItem onClick={() => onDialog("edit")}>
               <HugeiconsIcon className="size-4" icon={Edit02Icon} />
-              Edit repository
+              {t("editRepository")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDialog("token")}>
               <HugeiconsIcon className="size-4" icon={Key01Icon} />
-              Update access token
+              {t("updateToken")}
             </DropdownMenuItem>
             <DropdownMenuItem disabled={isMigrating} onClick={onMigrate}>
               <HugeiconsIcon className="size-4" icon={Github01Icon} />
-              {isMigrating ? "Switching…" : "Switch to GitHub App"}
+              {isMigrating ? t("switching") : t("switchToApp")}
             </DropdownMenuItem>
             {integration.repositories.length > 0 ? (
               <DropdownMenuItem onClick={onToggleWebhooks}>
@@ -74,7 +77,7 @@ export function GitHubRepositoryMenu({
                   className="size-4"
                   icon={webhooksOpen ? ViewOffSlashIcon : WebhookIcon}
                 />
-                {webhooksOpen ? "Hide webhooks" : "Webhook settings"}
+                {webhooksOpen ? t("hideWebhooks") : t("webhookSettings")}
               </DropdownMenuItem>
             ) : null}
           </>
@@ -84,7 +87,7 @@ export function GitHubRepositoryMenu({
             className="size-4"
             icon={isEnabled ? PauseIcon : PlayIcon}
           />
-          {isEnabled ? "Pause repository" : "Enable repository"}
+          {isEnabled ? t("pause") : t("enable")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -92,7 +95,7 @@ export function GitHubRepositoryMenu({
           variant="destructive"
         >
           <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-          Remove repository
+          {t("remove")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

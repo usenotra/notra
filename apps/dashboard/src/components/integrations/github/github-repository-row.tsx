@@ -8,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { GitHubRepositoryRowProps } from "@/types/integrations/github";
@@ -24,6 +25,7 @@ export function GitHubRepositoryRow({
   isMigrating,
   onManageRepositories,
 }: GitHubRepositoryRowProps) {
+  const t = useTranslations("integrations.github.repositoryRow");
   const [webhooksOpen, setWebhooksOpen] = useState(false);
   const legacy = !integration.managedByGitHubApp;
   const primaryRepository = integration.repositories[0];
@@ -124,10 +126,7 @@ export function GitHubRepositoryRow({
           </div>
         ))}
         {integration.repositories.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No repository configured. Choose Edit repository from the menu to
-            finish setup.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("noRepository")}</p>
         ) : null}
         {legacy && integration.repositories.length > 0 ? (
           <div id={`webhooks-${integration.id}`} hidden={!webhooksOpen}>

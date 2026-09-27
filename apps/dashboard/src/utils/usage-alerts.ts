@@ -54,14 +54,6 @@ export function normalizeUsageAlerts(value: unknown): UsageAlert[] {
   });
 }
 
-export function usageAlertThresholdLabel(alert: UsageAlert) {
-  const suffix = alert.thresholdType.endsWith("_percentage") ? "%" : "";
-  const direction = alert.thresholdType.startsWith("remaining")
-    ? "remaining"
-    : "used";
-  return `${alert.threshold}${suffix} ${direction}`;
-}
-
 export function usageAlertsEqual(left: UsageAlert, right: UsageAlert) {
   return (
     left.enabled === right.enabled &&

@@ -3,12 +3,13 @@
 import { Calendar03Icon, SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
+import { useTranslations } from "next-intl";
 
 interface AffectedTriggersWarningProps {
   schedules: AffectedTrigger[];
   events: AffectedTrigger[];
   isLoading: boolean;
-  resourceLabel: string;
+  resourceLabel: "integration" | "identity";
 }
 
 export function AffectedTriggersWarning({
@@ -17,6 +18,8 @@ export function AffectedTriggersWarning({
   isLoading,
   resourceLabel,
 }: AffectedTriggersWarningProps) {
+  const t = useTranslations("integrations.affectedTriggers");
+
   if (isLoading) {
     return null;
   }
@@ -34,35 +37,26 @@ export function AffectedTriggersWarning({
         <TriggerGroup
           icon={Calendar03Icon}
           items={schedules}
-          label={
-            schedules.length === 1
-              ? "This schedule will be disabled:"
-              : "These schedules will be disabled:"
-          }
+          label={t("schedulesLabel", { count: schedules.length })}
         />
       )}
       {hasEvents && (
         <TriggerGroup
           icon={SentIcon}
           items={events}
-          label={
-            events.length === 1
-              ? "This event will be disabled:"
-              : "These events will be disabled:"
-          }
+          label={t("eventsLabel", { count: events.length })}
         />
       )}
       <p className="text-muted-foreground text-xs">
         {(() => {
           if (hasSchedules && hasEvents) {
-            return `These schedules and events use this ${resourceLabel} and will be disabled.`;
+            return t("bothNote", { resource: resourceLabel });
           }
           if (hasSchedules) {
-            return `These schedules use this ${resourceLabel} and will be disabled.`;
+            return t("schedulesNote", { resource: resourceLabel });
           }
-          return `These events use this ${resourceLabel} and will be disabled.`;
-        })()}{" "}
-        You&apos;ll need to edit them before re-enabling.
+          return t("eventsNote", { resource: resourceLabel });
+        })()}
       </p>
     </div>
   );
@@ -75,6 +69,7 @@ interface TriggerGroupProps {
 }
 
 function TriggerGroup({ icon, label, items }: TriggerGroupProps) {
+  const t = useTranslations("integrations.affectedTriggers");
   return (
     <>
       <div className="text-muted-foreground flex items-center gap-2">
@@ -89,7 +84,7 @@ function TriggerGroup({ icon, label, items }: TriggerGroupProps) {
         ))}
         {items.length > 3 && (
           <p className="text-muted-foreground text-xs">
-            and {items.length - 3} more…
+            {t("more", { count: items.length - 3 })}
           </p>
         )}
       </div>

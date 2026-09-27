@@ -1,6 +1,7 @@
 import { Alert01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import type { McpConnectionTestStatusProps } from "@/types/integrations/mcp";
 
@@ -8,6 +9,7 @@ export function McpConnectionTestStatus({
   message,
   status,
 }: McpConnectionTestStatusProps) {
+  const t = useTranslations("integrations.mcp.testStatus");
   if (status === "idle") {
     return null;
   }
@@ -19,7 +21,7 @@ export function McpConnectionTestStatus({
       {status === "testing" ? (
         <>
           <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
-          <span className="text-muted-foreground">Testing connection...</span>
+          <span className="text-muted-foreground">{t("testing")}</span>
         </>
       ) : null}
       {status === "success" ? (
@@ -29,7 +31,7 @@ export function McpConnectionTestStatus({
             icon={CheckmarkCircle02Icon}
           />
           <span className="min-w-0 wrap-anywhere">
-            {message || "Connection successful"}
+            {message || t("success")}
           </span>
         </>
       ) : null}
@@ -40,7 +42,7 @@ export function McpConnectionTestStatus({
             icon={Alert01Icon}
           />
           <span className="text-destructive min-w-0 wrap-anywhere">
-            {message || "Could not reach the server"}
+            {message || t("error")}
           </span>
         </>
       ) : null}

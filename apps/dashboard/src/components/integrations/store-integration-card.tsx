@@ -4,6 +4,7 @@ import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -20,6 +21,8 @@ export function StoreIntegrationCard({
   onConnect,
   onManage,
 }: StoreIntegrationCardProps) {
+  const t = useTranslations("integrations.store");
+  const tCommon = useTranslations("common");
   const dither = useIntegrationCardDither();
 
   return (
@@ -30,7 +33,7 @@ export function StoreIntegrationCard({
         integration.connected ? (
           <div className="flex items-center gap-2">
             <Badge className="text-xs" variant="default">
-              Connected
+              {t("connected")}
             </Badge>
             <span className="text-muted-foreground">
               <HugeiconsIcon
@@ -38,7 +41,9 @@ export function StoreIntegrationCard({
                 className="size-4"
                 icon={MoreHorizontalIcon}
               />
-              <span className="sr-only">Manage integration</span>
+              <span className="sr-only">
+                {tCommon("labels.manageIntegration")}
+              </span>
             </span>
           </div>
         ) : (
@@ -48,7 +53,7 @@ export function StoreIntegrationCard({
             size="sm"
             variant="outline"
           >
-            {connectPending ? "Connecting..." : "Connect"}
+            {connectPending ? t("connecting") : tCommon("actions.connect")}
           </Button>
         )
       }
@@ -85,8 +90,8 @@ export function StoreIntegrationCard({
       <p className="text-muted-foreground line-clamp-2 text-sm">
         {integration.description ??
           (integration.author
-            ? `By ${integration.author}`
-            : "MCP server from the integration store")}
+            ? t("byAuthor", { author: integration.author })
+            : t("fallbackDescription"))}
       </p>
     </TitleCard>
   );

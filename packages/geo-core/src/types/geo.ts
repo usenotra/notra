@@ -1033,12 +1033,10 @@ export type GeoTrafficLogPurposeFilter =
 
 export interface GeoTrafficLogVisitorOption {
   value: GeoTrafficLogVisitorFilter;
-  label: string;
 }
 
 export interface GeoTrafficLogPurposeOption {
   value: GeoTrafficLogPurposeFilter;
-  label: string;
 }
 
 export interface GeoTrafficLogFilters {
@@ -1889,7 +1887,6 @@ export type GeoChangesSummaryGroupKey = "mentions" | "position" | "citations";
 
 export interface GeoChangesSummaryGroup {
   key: GeoChangesSummaryGroupKey;
-  label: string;
   up: keyof GeoChangesSummary;
   down: keyof GeoChangesSummary;
 }

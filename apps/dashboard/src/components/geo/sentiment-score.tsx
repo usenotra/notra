@@ -3,15 +3,21 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useFormatter, useTranslations } from "next-intl";
 
-import {
-  SENTIMENT_DELTA_FORMAT,
-  SENTIMENT_SCORE_FORMAT,
-} from "@/constants/geo-sentiment";
+import { SENTIMENT_SCORE_FORMAT } from "@/constants/geo-sentiment";
 import type { SentimentScoreProps } from "@/types/geo-sentiment";
-import { formatSentimentPeriod } from "@/utils/sentiment-dates";
 
 export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
+  const t = useTranslations("geo.sentimentScore");
+  const tGeoShared = useTranslations("geo.shared");
+  const format = useFormatter();
+  const formatPeriod = (from: string, to: string) =>
+    format.dateTimeRange(
+      new Date(`${from}T00:00:00Z`),
+      new Date(`${to}T00:00:00Z`),
+      { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }
+    );
   return (
     <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
       <div className="flex flex-col gap-1">
@@ -30,26 +36,34 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
             <TooltipTrigger
               data-direction={Math.sign(comparison.delta ?? 0)}
               className="text-muted-foreground focus-visible:outline-ring data-[direction='1']:text-geo-up data-[direction='-1']:text-geo-down min-h-6 w-fit rounded-sm text-xs tabular-nums focus-visible:outline-2"
-              aria-label="Score comparison and period dates"
+              aria-label={t("comparisonLabel")}
             >
               {comparison.delta === null
-                ? "No comparable score"
-                : `${SENTIMENT_DELTA_FORMAT.format(comparison.delta)} pts vs. previous period`}
+                ? t("noComparable")
+                : t("deltaVsPrevious", {
+                    delta: format.number(comparison.delta, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                      signDisplay: "exceptZero",
+                    }),
+                  })}
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                Current:{" "}
-                {formatSentimentPeriod(
-                  comparison.current.from,
-                  comparison.current.to
-                )}
+                {t("current", {
+                  period: formatPeriod(
+                    comparison.current.from,
+                    comparison.current.to
+                  ),
+                })}
               </p>
               <p>
-                Previous:{" "}
-                {formatSentimentPeriod(
-                  comparison.previous.from,
-                  comparison.previous.to
-                )}
+                {t("previous", {
+                  period: formatPeriod(
+                    comparison.previous.from,
+                    comparison.previous.to
+                  ),
+                })}
               </p>
             </TooltipContent>
           </Tooltip>
@@ -58,20 +72,26 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
       {summary.score !== null ? (
         <div className="pt-2 sm:pt-0">
           <meter
-            aria-label="Sentiment score position"
+            aria-label={t("positionLabel")}
             min={0}
             max={100}
             value={summary.score}
-            aria-valuetext={`${SENTIMENT_SCORE_FORMAT.format(summary.score)} out of 100`}
+            aria-valuetext={t("outOf100", {
+              score: SENTIMENT_SCORE_FORMAT.format(summary.score),
+            })}
             className="sr-only"
           />
-          <p className="text-muted-foreground mb-2 text-xs">Score position</p>
+          <p className="text-muted-foreground mb-2 text-xs">
+            {tGeoShared("scorePosition")}
+          </p>
           <div className="from-geo-down to-geo-up relative h-2 rounded-full bg-linear-to-r via-amber-200">
             <Tooltip>
               <TooltipTrigger
                 className="focus-visible:outline-ring absolute -top-2.5 flex size-7 -translate-x-1/2 cursor-default items-center justify-center rounded-sm focus-visible:outline-2"
                 style={{ left: `${summary.score}%` }}
-                aria-label={`Current sentiment score: ${SENTIMENT_SCORE_FORMAT.format(summary.score)} out of 100`}
+                aria-label={t("currentScoreLabel", {
+                  score: SENTIMENT_SCORE_FORMAT.format(summary.score),
+                })}
               >
                 <span
                   aria-hidden="true"

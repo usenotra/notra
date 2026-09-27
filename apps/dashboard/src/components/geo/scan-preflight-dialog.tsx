@@ -3,21 +3,6 @@
 import { PlayIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_SCAN_PREFLIGHT_BODY,
-  GEO_SCAN_PREFLIGHT_CANCEL,
-  GEO_SCAN_PREFLIGHT_CONFIRM,
-  GEO_SCAN_PREFLIGHT_DESELECT_ALL,
-  GEO_SCAN_PREFLIGHT_ENGINES_LABEL,
-  GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL,
-  GEO_SCAN_PREFLIGHT_NEED_ENGINE,
-  GEO_SCAN_PREFLIGHT_PENDING,
-  GEO_SCAN_PREFLIGHT_PROMPTS_LABEL,
-  GEO_SCAN_PREFLIGHT_SELECT_ALL,
-  GEO_SCAN_PREFLIGHT_TITLE,
-  GEO_SCAN_SIZE_LABEL,
-  GEO_SCAN_SIZE_MESSAGES,
-} from "@notra/geo-core/constants/geo";
-import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
@@ -30,22 +15,23 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Twemoji } from "@/components/geo/twemoji";
 import { Checkbox } from "@/components/motion/checkbox";
+import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { cn } from "@/lib/utils";
 import type { ScanPreflightDialogProps } from "@/types/geo";
 import type { ScanPreflightHeaderProps } from "@/types/geo-scan-size";
 import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
-import {
-  formatScanPreflightLastScan,
-  scanPreflightEnginesToSubmit,
-} from "@/utils/geo-scan-preflight";
+import { scanPreflightEnginesToSubmit } from "@/utils/geo-scan-preflight";
 
 function ScanPreflightEngineRow({
   engine,
@@ -62,7 +48,11 @@ function ScanPreflightEngineRow({
 }) {
   const id = useId();
   const name = formatEngineFamily(engine);
-  const mode = engineAnswerMode(engine);
+  const tGeoShared = useTranslations("geo.shared");
+  const answerMode = engineAnswerMode(engine);
+  const mode = answerMode
+    ? tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[answerMode])
+    : null;
   const identity = (
     <>
       <EngineIcon className="size-4" engine={engine} />
@@ -113,20 +103,21 @@ function ScanPreflightHeader({
   confirmationOnly,
   warningSeverity,
 }: ScanPreflightHeaderProps) {
-  const title = prompt ? "Run prompt scan" : GEO_SCAN_PREFLIGHT_TITLE;
-  const description = prompt
-    ? "Choose one or more tracked models to answer this prompt in your configured languages."
-    : GEO_SCAN_PREFLIGHT_BODY;
+  const t = useTranslations("geo.scanPreflightDialog");
+  const title = prompt ? t("promptTitle") : t("title");
+  const description = prompt ? t("promptBody") : t("body");
+  const sizeMessage =
+    warningSeverity === "danger" ? t("sizeDanger") : t("sizeWarn");
   return (
     <ResponsiveDialogHeader>
       <ResponsiveDialogTitle className="flex items-center gap-2">
-        {confirmationOnly ? "Start this scan?" : title}
+        {confirmationOnly ? t("confirmTitle") : title}
         {warningSeverity ? (
           <Tooltip>
             <TooltipTrigger
               render={
                 <span
-                  aria-label={GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
+                  aria-label={sizeMessage}
                   className={cn(
                     "inline-flex size-3.5 cursor-help items-center justify-center rounded-full text-[10px] leading-none font-bold",
                     warningSeverity === "danger"
@@ -138,16 +129,12 @@ function ScanPreflightHeader({
             >
               !
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              {GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
-            </TooltipContent>
+            <TooltipContent className="max-w-xs">{sizeMessage}</TooltipContent>
           </Tooltip>
         ) : null}
       </ResponsiveDialogTitle>
       <ResponsiveDialogDescription>
-        {confirmationOnly
-          ? "Review the selected models and scan size before starting."
-          : description}
+        {confirmationOnly ? t("confirmBody") : description}
       </ResponsiveDialogDescription>
     </ResponsiveDialogHeader>
   );
@@ -166,6 +153,12 @@ export function ScanPreflightDialog({
   prompt,
   confirmationOnly = false,
 }: ScanPreflightDialogProps) {
+  const t = useTranslations("geo.scanPreflightDialog");
+  const languageLabel = useLanguageLabel();
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const formatRelative = useFormatRelative();
   const selectable = !confirmationOnly && engines.length > 1;
   const [deselected, setDeselected] = useState<Set<string>>(() => new Set());
   const selected = engines.filter((engine) => !deselected.has(engine));
@@ -209,8 +202,9 @@ export function ScanPreflightDialog({
         {prompt ? <p className="text-sm font-medium">{prompt}</p> : null}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">
-            {promptCount?.toLocaleString() ?? "—"}{" "}
-            {promptCount === 1 ? "prompt" : GEO_SCAN_PREFLIGHT_PROMPTS_LABEL}
+            {promptCount === undefined
+              ? t("promptCountUnknown")
+              : tGeoShared("countPluralOnePromptOther", { count: promptCount })}
           </span>
           {languages.map((language) => (
             <span
@@ -222,31 +216,39 @@ export function ScanPreflightDialog({
                 emoji={
                   LANGUAGE_FLAGS[language as keyof typeof LANGUAGE_FLAGS] ?? ""
                 }
-                label={language}
+                label={languageLabel(language)}
               />
-              {language}
+              {languageLabel(language)}
             </span>
           ))}
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">
             {scanSize === null
-              ? "Calculating checks…"
-              : `${scanSize.toLocaleString()} ${GEO_SCAN_SIZE_LABEL}`}
+              ? t("calculating")
+              : t("estimatedChecks", {
+                  count: scanSize.toLocaleString(locale),
+                })}
           </span>
         </div>
         <p className="text-muted-foreground text-xs">
-          {GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL}{" "}
+          {t("lastScan")}{" "}
           <span className="text-foreground">
-            {formatScanPreflightLastScan(lastScanAt)}
+            {lastScanAt ? formatRelative(lastScanAt) : tCommon("labels.notYet")}
           </span>
         </p>
         <div className="min-w-0 space-y-1.5">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium">
-              {GEO_SCAN_PREFLIGHT_ENGINES_LABEL}
+              {tGeoShared("engines")}
               <span className="text-muted-foreground font-normal">
                 {" "}
-                <span className="tabular-nums">{selectedCount}</span>
-                {selectable ? ` of ${engines.length}` : null}
+                <span className="tabular-nums">
+                  {selectable
+                    ? t("selectedOf", {
+                        selected: selectedCount,
+                        total: engines.length,
+                      })
+                    : selectedCount}
+                </span>
               </span>
             </p>
             {selectable ? (
@@ -261,9 +263,7 @@ export function ScanPreflightDialog({
                 type="button"
                 variant="ghost"
               >
-                {allSelected
-                  ? GEO_SCAN_PREFLIGHT_DESELECT_ALL
-                  : GEO_SCAN_PREFLIGHT_SELECT_ALL}
+                {allSelected ? t("deselectAll") : tGeoShared("selectAll")}
               </Button>
             ) : null}
           </div>
@@ -290,15 +290,11 @@ export function ScanPreflightDialog({
             ))}
           </div>
           {selectable && !canRun ? (
-            <p className="text-muted-foreground text-xs">
-              {GEO_SCAN_PREFLIGHT_NEED_ENGINE}
-            </p>
+            <p className="text-muted-foreground text-xs">{t("needEngine")}</p>
           ) : null}
         </div>
         {confirmationOnly ? (
-          <p className="text-muted-foreground text-sm">
-            Follow this scan’s progress on the Prompts page.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("followProgress")}</p>
         ) : null}
         <ResponsiveDialogFooter>
           <Button
@@ -307,13 +303,11 @@ export function ScanPreflightDialog({
             type="button"
             variant="outline"
           >
-            {GEO_SCAN_PREFLIGHT_CANCEL}
+            {tCommon("actions.cancel")}
           </Button>
           <Button disabled={isPending || !canRun} onClick={runScan}>
             <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
-            {isPending
-              ? GEO_SCAN_PREFLIGHT_PENDING
-              : GEO_SCAN_PREFLIGHT_CONFIRM}
+            {isPending ? tCommon("labels.starting") : tGeoShared("runScan")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

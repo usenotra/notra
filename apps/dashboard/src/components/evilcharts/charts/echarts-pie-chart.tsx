@@ -8,6 +8,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "next-intl";
 import { useReducedMotion } from "motion/react";
 import {
   Children,
@@ -22,6 +23,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   buildChartCss,
@@ -1068,7 +1070,11 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
       : internalSelectedSector;
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleTooltip(collectConfig(children), locale),
+    [children, locale]
+  );
   const {
     pie,
     tooltip: tooltipSlot,

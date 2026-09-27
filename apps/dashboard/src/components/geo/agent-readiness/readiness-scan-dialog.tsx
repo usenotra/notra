@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  AGENT_READINESS_SCAN_DIALOG_BODY,
-  AGENT_READINESS_SCAN_DIALOG_CANCEL,
-  AGENT_READINESS_SCAN_DIALOG_CONFIRM,
-  AGENT_READINESS_SCAN_DIALOG_TITLE,
-} from "@notra/geo-core/constants/agent-readiness";
-import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
   ResponsiveAlertDialogCancel,
@@ -16,6 +10,7 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import { useTranslations } from "next-intl";
 
 import type { AgentReadinessScanDialogProps } from "@/types/agent-readiness";
 
@@ -25,23 +20,25 @@ export function AgentReadinessScanDialog({
   onConfirm,
   isPending,
 }: AgentReadinessScanDialogProps) {
+  const t = useTranslations("geo.agentReadiness.scanDialog");
+  const tCommon = useTranslations("common");
+  const tActions = useTranslations("common.actions");
+
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {AGENT_READINESS_SCAN_DIALOG_TITLE}
-          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            {AGENT_READINESS_SCAN_DIALOG_BODY}
+            {t("body")}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isPending}>
-            {AGENT_READINESS_SCAN_DIALOG_CANCEL}
+            {tActions("cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction disabled={isPending} onClick={onConfirm}>
-            {isPending ? "Starting…" : AGENT_READINESS_SCAN_DIALOG_CONFIRM}
+            {isPending ? tCommon("labels.starting") : t("confirm")}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>

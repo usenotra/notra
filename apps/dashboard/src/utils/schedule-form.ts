@@ -2,8 +2,7 @@ import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/sched
 import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
 import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
 
-import { FORMAT_CARD_META } from "@/constants/content-formats";
-import { DEFAULT_SCHEDULE, FREQUENCY_LABELS } from "@/constants/schedule";
+import { DEFAULT_SCHEDULE } from "@/constants/schedule";
 import { SCHEDULE_PRESETS } from "@/constants/schedule-presets";
 import type {
   ScheduleCron,
@@ -11,6 +10,7 @@ import type {
   SchedulePresetId,
   SchedulePresetValues,
 } from "@/types/automation/schedule";
+import type { ScheduleNameTranslator } from "@/types/automation/schedule-i18n";
 import type { Trigger } from "@/types/triggers/triggers";
 
 const TIME_PATTERN = /^(\d{1,2}):(\d{2})$/;
@@ -104,12 +104,13 @@ function getPresetScheduleValues(
 
 export function buildAutoScheduleName(
   schedule: Pick<ScheduleCron, "frequency" | "intervalDays">,
-  outputType: ScheduleOutputType
+  outputType: ScheduleOutputType,
+  t: ScheduleNameTranslator
 ): string {
-  const typeLabel = FORMAT_CARD_META[outputType].label.toLowerCase();
+  const type = t(`outputTypesLower.${outputType}`);
   if (schedule.frequency === "custom") {
     const days = schedule.intervalDays ?? CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS;
-    return `Every ${days} days ${typeLabel}`;
+    return t("autoName.custom", { days, type });
   }
-  return `${FREQUENCY_LABELS[schedule.frequency]} ${typeLabel}`;
+  return t("autoName.frequency", { frequency: schedule.frequency, type });
 }

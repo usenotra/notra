@@ -9,8 +9,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@notra/ui/components/ui/pagination";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
 import { cn } from "@notra/ui/lib/utils";
+import type { TablePaginationRange } from "@notra/ui/types/table-pagination";
 
 interface TablePaginationProps {
   page: number;
@@ -23,6 +25,7 @@ interface TablePaginationProps {
   className?: string;
   /** Numbered page links. Hide in compact footers that only need prev/next. */
   showPageNumbers?: boolean;
+  formatRange?: (range: TablePaginationRange) => string;
 }
 
 export function TablePagination({
@@ -34,7 +37,10 @@ export function TablePagination({
   itemLabel,
   className,
   showPageNumbers = true,
+  formatRange,
 }: TablePaginationProps) {
+  const labels = useUiLabels();
+  const locale = labels.locale ?? "en-US";
   const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(totalItems, page * pageSize);
   const isFirst = page <= 1;
@@ -49,16 +55,24 @@ export function TablePagination({
       )}
     >
       <span className="truncate tabular-nums">
-        {start.toLocaleString("en-US")}-{end.toLocaleString("en-US")} of{" "}
-        {totalItems.toLocaleString("en-US")}
-        {label}
+        {formatRange
+          ? formatRange({ start, end, total: totalItems })
+          : `${labels.paginationRange(
+              start.toLocaleString(locale),
+              end.toLocaleString(locale),
+              totalItems.toLocaleString(locale)
+            )}${label}`}
       </span>
       {pageCount > 1 ? (
-        <Pagination className="mx-0 w-auto justify-end">
+        <Pagination
+          aria-label={labels.pagination}
+          className="mx-0 w-auto justify-end"
+        >
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
                 aria-disabled={isFirst}
+                aria-label={labels.goToPreviousPage}
                 className={cn(isFirst && "pointer-events-none opacity-50")}
                 href="#"
                 onClick={(event) => {
@@ -97,6 +111,7 @@ export function TablePagination({
             <PaginationItem>
               <PaginationNext
                 aria-disabled={isLast}
+                aria-label={labels.goToNextPage}
                 className={cn(isLast && "pointer-events-none opacity-50")}
                 href="#"
                 onClick={(event) => {

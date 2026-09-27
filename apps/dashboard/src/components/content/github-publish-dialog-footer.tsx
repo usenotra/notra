@@ -3,6 +3,7 @@
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ResponsiveDialogClose } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
@@ -16,6 +17,8 @@ export function GitHubPublishDialogFooter({
   pullRequest,
   selectedPublishingEnabled,
 }: GitHubPublishDialogFooterProps) {
+  const t = useTranslations("content.githubPublish");
+  const tCommon = useTranslations("common.actions");
   const permissionsUrl =
     publishRecovery?.code === "github_app_permissions_required"
       ? publishRecovery.permissionsUrl
@@ -27,11 +30,11 @@ export function GitHubPublishDialogFooter({
       !publishRecovery.permissionsUrl)
   );
   const publishingPaused = Boolean(publishRecovery?.publishingPaused);
-  let submitLabel = "Create draft PR";
+  let submitLabel = t("createDraftPr");
   if (isPublishing) {
-    submitLabel = "Creating draft PR…";
+    submitLabel = t("creatingDraftPr");
   } else if (publishRecovery) {
-    submitLabel = "Try again";
+    submitLabel = tCommon("tryAgain");
   }
 
   return (
@@ -40,14 +43,14 @@ export function GitHubPublishDialogFooter({
         disabled={isPublishing}
         render={<Button variant="outline" />}
       >
-        Close
+        {tCommon("close")}
       </ResponsiveDialogClose>
       {showIntegrationRecovery ? (
         <Button
           nativeButton={false}
           render={
             <Link href={`/${organizationSlug}/integrations/github`}>
-              Open GitHub integration
+              {t("openIntegration")}
             </Link>
           }
         />
@@ -57,7 +60,7 @@ export function GitHubPublishDialogFooter({
           nativeButton={false}
           render={
             <a href={permissionsUrl} rel="noopener noreferrer" target="_blank">
-              Review on GitHub
+              {t("reviewOnGitHub")}
               <HugeiconsIcon className="size-4" icon={ArrowUpRight01Icon} />
             </a>
           }
@@ -72,7 +75,7 @@ export function GitHubPublishDialogFooter({
               rel="noopener noreferrer"
               target="_blank"
             >
-              Open pull request
+              {t("openPullRequest")}
               <HugeiconsIcon className="size-4" icon={ArrowUpRight01Icon} />
             </a>
           }

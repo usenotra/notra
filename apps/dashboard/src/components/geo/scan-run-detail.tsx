@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useLocale, useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -30,6 +31,7 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { ScanAnswerSheet } from "@/components/geo/scan-answer-sheet";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
 import type {
   GeoScanModelCellProps,
@@ -42,13 +44,16 @@ import type {
   GeoScanRunPendingTableProps,
   GeoScanRunView,
   GeoScanTablePaginationProps,
+  ScanRunDetailTranslator,
 } from "@/types/geo-scan-activity";
-import { formatEngineWithMode } from "@/utils/geo-charts";
+import type { GeoSharedTranslator } from "@/types/geo-shared";
+import type { CommonTranslator } from "@/types/i18n";
 import { scanRunDetailView } from "@/utils/geo-scan-activity";
 
 const ALL_MODELS = "";
 
 function ModelCell({ engine }: GeoScanModelCellProps) {
+  const formatEngineWithMode = useEngineModeLabel();
   return (
     <span className="flex min-w-0 items-center gap-2">
       <EngineIcon className="size-3.5 shrink-0" engine={engine} />
@@ -58,6 +63,7 @@ function ModelCell({ engine }: GeoScanModelCellProps) {
 }
 
 function PromptCell({ prompt, turn }: GeoScanPromptCellProps) {
+  const t = useTranslations("geo.scanRunDetail");
   return (
     <span className="flex min-w-0 items-center gap-2">
       <TruncateWithTooltip className="font-medium">
@@ -65,7 +71,7 @@ function PromptCell({ prompt, turn }: GeoScanPromptCellProps) {
       </TruncateWithTooltip>
       {turn === null ? null : (
         <span className="text-muted-foreground shrink-0 text-xs">
-          Turn {turn}
+          {t("turn", { turn })}
         </span>
       )}
     </span>
@@ -73,12 +79,16 @@ function PromptCell({ prompt, turn }: GeoScanPromptCellProps) {
 }
 
 function answerColumns(
-  showLanguage: boolean
+  showLanguage: boolean,
+  t: ScanRunDetailTranslator,
+  tShared: GeoSharedTranslator,
+  tCommon: CommonTranslator,
+  locale: string
 ): TableColumn<GeoScanResultSummary>[] {
   return [
     {
       key: "prompt",
-      header: "Prompt",
+      header: tShared("prompt"),
       width: "1fr",
       minWidth: "14rem",
       cell: (row) => (
@@ -90,7 +100,7 @@ function answerColumns(
     },
     {
       key: "engine",
-      header: "Model",
+      header: tCommon("labels.model"),
       width: "12.5rem",
       cell: (row) => <ModelCell engine={row.engine} />,
     },
@@ -98,7 +108,7 @@ function answerColumns(
       ? [
           {
             key: "language",
-            header: "Language",
+            header: tCommon("labels.language"),
             width: "7rem",
             cell: (row: GeoScanResultSummary) => (
               <span className="text-muted-foreground">{row.language}</span>
@@ -108,7 +118,7 @@ function answerColumns(
       : []),
     {
       key: "mentioned",
-      header: "Mention",
+      header: t("columns.mention"),
       width: "9.5rem",
       cell: (row) => (
         <Badge variant={row.mentioned ? "success" : "secondary"}>
@@ -116,14 +126,14 @@ function answerColumns(
             aria-hidden="true"
             icon={row.mentioned ? Tick02Icon : MinusSignIcon}
           />
-          {row.mentioned ? "Mentioned" : "Not mentioned"}
+          {row.mentioned ? tShared("mentioned") : tShared("notMentioned")}
         </Badge>
       ),
     },
     {
       key: "position",
       align: "right",
-      header: "Position",
+      header: tCommon("labels.position"),
       width: "6rem",
       cell: (row) => (
         <span className="text-muted-foreground tabular-nums">
@@ -134,41 +144,48 @@ function answerColumns(
     {
       key: "sources",
       align: "right",
-      header: "Sources",
+      header: tCommon("labels.sources"),
       width: "6rem",
       cell: (row) => (
         <span className="text-muted-foreground tabular-nums">
-          {row.sources.toLocaleString()}
+          {row.sources.toLocaleString(locale)}
         </span>
       ),
     },
   ];
 }
 
-function pendingStatusLabel(status: GeoScanPendingAnswer["status"]) {
+function pendingStatusLabel(
+  status: GeoScanPendingAnswer["status"],
+  t: ScanRunDetailTranslator,
+  tCommon: CommonTranslator
+) {
   if (status === "running") {
-    return "Generating answer…";
+    return t("status.running");
   }
   if (status === "queued") {
-    return "Queued";
+    return tCommon("labels.queued");
   }
-  return "No answer saved";
+  return t("status.missing");
 }
 
 function pendingColumns(
-  showLanguage: boolean
+  showLanguage: boolean,
+  t: ScanRunDetailTranslator,
+  tShared: GeoSharedTranslator,
+  tCommon: CommonTranslator
 ): TableColumn<GeoScanPendingAnswer>[] {
   return [
     {
       key: "prompt",
-      header: "Prompt",
+      header: tShared("prompt"),
       width: "1fr",
       minWidth: "14rem",
       cell: (row) => <PromptCell prompt={row.prompt} turn={row.turn ?? null} />,
     },
     {
       key: "engine",
-      header: "Model",
+      header: tCommon("labels.model"),
       width: "12.5rem",
       cell: (row) => <ModelCell engine={row.engine} />,
     },
@@ -176,7 +193,7 @@ function pendingColumns(
       ? [
           {
             key: "language",
-            header: "Language",
+            header: tCommon("labels.language"),
             width: "7rem",
             cell: (row: GeoScanPendingAnswer) => (
               <span className="text-muted-foreground">{row.language}</span>
@@ -186,7 +203,7 @@ function pendingColumns(
       : []),
     {
       key: "status",
-      header: "Status",
+      header: tCommon("labels.status"),
       width: "12rem",
       cell: (row) => (
         <span className="text-muted-foreground inline-flex items-center gap-2">
@@ -204,7 +221,7 @@ function pendingColumns(
             }
             size={14}
           />
-          {pendingStatusLabel(row.status)}
+          {pendingStatusLabel(row.status, t, tCommon)}
         </span>
       ),
     },
@@ -237,29 +254,25 @@ function ScanTablePagination({
   );
 }
 
-function scanRunEmptyState({
-  running,
-  isError,
-  hasData,
-  loading,
-  onRetry,
-}: GeoScanRunEmptyStateInput): ReactNode {
+function scanRunEmptyState(
+  { running, isError, hasData, loading, onRetry }: GeoScanRunEmptyStateInput,
+  t: ScanRunDetailTranslator,
+  tCommon: CommonTranslator
+): ReactNode {
   if (isError && !hasData) {
     return (
       <span className="flex flex-col items-center gap-2">
-        Could not load scan answers.
+        {t("loadError")}
         <Button onClick={onRetry} size="sm" variant="outline">
-          Try again
+          {tCommon("actions.tryAgain")}
         </Button>
       </span>
     );
   }
   if (!(loading || hasData)) {
-    return "This scan is no longer available.";
+    return t("unavailable");
   }
-  return running
-    ? "Waiting for the first answers. They appear here as each batch finishes."
-    : "No saved answers for this selection.";
+  return running ? t("waiting") : t("empty");
 }
 
 function ScanRunPendingTable({
@@ -274,15 +287,18 @@ function ScanRunPendingTable({
   loading,
   toolbar,
 }: GeoScanRunPendingTableProps) {
+  const t = useTranslations("geo.scanRunDetail");
+  const tShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
   return (
     <Table
       className="rounded-2xl"
-      columns={pendingColumns(showLanguage)}
+      columns={pendingColumns(showLanguage, t, tShared, tCommon)}
       data={pending}
       emptyState={emptyState}
       footer={
         <ScanTablePagination
-          itemLabel={running ? "in progress" : "missing"}
+          itemLabel={running ? t("itemInProgress") : t("itemMissing")}
           offset={offset}
           onOffsetChange={onOffsetChange}
           total={total}
@@ -309,16 +325,20 @@ function ScanRunAnswersTable({
   toolbar,
   onRowClick,
 }: GeoScanRunAnswersTableProps) {
+  const t = useTranslations("geo.scanRunDetail");
+  const tShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   return (
     <Table
       className="rounded-2xl"
-      columns={answerColumns(showLanguage)}
+      columns={answerColumns(showLanguage, t, tShared, tCommon, locale)}
       data={results}
       emptyState={emptyState}
       footer={
         total > 0 ? (
           <ScanTablePagination
-            itemLabel="answers"
+            itemLabel={t("itemAnswers")}
             offset={offset}
             onOffsetChange={onOffsetChange}
             total={total}
@@ -346,6 +366,10 @@ function ScanRunFilters({
   engines,
   onEngineChange,
 }: GeoScanRunFiltersProps) {
+  const t = useTranslations("geo.scanRunDetail");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const formatEngineWithMode = useEngineModeLabel();
   const showViews = pendingCount > 0;
   const showEngines = engines.length > 1;
   if (!(showViews || showEngines)) {
@@ -356,7 +380,7 @@ function ScanRunFilters({
       {showViews ? (
         <PermissionRow
           className="w-fit shrink-0"
-          label="Scan answers"
+          label={t("viewLabel")}
           layout="compact"
           onValueChange={(value) => {
             if (value === "answers" || value === "pending") {
@@ -366,15 +390,15 @@ function ScanRunFilters({
           value={view}
         >
           <PermissionOption value="answers">
-            Answers
+            {tGeoShared("answers")}
             <span className="text-xs tabular-nums opacity-70">
-              {answerCount.toLocaleString()}
+              {answerCount.toLocaleString(locale)}
             </span>
           </PermissionOption>
           <PermissionOption value="pending">
-            {running ? "In progress" : "Missing"}
+            {running ? tGeoShared("inProgress") : t("missing")}
             <span className="text-xs tabular-nums opacity-70">
-              {pendingCount.toLocaleString()}
+              {pendingCount.toLocaleString(locale)}
             </span>
           </PermissionOption>
         </PermissionRow>
@@ -386,15 +410,17 @@ function ScanRunFilters({
           onValueChange={(value) => onEngineChange(value ?? ALL_MODELS)}
           value={engine}
         >
-          <SelectTrigger aria-label="Filter scan answers by model" size="sm">
+          <SelectTrigger aria-label={t("filterByModel")} size="sm">
             <SelectValue>
               {engine === ALL_MODELS
-                ? "All models"
+                ? tGeoShared("allModels")
                 : formatEngineWithMode(engine)}
             </SelectValue>
           </SelectTrigger>
           <SelectContent align="end" alignItemWithTrigger={false}>
-            <SelectItem value={ALL_MODELS}>All models</SelectItem>
+            <SelectItem value={ALL_MODELS}>
+              {tGeoShared("allModels")}
+            </SelectItem>
             {engines.map((item) => (
               <SelectItem key={item} value={item}>
                 <span className="flex items-center gap-2">
@@ -411,6 +437,8 @@ function ScanRunFilters({
 }
 
 export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
+  const t = useTranslations("geo.scanRunDetail");
+  const tCommon = useTranslations("common");
   const [view, setView] = useState<GeoScanRunView>("answers");
   const [pendingOffset, setPendingOffset] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -431,15 +459,19 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
     isPlaceholderData: query.isPlaceholderData,
     pendingOffset,
   });
-  const emptyState = scanRunEmptyState({
-    running: model.running,
-    isError: query.isError,
-    hasData: Boolean(query.data),
-    loading: model.loading,
-    onRetry: () => {
-      void query.refetch();
+  const emptyState = scanRunEmptyState(
+    {
+      running: model.running,
+      isError: query.isError,
+      hasData: Boolean(query.data),
+      loading: model.loading,
+      onRetry: () => {
+        void query.refetch();
+      },
     },
-  });
+    t,
+    tCommon
+  );
   const toolbar = model.hasFilters ? (
     <ScanRunFilters
       answerCount={model.answerCount}

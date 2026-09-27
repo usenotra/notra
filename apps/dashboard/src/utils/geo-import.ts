@@ -1,45 +1,40 @@
-import { GEO_IMPORT_COPY } from "@notra/geo-core/constants/geo-import";
-import type {
-  GeoImportKind,
-  GeoImportResult,
-} from "@notra/geo-core/types/geo-import";
+import type { GeoImportResult } from "@notra/geo-core/types/geo-import";
 
-export function geoImportNoun(kind: GeoImportKind, count: number): string {
-  const copy = GEO_IMPORT_COPY[kind];
-  return count === 1 ? copy.noun : copy.nounPlural;
-}
+import type { GeoImportResultPart } from "@/types/geo";
 
 export function describeGeoImportResult(
-  kind: GeoImportKind,
   result: GeoImportResult
-): string {
-  const parts: string[] = [];
+): GeoImportResultPart[] {
+  const parts: GeoImportResultPart[] = [];
   if (result.imported > 0) {
-    parts.push(
-      `Imported ${result.imported} ${geoImportNoun(kind, result.imported)}`
-    );
+    parts.push({ key: "imported", count: result.imported });
   }
   if (result.updated > 0) {
-    parts.push(`updated ${result.updated}`);
+    parts.push({ key: "updated", count: result.updated });
   }
   if (result.skipped > 0) {
-    parts.push(
-      `skipped ${result.skipped} duplicate${result.skipped === 1 ? "" : "s"}`
-    );
+    parts.push({ key: "skipped", count: result.skipped });
   }
   if (parts.length === 0) {
-    return `No new ${GEO_IMPORT_COPY[kind].nounPlural} to import`;
+    parts.push({ key: "nothingNew", count: 0 });
   }
-  return parts.join(", ");
+  return parts;
 }
 
-export function formatCsvFileSize(bytes: number): string {
+export function formatCsvFileSize(bytes: number, locale: string): string {
+  const format = (value: number, unit: string, maximumFractionDigits: number) =>
+    new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit,
+      unitDisplay: "short",
+      maximumFractionDigits,
+    }).format(value);
   if (bytes < 1024) {
-    return `${bytes} B`;
+    return format(bytes, "byte", 0);
   }
   const kilobytes = bytes / 1024;
   if (kilobytes < 1024) {
-    return `${kilobytes.toFixed(kilobytes < 10 ? 1 : 0)} KB`;
+    return format(kilobytes, "kilobyte", kilobytes < 10 ? 1 : 0);
   }
-  return `${(kilobytes / 1024).toFixed(1)} MB`;
+  return format(kilobytes / 1024, "megabyte", 1);
 }

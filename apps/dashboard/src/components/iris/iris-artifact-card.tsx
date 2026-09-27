@@ -1,4 +1,5 @@
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,6 +10,7 @@ export function IrisArtifactCard({
   artifact,
   organizationSlug,
 }: IrisArtifactCardProps) {
+  const tCommon = useTranslations("common");
   return (
     <Link
       className="border-border hover:bg-muted/50 flex min-w-0 gap-3 rounded-xl border p-3 transition-colors"
@@ -32,7 +34,9 @@ export function IrisArtifactCard({
           <Badge
             variant={artifact.status === "published" ? "default" : "ghost"}
           >
-            {artifact.status === "published" ? "Published" : "Draft"}
+            {artifact.status === "published"
+              ? tCommon("labels.published")
+              : tCommon("labels.draft")}
           </Badge>
         </div>
         <p className="truncate text-sm font-medium" title={artifact.title}>

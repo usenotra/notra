@@ -1,11 +1,8 @@
 import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
-import {
-  GEO_PERSONA_PROMPTS_DESCRIPTION,
-  GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION,
-} from "@/constants/geo-personas";
 import type { PersonaPromptsProps } from "@/types/geo-personas-ui";
 
 export function PersonaPrompts({
@@ -14,13 +11,15 @@ export function PersonaPrompts({
   isGenerating,
   onGenerate,
 }: PersonaPromptsProps) {
+  const t = useTranslations("geo.personaPrompts");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <div className="h-full overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="space-y-1">
-          <h3 className="text-base font-semibold">Conversation prompts</h3>
+          <h3 className="text-base font-semibold">{t("title")}</h3>
           <p className="text-muted-foreground text-sm leading-6">
-            {GEO_PERSONA_PROMPTS_DESCRIPTION}
+            {t("description")}
           </p>
         </div>
         {prompts.length > 0 ? (
@@ -28,7 +27,7 @@ export function PersonaPrompts({
             {prompts.map((prompt, index) => (
               <li className="rounded-xl border p-4" key={`${index}:${prompt}`}>
                 <p className="text-muted-foreground mb-2 text-xs font-medium tabular-nums">
-                  Message {index + 1}
+                  {t("message", { number: index + 1 })}
                 </p>
                 <p className="text-sm leading-6 wrap-anywhere">{prompt}</p>
               </li>
@@ -37,7 +36,7 @@ export function PersonaPrompts({
         ) : (
           <div className="bg-muted/30 space-y-4 rounded-xl border px-4 py-5">
             <p className="text-muted-foreground text-sm">
-              {GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION}
+              {t("emptyDescription")}
             </p>
             <Button
               disabled={disabled}
@@ -50,7 +49,7 @@ export function PersonaPrompts({
                 icon={isGenerating ? Loading03Icon : SparklesIcon}
                 size={14}
               />
-              {isGenerating ? "Generating prompts…" : "Generate prompts"}
+              {isGenerating ? t("generating") : tGeoShared("generatePrompts")}
             </Button>
           </div>
         )}

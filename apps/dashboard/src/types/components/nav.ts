@@ -8,25 +8,50 @@ export type SidebarMode = "geo" | "studio";
 
 export type NavGroupKey = "visibility" | "improve" | "automation" | "utility";
 
+export type NavItemLabelKey =
+  | "home"
+  | "chat"
+  | "content"
+  | "analytics"
+  | "feedback"
+  | "brandIdentityTitle"
+  | "iris"
+  | "schedules"
+  | "events"
+  | "integrations"
+  | "overview"
+  | "traffic"
+  | "prompts"
+  | "contentGaps"
+  | "shelfSpace"
+  | "agentReadiness"
+  | "competitors"
+  | "personas"
+  | "write"
+  | "geoSettings"
+  | "skills"
+  | "apiKeys";
+
+export type NavBadgeKey = "beta";
+
 export interface NavItem {
   link: string;
   icon: IconSvgElement;
-  label: string;
+  labelKey: NavItemLabelKey;
 }
 
 export interface NavMainItem extends NavItem {
-  badge?: string;
+  badge?: NavBadgeKey;
 }
 
 export interface SidebarModeOption {
   id: SidebarMode;
   label: string;
-  description: string;
+  descriptionKey: "measureVisibility" | "createContent";
   icon: IconSvgElement;
 }
 
 export interface NavPrimaryActionConfig {
-  label: string;
   icon: IconSvgElement;
 }
 
@@ -110,14 +135,12 @@ export type BrandIdentityNavCountKey = "references" | "sitemap";
 
 export interface NavBrandIdentityItemConfig {
   tab: BrandTab;
-  label: string;
   icon: IconSvgElement;
   countKey?: BrandIdentityNavCountKey;
 }
 
 export interface NavBrandIdentityItem {
   tab: BrandTab;
-  label: string;
   icon: IconSvgElement;
   href: string;
   isActive: boolean;

@@ -16,7 +16,7 @@
   "dependencies": {
     "@notra/utils": "workspace:*",
     "@tinybirdco/sdk": "^0.0.82",
-    "@upstash/redis": "^1.35.8",
+    "@upstash/redis": "^1.38.4",
     "effect": "4.0.0-rc.112"
   },
   "devDependencies": {

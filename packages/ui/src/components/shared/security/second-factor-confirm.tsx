@@ -1,15 +1,17 @@
 "use client";
 
 
+import { DEFAULT_SECOND_FACTOR_CONFIRM_LABELS } from "@notra/ui/constants/security-labels";
 import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 
-import type { SecondFactorConfirmProps } from "../../../types/security";
+import type {
+  SecondFactorConfirmProps,
+  SecurityActionOutcome,
+} from "../../../types/security";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-
-const CONFIRM_ERROR_FALLBACK = "That code didn't work. Please try again.";
 
 export function SecondFactorConfirm({
   title,
@@ -18,7 +20,9 @@ export function SecondFactorConfirm({
   destructive = false,
   onConfirm,
   onCancel,
+  labels,
 }: SecondFactorConfirmProps) {
+  const l = { ...DEFAULT_SECOND_FACTOR_CONFIRM_LABELS, ...labels };
   const inputId = useId();
   const errorId = `${inputId}-error`;
   const [code, setCode] = useState("");
@@ -31,13 +35,15 @@ export function SecondFactorConfirm({
     }
     setError(null);
     setIsPending(true);
-    const result = await onConfirm(code).catch(() => ({
-      ok: false as const,
-      message: CONFIRM_ERROR_FALLBACK,
-    }));
+    const result = await onConfirm(code).catch(
+      (): SecurityActionOutcome => ({
+        ok: false,
+        message: l.errorFallback,
+      })
+    );
     setIsPending(false);
     if (!result.ok) {
-      setError(result.message || CONFIRM_ERROR_FALLBACK);
+      setError(result.message || l.errorFallback);
       setCode("");
     }
   }
@@ -57,7 +63,7 @@ export function SecondFactorConfirm({
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor={inputId}>Authenticator or backup code</Label>
+        <Label htmlFor={inputId}>{l.codeLabel}</Label>
         <Input
           aria-describedby={error ? errorId : undefined}
           aria-invalid={error ? true : undefined}
@@ -69,7 +75,7 @@ export function SecondFactorConfirm({
           id={inputId}
           inputMode="text"
           onChange={(event) => setCode(event.target.value)}
-          placeholder="123456 or xxxx-xxxx"
+          placeholder={l.codePlaceholder}
           spellCheck={false}
           value={code}
         />
@@ -86,7 +92,7 @@ export function SecondFactorConfirm({
           type="button"
           variant="ghost"
         >
-          Cancel
+          {l.cancel}
         </Button>
         <Button
           disabled={isPending || code.trim().length === 0}

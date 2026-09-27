@@ -63,7 +63,7 @@ export async function extractBrandInfo(
   try {
     const { output } = await generateText({
       model: ai.wrap(
-        gateway("anthropic/claude-sonnet-4.6", {
+        gateway("anthropic/claude-sonnet-5", {
           organizationId: input.organizationId,
         })
       ),
@@ -84,7 +84,7 @@ Extract the following information:
       providerOptions: withRouterDefaults(
         { gateway: { tags: ["brand-analysis"] } },
         {
-          modelId: "anthropic/claude-sonnet-4.6",
+          modelId: "anthropic/claude-sonnet-5",
         }
       ),
       ...buildTelemetryOptions({

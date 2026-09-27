@@ -1,7 +1,6 @@
 import { geoContentBriefSchema } from "@notra/ai/schemas/geo-writer";
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
 
-import { BLOG_POST_SUBTYPE_LABELS } from "@/constants/content-formats";
 import { CONTENT_PLAN_LINK_DEFAULT_WHY } from "@/constants/content-plan";
 import type {
   KeyedContentPlan,
@@ -122,13 +121,6 @@ export function replaceAt<T>(items: T[], index: number, value: T): T[] {
 
 export function removeAt<T>(items: T[], index: number): T[] {
   return items.filter((_, itemIndex) => itemIndex !== index);
-}
-
-export function formatPlanSubtypeLabel(subtype: string): string {
-  if (isBlogPostSubtype(subtype)) {
-    return BLOG_POST_SUBTYPE_LABELS[subtype];
-  }
-  return subtype;
 }
 
 export function anchorFromUrl(url: string): string {

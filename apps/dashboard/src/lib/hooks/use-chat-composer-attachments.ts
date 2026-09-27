@@ -6,6 +6,7 @@ import {
   MAX_CHAT_FILE_SIZE,
   MIME_DISPLAY_LABELS,
 } from "@notra/schemas/constants/dashboard/upload";
+import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type DragEvent,
@@ -57,6 +58,9 @@ function renamePastedFiles(files: File[]): File[] {
 }
 
 export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
+  const tUpload = useTranslations("chat.input.upload");
+  const tCommon = useTranslations("common");
+  const tAttach = useTranslations("chat.input.attach");
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [pendingUploads, setPendingUploads] = useState<PendingChatUpload[]>([]);
   const [previewAttachment, setPreviewAttachment] =
@@ -137,9 +141,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
         attachmentsRef.current.length -
         pendingUploadsRef.current.length;
       if (remainingSlots <= 0) {
-        toast.error(
-          `You can attach at most ${MAX_CHAT_ATTACHMENTS} files per message.`
-        );
+        toast.error(tUpload("maxAttachments", { max: MAX_CHAT_ATTACHMENTS }));
         return false;
       }
 
@@ -150,7 +152,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
           !/\.heic$/i.test(file.name) &&
           file.type !== "image/heic"
         ) {
-          toast.error(`Unsupported file type: ${file.name}`);
+          toast.error(tUpload("unsupportedType", { name: file.name }));
           continue;
         }
         const maxBytes =
@@ -159,7 +161,10 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
             : MAX_CHAT_FILE_SIZE;
         if (file.size > maxBytes) {
           toast.error(
-            `${file.name} exceeds the ${maxBytes / 1024 / 1024}MB limit.`
+            tUpload("tooLarge", {
+              name: file.name,
+              size: maxBytes / 1024 / 1024,
+            })
           );
           continue;
         }
@@ -217,8 +222,10 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
             return true;
           } catch (err) {
             const message =
-              err instanceof Error ? err.message : "Upload failed";
-            toast.error(`Failed to upload ${file.name}: ${message}`);
+              err instanceof Error
+                ? err.message
+                : tCommon("labels.uploadFailed");
+            toast.error(tUpload("failed", { name: file.name, message }));
             updatePendingUploads(
               pendingUploadsRef.current.filter(
                 (pending) => pending.id !== placeholder.id
@@ -230,7 +237,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
       );
       return results.every(Boolean);
     },
-    [cleanupChatUpload, updatePendingUploads]
+    [cleanupChatUpload, updatePendingUploads, tUpload]
   );
 
   const onFileInputChange = useCallback(
@@ -339,7 +346,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
     attachments,
-    attachmentTooltipText: "Attach images, PDFs, or text",
+    attachmentTooltipText: tAttach("imagesPdfsText"),
     consumeAttachments,
     dragHandlers: {
       onDragEnter,

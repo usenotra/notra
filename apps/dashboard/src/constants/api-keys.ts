@@ -26,27 +26,9 @@ export const API_KEY_GEO_SCOPES = API_SCOPE_RESOURCES.flatMap((resource) =>
 );
 
 export const API_KEY_ACCESS_MODE_OPTIONS = [
-  {
-    value: "full",
-    label: "Full Access",
-    title: "Full Access",
-    description:
-      "This key grants full access to all API resources. For better security, we recommend creating a restricted key.",
-  },
-  {
-    value: "geo",
-    label: "GEO Access",
-    title: "GEO Access",
-    description:
-      "This key grants read and write access to GEO resources only. All other API resources remain restricted.",
-  },
-  {
-    value: "restricted",
-    label: "Restricted",
-    title: "Resource access",
-    description:
-      "Set read and write access individually for every API resource.",
-  },
+  { value: "full" },
+  { value: "geo" },
+  { value: "restricted" },
 ] as const;
 
 export const API_KEY_SCOPE_LEVEL = {
@@ -63,34 +45,52 @@ export const API_KEY_SCOPE_RESOURCES = API_SCOPE_RESOURCES.map((resource) => ({
   writeScope: getApiScopeId(resource.id, "write"),
 }));
 
+export const API_KEY_TRANSLATED_RESOURCE_IDS = [
+  "posts",
+  "brand-identities",
+  "integrations",
+  "schedules",
+  "event-triggers",
+  "chats",
+  "skills",
+  "feedback",
+  "projects",
+  "geo-settings",
+  "prompts",
+  "competitors",
+  "scans",
+  "visibility",
+  "briefs",
+  "agent-readiness",
+  "traffic",
+] as const;
+
+export const API_KEY_RESOURCE_COMMON_LABEL_KEYS = {
+  posts: "posts",
+  "brand-identities": "brandIdentities",
+  integrations: "integrations",
+  schedules: "schedules",
+  skills: "skills",
+  projects: "projects",
+} as const;
+
 export const API_KEY_PRESET_IDS = ["mcp", "sdk", "cli"] as const;
 
 export const API_KEY_EXPIRATION_OPTIONS = [
-  { label: "No expiry", value: "never" },
-  { label: "7 days", value: "7d" },
-  { label: "30 days", value: "30d" },
-  { label: "60 days", value: "60d" },
-  { label: "90 days", value: "90d" },
+  { value: "never" },
+  { value: "7d" },
+  { value: "30d" },
+  { value: "60d" },
+  { value: "90d" },
 ] as const;
 
-export const API_KEY_PERMISSION_LABELS = {
-  "api.read": "Read only",
-  "api.write": "Read & write",
-} as const;
-
-export const API_KEY_PERMISSION_SUMMARY = {
-  none: "No access",
-  read: "Read only",
-  write: "Read & write",
-  geo: "GEO access",
-  custom: "Custom",
-} as const;
-
-export const API_KEY_SCOPE_LEVEL_LABELS = {
-  none: "None",
-  read: "Read",
-  write: "Write",
-} as const;
+export const API_KEY_PERMISSION_SUMMARY = [
+  "none",
+  "read",
+  "write",
+  "geo",
+  "custom",
+] as const;
 
 export const API_KEY_EXPIRATION_MS = {
   never: null,

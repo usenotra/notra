@@ -4,12 +4,12 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { GeoEngineFamilyTotals } from "@notra/geo-core/types/geo";
 
-import type { FamilyImproveInsight, FamilyImproveKind } from "@/types/geo";
+import type {
+  FamilyImproveInsight,
+  FamilyImproveKind,
+  FamilyImproveTranslator,
+} from "@/types/geo";
 import { formatMentionRate } from "@/utils/geo-charts";
-
-function promptCountLabel(missed: number): string {
-  return `${missed.toLocaleString()} prompt${missed === 1 ? "" : "s"}`;
-}
 
 function classifyImproveKind(
   searchRate: number | null,
@@ -36,36 +36,46 @@ function insightCopy(
   familyLabel: string,
   searchRate: number | null,
   memoryRate: number | null,
-  missed: number
+  missed: number,
+  t: FamilyImproveTranslator
 ): Pick<FamilyImproveInsight, "title" | "body"> {
-  const prompts = promptCountLabel(missed);
   const search = searchRate === null ? null : formatMentionRate(searchRate);
   const memory = memoryRate === null ? null : formatMentionRate(memoryRate);
 
   if (kind === "search-ahead" && search && memory) {
     return {
-      title: "Search finds you. Memory doesn't.",
-      body: `When ${familyLabel} looks at the web it mentions you ${search}. Without search it's ${memory}. Pages that answer the ${prompts} it missed are how search keeps citing you.`,
+      title: t("searchAhead.title"),
+      body: t("searchAhead.body", {
+        family: familyLabel,
+        search,
+        memory,
+        count: missed,
+      }),
     };
   }
 
   if (kind === "memory-ahead" && search && memory) {
     return {
-      title: "Remembered, not found.",
-      body: `${familyLabel} already names you without searching (${memory}), but live search only mentions you ${search}. Pages that match the ${prompts} it missed close that gap.`,
+      title: t("memoryAhead.title"),
+      body: t("memoryAhead.body", {
+        family: familyLabel,
+        search,
+        memory,
+        count: missed,
+      }),
     };
   }
 
   if (kind === "closing") {
     return {
-      title: `${prompts} still miss you`,
-      body: `${familyLabel} already mentions you often. Closing the remaining misses is the fastest way to raise the rate.`,
+      title: t("closing.title", { count: missed }),
+      body: t("closing.body", { family: familyLabel }),
     };
   }
 
   return {
-    title: `${prompts} never mention you`,
-    body: `Neither search nor memory is recommending you on these questions. Write the pages that answer them.`,
+    title: t("bothWeak.title", { count: missed }),
+    body: t("bothWeak.body"),
   };
 }
 
@@ -74,6 +84,7 @@ export function familyImproveInsight(input: {
   search: GeoEngineFamilyTotals | null;
   memory: GeoEngineFamilyTotals | null;
   missed: number;
+  t: FamilyImproveTranslator;
 }): FamilyImproveInsight | null {
   if (input.missed <= 0) {
     return null;
@@ -87,7 +98,8 @@ export function familyImproveInsight(input: {
     input.familyLabel,
     searchRate,
     memoryRate,
-    input.missed
+    input.missed,
+    input.t
   );
 
   return { kind, ...copy };

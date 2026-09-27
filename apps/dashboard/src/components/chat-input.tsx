@@ -28,6 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useId } from "react";
 
@@ -57,6 +58,8 @@ const ChatInput = (props: ChatInputProps) => (
 );
 
 function ContentChatInputComposer(props: ChatInputProps) {
+  const t = useTranslations("chat.promptInput");
+  const tChatShared = useTranslations("chat.shared");
   const quoteContext = useChatQuote();
   const slashListId = useId();
   const {
@@ -175,7 +178,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
             ) : null
           }
         >
-          <section aria-label="Chat input drop area">
+          <section aria-label={tChatShared("chatInputDropArea")}>
             <ChatQuotePreview />
             <input
               accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
@@ -195,7 +198,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
               aria-controls={isSlashMenuOpen ? slashListId : undefined}
               aria-expanded={isSlashMenuOpen}
               aria-haspopup={isSlashMenuOpen ? "listbox" : undefined}
-              aria-label="Send a message"
+              aria-label={tChatShared("sendAMessage")}
               className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-12 w-full min-w-0 resize-none overflow-y-auto rounded-none border-0 bg-transparent px-3 py-2 text-sm leading-6 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
               disabled={isInputLocked}
               onBlur={() => {
@@ -219,8 +222,8 @@ function ContentChatInputComposer(props: ChatInputProps) {
               onSelect={onComposerSelect}
               placeholder={
                 isLoading
-                  ? "Queue a message..."
-                  : (placeholder ?? "Send a message... (type / for skills)")
+                  ? tChatShared("queueAMessage")
+                  : (placeholder ?? t("placeholder"))
               }
               ref={textareaRef}
               role="combobox"
@@ -296,6 +299,8 @@ function ChatInputComposerNudge({
   untagSkill,
   usageLimitError,
 }: ChatInputComposerNudgeProps) {
+  const tCommon = useTranslations("common");
+  const tChatShared = useTranslations("chat.shared");
   return (
     <Composer.Nudge
       action={
@@ -306,7 +311,7 @@ function ChatInputComposerNudge({
             size="xs"
             variant="outline"
           >
-            Upgrade
+            {tCommon("actions.upgrade")}
           </Button>
         ) : null
       }
@@ -315,7 +320,9 @@ function ChatInputComposerNudge({
         !hasContextChips &&
         !hasAttachmentChips &&
         !usageLimitError
-          ? `${remainingChatCredits} chat messages left`
+          ? tChatShared("countPluralOneChatMessage", {
+              count: remainingChatCredits ?? 0,
+            })
           : undefined
       }
     >
@@ -342,7 +349,9 @@ function ChatInputComposerNudge({
           />
           {shouldShowLowCredits ? (
             <span className="text-muted-foreground text-xs">
-              {remainingChatCredits} chat messages left
+              {tChatShared("countPluralOneChatMessage", {
+                count: remainingChatCredits ?? 0,
+              })}
             </span>
           ) : null}
         </>
@@ -370,6 +379,7 @@ function ChatInputContextPicker({
   organizationSlug,
   toggleContextItem,
 }: ChatInputContextPickerProps) {
+  const tChatShared = useTranslations("chat.shared");
   return (
     <Tooltip disabled={isOpen}>
       <TooltipTrigger
@@ -378,7 +388,7 @@ function ChatInputContextPicker({
             // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
             <span
               aria-disabled="true"
-              aria-label="Add tools or context"
+              aria-label={tChatShared("addToolsOrContext")}
               className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
               role="button"
               tabIndex={0}
@@ -395,7 +405,7 @@ function ChatInputContextPicker({
                 aria-controls={contextPickerId}
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
-                aria-label="Add tools or context"
+                aria-label={tChatShared("addToolsOrContext")}
                 className="size-7 justify-center px-0"
                 disabled={Boolean(disabledReason)}
                 role="combobox"
@@ -412,12 +422,14 @@ function ChatInputContextPicker({
             sideOffset={6}
           >
             <Command>
-              <CommandInput placeholder="Search tools and context..." />
+              <CommandInput
+                placeholder={tChatShared("searchToolsAndContext")}
+              />
               <CommandList>
                 <CommandEmpty>
                   {contextOptions.length === 0
-                    ? "No matching integrations."
-                    : "No matching tools or context found."}
+                    ? tChatShared("noMatchingIntegrations")
+                    : tChatShared("noMatchingToolsOrContext")}
                 </CommandEmpty>
                 {contextOptions.length === 0 && organizationSlug ? (
                   <ChatContextConnectSuggestions
@@ -426,7 +438,7 @@ function ChatInputContextPicker({
                   />
                 ) : null}
                 {contextOptions.length > 0 ? (
-                  <CommandGroup heading="Context">
+                  <CommandGroup heading={tChatShared("context")}>
                     {contextOptions.map((option) => {
                       const inContext = isInContext(option.contextItem);
                       return (
@@ -460,7 +472,7 @@ function ChatInputContextPicker({
                     href={`/${organizationSlug}/integrations`}
                     onClick={() => onOpenChange(false)}
                   >
-                    Manage integrations
+                    {tChatShared("manageIntegrations")}
                   </Link>
                 </div>
               ) : null}
@@ -468,7 +480,9 @@ function ChatInputContextPicker({
           </PopoverContent>
         </Popover>
       </TooltipTrigger>
-      <TooltipContent>{disabledReason ?? "Tools and context"}</TooltipContent>
+      <TooltipContent>
+        {disabledReason ?? tChatShared("toolsAndContext")}
+      </TooltipContent>
     </Tooltip>
   );
 }

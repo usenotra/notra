@@ -4,10 +4,10 @@ import {
   SidebarGroup,
   SidebarGroupContent,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 
 import {
   NAV_AUTOMATION_LINKS,
-  NAV_CATEGORY_LABELS,
   NAV_STUDIO_ALL_LINKS,
   NAV_STUDIO_LINKS,
 } from "@/constants/nav";
@@ -25,6 +25,7 @@ export function NavStudio({
   pathname,
   loadRecent = true,
 }: NavStudioProps) {
+  const tCommon = useTranslations("common");
   const visibility = useNavVisibility();
   const activeLink = resolveActiveNavLink(pathname, slug, NAV_STUDIO_ALL_LINKS);
 
@@ -45,7 +46,7 @@ export function NavStudio({
         organizationId={organizationId}
         slug={slug}
       />
-      <CollapsibleSidebarGroup label={NAV_CATEGORY_LABELS.automation}>
+      <CollapsibleSidebarGroup label={tCommon("labels.automation")}>
         <NavList
           activeLink={activeLink}
           links={NAV_AUTOMATION_LINKS}

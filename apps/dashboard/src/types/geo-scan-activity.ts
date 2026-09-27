@@ -3,9 +3,12 @@ import type {
   GeoScanResultSummary,
   GeoScanRunSummary,
 } from "@notra/geo-core/types/geo-scan-history";
+import type { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import type { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
+import type { GeoEngineAnswerMode } from "@/types/geo-shared";
 
 export interface GeoScanActivityProps {
   organizationId: string;
@@ -33,7 +36,7 @@ export interface GeoScanControlsProviderProps {
 export interface GeoScanModelOption {
   id: string;
   label: string;
-  answerMode: string | null;
+  answerMode: GeoEngineAnswerMode | null;
   tracked: boolean;
   zdrBlocked: boolean;
 }
@@ -157,3 +160,15 @@ export interface ScanRunDetailView {
   total: number;
   answerCount: number;
 }
+
+export type ScanActivityStatusTranslator = ReturnType<
+  typeof useTranslations<"geo.scanActivityStatus">
+>;
+
+export type ScanRunDetailTranslator = ReturnType<
+  typeof useTranslations<"geo.scanRunDetail">
+>;
+
+export type ScanActivityRelativeFormatter = ReturnType<
+  typeof useFormatRelative
+>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDayLabel, todayIsoDate } from "@notra/geo-core/utils/day-label";
+import { useLocale } from "next-intl";
 import { useMemo } from "react";
 
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
@@ -13,6 +14,7 @@ const DAILY_TREND_SERIES_KEY = "value";
 
 /** Per-day bars with labelled axes, for the source and page drawers. */
 export function DailyTrendChart({ points, label }: DailyTrendChartProps) {
+  const locale = useLocale();
   const config = useMemo<ChartConfig>(
     () => ({
       [DAILY_TREND_SERIES_KEY]: {
@@ -25,10 +27,10 @@ export function DailyTrendChart({ points, label }: DailyTrendChartProps) {
   const rows = useMemo(
     () =>
       points.map((point) => ({
-        day: formatDayLabel(point.day),
+        day: formatDayLabel(point.day, locale),
         [DAILY_TREND_SERIES_KEY]: point.value,
       })),
-    [points]
+    [locale, points]
   );
   // Today is still filling up, so its bar is drawn as a buffer.
   const incompleteTail = points.at(-1)?.day === todayIsoDate();

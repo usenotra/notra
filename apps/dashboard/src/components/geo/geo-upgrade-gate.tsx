@@ -2,11 +2,8 @@
 
 import { SquareLock02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_LOCKED_TITLE,
-  GEO_UPGRADE_DESCRIPTION,
-} from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -23,7 +20,13 @@ import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { GeoUpgradeGateProps } from "@/types/components/geo";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
-export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
+export function GeoUpgradeGate({
+  slug,
+  children,
+  fallback,
+}: GeoUpgradeGateProps) {
+  const t = useTranslations("geo.geoUpgradeGate");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
   const { isLocked, isLoading, isUnavailable, isFetching, refetch } =
@@ -43,14 +46,14 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
   }, [isLocked, route]);
 
   if (isLoading) {
-    return <GeoPageSkeleton />;
+    return fallback ?? <GeoPageSkeleton />;
   }
 
   if (isUnavailable) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 p-6">
         <p className="text-muted-foreground text-sm" role="status">
-          Could not verify your GEO access. Try again.
+          {t("verifyFailed")}
         </p>
         <Button
           className="w-fit"
@@ -61,7 +64,7 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
           type="button"
           variant="outline"
         >
-          Try again
+          {tCommon("actions.tryAgain")}
         </Button>
       </PageContainer>
     );
@@ -96,10 +99,10 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
             icon={SquareLock02Icon}
           />
           <h2 className="mt-3 text-lg font-semibold text-balance">
-            {GEO_LOCKED_TITLE}
+            {t("title")}
           </h2>
           <p className="text-muted-foreground mt-1.5 max-w-md text-sm leading-relaxed text-pretty">
-            {GEO_UPGRADE_DESCRIPTION}
+            {tCommon("messages.aiVisibilityTrackingIsIncluded")}
           </p>
         </div>
       </div>
