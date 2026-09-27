@@ -132,6 +132,12 @@ export interface SuggestionKeywordTotals {
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export interface GeoPageGateProps {
+  children: ReactNode;
+  fallback: ReactNode;
 }
 
 export interface GeoUpgradeDialogProps {

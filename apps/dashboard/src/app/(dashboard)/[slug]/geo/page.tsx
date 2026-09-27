@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import type { GeoServerPageProps } from "@/types/geo-hydration";
@@ -62,7 +63,9 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
 function Page({ params, searchParams }: GeoServerPageProps) {
   return (
     <Suspense fallback={<GeoPageSkeleton />}>
-      <PageContent params={params} searchParams={searchParams} />
+      <GeoPageGate fallback={<GeoPageSkeleton />}>
+        <PageContent params={params} searchParams={searchParams} />
+      </GeoPageGate>
     </Suspense>
   );
 }

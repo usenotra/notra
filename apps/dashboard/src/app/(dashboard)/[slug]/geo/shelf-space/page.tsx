@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
+
 import PageClient from "./page-client";
 import { GeoShelfSkeleton } from "./skeleton";
 
@@ -32,7 +34,9 @@ function Page({
 }) {
   return (
     <Suspense fallback={<GeoShelfSkeleton />}>
-      <PageContent params={params} />
+      <GeoPageGate fallback={<GeoShelfSkeleton />}>
+        <PageContent params={params} />
+      </GeoPageGate>
     </Suspense>
   );
 }

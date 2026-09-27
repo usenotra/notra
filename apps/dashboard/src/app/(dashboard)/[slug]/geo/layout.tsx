@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import { GeoCatalogWarmer } from "@/components/geo/geo-catalog-warmer";
-import { GeoUpgradeGate } from "@/components/geo/geo-upgrade-gate";
 import type { GeoLayoutProps } from "@/types/geo";
 
 import { GeoProjectScope } from "./geo-project-scope";
@@ -28,9 +27,7 @@ async function GeoLayoutProviders({
   return (
     <>
       <GeoCatalogWarmer organizationSlug={slug} />
-      <GeoProjectScope slug={slug}>
-        <GeoUpgradeGate slug={slug}>{children}</GeoUpgradeGate>
-      </GeoProjectScope>
+      <GeoProjectScope slug={slug}>{children}</GeoProjectScope>
     </>
   );
 }

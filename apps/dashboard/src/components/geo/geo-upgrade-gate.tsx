@@ -20,7 +20,11 @@ import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { GeoUpgradeGateProps } from "@/types/components/geo";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
-export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
+export function GeoUpgradeGate({
+  slug,
+  children,
+  fallback,
+}: GeoUpgradeGateProps) {
   const t = useTranslations("geo.geoUpgradeGate");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -42,7 +46,7 @@ export function GeoUpgradeGate({ slug, children }: GeoUpgradeGateProps) {
   }, [isLocked, route]);
 
   if (isLoading) {
-    return <GeoPageSkeleton />;
+    return fallback ?? <GeoPageSkeleton />;
   }
 
   if (isUnavailable) {

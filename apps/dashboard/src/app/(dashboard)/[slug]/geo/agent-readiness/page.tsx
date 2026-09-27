@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import type { AgentReadinessPageProps } from "@/types/agent-readiness";
 
@@ -24,7 +25,9 @@ async function PageContent({ params }: AgentReadinessPageProps) {
 function Page({ params }: AgentReadinessPageProps) {
   return (
     <Suspense fallback={<AgentReadinessSkeleton />}>
-      <PageContent params={params} />
+      <GeoPageGate fallback={<AgentReadinessSkeleton />}>
+        <PageContent params={params} />
+      </GeoPageGate>
     </Suspense>
   );
 }
