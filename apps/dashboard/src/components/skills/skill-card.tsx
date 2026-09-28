@@ -3,9 +3,19 @@
 import { Badge } from "@notra/ui/components/ui/badge";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import type { SkillCardProps } from "@/types/skills/page";
 import { formatSkillUpdatedAt, skillDisplayName } from "@/utils/skills";
+
+const SKILL_UPDATED_TITLE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZoneName: "short",
+};
 
 export function SkillCard({ skill, slug }: SkillCardProps) {
   const tCommon = useTranslations("common");
@@ -14,8 +24,22 @@ export function SkillCard({ skill, slug }: SkillCardProps) {
   const machineName =
     label.toLowerCase().split(" ").join("-") === skill.name ? null : skill.name;
   const updatedAt = new Date(skill.updatedAt);
+  const updatedAtTime = updatedAt.getTime();
   const relative =
     formatSkillUpdatedAt(skill.updatedAt, locale) ?? tCommon("labels.justNow");
+  const [absoluteTitle, setAbsoluteTitle] = useState<string | undefined>();
+
+  useEffect(() => {
+    // The absolute time uses the browser time zone. Rendering it on the server
+    // would stick the tooltip to the server zone after hydration.
+    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
+    setAbsoluteTitle(
+      new Date(updatedAtTime).toLocaleString(
+        locale,
+        SKILL_UPDATED_TITLE_OPTIONS
+      )
+    );
+  }, [updatedAtTime, locale]);
 
   return (
     <Link
@@ -25,7 +49,10 @@ export function SkillCard({ skill, slug }: SkillCardProps) {
       <article className="border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
         <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col overflow-hidden rounded-lg border">
           <div className="px-3 pt-2.5 pb-1">
-            <h2 className="truncate text-sm leading-snug font-medium">
+            <h2
+              className="truncate text-sm leading-snug font-medium"
+              title={label}
+            >
               {label}
             </h2>
             {machineName ? (
@@ -48,7 +75,7 @@ export function SkillCard({ skill, slug }: SkillCardProps) {
             className="text-muted-foreground text-xs tabular-nums"
             dateTime={updatedAt.toISOString()}
             suppressHydrationWarning
-            title={updatedAt.toLocaleString(locale)}
+            title={absoluteTitle}
           >
             {relative}
           </time>

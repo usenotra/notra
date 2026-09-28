@@ -43,7 +43,10 @@ export function SkillDetailHeader({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex max-w-full min-w-0 items-center gap-2.5">
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">
+            <h1
+              className="truncate text-2xl font-semibold tracking-tight"
+              title={label}
+            >
               {label}
             </h1>
             {machineName ? (

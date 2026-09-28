@@ -46,12 +46,17 @@ export function filterSkills<T extends SkillListItem>(
   if (!needle) {
     return skills;
   }
-  return skills.filter(
-    (skill) =>
-      skill.name.toLowerCase().includes(needle) ||
-      skillDisplayName(skill.name).toLowerCase().includes(needle) ||
-      skill.description.toLowerCase().includes(needle)
-  );
+  return skills.filter((skill) => {
+    const name = skill.name.toLowerCase();
+    return (
+      name.includes(needle) ||
+      skill.description.toLowerCase().includes(needle) ||
+      // Labels only insert spaces where the slug has hyphens, so a needle
+      // without a space that matches the label already matches the slug.
+      (needle.includes(" ") &&
+        skillDisplayName(skill.name).toLowerCase().includes(needle))
+    );
+  });
 }
 
 function compareBy(key: SkillSortKey, a: SkillListItem, b: SkillListItem) {

@@ -20,5 +20,6 @@ test("search matches a skill's display name", () => {
   ];
 
   expect(filterSkills(skills, "blog post")).toHaveLength(1);
+  expect(filterSkills(skills, "blog")).toHaveLength(1);
   expect(filterSkills(skills, "missing")).toHaveLength(0);
 });
