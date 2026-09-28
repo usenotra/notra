@@ -35,15 +35,17 @@ const getSlackBotToken = Effect.fn("getSlackBotToken")(function* () {
   return token;
 });
 
-const getSlackFounderMemberId = Effect.fn("getSlackFounderMemberId")(
+const getSlackSupportMemberIds = Effect.fn("getSlackSupportMemberIds")(
   function* () {
-    const memberId = process.env.SLACK_FOUNDER_MEMBER_ID?.trim();
-    if (!memberId) {
+    const memberIds = process.env.SLACK_SUPPORT_MEMBER_IDS?.split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    if (!memberIds?.length) {
       return yield* new SlackConfigurationError({
-        variable: "SLACK_FOUNDER_MEMBER_ID",
+        variable: "SLACK_SUPPORT_MEMBER_IDS",
       });
     }
-    return memberId;
+    return memberIds;
   }
 );
 
@@ -111,7 +113,7 @@ const requestSlack = Effect.fn("requestSlack")(function* (
 export function hasSlackConnectConfigured(): boolean {
   return Boolean(
     process.env.SLACK_BOT_TOKEN?.trim() &&
-    process.env.SLACK_FOUNDER_MEMBER_ID?.trim()
+    process.env.SLACK_SUPPORT_MEMBER_IDS?.split(",").some((id) => id.trim())
   );
 }
 
@@ -246,7 +248,7 @@ const createSlackConnectChannelWithInviteEffect = Effect.fn(
   "createSlackConnectChannelWithInvite"
 )(function* (input: CreateSlackConnectChannelInviteInput) {
   yield* resolveInviteRecipient(input.email, input.userId);
-  const founderMemberId = yield* getSlackFounderMemberId();
+  const supportMemberIds = yield* getSlackSupportMemberIds();
 
   const channel = yield* createSlackConnectChannelEffect({
     channelName: input.channelName,
@@ -254,7 +256,9 @@ const createSlackConnectChannelWithInviteEffect = Effect.fn(
   });
 
   const inviteEffect = Effect.gen(function* () {
-    yield* inviteSlackMemberToChannelEffect(channel.channelId, founderMemberId);
+    for (const memberId of supportMemberIds) {
+      yield* inviteSlackMemberToChannelEffect(channel.channelId, memberId);
+    }
     return yield* inviteToSlackConnectEffect({
       channelId: channel.channelId,
       email: input.email,
