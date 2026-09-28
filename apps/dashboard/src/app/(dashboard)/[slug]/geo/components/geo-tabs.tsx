@@ -7,7 +7,7 @@ import {
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { Activity, useState, type ReactNode } from "react";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
@@ -59,6 +59,7 @@ function TabSection({
   );
 }
 
+// Preserve the expensive visibility cards after their first visit without mounting them on an initial sentiment visit.
 export function GeoTabs({
   activeTab,
   onActiveTabChange,
@@ -82,6 +83,10 @@ export function GeoTabs({
 }: GeoTabsProps) {
   const t = useTranslations("geo.pages.tabs");
   const tCommon = useTranslations("common");
+  const [visibilitySeen, setVisibilitySeen] = useState(
+    activeTab === "visibility"
+  );
+
   return (
     <div className="flex min-w-0 flex-col">
       <PermissionRow
@@ -90,6 +95,9 @@ export function GeoTabs({
         layout="compact"
         onValueChange={(value) => {
           const tab = toGeoTab(value);
+          if (tab === "visibility") {
+            setVisibilitySeen(true);
+          }
           trackEvent(POSTHOG_EVENTS.GEO_TAB_CHANGED, { tab });
           onActiveTabChange(tab);
         }}
@@ -115,81 +123,83 @@ export function GeoTabs({
         </PermissionOption>
       </PermissionRow>
 
-      {activeTab === "visibility" ? (
-        <div className="mt-6 flex flex-col gap-6 overflow-visible">
-          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
-            <TabSection
-              active={revealActive}
-              className="relative z-20 overflow-visible @min-[44rem]/main:col-span-5"
-              order={0}
-            >
-              <MentionRateCard
+      {visibilitySeen || activeTab === "visibility" ? (
+        <Activity mode={activeTab === "visibility" ? "visible" : "hidden"}>
+          <div className="mt-6 flex flex-col gap-6 overflow-visible">
+            <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
+              <TabSection
+                active={revealActive}
+                className="relative z-20 overflow-visible @min-[44rem]/main:col-span-5"
+                order={0}
+              >
+                <MentionRateCard
+                  competitors={competitors}
+                  engines={engines}
+                  isScanning={isScanning}
+                  organizationSlug={organizationSlug}
+                  promptResults={promptResults}
+                  settings={settings}
+                  timeseriesPoints={timeseriesPoints}
+                  trackedEngines={settings.engines}
+                />
+              </TabSection>
+              <TabSection
+                active={revealActive}
+                className="@min-[44rem]/main:col-span-7"
+                order={1}
+              >
+                <MentionTrendCard
+                  isScanning={isScanning}
+                  points={timeseriesPoints}
+                />
+              </TabSection>
+            </InstrumentGrid>
+            <TabSection active={revealActive} order={2}>
+              <WhatChangedCard
+                competitors={competitors}
+                isScanning={isScanning}
+                organizationId={organizationId}
+                organizationSlug={organizationSlug}
+                promptResults={promptResults}
+              />
+            </TabSection>
+            <TabSection active={revealActive} order={3}>
+              <EngineRateTable
+                aliases={settings.aliases}
+                companyName={settings.companyName}
                 competitors={competitors}
                 engines={engines}
                 isScanning={isScanning}
                 organizationSlug={organizationSlug}
                 promptResults={promptResults}
-                settings={settings}
                 timeseriesPoints={timeseriesPoints}
                 trackedEngines={settings.engines}
               />
             </TabSection>
-            <TabSection
-              active={revealActive}
-              className="@min-[44rem]/main:col-span-7"
-              order={1}
-            >
-              <MentionTrendCard
-                isScanning={isScanning}
-                points={timeseriesPoints}
-              />
-            </TabSection>
-          </InstrumentGrid>
-          <TabSection active={revealActive} order={2}>
-            <WhatChangedCard
-              competitors={competitors}
-              isScanning={isScanning}
-              organizationId={organizationId}
-              organizationSlug={organizationSlug}
-              promptResults={promptResults}
-            />
-          </TabSection>
-          <TabSection active={revealActive} order={3}>
-            <EngineRateTable
-              aliases={settings.aliases}
-              companyName={settings.companyName}
-              competitors={competitors}
-              engines={engines}
-              isScanning={isScanning}
-              organizationSlug={organizationSlug}
-              promptResults={promptResults}
-              timeseriesPoints={timeseriesPoints}
-              trackedEngines={settings.engines}
-            />
-          </TabSection>
-          <InstrumentGrid className="grid-cols-1 gap-4 @min-[44rem]/main:grid-cols-2">
-            <TabSection active={revealActive} order={4}>
-              <ShareOfVoiceCard
-                aliases={settings.aliases}
-                companyName={settings.companyName}
-                competitors={competitors}
-                isScanning={isScanning}
-                organizationId={organizationId}
-                organizationSlug={organizationSlug}
-                points={competitorPoints}
-                timeseries={competitorShareTimeseries}
-              />
-            </TabSection>
-            <TabSection active={revealActive} order={5}>
-              <LanguagePerformanceCard
-                isScanning={isScanning}
-                organizationId={organizationId}
-                points={languagePoints}
-                settings={settings}
-              />
-            </TabSection>
-          </InstrumentGrid>
-        </div>
+            <InstrumentGrid className="grid-cols-1 gap-4 @min-[44rem]/main:grid-cols-2">
+              <TabSection active={revealActive} order={4}>
+                <ShareOfVoiceCard
+                  aliases={settings.aliases}
+                  companyName={settings.companyName}
+                  competitors={competitors}
+                  isScanning={isScanning}
+                  organizationId={organizationId}
+                  organizationSlug={organizationSlug}
+                  points={competitorPoints}
+                  timeseries={competitorShareTimeseries}
+                />
+              </TabSection>
+              <TabSection active={revealActive} order={5}>
+                <LanguagePerformanceCard
+                  isScanning={isScanning}
+                  organizationId={organizationId}
+                  points={languagePoints}
+                  settings={settings}
+                />
+              </TabSection>
+            </InstrumentGrid>
+          </div>
+        </Activity>
       ) : null}
 
       {activeTab === "brand-sentiment" ? (
