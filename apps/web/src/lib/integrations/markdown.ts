@@ -41,7 +41,7 @@ import type {
   IntegrationTool,
 } from "@/types/integrations";
 import { getIntegrationReferralUrl } from "@/utils/integration-referral-url";
-import { markdownSection } from "@/utils/markdown";
+import { escapeMarkdownLinkText, markdownSection } from "@/utils/markdown";
 import { SITE_URL } from "@/utils/urls";
 
 const STATIC_INTEGRATION_SLUGS = new Set(["slack"]);
@@ -71,7 +71,7 @@ function renderIntegrationLine(integration: Integration): string {
   const description = integration.description
     ? `: ${integration.description}`
     : "";
-  return `- [${integration.name}](${getIntegrationMarkdownUrl(integration)})${description} (${meta})`;
+  return `- [${escapeMarkdownLinkText(integration.name)}](${getIntegrationMarkdownUrl(integration)})${description} (${meta})`;
 }
 
 function renderToolLines(tools: IntegrationTool[]): string[] {

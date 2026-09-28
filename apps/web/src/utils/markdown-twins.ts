@@ -2,7 +2,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { CollectionEntry } from "@dualmark/converters";
-import type { CollectionConfig, StaticPageConfig } from "@dualmark/nextjs";
+import type {
+  CollectionConfig,
+  ParameterizedRouteConfig,
+  StaticPageConfig,
+} from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
 import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
@@ -33,6 +37,7 @@ import {
 } from "@/utils/changelog";
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
+import { MarkdownNotFoundError } from "@/utils/not-found";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -227,15 +232,6 @@ function getMcpUseCaseEntries() {
   );
 }
 
-async function getIntegrationEntries() {
-  const entries = await listIntegrationMarkdownEntries();
-  const pages = entries.map((entry) => ({ ...entry, slug: entry.id }));
-  const bodies = await Promise.all(
-    pages.map((page) => buildIntegrationMarkdown(page.slug))
-  );
-  return toMarkdownEntries(pages, bodies);
-}
-
 async function buildBlogIndexMarkdown() {
   const posts = await listNotraBlogPosts();
   const list = posts
@@ -392,12 +388,6 @@ export function buildDualmarkCollections() {
       converter: (entry) => withTrailingNewline(entry.body ?? ""),
       getEntries: getMcpUseCaseEntries,
     },
-    integrations: {
-      route: "integrations",
-      emitListing: false,
-      converter: (entry) => withTrailingNewline(entry.body ?? ""),
-      getEntries: getIntegrationEntries,
-    },
     blog: {
       route: "blog",
       emitListing: false,
@@ -422,4 +412,26 @@ export function buildDualmarkCollections() {
   }
 
   return collections;
+}
+
+export function buildDualmarkParameterizedRoutes(): ParameterizedRouteConfig[] {
+  return [
+    {
+      pattern: "/integrations/[id]",
+      getStaticPaths: async () =>
+        (await listIntegrationMarkdownEntries()).map((entry) => ({
+          params: { id: entry.id },
+        })),
+      render: async ({ params }) => {
+        const id = params.id ?? "";
+        const markdown = await buildIntegrationMarkdown(id);
+
+        if (!markdown) {
+          throw new MarkdownNotFoundError(`/integrations/${id}`);
+        }
+
+        return withTrailingNewline(markdown);
+      },
+    },
+  ];
 }
