@@ -1,8 +1,7 @@
-export const RELEASE_ABANDONED_WORKFLOW_ALERT = `
-if redis.call("GET", KEYS[1]) == "pending"
-  and redis.call("EXISTS", KEYS[2]) == 0
-  and redis.call("TTL", KEYS[1]) < tonumber(ARGV[1]) then
-  return redis.call("DEL", KEYS[1])
-end
-return 0
-`;
+export const WORKFLOW_FAILURE_ALERT = {
+  lockSeconds: 30,
+  sentSeconds: 7 * 24 * 60 * 60,
+  payloadSeconds: 30 * 24 * 60 * 60,
+  retryMs: 60_000,
+  batchSize: 5,
+};

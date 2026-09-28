@@ -1,6 +1,6 @@
 import { redis } from "@notra/ai/utils/redis";
 
-import { RELEASE_ABANDONED_WORKFLOW_ALERT } from "@/constants/workflow-failure-alert";
+import { WORKFLOW_FAILURE_ALERT } from "@/constants/workflow-failure-alert";
 import type { WorkflowFailureAlertInput } from "@/types/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
@@ -12,24 +12,20 @@ export async function enqueueWorkflowFailure(
   if (!process.env.GEO_SCAN_ALERT_WEBHOOK_URL || !redis) {
     return;
   }
-  if (await redis.exists(`workflow:failure-alert:${input.runId}`)) {
+  if (await redis.exists(`workflow:failure-alert:${input.runId}:sent`)) {
     return;
   }
-  await redis.set(`workflow:failure-alert:payload:${input.runId}`, input, {
-    nx: true,
-    ex: 30 * 24 * 60 * 60,
-  });
-  await redis.zadd(
-    pendingKey,
-    { nx: true },
-    {
-      score: Date.now(),
-      member: input.runId,
-    }
-  );
+  await redis
+    .multi()
+    .set(`workflow:failure-alert:payload:${input.runId}`, input, {
+      nx: true,
+      ex: WORKFLOW_FAILURE_ALERT.payloadSeconds,
+    })
+    .zadd(pendingKey, { nx: true }, { score: Date.now(), member: input.runId })
+    .exec();
 }
 
-export async function alertWorkflowFailure(
+async function alertWorkflowFailure(
   input: WorkflowFailureAlertInput
 ): Promise<void> {
   const webhook = process.env.GEO_SCAN_ALERT_WEBHOOK_URL;
@@ -40,17 +36,23 @@ export async function alertWorkflowFailure(
     throw new Error("Redis is required to deduplicate workflow alerts");
   }
 
-  const key = `workflow:failure-alert:${input.runId}`;
-  const leaseKey = `${key}:lease`;
-  const claimed = await redis.set(key, "pending", {
-    nx: true,
-    ex: 7 * 24 * 60 * 60,
-  });
+  const sentKey = `workflow:failure-alert:${input.runId}:sent`;
+  // A short lock lets another sweep retry if this worker disappears mid-send.
+  const claimed = await redis.set(
+    `workflow:failure-alert:${input.runId}:lock`,
+    "1",
+    {
+      nx: true,
+      ex: WORKFLOW_FAILURE_ALERT.lockSeconds,
+    }
+  );
   if (!claimed) {
     return;
   }
   try {
-    await redis.set(leaseKey, "1", { ex: 30 });
+    if (await redis.exists(sentKey)) {
+      return;
+    }
     const response = await fetch(webhook, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -71,20 +73,19 @@ export async function alertWorkflowFailure(
     if (!response.ok) {
       throw new Error(`Slack alert returned HTTP ${response.status}`);
     }
+    await redis
+      .multi()
+      .set(sentKey, "1", { ex: WORKFLOW_FAILURE_ALERT.sentSeconds })
+      .zrem(pendingKey, input.runId)
+      .del(`workflow:failure-alert:payload:${input.runId}`)
+      .exec();
   } catch (error) {
-    await redis.del(key);
-    await redis.del(leaseKey);
     await redis.zadd(pendingKey, {
-      score: Date.now() + 60_000,
+      score: Date.now() + WORKFLOW_FAILURE_ALERT.retryMs,
       member: input.runId,
     });
     throw error;
   }
-  // Keep the accepted-delivery claim even when queue cleanup fails.
-  await redis.set(key, "sent", { xx: true, keepTtl: true });
-  await redis.del(leaseKey);
-  await redis.zrem(pendingKey, input.runId);
-  await redis.del(`workflow:failure-alert:payload:${input.runId}`);
 }
 
 export async function notifyWorkflowFailure(
@@ -112,29 +113,18 @@ export async function retryWorkflowFailureAlerts(): Promise<void> {
   const runIds = await client.zrange<string[]>(pendingKey, 0, Date.now(), {
     byScore: true,
     offset: 0,
-    count: 5,
+    count: WORKFLOW_FAILURE_ALERT.batchSize,
   });
   await Promise.all(
     runIds.map(async (runId) => {
-      const state = await client.get<string>(`workflow:failure-alert:${runId}`);
-      if (state === "sent") {
+      if (await client.exists(`workflow:failure-alert:${runId}:sent`)) {
         await client.zrem(pendingKey, runId);
         await client.del(`workflow:failure-alert:payload:${runId}`);
         return;
       }
-      if (state === "pending") {
-        // The sender may have stopped before posting. Give it time to start
-        // before clearing its claim; the script cannot delete a new sent marker.
-        await client.eval(
-          RELEASE_ABANDONED_WORKFLOW_ALERT,
-          [
-            `workflow:failure-alert:${runId}`,
-            `workflow:failure-alert:${runId}:lease`,
-          ],
-          [7 * 24 * 60 * 60 - 30]
-        );
+      if (await client.exists(`workflow:failure-alert:${runId}:lock`)) {
         await client.zadd(pendingKey, {
-          score: Date.now() + 60_000,
+          score: Date.now() + WORKFLOW_FAILURE_ALERT.retryMs,
           member: runId,
         });
         return;
