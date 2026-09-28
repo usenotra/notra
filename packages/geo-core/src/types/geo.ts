@@ -1438,7 +1438,6 @@ export interface GeoResolvedModelCatalog extends GeoModelCatalog {
   models: (GeoModelCatalogEntry & { supportsGroundedChecks: boolean })[];
 }
 
-
 export interface GeoScanSizeInput {
   promptCount: number;
   engines: readonly string[];
