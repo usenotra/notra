@@ -115,6 +115,7 @@ export function GeoUpgradeGate({
   }
 
   function handleDismiss(): void {
+    const wasReopened = reopenedOrganizationId === organizationId;
     setDismissedOrganizationId(organizationId);
     setReopenedOrganizationId(null);
     shownForOrganizationRef.current = null;
@@ -125,6 +126,9 @@ export function GeoUpgradeGate({
       );
     } catch {
       // Keep the dialog closed for this visit when storage is unavailable.
+    }
+    if (wasReopened) {
+      return;
     }
     // The org root restores a stored "geo" mode by redirecting straight back
     // here, which would reopen this paywall in a loop. Switch the sidebar to

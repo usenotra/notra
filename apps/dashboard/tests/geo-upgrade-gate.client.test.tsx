@@ -141,6 +141,8 @@ if (process.env.NOTRA_GEO_UPGRADE_CLIENT_TEST !== "1") {
     await act(async () => {
       button("Close upgrade")?.click();
     });
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(container.textContent).not.toContain("Close upgrade");
     organization = { id: "org-other", slug: "fixture" };
     await renderGate();
     expect(container.textContent).toContain("Close upgrade");
