@@ -25,7 +25,7 @@ eve agent (this package, separate Vercel project)
 
 Tool implementations live in `@notra/tools` (`src/assistant`, `src/content-writer`, `src/image`); this app only holds one-line adapter files, the channel, hooks, and instructions. Business logic (post persistence, image post persistence) is shared with the legacy AI SDK path via `@notra/ai/utils/post-service` and `@notra/ai/utils/image-post-service`.
 
-The content-writer loads the built-in `unslop` skill for a final editing pass before saving. Its text matches the harness skill; it is available to existing organizations even if their skill catalog was seeded before it was added. The legacy background generator uses the same final pass.
+The content-writer loads `unslop` for a final editing pass before saving. Its seeded text matches the harness skill. Existing organizations receive the skill when their catalog is read, and can edit it like other system skills. The legacy background generator uses the same final pass.
 
 ## Model routing
 

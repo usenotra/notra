@@ -23,5 +23,6 @@ Do these steps in order:
 # Rules
 
 - Do not return the content as plain text; always save it with `create_post`.
+- Never replace a vague performance claim with another unverified claim. Use a measurement only if the source provides it; otherwise omit the claim.
 - Never use em dashes or en dashes anywhere in the output. Use commas or shorter sentences instead, not hyphens as dash substitutes.
 - Never ask questions; you run unattended.

@@ -4,7 +4,8 @@ import { and, asc, count, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { getConversationalBlogPostPrompt } from "../../prompts/blog_post/conversational";
-import { DEFAULT_SKILL_CATALOG_LIMIT } from "../constants";
+import { DEFAULT_SKILL_CATALOG_LIMIT, UNSLOP_DESCRIPTION } from "../constants";
+import { ensureUnslopSkill } from "../seed";
 import type {
   CreateSkillInput,
   ListSkillsOptions,
@@ -27,6 +28,8 @@ export async function listSkillCatalog(
   const limit = options.limit ?? DEFAULT_SKILL_CATALOG_LIMIT;
   const offset = options.offset ?? 0;
   const where = promptableSkillWhere(ctx.organizationId);
+
+  await ensureUnslopSkill(ctx.organizationId);
 
   const [rows, totalResult] = await Promise.all([
     db
@@ -54,6 +57,7 @@ export async function listSkillSummaries(
   options: Pick<ListSkillsOptions, "limit"> = {}
 ) {
   const limit = options.limit ?? DEFAULT_SKILL_CATALOG_LIMIT;
+  await ensureUnslopSkill(ctx.organizationId);
   const rows = await db
     .select({
       name: skills.name,
@@ -71,15 +75,6 @@ export async function loadSkillByName(
   ctx: SkillServiceContext,
   name: string
 ): Promise<SkillContent | null> {
-  // The writing pass is built in for existing and newly created organizations.
-  if (name === "unslop") {
-    return {
-      name: "unslop",
-      description: "Cut AI tells from any writing. Must always apply.",
-      content: UNSLOP_CONTENT,
-    };
-  }
-
   const row = await db.query.skills.findFirst({
     where: and(
       eq(skills.organizationId, ctx.organizationId),
@@ -88,15 +83,19 @@ export async function loadSkillByName(
   });
 
   if (!row) {
-    return null;
+    return name === "unslop"
+      ? { name, description: UNSLOP_DESCRIPTION, content: UNSLOP_CONTENT }
+      : null;
   }
 
   return {
     name: row.name,
     description: row.description,
-    // System skills seeded before a prompt update should use the current text.
+    // Refresh only the untouched seeded copy; preserve organization edits.
     content:
-      row.isSystem && name === "blog-post"
+      row.isSystem &&
+      name === "blog-post" &&
+      row.updatedAt.getTime() === row.createdAt.getTime()
         ? getConversationalBlogPostPrompt()
         : row.content.trim(),
   };
