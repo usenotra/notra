@@ -28,6 +28,49 @@ interface TablePaginationProps {
   formatRange?: (range: TablePaginationRange) => string;
 }
 
+function PaginationNumbers({
+  page,
+  pageCount,
+  setPage,
+  showPageNumbers,
+}: Pick<
+  TablePaginationProps,
+  "page" | "pageCount" | "setPage" | "showPageNumbers"
+>) {
+  if (!showPageNumbers) {
+    return null;
+  }
+
+  return getPageNumbers(page, pageCount).map((pageNumber, index) => (
+    <PaginationItem
+      key={
+        pageNumber === "ellipsis"
+          ? index === 1
+            ? "ellipsis-start"
+            : "ellipsis-end"
+          : pageNumber
+      }
+    >
+      {pageNumber === "ellipsis" ? (
+        <PaginationEllipsis className="size-7" />
+      ) : (
+        <PaginationLink
+          className="tabular-nums"
+          href="#"
+          isActive={pageNumber === page}
+          onClick={(event) => {
+            event.preventDefault();
+            setPage(pageNumber);
+          }}
+          size="icon-sm"
+        >
+          {pageNumber}
+        </PaginationLink>
+      )}
+    </PaginationItem>
+  ));
+}
+
 export function TablePagination({
   page,
   pageCount,
@@ -50,11 +93,11 @@ export function TablePagination({
   return (
     <div
       className={cn(
-        "text-muted-foreground flex min-h-11 items-center justify-between gap-3 px-3 text-xs",
+        "text-muted-foreground flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-1 text-xs",
         className
       )}
     >
-      <span className="truncate tabular-nums">
+      <span className="min-w-0 truncate tabular-nums">
         {formatRange
           ? formatRange({ start, end, total: totalItems })
           : `${labels.paginationRange(
@@ -66,7 +109,10 @@ export function TablePagination({
       {pageCount > 1 ? (
         <Pagination
           aria-label={labels.pagination}
-          className="mx-0 w-auto justify-end"
+          className={cn(
+            "mx-0 ml-auto max-w-full justify-end overflow-x-auto",
+            showPageNumbers && pageCount > 7 ? "w-72" : "w-auto"
+          )}
         >
           <PaginationContent>
             <PaginationItem>
@@ -81,38 +127,17 @@ export function TablePagination({
                     setPage(page - 1);
                   }
                 }}
+                size="icon-sm"
                 tabIndex={isFirst ? -1 : undefined}
+                text=""
               />
             </PaginationItem>
-            {(showPageNumbers ? getPageNumbers(page, pageCount) : []).map(
-              (pageNumber, index) => (
-                <PaginationItem
-                  key={
-                    pageNumber === "ellipsis"
-                      ? index === 1
-                        ? "ellipsis-start"
-                        : "ellipsis-end"
-                      : pageNumber
-                  }
-                >
-                  {pageNumber === "ellipsis" ? (
-                    <PaginationEllipsis />
-                  ) : (
-                    <PaginationLink
-                      className="tabular-nums"
-                      href="#"
-                      isActive={pageNumber === page}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        setPage(pageNumber);
-                      }}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  )}
-                </PaginationItem>
-              )
-            )}
+            <PaginationNumbers
+              page={page}
+              pageCount={pageCount}
+              setPage={setPage}
+              showPageNumbers={showPageNumbers}
+            />
             <PaginationItem>
               <PaginationNext
                 aria-disabled={isLast}
@@ -125,7 +150,9 @@ export function TablePagination({
                     setPage(page + 1);
                   }
                 }}
+                size="icon-sm"
                 tabIndex={isLast ? -1 : undefined}
+                text=""
               />
             </PaginationItem>
           </PaginationContent>

@@ -81,7 +81,9 @@ function PaginationPrevious({
       {...props}
     >
       <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} data-icon="inline-start" />
-      <span className="hidden sm:block">{text ?? <UiLabel name="previous" />}</span>
+      {text === "" ? null : (
+        <span className="hidden sm:block">{text ?? <UiLabel name="previous" />}</span>
+      )}
     </PaginationLink>
   )
 }
@@ -98,7 +100,9 @@ function PaginationNext({
       className={cn("pr-1.5!", className)}
       {...props}
     >
-      <span className="hidden sm:block">{text ?? <UiLabel name="next" />}</span>
+      {text === "" ? null : (
+        <span className="hidden sm:block">{text ?? <UiLabel name="next" />}</span>
+      )}
       <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} data-icon="inline-end" />
     </PaginationLink>
   )
