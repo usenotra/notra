@@ -18,7 +18,8 @@ export const localStorageKeys = {
     `notra:eve-banner-dismissed:${organizationId}`,
   gscCardDismissed: (organizationId: string) =>
     `notra:gsc-card-dismissed:${organizationId}`,
-  geoUpgradeDismissed: (slug: string) => `notra:geo-upgrade-dismissed:${slug}`,
+  geoUpgradeDismissed: (organizationId: string) =>
+    `notra:geo-upgrade-dismissed:${organizationId}`,
   chatSuggestionsDismissed: "notra:chat-suggestions-dismissed:v1",
   dashboardAgentSuggestionsDismissed:
     "notra:dashboard-agent-suggestions-dismissed:v2",

@@ -12,6 +12,7 @@ import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
 import { Button } from "@/components/button";
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { PAYWALL_KINDS } from "@/constants/analytics-events";
 import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -35,31 +36,54 @@ export function GeoUpgradeGate({
   const tCommon = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
+  const { activeOrganization, getOrganization } = useOrganizationsContext();
+  const organizationId =
+    (activeOrganization?.slug === slug
+      ? activeOrganization
+      : getOrganization(slug)
+    )?.id ?? "";
   const { isLocked, isLoading, isUnavailable, isFetching, refetch } =
     useHasGeoFeature();
   const route = toAnalyticsRoute(pathname, slug);
-  const [dismissedSlug, setDismissedSlug] = useState<string | null>(null);
+  const [dismissedOrganizationId, setDismissedOrganizationId] = useState<
+    string | null
+  >(null);
+  const [reopenedOrganizationId, setReopenedOrganizationId] = useState<
+    string | null
+  >(null);
   const dismissedInStorage = useSyncExternalStore(
     subscribeToStorage,
-    () =>
-      Boolean(
-        window.localStorage.getItem(localStorageKeys.geoUpgradeDismissed(slug))
-      ),
+    () => {
+      try {
+        return (
+          !organizationId ||
+          window.localStorage.getItem(
+            localStorageKeys.geoUpgradeDismissed(organizationId)
+          ) === "1"
+        );
+      } catch {
+        return false;
+      }
+    },
     () => true
   );
-  const dialogOpen = isLocked && dismissedSlug !== slug && !dismissedInStorage;
-  const shownForSlugRef = useRef<string | null>(null);
+  const dialogOpen =
+    isLocked &&
+    Boolean(organizationId) &&
+    (reopenedOrganizationId === organizationId ||
+      (dismissedOrganizationId !== organizationId && !dismissedInStorage));
+  const shownForOrganizationRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!dialogOpen || shownForSlugRef.current === slug) {
+    if (!dialogOpen || shownForOrganizationRef.current === organizationId) {
       return;
     }
-    shownForSlugRef.current = slug;
+    shownForOrganizationRef.current = organizationId;
     trackEvent(POSTHOG_EVENTS.PAYWALL_SHOWN, {
       kind: PAYWALL_KINDS.GEO_LOCKED,
       route,
     });
-  }, [dialogOpen, route, slug]);
+  }, [dialogOpen, organizationId, route]);
 
   if (isLoading) {
     return fallback ?? <GeoPageSkeleton />;
@@ -91,11 +115,17 @@ export function GeoUpgradeGate({
   }
 
   function handleDismiss(): void {
-    window.localStorage.setItem(
-      localStorageKeys.geoUpgradeDismissed(slug),
-      "1"
-    );
-    setDismissedSlug(slug);
+    setDismissedOrganizationId(organizationId);
+    setReopenedOrganizationId(null);
+    shownForOrganizationRef.current = null;
+    try {
+      window.localStorage.setItem(
+        localStorageKeys.geoUpgradeDismissed(organizationId),
+        "1"
+      );
+    } catch {
+      // Keep the dialog closed for this visit when storage is unavailable.
+    }
     // The org root restores a stored "geo" mode by redirecting straight back
     // here, which would reopen this paywall in a loop. Switch the sidebar to
     // Studio first so the redirect lets the user land on the Studio home.
@@ -125,6 +155,13 @@ export function GeoUpgradeGate({
           <p className="text-muted-foreground mt-1.5 max-w-md text-sm leading-relaxed text-pretty">
             {tCommon("messages.aiVisibilityTrackingIsIncluded")}
           </p>
+          <Button
+            className="mt-4"
+            onClick={() => setReopenedOrganizationId(organizationId)}
+            type="button"
+          >
+            {tCommon("actions.upgrade")}
+          </Button>
         </div>
       </div>
       <GeoUpgradeDialog
