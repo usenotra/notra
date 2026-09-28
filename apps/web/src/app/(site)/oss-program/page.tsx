@@ -4,10 +4,6 @@ import type { Metadata } from "next";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import {
-  OSS_PROGRAM_BENEFITS,
-  OSS_PROGRAM_OSI_LICENSES_URL,
-} from "@/lib/oss-program/constants";
-import {
   PAGE_SOCIAL_IMAGES,
   TWITTER_HANDLE,
   pageAlternates,
@@ -41,6 +37,30 @@ export const metadata: Metadata = {
   },
 };
 
+const BENEFITS = [
+  {
+    label: "Free Notra Growth plan",
+    detail:
+      "Full access to the $250/mo Growth plan for as long as you're in the program. No credit card needed.",
+  },
+  {
+    label: "Content from your shipped work",
+    detail:
+      "Turn commits, PRs, and releases into changelogs, launch posts, and social updates.",
+  },
+  {
+    label: "Marketing assets in your voice",
+    detail:
+      "Generate launch visuals and copy that sound like your project, not a template.",
+  },
+  {
+    label: "A direct line to the team",
+    detail: "Shape the roadmap with your feedback. That's the whole trade.",
+  },
+] as const;
+
+const OSI_LICENSES_URL = "https://opensource.org/licenses";
+
 const ELIGIBILITY = [
   {
     id: "public",
@@ -53,7 +73,7 @@ const ELIGIBILITY = [
         It's licensed under an{" "}
         <a
           className="text-primary hover:text-primary-hover font-medium underline underline-offset-2"
-          href={OSS_PROGRAM_OSI_LICENSES_URL}
+          href={OSI_LICENSES_URL}
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -103,7 +123,7 @@ export default function OssProgramPage() {
             </p>
           </div>
           <div className="grid gap-px overflow-hidden rounded-2xl border border-[#1E1E1E14] bg-[#1E1E1E14] sm:grid-cols-2 dark:border-white/10 dark:bg-white/10">
-            {OSS_PROGRAM_BENEFITS.map((benefit) => (
+            {BENEFITS.map((benefit) => (
               <div
                 className="flex flex-col gap-1.5 bg-[#FAF8FD] p-6 dark:bg-[#17131f]"
                 key={benefit.label}

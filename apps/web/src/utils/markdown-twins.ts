@@ -5,16 +5,13 @@ import type { CollectionEntry } from "@dualmark/converters";
 import type { CollectionConfig, StaticPageConfig } from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
-import { buildAboutMarkdown } from "@/lib/about/markdown";
 import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
 import {
   buildBlogAuthorMarkdown,
   listBlogAuthorMarkdownPages,
 } from "@/lib/blog/author-markdown";
-import { buildContactMarkdown } from "@/lib/contact/markdown";
 import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
-import { buildHtmlExportMarkdown } from "@/lib/html-to-figma/markdown";
 import {
   buildIntegrationMarkdown,
   buildIntegrationsMarkdown,
@@ -28,10 +25,6 @@ import {
   buildMcpUseCasesMarkdown,
   listMcpUseCaseMarkdownEntries,
 } from "@/lib/mcp/markdown";
-import { buildFreeHatMarkdown } from "@/lib/merch/markdown";
-import { buildOssProgramMarkdown } from "@/lib/oss-program/markdown";
-import { buildRepoStarVideoMarkdown } from "@/lib/star-video/markdown";
-import { buildThreadCreatorMarkdown } from "@/lib/threads/markdown";
 import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
@@ -78,6 +71,17 @@ const LEGAL_PAGES = [
     title: "Legal Notice",
     filename: "legal.mdx",
   },
+] as const;
+
+const STATIC_MARKDOWN_PAGES = [
+  "about",
+  "contact",
+  "free-hat",
+  "html-to-figma",
+  "html-to-paper",
+  "oss-program",
+  "repo-star-video",
+  "twitter-thread-creator",
 ] as const;
 
 function absoluteUrl(pathname: string) {
@@ -340,14 +344,9 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/pricing", render: () => buildPricingMarkdown() },
     { pattern: "/brand", render: () => buildBrandMarkdown() },
     { pattern: "/feedback-md", render: () => buildFeedbackMdPageMarkdown() },
-    { pattern: "/about", render: () => buildAboutMarkdown() },
     { pattern: "/agent", render: () => buildAgentPageMarkdown() },
-    { pattern: "/contact", render: () => buildContactMarkdown() },
-    { pattern: "/free-hat", render: () => buildFreeHatMarkdown() },
-    { pattern: "/repo-star-video", render: () => buildRepoStarVideoMarkdown() },
     { pattern: "/mcp", render: () => buildMcpMarkdown() },
     { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
-    { pattern: "/oss-program", render: () => buildOssProgramMarkdown() },
     { pattern: "/contributors", render: () => buildContributorsMarkdown() },
     { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
     {
@@ -358,18 +357,6 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
       pattern: "/features/marketing/assets",
       render: () => buildMarketingAssetsMarkdown(),
     },
-    {
-      pattern: "/html-to-figma",
-      render: () => buildHtmlExportMarkdown("figma"),
-    },
-    {
-      pattern: "/html-to-paper",
-      render: () => buildHtmlExportMarkdown("paper"),
-    },
-    {
-      pattern: "/twitter-thread-creator",
-      render: () => buildThreadCreatorMarkdown(),
-    },
     { pattern: "/blog", render: () => buildBlogIndexMarkdown() },
     { pattern: "/changelog", render: () => buildChangelogHubMarkdown() },
     {
@@ -379,6 +366,10 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     ...SHOWCASE_COMPANIES.map((company) => ({
       pattern: `/changelog/${company.slug}`,
       render: () => buildShowcaseCompanyMarkdown(company.slug),
+    })),
+    ...STATIC_MARKDOWN_PAGES.map((page) => ({
+      pattern: `/${page}`,
+      render: () => readAppMarkdownSource("pages", `${page}.md`),
     })),
     ...LEGAL_PAGES.map((page) => ({
       pattern: page.pattern,
