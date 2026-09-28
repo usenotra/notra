@@ -10,13 +10,7 @@ export type HeicDecoder = {
     context: HeicContext,
     bytes: Uint8Array
   ) => { code: unknown };
-  heif_js_context_get_list_of_top_level_image_IDs: (
-    context: HeicContext
-  ) => number[];
-  heif_js_context_get_image_handle: (
-    context: HeicContext,
-    id: number
-  ) => unknown;
+  heif_js_context_get_primary_image_handle: (context: HeicContext) => unknown;
   heif_error_code: { heif_error_Ok: unknown };
   HeifImage: new (handle: unknown) => HeicImage;
 };

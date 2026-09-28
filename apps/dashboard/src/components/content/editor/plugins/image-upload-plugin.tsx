@@ -4,6 +4,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { mergeRegister } from "@lexical/utils";
 import {
   $createRangeSelectionFromDom,
+  $getRoot,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_HIGH,
@@ -247,10 +248,23 @@ export function ImageUploadPlugin() {
             editor
           );
           if (selection) {
+            const rootNode = $getRoot();
+            const node = selection.anchor.getNode();
+            const top = node.getTopLevelElement() ?? node;
+            const fallbackIndex =
+              node === rootNode
+                ? selection.anchor.offset
+                : top.getIndexWithinParent() +
+                  (selection.anchor.offset === 0 ? 0 : 1);
             point = {
               key: selection.anchor.key,
               offset: selection.anchor.offset,
               type: selection.anchor.type,
+              beforeKey:
+                rootNode.getChildAtIndex(fallbackIndex)?.getKey() ?? null,
+              afterKey:
+                rootNode.getChildAtIndex(fallbackIndex - 1)?.getKey() ?? null,
+              fallbackIndex,
             };
           }
         },

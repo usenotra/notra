@@ -9,6 +9,9 @@ export type ContentDropPoint = {
   key: string;
   offset: number;
   type: "element" | "text";
+  beforeKey: string | null;
+  afterKey: string | null;
+  fallbackIndex: number;
 };
 export type UploadTranslator = ReturnType<
   typeof useTranslations<"content.editor.upload">

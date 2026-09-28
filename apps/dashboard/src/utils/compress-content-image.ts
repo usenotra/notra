@@ -93,15 +93,7 @@ async function decodeContentHeic(bytes: Uint8Array): Promise<Buffer> {
     if (parsed.code !== libheif.heif_error_code.heif_error_Ok) {
       throw new Error("Invalid HEIC image");
     }
-    const topLevel =
-      libheif.heif_js_context_get_list_of_top_level_image_IDs(context);
-    if (!topLevel.length) {
-      throw new Error("Unsupported HEIC image");
-    }
-    const handle = libheif.heif_js_context_get_image_handle(
-      context,
-      topLevel[0]
-    );
+    const handle = libheif.heif_js_context_get_primary_image_handle(context);
     if (!handle || (typeof handle === "object" && "code" in handle)) {
       throw new Error("Invalid HEIC image");
     }

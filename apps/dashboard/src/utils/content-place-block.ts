@@ -26,9 +26,19 @@ export function placeContentBlock(
       const block = create();
       const point = dropPoint;
       const pointNode = point ? $getNodeByKey(point.key) : null;
+      const root = $getRoot();
+      const rootPointMoved =
+        pointNode === root &&
+        point &&
+        ((point.beforeKey !== null &&
+          root.getChildAtIndex(point.offset)?.getKey() !== point.beforeKey) ||
+          (point.afterKey !== null &&
+            root.getChildAtIndex(point.offset - 1)?.getKey() !==
+              point.afterKey));
       if (
         point &&
-        pointNode &&
+        pointNode?.isAttached() &&
+        !rootPointMoved &&
         ((point.type === "text" && $isTextNode(pointNode)) ||
           (point.type === "element" && $isElementNode(pointNode)))
       ) {
@@ -43,8 +53,21 @@ export function placeContentBlock(
       } else {
         const anchor = insertedKey ? $getNodeByKey(insertedKey) : null;
         const top = anchor?.getTopLevelElement() ?? anchor;
-        if (top?.getParent()) {
+        const before = point?.beforeKey ? $getNodeByKey(point.beforeKey) : null;
+        const after = point?.afterKey ? $getNodeByKey(point.afterKey) : null;
+        if (before?.isAttached()) {
+          before.insertBefore(block);
+        } else if (after?.isAttached()) {
+          after.insertAfter(block);
+        } else if (top?.getParent()) {
           top.insertAfter(block);
+        } else if (point) {
+          const next = $getRoot().getChildAtIndex(point.fallbackIndex);
+          if (next) {
+            next.insertBefore(block);
+          } else {
+            $getRoot().append(block);
+          }
         } else {
           $getRoot().append(block);
         }
