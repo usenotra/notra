@@ -1,5 +1,6 @@
 import { redis } from "@notra/ai/utils/redis";
 
+import { RELEASE_ABANDONED_WORKFLOW_ALERT } from "@/constants/workflow-failure-alert";
 import type { WorkflowFailureAlertInput } from "@/types/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
@@ -122,16 +123,16 @@ export async function retryWorkflowFailureAlerts(): Promise<void> {
         return;
       }
       if (state === "pending") {
-        const leaseKey = `workflow:failure-alert:${runId}:lease`;
-        const [leased, ttl] = await Promise.all([
-          client.exists(leaseKey),
-          client.ttl(`workflow:failure-alert:${runId}`),
-        ]);
         // The sender may have stopped before posting. Give it time to start
-        // before clearing an unleased claim from a concurrent invocation.
-        if (!leased && ttl < 7 * 24 * 60 * 60 - 30) {
-          await client.del(`workflow:failure-alert:${runId}`);
-        }
+        // before clearing its claim; the script cannot delete a new sent marker.
+        await client.eval(
+          RELEASE_ABANDONED_WORKFLOW_ALERT,
+          [
+            `workflow:failure-alert:${runId}`,
+            `workflow:failure-alert:${runId}:lease`,
+          ],
+          [7 * 24 * 60 * 60 - 30]
+        );
         await client.zadd(pendingKey, {
           score: Date.now() + 60_000,
           member: runId,
