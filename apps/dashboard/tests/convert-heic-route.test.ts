@@ -20,7 +20,7 @@ mock.module("@/utils/compress-content-image", () => ({
     Buffer.from(bytes.subarray(4, 8)).toString("ascii") === "ftyp",
 }));
 
-const { POST } = await import("./route");
+const { POST } = await import("../src/app/api/uploads/convert-heic/route");
 
 // Simulate untrusted streaming bodies whose Content-Length is missing or intentionally inaccurate.
 function streamedRequest(length: number, declaredLength?: string) {
