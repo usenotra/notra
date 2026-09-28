@@ -3,7 +3,11 @@ import type { Metadata } from "next";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import ThreadBuilder from "@/components/threads/thread-builder";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "X Thread Builder";
@@ -14,7 +18,7 @@ const url = `${SITE_URL}/twitter-thread-creator`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+import { SITE_URL } from "./urls";
+
 export const SITE_TAGLINE = "Get recommended by AI engines.";
 
 export const SITE_TITLE = `Notra. ${SITE_TAGLINE}`;
@@ -85,3 +89,15 @@ export const PAGE_SOCIAL_IMAGES = {
 } as const;
 
 export const TWITTER_HANDLE = "@usenotra";
+
+export function pageAlternates(url: string): Metadata["alternates"] {
+  const markdownUrl = url === SITE_URL ? `${SITE_URL}/index.md` : `${url}.md`;
+
+  return {
+    canonical: url,
+    types: {
+      "text/plain": `${SITE_URL}/llms.txt`,
+      "text/markdown": markdownUrl,
+    },
+  };
+}

@@ -5,7 +5,34 @@ import type { CollectionEntry } from "@dualmark/converters";
 import type { CollectionConfig, StaticPageConfig } from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
+import { buildAboutMarkdown } from "@/lib/about/markdown";
+import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
+import {
+  buildBlogAuthorMarkdown,
+  listBlogAuthorMarkdownPages,
+} from "@/lib/blog/author-markdown";
+import { buildContactMarkdown } from "@/lib/contact/markdown";
+import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
+import { buildHtmlExportMarkdown } from "@/lib/html-to-figma/markdown";
+import {
+  buildIntegrationMarkdown,
+  buildIntegrationsMarkdown,
+  buildSlackIntegrationMarkdown,
+  listIntegrationMarkdownEntries,
+} from "@/lib/integrations/markdown";
+import { buildMarketingAssetsMarkdown } from "@/lib/marketing-assets/markdown";
+import {
+  buildMcpMarkdown,
+  buildMcpUseCaseMarkdown,
+  buildMcpUseCasesMarkdown,
+  listMcpUseCaseMarkdownEntries,
+} from "@/lib/mcp/markdown";
+import { buildFreeHatMarkdown } from "@/lib/merch/markdown";
+import { buildOssProgramMarkdown } from "@/lib/oss-program/markdown";
+import { buildRepoStarVideoMarkdown } from "@/lib/star-video/markdown";
+import { buildThreadCreatorMarkdown } from "@/lib/threads/markdown";
+import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
   getChangelogPostHref,
@@ -169,6 +196,42 @@ async function getShowcaseEntries(name: string): Promise<MarkdownTwinEntry[]> {
   );
 }
 
+function toMarkdownEntries(
+  pages: BlogAuthorMarkdownPage[],
+  bodies: (string | null)[]
+): MarkdownTwinEntry[] {
+  return pages.map((page, index) => ({
+    id: page.slug,
+    data: { title: page.title, description: page.description },
+    body: bodies[index] ?? "",
+  }));
+}
+
+async function getBlogAuthorEntries() {
+  const pages = await listBlogAuthorMarkdownPages();
+  const bodies = await Promise.all(
+    pages.map((page) => buildBlogAuthorMarkdown(page.slug))
+  );
+  return toMarkdownEntries(pages, bodies);
+}
+
+function getMcpUseCaseEntries() {
+  const pages = listMcpUseCaseMarkdownEntries();
+  return toMarkdownEntries(
+    pages,
+    pages.map((page) => buildMcpUseCaseMarkdown(page.slug))
+  );
+}
+
+async function getIntegrationEntries() {
+  const entries = await listIntegrationMarkdownEntries();
+  const pages = entries.map((entry) => ({ ...entry, slug: entry.id }));
+  const bodies = await Promise.all(
+    pages.map((page) => buildIntegrationMarkdown(page.slug))
+  );
+  return toMarkdownEntries(pages, bodies);
+}
+
 async function buildBlogIndexMarkdown() {
   const posts = await listNotraBlogPosts();
   const list = posts
@@ -277,6 +340,36 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/pricing", render: () => buildPricingMarkdown() },
     { pattern: "/brand", render: () => buildBrandMarkdown() },
     { pattern: "/feedback-md", render: () => buildFeedbackMdPageMarkdown() },
+    { pattern: "/about", render: () => buildAboutMarkdown() },
+    { pattern: "/agent", render: () => buildAgentPageMarkdown() },
+    { pattern: "/contact", render: () => buildContactMarkdown() },
+    { pattern: "/free-hat", render: () => buildFreeHatMarkdown() },
+    { pattern: "/repo-star-video", render: () => buildRepoStarVideoMarkdown() },
+    { pattern: "/mcp", render: () => buildMcpMarkdown() },
+    { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/oss-program", render: () => buildOssProgramMarkdown() },
+    { pattern: "/contributors", render: () => buildContributorsMarkdown() },
+    { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
+    {
+      pattern: "/integrations/slack",
+      render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/features/marketing/assets",
+      render: () => buildMarketingAssetsMarkdown(),
+    },
+    {
+      pattern: "/html-to-figma",
+      render: () => buildHtmlExportMarkdown("figma"),
+    },
+    {
+      pattern: "/html-to-paper",
+      render: () => buildHtmlExportMarkdown("paper"),
+    },
+    {
+      pattern: "/twitter-thread-creator",
+      render: () => buildThreadCreatorMarkdown(),
+    },
     { pattern: "/blog", render: () => buildBlogIndexMarkdown() },
     { pattern: "/changelog", render: () => buildChangelogHubMarkdown() },
     {
@@ -296,6 +389,24 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
 
 export function buildDualmarkCollections() {
   const collections: Record<string, CollectionConfig> = {
+    blogAuthors: {
+      route: "blog/author",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getBlogAuthorEntries,
+    },
+    mcpUseCases: {
+      route: "mcp/use-cases",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getMcpUseCaseEntries,
+    },
+    integrations: {
+      route: "integrations",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getIntegrationEntries,
+    },
     blog: {
       route: "blog",
       emitListing: false,

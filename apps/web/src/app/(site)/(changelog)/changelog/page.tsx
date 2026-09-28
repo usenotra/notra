@@ -3,7 +3,11 @@ import type { Metadata } from "next";
 import { changelog } from "@/../.source/server";
 import { ChangelogPageHeader } from "@/components/changelog-page-header";
 import { ShowcaseOverviewGrid } from "@/components/showcase-overview-grid";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SHOWCASE_COMPANIES } from "@/utils/showcase";
 import { SHOWCASE_COMPANY_ICONS } from "@/utils/showcase-icons";
 import { SITE_URL } from "@/utils/urls";
@@ -15,9 +19,7 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: `${SITE_URL}/changelog`,
-  },
+  alternates: pageAlternates(`${SITE_URL}/changelog`),
   openGraph: {
     title,
     description,

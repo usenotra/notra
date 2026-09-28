@@ -17,15 +17,13 @@ import {
   siteUrl,
 } from "@/utils/agent-metadata";
 import { serializeJsonLd } from "@/utils/jsonld";
-import { SITE_DESCRIPTION, SITE_TITLE } from "@/utils/metadata";
+import { SITE_DESCRIPTION, SITE_TITLE, pageAlternates } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: SITE_URL,
-  },
+  alternates: pageAlternates(SITE_URL),
 };
 
 const softwareJsonLd = {

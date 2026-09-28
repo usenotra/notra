@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 
 import TermsContent from "@/content/legal/terms.mdx";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Terms of Service";
@@ -12,9 +16,7 @@ const url = `${SITE_URL}/terms`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: url,
-  },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

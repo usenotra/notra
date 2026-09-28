@@ -3,7 +3,11 @@ import type { Metadata } from "next";
 import { BlogPostCard } from "@/components/blog-post-card";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { buildBlogCardItems, listNotraBlogPosts } from "@/utils/blog";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra Blog";
@@ -12,9 +16,7 @@ const description = "Insights, guides, and stories from the Notra team.";
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: `${SITE_URL}/blog`,
-  },
+  alternates: pageAlternates(`${SITE_URL}/blog`),
   openGraph: {
     title,
     description,

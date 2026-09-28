@@ -96,3 +96,9 @@ export interface McpUseCaseDetailViewProps {
 export interface McpUseCaseDetailPageProps {
   params: Promise<{ slug: string }>;
 }
+
+export interface McpUseCaseMarkdownEntry {
+  slug: string;
+  title: string;
+  description: string;
+}

@@ -12,6 +12,7 @@ import { Slack } from "@notra/ui/components/ui/svgs/slack";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
 import { cn } from "@notra/ui/lib/utils";
 
+import { MCP_USE_CASE_TOOL_LABELS } from "@/constants/mcp-use-cases";
 import type {
   McpUseCaseStackProps,
   McpUseCaseToolBadgeProps,
@@ -19,22 +20,8 @@ import type {
   McpUseCaseToolId,
 } from "@/types/mcp-use-cases";
 
-const TOOL_LABELS: Record<McpUseCaseToolId, string> = {
-  notra: "Notra",
-  claude: "Claude",
-  chatgpt: "ChatGPT",
-  gemini: "Gemini",
-  perplexity: "Perplexity",
-  "google-search-console": "Google Search Console",
-  slack: "Slack",
-  github: "GitHub",
-  linear: "Linear",
-  linkedin: "LinkedIn",
-  x: "X",
-};
-
 function getMcpUseCaseToolLabel(toolId: McpUseCaseToolId): string {
-  return TOOL_LABELS[toolId];
+  return MCP_USE_CASE_TOOL_LABELS[toolId];
 }
 
 function McpUseCaseToolIcon({ toolId, className }: McpUseCaseToolIconProps) {
