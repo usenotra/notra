@@ -26,7 +26,7 @@ import {
   formatViewAllLabel,
   getIssueTypeFromLabels,
 } from "@/utils/github";
-import { markdownSection } from "@/utils/markdown";
+import { escapeMarkdownLinkText, markdownSection } from "@/utils/markdown";
 import { DOCS_URL } from "@/utils/urls";
 
 export async function buildContributorsMarkdown(): Promise<string> {
@@ -56,7 +56,7 @@ export async function buildContributorsMarkdown(): Promise<string> {
     data.issues.length > 0
       ? data.issues.map(
           (issue) =>
-            `- [#${issue.number} ${issue.title}](${issue.html_url}) (${getIssueTypeFromLabels(issue.labels).type}, by ${issue.user.login}, ${formatGitHubDate(issue.created_at)})`
+            `- [#${issue.number} ${escapeMarkdownLinkText(issue.title)}](${issue.html_url}) (${getIssueTypeFromLabels(issue.labels).type}, by ${issue.user.login}, ${formatGitHubDate(issue.created_at)})`
         )
       : ["No open issues at the moment"];
 
@@ -64,7 +64,7 @@ export async function buildContributorsMarkdown(): Promise<string> {
     data.prs.length > 0
       ? data.prs.map(
           (pr) =>
-            `- [#${pr.number} ${pr.title}](${pr.html_url}) (${pr.draft ? "Draft" : "Ready"}, by ${pr.user.login}, ${formatGitHubDate(pr.created_at)})`
+            `- [#${pr.number} ${escapeMarkdownLinkText(pr.title)}](${pr.html_url}) (${pr.draft ? "Draft" : "Ready"}, by ${pr.user.login}, ${formatGitHubDate(pr.created_at)})`
         )
       : ["No open pull requests at the moment"];
 

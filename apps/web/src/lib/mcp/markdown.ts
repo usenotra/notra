@@ -116,7 +116,7 @@ export function buildMcpUseCasesMarkdown(): string {
     "",
     `[${MCP_USE_CASES_PRIMARY_CTA}](${MCP_PAGE_MARKDOWN_URL})`,
     "",
-    `[${MCP_USE_CASES_SECONDARY_CTA}](${new URL(MCP_USE_CASES_SHARE_HREF, SITE_URL).href})`,
+    `[${MCP_USE_CASES_SECONDARY_CTA}](${new URL(`${MCP_USE_CASES_SHARE_HREF}.md`, SITE_URL).href})`,
     "",
     ...categorySections,
   ].join("\n");
