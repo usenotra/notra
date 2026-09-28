@@ -152,13 +152,7 @@ export default function LandingPage() {
       <main className="landing-tables flex w-full flex-col items-stretch justify-start">
         <HeroSection />
         <p className="sr-only" id="agent-readable-summary">
-          Notra is a GEO (Generative Engine Optimization) product. It asks AI
-          engines such as ChatGPT, Claude, Gemini and Perplexity the questions a
-          brand's buyers ask, records whether the brand is mentioned and at
-          which position, compares share of voice with competitors, attributes
-          AI crawler and AI referral traffic to the brand's site through the
-          @usenotra/geo SDK, and writes content for the questions the brand is
-          missing from.
+          {SITE_DESCRIPTION}
         </p>
         <LogoMarquee />
         <section id="features">

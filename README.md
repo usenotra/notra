@@ -10,9 +10,7 @@
   </picture>
 </h1>
 
-**See where your brand shows up in AI answers, who gets recommended instead, and what to write next.**
-
-Notra is a generative engine optimization (GEO) platform. It runs the questions your buyers ask across AI engines, tracks mentions and citations, and helps you turn missing visibility into content worth publishing.
+**Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead, and how to fix it.**
 
 [Visit www.usenotra.com](https://www.usenotra.com) · [Start for free](https://app.usenotra.com/signup) · [Documentation](https://docs.usenotra.com)
 
