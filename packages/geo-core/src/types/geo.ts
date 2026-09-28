@@ -1438,7 +1438,6 @@ export interface GeoResolvedModelCatalog extends GeoModelCatalog {
   models: (GeoModelCatalogEntry & { supportsGroundedChecks: boolean })[];
 }
 
-export type GeoScanSizeSeverity = "ok" | "warn" | "danger";
 
 export interface GeoScanSizeInput {
   promptCount: number;

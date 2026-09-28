@@ -2770,7 +2770,7 @@
       "automaticScans": "Automatic scans"
     },
     "geoSettingsForm": {
-      "scanSize": "About {count, number} checks per scan, including web-search checks and conversation turns.{severity, select, warn { Large scan. It takes longer and costs more. Use fewer engines, prompts or languages.} danger { Very large scan. It will likely take a long time. Use fewer engines, prompts or languages.} other {}}",
+      "scanSize": "About {count, number} checks per scan, including web-search checks and conversation turns.",
       "description": "How your brand is identified and where prompts are scanned.",
       "brand": {
         "companyNameHint": "The main name we look for in answers.",
@@ -3201,8 +3201,6 @@
       "promptBody": "Choose one or more tracked models to answer this prompt in your configured languages.",
       "confirmTitle": "Start this scan?",
       "confirmBody": "Review the selected models and scan size before starting.",
-      "sizeWarn": "Large scan. It takes longer and costs more. Use fewer engines, prompts or languages.",
-      "sizeDanger": "Very large scan. It will likely take a long time. Use fewer engines, prompts or languages.",
       "promptCountUnknown": "… prompts",
       "calculating": "Calculating checks…",
       "estimatedChecks": "{count} estimated checks",

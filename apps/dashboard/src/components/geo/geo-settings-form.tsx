@@ -34,7 +34,6 @@ import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
-import { cn } from "@/lib/utils";
 import type {
   GeoBrandSectionProps,
   GeoLanguagesSectionProps,
@@ -106,7 +105,7 @@ export function GeoSettingsForm({
     settings,
   });
 
-  const { scanSize, warningSeverity } = useGeoScanEstimate({
+  const { scanSize } = useGeoScanEstimate({
     organizationId,
     promptCount,
     engines,
@@ -116,15 +115,8 @@ export function GeoSettingsForm({
     scanSize === null
       ? null
       : {
-          className: cn("text-xs tabular-nums", {
-            "text-muted-foreground": warningSeverity === null,
-            "text-warning": warningSeverity === "warn",
-            "text-destructive": warningSeverity === "danger",
-          }),
-          text: t("scanSize", {
-            count: scanSize,
-            severity: warningSeverity ?? "none",
-          }),
+          className: "text-muted-foreground text-xs tabular-nums",
+          text: t("scanSize", { count: scanSize }),
         };
 
   const showBrand = section === undefined || section === "brand";

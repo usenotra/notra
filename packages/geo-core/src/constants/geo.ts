@@ -882,16 +882,6 @@ export const GEO_MENTION_FADE_HEIGHT_REM = 2;
  * never add up. Spell that out: side by side the numbers read as rival totals.
  */
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
-export const GEO_SCAN_SIZE_WARN_THRESHOLD = 150;
-export const GEO_SCAN_SIZE_DANGER_THRESHOLD = 300;
-export const GEO_SCAN_SIZE_WARN =
-  "Large scan. It takes longer and costs more. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_DANGER =
-  "Very large scan. It will likely take a long time. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_MESSAGES = {
-  warn: GEO_SCAN_SIZE_WARN,
-  danger: GEO_SCAN_SIZE_DANGER,
-};
 export const GEO_RANGE_PRESETS = [
   { value: "today" },
   { value: "yesterday" },

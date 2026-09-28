@@ -2770,7 +2770,7 @@
       "automaticScans": "Automatische Scans"
     },
     "geoSettingsForm": {
-      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.{severity, select, warn { Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.} danger { Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.} other {}}",
+      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.",
       "description": "Wie deine Marke erkannt wird und wo Prompts gescannt werden.",
       "brand": {
         "companyNameHint": "Der Hauptname, nach dem wir in Antworten suchen.",
@@ -3201,8 +3201,6 @@
       "promptBody": "Wähle ein oder mehrere getrackte Modelle, die diesen Prompt in deinen konfigurierten Sprachen beantworten.",
       "confirmTitle": "Diesen Scan starten?",
       "confirmBody": "Prüfe die ausgewählten Modelle und den Scan-Umfang, bevor du startest.",
-      "sizeWarn": "Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.",
-      "sizeDanger": "Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.",
       "promptCountUnknown": "… Prompts",
       "calculating": "Checks werden berechnet…",
       "estimatedChecks": "{count} geschätzte Checks",
