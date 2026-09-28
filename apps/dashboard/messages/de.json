@@ -3226,9 +3226,9 @@
       "itemInProgress": "in Bearbeitung",
       "itemMissing": "fehlend",
       "itemAnswers": "Antworten",
-      "viewLabel": "Scan-Antworten",
+      "viewLabel": "Scan-Ergebnistyp",
       "missing": "Fehlend",
-      "filterByModel": "Scan-Antworten nach Modell filtern"
+      "filterByModel": "Scan-Ergebnisse nach Modell filtern"
     },
     "searchConsoleCard": {
       "description": "Prompt-Ideen aus den Suchanfragen, für die du in der Google Search Console rankst",

@@ -1584,6 +1584,7 @@ export interface PromptAnswerContentProps extends Omit<
 }
 
 export interface PromptReceiptHistoryProps {
+  title: string;
   entries: PromptHistoryEntry[];
   isLoading: boolean;
   /** Tracked competitors, used to resolve brand logos by domain. */

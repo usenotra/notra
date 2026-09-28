@@ -3226,9 +3226,9 @@
       "itemInProgress": "in progress",
       "itemMissing": "missing",
       "itemAnswers": "answers",
-      "viewLabel": "Scan answers",
+      "viewLabel": "Scan result type",
       "missing": "Missing",
-      "filterByModel": "Filter scan answers by model"
+      "filterByModel": "Filter scan results by model"
     },
     "searchConsoleCard": {
       "description": "Prompt ideas from the queries you rank for in Google Search Console",

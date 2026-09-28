@@ -13,10 +13,6 @@ import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
-  PermissionOption,
-  PermissionRow,
-} from "@notra/ui/components/ui/permission-selector";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -356,7 +352,7 @@ function ScanRunAnswersTable({
   );
 }
 
-function ScanRunFilters({
+export function ScanRunFilters({
   view,
   onViewChange,
   answerCount,
@@ -372,16 +368,14 @@ function ScanRunFilters({
   const formatEngineWithMode = useEngineModeLabel();
   const showViews = pendingCount > 0;
   const showEngines = engines.length > 1;
+  const pendingLabel = running ? tGeoShared("inProgress") : t("missing");
   if (!(showViews || showEngines)) {
     return null;
   }
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
       {showViews ? (
-        <PermissionRow
-          className="w-fit shrink-0"
-          label={t("viewLabel")}
-          layout="compact"
+        <Select
           onValueChange={(value) => {
             if (value === "answers" || value === "pending") {
               onViewChange(value);
@@ -389,28 +383,42 @@ function ScanRunFilters({
           }}
           value={view}
         >
-          <PermissionOption value="answers">
-            {tGeoShared("answers")}
-            <span className="text-xs tabular-nums opacity-70">
-              {answerCount.toLocaleString(locale)}
-            </span>
-          </PermissionOption>
-          <PermissionOption value="pending">
-            {running ? tGeoShared("inProgress") : t("missing")}
-            <span className="text-xs tabular-nums opacity-70">
-              {pendingCount.toLocaleString(locale)}
-            </span>
-          </PermissionOption>
-        </PermissionRow>
-      ) : (
-        <span />
-      )}
+          <SelectTrigger aria-label={t("viewLabel")} className="min-w-36">
+            <SelectValue>
+              {view === "answers" ? tGeoShared("answers") : pendingLabel}
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {(view === "answers"
+                  ? answerCount
+                  : pendingCount
+                ).toLocaleString(locale)}
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectItem value="answers">
+              {tGeoShared("answers")}
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {answerCount.toLocaleString(locale)}
+              </span>
+            </SelectItem>
+            <SelectItem value="pending">
+              {pendingLabel}
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {pendingCount.toLocaleString(locale)}
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      ) : null}
       {showEngines ? (
         <Select
           onValueChange={(value) => onEngineChange(value ?? ALL_MODELS)}
           value={engine}
         >
-          <SelectTrigger aria-label={t("filterByModel")} size="sm">
+          <SelectTrigger
+            aria-label={t("filterByModel")}
+            className="ml-auto max-w-56"
+          >
             <SelectValue>
               {engine === ALL_MODELS
                 ? tGeoShared("allModels")

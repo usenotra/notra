@@ -4,7 +4,7 @@ import { cn } from "@notra/ui/lib/utils"
 import { Button } from "@notra/ui/components/ui/button"
 import { UiLabel } from "@notra/ui/components/shared/ui-labels-provider"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalCircle01Icon } from "@hugeicons/core-free-icons"
+import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -50,7 +50,11 @@ function PaginationLink({
     <Button
       variant={isActive ? "outline" : "ghost"}
       size={size}
-      className={cn(className)}
+      className={cn(
+        isActive &&
+          "dark:border-foreground/20 dark:bg-background dark:text-foreground dark:hover:bg-background",
+        className
+      )}
       nativeButton={false}
       render={
         <a
@@ -114,7 +118,7 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
+      <HugeiconsIcon icon={MoreHorizontalIcon} strokeWidth={2} />
       <span className="sr-only"><UiLabel name="morePages" /></span>
     </span>
   )

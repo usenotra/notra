@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/design-system#codex-session", label: "Codex TUI" },
   { href: "/design-system#opencode-session", label: "OpenCode TUI" },
   { href: "/design-system/geo-traffic", label: "GEO traffic" },
+  { href: "/design-system/scan-filters", label: "Scans table" },
 ] as const;
 
 export function DesignSystemNav() {

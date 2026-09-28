@@ -77,37 +77,42 @@ export function TablePagination({
                 href="#"
                 onClick={(event) => {
                   event.preventDefault();
-                  setPage(page - 1);
+                  if (!isFirst) {
+                    setPage(page - 1);
+                  }
                 }}
-                size="xs"
-                text=""
+                tabIndex={isFirst ? -1 : undefined}
               />
             </PaginationItem>
-            {showPageNumbers
-              ? getPageNumbers(page, pageCount).map(
-                  (pageNumber, index, pages) =>
-                    pageNumber === "ellipsis" ? (
-                      <PaginationItem key={`ellipsis-${pages[index - 1]}`}>
-                        <PaginationEllipsis className="size-6" />
-                      </PaginationItem>
-                    ) : (
-                      <PaginationItem key={pageNumber}>
-                        <PaginationLink
-                          className="text-xs tabular-nums"
-                          href="#"
-                          isActive={pageNumber === page}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            setPage(pageNumber);
-                          }}
-                          size="icon-xs"
-                        >
-                          {pageNumber}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
-                )
-              : null}
+            {(showPageNumbers ? getPageNumbers(page, pageCount) : []).map(
+              (pageNumber, index) => (
+                <PaginationItem
+                  key={
+                    pageNumber === "ellipsis"
+                      ? index === 1
+                        ? "ellipsis-start"
+                        : "ellipsis-end"
+                      : pageNumber
+                  }
+                >
+                  {pageNumber === "ellipsis" ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      className="tabular-nums"
+                      href="#"
+                      isActive={pageNumber === page}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setPage(pageNumber);
+                      }}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              )
+            )}
             <PaginationItem>
               <PaginationNext
                 aria-disabled={isLast}
@@ -116,10 +121,11 @@ export function TablePagination({
                 href="#"
                 onClick={(event) => {
                   event.preventDefault();
-                  setPage(page + 1);
+                  if (!isLast) {
+                    setPage(page + 1);
+                  }
                 }}
-                size="xs"
-                text=""
+                tabIndex={isLast ? -1 : undefined}
               />
             </PaginationItem>
           </PaginationContent>
