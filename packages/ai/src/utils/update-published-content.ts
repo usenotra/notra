@@ -273,16 +273,15 @@ export async function syncPublishedPostFromPullRequestHead(params: {
   // The publisher's durable reconciliation records this head instead.
   const message = commit.commit?.message ?? "";
   const postMarker = `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`;
-  if (
-    message
-      .split(/\r?\n/)
-      .some((line) => line === postMarker || line.startsWith(`${postMarker} `))
-  ) {
+  const marker = message
+    .split(/\r?\n/)
+    .find((line) => line === postMarker || line.startsWith(`${postMarker} `));
+  if (marker) {
     const parentSha =
       commit.parents?.length === 1 ? commit.parents[0]?.sha : undefined;
     if (
       parentSha &&
-      isGitHubContentExport(message, {
+      isGitHubContentExport(marker, {
         organizationId: params.organizationId,
         postId: params.publication.postId,
         owner: params.publication.owner,
