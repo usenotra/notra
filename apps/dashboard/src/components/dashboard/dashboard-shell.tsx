@@ -119,10 +119,6 @@ function DashboardAgentSlot() {
     setSlotReady(true);
   }, []);
 
-  useEffect(() => {
-    void loadDashboardAgentHost();
-  }, []);
-
   // The slot has to exist before the first open. A panel that mounts already
   // open has no previous width, so the CSS width transition never runs.
   // Keep the host under this slot at every width. Moving it between the dock
