@@ -28,7 +28,7 @@ import { GITHUB_CONTENT_PATH_MAX_LENGTH } from "@notra/schemas/constants/dashboa
 import { postGitHubPublishSchema } from "@notra/schemas/dashboard/content";
 import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
 import { slugify } from "@notra/utils/slugify";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getTranslations } from "next-intl/server";
 
@@ -353,15 +353,6 @@ export async function publishSavedContentToGitHub(
         (await getTranslations("errors.github"))("pullRequestUnavailable")
       );
     }
-    await db
-      .update(posts)
-      .set({ githubPublish: githubPublish.data })
-      .where(
-        and(
-          eq(posts.id, input.contentId),
-          eq(posts.organizationId, input.organizationId)
-        )
-      );
     // The pull request already exists; losing the mention mapping must not
     // report the publish as failed. Retry the mapping so a later mention
     // can still find the post.
@@ -396,32 +387,9 @@ export async function publishSavedContentToGitHub(
       });
     }
     try {
-      const recordedPublication = await retryWrite(() =>
+      await retryWrite(() =>
         recordContentPublication(publication, publishedAt)
       );
-      if (
-        recordedPublication &&
-        recordedPublication.headSha !== result.headSha
-      ) {
-        const currentPublication = await findOpenContentPublicationForPost({
-          organizationId: input.organizationId,
-          postId: input.contentId,
-        });
-        if (
-          currentPublication?.id === recordedPublication.id &&
-          currentPublication.headSha === recordedPublication.headSha
-        ) {
-          await retryWrite(() =>
-            recordContentPublication(
-              {
-                ...publication,
-                previousHeadSha: currentPublication.headSha,
-              },
-              publishedAt
-            )
-          );
-        }
-      }
       if (!reconciliationScheduled) {
         try {
           await startContentPublicationReconciliation(publication, publishedAt);
@@ -450,6 +418,27 @@ export async function publishSavedContentToGitHub(
           });
         }
       }
+    }
+    // Keep metadata failure independent of the durable publication handoff.
+    // A slower publish must not replace a link written since we read the post.
+    try {
+      await retryWrite(() =>
+        db
+          .update(posts)
+          .set({ githubPublish: githubPublish.data })
+          .where(
+            and(
+              eq(posts.id, input.contentId),
+              eq(posts.organizationId, input.organizationId),
+              sql`${posts.githubPublish} is not distinct from ${post.githubPublish === null ? null : JSON.stringify(post.githubPublish)}::jsonb`
+            )
+          )
+      );
+    } catch (error) {
+      console.error("Failed to update GitHub publication metadata", {
+        ...logContext,
+        error,
+      });
     }
     return result;
   } catch (error) {

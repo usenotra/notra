@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const { organizationId, postId } = parsed.data;
+  const { organizationId, postId, actorId } = parsed.data;
   const post = await db.query.posts.findFirst({
     where: and(eq(posts.id, postId), eq(posts.organizationId, organizationId)),
     columns: { contentType: true, githubPublish: true },
@@ -43,10 +43,16 @@ export async function POST(request: Request) {
       process.env.UPSTASH_REDIS_REST_URL &&
       process.env.UPSTASH_REDIS_REST_TOKEN
     ) {
-      const { success } = await ratelimit.githubPublish.limit(organizationId);
+      const { success, limit, remaining, reset } =
+        await ratelimit.githubPublish.limit(`${actorId}:${organizationId}`);
       if (!success) {
         return Response.json(
-          { error: "Too many GitHub publish requests" },
+          {
+            error: "Too many GitHub publish requests",
+            limit,
+            remaining,
+            reset,
+          },
           { status: 429 }
         );
       }

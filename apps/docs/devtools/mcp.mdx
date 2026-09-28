@@ -183,7 +183,7 @@ Tool names are exactly as the server registers them; some clients prefix them wi
 
 When `update_post` changes the title, slug, or markdown of a blog post or changelog with a linked GitHub pull request, Notra saves the article and updates that PR using the same publishing logic as the dashboard. It does not create a new PR. Status-only changes do not trigger a GitHub update.
 
-If the PR update fails, the tool returns an error stating that the post was saved in Notra. Retry the content update to retry the GitHub sync. A closed or merged PR must be resolved in the dashboard before it can be synced again.
+If the PR update fails, the tool returns an error stating that the post was saved in Notra. A rate-limited GitHub sync returns 429 with `Retry-After`; wait before retrying the content update. A timeout returns 504 with an unknown sync outcome: the PR update may still finish, so check the PR before retrying. Check the PR after other unconfirmed sync errors as well. A closed or merged PR must be resolved in the dashboard before it can be synced again.
 
 **Brand identities**
 

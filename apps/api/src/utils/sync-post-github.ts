@@ -1,15 +1,16 @@
 import { postGitHubSyncResponseSchema } from "@notra/schemas/api/post-github-sync";
 
+import { POST_GITHUB_SYNC_TIMEOUT_MS } from "../constants/post-github-sync";
 import {
   callDashboardInternal,
   getInternalWorkflowUrl,
-  SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,
 } from "./internal-workflow";
 
 export async function syncPostGitHub(
   env: { WORKFLOW_BASE_URL?: string },
   organizationId: string,
-  postId: string
+  postId: string,
+  actorId: string
 ) {
   const url = getInternalWorkflowUrl(env, "/api/internal/content/sync-github");
   if (!url) {
@@ -17,8 +18,8 @@ export async function syncPostGitHub(
   }
   await callDashboardInternal(
     url,
-    { organizationId, postId },
+    { organizationId, postId, actorId },
     postGitHubSyncResponseSchema,
-    SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS
+    POST_GITHUB_SYNC_TIMEOUT_MS
   );
 }

@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
-import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import {
+  GITHUB_CONTENT_POST_TRAILER,
+  GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
+} from "@notra/ai/constants/github";
 import {
   fallbackContentCommitHeadline,
   generateContentCommitHeadline,
@@ -84,7 +87,9 @@ function renderContentCommitMetadata(
   };
   return `${GITHUB_CONTENT_COMMIT_METADATA_PREFIX}${Buffer.from(
     JSON.stringify(metadata)
-  ).toString("base64")}`;
+  ).toString(
+    "base64"
+  )}\n${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.contentId}`;
 }
 
 function parseContentCommitMetadata(message: string | undefined) {

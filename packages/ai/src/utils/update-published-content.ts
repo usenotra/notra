@@ -1,3 +1,4 @@
+import { GITHUB_CONTENT_POST_TRAILER } from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import type {
   PublicationAncestryValidator,
@@ -270,6 +271,26 @@ export async function syncPublishedPostFromPullRequestHead(params: {
     Buffer.byteLength(contents, "utf8") > GITHUB_MENTION_FILE_CONTENT_MAX_BYTES
   ) {
     return false;
+  }
+  const { data: commit } = await params.octokit.request(
+    "GET /repos/{owner}/{repo}/commits/{ref}",
+    {
+      owner: params.publication.owner,
+      repo: params.publication.repo,
+      ref: params.commitSha,
+    }
+  );
+  // Publishing exports a saved Notra snapshot. Its webhook must never import
+  // that snapshot over an edit saved while the GitHub request was in flight.
+  // The publisher's durable reconciliation records this head instead.
+  if (
+    commit.commit?.message
+      ?.split(/\r?\n/)
+      .includes(
+        `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`
+      )
+  ) {
+    return { status: "superseded" as const };
   }
   return syncPublishedPostAfterCommit({
     octokit: params.octokit,

@@ -17,6 +17,11 @@ import {
   patchPostRequestSchema,
   patchPostResponseSchema,
 } from "@notra/schemas/api/content";
+import {
+  InternalDashboardError,
+  InternalDashboardTimeoutError,
+} from "@notra/schemas/api/internal-dashboard";
+import { rateLimitResponseSchema } from "@notra/schemas/api/responses";
 
 import {
   createPost,
@@ -29,6 +34,7 @@ import {
   preparePatchPost,
 } from "../programs/posts";
 import { runGeoEffect } from "../runtime/geo";
+import { isOAuthAuth } from "../types/auth";
 import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
 import {
@@ -46,7 +52,12 @@ import {
   runPostProgram,
   serializePost,
 } from "../utils/posts";
-import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
+import {
+  enforceRatelimit,
+  RATE_LIMITS,
+  ratelimit,
+  setRatelimitHeaders,
+} from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
 import { syncPostGitHub } from "../utils/sync-post-github";
 
@@ -142,7 +153,7 @@ const patchPostRoute = createRoute({
   operationId: "updatePost",
   summary: "Update a single post",
   description:
-    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs. Title, slug, or markdown updates also sync an existing linked GitHub pull request; no new pull request is created. If GitHub sync fails, returns 502 after saving the post. Retry the content update to retry the sync.",
+    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs. Title, slug, or markdown updates also sync an existing linked GitHub pull request; no new pull request is created. GitHub sync errors occur after saving the post: 429 includes Retry-After, 502 indicates a sync error, and 504 indicates an unknown sync outcome. Check the PR before retrying an unconfirmed sync.",
   request: {
     params: getPostParamsSchema,
     body: {
@@ -171,11 +182,18 @@ const patchPostRoute = createRoute({
     502: errorResponse(
       "Post saved, but linked GitHub pull request sync failed"
     ),
-    429: rateLimitResponse(
-      RATE_LIMITS.postUpdate.requests,
-      RATE_LIMITS.postUpdate.window,
-      "API key"
+    504: errorResponse(
+      "Post saved; GitHub sync timed out with an unknown outcome"
     ),
+    429: {
+      ...rateLimitResponse(
+        RATE_LIMITS.postUpdate.requests,
+        RATE_LIMITS.postUpdate.window,
+        "API key"
+      ),
+      description:
+        "Post update or GitHub publish rate limit exceeded. The error states whether the post was already saved; Retry-After specifies when to retry.",
+    },
     503: errorResponse("Authentication service unavailable"),
   },
 });
@@ -484,16 +502,50 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
       body.markdown !== undefined)
   ) {
     try {
-      await syncPostGitHub(c.env ?? {}, orgId, post.id);
+      const auth = c.get("auth");
+      await syncPostGitHub(
+        c.env ?? {},
+        orgId,
+        post.id,
+        isOAuthAuth(auth) ? auth.userId : `api-key:${auth.keyId}`
+      );
     } catch (error) {
       console.error("Failed to sync saved post to GitHub", {
         postId: post.id,
         error,
       });
+      if (
+        error instanceof InternalDashboardTimeoutError ||
+        (error instanceof InternalDashboardError && error.status === 504)
+      ) {
+        return c.json(
+          {
+            error:
+              "Post saved in Notra. GitHub sync timed out and may still complete. The sync outcome is unknown; check the linked pull request before retrying the content update.",
+          },
+          504
+        );
+      }
+      if (error instanceof InternalDashboardError && error.status === 429) {
+        const rateLimit = rateLimitResponseSchema.safeParse(
+          await new Response(error.body).json().catch(() => null)
+        );
+        if (rateLimit.success) {
+          const retryAfter = setRatelimitHeaders(c, rateLimit.data);
+          c.header("Retry-After", String(retryAfter));
+          return c.json(
+            {
+              ...rateLimit.data,
+              error: `Post saved in Notra, but GitHub sync was rate-limited. Retry the content update in ${retryAfter} seconds to sync the linked pull request.`,
+            },
+            429
+          );
+        }
+      }
       return c.json(
         {
           error:
-            "Post saved in Notra, but the linked GitHub pull request could not be updated. Retry the content update to retry the sync.",
+            "Post saved in Notra, but the linked GitHub pull request update could not be confirmed. Check the pull request before retrying the content update.",
         },
         502
       );
