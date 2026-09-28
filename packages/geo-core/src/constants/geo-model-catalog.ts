@@ -111,7 +111,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "Claude Fable 5.1",
     zdr: "none",
     released: "2026-08-31",
-    default: true,
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -527,12 +527,11 @@ export const GEO_DEFAULT_ENGINE_IDS: readonly string[] =
 export const GEO_AUDIENCE_TYPES = ["technical", "general", "commerce"] as const;
 
 /**
- * Engines seeded for a brand whose buyers never pick a model themselves: the
- * models the assistant apps ship as their default. ChatGPT gets its free
- * (Luna) and paid (Sol) default, Claude its free default.
+ * Engines seeded for a brand whose buyers never pick a model themselves.
+ * ChatGPT gets its free (Luna) and paid (Sol) defaults; Claude gets Opus 5.5.
  */
 export const GEO_GENERAL_AUDIENCE_ENGINE_IDS: readonly string[] = [
-  "anthropic/claude-sonnet-5",
+  "anthropic/claude-opus-5.5",
   "openai/gpt-5.6-sol",
   "openai/gpt-5.6-luna",
   "google/gemini-3.8-flash",
