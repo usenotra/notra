@@ -1083,6 +1083,12 @@
       "renews": "{interval, select, year {Your plan renews automatically every year until you cancel.} other {Your plan renews automatically every month until you cancel.}}"
     },
     "workspace": {
+      "slugStatus": {
+        "checking": "Checking slug availability",
+        "available": "Slug is available",
+        "unavailable": "Slug is already taken",
+        "error": "Could not check slug availability"
+      },
       "validation": {
         "checkField": "Please check this field",
         "websiteInvalid": "Please enter a valid public website URL (e.g., https://example.com)",

@@ -1083,6 +1083,12 @@
       "renews": "{interval, select, year {Dein Tarif verlängert sich jedes Jahr automatisch, bis du kündigst.} other {Dein Tarif verlängert sich jeden Monat automatisch, bis du kündigst.}}"
     },
     "workspace": {
+      "slugStatus": {
+        "checking": "Slug-Verfügbarkeit wird geprüft",
+        "available": "Slug ist verfügbar",
+        "unavailable": "Slug ist bereits vergeben",
+        "error": "Slug-Verfügbarkeit konnte nicht geprüft werden"
+      },
       "validation": {
         "checkField": "Bitte prüfe dieses Feld",
         "websiteInvalid": "Bitte gib eine gültige öffentliche Website-URL ein (z. B. https://example.com)",

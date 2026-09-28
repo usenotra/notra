@@ -16,11 +16,11 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
-import { Loader2Icon } from "lucide-react";
+import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { OnboardingEmailPrefs } from "@/components/onboarding/email-prefs";
@@ -44,6 +44,7 @@ import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type {
   WorkspaceFormField,
   WorkspaceFormProps,
+  WorkspaceSlugCheck,
 } from "@/types/onboarding";
 import { getGoogleFaviconUrl } from "@/utils/brand";
 import {
@@ -51,6 +52,8 @@ import {
   slugify,
   slugifyWhileTyping,
 } from "@/utils/onboarding";
+
+import { isWorkspaceSlugAvailable } from "./actions";
 
 const WEBSITE_PREFIX_REGEX = /^https?:\/\//i;
 
@@ -176,6 +179,50 @@ export function WorkspaceForm({
     },
   });
 
+  const slug = useStore(form.store, (state) => state.values.slug);
+  const [slugCheck, setSlugCheck] = useState<WorkspaceSlugCheck | null>(null);
+  const validSlug =
+    !isResuming &&
+    onboardingWorkspaceFormFieldsSchema.shape.slug.safeParse(slug).success;
+  const slugStatus =
+    validSlug && slugCheck?.slug === slug ? slugCheck.status : null;
+
+  useEffect(() => {
+    if (!validSlug) {
+      return;
+    }
+
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+    const check = async (attempt: number) => {
+      try {
+        const available = await isWorkspaceSlugAvailable(slug);
+        if (!cancelled) {
+          setSlugCheck({
+            slug,
+            status: available ? "available" : "unavailable",
+          });
+        }
+      } catch {
+        if (cancelled) {
+          return;
+        }
+        if (attempt < 2) {
+          timeout = setTimeout(() => check(attempt + 1), 400 * 2 ** attempt);
+        } else {
+          setSlugCheck({ slug, status: "error" });
+        }
+      }
+    };
+
+    setSlugCheck({ slug, status: "checking" });
+    timeout = setTimeout(() => check(0), 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [slug, validSlug]);
+
   return (
     <div className="flex w-full flex-col gap-5">
       <OnboardingStepViewTracker
@@ -258,7 +305,7 @@ export function WorkspaceForm({
             <div className="grid gap-2">
               <Label htmlFor="slug">{tCommon("labels.slug")}</Label>
               <div
-                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
+                className={`focus-within:border-ring focus-within:ring-ring/50 relative flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
                 <label
                   className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -270,7 +317,7 @@ export function WorkspaceForm({
                   autoCapitalize="none"
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-full min-w-0 flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-full min-w-0 flex-1 bg-transparent py-0 pr-11 pl-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting || isResuming}
                   id="slug"
                   onBlur={() => {
@@ -285,6 +332,31 @@ export function WorkspaceForm({
                   type="text"
                   value={field.state.value}
                 />
+                <span
+                  aria-hidden={!slugStatus}
+                  aria-label={
+                    slugStatus ? t(`slugStatus.${slugStatus}`) : undefined
+                  }
+                  className="pointer-events-none absolute right-3.5 flex size-6 items-center justify-center"
+                  role="status"
+                >
+                  <Loader2Icon
+                    className={`text-muted-foreground duration-fast absolute size-4 animate-spin transition-opacity motion-reduce:animate-none motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
+                  />
+                  <span
+                    className={`duration-fast absolute flex size-6 items-center justify-center rounded-full bg-green-500/15 text-green-500 transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
+                  >
+                    <CheckIcon className="size-4" />
+                  </span>
+                  <span
+                    className={`bg-destructive/10 text-destructive duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "unavailable" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
+                  >
+                    <XIcon className="size-4" />
+                  </span>
+                  <XIcon
+                    className={`text-muted-foreground duration-fast absolute size-4 transition-opacity motion-reduce:transition-none ${slugStatus === "error" ? "opacity-100" : "opacity-0"}`}
+                  />
+                </span>
               </div>
               {field.state.meta.errors.length > 0 ? (
                 <p className="text-destructive text-sm">
