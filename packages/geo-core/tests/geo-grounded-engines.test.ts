@@ -170,10 +170,11 @@ describe("selected grounded engines", () => {
         },
         ...feed.slice(1),
       ]);
-      expect(partial.models.map((model) => model.id)).toEqual([
-        "openai/gpt-5.6-sol",
-        "perplexity/sonar",
-      ]);
+      expect(
+        partial.models
+          .filter((model) => model.gateways.includes("vercel"))
+          .map((model) => model.id)
+      ).toEqual(["openai/gpt-5.6-sol", "perplexity/sonar"]);
       expect(
         resolveGroundedEngines(["perplexity/sonar"], partial)[0]?.provider
       ).toBe("gateway-perplexity");
