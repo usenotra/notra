@@ -10,12 +10,13 @@ import {
 } from "@notra/ai/integrations/github-publish-auth";
 import {
   findOpenContentPublicationForPost,
-  recordContentPublication,
+  reconcileContentPublication,
 } from "@notra/ai/utils/content-publication";
 import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { retryWrite } from "@notra/ai/utils/retry-write";
+import { githubAncestryValidator } from "@notra/ai/utils/update-published-content";
 import { db } from "@notra/db/drizzle";
 import {
   githubAppInstallations,
@@ -388,7 +389,14 @@ export async function publishSavedContentToGitHub(
     }
     try {
       await retryWrite(() =>
-        recordContentPublication(publication, publishedAt)
+        reconcileContentPublication(
+          { publication, publishedAt },
+          githubAncestryValidator({
+            octokit,
+            owner: publication.owner,
+            repo: publication.repo,
+          })
+        )
       );
       if (!reconciliationScheduled) {
         try {

@@ -73,7 +73,7 @@ export async function preparePublicationSyncRepair(
   };
 }
 
-function githubAncestryValidator(params: {
+export function githubAncestryValidator(params: {
   octokit: GitHubMentionOctokit;
   owner: string;
   repo: string;

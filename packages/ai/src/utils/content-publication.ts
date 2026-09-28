@@ -216,11 +216,41 @@ export async function recordContentPublication(
  * post may have been published again since, and replaying the older write
  * would close that newer mapping, so it is skipped then.
  */
-export async function reconcileContentPublication({
-  publication,
-  publishedAt,
-}: ReconcileContentPublicationParams) {
-  return await recordContentPublication(publication, publishedAt);
+export async function reconcileContentPublication(
+  { publication, publishedAt }: ReconcileContentPublicationParams,
+  isAncestor?: PublicationAncestryValidator
+) {
+  const recorded = await recordContentPublication(publication, publishedAt);
+  if (
+    !isAncestor ||
+    !recorded?.headSha ||
+    !publication.headSha ||
+    recorded.headSha === publication.headSha ||
+    !(await isAncestor(recorded.headSha, publication.headSha))
+  ) {
+    return recorded;
+  }
+
+  // Overlapping publishes can commit on top of a head recorded after their
+  // initial read. Advance only along GitHub's graph, and only from the head
+  // we validated. A race retries through the caller or the durable workflow.
+  const [advanced] = await db
+    .update(contentPublications)
+    .set({ headSha: publication.headSha, updatedAt: new Date() })
+    .where(
+      and(
+        eq(contentPublications.id, recorded.id),
+        eq(contentPublications.organizationId, publication.organizationId),
+        eq(contentPublications.postId, publication.postId),
+        eq(contentPublications.status, "open"),
+        eq(contentPublications.headSha, recorded.headSha)
+      )
+    )
+    .returning();
+  if (!advanced) {
+    throw new Error("Publication head changed during reconciliation");
+  }
+  return advanced;
 }
 
 /** Atomically updates a post and its publication revision if it still owns the post. */
