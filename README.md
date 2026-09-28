@@ -10,7 +10,7 @@
   </picture>
 </h1>
 
-**Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead, and how to fix it.**
+**Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.**
 
 [Visit www.usenotra.com](https://www.usenotra.com) · [Start for free](https://app.usenotra.com/signup) · [Documentation](https://docs.usenotra.com)
 
