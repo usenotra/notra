@@ -1,14 +1,12 @@
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
-import {
-  GITHUB_CONTENT_POST_TRAILER,
-  GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
-} from "@notra/ai/constants/github";
+import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
 import {
   fallbackContentCommitHeadline,
   generateContentCommitHeadline,
 } from "@notra/ai/utils/content-commit-message";
+import { createGitHubContentExportMarker } from "@notra/ai/utils/github-content-export";
 import { slugify } from "@notra/utils/slugify";
 
 import {
@@ -79,14 +77,23 @@ export class GitHubContentPublishError extends Error {
 }
 
 function renderContentCommitMetadata(
-  params: PublishContentDraftPullRequestParams
+  params: PublishContentDraftPullRequestParams,
+  parentSha: string
 ) {
   const metadata: GitHubContentCommitMetadata = {
     assetPaths: (params.assets ?? []).map(({ path }) => path).sort(),
     contentPath: params.path,
   };
   const postTrailer = params.organizationId
-    ? `\n${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.contentId}`
+    ? `\n${createGitHubContentExportMarker({
+        organizationId: params.organizationId,
+        postId: params.contentId,
+        owner: params.owner,
+        repo: params.repo,
+        path: params.path,
+        parentSha,
+        markdown: params.markdown,
+      })}`
     : "";
   return `${GITHUB_CONTENT_COMMIT_METADATA_PREFIX}${Buffer.from(
     JSON.stringify(metadata)
@@ -687,7 +694,7 @@ async function commitContentToBranch(
           },
           message: {
             headline,
-            body: renderContentCommitMetadata(params),
+            body: renderContentCommitMetadata(params, branchHeadSha),
           },
           expectedHeadOid: branchHeadSha,
           fileChanges: buildGitHubContentFileChanges(params),

@@ -1,9 +1,4 @@
-import {
-  GITHUB_CONTENT_POST_TRAILER,
-  GITHUB_WEB_FLOW_LOGIN,
-} from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
-import { getGitHubAppBotLogin } from "@notra/ai/integrations/github";
 import type {
   PublicationAncestryValidator,
   PublicationCommitSyncStatus,
@@ -13,6 +8,7 @@ import type {
 import type { GitHubMentionOctokit } from "@notra/ai/types/github-mention";
 import { syncContentPublication } from "@notra/ai/utils/content-publication";
 import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
+import { isGitHubContentExport } from "@notra/ai/utils/github-content-export";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
 import {
   commitFilesToPullRequest,
@@ -274,27 +270,21 @@ export async function syncPublishedPostFromPullRequestHead(params: {
   // Publishing exports a saved Notra snapshot. Its webhook must never import
   // that snapshot over an edit saved while the GitHub request was in flight.
   // The publisher's durable reconciliation records this head instead.
+  const parentSha =
+    commit.parents?.length === 1 ? commit.parents[0]?.sha : undefined;
   if (
-    commit.commit?.verification?.verified === true &&
-    commit.commit?.message
-      ?.split(/\r?\n/)
-      .includes(
-        `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`
-      )
+    parentSha &&
+    isGitHubContentExport(commit.commit?.message ?? "", {
+      organizationId: params.organizationId,
+      postId: params.publication.postId,
+      owner: params.publication.owner,
+      repo: params.publication.repo,
+      path: params.publication.path,
+      parentSha,
+      markdown: contents,
+    })
   ) {
-    const publisherLogin =
-      getGitHubAppBotLogin() ??
-      (await params.octokit.request("GET /user")).data.login;
-    // A contributor can spoof the author on their own signed Git commit.
-    // Require the verified committer to be the publisher or GitHub as well.
-    if (
-      publisherLogin &&
-      commit.author?.login === publisherLogin &&
-      (commit.committer?.login === publisherLogin ||
-        commit.committer?.login === GITHUB_WEB_FLOW_LOGIN)
-    ) {
-      return { status: "superseded" as const };
-    }
+    return { status: "superseded" as const };
   }
   return syncPublishedPostAfterCommit({
     octokit: params.octokit,
