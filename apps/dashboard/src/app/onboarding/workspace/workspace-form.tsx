@@ -184,8 +184,10 @@ export function WorkspaceForm({
   const validSlug =
     !isResuming &&
     onboardingWorkspaceFormFieldsSchema.shape.slug.safeParse(slug).success;
-  const slugStatus =
-    validSlug && slugCheck?.slug === slug ? slugCheck.status : null;
+  let slugStatus: WorkspaceSlugCheck["status"] | null = null;
+  if (validSlug) {
+    slugStatus = slugCheck?.slug === slug ? slugCheck.status : "checking";
+  }
 
   useEffect(() => {
     if (!validSlug) {
@@ -215,7 +217,6 @@ export function WorkspaceForm({
       }
     };
 
-    setSlugCheck({ slug, status: "checking" });
     timeout = setTimeout(() => check(0), 400);
     return () => {
       cancelled = true;
