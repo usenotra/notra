@@ -35,6 +35,7 @@ import {
   getProductPrice,
   groupBillingPlans,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -132,11 +133,6 @@ export function GeoUpgradeDialog({
     if (!plan) {
       return null;
     }
-    let renewalTerms: "standard" | "trial" | "trialRevert" = "standard";
-    if (plan.freeTrial && plan.customerEligibility?.trialAvailable) {
-      renewalTerms =
-        plan.freeTrial.onEnd === "revert" ? "trialRevert" : "trial";
-    }
     const featured = group.id === FEATURED_PLAN_TIER;
     let label = getPricingButtonText(plan, tBilling);
     if (loading === plan.id) {
@@ -168,7 +164,7 @@ export function GeoUpgradeDialog({
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
-        renewalTerms={renewalTerms}
+        renewalTerms={planRenewalTerms(plan)}
       />
     );
   }

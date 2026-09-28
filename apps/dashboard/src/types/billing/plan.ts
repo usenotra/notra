@@ -80,8 +80,10 @@ export interface PlanCardProps {
   action?: ReactNode;
   addon?: PlanCardAddon;
   button: PlanCardButton;
-  renewalTerms?: "standard" | "trial" | "trialRevert";
+  renewalTerms?: PlanRenewalTerms;
 }
+
+export type PlanRenewalTerms = "standard" | "trial" | "trialRevert";
 
 export interface PlanTierLimits {
   aiAnswers: number;

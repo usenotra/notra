@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   }
 
   const path = new URL(request.url).searchParams.get("path");
-  if (!path || !/^\/s\/[a-z0-9]+\/v\d+\/[\w-]+\.(?:woff2?|ttf)$/.test(path)) {
+  if (!path || !/^\/s\/[\w/-]+\.(?:woff2?|ttf)$/.test(path)) {
     return new Response("Invalid font path", { status: 400 });
   }
 

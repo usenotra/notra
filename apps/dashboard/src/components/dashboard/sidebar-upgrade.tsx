@@ -22,6 +22,7 @@ import {
   getProductPrice,
   groupBillingPlans,
   nextPlanGroup,
+  planRenewalTerms,
 } from "@/utils/billing-plans";
 import {
   canShowSidebarUpgrade,
@@ -69,11 +70,6 @@ export function SidebarUpgrade() {
 
   const targetGroup = nextPlanGroup(groupBillingPlans(plans), activePlanId);
   const targetPlan = targetGroup?.monthly ?? targetGroup?.annual ?? null;
-  let renewalTerms: "standard" | "trial" | "trialRevert" = "standard";
-  if (targetPlan?.freeTrial && targetPlan.customerEligibility?.trialAvailable) {
-    renewalTerms =
-      targetPlan.freeTrial.onEnd === "revert" ? "trialRevert" : "trial";
-  }
 
   const { buttonLabel, description, heading } = sidebarUpgradeCopy(
     {
@@ -183,7 +179,7 @@ export function SidebarUpgrade() {
           {!hasNoPlan && targetPlan ? (
             <p className="text-muted-foreground text-xs">
               {tBilling("renewalTerms", {
-                kind: renewalTerms,
+                kind: planRenewalTerms(targetPlan),
                 price: format.number(getProductPrice(targetPlan).amount, {
                   style: "currency",
                   currency: "USD",

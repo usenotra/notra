@@ -32,31 +32,27 @@ export function GuidelinesTypographySection({
     const families = [
       ...new Set(fonts.flatMap((font) => (font.family ? [font.family] : []))),
     ];
-    setUnavailableFonts(new Set());
 
     const links = families.map((family) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = googleFontHref(family);
-      link.onload = () => {
-        document.fonts
-          .load(`16px ${cssFontFamily(family)}`)
-          .then((loaded) => {
-            if (link.isConnected && loaded.length === 0) {
-              setUnavailableFonts((previous) => new Set(previous).add(family));
-            }
-          })
-          .catch(() => {
-            if (link.isConnected) {
-              setUnavailableFonts((previous) => new Set(previous).add(family));
-            }
-          });
-      };
-      link.onerror = () => {
+      const markUnavailable = () => {
         if (link.isConnected) {
           setUnavailableFonts((previous) => new Set(previous).add(family));
         }
       };
+      link.onload = () => {
+        document.fonts
+          .load(`16px ${cssFontFamily(family)}`, family)
+          .then((loaded) => {
+            if (loaded.length === 0) {
+              markUnavailable();
+            }
+          })
+          .catch(markUnavailable);
+      };
+      link.onerror = markUnavailable;
       document.head.appendChild(link);
       return link;
     });
