@@ -1,5 +1,9 @@
-import { GITHUB_CONTENT_POST_TRAILER } from "@notra/ai/constants/github";
+import {
+  GITHUB_CONTENT_POST_TRAILER,
+  GITHUB_WEB_FLOW_LOGIN,
+} from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
+import { getGitHubAppBotLogin } from "@notra/ai/integrations/github";
 import type {
   PublicationAncestryValidator,
   PublicationCommitSyncStatus,
@@ -8,6 +12,7 @@ import type {
 } from "@notra/ai/types/content-publication";
 import type { GitHubMentionOctokit } from "@notra/ai/types/github-mention";
 import { syncContentPublication } from "@notra/ai/utils/content-publication";
+import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
 import {
   commitFilesToPullRequest,
@@ -70,20 +75,6 @@ export async function preparePublicationSyncRepair(
       recordedFile,
       mapping.markdown
     ),
-  };
-}
-
-export function githubAncestryValidator(params: {
-  octokit: GitHubMentionOctokit;
-  owner: string;
-  repo: string;
-}): PublicationAncestryValidator {
-  return async (base, head) => {
-    const { data } = await params.octokit.request(
-      "GET /repos/{owner}/{repo}/compare/{basehead}",
-      { owner: params.owner, repo: params.repo, basehead: `${base}...${head}` }
-    );
-    return data.status === "ahead" || data.status === "identical";
   };
 }
 
@@ -284,13 +275,26 @@ export async function syncPublishedPostFromPullRequestHead(params: {
   // that snapshot over an edit saved while the GitHub request was in flight.
   // The publisher's durable reconciliation records this head instead.
   if (
+    commit.commit?.verification?.verified === true &&
     commit.commit?.message
       ?.split(/\r?\n/)
       .includes(
         `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`
       )
   ) {
-    return { status: "superseded" as const };
+    const publisherLogin =
+      getGitHubAppBotLogin() ??
+      (await params.octokit.request("GET /user")).data.login;
+    // A contributor can spoof the author on their own signed Git commit.
+    // Require the verified committer to be the publisher or GitHub as well.
+    if (
+      publisherLogin &&
+      commit.author?.login === publisherLogin &&
+      (commit.committer?.login === publisherLogin ||
+        commit.committer?.login === GITHUB_WEB_FLOW_LOGIN)
+    ) {
+      return { status: "superseded" as const };
+    }
   }
   return syncPublishedPostAfterCommit({
     octokit: params.octokit,

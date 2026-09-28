@@ -1,4 +1,5 @@
 export const GITHUB_CONTENT_POST_TRAILER = "Notra-Post: ";
+export const GITHUB_WEB_FLOW_LOGIN = "web-flow";
 
 /** GitHub App tokens author this commit as the App bot. */
 export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `

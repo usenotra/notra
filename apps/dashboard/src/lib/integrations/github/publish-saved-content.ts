@@ -12,11 +12,11 @@ import {
   findOpenContentPublicationForPost,
   reconcileContentPublication,
 } from "@notra/ai/utils/content-publication";
+import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { retryWrite } from "@notra/ai/utils/retry-write";
-import { githubAncestryValidator } from "@notra/ai/utils/update-published-content";
 import { db } from "@notra/db/drizzle";
 import {
   githubAppInstallations,
