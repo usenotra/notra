@@ -91,7 +91,7 @@ bun run test
 bun run build --filter=dashboard
 ```
 
-Effect-aware linting is piloted in `packages/tools/src`. Run `bun run check:effect`
+Effect-aware linting covers `packages/tools/src` and `packages/geo-core/src`. Run `bun run check:effect`
 to check for floating Effects, missing `yield*` in Effect generators, and
 outdated Effect APIs. It also runs before Ultracite in `bun run check`. The
 install hook patches Oxlint for these type-aware rules without changing the
