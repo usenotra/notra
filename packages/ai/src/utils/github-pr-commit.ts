@@ -1,5 +1,8 @@
 import { GITHUB_API_VERSION_HEADER } from "@notra/ai/constants/autonomy-poll";
-import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import {
+  GITHUB_CONTENT_POST_TRAILER,
+  GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
+} from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import { getGitHubAppBotLogin } from "@notra/ai/integrations/github";
 import type {
@@ -41,7 +44,11 @@ async function getTrustedParentCommitBody(
   const body = commit.commit.message
     .split(/\r?\n\r?\n/)
     .slice(1)
-    .join("\n\n");
+    .join("\n\n")
+    .split(/\r?\n/)
+    // Only the exported snapshot may suppress a webhook import, not its edits.
+    .filter((line) => !line.startsWith(GITHUB_CONTENT_POST_TRAILER))
+    .join("\n");
   return body || undefined;
 }
 

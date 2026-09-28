@@ -85,11 +85,12 @@ function renderContentCommitMetadata(
     assetPaths: (params.assets ?? []).map(({ path }) => path).sort(),
     contentPath: params.path,
   };
+  const postTrailer = params.organizationId
+    ? `\n${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.contentId}`
+    : "";
   return `${GITHUB_CONTENT_COMMIT_METADATA_PREFIX}${Buffer.from(
     JSON.stringify(metadata)
-  ).toString(
-    "base64"
-  )}\n${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.contentId}`;
+  ).toString("base64")}${postTrailer}`;
 }
 
 function parseContentCommitMetadata(message: string | undefined) {
