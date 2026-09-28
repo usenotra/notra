@@ -60,6 +60,48 @@ test("invites every configured support member before the Slack Connect recipient
   ]);
 });
 
+test("a failed support invite does not block the remaining members or customer", async () => {
+  process.env.SLACK_BOT_TOKEN = "test-token";
+  process.env.SLACK_SUPPORT_MEMBER_IDS = "UINVALID,U0AL47LV97S";
+
+  const requests: string[] = [];
+  globalThis.fetch = mock(async (url, options) => {
+    const method = String(url).split("/").at(-1) ?? "";
+    requests.push(method);
+    if (method === "conversations.create") {
+      return Response.json({
+        ok: true,
+        channel: { id: "C123", name: "support" },
+      });
+    }
+    if (method === "conversations.invite") {
+      const { users } = JSON.parse(String(options?.body));
+      return Response.json(
+        users === "UINVALID"
+          ? { ok: false, error: "user_not_found" }
+          : { ok: true }
+      );
+    }
+    if (method === "conversations.inviteShared") {
+      return Response.json({ ok: true, invite_id: "I123" });
+    }
+    throw new Error(`Unexpected Slack operation: ${method}`);
+  });
+
+  await expect(
+    createSlackConnectChannelWithInvite({
+      channelName: "support",
+      email: "customer@example.com",
+    })
+  ).resolves.toMatchObject({ channelId: "C123", inviteId: "I123" });
+  expect(requests).toEqual([
+    "conversations.create",
+    "conversations.invite",
+    "conversations.invite",
+    "conversations.inviteShared",
+  ]);
+});
+
 test("requires at least one support member", async () => {
   process.env.SLACK_BOT_TOKEN = "test-token";
   process.env.SLACK_SUPPORT_MEMBER_IDS = " , ";

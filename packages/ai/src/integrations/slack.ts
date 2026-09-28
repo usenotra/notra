@@ -257,7 +257,17 @@ const createSlackConnectChannelWithInviteEffect = Effect.fn(
 
   const inviteEffect = Effect.gen(function* () {
     for (const memberId of supportMemberIds) {
-      yield* inviteSlackMemberToChannelEffect(channel.channelId, memberId);
+      yield* inviteSlackMemberToChannelEffect(channel.channelId, memberId).pipe(
+        Effect.catch((error) =>
+          Effect.logWarning("Slack support member invite failed").pipe(
+            Effect.annotateLogs({
+              channelId: channel.channelId,
+              memberId,
+              error,
+            })
+          )
+        )
+      );
     }
     return yield* inviteToSlackConnectEffect({
       channelId: channel.channelId,
