@@ -1,3 +1,4 @@
+import { GITHUB_CONTENT_POST_TRAILER } from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import type {
   PublicationAncestryValidator,
@@ -270,21 +271,37 @@ export async function syncPublishedPostFromPullRequestHead(params: {
   // Publishing exports a saved Notra snapshot. Its webhook must never import
   // that snapshot over an edit saved while the GitHub request was in flight.
   // The publisher's durable reconciliation records this head instead.
-  const parentSha =
-    commit.parents?.length === 1 ? commit.parents[0]?.sha : undefined;
+  const message = commit.commit?.message ?? "";
+  const postMarker = `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`;
   if (
-    parentSha &&
-    isGitHubContentExport(commit.commit?.message ?? "", {
-      organizationId: params.organizationId,
-      postId: params.publication.postId,
-      owner: params.publication.owner,
-      repo: params.publication.repo,
-      path: params.publication.path,
-      parentSha,
-      markdown: contents,
-    })
+    message
+      .split(/\r?\n/)
+      .some((line) => line === postMarker || line.startsWith(`${postMarker} `))
   ) {
-    return { status: "superseded" as const };
+    const parentSha =
+      commit.parents?.length === 1 ? commit.parents[0]?.sha : undefined;
+    if (
+      parentSha &&
+      isGitHubContentExport(message, {
+        organizationId: params.organizationId,
+        postId: params.publication.postId,
+        owner: params.publication.owner,
+        repo: params.publication.repo,
+        path: params.publication.path,
+        parentSha,
+        markdown: contents,
+      })
+    ) {
+      return { status: "superseded" as const };
+    }
+    // Legacy exports and exports signed before key rotation cannot safely be
+    // distinguished from forged markers. Do not import or acknowledge them;
+    // retry once durable reconciliation has recorded the publication head.
+    return {
+      status: "failed" as const,
+      error:
+        "Cannot verify the Notra export marker. The post was not changed. Publication reconciliation must confirm this commit before synchronization can complete.",
+    };
   }
   return syncPublishedPostAfterCommit({
     octokit: params.octokit,
