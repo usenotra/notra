@@ -12,6 +12,7 @@ import type {
   WorkflowMonitoringSummary,
 } from "@/types/workflow-monitoring";
 import { readMonitoringOperation } from "@/utils/monitoring-operation";
+import { notifyWorkflowFailure } from "@/utils/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
 export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
@@ -120,6 +121,15 @@ export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
             : undefined,
           errorCode: run.error?.code,
         });
+        if (run.status === "failed") {
+          yield* Effect.promise(() =>
+            notifyWorkflowFailure({
+              runId: run.runId,
+              workflow,
+              reason: run.error?.code,
+            })
+          );
+        }
         summary.runs++;
         if (run.status === "pending") {
           summary.pendingRuns++;
