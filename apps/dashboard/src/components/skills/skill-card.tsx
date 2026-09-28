@@ -3,7 +3,7 @@
 import { Badge } from "@notra/ui/components/ui/badge";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { SkillCardProps } from "@/types/skills/page";
 import { formatSkillUpdatedAt, skillDisplayName } from "@/utils/skills";
@@ -27,29 +27,29 @@ export function SkillCard({ skill, slug }: SkillCardProps) {
   const updatedAtTime = updatedAt.getTime();
   const relative =
     formatSkillUpdatedAt(skill.updatedAt, locale) ?? tCommon("labels.justNow");
-  const [absoluteTitle, setAbsoluteTitle] = useState<string | undefined>();
   // Default Link prefetch runs when a card enters the viewport, so opening the
   // list would fetch every detail route. Stay off until hover or focus.
   const [prefetch, setPrefetch] = useState<false | null>(false);
+  const [absoluteTitle, setAbsoluteTitle] = useState<string>();
 
-  useEffect(() => {
-    // The absolute time uses the browser time zone. Rendering it on the server
-    // would stick the tooltip to the server zone after hydration.
-    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
+  function onCardPointerEnter() {
+    setPrefetch(null);
+    // The browser zone is only known on the client. Format the tooltip here so
+    // mounting the grid does not render every card a second time.
     setAbsoluteTitle(
       new Date(updatedAtTime).toLocaleString(
         locale,
         SKILL_UPDATED_TITLE_OPTIONS
       )
     );
-  }, [updatedAtTime, locale]);
+  }
 
   return (
     <Link
       className="focus-visible:ring-ring block h-full w-full min-w-0 rounded-xl focus-visible:ring-2 focus-visible:outline-none"
       href={`/${slug}/skills/${skill.name}`}
       onFocus={() => setPrefetch(null)}
-      onMouseEnter={() => setPrefetch(null)}
+      onMouseEnter={onCardPointerEnter}
       prefetch={prefetch}
     >
       <article className="border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
