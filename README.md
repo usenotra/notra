@@ -91,6 +91,12 @@ bun run test
 bun run build --filter=dashboard
 ```
 
+Effect-aware linting is piloted in `packages/tools/src`. Run `bun run check:effect`
+to check for floating Effects, missing `yield*` in Effect generators, and
+outdated Effect APIs. It also runs before Ultracite in `bun run check`. The
+install hook patches Oxlint for these type-aware rules without changing the
+TypeScript compiler; use Bun 1.4.0 to install the pinned, compatible versions.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and pull request guidelines. Bugs and feature requests belong in [GitHub Issues](https://github.com/usenotra/notra/issues).
