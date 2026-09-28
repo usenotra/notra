@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { GeoPageSkeleton } from "@/app/(dashboard)/[slug]/geo/skeleton";
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
@@ -13,12 +13,18 @@ import { Button } from "@/components/button";
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { PAYWALL_KINDS } from "@/constants/analytics-events";
+import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
 import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { GeoUpgradeGateProps } from "@/types/components/geo";
 import { sidebarRouteFromPathname } from "@/utils/nav";
+
+function subscribeToStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
 
 export function GeoUpgradeGate({
   slug,
@@ -32,18 +38,28 @@ export function GeoUpgradeGate({
   const { isLocked, isLoading, isUnavailable, isFetching, refetch } =
     useHasGeoFeature();
   const route = toAnalyticsRoute(pathname, slug);
-  const shownRef = useRef(false);
+  const [dismissedSlug, setDismissedSlug] = useState<string | null>(null);
+  const dismissedInStorage = useSyncExternalStore(
+    subscribeToStorage,
+    () =>
+      Boolean(
+        window.localStorage.getItem(localStorageKeys.geoUpgradeDismissed(slug))
+      ),
+    () => true
+  );
+  const dialogOpen = isLocked && dismissedSlug !== slug && !dismissedInStorage;
+  const shownForSlugRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isLocked || shownRef.current) {
+    if (!dialogOpen || shownForSlugRef.current === slug) {
       return;
     }
-    shownRef.current = true;
+    shownForSlugRef.current = slug;
     trackEvent(POSTHOG_EVENTS.PAYWALL_SHOWN, {
       kind: PAYWALL_KINDS.GEO_LOCKED,
       route,
     });
-  }, [isLocked, route]);
+  }, [dialogOpen, route, slug]);
 
   if (isLoading) {
     return fallback ?? <GeoPageSkeleton />;
@@ -75,6 +91,11 @@ export function GeoUpgradeGate({
   }
 
   function handleDismiss(): void {
+    window.localStorage.setItem(
+      localStorageKeys.geoUpgradeDismissed(slug),
+      "1"
+    );
+    setDismissedSlug(slug);
     // The org root restores a stored "geo" mode by redirecting straight back
     // here, which would reopen this paywall in a loop. Switch the sidebar to
     // Studio first so the redirect lets the user land on the Studio home.
@@ -112,7 +133,7 @@ export function GeoUpgradeGate({
             handleDismiss();
           }
         }}
-        open
+        open={dialogOpen}
         slug={slug}
       />
     </PageContainer>
