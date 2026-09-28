@@ -40,6 +40,7 @@ export async function alertWorkflowFailure(
   }
 
   const key = `workflow:failure-alert:${input.runId}`;
+  const leaseKey = `${key}:lease`;
   const claimed = await redis.set(key, "pending", {
     nx: true,
     ex: 7 * 24 * 60 * 60,
@@ -48,6 +49,7 @@ export async function alertWorkflowFailure(
     return;
   }
   try {
+    await redis.set(leaseKey, "1", { ex: 30 });
     const response = await fetch(webhook, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -70,10 +72,16 @@ export async function alertWorkflowFailure(
     }
   } catch (error) {
     await redis.del(key);
+    await redis.del(leaseKey);
+    await redis.zadd(pendingKey, {
+      score: Date.now() + 60_000,
+      member: input.runId,
+    });
     throw error;
   }
   // Keep the accepted-delivery claim even when queue cleanup fails.
   await redis.set(key, "sent", { xx: true, keepTtl: true });
+  await redis.del(leaseKey);
   await redis.zrem(pendingKey, input.runId);
   await redis.del(`workflow:failure-alert:payload:${input.runId}`);
 }
@@ -114,6 +122,16 @@ export async function retryWorkflowFailureAlerts(): Promise<void> {
         return;
       }
       if (state === "pending") {
+        const leaseKey = `workflow:failure-alert:${runId}:lease`;
+        const [leased, ttl] = await Promise.all([
+          client.exists(leaseKey),
+          client.ttl(`workflow:failure-alert:${runId}`),
+        ]);
+        // The sender may have stopped before posting. Give it time to start
+        // before clearing an unleased claim from a concurrent invocation.
+        if (!leased && ttl < 7 * 24 * 60 * 60 - 30) {
+          await client.del(`workflow:failure-alert:${runId}`);
+        }
         await client.zadd(pendingKey, {
           score: Date.now() + 60_000,
           member: runId,
