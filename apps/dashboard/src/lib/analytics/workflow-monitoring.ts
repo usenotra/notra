@@ -169,6 +169,8 @@ export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
                 outcome: "error",
                 runId: input.runId,
                 errorName: error instanceof Error ? error.name : "UnknownError",
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
               });
             })
           )
