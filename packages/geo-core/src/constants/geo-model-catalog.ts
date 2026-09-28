@@ -194,7 +194,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "GPT-5.6 Terra",
     zdr: "some",
     released: "2026-07-09",
-    default: true,
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -528,12 +528,11 @@ export const GEO_AUDIENCE_TYPES = ["technical", "general", "commerce"] as const;
 
 /**
  * Engines seeded for a brand whose buyers never pick a model themselves.
- * ChatGPT gets its free (Luna) and paid (Sol) defaults; Claude gets Opus 5.5.
+ * ChatGPT gets Sol, Claude gets Opus 5.5, and Gemini gets Flash.
  */
 export const GEO_GENERAL_AUDIENCE_ENGINE_IDS: readonly string[] = [
   "anthropic/claude-opus-5.5",
   "openai/gpt-5.6-sol",
-  "openai/gpt-5.6-luna",
   "google/gemini-3.8-flash",
 ];
 
