@@ -3,6 +3,7 @@ import { skills } from "@notra/db/schema";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
+import { getConversationalBlogPostPrompt } from "../../prompts/blog_post/conversational";
 import { DEFAULT_SKILL_CATALOG_LIMIT } from "../constants";
 import type {
   CreateSkillInput,
@@ -10,6 +11,7 @@ import type {
   SkillContent,
   SkillServiceContext,
 } from "../types";
+import { UNSLOP_CONTENT } from "../unslop-content";
 import { normalizeSkillSummary } from "./guidance";
 
 const promptableSkillWhere = (organizationId: string) =>
@@ -69,6 +71,15 @@ export async function loadSkillByName(
   ctx: SkillServiceContext,
   name: string
 ): Promise<SkillContent | null> {
+  // The writing pass is built in for existing and newly created organizations.
+  if (name === "unslop") {
+    return {
+      name: "unslop",
+      description: "Cut AI tells from any writing. Must always apply.",
+      content: UNSLOP_CONTENT,
+    };
+  }
+
   const row = await db.query.skills.findFirst({
     where: and(
       eq(skills.organizationId, ctx.organizationId),
@@ -83,7 +94,11 @@ export async function loadSkillByName(
   return {
     name: row.name,
     description: row.description,
-    content: row.content.trim(),
+    // System skills seeded before a prompt update should use the current text.
+    content:
+      row.isSystem && name === "blog-post"
+        ? getConversationalBlogPostPrompt()
+        : row.content.trim(),
   };
 }
 

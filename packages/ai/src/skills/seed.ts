@@ -7,6 +7,7 @@ import { getConversationalChangelogPrompt } from "../prompts/changelog/conversat
 import { getConversationalLinkedInPrompt } from "../prompts/linkedin/conversational";
 import { getConversationalTwitterPrompt } from "../prompts/twitter/conversational";
 import { HUMANIZER_CONTENT } from "./humanizer-content";
+import { UNSLOP_CONTENT } from "./unslop-content";
 
 interface SystemSkillDefinition {
   name: string;
@@ -45,6 +46,11 @@ function buildSystemSkills(): SystemSkillDefinition[] {
       description:
         "Remove signs of AI-generated writing from text. Use as a sub-skill from other skills to humanize a near-final draft before publishing.",
       content: HUMANIZER_CONTENT.trim(),
+    },
+    {
+      name: "unslop",
+      description: "Cut AI tells from any writing. Must always apply.",
+      content: UNSLOP_CONTENT,
     },
   ];
 }
