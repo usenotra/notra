@@ -4,6 +4,7 @@ import {
   findOpenContentPublicationForPost,
   syncContentPublication,
 } from "@notra/ai/utils/content-publication";
+import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { preparePublicationSyncRepair } from "@notra/ai/utils/update-published-content";
 
@@ -23,17 +24,14 @@ export async function contentPublicationSyncRepairStep(
   });
   const octokit = createOctokit(token ?? undefined);
   const prepared = await preparePublicationSyncRepair(repair, octokit);
-  const result = await syncContentPublication(prepared, async (base, head) => {
-    const { data } = await octokit.request(
-      "GET /repos/{owner}/{repo}/compare/{basehead}",
-      {
-        owner: publication.owner,
-        repo: publication.repo,
-        basehead: `${base}...${head}`,
-      }
-    );
-    return data.status === "ahead" || data.status === "identical";
-  });
+  const result = await syncContentPublication(
+    prepared,
+    githubAncestryValidator({
+      octokit,
+      owner: publication.owner,
+      repo: publication.repo,
+    })
+  );
   if (result.status === "retry") {
     throw new Error("Publication predecessor has not synchronized yet");
   }
