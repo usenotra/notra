@@ -48,6 +48,7 @@ import {
 } from "../utils/posts";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
+import { syncPostGitHub } from "../utils/sync-post-github";
 
 export const postsRoutes = createOpenApiApp();
 
@@ -141,7 +142,7 @@ const patchPostRoute = createRoute({
   operationId: "updatePost",
   summary: "Update a single post",
   description:
-    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs.",
+    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs. Title, slug, or markdown updates also sync an existing linked GitHub pull request; no new pull request is created. If GitHub sync fails, returns 502 after saving the post. Retry the content update to retry the sync.",
   request: {
     params: getPostParamsSchema,
     body: {
@@ -167,6 +168,9 @@ const patchPostRoute = createRoute({
     403: errorResponse("Forbidden"),
     404: errorResponse("Post not found"),
     409: errorResponse("Post slug already exists or concurrent modification"),
+    502: errorResponse(
+      "Post saved, but linked GitHub pull request sync failed"
+    ),
     429: rateLimitResponse(
       RATE_LIMITS.postUpdate.requests,
       RATE_LIMITS.postUpdate.window,
@@ -470,6 +474,30 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
       "rescanForPost",
       requestGeoRescanForPost({ organizationId: orgId, postId: post.id })
     );
+  }
+
+  if (
+    post.githubPublish &&
+    (post.contentType === "blog_post" || post.contentType === "changelog") &&
+    (body.title !== undefined ||
+      body.slug !== undefined ||
+      body.markdown !== undefined)
+  ) {
+    try {
+      await syncPostGitHub(c.env ?? {}, orgId, post.id);
+    } catch (error) {
+      console.error("Failed to sync saved post to GitHub", {
+        postId: post.id,
+        error,
+      });
+      return c.json(
+        {
+          error:
+            "Post saved in Notra, but the linked GitHub pull request could not be updated. Retry the content update to retry the sync.",
+        },
+        502
+      );
+    }
   }
 
   return c.json({ post: serializePost(post), organization }, 200);

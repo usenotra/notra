@@ -181,6 +181,10 @@ Tool names are exactly as the server registers them; some clients prefix them wi
 - `generate_post`
 - `get_post_generation_status`
 
+When `update_post` changes the title, slug, or markdown of a blog post or changelog with a linked GitHub pull request, Notra saves the article and updates that PR using the same publishing logic as the dashboard. It does not create a new PR. Status-only changes do not trigger a GitHub update.
+
+If the PR update fails, the tool returns an error stating that the post was saved in Notra. Retry the content update to retry the GitHub sync. A closed or merged PR must be resolved in the dashboard before it can be synced again.
+
 **Brand identities**
 
 - `list_brand_identities`
