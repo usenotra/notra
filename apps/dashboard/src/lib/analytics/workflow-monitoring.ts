@@ -12,7 +12,7 @@ import type {
   WorkflowMonitoringSummary,
 } from "@/types/workflow-monitoring";
 import { readMonitoringOperation } from "@/utils/monitoring-operation";
-import { notifyWorkflowFailure } from "@/utils/workflow-failure-alert";
+import { enqueueWorkflowFailure } from "@/utils/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
 export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
@@ -38,6 +38,11 @@ export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
   };
   const stepRuns = new Map<string, string>();
   const seenRuns = new Set<string>();
+  const failedRuns: Array<{
+    runId: string;
+    workflow: string;
+    reason?: string;
+  }> = [];
 
   for (const status of MONITORED_WORKFLOW_STATUSES) {
     const active = status === "pending" || status === "running";
@@ -122,13 +127,11 @@ export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
           errorCode: run.error?.code,
         });
         if (run.status === "failed") {
-          yield* Effect.promise(() =>
-            notifyWorkflowFailure({
-              runId: run.runId,
-              workflow,
-              reason: run.error?.code,
-            })
-          );
+          failedRuns.push({
+            runId: run.runId,
+            workflow,
+            reason: run.error?.code,
+          });
         }
         summary.runs++;
         if (run.status === "pending") {
@@ -155,6 +158,22 @@ export const collectWorkflowMonitoring: CollectWorkflowMonitoring = Effect.fn(
         break;
       }
       cursor = result.cursor;
+    }
+    if (status === "failed" && failedRuns.length > 0) {
+      yield* Effect.promise(() =>
+        Promise.all(
+          failedRuns.map((input) =>
+            enqueueWorkflowFailure(input).catch((error: unknown) => {
+              logWorkflowTelemetry({
+                event: "workflow.alert.failed",
+                outcome: "error",
+                runId: input.runId,
+                errorName: error instanceof Error ? error.name : "UnknownError",
+              });
+            })
+          )
+        ).then(() => undefined)
+      );
     }
     if (!summary.budgetExceeded && !statusFailed) {
       summary.statusesChecked++;

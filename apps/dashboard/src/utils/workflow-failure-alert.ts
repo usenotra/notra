@@ -3,6 +3,31 @@ import { redis } from "@notra/ai/utils/redis";
 import type { WorkflowFailureAlertInput } from "@/types/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
+const pendingKey = "workflow:failure-alerts:pending";
+
+export async function enqueueWorkflowFailure(
+  input: WorkflowFailureAlertInput
+): Promise<void> {
+  if (!process.env.GEO_SCAN_ALERT_WEBHOOK_URL || !redis) {
+    return;
+  }
+  if (await redis.exists(`workflow:failure-alert:${input.runId}`)) {
+    return;
+  }
+  await redis.set(`workflow:failure-alert:payload:${input.runId}`, input, {
+    nx: true,
+    ex: 30 * 24 * 60 * 60,
+  });
+  await redis.zadd(
+    pendingKey,
+    { nx: true },
+    {
+      score: Date.now(),
+      member: input.runId,
+    }
+  );
+}
+
 export async function alertWorkflowFailure(
   input: WorkflowFailureAlertInput
 ): Promise<void> {
@@ -15,7 +40,10 @@ export async function alertWorkflowFailure(
   }
 
   const key = `workflow:failure-alert:${input.runId}`;
-  const claimed = await redis.set(key, "pending", { nx: true, ex: 30 });
+  const claimed = await redis.set(key, "pending", {
+    nx: true,
+    ex: 7 * 24 * 60 * 60,
+  });
   if (!claimed) {
     return;
   }
@@ -44,13 +72,17 @@ export async function alertWorkflowFailure(
     await redis.del(key);
     throw error;
   }
-  await redis.set(key, "sent", { ex: 7 * 24 * 60 * 60 });
+  // Keep the accepted-delivery claim even when queue cleanup fails.
+  await redis.set(key, "sent", { xx: true, keepTtl: true });
+  await redis.zrem(pendingKey, input.runId);
+  await redis.del(`workflow:failure-alert:payload:${input.runId}`);
 }
 
 export async function notifyWorkflowFailure(
   input: WorkflowFailureAlertInput
 ): Promise<void> {
   try {
+    await enqueueWorkflowFailure(input);
     await alertWorkflowFailure(input);
   } catch (error) {
     logWorkflowTelemetry({
@@ -61,4 +93,41 @@ export async function notifyWorkflowFailure(
       errorMessage: error instanceof Error ? error.message : String(error),
     });
   }
+}
+
+export async function retryWorkflowFailureAlerts(): Promise<void> {
+  const client = redis;
+  if (!process.env.GEO_SCAN_ALERT_WEBHOOK_URL || !client) {
+    return;
+  }
+  const runIds = await client.zrange<string[]>(pendingKey, 0, Date.now(), {
+    byScore: true,
+    offset: 0,
+    count: 5,
+  });
+  await Promise.all(
+    runIds.map(async (runId) => {
+      const state = await client.get<string>(`workflow:failure-alert:${runId}`);
+      if (state === "sent") {
+        await client.zrem(pendingKey, runId);
+        await client.del(`workflow:failure-alert:payload:${runId}`);
+        return;
+      }
+      if (state === "pending") {
+        await client.zadd(pendingKey, {
+          score: Date.now() + 60_000,
+          member: runId,
+        });
+        return;
+      }
+      const input = await client.get<WorkflowFailureAlertInput>(
+        `workflow:failure-alert:payload:${runId}`
+      );
+      if (input) {
+        await notifyWorkflowFailure(input);
+      } else {
+        await client.zrem(pendingKey, runId);
+      }
+    })
+  );
 }
