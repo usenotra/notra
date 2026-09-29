@@ -106,6 +106,8 @@
   --color-aio-popover-fg: var(--aio-popover-fg);
   --color-aio-popover-muted: var(--aio-popover-muted);
   --color-aio-action: var(--aio-action);
+  --color-marketing-light-foreground: #1e1e1e;
+  --tracking-marketing: -0.015em;
   --font-aio: "Google Sans", "Google Sans Flex", Roboto, Arial, sans-serif;
 }
 

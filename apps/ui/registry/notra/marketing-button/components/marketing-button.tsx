@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 const marketingButtonVariants = cva(
-  "focus-visible:ring-ring/50 inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full font-medium tracking-[-0.015em] whitespace-nowrap outline-none select-none focus-visible:ring-3 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "focus-visible:ring-ring/50 tracking-marketing inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap outline-none select-none focus-visible:ring-3 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary: "marketing-gradient-primary text-white",
-        light: "marketing-gradient-light text-neutral-900",
+        light: "marketing-gradient-light text-marketing-light-foreground",
       },
       size: {
         default: "h-11 px-6 text-base [&_svg:not([class*='size-'])]:size-4",
