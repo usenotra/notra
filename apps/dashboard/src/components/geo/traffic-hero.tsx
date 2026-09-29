@@ -268,7 +268,7 @@ export function TrafficHero({
               visible={anyVisible}
             >
               {singleDay &&
-              (rows[0]?.[GEO_TRAFFIC_TREND_CRAWLER_KEY] ?? 0) > 0 ? (
+              (chartRows[0]?.[GEO_TRAFFIC_TREND_CRAWLER_KEY] ?? 0) > 0 ? (
                 <EChartsAreaChart.Dot variant="border" />
               ) : null}
               <EChartsAreaChart.ActiveDot variant="border" />
@@ -282,7 +282,7 @@ export function TrafficHero({
               visible={anyVisible}
             >
               {singleDay &&
-              (rows[0]?.[GEO_TRAFFIC_TREND_REFERRAL_KEY] ?? 0) > 0 ? (
+              (chartRows[0]?.[GEO_TRAFFIC_TREND_REFERRAL_KEY] ?? 0) > 0 ? (
                 <EChartsAreaChart.Dot variant="border" />
               ) : null}
               <EChartsAreaChart.ActiveDot variant="border" />

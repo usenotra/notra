@@ -28,3 +28,20 @@ test("traffic starting today plots zero for earlier days in the selected range",
   expect(rows.map((row) => row.aiReferral)).toEqual([0, 0, 0, 0]);
   expect(trafficSparklineDays([], "2026-09-26", "2026-09-29")).toEqual([]);
 });
+
+test("very long ranges sample empty days without dropping observed traffic", () => {
+  const points: GeoTrafficPoint[] = [
+    {
+      day: "2026-09-29",
+      source: "GPTBot",
+      visitorType: "crawler",
+      visits: 3,
+    },
+  ];
+  const days = trafficSparklineDays(points, "0000-01-01", "9999-12-31");
+
+  expect(days.length).toBeLessThanOrEqual(91);
+  expect(days[0]).toBe("0000-01-01");
+  expect(days.at(-1)).toBe("9999-12-31");
+  expect(days).toContain("2026-09-29");
+});

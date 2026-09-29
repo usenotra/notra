@@ -175,7 +175,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const showSkeleton = isTrafficPagePending({
     isSettingsPending,
     hasSettings: settings !== null,
-    isTrafficPending,
+    isTrafficPending: isTrafficPending || isTrafficPlaceholder,
     isEmptyTraffic,
     isIngestPending,
   });
