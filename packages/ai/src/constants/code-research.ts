@@ -23,13 +23,17 @@ export const CODE_RESEARCH_FALLBACK_DEPTH = 200;
 export const CODE_RESEARCH_CLONE_TIMEOUT_SECONDS = 180;
 export const CODE_RESEARCH_COMMAND_TIMEOUT_SECONDS = 45;
 
-export const CODE_RESEARCH_LEASE_TTL_SECONDS = 240;
+// Covers box creation plus clone and checkout, each capped at 180 s.
+export const CODE_RESEARCH_LEASE_TTL_SECONDS = 600;
 export const CODE_RESEARCH_LEASE_WAIT_MS = 200_000;
 export const CODE_RESEARCH_LEASE_POLL_MS = 1500;
 
 export const CODE_RESEARCH_EXIT_MARKER = "__NOTRA_EXIT__";
 
 export const CODE_RESEARCH_LIST_MAX_ENTRIES = 400;
+export const CODE_RESEARCH_LIST_SCAN_LIMIT = 50_000;
+// Extra history fetched when a branch forked below the shallow clone.
+export const CODE_RESEARCH_DEEPEN_STEPS = [1000, 5000] as const;
 export const CODE_RESEARCH_SEARCH_MAX_MATCHES = 120;
 export const CODE_RESEARCH_SEARCH_MAX_PER_FILE = 8;
 export const CODE_RESEARCH_LINE_MAX_CHARS = 300;

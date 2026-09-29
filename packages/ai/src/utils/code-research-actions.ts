@@ -101,7 +101,7 @@ export async function openRepository(
   );
   const result = await runInCodeResearchBox(
     workspace.box,
-    buildOverviewScript()
+    buildOverviewScript(workspace.state.headSha)
   );
   if (result.exitCode !== 0) {
     throw new Error(
@@ -123,7 +123,7 @@ export async function listRepositoryFiles(
   const workspace = await getWorkspace(scope, input.integrationId, null);
   const result = await runInCodeResearchBox(
     workspace.box,
-    buildListFilesScript(path, input.glob)
+    buildListFilesScript(workspace.state.headSha, path)
   );
   if (result.exitCode !== 0) {
     throw new Error(
@@ -132,7 +132,12 @@ export async function listRepositoryFiles(
   }
   return {
     ...describeWorkspace(workspace),
-    ...parseListFiles(result.output, path, CODE_RESEARCH_LIST_MAX_ENTRIES),
+    ...parseListFiles(
+      result.output,
+      path,
+      CODE_RESEARCH_LIST_MAX_ENTRIES,
+      input.glob
+    ),
   };
 }
 
@@ -145,6 +150,7 @@ export async function searchRepository(
   const result = await runInCodeResearchBox(
     workspace.box,
     buildSearchScript({
+      sha: workspace.state.headSha,
       query: input.query,
       regex: input.regex,
       ignoreCase: input.ignoreCase,
@@ -161,7 +167,8 @@ export async function searchRepository(
   }
   const parsed = parseSearchMatches(
     result.output,
-    CODE_RESEARCH_SEARCH_MAX_MATCHES
+    CODE_RESEARCH_SEARCH_MAX_MATCHES,
+    workspace.state.headSha
   );
   return {
     ...describeWorkspace(workspace),
@@ -196,15 +203,13 @@ export async function readRepositoryFile(
   const workspace = await getWorkspace(scope, input.integrationId, null);
   const result = await runInCodeResearchBox(
     workspace.box,
-    buildReadFileScript(path, startLine, endLine)
+    buildReadFileScript(workspace.state.headSha, path, startLine, endLine)
   );
   if (result.exitCode !== 0) {
     throw new Error(describeReadFailure(result.exitCode, path));
   }
 
   const parsed = parseReadFile(result.output);
-  // A symlink could point a harmless name at a secret file.
-  assertReadableRepoPath(parsed.resolvedPath);
   const content = truncateText(
     redactSecrets(parsed.content),
     CODE_RESEARCH_READ_MAX_BYTES
@@ -230,6 +235,7 @@ export async function repositoryHistory(
   const result = await runInCodeResearchBox(
     workspace.box,
     buildHistoryScript({
+      sha: workspace.state.headSha,
       limit: input.limit,
       path,
       since: input.since,
@@ -258,6 +264,7 @@ export async function showRepositoryChange(
   const result = await runInCodeResearchBox(
     workspace.box,
     buildShowChangeScript({
+      sha: workspace.state.headSha,
       ref: input.ref?.trim() || null,
       defaultBranch: workspace.state.repository.defaultBranch,
       path,

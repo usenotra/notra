@@ -87,14 +87,18 @@ async function acquireLease(key: string, owner: string) {
   return result === "OK";
 }
 
+// Compare and delete in one step, so an expired holder cannot release the
+// lease a later caller has taken over.
+const RELEASE_LEASE_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then
+  return redis.call("del", KEYS[1])
+end
+return 0`;
+
 async function releaseLease(key: string, owner: string) {
   if (!redis) {
     return;
   }
-  const current = await redis.get<string>(key);
-  if (current === owner) {
-    await redis.del(key);
-  }
+  await redis.eval(RELEASE_LEASE_SCRIPT, [key], [owner]);
 }
 
 function sleep(ms: number) {

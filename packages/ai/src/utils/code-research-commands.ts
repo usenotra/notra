@@ -2,6 +2,7 @@ import { posix } from "node:path";
 
 import {
   CODE_RESEARCH_COMMAND_TIMEOUT_SECONDS,
+  CODE_RESEARCH_DEEPEN_STEPS,
   CODE_RESEARCH_DENIED_PATH_PATTERNS,
   CODE_RESEARCH_DIFF_EXCLUDES,
   CODE_RESEARCH_DIFF_MAX_BYTES,
@@ -11,6 +12,7 @@ import {
   CODE_RESEARCH_FULL_SHA_PATTERN,
   CODE_RESEARCH_HISTORY_DAYS,
   CODE_RESEARCH_LINE_MAX_CHARS,
+  CODE_RESEARCH_LIST_SCAN_LIMIT,
   CODE_RESEARCH_OVERVIEW_COMMITS,
   CODE_RESEARCH_OVERVIEW_MANIFESTS,
   CODE_RESEARCH_QUOTED_SECRET_PATTERN,
@@ -34,6 +36,8 @@ const COMMIT_FORMAT = "%H%x1f%an%x1f%aI%x1f%s";
 const GITHUB_NAME_PATTERN = /^[A-Za-z0-9_.-]+$/;
 const SEARCH_LINE_PATTERN = /^(.*?):(\d+):(.*)$/;
 const DIFF_FILE_HEADER_PATTERN = /^diff --git a\/(.*) b\/(.*)$/;
+const STAT_LINE_PATTERN = /^\s*(.+?)\s+\|\s+(?:\d+|Bin)/;
+const RENAME_BRACES_PATTERN = /\{([^{}]*?) => ([^{}]*?)\}/;
 const GIT = "git -c core.quotePath=false";
 const CREDENTIAL_FREE_GIT =
   "GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c core.quotePath=false";
@@ -270,30 +274,22 @@ const OVERVIEW_SECTIONS = [
 ] as const;
 type OverviewSection = (typeof OVERVIEW_SECTIONS)[number];
 
-export function buildOverviewScript(): string {
-  const manifests = [
-    "*package.json",
-    "*pyproject.toml",
-    "*Cargo.toml",
-    "*go.mod",
-    "*composer.json",
-    "*Gemfile",
-    "*pom.xml",
-    "*build.gradle",
-  ]
-    .map(shellQuote)
-    .join(" ");
+export function buildOverviewScript(sha: string): string {
+  const commit = shellQuote(assertFullSha(sha));
+  const manifests = shellQuote(
+    "(^|/)(package\\.json|pyproject\\.toml|Cargo\\.toml|go\\.mod|composer\\.json|Gemfile|pom\\.xml|build\\.gradle)$"
+  );
   return [
     "echo @@HEAD",
-    `${GIT} log -1 --format=${shellQuote(COMMIT_FORMAT)}`,
+    `${GIT} log -1 --format=${shellQuote(COMMIT_FORMAT)} ${commit}`,
     "echo @@TREE",
-    `${GIT} ls-tree --format=${shellQuote("%(objecttype) %(path)")} HEAD`,
+    `${GIT} ls-tree --format=${shellQuote("%(objecttype) %(path)")} ${commit}`,
     "echo @@README",
-    `f=$(${GIT} ls-files | grep -i -m1 -E ${shellQuote("^readme(\\.(md|mdx|rst|txt))?$")}); if [ -n "$f" ]; then echo "$f"; head -n ${String(CODE_RESEARCH_README_MAX_LINES)} -- "$f"; fi`,
+    `f=$(${GIT} ls-tree --name-only ${commit} | grep -i -m1 -E ${shellQuote("^readme(\\.(md|mdx|rst|txt))?$")}); if [ -n "$f" ]; then echo "$f"; ${GIT} show ${commit}:"$f" | head -n ${String(CODE_RESEARCH_README_MAX_LINES)}; fi`,
     "echo @@MANIFESTS",
-    `${GIT} ls-files -- ${manifests} | head -n ${String(CODE_RESEARCH_OVERVIEW_MANIFESTS)}`,
+    `${GIT} ls-tree -r --name-only ${commit} | grep -E ${manifests} | head -n ${String(CODE_RESEARCH_OVERVIEW_MANIFESTS)}`,
     "echo @@COMMITS",
-    `${GIT} log -n ${String(CODE_RESEARCH_OVERVIEW_COMMITS)} --format=${shellQuote(COMMIT_FORMAT)}`,
+    `${GIT} log -n ${String(CODE_RESEARCH_OVERVIEW_COMMITS)} --format=${shellQuote(COMMIT_FORMAT)} ${commit}`,
   ].join("; ");
 }
 
@@ -363,31 +359,73 @@ function pathspecFor(path: string, glob: string | undefined): string {
   return shellQuote(path || ".");
 }
 
-export function buildListFilesScript(path: string, glob?: string): string {
-  const pathspec = pathspecFor(path, glob);
-  return `${GIT} ls-files -- ${pathspec} | wc -l; ${GIT} ls-files -- ${pathspec} | head -n 20000`;
+function assertFullSha(sha: string): string {
+  if (!CODE_RESEARCH_FULL_SHA_PATTERN.test(sha)) {
+    throw new Error(`Invalid commit ${sha}.`);
+  }
+  return sha;
+}
+
+/**
+ * Reads run against the recorded commit, never the working tree, so a
+ * concurrent checkout of another ref cannot change what they see.
+ */
+export function buildListFilesScript(sha: string, path: string): string {
+  return `${GIT} ls-tree -r --name-only ${shellQuote(assertFullSha(sha))} -- ${shellQuote(path || ".")} | head -n ${String(CODE_RESEARCH_LIST_SCAN_LIMIT + 1)}`;
+}
+
+// Supports *, ** and ? relative to the listed directory.
+export function globToRegExp(glob: string): RegExp {
+  let pattern = "";
+  const source = glob.trim().replace(/^\/+/, "");
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index] ?? "";
+    if (char === "*" && source[index + 1] === "*") {
+      const followedBySlash = source[index + 2] === "/";
+      pattern += followedBySlash ? "(?:.*/)?" : ".*";
+      index += followedBySlash ? 2 : 1;
+    } else if (char === "*") {
+      pattern += "[^/]*";
+    } else if (char === "?") {
+      pattern += "[^/]";
+    } else {
+      pattern += char.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    }
+  }
+  return new RegExp(`^${pattern}$`);
 }
 
 export function parseListFiles(
   output: string,
   basePath: string,
-  maxEntries: number
+  maxEntries: number,
+  glob?: string
 ) {
-  const [countLine = "0", ...files] = output.split("\n");
-  const allFiles = files.filter(Boolean);
-  const totalFiles = Number.parseInt(countLine.trim(), 10) || allFiles.length;
+  const lines = output.split("\n").filter(Boolean);
+  const scanTruncated = lines.length > CODE_RESEARCH_LIST_SCAN_LIMIT;
+  const prefix = basePath ? `${basePath}/` : "";
+  const matcher = glob?.trim() ? globToRegExp(glob) : null;
+  const allFiles = lines
+    .slice(0, CODE_RESEARCH_LIST_SCAN_LIMIT)
+    .filter((file) =>
+      matcher
+        ? matcher.test(
+            file.startsWith(prefix) ? file.slice(prefix.length) : file
+          )
+        : true
+    );
+  const totalFiles = allFiles.length;
   if (allFiles.length <= maxEntries) {
     return {
       path: basePath,
       totalFiles,
-      truncated: totalFiles > allFiles.length,
+      truncated: scanTruncated,
       files: allFiles,
       directories: [],
     };
   }
 
   // Too many files: collapse everything below the next directory level.
-  const prefix = basePath ? `${basePath}/` : "";
   const directFiles: string[] = [];
   const directoryCounts = new Map<string, number>();
   for (const file of allFiles) {
@@ -413,6 +451,7 @@ export function parseListFiles(
 }
 
 export function buildSearchScript(params: {
+  sha: string;
   query: string;
   regex: boolean;
   ignoreCase: boolean;
@@ -434,15 +473,22 @@ export function buildSearchScript(params: {
   const excludes = CODE_RESEARCH_DIFF_EXCLUDES.map((pattern) =>
     shellQuote(`:(exclude,glob)**/${pattern}`)
   ).join(" ");
-  return `${GIT} grep ${flags.join(" ")} -e ${shellQuote(params.query)} -- ${pathspecFor(
-    params.path,
-    params.glob
-  )} ${excludes} | head -n 4000`;
+  // grep writes to a file first so its exit status survives the line cap:
+  // 1 means no match, anything above is an error such as an invalid regex.
+  return [
+    "t=$(mktemp)",
+    `${GIT} grep ${flags.join(" ")} -e ${shellQuote(params.query)} ${shellQuote(assertFullSha(params.sha))} -- ${pathspecFor(params.path, params.glob)} ${excludes} > "$t"`,
+    "c=$?",
+    'head -n 4000 "$t"',
+    'rm -f "$t"',
+    'exit "$c"',
+  ].join("; ");
 }
 
 export function parseSearchMatches(
   output: string,
-  maxMatches: number
+  maxMatches: number,
+  sha?: string
 ): {
   matches: CodeResearchSearchMatch[];
   truncated: boolean;
@@ -451,7 +497,11 @@ export function parseSearchMatches(
   const matches: CodeResearchSearchMatch[] = [];
   let truncated = false;
   const hidden = new Set<string>();
-  for (const line of output.split("\n")) {
+  const commitPrefix = sha ? `${sha}:` : "";
+  for (const rawLine of output.split("\n")) {
+    const line = rawLine.startsWith(commitPrefix)
+      ? rawLine.slice(commitPrefix.length)
+      : rawLine;
     const parsed = SEARCH_LINE_PATTERN.exec(line);
     if (!parsed) {
       continue;
@@ -480,19 +530,21 @@ export function parseSearchMatches(
 }
 
 export function buildReadFileScript(
+  sha: string,
   path: string,
   startLine: number,
   endLine: number
 ): string {
-  const repoPrefix = `${CODE_RESEARCH_REPO_DIR}/`;
+  const object = shellQuote(`${assertFullSha(sha)}:${path}`);
+  // Symlinks are blobs holding their target path, so nothing outside the
+  // repository can be reached through them.
   return [
-    `p=$(realpath -e -- ${shellQuote(path)}) || exit 3`,
-    `case "$p" in ${shellQuote(repoPrefix)}*) ;; *) echo outside; exit 4;; esac`,
-    `[ -f "$p" ] || exit 5`,
-    `if [ -s "$p" ] && ! grep -Iq . "$p"; then exit 6; fi`,
-    `echo "$p"`,
-    `wc -l < "$p"`,
-    `sed -n ${shellQuote(`${String(startLine)},${String(endLine)}p`)} -- "$p" | head -c ${String(
+    `t=$(${GIT} cat-file -t ${object} 2>/dev/null) || exit 3`,
+    `[ "$t" = blob ] || exit 5`,
+    `if [ "$(${GIT} cat-file -s ${object})" -gt 0 ] && ! ${GIT} show ${object} | grep -Iq .; then exit 6; fi`,
+    `echo ${shellQuote(path)}`,
+    `${GIT} show ${object} | wc -l`,
+    `${GIT} show ${object} | sed -n ${shellQuote(`${String(startLine)},${String(endLine)}p`)} | head -c ${String(
       CODE_RESEARCH_READ_MAX_BYTES + 1
     )}`,
   ].join("; ");
@@ -502,8 +554,6 @@ export function describeReadFailure(exitCode: number, path: string): string {
   switch (exitCode) {
     case 3:
       return `"${path}" does not exist. Use list_repository_files or search_repository to find the right path.`;
-    case 4:
-      return `"${path}" resolves outside the repository and cannot be read.`;
     case 5:
       return `"${path}" is a directory. Use list_repository_files instead.`;
     case 6:
@@ -515,17 +565,15 @@ export function describeReadFailure(exitCode: number, path: string): string {
 
 export function parseReadFile(output: string) {
   const [resolved = "", totalLine = "0", ...content] = output.split("\n");
-  const repoPrefix = `${CODE_RESEARCH_REPO_DIR}/`;
   return {
-    resolvedPath: resolved.startsWith(repoPrefix)
-      ? resolved.slice(repoPrefix.length)
-      : resolved,
+    resolvedPath: resolved,
     totalLines: Number.parseInt(totalLine.trim(), 10) || 0,
     content: content.join("\n"),
   };
 }
 
 export function buildHistoryScript(params: {
+  sha: string;
   limit: number;
   path: string;
   since?: string;
@@ -540,7 +588,7 @@ export function buildHistoryScript(params: {
       : "",
   ].filter(Boolean);
   const pathspec = params.path ? ` -- ${shellQuote(params.path)}` : "";
-  return `${GIT} log ${args.join(" ")} HEAD${pathspec}`;
+  return `${GIT} log ${args.join(" ")} ${shellQuote(assertFullSha(params.sha))}${pathspec}`;
 }
 
 function diffExcludes(path: string): string {
@@ -551,6 +599,7 @@ function diffExcludes(path: string): string {
 }
 
 export function buildShowChangeScript(params: {
+  sha: string;
   ref: string | null;
   defaultBranch: string;
   path: string;
@@ -567,13 +616,25 @@ export function buildShowChangeScript(params: {
     )} ${ref} -- ${pathspec} && echo @@PATCH && ${GIT} show --no-color --diff-merges=first-parent --format= --patch ${ref} -- ${pathspec} | head -c ${limit}`;
   }
 
-  // No ref: diff the checked out head against where it forked from the default branch.
-  const base = shellQuote(
-    `refs/remotes/origin/${assertSafeRef(params.defaultBranch, "branch")}`
-  );
-  return `b=$(${GIT} merge-base ${base} HEAD) || exit 7; ${GIT} log -1 --format=${shellQuote(
+  // No ref: diff the recorded commit against where it forked from the default
+  // branch. Older forks sit below the shallow clone, so deepen until found.
+  const branch = assertSafeRef(params.defaultBranch, "branch");
+  const base = shellQuote(`refs/remotes/origin/${branch}`);
+  const head = shellQuote(assertFullSha(params.sha));
+  const deepen = (depth: number) =>
+    `${CREDENTIAL_FREE_GIT} fetch --quiet --no-tags --deepen=${String(depth)} origin ${shellQuote(
+      `+refs/heads/${branch}:refs/remotes/origin/${branch}`
+    )} ${head}`;
+  const mergeBase = `b=$(${GIT} merge-base ${base} ${head})`;
+  const findBase = [
+    mergeBase,
+    ...CODE_RESEARCH_DEEPEN_STEPS.map(
+      (depth) => `{ ${deepen(depth)} && ${mergeBase}; }`
+    ),
+  ].join(" || ");
+  return `{ ${findBase}; } || exit 7; ${GIT} log -1 --format=${shellQuote(
     `${COMMIT_FORMAT}%n%b`
-  )} HEAD && ${GIT} diff --no-color --stat=200 "$b" HEAD -- ${pathspec} && echo @@PATCH && ${GIT} diff --no-color "$b" HEAD -- ${pathspec} | head -c ${limit}`;
+  )} ${head} && ${GIT} diff --no-color --stat=200 "$b" ${head} -- ${pathspec} && echo @@PATCH && ${GIT} diff --no-color "$b" ${head} -- ${pathspec} | head -c ${limit}`;
 }
 
 export function stripDeniedDiffFiles(patch: string): {
@@ -586,10 +647,11 @@ export function stripDeniedDiffFiles(patch: string): {
   for (const line of patch.split("\n")) {
     const header = DIFF_FILE_HEADER_PATTERN.exec(line);
     if (header) {
-      const path = header[2] ?? header[1] ?? "";
-      skipping = isDeniedRepoPath(path);
+      // A rename can move a secret file to a harmless name, so check both.
+      const paths = [header[1] ?? "", header[2] ?? ""];
+      skipping = paths.some(isDeniedRepoPath);
       if (skipping) {
-        hiddenFiles.push(path);
+        hiddenFiles.push(paths.find(isDeniedRepoPath) ?? paths[1] ?? "");
       }
     }
     if (!skipping) {
@@ -597,6 +659,30 @@ export function stripDeniedDiffFiles(patch: string): {
     }
   }
   return { patch: kept.join("\n"), hiddenFiles };
+}
+
+function statLinePaths(line: string): string[] {
+  const match = STAT_LINE_PATTERN.exec(line);
+  const raw = match?.[1]?.trim();
+  if (!raw) {
+    return [];
+  }
+  if (!raw.includes(" => ")) {
+    return [raw];
+  }
+  // Renames appear as "old => new" or "dir/{old => new}/file".
+  const before =
+    raw.replace(RENAME_BRACES_PATTERN, "$1").split(" => ")[0] ?? raw;
+  const after =
+    raw.replace(RENAME_BRACES_PATTERN, "$2").split(" => ").at(-1) ?? raw;
+  return [before, after];
+}
+
+function stripDeniedStatLines(summary: string): string {
+  return summary
+    .split("\n")
+    .filter((line) => !statLinePaths(line).some(isDeniedRepoPath))
+    .join("\n");
 }
 
 export function parseShowChange(output: string) {
@@ -613,7 +699,7 @@ export function parseShowChange(output: string) {
   return {
     commit,
     // Everything between the subject line and the stat block is the message body plus stat.
-    summary: redactSecrets(rest.join("\n").trim()),
+    summary: redactSecrets(stripDeniedStatLines(rest.join("\n").trim())),
     patch: truncatedPatch.text,
     patchTruncated:
       truncatedPatch.truncated ||

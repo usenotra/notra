@@ -8,11 +8,16 @@ import {
 import {
   buildCheckoutScript,
   buildCloneScript,
+  buildListFilesScript,
+  buildReadFileScript,
+  buildSearchScript,
+  globToRegExp,
   isDeniedRepoPath,
   normalizeRepoPath,
   parseCommandOutput,
   parseListFiles,
   parseSearchMatches,
+  parseShowChange,
   redactSecrets,
   shellQuote,
   stripDeniedDiffFiles,
@@ -146,16 +151,41 @@ describe("parseListFiles", () => {
       "apps/api/c.ts",
       "README.md",
     ];
-    const parsed = parseListFiles(`4\n${files.join("\n")}`, "", 2);
+    const parsed = parseListFiles(files.join("\n"), "", 2);
     expect(parsed.truncated).toBe(true);
     expect(parsed.files).toEqual(["README.md"]);
     expect(parsed.directories).toEqual([{ path: "apps", files: 3 }]);
   });
 
   test("returns small listings as files", () => {
-    const parsed = parseListFiles("2\nsrc/a.ts\nsrc/b.ts", "src", 10);
+    const parsed = parseListFiles("src/a.ts\nsrc/b.ts", "src", 10);
     expect(parsed.files).toEqual(["src/a.ts", "src/b.ts"]);
     expect(parsed.truncated).toBe(false);
+  });
+
+  test("filters by glob relative to the listed path", () => {
+    const listing = [
+      "apps/web/src/flag.ts",
+      "apps/web/src/lib/geo/flag.ts",
+      "apps/web/src/lib/geo/flag.test.ts",
+      "apps/web/README.md",
+    ].join("\n");
+    expect(parseListFiles(listing, "apps/web", 10, "**/flag.ts").files).toEqual(
+      ["apps/web/src/flag.ts", "apps/web/src/lib/geo/flag.ts"]
+    );
+    expect(parseListFiles(listing, "apps/web", 10, "*.md").files).toEqual([
+      "apps/web/README.md",
+    ]);
+  });
+});
+
+describe("globToRegExp", () => {
+  test("keeps * inside one directory and lets ** cross them", () => {
+    expect(globToRegExp("*.ts").test("a.ts")).toBe(true);
+    expect(globToRegExp("*.ts").test("dir/a.ts")).toBe(false);
+    expect(globToRegExp("**/*.ts").test("a/b/c.ts")).toBe(true);
+    expect(globToRegExp("src/?.ts").test("src/a.ts")).toBe(true);
+    expect(globToRegExp("a+b.(x)").test("a+b.(x)")).toBe(true);
   });
 });
 
@@ -173,6 +203,38 @@ describe("stripDeniedDiffFiles", () => {
     expect(result.hiddenFiles).toEqual([".env.production"]);
     expect(result.patch).not.toContain("postgres://");
     expect(result.patch).toContain("+also ok");
+  });
+
+  test("hides a secret file renamed to a harmless name", () => {
+    const patch = [
+      "diff --git a/.env b/config.txt",
+      "similarity index 90%",
+      "rename from .env",
+      "rename to config.txt",
+      "-API_TOKEN=plain",
+    ].join("\n");
+    const result = stripDeniedDiffFiles(patch);
+    expect(result.hiddenFiles).toEqual([".env"]);
+    expect(result.patch).not.toContain("API_TOKEN");
+  });
+});
+
+describe("parseShowChange", () => {
+  test("drops stat lines of denied files, including renames", () => {
+    const output = [
+      `${"a".repeat(40)}\u001fJan\u001f2026-09-29\u001ffeat: thing`,
+      " src/a.ts                 | 4 ++--",
+      " .env.production          | 2 +-",
+      " config/{.env => app.txt} | 1 +",
+      " 3 files changed, 4 insertions(+), 3 deletions(-)",
+      "@@PATCH",
+      "diff --git a/src/a.ts b/src/a.ts",
+      "+ok",
+    ].join("\n");
+    const parsed = parseShowChange(output);
+    expect(parsed.summary).toContain("src/a.ts");
+    expect(parsed.summary).not.toContain(".env");
+    expect(parsed.patch).toContain("+ok");
   });
 });
 
@@ -204,6 +266,30 @@ describe("git scripts", () => {
     expect(
       buildCheckoutScript({ kind: "commit", sha: "a".repeat(40) }, "main")
     ).toContain("checkout --quiet --detach");
+  });
+
+  test("pins reads to the recorded commit", () => {
+    const sha = "b".repeat(40);
+    expect(buildReadFileScript(sha, "src/a.ts", 1, 10)).toContain(
+      `'${sha}:src/a.ts'`
+    );
+    expect(buildListFilesScript(sha, "apps")).toContain(
+      `ls-tree -r --name-only '${sha}'`
+    );
+    expect(() => buildReadFileScript("HEAD", "src/a.ts", 1, 10)).toThrow();
+  });
+
+  test("keeps git grep's exit status past the line cap", () => {
+    const script = buildSearchScript({
+      sha: "c".repeat(40),
+      query: "foo(",
+      regex: true,
+      ignoreCase: false,
+      path: "",
+      maxPerFile: 3,
+    });
+    expect(script).toContain('> "$t"');
+    expect(script).toContain('exit "$c"');
   });
 
   test("fetches pull request heads into a private ref", () => {

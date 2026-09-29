@@ -18,7 +18,10 @@ import {
   showRepositoryChangeInputSchema,
 } from "@notra/ai/schemas/code-research-tools";
 import { createGetPullRequestsTool } from "@notra/ai/tools/github";
-import type { ResolveIntegrationContext } from "@notra/ai/types/agents";
+import type {
+  AgentTokenUsage,
+  ResolveIntegrationContext,
+} from "@notra/ai/types/agents";
 import type {
   CodeResearcherProgress,
   CodeResearcherStep,
@@ -32,7 +35,11 @@ import {
   searchRepository,
   showRepositoryChange,
 } from "@notra/ai/utils/code-research-actions";
-import { finishStep, startStep } from "@notra/ai/utils/code-researcher-steps";
+import {
+  addStepUsage,
+  finishStep,
+  startStep,
+} from "@notra/ai/utils/code-researcher-steps";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { withToolErrorPayloads } from "@notra/ai/utils/tool-error-payload";
 import {
@@ -192,40 +199,51 @@ export function createCodeResearcherTool(params: {
       });
       yield progress();
 
-      const result = await agent.stream({
-        prompt: buildResearchPrompt(input),
-        abortSignal,
-      });
-      for await (const part of result.fullStream) {
-        if (part.type === "tool-call") {
-          steps = startStep(steps, part.toolCallId, part.toolName, part.input);
-          yield progress();
-        } else if (part.type === "tool-result") {
-          steps = finishStep(steps, part.toolCallId, { output: part.output });
-          yield progress();
-        } else if (part.type === "tool-error") {
-          steps = finishStep(steps, part.toolCallId, {
-            errorText:
-              part.error instanceof Error
-                ? part.error.message
-                : String(part.error),
+      // Usage is summed per model step and billed in `finally`, so a run the
+      // user stops halfway still pays for the tokens it already used.
+      let usage: AgentTokenUsage | null = null;
+      try {
+        const result = await agent.stream({
+          prompt: buildResearchPrompt(input),
+          abortSignal,
+        });
+        for await (const part of result.fullStream) {
+          if (part.type === "finish-step") {
+            usage = addStepUsage(usage, toAgentTokenUsage(part.usage));
+          } else if (part.type === "tool-call") {
+            steps = startStep(
+              steps,
+              part.toolCallId,
+              part.toolName,
+              part.input
+            );
+            yield progress();
+          } else if (part.type === "tool-result") {
+            steps = finishStep(steps, part.toolCallId, { output: part.output });
+            yield progress();
+          } else if (part.type === "tool-error") {
+            steps = finishStep(steps, part.toolCallId, {
+              errorText:
+                part.error instanceof Error
+                  ? part.error.message
+                  : String(part.error),
+            });
+            yield progress();
+          }
+        }
+        const brief = await result.output;
+        yield { ...brief, steps };
+      } finally {
+        if (usage) {
+          await trackCodeResearchUsage({
+            organizationId: params.organizationId,
+            usage,
+            modelId: AGENT_DEFAULT_MODEL,
+            useMarkup: params.useMarkup,
+            chargeAiCredits: params.chargeAiCredits,
           });
-          yield progress();
         }
       }
-
-      const [brief, usage] = await Promise.all([
-        result.output,
-        result.totalUsage,
-      ]);
-      await trackCodeResearchUsage({
-        organizationId: params.organizationId,
-        usage: toAgentTokenUsage(usage),
-        modelId: AGENT_DEFAULT_MODEL,
-        useMarkup: params.useMarkup,
-        chargeAiCredits: params.chargeAiCredits,
-      });
-      yield { ...brief, steps };
     },
     toModelOutput: ({ output }) => {
       // The chat model gets the brief; the step trail is only for the UI.
