@@ -2720,7 +2720,8 @@
       "add": "Add a language",
       "limitReached": "Language limit reached",
       "noMatches": "No languages match",
-      "remove": "Remove {language}"
+      "remove": "Remove {language}",
+      "locked": "Prompts are written in this language, so it stays tracked."
     },
     "geoPromptAnswerSkeleton": {
       "loading": "Loading answer"

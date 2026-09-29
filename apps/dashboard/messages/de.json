@@ -2720,7 +2720,8 @@
       "add": "Sprache hinzufügen",
       "limitReached": "Sprachlimit erreicht",
       "noMatches": "Keine passenden Sprachen",
-      "remove": "{language} entfernen"
+      "remove": "{language} entfernen",
+      "locked": "Prompts sind in dieser Sprache geschrieben, deshalb bleibt sie getrackt."
     },
     "geoPromptAnswerSkeleton": {
       "loading": "Antwort wird geladen"

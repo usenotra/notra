@@ -1,6 +1,6 @@
 "use client";
 
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, LockIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DEFAULT_LANGUAGE,
@@ -102,19 +102,27 @@ export function GeoLanguagePicker({
           {selected.map((language) => (
             <Badge className="gap-1 pr-1" key={language} variant="secondary">
               <LanguageLabel language={language} />
-              <button
-                aria-label={t("remove", { language })}
-                className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={
-                  disabled || lastLanguage || language === lockedLanguage
-                }
-                onClick={() =>
-                  onChange(selected.filter((item) => item !== language))
-                }
-                type="button"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={12} />
-              </button>
+              {language === lockedLanguage ? (
+                <span
+                  className="text-muted-foreground p-0.5"
+                  title={t("locked")}
+                >
+                  <HugeiconsIcon icon={LockIcon} size={12} />
+                  <span className="sr-only">{t("locked")}</span>
+                </span>
+              ) : (
+                <button
+                  aria-label={t("remove", { language })}
+                  className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={disabled || lastLanguage}
+                  onClick={() =>
+                    onChange(selected.filter((item) => item !== language))
+                  }
+                  type="button"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                </button>
+              )}
             </Badge>
           ))}
         </div>
