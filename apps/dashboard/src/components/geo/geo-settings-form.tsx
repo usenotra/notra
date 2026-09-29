@@ -167,6 +167,7 @@ export function GeoSettingsForm({
           <GeoLanguagesSection
             languages={languages}
             onLanguagesChange={setLanguages}
+            promptLanguage={settings?.promptLanguage}
           />
         ) : null}
         {showModels ? (
@@ -458,6 +459,7 @@ function GeoBrandSection({
 function GeoLanguagesSection({
   languages,
   onLanguagesChange,
+  promptLanguage,
 }: GeoLanguagesSectionProps) {
   const t = useTranslations("geo.geoSettingsForm");
   const tCommon = useTranslations("common");
@@ -468,6 +470,7 @@ function GeoLanguagesSection({
     >
       <GeoLanguagePicker
         labeled={false}
+        lockedLanguage={promptLanguage}
         onChange={onLanguagesChange}
         selected={languages}
       />

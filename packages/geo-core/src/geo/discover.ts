@@ -49,7 +49,7 @@ import {
   insertPromptsInTransaction,
   reconcileCompetitorsInTransaction,
 } from "./programs";
-import { ensureGeoProject } from "./projects";
+import { ensureGeoProject, resolveGeoScope } from "./projects";
 import { startClaimedGeoScanRun } from "./scan-handoff";
 import { claimGeoScanRun } from "./scan-status";
 import {
@@ -400,10 +400,21 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
   }
 });
 
-/** Prompt language of an existing project, so regenerated prompts match it. */
+/**
+ * Prompt language of the project `ensureGeoProject` will pick (the oldest one
+ * when no project is given), so regenerated prompts match it.
+ */
 const loadGeoPromptLanguage = Effect.fn("geo.generateFromWebsite.language")(
   function* (scopeInput: GeoScopeInput) {
-    const { projectId } = scopeInput;
+    const { projectId } = yield* resolveGeoScope(scopeInput).pipe(
+      Effect.mapError(
+        (cause) =>
+          new GeoDiscoveryError({
+            message: "Failed to resolve the project",
+            cause,
+          })
+      )
+    );
     if (!projectId) {
       return DEFAULT_LANGUAGE;
     }

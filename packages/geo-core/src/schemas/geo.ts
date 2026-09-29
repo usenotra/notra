@@ -381,29 +381,41 @@ export const geoDiscoverWebsiteInputSchema =
     language: geoSupportedLanguageSchema.optional(),
   });
 
-export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
-  companyName: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
-  aliases: array(string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)).max(
-    GEO_MAX_ALIASES
-  ),
-  prompts: array(
-    object({
-      prompt: string().trim().min(MIN_PROMPT_LENGTH).max(MAX_PROMPT_LENGTH),
-      title: string().trim().min(1).max(GEO_GAP_TITLE_MAX_LENGTH),
-    })
-  ).max(GEO_ONBOARDING_MAX_PROMPTS),
-  languages: geoTrackingLanguagesSchema.optional(),
-  promptLanguage: geoSupportedLanguageSchema.optional(),
-  audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
-  engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
-    .min(1)
-    .max(GEO_MAX_ENGINES)
-    .optional(),
-  enforceZdr: boolean().optional(),
-  nonZdrApprovedEngines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
-    .max(GEO_MAX_ENGINES)
-    .optional(),
-});
+export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema
+  .extend({
+    companyName: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    aliases: array(string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)).max(
+      GEO_MAX_ALIASES
+    ),
+    prompts: array(
+      object({
+        prompt: string().trim().min(MIN_PROMPT_LENGTH).max(MAX_PROMPT_LENGTH),
+        title: string().trim().min(1).max(GEO_GAP_TITLE_MAX_LENGTH),
+      })
+    ).max(GEO_ONBOARDING_MAX_PROMPTS),
+    languages: geoTrackingLanguagesSchema.optional(),
+    promptLanguage: geoSupportedLanguageSchema.optional(),
+    audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
+    engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
+      .min(1)
+      .max(GEO_MAX_ENGINES)
+      .optional(),
+    enforceZdr: boolean().optional(),
+    nonZdrApprovedEngines: array(
+      string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)
+    )
+      .max(GEO_MAX_ENGINES)
+      .optional(),
+  })
+  .refine(
+    (input) =>
+      !(input.promptLanguage && input.languages) ||
+      input.languages.includes(input.promptLanguage),
+    {
+      message: "The prompt language must be one of the tracked languages",
+      path: ["promptLanguage"],
+    }
+  );
 
 export const geoCompetitorSuggestionsInputSchema =
   geoOrganizationInputSchema.extend({

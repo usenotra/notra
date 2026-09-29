@@ -43,6 +43,8 @@ export function GeoLanguagePicker({
   onChange,
   disabled = false,
   labeled = true,
+  inputId,
+  lockedLanguage,
 }: GeoLanguagePickerProps) {
   const t = useTranslations("geo.geoLanguagePicker");
   const tCommon = useTranslations("common");
@@ -79,8 +81,9 @@ export function GeoLanguagePicker({
         value={draft}
       >
         <ComboboxInput
-          aria-label={t("add")}
+          aria-label={inputId ? undefined : t("add")}
           className="w-full"
+          id={inputId}
           placeholder={atLimit ? t("limitReached") : t("add")}
         />
         <ComboboxContent>
@@ -102,7 +105,9 @@ export function GeoLanguagePicker({
               <button
                 aria-label={t("remove", { language })}
                 className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={disabled || lastLanguage}
+                disabled={
+                  disabled || lastLanguage || language === lockedLanguage
+                }
                 onClick={() =>
                   onChange(selected.filter((item) => item !== language))
                 }

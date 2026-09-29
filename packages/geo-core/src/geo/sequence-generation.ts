@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import { gateway } from "@notra/ai/gateway";
 import { db } from "@notra/db/drizzle";
 import {
@@ -121,7 +122,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       [
         geoDb("settings lookup failed", () =>
           db.query.geoSettings.findFirst({
-            columns: { companyName: true, aliases: true },
+            columns: { companyName: true, aliases: true, promptLanguage: true },
             where: eq(geoSettings.projectId, scope.projectId),
           })
         ),
@@ -131,7 +132,6 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
               companyName: true,
               companyDescription: true,
               audience: true,
-              language: true,
             },
             where: eq(brandSettings.id, scope.brandSettingsId),
           })
@@ -182,7 +182,9 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       companyName,
       companyDescription: brand?.companyDescription ?? null,
       audience: brand?.audience ?? null,
-      language: brand?.language ?? null,
+      // Scans label conversation turns with the prompt language, so the steps
+      // must be written in it rather than in the brand identity's language.
+      language: settings?.promptLanguage ?? DEFAULT_LANGUAGE,
       competitors: competitors.map((row) => row.name),
       prompts: prompts.map((row) => row.prompt),
       existingNames: existing.map((row) => row.name),

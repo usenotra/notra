@@ -417,7 +417,8 @@ function deriveAudience(
 }
 
 export function generatedAutoPromptIds(
-  settings: Pick<GeoSettings, "companyName" | "aliases">,
+  settings: Pick<GeoSettings, "companyName" | "aliases"> &
+    Partial<Pick<GeoSettings, "promptLanguage">>,
   brand: GeoBrandContext | null
 ): Set<string> {
   return new Set(buildGeoPrompts(settings, brand).map((prompt) => prompt.id));

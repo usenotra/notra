@@ -77,8 +77,10 @@ export interface VisibilityFormProps {
   projectId?: string;
   websiteUrl: string;
   companyName: string | null;
-  /** Prefilled from the browser's Accept-Language. */
-  defaultLanguage: string;
+  /** Saved languages, or the browser's Accept-Language for a new project. */
+  initialLanguages: string[];
+  /** Saved prompt language; it stays first and cannot be removed. */
+  lockedLanguage: string | null;
   nextHref: string;
   skipHref: string;
   inOnboardingFlow: boolean;

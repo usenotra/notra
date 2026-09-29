@@ -14,12 +14,14 @@ export function useGeoScanEstimate({
   includeSequences = true,
 }: GeoScanEstimateInput) {
   const { data: catalog } = useGeoModelCatalog(organizationId);
-  const { data: settingsData } = useGeoSettings(organizationId);
+  const { data: settingsData, isLoading: settingsLoading } =
+    useGeoSettings(organizationId);
   const { sequences, isLoading: sequencesLoading } =
     useGeoSequencesDb(organizationId);
 
   if (
     !catalog ||
+    settingsLoading ||
     (includeSequences && sequencesLoading) ||
     promptCount === undefined
   ) {

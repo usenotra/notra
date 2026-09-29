@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import { promptKey } from "@notra/geo-core/geo/prompt-key";
 import { buildBrandTerms } from "@notra/geo-core/geo/suggestion-keywords";
 import { normalizeWebsiteUrl } from "@notra/geo-core/utils/geo-website";
@@ -220,7 +221,8 @@ export function VisibilityForm({
   projectId,
   websiteUrl,
   companyName,
-  defaultLanguage,
+  initialLanguages,
+  lockedLanguage,
   nextHref,
   skipHref,
   inOnboardingFlow,
@@ -236,8 +238,8 @@ export function VisibilityForm({
   const [analyzedUrl, setAnalyzedUrl] = useState(
     () => normalizeWebsiteUrl(websiteUrl) ?? null
   );
-  const [languages, setLanguages] = useState<string[]>(() => [defaultLanguage]);
-  const promptLanguage = languages[0] ?? defaultLanguage;
+  const [languages, setLanguages] = useState(initialLanguages);
+  const promptLanguage = languages[0] ?? DEFAULT_LANGUAGE;
   const discover = useGeoDiscoverWebsite(
     organizationId,
     analyzedUrl,
@@ -353,9 +355,9 @@ export function VisibilityForm({
 
           <div className="grid gap-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium">
+              <Label htmlFor={`${id}-languages`}>
                 {tCommon2("labels.languages")}
-              </p>
+              </Label>
               <p className="text-muted-foreground text-xs">
                 {t("languagesHint", {
                   language: languageLabel(promptLanguage),
@@ -364,7 +366,9 @@ export function VisibilityForm({
             </div>
             <GeoLanguagePicker
               disabled={isAnalyzing}
+              inputId={`${id}-languages`}
               labeled={false}
+              lockedLanguage={lockedLanguage}
               onChange={setLanguages}
               selected={languages}
             />

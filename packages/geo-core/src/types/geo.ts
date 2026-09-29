@@ -909,6 +909,13 @@ export interface GeoDiscoverWebsiteResult {
 
 export type GeoOnboardingStage = "brand" | "competitors" | "complete";
 
+export interface GeoOnboardingLanguages {
+  /** Fixed once set; null for projects created before prompt languages. */
+  promptLanguage: string | null;
+  /** Tracked languages, prompt language first. */
+  languages: string[];
+}
+
 export interface GeoOnboardingBrandInput {
   organizationId: string;
   projectId?: string;

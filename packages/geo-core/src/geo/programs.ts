@@ -675,6 +675,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         nextScanAt: true,
         lastScanAt: true,
         scanIntervalHours: true,
+        promptLanguage: true,
       },
       where: eq(geoSettings.projectId, projectId),
     })
@@ -691,6 +692,14 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const domains = normalizeProjectDomains(
     input.domains ?? existingSettings?.domains ?? []
   );
+  // Stored prompts are written in the prompt language, so it is fixed once set
+  // and always stays tracked; otherwise scans would only run translations.
+  const promptLanguage =
+    existingSettings?.promptLanguage ?? input.promptLanguage ?? null;
+  const languages =
+    promptLanguage && !input.languages.includes(promptLanguage)
+      ? trackedGeoLanguages([promptLanguage, ...input.languages])
+      : input.languages;
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
       unavailableStaticEngines.size > 0 && unavailableStaticEngines.has(engine)
@@ -745,8 +754,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         competitors: [],
         conversionPaths,
         domains,
-        languages: input.languages,
-        promptLanguage: input.promptLanguage,
+        languages,
+        promptLanguage,
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
@@ -764,10 +773,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           aliases: input.aliases,
           conversionPaths,
           domains,
-          languages: input.languages,
-          ...(input.promptLanguage
-            ? { promptLanguage: input.promptLanguage }
-            : {}),
+          languages,
+          promptLanguage,
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
@@ -1668,6 +1675,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
         columns: {
           companyName: true,
           aliases: true,
+          promptLanguage: true,
           pausedAutoPromptIds: true,
           removedAutoPromptIds: true,
         },
@@ -1695,6 +1703,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
       {
         companyName: settingsRow.companyName,
         aliases: settingsRow.aliases,
+        promptLanguage: settingsRow.promptLanguage ?? undefined,
       },
       brand
         ? {

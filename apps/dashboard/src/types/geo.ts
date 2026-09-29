@@ -1138,6 +1138,7 @@ export interface GeoBrandSectionProps {
 export interface GeoLanguagesSectionProps {
   languages: string[];
   onLanguagesChange: (values: string[]) => void;
+  promptLanguage?: string;
 }
 
 export interface GeoModelsSectionProps {
@@ -1278,6 +1279,10 @@ export interface GeoLanguagePickerProps {
   onChange: (values: string[]) => void;
   disabled?: boolean;
   labeled?: boolean;
+  /** Id for the search input, so a visible label can point at it. */
+  inputId?: string;
+  /** The project's prompt language; it cannot be removed. */
+  lockedLanguage?: string | null;
 }
 
 export interface ShareOfVoiceCardProps {

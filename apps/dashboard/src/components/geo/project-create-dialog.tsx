@@ -198,9 +198,12 @@ export function GeoProjectCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label>{tCommon2("labels.languages")}</Label>
+            <Label htmlFor={`${id}-languages`}>
+              {tCommon2("labels.languages")}
+            </Label>
             <GeoLanguagePicker
               disabled={isSubmitting}
+              inputId={`${id}-languages`}
               labeled={false}
               onChange={setLanguages}
               selected={languages}
