@@ -39,7 +39,7 @@ export async function trackCodeResearchUsage(params: {
       value: cost.costCents,
       properties: {
         source: "code_research",
-        model: params.modelId,
+        model: params.usage.modelId ?? params.modelId,
         billing_basis: cost.billingBasis,
         input_tokens: params.usage.inputTokens,
         output_tokens: params.usage.outputTokens,
@@ -52,7 +52,7 @@ export async function trackCodeResearchUsage(params: {
       properties: {
         cost_cents: cost.costCents,
         source: "code_research",
-        model: params.modelId,
+        model: params.usage.modelId ?? params.modelId,
         billing_basis: cost.billingBasis,
         input_tokens: params.usage.inputTokens,
         output_tokens: params.usage.outputTokens,

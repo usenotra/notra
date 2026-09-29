@@ -1,5 +1,6 @@
 import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import {
+  CODE_RESEARCH_MIXED_MODELS,
   CODE_RESEARCHER_STEP_MAX_ARRAY_ITEMS,
   CODE_RESEARCHER_STEP_MAX_STRING_CHARS,
   CODE_RESEARCHER_STEP_OMITTED_KEYS,
@@ -98,14 +99,12 @@ export function addStepUsage(
   step: AgentTokenUsage,
   pricing?: { modelId?: string; gateway?: GatewayId }
 ): AgentTokenUsage {
-  const stepCost = calculateTokenCostUsd(
-    step,
-    pricing?.modelId ?? AGENT_DEFAULT_MODEL,
-    pricing?.gateway
-  );
+  const stepModel = pricing?.modelId ?? AGENT_DEFAULT_MODEL;
+  const stepCost = calculateTokenCostUsd(step, stepModel, pricing?.gateway);
   if (!total) {
     return {
       ...step,
+      modelId: stepModel,
       maxPromptTokens: promptTokens(step),
       tokenCostUsd: stepCost,
     };
@@ -117,7 +116,9 @@ export function addStepUsage(
     cacheReadTokens: total.cacheReadTokens + step.cacheReadTokens,
     cacheWriteTokens: total.cacheWriteTokens + step.cacheWriteTokens,
     reasoningTokens: (total.reasoningTokens ?? 0) + (step.reasoningTokens ?? 0),
-    modelId: total.modelId ?? step.modelId,
+    // Labels the charge; the cost itself is already priced per step.
+    modelId:
+      total.modelId === stepModel ? stepModel : CODE_RESEARCH_MIXED_MODELS,
     maxPromptTokens: Math.max(total.maxPromptTokens ?? 0, promptTokens(step)),
     tokenCostUsd: (total.tokenCostUsd ?? 0) + stepCost,
   };

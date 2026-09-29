@@ -103,6 +103,7 @@ export const CODE_RESEARCH_MAX_REF_LENGTH = 200;
 export const CODE_RESEARCH_FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
 export const CODE_RESEARCHER_TOOL_NAME = "code-researcher";
+export const CODE_RESEARCH_MIXED_MODELS = "mixed";
 export const CODE_RESEARCHER_MAX_STEPS = 30;
 export const CODE_RESEARCHER_STEP_MAX_STRING_CHARS = 300;
 export const CODE_RESEARCHER_STEP_MAX_ARRAY_ITEMS = 20;
