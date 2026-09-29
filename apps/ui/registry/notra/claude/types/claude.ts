@@ -193,7 +193,7 @@ export interface ClaudePlusMenuProps {
   onSelect?: (item: ClaudePlusMenuItemId) => void;
 }
 
-export interface ClaudeUsageRingProps extends ComponentProps<"span"> {
+export interface ClaudeUsageRingProps extends ComponentProps<"div"> {
   label?: string;
   size?: number;
   value: number;

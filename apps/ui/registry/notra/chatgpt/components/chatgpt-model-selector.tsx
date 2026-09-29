@@ -2,7 +2,7 @@
 
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,7 @@ import type {
 } from "../types/chatgpt";
 
 /** Half the thumb width, so dots line up with where the thumb stops. */
+const BURST_MS = 1000;
 const THUMB_INSET = "0.875rem";
 
 const PRO_EFFORT_ID: ChatgptEffortId = "pro";
@@ -135,10 +136,21 @@ export const ChatgptModelSelector = ({
     }
   };
 
+  // The burst plays once when the slider lands on Pro, not whenever the view remounts.
+  const [burstActive, setBurstActive] = useState(false);
+  useEffect(() => {
+    if (!burstActive) {
+      return;
+    }
+    const timer = window.setTimeout(() => setBurstActive(false), BURST_MS);
+    return () => window.clearTimeout(timer);
+  }, [burstActive]);
+
   const handleSlide = (value: number | readonly number[]) => {
     const index = Array.isArray(value) ? value[0] : value;
     const next = efforts[index as number];
     if (next && next.id !== effort) {
+      setBurstActive(next.id === PRO_EFFORT_ID);
       onEffortChange?.(next.id);
     }
   };
@@ -226,7 +238,7 @@ export const ChatgptModelSelector = ({
                   )
                 )}
               </div>
-              {isPro ? (
+              {isPro && burstActive ? (
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10"

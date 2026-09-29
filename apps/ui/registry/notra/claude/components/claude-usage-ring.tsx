@@ -30,7 +30,7 @@ export const ClaudeUsageRing = ({
     <Tooltip>
       <TooltipTrigger
         render={
-          <span
+          <div
             className={cn(
               "text-claude-usage inline-flex shrink-0 items-center justify-center",
               className

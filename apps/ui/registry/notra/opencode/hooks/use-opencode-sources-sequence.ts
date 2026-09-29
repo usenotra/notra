@@ -44,9 +44,13 @@ export const useOpencodeSourcesSequence = (
     }
     if (sourceCount > 0) {
       timers.push(
-        window.setTimeout(() => {
-          setSequence((current) => ({ ...current, sources: true }));
-        }, elapsed + OPENCODE_SEARCH_SOURCES_MS)
+        window.setTimeout(
+          () => {
+            setSequence((current) => ({ ...current, sources: true }));
+          },
+          Math.max(0, elapsed - OPENCODE_SEARCH_QUERY_MS) +
+            OPENCODE_SEARCH_SOURCES_MS
+        )
       );
     }
 

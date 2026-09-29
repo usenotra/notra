@@ -37,10 +37,7 @@ export const ClaudeCodeTodoList = ({
   ...props
 }: ClaudeCodeTodoListProps) => (
   <div
-    className={cn(
-      "font-claude-code text-claude-code-fg text-[0.8125rem] leading-[1.125rem]",
-      className
-    )}
+    className="font-claude-code text-claude-code-fg text-[0.8125rem] leading-[1.125rem]"
     data-slot="claude-code-todo-list"
   >
     {heading ? (
@@ -54,7 +51,7 @@ export const ClaudeCodeTodoList = ({
         <span className="text-claude-code-fg font-semibold">{heading}</span>
       </div>
     ) : null}
-    <ItemGroup className="gap-0" {...props}>
+    <ItemGroup className={cn("gap-0", className)} {...props}>
       {withOccurrenceKeys(todos, (todo) => todo.label).map(
         ([todo, key], index) => (
           <Item
