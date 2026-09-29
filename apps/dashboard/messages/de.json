@@ -1064,6 +1064,7 @@
     "visibility": {
       "metaTitle": "Tracke deine KI-Sichtbarkeit",
       "brandName": "Markenname",
+      "brandNameRequired": "Gib deinen Markennamen ein, um fortzufahren.",
       "brandNamePlaceholder": "Acme",
       "questionsFrom": "Fragen von {host} <muted>({selected} von {total})</muted>",
       "questions": "Fragen <muted>({selected} von {total})</muted>",
@@ -1076,7 +1077,7 @@
     "pricing": {
       "freeTrial": "Kostenlose Testphase",
       "startFreeTrial": "Kostenlos testen",
-      "getStarted": "Loslegen",
+      "selectPlan": "Tarif {plan} auswählen",
       "title": "Wähle deinen Tarif",
       "description": "Nutze Feedback kostenlos oder upgrade für KI-Inhalte und Sichtbarkeits-Tracking.",
       "continueFree": "Mit kostenlosem Feedback fortfahren",

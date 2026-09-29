@@ -1064,6 +1064,7 @@
     "visibility": {
       "metaTitle": "Track your AI visibility",
       "brandName": "Brand name",
+      "brandNameRequired": "Enter your brand name to continue.",
       "brandNamePlaceholder": "Acme",
       "questionsFrom": "Questions from {host} <muted>({selected} of {total})</muted>",
       "questions": "Questions <muted>({selected} of {total})</muted>",
@@ -1076,7 +1077,7 @@
     "pricing": {
       "freeTrial": "Free trial",
       "startFreeTrial": "Start free trial",
-      "getStarted": "Get started",
+      "selectPlan": "Select {plan}",
       "title": "Choose your plan",
       "description": "Use feedback for free, or upgrade for AI content and visibility tracking.",
       "continueFree": "Continue with free feedback",

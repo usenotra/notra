@@ -177,6 +177,24 @@ export function WorkspaceForm({
         setIsSubmitting(false);
       }
     },
+    onSubmitInvalid: ({ formApi }) => {
+      const fields = [
+        ["name", "name"],
+        ["slug", "slug"],
+        ["websiteUrl", "website"],
+        ["heardAboutNotraSource", "heard-about-notra"],
+        ["heardAboutNotraOther", "heard-about-notra-other"],
+      ] as const;
+      for (const [field, id] of fields) {
+        if (formApi.state.fieldMeta[field]?.errors.length) {
+          const input = document.getElementById(id);
+          if (input instanceof HTMLElement && !input.hasAttribute("disabled")) {
+            requestAnimationFrame(() => input.focus());
+            break;
+          }
+        }
+      }
+    },
   });
 
   const slug = useStore(form.store, (state) => state.values.slug);
@@ -266,6 +284,11 @@ export function WorkspaceForm({
                   previewUrl={logoPreviewUrl ?? fetchedLogoUrl}
                 />
                 <Input
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "name-error"
+                      : undefined
+                  }
                   aria-invalid={field.state.meta.errors.length > 0}
                   autoFocus={!isResuming}
                   className="h-11 rounded-xl px-3.5"
@@ -288,7 +311,7 @@ export function WorkspaceForm({
                 />
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
+                <p className="text-destructive text-sm" id="name-error">
                   {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
@@ -318,6 +341,12 @@ export function WorkspaceForm({
                   autoCapitalize="none"
                   autoComplete="off"
                   autoCorrect="off"
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "slug-error"
+                      : undefined
+                  }
+                  aria-invalid={field.state.meta.errors.length > 0}
                   className="h-full min-w-0 flex-1 bg-transparent py-0 pr-11 pl-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting || isResuming}
                   id="slug"
@@ -345,7 +374,7 @@ export function WorkspaceForm({
                     className={`text-muted-foreground duration-fast absolute size-4 animate-spin transition-opacity motion-reduce:animate-none motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
                   />
                   <span
-                    className={`duration-fast absolute flex size-6 items-center justify-center rounded-full bg-green-500/15 text-green-500 transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
+                    className={`bg-success/15 text-success duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
                   >
                     <CheckIcon className="size-4" />
                   </span>
@@ -360,7 +389,7 @@ export function WorkspaceForm({
                 </span>
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
+                <p className="text-destructive text-sm" id="slug-error">
                   {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
@@ -387,6 +416,12 @@ export function WorkspaceForm({
                   https://
                 </label>
                 <input
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "website-error"
+                      : undefined
+                  }
+                  aria-invalid={field.state.meta.errors.length > 0}
                   autoFocus={isResuming}
                   className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting}
@@ -402,7 +437,7 @@ export function WorkspaceForm({
                 />
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
+                <p className="text-destructive text-sm" id="website-error">
                   {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
@@ -443,6 +478,11 @@ export function WorkspaceForm({
                     value={field.state.value}
                   >
                     <SelectTrigger
+                      aria-describedby={
+                        field.state.meta.errors.length > 0
+                          ? "heard-about-notra-error"
+                          : undefined
+                      }
                       aria-invalid={field.state.meta.errors.length > 0}
                       className="w-full rounded-xl px-3.5 data-[size=default]:h-11"
                       disabled={isSubmitting}
@@ -463,7 +503,10 @@ export function WorkspaceForm({
                     </SelectContent>
                   </Select>
                   {field.state.meta.errors.length > 0 ? (
-                    <p className="text-destructive text-sm">
+                    <p
+                      className="text-destructive text-sm"
+                      id="heard-about-notra-error"
+                    >
                       {getValidationMessage(
                         field.name,
                         field.state.meta.errors[0]
@@ -491,6 +534,11 @@ export function WorkspaceForm({
                             {t("tellUsWhere")}
                           </Label>
                           <Textarea
+                            aria-describedby={
+                              otherField.state.meta.errors.length > 0
+                                ? "heard-about-notra-other-error"
+                                : undefined
+                            }
                             aria-invalid={
                               otherField.state.meta.errors.length > 0
                             }
@@ -508,7 +556,10 @@ export function WorkspaceForm({
                             value={otherField.state.value}
                           />
                           {otherField.state.meta.errors.length > 0 ? (
-                            <p className="text-destructive text-sm">
+                            <p
+                              className="text-destructive text-sm"
+                              id="heard-about-notra-other-error"
+                            >
                               {getValidationMessage(
                                 otherField.name,
                                 otherField.state.meta.errors[0]
@@ -541,24 +592,16 @@ export function WorkspaceForm({
           )}
         </form.Field>
 
-        <form.Subscribe selector={(state) => [state.canSubmit]}>
-          {([canSubmit]) => (
-            <CtaButton
-              className="w-full"
-              disabled={!canSubmit || isSubmitting}
-              type="submit"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  {t("settingUp")}
-                </>
-              ) : (
-                tCommon("actions.continue")
-              )}
-            </CtaButton>
+        <CtaButton className="w-full" disabled={isSubmitting} type="submit">
+          {isSubmitting ? (
+            <>
+              <Loader2Icon className="size-4 animate-spin" />
+              {t("settingUp")}
+            </>
+          ) : (
+            tCommon("actions.continue")
           )}
-        </form.Subscribe>
+        </CtaButton>
       </form>
     </div>
   );
