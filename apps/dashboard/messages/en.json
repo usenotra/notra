@@ -3282,6 +3282,7 @@
           "unavailable": "Theme analysis is unavailable."
         }
       },
+      "noRatedAnswers": "No rated answers",
       "deltaLabel": "Sentiment score",
       "deltaHint": "vs. previous period",
       "band": {

@@ -14,14 +14,19 @@ export function SentimentDistributionBar({
   className,
 }: SentimentDistributionBarProps) {
   const tCommon = useTranslations("common.labels");
+  const t = useTranslations("geo.sentimentBreakdown");
   const format = useFormatter();
-  const label = SENTIMENT_POLARITIES.map(
+  const rated = SENTIMENT_POLARITIES.some(
+    (polarity) => bucket[`${polarity}Share`] !== null
+  );
+  const ratedLabel = SENTIMENT_POLARITIES.map(
     (polarity) =>
       `${tCommon(polarity)} ${format.number(bucket[`${polarity}Share`] ?? 0, {
         style: "percent",
         maximumFractionDigits: 1,
       })}`
   ).join(", ");
+  const label = rated ? ratedLabel : t("noRatedAnswers");
 
   return (
     <div

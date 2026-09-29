@@ -3282,6 +3282,7 @@
           "unavailable": "Themenanalyse ist nicht verfügbar."
         }
       },
+      "noRatedAnswers": "Keine bewerteten Antworten",
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
       "band": {
