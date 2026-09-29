@@ -112,6 +112,7 @@ function TrafficPageView({
             <AiTrafficCard
               isPending={isTrafficPending}
               pages={inventoryPages}
+              range={geoRange.query}
               settingsHref={withGeoProject(
                 geoSettingsPath(organizationSlug),
                 projectId

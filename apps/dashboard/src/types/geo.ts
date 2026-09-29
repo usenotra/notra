@@ -716,6 +716,7 @@ export interface GeoScanFrequencySelectProps {
 
 export interface AiTrafficCardProps {
   traffic: AiTrafficResponse | undefined;
+  range?: GeoRangeQuery;
   /** Top pages across every host, for the source drawer. */
   pages: readonly GeoTrafficPage[];
   settingsHref: string;

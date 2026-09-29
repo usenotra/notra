@@ -1459,10 +1459,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     // Scrub clips in pixels instead of dropping points, so the series stays
     // full and the cut rides the pointer. Classic hover-reveal still slices.
     const revealActive = enableHoverReveal && !scrub && revealIndex !== null;
-    // Scrub still uses the faded reveal base, but the dashed "today is
-    // incomplete" overlay stays unless classic hover-reveal is actively slicing.
-    const buffer =
-      area.enableBufferLine && lastPresent >= 1 && !revealActive;
+    // Reveal owns the tail. Dropping its last point for a buffer would hide
+    // today's value because reveal returns before the dashed buffer is added.
+    const buffer = area.enableBufferLine && lastPresent >= 1 && !reveal;
 
     const restingDot = dotStyle(
       area.dotVariant,

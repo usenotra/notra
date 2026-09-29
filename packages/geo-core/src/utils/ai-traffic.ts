@@ -228,14 +228,32 @@ export function hasTrafficSourceSeries(
 }
 
 export function trafficSparklineDays(
-  points: readonly GeoTrafficPoint[]
+  points: readonly GeoTrafficPoint[],
+  from?: string,
+  to?: string
 ): string[] {
-  return [...new Set(points.map((point) => trafficDayKey(point.day)))].sort();
+  const observed = [
+    ...new Set(points.map((point) => trafficDayKey(point.day))),
+  ].sort();
+  if (observed.length === 0 || !from || !to) {
+    return observed;
+  }
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) {
+    return observed;
+  }
+  const days: string[] = [];
+  for (let time = start; time <= end; time += 86_400_000) {
+    days.push(new Date(time).toISOString().slice(0, 10));
+  }
+  return days;
 }
 
 export function buildTrafficTrendRows(
   points: readonly GeoTrafficPoint[],
-  locale?: string
+  locale?: string,
+  days?: readonly string[]
 ): GeoTrafficTrendRow[] {
   const byDay = new Map<string, { crawler: number; aiReferral: number }>();
 
@@ -257,14 +275,15 @@ export function buildTrafficTrendRows(
     byDay.set(day, current);
   }
 
-  return [...byDay.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([day, values]) => ({
+  return (days ?? [...byDay.keys()].sort()).map((day) => {
+    const values = byDay.get(day) ?? { crawler: 0, aiReferral: 0 };
+    return {
       day: formatDayLabel(day, locale),
       rawDay: day,
       [GEO_TRAFFIC_TREND_CRAWLER_KEY]: values.crawler,
       [GEO_TRAFFIC_TREND_REFERRAL_KEY]: values.aiReferral,
-    }));
+    };
+  });
 }
 
 export function isTrafficPagePending({
