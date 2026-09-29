@@ -213,11 +213,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   }, [hasSettings, isEmptyTraffic, rangePreset, ready]);
 
   if (showSkeleton) {
-    return (
-      <GeoTrafficSkeleton
-        geoRange={isTrafficPlaceholder ? geoRange : undefined}
-      />
-    );
+    return <GeoTrafficSkeleton geoRange={geoRange} />;
   }
 
   return (
