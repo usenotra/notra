@@ -8,7 +8,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border-primary/60 from-primary/85 to-primary text-primary-foreground bg-linear-to-b shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem]",
+          "border-primary/60 text-primary-foreground bg-linear-to-b from-[color-mix(in_oklab,var(--color-primary),black_8%)] to-[color-mix(in_oklab,var(--color-primary),black_20%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem]",
         outline:
           "border-border from-background to-muted text-foreground aria-expanded:from-secondary aria-expanded:to-secondary dark:from-input dark:to-muted bg-linear-to-b shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(0,0,0,0.06)] [corner-shape:squircle] hover:brightness-[0.97] supports-[corner-shape:squircle]:rounded-[0.75rem] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)] dark:hover:brightness-125",
         secondary:
@@ -16,7 +16,7 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 bg-clip-padding",
         destructive:
-          "border-destructive/60 from-destructive/85 to-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 bg-linear-to-b text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem]",
+          "border-destructive/60 from-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 bg-linear-to-b to-[color-mix(in_oklab,var(--color-destructive),black_12%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem] dark:from-[color-mix(in_oklab,var(--color-destructive),black_20%)] dark:to-[color-mix(in_oklab,var(--color-destructive),black_30%)]",
         link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
