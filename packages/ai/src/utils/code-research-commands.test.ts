@@ -104,6 +104,20 @@ describe("redactSecrets", () => {
     expect(output).not.toContain("MIIE");
   });
 
+  test("redacts URL credentials and unquoted config values", () => {
+    const output = redactSecrets(
+      [
+        "DATABASE_URL=postgres://admin:hunter2secret@db.example.com/app",
+        "apiKey: abcdefghijklmnop1234",
+        "  - token: qwertyuiopasdfghjk",
+      ].join("\n")
+    );
+    expect(output).toContain("postgres://admin:[redacted]@db.example.com");
+    expect(output).toContain("apiKey: [redacted]");
+    expect(output).toContain("  - token: [redacted]");
+    expect(output).not.toContain("hunter2");
+  });
+
   test("leaves ordinary code alone", () => {
     const code =
       "const token = await getInstallationToken(installationId);\nconst tokenCount = countTokens(prompt);";
@@ -307,6 +321,13 @@ describe("git scripts", () => {
     expect(() => buildReadFileScript("HEAD", "src/a.ts", 1, 10)).toThrow();
   });
 
+  test("filters listings by glob before the scan cap", () => {
+    const script = buildListFilesScript("b".repeat(40), "apps/web", "**/*.ts");
+    expect(script).toContain(
+      "| grep -E '^apps/web/(.*/)?[^/]*\\.ts$' | head -n"
+    );
+  });
+
   test("keeps git grep's exit status past the line cap", () => {
     const script = buildSearchScript({
       sha: "c".repeat(40),
@@ -316,7 +337,8 @@ describe("git scripts", () => {
       path: "",
       maxPerFile: 3,
     });
-    expect(script).toContain('> "$t"');
+    expect(script).toContain('echo "$?" > "$s"; } | head -n 4000');
+    expect(script).toContain('[ "$c" = 141 ] && c=0');
     expect(script).toContain('exit "$c"');
   });
 

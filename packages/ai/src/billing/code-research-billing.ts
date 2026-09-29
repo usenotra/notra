@@ -6,6 +6,8 @@ import {
 import { FEATURES } from "@notra/ai/billing/features";
 import { log } from "@notra/ai/evlog";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
 
 /**
  * Bills the code researcher's own model calls. They run inside a chat tool,
@@ -44,6 +46,22 @@ export async function trackCodeResearchUsage(params: {
         cost_cents: cost.costCents,
       },
     });
+    captureServerEvent({
+      event: POSTHOG_EVENTS.AI_CREDITS_CHARGED,
+      organizationId: params.organizationId,
+      properties: {
+        cost_cents: cost.costCents,
+        source: "code_research",
+        model: params.modelId,
+        billing_basis: cost.billingBasis,
+        input_tokens: params.usage.inputTokens,
+        output_tokens: params.usage.outputTokens,
+        cache_read_tokens: params.usage.cacheReadTokens,
+        cache_write_tokens: params.usage.cacheWriteTokens,
+        total_tokens: params.usage.totalTokens,
+      },
+    });
+    await flushPostHogServer();
   } catch (error) {
     log.error({
       event: "code_research.billing_failed",

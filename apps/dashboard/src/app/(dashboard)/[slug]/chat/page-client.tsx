@@ -2075,6 +2075,7 @@ function StandaloneChatPageClient({
   const chatActivity = getChatActivity(messages, isLoading || isMirrorWorking, {
     isStandaloneTool: (part) =>
       isContentEditorStandaloneTool(part) ||
+      (isToolUIPart(part) && isChatSubagentName(getToolName(part))) ||
       (isToolUIPart(part) &&
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),

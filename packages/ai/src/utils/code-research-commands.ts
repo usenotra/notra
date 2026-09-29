@@ -17,10 +17,13 @@ import {
   CODE_RESEARCH_OVERVIEW_MANIFESTS,
   CODE_RESEARCH_QUOTED_SECRET_PATTERN,
   CODE_RESEARCH_README_MAX_LINES,
+  CODE_RESEARCH_UNQUOTED_SECRET_PATTERN,
+  CODE_RESEARCH_URL_CREDENTIALS_PATTERN,
   CODE_RESEARCH_READ_MAX_BYTES,
   CODE_RESEARCH_REDACTED,
   CODE_RESEARCH_REDACTION_PATTERNS,
   CODE_RESEARCH_REPO_DIR,
+  CODE_RESEARCH_SEARCH_MAX_LINES,
   CODE_RESEARCH_INVALID_REF_CHARS,
   CODE_RESEARCH_MAX_REF_LENGTH,
 } from "@notra/ai/constants/code-research";
@@ -128,6 +131,15 @@ export function redactSecrets(text: string): string {
     .replace(
       CODE_RESEARCH_ENV_SECRET_PATTERN,
       (_match, key: string) => `${key}${CODE_RESEARCH_REDACTED}`
+    )
+    .replace(
+      CODE_RESEARCH_UNQUOTED_SECRET_PATTERN,
+      (_match, key: string) => `${key}${CODE_RESEARCH_REDACTED}`
+    )
+    .replace(
+      CODE_RESEARCH_URL_CREDENTIALS_PATTERN,
+      (_match, prefix: string, _secret: string, at: string) =>
+        `${prefix}${CODE_RESEARCH_REDACTED}${at}`
     );
 }
 
@@ -396,8 +408,24 @@ function assertFullSha(sha: string): string {
  * Reads run against the recorded commit, never the working tree, so a
  * concurrent checkout of another ref cannot change what they see.
  */
-export function buildListFilesScript(sha: string, path: string): string {
-  return `${GIT} ls-tree -r --name-only ${shellQuote(assertFullSha(sha))} -- ${shellQuote(path || ".")} | head -n ${String(CODE_RESEARCH_LIST_SCAN_LIMIT + 1)}`;
+export function buildListFilesScript(
+  sha: string,
+  path: string,
+  glob?: string
+): string {
+  // The glob filters before the scan cap so large repositories still match.
+  const filter = glob?.trim()
+    ? ` | grep -E ${shellQuote(globToPathPattern(path, glob))}`
+    : "";
+  return `${GIT} ls-tree -r --name-only ${shellQuote(assertFullSha(sha))} -- ${shellQuote(path || ".")}${filter} | head -n ${String(CODE_RESEARCH_LIST_SCAN_LIMIT + 1)}`;
+}
+
+// Anchored pattern over full repository paths; valid in both JS and ERE.
+function globToPathPattern(basePath: string, glob: string): string {
+  const prefix = basePath
+    ? `${basePath}/`.replace(/[.+^${}()|[\]\\*?]/g, "\\$&")
+    : "";
+  return `^${prefix}${globToRegExp(glob).source.slice(1).replaceAll("\\/", "/")}`;
 }
 
 // Supports *, ** and ? relative to the listed directory.
@@ -408,7 +436,7 @@ export function globToRegExp(glob: string): RegExp {
     const char = source[index] ?? "";
     if (char === "*" && source[index + 1] === "*") {
       const followedBySlash = source[index + 2] === "/";
-      pattern += followedBySlash ? "(?:.*/)?" : ".*";
+      pattern += followedBySlash ? "(.*/)?" : ".*";
       index += followedBySlash ? 2 : 1;
     } else if (char === "*") {
       pattern += "[^/]*";
@@ -499,14 +527,16 @@ export function buildSearchScript(params: {
   const excludes = CODE_RESEARCH_DIFF_EXCLUDES.map((pattern) =>
     shellQuote(`:(exclude,glob)**/${pattern}`)
   ).join(" ");
-  // grep writes to a file first so its exit status survives the line cap:
+  // Only grep's exit status goes to a file, so it survives the line cap:
   // 1 means no match, anything above is an error such as an invalid regex.
+  // 141 is SIGPIPE from head closing the pipe once the cap is reached.
   return [
-    "t=$(mktemp)",
-    `${GIT} grep ${flags.join(" ")} -e ${shellQuote(params.query)} ${shellQuote(assertFullSha(params.sha))} -- ${pathspecFor(params.path, params.glob)} ${excludes} > "$t"`,
-    "c=$?",
-    'head -n 4000 "$t"',
-    'rm -f "$t"',
+    "s=$(mktemp)",
+    "trap 'rm -f \"$s\"' EXIT INT TERM",
+    `{ ${GIT} grep ${flags.join(" ")} -e ${shellQuote(params.query)} ${shellQuote(assertFullSha(params.sha))} -- ${pathspecFor(params.path, params.glob)} ${excludes}; echo "$?" > "$s"; } | head -n ${String(CODE_RESEARCH_SEARCH_MAX_LINES)}`,
+    'c=$(cat "$s")',
+    '[ -z "$c" ] && c=2',
+    '[ "$c" = 141 ] && c=0',
     'exit "$c"',
   ].join("; ");
 }

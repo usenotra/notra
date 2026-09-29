@@ -6,6 +6,7 @@ import {
   CODE_RESEARCH_LEASE_RENEW_MS,
   CODE_RESEARCH_LEASE_TTL_SECONDS,
   CODE_RESEARCH_LEASE_WAIT_MS,
+  CODE_RESEARCH_REPO_LOOKUP_TIMEOUT_MS,
   CODE_RESEARCH_TOKEN_SCOPE,
 } from "@notra/ai/constants/code-research";
 import { log } from "@notra/ai/evlog";
@@ -180,10 +181,36 @@ async function reuseWorkspace(params: {
  * repository. Personal access tokens carry the user's full scopes, so they
  * never enter a box: public repositories are cloned anonymously instead.
  */
+async function isPublicRepository(
+  repository: { owner: string; repo: string },
+  token: string | undefined
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        signal: AbortSignal.timeout(CODE_RESEARCH_REPO_LOOKUP_TIMEOUT_MS),
+      }
+    );
+    if (!response.ok) {
+      return false;
+    }
+    const body = (await response.json()) as { private?: unknown };
+    return body.private === false;
+  } catch {
+    return false;
+  }
+}
+
 async function resolveBoxToken(
   integrationId: string,
   organizationId: string,
-  scopedToken: string | undefined
+  repository: { owner: string; repo: string },
+  contextToken: string | undefined
 ): Promise<string | null> {
   const [integration] = await db
     .select({
@@ -199,9 +226,14 @@ async function resolveBoxToken(
     )
     .limit(1);
   if (integration?.githubAppInstallationId) {
-    return scopedToken ?? null;
+    return contextToken ?? null;
   }
-  if (integration?.githubRepositoryPrivate === false) {
+  // Manually connected integrations never stored the flag, so ask GitHub.
+  const isPublic =
+    integration?.githubRepositoryPrivate === false ||
+    (integration?.githubRepositoryPrivate == null &&
+      (await isPublicRepository(repository, contextToken)));
+  if (isPublic) {
     return null;
   }
   throw new Error(
@@ -225,6 +257,7 @@ async function createWorkspace(params: {
   const token = await resolveBoxToken(
     params.integrationId,
     params.organizationId,
+    context,
     context.token
   );
   const repository = {

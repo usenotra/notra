@@ -4,7 +4,11 @@ import {
   CODE_RESEARCHER_MAX_STEPS,
 } from "@notra/ai/constants/code-research";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
-import { assertRouteHasCredits } from "@notra/ai/gateway";
+import {
+  assertRouteHasCredits,
+  enrichRouteMetadata,
+  getRouteMetadata,
+} from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import { CODE_RESEARCHER_PROMPT } from "@notra/ai/prompts/code-researcher";
 import { withRouterDefaults } from "@notra/ai/provider-options";
@@ -209,7 +213,16 @@ export function createCodeResearcherTool(params: {
         });
         for await (const part of result.fullStream) {
           if (part.type === "finish-step") {
-            usage = addStepUsage(usage, toAgentTokenUsage(part.usage));
+            // Price each step with the model the router actually used,
+            // which differs from the requested one after a fallback.
+            const routeMetadata = getRouteMetadata(part.providerMetadata);
+            const route = routeMetadata
+              ? await enrichRouteMetadata(routeMetadata)
+              : undefined;
+            usage = addStepUsage(usage, toAgentTokenUsage(part.usage), {
+              modelId: route?.model ?? part.response.modelId,
+              gateway: route?.gateway,
+            });
           } else if (part.type === "tool-call") {
             steps = startStep(
               steps,

@@ -32,6 +32,8 @@ export const CODE_RESEARCH_LEASE_POLL_MS = 1500;
 export const CODE_RESEARCH_EXIT_MARKER = "__NOTRA_EXIT__";
 
 export const CODE_RESEARCH_LIST_MAX_ENTRIES = 400;
+export const CODE_RESEARCH_SEARCH_MAX_LINES = 4000;
+export const CODE_RESEARCH_REPO_LOOKUP_TIMEOUT_MS = 10_000;
 export const CODE_RESEARCH_LIST_SCAN_LIMIT = 50_000;
 // Extra history fetched when a branch forked below the shallow clone.
 export const CODE_RESEARCH_DEEPEN_STEPS = [1000, 5000] as const;
@@ -85,6 +87,12 @@ export const CODE_RESEARCH_QUOTED_SECRET_PATTERN =
   /\b([A-Za-z0-9_.-]*(?:api[_-]?key|secret|password|passwd|token|private[_-]?key)[A-Za-z0-9_.-]*["'`]?\s*[:=]\s*)(["'`])([A-Za-z0-9_\-+/=.]{16,})\2/gi;
 export const CODE_RESEARCH_ENV_SECRET_PATTERN =
   /^(\s*(?:export\s+)?[A-Z0-9_]*(?:KEY|SECRET|TOKEN|PASSWORD|PASSWD)[A-Z0-9_]*=)(\S{12,})$/gm;
+// Unquoted YAML, TOML, or properties values such as `apiKey: abc123...`.
+export const CODE_RESEARCH_UNQUOTED_SECRET_PATTERN =
+  /^(\s*-?\s*[A-Za-z0-9_.-]*(?:api[_-]?key|secret|password|passwd|token|private[_-]?key)[A-Za-z0-9_.-]*\s*[:=]\s*)([A-Za-z0-9_\-+/=.]{16,})\s*$/gim;
+// Credentials embedded in URLs, such as postgres://user:pass@host.
+export const CODE_RESEARCH_URL_CREDENTIALS_PATTERN =
+  /\b([a-z][a-z0-9+.-]*:\/\/[^\s:/@"'`]+:)([^\s@/"'`]+)(@)/gi;
 
 export const CODE_RESEARCH_REDACTED = "[redacted]";
 

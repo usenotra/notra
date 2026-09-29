@@ -7,6 +7,7 @@ import {
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { CodeResearcherStep } from "@notra/ai/types/code-research";
+import type { GatewayId } from "@notra/ai/types/router";
 
 const MAX_DEPTH = 4;
 
@@ -94,9 +95,14 @@ function promptTokens(usage: AgentTokenUsage): number {
  */
 export function addStepUsage(
   total: AgentTokenUsage | null,
-  step: AgentTokenUsage
+  step: AgentTokenUsage,
+  pricing?: { modelId?: string; gateway?: GatewayId }
 ): AgentTokenUsage {
-  const stepCost = calculateTokenCostUsd(step, AGENT_DEFAULT_MODEL);
+  const stepCost = calculateTokenCostUsd(
+    step,
+    pricing?.modelId ?? AGENT_DEFAULT_MODEL,
+    pricing?.gateway
+  );
   if (!total) {
     return {
       ...step,

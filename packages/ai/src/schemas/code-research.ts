@@ -11,8 +11,9 @@ export const codeResearchBriefSchema = z.object({
     .describe("Short user-facing name of the feature that was researched"),
   summary: z
     .string()
+    .default("")
     .describe(
-      "3-5 sentences from the user's point of view: what the feature does and why it matters"
+      "3-5 sentences from the user's point of view: what the feature does and why it matters. Empty when nothing was found"
     ),
   userFacingBehavior: z
     .array(z.string())
@@ -60,7 +61,10 @@ export const codeResearchBriefSchema = z.object({
     .describe(
       "Files the findings are based on. Internal reference for the writer, never for publication."
     ),
-  confidence: z.enum(["high", "medium", "low"]),
+  confidence: z
+    .enum(["high", "medium", "low"])
+    .default("low")
+    .describe("How sure the findings are; low when nothing was found"),
   openQuestions: z
     .array(z.string())
     .default([])

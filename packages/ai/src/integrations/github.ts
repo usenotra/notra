@@ -1844,7 +1844,7 @@ export async function getGitHubToolRepositoryContextByIntegrationId(
     (await getTokenForIntegrationId(integration.id, {
       organizationId: integration.organizationId,
       scope: options?.tokenScope
-        ? { repositories: [repo], ...options.tokenScope }
+        ? { ...options.tokenScope, repositories: [repo] }
         : undefined,
     })) ?? undefined;
 

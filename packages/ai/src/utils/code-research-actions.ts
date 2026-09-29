@@ -123,7 +123,7 @@ export async function listRepositoryFiles(
   const workspace = await getWorkspace(scope, input.integrationId, null);
   const result = await runInCodeResearchBox(
     workspace.box,
-    buildListFilesScript(workspace.state.headSha, path)
+    buildListFilesScript(workspace.state.headSha, path, input.glob)
   );
   if (result.exitCode !== 0) {
     throw new Error(

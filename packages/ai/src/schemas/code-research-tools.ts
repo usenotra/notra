@@ -1,3 +1,4 @@
+import { CODE_RESEARCH_FULL_SHA_PATTERN } from "@notra/ai/constants/code-research";
 import { z } from "zod";
 
 const integrationId = z
@@ -37,6 +38,11 @@ export const openRepositoryInputSchema = z
       ),
     commitSha: z
       .string()
+      .trim()
+      .regex(
+        CODE_RESEARCH_FULL_SHA_PATTERN,
+        "Use a full 40-character commit SHA"
+      )
       .optional()
       .describe("Check out this full 40-character commit SHA"),
   })
