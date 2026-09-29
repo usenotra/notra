@@ -8,11 +8,11 @@
       },
       "sections": {
         "account": {
-          "description": "Profile, login and privacy"
+          "description": "Profile, login and connected accounts"
         },
         "appearance": {
-          "label": "Appearance",
-          "description": "Light, dark or system mode"
+          "label": "Preferences",
+          "description": "Theme, language, chat and privacy"
         },
         "general": {
           "label": "General",
@@ -58,8 +58,8 @@
     "modal": {
       "close": "Close settings",
       "descriptions": {
-        "account": "Manage your profile and account settings",
-        "appearance": "Choose how Notra looks on this device",
+        "account": "Manage your profile and sign-in",
+        "appearance": "Choose how Notra looks and behaves for you",
         "general": "Manage your organization settings",
         "members": "Manage who has access to this organization",
         "notifications": "Configure email notifications for your organization",

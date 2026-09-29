@@ -8,11 +8,11 @@
       },
       "sections": {
         "account": {
-          "description": "Profil, Anmeldung und Datenschutz"
+          "description": "Profil, Login und verbundene Konten"
         },
         "appearance": {
-          "label": "Darstellung",
-          "description": "Heller, dunkler oder System-Modus"
+          "label": "Einstellungen",
+          "description": "Design, Sprache, Chat und Datenschutz"
         },
         "general": {
           "label": "Allgemein",
@@ -58,8 +58,8 @@
     "modal": {
       "close": "Einstellungen schließen",
       "descriptions": {
-        "account": "Verwalte dein Profil und deine Kontoeinstellungen",
-        "appearance": "Wähle, wie Notra auf diesem Gerät aussieht",
+        "account": "Verwalte dein Profil und deinen Login",
+        "appearance": "Lege fest, wie Notra für dich aussieht und sich verhält",
         "general": "Verwalte die Einstellungen deiner Organisation",
         "members": "Verwalte, wer Zugriff auf diese Organisation hat",
         "notifications": "Konfiguriere E-Mail-Benachrichtigungen für deine Organisation",

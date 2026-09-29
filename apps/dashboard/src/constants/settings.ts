@@ -54,8 +54,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
           "user",
           "email",
           "password",
-          "privacy",
-          "chat",
           "avatar",
           "login",
           "google",
@@ -74,7 +72,12 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
         id: "appearance",
         icon: PaintBoardIcon,
         keywords: [
+          "preferences",
           "appearance",
+          "language",
+          "locale",
+          "privacy",
+          "chat",
           "theme",
           "mode",
           "light",
@@ -136,6 +139,24 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
         keywords: ["files", "uploads", "media", "pdf", "images", "storage"],
       },
       {
+        id: "logs",
+        icon: AnalyticsUpIcon,
+        keywords: [
+          "audit",
+          "activity",
+          "events",
+          "webhooks",
+          "history",
+          "retention",
+          "delivery",
+        ],
+      },
+    ],
+  },
+  {
+    id: "billing",
+    items: [
+      {
         id: "billing",
         icon: CreditCardIcon,
         keywords: [
@@ -178,19 +199,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
         icon: Wallet01Icon,
         keywords: ["balance", "top up", "topup", "tokens", "ai", "spend"],
         requiresAiCredits: true,
-      },
-      {
-        id: "logs",
-        icon: AnalyticsUpIcon,
-        keywords: [
-          "audit",
-          "activity",
-          "events",
-          "webhooks",
-          "history",
-          "retention",
-          "delivery",
-        ],
       },
     ],
   },
