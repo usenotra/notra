@@ -58,8 +58,12 @@ export const ChatgptThread = ({
       if (stickRef.current) {
         viewport.scrollTop = viewport.scrollHeight;
       }
+      setAtBottom(
+        distanceFromBottom(viewport) <= CHATGPT_SCROLL_STICK_THRESHOLD_PX
+      );
     });
     observer.observe(content);
+    observer.observe(viewport);
     return () => observer.disconnect();
   }, [autoScroll]);
 

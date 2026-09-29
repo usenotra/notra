@@ -81,15 +81,17 @@ export const GeminiThoughts = ({
                 Searching the web
               </span>
               <span className="flex flex-wrap gap-1.5">
-                {step.queries.map((query) => (
-                  <Badge
-                    className="border-gemini-separator text-gemini-muted h-auto rounded-full bg-transparent px-2.5 py-0.5 text-[0.8125rem] leading-5 font-normal"
-                    key={query}
-                    variant="outline"
-                  >
-                    {query}
-                  </Badge>
-                ))}
+                {withOccurrenceKeys(step.queries, (query) => query).map(
+                  ([query, queryKey]) => (
+                    <Badge
+                      className="border-gemini-separator text-gemini-muted h-auto rounded-full bg-transparent px-2.5 py-0.5 text-[0.8125rem] leading-5 font-normal"
+                      key={queryKey}
+                      variant="outline"
+                    >
+                      {query}
+                    </Badge>
+                  )
+                )}
               </span>
             </div>
           )

@@ -55,7 +55,7 @@ export const ClaudeCodeTodoList = ({
       {withOccurrenceKeys(todos, (todo) => todo.label).map(
         ([todo, key], index) => (
           <Item
-            className="flex-nowrap items-baseline gap-0 rounded-none border-0 p-0 text-[0.8125rem] leading-[1.125rem] whitespace-pre"
+            className="flex-nowrap items-baseline gap-0 rounded-none border-0 p-0 text-[0.8125rem] leading-[1.125rem] whitespace-pre-wrap"
             data-status={todo.status}
             key={key}
             role="listitem"

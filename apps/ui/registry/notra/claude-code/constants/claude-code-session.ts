@@ -36,7 +36,7 @@ export const CLAUDE_CODE_SESSION: ClaudeCodeSession = {
     {
       arg: 'gh pr list --state merged --search "merged:>=2026-09-22"',
       detail:
-        "#1315  feat(ui): add marketing button to the registry\n#1312  feat(ui): add Depth primary and secondary buttons\n#1311  fix(ui): share docs navbar between home and docs pages\n#1309  fix(onboarding): make setup controls and validation clearer\n#1308  fix(dashboard): prevent agent title descender clipping",
+        "#1312  feat(ui): add Depth primary and secondary buttons\n#1311  fix(ui): share docs navbar between home and docs pages\n#1309  fix(onboarding): make setup controls and validation clearer\n#1308  fix(dashboard): prevent agent title descender clipping",
       id: "list-prs",
       result: "#1315  feat(ui): add marketing button to the registry",
       tool: "Bash",
