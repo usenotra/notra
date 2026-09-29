@@ -6,7 +6,7 @@ export default defineConfig({
   agents: {
     llmsTxt: {
       details:
-        "Notra UI is a shadcn registry. It is listed in the official shadcn registry directory as `@notra`. Install any component or block with `bunx shadcn@latest add @notra/<name>`, for example `bunx shadcn@latest add @notra/google-ai-overview`. The CLI installs missing shadcn dependencies automatically.",
+        "Notra UI is a shadcn registry. Install any component or block with `bunx shadcn@latest add @notra/<name>`, for example `bunx shadcn@latest add @notra/google-ai-overview`. The CLI installs missing shadcn dependencies automatically.",
     },
   },
   deployment: {
