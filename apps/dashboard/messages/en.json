@@ -3264,6 +3264,21 @@
         "body": "Something went wrong while loading the score.",
         "retry": "Try again"
       },
+      "themes": {
+        "loading": "Loading themes…",
+        "none": "No themes found",
+        "runAnalysis": "Run analysis to find themes",
+        "cta": {
+          "positive": "See what's working in saved answers.",
+          "negative": "Catch what's hurting before it spreads."
+        },
+        "status": {
+          "stalePrevious": "Showing previous themes. Analysis needs an update.",
+          "failedPrevious": "Analysis failed. Showing previous themes.",
+          "failedRetry": "Analysis failed. Try again.",
+          "unavailable": "Theme analysis is unavailable."
+        }
+      },
       "deltaLabel": "Sentiment score",
       "deltaHint": "vs. previous period",
       "chartLabel": "Daily mix of positive, neutral and negative answers",

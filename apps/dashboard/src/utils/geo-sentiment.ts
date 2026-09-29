@@ -170,8 +170,9 @@ export function sentimentFamilyBuckets(
         engines.filter((row) => engineFamilyOf(row.engine) === family)
       ),
     }))
-    .filter(({ bucket }) => bucket.score !== null)
     .sort(
-      (left, right) => (right.bucket.score ?? 0) - (left.bucket.score ?? 0)
+      (left, right) =>
+        (right.bucket.score ?? -1) - (left.bucket.score ?? -1) ||
+        left.label.localeCompare(right.label, "en")
     );
 }

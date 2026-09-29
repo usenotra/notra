@@ -29,9 +29,11 @@ export function SentimentEngineList({
               <span className="truncate">{label}</span>
             </span>
             <span className="font-semibold tabular-nums">
-              {format.number(
-                Number(SENTIMENT_SCORE_FORMAT.format(bucket.score ?? 0))
-              )}
+              {bucket.score === null
+                ? "—"
+                : format.number(
+                    Number(SENTIMENT_SCORE_FORMAT.format(bucket.score))
+                  )}
             </span>
           </div>
           <SentimentDistributionBar bucket={bucket} className="h-1.5" />

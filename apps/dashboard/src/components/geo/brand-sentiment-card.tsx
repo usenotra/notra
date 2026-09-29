@@ -27,7 +27,11 @@ export function BrandSentimentCard({
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {showData && data ? (
-        <SentimentBreakdown data={data} isScanning={isScanning} />
+        <SentimentBreakdown
+          data={data}
+          isScanning={isScanning}
+          organizationId={organizationId}
+        />
       ) : (
         <SentimentBreakdownPlaceholder
           emptyKey={sentimentEmptyMessageKey(data?.summary)}

@@ -3264,6 +3264,21 @@
         "body": "Beim Laden des Werts ist etwas schiefgelaufen.",
         "retry": "Erneut versuchen"
       },
+      "themes": {
+        "loading": "Themen werden geladen…",
+        "none": "Keine Themen gefunden",
+        "runAnalysis": "Analyse starten, um Themen zu finden",
+        "cta": {
+          "positive": "Sieh in gespeicherten Antworten, was gut läuft.",
+          "negative": "Erkenne früh, was der Marke schadet."
+        },
+        "status": {
+          "stalePrevious": "Frühere Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
+          "failedPrevious": "Analyse fehlgeschlagen. Frühere Themen werden angezeigt.",
+          "failedRetry": "Analyse fehlgeschlagen. Versuche es erneut.",
+          "unavailable": "Themenanalyse ist nicht verfügbar."
+        }
+      },
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
       "chartLabel": "Täglicher Anteil positiver, neutraler und negativer Antworten",

@@ -6,6 +6,7 @@ import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { SentimentEngineList } from "@/components/geo/sentiment-engine-list";
+import { SentimentThemeChips } from "@/components/geo/sentiment-theme-chips";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_MIX_COLORS,
@@ -20,6 +21,7 @@ import {
 } from "@/utils/geo-sentiment";
 
 export function SentimentBreakdown({
+  organizationId,
   data,
   isScanning,
 }: SentimentBreakdownProps) {
@@ -31,12 +33,14 @@ export function SentimentBreakdown({
   const locale = useLocale();
   const { summary, comparison, points, engines } = data;
   const families = sentimentFamilyBuckets(engines);
-  const rows = points.map(({ day, positive, neutral, negative }) => ({
-    day,
-    positive,
-    neutral,
-    negative,
-  }));
+  const rows = points.map(
+    ({ day, positiveShare, neutralShare, negativeShare }) => ({
+      day,
+      positive: (positiveShare ?? 0) * 100,
+      neutral: (neutralShare ?? 0) * 100,
+      negative: (negativeShare ?? 0) * 100,
+    })
+  );
   const formatShare = (share: number | null) =>
     share === null
       ? "—"
@@ -70,7 +74,7 @@ export function SentimentBreakdown({
               <GeoStatDelta
                 delta={comparison?.delta ?? null}
                 hint={t("deltaHint")}
-                kind="rate"
+                kind="score"
                 label={t("deltaLabel")}
               />
               {summary.score === null ? null : (
@@ -131,8 +135,15 @@ export function SentimentBreakdown({
           <EChartsBarChart.Bar dataKey="positive" radius={2} />
           <EChartsBarChart.Bar dataKey="neutral" radius={2} />
           <EChartsBarChart.Bar dataKey="negative" radius={2} />
-          <EChartsBarChart.Tooltip roundness="xl" />
+          <EChartsBarChart.Tooltip
+            roundness="xl"
+            valueFormatter={(value) => `${Number(value).toFixed(1)}%`}
+          />
         </EChartsBarChart>
+        <SentimentThemeChips
+          organizationId={organizationId}
+          summary={summary}
+        />
       </InstrumentModule>
       <SentimentEngineList families={families} />
     </div>
