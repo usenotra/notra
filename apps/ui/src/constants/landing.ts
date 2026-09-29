@@ -76,7 +76,7 @@ export const LANDING_SECTIONS: LandingSection[] = [
     ],
     description:
       "Chat apps with replayable conversations, search steps and composers.",
-    title: "Desktop Apps",
+    title: "Browser Apps",
   },
   {
     items: [

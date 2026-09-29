@@ -9,7 +9,7 @@ export default defineMeta({
     "tooltip",
     "shimmer",
     "search",
-    "desktop-apps",
+    "browser-apps",
     "terminal-apps",
   ],
   title: "Components",
