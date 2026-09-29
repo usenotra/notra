@@ -1,0 +1,70 @@
+<script>
+  import { SIDEBAR_MEMORY_STORAGE_KEY } from "../constants/sidebar-memory";
+
+  type GroupState = Record<string, boolean>;
+
+  const GROUP_SELECTOR = "details:has(> summary.blume-nav-summary)";
+
+  const readState = (): GroupState => {
+    try {
+      return JSON.parse(localStorage.getItem(SIDEBAR_MEMORY_STORAGE_KEY) ?? "{}");
+    } catch {
+      return {};
+    }
+  };
+
+  const writeState = (state: GroupState) => {
+    try {
+      localStorage.setItem(SIDEBAR_MEMORY_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Storage can be full or disabled; the sidebar just falls back to Blume's defaults.
+    }
+  };
+
+  // A group's key is its label path, e.g. "Components/Desktop Apps/Perplexity",
+  // so the same group matches across pages even though Blume re-renders it.
+  const groupKey = (details: HTMLDetailsElement) => {
+    const labels: string[] = [];
+    let current: Element | null = details;
+    while (current) {
+      if (current instanceof HTMLDetailsElement) {
+        const label = current.querySelector(":scope > summary")?.textContent?.trim();
+        if (label) {
+          labels.unshift(label);
+        }
+      }
+      current = current.parentElement?.closest("details") ?? null;
+    }
+    return labels.join("/");
+  };
+
+  const restore = () => {
+    const state = readState();
+    for (const details of document.querySelectorAll<HTMLDetailsElement>(GROUP_SELECTOR)) {
+      const saved = state[groupKey(details)];
+      if (saved === undefined) {
+        continue;
+      }
+      // Never hide the page you're on: its ancestors stay open.
+      const holdsCurrentPage = details.querySelector('[aria-current="page"]') !== null;
+      details.open = saved || holdsCurrentPage;
+    }
+  };
+
+  document.addEventListener(
+    "toggle",
+    (event) => {
+      const details = event.target;
+      if (!(details instanceof HTMLDetailsElement) || !details.matches(GROUP_SELECTOR)) {
+        return;
+      }
+      const state = readState();
+      state[groupKey(details)] = details.open;
+      writeState(state);
+    },
+    true
+  );
+
+  restore();
+  document.addEventListener("astro:after-swap", restore);
+</script>

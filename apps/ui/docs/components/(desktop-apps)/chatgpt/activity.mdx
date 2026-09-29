@@ -1,0 +1,40 @@
+---
+title: Activity
+description: The side sheet listing the search steps and sources.
+---
+
+<Component path="chatgpt/examples/chatgpt-activity" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/chatgpt-activity.json
+```
+
+`ChatgptActivity` renders a `ChatgptSearch` that opens a shadcn `Sheet` from the right. The sheet shows the searched sites as pills, three by name and the rest as a stacked "+ N more", then every source. The steps and sources are shadcn `Item` rows in a `ScrollArea`, joined by a vertical `Separator`, and a source with `href` renders its row as a link. Favicons use shadcn `Avatar` and load from Google's favicon service unless you pass your own.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `websites` | | Count shown on the trigger and in the trace. |
+| `seconds` | | Shown in the title and as "Worked for Ns". |
+| `sites` | | Pills under "Searching N websites". |
+| `sources` | | The source list. Add `href` to make a source a link. |
+| `sourceCount` | `sources.length` | The count next to "Sources", if you list fewer than you found. |
+| `open`, `onOpenChange` | | Sheet state, if you want to control it. |
+
+```ts
+interface ChatgptActivitySite {
+  domain: string;
+  favicon?: string;
+  label: string;
+}
+
+interface ChatgptActivitySource {
+  domain: string;
+  favicon?: string;
+  href?: string;
+  id: string;
+  publisher: string;
+  snippet: string;
+  timeLabel: string;
+  title: string;
+}
+```

@@ -1,0 +1,12 @@
+---
+title: Message
+description: User turns on a dark bar and plain assistant turns.
+---
+
+<Component path="claude-code/examples/claude-code-message" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-code-message.json
+```
+
+`ClaudeCodeMessage` renders a user turn behind a `❯` on Claude Code's darker bar when `from="user"`. The default, `from="assistant"`, is plain monospace text. Add padding and rounding to the user bar with `className`, like `rounded-sm px-2.5 py-1.5`.

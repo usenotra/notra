@@ -1,0 +1,23 @@
+---
+title: Model Selector
+description: The hover menu for Claude's model and thinking effort.
+---
+
+<Component path="claude/examples/claude-model-selector" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-model-selector.json
+```
+
+`ClaudeModelSelector` is a shadcn `DropdownMenu` that opens on hover, like claude.ai. The trigger shows the model and, in muted text, the effort, and fills when open. The menu lists the four current models (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 4.5) as a `DropdownMenuRadioGroup`: a title over a muted description, with a blue check at the end of the selected one. Below a separator are an Effort submenu (radio items, current value shown muted) and a More models submenu with the older models.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `model` | | The selected `ClaudeModelId`, like `sonnet-5.5`. |
+| `effort` | | The selected `ClaudeEffortId`: `low`, `medium`, `high`, `extra` or `max`. |
+| `onModelChange` | | Called when a model is picked. |
+| `onEffortChange` | | Called when an effort is picked. |
+| `effortLabel` | `Effort` | The effort submenu label. |
+| `moreModelsLabel` | `More models` | The models submenu label. |
+
+The model and effort lists live in `constants/claude-models.ts`. Edit them to change labels, descriptions or which models are shown in the main list (`group: "latest"`).

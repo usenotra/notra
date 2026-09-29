@@ -1,0 +1,22 @@
+---
+title: Composer
+description: The pill-shaped "Ask anything" input with model picker and send button.
+---
+
+<Component path="chatgpt/examples/chatgpt-composer" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/chatgpt-composer.json
+```
+
+`ChatgptComposer` is a `form` around a shadcn `InputGroup`, with an `InputGroupInput` and `InputGroupButton`s in inline addons. Send stays disabled until there's text, and Enter submits. While `busy`, the send button turns into a stop button. The model and effort work controlled or uncontrolled.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `onSend` | | Called with the trimmed text. The input clears when you pass it. |
+| `onStop` | | Called by the stop button. |
+| `busy` | `false` | Shows the stop button and blocks sending. |
+| `placeholder` | `Ask anything` | The input placeholder. |
+| `model`, `defaultModel`, `onModelChange` | `sol` | The selected model. |
+| `effort`, `defaultEffort`, `onEffortChange` | `medium` | The selected effort. |
+| `models`, `efforts` | | Replace the options in the picker. |

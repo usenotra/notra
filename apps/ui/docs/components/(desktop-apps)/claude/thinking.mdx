@@ -1,0 +1,18 @@
+---
+title: Thinking
+description: The animated spinner and rotating verb Claude shows before replying.
+---
+
+<Component path="claude/examples/claude-thinking" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-thinking.json
+```
+
+`ClaudeThinking` pairs an animated [Spinner](/components/claude/spinner) with a serif verb that runs through [Shimmer](/components/shimmer) and changes every 2.2 seconds. It is a polite live region. Reduced motion stops the spinner and keeps the first verb.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `verbs` | `Untangling`, `Pondering`, ... | The verbs to cycle through. |
+| `intervalMs` | `2200` | Time per verb. |
+| `reducedMotion` | system setting | Forces reduced motion on or off. |

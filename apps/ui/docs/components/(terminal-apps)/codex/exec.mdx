@@ -1,0 +1,19 @@
+---
+title: Exec
+description: A command cell with its status and output.
+---
+
+<Component path="codex/examples/codex-exec" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/codex-exec.json
+```
+
+`CodexExec` is a shadcn `Collapsible` around an `Item`. It renders Codex's `• Ran <command>` line, with a bold status `Badge` and a bullet that's green for `ran`, dim for `running` and red for `failed`. The output is collapsed by default. Clicking the line expands it under a `└`. Wrap several cells in an `ItemGroup`.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `command` | | The command that ran. |
+| `output` | | Optional output shown under the command. |
+| `status` | `ran` | `ran`, `running` or `failed`. |
+| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Collapsible state for the output, controlled or uncontrolled. |

@@ -8,6 +8,17 @@ export interface LandingComponentLink {
 }
 
 export interface LandingSection {
+  description: string;
   items: LandingComponentLink[];
   title: string;
+}
+
+export interface LandingInstallCommand {
+  item: string;
+  prefix: string;
+}
+
+export interface LandingHero {
+  description: string;
+  install: LandingInstallCommand;
 }

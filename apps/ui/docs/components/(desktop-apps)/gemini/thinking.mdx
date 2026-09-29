@@ -1,0 +1,17 @@
+---
+title: Thinking
+description: The animated sparkle with a shimmering status label.
+---
+
+<Component path="gemini/examples/gemini-thinking" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/gemini-thinking.json
+```
+
+`GeminiThinking` pairs an animated `GeminiSparkle` with a label that runs the [Shimmer](/components/shimmer). It's a polite live region, so screen readers announce label changes.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `label` | `Searching the web` | The status text. Gemini also shows "Thinking". |
+| `reducedMotion` | system setting | Stops the sparkle when `true`. |

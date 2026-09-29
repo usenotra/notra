@@ -1,0 +1,17 @@
+---
+title: Reasoning
+description: The dim "• Thinking" line that expands to the reasoning summary.
+---
+
+<Component path="codex/examples/codex-reasoning" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/codex-reasoning.json
+```
+
+Styled like an exec cell: a dim bullet, a bold italic label and a `▸` that turns when open. It is a shadcn `Collapsible`, closed by default, and the summary appears indented under it. It takes every `Collapsible` prop.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `label` | `Thinking` | The bold label. |
+| `children` | | The reasoning summary shown when open. |

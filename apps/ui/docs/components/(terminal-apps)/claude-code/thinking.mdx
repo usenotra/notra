@@ -1,0 +1,17 @@
+---
+title: Thinking
+description: The dim "∴ Thinking…" line that expands to the model's thoughts.
+---
+
+<Component path="claude-code/examples/claude-code-thinking" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-code-thinking.json
+```
+
+A shadcn `Collapsible`, closed by default. The trigger is a ghost `Button` styled as a dim italic line, with the `ctrl+o` hint in a shadcn `Kbd`. Open, it shows the thought text, indented. It takes every `Collapsible` prop.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `label` | `Thinking…` | The line next to the `∴`. |
+| `children` | | The thought text shown when open. |

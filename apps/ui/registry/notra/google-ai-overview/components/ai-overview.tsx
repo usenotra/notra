@@ -40,7 +40,7 @@ export const AIOverview = ({
           <CollapsibleTrigger
             render={
               <Button
-                className="border-aio-button-border text-aio-button-fg hover:bg-aio-button-icon/[8.24%] hover:text-aio-button-fg focus-visible:border-aio-button-border focus-visible:outline-aio-focus active:bg-aio-button-icon/[22.4%] dark:border-aio-button-border dark:hover:bg-aio-button-icon/[8.24%] dark:active:bg-aio-button-icon/[22.4%] h-12.5 w-full max-w-177 gap-0 rounded-full bg-transparent px-[0.9375rem] py-[0.6875rem] text-sm leading-5 font-medium transition-none focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-solid active:not-aria-[haspopup]:translate-y-0 dark:bg-transparent"
+                className="border-aio-button-border text-aio-button-fg hover:bg-aio-button-icon/[8.24%] hover:text-aio-button-fg focus-visible:border-aio-button-border focus-visible:outline-aio-focus active:bg-aio-button-icon/[22.4%] dark:border-aio-button-border dark:hover:bg-aio-button-icon/[8.24%] dark:active:bg-aio-button-icon/[22.4%] h-12.5 w-full max-w-177 gap-0 rounded-full bg-transparent px-[0.9375rem] py-[0.6875rem] text-sm leading-5 font-medium shadow-none transition-none [corner-shape:round] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-solid active:not-aria-[haspopup]:translate-y-0 supports-[corner-shape:squircle]:rounded-full dark:bg-transparent"
                 variant="outline"
               />
             }

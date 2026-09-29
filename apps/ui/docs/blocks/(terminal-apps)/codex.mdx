@@ -1,0 +1,39 @@
+---
+title: Codex
+description: A full recreation of a Codex CLI session with exec cells and a composer.
+---
+
+A rebuild of a session in OpenAI's Codex CLI, composed from the [Codex components](/components/codex/terminal). A dim [Reasoning](/components/codex/reasoning) line and the exec cells start collapsed.
+
+<Component path="codex/examples/codex-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/codex.json
+```
+
+This adds every Codex component to `components/codex` along with the demo session.
+
+The components use the system monospace stack through `font-codex`. Point it at your own mono font to change it.
+
+## CodexTerminal
+
+The root is a shadcn `Card` with the window chrome, so it takes every `Card` prop. `title` sets the text in the title bar. Put `CodexHeader`, `CodexMessage`, `CodexExec` and `CodexComposer` inside it in transcript order.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Badge`, `Button`, `Card`, `Collapsible`, `InputGroup`, `Item`, `Kbd`, `ScrollArea` and `Separator`, and the CLI installs any you're missing.
+
+Its colors are `--codex-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-codex-bg` and `text-codex-green`. Codex is a terminal, so the light and dark values are the same dark palette. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --codex-bg: var(--card);
+  --codex-green: var(--primary);
+}
+```
+
+## Trademarks
+
+OpenAI and Codex are trademarks of OpenAI OpCo, LLC. Notra is not affiliated with or endorsed by OpenAI. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

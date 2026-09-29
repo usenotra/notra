@@ -1,0 +1,16 @@
+---
+title: Message
+description: User and assistant turns in the Codex transcript.
+---
+
+<Component path="codex/examples/codex-message" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/codex-message.json
+```
+
+`from="user"` prefixes the text with Codex's green `›` prompt marker. Assistant turns, the default, are plain monospace text. Both render a `div` and take all of its props.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `from` | `assistant` | `user` or `assistant`. |

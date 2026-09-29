@@ -1,0 +1,44 @@
+---
+title: Perplexity
+description: A full recreation of a Perplexity thread with search steps, citations with hover cards and the composer.
+---
+
+A rebuild of a Perplexity answer thread, composed from the [Perplexity components](/components/perplexity/message). The search step starts collapsed. Send a follow-up to get a canned reply.
+
+<Component path="perplexity/examples/perplexity-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/perplexity.json
+```
+
+This adds every Perplexity component to `components/perplexity`, with the demo thread, the playback hook and `PerplexityAnswer`, a small renderer for the demo's answer markup.
+
+The components use Inter with a system sans fallback for the interface, a system serif for answers (Perplexity uses its own pplxSerif) and your monospace font for citation pills.
+
+## Thread
+
+There's no single root. A thread is a list of `PerplexityMessage` turns above a `PerplexityComposer`. Each assistant turn takes a `PerplexitySearch` in its `search` slot and `PerplexityActions` in its `actions` slot.
+
+`usePerplexityPlayback(script, reducedMotion)` drives the demo. It returns the visible `messages`, the `completeIds`, the `thinking` and `playing` flags, and `stop` and `send(text, reply)`. Pass `sequential` to the search of a turn that isn't complete yet, so its queries and sources appear one by one.
+
+`PerplexityAnswer` renders paragraphs, `**bold**`, `**Heading**` blocks, `- ` lists and `{{id}}` citation tokens that match the `citations` you pass.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Avatar`, `Badge`, `Button`, `Card`, `Collapsible`, `DropdownMenu`, `Empty`, `HoverCard`, `InputGroup`, `Item`, `Popover`, `ScrollArea`, `Separator`, `ToggleGroup` and `Tooltip`, and the CLI installs any you're missing.
+
+Its colors are `--pplx-*` tokens that the CLI adds to your CSS with Perplexity's light and dark values, mapped to utilities like `bg-pplx-bubble` and `text-pplx-muted`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --pplx-bg: var(--background);
+  --pplx-fg: var(--foreground);
+  --pplx-send: var(--primary);
+}
+```
+
+## Trademarks
+
+Perplexity is a trademark of Perplexity AI, Inc. OpenAI, Gemini, Claude, Kimi, Grok, Z.ai and NVIDIA are trademarks of their respective owners. Notra is not affiliated with or endorsed by any of them. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

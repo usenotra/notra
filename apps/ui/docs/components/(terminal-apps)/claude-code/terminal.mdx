@@ -1,0 +1,19 @@
+---
+title: Terminal
+description: A terminal window with traffic lights and a title bar.
+---
+
+<Component path="claude-code/examples/claude-code-terminal" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-code-terminal.json
+```
+
+`ClaudeCodeTerminal` is the window the other Claude Code parts sit in. It paints the terminal background, a title bar with three traffic lights and a stacked body with Claude Code's spacing.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `title` | | Text in the title bar, like `claude — ~/acme/web`. |
+| `contentClassName` | | Classes for the body, which is a flex column with a `gap-3.5`. |
+
+It is a shadcn `Card`: the title bar is a `CardHeader` with a `CardTitle` and the body is a `CardContent`. Children render in the body, and the rest of the props go to the `Card`.

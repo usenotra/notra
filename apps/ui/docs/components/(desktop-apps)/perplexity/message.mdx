@@ -1,0 +1,18 @@
+---
+title: Message
+description: A user pill or an assistant answer with search and action slots.
+---
+
+<Component path="perplexity/examples/perplexity-message" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/perplexity-message.json
+```
+
+User turns sit in a gray pill aligned to the end. Assistant answers use Perplexity's serif at 16px. Assistant turns stack the `search` slot, the answer and the `actions` slot, capped at Perplexity's 42rem reading width.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `from` | | `"user"` or `"assistant"`. |
+| `search` | | Rendered above the answer, usually a `PerplexitySearch`. |
+| `actions` | | Below an answer, usually `PerplexityActions`. On a user turn it sits before the pill, usually `PerplexityUserActions`. |

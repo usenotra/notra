@@ -1,0 +1,63 @@
+---
+import type { LandingInstallCommand } from "../types/landing";
+
+type Props = LandingInstallCommand;
+
+const { item, prefix } = Astro.props;
+---
+
+<notra-install-command
+  class="flex max-w-full items-center gap-3 rounded-2xl bg-foreground/[0.06] py-3 ps-4 pe-2 font-mono text-sm dark:bg-black/40"
+  data-command={`${prefix}${item}`}
+>
+  <code class="min-w-0 truncate">
+    <span class="font-semibold text-foreground">{prefix}</span><span class="text-muted-foreground">{item}</span>
+  </code>
+  <button
+    aria-label="Copy install command"
+    class="relative inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-(--notra-primary)"
+    data-copy
+    type="button"
+  >
+    <svg aria-hidden="true" class="size-4 transition-opacity duration-150 in-data-copied:opacity-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24">
+      <rect height="14" rx="2" width="14" x="8" y="8"></rect>
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+    </svg>
+    <svg aria-hidden="true" class="absolute size-4 opacity-0 transition-opacity duration-150 in-data-copied:opacity-100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24">
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+  </button>
+</notra-install-command>
+
+<script>
+  const COPIED_MS = 1500;
+
+  class NotraInstallCommand extends HTMLElement {
+    connectedCallback() {
+      this.querySelector("[data-copy]")?.addEventListener("click", this.copy);
+    }
+
+    disconnectedCallback() {
+      this.querySelector("[data-copy]")?.removeEventListener("click", this.copy);
+    }
+
+    copy = async () => {
+      const button = this.querySelector<HTMLButtonElement>("[data-copy]");
+      try {
+        await navigator.clipboard.writeText(this.dataset.command ?? "");
+      } catch {
+        return;
+      }
+      button?.setAttribute("data-copied", "");
+      button?.setAttribute("aria-label", "Copied");
+      window.setTimeout(() => {
+        button?.removeAttribute("data-copied");
+        button?.setAttribute("aria-label", "Copy install command");
+      }, COPIED_MS);
+    };
+  }
+
+  if (!customElements.get("notra-install-command")) {
+    customElements.define("notra-install-command", NotraInstallCommand);
+  }
+</script>

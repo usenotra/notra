@@ -1,0 +1,29 @@
+---
+title: Sources
+description: Websearch lines and a list of cited sources.
+---
+
+<Component path="opencode/examples/opencode-sources" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/opencode-sources.json
+```
+
+Each query renders as a `websearch` tool line, followed by the cited sources in a shadcn `ItemGroup`. Each source is an `Item`, and sources with an `http` or `https` URL open in a new tab. With `sequential`, the queries appear one by one and the sources fade in with a stagger. It shows everything at once when `reducedMotion` is set or the user prefers reduced motion.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `sources` | | The cited sources. |
+| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Whether the source list under the `N cited sources` line is expanded. |
+| `queries` | `[]` | Search queries shown above the sources. |
+| `sequential` | `false` | Reveals queries and sources over time. |
+| `reducedMotion` | `false` | Turns off the sequenced reveal. |
+| `labels` | | `citedSources(count)` and `openSource(title, domain)` for translated copy. |
+
+```ts
+interface OpencodeSource {
+  domain: string;
+  title: string;
+  url?: string;
+}
+```

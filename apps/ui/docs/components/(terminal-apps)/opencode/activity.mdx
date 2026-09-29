@@ -1,0 +1,21 @@
+---
+title: Activity
+description: Reasoning and tool lines from the OpenCode activity stream.
+---
+
+<Component path="opencode/examples/opencode-activity" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/opencode-activity.json
+```
+
+`OpencodeActivity` is a shadcn `Collapsible` around an `Item`. `kind="thought"` renders an orange `Thought:` line. `kind="tool"`, the default, renders a muted tool call with a gear. Pass `children` as the step's body, such as reasoning or tool output. The body is collapsed by default and opens when you click the line.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `label` | | The thought or tool name. |
+| `kind` | `tool` | `thought` or `tool`. |
+| `children` | | The collapsed body. Without it the line isn't expandable. |
+| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Collapsible state, controlled or uncontrolled. |
+| `detail` | | Arguments shown in brackets, like `range=week`. |
+| `duration` | | Shown after a dot, like `1.4s`. |

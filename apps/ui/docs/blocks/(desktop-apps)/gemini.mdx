@@ -1,0 +1,42 @@
+---
+title: Gemini
+description: A full recreation of the Gemini chat with the animated sparkle, streamed replies and a model picker.
+---
+
+A rebuild of the Gemini web app's chat thread, composed from the [Gemini components](/components/gemini/message). The reply carries a collapsed [Show thinking](/components/gemini/thoughts) step with a search, and [source chips](/components/gemini/source-chip) that open a hover card. Type a message to get a reply.
+
+<Component path="gemini/examples/gemini-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/gemini.json
+```
+
+This adds every Gemini component to `components/gemini`, with the demo, its sample thread and the `useGeminiPlayback` hook that streams replies.
+
+The components use Google Sans Flex with a Google Sans, Roboto and Arial fallback. Load [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex) in your app for the closest match.
+
+## Composition
+
+There's no single root. A thread is a list of `GeminiMessage` turns, with `GeminiThinking` as the status of a pending reply and `GeminiActions` under finished ones, above a `GeminiComposer`. The demo paints the background with `bg-gemini-bg` and handles scrolling itself.
+
+`useGeminiPlayback(script, reducedMotion)` plays a script of `{ id, from, text, search? }` messages. It shows a search or thinking status, streams each reply word by word and returns `stop` and `send`. With reduced motion it skips the streaming.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Avatar`, `Badge`, `Button`, `Card`, `Collapsible`, `DropdownMenu`, `HoverCard`, `InputGroup`, `ScrollArea` and `Tooltip`, plus the Notra [Shimmer](/components/shimmer), and the CLI installs any you're missing.
+
+Its colors are `--gemini-*` tokens that the CLI adds to your CSS with Gemini's light and dark values, mapped to utilities like `bg-gemini-bubble` and `text-gemini-fg`. The composer and menu shadows are `--gemini-composer-shadow` and `--gemini-popover-shadow`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --gemini-bg: var(--background);
+  --gemini-fg: var(--foreground);
+  --gemini-bubble: var(--muted);
+}
+```
+
+## Trademarks
+
+Gemini and Google are trademarks of Google LLC, a subsidiary of Alphabet Inc. Notra is not affiliated with or endorsed by Google. See [Trademarks](/trademarks).

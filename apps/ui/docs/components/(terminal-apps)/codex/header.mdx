@@ -1,0 +1,18 @@
+---
+title: Header
+description: The OpenAI Codex banner with version, model and working directory.
+---
+
+<Component path="codex/examples/codex-header" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/codex-header.json
+```
+
+`CodexHeader` is the boxed Codex welcome banner, a shadcn `Card` with a `>_ OpenAI Codex (v…)` line and `model:` and `directory:` rows.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `version` | `0.92.0` | Shown dimmed as `(v0.92.0)` after the product name. |
+| `model` | `gpt-6-astra` | The `model:` row, followed by `/model to change`. |
+| `cwd` | `~/acme/web` | The `directory:` row. |

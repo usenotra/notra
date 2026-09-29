@@ -1,0 +1,31 @@
+---
+title: Search
+description: The collapsible research step with a web search, its queries and sources.
+---
+
+<Component path="perplexity/examples/perplexity-search" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/perplexity-search.json
+```
+
+The step is two nested shadcn `Collapsible`s, both collapsed by default. The outer one shows "Researched" and the duration. Inside, behind a thin rail, "Searching the web" opens the query and source rows. Both headers and `+N more` are `CollapsibleTrigger`s rendering a shadcn `Button`. Rows are shadcn `Item`s, and `emptyDescription` renders in a shadcn `Empty`. The first `previewCount` sources show as rows. The rest sit behind `+N more`, which expands them in place.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `open`, `defaultOpen`, `onOpenChange` | `false` | The outer step, controlled or uncontrolled. |
+| `stepOpen`, `stepDefaultOpen`, `onStepOpenChange` | `false` | The inner "Searching the web" row. |
+| `label` | `Researched` | The outer header text. |
+| `duration` | | Shown muted after `label`, like `1s`. |
+| `runningLabel` | `Researching…` | Shimmers in the header while `sequential` runs. |
+| `title` | `Searching the web` | The inner header text. |
+| `queries` | | Search queries, one row each. |
+| `sources` | | Sources as `{ title, domain, url?, verified? }`. |
+| `previewCount` | `4` | Sources shown before `+N more`. |
+| `extraCount` | | A `+N more` count when you don't pass the extra sources. |
+| `sequential` | `false` | Opens the step and reveals the queries, then the sources, one by one. It collapses again when done. |
+| `reducedMotion` | `false` | Skips the sequence. |
+| `emptyDescription` | | Shown when there are no sources. |
+| `labels` | | `{ more: (count) => string, showLess: string }` to translate the expander. |
+
+Each source shows its favicon, with a globe as fallback, and its host without `www.` and the top-level domain, like `en.wikipedia`. Rows with a `url` link out in a new tab. A shield marks verified sources unless `verified` is `false`.

@@ -1,0 +1,23 @@
+---
+title: Composer
+description: The follow-up input with focus chip, model selector and send button.
+---
+
+<Component path="perplexity/examples/perplexity-composer" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/perplexity-composer.json
+```
+
+Enter sends and Shift+Enter adds a line. It's a shadcn `InputGroup` with an `InputGroupTextarea` that grows with its content and a block-end addon of `InputGroupButton`s. The focus chip is a static label that shows the current mode. The send button turns into a stop button while `busy`.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `onSend` | | Called with the trimmed text. The input clears when it's set. |
+| `onStop` | | Called by the stop button while `busy`. |
+| `busy` | `false` | Blocks sending and shows the stop button. |
+| `placeholder` | `Ask a follow-up` | The input placeholder. |
+| `focus` | `search` | The focus mode shown in the static chip. `focusOptions` supplies its label. |
+| `focusOptions` | Search, Research | Labels for the focus modes. |
+| `model`, `defaultModel`, `onModelChange` | | The selected model, controlled or uncontrolled. |
+| `models` | Perplexity's Pro list | Passed to `PerplexityModelSelector`. |

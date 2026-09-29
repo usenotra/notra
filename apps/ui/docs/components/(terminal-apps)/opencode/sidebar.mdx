@@ -1,0 +1,22 @@
+---
+title: Sidebar
+description: Session context, MCP servers, LSP state and version.
+---
+
+<Component path="opencode/examples/opencode-sidebar" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/opencode-sidebar.json
+```
+
+The sidebar scrolls inside a shadcn `ScrollArea`. The MCP list is a shadcn `Collapsible` that starts open, with a `Button` trigger, and each server is an `Item` with its status in a `Badge`. Each server's dot is green when connected, orange on error and muted when disconnected.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `title` | `New session` | The session title. |
+| `tokens`, `used`, `spent` | | The three Context lines. |
+| `servers` | notra, github, linear | `{ name, status? }` entries. `status` is `Connected`, `Disconnected` or `Error`. |
+| `mcpOpen`, `onMcpOpenChange` | | Controls the MCP list. |
+| `lsp` | `LSPs are disabled` | The LSP line. |
+| `cwd` | `~/acme/web` | The working directory at the bottom. |
+| `version` | `1.18.25` | The version next to the product name. |

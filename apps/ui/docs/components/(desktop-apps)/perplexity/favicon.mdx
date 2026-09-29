@@ -1,0 +1,12 @@
+---
+title: Favicon
+description: A round site favicon with a globe fallback.
+---
+
+<Component path="perplexity/examples/perplexity-favicon" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/perplexity-favicon.json
+```
+
+`PerplexityFavicon` is a shadcn `Avatar` that loads the favicon for `domain` from Google's favicon service. While it loads, or if it fails, you see a globe icon. Size it with `className`, it defaults to `size-4`. `perplexityFaviconSrc(domain)` returns the image URL if you need it elsewhere.

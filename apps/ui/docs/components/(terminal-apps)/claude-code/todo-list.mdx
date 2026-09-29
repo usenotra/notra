@@ -1,0 +1,19 @@
+---
+title: Todo List
+description: Done, in-progress and pending todos in Claude Code's glyphs.
+---
+
+<Component path="claude-code/examples/claude-code-todo-list" />
+
+```bash
+bunx shadcn@latest add https://ui.usenotra.com/r/claude-code-todo-list.json
+```
+
+`ClaudeCodeTodoList` is a shadcn `ItemGroup` with one `Item` per todo, and it hangs off a `⏺ Update Todos` line with `⎿`. Change that line with `heading`, or pass `heading={null}` to leave it out. Done todos get a green `✔` and a strikethrough, the active one a red `◼` in bold and pending ones a gray `◻`. Screen readers hear the status after each label.
+
+```ts
+interface ClaudeCodeTodo {
+  label: string;
+  status: "done" | "active" | "todo";
+}
+```
