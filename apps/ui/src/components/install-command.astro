@@ -7,7 +7,7 @@ const { item, prefix } = Astro.props;
 ---
 
 <notra-install-command
-  class="flex max-w-full items-center gap-3 rounded-2xl bg-foreground/[0.06] py-3 ps-4 pe-2 font-mono text-sm dark:bg-black/40"
+  class="flex max-w-full items-center gap-3 rounded-2xl border border-white/70 bg-white/60 py-3 ps-4 pe-2 font-mono text-sm shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-black/40"
   data-command={`${prefix}${item}`}
 >
   <code class="min-w-0 truncate">
