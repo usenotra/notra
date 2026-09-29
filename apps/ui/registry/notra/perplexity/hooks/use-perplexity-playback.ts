@@ -142,6 +142,7 @@ export const usePerplexityPlayback = (
       if (!alive()) {
         return;
       }
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- turns must play one after another
       await playTurn(message, alive);
     }
 

@@ -77,7 +77,8 @@ const ChatgptStoryText = ({
           {splitWithOffsets(paragraph.text, CITE_PATTERN, 0).map((piece) => {
             const ids = piece.text.match(CITE_TOKEN_PATTERN)?.[1]?.split(",");
             if (ids) {
-              const cited = sources.filter((source) => ids.includes(source.id));
+              const wanted = new Set(ids);
+              const cited = sources.filter((source) => wanted.has(source.id));
               return <ChatgptSourceChip key={piece.offset} sources={cited} />;
             }
             return splitWithOffsets(piece.text, BOLD_PATTERN, 0).map((part) =>

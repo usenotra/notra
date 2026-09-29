@@ -2,6 +2,7 @@
 
 import { cn } from "cn";
 
+import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
   TooltipContent,
@@ -30,17 +31,11 @@ export const ClaudeUsageRing = ({
       <TooltipTrigger
         render={
           <span
-            aria-label={label}
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={Math.round(percent)}
-            aria-valuetext={text}
             className={cn(
               "text-claude-usage inline-flex shrink-0 items-center justify-center",
               className
             )}
             data-slot="claude-usage-ring"
-            role="progressbar"
             {...props}
           />
         }
@@ -71,6 +66,12 @@ export const ClaudeUsageRing = ({
             strokeWidth={1.75}
           />
         </svg>
+        <Progress
+          aria-label={label}
+          className="sr-only"
+          getAriaValueText={() => text}
+          value={Math.round(percent)}
+        />
       </TooltipTrigger>
       <TooltipContent
         className="bg-claude-tooltip font-claude text-claude-tooltip-fg rounded-md px-2 py-1 text-xs [&>div]:hidden"

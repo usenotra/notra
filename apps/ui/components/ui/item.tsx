@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
+    // react-doctor-disable-next-line react-doctor/prefer-tag-over-role -- upstream shadcn markup; items are divs, so a <ul> would need <li> children
     <div
       role="list"
       data-slot="item-group"

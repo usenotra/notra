@@ -9,7 +9,7 @@ import {
   ClockIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,18 +31,9 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 import { Shimmer } from "../../shimmer/components/shimmer";
-import {
-  CLAUDE_SEARCH_QUERY_MS,
-  CLAUDE_SEARCH_RESULTS_MS,
-  CLAUDE_SEARCH_STEP_MS,
-  CLAUDE_SEARCH_VERB_HOLD_MS,
-} from "../constants/claude";
 import { useClaudeReducedMotion } from "../hooks/use-claude-reduced-motion";
-import {
-  claudeFaviconSrc,
-  claudeStepSummary,
-  claudeWait,
-} from "../lib/claude-search";
+import { useClaudeSearchSequence } from "../hooks/use-claude-search-sequence";
+import { claudeFaviconSrc, claudeStepSummary } from "../lib/claude-search";
 import type {
   ClaudeSearchGroup,
   ClaudeSearchProps,
@@ -222,26 +213,29 @@ const ClaudeStatusRow = ({ step }: { step: ClaudeSearchStep }) => (
   </p>
 );
 
-export const ClaudeSearch = ({
-  className,
-  defaultOpen = false,
-  groups = EMPTY_GROUPS,
-  items = EMPTY_ITEMS,
-  onOpenChange,
-  open: openProp,
-  queryLabel = "Searched the web",
-  reducedMotion,
-  resultsLabel = defaultResultsLabel,
-  sequential = false,
-  steps = EMPTY_STEPS,
-  summary,
-  thought,
-  verb = "Untangling",
-  ...props
-}: ClaudeSearchProps) => {
-  const reduced = useClaudeReducedMotion(reducedMotion);
-  const shouldSequence = sequential && !reduced;
+interface ClaudeEntry {
+  key: string;
+  node: ReactNode;
+  tool: boolean;
+}
 
+interface ClaudeEntriesInput {
+  groups: readonly ClaudeSearchGroup[];
+  items: readonly ClaudeStepItem[];
+  queryLabel: ReactNode;
+  resultsLabel: NonNullable<ClaudeSearchProps["resultsLabel"]>;
+  steps: readonly ClaudeSearchStep[];
+  thought: ReactNode;
+}
+
+const buildClaudeEntries = ({
+  groups,
+  items,
+  queryLabel,
+  resultsLabel,
+  steps,
+  thought,
+}: ClaudeEntriesInput): ClaudeEntry[] => {
   const entries: { key: string; node: ReactNode; tool: boolean }[] = [];
   if (thought) {
     entries.push({
@@ -268,7 +262,7 @@ export const ClaudeSearch = ({
       tool: true,
     });
   }
-  for (const [index, item] of (items as readonly ClaudeStepItem[]).entries()) {
+  for (const [index, item] of items.entries()) {
     entries.push({
       key: `item-${index}`,
       node:
@@ -288,45 +282,45 @@ export const ClaudeSearch = ({
     });
   }
 
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [done, setDone] = useState(false);
+  return entries;
+};
+
+export const ClaudeSearch = ({
+  className,
+  defaultOpen = false,
+  groups = EMPTY_GROUPS,
+  items = EMPTY_ITEMS,
+  onOpenChange,
+  open: openProp,
+  queryLabel = "Searched the web",
+  reducedMotion,
+  resultsLabel = defaultResultsLabel,
+  sequential = false,
+  steps = EMPTY_STEPS,
+  summary,
+  thought,
+  verb = "Untangling",
+  ...props
+}: ClaudeSearchProps) => {
+  const reduced = useClaudeReducedMotion(reducedMotion);
+  const shouldSequence = sequential && !reduced;
+
+  const entries = buildClaudeEntries({
+    groups,
+    items,
+    queryLabel,
+    resultsLabel,
+    steps,
+    thought,
+  });
+
+  const toolFlags = entries.map((entry) => entry.tool).join(",");
+  const { done, visibleCount } = useClaudeSearchSequence(
+    toolFlags,
+    shouldSequence
+  );
   const shown = shouldSequence ? visibleCount : entries.length;
   const finished = shouldSequence ? done : true;
-  const total = entries.length;
-  const toolFlags = entries.map((entry) => entry.tool).join(",");
-
-  useEffect(() => {
-    if (!shouldSequence) {
-      return;
-    }
-
-    let cancelled = false;
-    const flags = toolFlags ? toolFlags.split(",") : [];
-
-    const run = async () => {
-      await claudeWait(CLAUDE_SEARCH_VERB_HOLD_MS);
-      for (const [index, isTool] of flags.entries()) {
-        if (cancelled) {
-          return;
-        }
-        setVisibleCount(index + 1);
-        await claudeWait(
-          isTool
-            ? CLAUDE_SEARCH_QUERY_MS + CLAUDE_SEARCH_RESULTS_MS
-            : CLAUDE_SEARCH_STEP_MS
-        );
-      }
-      if (!cancelled) {
-        setDone(true);
-      }
-    };
-
-    run().catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [shouldSequence, toolFlags, total]);
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const running = shouldSequence && !finished;

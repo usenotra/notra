@@ -2,7 +2,6 @@
 
 import { cn } from "cn";
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +16,9 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 
-import {
-  OPENCODE_REDUCED_MOTION_QUERY,
-  OPENCODE_SEARCH_HEADER_MS,
-  OPENCODE_SEARCH_QUERY_MS,
-  OPENCODE_SEARCH_SOURCES_MS,
-  OPENCODE_SEARCH_STAGGER_MS,
-} from "../constants/opencode";
+import { OPENCODE_SEARCH_STAGGER_MS } from "../constants/opencode";
+import { useOpencodeReducedMotion } from "../hooks/use-opencode-reduced-motion";
+import { useOpencodeSourcesSequence } from "../hooks/use-opencode-sources-sequence";
 import type {
   OpencodeSource,
   OpencodeSourcesLabels,
@@ -67,11 +62,6 @@ const sourceHref = (url: string | undefined) => {
   }
 };
 
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-
 const OpencodeSourceRow = ({
   className,
   delayMs,
@@ -87,11 +77,27 @@ const OpencodeSourceRow = ({
   const urlLabel = source.url ? citedSourceUrl(source.url) : source.title;
 
   return (
-    <div
+    <Item
+      aria-label={href ? openLabel(source.title, source.domain) : undefined}
       className={cn(
+        ROW_CLASS,
         delayMs !== undefined && "delay-(--opencode-delay)",
         className
       )}
+      render={
+        href
+          ? (linkProps) => (
+              <a
+                {...linkProps}
+                href={href}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {linkProps.children}
+              </a>
+            )
+          : undefined
+      }
       role="listitem"
       style={
         delayMs === undefined
@@ -99,22 +105,11 @@ const OpencodeSourceRow = ({
           : ({ "--opencode-delay": `${delayMs}ms` } as CSSProperties)
       }
     >
-      <Item
-        aria-label={href ? openLabel(source.title, source.domain) : undefined}
-        className={ROW_CLASS}
-        render={
-          href ? (
-            // oxlint-disable-next-line jsx-a11y/anchor-has-content -- Item renders its children into the link
-            <a href={href} rel="noopener noreferrer" target="_blank" />
-          ) : undefined
-        }
-      >
-        <ItemTitle className={CELL_CLASS}>{source.domain}</ItemTitle>
-        <ItemDescription className={cn(CELL_CLASS, "text-opencode-muted")}>
-          {urlLabel}
-        </ItemDescription>
-      </Item>
-    </div>
+      <ItemTitle className={CELL_CLASS}>{source.domain}</ItemTitle>
+      <ItemDescription className={cn(CELL_CLASS, "text-opencode-muted")}>
+        {urlLabel}
+      </ItemDescription>
+    </Item>
   );
 };
 
@@ -123,57 +118,21 @@ export const OpencodeSources = ({
   defaultOpen = false,
   labels = DEFAULT_LABELS,
   queries = EMPTY_QUERIES,
-  reducedMotion = false,
+  reducedMotion,
   sequential = false,
   sources,
   ...props
 }: OpencodeSourcesProps) => {
-  const shouldSequence = sequential && !reducedMotion;
-  const [progress, setProgress] = useState({ queries: 0, sources: false });
+  const reduced = useOpencodeReducedMotion(reducedMotion);
+  const shouldSequence = sequential && !reduced;
+  const progress = useOpencodeSourcesSequence(
+    shouldSequence,
+    queries.length,
+    sources.length
+  );
 
   const visibleQueryCount = shouldSequence ? progress.queries : queries.length;
   const showSources = shouldSequence ? progress.sources : sources.length > 0;
-
-  useEffect(() => {
-    if (!shouldSequence) {
-      return;
-    }
-
-    if (window.matchMedia(OPENCODE_REDUCED_MOTION_QUERY).matches) {
-      setProgress({ queries: queries.length, sources: sources.length > 0 });
-      return;
-    }
-
-    let cancelled = false;
-    setProgress({ queries: 0, sources: false });
-
-    const run = async () => {
-      await wait(OPENCODE_SEARCH_HEADER_MS);
-
-      for (let index = 0; index < queries.length; index += 1) {
-        if (cancelled) {
-          return;
-        }
-        setProgress((current) => ({ ...current, queries: index + 1 }));
-        await wait(OPENCODE_SEARCH_QUERY_MS);
-      }
-
-      if (cancelled || sources.length === 0) {
-        return;
-      }
-
-      await wait(OPENCODE_SEARCH_SOURCES_MS);
-      if (!cancelled) {
-        setProgress((current) => ({ ...current, sources: true }));
-      }
-    };
-
-    run().catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [shouldSequence, queries, sources.length]);
 
   if (sources.length === 0 && queries.length === 0) {
     return null;

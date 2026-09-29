@@ -34,7 +34,7 @@ export const claudeStepSummary = (
   items: readonly ClaudeStepItem[],
   groups: readonly ClaudeSearchGroup[] = []
 ): string => {
-  const tools: string[] = [];
+  const tools = new Set<string>();
   let searched = groups.length > 0;
   for (const item of items) {
     if (item.type !== "tool") {
@@ -42,16 +42,16 @@ export const claudeStepSummary = (
     }
     if (item.results) {
       searched = true;
-    } else if (item.tool && !tools.includes(item.tool)) {
-      tools.push(item.tool);
+    } else if (item.tool) {
+      tools.add(item.tool);
     }
   }
   const parts: string[] = [];
-  if (tools.length > 0) {
-    parts.push(`Used ${tools.join(", ")}`);
+  if (tools.size > 0) {
+    parts.push(`Used ${[...tools].join(", ")}`);
   }
   if (searched) {
-    parts.push(tools.length > 0 ? "searched the web" : "Searched the web");
+    parts.push(tools.size > 0 ? "searched the web" : "Searched the web");
   }
   return parts.join(", ");
 };

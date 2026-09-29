@@ -1195,6 +1195,11 @@
           "path": "registry/notra/perplexity/types/perplexity.ts",
           "type": "registry:lib",
           "target": "components/perplexity/types/perplexity.ts"
+        },
+        {
+          "path": "registry/notra/perplexity/hooks/use-perplexity-search-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/perplexity/hooks/use-perplexity-search-sequence.ts"
         }
       ],
       "css": {
@@ -2831,6 +2836,11 @@
           "path": "registry/notra/perplexity/components/perplexity-rewrite-panel.tsx",
           "type": "registry:component",
           "target": "components/perplexity/components/perplexity-rewrite-panel.tsx"
+        },
+        {
+          "path": "registry/notra/perplexity/hooks/use-perplexity-search-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/perplexity/hooks/use-perplexity-search-sequence.ts"
         }
       ],
       "css": {
@@ -5532,6 +5542,7 @@
         "dropdown-menu",
         "input-group",
         "kbd",
+        "progress",
         "tooltip"
       ],
       "cssVars": {
@@ -6504,6 +6515,11 @@
           "path": "registry/notra/claude/types/claude.ts",
           "type": "registry:lib",
           "target": "components/claude/types/claude.ts"
+        },
+        {
+          "path": "registry/notra/claude/hooks/use-claude-search-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/claude/hooks/use-claude-search-sequence.ts"
         }
       ],
       "css": {
@@ -7031,6 +7047,7 @@
         "input-group",
         "item",
         "kbd",
+        "progress",
         "scroll-area",
         "separator",
         "tooltip",
@@ -7267,6 +7284,11 @@
           "path": "registry/notra/claude/components/claude-source-link.tsx",
           "type": "registry:component",
           "target": "components/claude/components/claude-source-link.tsx"
+        },
+        {
+          "path": "registry/notra/claude/hooks/use-claude-search-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/claude/hooks/use-claude-search-sequence.ts"
         }
       ],
       "css": {
@@ -9132,6 +9154,16 @@
           "path": "registry/notra/opencode/types/opencode.ts",
           "type": "registry:lib",
           "target": "components/opencode/types/opencode.ts"
+        },
+        {
+          "path": "registry/notra/opencode/hooks/use-opencode-sources-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/opencode/hooks/use-opencode-sources-sequence.ts"
+        },
+        {
+          "path": "registry/notra/opencode/hooks/use-opencode-reduced-motion.ts",
+          "type": "registry:hook",
+          "target": "components/opencode/hooks/use-opencode-reduced-motion.ts"
         }
       ]
     },
@@ -9388,6 +9420,16 @@
           "path": "registry/notra/opencode/examples/opencode-demo.tsx",
           "type": "registry:component",
           "target": "components/opencode/examples/opencode-demo.tsx"
+        },
+        {
+          "path": "registry/notra/opencode/hooks/use-opencode-sources-sequence.ts",
+          "type": "registry:hook",
+          "target": "components/opencode/hooks/use-opencode-sources-sequence.ts"
+        },
+        {
+          "path": "registry/notra/opencode/hooks/use-opencode-reduced-motion.ts",
+          "type": "registry:hook",
+          "target": "components/opencode/hooks/use-opencode-reduced-motion.ts"
         }
       ],
       "css": {

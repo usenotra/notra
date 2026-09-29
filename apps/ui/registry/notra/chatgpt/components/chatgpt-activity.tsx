@@ -177,14 +177,18 @@ export const ChatgptActivity = ({
                   )}
                   key={source.id}
                   render={
-                    source.href ? (
-                      // oxlint-disable-next-line jsx-a11y/anchor-has-content -- Item renders its children into the link
-                      <a
-                        href={source.href}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      />
-                    ) : undefined
+                    source.href
+                      ? (linkProps) => (
+                          <a
+                            {...linkProps}
+                            href={source.href}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            {linkProps.children}
+                          </a>
+                        )
+                      : undefined
                   }
                   role="listitem"
                 >
