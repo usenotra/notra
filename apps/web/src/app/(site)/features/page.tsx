@@ -29,7 +29,11 @@ import type {
   FeaturesPageStudioVisual,
 } from "@/types/features-page";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const IntegrationOrbit = dynamic(
@@ -56,7 +60,7 @@ const url = `${SITE_URL}/features`;
 export const metadata: Metadata = {
   title: FEATURES_PAGE_TITLE,
   description: FEATURES_PAGE_DESCRIPTION,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title: FEATURES_PAGE_TITLE,
     description: FEATURES_PAGE_DESCRIPTION,

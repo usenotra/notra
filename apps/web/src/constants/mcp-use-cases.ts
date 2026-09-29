@@ -9,8 +9,23 @@ import type {
   McpUseCase,
   McpUseCaseCategory,
   McpUseCaseCategoryFilter,
+  McpUseCaseToolId,
 } from "@/types/mcp-use-cases";
 import { DOCS_URL } from "@/utils/urls";
+
+export const MCP_USE_CASE_TOOL_LABELS: Record<McpUseCaseToolId, string> = {
+  notra: "Notra",
+  claude: "Claude",
+  chatgpt: "ChatGPT",
+  gemini: "Gemini",
+  perplexity: "Perplexity",
+  "google-search-console": "Google Search Console",
+  slack: "Slack",
+  github: "GitHub",
+  linear: "Linear",
+  linkedin: "LinkedIn",
+  x: "X",
+};
 
 export const MCP_USE_CASES_PATH = "/mcp/use-cases";
 

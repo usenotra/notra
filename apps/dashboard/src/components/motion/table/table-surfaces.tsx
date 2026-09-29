@@ -15,7 +15,7 @@ export function TableHeaderSurface({
   return (
     <div
       className={cn(
-        "border-border bg-muted overflow-hidden rounded-t-2xl border border-b-0 pb-5",
+        "border-shell-border bg-shell overflow-hidden rounded-t-2xl border border-b-0 pb-5",
         flushTop && "rounded-t-none border-t-0",
         overlapTop && "pt-5"
       )}
@@ -58,7 +58,7 @@ export function TableBodySurface({
   return (
     <div
       className={cn(
-        "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
+        "scrollbar-floating border-border bg-background shadow-lift relative -mt-5 box-content rounded-2xl border outline-none",
         isEmpty ? "overflow-hidden" : overflowClass,
         flushBottom && !hasFooter && "rounded-b-none border-b-0",
         dimRows &&
@@ -85,7 +85,7 @@ export function TableFooterSurface({
   return (
     <div
       className={cn(
-        "border-border bg-muted -mt-5 rounded-b-2xl border border-t-0 pt-5",
+        "border-shell-border bg-shell -mt-5 rounded-b-2xl border border-t-0 pt-5",
         flushBottom && "rounded-b-none border-b-0"
       )}
     >

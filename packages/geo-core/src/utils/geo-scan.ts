@@ -10,8 +10,6 @@ import {
   GEO_SCAN_INTERVAL_FALLBACK_NOUN,
   GEO_SCAN_INTERVAL_LABEL_PREFIX,
   GEO_SCAN_INTERVAL_OPTIONS,
-  GEO_SCAN_SIZE_DANGER_THRESHOLD,
-  GEO_SCAN_SIZE_WARN_THRESHOLD,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
 import { GeoScanError } from "../geo/errors";
@@ -19,7 +17,6 @@ import type {
   GeoEngineAttemptSummary,
   GeoScanFailureMetadata,
   GeoScanSizeInput,
-  GeoScanSizeSeverity,
 } from "../types/geo";
 import { isGeoBoxCodingAgent } from "./geo-coding-agents";
 import { isGeoNativeSearchEngine } from "./geo-engines";
@@ -301,14 +298,4 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
         )
     : 0;
   return englishChecks + localizedChecks + sequenceTurns * sequenceEngines;
-}
-
-export function geoScanSizeSeverity(total: number): GeoScanSizeSeverity {
-  if (total >= GEO_SCAN_SIZE_DANGER_THRESHOLD) {
-    return "danger";
-  }
-  if (total >= GEO_SCAN_SIZE_WARN_THRESHOLD) {
-    return "warn";
-  }
-  return "ok";
 }

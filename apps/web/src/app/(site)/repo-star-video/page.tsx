@@ -6,7 +6,11 @@ import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { RepoInputForm } from "@/components/star-video/repo-input-form";
 import { StarVideoPreview } from "@/components/star-video/star-video-preview";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "GitHub Star Video Generator";
@@ -17,7 +21,7 @@ const url = `${SITE_URL}/repo-star-video`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

@@ -521,6 +521,7 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
           contentType: posts.contentType,
           sourceMetadata: posts.sourceMetadata,
           status: posts.status,
+          githubPublish: posts.githubPublish,
           createdAt: posts.createdAt,
           updatedAt: posts.updatedAt,
         }),

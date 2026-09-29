@@ -4,7 +4,6 @@ import type {
 } from "@notra/db/types/geo-sentiment";
 
 import type { GeoSentimentBucket } from "../types/geo-sentiment";
-import { engineFamilyOf } from "./geo-engine-family";
 
 export function sentimentScore(
   counts: Pick<GeoSentimentCounts, "positive" | "neutral" | "negative">
@@ -13,15 +12,6 @@ export function sentimentScore(
   return classified > 0
     ? (counts.positive * 100 + counts.neutral * 50) / classified
     : null;
-}
-
-export function sentimentFamilyScore(
-  rows: (GeoSentimentCounts & { engine: string })[],
-  family: string
-): number | null {
-  return summarizeSentiment(
-    rows.filter((row) => engineFamilyOf(row.engine) === family)
-  ).score;
 }
 
 export function exactSentimentExcerpt(

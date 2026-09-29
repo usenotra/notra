@@ -20,15 +20,17 @@
     "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts",
     "devtools:api": "cd apps/api && bunx @ai-sdk/devtools",
     "devtools:dashboard": "cd apps/dashboard && bunx @ai-sdk/devtools",
-    "check": "ultracite check --threads=4",
+    "check": "bun run check:effect && ultracite check --threads=4",
+    "check:effect": "oxlint --config oxlint.effect.config.ts packages/tools/src packages/geo-core/src --threads=2",
     "format": "ultracite fix --threads=4",
     "format:unsafe": "ultracite fix --unsafe --threads=4",
     "commitlint": "commitlint",
-    "prepare": "husky && ./scripts/prepare-effect.sh"
+    "prepare": "husky && ./scripts/prepare-effect.sh && effect-tsgo patch --no-typescript --oxlint"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
+    "@effect/tsgo": "0.45.0",
     "@shadcn/lint": "0.1.0",
     "@types/node": "24.13.2",
     "bun-types": "1.4.0",
@@ -40,6 +42,7 @@
     "openlogs": "^0.0.1",
     "oxfmt": "0.64.0",
     "oxlint": "1.82.0",
+    "oxlint-tsgolint": "7.0.2001",
     "turbo": "^2.11.4",
     "ultracite": "7.10.6"
   },

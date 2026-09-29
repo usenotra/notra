@@ -7,7 +7,11 @@ import { IntegrationsMarketplaceFallback } from "@/components/integrations/integ
 import { fetchIntegrations } from "@/lib/integrations/fetch";
 import { buildCategoryFilters } from "@/lib/integrations/helpers";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra Integrations Marketplace";
@@ -18,7 +22,7 @@ const url = `${SITE_URL}/integrations`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

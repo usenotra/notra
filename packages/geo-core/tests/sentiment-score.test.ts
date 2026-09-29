@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 
 import {
   exactSentimentExcerpt,
-  sentimentFamilyScore,
   sentimentPoints,
   sentimentScore,
   summarizeSentiment,
@@ -59,35 +58,6 @@ test("empty, non-mentioned and unknown-only buckets have no score; calendar gaps
       { ...base, positive: 1, negative: 0, day: "2026-09-03" },
     ]).map((p) => p.score)
   ).toEqual([0, null, 100]);
-});
-
-test("engine families combine counts, not model scores, and exclude other families", () => {
-  const base = {
-    mentions: 10,
-    totalChecks: 10,
-    lastCheckedAt: null,
-    neutral: 0,
-  };
-  const rows = [
-    { ...base, engine: "openai/gpt-4.1-nano", positive: 9, negative: 1 },
-    {
-      ...base,
-      mentions: 1,
-      totalChecks: 1,
-      engine: "openai/gpt-5.4-nano",
-      positive: 0,
-      negative: 1,
-    },
-    {
-      ...base,
-      engine: "google/gemini-2.5-flash-lite",
-      positive: 10,
-      negative: 0,
-    },
-  ];
-  expect(sentimentFamilyScore(rows, "openai")).toBeCloseTo(900 / 11);
-  expect(sentimentFamilyScore(rows, "gemini")).toBe(100);
-  expect(sentimentFamilyScore(rows, "claude")).toBeNull();
 });
 
 test("excerpt emphasis accepts only an exact contiguous substring", () => {

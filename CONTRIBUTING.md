@@ -37,7 +37,7 @@ Notra is a Bun + Turborepo monorepo.
 
 Install or prepare:
 
-- **Bun** `>= 1.3`
+- **Bun** `1.4.0` (the version pinned in `package.json` and required for the Effect lint setup)
 - **Node.js** `>= 24` (used by some tooling)
 - A **Postgres** database (Neon or PlanetScale Postgres recommended)
 - **GitHub** and/or **Google** OAuth app credentials

@@ -45,6 +45,11 @@ export interface WorkspaceFormProps {
   progressHrefs?: OnboardingProgressHrefs;
 }
 
+export interface WorkspaceSlugCheck {
+  slug: string;
+  status: "checking" | "available" | "unavailable" | "error";
+}
+
 export interface OnboardingSplitLayoutProps {
   children: React.ReactNode;
 }

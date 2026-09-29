@@ -1,5 +1,6 @@
 export const PAYWALL_KINDS = {
   GEO_LOCKED: "geo_locked",
+  STUDIO_LOCKED: "studio_locked",
   TRIAL_EXPIRED: "trial_expired",
   UPGRADE_CARD: "upgrade_card",
   NAV_LOCK: "nav_lock",
@@ -11,6 +12,22 @@ export const PLAN_SURFACES = {
   SIDEBAR: "sidebar",
   SIDEBAR_TRIAL_EXPIRED: "sidebar_trial_expired",
   GEO_PAYWALL: "geo_paywall",
+  STUDIO_PAYWALL: "studio_paywall",
+} as const;
+
+export const UPGRADE_DIALOG_EVENTS = {
+  geo: {
+    kind: PAYWALL_KINDS.GEO_LOCKED,
+    surface: PLAN_SURFACES.GEO_PAYWALL,
+  },
+  sidebar: {
+    kind: PAYWALL_KINDS.UPGRADE_CARD,
+    surface: PLAN_SURFACES.SIDEBAR,
+  },
+  studio: {
+    kind: PAYWALL_KINDS.STUDIO_LOCKED,
+    surface: PLAN_SURFACES.STUDIO_PAYWALL,
+  },
 } as const;
 
 export const BILLING_INTERVALS = {

@@ -112,6 +112,7 @@ function TrafficPageView({
             <AiTrafficCard
               isPending={isTrafficPending}
               pages={inventoryPages}
+              range={geoRange.query}
               settingsHref={withGeoProject(
                 geoSettingsPath(organizationSlug),
                 projectId
@@ -174,7 +175,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const showSkeleton = isTrafficPagePending({
     isSettingsPending,
     hasSettings: settings !== null,
-    isTrafficPending,
+    isTrafficPending: isTrafficPending || isTrafficPlaceholder,
     isEmptyTraffic,
     isIngestPending,
   });
@@ -212,7 +213,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   }, [hasSettings, isEmptyTraffic, rangePreset, ready]);
 
   if (showSkeleton) {
-    return <GeoTrafficSkeleton />;
+    return <GeoTrafficSkeleton geoRange={geoRange} />;
   }
 
   return (

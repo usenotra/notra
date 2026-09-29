@@ -7,7 +7,7 @@ import {
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { Activity, type ReactNode } from "react";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
@@ -82,6 +82,7 @@ export function GeoTabs({
 }: GeoTabsProps) {
   const t = useTranslations("geo.pages.tabs");
   const tCommon = useTranslations("common");
+
   return (
     <div className="flex min-w-0 flex-col">
       <PermissionRow
@@ -115,7 +116,7 @@ export function GeoTabs({
         </PermissionOption>
       </PermissionRow>
 
-      {activeTab === "visibility" ? (
+      <Activity mode={activeTab === "visibility" ? "visible" : "hidden"}>
         <div className="mt-6 flex flex-col gap-6 overflow-visible">
           <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
             <TabSection
@@ -190,7 +191,7 @@ export function GeoTabs({
             </TabSection>
           </InstrumentGrid>
         </div>
-      ) : null}
+      </Activity>
 
       {activeTab === "brand-sentiment" ? (
         <div className="mt-6">

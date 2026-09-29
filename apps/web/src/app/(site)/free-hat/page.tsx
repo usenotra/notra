@@ -6,7 +6,11 @@ import { MerchGallery } from "@/components/merch/merch-gallery";
 import { MerchHero } from "@/components/merch/merch-hero";
 import { MerchSpecs } from "@/components/merch/merch-specs";
 import { MerchTweets } from "@/components/merch/merch-tweets";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Merch";
@@ -17,7 +21,7 @@ const url = `${SITE_URL}/free-hat`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

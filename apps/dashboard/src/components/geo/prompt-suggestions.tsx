@@ -366,7 +366,8 @@ export function PromptSuggestions({
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const locale = useLocale();
-  const { data } = useGeoSuggestions(organizationId);
+  const { data, isPending: suggestionsPending } =
+    useGeoSuggestions(organizationId);
   const { data: searchConsoleStatus, isPending: isSearchConsolePending } =
     useGscStatus(organizationId);
   const connectionSucceeded = useGscConnectionToast();
@@ -398,6 +399,9 @@ export function PromptSuggestions({
     );
   const suggestions = data?.suggestions ?? [];
   const hasSuggestions = suggestions.length > 0;
+  const loading = checking || suggestionsPending;
+  const showSuggestionsTable =
+    loading || hasSuggestions || Boolean(searchConsoleStatus?.siteUrl);
   const detail = suggestions.find((row) => row.id === detailId) ?? null;
   const trackAllPending = isTrackAllQueued || acceptAll.isPending;
   const detailBusy =
@@ -457,13 +461,13 @@ export function PromptSuggestions({
     },
   });
 
-  if (!(checking || hasSuggestions || showSearchConsole)) {
+  if (!(loading || hasSuggestions || showSearchConsole)) {
     return null;
   }
 
   return (
     <section
-      aria-busy={checking}
+      aria-busy={loading}
       aria-label={tGeoShared("suggestedPrompts")}
       className="space-y-3"
     >
@@ -484,20 +488,22 @@ export function PromptSuggestions({
         suggestionsCount={suggestions.length}
         trackAllPending={trackAllPending}
       />
-      <Table
-        className="rounded-2xl"
-        columns={columns}
-        data={suggestions}
-        defaultSort={{ key: "impressions", direction: "desc" }}
-        emptyState={t("empty")}
-        getRowId={(row) => row.id}
-        height={tableHeightFor(Math.max(suggestions.length, checking ? 3 : 1))}
-        loading={checking}
-        onRowClick={(row) => setDetailId(row.id)}
-        resizable
-        rowHeight={TABLE_ROW_HEIGHT}
-        rowSizing="content"
-      />
+      {showSuggestionsTable ? (
+        <Table
+          className="rounded-2xl"
+          columns={columns}
+          data={suggestions}
+          defaultSort={{ key: "impressions", direction: "desc" }}
+          emptyState={t("empty")}
+          getRowId={(row) => row.id}
+          height={tableHeightFor(Math.max(suggestions.length, loading ? 3 : 1))}
+          loading={loading}
+          onRowClick={(row) => setDetailId(row.id)}
+          resizable
+          rowHeight={TABLE_ROW_HEIGHT}
+          rowSizing="content"
+        />
+      ) : null}
       <PromptSuggestionSheet
         actions={
           detail ? (

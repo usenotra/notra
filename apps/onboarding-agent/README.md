@@ -66,7 +66,7 @@ Model access needs no key on Vercel: the agent uses gateway model ids (`openai/g
 | `EVE_ONBOARDING_AGENT_PASSWORD` | fallback | Same value as on the agent when not using OIDC |
 | `QSTASH_TOKEN` | yes | Already set; triggers the Upstash workflow |
 | `SLACK_BOT_TOKEN` | optional | Slack Connect invite when the workflow starts; skipped when unset |
-| `SLACK_FOUNDER_MEMBER_ID` | with Slack | Slack workspace member ID added to every onboarding Slack Connect channel |
+| `SLACK_SUPPORT_MEMBER_IDS` | with Slack | Comma-separated Slack workspace member IDs added to every onboarding Slack Connect channel (e.g. `U0BQLJX73C4,U0AL47LV97S`) |
 
 With OIDC federation enabled, the dashboard automatically sends its `VERCEL_OIDC_TOKEN` as a Bearer token and you can drop `EVE_ONBOARDING_AGENT_PASSWORD` on both sides entirely.
 

@@ -6,13 +6,22 @@ import { Kbd } from "@notra/ui/components/ui/kbd";
 import { SidebarMenuButton, useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function ThemeToggle() {
   const t = useTranslations("nav.orgSelector");
   const { setTheme, resolvedTheme } = useTheme();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const mounted = resolvedTheme !== undefined;
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
   const isDark = resolvedTheme === "dark";
 

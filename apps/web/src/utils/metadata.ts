@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
+
+import { SITE_URL } from "./urls";
+
+const TRAILING_SLASHES_REGEX = /\/+$/;
+
 export const SITE_TAGLINE = "Get recommended by AI engines.";
 
 export const SITE_TITLE = `Notra. ${SITE_TAGLINE}`;
 
 export const SITE_DESCRIPTION =
-  "Notra asks ChatGPT, Claude, Gemini and Perplexity the questions your buyers ask, tracks which AI agents read your site, and writes the content for the questions you lose.";
+  "Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.";
 
 export const DEFAULT_SOCIAL_IMAGE = {
   url: "/og-image.png",
@@ -85,3 +91,17 @@ export const PAGE_SOCIAL_IMAGES = {
 } as const;
 
 export const TWITTER_HANDLE = "@usenotra";
+
+export function pageAlternates(url: string): Metadata["alternates"] {
+  const pageUrl = url.replace(TRAILING_SLASHES_REGEX, "");
+  const markdownUrl =
+    pageUrl === SITE_URL ? `${SITE_URL}/index.md` : `${pageUrl}.md`;
+
+  return {
+    canonical: pageUrl,
+    types: {
+      "text/plain": `${SITE_URL}/llms.txt`,
+      "text/markdown": markdownUrl,
+    },
+  };
+}

@@ -427,11 +427,6 @@ export function journeyAverageDepth(pages: number, journeys: number): number {
   return Math.round((pages / journeys) * 10) / 10;
 }
 
-export function formatJourneyDepth(pages: number, journeys: number): string {
-  const average = journeyAverageDepth(pages, journeys);
-  return `${average.toLocaleString()} ${average === 1 ? "page" : "pages"}`;
-}
-
 export function formatJourneyShare(count: number, total: number): string {
   return `${Math.round(shareOf(count, total) * 100)}%`;
 }

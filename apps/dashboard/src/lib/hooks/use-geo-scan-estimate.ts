@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  calcGeoScanSize,
-  geoScanSizeSeverity,
-} from "@notra/geo-core/utils/geo-scan";
+import { calcGeoScanSize } from "@notra/geo-core/utils/geo-scan";
 
 import { useGeoModelCatalog, useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
@@ -26,7 +23,7 @@ export function useGeoScanEstimate({
     (includeSequences && sequencesLoading) ||
     promptCount === undefined
   ) {
-    return { scanSize: null, warningSeverity: null };
+    return { scanSize: null };
   }
 
   const scanSize = calcGeoScanSize({
@@ -37,8 +34,5 @@ export function useGeoScanEstimate({
     catalog,
     sequences: includeSequences ? sequences : [],
   });
-  const severity = geoScanSizeSeverity(scanSize);
-  const warningSeverity = severity === "ok" ? null : severity;
-
-  return { scanSize, warningSeverity };
+  return { scanSize };
 }

@@ -11,7 +11,11 @@ import {
 } from "@/constants/mcp-use-cases";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { getMcpUseCaseHref } from "@/utils/mcp-use-cases";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const url = `${SITE_URL}${MCP_USE_CASES_PATH}`;
@@ -19,7 +23,7 @@ const url = `${SITE_URL}${MCP_USE_CASES_PATH}`;
 export const metadata: Metadata = {
   title: MCP_USE_CASES_PAGE_TITLE,
   description: MCP_USE_CASES_PAGE_DESCRIPTION,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title: MCP_USE_CASES_PAGE_TITLE,
     description: MCP_USE_CASES_PAGE_DESCRIPTION,

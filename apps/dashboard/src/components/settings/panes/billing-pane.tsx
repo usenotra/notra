@@ -50,6 +50,7 @@ import {
   isAnnualPlanId,
   isPlanInGroup,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -336,6 +337,9 @@ export function BillingSettingsPane() {
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={
+          plan.id === activePlanId ? undefined : planRenewalTerms(plan)
+        }
       />
     );
   }

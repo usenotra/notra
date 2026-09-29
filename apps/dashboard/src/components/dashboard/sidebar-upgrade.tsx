@@ -4,11 +4,12 @@ import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { useListPlans } from "autumn-js/react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { PAYWALL_KINDS, PLAN_SURFACES } from "@/constants/analytics-events";
@@ -17,8 +18,12 @@ import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useOnboardingStatus } from "@/lib/hooks/use-onboarding";
-import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
-import { groupBillingPlans, nextPlanGroup } from "@/utils/billing-plans";
+import {
+  getProductPrice,
+  groupBillingPlans,
+  nextPlanGroup,
+  planRenewalTerms,
+} from "@/utils/billing-plans";
 import {
   canShowSidebarUpgrade,
   sidebarUpgradeCopy,
@@ -27,8 +32,9 @@ import {
 export function SidebarUpgrade() {
   const t = useTranslations("nav.upgrade");
   const tCommon = useTranslations("common");
+  const tBilling = useTranslations("billing.plans");
+  const format = useFormatter();
   const { activeOrganization } = useOrganizationsContext();
-  const { openSettings } = useSettingsModal();
   const orgId = activeOrganization?.id ?? "";
 
   const { data: onboarding } = useOnboardingStatus(orgId);
@@ -50,6 +56,7 @@ export function SidebarUpgrade() {
     },
   });
   const [loading, setLoading] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const activeSubscription = customer?.subscriptions.find(
     (subscription) =>
@@ -106,7 +113,7 @@ export function SidebarUpgrade() {
         interval: null,
         zdr: false,
       });
-      openSettings("billing");
+      setUpgradeOpen(true);
       return;
     }
     if (!targetPlan) {
@@ -169,8 +176,30 @@ export function SidebarUpgrade() {
           >
             {buttonLabel}
           </Button>
+          {!hasNoPlan && targetPlan ? (
+            <p className="text-muted-foreground text-xs">
+              {tBilling("renewalTerms", {
+                kind: planRenewalTerms(targetPlan),
+                price: format.number(getProductPrice(targetPlan).amount, {
+                  style: "currency",
+                  currency: "USD",
+                }),
+                interval: targetGroup?.monthly
+                  ? tCommon("labels.month")
+                  : tCommon("labels.year"),
+              })}
+            </p>
+          ) : null}
         </div>
       </div>
+      {upgradeOpen && hasNoPlan && activeOrganization?.slug && (
+        <GeoUpgradeDialog
+          entry="sidebar"
+          onOpenChange={setUpgradeOpen}
+          open={upgradeOpen}
+          slug={activeOrganization.slug}
+        />
+      )}
     </SidebarGroup>
   );
 }

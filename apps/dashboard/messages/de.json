@@ -1064,11 +1064,12 @@
     "visibility": {
       "metaTitle": "Tracke deine KI-Sichtbarkeit",
       "brandName": "Markenname",
+      "brandNameRequired": "Gib deinen Markennamen ein, um fortzufahren.",
       "brandNamePlaceholder": "Acme",
       "questionsFrom": "Fragen von {host} <muted>({selected} von {total})</muted>",
       "questions": "Fragen <muted>({selected} von {total})</muted>",
       "skipStep": "Diesen Schritt überspringen",
-      "description": "Wir fragen ChatGPT, Claude, Gemini und Perplexity, was deine Käufer sie fragen, und prüfen, ob du genannt wirst.",
+      "description": "Notra ist ein modernes GEO-Tool, das ChatGPT, Claude und Gemini die Fragen deiner Käufer stellt. Sieh, ob du in den Antworten vorkommst, wer stattdessen genannt wird und wie du das ändern kannst.",
       "title": "Sieh, was KI über dich sagt",
       "reading": "{host} wird gelesen. Das dauert etwa 20 Sekunden.",
       "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein."
@@ -1076,13 +1077,19 @@
     "pricing": {
       "freeTrial": "Kostenlose Testphase",
       "startFreeTrial": "Kostenlos testen",
-      "getStarted": "Loslegen",
+      "selectPlan": "Tarif {plan} auswählen",
       "title": "Wähle deinen Tarif",
       "description": "Nutze Feedback kostenlos oder upgrade für KI-Inhalte und Sichtbarkeits-Tracking.",
       "continueFree": "Mit kostenlosem Feedback fortfahren",
       "renews": "{interval, select, year {Dein Tarif verlängert sich jedes Jahr automatisch, bis du kündigst.} other {Dein Tarif verlängert sich jeden Monat automatisch, bis du kündigst.}}"
     },
     "workspace": {
+      "slugStatus": {
+        "checking": "Slug-Verfügbarkeit wird geprüft",
+        "available": "Slug ist verfügbar",
+        "unavailable": "Slug ist bereits vergeben",
+        "error": "Slug-Verfügbarkeit konnte nicht geprüft werden"
+      },
       "validation": {
         "checkField": "Bitte prüfe dieses Feld",
         "websiteInvalid": "Bitte gib eine gültige öffentliche Website-URL ein (z. B. https://example.com)",
@@ -1281,6 +1288,7 @@
       },
       "typography": {
         "title": "Typografie",
+        "previewUnavailable": "Google-gehostete Vorschau nicht verfügbar; eine lokal installierte Schrift oder Systemschrift wird angezeigt.",
         "weight": "Stärke {value}",
         "size": "Größe {value}",
         "lineHeight": "Zeilenhöhe {value}"
@@ -2769,7 +2777,7 @@
       "automaticScans": "Automatische Scans"
     },
     "geoSettingsForm": {
-      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.{severity, select, warn { Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.} danger { Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.} other {}}",
+      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.",
       "description": "Wie deine Marke erkannt wird und wo Prompts gescannt werden.",
       "brand": {
         "companyNameHint": "Der Hauptname, nach dem wir in Antworten suchen.",
@@ -3200,8 +3208,6 @@
       "promptBody": "Wähle ein oder mehrere getrackte Modelle, die diesen Prompt in deinen konfigurierten Sprachen beantworten.",
       "confirmTitle": "Diesen Scan starten?",
       "confirmBody": "Prüfe die ausgewählten Modelle und den Scan-Umfang, bevor du startest.",
-      "sizeWarn": "Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.",
-      "sizeDanger": "Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.",
       "promptCountUnknown": "… Prompts",
       "calculating": "Checks werden berechnet…",
       "estimatedChecks": "{count} geschätzte Checks",
@@ -3227,9 +3233,9 @@
       "itemInProgress": "in Bearbeitung",
       "itemMissing": "fehlend",
       "itemAnswers": "Antworten",
-      "viewLabel": "Scan-Antworten",
+      "viewLabel": "Scan-Ergebnistyp",
       "missing": "Fehlend",
-      "filterByModel": "Scan-Antworten nach Modell filtern"
+      "filterByModel": "Scan-Ergebnisse nach Modell filtern"
     },
     "searchConsoleCard": {
       "description": "Prompt-Ideen aus den Suchanfragen, für die du in der Google Search Console rankst",
@@ -5200,6 +5206,8 @@
       "quotas": "Verbleibende Kontingente in deinem Tarif."
     },
     "plans": {
+      "renewalTerms": "{kind, select, trial {Nach deiner kostenlosen Testphase verlängert sich dein Basistarif für {price} pro {interval} automatisch, bis du kündigst. Kündige vor Ende der Testphase, um Kosten zu vermeiden.} trialRevert {Deine kostenlose Testphase endet ohne automatische Zahlung. Ein kostenpflichtiger Basistarif verlängert sich für {price} pro {interval} nur, wenn du ihn abonnierst.} other {Dein Basistarif verlängert sich für {price} pro {interval} automatisch, bis du kündigst.}} Verwalte oder kündige dein Abo in den Abrechnungseinstellungen.",
+      "addonExtra": "Ausgewählte Add-ons kosten zusätzlich.",
       "tierDescription": "{tier, select, starter {Für Gründer, die ihre ersten Prompts tracken.} growth {Für Teams, die Prompts über Engines und Sprachen hinweg tracken.} scale {Für Agenturen und Teams mit mehreren Marken.} other {}}",
       "features": {
         "aiAnswers": "{count, number} getrackte KI-Antworten / Monat",
@@ -6213,7 +6221,9 @@
     "activityDescription": "Deine Inhaltserstellung im Jahresverlauf",
     "emptyAction": "Inhalte ansehen",
     "emptyDescription": "Du hast heute noch keine neuen Beiträge. Erstelle jetzt einen oder sieh dir deine Entwürfe auf der Inhaltsseite an.",
-    "emptyTitle": "Heute noch keine Inhalte erstellt"
+    "emptyTitle": "Heute noch keine Inhalte erstellt",
+    "upgradeTitle": "Mit Studio Inhalte erstellen",
+    "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
   },
   "ai": {
     "subagent": {

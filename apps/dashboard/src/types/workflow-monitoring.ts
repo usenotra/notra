@@ -21,6 +21,7 @@ export interface WorkflowTelemetryEvent extends Record<string, unknown> {
     | "backend.dependency.checked"
     | "geo.scan.schedule.overdue"
     | "geo.scan.alert.failed"
+    | "workflow.alert.failed"
     | "geo.scan.watchdog.failed";
   outcome?: "success" | "error";
   runId?: string;

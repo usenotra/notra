@@ -13,7 +13,11 @@ import {
   buildBreadcrumbJsonLd,
   serializeJsonLd,
 } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -53,7 +57,7 @@ export async function generateMetadata({
   return {
     title: { absolute: entry.title },
     description: entry.description,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title: entry.title,
       description: entry.description,

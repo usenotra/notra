@@ -44,13 +44,14 @@ export default defineConfig({
   logo: {
     image: {
       alt: "Notra logo",
-      dark: "/logo.svg",
-      light: "/logo.svg",
+      dark: "/logo-dark.svg",
+      light: "/logo-light.svg",
     },
     text: "Notra UI",
   },
   navigation: {
     sidebar: { display: "group" },
+    tabs: [{ href: "/introduction", label: "Docs", path: "/" }],
   },
   seo: {
     og: {

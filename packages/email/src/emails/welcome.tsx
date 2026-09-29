@@ -1,5 +1,7 @@
 import { Body, Head, Html, Link, Preview, Text } from "react-email";
 
+import { EmailFooter } from "../components/footer";
+
 export const WelcomeEmail = () => {
   return (
     <Html>
@@ -35,19 +37,7 @@ export const WelcomeEmail = () => {
           Dominik & The Notra Team
         </Text>
 
-        <Text style={{ fontSize: "12px", color: "#999", marginTop: "32px" }}>
-          <Link href="https://usenotra.com/legal" style={{ color: "#999" }}>
-            Legal Notice
-          </Link>
-          {" · "}
-          <Link href="https://usenotra.com/privacy" style={{ color: "#999" }}>
-            Privacy Policy
-          </Link>
-          {" · "}
-          <Link href="https://usenotra.com/terms" style={{ color: "#999" }}>
-            Terms of Service
-          </Link>
-        </Text>
+        <EmailFooter />
       </Body>
     </Html>
   );
