@@ -4,6 +4,12 @@ export const LANDING_SECTIONS: LandingSection[] = [
   {
     items: [
       {
+        description:
+          "The gradient marketing buttons from the Notra landing page.",
+        href: "/components/marketing-button",
+        title: "Marketing Button",
+      },
+      {
         description: "A muted header band tucked behind the content card.",
         href: "/components/tooltip",
         preview: "tooltip",
