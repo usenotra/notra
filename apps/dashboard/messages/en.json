@@ -6234,18 +6234,19 @@
         "fallback": "Subagent"
       },
       "activity": {
-        "codeResearcher": "{state, select, running {Reading the repository} done {Read the repository} skipped {Skipped, no brief} other {Could not read the repository}}",
-        "contentWriter": "{state, select, running {Writing the post} done {Wrote the post} other {Could not write the post}}",
-        "imageDesigner": "{state, select, running {Designing the image} done {Designed the image} other {Could not design the image}}",
-        "fallback": "{state, select, running {Working} done {Done} other {Failed}}"
+        "codeResearcher": "{state, select, running {Reading the repository} done {Read the repository} skipped {Skipped, no brief} notFound {Feature not found in the code} interrupted {Interrupted} other {Could not read the repository}}",
+        "contentWriter": "{state, select, running {Writing the post} done {Wrote the post} skipped {Skipped the post} notFound {Nothing to write about} interrupted {Interrupted} other {Could not write the post}}",
+        "imageDesigner": "{state, select, running {Designing the image} done {Designed the image} skipped {Skipped the image} notFound {Nothing to design} interrupted {Interrupted} other {Could not design the image}}",
+        "fallback": "{state, select, running {Working} done {Done} skipped {Skipped} notFound {Nothing found} interrupted {Interrupted} other {Failed}}"
       },
-      "steps": "{count, plural, =0 {starting} one {# step} other {# steps}}",
+      "steps": "{count, plural, =0 {no steps} one {# step} other {# steps}}",
       "result": {
         "brief": "Brief: {feature}",
-        "draft": "Saved draft: {title}",
-        "draftUntitled": "Saved draft",
-        "skipped": "No brief: {reason}",
-        "skippedUnknown": "No brief"
+        "draft": "{title, select, none {Saved draft} other {Saved draft: {title}}}",
+        "image": "{title, select, none {Saved image} other {Saved image: {title}}}",
+        "notFound": "{reason, select, none {Feature not found in the code} other {Not found: {reason}}}",
+        "skipped": "{reason, select, none {Skipped} other {Skipped: {reason}}}",
+        "failed": "{reason, select, none {Failed} other {Failed: {reason}}}"
       }
     },
     "toolBlock": {

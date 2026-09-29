@@ -34,6 +34,17 @@ const verifiedBoxes = new Map<
   { box: CodeResearchBoxHandle; verifiedAt: number }
 >();
 
+function rememberVerifiedBox(box: CodeResearchBoxHandle) {
+  const now = Date.now();
+  // Drop stale entries so a long-lived worker does not keep every box handle.
+  for (const [id, entry] of verifiedBoxes) {
+    if (now - entry.verifiedAt >= CODE_RESEARCH_BOX_VERIFY_INTERVAL_MS) {
+      verifiedBoxes.delete(id);
+    }
+  }
+  verifiedBoxes.set(box.id, { box, verifiedAt: now });
+}
+
 function isBoxGoneError(error: unknown): boolean {
   return error instanceof BoxError && error.statusCode === NOT_FOUND_STATUS;
 }
@@ -87,32 +98,32 @@ export async function createCodeResearchBox(params: {
   repository: CodeResearchRepository;
   token: string | null;
 }): Promise<{ box: CodeResearchBoxHandle; expiresAt: number }> {
-  const box = await withBoxRetry(() =>
-    EphemeralBox.create({
-      apiKey: requireBoxApiKey(),
-      baseUrl: BOX_BASE_URL,
-      name: `${CODE_RESEARCH_BOX_NAME_PREFIX}${params.repository.integrationId.slice(0, 12)}-${Date.now().toString(36)}`,
-      runtime: "node",
-      size: "small",
-      ttl: CODE_RESEARCH_BOX_TTL_SECONDS,
-      timeout: CODE_RESEARCH_BOX_REQUEST_TIMEOUT_MS,
-      networkPolicy: {
-        mode: "custom",
-        allowedDomains: CODE_RESEARCH_ALLOWED_DOMAINS,
-      },
-      ...(params.token
-        ? {
-            attachHeaders: Object.fromEntries(
-              CODE_RESEARCH_ALLOWED_DOMAINS.map((domain) => [
-                domain,
-                { Authorization: toBasicAuthHeader(params.token ?? "") },
-              ])
-            ),
-          }
-        : {}),
-    })
-  );
-  verifiedBoxes.set(box.id, { box, verifiedAt: Date.now() });
+  // Not retried: if the response were lost after the box was created, a
+  // retry would leave the first box running until its TTL.
+  const box = await EphemeralBox.create({
+    apiKey: requireBoxApiKey(),
+    baseUrl: BOX_BASE_URL,
+    name: `${CODE_RESEARCH_BOX_NAME_PREFIX}${params.repository.integrationId.slice(0, 12)}-${Date.now().toString(36)}`,
+    runtime: "node",
+    size: "small",
+    ttl: CODE_RESEARCH_BOX_TTL_SECONDS,
+    timeout: CODE_RESEARCH_BOX_REQUEST_TIMEOUT_MS,
+    networkPolicy: {
+      mode: "custom",
+      allowedDomains: CODE_RESEARCH_ALLOWED_DOMAINS,
+    },
+    ...(params.token
+      ? {
+          attachHeaders: Object.fromEntries(
+            CODE_RESEARCH_ALLOWED_DOMAINS.map((domain) => [
+              domain,
+              { Authorization: toBasicAuthHeader(params.token ?? "") },
+            ])
+          ),
+        }
+      : {}),
+  });
+  rememberVerifiedBox(box);
   return { box, expiresAt: box.expiresAt };
 }
 
@@ -136,7 +147,7 @@ export async function attachCodeResearchBox(
     );
     // Box.get still resolves for deleted boxes; only the status call 404s.
     await withBoxRetry(() => box.getStatus());
-    verifiedBoxes.set(boxId, { box, verifiedAt: Date.now() });
+    rememberVerifiedBox(box);
     return box;
   } catch (error) {
     if (isBoxGoneError(error)) {

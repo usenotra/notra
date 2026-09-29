@@ -9,7 +9,10 @@ export interface ChatSubagentConfig {
 export type ChatSubagentResult =
   | { kind: "brief"; feature: string }
   | { kind: "draft"; title: string | null }
-  | { kind: "skipped"; reason: string | null };
+  | { kind: "image"; title: string | null }
+  | { kind: "notFound"; reason: string | null }
+  | { kind: "skipped"; reason: string | null }
+  | { kind: "failed"; reason: string | null };
 
 export interface ChatSubagentStep {
   toolCallId: string;

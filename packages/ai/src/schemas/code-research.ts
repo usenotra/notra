@@ -71,5 +71,5 @@ export const codeResearchBriefSchema = z.object({
     .string()
     .nullable()
     .default(null)
-    .describe("Required for not_found and unavailable: what went wrong"),
+    .describe("For not_found and unavailable, explain what went wrong"),
 });

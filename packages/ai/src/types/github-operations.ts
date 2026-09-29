@@ -145,5 +145,15 @@ export interface GitHubCredentialDependencies {
 /** Narrows a minted installation token below the app's full permissions. */
 export interface GitHubInstallationTokenScope {
   repositories?: string[];
-  permissions?: Record<string, "read" | "write">;
+  permissions?: Partial<
+    Record<
+      | "contents"
+      | "metadata"
+      | "pull_requests"
+      | "issues"
+      | "checks"
+      | "statuses",
+      "read" | "write"
+    >
+  >;
 }

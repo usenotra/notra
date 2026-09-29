@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  getChatSubagentResult,
-  isChatSubagentName,
-  isSkippedSubagentOutput,
-} from "./chat-subagents";
+import { getChatSubagentResult, isChatSubagentName } from "./chat-subagents";
 
 describe("isChatSubagentName", () => {
   test("recognizes declared subagents only", () => {
@@ -34,17 +30,43 @@ describe("getChatSubagentResult", () => {
     ).toEqual({ kind: "draft", title: "Skills got faster" });
   });
 
-  test("marks unavailable research as skipped", () => {
-    const output = { status: "unavailable", reason: "Disabled" };
-    expect(getChatSubagentResult("code-researcher", output)).toEqual({
-      kind: "skipped",
-      reason: "Disabled",
-    });
-    expect(isSkippedSubagentOutput(output)).toBe(true);
+  test("reads the image designer's top-level title", () => {
+    expect(
+      getChatSubagentResult("image-designer", {
+        status: "updated",
+        title: "Launch card",
+      })
+    ).toEqual({ kind: "image", title: "Launch card" });
+  });
+
+  test("keeps not_found, skipped, and failed apart", () => {
+    expect(
+      getChatSubagentResult("code-researcher", {
+        status: "not_found",
+        reason: "No match",
+      })
+    ).toEqual({ kind: "notFound", reason: "No match" });
+    expect(
+      getChatSubagentResult("code-researcher", {
+        status: "unavailable",
+        reason: "Disabled",
+      })
+    ).toEqual({ kind: "skipped", reason: "Disabled" });
+    expect(
+      getChatSubagentResult("content-writer", {
+        status: "skipped",
+        reason: "No changes",
+      })
+    ).toEqual({ kind: "skipped", reason: "No changes" });
+    expect(
+      getChatSubagentResult("image-designer", {
+        status: "failed",
+        reason: null,
+      })
+    ).toEqual({ kind: "failed", reason: null });
   });
 
   test("returns nothing for unknown output", () => {
     expect(getChatSubagentResult("content-writer", undefined)).toBeNull();
-    expect(isSkippedSubagentOutput({ status: "created" })).toBe(false);
   });
 });

@@ -6234,18 +6234,19 @@
         "fallback": "Subagent"
       },
       "activity": {
-        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} other {Repository konnte nicht gelesen werden}}",
-        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} other {Post konnte nicht geschrieben werden}}",
-        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} other {Bild konnte nicht gestaltet werden}}",
-        "fallback": "{state, select, running {Arbeitet} done {Fertig} other {Fehlgeschlagen}}"
+        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} notFound {Feature im Code nicht gefunden} interrupted {Unterbrochen} other {Repository konnte nicht gelesen werden}}",
+        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} skipped {Post übersprungen} notFound {Nichts zum Schreiben gefunden} interrupted {Unterbrochen} other {Post konnte nicht geschrieben werden}}",
+        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} skipped {Bild übersprungen} notFound {Nichts zu gestalten} interrupted {Unterbrochen} other {Bild konnte nicht gestaltet werden}}",
+        "fallback": "{state, select, running {Arbeitet} done {Fertig} skipped {Übersprungen} notFound {Nichts gefunden} interrupted {Unterbrochen} other {Fehlgeschlagen}}"
       },
-      "steps": "{count, plural, =0 {startet} one {# Schritt} other {# Schritte}}",
+      "steps": "{count, plural, =0 {keine Schritte} one {# Schritt} other {# Schritte}}",
       "result": {
         "brief": "Briefing: {feature}",
-        "draft": "Entwurf gespeichert: {title}",
-        "draftUntitled": "Entwurf gespeichert",
-        "skipped": "Kein Briefing: {reason}",
-        "skippedUnknown": "Kein Briefing"
+        "draft": "{title, select, none {Entwurf gespeichert} other {Entwurf gespeichert: {title}}}",
+        "image": "{title, select, none {Bild gespeichert} other {Bild gespeichert: {title}}}",
+        "notFound": "{reason, select, none {Feature im Code nicht gefunden} other {Nicht gefunden: {reason}}}",
+        "skipped": "{reason, select, none {Übersprungen} other {Übersprungen: {reason}}}",
+        "failed": "{reason, select, none {Fehlgeschlagen} other {Fehlgeschlagen: {reason}}}"
       }
     },
     "toolBlock": {

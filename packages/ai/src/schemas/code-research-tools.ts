@@ -3,7 +3,7 @@ import { z } from "zod";
 const integrationId = z
   .string()
   .describe(
-    "The GitHub integrationId of the repository. Use get_available_integrations to discover it."
+    "The GitHub integrationId of the repository, as listed by the available integrations tool."
   );
 
 const repoPath = z

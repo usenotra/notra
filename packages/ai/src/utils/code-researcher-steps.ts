@@ -71,7 +71,11 @@ export function finishStep(
       return step;
     }
     return result.errorText
-      ? { ...step, state: "output-error", errorText: result.errorText }
+      ? {
+          ...step,
+          state: "output-error",
+          errorText: String(compactStepValue(result.errorText)),
+        }
       : {
           ...step,
           state: "output-available",

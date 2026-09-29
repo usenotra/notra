@@ -77,8 +77,15 @@ export function useCodeResearchPlayback() {
 
   const stepBack = useCallback(() => {
     setIsPlaying(false);
-    setCursor((value) => Math.max(startAt, value - 1));
-  }, [startAt]);
+    setCursor((value) => {
+      // Mirror stepForward: undo trailing zero-delay steps with the visible one.
+      let previous = Math.max(startAt, value - 1);
+      while (previous > startAt && steps[previous]?.delayMs === 0) {
+        previous -= 1;
+      }
+      return previous;
+    });
+  }, [startAt, steps]);
 
   const restart = useCallback(() => {
     setIsPlaying(false);

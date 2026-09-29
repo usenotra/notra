@@ -15,6 +15,7 @@ import {
   isDeniedRepoPath,
   normalizeRepoPath,
   parseCommandOutput,
+  parseCommitLines,
   parseListFiles,
   parseSearchMatches,
   parseShowChange,
@@ -143,6 +144,22 @@ describe("parseSearchMatches", () => {
   });
 });
 
+describe("secret handling in results", () => {
+  test("redacts a long secret before clipping the search line", () => {
+    const token = `ghp_${"a".repeat(40)}`;
+    const line = `src/a.ts:1:${"x".repeat(280)} ${token}`;
+    const { matches } = parseSearchMatches(line, 5);
+    expect(matches[0]?.text).not.toContain("ghp_");
+  });
+
+  test("redacts secrets in commit subjects", () => {
+    const [commit] = parseCommitLines(
+      `${"a".repeat(40)}\u001fJan\u001f2026-09-29\u001ffix: rotate ghp_${"b".repeat(36)}`
+    );
+    expect(commit?.subject).not.toContain("ghp_");
+  });
+});
+
 describe("parseListFiles", () => {
   test("collapses large listings into directories", () => {
     const files = [
@@ -245,6 +262,17 @@ describe("git scripts", () => {
     expect(script).toContain("credential.helper=");
     expect(script).toContain(`'${CODE_RESEARCH_REPO_DIR}'`);
     expect(script).not.toContain("x-access-token");
+  });
+
+  test("accepts valid git branch names such as feature/@alice", () => {
+    expect(
+      buildCheckoutScript({ kind: "branch", branch: "feature/@alice" }, "main")
+    ).toContain("refs/heads/feature/@alice");
+    for (const branch of ["a b", "x~1", "@", "feat/.hidden", "a@{1}", "-rf"]) {
+      expect(() =>
+        buildCheckoutScript({ kind: "branch", branch }, "main")
+      ).toThrow();
+    }
   });
 
   test("rejects option-like and traversal refs", () => {

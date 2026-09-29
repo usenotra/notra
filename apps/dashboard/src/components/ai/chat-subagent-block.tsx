@@ -28,24 +28,37 @@ import type {
 import {
   getChatSubagentResult,
   isChatSubagentName,
-  isSkippedSubagentOutput,
 } from "@/utils/chat-subagents";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 
-type SubagentOutcome = "running" | "done" | "failed" | "skipped";
+type SubagentOutcome =
+  | "running"
+  | "interrupted"
+  | "done"
+  | "failed"
+  | "skipped"
+  | "notFound";
 
 function getOutcome(params: {
-  isStreaming: boolean;
+  isPending: boolean;
+  isActive: boolean;
   isError: boolean;
-  isSkipped: boolean;
+  result: ChatSubagentResult | null;
 }): SubagentOutcome {
-  if (params.isStreaming) {
-    return "running";
+  if (params.isPending) {
+    // A pending run whose message stopped streaming never finished.
+    return params.isActive ? "running" : "interrupted";
   }
-  if (params.isError) {
+  if (params.isError || params.result?.kind === "failed") {
     return "failed";
   }
-  return params.isSkipped ? "skipped" : "done";
+  if (params.result?.kind === "skipped") {
+    return "skipped";
+  }
+  if (params.result?.kind === "notFound") {
+    return "notFound";
+  }
+  return "done";
 }
 
 function describeResult(
@@ -63,13 +76,15 @@ function describeResult(
     case "brief":
       return t("result.brief", { feature: result.feature });
     case "draft":
-      return result.title
-        ? t("result.draft", { title: result.title })
-        : t("result.draftUntitled");
+      return t("result.draft", { title: result.title ?? "none" });
+    case "image":
+      return t("result.image", { title: result.title ?? "none" });
+    case "notFound":
+      return t("result.notFound", { reason: result.reason ?? "none" });
     case "skipped":
-      return result.reason
-        ? t("result.skipped", { reason: result.reason })
-        : t("result.skippedUnknown");
+      return t("result.skipped", { reason: result.reason ?? "none" });
+    case "failed":
+      return t("result.failed", { reason: result.reason ?? "none" });
     default: {
       const exhaustive: never = result;
       return exhaustive;
@@ -102,15 +117,10 @@ export function ChatSubagentBlock({
   const isPending = state === "input-streaming" || state === "input-available";
   const isStreaming = isActive && isPending;
   const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
-  const outcome = getOutcome({
-    isStreaming,
-    isError,
-    isSkipped: !isPending && isSkippedSubagentOutput(output),
-  });
+  const result = isPending ? null : getChatSubagentResult(agentName, output);
+  const outcome = getOutcome({ isPending, isActive, isError, result });
   const activity = t(`activity.${config.labelKey}`, { state: outcome });
-  const summary = isPending
-    ? null
-    : describeResult(getChatSubagentResult(agentName, output), errorText, t);
+  const summary = isPending ? null : describeResult(result, errorText, t);
   const hasBody = Boolean(children) || Boolean(summary);
 
   return (

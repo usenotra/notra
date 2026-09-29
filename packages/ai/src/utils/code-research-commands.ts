@@ -21,7 +21,8 @@ import {
   CODE_RESEARCH_REDACTED,
   CODE_RESEARCH_REDACTION_PATTERNS,
   CODE_RESEARCH_REPO_DIR,
-  CODE_RESEARCH_SAFE_REF_PATTERN,
+  CODE_RESEARCH_INVALID_REF_CHARS,
+  CODE_RESEARCH_MAX_REF_LENGTH,
 } from "@notra/ai/constants/code-research";
 import type {
   CodeResearchCommandResult,
@@ -144,13 +145,38 @@ export function truncateText(
   return { text: sliced, truncated: true };
 }
 
+const FIRST_PRINTABLE_CODE_POINT = 0x20;
+const DELETE_CODE_POINT = 0x7f;
+
+function hasControlCharacters(value: string): boolean {
+  for (const char of value) {
+    const code = char.codePointAt(0) ?? 0;
+    if (code < FIRST_PRINTABLE_CODE_POINT || code === DELETE_CODE_POINT) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Follows git-check-ref-format; values are shell-quoted separately.
 function assertSafeRef(ref: string, label: string): string {
   const trimmed = ref.trim();
-  if (
-    !CODE_RESEARCH_SAFE_REF_PATTERN.test(trimmed) ||
-    trimmed.includes("..") ||
-    trimmed.endsWith(".lock")
-  ) {
+  const isValid =
+    trimmed.length > 0 &&
+    trimmed.length <= CODE_RESEARCH_MAX_REF_LENGTH &&
+    !CODE_RESEARCH_INVALID_REF_CHARS.test(trimmed) &&
+    !hasControlCharacters(trimmed) &&
+    !trimmed.startsWith("-") &&
+    !trimmed.startsWith("/") &&
+    !trimmed.endsWith("/") &&
+    !trimmed.endsWith(".") &&
+    !trimmed.endsWith(".lock") &&
+    !trimmed.includes("..") &&
+    !trimmed.includes("//") &&
+    !trimmed.includes("@{") &&
+    trimmed !== "@" &&
+    !trimmed.split("/").some((segment) => segment.startsWith("."));
+  if (!isValid) {
     throw new Error(`Invalid ${label} "${ref}".`);
   }
   return trimmed;
@@ -323,9 +349,9 @@ export function parseCommitLines(output: string): CodeResearchCommit[] {
     .filter((fields) => fields.length >= 4 && fields[0])
     .map(([sha = "", author = "", date = "", ...subject]) => ({
       sha,
-      author,
+      author: redactSecrets(author),
       date,
-      subject: subject.join(FIELD_SEPARATOR),
+      subject: redactSecrets(subject.join(FIELD_SEPARATOR)),
     }));
 }
 
@@ -515,15 +541,15 @@ export function parseSearchMatches(
       truncated = true;
       break;
     }
-    const clipped = text.trim();
+    // Redact first: clipping could cut a secret short of its pattern.
+    const redacted = redactSecrets(text.trim());
     matches.push({
       path,
       line: Number.parseInt(lineNumber, 10),
-      text: redactSecrets(
-        clipped.length > CODE_RESEARCH_LINE_MAX_CHARS
-          ? `${clipped.slice(0, CODE_RESEARCH_LINE_MAX_CHARS)}…`
-          : clipped
-      ),
+      text:
+        redacted.length > CODE_RESEARCH_LINE_MAX_CHARS
+          ? `${redacted.slice(0, CODE_RESEARCH_LINE_MAX_CHARS)}…`
+          : redacted,
     });
   }
   return { matches, truncated, hiddenPaths: hidden.size };

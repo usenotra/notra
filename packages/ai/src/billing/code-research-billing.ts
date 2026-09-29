@@ -21,7 +21,7 @@ export async function trackCodeResearchUsage(params: {
   if (
     !autumn ||
     allowUnmeteredAiInDevelopment ||
-    params.chargeAiCredits === false
+    params.chargeAiCredits !== true
   ) {
     return;
   }

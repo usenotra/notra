@@ -25,6 +25,7 @@ export const CODE_RESEARCH_COMMAND_TIMEOUT_SECONDS = 45;
 
 // Covers box creation plus clone and checkout, each capped at 180 s.
 export const CODE_RESEARCH_LEASE_TTL_SECONDS = 600;
+export const CODE_RESEARCH_LEASE_RENEW_MS = 60_000;
 export const CODE_RESEARCH_LEASE_WAIT_MS = 200_000;
 export const CODE_RESEARCH_LEASE_POLL_MS = 1500;
 
@@ -87,8 +88,10 @@ export const CODE_RESEARCH_ENV_SECRET_PATTERN =
 
 export const CODE_RESEARCH_REDACTED = "[redacted]";
 
-export const CODE_RESEARCH_SAFE_REF_PATTERN =
-  /^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$/;
+// Characters git refuses in ref names, plus whitespace. Control characters
+// are checked by code point in assertSafeRef.
+export const CODE_RESEARCH_INVALID_REF_CHARS = /[\s~^:?*[\\]/;
+export const CODE_RESEARCH_MAX_REF_LENGTH = 200;
 export const CODE_RESEARCH_FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
 export const CODE_RESEARCHER_TOOL_NAME = "code-researcher";

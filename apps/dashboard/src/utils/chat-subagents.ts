@@ -4,8 +4,6 @@ import type {
   ChatSubagentStep,
 } from "@/types/components/chat-subagent-block";
 
-const SKIPPED_STATUSES = new Set(["unavailable", "not_found"]);
-
 export function isChatSubagentName(toolName: string): boolean {
   return Object.hasOwn(CHAT_SUBAGENTS, toolName);
 }
@@ -46,23 +44,35 @@ export function getChatSubagentErrorText(output: unknown): string | undefined {
   return isError === true && typeof error === "string" ? error : undefined;
 }
 
-/** Finished, but returned without doing its job (for example, no brief). */
-export function isSkippedSubagentOutput(output: unknown): boolean {
-  return SKIPPED_STATUSES.has(readString(output, "status") ?? "");
-}
-
-/** The one-line outcome shown under a finished subagent. */
+/**
+ * The outcome shown under a finished subagent. Each subagent reports its own
+ * statuses: the researcher found/not_found/unavailable, the writer
+ * created/skipped/failed, the image designer created/updated/failed.
+ */
 export function getChatSubagentResult(
   agentName: string,
   output: unknown
 ): ChatSubagentResult | null {
   const status = readString(output, "status");
-  if (status && SKIPPED_STATUSES.has(status)) {
-    return { kind: "skipped", reason: readString(output, "reason") };
+  const reason = readString(output, "reason");
+  if (status === "failed") {
+    return { kind: "failed", reason };
+  }
+  if (status === "skipped" || status === "unavailable") {
+    return { kind: "skipped", reason };
+  }
+  if (status === "not_found") {
+    return { kind: "notFound", reason };
   }
   if (agentName === "code-researcher" && status === "found") {
     const feature = readString(output, "feature");
     return feature ? { kind: "brief", feature } : null;
+  }
+  if (
+    agentName === "image-designer" &&
+    (status === "created" || status === "updated")
+  ) {
+    return { kind: "image", title: readString(output, "title") };
   }
   if (status === "created") {
     const posts = (output as { posts?: unknown[] }).posts;

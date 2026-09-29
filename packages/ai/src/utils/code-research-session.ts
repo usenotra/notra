@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import {
   CODE_RESEARCH_BOX_REUSE_MARGIN_SECONDS,
   CODE_RESEARCH_LEASE_POLL_MS,
+  CODE_RESEARCH_LEASE_RENEW_MS,
   CODE_RESEARCH_LEASE_TTL_SECONDS,
   CODE_RESEARCH_LEASE_WAIT_MS,
   CODE_RESEARCH_TOKEN_SCOPE,
@@ -26,6 +27,9 @@ import {
   isSameTarget,
 } from "@notra/ai/utils/code-research-commands";
 import { redis } from "@notra/ai/utils/redis";
+import { db } from "@notra/db/drizzle";
+import { githubIntegrations } from "@notra/db/schema";
+import { and, eq } from "drizzle-orm";
 
 // Without Redis (local dev) boxes are only reused within one process.
 const memoryStates = new Map<string, CodeResearchWorkspaceState>();
@@ -76,8 +80,15 @@ async function clearState(key: string) {
   await redis.del(key);
 }
 
+// Without Redis (local dev) leases only guard callers in this process.
+const memoryLeases = new Set<string>();
+
 async function acquireLease(key: string, owner: string) {
   if (!redis) {
+    if (memoryLeases.has(key)) {
+      return false;
+    }
+    memoryLeases.add(key);
     return true;
   }
   const result = await redis.set(key, owner, {
@@ -94,11 +105,47 @@ const RELEASE_LEASE_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then
 end
 return 0`;
 
+const RENEW_LEASE_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then
+  return redis.call("expire", KEYS[1], ARGV[2])
+end
+return 0`;
+
 async function releaseLease(key: string, owner: string) {
   if (!redis) {
+    memoryLeases.delete(key);
     return;
   }
   await redis.eval(RELEASE_LEASE_SCRIPT, [key], [owner]);
+}
+
+/**
+ * Keeps the lease alive while `work` runs. Box creation, clone, and checkout
+ * can outlast a fixed TTL, and an expired lease would let a second caller
+ * build another box for the same session.
+ */
+async function withLeaseHeartbeat<T>(
+  key: string,
+  owner: string,
+  work: () => Promise<T>
+): Promise<T> {
+  const client = redis;
+  if (!client) {
+    return await work();
+  }
+  const timer = setInterval(() => {
+    client
+      .eval(
+        RENEW_LEASE_SCRIPT,
+        [key],
+        [owner, String(CODE_RESEARCH_LEASE_TTL_SECONDS)]
+      )
+      .catch(() => undefined);
+  }, CODE_RESEARCH_LEASE_RENEW_MS);
+  try {
+    return await work();
+  } finally {
+    clearInterval(timer);
+  }
 }
 
 function sleep(ms: number) {
@@ -128,6 +175,40 @@ async function reuseWorkspace(params: {
   return { box, state, reused: true };
 }
 
+/**
+ * Only GitHub App tokens can be narrowed to read-only access on one
+ * repository. Personal access tokens carry the user's full scopes, so they
+ * never enter a box: public repositories are cloned anonymously instead.
+ */
+async function resolveBoxToken(
+  integrationId: string,
+  organizationId: string,
+  scopedToken: string | undefined
+): Promise<string | null> {
+  const [integration] = await db
+    .select({
+      githubAppInstallationId: githubIntegrations.githubAppInstallationId,
+      githubRepositoryPrivate: githubIntegrations.githubRepositoryPrivate,
+    })
+    .from(githubIntegrations)
+    .where(
+      and(
+        eq(githubIntegrations.id, integrationId),
+        eq(githubIntegrations.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+  if (integration?.githubAppInstallationId) {
+    return scopedToken ?? null;
+  }
+  if (integration?.githubRepositoryPrivate === false) {
+    return null;
+  }
+  throw new Error(
+    "Code research needs the Notra GitHub App to read private repositories. Reconnect the repository through the GitHub App, then try again."
+  );
+}
+
 async function createWorkspace(params: {
   key: string;
   organizationId: string;
@@ -141,6 +222,11 @@ async function createWorkspace(params: {
       tokenScope: CODE_RESEARCH_TOKEN_SCOPE,
     }
   );
+  const token = await resolveBoxToken(
+    params.integrationId,
+    params.organizationId,
+    context.token
+  );
   const repository = {
     integrationId: context.integrationId,
     organizationId: context.organizationId,
@@ -152,7 +238,7 @@ async function createWorkspace(params: {
   const startedAt = Date.now();
   const { box, expiresAt } = await createCodeResearchBox({
     repository,
-    token: context.token ?? null,
+    token,
   });
   try {
     let headSha = await cloneRepositoryIntoBox(box, repository);
@@ -220,22 +306,24 @@ export async function acquireCodeResearchWorkspace(params: {
 
     if (await acquireLease(lease, owner)) {
       try {
-        const fresh = await readState(key);
-        if (fresh && isReusable(fresh)) {
-          const reused = await reuseWorkspace({
-            key,
-            state: fresh,
-            target: params.target,
-          });
-          if (reused) {
-            return reused;
+        return await withLeaseHeartbeat(lease, owner, async () => {
+          const fresh = await readState(key);
+          if (fresh && isReusable(fresh)) {
+            const reused = await reuseWorkspace({
+              key,
+              state: fresh,
+              target: params.target,
+            });
+            if (reused) {
+              return reused;
+            }
           }
-        }
-        return await createWorkspace({
-          key,
-          organizationId: params.organizationId,
-          integrationId: params.integrationId,
-          target: params.target ?? { kind: "default" },
+          return await createWorkspace({
+            key,
+            organizationId: params.organizationId,
+            integrationId: params.integrationId,
+            target: params.target ?? { kind: "default" },
+          });
         });
       } finally {
         await releaseLease(lease, owner);
