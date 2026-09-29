@@ -51,6 +51,7 @@ export default defineConfig({
   },
   navigation: {
     sidebar: { display: "group" },
+    tabs: [{ href: "/introduction", label: "Docs", path: "/" }],
   },
   seo: {
     og: {

@@ -19,7 +19,7 @@ const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
   favicon={config.favicon}
   fontCssVars={data.fontCssVars}
   logo={config.logo}
-  navigation={{ ...navigation, tabs: [{ label: "Docs", path: "/introduction" }] }}
+  navigation={navigation}
   page={{
     description: config.description,
     route: "/",
