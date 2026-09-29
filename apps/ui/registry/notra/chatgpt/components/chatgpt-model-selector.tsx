@@ -2,7 +2,12 @@
 
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import { type CSSProperties, useEffect, useState } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +18,10 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-import { CHATGPT_PRO_SPARKLES } from "../constants/chatgpt";
+import {
+  CHATGPT_PRO_SPARKLES,
+  CHATGPT_PRO_TWINKLES,
+} from "../constants/chatgpt";
 import {
   CHATGPT_EFFORTS,
   CHATGPT_LATEST_MODEL,
@@ -35,10 +43,10 @@ const PRO_EFFORT_ID: ChatgptEffortId = "pro";
 
 const sliderClassName = [
   "[&_[data-slot=slider-track]]:bg-chatgpt-slider-track [&_[data-slot=slider-track]]:h-6",
-  "[&_[data-slot=slider-range]]:bg-chatgpt-slider-fill [&_[data-slot=slider-range]]:before:absolute [&_[data-slot=slider-range]]:before:inset-0 [&_[data-slot=slider-range]]:before:bg-(image:--chatgpt-pro-gradient) [&_[data-slot=slider-range]]:before:opacity-0 [&_[data-slot=slider-range]]:before:transition-opacity [&_[data-slot=slider-range]]:before:duration-500 group-data-[pro=true]/slider:[&_[data-slot=slider-range]]:before:opacity-100",
+  "[&_[data-slot=slider-range]]:bg-chatgpt-slider-fill [&_[data-slot=slider-range]]:before:absolute [&_[data-slot=slider-range]]:before:inset-0 [&_[data-slot=slider-range]]:before:bg-(image:--chatgpt-pro-gradient) [&_[data-slot=slider-range]]:before:bg-size-[200%_100%] [&_[data-slot=slider-range]]:before:animate-chatgpt-flow motion-reduce:[&_[data-slot=slider-range]]:before:animate-none [&_[data-slot=slider-range]]:before:opacity-0 [&_[data-slot=slider-range]]:before:transition-opacity [&_[data-slot=slider-range]]:before:duration-500 group-data-[pro=true]/slider:[&_[data-slot=slider-range]]:before:opacity-100",
   // Ease the thumb and fill between stops, but follow the pointer 1:1 while dragging.
   "[&_[data-slot=slider-thumb]]:transition-[inset-inline-start,left,scale] [&_[data-slot=slider-thumb]]:duration-300 [&_[data-slot=slider-thumb]]:ease-[cubic-bezier(0.22,1,0.36,1)] [&_[data-slot=slider-range]]:transition-[width,inset-inline-start] [&_[data-slot=slider-range]]:duration-300 [&_[data-slot=slider-range]]:ease-[cubic-bezier(0.22,1,0.36,1)]",
-  "data-dragging:[&_[data-slot=slider-thumb]]:transition-none data-dragging:[&_[data-slot=slider-range]]:transition-none motion-reduce:[&_[data-slot=slider-thumb]]:transition-none motion-reduce:[&_[data-slot=slider-range]]:transition-none [&_[data-slot=slider-thumb]]:active:scale-95",
+  "group-data-[moving=true]/slider:[&_[data-slot=slider-thumb]]:transition-none group-data-[moving=true]/slider:[&_[data-slot=slider-range]]:transition-none motion-reduce:[&_[data-slot=slider-thumb]]:transition-none motion-reduce:[&_[data-slot=slider-range]]:transition-none [&_[data-slot=slider-thumb]]:active:scale-95",
   "[&_[data-slot=slider-thumb]]:bg-chatgpt-slider-thumb [&_[data-slot=slider-thumb]]:size-7 [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:shadow-[0_2px_8px_rgb(0_0_0/0.35)] [&_[data-slot=slider-thumb]]:ring-0 [&_[data-slot=slider-thumb]]:hover:ring-0 [&_[data-slot=slider-thumb]]:active:ring-0 [&_[data-slot=slider-thumb]]:focus-visible:ring-2 [&_[data-slot=slider-thumb]]:focus-visible:ring-chatgpt-focus/60",
 ].join(" ");
 
@@ -61,10 +69,33 @@ const effortText = (
   );
 };
 
+const useElementHeight = () => {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number>();
+
+  useLayoutEffect(() => {
+    if (!element) {
+      return;
+    }
+    // offsetHeight ignores the popup's zoom-in scale, unlike getBoundingClientRect.
+    setHeight(element.offsetHeight);
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) {
+        setHeight((entry.target as HTMLElement).offsetHeight);
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+
+  return [height, setElement] as const;
+};
+
 interface ModelListProps {
   model: ChatgptModelOption["id"];
   models: readonly ChatgptModelOption[];
-  onSelect: (model: ChatgptModelOption) => void;
+  /** Called with `undefined` when the selected model is pressed again. */
+  onSelect: (model: ChatgptModelOption | undefined) => void;
 }
 
 const ModelList = ({ model, models, onSelect }: ModelListProps) => (
@@ -73,9 +104,7 @@ const ModelList = ({ model, models, onSelect }: ModelListProps) => (
     className="w-full rounded-none"
     onValueChange={(next) => {
       const chosen = models.find((item) => item.id === next[0]);
-      if (chosen) {
-        onSelect(chosen);
-      }
+      onSelect(chosen);
     }}
     orientation="vertical"
     spacing={0}
@@ -115,6 +144,28 @@ export const ChatgptModelSelector = ({
 }: ChatgptModelSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"effort" | "models">("effort");
+  // Both views stay mounted in one grid cell, so the popup never changes size. Only the
+  // background card animates its height, which avoids the positioner lagging a frame behind.
+  const [effortHeight, effortRef] = useElementHeight();
+  const [modelsHeight, modelsRef] = useElementHeight();
+  const cardHeight = view === "effort" ? effortHeight : modelsHeight;
+
+  // The card only animates after its first measurement, so opening never plays a resize.
+  const [cardReady, setCardReady] = useState(false);
+  useEffect(() => {
+    if (!open) {
+      setCardReady(false);
+      return;
+    }
+    const frame = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setCardReady(true))
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
+
+  const [moving, setMoving] = useState(false);
+
+  const changeView = (next: "effort" | "models") => setView(next);
 
   const selectedModel =
     models.find((item) => item.id === model) ??
@@ -184,19 +235,39 @@ export const ChatgptModelSelector = ({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="bg-chatgpt-popover font-chatgpt text-chatgpt-fg shadow-chatgpt-menu data-open:zoom-in-90 data-closed:zoom-out-90 w-64 gap-2 rounded-3xl p-3 ring-0 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-0"
+        className="font-chatgpt text-chatgpt-fg data-open:zoom-in-90 data-closed:zoom-out-90 w-64 gap-0 rounded-3xl bg-transparent p-0 shadow-none ring-0 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-0"
         side="top"
         sideOffset={8}
       >
-        {view === "effort" ? (
-          <>
+        <div className="relative grid">
+          <div
+            aria-hidden="true"
+            className={cn(
+              "bg-chatgpt-popover shadow-chatgpt-menu absolute inset-x-0 bottom-0 rounded-3xl",
+              cardReady &&
+                "transition-[height] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
+            )}
+            style={{ height: cardHeight ?? "100%" }}
+          />
+          <div
+            className={cn(
+              "relative col-start-1 row-start-1 flex flex-col gap-2 self-end p-3 transition-[opacity,filter,translate] motion-reduce:transition-none",
+              view === "effort"
+                ? "blur-0 translate-y-0 opacity-100 delay-150 duration-300 ease-out"
+                : "pointer-events-none translate-y-1 opacity-0 blur-[2px] duration-150 ease-in"
+            )}
+            inert={view !== "effort"}
+            ref={effortRef}
+          >
             <Button
               aria-label={`Model: ${selectedModel.label}. Change model`}
               className="text-chatgpt-fg hover:bg-chatgpt-hover hover:text-chatgpt-fg focus-visible:ring-chatgpt-focus/35 dark:hover:bg-chatgpt-hover mx-auto h-8 gap-1 rounded-full border-0 px-3 text-base leading-none font-normal focus-visible:ring-2 active:not-aria-[haspopup]:translate-y-0"
-              onClick={() => setView("models")}
+              onClick={() => changeView("models")}
               variant="ghost"
             >
-              {effortText(selectedEffort, selectedModel, { compact: false })}
+              {effortText(selectedEffort, selectedModel, {
+                compact: false,
+              })}
               <ChevronRightIcon
                 aria-hidden="true"
                 className="text-chatgpt-muted size-3.5"
@@ -205,8 +276,18 @@ export const ChatgptModelSelector = ({
             </Button>
             <div
               className="group/slider relative px-0.5 pt-0.5 pb-1"
+              data-moving={moving}
               data-pro={isPro}
               data-slot="chatgpt-effort-slider"
+              // Clicking a stop eases the thumb there; only a real drag follows the pointer 1:1.
+              onPointerCancel={() => setMoving(false)}
+              onPointerDown={() => setMoving(false)}
+              onPointerMove={(event) => {
+                if (event.buttons > 0) {
+                  setMoving(true);
+                }
+              }}
+              onPointerUp={() => setMoving(false)}
             >
               <Slider
                 className={sliderClassName}
@@ -219,7 +300,7 @@ export const ChatgptModelSelector = ({
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10"
+                className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10 transition-opacity duration-500 group-data-[pro=true]/slider:opacity-0 motion-reduce:transition-none"
               >
                 {efforts.map((item, index) =>
                   index === effortIndex ? null : (
@@ -238,6 +319,25 @@ export const ChatgptModelSelector = ({
                   )
                 )}
               </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10 opacity-0 transition-opacity duration-500 group-data-[pro=true]/slider:opacity-100 motion-reduce:transition-none"
+              >
+                {CHATGPT_PRO_TWINKLES.map((star) => (
+                  <span
+                    className="animate-chatgpt-twinkle absolute rounded-full bg-white opacity-0 shadow-[0_0_4px_1px_rgb(255_255_255/0.7)] motion-reduce:animate-none motion-reduce:opacity-60"
+                    key={`${star.x}:${star.y}`}
+                    style={{
+                      animationDelay: `${star.delay}ms`,
+                      animationDuration: `${star.duration}ms`,
+                      height: star.size,
+                      left: `${star.x}%`,
+                      top: `${star.y}%`,
+                      width: star.size,
+                    }}
+                  />
+                ))}
+              </div>
               {isPro && burstActive ? (
                 <div
                   aria-hidden="true"
@@ -245,7 +345,10 @@ export const ChatgptModelSelector = ({
                 >
                   <div
                     className="absolute size-0"
-                    style={{ left: `calc(100% - ${THUMB_INSET})`, top: "50%" }}
+                    style={{
+                      left: `calc(100% - ${THUMB_INSET})`,
+                      top: "50%",
+                    }}
                   >
                     {CHATGPT_PRO_SPARKLES.map((sparkle) => (
                       <span
@@ -266,17 +369,29 @@ export const ChatgptModelSelector = ({
                 </div>
               ) : null}
             </div>
-          </>
-        ) : (
-          <ModelList
-            model={selectedModel.id}
-            models={models}
-            onSelect={(next) => {
-              onModelChange?.(next.id);
-              setView("effort");
-            }}
-          />
-        )}
+          </div>
+          <div
+            className={cn(
+              "relative col-start-1 row-start-1 flex flex-col gap-2 self-end p-3 transition-[opacity,filter,translate] motion-reduce:transition-none",
+              view === "models"
+                ? "blur-0 translate-y-0 opacity-100 delay-150 duration-300 ease-out"
+                : "pointer-events-none translate-y-1 opacity-0 blur-[2px] duration-150 ease-in"
+            )}
+            inert={view !== "models"}
+            ref={modelsRef}
+          >
+            <ModelList
+              model={selectedModel.id}
+              models={models}
+              onSelect={(next) => {
+                if (next) {
+                  onModelChange?.(next.id);
+                }
+                changeView("effort");
+              }}
+            />
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );

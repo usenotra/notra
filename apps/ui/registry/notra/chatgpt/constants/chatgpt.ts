@@ -32,6 +32,20 @@ export const CHATGPT_PRO_SPARKLES = [
   { delay: 70, size: 2, x: 18, y: 16 },
 ] as const;
 
+/** Stars inside the Pro track: position in % of the track, size in px, and animation timing in ms. */
+export const CHATGPT_PRO_TWINKLES = [
+  { delay: 0, duration: 3000, size: 2, x: 6, y: 32 },
+  { delay: 900, duration: 3600, size: 3, x: 15, y: 66 },
+  { delay: 400, duration: 2800, size: 2, x: 24, y: 28 },
+  { delay: 1500, duration: 3400, size: 2, x: 33, y: 60 },
+  { delay: 700, duration: 3200, size: 3, x: 43, y: 36 },
+  { delay: 2100, duration: 3800, size: 2, x: 52, y: 70 },
+  { delay: 300, duration: 3000, size: 2, x: 61, y: 30 },
+  { delay: 1200, duration: 3500, size: 3, x: 70, y: 62 },
+  { delay: 1800, duration: 2900, size: 2, x: 79, y: 34 },
+  { delay: 600, duration: 3300, size: 2, x: 87, y: 64 },
+] as const;
+
 export const CHATGPT_CHIP_HOVER_OPEN_DELAY_MS = 150;
 
 export const CHATGPT_CHIP_HOVER_CLOSE_DELAY_MS = 120;

@@ -2917,7 +2917,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -2944,7 +2944,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3032,7 +3032,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3059,7 +3059,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3142,7 +3142,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3169,7 +3169,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3265,7 +3265,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3292,7 +3292,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3385,7 +3385,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3412,7 +3412,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3519,7 +3519,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3546,7 +3546,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3655,7 +3655,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3682,7 +3682,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3771,7 +3771,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3798,7 +3798,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3873,7 +3873,9 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+          "animate-chatgpt-flow": "chatgpt-flow 7s linear infinite",
+          "animate-chatgpt-twinkle": "chatgpt-twinkle 3.2s ease-in-out infinite"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -3900,7 +3902,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -3927,7 +3929,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -3966,6 +3968,28 @@
           "100%": {
             "opacity": "0",
             "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
+          }
+        },
+        "@keyframes chatgpt-flow": {
+          "from": {
+            "background-position": "0% 0"
+          },
+          "to": {
+            "background-position": "200% 0"
+          }
+        },
+        "@keyframes chatgpt-twinkle": {
+          "0%": {
+            "opacity": "0",
+            "transform": "translateX(14px) scale(0.5)"
+          },
+          "30%, 60%": {
+            "opacity": "0.95",
+            "transform": "translateX(0) scale(1)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translateX(-16px) scale(0.6)"
           }
         }
       }
@@ -4013,7 +4037,9 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+          "animate-chatgpt-flow": "chatgpt-flow 7s linear infinite",
+          "animate-chatgpt-twinkle": "chatgpt-twinkle 3.2s ease-in-out infinite"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -4040,7 +4066,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -4067,7 +4093,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -4111,6 +4137,28 @@
           "100%": {
             "opacity": "0",
             "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
+          }
+        },
+        "@keyframes chatgpt-flow": {
+          "from": {
+            "background-position": "0% 0"
+          },
+          "to": {
+            "background-position": "200% 0"
+          }
+        },
+        "@keyframes chatgpt-twinkle": {
+          "0%": {
+            "opacity": "0",
+            "transform": "translateX(14px) scale(0.5)"
+          },
+          "30%, 60%": {
+            "opacity": "0.95",
+            "transform": "translateX(0) scale(1)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translateX(-16px) scale(0.6)"
           }
         }
       }
@@ -4166,7 +4214,9 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+          "animate-chatgpt-flow": "chatgpt-flow 7s linear infinite",
+          "animate-chatgpt-twinkle": "chatgpt-twinkle 3.2s ease-in-out infinite"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -4193,7 +4243,7 @@
           "chatgpt-slider-dot": "#a3a3a3",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 60%)",
           "chatgpt-pro": "#7c3aed",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         },
         "dark": {
           "chatgpt-bg": "#212121",
@@ -4220,7 +4270,7 @@
           "chatgpt-slider-dot": "#8c8c8c",
           "chatgpt-slider-dot-fill": "rgb(255 255 255 / 55%)",
           "chatgpt-pro": "#b794f6",
-          "chatgpt-pro-gradient": "radial-gradient(circle at 14% 42%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), radial-gradient(circle at 31% 68%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 52% 30%, rgb(255 255 255 / 0.8) 0 0.6px, transparent 1.4px), radial-gradient(circle at 70% 62%, rgb(255 255 255 / 0.7) 0 0.6px, transparent 1.4px), radial-gradient(circle at 86% 38%, rgb(255 255 255 / 0.85) 0 0.6px, transparent 1.4px), linear-gradient(90deg, #2b3fd6 0%, #6a5be2 48%, #a56cf0 100%)"
+          "chatgpt-pro-gradient": "linear-gradient(90deg, #2b3fd6 0%, #6a5be2 25%, #b58cf5 50%, #6a5be2 75%, #2b3fd6 100%)"
         }
       },
       "files": [
@@ -4334,6 +4384,28 @@
           "100%": {
             "opacity": "0",
             "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
+          }
+        },
+        "@keyframes chatgpt-flow": {
+          "from": {
+            "background-position": "0% 0"
+          },
+          "to": {
+            "background-position": "200% 0"
+          }
+        },
+        "@keyframes chatgpt-twinkle": {
+          "0%": {
+            "opacity": "0",
+            "transform": "translateX(14px) scale(0.5)"
+          },
+          "30%, 60%": {
+            "opacity": "0.95",
+            "transform": "translateX(0) scale(1)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translateX(-16px) scale(0.6)"
           }
         }
       }
