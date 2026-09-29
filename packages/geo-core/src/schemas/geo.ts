@@ -127,13 +127,25 @@ export const geoSettingsEngineAddInputSchema =
     engine: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
   });
 
+const geoSupportedLanguageSchema = string()
+  .min(1)
+  .refine((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value), {
+    message: "Unsupported language",
+  });
+
+const geoTrackingLanguagesSchema = array(string().min(1))
+  .min(1)
+  .max(GEO_MAX_LANGUAGES)
+  .refine(
+    (values) => values.every((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value)),
+    {
+      message: "Unsupported language",
+    }
+  );
+
 export const geoSettingsLanguageAddInputSchema =
   geoOrganizationInputSchema.extend({
-    language: string()
-      .min(1)
-      .refine((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value), {
-        message: "Unsupported language",
-      }),
+    language: geoSupportedLanguageSchema,
   });
 
 export const geoConversionPathSchema = string()
@@ -264,6 +276,8 @@ export const geoProjectCreateInputSchema = object({
   organizationId: string().min(1),
   name: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
   brandSettingsId: string().min(1),
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: geoTrackingLanguagesSchema.optional(),
 });
 
 export const geoProjectDeleteInputSchema = object({
@@ -362,15 +376,10 @@ export const geoGenerateFromWebsiteInputSchema =
     url: publicWebsiteUrlSchema,
   });
 
-const geoTrackingLanguagesSchema = array(string().min(1))
-  .min(1)
-  .max(GEO_MAX_LANGUAGES)
-  .refine(
-    (values) => values.every((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value)),
-    {
-      message: "Unsupported language",
-    }
-  );
+export const geoDiscoverWebsiteInputSchema =
+  geoGenerateFromWebsiteInputSchema.extend({
+    language: geoSupportedLanguageSchema.optional(),
+  });
 
 export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
   companyName: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
@@ -384,6 +393,7 @@ export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
     })
   ).max(GEO_ONBOARDING_MAX_PROMPTS),
   languages: geoTrackingLanguagesSchema.optional(),
+  promptLanguage: geoSupportedLanguageSchema.optional(),
   audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
   engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .min(1)

@@ -1478,6 +1478,8 @@ export const geoSettings = pgTable(
       .notNull()
       .default(sql`ARRAY[]::text[]`),
     languages: text("languages").array(),
+    /** Language the stored prompts are written in. Null means English. */
+    promptLanguage: text("prompt_language"),
     engines: text("engines").array(),
     enforceZdr: boolean("enforce_zdr").notNull().default(true),
     trackWithoutSearch: boolean("track_without_search")

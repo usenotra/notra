@@ -1072,7 +1072,8 @@
       "description": "Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.",
       "title": "See what AI says about you",
       "reading": "Reading {host}. Takes about 20 seconds.",
-      "readFailed": "Could not read {host}. Check the address, or just type your brand name below."
+      "readFailed": "Could not read {host}. Check the address, or just type your brand name below.",
+      "languagesHint": "Questions are written in {language}. Other languages are translated when we scan."
     },
     "pricing": {
       "freeTrial": "Free trial",
@@ -2999,12 +3000,11 @@
       "placeholder": "Choose an identity",
       "usesExisting": "Uses the existing identity and website: {url}",
       "multipleMatches": "Several identities use this website. Choose one for this project.",
-      "willCreateNamed": "We will create a brand identity named {name} and analyze this website to fill it in. The analysis runs in the background.",
-      "willCreateUnnamed": "We will create a brand identity named after this project and analyze this website to fill it in. The analysis runs in the background.",
-      "articlesNote": "New articles use the project identity. You can choose another identity for an individual article."
+      "willCreateNamed": "Creates the brand identity {name} from this website.",
+      "willCreateUnnamed": "Creates a brand identity from this website."
     },
     "projectCreateDialog": {
-      "description": "Start with the website you want to track. We'll find competitors, generate prompts and start the first scan.",
+      "description": "We'll find competitors, write prompts and run the first scan.",
       "nameLabel": "Project name",
       "invalidInput": "Enter a valid website and a project name.",
       "chooseIdentity": "Choose a brand identity for this website before continuing.",

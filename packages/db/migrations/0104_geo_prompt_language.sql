@@ -1,0 +1,1 @@
+ALTER TABLE "geo_settings" ADD COLUMN "prompt_language" text;

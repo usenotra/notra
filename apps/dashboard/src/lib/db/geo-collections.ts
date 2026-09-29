@@ -181,6 +181,7 @@ export const geoProjectsCollection = createCollectionFactory<GeoProject>({
       organizationId: scope.organizationId,
       name: item.name,
       brandSettingsId: item.brandSettingsId,
+      languages: item.languages,
     }),
   update: (scope, key, modified) =>
     dashboardOrpc.geo.projectsUpdate.call({

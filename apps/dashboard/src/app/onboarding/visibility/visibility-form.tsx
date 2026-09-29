@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
+import { GeoLanguagePicker } from "@/components/geo/geo-language-picker";
 import { BrandReviewSkeleton } from "@/components/onboarding/brand-review-skeleton";
 import { OnboardingProgress } from "@/components/onboarding/progress";
 import { PromptChoiceRow } from "@/components/onboarding/prompt-choice-row";
@@ -30,6 +31,7 @@ import {
   useGeoDiscoverWebsite,
   useGeoOnboardingBrand,
 } from "@/lib/hooks/use-geo";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import type {
   VisibilityFormProps,
   VisibilityReviewProps,
@@ -46,6 +48,7 @@ function VisibilityReview({
   websiteUrl,
   discovery,
   fallbackCompanyName,
+  languages,
   nextHref,
   skipHref,
 }: VisibilityReviewProps) {
@@ -100,6 +103,7 @@ function VisibilityReview({
       aliases: discovery?.aliases ?? [],
       audienceType: discovery?.audienceType,
       prompts: selectedPrompts,
+      languages,
     });
     save.mutate(brandInput, {
       onSuccess: () => {
@@ -107,6 +111,7 @@ function VisibilityReview({
           alias_count: brandInput.aliases.length,
           audience_type: brandInput.audienceType ?? null,
           prompt_count: brandInput.prompts.length,
+          languages: brandInput.languages ?? [],
         });
         setIsLeaving(true);
         router.push(nextHref);
@@ -215,6 +220,7 @@ export function VisibilityForm({
   projectId,
   websiteUrl,
   companyName,
+  defaultLanguage,
   nextHref,
   skipHref,
   inOnboardingFlow,
@@ -222,6 +228,7 @@ export function VisibilityForm({
 }: VisibilityFormProps) {
   const t = useTranslations("onboarding.visibility");
   const tCommon2 = useTranslations("common");
+  const languageLabel = useLanguageLabel();
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
     stripWebsitePrefix(websiteUrl)
@@ -229,7 +236,13 @@ export function VisibilityForm({
   const [analyzedUrl, setAnalyzedUrl] = useState(
     () => normalizeWebsiteUrl(websiteUrl) ?? null
   );
-  const discover = useGeoDiscoverWebsite(organizationId, analyzedUrl);
+  const [languages, setLanguages] = useState<string[]>(() => [defaultLanguage]);
+  const promptLanguage = languages[0] ?? defaultLanguage;
+  const discover = useGeoDiscoverWebsite(
+    organizationId,
+    analyzedUrl,
+    promptLanguage
+  );
   const isAnalyzing = analyzedUrl !== null && discover.isPending;
   const analyzedHost = analyzedUrl ? stripWebsitePrefix(analyzedUrl) : "";
   const discoveryStartedAtRef = useRef<number | null>(null);
@@ -338,13 +351,33 @@ export function VisibilityForm({
             ) : null}
           </div>
 
+          <div className="grid gap-2">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">
+                {tCommon2("labels.languages")}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {t("languagesHint", {
+                  language: languageLabel(promptLanguage),
+                })}
+              </p>
+            </div>
+            <GeoLanguagePicker
+              disabled={isAnalyzing}
+              labeled={false}
+              onChange={setLanguages}
+              selected={languages}
+            />
+          </div>
+
           {isAnalyzing ? (
             <BrandReviewSkeleton />
           ) : (
             <VisibilityReview
               discovery={discover.data?.discovery ?? null}
               fallbackCompanyName={companyName ?? ""}
-              key={`${analyzedUrl ?? ""}:${discover.status}`}
+              key={`${analyzedUrl ?? ""}:${promptLanguage}:${discover.status}`}
+              languages={languages}
               nextHref={nextHref}
               organizationId={organizationId}
               skipHref={skipHref}

@@ -646,11 +646,12 @@ export function useGeoImportCompetitors(organizationId: string) {
 
 export function useGeoDiscoverWebsite(
   organizationId: string,
-  url: string | null
+  url: string | null,
+  language?: string
 ) {
   return useQuery<GeoDiscoverWebsiteResult>({
     ...dashboardOrpc.geo.discoverWebsite.queryOptions({
-      input: { organizationId, url: url ?? "" },
+      input: { organizationId, url: url ?? "", language },
     }),
     enabled: !!organizationId && url !== null,
     staleTime: Number.POSITIVE_INFINITY,

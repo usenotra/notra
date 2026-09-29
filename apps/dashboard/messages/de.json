@@ -1072,7 +1072,8 @@
       "description": "Notra ist ein modernes GEO-Tool, das ChatGPT, Claude und Gemini die Fragen deiner Käufer stellt. Sieh, ob du in den Antworten vorkommst, wer stattdessen genannt wird und wie du das ändern kannst.",
       "title": "Sieh, was KI über dich sagt",
       "reading": "{host} wird gelesen. Das dauert etwa 20 Sekunden.",
-      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein."
+      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein.",
+      "languagesHint": "Fragen werden auf {language} geschrieben. Weitere Sprachen übersetzen wir beim Scan."
     },
     "pricing": {
       "freeTrial": "Kostenlose Testphase",
@@ -2999,12 +3000,11 @@
       "placeholder": "Identität wählen",
       "usesExisting": "Verwendet die bestehende Identität und Website: {url}",
       "multipleMatches": "Mehrere Identitäten nutzen diese Website. Wähle eine für dieses Projekt.",
-      "willCreateNamed": "Wir erstellen eine Markenidentität namens {name} und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "willCreateUnnamed": "Wir erstellen eine Markenidentität mit dem Namen dieses Projekts und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "articlesNote": "Neue Artikel verwenden die Projektidentität. Für einzelne Artikel kannst du eine andere Identität wählen."
+      "willCreateNamed": "Erstellt die Markenidentität {name} aus dieser Website.",
+      "willCreateUnnamed": "Erstellt eine Markenidentität aus dieser Website."
     },
     "projectCreateDialog": {
-      "description": "Beginne mit der Website, die du tracken möchtest. Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
+      "description": "Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
       "nameLabel": "Projektname",
       "invalidInput": "Gib eine gültige Website und einen Projektnamen ein.",
       "chooseIdentity": "Wähle eine Markenidentität für diese Website, bevor du fortfährst.",

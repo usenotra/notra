@@ -30,6 +30,7 @@ export function useGeoScanEstimate({
     promptCount,
     engines,
     languages,
+    promptLanguage: settingsData?.settings?.promptLanguage,
     trackWithoutSearch: settingsData?.settings?.trackWithoutSearch ?? false,
     catalog,
     sequences: includeSequences ? sequences : [],

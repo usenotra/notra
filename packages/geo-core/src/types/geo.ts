@@ -23,6 +23,8 @@ export interface GeoProject {
   name: string;
   brandSettingsId: string;
   createdAt: string;
+  /** Only sent when creating a project; never returned. */
+  languages?: string[];
 }
 
 export interface GeoProjectRow {
@@ -70,6 +72,8 @@ export interface GeoSettings {
   conversionPaths: string[];
   domains: string[];
   languages: string[];
+  /** Language the stored prompts and conversations are written in. */
+  promptLanguage: string;
   engines: string[];
   /** ZDR add-on: request zero data retention from every model host. */
   enforceZdr: boolean;
@@ -103,6 +107,7 @@ export interface GeoSettingsRow {
   conversionPaths: string[];
   domains: string[];
   languages: string[] | null;
+  promptLanguage?: string | null;
   engines: string[] | null;
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
@@ -434,6 +439,8 @@ export interface GeoSettingsUpsertInput {
   conversionPaths?: string[];
   domains?: string[];
   languages: string[];
+  /** Only written when set, so a settings save never relabels stored prompts. */
+  promptLanguage?: string;
   engines: string[];
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
@@ -628,6 +635,8 @@ export interface GeoScanPlannedTask {
 export interface GeoScanPlannedSequence {
   sequenceId: string;
   steps: string[];
+  /** Missing on plans serialized before prompt languages existed; means English. */
+  language?: string;
   engine: string;
   groundedKey: string | null;
   zdr: GeoZdrMode;
@@ -784,6 +793,7 @@ export interface GeoCheckContext {
 export interface GeoSequenceDefinition {
   id: string;
   steps: string[];
+  language: string;
 }
 
 export interface GeoBrandContext {
@@ -906,6 +916,7 @@ export interface GeoOnboardingBrandInput {
   aliases: string[];
   prompts: GeoDiscoveredPrompt[];
   languages?: string[];
+  promptLanguage?: string;
   audienceType?: GeoAudienceType;
   engines?: string[];
   enforceZdr?: boolean;
@@ -1442,6 +1453,8 @@ export interface GeoScanSizeInput {
   promptCount: number;
   engines: readonly string[];
   languages: readonly string[];
+  /** Language the stored prompts are written in. Defaults to English. */
+  promptLanguage?: string;
   trackWithoutSearch?: boolean;
   catalog: GeoResolvedModelCatalog;
   sequences: readonly Pick<

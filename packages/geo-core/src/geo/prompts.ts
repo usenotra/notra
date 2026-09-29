@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import {
   type AnyColumn,
   and,
@@ -423,9 +424,15 @@ export function generatedAutoPromptIds(
 }
 
 export function buildGeoPrompts(
-  settings: Pick<GeoSettings, "companyName" | "aliases">,
+  settings: Pick<GeoSettings, "companyName" | "aliases"> &
+    Partial<Pick<GeoSettings, "promptLanguage">>,
   brand: GeoBrandContext | null
 ): GeoPromptDefinition[] {
+  // The templates are English. A project that picked another prompt language
+  // got its prompts written in that language by website discovery instead.
+  if ((settings.promptLanguage ?? DEFAULT_LANGUAGE) !== DEFAULT_LANGUAGE) {
+    return [];
+  }
   const brandTerms = buildBrandTerms(settings);
   const category = deriveCategory(
     brand?.companyDescription ?? null,

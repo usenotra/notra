@@ -77,6 +77,8 @@ import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
 export interface GeoProjectCreateInput {
   name: string;
   brandSettingsId: string;
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: string[];
 }
 
 export interface GeoProjectContextValue {

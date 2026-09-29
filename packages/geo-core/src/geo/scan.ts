@@ -205,7 +205,7 @@ function sequenceFailureFields(
     runId: context.runId,
     promptId: sequencePromptId(sequence.id),
     sequenceId: sequence.id,
-    language: DEFAULT_LANGUAGE,
+    language: sequence.language,
     grounded,
   };
 }
@@ -935,6 +935,10 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       }
       trackedEngines.push({ engine, zdr });
     }
+    // Stored prompts are written in the project's prompt language; every other
+    // tracked language is a translation of them.
+    const sourceLanguage = settings.promptLanguage;
+    const scanSourceLanguage = settings.languages.includes(sourceLanguage);
     const scanEnglish = settings.languages.includes(DEFAULT_LANGUAGE);
     const groundedEngines: { grounded: GeoGroundedEngine; zdr: GeoZdrMode }[] =
       [];
@@ -957,14 +961,14 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       isGeoNativeSearchEngine(catalog, engine)
     );
     const tasks: GeoScanPlannedTask[] = [];
-    if (scanEnglish) {
+    if (scanSourceLanguage) {
       for (const { engine, zdr } of searchTrackedEngines) {
         for (const prompt of prompts) {
           tasks.push({
             engine,
             groundedKey: null,
             prompt,
-            language: DEFAULT_LANGUAGE,
+            language: sourceLanguage,
             zdr,
           });
         }
@@ -992,21 +996,21 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       };
       return skipped;
     }
-    const groundedPrompts = scanEnglish ? prompts : [];
+    const groundedPrompts = scanSourceLanguage ? prompts : [];
     for (const { grounded, zdr } of groundedEngines) {
       for (const prompt of groundedPrompts) {
         tasks.push({
           engine: grounded.key,
           groundedKey: grounded.key,
           prompt,
-          language: DEFAULT_LANGUAGE,
+          language: sourceLanguage,
           zdr,
         });
       }
     }
 
     const extraLanguages = settings.languages
-      .filter((language) => language !== DEFAULT_LANGUAGE)
+      .filter((language) => language !== sourceLanguage)
       .slice(0, GEO_MAX_LANGUAGES);
     let translateUsage = EMPTY_TOKEN_USAGE;
     const localizedByLanguage = yield* Effect.forEach(
@@ -1082,11 +1086,12 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       ({ engine }) =>
         engine === GEO_OPENCODE_ENGINE_ID || isGeoBoxCodingAgent(engine)
     );
-    const sequences: GeoScanPlannedSequence[] = scanEnglish
+    const sequences: GeoScanPlannedSequence[] = scanSourceLanguage
       ? sequenceRows.flatMap((sequence) => [
           ...groundedEngines.map(({ grounded, zdr }) => ({
             sequenceId: sequence.id,
             steps: sequence.steps,
+            language: sourceLanguage,
             engine: grounded.key,
             groundedKey: grounded.key,
             zdr,
@@ -1094,6 +1099,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
           ...trackedCodingAgents.map((tracked) => ({
             sequenceId: sequence.id,
             steps: sequence.steps,
+            language: sourceLanguage,
             engine: tracked.engine,
             groundedKey: null,
             zdr: tracked.zdr,
@@ -1422,6 +1428,7 @@ const runGeoScanSequenceBatchBody = Effect.fn("geo.runScanSequenceBatch.body")(
           const sequence: GeoSequenceDefinition = {
             id: planned.sequenceId,
             steps: planned.steps,
+            language: planned.language ?? DEFAULT_LANGUAGE,
           };
           for (const task of geoScanSequenceTasks(planned)) {
             yield* updateGeoScanTaskStatus(
@@ -1737,6 +1744,7 @@ const runGeoSequenceCheck = Effect.fn("geo.runSequenceCheck")(function* (
       promptId: sequencePromptId(sequence.id),
       sequenceId: sequence.id,
       prompts: steps,
+      language: sequence.language,
       timeoutMs: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
     },
     grounded,
@@ -1842,7 +1850,7 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
       const answerText = yield* requireAnswerText(
         engine,
         sequencePromptId(sequence.id),
-        DEFAULT_LANGUAGE,
+        sequence.language,
         answer
       ).pipe(
         Effect.catchTag("GeoEmptyAnswerError", (error) =>
@@ -1928,7 +1936,7 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
           )
         ),
         zdrEnforced: answer.zdrEnforced,
-        language: DEFAULT_LANGUAGE,
+        language: sequence.language,
         sources: answer.sources,
       });
     }
@@ -2079,14 +2087,18 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
       logPrefix: "GeoSequenceRun",
       emptyMessage: "Engines failed to answer this conversation. Try again.",
     },
-    (context) =>
-      Effect.forEach(
+    (context) => {
+      const sequence: GeoSequenceDefinition = {
+        ...sequenceRow,
+        language: settings.promptLanguage,
+      };
+      return Effect.forEach(
         replayEngines,
         (replayEngine) =>
           replayEngine.kind === "grounded"
             ? runGeoSequenceCheck(
                 context,
-                sequenceRow,
+                sequence,
                 replayEngine.grounded,
                 replayEngine.zdr
               ).pipe(
@@ -2094,7 +2106,7 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
                   "sequence run failed",
                   sequenceFailureFields(
                     context,
-                    sequenceRow,
+                    sequence,
                     replayEngine.grounded.key,
                     true
                   )
@@ -2102,7 +2114,7 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
               )
             : runGeoOpenCodeSequenceCheck(
                 context,
-                sequenceRow,
+                sequence,
                 replayEngine.engine,
                 replayEngine.zdr
               ).pipe(
@@ -2110,14 +2122,15 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
                   "sequence run failed",
                   sequenceFailureFields(
                     context,
-                    sequenceRow,
+                    sequence,
                     replayEngine.engine,
                     false
                   )
                 )
               ),
         { concurrency: GEO_SCAN_CONCURRENCY }
-      )
+      );
+    }
   ).pipe(
     Effect.mapError((error) =>
       error._tag === "GeoWriterCreditsExhaustedError"

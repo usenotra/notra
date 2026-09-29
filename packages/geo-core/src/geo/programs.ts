@@ -746,6 +746,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         conversionPaths,
         domains,
         languages: input.languages,
+        promptLanguage: input.promptLanguage,
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
@@ -764,6 +765,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           conversionPaths,
           domains,
           languages: input.languages,
+          ...(input.promptLanguage
+            ? { promptLanguage: input.promptLanguage }
+            : {}),
           engines,
           enforceZdr,
           nonZdrApprovedEngines,

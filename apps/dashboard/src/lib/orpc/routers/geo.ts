@@ -158,6 +158,7 @@ import {
   geoCompetitorDetailInputSchema,
   geoCompetitorSuggestionsInputSchema,
   geoCompetitorUpsertInputSchema,
+  geoDiscoverWebsiteInputSchema,
   geoGenerateFromWebsiteInputSchema,
   geoJourneyDetailInputSchema,
   geoModelCatalogInputSchema,
@@ -1620,7 +1621,8 @@ export const geoRouter = {
                 input.organizationId,
                 input.name,
                 input.brandSettingsId,
-                identity.websiteUrl
+                identity.websiteUrl,
+                input.languages
               )
             )
           ),
@@ -1686,10 +1688,15 @@ export const geoRouter = {
       )
     ),
   discoverWebsite: authorizedProcedure
-    .input(geoGenerateFromWebsiteInputSchema)
+    .input(geoDiscoverWebsiteInputSchema)
     .handler(
       geoOpenHandler((input) =>
-        discoverGeoWebsite(input.organizationId, input.url)
+        discoverGeoWebsite(
+          input.organizationId,
+          input.url,
+          false,
+          input.language
+        )
       )
     ),
   onboardingBrand: authorizedProcedure

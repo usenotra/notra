@@ -271,11 +271,12 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
     isGeoNativeSearchEngine(input.catalog, engine)
   ).length;
   const passes = nativeSearchCount + groundedCount;
-  const scanEnglish = input.languages.includes(DEFAULT_LANGUAGE);
+  const sourceLanguage = input.promptLanguage ?? DEFAULT_LANGUAGE;
+  const scanSourceLanguage = input.languages.includes(sourceLanguage);
   const extraLanguages = input.languages
-    .filter((language) => language !== DEFAULT_LANGUAGE)
+    .filter((language) => language !== sourceLanguage)
     .slice(0, GEO_MAX_LANGUAGES).length;
-  const englishChecks = scanEnglish ? input.promptCount * passes : 0;
+  const sourceChecks = scanSourceLanguage ? input.promptCount * passes : 0;
   const localizedChecks =
     extraLanguages *
     Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) *
@@ -286,7 +287,7 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
       (engine) =>
         engine === GEO_OPENCODE_ENGINE_ID || isGeoBoxCodingAgent(engine)
     ).length;
-  const sequenceTurns = scanEnglish
+  const sequenceTurns = scanSourceLanguage
     ? input.sequences
         .filter((sequence) => sequence.enabled)
         .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
@@ -297,5 +298,5 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
           0
         )
     : 0;
-  return englishChecks + localizedChecks + sequenceTurns * sequenceEngines;
+  return sourceChecks + localizedChecks + sequenceTurns * sequenceEngines;
 }
