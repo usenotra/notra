@@ -181,10 +181,11 @@ async function reuseWorkspace(params: {
  * repository. Personal access tokens carry the user's full scopes, so they
  * never enter a box: public repositories are cloned anonymously instead.
  */
-async function isPublicRepository(
+// Returns null when GitHub could not answer, so nothing is stored.
+async function lookupRepositoryPrivate(
   repository: { owner: string; repo: string },
   token: string | undefined
-): Promise<boolean> {
+): Promise<boolean | null> {
   try {
     const response = await fetch(
       `https://api.github.com/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}`,
@@ -197,12 +198,12 @@ async function isPublicRepository(
       }
     );
     if (!response.ok) {
-      return false;
+      return null;
     }
     const body = (await response.json()) as { private?: unknown };
-    return body.private === false;
+    return typeof body.private === "boolean" ? body.private : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -228,12 +229,19 @@ async function resolveBoxToken(
   if (integration?.githubAppInstallationId) {
     return contextToken ?? null;
   }
-  // Manually connected integrations never stored the flag, so ask GitHub.
-  const isPublic =
-    integration?.githubRepositoryPrivate === false ||
-    (integration?.githubRepositoryPrivate == null &&
-      (await isPublicRepository(repository, contextToken)));
-  if (isPublic) {
+  // Manually connected integrations never stored the flag, so ask GitHub
+  // once and store the answer for later runs.
+  let isPrivate = integration?.githubRepositoryPrivate ?? null;
+  if (integration && isPrivate === null) {
+    isPrivate = await lookupRepositoryPrivate(repository, contextToken);
+    if (isPrivate !== null) {
+      await db
+        .update(githubIntegrations)
+        .set({ githubRepositoryPrivate: isPrivate })
+        .where(eq(githubIntegrations.id, integrationId));
+    }
+  }
+  if (isPrivate === false) {
     return null;
   }
   throw new Error(
