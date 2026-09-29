@@ -3,6 +3,6 @@ import { defineMeta } from "blume";
 export default defineMeta({
   collapsed: false,
   order: 3,
-  pages: ["claude-code", "codex", "opencode"],
+  pages: ["opencode"],
   title: "Terminal Apps",
 });

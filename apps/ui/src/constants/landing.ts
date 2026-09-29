@@ -82,18 +82,6 @@ export const LANDING_SECTIONS: LandingSection[] = [
     items: [
       {
         description:
-          "A Claude Code terminal session with todos, tool calls and the prompt.",
-        href: "/blocks/claude-code",
-        title: "Claude Code",
-      },
-      {
-        description:
-          "A Codex CLI session with exec cells and the prompt status line.",
-        href: "/blocks/codex",
-        title: "Codex",
-      },
-      {
-        description:
           "The OpenCode workspace with activity, cited sources and the sidebar.",
         href: "/blocks/opencode",
         title: "OpenCode",
