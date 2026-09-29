@@ -229,15 +229,16 @@ async function resolveBoxToken(
   if (integration?.githubAppInstallationId) {
     return contextToken ?? null;
   }
-  // Manually connected integrations never stored the flag, so ask GitHub
-  // once and store the answer for later runs.
+  // Manually connected integrations may lack the flag or hold a stale one,
+  // so ask GitHub unless the repository is already known to be public. Only
+  // a public answer is stored, so a repository made public later still works.
   let isPrivate = integration?.githubRepositoryPrivate ?? null;
-  if (integration && isPrivate === null) {
+  if (integration && isPrivate !== false) {
     isPrivate = await lookupRepositoryPrivate(repository, contextToken);
-    if (isPrivate !== null) {
+    if (isPrivate === false) {
       await db
         .update(githubIntegrations)
-        .set({ githubRepositoryPrivate: isPrivate })
+        .set({ githubRepositoryPrivate: false })
         .where(eq(githubIntegrations.id, integrationId));
     }
   }

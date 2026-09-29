@@ -6,12 +6,13 @@ import { defineTool } from "eve/tools";
 import type { GenerationConfig } from "../types/github-tools";
 import { getCodeResearchScope } from "../utils/code-research";
 import {
-  assertPullRequestAllowed,
   getAllowedCommitShaSet,
   getGenerationConfig,
 } from "../utils/generation-config";
 
-// A run limited to selected items may only open those items' code.
+// A run limited to selected items may only open those items' code. Each
+// kind of target needs its own allowlist, so a run limited to pull requests
+// cannot open arbitrary commits and the other way around.
 function assertTargetAllowed(
   config: GenerationConfig,
   input: {
@@ -21,33 +22,37 @@ function assertTargetAllowed(
     branch?: string;
   }
 ) {
-  if (input.pullRequestNumber !== undefined) {
-    assertPullRequestAllowed(
-      config,
-      input.integrationId,
-      input.pullRequestNumber
-    );
+  const filters = config.selectionFilters;
+  const allowedPullRequests =
+    filters?.allowedPullRequestNumbersByIntegrationId?.[input.integrationId];
+  const allowedShas = getAllowedCommitShaSet(config);
+  const hasSelection =
+    filters?.allowedPullRequestNumbersByIntegrationId !== undefined ||
+    filters?.allowedReleaseTagsByIntegrationId !== undefined ||
+    filters?.allowedReleaseTagsGlobal !== undefined ||
+    allowedShas !== undefined;
+  if (!hasSelection) {
     return;
   }
-  const allowedShas = getAllowedCommitShaSet(config);
+  if (input.pullRequestNumber !== undefined) {
+    if (!allowedPullRequests?.includes(input.pullRequestNumber)) {
+      throw new Error(
+        `Pull request #${String(input.pullRequestNumber)} is outside the selected items for this run.`
+      );
+    }
+    return;
+  }
   if (input.commitSha) {
-    if (allowedShas && !allowedShas.has(input.commitSha.trim().toLowerCase())) {
+    if (!allowedShas?.has(input.commitSha.trim().toLowerCase())) {
       throw new Error(
         `Commit ${input.commitSha} is outside the selected items for this run.`
       );
     }
     return;
   }
-  const hasSelection =
-    allowedShas !== undefined ||
-    config.selectionFilters?.allowedPullRequestNumbersByIntegrationId?.[
-      input.integrationId
-    ] !== undefined;
-  if (input.branch && hasSelection) {
-    throw new Error(
-      "This run is limited to selected pull requests and commits. Open one of those instead of a branch."
-    );
-  }
+  throw new Error(
+    "This run is limited to selected items. Open one of the selected pull requests or commits instead of a branch."
+  );
 }
 
 export function createOpenRepositoryTool() {
