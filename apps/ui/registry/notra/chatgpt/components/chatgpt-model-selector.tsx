@@ -2,7 +2,7 @@
 
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -226,24 +226,33 @@ export const ChatgptModelSelector = ({
                   )
                 )}
               </div>
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10 opacity-0 transition-opacity duration-500 group-data-[pro=true]/slider:opacity-100 motion-reduce:transition-none"
-              >
-                {CHATGPT_PRO_SPARKLES.map((sparkle) => (
-                  <span
-                    className="animate-chatgpt-sparkle bg-chatgpt-pro/70 absolute rounded-full blur-[0.5px] motion-reduce:animate-none"
-                    key={`${sparkle.x}:${sparkle.y}`}
-                    style={{
-                      animationDelay: `${sparkle.delay}ms`,
-                      height: sparkle.size,
-                      left: `calc(100% - ${THUMB_INSET} + ${sparkle.x}px)`,
-                      top: `calc(50% + ${sparkle.y}px)`,
-                      width: sparkle.size,
-                    }}
-                  />
-                ))}
-              </div>
+              {isPro ? (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0.5 top-0.5 bottom-1 z-10"
+                >
+                  <div
+                    className="absolute size-0"
+                    style={{ left: `calc(100% - ${THUMB_INSET})`, top: "50%" }}
+                  >
+                    {CHATGPT_PRO_SPARKLES.map((sparkle) => (
+                      <span
+                        className="animate-chatgpt-burst bg-chatgpt-pro absolute -top-px -left-px rounded-full opacity-0 motion-reduce:hidden"
+                        key={`${sparkle.x}:${sparkle.y}`}
+                        style={
+                          {
+                            "--burst-x": `${sparkle.x}px`,
+                            "--burst-y": `${sparkle.y}px`,
+                            animationDelay: `${sparkle.delay}ms`,
+                            height: sparkle.size,
+                            width: sparkle.size,
+                          } as CSSProperties
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </>
         ) : (

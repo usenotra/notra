@@ -21,20 +21,21 @@ export const ClaudeThinking = ({
 }: ClaudeThinkingProps) => {
   const reduced = useClaudeReducedMotion(reducedMotion);
   const [verbIndex, setVerbIndex] = useState(0);
+  const verbCount = verbs.length;
   const verb =
     verbs[verbIndex % verbs.length] ?? verbs[0] ?? CLAUDE_THINKING_VERBS[0];
 
   useEffect(() => {
-    if (reduced || verbs.length <= 1) {
+    if (reduced || verbCount <= 1) {
       return;
     }
 
     const id = window.setInterval(() => {
-      setVerbIndex((current) => (current + 1) % verbs.length);
+      setVerbIndex((current) => (current + 1) % verbCount);
     }, intervalMs);
 
     return () => window.clearInterval(id);
-  }, [intervalMs, reduced, verbs]);
+  }, [intervalMs, reduced, verbCount]);
 
   return (
     <div

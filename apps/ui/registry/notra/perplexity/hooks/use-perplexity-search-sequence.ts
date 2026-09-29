@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   PERPLEXITY_SEARCH_HEADER_MS,
@@ -41,12 +41,20 @@ export const usePerplexitySearchSequence = ({
     sources: false,
   });
 
+  // Latest callbacks live in refs so a new function identity never restarts the sequence.
+  const onStartRef = useRef(onStart);
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onStartRef.current = onStart;
+    onDoneRef.current = onDone;
+  });
+
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    onStart();
+    onStartRef.current();
     const timers: number[] = [];
     let elapsed = PERPLEXITY_SEARCH_HEADER_MS;
 
@@ -71,7 +79,7 @@ export const usePerplexitySearchSequence = ({
     timers.push(
       window.setTimeout(() => {
         setSequence((current) => ({ ...current, done: true }));
-        onDone();
+        onDoneRef.current();
       }, elapsed)
     );
 
@@ -80,7 +88,7 @@ export const usePerplexitySearchSequence = ({
         window.clearTimeout(timer);
       }
     };
-  }, [enabled, onDone, onStart, previewCount, queryCount]);
+  }, [enabled, previewCount, queryCount]);
 
   return sequence;
 };

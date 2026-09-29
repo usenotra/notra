@@ -58,6 +58,7 @@ export const useClaudeSearchSequence = (
       for (const timer of timers) {
         window.clearTimeout(timer);
       }
+      setSequence({ done: false, visibleCount: 0 });
     };
   }, [enabled, toolFlags]);
 

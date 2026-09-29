@@ -100,6 +100,9 @@ export const useGeminiPlayback = (
         );
         await delay(TOKEN_DELAY_MS);
       }
+      if (!alive()) {
+        return;
+      }
       markComplete(message.id);
       await delay(TURN_END_DELAY_MS);
     },
@@ -156,7 +159,10 @@ export const useGeminiPlayback = (
       };
 
       await playExchange().finally(() => {
-        sendingRef.current = false;
+        // A stopped run must not release the lock of a newer send.
+        if (runRef.current === run) {
+          sendingRef.current = false;
+        }
       });
     },
     [playTurn]

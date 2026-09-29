@@ -105,14 +105,20 @@ export const ClaudeCodePrompt = ({
         {pullRequest ? (
           <span className="text-claude-code-muted">
             {" · PR "}
-            <a
-              className="text-claude-code-pending underline underline-offset-2"
-              href={pullRequest.href}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              #{pullRequest.number}
-            </a>
+            {pullRequest.href ? (
+              <a
+                className="text-claude-code-pending underline underline-offset-2"
+                href={pullRequest.href}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                #{pullRequest.number}
+              </a>
+            ) : (
+              <span className="text-claude-code-pending">
+                #{pullRequest.number}
+              </span>
+            )}
           </span>
         ) : null}
         {modeConfig.hints.length > 0 && (

@@ -17,6 +17,20 @@ import {
 } from "../constants/gemini";
 import type { GeminiThoughtsProps } from "../types/gemini";
 
+/** Pairs each item with a key that stays unique when steps repeat. */
+const withOccurrenceKeys = <T,>(
+  items: readonly T[],
+  getKey: (item: T) => string
+) => {
+  const seen = new Map<string, number>();
+  return items.map((item) => {
+    const base = getKey(item);
+    const count = (seen.get(base) ?? 0) + 1;
+    seen.set(base, count);
+    return [item, `${base}#${count}`] as const;
+  });
+};
+
 export const GeminiThoughts = ({
   className,
   hideLabel = GEMINI_HIDE_THINKING_LABEL,
@@ -51,11 +65,13 @@ export const GeminiThoughts = ({
     </CollapsibleTrigger>
     <CollapsibleContent className="h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0 motion-reduce:transition-none">
       <div className="border-gemini-separator text-gemini-muted mt-2 flex flex-col gap-3 border-s-2 ps-4 text-[0.875rem] leading-6">
-        {steps.map((step) =>
+        {withOccurrenceKeys(steps, (item) =>
+          item.kind === "thought" ? item.text : item.queries.join("|")
+        ).map(([step, key]) =>
           step.kind === "thought" ? (
-            <p key={step.text}>{step.text}</p>
+            <p key={key}>{step.text}</p>
           ) : (
-            <div className="flex flex-col gap-2" key={step.queries.join("|")}>
+            <div className="flex flex-col gap-2" key={key}>
               <span className="text-gemini-fg flex items-center gap-2 text-[0.8125rem] leading-5">
                 <SearchIcon
                   aria-hidden="true"

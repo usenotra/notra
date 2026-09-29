@@ -48,14 +48,23 @@ const { item, prefix } = Astro.props;
       try {
         await navigator.clipboard.writeText(this.dataset.command ?? "");
       } catch {
+        this.announce(button, "Copy failed", false);
         return;
       }
-      button?.setAttribute("data-copied", "");
-      button?.setAttribute("aria-label", "Copied");
+      this.announce(button, "Copied", true);
+    };
+
+    announce = (button: HTMLButtonElement | null, label: string, copied: boolean) => {
+      if (copied) {
+        button?.setAttribute("data-copied", "");
+      }
+      button?.setAttribute("aria-label", label);
+      button?.setAttribute("title", label);
       window.clearTimeout(this.resetTimer);
       this.resetTimer = window.setTimeout(() => {
         button?.removeAttribute("data-copied");
         button?.setAttribute("aria-label", "Copy install command");
+        button?.removeAttribute("title");
       }, COPIED_MS);
     };
   }

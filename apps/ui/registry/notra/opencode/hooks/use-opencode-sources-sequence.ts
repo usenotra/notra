@@ -13,16 +13,18 @@ interface OpencodeSourcesSequence {
   sources: boolean;
 }
 
+const INITIAL_SEQUENCE: OpencodeSourcesSequence = {
+  queries: 0,
+  sources: false,
+};
+
 /** Reveals the query lines one by one, then the cited sources. */
 export const useOpencodeSourcesSequence = (
   enabled: boolean,
   queryCount: number,
   sourceCount: number
 ): OpencodeSourcesSequence => {
-  const [sequence, setSequence] = useState<OpencodeSourcesSequence>({
-    queries: 0,
-    sources: false,
-  });
+  const [sequence, setSequence] = useState(INITIAL_SEQUENCE);
 
   useEffect(() => {
     if (!enabled) {
@@ -52,6 +54,7 @@ export const useOpencodeSourcesSequence = (
       for (const timer of timers) {
         window.clearTimeout(timer);
       }
+      setSequence(INITIAL_SEQUENCE);
     };
   }, [enabled, queryCount, sourceCount]);
 

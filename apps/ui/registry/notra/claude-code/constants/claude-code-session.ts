@@ -29,8 +29,8 @@ export const CLAUDE_CODE_SESSION: ClaudeCodeSession = {
   title: "claude — ~/acme/web",
   todos: [
     { label: "Pull this week's merged PRs via notra", status: "done" },
-    { label: "Draft the changelog in brand voice", status: "active" },
-    { label: "Publish and schedule social updates", status: "todo" },
+    { label: "Draft the changelog in brand voice", status: "done" },
+    { label: "Publish and schedule social updates", status: "active" },
   ],
   toolCalls: [
     {

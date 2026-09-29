@@ -34,7 +34,7 @@ export interface OpencodeMessageProps extends ComponentProps<"div"> {
 
 export interface OpencodeComposerProps extends Omit<
   ComponentProps<"input">,
-  "className" | "type"
+  "children" | "className" | "type"
 > {
   agent?: string;
   className?: string;
@@ -77,8 +77,9 @@ export interface OpencodeSourcesLabels {
   openSource: (title: string, domain: string) => string;
 }
 
-export interface OpencodeSourcesProps extends ComponentProps<
-  typeof Collapsible
+export interface OpencodeSourcesProps extends Omit<
+  ComponentProps<typeof Collapsible>,
+  "children"
 > {
   labels?: OpencodeSourcesLabels;
   queries?: readonly string[];

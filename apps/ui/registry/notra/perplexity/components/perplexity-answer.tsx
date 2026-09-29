@@ -6,8 +6,8 @@ import type {
 } from "../types/perplexity";
 import { PerplexityCitation } from "./perplexity-citation";
 
-const CITE_PATTERN = /(\{\{[a-z0-9-]+\}\})/;
-const CITE_TOKEN_PATTERN = /^\{\{([a-z0-9-]+)\}\}$/;
+const CITE_PATTERN = /(\{\{\w+(?:-\w+)*\}\})/;
+const CITE_TOKEN_PATTERN = /^\{\{(\w+(?:-\w+)*)\}\}$/;
 const BOLD_PATTERN = /(\*\*[^*]+\*\*)/;
 const BOLD_MARK = "**";
 const LIST_MARK = "- ";
@@ -36,42 +36,40 @@ const splitWithOffsets = (
 const isBold = (text: string) =>
   text.startsWith(BOLD_MARK) && text.endsWith(BOLD_MARK);
 
-const InlineText = ({
-  citations,
-  text,
-}: {
+interface InlineTextProps {
   citations: ReadonlyMap<string, PerplexityThreadCitation>;
   text: string;
-}) => (
-  <span className="min-w-0">
-    {splitWithOffsets(text, CITE_PATTERN, 0).map((piece) => {
-      const citeMatch = piece.text.match(CITE_TOKEN_PATTERN);
-      if (citeMatch) {
-        const citation = citations.get(citeMatch[1] ?? "");
-        return citation ? (
-          <PerplexityCitation
-            extra={citation.extra}
-            key={piece.offset}
-            label={citation.label}
-            sources={citation.sources}
-          />
-        ) : null;
-      }
+}
 
-      return (
-        <span key={piece.offset}>
-          {splitWithOffsets(piece.text, BOLD_PATTERN, 0).map((part) =>
-            isBold(part.text) ? (
-              <strong className="font-bold" key={part.offset}>
-                {part.text.slice(2, -2)}
-              </strong>
-            ) : (
-              <span key={part.offset}>{part.text}</span>
-            )
-          )}
-        </span>
-      );
-    })}
+const CitedText = ({ citations, text }: InlineTextProps) =>
+  splitWithOffsets(text, CITE_PATTERN, 0).map((piece) => {
+    const citeMatch = piece.text.match(CITE_TOKEN_PATTERN);
+    if (!citeMatch) {
+      return <span key={piece.offset}>{piece.text}</span>;
+    }
+    const citation = citations.get(citeMatch[1] ?? "");
+    return citation ? (
+      <PerplexityCitation
+        extra={citation.extra}
+        key={piece.offset}
+        label={citation.label}
+        sources={citation.sources}
+      />
+    ) : null;
+  });
+
+/** Bold is parsed first so a citation can sit inside a bold span. */
+const InlineText = ({ citations, text }: InlineTextProps) => (
+  <span className="min-w-0">
+    {splitWithOffsets(text, BOLD_PATTERN, 0).map((part) =>
+      isBold(part.text) ? (
+        <strong className="font-bold" key={part.offset}>
+          <CitedText citations={citations} text={part.text.slice(2, -2)} />
+        </strong>
+      ) : (
+        <CitedText citations={citations} key={part.offset} text={part.text} />
+      )
+    )}
   </span>
 );
 
@@ -104,7 +102,7 @@ export const PerplexityAnswer = ({
               className="font-pplx-serif mt-1 text-lg leading-7 font-semibold"
               key={block.offset}
             >
-              {block.text.slice(2, -2)}
+              <InlineText citations={lookup} text={block.text.slice(2, -2)} />
             </h3>
           );
         }

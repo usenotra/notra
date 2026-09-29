@@ -41,7 +41,7 @@ export const ChatgptReasoning = ({
     className
   );
 
-  if (!(children || search)) {
+  if (!(children || search || children === 0 || search === 0)) {
     return (
       <Collapsible
         className={rootClassName}

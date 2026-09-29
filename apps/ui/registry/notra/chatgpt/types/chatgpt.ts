@@ -87,9 +87,9 @@ export interface ChatgptActivityProps extends Omit<
 > {
   className?: string;
   seconds: number;
-  sites: ChatgptActivitySite[];
+  sites: readonly ChatgptActivitySite[];
   sourceCount?: number;
-  sources: ChatgptActivitySource[];
+  sources: readonly ChatgptActivitySource[];
   websites: number;
 }
 
@@ -149,9 +149,9 @@ export interface ChatgptComposerProps extends Omit<
 }
 
 export interface ChatgptStorySearch {
-  sites: ChatgptActivitySite[];
+  sites: readonly ChatgptActivitySite[];
   sourceCount?: number;
-  sources: ChatgptActivitySource[];
+  sources: readonly ChatgptActivitySource[];
   websites: number;
 }
 

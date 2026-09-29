@@ -42,7 +42,11 @@ const sourceClassName =
 const pillClassName =
   "border-chatgpt-border bg-chatgpt-bg text-chatgpt-fg h-auto gap-1.5 rounded-full px-2 py-1 text-xs leading-none font-normal";
 
-const ChatgptWebsitePills = ({ sites }: { sites: ChatgptActivitySite[] }) => {
+const ChatgptWebsitePills = ({
+  sites,
+}: {
+  sites: readonly ChatgptActivitySite[];
+}) => {
   const visible = sites.slice(0, CHATGPT_VISIBLE_SITES);
   const rest = sites.slice(CHATGPT_VISIBLE_SITES);
 
@@ -94,7 +98,7 @@ export const ChatgptActivity = ({
       render={<ChatgptSearch sites={sites} websites={websites} />}
     />
     <SheetContent
-      className="bg-chatgpt-bg font-chatgpt text-chatgpt-fg data-[side=right]:border-chatgpt-border w-full gap-0 p-0 data-[side=right]:sm:max-w-104"
+      className="bg-chatgpt-bg font-chatgpt text-chatgpt-fg data-[side=right]:border-chatgpt-border w-full gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-104"
       data-slot="chatgpt-activity"
       showCloseButton={false}
     >
@@ -169,7 +173,7 @@ export const ChatgptActivity = ({
             </h3>
             <ItemGroup className="gap-5">
               {sources.map((source) => (
-                <div key={source.id} role="listitem">
+                <li className="list-none" key={source.id}>
                   <Item
                     className={cn(
                       sourceClassName,
@@ -210,7 +214,7 @@ export const ChatgptActivity = ({
                       </ItemDescription>
                     </ItemContent>
                   </Item>
-                </div>
+                </li>
               ))}
             </ItemGroup>
           </section>

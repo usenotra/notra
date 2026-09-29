@@ -93,6 +93,9 @@ export const useChatgptPlayback = (
         );
         await delay(CHATGPT_PLAYBACK_TIMING.tokenMs);
       }
+      if (!alive()) {
+        return;
+      }
       markComplete(message.id);
       await delay(CHATGPT_PLAYBACK_TIMING.afterAssistantMs);
     },

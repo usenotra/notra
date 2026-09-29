@@ -18,16 +18,18 @@ export const CHATGPT_PLAYBACK_TIMING = {
   tokenMs: 28,
 } as const;
 
-/** Offsets from the thumb center in px, plus size in px and animation delay in ms. */
+/** Where each burst particle ends up, as an offset from the thumb center in px, plus size in px and delay in ms. */
 export const CHATGPT_PRO_SPARKLES = [
-  { delay: 0, size: 3, x: -34, y: -20 },
-  { delay: 260, size: 2, x: -12, y: -26 },
-  { delay: 620, size: 4, x: 8, y: -24 },
-  { delay: 120, size: 2, x: -46, y: 2 },
-  { delay: 480, size: 3, x: 10, y: 22 },
-  { delay: 820, size: 2, x: -20, y: 24 },
-  { delay: 340, size: 3, x: -54, y: 20 },
-  { delay: 700, size: 2, x: -4, y: 6 },
+  { delay: 0, size: 4, x: -30, y: -26 },
+  { delay: 30, size: 3, x: 0, y: -34 },
+  { delay: 10, size: 4, x: 30, y: -24 },
+  { delay: 50, size: 3, x: -38, y: 2 },
+  { delay: 20, size: 3, x: 38, y: 4 },
+  { delay: 40, size: 4, x: -28, y: 26 },
+  { delay: 0, size: 3, x: 2, y: 34 },
+  { delay: 60, size: 4, x: 28, y: 26 },
+  { delay: 80, size: 2, x: -18, y: -14 },
+  { delay: 70, size: 2, x: 18, y: 16 },
 ] as const;
 
 export const CHATGPT_CHIP_HOVER_OPEN_DELAY_MS = 150;

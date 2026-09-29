@@ -3873,7 +3873,7 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-sparkle": "chatgpt-sparkle 1.8s ease-in-out infinite"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -3958,14 +3958,14 @@
             "cursor": "pointer"
           }
         },
-        "@keyframes chatgpt-sparkle": {
-          "0%, 100%": {
-            "opacity": "0.25",
-            "transform": "scale(0.7)"
-          },
-          "50%": {
+        "@keyframes chatgpt-burst": {
+          "0%": {
             "opacity": "1",
-            "transform": "scale(1.2)"
+            "transform": "translate(0, 0) scale(0.4)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
           }
         }
       }
@@ -4013,7 +4013,7 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-sparkle": "chatgpt-sparkle 1.8s ease-in-out infinite"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -4103,14 +4103,14 @@
             "cursor": "pointer"
           }
         },
-        "@keyframes chatgpt-sparkle": {
-          "0%, 100%": {
-            "opacity": "0.25",
-            "transform": "scale(0.7)"
-          },
-          "50%": {
+        "@keyframes chatgpt-burst": {
+          "0%": {
             "opacity": "1",
-            "transform": "scale(1.2)"
+            "transform": "translate(0, 0) scale(0.4)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
           }
         }
       }
@@ -4166,7 +4166,7 @@
           "color-chatgpt-slider-dot": "var(--chatgpt-slider-dot)",
           "color-chatgpt-slider-dot-fill": "var(--chatgpt-slider-dot-fill)",
           "color-chatgpt-pro": "var(--chatgpt-pro)",
-          "animate-chatgpt-sparkle": "chatgpt-sparkle 1.8s ease-in-out infinite"
+          "animate-chatgpt-burst": "chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards"
         },
         "light": {
           "chatgpt-bg": "#ffffff",
@@ -4326,14 +4326,14 @@
             "cursor": "pointer"
           }
         },
-        "@keyframes chatgpt-sparkle": {
-          "0%, 100%": {
-            "opacity": "0.25",
-            "transform": "scale(0.7)"
-          },
-          "50%": {
+        "@keyframes chatgpt-burst": {
+          "0%": {
             "opacity": "1",
-            "transform": "scale(1.2)"
+            "transform": "translate(0, 0) scale(0.4)"
+          },
+          "100%": {
+            "opacity": "0",
+            "transform": "translate(var(--burst-x), var(--burst-y)) scale(1)"
           }
         }
       }
