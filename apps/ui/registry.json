@@ -8,7 +8,7 @@
       "type": "registry:component",
       "title": "Marketing Button",
       "description": "The gradient marketing buttons from the Notra landing page, built on the Base UI Button.",
-      "dependencies": ["class-variance-authority", "cn"],
+      "dependencies": ["@base-ui/react", "class-variance-authority", "cn"],
       "cssVars": {
         "theme": {
           "color-marketing-light-foreground": "#1e1e1e",
