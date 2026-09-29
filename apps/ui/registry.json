@@ -831,7 +831,7 @@
       "name": "notra-button",
       "type": "registry:ui",
       "title": "Button",
-      "description": "A Base UI button with a Depth primary and secondary and squircle corners.",
+      "description": "A Base UI button with Depth primary and secondary variants and squircle corners.",
       "dependencies": ["@base-ui/react", "class-variance-authority", "cn"],
       "files": [
         {

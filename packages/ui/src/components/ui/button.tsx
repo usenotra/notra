@@ -13,7 +13,7 @@ const buttonVariants = cva(
         outline:
           "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-border bg-background bg-clip-padding shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
-          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-border bg-linear-to-b from-background to-muted text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(0,0,0,0.06)] hover:brightness-[0.97] aria-expanded:bg-secondary dark:from-muted dark:to-background dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)] dark:hover:brightness-125",
+          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-border bg-linear-to-b from-background to-muted text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(0,0,0,0.06)] hover:brightness-[0.97] aria-expanded:from-secondary aria-expanded:to-secondary dark:from-muted dark:to-background dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)] dark:hover:brightness-125",
         ghost:
           "bg-clip-padding hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:

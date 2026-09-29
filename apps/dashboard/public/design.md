@@ -168,7 +168,7 @@ Motion explains a change. A resting screen stays still.
 
 ## Components
 
-**Button.** Variants are `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Primary and secondary use the Depth style: a vertical gradient, a 1px top highlight, and a soft drop shadow (primary hovers with `brightness-110`). Primary, secondary, outline, and destructive use `corner-squircle` with `rounded-[1.25rem]` where `corner-shape: squircle` is supported; the others stay `rounded-lg`. Default size is `h-8` (32px), `text-sm`, `font-medium`. Other heights are `h-6` (xs), `h-7` (sm), and `h-9` (lg). Icon buttons are `size-6` through `size-9`. Press scales to `0.97`. Disabled controls do not scale. The dashboard `@/components/button` re-exports the kit button.
+**Button.** Variants are `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Primary and secondary use the Depth style: a vertical gradient, a 1px top highlight, and a soft drop shadow (primary hovers with `brightness-110`). Primary, secondary, outline, and destructive use `corner-shape: squircle` with `rounded-[0.75rem]` where it is supported; the others stay `rounded-lg`. Default size is `h-8` (32px), `text-sm`, `font-medium`. Other heights are `h-6` (xs), `h-7` (sm), and `h-9` (lg). Icon buttons are `size-6` through `size-9`. Press scales to `0.97`. Disabled controls do not scale. The dashboard `@/components/button` re-exports the kit button.
 
 **Module.** `flat` is the card above. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content. The dualtone shell clears the card ring (`ring-0`) so only the two borders show.
 
