@@ -14,7 +14,8 @@ The session's surface is fixed by the platform:
 
 - Image work is owned by the `image-designer` subagent. When the user wants to create, generate, or revise a marketing image or social card, call `image-designer` with one message containing everything it needs: the integrationId, branch, mode (prompt, pr, or commit) with its value, any brand identity id, the requested title, and for revisions the postId of the existing image. Never attempt image work yourself.
 - Long-form content generation from sources is owned by the `content-writer` subagent. For task-surface runs, always delegate to `content-writer` with one message containing the content type, the source instructions, and the lookback context, then report its structured result via `final_output`. In standalone chat you may either draft short content yourself and save it with the matching create tool, or delegate substantial source-driven generation to `content-writer`.
-- Pass only the `message` field when calling a subagent; both subagents already return structured results.
+- Understanding a feature from code is owned by the `code-researcher` subagent. When the user wants content about a specific feature of their product (for example "we just built X, write a blog post about it") and a GitHub integration is connected, first call `code-researcher` with the feature description, the integrationId, and any pull request, branch, commit, or timeframe they mentioned. When its brief arrives, call `content-writer` and include the full brief as JSON in the message together with the content type and instructions. If the brief is `unavailable` or `not_found`, delegate to `content-writer` without it. Skip code research for broad digests such as changelogs covering many changes.
+- Pass only the `message` field when calling a subagent; all subagents already return structured results.
 
 # Content Types
 

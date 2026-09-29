@@ -119,7 +119,9 @@ export function ChatActivityGroup({
   const label = isStreaming ? stepLabel : workedLabel;
   const active = isStreaming && step !== "waitingForApproval";
 
-  if (!hasDetails || (active && !forceOpen)) {
+  // While streaming the group starts closed so the layout stays still, but it
+  // is still a trigger: people want to peek at what is happening right now.
+  if (!hasDetails) {
     return (
       <div data-activity-group={groupId}>
         <ChatActivityStatus

@@ -67,6 +67,7 @@ import {
   getChatContextKinds,
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
 import type { RouteContext } from "@/types/api/routes";
@@ -208,8 +209,10 @@ export const POST = withEvlog(async function POST(
 
     cleanupOrganizationId = organizationId;
     cleanupChatId = chatId;
-    const validatedIntegrations =
-      await getStandaloneChatIntegrations(organizationId);
+    const [validatedIntegrations, codeResearch] = await Promise.all([
+      getStandaloneChatIntegrations(organizationId),
+      isCodeResearchEnabledForOrganization(organizationId),
+    ]);
     const context = parseResult.data.context ?? [];
 
     if (!messages.length) {
@@ -315,6 +318,7 @@ export const POST = withEvlog(async function POST(
         validatedIntegrations,
         useMarkup,
         chargeAiCredits,
+        codeResearch,
         requestId,
         log,
         model: parseResult.data.model,
@@ -399,6 +403,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations,
   useMarkup,
   chargeAiCredits,
+  codeResearch,
   requestId,
   log,
   model,
@@ -420,6 +425,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations: ValidatedIntegration[];
   useMarkup: boolean;
   chargeAiCredits: boolean;
+  codeResearch: boolean;
   requestId: string;
   log: ReturnType<typeof getLogger>;
   model?: string;
@@ -467,6 +473,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
       },

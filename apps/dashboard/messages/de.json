@@ -6216,6 +6216,28 @@
     "emptyTitle": "Heute noch keine Inhalte erstellt"
   },
   "ai": {
+    "subagent": {
+      "names": {
+        "codeResearcher": "Code-Recherche",
+        "contentWriter": "Content-Writer",
+        "imageDesigner": "Bild-Designer",
+        "fallback": "Subagent"
+      },
+      "activity": {
+        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} other {Repository konnte nicht gelesen werden}}",
+        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} other {Post konnte nicht geschrieben werden}}",
+        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} other {Bild konnte nicht gestaltet werden}}",
+        "fallback": "{state, select, running {Arbeitet} done {Fertig} other {Fehlgeschlagen}}"
+      },
+      "steps": "{count, plural, =0 {startet} one {# Schritt} other {# Schritte}}",
+      "result": {
+        "brief": "Briefing: {feature}",
+        "draft": "Entwurf gespeichert: {title}",
+        "draftUntitled": "Entwurf gespeichert",
+        "skipped": "Kein Briefing: {reason}",
+        "skippedUnknown": "Kein Briefing"
+      }
+    },
     "toolBlock": {
       "tools": {
         "code_mode": "{state, select, running {Führe Tools aus} done {Tools ausgeführt} approve {Genehmigen: Tools} other {Fehlgeschlagen: Tools}}",
@@ -6275,7 +6297,16 @@
         "memory": "{state, select, running {Nutze Gedächtnis} done {Gedächtnis genutzt} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
         "getBrandReferences": "{state, select, running {Lade Markenreferenzen} done {Markenreferenzen geladen} approve {Genehmigen: Markenreferenzen} other {Fehlgeschlagen: Markenreferenzen}}",
         "webSearch": "{state, select, running {Suche im Web} done {Im Web gesucht} approve {Genehmigen: Websuche} other {Fehlgeschlagen: Websuche}}",
-        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}"
+        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
+        "codeResearcher": "{state, select, running {Untersuche den Code} done {Code untersucht} approve {Genehmigen: Code-Recherche} other {Fehlgeschlagen: Code-Recherche}}",
+        "contentWriter": "{state, select, running {Schreibe den Post} done {Post geschrieben} approve {Genehmigen: Post} other {Fehlgeschlagen: Post}}",
+        "openRepository": "{state, select, running {Öffne Repository} done {Repository geöffnet} approve {Genehmigen: Repository} other {Repository konnte nicht geöffnet werden}}",
+        "listRepositoryFiles": "{state, select, running {Liste Dateien} done {Dateien gelistet} approve {Genehmigen: Dateien} other {Fehlgeschlagen: Dateien}}",
+        "searchRepository": "{state, select, running {Durchsuche Code} done {Code durchsucht} approve {Genehmigen: Code-Suche} other {Fehlgeschlagen: Code-Suche}}",
+        "readRepositoryFile": "{state, select, running {Lese Datei} done {Datei gelesen} approve {Genehmigen: Datei} other {Fehlgeschlagen: Datei}}",
+        "repositoryHistory": "{state, select, running {Lese Historie} done {Historie gelesen} approve {Genehmigen: Historie} other {Fehlgeschlagen: Historie}}",
+        "showRepositoryChange": "{state, select, running {Prüfe Änderung} done {Änderung geprüft} approve {Genehmigen: Änderung} other {Fehlgeschlagen: Änderung}}",
+        "createPost": "{state, select, running {Speichere Entwurf} done {Entwurf gespeichert} approve {Genehmigen: Entwurf} other {Fehlgeschlagen: Entwurf}}"
       },
       "withSuffix": "{label} {suffix}",
       "memory": {

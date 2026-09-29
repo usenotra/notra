@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import {
   CpuIcon,
   File01Icon,
+  Github01Icon,
+  GitPullRequestIcon,
   SourceCodeIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -17,7 +19,13 @@ describe("getChatToolIcon", () => {
     expect(getChatToolIcon("getMarkdown")).toBe(File01Icon);
   });
 
+  test("uses GitHub icons for repository and pull request tools", () => {
+    expect(getChatToolIcon("open_repository")).toBe(Github01Icon);
+    expect(getChatToolIcon("get_pull_requests")).toBe(GitPullRequestIcon);
+  });
+
   test("falls back to the cpu icon for other tools", () => {
     expect(getChatToolIcon("fetchWebpage")).toBe(CpuIcon);
+    expect(getChatToolIcon("constructor")).toBe(CpuIcon);
   });
 });
