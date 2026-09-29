@@ -2296,25 +2296,7 @@
       "exactExcerpt": "Exakter Auszug: "
     },
     "brandSentimentCard": {
-      "scoreHint": "Von KI bewertete Tonalität gegenüber deiner Marke, von 0 bis 100. Positive Erwähnungen zählen 100, neutrale 50 und negative 0. Nur englische Single-Turn-Antworten. Unbekannte Labels und Nicht-Erwähnungen werden ausgeschlossen. Das ist ein beschreibender Score, keine Konfidenz und kein Prozentwert.",
-      "loadingThemes": "Themen werden geladen…",
-      "noThemes": "Keine Themen gefunden",
-      "runAnalysis": "Starte eine Analyse, um Themen zu finden",
-      "polarityShare": {
-        "positive": "{share} positiv",
-        "neutral": "{share} neutral",
-        "negative": "{share} negativ"
-      },
-      "cta": {
-        "positive": "Sieh dir an, was in gespeicherten Antworten funktioniert.",
-        "negative": "Erkenne, was schadet, bevor es sich verbreitet."
-      },
-      "analysisStatus": {
-        "stalePrevious": "Vorherige Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
-        "failedPrevious": "Analyse fehlgeschlagen. Vorherige Themen werden angezeigt.",
-        "failedRetry": "Analyse fehlgeschlagen. Versuch es noch einmal.",
-        "unavailable": "Die Themenanalyse ist nicht verfügbar."
-      }
+      "scoreHint": "Von KI bewertete Tonalität gegenüber deiner Marke, von 0 bis 100. Positive Erwähnungen zählen 100, neutrale 50 und negative 0. Nur englische Single-Turn-Antworten. Unbekannte Labels und Nicht-Erwähnungen werden ausgeschlossen. Das ist ein beschreibender Score, keine Konfidenz und kein Prozentwert."
     },
     "citationsTable": {
       "showDetails": "{title}, Details anzeigen",
@@ -3269,23 +3251,31 @@
       "sheetDescription": "Exakte Zitate aus der analysierten Stichprobe gespeicherter Antworten.",
       "capturedAt": "{date} UTC"
     },
-    "sentimentScore": {
-      "comparisonLabel": "Score-Vergleich und Zeiträume",
-      "noComparable": "Kein vergleichbarer Score",
-      "deltaVsPrevious": "{delta} Pkt. ggü. Vorperiode",
-      "current": "Aktuell: {period}",
-      "previous": "Vorher: {period}",
-      "positionLabel": "Position des Stimmungs-Scores",
-      "outOf100": "{score} von 100",
-      "currentScoreLabel": "Aktueller Stimmungs-Score: {score} von 100"
+    "sentimentBreakdown": {
+      "eyebrow": "Markenstimmung",
+      "byEngine": "Nach Engine",
+      "enginesCount": "{count, plural, one {# Engine} other {# Engines}}",
+      "empty": {
+        "title": "Noch keine Stimmung",
+        "scanningTitle": "Antworten werden gescannt"
+      },
+      "error": {
+        "title": "Stimmung konnte nicht geladen werden",
+        "body": "Beim Laden des Werts ist etwas schiefgelaufen.",
+        "retry": "Erneut versuchen"
+      },
+      "deltaLabel": "Stimmungswert",
+      "deltaHint": "ggü. Vorperiode",
+      "chartLabel": "Täglicher Anteil positiver, neutraler und negativer Antworten",
+      "band": {
+        "strong": "Sehr positiv",
+        "positive": "Überwiegend positiv",
+        "mixed": "Gemischt",
+        "negative": "Überwiegend negativ"
+      }
     },
     "sentimentSkeleton": {
       "loading": "Stimmung wird geladen"
-    },
-    "sentimentSummary": {
-      "label": "Stimmungsübersicht",
-      "loadError": "Stimmungsübersicht konnte nicht geladen werden.",
-      "retry": "Übersicht erneut laden"
     },
     "sentimentThemesEmpty": {
       "retryAnalysis": "Analyse wiederholen",
@@ -3311,16 +3301,6 @@
       },
       "status": {
         "loading": "Analyse wird geladen…"
-      }
-    },
-    "sentimentTrendCard": {
-      "label": "Stimmungsverlauf",
-      "loadError": "Stimmung konnte nicht geladen werden.",
-      "retry": "Stimmung erneut laden",
-      "chart": {
-        "score": "Score",
-        "previous": "Vorperiode",
-        "estimate": "Geschätzter Score"
       }
     },
     "shareOfVoiceBrandTag": {

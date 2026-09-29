@@ -45,3 +45,41 @@ export const GEO_SENTIMENT_EMPTY_LABEL_KEYS = {
   noSavedAnswers: "noSavedAnswersRunA",
   noRatedMentions: "noRatedMentionsInThis",
 } as const;
+
+export const SENTIMENT_POLARITIES = [
+  "positive",
+  "neutral",
+  "negative",
+] as const;
+export const SENTIMENT_MIX_COLORS = {
+  positive: { light: ["#2F855A"], dark: ["#4CB07D"] },
+  neutral: { light: ["#D4D4D8"], dark: ["#52525B"] },
+  negative: { light: ["#D8402F"], dark: ["#EF7566"] },
+};
+export const SENTIMENT_BAND_STRONG_MIN = 75;
+export const SENTIMENT_BAND_POSITIVE_MIN = 60;
+export const SENTIMENT_BAND_MIXED_MIN = 40;
+
+export const SENTIMENT_PREVIEW_BARS = [
+  { id: "a", positive: 44, negative: 4 },
+  { id: "b", positive: 48, negative: 6 },
+  { id: "c", positive: 40, negative: 3 },
+  { id: "d", positive: 52, negative: 5 },
+  { id: "e", positive: 46, negative: 7 },
+  { id: "f", positive: 50, negative: 4 },
+  { id: "g", positive: 42, negative: 6 },
+  { id: "h", positive: 54, negative: 3 },
+  { id: "i", positive: 47, negative: 5 },
+  { id: "j", positive: 51, negative: 4 },
+  { id: "k", positive: 45, negative: 6 },
+  { id: "l", positive: 49, negative: 3 },
+  { id: "m", positive: 43, negative: 5 },
+  { id: "n", positive: 53, negative: 4 },
+  { id: "o", positive: 46, negative: 6 },
+  { id: "p", positive: 50, negative: 5 },
+  { id: "q", positive: 44, negative: 3 },
+  { id: "r", positive: 48, negative: 6 },
+  { id: "s", positive: 52, negative: 4 },
+  { id: "t", positive: 45, negative: 5 },
+] as const;
+export const SENTIMENT_PREVIEW_ENGINE_SHARES = [58, 52, 38, 34] as const;
