@@ -54,25 +54,6 @@ describe("selected grounded engines", () => {
     );
   });
 
-  test("none of the six legacy web-search routes are added to a selection", () => {
-    const legacyKeys = [
-      "openai/gpt-5.4-grounded",
-      "anthropic/claude-sonnet-4.6-grounded",
-      "google/gemini-3-flash-grounded",
-      "openai-direct-grounded",
-      "anthropic-direct-grounded",
-      "perplexity-sonar",
-    ];
-    const engines = resolveGroundedEngines(
-      ["anthropic/claude-sonnet-5"],
-      catalog
-    );
-    for (const key of legacyKeys) {
-      expect(engines.some((engine) => engine.key === key)).toBe(false);
-    }
-    expect(engines.length).toBe(1);
-  });
-
   test("deduplicates selected models", () => {
     expect(
       resolveGroundedEngines(

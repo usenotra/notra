@@ -24,13 +24,6 @@ export interface SentimentTrendPlotProps {
   points: GeoSentimentResponse["points"];
 }
 
-export interface SentimentFamilyRow {
-  family: string;
-  iconEngine: string;
-  label: string;
-  score: number | null;
-}
-
 export interface SentimentTrendCardProps {
   summary?: GeoSentimentResponse["summary"];
   retry?: () => void;
