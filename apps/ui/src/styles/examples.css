@@ -132,7 +132,7 @@
   --marketing-gradient-from: oklab(69.9% 0.067 -0.16);
   --marketing-gradient-to: oklab(52.6% 0.113 -0.27);
   background-image: linear-gradient(
-    180deg in oklab,
+    180deg,
     var(--marketing-gradient-from) 0%,
     var(--marketing-gradient-to) 100%
   );
@@ -158,7 +158,7 @@
   --marketing-gradient-from: oklab(100% 0 0);
   --marketing-gradient-to: oklab(95.5% 0 0);
   background-image: linear-gradient(
-    180deg in oklab,
+    180deg,
     var(--marketing-gradient-from) 0%,
     var(--marketing-gradient-to) 100%
   );
