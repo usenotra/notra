@@ -56,18 +56,18 @@ export function InstrumentModule({
   if (variant !== "flat") {
     const tableHeader = variant === "table";
     let headerClassName =
-      "border-border bg-muted min-h-24 content-start rounded-t-2xl border border-b-0 pt-4 pb-9";
+      "border-shell-border bg-shell min-h-24 content-start rounded-t-2xl border border-b-0 pt-4 pb-9";
     let contentClassName =
-      "border-border bg-card relative -mt-9 flex flex-1 flex-col rounded-2xl border p-6";
+      "border-border bg-card shadow-lift relative -mt-9 flex flex-1 flex-col rounded-2xl border p-6";
 
     if (bareBody) {
       headerClassName = "px-1";
       contentClassName = "flex flex-1 flex-col p-0";
     } else if (tableHeader) {
       headerClassName =
-        "border-border bg-muted h-[4.25rem] content-center items-center rounded-t-2xl border border-b-0 pb-5";
+        "border-shell-border bg-shell h-[4.25rem] content-center items-center rounded-t-2xl border border-b-0 pb-5";
       contentClassName =
-        "border-border bg-card relative -mt-5 flex flex-1 flex-col rounded-2xl border p-4";
+        "border-border bg-card shadow-lift relative -mt-5 flex flex-1 flex-col rounded-2xl border p-4";
     }
 
     return (

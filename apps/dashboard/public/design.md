@@ -10,7 +10,9 @@ colors:
   foreground: "hsl(0 0% 9%)"
   card: "hsl(0 0% 100%)"
   muted: "hsl(0 0% 96.1%)"
-  muted-foreground: "hsl(0 0% 45.1%)"
+  muted-foreground: "hsl(240 4% 40%)"
+  shell: "hsl(240 6% 94.5%)"
+  shell-border: "hsl(240 5% 87%)"
   border: "hsl(0 0% 89.8%)"
   dark-background: "hsl(233 7% 8%)"
   destructive: "hsl(0 84.2% 60.2%)"
@@ -46,13 +48,13 @@ The tables below are the values to follow. The paths are for people working in t
 
 ## Dualtone
 
-A dualtone block is two stacked surfaces. The shell is `bg-muted` and holds the title, toolbar, or metrics. The body is `bg-card` or `bg-background`. It overlaps the shell and holds the content.
+A dualtone block is two stacked surfaces. The shell is `bg-shell` and holds the title, toolbar, or metrics. The body is `bg-card` or `bg-background`. It overlaps the shell and holds the content.
 
 ```html
-<div class="overflow-hidden rounded-t-2xl border border-b-0 border-border bg-muted pb-5">
+<div class="overflow-hidden rounded-t-2xl border border-b-0 border-shell-border bg-shell pb-5">
   <!-- label, toolbar, or metrics -->
 </div>
-<div class="relative -mt-5 rounded-2xl border border-border bg-card">
+<div class="relative -mt-5 rounded-2xl border border-border bg-card shadow-lift">
   <!-- content -->
 </div>
 ```
@@ -61,12 +63,12 @@ A dualtone block is two stacked surfaces. The shell is `bg-muted` and holds the 
 | --- | --- | --- | --- |
 | `pb-5`, about 4.25rem tall | `-mt-5` (20px) | `bg-card` or `bg-background` | Tables, metric bands, compact modules |
 | `pb-9`, `min-h-24`, `pt-4` | `-mt-9` (36px) | `bg-card`, 24px padding | Taller panels |
-| `pb-5`, footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-muted` | Tables with a footer band |
+| `pb-5`, footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-shell` | Tables with a footer band |
 
-- Shell and body each have a 1px `border-border`. The shell has no bottom border. The body is `rounded-2xl`, so it reads as a card in a tray.
+- The shell has a 1px `border-shell-border` and no bottom border. The body has a 1px `border-border` and `shadow-lift`, which lifts it off the shell. The body is `rounded-2xl`, so it reads as a card in a tray.
 - One dualtone per group. Do not nest a dualtone block inside another.
 - A block with no label band is a flat card: `rounded-xl`, `bg-card`, and `ring-1 ring-foreground/10`. Do not add a muted tray to it.
-- Motion-table headers sit on `bg-muted`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`.
+- Motion-table headers sit on `bg-shell`. Body cells sit on `bg-background`. Hover uses `bg-muted/50`.
 - `TABLE_CHROME_CLASS` is a different wrapper, for chat tables: `bg-muted/80`, `rounded-lg`, `shadow-2xs`. Do not put it on a dualtone table.
 - Table and flat eyebrows are `text-sm font-medium capitalize`. Panel titles are `text-base font-medium` and stay as written. Readouts are `text-xs text-muted-foreground`. Aligned numbers use `tabular-nums`.
 
@@ -85,8 +87,10 @@ The main action, links, and the selected control may use violet together. Body t
 | `background` | `hsl(0 0% 100%)` | `hsl(233 7% 8%)` | Page |
 | `foreground` | `hsl(0 0% 9%)` | `hsl(0 0% 98%)` | Primary text |
 | `card` | white | `hsl(240 6% 10%)` | Lifted body |
-| `muted` | `hsl(0 0% 96.1%)` | `hsl(0 0% 14.9%)` | Dualtone shell, secondary fill |
-| `muted-foreground` | `hsl(0 0% 45.1%)` | `hsl(0 0% 63.9%)` | Secondary text |
+| `muted` | `hsl(0 0% 96.1%)` | `hsl(0 0% 14.9%)` | Secondary fill, hover |
+| `shell` | `hsl(240 6% 94.5%)` | `hsl(240 5% 14.5%)` | Dualtone shell |
+| `shell-border` | `hsl(240 5% 87%)` | `hsl(240 4% 20%)` | Dualtone shell hairline |
+| `muted-foreground` | `hsl(240 4% 40%)` | `hsl(0 0% 63.9%)` | Secondary text |
 | `border` | `hsl(0 0% 89.8%)` | `hsl(0 1% 17%)` | Hairline |
 | `primary` | `#8B5CF6` | `#8B5CF6` | Action, links, selection |
 | `primary-foreground` | near white | near white | Text on primary |
@@ -200,7 +204,7 @@ The product name is `Notra`.
 | Keep violet for the main action, links, selection, and the first series | Wash screens in violet |
 | Keep Memory teal on the second series | Reuse Search or Memory hues for another series |
 | Use `font-sans` for UI and `font-mono` for code | Set the product in a display serif |
-| Use `bg-muted` on motion-table headers | Put `TABLE_CHROME_CLASS` on a dualtone table |
+| Use `bg-shell` on motion-table headers | Put `TABLE_CHROME_CLASS` on a dualtone table |
 | Use `tabular-nums` on aligned numbers | Let digits jump as values change |
 | Keep one dualtone per group | Nest a card inside a dualtone body |
 | Keep the focus ring | Signal state with color alone |

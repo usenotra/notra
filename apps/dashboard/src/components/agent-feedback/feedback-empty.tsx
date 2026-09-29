@@ -45,7 +45,7 @@ export function AgentFeedbackEmpty({
             {t("empty.description")}
           </p>
         </div>
-        <div className="border-border bg-muted flex h-[4.25rem] items-center justify-between gap-3 rounded-t-2xl border border-b-0 px-4 pb-5 text-left sm:px-5">
+        <div className="border-shell-border bg-shell flex h-[4.25rem] items-center justify-between gap-3 rounded-t-2xl border border-b-0 px-4 pb-5 text-left sm:px-5">
           <h4 className="text-sm font-semibold text-balance">
             {t("setup.title")}
           </h4>
@@ -63,7 +63,7 @@ export function AgentFeedbackEmpty({
           </Button>
         </div>
         <AgentFeedbackSetup
-          className="border-border bg-card relative -mt-5 rounded-2xl border p-4 text-left sm:p-5"
+          className="border-border bg-card shadow-lift relative -mt-5 rounded-2xl border p-4 text-left sm:p-5"
           setup={setup}
           showPromptAction={false}
         />
