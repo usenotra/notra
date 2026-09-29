@@ -77,39 +77,40 @@ const OpencodeSourceRow = ({
   const urlLabel = source.url ? citedSourceUrl(source.url) : source.title;
 
   return (
-    <Item
-      aria-label={href ? openLabel(source.title, source.domain) : undefined}
-      className={cn(
-        ROW_CLASS,
-        delayMs !== undefined && "delay-(--opencode-delay)",
-        className
-      )}
-      render={
-        href
-          ? (linkProps) => (
-              <a
-                {...linkProps}
-                href={href}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {linkProps.children}
-              </a>
-            )
-          : undefined
-      }
-      role="listitem"
-      style={
-        delayMs === undefined
-          ? undefined
-          : ({ "--opencode-delay": `${delayMs}ms` } as CSSProperties)
-      }
-    >
-      <ItemTitle className={CELL_CLASS}>{source.domain}</ItemTitle>
-      <ItemDescription className={cn(CELL_CLASS, "text-opencode-muted")}>
-        {urlLabel}
-      </ItemDescription>
-    </Item>
+    <li className="contents">
+      <Item
+        aria-label={href ? openLabel(source.title, source.domain) : undefined}
+        className={cn(
+          ROW_CLASS,
+          delayMs !== undefined && "delay-(--opencode-delay)",
+          className
+        )}
+        render={
+          href
+            ? (linkProps) => (
+                <a
+                  {...linkProps}
+                  href={href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {linkProps.children}
+                </a>
+              )
+            : undefined
+        }
+        style={
+          delayMs === undefined
+            ? undefined
+            : ({ "--opencode-delay": `${delayMs}ms` } as CSSProperties)
+        }
+      >
+        <ItemTitle className={CELL_CLASS}>{source.domain}</ItemTitle>
+        <ItemDescription className={cn(CELL_CLASS, "text-opencode-muted")}>
+          {urlLabel}
+        </ItemDescription>
+      </Item>
+    </li>
   );
 };
 
