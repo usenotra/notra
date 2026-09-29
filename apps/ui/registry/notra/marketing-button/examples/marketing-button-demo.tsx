@@ -4,7 +4,7 @@ import { MarketingButton } from "../components/marketing-button";
 
 export default function MarketingButtonDemo() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-6 p-8">
+    <div className="flex w-full min-w-0 flex-wrap items-center justify-center gap-6 p-8">
       <MarketingButton>
         Start for free
         <ArrowRight />
