@@ -61,7 +61,7 @@ function DualtoneModule({
     <Card
       className={cn(
         "min-w-0 flex-1 overflow-visible rounded-2xl bg-transparent p-0 ring-0",
-        tableHeader && "gap-0",
+        (tableHeader || !bareBody) && "gap-0",
         className
       )}
     >

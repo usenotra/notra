@@ -62,7 +62,7 @@ A dualtone block is two stacked surfaces. The shell is `bg-shell` and holds the 
 | Shell | Overlap | Body | Use |
 | --- | --- | --- | --- |
 | `pb-5`, about 4.25rem tall | `-mt-5` (20px) | `bg-card` or `bg-background` | Tables, metric bands, compact modules |
-| `pb-9`, `min-h-24`, `pt-4` | `-mt-9` (36px) | `bg-card`, 24px padding | Taller panels |
+| `pb-9`, `min-h-24`, `pt-4` | `-mt-5` (20px), the extra shell padding keeps the label clear | `bg-card`, 24px padding | Taller panels |
 | `pb-5`, footer `pt-5` | `-mt-5` on body and footer | body `bg-background`, footer `bg-shell` | Tables with a footer band |
 
 - The shell has a 1px `border-shell-border` and no bottom border. The body has a 1px `border-border` and `shadow-lift`, which lifts it off the shell. The body is `rounded-2xl`, so it reads as a card in a tray.

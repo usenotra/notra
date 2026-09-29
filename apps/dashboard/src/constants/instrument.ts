@@ -4,7 +4,7 @@ export const INSTRUMENT_SURFACE_CLASSES = {
     header:
       "border-shell-border bg-shell min-h-24 content-start rounded-t-2xl border border-b-0 pt-4 pb-9",
     content:
-      "border-border bg-card shadow-lift relative -mt-9 flex flex-1 flex-col rounded-2xl border p-6",
+      "border-border bg-card shadow-lift relative -mt-5 flex flex-1 flex-col rounded-2xl border p-6",
   },
   table: {
     header:
