@@ -1,9 +1,9 @@
 ---
 title: Button
-description: A shadcn Base UI button with Depth primary and secondary variants and squircle corners.
+description: A shadcn Base UI button with Depth primary, secondary, outline and destructive variants and squircle corners.
 ---
 
-Primary and secondary get a vertical gradient, a top highlight and a soft drop shadow. Primary, secondary, outline and destructive use squircle corners where the browser supports `corner-shape`.
+Primary, secondary, outline and destructive get a vertical gradient, a top highlight and a soft drop shadow. They also use squircle corners where the browser supports `corner-shape`.
 
 <Component path="button/examples/button-variants" />
 
@@ -13,7 +13,7 @@ Primary and secondary get a vertical gradient, a top highlight and a soft drop s
 bunx shadcn@latest add @notra/notra-button
 ```
 
-This replaces `components/ui/button.tsx`. The gradient is built from your `--primary`, `--background` and `--muted` tokens, so it follows your theme.
+This replaces `components/ui/button.tsx`. The gradient is built from your `--primary`, `--foreground`, `--background`, `--muted` and `--destructive` tokens, so it follows your theme.
 
 ## Sizes
 
