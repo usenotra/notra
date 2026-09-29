@@ -108,6 +108,9 @@ export function SentimentBreakdownPlaceholder({
   if (state === "error") {
     title = t("error.title");
     body = t("error.body");
+  } else if (state === "pending") {
+    title = t("loading.title");
+    body = "";
   } else if (busy) {
     title = t("empty.scanningTitle");
     body = tGeoShared("scanInProgress");
@@ -132,9 +135,11 @@ export function SentimentBreakdownPlaceholder({
           <h3 className="text-base font-medium text-balance">
             {busy ? <Shimmer as="span">{title}</Shimmer> : title}
           </h3>
-          <p className="text-muted-foreground max-w-xs text-sm text-balance">
-            {body}
-          </p>
+          {body ? (
+            <p className="text-muted-foreground max-w-xs text-sm text-balance">
+              {body}
+            </p>
+          ) : null}
           {state === "error" ? (
             <Button onClick={retry} size="sm" variant="outline">
               {t("error.retry")}

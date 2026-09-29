@@ -1,3 +1,7 @@
+"use client";
+
+import { useFormatter, useTranslations } from "next-intl";
+
 import {
   SENTIMENT_POLARITIES,
   SENTIMENT_POLARITY_STYLES,
@@ -9,13 +13,24 @@ export function SentimentDistributionBar({
   bucket,
   className,
 }: SentimentDistributionBarProps) {
+  const tCommon = useTranslations("common.labels");
+  const format = useFormatter();
+  const label = SENTIMENT_POLARITIES.map(
+    (polarity) =>
+      `${tCommon(polarity)} ${format.number(bucket[`${polarity}Share`] ?? 0, {
+        style: "percent",
+        maximumFractionDigits: 1,
+      })}`
+  ).join(", ");
+
   return (
     <div
-      aria-hidden="true"
+      aria-label={label}
       className={cn(
         "bg-muted flex h-2 gap-0.5 overflow-hidden rounded-full",
         className
       )}
+      role="img"
     >
       {SENTIMENT_POLARITIES.map((polarity) => (
         <span

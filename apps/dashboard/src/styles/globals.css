@@ -117,13 +117,14 @@
 @media (prefers-reduced-motion: no-preference) {
   .sentiment-scan-bar {
     transform-origin: bottom;
-    animation: sentiment-scan-wave 2s ease-in-out infinite;
+    animation: sentiment-scan-wave 2s ease-in-out infinite backwards;
     animation-delay: calc(var(--scan-index) * 110ms);
   }
 
   .sentiment-scan-fill {
     transform-origin: left;
-    animation: sentiment-scan-fill 2.6s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    animation: sentiment-scan-fill 2.6s cubic-bezier(0.23, 1, 0.32, 1) infinite
+      backwards;
     animation-delay: calc(var(--scan-index) * 320ms);
   }
 

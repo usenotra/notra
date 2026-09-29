@@ -3255,6 +3255,9 @@
       "eyebrow": "Markenstimmung",
       "byEngine": "Nach Engine",
       "enginesCount": "{count, plural, one {# Engine} other {# Engines}}",
+      "loading": {
+        "title": "Stimmung wird geladen"
+      },
       "empty": {
         "title": "Noch keine Stimmung",
         "scanningTitle": "Antworten werden gescannt"
@@ -3281,7 +3284,6 @@
       },
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
-      "chartLabel": "Täglicher Anteil positiver, neutraler und negativer Antworten",
       "band": {
         "strong": "Sehr positiv",
         "positive": "Überwiegend positiv",

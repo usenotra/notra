@@ -3255,6 +3255,9 @@
       "eyebrow": "Brand sentiment",
       "byEngine": "By engine",
       "enginesCount": "{count, plural, one {# engine} other {# engines}}",
+      "loading": {
+        "title": "Loading sentiment"
+      },
       "empty": {
         "title": "No sentiment yet",
         "scanningTitle": "Scanning answers"
@@ -3281,7 +3284,6 @@
       },
       "deltaLabel": "Sentiment score",
       "deltaHint": "vs. previous period",
-      "chartLabel": "Daily mix of positive, neutral and negative answers",
       "band": {
         "strong": "Strongly positive",
         "positive": "Mostly positive",

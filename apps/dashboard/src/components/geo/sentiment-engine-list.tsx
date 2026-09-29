@@ -3,7 +3,6 @@ import { useFormatter, useTranslations } from "next-intl";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { SentimentDistributionBar } from "@/components/geo/sentiment-distribution-bar";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
-import { SENTIMENT_SCORE_FORMAT } from "@/constants/geo-sentiment";
 import type { SentimentFamilyBucket } from "@/types/geo-sentiment";
 
 export function SentimentEngineList({
@@ -31,9 +30,7 @@ export function SentimentEngineList({
             <span className="font-semibold tabular-nums">
               {bucket.score === null
                 ? "—"
-                : format.number(
-                    Number(SENTIMENT_SCORE_FORMAT.format(bucket.score))
-                  )}
+                : format.number(Math.round(bucket.score))}
             </span>
           </div>
           <SentimentDistributionBar bucket={bucket} className="h-1.5" />

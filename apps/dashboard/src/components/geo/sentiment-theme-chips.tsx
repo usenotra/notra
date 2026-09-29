@@ -81,7 +81,7 @@ export function SentimentThemeChips({
   const tGeoShared = useTranslations("geo.shared");
   const analysis = useGeoSentimentAnalysis(organizationId);
   const state = analysis.query.data;
-  const themes = state?.result?.themes ?? [];
+  const themes = analysis.query.isError ? [] : (state?.result?.themes ?? []);
   const view = sentimentThemesState({
     state,
     summary,
