@@ -6,7 +6,7 @@ import {
   GEO_JOURNEY_BROWSE_CATEGORY,
   GEO_JOURNEY_CHIP_LENGTH,
   GEO_JOURNEY_EXPLICIT_PREFIX,
-  GEO_RANGE_PRESET_DAYS,
+  GEO_MAX_RANGE_DAYS,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_SPARKLINE_FLAT_THRESHOLD,
   GEO_STAT_DELTA_NEW,
@@ -246,14 +246,8 @@ export function trafficSparklineDays(
   }
   const dayMs = 86_400_000;
   const span = Math.floor((end - start) / dayMs) + 1;
-  const maxDays = GEO_RANGE_PRESET_DAYS["90d"] + 1;
-  if (span > maxDays) {
-    const days = new Set(observed);
-    for (let index = 0; index < maxDays; index++) {
-      const offset = Math.round((index * (span - 1)) / (maxDays - 1));
-      days.add(new Date(start + offset * dayMs).toISOString().slice(0, 10));
-    }
-    return [...days].sort();
+  if (span > GEO_MAX_RANGE_DAYS) {
+    return observed;
   }
   const days: string[] = [];
   for (let time = start; time <= end; time += dayMs) {

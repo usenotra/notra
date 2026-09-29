@@ -165,6 +165,10 @@ export interface TrafficPageViewProps {
   ingestSetup: GeoIngestSetupResponse | undefined;
 }
 
+export interface GeoTrafficSkeletonProps {
+  geoRange?: GeoRangeControl;
+}
+
 export interface GeoLayoutProps {
   children: ReactNode;
   modal: ReactNode;

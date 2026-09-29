@@ -29,7 +29,7 @@ test("traffic starting today plots zero for earlier days in the selected range",
   expect(trafficSparklineDays([], "2026-09-26", "2026-09-29")).toEqual([]);
 });
 
-test("very long ranges sample empty days without dropping observed traffic", () => {
+test("oversized ranges do not generate artificial chart days", () => {
   const points: GeoTrafficPoint[] = [
     {
       day: "2026-09-29",
@@ -40,8 +40,5 @@ test("very long ranges sample empty days without dropping observed traffic", () 
   ];
   const days = trafficSparklineDays(points, "0000-01-01", "9999-12-31");
 
-  expect(days.length).toBeLessThanOrEqual(91);
-  expect(days[0]).toBe("0000-01-01");
-  expect(days.at(-1)).toBe("9999-12-31");
-  expect(days).toContain("2026-09-29");
+  expect(days).toEqual(["2026-09-29"]);
 });
