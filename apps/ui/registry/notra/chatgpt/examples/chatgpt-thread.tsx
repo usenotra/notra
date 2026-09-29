@@ -6,7 +6,7 @@ import { CHATGPT_SMALL_TALK } from "../constants/chatgpt-story";
 export default function ChatgptThreadExample() {
   return (
     <ChatgptThread
-      className="border-chatgpt-border w-full min-w-0 overflow-hidden rounded-2xl border"
+      className="border-chatgpt-border h-96 w-full min-w-0 overflow-hidden rounded-2xl border"
       footer={<ChatgptComposer />}
     >
       {CHATGPT_SMALL_TALK.map((message) => (

@@ -73,7 +73,10 @@ export interface ChatgptReasoningProps extends Omit<
   seconds: number;
 }
 
-export interface ChatgptSearchProps extends ComponentProps<typeof Button> {
+export interface ChatgptSearchProps extends Omit<
+  ComponentProps<typeof Button>,
+  "children"
+> {
   sites?: readonly ChatgptActivitySite[];
   websites: number;
 }
@@ -90,7 +93,10 @@ export interface ChatgptActivityProps extends Omit<
   websites: number;
 }
 
-export interface ChatgptFaviconProps extends ComponentProps<typeof Avatar> {
+export interface ChatgptFaviconProps extends Omit<
+  ComponentProps<typeof Avatar>,
+  "children"
+> {
   domain: string;
   src?: string;
 }

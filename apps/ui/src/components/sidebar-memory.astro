@@ -38,6 +38,9 @@
     return labels.join("/");
   };
 
+  // Restoring flips `open` programmatically; those toggles must not overwrite the saved choice.
+  let restoring = false;
+
   const restore = () => {
     const state = readState();
     for (const details of document.querySelectorAll<HTMLDetailsElement>(GROUP_SELECTOR)) {
@@ -47,6 +50,7 @@
       }
       // Never hide the page you're on: its ancestors stay open.
       const holdsCurrentPage = details.querySelector('[aria-current="page"]') !== null;
+      restoring = true;
       details.open = saved || holdsCurrentPage;
     }
   };
@@ -55,6 +59,9 @@
     "toggle",
     (event) => {
       const details = event.target;
+      if (restoring) {
+        return;
+      }
       if (!(details instanceof HTMLDetailsElement) || !details.matches(GROUP_SELECTOR)) {
         return;
       }
@@ -65,6 +72,14 @@
     true
   );
 
-  restore();
-  document.addEventListener("astro:after-swap", restore);
+  const restoreOnce = () => {
+    restore();
+    // `toggle` fires asynchronously, so keep ignoring it until the queued events have run.
+    setTimeout(() => {
+      restoring = false;
+    }, 0);
+  };
+
+  restoreOnce();
+  document.addEventListener("astro:after-swap", restoreOnce);
 </script>

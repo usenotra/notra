@@ -35,8 +35,11 @@ export default function GeminiDemo() {
     const viewport = scrollRef.current?.querySelector(
       '[data-slot="scroll-area-viewport"]'
     );
-    viewport?.scrollTo({ behavior: "smooth", top: viewport.scrollHeight });
-  }, [playback.messages.length, playback.thinking]);
+    viewport?.scrollTo({
+      behavior: reducedMotion ? "auto" : "smooth",
+      top: viewport.scrollHeight,
+    });
+  }, [playback.messages, playback.thinking, reducedMotion]);
 
   const handleSend = (text: string) => {
     if (playback.playing) {

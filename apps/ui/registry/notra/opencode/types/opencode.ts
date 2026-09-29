@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import type { Collapsible } from "@/components/ui/collapsible";
 
-export type OpencodeActivityKind = "thought" | "tool";
+export type OpencodeActivityKind = "read" | "thought" | "tool";
 
 export type OpencodeMessageAuthor = "user" | "assistant";
 

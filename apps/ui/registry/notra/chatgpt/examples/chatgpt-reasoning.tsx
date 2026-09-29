@@ -8,7 +8,6 @@ export default function ChatgptReasoningExample() {
   return (
     <Card className="border-chatgpt-border bg-chatgpt-bg font-chatgpt text-chatgpt-fg flex w-full min-w-0 flex-col gap-6 rounded-2xl border p-6 text-base ring-0">
       <ChatgptReasoning
-        defaultOpen
         search={
           <ChatgptActivity
             seconds={21}

@@ -122,7 +122,6 @@ const ChatgptStoryBody = ({
         reasoning && (
           <ChatgptReasoning
             complete={complete}
-            defaultOpen
             search={
               !reasoning.steps &&
               reasoning.search && (

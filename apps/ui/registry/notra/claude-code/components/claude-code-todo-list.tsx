@@ -22,13 +22,12 @@ export const ClaudeCodeTodoList = ({
   todos,
   ...props
 }: ClaudeCodeTodoListProps) => (
-  <ItemGroup
+  <div
     className={cn(
-      "font-claude-code text-claude-code-fg gap-0 text-[0.8125rem] leading-[1.125rem]",
+      "font-claude-code text-claude-code-fg text-[0.8125rem] leading-[1.125rem]",
       className
     )}
     data-slot="claude-code-todo-list"
-    {...props}
   >
     {heading ? (
       <div
@@ -41,36 +40,38 @@ export const ClaudeCodeTodoList = ({
         <span className="text-claude-code-fg font-semibold">{heading}</span>
       </div>
     ) : null}
-    {todos.map((todo, index) => (
-      <Item
-        className="flex-nowrap items-baseline gap-0 rounded-none border-0 p-0 text-[0.8125rem] leading-[1.125rem] whitespace-pre"
-        data-status={todo.status}
-        key={`${todo.label}-${todo.status}`}
-        role="listitem"
-      >
-        <ItemMedia aria-hidden="true" className="gap-0">
-          <span className="text-claude-code-muted">
-            {index === 0 ? "  ⎿ " : "    "}
-          </span>
-          <span className={CLAUDE_CODE_TODO_GLYPH_CLASSES[todo.status]}>
-            {CLAUDE_CODE_TODO_GLYPHS[todo.status]}{" "}
-          </span>
-        </ItemMedia>
-        <ItemContent className="min-w-0 gap-0">
-          <ItemTitle
-            className={cn(
-              "line-clamp-none block w-auto text-[0.8125rem] leading-[1.125rem] font-normal",
-              CLAUDE_CODE_TODO_LABEL_CLASSES[todo.status]
-            )}
-          >
-            {todo.label}
-            <span className="sr-only">
-              {" "}
-              ({CLAUDE_CODE_TODO_STATUS_LABELS[todo.status]})
+    <ItemGroup className="gap-0" {...props}>
+      {todos.map((todo, index) => (
+        <Item
+          className="flex-nowrap items-baseline gap-0 rounded-none border-0 p-0 text-[0.8125rem] leading-[1.125rem] whitespace-pre"
+          data-status={todo.status}
+          key={`${index}-${todo.label}`}
+          role="listitem"
+        >
+          <ItemMedia aria-hidden="true" className="gap-0">
+            <span className="text-claude-code-muted">
+              {index === 0 ? "  ⎿ " : "    "}
             </span>
-          </ItemTitle>
-        </ItemContent>
-      </Item>
-    ))}
-  </ItemGroup>
+            <span className={CLAUDE_CODE_TODO_GLYPH_CLASSES[todo.status]}>
+              {CLAUDE_CODE_TODO_GLYPHS[todo.status]}{" "}
+            </span>
+          </ItemMedia>
+          <ItemContent className="min-w-0 gap-0">
+            <ItemTitle
+              className={cn(
+                "line-clamp-none block w-auto text-[0.8125rem] leading-[1.125rem] font-normal",
+                CLAUDE_CODE_TODO_LABEL_CLASSES[todo.status]
+              )}
+            >
+              {todo.label}
+              <span className="sr-only">
+                {" "}
+                ({CLAUDE_CODE_TODO_STATUS_LABELS[todo.status]})
+              </span>
+            </ItemTitle>
+          </ItemContent>
+        </Item>
+      ))}
+    </ItemGroup>
+  </div>
 );

@@ -4,20 +4,31 @@ import {
   CLAUDE_SEARCH_STEP_MS,
   CLAUDE_SEARCH_VERB_HOLD_MS,
 } from "../constants/claude";
-import type { ClaudeSearchGroup, ClaudeStepItem } from "../types/claude";
+import type {
+  ClaudeDemoSearch,
+  ClaudeSearchGroup,
+  ClaudeStepItem,
+} from "../types/claude";
 
 export const claudeSearchDuration = (
-  groupCount: number,
-  stepCount: number,
+  search: ClaudeDemoSearch,
   reducedMotion: boolean
 ): number => {
   if (reducedMotion) {
     return 0;
   }
 
+  const items = search.items ?? [];
+  const toolCount =
+    search.groups.length + items.filter((item) => item.type === "tool").length;
+  const stepCount =
+    (search.steps?.length ?? 0) +
+    items.filter((item) => item.type !== "tool").length +
+    (search.thought ? 1 : 0);
+
   return (
     CLAUDE_SEARCH_VERB_HOLD_MS +
-    groupCount * (CLAUDE_SEARCH_QUERY_MS + CLAUDE_SEARCH_RESULTS_MS) +
+    toolCount * (CLAUDE_SEARCH_QUERY_MS + CLAUDE_SEARCH_RESULTS_MS) +
     stepCount * CLAUDE_SEARCH_STEP_MS
   );
 };

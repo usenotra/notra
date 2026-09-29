@@ -41,6 +41,8 @@ const { item, prefix } = Astro.props;
       this.querySelector("[data-copy]")?.removeEventListener("click", this.copy);
     }
 
+    resetTimer: number | undefined;
+
     copy = async () => {
       const button = this.querySelector<HTMLButtonElement>("[data-copy]");
       try {
@@ -50,7 +52,8 @@ const { item, prefix } = Astro.props;
       }
       button?.setAttribute("data-copied", "");
       button?.setAttribute("aria-label", "Copied");
-      window.setTimeout(() => {
+      window.clearTimeout(this.resetTimer);
+      this.resetTimer = window.setTimeout(() => {
         button?.removeAttribute("data-copied");
         button?.setAttribute("aria-label", "Copy install command");
       }, COPIED_MS);

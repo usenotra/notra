@@ -44,7 +44,7 @@ export const ChatgptSourceChip = ({
         closeDelay={CHATGPT_CHIP_HOVER_CLOSE_DELAY_MS}
         data-slot="chatgpt-source-chip"
         delay={CHATGPT_CHIP_HOVER_OPEN_DELAY_MS}
-        href={first.href}
+        href={first.href ?? `https://${first.domain}`}
         rel={rel}
         target={target}
         {...props}

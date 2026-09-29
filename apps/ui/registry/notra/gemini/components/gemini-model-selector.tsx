@@ -111,7 +111,7 @@ export const GeminiModelSelector = ({
               handleSelect(option.id);
             }
           }}
-          value={model}
+          value={selected.id}
         >
           {coreModels.map(renderRow)}
           {thinkingModels.length > 0 ? (

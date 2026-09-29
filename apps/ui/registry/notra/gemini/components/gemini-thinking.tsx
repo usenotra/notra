@@ -29,7 +29,10 @@ export const GeminiThinking = ({
       role="presentation"
       size={20}
     />
-    <Shimmer className="[--shimmer-highlight:var(--gemini-subtle)]">
+    <Shimmer
+      className="[--shimmer-highlight:var(--gemini-subtle)]"
+      paused={reducedMotion}
+    >
       {label}
     </Shimmer>
   </div>

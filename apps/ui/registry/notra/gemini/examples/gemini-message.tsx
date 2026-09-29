@@ -12,7 +12,7 @@ export default function GeminiMessageExample() {
           {message.from === "user" ? (
             message.text
           ) : (
-            <GeminiStoryText text={message.text} />
+            <GeminiStoryText sources={message.sources} text={message.text} />
           )}
         </GeminiMessage>
       ))}

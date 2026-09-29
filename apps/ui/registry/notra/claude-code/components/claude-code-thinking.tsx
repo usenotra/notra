@@ -8,7 +8,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Kbd } from "@/components/ui/kbd";
 
 import type { ClaudeCodeThinkingProps } from "../types/claude-code";
 
@@ -39,11 +38,7 @@ export const ClaudeCodeThinking = ({
       </span>
       <span>{label}</span>
       <span className="group-data-open/claude-code-thinking:hidden">
-        (
-        <Kbd className="text-claude-code-comment h-auto min-w-0 bg-transparent p-0 font-[inherit] text-[length:inherit] font-normal italic">
-          ctrl+o
-        </Kbd>{" "}
-        to expand)
+        (click to expand)
       </span>
     </CollapsibleTrigger>
     <CollapsibleContent>

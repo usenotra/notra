@@ -40,6 +40,7 @@ export const ChatgptThread = ({
       stickRef.current = nearBottom;
       setAtBottom(nearBottom);
     };
+    handleScroll();
     viewport.addEventListener("scroll", handleScroll, { passive: true });
     return () => viewport.removeEventListener("scroll", handleScroll);
   }, []);

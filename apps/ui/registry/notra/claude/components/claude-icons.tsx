@@ -1,14 +1,5 @@
 import type { ComponentProps } from "react";
 
-export const ClaudeWaveformIcon = (props: ComponentProps<"svg">) => (
-  <svg aria-hidden="true" fill="currentColor" viewBox="0 0 16 16" {...props}>
-    <rect height="6" rx="0.9" width="1.7" x="1.4" y="5" />
-    <rect height="10" rx="0.9" width="1.7" x="5.2" y="3" />
-    <rect height="7.5" rx="0.9" width="1.7" x="9" y="4.25" />
-    <rect height="11" rx="0.9" width="1.7" x="12.8" y="2.5" />
-  </svg>
-);
-
 export const ClaudeLogoIcon = (props: ComponentProps<"svg">) => (
   <svg
     aria-hidden="true"

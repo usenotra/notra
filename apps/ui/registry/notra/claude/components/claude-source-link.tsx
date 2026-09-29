@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "cn";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

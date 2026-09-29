@@ -21,7 +21,8 @@ export const ClaudeThinking = ({
 }: ClaudeThinkingProps) => {
   const reduced = useClaudeReducedMotion(reducedMotion);
   const [verbIndex, setVerbIndex] = useState(0);
-  const verb = verbs[verbIndex % verbs.length] ?? verbs[0];
+  const verb =
+    verbs[verbIndex % verbs.length] ?? verbs[0] ?? CLAUDE_THINKING_VERBS[0];
 
   useEffect(() => {
     if (reduced || verbs.length <= 1) {
@@ -49,7 +50,10 @@ export const ClaudeThinking = ({
         reducedMotion={reduced}
         size={16}
       />
-      <Shimmer className="text-[0.9375rem] leading-6 [--shimmer-highlight:var(--claude-fg)]">
+      <Shimmer
+        className="text-[0.9375rem] leading-6 [--shimmer-highlight:var(--claude-fg)]"
+        paused={reduced}
+      >
         {verb}
       </Shimmer>
     </div>

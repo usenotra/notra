@@ -11,7 +11,7 @@ export default function ChatgptMessageExample() {
       </ChatgptMessage>
       <ChatgptMessage
         actions={
-          <ChatgptActions text="G7 foreign ministers are meeting in Ottawa on a new sanctions package." />
+          <ChatgptActions text="G7 foreign ministers are meeting in Ottawa on a new sanctions package, while the ceasefire talks in Geneva have stalled again." />
         }
         from="assistant"
       >

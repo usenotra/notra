@@ -14,6 +14,12 @@ export const OPENCODE_DEMO_SESSION: OpencodeDemoSession = {
       label: "Preparing changelog workflow",
     },
     {
+      body: 'export const brandVoice = { tone: "direct", person: "we" };',
+      id: "read",
+      kind: "read",
+      label: "Read apps/web/src/brand-voice.ts",
+    },
+    {
       body: "14 merged PRs, 2 releases",
       detail: "range=week",
       id: "events",
@@ -58,9 +64,9 @@ export const OPENCODE_DEMO_SOURCES: OpencodeSource[] = [
     url: "https://www.descript.com/",
   },
   {
-    domain: "support.google.com",
+    domain: "gemini.google.com",
     title: "Gemini",
-    url: "https://support.google.com/",
+    url: "https://gemini.google.com/",
   },
 ];
 
@@ -76,6 +82,12 @@ export const OPENCODE_DEMO_ACTIVITIES: OpencodeDemoActivity[] = [
     id: "thought",
     kind: "thought",
     label: "Preparing executor for changelog workflow",
+  },
+  {
+    body: 'export const brandVoice = { tone: "direct", person: "we" };',
+    id: "read",
+    kind: "read",
+    label: "Read apps/web/src/brand-voice.ts",
   },
   {
     body: '"Scheduler v2, 40% faster builds"',

@@ -18,6 +18,8 @@ import {
 
 import type { OpencodeActivityProps } from "../types/opencode";
 
+const ACTIVITY_ICONS = { read: "→", thought: "+", tool: "⚙" } as const;
+
 export const OpencodeActivity = ({
   children,
   className,
@@ -55,7 +57,7 @@ export const OpencodeActivity = ({
           aria-hidden="true"
           className="group-has-data-[slot=item-description]/item:translate-y-0"
         >
-          {isThought ? "+" : "⚙"}
+          {ACTIVITY_ICONS[kind]}
         </ItemMedia>
         <ItemContent className="min-w-0 gap-0">
           <ItemTitle className="line-clamp-none block w-auto text-[length:inherit] leading-[inherit] font-normal wrap-break-word">

@@ -9,6 +9,7 @@ const SHIMMER_GRADIENT =
 export const Shimmer = ({
   className,
   duration = 1.7,
+  paused = false,
   spread = 4,
   style,
   ...props
@@ -16,6 +17,7 @@ export const Shimmer = ({
   <span
     className={cn(
       "animate-shimmer inline-block bg-size-[250%_100%,auto] bg-clip-text bg-no-repeat [-webkit-text-fill-color:transparent] motion-reduce:animate-none motion-reduce:bg-none! motion-reduce:[-webkit-text-fill-color:currentColor]",
+      paused && "animate-none bg-none! [-webkit-text-fill-color:currentColor]",
       className
     )}
     data-slot="shimmer"

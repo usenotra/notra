@@ -11,7 +11,7 @@ export default function ClaudeToolCallsExample() {
       <p className="font-claude-serif text-claude-fg text-base leading-[1.65]">
         {CLAUDE_TOOL_CALLS_INTRO}
       </p>
-      <ClaudeSearch defaultOpen items={CLAUDE_TOOL_CALLS_ITEMS} />
+      <ClaudeSearch items={CLAUDE_TOOL_CALLS_ITEMS} />
       <p className="font-claude-serif text-claude-fg text-base leading-[1.65]">
         {CLAUDE_TOOL_CALLS_ANSWER}
       </p>

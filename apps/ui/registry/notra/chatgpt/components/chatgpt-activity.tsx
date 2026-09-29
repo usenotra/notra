@@ -169,48 +169,48 @@ export const ChatgptActivity = ({
             </h3>
             <ItemGroup className="gap-5">
               {sources.map((source) => (
-                <Item
-                  className={cn(
-                    sourceClassName,
-                    source.href &&
-                      "focus-visible:ring-chatgpt-focus/35 [a]:hover:bg-chatgpt-hover -m-1.5 p-1.5 focus-visible:ring-2 motion-reduce:transition-none"
-                  )}
-                  key={source.id}
-                  render={
-                    source.href
-                      ? (linkProps) => (
-                          <a
-                            {...linkProps}
-                            href={source.href}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                          >
-                            {linkProps.children}
-                          </a>
-                        )
-                      : undefined
-                  }
-                  role="listitem"
-                >
-                  <ItemMedia className="mt-0.5 translate-y-0">
-                    <ChatgptFavicon
-                      className="size-4"
-                      domain={source.domain}
-                      src={source.favicon}
-                    />
-                  </ItemMedia>
-                  <ItemContent className="min-w-0 gap-1">
-                    <p className="text-chatgpt-muted text-xs leading-4">
-                      {source.publisher}
-                    </p>
-                    <ItemTitle className="text-chatgpt-fg line-clamp-none w-auto text-sm leading-5 font-semibold">
-                      {source.title}
-                    </ItemTitle>
-                    <ItemDescription className="text-chatgpt-muted line-clamp-none text-[0.8125rem] leading-5">
-                      {`${source.timeLabel} — ${source.snippet}`}
-                    </ItemDescription>
-                  </ItemContent>
-                </Item>
+                <div key={source.id} role="listitem">
+                  <Item
+                    className={cn(
+                      sourceClassName,
+                      source.href &&
+                        "focus-visible:ring-chatgpt-focus/35 [a]:hover:bg-chatgpt-hover -m-1.5 p-1.5 focus-visible:ring-2 motion-reduce:transition-none"
+                    )}
+                    render={
+                      source.href
+                        ? (linkProps) => (
+                            <a
+                              {...linkProps}
+                              href={source.href}
+                              rel="noopener noreferrer"
+                              target="_blank"
+                            >
+                              {linkProps.children}
+                            </a>
+                          )
+                        : undefined
+                    }
+                  >
+                    <ItemMedia className="mt-0.5 translate-y-0">
+                      <ChatgptFavicon
+                        className="size-4"
+                        domain={source.domain}
+                        src={source.favicon}
+                      />
+                    </ItemMedia>
+                    <ItemContent className="min-w-0 gap-1">
+                      <p className="text-chatgpt-muted text-xs leading-4">
+                        {source.publisher}
+                      </p>
+                      <ItemTitle className="text-chatgpt-fg line-clamp-none w-auto text-sm leading-5 font-semibold">
+                        {source.title}
+                      </ItemTitle>
+                      <ItemDescription className="text-chatgpt-muted line-clamp-none text-[0.8125rem] leading-5">
+                        {`${source.timeLabel} — ${source.snippet}`}
+                      </ItemDescription>
+                    </ItemContent>
+                  </Item>
+                </div>
               ))}
             </ItemGroup>
           </section>

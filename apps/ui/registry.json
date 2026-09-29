@@ -7771,7 +7771,7 @@
       "title": "Claude Code Thinking",
       "description": "The dim thinking line that expands to the thoughts.",
       "dependencies": ["cn"],
-      "registryDependencies": ["button", "card", "collapsible", "item", "kbd"],
+      "registryDependencies": ["button", "card", "collapsible", "item"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",

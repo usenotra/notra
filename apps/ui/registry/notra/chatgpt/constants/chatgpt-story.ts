@@ -88,7 +88,7 @@ const CHATGPT_STORY_SEARCH_NEWS: ChatgptStorySearch = {
 const CHATGPT_STORY_SEARCH_MARKETS: ChatgptStorySearch = {
   sites: CHATGPT_STORY_SITES.slice(3, 5),
   sourceCount: 49,
-  sources: CHATGPT_STORY_SOURCES.slice(3, 6),
+  sources: CHATGPT_STORY_SOURCES.slice(3, 5),
   websites: 2,
 };
 

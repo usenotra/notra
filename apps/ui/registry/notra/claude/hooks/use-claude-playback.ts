@@ -74,11 +74,7 @@ export const useClaudePlayback = (
         setThinking(false);
         setMessages((current) => [...current, { ...message, text: "" }]);
         await delay(
-          claudeSearchDuration(
-            message.search.groups.length,
-            message.search.steps?.length ?? 0,
-            reducedMotion
-          ) + SETTLE_MS
+          claudeSearchDuration(message.search, reducedMotion) + SETTLE_MS
         );
       } else {
         setThinking(true);

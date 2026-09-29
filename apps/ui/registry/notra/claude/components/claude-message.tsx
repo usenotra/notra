@@ -44,7 +44,7 @@ export const ClaudeMessage = ({
       {...props}
     >
       {search}
-      {(children || sources) && (
+      {(children != null || sources) && (
         <div className="font-claude-serif text-claude-fg flex max-w-full flex-col gap-4 text-[0.9375rem] leading-[1.65] wrap-break-word">
           {children}
           {sources}

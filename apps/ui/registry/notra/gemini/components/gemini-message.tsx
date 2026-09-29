@@ -38,7 +38,7 @@ export const GeminiMessage = ({
     >
       {thoughts}
       {status}
-      {children ? (
+      {children != null && children !== false ? (
         <div className="text-gemini-fg max-w-full text-[0.9375rem] leading-[1.65] wrap-break-word">
           {children}
         </div>

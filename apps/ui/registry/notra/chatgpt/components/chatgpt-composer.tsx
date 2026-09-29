@@ -77,15 +77,14 @@ export const ChatgptComposer = ({
 
   return (
     <form
-      className="font-chatgpt w-full"
+      className={cn("font-chatgpt w-full", className)}
       data-slot="chatgpt-composer"
       onSubmit={handleSubmit}
       {...props}
     >
       <InputGroup
         className={cn(
-          "bg-chatgpt-composer border-chatgpt-composer-border has-disabled:bg-chatgpt-composer dark:has-disabled:bg-chatgpt-composer text-chatgpt-fg shadow-chatgpt-composer has-[[data-slot=input-group-control]:focus-visible]:border-chatgpt-composer-border dark:bg-chatgpt-composer h-auto min-h-13 gap-1.5 rounded-[1.75rem] px-2 py-2 has-disabled:opacity-100 has-[[data-slot=input-group-control]:focus-visible]:ring-0",
-          className
+          "bg-chatgpt-composer border-chatgpt-composer-border has-disabled:bg-chatgpt-composer dark:has-disabled:bg-chatgpt-composer text-chatgpt-fg shadow-chatgpt-composer has-[[data-slot=input-group-control]:focus-visible]:border-chatgpt-composer-border dark:bg-chatgpt-composer h-auto min-h-13 gap-1.5 rounded-[1.75rem] px-2 py-2 has-disabled:opacity-100 has-[[data-slot=input-group-control]:focus-visible]:ring-0"
         )}
       >
         <InputGroupAddon

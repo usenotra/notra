@@ -37,10 +37,10 @@ export const GeminiThoughts = ({
         />
       }
     >
-      <span className="group-data-[panel-open]/gemini-thoughts:hidden">
+      <span className="group-data-open/gemini-thoughts:hidden">
         {showLabel}
       </span>
-      <span className="hidden group-data-[panel-open]/gemini-thoughts:inline">
+      <span className="hidden group-data-open/gemini-thoughts:inline">
         {hideLabel}
       </span>
       <ChevronDownIcon

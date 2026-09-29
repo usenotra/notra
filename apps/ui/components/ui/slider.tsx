@@ -9,11 +9,13 @@ function Slider({
   max = 100,
   ...props
 }: SliderPrimitive.Root.Props) {
-  const _values = Array.isArray(value)
-    ? value
-    : Array.isArray(defaultValue)
-      ? defaultValue
-      : [min, max];
+  const _values = (() => {
+    const current = value ?? defaultValue;
+    if (Array.isArray(current)) {
+      return current;
+    }
+    return typeof current === "number" ? [current] : [min, max];
+  })();
 
   return (
     <SliderPrimitive.Root

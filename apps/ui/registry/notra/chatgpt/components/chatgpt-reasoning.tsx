@@ -43,9 +43,13 @@ export const ChatgptReasoning = ({
 
   if (!(children || search)) {
     return (
-      <div className={rootClassName} data-slot="chatgpt-reasoning">
+      <Collapsible
+        className={rootClassName}
+        data-slot="chatgpt-reasoning"
+        {...props}
+      >
         {label}
-      </div>
+      </Collapsible>
     );
   }
 

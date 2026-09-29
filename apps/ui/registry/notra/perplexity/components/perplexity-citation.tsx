@@ -89,7 +89,18 @@ const CitationCard = ({ sources }: CitationCardProps) => {
           {siteName(source.domain)}
         </div>
         <p className="text-pplx-fg text-[0.9375rem] leading-5 font-medium text-balance">
-          {source.title}
+          {source.url ? (
+            <a
+              className="hover:underline"
+              href={source.url}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {source.title}
+            </a>
+          ) : (
+            source.title
+          )}
         </p>
         {source.description ? (
           <p className="text-pplx-muted text-[0.8125rem] leading-5">
