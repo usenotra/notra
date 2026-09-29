@@ -6,7 +6,7 @@ description: The input line with effort level and permission mode.
 <Component path="claude-code/examples/claude-code-prompt" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/claude-code-prompt.json
+bunx shadcn@latest add @notra/claude-code-prompt
 ```
 
 `ClaudeCodePrompt` is a shadcn `InputGroup` with the `❯` as an `InputGroupAddon` and an `InputGroupInput`, between two shadcn `Separator` rules. The effort level sits above and the permission mode below, with key hints in shadcn `Kbd`. At `ultracode` effort the rules turn into Claude Code's rainbow. The example cycles modes on Shift+Tab, like Claude Code, and picks mode and effort with a shadcn `ToggleGroup`.

@@ -6,7 +6,7 @@ description: The side sheet listing the search steps and sources.
 <Component path="chatgpt/examples/chatgpt-activity" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/chatgpt-activity.json
+bunx shadcn@latest add @notra/chatgpt-activity
 ```
 
 `ChatgptActivity` renders a `ChatgptSearch` that opens a shadcn `Sheet` from the right. The sheet shows the searched sites as pills, three by name and the rest as a stacked "+ N more", then every source. The steps and sources are shadcn `Item` rows in a `ScrollArea`, joined by a vertical `Separator`, and a source with `href` renders its row as a link. Favicons use shadcn `Avatar` and load from Google's favicon service unless you pass your own.

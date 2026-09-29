@@ -4,8 +4,8 @@ export const LANDING_HERO: LandingHero = {
   description:
     "The building blocks of the Notra dashboard, documented and rendered live with the real styles.",
   install: {
-    item: "perplexity.json",
-    prefix: "bunx shadcn@latest add https://ui.usenotra.com/r/",
+    item: "perplexity",
+    prefix: "bunx shadcn@latest add @notra/",
   },
 };
 

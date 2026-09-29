@@ -6,7 +6,7 @@ description: Gemini's pill input with a model picker and a morphing send button.
 <Component path="gemini/examples/gemini-composer" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/gemini-composer.json
+bunx shadcn@latest add @notra/gemini-composer
 ```
 
 `GeminiComposer` is a shadcn `InputGroup` inside a form: an `InputGroupButton` to add files, an `InputGroupInput`, and an end `InputGroupAddon` with the `GeminiModelSelector` and one round `InputGroupButton`. The button shows a mic while the input is empty, turns into a filled send arrow once you type, and becomes a stop square while `busy`. The icons crossfade.

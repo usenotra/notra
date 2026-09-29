@@ -6,7 +6,7 @@ description: User bubbles and serif assistant replies with slots for search, sou
 <Component path="claude/examples/claude-message" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/claude-message.json
+bunx shadcn@latest add @notra/claude-message
 ```
 
 With `from="user"` the message is a warm gray bubble aligned to the end, at most 70% wide. With `from="assistant"` it is full-width serif text. The `search` slot renders above the reply. The `sources` slot renders inside the reply text, after the answer. The `actions` slot fades in when the message is hovered or focused, and stays visible on touch screens.

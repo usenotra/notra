@@ -215,7 +215,7 @@ export const ChatgptModelSelector = ({
                 min={0}
                 onValueChange={handleSlide}
                 step={1}
-                value={effortIndex}
+                value={[effortIndex]}
               />
               <div
                 aria-hidden="true"

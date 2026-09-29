@@ -6,7 +6,7 @@ description: The "Sources:" list of inline links Claude writes at the end of an 
 <Component path="claude/examples/claude-sources" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/claude-sources.json
+bunx shadcn@latest add @notra/claude-sources
 ```
 
 Claude writes its sources into the reply itself. `ClaudeSources` renders a serif "Sources:" line and a bulleted list of `ClaudeSourceLink`s. Pass it to the `sources` slot of [Message](/components/claude/message) and it sits inside the reply text, after the answer.
