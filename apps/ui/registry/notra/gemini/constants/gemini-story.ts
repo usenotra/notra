@@ -62,10 +62,6 @@ export const GEMINI_STORY_REPLIES = [
   "Noted. What's next?",
 ] as const;
 
-export const GEMINI_STORY_USER_MESSAGES = GEMINI_STORY_THREAD.filter(
-  (message) => message.from === "user"
-);
-
 export const GEMINI_STORY_ASSISTANT_MESSAGES = GEMINI_STORY_THREAD.filter(
   (message) => message.from === "assistant"
 );

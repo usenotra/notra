@@ -5653,8 +5653,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -5780,17 +5778,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -5837,8 +5824,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -5949,17 +5934,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6006,8 +5980,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6113,17 +6085,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6170,8 +6131,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6262,17 +6221,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6319,8 +6267,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6416,17 +6362,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6482,8 +6417,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6599,17 +6532,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6656,8 +6578,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6763,17 +6683,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6823,8 +6732,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -6930,17 +6837,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -6987,8 +6883,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -7089,17 +6983,6 @@
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
           }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
-          }
         }
       }
     },
@@ -7161,8 +7044,6 @@
           "color-claude-tooltip-fg": "var(--claude-tooltip-fg)",
           "font-claude": "\"Anthropic Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
           "font-claude-serif": "\"Anthropic Serif\", ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
-          "animate-claude-fade-in": "claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
-          "animate-claude-slide-in": "claude-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both",
           "color-claude-usage": "var(--claude-usage)"
         },
         "light": {
@@ -7367,17 +7248,6 @@
         "@layer base": {
           "button:not(:disabled), [role=\"button\"]:not(:disabled)": {
             "cursor": "pointer"
-          }
-        },
-        "@keyframes claude-fade-in": {
-          "from": {
-            "opacity": "0"
-          }
-        },
-        "@keyframes claude-slide-in": {
-          "from": {
-            "opacity": "0",
-            "transform": "translateY(-0.5rem)"
           }
         }
       }

@@ -62,14 +62,6 @@ export const CLAUDE_DEMO_REPLIES = [
   "Noted. What's next?",
 ] as const;
 
-export const CLAUDE_DEMO_USER_MESSAGES = CLAUDE_DEMO_THREAD.filter(
-  (message) => message.from === "user"
-);
-
-export const CLAUDE_DEMO_ASSISTANT_MESSAGES = CLAUDE_DEMO_THREAD.filter(
-  (message) => message.from === "assistant"
-);
-
 export const CLAUDE_DEMO_SEARCH: ClaudeDemoSearch = {
   groups: [
     {

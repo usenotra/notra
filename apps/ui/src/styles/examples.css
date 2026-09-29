@@ -159,7 +159,6 @@ body > [data-base-ui-portal] {
 }
 
 @theme inline {
-  --animate-chatgpt-sparkle: chatgpt-sparkle 1.8s ease-in-out infinite;
   --animate-chatgpt-flow: chatgpt-flow 7s linear infinite;
   --animate-chatgpt-twinkle: chatgpt-twinkle 3.2s ease-in-out infinite;
   --animate-chatgpt-burst: chatgpt-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1)
@@ -203,19 +202,6 @@ body > [data-base-ui-portal] {
   100% {
     opacity: 0;
     transform: translate(var(--burst-x), var(--burst-y)) scale(1);
-  }
-}
-
-@keyframes chatgpt-sparkle {
-  0%,
-  100% {
-    opacity: 0.25;
-    transform: scale(0.7);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
   }
 }
 
@@ -642,23 +628,6 @@ body > [data-base-ui-portal] {
   --font-claude-serif:
     "Anthropic Serif", ui-serif, Georgia, Cambria, "Times New Roman", Times,
     serif;
-  --animate-claude-fade-in: claude-fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
-  --animate-claude-slide-in: claude-slide-in 200ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes claude-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes claude-slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
-  }
 }
 
 /* claude-code tokens */

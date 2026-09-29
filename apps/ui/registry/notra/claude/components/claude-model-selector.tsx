@@ -36,16 +36,16 @@ import type {
 
 const MENU_SURFACE_CLASS = cn(
   CLAUDE_MENU_SURFACE_CLASS,
-  "w-75 p-2 shadow-[0_4px_24px_var(--claude-popover-shadow)]"
+  "w-72 p-1.5 shadow-[0_4px_24px_var(--claude-popover-shadow)]"
 );
 
 const ROW_CLASS = cn(
   CLAUDE_MENU_ITEM_CLASS,
-  "focus:bg-claude-hover data-open:bg-claude-hover data-open:text-claude-fg data-popup-open:bg-claude-hover data-popup-open:text-claude-fg [&>svg:last-child]:text-claude-muted h-auto gap-2 rounded-xl px-3 py-2.5 text-base leading-6 [&>svg:last-child]:size-4"
+  "focus:bg-claude-hover data-open:bg-claude-hover data-open:text-claude-fg data-popup-open:bg-claude-hover data-popup-open:text-claude-fg [&>svg:last-child]:text-claude-muted h-auto gap-2 rounded-lg px-2.5 py-2 text-sm leading-5 [&>svg:last-child]:size-4"
 );
 
 const CHECK_CLASS =
-  "pe-10 [&_[data-slot=dropdown-menu-radio-item-indicator]]:end-3 [&_[data-slot=dropdown-menu-radio-item-indicator]]:top-1/2 [&_[data-slot=dropdown-menu-radio-item-indicator]]:-translate-y-1/2 [&_[data-slot=dropdown-menu-radio-item-indicator]_svg]:text-claude-check [&_[data-slot=dropdown-menu-radio-item-indicator]_svg]:size-5";
+  "pe-9 [&_[data-slot=dropdown-menu-radio-item-indicator]]:end-2.5 [&_[data-slot=dropdown-menu-radio-item-indicator]]:top-1/2 [&_[data-slot=dropdown-menu-radio-item-indicator]]:-translate-y-1/2 [&_[data-slot=dropdown-menu-radio-item-indicator]_svg]:text-claude-check [&_[data-slot=dropdown-menu-radio-item-indicator]_svg]:size-4";
 
 const SEPARATOR_CLASS = "bg-claude-input-border mx-3 my-1";
 
@@ -111,7 +111,7 @@ export const ClaudeModelSelector = ({
             >
               <span className="flex min-w-0 flex-col">
                 <span className="text-claude-fg">{item.label}</span>
-                <span className="text-claude-muted text-[0.9375rem] leading-6">
+                <span className="text-claude-muted text-[0.8125rem] leading-5">
                   {item.description}
                 </span>
               </span>

@@ -91,6 +91,27 @@ const useElementHeight = () => {
   return [height, setElement] as const;
 };
 
+const useElementWidth = () => {
+  const [element, setElement] = useState<HTMLSpanElement | null>(null);
+  const [width, setWidth] = useState<number>();
+
+  useLayoutEffect(() => {
+    if (!element) {
+      return;
+    }
+    setWidth(element.offsetWidth);
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) {
+        setWidth((entry.target as HTMLElement).offsetWidth);
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+
+  return [width, setElement] as const;
+};
+
 interface ModelListProps {
   model: ChatgptModelOption["id"];
   models: readonly ChatgptModelOption[];
@@ -180,6 +201,12 @@ export const ChatgptModelSelector = ({
   const isPro = selectedEffort.id === PRO_EFFORT_ID;
   const lastIndex = Math.max(efforts.length - 1, 1);
 
+  // Both trigger labels stay mounted and crossfade while the trigger eases between their
+  // widths, so opening and closing never snap the trigger's size.
+  const [closedLabelWidth, closedLabelRef] = useElementWidth();
+  const [openLabelWidth, openLabelRef] = useElementWidth();
+  const labelWidth = open ? openLabelWidth : closedLabelWidth;
+
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (next) {
@@ -222,11 +249,30 @@ export const ChatgptModelSelector = ({
           />
         }
       >
-        {open ? (
-          <span>Thinking effort</span>
-        ) : (
-          effortText(selectedEffort, selectedModel, { compact: true })
-        )}
+        <span
+          className="relative block h-5 overflow-hidden transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+          style={{ width: labelWidth }}
+        >
+          <span
+            className={cn(
+              "absolute inset-y-0 left-0 flex items-center whitespace-nowrap transition-opacity duration-200 motion-reduce:transition-none",
+              open ? "opacity-0" : "opacity-100"
+            )}
+            ref={closedLabelRef}
+          >
+            {effortText(selectedEffort, selectedModel, { compact: true })}
+          </span>
+          <span
+            aria-hidden={!open}
+            className={cn(
+              "absolute inset-y-0 left-0 flex items-center whitespace-nowrap transition-opacity duration-200 motion-reduce:transition-none",
+              open ? "opacity-100" : "opacity-0"
+            )}
+            ref={openLabelRef}
+          >
+            Thinking effort
+          </span>
+        </span>
         <ChevronDownIcon
           aria-hidden="true"
           className="text-chatgpt-muted size-4 transition-transform duration-150 group-aria-expanded/chatgpt-model:rotate-180 motion-reduce:transition-none"
@@ -235,7 +281,7 @@ export const ChatgptModelSelector = ({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="font-chatgpt text-chatgpt-fg data-open:zoom-in-90 data-closed:zoom-out-90 w-64 gap-0 rounded-3xl bg-transparent p-0 shadow-none ring-0 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-0"
+        className="font-chatgpt text-chatgpt-fg data-open:zoom-in-90 data-closed:zoom-out-95 w-64 gap-0 rounded-3xl bg-transparent p-0 shadow-none ring-0 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] data-closed:duration-[240ms] data-closed:ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:duration-0"
         side="top"
         sideOffset={8}
       >
@@ -245,7 +291,7 @@ export const ChatgptModelSelector = ({
             className={cn(
               "bg-chatgpt-popover shadow-chatgpt-menu absolute inset-x-0 bottom-0 rounded-3xl",
               cardReady &&
-                "transition-[height] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
+                "transition-[height] duration-[300ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
             )}
             style={{ height: cardHeight ?? "100%" }}
           />
@@ -253,8 +299,8 @@ export const ChatgptModelSelector = ({
             className={cn(
               "relative col-start-1 row-start-1 flex flex-col gap-2 self-end p-3 transition-[opacity,filter,translate] motion-reduce:transition-none",
               view === "effort"
-                ? "blur-0 translate-y-0 opacity-100 delay-150 duration-300 ease-out"
-                : "pointer-events-none translate-y-1 opacity-0 blur-[2px] duration-150 ease-in"
+                ? "blur-0 translate-y-0 opacity-100 delay-50 duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                : "pointer-events-none -translate-y-3 opacity-0 blur-[4px] duration-[180ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
             )}
             inert={view !== "effort"}
             ref={effortRef}
@@ -374,8 +420,8 @@ export const ChatgptModelSelector = ({
             className={cn(
               "relative col-start-1 row-start-1 flex flex-col gap-2 self-end p-3 transition-[opacity,filter,translate] motion-reduce:transition-none",
               view === "models"
-                ? "blur-0 translate-y-0 opacity-100 delay-150 duration-300 ease-out"
-                : "pointer-events-none translate-y-1 opacity-0 blur-[2px] duration-150 ease-in"
+                ? "blur-0 translate-y-0 opacity-100 delay-50 duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                : "pointer-events-none translate-y-3 opacity-0 blur-[4px] duration-[180ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
             )}
             inert={view !== "models"}
             ref={modelsRef}
