@@ -4,19 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@notra/ui/lib/utils";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent bg-clip-padding font-medium text-sm outline-none transition-all duration-fast ease-out focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.97] data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:active:scale-100 disabled:pointer-events-none has-data-[disabled]:cursor-not-allowed aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent font-medium text-sm outline-none transition-all duration-fast ease-out focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.97] data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:active:scale-100 disabled:pointer-events-none has-data-[disabled]:cursor-not-allowed aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default:
+          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-primary/60 bg-linear-to-b from-primary/85 to-primary text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] hover:brightness-110",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-border bg-background bg-clip-padding shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] border-border bg-linear-to-b from-background to-muted text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(0,0,0,0.06)] hover:brightness-[0.97] aria-expanded:bg-secondary dark:from-muted dark:to-background dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)] dark:hover:brightness-125",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "bg-clip-padding hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 aria-expanded:bg-destructive aria-expanded:text-destructive-foreground",
+          "[corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] bg-destructive bg-clip-padding text-destructive-foreground hover:bg-destructive/90 aria-expanded:bg-destructive aria-expanded:text-destructive-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

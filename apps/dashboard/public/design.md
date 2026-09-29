@@ -134,7 +134,7 @@ Spacing is a 4px scale. Keep 8–16px inside a group and 16–24px of padding in
 
 | Element | Radius |
 | --- | --- |
-| Buttons | Kit: `rounded-lg`, plus `corner-squircle` on `[data-slot="button"]`. Dashboard primary, outline, and destructive: see Components |
+| Buttons | Kit: `rounded-lg`, plus `corner-squircle` on `[data-slot="button"]`. Primary, secondary, outline, destructive: see Components |
 | Inputs | `rounded-lg`. No squircle |
 | Dualtone shells, frames, empty states | `rounded-2xl` (16px) |
 | Small chips | `rounded-md` |
@@ -168,7 +168,7 @@ Motion explains a change. A resting screen stays still.
 
 ## Components
 
-**Button.** Variants are `default` (primary, `bg-primary`), `outline`, `secondary`, `ghost`, `destructive`, and `link`. The UI kit radius is `rounded-lg`, with `corner-squircle` on `[data-slot="button"]`. The dashboard `Button` in `apps/dashboard/src/components/button.tsx` keeps that for ghost, secondary, and link. Primary, outline, and destructive add `rounded-md` and, where `corner-shape: squircle` is supported, `rounded-[1.25rem]`. Primary and outline also get a 2.5px inset shadow. Default size is `h-8` (32px), `text-sm`, `font-medium`. Other heights are `h-6` (xs), `h-7` (sm), and `h-9` (lg). Icon buttons are `size-6` through `size-9`. `xs` and `sm` in the kit use a slightly tighter radius than `rounded-lg`. Press scales to `0.97`. Disabled controls do not scale. A dashboard primary button hovers to `bg-primary/90`. A primary control rendered as a link uses the kit hover `bg-primary/80`.
+**Button.** Variants are `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, and `link`. Primary and secondary use the Depth style: a vertical gradient, a 1px top highlight, and a soft drop shadow (primary hovers with `brightness-110`). Primary, secondary, outline, and destructive use `corner-squircle` with `rounded-[1.25rem]` where `corner-shape: squircle` is supported; the others stay `rounded-lg`. Default size is `h-8` (32px), `text-sm`, `font-medium`. Other heights are `h-6` (xs), `h-7` (sm), and `h-9` (lg). Icon buttons are `size-6` through `size-9`. Press scales to `0.97`. Disabled controls do not scale. The dashboard `@/components/button` re-exports the kit button.
 
 **Module.** `flat` is the card above. `panel` and `table` are dualtone. The eyebrow is the label. The readout is a quiet number. The body is the content. The dualtone shell clears the card ring (`ring-0`) so only the two borders show.
 
