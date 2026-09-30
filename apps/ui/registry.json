@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "notra",
-  "homepage": "https://github.com/usenotra/notra",
+  "homepage": "https://github.com/usenotra/notra/tree/main/apps/ui",
   "items": [
     {
       "name": "ai-overview",
