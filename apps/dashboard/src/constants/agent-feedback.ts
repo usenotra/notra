@@ -127,3 +127,18 @@ export const AGENT_FEEDBACK_CLIENT_BRAND_RULES: readonly AgentFeedbackClientBran
     { brand: "copilot", aliases: ["copilot"] },
     { brand: "gemini", aliases: ["gemini"] },
   ];
+
+/** Words that don't title-case cleanly when formatting slug client names. */
+export const AGENT_FEEDBACK_CLIENT_WORD_LABELS: Record<string, string> = {
+  ai: "AI",
+  api: "API",
+  chatgpt: "ChatGPT",
+  cli: "CLI",
+  github: "GitHub",
+  gpt: "GPT",
+  ide: "IDE",
+  mcp: "MCP",
+  openai: "OpenAI",
+  sdk: "SDK",
+  vscode: "VS Code",
+};

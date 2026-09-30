@@ -578,7 +578,6 @@
       "received": "Received {time}",
       "via": "via",
       "inspect": "Inspect this feedback.",
-      "labels": "Labels",
       "statusLabel": "Feedback status",
       "message": "Message",
       "metadata": "Metadata",
@@ -587,7 +586,12 @@
         "externalId": "External ID",
         "contextUrl": "Context URL",
         "userAgent": "User agent"
-      }
+      },
+      "resolve": "Mark resolved",
+      "reopen": "Reopen",
+      "unarchive": "Unarchive",
+      "field": "Field",
+      "value": "Value"
     },
     "empty": {
       "title": "Your feedback inbox is empty",
@@ -612,9 +616,27 @@
       "received": "Received"
     },
     "table": {
-      "empty": "No feedback matches this filter",
       "viewDetails": "View details",
-      "setStatus": "Set status"
+      "setStatus": "Set status",
+      "filterEmpty": {
+        "new": {
+          "title": "You're all caught up",
+          "description": "New feedback from agents lands here first."
+        },
+        "triaged": {
+          "title": "Nothing triaged",
+          "description": "Feedback you've looked at but haven't resolved yet shows up here."
+        },
+        "resolved": {
+          "title": "Nothing resolved yet",
+          "description": "Feedback you mark as resolved shows up here."
+        },
+        "archived": {
+          "title": "Nothing archived",
+          "description": "Archive feedback to keep it out of your inbox without deleting it."
+        }
+      },
+      "showAll": "Show all feedback"
     },
     "page": {
       "description": "What AI agents are saying about your product."
@@ -6397,7 +6419,9 @@
     "writeComment": "Write a comment",
     "writeCommentPlaceholder": "Write a comment…",
     "writeReplyPlaceholder": "Write a reply…",
-    "send": "Send comment"
+    "send": "Send comment",
+    "emptyTitle": "No comments yet",
+    "emptyDescription": "Share context or next steps with your team."
   },
   "composer": {
     "preview": "Preview {label}",

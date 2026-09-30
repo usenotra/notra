@@ -43,7 +43,13 @@ export type AgentFeedbackStatusFilter = AgentFeedbackStatus | "all";
 export interface AgentFeedbackListResponse {
   items: AgentFeedbackItem[];
   nextCursor: string | null;
-  counts: Record<AgentFeedbackStatus, number>;
+  /** Only set on the first page. */
+  counts: Record<AgentFeedbackStatus, number> | null;
+}
+
+export interface AgentFeedbackListData {
+  pages: AgentFeedbackListResponse[];
+  pageParams: unknown[];
 }
 
 export type AgentFeedbackSnippetKey = "mcp" | "fetch" | "curl";
@@ -83,6 +89,7 @@ export interface AgentFeedbackListInput {
 }
 
 export interface AgentFeedbackTableProps {
+  emptyState?: ReactNode;
   items: AgentFeedbackItem[];
   isPending: boolean;
   isDeleting: boolean;
@@ -101,7 +108,7 @@ export interface AgentFeedbackDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStatusChange: (status: AgentFeedbackStatus) => void;
-  isUpdating: boolean;
+  onDelete: () => void;
 }
 
 export interface AgentFeedbackSetupCardProps {
@@ -161,11 +168,10 @@ export interface AgentFeedbackCursor {
   id: string;
 }
 
-export interface AgentFeedbackDetailFieldProps {
+export interface AgentFeedbackDetailRow {
+  key: string;
   label: string;
-  value?: string | null;
-  children?: ReactNode;
-  mono?: boolean;
+  value: ReactNode;
 }
 
 export interface AgentFeedbackSetupDialogProps {

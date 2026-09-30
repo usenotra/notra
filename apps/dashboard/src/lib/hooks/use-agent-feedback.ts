@@ -14,9 +14,11 @@ import { toast } from "sonner";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
+  AgentFeedbackListData,
   AgentFeedbackSetupResponse,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
+import { withFeedbackStatus } from "@/utils/agent-feedback";
 
 function toListInput(
   organizationId: string,
@@ -52,19 +54,32 @@ export function useAgentFeedbackList(
 export function useAgentFeedbackUpdateStatus(organizationId: string) {
   const t = useTranslations("feedback.toasts");
   const queryClient = useQueryClient();
+  const listKey = dashboardOrpc.agentFeedback.list.key();
   return useMutation({
     mutationFn: (input: { feedbackId: string; status: AgentFeedbackStatus }) =>
       dashboardOrpc.agentFeedback.updateStatus.call({
         organizationId,
         ...input,
       }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.agentFeedback.list.key(),
+    onMutate: async ({ feedbackId, status }) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previous = queryClient.getQueriesData<AgentFeedbackListData>({
+        queryKey: listKey,
       });
+      queryClient.setQueriesData<AgentFeedbackListData>(
+        { queryKey: listKey },
+        (data) => (data ? withFeedbackStatus(data, feedbackId, status) : data)
+      );
+      return { previous };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _input, context) => {
+      for (const [key, data] of context?.previous ?? []) {
+        queryClient.setQueryData(key, data);
+      }
       toast.error(error.message || t("updateFailed"));
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: listKey });
     },
   });
 }

@@ -578,7 +578,6 @@
       "received": "Empfangen {time}",
       "via": "über",
       "inspect": "Sieh dir dieses Feedback an.",
-      "labels": "Labels",
       "statusLabel": "Feedback-Status",
       "message": "Nachricht",
       "metadata": "Metadaten",
@@ -587,7 +586,12 @@
         "externalId": "Externe ID",
         "contextUrl": "Kontext-URL",
         "userAgent": "User-Agent"
-      }
+      },
+      "resolve": "Als gelöst markieren",
+      "reopen": "Wieder öffnen",
+      "unarchive": "Wiederherstellen",
+      "field": "Feld",
+      "value": "Wert"
     },
     "empty": {
       "title": "Dein Feedback-Postfach ist leer",
@@ -612,9 +616,27 @@
       "received": "Empfangen"
     },
     "table": {
-      "empty": "Kein Feedback passt zu diesem Filter",
       "viewDetails": "Details ansehen",
-      "setStatus": "Status setzen"
+      "setStatus": "Status setzen",
+      "filterEmpty": {
+        "new": {
+          "title": "Alles erledigt",
+          "description": "Neues Feedback von Agents landet zuerst hier."
+        },
+        "triaged": {
+          "title": "Nichts gesichtet",
+          "description": "Feedback, das du dir angesehen, aber noch nicht gelöst hast, erscheint hier."
+        },
+        "resolved": {
+          "title": "Noch nichts gelöst",
+          "description": "Feedback, das du als gelöst markierst, erscheint hier."
+        },
+        "archived": {
+          "title": "Nichts archiviert",
+          "description": "Archiviere Feedback, um es aus deinem Posteingang zu nehmen, ohne es zu löschen."
+        }
+      },
+      "showAll": "Alles Feedback anzeigen"
     },
     "page": {
       "description": "Was KI-Agents über dein Produkt sagen."
@@ -6397,7 +6419,9 @@
     "writeComment": "Kommentar schreiben",
     "writeCommentPlaceholder": "Kommentar schreiben…",
     "writeReplyPlaceholder": "Antwort schreiben…",
-    "send": "Kommentar senden"
+    "send": "Kommentar senden",
+    "emptyTitle": "Noch keine Kommentare",
+    "emptyDescription": "Teile Kontext oder nächste Schritte mit deinem Team."
   },
   "composer": {
     "preview": "Vorschau für {label}",

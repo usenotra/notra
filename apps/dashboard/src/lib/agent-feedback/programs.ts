@@ -28,6 +28,24 @@ function emptyCounts(): Record<AgentFeedbackStatus, number> {
   return counts;
 }
 
+const countAgentFeedback = Effect.fn("agentFeedback.counts")(function* (
+  organizationId: string
+) {
+  const rows = yield* agentFeedbackDb("counts", () =>
+    db
+      .select({ status: agentFeedback.status, total: count() })
+      .from(agentFeedback)
+      .where(eq(agentFeedback.organizationId, organizationId))
+      .groupBy(agentFeedback.status)
+  );
+
+  const counts = emptyCounts();
+  for (const row of rows) {
+    counts[row.status] = row.total;
+  }
+  return counts;
+});
+
 export const listAgentFeedback = Effect.fn("agentFeedback.list")(function* (
   input: AgentFeedbackListInput
 ) {
@@ -53,27 +71,22 @@ export const listAgentFeedback = Effect.fn("agentFeedback.list")(function* (
     }
   }
 
-  const rows = yield* agentFeedbackDb("list", () =>
-    db
-      .select()
-      .from(agentFeedback)
-      .where(and(...conditions))
-      .orderBy(desc(agentFeedback.createdAt), desc(agentFeedback.id))
-      .limit(limit + 1)
+  // Counts drive the status tabs, which only read the first page, so later
+  // pages skip the aggregate. Both queries run concurrently.
+  const [rows, counts] = yield* Effect.all(
+    [
+      agentFeedbackDb("list", () =>
+        db
+          .select()
+          .from(agentFeedback)
+          .where(and(...conditions))
+          .orderBy(desc(agentFeedback.createdAt), desc(agentFeedback.id))
+          .limit(limit + 1)
+      ),
+      cursor ? Effect.succeed(null) : countAgentFeedback(input.organizationId),
+    ],
+    { concurrency: "unbounded" }
   );
-
-  const countRows = yield* agentFeedbackDb("counts", () =>
-    db
-      .select({ status: agentFeedback.status, total: count() })
-      .from(agentFeedback)
-      .where(eq(agentFeedback.organizationId, input.organizationId))
-      .groupBy(agentFeedback.status)
-  );
-
-  const counts = emptyCounts();
-  for (const row of countRows) {
-    counts[row.status] = row.total;
-  }
 
   const hasMore = rows.length > limit;
   const pageRows = hasMore ? rows.slice(0, limit) : rows;
