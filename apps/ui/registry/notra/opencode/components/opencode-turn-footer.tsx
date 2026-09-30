@@ -10,6 +10,7 @@ export const OpencodeTurnFooter = ({
   agent = OPENCODE_DEFAULT_AGENT,
   className,
   duration,
+  interrupted = false,
   model = OPENCODE_DEFAULT_MODEL,
   ...props
 }: OpencodeTurnFooterProps) => (
@@ -34,6 +35,12 @@ export const OpencodeTurnFooter = ({
       <>
         <span aria-hidden="true">·</span>
         <span className="shrink-0 tabular-nums">{duration}</span>
+      </>
+    )}
+    {interrupted && (
+      <>
+        <span aria-hidden="true">·</span>
+        <span className="text-opencode-orange shrink-0">interrupted</span>
       </>
     )}
   </div>

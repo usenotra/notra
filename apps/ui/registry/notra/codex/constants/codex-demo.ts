@@ -1,4 +1,8 @@
-import type { CodexDemoExec, CodexDemoSession } from "../types/codex";
+import type {
+  CodexDemoExec,
+  CodexDemoSession,
+  CodexReply,
+} from "../types/codex";
 
 export const CODEX_DEMO_SESSION: CodexDemoSession = {
   composer: {
@@ -99,5 +103,49 @@ export const CODEX_DEMO_EXEC_STATES: CodexDemoExec[] = [
     id: "failed",
     output: "error: missing NOTRA_API_KEY",
     status: "failed",
+  },
+];
+
+/** Answers the demo plays back, one per prompt you send, in order. */
+export const CODEX_REPLIES: CodexReply[] = [
+  {
+    execs: [
+      {
+        command: "notra publish_post changelog --site acme.com",
+        id: "publish",
+        output: [
+          "published changelog-2026-09-30",
+          "https://acme.com/changelog/2026-09-30",
+        ].join("\n"),
+        status: "ran",
+      },
+    ],
+    text: "Published. The entry is live at `acme.com/changelog/2026-09-30` and the RSS feed picked it up.\n\nWant a short post for LinkedIn as well?",
+  },
+  {
+    execs: [
+      {
+        command: "rg -n 'retry' packages/api/src/jobs",
+        id: "grep-retry",
+        output: [
+          "publish.ts:41:  const retry = createRetry({ attempts: 3 });",
+          "publish.ts:58:  await retry(() => sendToSite(post));",
+          "publish.test.ts:12:it('retries a failed publish', async () => {",
+        ].join("\n"),
+        status: "ran",
+      },
+    ],
+    text: "The retry lives in `packages/api/src/jobs/publish.ts`. Failed publish jobs retry three times with backoff, and `publish.test.ts` covers it.",
+  },
+  {
+    execs: [
+      {
+        command: "bun run test --filter api",
+        id: "tests",
+        output: "212 pass\n0 fail",
+        status: "ran",
+      },
+    ],
+    text: "All 212 tests pass. Nothing is blocking the release.",
   },
 ];

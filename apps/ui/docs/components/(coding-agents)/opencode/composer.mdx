@@ -9,7 +9,7 @@ description: The OpenCode prompt with the agent line and the status row under it
 bunx shadcn@latest add @notra/opencode-composer
 ```
 
-`OpencodeComposer` is a shadcn `InputGroup` on a raised panel with a blue rule. Under the input sits the agent line: the agent in blue, the model, the provider muted and the reasoning effort in bold orange. It passes every other prop to the `InputGroupInput`, so use `value` and `onChange` for a controlled prompt.
+`OpencodeComposer` is a shadcn `InputGroup` on a raised panel with a blue rule. Under the input sits the agent line: the agent in blue, the model, the provider muted and the reasoning effort in bold orange. It passes every other prop to the `InputGroupInput`, so use `value` and `onChange` for a controlled prompt or `defaultValue` for an uncontrolled one.
 
 The status row below shows the working directory while idle. With `busy` it shows the blue scanner and `esc interrupt` instead. On the right it shows the context usage once there is some, otherwise the `tab agents` hint, then `ctrl+p commands`. The scanner holds still when the user prefers reduced motion.
 
@@ -19,7 +19,9 @@ The status row below shows the working directory while idle. With `busy` it show
 | `model` | `Writer 0.1` | The model name. |
 | `provider` | `Notra` | Shown muted after the model. |
 | `effort` | `high` | Shown in bold orange. |
-| `busy` | `false` | Swaps the cwd for the scanner and `esc interrupt`. |
+| `busy` | `false` | Swaps the cwd for the scanner and `esc interrupt`. Enter does not send and Escape calls `onStop`. |
+| `onSend` | | Called with the trimmed text on Enter. The composer clears afterwards. |
+| `onStop` | | Called on Escape while `busy`. |
 | `cwd` | | The working directory on the idle status row. |
 | `context` | | Context usage, like `63.4K (6%)`. |
 | `placeholder` | `Ask anything... "Draft this week's changelog"` | The input placeholder. |

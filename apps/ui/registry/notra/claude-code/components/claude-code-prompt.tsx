@@ -2,7 +2,7 @@
 
 import { cn } from "cn";
 import { useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 
 import {
   InputGroup,
@@ -21,6 +21,7 @@ const KBD_CLASS =
   "font-claude-code text-claude-code-muted inline h-auto min-w-0 rounded-none bg-transparent p-0 text-[length:inherit] leading-[inherit] font-normal select-auto";
 
 export const ClaudeCodePrompt = ({
+  busy = false,
   className,
   defaultValue = "",
   effort = false,
@@ -29,6 +30,8 @@ export const ClaudeCodePrompt = ({
   mode = "manual",
   onChange,
   onKeyDown,
+  onSend,
+  onStop,
   placeholder,
   pullRequest,
   value,
@@ -36,7 +39,8 @@ export const ClaudeCodePrompt = ({
 }: ClaudeCodePromptProps) => {
   const [draft, setDraft] = useState(defaultValue);
   const isControlled = value !== undefined;
-  const isEmpty = (isControlled ? value : draft) === "";
+  const text = isControlled ? value : draft;
+  const isEmpty = text === "";
   const modeConfig = CLAUDE_CODE_MODES[mode];
   const effortConfig = effort ? CLAUDE_CODE_EFFORTS[effort] : undefined;
 
@@ -47,13 +51,34 @@ export const ClaudeCodePrompt = ({
     onChange?.(event);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape" && busy && onStop) {
+      event.preventDefault();
+      onStop();
+    }
+    onKeyDown?.(event);
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const message = text.trim();
+    if (!message || busy || !onSend) {
+      return;
+    }
+    onSend(message);
+    if (!isControlled) {
+      setDraft("");
+    }
+  };
+
   return (
-    <div
+    <form
       className={cn(
         "font-claude-code text-claude-code-fg flex min-w-0 flex-col gap-5 text-[0.8125rem] leading-5",
         className
       )}
       data-slot="claude-code-prompt"
+      onSubmit={handleSubmit}
       {...props}
     >
       <InputGroup className="border-claude-code-rule has-[[data-slot=input-group-control]:focus-visible]:border-claude-code-rule grid h-auto min-w-0 grid-cols-[2ch_minmax(0,1fr)] items-stretch rounded-none border-0 border-y bg-transparent py-1.5 has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-transparent">
@@ -63,23 +88,25 @@ export const ClaudeCodePrompt = ({
         <span className="relative flex min-w-0">
           <InputGroupInput
             aria-label="Message Claude Code"
+            autoComplete="off"
             className={cn(
               "font-claude-code text-claude-code-strong placeholder:text-claude-code-muted caret-claude-code-strong h-auto p-0 text-[length:inherit] leading-[inherit] transition-none md:text-[length:inherit]",
               isEmpty && "caret-transparent",
               inputClassName
             )}
+            enterKeyHint="send"
             onChange={handleChange}
-            onKeyDown={onKeyDown}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             ref={inputRef}
             spellCheck={false}
             type="text"
-            value={isControlled ? value : draft}
+            value={text}
           />
           {isEmpty && (
             <span
               aria-hidden="true"
-              className="bg-claude-code-strong pointer-events-none absolute inset-y-0 left-0 w-[1ch] mix-blend-difference"
+              className="pointer-events-none absolute inset-y-0 left-0 w-[1ch] bg-white mix-blend-difference"
             />
           )}
         </span>
@@ -112,6 +139,6 @@ export const ClaudeCodePrompt = ({
           </p>
         )}
       </div>
-    </div>
+    </form>
   );
 };

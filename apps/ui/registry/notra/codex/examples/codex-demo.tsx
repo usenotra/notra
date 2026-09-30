@@ -1,31 +1,110 @@
-import { Fragment } from "react";
+"use client";
+
+import { Fragment, useEffect, useRef } from "react";
 
 import { CodexComposer } from "../components/codex-composer";
 import { CodexExec } from "../components/codex-exec";
 import { CodexExplored } from "../components/codex-explored";
 import { CodexHeader } from "../components/codex-header";
-import { CodexList, CodexTable } from "../components/codex-markdown";
+import { CodexCode, CodexList, CodexTable } from "../components/codex-markdown";
 import { CodexMessage } from "../components/codex-message";
 import { CodexTerminal } from "../components/codex-terminal";
-import { CODEX_DEMO_SESSION } from "../constants/codex-demo";
+import { CodexInterrupted, CodexWorking } from "../components/codex-working";
+import { CODEX_DEMO_SESSION, CODEX_REPLIES } from "../constants/codex-demo";
+import { useCodexChat } from "../hooks/use-codex-chat";
+import type { CodexChatTurn } from "../types/codex";
+
+const PARAGRAPH_SEPARATOR = "\n\n";
+
+const CODE_PATTERN = /(`[^`]+`)/;
+
+/** Renders one paragraph, turning `backticks` into code. */
+const CodexInline = ({ text }: { text: string }) => {
+  let offset = 0;
+  return text.split(CODE_PATTERN).map((part) => {
+    const key = `${offset}-${part}`;
+    offset += part.length;
+    return part.length > 2 && part.startsWith("`") && part.endsWith("`") ? (
+      <CodexCode key={key}>{part.slice(1, -1)}</CodexCode>
+    ) : (
+      <Fragment key={key}>{part}</Fragment>
+    );
+  });
+};
+
+const CodexTurn = ({ turn }: { turn: CodexChatTurn }) => {
+  let offset = 0;
+  const paragraphs = turn.reply.split(PARAGRAPH_SEPARATOR).map((text) => {
+    const key = offset;
+    offset += text.length + PARAGRAPH_SEPARATOR.length;
+    return { key, text };
+  });
+
+  return (
+    <>
+      <CodexMessage from="user">{turn.prompt}</CodexMessage>
+      {turn.execs.map(({ id, ...exec }) => (
+        <CodexExec key={id} {...exec} />
+      ))}
+      {turn.reply && (
+        <CodexMessage>
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph.key}>
+              <CodexInline text={paragraph.text} />
+            </p>
+          ))}
+        </CodexMessage>
+      )}
+      {turn.status === "interrupted" && <CodexInterrupted />}
+    </>
+  );
+};
 
 export default function CodexDemo() {
   const session = CODEX_DEMO_SESSION;
+  const chat = useCodexChat(CODEX_REPLIES);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef(false);
+
+  // Follow the running turn inside the fixed-height terminal. Scrolling the
+  // viewport directly (not scrollIntoView) keeps the host page still.
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const viewport = terminalRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]'
+    );
+    viewport?.scrollTo({ top: viewport.scrollHeight });
+  }, [chat.turns, chat.busy]);
 
   return (
     <div className="w-full min-w-0">
       <CodexTerminal
         className="h-170"
         footer={
-          <CodexComposer
-            cwd={session.header.cwd}
-            effort={session.composer.effort}
-            model={session.composer.model}
-            placeholder={session.composer.placeholder}
-            task={session.composer.task}
-            warnings={session.composer.warnings}
-          />
+          <>
+            {chat.busy && (
+              <CodexWorking
+                className="pb-[0.65em]"
+                elapsed={`${chat.elapsed}s`}
+              />
+            )}
+            <CodexComposer
+              busy={chat.busy}
+              cwd={session.header.cwd}
+              effort={session.composer.effort}
+              model={session.composer.model}
+              onSend={chat.send}
+              onStop={chat.stop}
+              placeholder={session.composer.placeholder}
+              task={session.composer.task}
+              warnings={session.composer.warnings}
+            />
+          </>
         }
+        ref={terminalRef}
         title={session.title}
       >
         <CodexHeader {...session.header} />
@@ -49,6 +128,9 @@ export default function CodexDemo() {
           <CodexTable codeColumns={[0]} {...session.table} />
           <p>{session.followUp}</p>
         </CodexMessage>
+        {chat.turns.map((turn) => (
+          <CodexTurn key={turn.id} turn={turn} />
+        ))}
       </CodexTerminal>
     </div>
   );

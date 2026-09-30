@@ -22,5 +22,8 @@ Every other prop goes to the input, so use `value` and `onChange` for a controll
 | `task` | | Current task after the directory. |
 | `warnings` | | Shows `⚠ N warnings · f2 to view` on the right. |
 | `context` | | Right-hand text, like `88% context left`, when there are no warnings. |
+| `onSend` | | Called with the trimmed text on Enter. The composer clears afterwards. |
+| `busy` | `false` | A turn is running. Enter does not send and Escape calls `onStop`. |
+| `onStop` | | Called on Escape while `busy`. |
 
 <include>./_used-in.mdx</include>

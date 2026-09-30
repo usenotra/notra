@@ -31,6 +31,8 @@ export interface OpencodeMessageProps extends ComponentProps<"div"> {
 
 export interface OpencodeTurnFooterProps extends ComponentProps<"div"> {
   agent?: string;
+  /** Marks a turn that was stopped with Escape. */
+  interrupted?: boolean;
   /** Wall time of the turn. Omit it while the turn is still running. */
   duration?: string;
   model?: string;
@@ -64,7 +66,10 @@ export interface OpencodeComposerProps extends Omit<
   "children" | "className" | "type"
 > {
   agent?: string;
-  /** Shows the scanner and `esc interrupt` instead of the cwd. */
+  /**
+   * Shows the scanner and `esc interrupt` instead of the cwd. Enter does not
+   * send while busy and Escape calls `onStop`.
+   */
   busy?: boolean;
   className?: string;
   /** Context usage on the status row, like `63.4K (6%)`. */
@@ -74,6 +79,10 @@ export interface OpencodeComposerProps extends Omit<
   effort?: string;
   inputClassName?: string;
   model?: string;
+  /** Called with the trimmed text on Enter. The composer clears afterwards. */
+  onSend?: (text: string) => void;
+  /** Called on Escape while `busy`, to interrupt the running turn. */
+  onStop?: () => void;
   provider?: string;
 }
 
@@ -166,4 +175,37 @@ export interface OpencodeDemoSession {
   tokens: string;
   used: string;
   version: string;
+}
+
+export type OpencodeTurnStatus =
+  | "working"
+  | "streaming"
+  | "done"
+  | "interrupted";
+
+/** A scripted answer the demo plays back when you send a prompt. */
+export interface OpencodeReply {
+  /** Thoughts and tool calls, played in order before the reply. */
+  activities: OpencodeDemoActivity[];
+  reply: OpencodeDemoBlock[];
+}
+
+export interface OpencodeChatActivity extends OpencodeDemoActivity {
+  pending?: boolean;
+}
+
+export interface OpencodeChatTurn {
+  activities: OpencodeChatActivity[];
+  duration?: string;
+  id: string;
+  prompt: string;
+  reply: OpencodeDemoBlock[];
+  status: OpencodeTurnStatus;
+}
+
+export interface OpencodeChat {
+  busy: boolean;
+  send: (text: string) => Promise<void>;
+  stop: () => void;
+  turns: OpencodeChatTurn[];
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useLayoutEffect, useRef } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 
 import { OpencodeActivity } from "../components/opencode-activity";
 import { OpencodeComposer } from "../components/opencode-composer";
@@ -12,9 +12,11 @@ import { OpencodeWindow } from "../components/opencode-window";
 import {
   OPENCODE_DEMO_SESSION,
   OPENCODE_DEMO_TURNS,
+  OPENCODE_REPLIES,
 } from "../constants/opencode-demo";
+import { useOpencodeChat } from "../hooks/use-opencode-chat";
 import type {
-  OpencodeDemoActivity,
+  OpencodeChatActivity,
   OpencodeDemoBlock,
   OpencodeDemoSpan,
 } from "../types/opencode";
@@ -57,8 +59,8 @@ const ReplyBlock = ({ block }: { block: OpencodeDemoBlock }) => {
 };
 
 /** Consecutive tool lines stack without a gap, thoughts stand alone. */
-const groupActivities = (activities: OpencodeDemoActivity[]) =>
-  activities.reduce<OpencodeDemoActivity[][]>((groups, activity) => {
+const groupActivities = (activities: OpencodeChatActivity[]) =>
+  activities.reduce<OpencodeChatActivity[][]>((groups, activity) => {
     const last = groups.at(-1);
     const stacks =
       last && activity.kind !== "thought" && last[0]?.kind !== "thought";
@@ -72,16 +74,30 @@ const groupActivities = (activities: OpencodeDemoActivity[]) =>
 
 export default function OpencodeDemo() {
   const session = OPENCODE_DEMO_SESSION;
+  const chat = useOpencodeChat(OPENCODE_DEMO_TURNS, OPENCODE_REPLIES);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef(false);
 
-  // Open on the latest turn like a terminal. Scrolling the viewport directly
-  // keeps the host page from jumping.
-  useLayoutEffect(() => {
+  const scrollToEnd = () => {
     const viewport = scrollRef.current?.querySelector(
       '[data-slot="opencode-scroll-area-viewport"]'
     );
     viewport?.scrollTo({ top: viewport.scrollHeight });
+  };
+
+  // Open on the latest turn like a terminal, then follow the running turn.
+  // Scrolling the viewport directly keeps the host page from jumping.
+  useLayoutEffect(() => {
+    scrollToEnd();
   }, []);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    scrollToEnd();
+  }, [chat.turns]);
 
   return (
     <OpencodeWindow className="h-150">
@@ -89,36 +105,47 @@ export default function OpencodeDemo() {
         <div className="flex min-h-0 min-w-0 flex-col gap-[1lh] px-[2ch] pt-[1lh] pb-[0.5lh]">
           <OpencodeScrollArea className="min-h-0 flex-1" ref={scrollRef}>
             <div className="flex flex-col gap-[1lh] pr-[1.5ch]">
-              {OPENCODE_DEMO_TURNS.map((turn) => (
+              {chat.turns.map((turn) => (
                 <Fragment key={turn.id}>
                   <OpencodeMessage from="user">{turn.prompt}</OpencodeMessage>
                   {groupActivities(turn.activities).map((group) => (
                     <div key={group[0]?.id}>
-                      {group.map(({ id, ...activity }) => (
-                        <OpencodeActivity key={id} {...activity} />
+                      {group.map(({ body, id, ...activity }) => (
+                        <OpencodeActivity key={id} {...activity}>
+                          {body}
+                        </OpencodeActivity>
                       ))}
                     </div>
                   ))}
-                  <OpencodeMessage>
-                    {turn.reply.map((block) => (
-                      <ReplyBlock block={block} key={block.id} />
-                    ))}
-                  </OpencodeMessage>
-                  <OpencodeTurnFooter
-                    agent={session.agent}
-                    duration={turn.duration}
-                    model={session.model}
-                  />
+                  {turn.reply.length > 0 && (
+                    <OpencodeMessage>
+                      {turn.reply.map((block) => (
+                        <ReplyBlock block={block} key={block.id} />
+                      ))}
+                    </OpencodeMessage>
+                  )}
+                  {(turn.status === "done" ||
+                    turn.status === "interrupted") && (
+                    <OpencodeTurnFooter
+                      agent={session.agent}
+                      duration={turn.duration}
+                      interrupted={turn.status === "interrupted"}
+                      model={session.model}
+                    />
+                  )}
                 </Fragment>
               ))}
             </div>
           </OpencodeScrollArea>
           <OpencodeComposer
             agent={session.agent}
+            busy={chat.busy}
             context={session.context}
             cwd={session.cwd}
             effort={session.effort}
             model={session.model}
+            onSend={chat.send}
+            onStop={chat.stop}
             placeholder=""
             provider={session.provider}
           />

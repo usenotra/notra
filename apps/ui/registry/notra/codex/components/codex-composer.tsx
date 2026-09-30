@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "cn";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
+import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 
 import {
   InputGroup,
@@ -28,6 +29,7 @@ const CodexKey = ({ children }: { children: string }) => (
 
 export const CodexComposer = ({
   "aria-label": ariaLabel,
+  busy = false,
   className,
   context,
   cwd = CODEX_DEFAULT_CWD,
@@ -36,6 +38,9 @@ export const CodexComposer = ({
   inputClassName,
   model = CODEX_DEFAULT_MODEL,
   onChange,
+  onKeyDown,
+  onSend,
+  onStop,
   placeholder = CODEX_DEFAULT_PLACEHOLDER,
   task,
   value,
@@ -43,7 +48,9 @@ export const CodexComposer = ({
   ...props
 }: CodexComposerProps) => {
   const [draft, setDraft] = useState(String(defaultValue ?? ""));
-  const isEmpty = String(value ?? draft).length === 0;
+  const isControlled = value !== undefined;
+  const text = isControlled ? String(value) : draft;
+  const isEmpty = text.length === 0;
   const [cursorChar = " ", ...restChars] = Array.from(placeholder);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -51,13 +58,34 @@ export const CodexComposer = ({
     onChange?.(event);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape" && busy && onStop) {
+      event.preventDefault();
+      onStop();
+    }
+    onKeyDown?.(event);
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const message = text.trim();
+    if (!message || busy || !onSend) {
+      return;
+    }
+    onSend(message);
+    if (!isControlled) {
+      setDraft("");
+    }
+  };
+
   return (
-    <div
+    <form
       className={cn(
         "font-codex text-codex-dim min-w-0 text-[0.8125rem] leading-[1.3]",
         className
       )}
       data-slot="codex-composer"
+      onSubmit={handleSubmit}
     >
       <InputGroup
         className={cn(
@@ -87,9 +115,12 @@ export const CodexComposer = ({
               isEmpty && "caret-transparent",
               inputClassName
             )}
+            autoComplete="off"
+            enterKeyHint="send"
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             type="text"
-            value={value ?? draft}
+            value={text}
             {...props}
           />
         </div>
@@ -130,6 +161,6 @@ export const CodexComposer = ({
           )}
         </div>
       </div>
-    </div>
+    </form>
   );
 };

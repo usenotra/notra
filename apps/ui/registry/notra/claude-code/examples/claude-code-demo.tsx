@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { ClaudeCodeHeader } from "../components/claude-code-header";
 import { ClaudeCodeMessage } from "../components/claude-code-message";
 import { ClaudeCodePrompt } from "../components/claude-code-prompt";
 import {
+  ClaudeCodeInterrupted,
   ClaudeCodeSpinner,
   ClaudeCodeTurnSummary,
 } from "../components/claude-code-status";
@@ -17,18 +18,75 @@ import {
   ClaudeCodeToolSummary,
 } from "../components/claude-code-tool-call";
 import { CLAUDE_CODE_MODE_ORDER } from "../constants/claude-code";
-import { CLAUDE_CODE_SESSION } from "../constants/claude-code-session";
-import type { ClaudeCodeMode } from "../types/claude-code";
+import {
+  CLAUDE_CODE_REPLIES,
+  CLAUDE_CODE_SESSION,
+} from "../constants/claude-code-session";
+import { useClaudeCodeChat } from "../hooks/use-claude-code-chat";
+import type { ClaudeCodeChatTurn, ClaudeCodeMode } from "../types/claude-code";
 
 const nextMode = (current: ClaudeCodeMode) => {
   const index = CLAUDE_CODE_MODE_ORDER.indexOf(current);
   return CLAUDE_CODE_MODE_ORDER[(index + 1) % CLAUDE_CODE_MODE_ORDER.length];
 };
 
+const ClaudeCodeTurn = ({ turn }: { turn: ClaudeCodeChatTurn }) => {
+  const toolCalls = turn.commands.map((command) => (
+    <ClaudeCodeToolCall
+      arg={command.arg}
+      key={command.id}
+      result={command.result}
+      status={command.status}
+      tool={command.tool}
+    >
+      {command.detail}
+    </ClaudeCodeToolCall>
+  ));
+  // Claude Code folds finished shell commands into one "Ran N" line.
+  const foldsShell =
+    turn.status === "done" &&
+    turn.commands.length > 0 &&
+    turn.commands.every((command) => command.tool === "Bash");
+
+  return (
+    <div className="flex flex-col gap-5">
+      <ClaudeCodeMessage from="user">{turn.prompt}</ClaudeCodeMessage>
+      {turn.todos && <ClaudeCodeTodoList todos={turn.todos} />}
+      {foldsShell ? (
+        <ClaudeCodeToolSummary count={turn.commands.length}>
+          {toolCalls}
+        </ClaudeCodeToolSummary>
+      ) : (
+        toolCalls
+      )}
+      {turn.answer && <ClaudeCodeMessage>{turn.answer}</ClaudeCodeMessage>}
+      {turn.status === "interrupted" && <ClaudeCodeInterrupted />}
+      {turn.summary && <ClaudeCodeTurnSummary {...turn.summary} />}
+    </div>
+  );
+};
+
 export default function ClaudeCodeDemo() {
   const { header, pending, promptPlaceholder, pullRequest, title, turns } =
     CLAUDE_CODE_SESSION;
+  const chat = useClaudeCodeChat(turns, CLAUDE_CODE_REPLIES);
   const [mode, setMode] = useState<ClaudeCodeMode>("bypass");
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef(false);
+  const activeTurn = chat.busy ? chat.turns.at(-1) : undefined;
+
+  // Follow the running turn inside the fixed-height terminal. Scrolling the
+  // viewport directly (not scrollIntoView) keeps the host page still.
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const viewport = terminalRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]'
+    );
+    viewport?.scrollTo({ top: viewport.scrollHeight });
+  }, [chat.turns, chat.busy]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Tab" && event.shiftKey) {
@@ -42,41 +100,35 @@ export default function ClaudeCodeDemo() {
       className="h-170"
       footer={
         <ClaudeCodePrompt
+          busy={chat.busy}
           mode={mode}
           onKeyDown={handleKeyDown}
+          onSend={chat.send}
+          onStop={chat.stop}
           placeholder={promptPlaceholder}
           pullRequest={pullRequest}
         />
       }
+      ref={terminalRef}
       title={title}
     >
       <ClaudeCodeHeader {...header} />
-      {turns.map((turn) => (
-        <div className="flex flex-col gap-5" key={turn.id}>
-          <ClaudeCodeMessage from="user">{turn.prompt}</ClaudeCodeMessage>
-          <ClaudeCodeToolSummary count={turn.commands.length}>
-            {turn.commands.map((command) => (
-              <ClaudeCodeToolCall
-                arg={command.arg}
-                key={command.id}
-                result={command.result}
-                status={command.status}
-                tool={command.tool}
-              />
-            ))}
-          </ClaudeCodeToolSummary>
-          <ClaudeCodeMessage>{turn.answer}</ClaudeCodeMessage>
-          <ClaudeCodeTurnSummary {...turn.summary} />
-        </div>
+      {chat.turns.map((turn) => (
+        <ClaudeCodeTurn key={turn.id} turn={turn} />
       ))}
-      <ClaudeCodeMessage from="user">{pending.prompt}</ClaudeCodeMessage>
-      <ClaudeCodeTodoList todos={pending.todos} />
-      <ClaudeCodeToolCall
-        result={pending.toolCall.result}
-        status={pending.toolCall.status}
-        tool={pending.toolCall.tool}
-      />
-      <ClaudeCodeSpinner {...pending.spinner} />
+      {activeTurn && (
+        <ClaudeCodeSpinner
+          details={
+            activeTurn.status === "working"
+              ? ["thinking", "esc to interrupt"]
+              : ["esc to interrupt"]
+          }
+          elapsed={`${chat.elapsed}s`}
+          tip={pending.spinner.tip}
+          tokens={chat.tokens > 0 ? chat.tokens : undefined}
+          verb={chat.spinnerVerb}
+        />
+      )}
     </ClaudeCodeTerminal>
   );
 }
