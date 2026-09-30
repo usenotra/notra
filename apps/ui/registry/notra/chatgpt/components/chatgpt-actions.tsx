@@ -21,7 +21,7 @@ import { ChatgptActionButton } from "./chatgpt-action-button";
 
 const ICON_STROKE = 1.75;
 
-const ICON_CLASS_NAME = "size-5";
+const ICON_CLASS_NAME = "size-4";
 
 export const ChatgptActions = ({
   className,
