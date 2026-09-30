@@ -24,6 +24,15 @@
        never make the document itself scroll sideways under the fixed sidebar. */
     overflow-x: clip;
   }
+
+  /* No macOS rubber-band on the fixed app shell. Gated to fine pointers so
+     touch devices keep pull-to-refresh. */
+  @media (pointer: fine) {
+    html,
+    body {
+      overscroll-behavior: none;
+    }
+  }
 }
 
 @layer components {
