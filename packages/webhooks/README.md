@@ -33,7 +33,7 @@ workers do not sleep in memory using a retry schedule between attempts.
 
 The code does not provision infrastructure or apply production migrations.
 
-1. Apply `packages/db/migrations/0104_mighty_mother_askani.sql` through the
+1. Apply `packages/db/migrations/0104_crazy_rafael_vega.sql` through the
    repository migration workflow against an initialized Notra database. The
    migration includes endpoints, events, deliveries, attempts, tenant-aware foreign
    keys, deduplication indexes and lease/retry fields. Unique indexes deliberately
