@@ -45,6 +45,7 @@ import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
 import type {
   GeoScanModelCellProps,
+  GeoScanOpenAnswer,
   GeoScanPendingAnswer,
   GeoScanPromptCellProps,
   GeoScanRunAnswersTableProps,
@@ -529,7 +530,7 @@ export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
       />
     );
   }
-  if (isScanning) {
+  if (isScanning && !query.isError) {
     return (
       <section aria-label={tGeoShared("scans")} className="space-y-3">
         <ScanActivityStatus run={undefined} />
@@ -557,7 +558,9 @@ function ScanRunLoaded({
   const t = useTranslations("geo.scanRunDetail");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common");
-  const [checkId, setCheckId] = useState<string | null>(null);
+  // Pin the open answer to its scan so a newer run can't swap the sheet's scope.
+  const [openAnswer, setOpenAnswer] = useState<GeoScanOpenAnswer | null>(null);
+  const checkId = openAnswer?.checkId ?? null;
   const model = scanRunDetailView({
     run,
     view: state.view,
@@ -601,7 +604,13 @@ function ScanRunLoaded({
         loading={model.loading}
         offset={state.offset}
         onOffsetChange={(offset) => setState((prev) => ({ ...prev, offset }))}
-        onRowClick={(row) => setCheckId(row.id)}
+        onRowClick={(row) =>
+          setOpenAnswer({
+            checkId: row.id,
+            scanId: run.id,
+            language: row.language,
+          })
+        }
         results={model.results}
         showLanguage={model.showLanguage}
         total={model.total}
@@ -639,13 +648,11 @@ function ScanRunLoaded({
       {table}
       <ScanAnswerSheet
         checkId={checkId}
-        initialLanguage={
-          model.results.find((result) => result.id === checkId)?.language
-        }
+        initialLanguage={openAnswer?.language}
         key={checkId}
-        onClose={() => setCheckId(null)}
+        onClose={() => setOpenAnswer(null)}
         organizationId={organizationId}
-        scanId={run.id}
+        scanId={openAnswer?.scanId ?? run.id}
       />
     </section>
   );

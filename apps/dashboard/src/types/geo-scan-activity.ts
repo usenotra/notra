@@ -65,6 +65,12 @@ export interface GeoScanRunDetailState {
   engine: string;
 }
 
+export interface GeoScanOpenAnswer {
+  checkId: string;
+  scanId: string;
+  language: string;
+}
+
 export interface GeoScanRunEmptyProps {
   isError: boolean;
   onRetry: () => void;
