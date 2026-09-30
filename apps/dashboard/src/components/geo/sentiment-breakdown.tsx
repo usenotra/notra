@@ -6,7 +6,6 @@ import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { SentimentEngineList } from "@/components/geo/sentiment-engine-list";
-import { SentimentThemeChips } from "@/components/geo/sentiment-theme-chips";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_MIX_COLORS,
@@ -21,7 +20,6 @@ import {
 } from "@/utils/geo-sentiment";
 
 export function SentimentBreakdown({
-  organizationId,
   data,
   isScanning,
 }: SentimentBreakdownProps) {
@@ -53,7 +51,7 @@ export function SentimentBreakdown({
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 @min-[44rem]/main:grid-cols-12">
       <InstrumentModule
-        bodyClassName="flex min-h-0 flex-1 flex-col gap-5 px-5 pt-5 pb-4"
+        bodyClassName="flex min-h-0 flex-1 flex-col gap-4 px-5 pt-4 pb-4"
         className="h-full @min-[44rem]/main:col-span-7"
         eyebrow={t("eyebrow")}
         hint={tScore("scoreHint")}
@@ -62,7 +60,7 @@ export function SentimentBreakdown({
       >
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="flex items-center gap-3">
-            <p className="flex items-baseline gap-1.5 text-5xl leading-none font-semibold tracking-tight tabular-nums">
+            <p className="flex items-baseline gap-1.5 text-4xl leading-none font-semibold tracking-tight tabular-nums">
               {summary.score === null
                 ? "—"
                 : SENTIMENT_SCORE_FORMAT.format(summary.score)}
@@ -104,7 +102,7 @@ export function SentimentBreakdown({
         <EChartsBarChart
           animation={false}
           barCategoryGap={4}
-          className="min-h-64 w-full flex-1 cursor-crosshair"
+          className="min-h-52 w-full flex-1 cursor-crosshair"
           config={{
             positive: {
               label: tCommon("positive"),
@@ -140,10 +138,6 @@ export function SentimentBreakdown({
             valueFormatter={(value) => `${Number(value).toFixed(1)}%`}
           />
         </EChartsBarChart>
-        <SentimentThemeChips
-          organizationId={organizationId}
-          summary={summary}
-        />
       </InstrumentModule>
       <SentimentEngineList families={families} />
     </div>

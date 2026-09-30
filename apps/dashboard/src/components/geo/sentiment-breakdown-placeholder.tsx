@@ -23,7 +23,7 @@ function MixPreview({ busy }: { busy: boolean }) {
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none flex h-full min-h-64 items-end gap-1 select-none",
+        "pointer-events-none flex h-full min-h-52 items-end gap-1 select-none",
         busy ? "opacity-70" : "opacity-40",
         FADE_MASK
       )}
@@ -62,11 +62,11 @@ function EnginePreview({ busy }: { busy: boolean }) {
       className={cn("flex flex-col divide-y select-none", FADE_MASK)}
     >
       {SENTIMENT_PREVIEW_ENGINE_SHARES.map((share, index) => (
-        <div className="flex flex-col gap-2.5 px-5 py-3.5" key={share}>
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-24 animate-none" />
-            <Skeleton className="h-4 w-6 animate-none" />
-          </div>
+        <div
+          className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_2rem] items-center gap-4 px-5 py-2.5"
+          key={share}
+        >
+          <Skeleton className="h-4 w-24 animate-none" />
           <div className="bg-muted overflow-hidden rounded-full">
             <div
               className={cn(
@@ -85,6 +85,7 @@ function EnginePreview({ busy }: { busy: boolean }) {
               ) : null}
             </div>
           </div>
+          <Skeleton className="ml-auto h-4 w-6 animate-none" />
         </div>
       ))}
     </div>

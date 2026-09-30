@@ -9,6 +9,7 @@ import { GEO_SENTIMENT_EMPTY_LABEL_KEYS } from "@/constants/geo-sentiment";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type { SentimentThemesProps } from "@/types/geo-sentiment";
 import { sentimentThemesState } from "@/utils/geo-sentiment";
+import { sentimentAnalysisStatus } from "@/utils/sentiment-analysis";
 
 export function SentimentThemes({
   organizationId,
@@ -43,6 +44,9 @@ export function SentimentThemes({
   } else if (view.message?.kind === "empty") {
     message = tGeoShared(GEO_SENTIMENT_EMPTY_LABEL_KEYS[view.message.key]);
   }
+  const analysisStatus = sentimentAnalysisStatus(state);
+  const showAnalysisStatus =
+    view.showResults && analysisStatus !== null && analysisStatus !== "finding";
   const retrying = state?.status === "failed" || mutationError;
   const analyzing = isAnalyzing || state?.status === "pending";
   return (
@@ -87,6 +91,11 @@ export function SentimentThemes({
         {mutationError ? (
           <p role="alert" className="text-sm">
             {t("requestFailed")}
+          </p>
+        ) : null}
+        {showAnalysisStatus && analysisStatus !== null ? (
+          <p className="text-muted-foreground text-xs">
+            {t(`analysisStatus.${analysisStatus}`)}
           </p>
         ) : null}
         {view.showTable ? (

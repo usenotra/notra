@@ -99,7 +99,6 @@ export type SentimentPolarity = "positive" | "neutral" | "negative";
 export type SentimentScoreBand = "strong" | "positive" | "mixed" | "negative";
 
 export interface SentimentBreakdownProps {
-  organizationId: string;
   data: GeoSentimentResponse;
   isScanning: boolean;
 }
@@ -124,9 +123,4 @@ export interface SentimentBreakdownPlaceholderProps {
   emptyKey: "noSavedAnswers" | "noRatedMentions";
   isScanning: boolean;
   retry: () => void;
-}
-
-export interface SentimentThemeChipsProps {
-  organizationId: string;
-  summary: GeoSentimentResponse["summary"];
 }

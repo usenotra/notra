@@ -185,6 +185,24 @@ async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
   ]);
 }
 
+// A quick single-prompt rescan can finish before the settings refetch sees
+// `isScanning`, so the true -> false transition never fires. Refresh the scan
+// results (sentiment included) here when the scan is already done.
+async function refreshSettingsAfterScanStart(
+  queryClient: QueryClient,
+  organizationId: string,
+  projectId: string | undefined
+) {
+  const settingsKey = dashboardOrpc.geo.settings.queryKey({
+    input: { organizationId, projectId },
+  });
+  await queryClient.invalidateQueries({ queryKey: settingsKey });
+  const settings = queryClient.getQueryData<GeoSettingsResponse>(settingsKey);
+  if (!settings?.settings?.isScanning) {
+    await invalidateGeoScanResultQueries(queryClient);
+  }
+}
+
 function geoStartScanMutationKey(
   organizationId: string,
   projectId: string | undefined
@@ -730,11 +748,11 @@ export function useGeoStartScan(organizationId: string) {
           input: { organizationId, projectId },
         }),
       });
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.settings.queryKey({
-          input: { organizationId, projectId },
-        }),
-      });
+      await refreshSettingsAfterScanStart(
+        queryClient,
+        organizationId,
+        projectId
+      );
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, tToast("startScanFailed")));
@@ -765,11 +783,11 @@ export function useGeoRescanPrompt(organizationId: string) {
           input: { organizationId, projectId },
         }),
       });
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.settings.queryKey({
-          input: { organizationId, projectId },
-        }),
-      });
+      await refreshSettingsAfterScanStart(
+        queryClient,
+        organizationId,
+        projectId
+      );
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, tToast("startRescanFailed")));

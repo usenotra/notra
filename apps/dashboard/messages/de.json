@@ -3250,11 +3250,10 @@
     },
     "sentimentResultsTable": {
       "columns": {
-        "claim": "Aussage",
+        "claim": "Thema",
         "evidence": "Belege"
       },
       "empty": "Noch keine Stimmungsthemen.",
-      "sheetDescription": "Exakte Zitate aus der analysierten Stichprobe gespeicherter Antworten.",
       "capturedAt": "{date} UTC"
     },
     "sentimentBreakdown": {
@@ -3272,21 +3271,6 @@
         "title": "Stimmung konnte nicht geladen werden",
         "body": "Beim Laden des Werts ist etwas schiefgelaufen.",
         "retry": "Erneut versuchen"
-      },
-      "themes": {
-        "loading": "Themen werden geladen…",
-        "none": "Keine Themen gefunden",
-        "runAnalysis": "Analyse starten, um Themen zu finden",
-        "cta": {
-          "positive": "Sieh in gespeicherten Antworten, was gut läuft.",
-          "negative": "Erkenne früh, was der Marke schadet."
-        },
-        "status": {
-          "stalePrevious": "Frühere Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
-          "failedPrevious": "Analyse fehlgeschlagen. Frühere Themen werden angezeigt.",
-          "failedRetry": "Analyse fehlgeschlagen. Versuche es erneut.",
-          "unavailable": "Themenanalyse ist nicht verfügbar."
-        }
       },
       "noRatedAnswers": "Keine bewerteten Antworten",
       "deltaLabel": "Stimmungswert",
@@ -3322,6 +3306,12 @@
         "noSupportedThemes": "Keine belegten Themen in den ausgewerteten Antworten.",
         "couldNotFind": "Themen konnten nicht gefunden werden. Versuch es noch einmal.",
         "notConfigured": "Die Themenanalyse ist für dieses Projekt nicht eingerichtet."
+      },
+      "analysisStatus": {
+        "stalePrevious": "Frühere Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
+        "failedPrevious": "Analyse fehlgeschlagen. Frühere Themen werden angezeigt.",
+        "failedRetry": "Analyse fehlgeschlagen. Versuche es erneut.",
+        "unavailable": "Themenanalyse ist nicht verfügbar."
       },
       "status": {
         "loading": "Analyse wird geladen…"
