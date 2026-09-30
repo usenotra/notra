@@ -82,7 +82,7 @@
     "cnfast": "^0.0.6",
     "color": "^5.0.3",
     "date-fns": "^4.1.0",
-    "dompurify": "3.4.13",
+    "dompurify": "3.4.16",
     "drizzle-orm": "^0.45.2",
     "echarts": "^6.1.0",
     "effect": "4.0.0-rc.112",
