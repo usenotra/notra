@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type { GeoTrafficLogRow } from "@notra/analytics/types/tinybird-endpoints";
 
 import type {
@@ -52,6 +53,7 @@ export function toGeoSettings(
     conversionPaths: row.conversionPaths,
     domains: row.domains,
     languages: trackedGeoLanguages(row.languages ?? []),
+    promptLanguage: row.promptLanguage ?? DEFAULT_LANGUAGE,
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,
     nonZdrApprovedEngines: remapRetiredGeoEngineIds(row.nonZdrApprovedEngines),

@@ -885,6 +885,10 @@
       "conversationRunFailed": "Der Konversationslauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "personaRunFailed": "Der Persona-Lauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "trackingSettingsRejected": "Das kann mit deinen aktuellen Tracking-Einstellungen nicht hinzugefügt werden",
+      "translationLimit": "In dieser Sprache werden schon {limit} Prompts gescannt. Entferne zuerst einen.",
+      "translationLast": "Jede Sprache scannt mindestens einen Prompt. Um sie nicht mehr zu scannen, entferne die Sprache.",
+      "translationDeferred": "Übersetzungen sind gerade nicht möglich. Sie werden beim nächsten Scan erstellt.",
+      "translationUnavailable": "Dieser Prompt wird in dieser Sprache nicht gescannt.",
       "websiteDiscoveryFailed": "Wir konnten diese Website nicht analysieren. Prüfe die URL und versuche es erneut.",
       "writerPlanFailed": "Der Inhaltsplan konnte nicht erstellt oder gespeichert werden. Bitte versuche es erneut.",
       "promptAlreadyTracked": "Dieser Prompt wird bereits getrackt",
@@ -1172,7 +1176,8 @@
       "description": "Notra ist ein modernes GEO-Tool, das ChatGPT, Claude und Gemini die Fragen deiner Käufer stellt. Sieh, ob du in den Antworten vorkommst, wer stattdessen genannt wird und wie du das ändern kannst.",
       "title": "Sieh, was KI über dich sagt",
       "reading": "{host} wird gelesen. Das dauert etwa 20 Sekunden.",
-      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein."
+      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein.",
+      "languagesHint": "Fragen werden auf {language} geschrieben. Weitere Sprachen übersetzen wir beim Scan."
     },
     "pricing": {
       "freeTrial": "Kostenlose Testphase",
@@ -2793,12 +2798,27 @@
       "proxyTitle": "Proxy hinzufügen",
       "framework": "Framework"
     },
+    "promptTranslations": {
+      "title": "Übersetzungen",
+      "count": "{count}/{limit}",
+      "scanIn": "Auf {language} scannen",
+      "translationIn": "Übersetzung auf {language}",
+      "full": "Auf {language} werden schon {limit} Prompts gescannt. Schalte einen aus, um diesen hinzuzufügen.",
+      "last": "Auf {language} wird mindestens ein Prompt gescannt. Entferne die Sprache, um sie nicht mehr zu scannen.",
+      "translating": "Wird übersetzt…",
+      "translatedOnScan": "Wird beim nächsten Scan übersetzt",
+      "edit": "Bearbeiten",
+      "reset": "Zurücksetzen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
     "geoLanguagePicker": {
       "description": "{language} ist standardmäßig aktiv. Scanne bis zu {max} Sprachen.",
       "add": "Sprache hinzufügen",
       "limitReached": "Sprachlimit erreicht",
       "noMatches": "Keine passenden Sprachen",
-      "remove": "{language} entfernen"
+      "remove": "{language} entfernen",
+      "locked": "Prompts sind in dieser Sprache geschrieben, deshalb bleibt sie getrackt."
     },
     "geoPromptAnswerSkeleton": {
       "loading": "Antwort wird geladen"
@@ -2874,7 +2894,7 @@
         "description": "Pfade, die als Conversion zählen, wenn ein KI-Verweis sie erreicht, zum Beispiel /signup oder /pricing. Präfix-Abgleich; /pricing zählt auch /pricing/teams."
       },
       "languages": {
-        "description": "Sprachen, in denen deine Prompts gescannt werden. Englisch ist standardmäßig aktiv."
+        "description": "Sprachen, in denen deine Prompts gescannt werden. Die Prompts sind auf {language} geschrieben, weitere Sprachen werden übersetzt."
       },
       "models": {
         "description": "Jeder aktivierte Anbieter führt jeden Prompt in der Häufigkeit aus, die du hier festlegst."
@@ -3079,12 +3099,11 @@
       "placeholder": "Identität wählen",
       "usesExisting": "Verwendet die bestehende Identität und Website: {url}",
       "multipleMatches": "Mehrere Identitäten nutzen diese Website. Wähle eine für dieses Projekt.",
-      "willCreateNamed": "Wir erstellen eine Markenidentität namens {name} und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "willCreateUnnamed": "Wir erstellen eine Markenidentität mit dem Namen dieses Projekts und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "articlesNote": "Neue Artikel verwenden die Projektidentität. Für einzelne Artikel kannst du eine andere Identität wählen."
+      "willCreateNamed": "Erstellt die Markenidentität {name} aus dieser Website.",
+      "willCreateUnnamed": "Erstellt eine Markenidentität aus dieser Website."
     },
     "projectCreateDialog": {
-      "description": "Beginne mit der Website, die du tracken möchtest. Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
+      "description": "Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
       "nameLabel": "Projektname",
       "invalidInput": "Gib eine gültige Website und einen Projektnamen ein.",
       "chooseIdentity": "Wähle eine Markenidentität für diese Website, bevor du fortfährst.",
@@ -3865,6 +3884,9 @@
       "loadCompetitorDetailFailed": "Wettbewerberdetails konnten nicht geladen werden",
       "loadCompetitorSummaryFailed": "Wettbewerberübersicht konnte nicht geladen werden",
       "loadLanguagePerformanceFailed": "Sprach-Performance konnte nicht geladen werden",
+      "loadPromptTranslationsFailed": "Übersetzungen konnten nicht geladen werden",
+      "updatePromptTranslationFailed": "Die Übersetzung konnte nicht gespeichert werden",
+      "translatePromptsFailed": "Die Prompts konnten nicht übersetzt werden. Das passiert stattdessen beim nächsten Scan.",
       "geoTrackingGeneratedWebsite": "GEO-Tracking aus der Website erstellt",
       "generateGEOTrackingWebsiteFailed": "GEO-Tracking konnte nicht aus der Website erstellt werden",
       "importPromptsFailed": "Prompts konnten nicht importiert werden",
@@ -6237,9 +6259,7 @@
       "loadingDescription": "Der Dashboard-Agent wird geladen."
     },
     "overlays": {
-      "commandPalette": "Befehlspalette",
-      "loadingSearch": "Suche wird geladen…",
-      "loadingSettings": "Einstellungen werden geladen…"
+      "commandPalette": "Befehlspalette"
     },
     "brandSelector": {
       "createIdentity": "Identität erstellen"

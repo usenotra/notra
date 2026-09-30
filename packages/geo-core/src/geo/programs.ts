@@ -113,7 +113,10 @@ import {
 } from "../utils/geo-conversion-paths";
 import { engineFamilyOf } from "../utils/geo-engine-family";
 import { scopeGeoScanEngines } from "../utils/geo-engines";
-import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import {
+  trackedGeoLanguages,
+  withPromptLanguage,
+} from "../utils/geo-language-rows";
 import {
   geoDefaultEngines,
   getGeoModelCatalogEntry,
@@ -127,7 +130,7 @@ import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
 import { competitorKey } from "./domain";
-import { geoDb, geoQuery } from "./effect";
+import { geoDb, geoQuery, geoSkip } from "./effect";
 import {
   GeoCompetitorLimitError,
   GeoPromptDuplicateError,
@@ -157,6 +160,10 @@ import {
   resolveGeoScope,
 } from "./projects";
 import { promptKey } from "./prompt-key";
+import {
+  deleteGeoPromptTranslations,
+  pickNewGeoPrompts,
+} from "./prompt-translations";
 import {
   applyAutoPromptChange,
   buildGeoPrompts,
@@ -675,6 +682,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         nextScanAt: true,
         lastScanAt: true,
         scanIntervalHours: true,
+        promptLanguage: true,
       },
       where: eq(geoSettings.projectId, projectId),
     })
@@ -691,6 +699,18 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const domains = normalizeProjectDomains(
     input.domains ?? existingSettings?.domains ?? []
   );
+  // Stored prompts are written in the prompt language, so it is fixed once set
+  // and always stays tracked; otherwise scans would only run translations.
+  const promptLanguage =
+    existingSettings?.promptLanguage ?? input.promptLanguage ?? null;
+  const languages = withPromptLanguage(input.languages, promptLanguage);
+  if (!languages) {
+    return yield* Effect.fail(
+      new GeoSettingsTrackingError({
+        message: `${promptLanguage} is the prompt language and stays tracked, so choose at most ${GEO_MAX_LANGUAGES - 1} other languages`,
+      })
+    );
+  }
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
       unavailableStaticEngines.size > 0 && unavailableStaticEngines.has(engine)
@@ -745,7 +765,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         competitors: [],
         conversionPaths,
         domains,
-        languages: input.languages,
+        languages,
+        promptLanguage,
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
@@ -763,7 +784,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           aliases: input.aliases,
           conversionPaths,
           domains,
-          languages: input.languages,
+          languages,
+          promptLanguage,
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
@@ -1541,6 +1563,9 @@ export const createGeoPrompt = Effect.fn("geo.promptsCreate")(function* (
     return yield* Effect.fail(new GeoPromptDuplicateError({ prompt }));
   }
 
+  yield* pickNewGeoPrompts(input, [customPromptScanId(row.id)]).pipe(
+    geoSkip("prompt translation pick failed")
+  );
   return toTrackedPrompt(row);
 });
 
@@ -1617,6 +1642,10 @@ export const importGeoPrompts = Effect.fn("geo.promptsImport")(function* (
   rows: readonly GeoPromptImportRow[]
 ) {
   const inserted = yield* insertGeoPrompts(input, rows);
+  yield* pickNewGeoPrompts(
+    input,
+    inserted.map((row) => customPromptScanId(row.id))
+  ).pipe(geoSkip("prompt translation pick failed"));
 
   const result: GeoImportResult = {
     imported: inserted.length,
@@ -1664,6 +1693,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
         columns: {
           companyName: true,
           aliases: true,
+          promptLanguage: true,
           pausedAutoPromptIds: true,
           removedAutoPromptIds: true,
         },
@@ -1691,6 +1721,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
       {
         companyName: settingsRow.companyName,
         aliases: settingsRow.aliases,
+        promptLanguage: settingsRow.promptLanguage ?? undefined,
       },
       brand
         ? {
@@ -1772,6 +1803,10 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
   );
 
   if (rows.at(0)) {
+    yield* deleteGeoPromptTranslations(
+      scope.projectId,
+      customPromptScanId(promptId)
+    );
     return { success: true };
   }
   if (!isGeoAutoPromptId(promptId)) {
@@ -1784,6 +1819,7 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
     promptId,
     "remove"
   );
+  yield* deleteGeoPromptTranslations(scope.projectId, promptId);
   return { success: true };
 });
 

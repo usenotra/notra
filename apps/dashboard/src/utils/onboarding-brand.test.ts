@@ -30,6 +30,7 @@ test("deselected visibility prompts are omitted from the saved brand input", () 
     companyName: "Acme",
     aliases: [],
     prompts: selected,
+    languages: ["English"],
   });
   expect(brandInput.prompts).toEqual([kept]);
 });
@@ -39,6 +40,18 @@ test("clearing a dropped prompt key puts it back in the saved brand input", () =
     companyName: "Acme",
     aliases: [],
     prompts: selectedVisibilityPrompts(prompts, new Set()),
+    languages: ["English"],
   });
   expect(brandInput.prompts).toEqual(prompts);
+});
+
+test("the first tracked language becomes the prompt language", () => {
+  const brandInput = toVisibilityBrandInput({
+    companyName: "Acme",
+    aliases: [],
+    prompts,
+    languages: ["German", "English"],
+  });
+  expect(brandInput.languages).toEqual(["German", "English"]);
+  expect(brandInput.promptLanguage).toBe("German");
 });

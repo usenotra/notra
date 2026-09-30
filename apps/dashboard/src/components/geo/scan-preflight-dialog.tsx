@@ -125,6 +125,7 @@ export function ScanPreflightDialog({
   languages,
   lastScanAt,
   prompt,
+  promptId,
   confirmationOnly = false,
 }: ScanPreflightDialogProps) {
   const t = useTranslations("geo.scanPreflightDialog");
@@ -145,6 +146,7 @@ export function ScanPreflightDialog({
     promptCount,
     engines: selected,
     languages,
+    promptId,
     includeSequences: !prompt,
   });
 

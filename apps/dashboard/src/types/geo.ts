@@ -58,6 +58,8 @@ import type {
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
+  GeoPromptTranslationLanguagePlan,
+  GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import type { useTranslations } from "next-intl";
@@ -77,6 +79,8 @@ import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
 export interface GeoProjectCreateInput {
   name: string;
   brandSettingsId: string;
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: string[];
 }
 
 export interface GeoProjectContextValue {
@@ -1138,6 +1142,7 @@ export interface GeoBrandSectionProps {
 export interface GeoLanguagesSectionProps {
   languages: string[];
   onLanguagesChange: (values: string[]) => void;
+  promptLanguage?: string;
 }
 
 export interface GeoModelsSectionProps {
@@ -1278,6 +1283,10 @@ export interface GeoLanguagePickerProps {
   onChange: (values: string[]) => void;
   disabled?: boolean;
   labeled?: boolean;
+  /** Id for the search input, so a visible label can point at it. */
+  inputId?: string;
+  /** The project's prompt language; it cannot be removed. */
+  lockedLanguage?: string | null;
 }
 
 export interface ShareOfVoiceCardProps {
@@ -1394,6 +1403,8 @@ export interface ScanPreflightDialogProps {
   confirmationOnly?: boolean;
   organizationId: string;
   prompt?: string;
+  /** Id of the single prompt being scanned. */
+  promptId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (engines?: string[]) => void;
@@ -1842,4 +1853,38 @@ export interface GscSyncResultMessage {
     | "noNewSuggestions"
     | "suggestionsAdded";
   count: number;
+}
+
+export interface PromptTranslationsSectionProps {
+  organizationId: string;
+  row: Pick<GeoPromptTableRow, "id" | "source" | "enabled">;
+  open: boolean;
+}
+
+export interface PromptTranslationRowProps {
+  plan: GeoPromptTranslationLanguagePlan;
+  promptId: string;
+  limit: number;
+  busy: boolean;
+  translating: boolean;
+  onSelect: (language: string, selected: boolean) => void;
+  /** Resolves false when the save failed, so the editor keeps its draft. */
+  onSave: (language: string, text: string) => Promise<boolean>;
+  onReset: (language: string) => void;
+}
+
+export interface PromptTranslationEditorProps {
+  language: string;
+  initialText: string;
+  busy: boolean;
+  onSave: (text: string) => Promise<boolean>;
+  onClose: () => void;
+}
+
+export interface PromptTranslationTextProps {
+  entry: GeoPromptTranslationEntry;
+  busy: boolean;
+  translating: boolean;
+  onEdit: () => void;
+  onReset: () => void;
 }
