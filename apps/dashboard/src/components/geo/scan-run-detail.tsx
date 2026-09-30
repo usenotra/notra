@@ -50,6 +50,8 @@ import type {
   GeoScanRunAnswersTableProps,
   GeoScanRunDetailProps,
   GeoScanRunDetailState,
+  GeoScanRunEmptyProps,
+  GeoScanRunLoadedProps,
   GeoScanRunEmptyStateInput,
   GeoScanRunFiltersProps,
   GeoScanRunPendingTableProps,
@@ -464,15 +466,37 @@ function ViewCount({ count, locale }: GeoScanViewCountProps) {
   );
 }
 
-/** Answers of the project's newest scan: status line, filters and table. */
-export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
+function ScanRunEmpty({ isError, onRetry }: GeoScanRunEmptyProps) {
   const t = useTranslations("geo.scanRunDetail");
-  const tGeoShared = useTranslations("geo.shared");
   const tEmpty = useTranslations("geo.scanActivityStatus.empty");
   const tCommon = useTranslations("common");
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={AiChat02Icon} />
+        </EmptyMedia>
+        <EmptyTitle>{isError ? t("loadError") : tEmpty("title")}</EmptyTitle>
+        {isError ? null : (
+          <EmptyDescription>{tEmpty("description")}</EmptyDescription>
+        )}
+      </EmptyHeader>
+      {isError ? (
+        <EmptyContent>
+          <Button onClick={onRetry} size="sm" variant="outline">
+            {tCommon("actions.tryAgain")}
+          </Button>
+        </EmptyContent>
+      ) : null}
+    </Empty>
+  );
+}
+
+/** Answers of the project's newest scan: status line, filters and table. */
+export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
+  const tGeoShared = useTranslations("geo.shared");
   const isScanning = useIsGeoScanning(organizationId);
   const [state, setState] = useState(INITIAL_SCAN_RUN_STATE);
-  const [checkId, setCheckId] = useState<string | null>(null);
   const query = useGeoScanRun(
     organizationId,
     undefined,
@@ -494,39 +518,18 @@ export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
       </section>
     );
   }
-
-  if (!(run || isScanning)) {
+  if (run) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <HugeiconsIcon icon={AiChat02Icon} />
-          </EmptyMedia>
-          <EmptyTitle>
-            {query.isError ? t("loadError") : tEmpty("title")}
-          </EmptyTitle>
-          {query.isError ? null : (
-            <EmptyDescription>{tEmpty("description")}</EmptyDescription>
-          )}
-        </EmptyHeader>
-        {query.isError ? (
-          <EmptyContent>
-            <Button
-              onClick={() => {
-                void query.refetch();
-              }}
-              size="sm"
-              variant="outline"
-            >
-              {tCommon("actions.tryAgain")}
-            </Button>
-          </EmptyContent>
-        ) : null}
-      </Empty>
+      <ScanRunLoaded
+        onStateChange={setState}
+        organizationId={organizationId}
+        query={query}
+        run={run}
+        state={state}
+      />
     );
   }
-
-  if (!run) {
+  if (isScanning) {
     return (
       <section aria-label={tGeoShared("scans")} className="space-y-3">
         <ScanActivityStatus run={undefined} />
@@ -534,7 +537,27 @@ export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
       </section>
     );
   }
+  return (
+    <ScanRunEmpty
+      isError={query.isError}
+      onRetry={() => {
+        void query.refetch();
+      }}
+    />
+  );
+}
 
+function ScanRunLoaded({
+  organizationId,
+  run,
+  query,
+  state,
+  onStateChange: setState,
+}: GeoScanRunLoadedProps) {
+  const t = useTranslations("geo.scanRunDetail");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const [checkId, setCheckId] = useState<string | null>(null);
   const model = scanRunDetailView({
     run,
     view: state.view,
