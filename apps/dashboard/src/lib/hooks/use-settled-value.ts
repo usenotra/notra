@@ -13,6 +13,10 @@ export function useSettledValue<T>(
   const shownAtRef = useRef(0);
 
   useEffect(() => {
+    shownAtRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
     if (Object.is(value, settled)) {
       return;
     }

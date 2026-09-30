@@ -11,18 +11,20 @@ export function useDelayedAppearance(
 ): boolean {
   const [isShown, setIsShown] = useState(false);
 
+  if (!active && isShown) {
+    setIsShown(false);
+  }
+  if (active && immediate && !isShown) {
+    setIsShown(true);
+  }
+
   useEffect(() => {
-    if (!active) {
-      setIsShown(false);
-      return;
-    }
-    if (immediate) {
-      setIsShown(true);
+    if (!active || isShown) {
       return;
     }
     const timer = window.setTimeout(() => setIsShown(true), delayMs);
     return () => window.clearTimeout(timer);
-  }, [active, delayMs, immediate]);
+  }, [active, delayMs, isShown]);
 
   return active && (immediate || isShown);
 }

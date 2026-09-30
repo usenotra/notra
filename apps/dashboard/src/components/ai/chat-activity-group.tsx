@@ -100,8 +100,12 @@ export function ChatActivityGroup({
     settleMs: ACTIVITY_STEP_SETTLE_MS,
     minVisibleMs: ACTIVITY_STEP_MIN_VISIBLE_MS,
   });
-  // Approval prompts need an immediate answer, so they skip the settle delay.
-  const displayedStep = step === "waitingForApproval" ? step : settledStep;
+  // Approval prompts need an immediate answer, and leaving one must not keep
+  // the stale "waiting" label, so both transitions skip the settle delay.
+  const displayedStep =
+    step === "waitingForApproval" || settledStep === "waitingForApproval"
+      ? step
+      : settledStep;
   const [isOpen, setIsOpen] = useState(forceOpen);
   const [hasInteracted, setHasInteracted] = useState(false);
 
