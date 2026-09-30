@@ -1,9 +1,18 @@
 "use client";
 
+import { AiChat02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-import { EmptyState } from "@/components/empty-state";
 import { ScanActivityStatus } from "@/components/geo/scan-activity-status";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
@@ -35,7 +44,15 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
 
   if (!newest && !isScanning) {
     return (
-      <EmptyState description={tEmpty("description")} title={tEmpty("title")} />
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon icon={AiChat02Icon} />
+          </EmptyMedia>
+          <EmptyTitle>{tEmpty("title")}</EmptyTitle>
+          <EmptyDescription>{tEmpty("description")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

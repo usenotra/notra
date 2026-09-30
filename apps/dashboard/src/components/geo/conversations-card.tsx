@@ -4,6 +4,7 @@ import {
   AiMagicIcon,
   Delete02Icon,
   Loading03Icon,
+  MessageMultiple01Icon,
   MoreHorizontalIcon,
   PencilEdit02Icon,
   PlayIcon,
@@ -19,6 +20,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Tooltip,
@@ -30,7 +39,6 @@ import { type ReactNode, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/button";
-import { EmptyState } from "@/components/empty-state";
 import { ConversationBuilderDialog } from "@/components/geo/conversation-builder-dialog";
 import { ConversationResultsDialog } from "@/components/geo/conversation-results-dialog";
 import { StatusSpinner } from "@/components/geo/status-spinner";
@@ -300,19 +308,23 @@ export function ConversationsCard({
       {showEmpty ? null : renderActions(actions, actionsContainer)}
 
       {showEmpty ? (
-        <EmptyState
-          action={
-            <>
+        <Empty aria-busy={generateSequences.isPending}>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon icon={MessageMultiple01Icon} />
+            </EmptyMedia>
+            <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+            <EmptyDescription>
+              {generateSequences.isPending ? t("emptyGenerating") : t("empty")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <div className="flex flex-wrap justify-center gap-2">
               {generateButton}
               {newButton}
-            </>
-          }
-          aria-busy={generateSequences.isPending}
-          description={
-            generateSequences.isPending ? t("emptyGenerating") : t("empty")
-          }
-          title={t("emptyTitle")}
-        />
+            </div>
+          </EmptyContent>
+        </Empty>
       ) : (
         <Table
           className="rounded-2xl"

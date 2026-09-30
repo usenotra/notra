@@ -22,6 +22,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Label } from "@notra/ui/components/ui/label";
 import {
   Select,
@@ -464,24 +472,19 @@ function SetupState({
   }
 
   return (
-    <div className="bg-muted/15 flex flex-col items-center gap-8 rounded-2xl border px-6 py-12 text-center">
-      <div className="flex max-w-md flex-col items-center">
-        <span
-          aria-hidden="true"
-          className="bg-background mb-4 flex size-11 items-center justify-center rounded-xl border shadow-xs"
-        >
-          <Google className="size-5.5" />
-        </span>
-        <h3 className="text-lg font-semibold text-balance">{title}</h3>
-        <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed text-pretty">
-          {description}
-        </p>
-        {action ? (
-          <div className="mt-5 flex w-full justify-center">{action}</div>
-        ) : null}
-      </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Google className="size-5" />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {action ? (
+        <EmptyContent className="max-w-md">{action}</EmptyContent>
+      ) : null}
       {status.connected ? null : <SetupExamplesPreview />}
-    </div>
+    </Empty>
   );
 }
 

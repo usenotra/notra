@@ -1453,6 +1453,8 @@ export interface PromptsTableProps {
   prompts: GeoTrackedPrompt[];
   results: GeoPromptResultSummary[];
   isScanning?: boolean;
+  onAddPrompt: () => void;
+  onImportCsv: () => void;
 }
 
 export type PromptAddMode = "write" | "website";

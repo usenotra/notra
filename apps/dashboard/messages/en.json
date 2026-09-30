@@ -3141,8 +3141,11 @@
         "auto": "Auto"
       },
       "addTagCount": "Add tag ({count})",
-      "emptyIdle": "Add a prompt to start tracking how AI engines answer",
-      "noMatches": "No prompts match these filters"
+      "emptyIdle": "Add the questions your buyers ask AI engines, or import a list from a CSV.",
+      "noMatches": "No prompts match these filters",
+      "emptyTitle": "No prompts yet",
+      "noMatchesDescription": "Try a different search or clear the filters.",
+      "clearFilters": "Clear filters"
     },
     "purposeBadge": {
       "description": {

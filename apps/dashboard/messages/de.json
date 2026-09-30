@@ -3141,8 +3141,11 @@
         "auto": "Automatisch"
       },
       "addTagCount": "Tag hinzufügen ({count})",
-      "emptyIdle": "Füge einen Prompt hinzu, um zu tracken, wie KI-Engines antworten",
-      "noMatches": "Keine Prompts entsprechen diesen Filtern"
+      "emptyIdle": "Füge die Fragen hinzu, die deine Käufer KI-Engines stellen, oder importiere eine Liste als CSV.",
+      "noMatches": "Keine Prompts entsprechen diesen Filtern",
+      "emptyTitle": "Noch keine Prompts",
+      "noMatchesDescription": "Probier eine andere Suche oder setz die Filter zurück.",
+      "clearFilters": "Filter zurücksetzen"
     },
     "purposeBadge": {
       "description": {
