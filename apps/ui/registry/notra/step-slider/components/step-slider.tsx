@@ -10,7 +10,7 @@ import type { StepSliderProps } from "../types/step-slider";
 /** Stops closer than this to the thumb sit under it and are not drawn. */
 const STOP_UNDER_THUMB = 0.001;
 
-/** Center of a stop, inset by the thumb radius so the ends line up with the thumb. */
+/** Center of a stop from the inline start, inset by the thumb radius so the ends line up with the thumb. */
 const stopCenter = (ratio: number) => `calc(1rem + ${ratio} * (100% - 2rem))`;
 
 const defaultFormatLabel = (value: number) => value;
@@ -26,6 +26,8 @@ export const StepSlider = ({
   hideLabels = false,
   getValueText,
   disabled,
+  name,
+  form,
   className,
   "aria-label": ariaLabel,
   ...props
@@ -38,6 +40,8 @@ export const StepSlider = ({
   const ratio = stepRatio(index, steps.length);
   const lastIndex = Math.max(steps.length - 1, 0);
 
+  const majorStepSet = majorSteps ? new Set(majorSteps) : null;
+
   const select = (nextIndex: number) => {
     const next = steps[nextIndex];
     if (next === undefined || nextIndex === index) {
@@ -45,6 +49,13 @@ export const StepSlider = ({
     }
     setUncontrolledValue(next);
     onValueChange?.(next);
+  };
+
+  const commit = (nextIndex: number) => {
+    const next = steps[nextIndex];
+    if (next !== undefined) {
+      onValueCommitted?.(next);
+    }
   };
 
   return (
@@ -55,17 +66,16 @@ export const StepSlider = ({
       max={lastIndex}
       min={0}
       onValueChange={(nextIndex) => select(nextIndex)}
-      onValueCommitted={(nextIndex) => {
-        const next = steps[nextIndex];
-        if (next !== undefined) {
-          onValueCommitted?.(next);
-        }
-      }}
+      onValueCommitted={(nextIndex) => commit(nextIndex)}
       step={1}
       thumbAlignment="edge"
       value={index}
       {...props}
     >
+      {/* Base UI works on step indices, so the form gets the real value from here. */}
+      {name ? (
+        <input form={form} name={name} type="hidden" value={current} />
+      ) : null}
       <div className="h-10 rounded-full bg-[#F1F1F2] p-1 shadow-[inset_0_0.0625rem_0.125rem_#1E1E1E0F] dark:bg-white/[0.06]">
         <SliderPrimitive.Control className="relative h-full cursor-pointer touch-none select-none data-disabled:cursor-not-allowed data-disabled:opacity-50">
           <SliderPrimitive.Track className="absolute inset-0 h-full">
@@ -91,7 +101,7 @@ export const StepSlider = ({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "pointer-events-none absolute top-1/2 left-(--stop) size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300",
+                    "pointer-events-none absolute start-(--stop) top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300 rtl:translate-x-1/2",
                     position < ratio
                       ? "bg-white/70"
                       : "bg-[#1E1E1E33] dark:bg-white/30"
@@ -121,12 +131,12 @@ export const StepSlider = ({
       {hideLabels ? null : (
         <div className="relative mx-1 h-4 text-xs tracking-[-0.01em] text-[#1E1E1E80] tabular-nums dark:text-white/45">
           {steps.map((step, stepIndex) => {
-            const isMajor = majorSteps?.includes(step) ?? true;
+            const isMajor = majorStepSet?.has(step) ?? true;
 
             return (
               <button
                 className={cn(
-                  "absolute top-0 left-(--stop) -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] disabled:pointer-events-none dark:hover:text-white",
+                  "absolute start-(--stop) top-0 -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] disabled:pointer-events-none rtl:translate-x-1/2 dark:hover:text-white",
                   // Narrow containers keep the major labels only.
                   !isMajor && "hidden @lg:block",
                   stepIndex === index &&
@@ -134,7 +144,12 @@ export const StepSlider = ({
                 )}
                 disabled={disabled}
                 key={step}
-                onClick={() => select(stepIndex)}
+                onClick={() => {
+                  if (stepIndex !== index) {
+                    select(stepIndex);
+                    commit(stepIndex);
+                  }
+                }}
                 style={
                   {
                     "--stop": stopCenter(stepRatio(stepIndex, steps.length)),
