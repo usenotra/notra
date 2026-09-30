@@ -116,10 +116,6 @@ export async function updateBrandAnalysisJob(
     updatedAt: new Date().toISOString(),
   });
 
-  if (nextJob.status === "completed" || nextJob.status === "failed") {
-    await recordBrandAnalysisOutcome(nextJob);
-  }
-
   await redis.hset(
     getJobKey(jobId),
     serializeJobFieldUpdates({
@@ -128,6 +124,10 @@ export async function updateBrandAnalysisJob(
     })
   );
   await redis.expire(getJobKey(jobId), JOB_TTL_SECONDS);
+
+  if (nextJob.status === "completed" || nextJob.status === "failed") {
+    await recordBrandAnalysisOutcome(nextJob);
+  }
 
   return nextJob;
 }

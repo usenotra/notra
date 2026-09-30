@@ -121,14 +121,6 @@ export async function updateContentGenerationJob(
     updatedAt: new Date().toISOString(),
   });
 
-  if (
-    nextJob.status === "completed" ||
-    nextJob.status === "failed" ||
-    nextJob.status === "skipped"
-  ) {
-    await recordGenerationOutcome(nextJob);
-  }
-
   await redis.hset(
     getJobKey(jobId),
     serializeJobFieldUpdates({
@@ -137,6 +129,14 @@ export async function updateContentGenerationJob(
     })
   );
   await redis.expire(getJobKey(jobId), JOB_TTL_SECONDS);
+
+  if (
+    nextJob.status === "completed" ||
+    nextJob.status === "failed" ||
+    nextJob.status === "skipped"
+  ) {
+    await recordGenerationOutcome(nextJob);
+  }
 
   return nextJob;
 }

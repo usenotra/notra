@@ -143,15 +143,19 @@ beforeAll(() =>
       yield* sql("CREATE TABLE organizations (id text PRIMARY KEY)");
       const migrations = new URL("../../db/migrations/", import.meta.url);
       const files = yield* Effect.promise(() => readdir(migrations));
-      const file = files.find((name) =>
-        name.endsWith("_webhook_delivery_pipeline.sql")
+      const contents = yield* Effect.promise(() =>
+        Promise.all(
+          files
+            .filter((name) => name.endsWith(".sql"))
+            .map((name) => readFile(new URL(name, migrations), "utf8"))
+        )
       );
-      if (!file) {
+      const migration = contents.find((content) =>
+        content.includes('CREATE TABLE "webhook_endpoints"')
+      );
+      if (!migration) {
         return yield* Effect.die("missing webhook migration");
       }
-      const migration = yield* Effect.promise(() =>
-        readFile(new URL(file, migrations), "utf8")
-      );
       yield* Effect.promise(() => db.exec(migration));
       yield* sql("INSERT INTO organizations VALUES ('org-one'), ('org-two')");
     })
