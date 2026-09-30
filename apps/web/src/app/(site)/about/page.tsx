@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
+import { pageAlternates } from "@/utils/metadata";
+import { SITE_URL } from "@/utils/urls";
 
 export const metadata: Metadata = {
   title: "About Notra",
   description:
     "Learn about Notra, the AI content-generation platform for product and engineering teams.",
+  alternates: pageAlternates(`${SITE_URL}/about`),
 };
 
 export default function AboutPage() {

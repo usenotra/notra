@@ -8,6 +8,7 @@ import {
   onboardingSuggestions,
   organizations,
 } from "@notra/db/schema";
+import { createGeoProject } from "@notra/geo-core/geo/projects";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   dismissSuggestionInputSchema,
@@ -16,8 +17,9 @@ import {
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
-import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
+import { COMPANY_LOGO_LOOKUP_TIMEOUT_MS } from "@/constants/company-logo";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   getOnboardingAgentState,
@@ -32,6 +34,8 @@ import {
   writeCachedCompanyLogo,
 } from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
+import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
 import type { CompanyLogoResult } from "@/types/onboarding";
 import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { ratelimit } from "@/utils/ratelimit";
@@ -56,37 +60,59 @@ export const onboardingRouter = {
         `${context.user.id}:${input.query.toLowerCase()}`
       );
       if (!withinLimit) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message: "Too many logo lookups. Please try again shortly.",
+          message: tErrors("tooManyLogoLookups"),
         });
       }
 
+      const signal = AbortSignal.timeout(COMPANY_LOGO_LOOKUP_TIMEOUT_MS);
+      let result: CompanyLogoResult;
       try {
-        let result: CompanyLogoResult;
         if (input.searchByName) {
-          const response = await searchBrands(input.query);
+          const response = await searchBrands(input.query, { signal });
           const brand = pickBrandSearchResult(response.results, input.query);
           result = {
             domain: brand?.domain ?? null,
             url: brand?.logo || null,
           };
         } else {
-          const response = await retrieveBrand(input.query);
+          const response = await retrieveBrand(input.query, { signal });
           result = {
             domain: response.brand?.domain ?? input.query,
             url: pickCompanyLogoUrl(response.brand?.logos),
           };
         }
-
-        await writeCachedCompanyLogo(cacheKeyInput, result);
-        return result;
       } catch {
-        // A failed lookup is not cached; only its empty answer is returned.
-        return {
+        // Failures and timeouts are cached as unresolved (short TTL) so every
+        // page view does not wait on the same slow lookup again.
+        result = {
           domain: input.searchByName ? null : input.query,
           url: null,
         };
       }
+
+      await writeCachedCompanyLogo(cacheKeyInput, result);
+      return result;
+    }),
+  createDevReplayProject: authorizedProcedure
+    .input(organizationIdInputSchema)
+    .handler(async ({ context, input }) => {
+      if (process.env.NODE_ENV !== "development") {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      const project = await runOrpcEffect(
+        createGeoProject(input.organizationId, "Onboarding replay"),
+        toGeoOrpcError
+      );
+      return { projectId: project.id };
     }),
   get: authorizedProcedure
     .input(organizationIdInputSchema)
@@ -171,9 +197,9 @@ export const onboardingRouter = {
         input.organizationId
       );
       if (!withinLimit) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message:
-            "Too many onboarding agent requests. Please try again shortly.",
+          message: tErrors("tooManyAgentRequests"),
         });
       }
 
@@ -187,8 +213,9 @@ export const onboardingRouter = {
         (result.reason === "no-company-domain" ||
           result.reason === "website-unreachable")
       ) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("BAD_REQUEST", {
-          message: SELF_SERVE_AGENT_ERROR_MESSAGES[result.reason],
+          message: tErrors(`selfServeAgent.${result.reason}`),
         });
       }
 

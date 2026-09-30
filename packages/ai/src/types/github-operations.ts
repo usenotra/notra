@@ -22,6 +22,15 @@ export interface GitHubInstallationReference {
   installationId: string;
 }
 
+export interface GitHubAppPublishAccess {
+  contents?: string;
+  issues?: string;
+  pullRequests?: string;
+  checks?: string;
+  /** The installation's settings page on GitHub. */
+  settingsUrl?: string;
+}
+
 export interface SelectGitHubRepositoriesParams {
   preserveExisting?: boolean;
   organizationId: string;

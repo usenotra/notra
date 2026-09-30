@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CommandGroup, CommandItem } from "@notra/ui/components/ui/command";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -26,9 +27,11 @@ export function ChatContextConnectSuggestions({
   onSelect,
 }: ChatContextConnectSuggestionsProps) {
   const router = useRouter();
+  const t = useTranslations("chat.connectSuggestions");
+  const tCommon = useTranslations("common.actions");
 
   return (
-    <CommandGroup heading="Suggested">
+    <CommandGroup heading={t("heading")}>
       {CHAT_CONTEXT_SUGGESTED_INTEGRATIONS.map((integration) => {
         const href = buildOrganizationIntegrationConnectPath(
           organizationSlug,
@@ -48,14 +51,14 @@ export function ChatContextConnectSuggestions({
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-sm">{integration.name}</span>
               <span className="text-muted-foreground truncate text-xs">
-                {integration.description}
+                {t(`descriptions.${integration.id}`)}
               </span>
             </span>
             <span
               className="text-muted-foreground ml-auto text-xs"
               data-slot="command-shortcut"
             >
-              Connect
+              {tCommon("connect")}
             </span>
           </CommandItem>
         );

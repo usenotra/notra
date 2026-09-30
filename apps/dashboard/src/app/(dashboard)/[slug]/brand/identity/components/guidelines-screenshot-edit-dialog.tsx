@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
+import { useTranslations } from "next-intl";
 import { useReducer } from "react";
 import { toast } from "sonner";
 
@@ -45,6 +46,9 @@ export function GuidelinesScreenshotEditDialog({
   open,
   onOpenChange,
 }: GuidelinesScreenshotEditDialogProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const update = useUpdateGuidelineScreenshot(organizationId, voiceId);
   const [state, setState] = useReducer(updateScreenshotDialogState, {
     fullPage: screenshot.fullPage,
@@ -59,11 +63,13 @@ export function GuidelinesScreenshotEditDialog({
         kind,
         fullPage,
       });
-      toast.success("Screenshot updated");
+      toast.success(t("screenshotDialog.updated"));
       onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update screenshot"
+        error instanceof Error
+          ? error.message
+          : t("screenshotDialog.updateFailed")
       );
     }
   };
@@ -72,15 +78,17 @@ export function GuidelinesScreenshotEditDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Edit screenshot</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {t("screenshotDialog.title")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Update how this landing page capture is labeled.
+            {t("screenshotDialog.description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{tCommon2("labels.type")}</Label>
             <Select
               onValueChange={(next) => {
                 const option = SCREENSHOT_KIND_OPTIONS.find(
@@ -94,16 +102,18 @@ export function GuidelinesScreenshotEditDialog({
             >
               <SelectTrigger>
                 <SelectValue>
-                  {(value) =>
-                    SCREENSHOT_KIND_OPTIONS.find((o) => o.value === value)
-                      ?.label ?? ""
-                  }
+                  {(value) => {
+                    const option = SCREENSHOT_KIND_OPTIONS.find(
+                      (o) => o.value === value
+                    );
+                    return option ? t(`screenshotKinds.${option.value}`) : "";
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {SCREENSHOT_KIND_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`screenshotKinds.${option.value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -111,7 +121,9 @@ export function GuidelinesScreenshotEditDialog({
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="screenshot-full-page">Full page</Label>
+            <Label htmlFor="screenshot-full-page">
+              {t("screenshots.fullPage")}
+            </Label>
             <Switch
               checked={fullPage}
               id="screenshot-full-page"
@@ -126,10 +138,10 @@ export function GuidelinesScreenshotEditDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={update.isPending} onClick={handleSave}>
-            {update.isPending ? "Saving…" : "Save"}
+            {update.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

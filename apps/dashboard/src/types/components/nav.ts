@@ -1,4 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
+import type { PostStatus } from "@notra/schemas/dashboard/content";
 import type { ReactNode } from "react";
 
 import type { BrandTab } from "@/types/brand-identity";
@@ -7,25 +8,50 @@ export type SidebarMode = "geo" | "studio";
 
 export type NavGroupKey = "visibility" | "improve" | "automation" | "utility";
 
+export type NavItemLabelKey =
+  | "home"
+  | "chat"
+  | "content"
+  | "analytics"
+  | "feedback"
+  | "brandIdentityTitle"
+  | "iris"
+  | "schedules"
+  | "events"
+  | "integrations"
+  | "overview"
+  | "traffic"
+  | "prompts"
+  | "contentGaps"
+  | "shelfSpace"
+  | "agentReadiness"
+  | "competitors"
+  | "personas"
+  | "write"
+  | "geoSettings"
+  | "skills"
+  | "apiKeys";
+
+export type NavBadgeKey = "beta";
+
 export interface NavItem {
   link: string;
   icon: IconSvgElement;
-  label: string;
+  labelKey: NavItemLabelKey;
 }
 
 export interface NavMainItem extends NavItem {
-  badge?: string;
+  badge?: NavBadgeKey;
 }
 
 export interface SidebarModeOption {
   id: SidebarMode;
   label: string;
-  description: string;
+  descriptionKey: "measureVisibility" | "createContent";
   icon: IconSvgElement;
 }
 
 export interface NavPrimaryActionConfig {
-  label: string;
   icon: IconSvgElement;
 }
 
@@ -48,6 +74,8 @@ export interface NavModeSwitchProps {
   slug: string;
   projectId?: string;
   onModeChange: (mode: SidebarMode) => void;
+  /** Warm the destination before the click, e.g. Studio recents. */
+  onPrefetchMode?: (mode: SidebarMode) => void;
 }
 
 export interface NavGeoProps {
@@ -62,7 +90,7 @@ export interface NavStudioProps {
   organizationId: string;
   /** Route to resolve the active item against; may lead the real pathname. */
   pathname: string;
-  /** Skip recent-post fetching while the Studio panel is hidden. */
+  /** Skip fetching while hidden; pass true once Studio is shown or warmed. */
   loadRecent?: boolean;
 }
 
@@ -107,14 +135,12 @@ export type BrandIdentityNavCountKey = "references" | "sitemap";
 
 export interface NavBrandIdentityItemConfig {
   tab: BrandTab;
-  label: string;
   icon: IconSvgElement;
   countKey?: BrandIdentityNavCountKey;
 }
 
 export interface NavBrandIdentityItem {
   tab: BrandTab;
-  label: string;
   icon: IconSvgElement;
   href: string;
   isActive: boolean;
@@ -153,4 +179,15 @@ export interface SidebarSwapProps {
   /** Keep every panel mounted. Use when both sides stay cheap to hold. */
   keepMounted?: boolean;
   className?: string;
+}
+
+export interface NavRecentContentItemProps {
+  href: string;
+  isActive: boolean;
+  post: {
+    id: string;
+    organizationId: string;
+    status: PostStatus;
+    title: string;
+  };
 }

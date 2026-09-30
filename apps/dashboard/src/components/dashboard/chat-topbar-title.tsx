@@ -27,8 +27,10 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Input } from "@notra/ui/components/ui/input";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -39,21 +41,75 @@ import {
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
 import { cn } from "@/lib/utils";
+import { displayChatTitle } from "@/utils/chat-history-groups";
 
 interface ChatTopbarTitleProps {
   chatId: string;
 }
 
+function ChatTopbarTitleLabel({
+  displayTitle,
+  hasTitle,
+  isGeneratingTitle,
+}: {
+  displayTitle: string;
+  hasTitle: boolean;
+  isGeneratingTitle: boolean;
+}) {
+  const t = useTranslations("dashboard.chatTitle");
+  let titleMotionKey = "fallback";
+  if (isGeneratingTitle) {
+    titleMotionKey = "generating";
+  } else if (hasTitle) {
+    titleMotionKey = "title";
+  }
+
+  return (
+    <span className="relative block min-w-0 truncate">
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          className="block truncate"
+          exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
+          initial={{
+            opacity: 0,
+            y: hasTitle ? 4 : 0,
+            filter: hasTitle ? "blur(4px)" : "blur(0px)",
+          }}
+          key={titleMotionKey}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          {isGeneratingTitle ? (
+            <Skeleton
+              aria-label={t("generating")}
+              className="h-4 w-28"
+              role="status"
+            />
+          ) : (
+            displayTitle
+          )}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
+  const t = useTranslations("dashboard.chatTitle");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const { activeOrganization } = useOrganizationsContext();
   const router = useRouter();
   const slug = activeOrganization?.slug;
 
-  const { sessions } = useChatSessions();
+  const { sessions, generatingTitleChatIds } = useChatSessions();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const session = sessions.find((item) => item.chatId === chatId);
-  const title = session?.title ?? null;
+  const title = session
+    ? displayChatTitle(session.title, tCommon2("labels.newChat"))
+    : null;
+  const isGeneratingTitle = generatingTitleChatIds.has(chatId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
@@ -72,7 +128,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   }, [isEditing]);
 
   function startEditing() {
-    if (!session) {
+    if (!session || isGeneratingTitle) {
       return;
     }
     setDraftTitle(session.title);
@@ -87,7 +143,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
     const nextTitle = normalizeChatTitle(draftTitle);
 
     if (!nextTitle) {
-      toast.error("Title can't be empty");
+      toast.error(t("emptyTitle"));
       setDraftTitle(session.title);
       setIsEditing(false);
       return;
@@ -131,7 +187,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   }
 
   const displayTitle = title ?? formatChatIdFallback(chatId);
-  const hasTitle = Boolean(title);
+  const hasTitle = Boolean(title) && !isGeneratingTitle;
 
   return (
     <>
@@ -187,24 +243,11 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     startEditing();
                   }}
                 >
-                  <span className="relative block min-w-0 truncate">
-                    <AnimatePresence initial={false} mode="popLayout">
-                      <motion.span
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        className="block truncate"
-                        exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
-                        initial={{
-                          opacity: 0,
-                          y: hasTitle ? 4 : 0,
-                          filter: hasTitle ? "blur(4px)" : "blur(0px)",
-                        }}
-                        key={hasTitle ? "title" : "fallback"}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                      >
-                        {displayTitle}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
+                  <ChatTopbarTitleLabel
+                    displayTitle={displayTitle}
+                    hasTitle={hasTitle}
+                    isGeneratingTitle={isGeneratingTitle}
+                  />
                   <HugeiconsIcon
                     className={cn(
                       "text-muted-foreground duration-normal size-3.5 shrink-0 transition-transform",
@@ -225,11 +268,14 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     <HugeiconsIcon
                       icon={session?.pinnedAt ? PinOffIcon : PinIcon}
                     />
-                    {session?.pinnedAt ? "Unpin" : "Pin"}
+                    {session?.pinnedAt ? t("unpin") : t("pin")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem disabled={!session} onClick={startEditing}>
+                  <DropdownMenuItem
+                    disabled={!session || isGeneratingTitle}
+                    onClick={startEditing}
+                  >
                     <HugeiconsIcon icon={PencilEdit02Icon} />
-                    Rename
+                    {tCommon("rename")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={!session}
@@ -237,7 +283,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     variant="destructive"
                   >
                     <HugeiconsIcon icon={Delete02Icon} />
-                    Delete
+                    {tCommon("delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -257,16 +303,19 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
             <ResponsiveAlertDialogTitle>
-              Delete chat?
+              {t("deleteTitle")}
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{session?.title ?? "this chat"}
-              &quot;. This action cannot be undone.
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
+              {session?.title
+                ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+                    title: session.title,
+                  })
+                : t("deleteDescriptionFallback")}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
             <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               disabled={isDeleting}
@@ -276,7 +325,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
               }}
               variant="destructive"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? tCommon("deleting") : tCommon("delete")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

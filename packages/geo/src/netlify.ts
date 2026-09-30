@@ -1,4 +1,4 @@
-import { sendRequestLog } from "./send";
+import { reportGeoError, sendRequestLog } from "./send";
 import { Tracker as CoreTracker } from "./tracker";
 import type {
   GeoLocation,
@@ -50,7 +50,7 @@ export class Tracker {
         context.waitUntil(pending);
       }
     } catch (error) {
-      this.options.onError?.(error);
+      reportGeoError(this.options.onError, error);
     }
   }
 }

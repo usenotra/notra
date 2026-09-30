@@ -1,6 +1,6 @@
 "use client";
 
-import { GEO_SEARCH_GAP_DISMISSED_TOAST } from "@notra/geo-core/constants/geo";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +14,10 @@ import {
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
-import { useGeoWriterGaps } from "@/lib/hooks/use-geo-writer";
+import {
+  useGeoPromptGapIgnore,
+  useGeoWriterGaps,
+} from "@/lib/hooks/use-geo-writer";
 import type { GeoGapsPageModel } from "@/types/components/geo-gaps";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import {
@@ -29,6 +32,7 @@ import {
 } from "@/utils/geo-write-entry";
 
 export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
+  const tToast = useTranslations("geo.toasts");
   const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
@@ -45,6 +49,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
   const rescanPrompt = useGeoRescanPrompt(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
+  const ignoreGap = useGeoPromptGapIgnore(organizationId);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInitial, setDialogInitial] =
@@ -84,12 +89,43 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
       isGapsPending: gapsQuery.isPending,
       table: {
         competitors,
+        organizationId,
         hasScanData: gapsQuery.data?.hasScanData ?? false,
         isScanning,
         onOpenPost: (postId) => {
           router.push(geoContentPath(organizationSlug, postId));
         },
         onRescanPrompt: (row) => rescanPrompt.mutate(row.id),
+        ignoringPromptId:
+          ignoreGap.isPending && ignoreGap.variables?.ignored
+            ? ignoreGap.variables.promptId
+            : null,
+        // `mutate` callbacks only fire for the latest call, so ignoring two gaps
+        // quickly would drop the first Undo toast. Each `mutateAsync` call
+        // settles on its own promise; failures are toasted by the hook.
+        onIgnorePrompt: async (row) => {
+          try {
+            await ignoreGap.mutateAsync({ promptId: row.id, ignored: true });
+          } catch {
+            return;
+          }
+          toast.success(tToast("gapIgnored"), {
+            action: {
+              label: tToast("undo"),
+              onClick: async () => {
+                try {
+                  await ignoreGap.mutateAsync({
+                    promptId: row.id,
+                    ignored: false,
+                  });
+                } catch {
+                  return;
+                }
+                toast.success(tToast("gapRestored"));
+              },
+            },
+          });
+        },
         onRunScan: () => startScan.mutate("gaps_empty"),
         onWritePrompt: (row) => {
           openDialog(
@@ -113,7 +149,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             { suggestionId: row.id },
             {
               onSuccess: () => {
-                toast.success(GEO_SEARCH_GAP_DISMISSED_TOAST);
+                toast.success(tToast("searchGapDismissed"));
               },
             }
           );
@@ -126,9 +162,17 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             existingPageUrl,
           });
         },
+        onWriteAiSearch: (row) => {
+          openDialog({
+            sourceKind: "ai_search",
+            sourceId: row.id,
+            topic: row.query,
+          });
+        },
         organizationSlug,
         promptGaps: gapsQuery.data?.promptGaps ?? [],
         searchGaps: gapsQuery.data?.searchGaps ?? [],
+        aiSearchGaps: gapsQuery.data?.aiSearchGaps ?? [],
       },
       dialog: {
         open: dialogOpen,

@@ -2,6 +2,7 @@
 
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";
@@ -31,6 +32,8 @@ export function Checkbox({
   id: idProp,
   "aria-label": ariaLabel,
 }: CheckboxProps) {
+  const t = useTranslations("shared.checkbox");
+  const tCommon = useTranslations("common");
   const autoId = useId();
   const id = idProp ?? autoId;
   const reduce = useReducedMotion();
@@ -46,7 +49,7 @@ export function Checkbox({
   return (
     <label
       className={cn(
-        "inline-flex items-center gap-3",
+        "flex items-center gap-3",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
         className
       )}
@@ -56,7 +59,7 @@ export function Checkbox({
         aria-checked={indeterminate ? "mixed" : checked}
         aria-label={ariaLabel}
         className={cn(
-          "duration-normal inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md border-2 transition-colors outline-none",
+          "duration-normal flex size-5 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-2 p-0 leading-none transition-colors outline-none",
           "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-60",
           showMark
@@ -94,7 +97,11 @@ export function Checkbox({
               viewBox="0 0 24 24"
               width="12"
             >
-              <title>{indeterminate ? "Partially selected" : "Selected"}</title>
+              <title>
+                {indeterminate
+                  ? t("partiallySelected")
+                  : tCommon("labels.selected")}
+              </title>
               <motion.path
                 animate={{ pathLength: 1 }}
                 d={path}

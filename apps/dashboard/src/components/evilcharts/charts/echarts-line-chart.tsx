@@ -13,6 +13,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "next-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -28,6 +29,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip, withLocaleValueAxis } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
@@ -76,6 +78,7 @@ import type {
   TooltipLayout,
   TooltipValueFormatter,
 } from "@/types/charts";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1286,17 +1289,17 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       },
     };
 
-    // Hover-reveal: a muted gray BASE line of the FULL series sits one z below the
-    // real one. It is invisible while idle (opacity 0 → the chart looks normal)
-    // and fades in only while hovering, so the region PAST the cursor — where the
-    // truncated real line has stopped — shows as neutral gray. Lines have no fill,
-    // so the base is a line only (no areaStyle) and needs no stack mirror.
+    // Hover-reveal: a low-opacity BASE line of the FULL series sits one z below
+    // the real one. It is invisible while idle (opacity 0 → the chart looks
+    // normal) and fades in only while hovering, so the region PAST the cursor —
+    // where the truncated real line has stopped — keeps the series color. Lines
+    // have no fill, so the base is a line only (no areaStyle) and needs no stack
+    // mirror.
     if (reveal) {
-      const muted = resolved.tokens.mutedForeground;
       const revealBase: LineSeriesOption = {
         id: `${REVEAL_PREFIX}${key}`,
         type: "line",
-        // Only the region FROM the cursor onward (null before it), so the gray
+        // Only the region FROM the cursor onward (null before it), so the tail
         // never sits under the colored part — the two meet exactly at the pointer
         // and their colors can't mix.
         data: revealActive ? sliceFrom(values, revealIndex as number) : values,
@@ -1307,9 +1310,9 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         showSymbol: false,
         symbol: "circle",
         z: z - 1,
-        // Neutral gray, SAME dash pattern as the colored line, no fill.
+        // Same color and dash as the colored line, no fill, faded.
         lineStyle: {
-          color: muted,
+          color: strokePaint,
           width: line.strokeWidth,
           type: mainDash,
           opacity: revealActive ? 0.3 : 0,
@@ -1384,8 +1387,8 @@ function sliceToNull<T>(vals: readonly T[], idx: number): (T | null)[] {
   return vals.map((v, i) => (i > idx ? null : v));
 }
 
-// Copy a value list with everything BEFORE `idx` nulled — the reveal's gray tail.
-// The muted base keeps only the region from the cursor onward, so it never sits
+// Copy a value list with everything BEFORE `idx` nulled — the reveal's faded tail.
+// The base keeps only the region from the cursor onward, so it never sits
 // under the colored part; both include `idx` so they meet at the pointer.
 // Generic so it preserves per-datum point objects (multi-color dot itemStyle).
 function sliceFrom<T>(vals: readonly T[], idx: number): (T | null)[] {
@@ -1530,7 +1533,11 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
   const [hoveredDataKey, setHoveredDataKey] = useState<string | null>(null);
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleValueAxis(withLocaleTooltip(collectConfig(children), locale), locale),
+    [children, locale]
+  );
   const {
     lines,
     xAxis: xAxisSlot,
@@ -1783,20 +1790,14 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     const chart = echarts.init(mount);
     echartsRef.current = chart;
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Observers always fire once right after observe(). Repushing on that
-      // no-op fire would land one frame into the intro and stomp the line's
-      // reveal clip — only react when the renderer size actually changed.
-      if (
-        mount.clientWidth === chart.getWidth() &&
-        mount.clientHeight === chart.getHeight()
-      ) {
-        return;
-      }
-      chart.resize();
-      live.repush();
+    // 2D gradient textures are baked at renderer size — rebuild them once the
+    // size settles.
+    // The brush overlay is raw zrender, outside the option — nothing resizes it,
+    // so it is repositioned with every resize while the repush stays deferred.
+    const stopResizeObserver = observeChartResize(mount, chart, {
+      onResized: () => syncBrushOverlayNow(),
+      onSettled: () => live.repush(),
     });
-    resizeObserver.observe(mount);
 
     // Light/dark flips change no React state — re-resolve and push directly.
     const themeObserver = new MutationObserver(() => {
@@ -1887,7 +1888,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
             },
             {
               id: `${REVEAL_PREFIX}${key}`,
-              // Gray tail keeps only the region from the cursor onward.
+              // Tail keeps only the region from the cursor onward.
               data: on
                 ? sliceFrom(live.revealValues[key] ?? [], idx)
                 : (live.revealValues[key] ?? []),
@@ -2008,7 +2009,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
       zrReveal.off("globalout", onZrRevealOut);
       zr.off("mousemove", onZrMove);
       zr.off("globalout", onZrOut);
-      resizeObserver.disconnect();
+      stopResizeObserver();
       themeObserver.disconnect();
       chart.dispose();
       echartsRef.current = null;

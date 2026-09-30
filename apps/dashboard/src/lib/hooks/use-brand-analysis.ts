@@ -6,10 +6,12 @@ import type {
   DeleteResourceResponse,
 } from "@notra/schemas/dashboard/integrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef } from "react";
 
 import type {
   BrandSettings,
+  BrandSettingsQueryOptions,
   BrandSettingsResponse,
   ProgressResponse,
 } from "@/types/hooks/brand-analysis";
@@ -26,11 +28,14 @@ const IDLE_PROGRESS: ProgressResponse["progress"] = {
   totalSteps: 3,
 };
 
-export function useBrandSettings(organizationId: string) {
+export function useBrandSettings(
+  organizationId: string,
+  options?: BrandSettingsQueryOptions
+) {
   return useQuery<BrandSettingsResponse>(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
-      enabled: !!organizationId,
+      enabled: !!organizationId && (options?.enabled ?? true),
     })
   );
 }
@@ -156,6 +161,7 @@ export function useAnalyzeBrand(
   organizationId: string,
   startPolling: () => void
 ) {
+  const tToast = useTranslations("brand.toasts");
   const queryClient = useQueryClient();
   const progressKey = dashboardOrpc.brand.analysis.getProgress.queryKey({
     input: { organizationId },
@@ -189,7 +195,8 @@ export function useAnalyzeBrand(
           status: "failed",
           currentStep: 0,
           totalSteps: 3,
-          error: error instanceof Error ? error.message : "Analysis failed",
+          error:
+            error instanceof Error ? error.message : tToast("analysisFailed"),
         },
       });
     },

@@ -6,7 +6,7 @@ type ProviderOptions = NonNullable<
   Parameters<typeof generateText>[0]["providerOptions"]
 >;
 
-const DEFAULT_FALLBACK_MODELS = ["anthropic/claude-sonnet-4.6"];
+const DEFAULT_FALLBACK_MODELS = ["anthropic/claude-sonnet-5"];
 
 export function getGatewayFallbackModels(modelId?: string): string[] {
   if (!modelId) {
@@ -14,7 +14,7 @@ export function getGatewayFallbackModels(modelId?: string): string[] {
   }
 
   if (modelId.startsWith("anthropic/claude-opus-")) {
-    return ["anthropic/claude-sonnet-4.6"];
+    return ["anthropic/claude-sonnet-5"];
   }
 
   if (modelId.startsWith("anthropic/")) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   parseAsInteger,
   parseAsString,
@@ -9,7 +10,7 @@ import {
 } from "nuqs";
 import { useState } from "react";
 
-import { columns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
+import { useLogColumns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
 import { DataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";
 import { LogsPageSkeleton } from "@/app/(dashboard)/[slug]/settings/logs/skeleton";
 import { Button } from "@/components/button";
@@ -30,6 +31,9 @@ import type { LogSelection } from "@/types/logs/details-sheet";
 import { getLogPage } from "@/utils/log-pagination";
 
 export function LogsSettingsPane() {
+  const t = useTranslations("settings.panes.logs");
+  const tCommon = useTranslations("common.actions");
+  const columns = useLogColumns();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -105,9 +109,9 @@ export function LogsSettingsPane() {
           role="alert"
           className="flex items-center justify-between gap-3 text-sm"
         >
-          <p>Unable to load logs. Try refreshing.</p>
+          <p>{t("loadFailed")}</p>
           <Button variant="outline" size="sm" onClick={refreshLogs}>
-            Retry
+            {tCommon("retry")}
           </Button>
         </div>
       ) : null}
@@ -125,22 +129,23 @@ export function LogsSettingsPane() {
           emptyState={
             filtersActive
               ? {
-                  title: "No logs match your filters",
-                  description: "Try a different search, source, or status.",
-                  actionLabel: "Reset filters",
+                  title: t("noMatchTitle"),
+                  description: t("noMatchDescription"),
+                  actionLabel: t("resetFilters"),
                   onActionClick: resetFilters,
                 }
               : {
-                  title: "No logs yet",
-                  description:
-                    "Activity from your integrations, automations, GEO scans, and syncs will show up here.",
+                  title: t("emptyTitle"),
+                  description: t("emptyDescription"),
                 }
           }
           onPageChange={setPage}
           onRowClick={(log) => setSelection({ organizationId, log })}
           page={result.page}
+          pageSize={LOGS_PAGE_SIZE}
           totalPages={result.totalPages}
           totalCount={result.totalCount}
+          isLoading={logsQuery.isFetching && Boolean(logsQuery.data)}
         />
       ) : null}
       <LogDetailsSheet

@@ -4,14 +4,15 @@ import { Loading03Icon, PlayIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useReducedMotion } from "motion/react";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -19,6 +20,7 @@ import { ConversationReplayThread } from "@/components/geo/conversation-replay-t
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { useAnswerReplay } from "@/lib/hooks/use-answer-replay";
 import { useGeoSequenceResults } from "@/lib/hooks/use-geo";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   ConversationResultsDialogProps,
   GeoSequenceEngineThread,
@@ -48,6 +50,7 @@ function RunConversationButton({
   isRunning: boolean;
   label: string;
 }) {
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <Button disabled={isRunning} onClick={onRun} size="sm">
       <HugeiconsIcon
@@ -55,7 +58,7 @@ function RunConversationButton({
         icon={isRunning ? Loading03Icon : PlayIcon}
         size={14}
       />
-      {isRunning ? "Playing against the engines…" : label}
+      {isRunning ? tGeoShared("playingAgainstTheEngines") : label}
     </Button>
   );
 }
@@ -64,18 +67,21 @@ export function ConversationResultsDialog({
   open,
   onOpenChange,
   organizationId,
-  sequence,
+  sequence: selectedSequence,
   onRun,
   isRunning,
 }: ConversationResultsDialogProps) {
+  const [sequence, releaseSequence] = useRetainedValue(selectedSequence);
   const { data, isLoading } = useGeoSequenceResults(
     organizationId,
-    open ? sequence?.id : undefined
+    sequence?.id
   );
   const [engine, setEngine] = useState<string | null>(null);
   const [playToken, setPlayToken] = useState(1);
   const [skipReplay, setSkipReplay] = useState(true);
   const reducedMotion = useReducedMotion();
+  const t = useTranslations("geo.conversationResultsDialog");
+  const locale = useLocale();
 
   const threads = useMemo(
     () => buildSequenceEngineThreads(data?.results ?? [], sequence?.id),
@@ -97,22 +103,29 @@ export function ConversationResultsDialog({
   }
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent
-        className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] w-full max-w-[min(calc(100vw-2rem),72rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),72rem)]"
-        drawerClassName="h-[94svh] max-h-[94svh]"
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseSequence}
+      open={open}
+    >
+      <SheetContent
+        className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
+        side="right"
       >
-        <ResponsiveDialogHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
-          <ResponsiveDialogTitle className="text-xl leading-snug font-semibold text-balance">
+        <SheetHeader className="shrink-0 gap-3 border-b p-4 pr-12">
+          <SheetTitle className="min-w-0 text-sm leading-5 font-medium break-words">
             {sequence.name}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription className="sr-only">
-            Where your brand shows up as the conversation unfolds.
-          </ResponsiveDialogDescription>
+          </SheetTitle>
+          <SheetDescription className="sr-only">
+            {t("description")}
+          </SheetDescription>
           {latestCheck ? (
-            <p className="text-muted-foreground text-sm">
-              {formatAiTrafficTimestamp(latestCheck)}
-            </p>
+            <time
+              className="text-muted-foreground text-xs tabular-nums"
+              dateTime={latestCheck}
+            >
+              {formatAiTrafficTimestamp(latestCheck, locale)}
+            </time>
           ) : null}
           {active ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -133,7 +146,7 @@ export function ConversationResultsDialog({
                     size="sm"
                     variant="outline"
                   >
-                    Skip
+                    {t("skip")}
                   </Button>
                 ) : null}
                 <Button
@@ -145,12 +158,12 @@ export function ConversationResultsDialog({
                   variant="outline"
                 >
                   <HugeiconsIcon icon={PlayIcon} size={14} />
-                  Replay
+                  {t("replay")}
                 </Button>
               </div>
             </div>
           ) : null}
-        </ResponsiveDialogHeader>
+        </SheetHeader>
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {isLoading && (
             <div className="px-6 py-8">
@@ -169,18 +182,17 @@ export function ConversationResultsDialog({
           {!(isLoading || active) && (
             <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4 px-6">
               <p className="text-muted-foreground text-center text-sm text-pretty">
-                No results yet. Play this conversation against the engines to
-                see where your brand shows up.
+                {t("empty")}
               </p>
               <RunConversationButton
                 isRunning={isRunning}
-                label="Run conversation now"
+                label={t("runNow")}
                 onRun={onRun}
               />
             </div>
           )}
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -16,8 +16,14 @@ export async function register() {
     process.env.NEXT_RUNTIME === "nodejs" &&
     process.env.NODE_ENV === "production"
   ) {
-    const { registerOTelTCC } = await import("@contextcompany/otel/nextjs");
+    const [{ registerOTelTCC }, { OpenTelemetry }, { registerTelemetry }] =
+      await Promise.all([
+        import("@contextcompany/otel/nextjs"),
+        import("@ai-sdk/otel"),
+        import("ai"),
+      ]);
     registerOTelTCC();
+    registerTelemetry(new OpenTelemetry({ runtimeContext: true }));
   }
 }
 

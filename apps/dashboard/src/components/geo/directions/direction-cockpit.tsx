@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  GEO_SEARCH_LABEL,
-  GEO_WITHOUT_SEARCH_LABEL,
-} from "@notra/geo-core/constants/geo";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Card, CardContent } from "@notra/ui/components/ui/card";
+import { useFormatter, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { Button } from "@/components/button";
@@ -20,8 +17,8 @@ import { CHART_PERCENT_SCALE } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,
   GEO_DIRECTIONS_KPIS,
-  GEO_DIRECTIONS_LAST_SCAN_LABEL,
-  GEO_DIRECTIONS_NEXT_SCAN_LABEL,
+  GEO_DIRECTIONS_LAST_SCAN,
+  GEO_DIRECTIONS_NEXT_SCAN_HOURS,
   GEO_DIRECTIONS_SOURCES,
   GEO_DIRECTIONS_TREND_CONFIG,
   GEO_DIRECTIONS_TREND_ROWS,
@@ -29,21 +26,27 @@ import {
   GEO_DIRECTIONS_VISIBILITY_DELTA,
 } from "@/constants/geo-directions";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import type { GeoDirectionSourceRow } from "@/types/geo-directions";
+import type {
+  GeoDirectionKpi,
+  GeoDirectionSourceRow,
+} from "@/types/geo-directions";
 import { formatChartPercent, formatMentionRate } from "@/utils/geo-charts";
-import { formatDirectionCount } from "@/utils/geo-directions";
 import { tableHeightFor } from "@/utils/table";
 
 const MAX_SHARE = 1;
 
 function Rail() {
+  const t = useTranslations("geo.directions");
+  const format = useFormatter();
+  const tGeoShared = useTranslations("geo.shared");
+
   return (
     <aside className="w-full shrink-0 lg:sticky lg:top-4 lg:w-64 lg:self-start">
       <Card>
         <CardContent className="flex flex-col gap-4">
           <div className="space-y-1.5">
             <p className="text-muted-foreground text-sm font-medium">
-              AI visibility
+              {t("labels.aiVisibility")}
             </p>
             <div className="flex items-end gap-2">
               <span className="text-primary text-4xl font-bold tabular-nums">
@@ -74,11 +77,21 @@ function Rail() {
           </div>
 
           <Button className="w-full" size="sm">
-            Run scan
+            {tGeoShared("runScan")}
           </Button>
           <p className="text-muted-foreground text-xs">
-            Last scan {GEO_DIRECTIONS_LAST_SCAN_LABEL} · next auto scan in{" "}
-            {GEO_DIRECTIONS_NEXT_SCAN_LABEL}
+            {t("cockpit.scanSchedule", {
+              lastScan: format.dateTime(new Date(GEO_DIRECTIONS_LAST_SCAN), {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              nextScan: format.number(GEO_DIRECTIONS_NEXT_SCAN_HOURS, {
+                style: "unit",
+                unit: "hour",
+              }),
+            })}
           </p>
         </CardContent>
       </Card>
@@ -87,18 +100,30 @@ function Rail() {
 }
 
 function KpiStrip() {
+  const t = useTranslations("geo.directions.kpis");
+  const tLabels = useTranslations("common.labels");
+  const tGeoShared = useTranslations("geo.shared");
+  const format = useFormatter();
+  const kpiLabels: Record<GeoDirectionKpi["key"], string> = {
+    aiVisits: t("aiVisits.label"),
+    aiReferrals: tGeoShared("aiReferrals"),
+    crawlerHits: t("crawlerHits.label"),
+    journeys: tLabels("journeys"),
+  };
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {GEO_DIRECTIONS_KPIS.map((kpi) => (
-        <Card key={kpi.label}>
+        <Card key={kpi.key}>
           <CardContent className="flex flex-1 flex-col justify-center gap-2">
             <p className="text-muted-foreground text-sm font-medium">
-              {kpi.label}
+              {kpiLabels[kpi.key]}
             </p>
             <p className="text-3xl font-bold tabular-nums">
-              {formatDirectionCount(kpi.value)}
+              {format.number(kpi.value)}
             </p>
-            <p className="text-muted-foreground text-xs">{kpi.hint}</p>
+            <p className="text-muted-foreground text-xs">
+              {t(`${kpi.key}.hint`)}
+            </p>
           </CardContent>
         </Card>
       ))}
@@ -107,11 +132,15 @@ function KpiStrip() {
 }
 
 function SourcesTable() {
+  const t = useTranslations("geo.directions");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const format = useFormatter();
   const columns = useMemo<TableColumn<GeoDirectionSourceRow>[]>(
     () => [
       {
         key: "label",
-        header: "Source",
+        header: tCommon("labels.source"),
         width: "1fr",
         sortable: true,
         cell: (row) => (
@@ -123,29 +152,31 @@ function SourcesTable() {
       },
       {
         key: "kind",
-        header: "Type",
+        header: tCommon("labels.type"),
         width: "7rem",
         sortable: true,
         cell: (row) => (
-          <Badge className="rounded-sm capitalize" variant="outline">
-            {row.kind}
+          <Badge className="rounded-sm" variant="outline">
+            {row.kind === "referral"
+              ? tGeoShared("referral")
+              : t(`cockpit.kind.${row.kind}`)}
           </Badge>
         ),
       },
       {
         key: "visits",
-        header: "Visits",
+        header: tGeoShared("visits"),
         width: "6.5rem",
         sortable: true,
         cell: (row) => (
           <span className="text-sm tabular-nums">
-            {formatDirectionCount(row.visits)}
+            {format.number(row.visits)}
           </span>
         ),
       },
       {
         key: "share",
-        header: "Share",
+        header: tGeoShared("share"),
         width: "6rem",
         sortable: true,
         cell: (row) => (
@@ -156,26 +187,30 @@ function SourcesTable() {
       },
       {
         key: "weight",
-        header: "Weight",
+        header: tCommon("labels.weight"),
         width: "1.2fr",
         cell: (row) => <GeoBar max={MAX_SHARE} value={row.share} />,
         sortValue: (row) => row.share,
       },
     ],
-    []
+    [t, tCommon, tGeoShared, format]
   );
 
   return (
     <div className="flex flex-col gap-2">
       <div className="text-muted-foreground flex items-center justify-between px-1 text-xs">
-        <span>{GEO_DIRECTIONS_SOURCES.length.toLocaleString()} sources</span>
+        <span>
+          {tCommon("messages.countPluralOneSourceOther", {
+            count: GEO_DIRECTIONS_SOURCES.length,
+          })}
+        </span>
       </div>
       <Table
         className="rounded-2xl"
         columns={columns}
         data={[...GEO_DIRECTIONS_SOURCES]}
         defaultSort={{ key: "visits", direction: "desc" }}
-        emptyState="No AI traffic captured yet"
+        emptyState={tGeoShared("noAiTrafficCapturedYet")}
         getRowId={(row) => row.source}
         height={tableHeightFor(GEO_DIRECTIONS_SOURCES.length)}
         resizable
@@ -186,19 +221,34 @@ function SourcesTable() {
 }
 
 export function DirectionCockpit() {
+  const t = useTranslations("geo.directions");
+  const tGeoShared2 = useTranslations("geo.shared");
+
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
       <Rail />
       <div className="min-w-0 flex-1 space-y-3">
         <KpiStrip />
         <InstrumentModule
-          eyebrow="Mention rate trend"
-          readout={`${GEO_SEARCH_LABEL} vs ${GEO_WITHOUT_SEARCH_LABEL}`}
+          eyebrow={t("cockpit.trendEyebrow")}
+          readout={t("cockpit.trendReadout", {
+            search: tGeoShared2("search"),
+            withoutSearch: tGeoShared2("wOSearch"),
+          })}
         >
           <EChartsLineChart
             animation={false}
             className="h-64 w-full"
-            config={GEO_DIRECTIONS_TREND_CONFIG}
+            config={{
+              grounded: {
+                ...GEO_DIRECTIONS_TREND_CONFIG.grounded,
+                label: tGeoShared2("search"),
+              },
+              training: {
+                ...GEO_DIRECTIONS_TREND_CONFIG.training,
+                label: tGeoShared2("wOSearch"),
+              },
+            }}
             curveType="monotone"
             data={GEO_DIRECTIONS_TREND_ROWS}
             enableHoverHighlight
@@ -216,12 +266,12 @@ export function DirectionCockpit() {
             />
           </EChartsLineChart>
         </InstrumentModule>
-        <InstrumentModule eyebrow="Traffic by source">
+        <InstrumentModule eyebrow={t("cockpit.trafficBySource")}>
           <SourcesTable />
         </InstrumentModule>
         <InstrumentModule
-          eyebrow="Prompt results"
-          readout="position per engine"
+          eyebrow={t("labels.promptResults")}
+          readout={t("labels.positionPerEngine")}
         >
           <PromptResultsTable />
         </InstrumentModule>

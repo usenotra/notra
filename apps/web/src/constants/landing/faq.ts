@@ -15,7 +15,7 @@ export const FAQ_CONTENT: FaqContent = {
       id: "engines",
       question: "Which engines and models do you scan?",
       answer:
-        "ChatGPT, Claude, Gemini and Perplexity with web search, plus models from OpenAI, Anthropic, Google, Moonshot, Z.AI, DeepSeek, Mistral, Meta and Grok without search. You pick which ones run, and the model list refreshes as new releases ship.",
+        "ChatGPT, Claude, Gemini and Perplexity with web search, plus Google AI Overview and coding agents that research live. You pick which ones run, and the model list refreshes as new releases ship.",
       defaultOpen: false,
     },
     {
@@ -29,7 +29,7 @@ export const FAQ_CONTENT: FaqContent = {
       id: "traffic",
       question: "How does traffic tracking work? Do I need a script tag?",
       answer:
-        "No script tag. You add @usenotra/geo as a proxy or middleware in your Next.js, Nuxt or Netlify site. It posts a small request envelope to Notra, we do the matching on our side, and anything human is dropped before it is stored.",
+        "No script tag. You add @usenotra/geo as a proxy or middleware in your Next.js, Nuxt, TanStack Start, Astro or SvelteKit site. It posts a small request envelope to Notra, we do the matching on our side, and anything human is dropped before it is stored.",
       defaultOpen: false,
     },
     {

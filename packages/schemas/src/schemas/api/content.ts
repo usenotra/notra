@@ -20,6 +20,7 @@ import { SUPPORTED_CONTENT_GENERATION_TYPES } from "@notra/content-generation/sc
 import { lookbackWindowEnum, postStatusEnum } from "@notra/db/schema";
 import { assertPublicHttpUrl } from "@notra/utils/url";
 
+import { createPostFieldsSchema } from "../shared/post";
 import { resourceIdSchema } from "./ids";
 
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
@@ -436,6 +437,26 @@ export const patchPostRequestSchema = z
   );
 
 export const patchPostResponseSchema = z.object({
+  organization: organizationResponseSchema,
+  post: postResponseSchema,
+});
+
+export const createPostRequestSchema = createPostFieldsSchema
+  .extend({
+    status: postStatusSchema.default("draft"),
+  })
+  .openapi({
+    description:
+      "Slugs are normalized to lowercase letters, numbers, and hyphens and only accepted for blog posts and changelogs. Omit markdown to create an empty post you fill in later.",
+    example: {
+      title: "Ship notes for week 11",
+      contentType: "blog_post",
+      slug: "ship-notes-week-11",
+      status: "draft",
+    },
+  });
+
+export const createPostResponseSchema = z.object({
   organization: organizationResponseSchema,
   post: postResponseSchema,
 });

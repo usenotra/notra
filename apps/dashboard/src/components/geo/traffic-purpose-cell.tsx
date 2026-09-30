@@ -1,26 +1,36 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AI_TRAFFIC_PURPOSE_LABELS } from "@notra/geo-core/constants/geo";
 import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
 import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { useLocale, useTranslations } from "next-intl";
 
 import { PurposeBadge } from "@/components/geo/purpose-badge";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
+import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import type { TrafficPurposeCellProps } from "@/types/geo";
 import {
   hasTrafficGroupBreakdown,
   trafficGroupPurposeTotals,
   trafficVisitShare,
 } from "@/utils/ai-traffic-groups";
+import { aiTrafficPurposeKey } from "@/utils/ai-traffic-purpose";
 
 export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
+  const t = useTranslations("geo.trafficPurposeCell");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const purposeLabel = (category: string) => {
+    const key = aiTrafficPurposeKey(category);
+    return key === null
+      ? category
+      : tGeoShared(AI_TRAFFIC_PURPOSE_LABEL_KEYS[key]);
+  };
   const [single] = group.categories;
   if (single === undefined) {
     return null;
@@ -33,16 +43,18 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
   const totals = trafficGroupPurposeTotals(group);
   const compact = group.categories.length > 1;
   const purposeLabels = totals
-    .map((total) => AI_TRAFFIC_PURPOSE_LABELS[total.category] ?? total.category)
+    .map((total) => purposeLabel(total.category))
     .join(", ");
 
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
-            aria-label={`${group.label} purposes: ${purposeLabels}, show breakdown`}
+            aria-label={t("showBreakdown", {
+              label: group.label,
+              purposes: purposeLabels,
+            })}
             className="focus-visible:ring-ring/50 flex max-w-full cursor-default items-center gap-1 rounded-sm outline-hidden focus-visible:ring-[3px]"
             type="button"
           />
@@ -58,7 +70,7 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
         ))}
       </HoverCardTrigger>
       <TrafficBreakdownCard
-        aside={`${group.visits.toLocaleString()} visits`}
+        aside={tGeoShared("countPluralOneVisitOther", { count: group.visits })}
         icon={<TrafficSourceGroupIcon group={group} />}
         title={group.label}
       >
@@ -82,8 +94,7 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
                 )}
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-xs font-medium">
-                    {AI_TRAFFIC_PURPOSE_LABELS[total.category] ??
-                      total.category}
+                    {purposeLabel(total.category)}
                   </span>
                   <span className="text-muted-foreground truncate text-[0.6875rem]">
                     {total.members
@@ -93,7 +104,7 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
                 </span>
                 <span className="flex shrink-0 flex-col items-end">
                   <span className="text-xs font-medium tabular-nums">
-                    {total.visits.toLocaleString()}
+                    {total.visits.toLocaleString(locale)}
                   </span>
                   <span className="text-muted-foreground text-[0.6875rem] tabular-nums">
                     {trafficVisitShare(total.visits, group.visits)}

@@ -7,6 +7,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { GeoShelfMemberAvatarProps } from "@/types/geo-shelf";
@@ -21,10 +22,12 @@ const AVATAR_SIZE = {
 export function ShelfMemberAvatar({
   member,
   className,
-  fallbackLabel = "Unassigned",
+  fallbackLabel: fallbackLabelProp,
   showLabel = true,
   size = "md",
 }: GeoShelfMemberAvatarProps) {
+  const tCommon = useTranslations("common");
+  const fallbackLabel = fallbackLabelProp ?? tCommon("labels.unassigned");
   const label = member ? member.name || member.email : fallbackLabel;
   const markClass = AVATAR_SIZE[size];
   return (

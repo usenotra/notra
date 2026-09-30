@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT,
-  GEO_VISITOR_TYPE_LABELS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT } from "@notra/geo-core/constants/geo";
+import type { GeoVisitorType } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoSource,
@@ -12,15 +10,23 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { useLocale, useTranslations } from "next-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import type { TrafficPageSourcesCellProps } from "@/types/geo";
 import { trafficVisitShare } from "@/utils/ai-traffic-groups";
-import { trafficPageSourcesLabel } from "@/utils/ai-traffic-pages";
 
 export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
+  const t = useTranslations("geo.trafficPageSourcesCell");
+  const tGeoShared = useTranslations("geo.shared");
+  const tStates = useTranslations("common.states");
+  const visitorTypeLabels: Record<Exclude<GeoVisitorType, "human">, string> = {
+    crawler: tGeoShared("aiCrawler"),
+    ai_referral: tGeoShared("aiReferral"),
+    unknown: tStates("unknown"),
+  };
+  const locale = useLocale();
   const [first] = group.sources;
   if (first === undefined) {
     return null;
@@ -28,15 +34,16 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
 
   const visible = group.sources.slice(0, GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT);
   const overflow = group.sources.length - visible.length;
-  const sourcesLabel = trafficPageSourcesLabel(group);
 
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
-            aria-label={`${group.path}: ${sourcesLabel}, show breakdown`}
+            aria-label={t("showBreakdown", {
+              path: group.path,
+              count: group.sources.length,
+            })}
             className="focus-visible:ring-ring/50 flex max-w-full min-w-0 cursor-default items-center gap-2 rounded-sm text-left outline-hidden focus-visible:ring-[3px]"
             type="button"
           />
@@ -60,7 +67,7 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
         </span>
       </HoverCardTrigger>
       <TrafficBreakdownCard
-        aside={`${group.visits.toLocaleString()} visits`}
+        aside={tGeoShared("countPluralOneVisitOther", { count: group.visits })}
         icon={null}
         title={group.path}
       >
@@ -77,17 +84,18 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
                 </span>
                 <span className="text-muted-foreground flex gap-2 text-[0.6875rem]">
                   <span className="truncate">
-                    {GEO_VISITOR_TYPE_LABELS[source.visitorType] ??
-                      source.visitorType}
+                    {source.visitorType === "human"
+                      ? source.visitorType
+                      : visitorTypeLabels[source.visitorType]}
                   </span>
                   <span className="shrink-0 tabular-nums">
-                    {formatAiTrafficTimestamp(source.lastSeenAt)}
+                    {formatAiTrafficTimestamp(source.lastSeenAt, locale)}
                   </span>
                 </span>
               </span>
               <span className="flex shrink-0 flex-col items-end">
                 <span className="text-xs font-medium tabular-nums">
-                  {source.visits.toLocaleString()}
+                  {source.visits.toLocaleString(locale)}
                 </span>
                 <span className="text-muted-foreground text-[0.6875rem] tabular-nums">
                   {trafficVisitShare(source.visits, group.visits)}

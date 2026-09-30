@@ -191,6 +191,7 @@ export const ensureLocalUser = Effect.fn("auth.sync.ensureLocalUser")(
           new UserSyncError({
             message:
               "Verify your email address before signing in to this account",
+            reason: "email_unverified",
           })
         );
       }

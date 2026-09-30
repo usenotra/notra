@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  Alert02Icon,
-  CheckmarkCircle02Icon,
-  InformationCircleIcon,
-  MultiplicationSignCircleIcon,
-} from "@hugeicons/core-free-icons";
+import { Alert02Icon, CheckmarkCircle02Icon, InformationCircleIcon, MultiplicationSignCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Loader2Icon } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -46,7 +41,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
             strokeWidth={2}
           />
         ),
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        loading: (
+          <Loader2Icon className="size-4 animate-spin" />
+        ),
       }}
       style={
         {

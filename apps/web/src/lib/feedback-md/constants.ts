@@ -1,4 +1,4 @@
-import type { ClaudeTodo } from "@notra/ui/components/brainless/claude/claude-todo-list";
+import type { ClaudeCodeTodo } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
 
 import { DatabuddyLogo } from "@/components/landing/marquee-logos/databuddy-logo";
 import type {
@@ -88,25 +88,24 @@ Feedback lands in the Fall team's inbox and is triaged within a week. We do not 
 export const FEEDBACK_MD_TERMINAL_TITLE = "claude — ~/storefront";
 
 export const FEEDBACK_MD_TERMINAL_HEADER: FeedbackMdTerminalHeader = {
-  version: "v2.1.206",
-  user: "Dominik",
-  model: "Fable 5 with xhigh effort · Claude Max",
-  org: "dominik@usefall.com's Organization",
+  version: "v2.1.285",
+  model: "Opus 5.5 (1M context)",
+  org: "Claude Max",
   cwd: "~/storefront",
-  tips: ["Sites with a /feedback.md accept bug reports from agents"],
-  whatsNew: [
+  tips: [
     "feedback.md discovered on usefall.com",
     "Failed tool calls can be reported without stopping the task",
   ],
+  whatsNew: ["Sites with a `/feedback.md` accept bug reports from agents."],
 };
 
 export const FEEDBACK_MD_TERMINAL_USER_MESSAGE =
   "add Fall checkout to the pricing page and test a $49 charge";
 
 export const FEEDBACK_MD_TERMINAL_ASSISTANT_MESSAGE =
-  "create_checkout rejected the request. Checking where Fall wants feedback before I retry.";
+  "`create_checkout` rejected the request. Checking where Fall wants feedback before I retry.";
 
-export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeTodo[] = [
+export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeCodeTodo[] = [
   { label: "Install @usefall/checkout and add the keys", status: "done" },
   { label: "Wire the pricing page to create_checkout", status: "done" },
   { label: "Report the failed charge via feedback.md", status: "active" },
@@ -115,27 +114,33 @@ export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeTodo[] = [
 
 export const FEEDBACK_MD_TERMINAL_TOOL_CALLS: FeedbackMdTerminalToolCall[] = [
   {
-    tool: "fall · create_checkout",
+    tool: "fall - create_checkout (MCP)",
     arg: "amount: 49",
     result: "422 amount must be an integer in cents, docs say dollars",
     status: "error",
   },
   {
-    tool: "fetch",
+    tool: "Fetch",
     arg: "usefall.com/feedback.md",
     result: "3 channels, MCP preferred",
     status: "success",
   },
   {
-    tool: "fall · submit_feedback",
-    arg: "bug",
+    tool: "fall - submit_feedback (MCP)",
+    arg: 'kind: "bug"',
     result: "202 accepted · fb_x8k2q · docs and API disagree on amount units",
     status: "success",
   },
 ];
 
 export const FEEDBACK_MD_TERMINAL_RESULT_MESSAGE =
-  "Filed the docs mismatch with the exact request that failed and moved on. Retrying with amount: 4900.";
+  "Filed the docs mismatch with the exact request that failed and moved on. Retrying with `amount: 4900`.";
+
+export const FEEDBACK_MD_TERMINAL_TURN_SUMMARY = {
+  verb: "Worked",
+  duration: "31s",
+  doneAt: "4:12 PM",
+};
 
 export const FEEDBACK_MD_TERMINAL_PROMPT_PLACEHOLDER =
   'Try "send feedback about the last tool call that failed"';

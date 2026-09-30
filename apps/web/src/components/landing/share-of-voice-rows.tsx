@@ -19,6 +19,8 @@ const SHARE_COL = "w-[8.25rem]";
 const MENTIONS_COL = "w-[4.75rem]";
 const LOGO_SIZE_PX = 40;
 const LOGO_CLASS = "size-5 shrink-0 rounded-sm object-contain";
+const LOGO_TILE_CLASS =
+  "-m-0.5 flex size-6 shrink-0 items-center justify-center rounded-md dark:bg-[#F6F3F1]";
 
 function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
   const alt = `${brand} logo`;
@@ -42,7 +44,7 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
       </>
     );
   }
-  return (
+  const image = (
     <Image
       alt={alt}
       className={cn(LOGO_CLASS, logo.invertOnDark && "dark:invert")}
@@ -51,6 +53,10 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
       width={LOGO_SIZE_PX}
     />
   );
+  if (logo.tileOnDark) {
+    return <span className={LOGO_TILE_CLASS}>{image}</span>;
+  }
+  return image;
 }
 
 export function ShareOfVoiceRows({

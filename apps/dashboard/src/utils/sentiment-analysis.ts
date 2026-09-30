@@ -1,5 +1,7 @@
 import type { SentimentAnalysisState } from "@notra/geo-core/types/sentiment-analysis";
 
+import type { SentimentAnalysisStatusKey } from "@/types/geo-sentiment";
+
 export function sentimentAnalysisInterval(state?: SentimentAnalysisState) {
   switch (state?.status) {
     case "pending":
@@ -11,21 +13,19 @@ export function sentimentAnalysisInterval(state?: SentimentAnalysisState) {
   }
 }
 
-export function sentimentAnalysisStatus(state?: SentimentAnalysisState) {
+export function sentimentAnalysisStatus(
+  state?: SentimentAnalysisState
+): SentimentAnalysisStatusKey | null {
   switch (state?.status) {
     case "pending":
-      return "Analyzing saved answers…";
+      return "finding";
     case "stale":
-      return state.result
-        ? "Showing previous themes. Analysis needs an update."
-        : "Run analysis to find themes";
+      return state.result ? "stalePrevious" : null;
     case "failed":
-      return state.result
-        ? "Analysis failed. Showing previous themes."
-        : "Analysis failed. Try again.";
+      return state.result ? "failedPrevious" : "failedRetry";
     case "unavailable":
-      return "Theme analysis is unavailable.";
+      return "unavailable";
     default:
-      return "";
+      return null;
   }
 }

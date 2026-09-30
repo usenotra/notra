@@ -100,3 +100,9 @@ export interface IntegrationDetailViewProps {
 export interface IntegrationDetailPageProps {
   params: Promise<{ id: string }>;
 }
+
+export interface IntegrationMarkdownEntry {
+  id: string;
+  title: string;
+  description: string;
+}

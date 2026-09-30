@@ -8,12 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { Table } from "@/components/motion/table";
-import { webhookColumns } from "@/components/webhooks/columns";
+import { useWebhookColumns } from "@/components/webhooks/columns";
 import {
-  WEBHOOK_FILTER_LABELS,
   WEBHOOK_FILTERS,
   WEBHOOK_PAGE_SIZE,
   WEBHOOK_REFRESH_INTERVAL_MS,
@@ -23,7 +23,7 @@ import {
   WEBHOOK_TABLE_ROW_HEIGHT,
 } from "@/constants/outbound-webhooks";
 import type { WebhookDeliveriesProps } from "@/types/webhooks/outbound";
-import { getWebhookFilterLabel } from "@/utils/outbound-webhooks";
+import { isWebhookFilter } from "@/utils/outbound-webhooks";
 
 export function WebhookDeliveries({
   rows,
@@ -36,6 +36,10 @@ export function WebhookDeliveries({
   onFilter,
   onPage,
 }: WebhookDeliveriesProps) {
+  const t = useTranslations("settings.panes.webhooks");
+  const tStatuses = useTranslations("settings.panes.webhooks.statuses");
+  const tActions = useTranslations("common.actions");
+  const columns = useWebhookColumns();
   const tableHeight =
     rows.length === 0
       ? WEBHOOK_TABLE_EMPTY_HEIGHT
@@ -51,24 +55,23 @@ export function WebhookDeliveries({
         onValueChange={(value) => onFilter(value ?? "all")}
         value={filter}
       >
-        <SelectTrigger
-          aria-label="Filter deliveries by status"
-          className="w-44"
-        >
+        <SelectTrigger aria-label={t("filterLabel")} className="w-44">
           <SelectValue>
-            {(value: string) => getWebhookFilterLabel(value)}
+            {(value: string) =>
+              isWebhookFilter(value) ? tStatuses(value) : value
+            }
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {WEBHOOK_FILTERS.map((status) => (
             <SelectItem key={status} value={status}>
-              {WEBHOOK_FILTER_LABELS[status]}
+              {tStatuses(status)}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Table
-        columns={webhookColumns}
+        columns={columns}
         data={rows}
         getRowId={(row) => row.id}
         onRowClick={onSelect}
@@ -85,21 +88,23 @@ export function WebhookDeliveries({
             />
             <p className="text-sm font-medium">
               {filter === "all"
-                ? "Your events will appear here"
-                : "No deliveries with this status"}
+                ? t("empty.allTitle")
+                : t("empty.filteredTitle")}
             </p>
             <p className="text-muted-foreground mx-auto max-w-xs text-xs leading-relaxed">
               {filter === "all"
-                ? "Add an endpoint, then generate a post. Every delivery and retry will be recorded here."
-                : "Choose another filter to explore your delivery history."}
+                ? t("empty.allDescription")
+                : t("empty.filteredDescription")}
             </p>
           </div>
         }
       />
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>
-          {rangeLabel} deliveries, refreshes every{" "}
-          {WEBHOOK_REFRESH_INTERVAL_MS / 1000}s
+          {t("pageSummary", {
+            range: rangeLabel,
+            seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
+          })}
         </span>
         <div className="flex gap-2">
           <Button
@@ -108,7 +113,7 @@ export function WebhookDeliveries({
             disabled={offset === 0 || fetching}
             onClick={() => onPage(Math.max(0, offset - WEBHOOK_PAGE_SIZE))}
           >
-            Previous
+            {tActions("previous")}
           </Button>
           <Button
             size="sm"
@@ -116,7 +121,7 @@ export function WebhookDeliveries({
             disabled={!hasMore || fetching}
             onClick={() => onPage(offset + WEBHOOK_PAGE_SIZE)}
           >
-            Next
+            {tActions("next")}
           </Button>
         </div>
       </div>

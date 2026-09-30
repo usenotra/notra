@@ -10,6 +10,10 @@ export function isServerFailureError(error: unknown): boolean {
   return true;
 }
 
+export function isNotFoundError(error: unknown): boolean {
+  return toORPCError(error).code === "NOT_FOUND";
+}
+
 export function getConflictRevision(error: unknown): {
   isConflict: boolean;
   updatedAt: string | null;
@@ -28,4 +32,17 @@ export function getConflictRevision(error: unknown): {
     return { isConflict: true, updatedAt: data.updatedAt };
   }
   return { isConflict: true, updatedAt: null };
+}
+
+export function getOrpcErrorDataCode(error: unknown): string | null {
+  const { data } = toORPCError(error);
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "code" in data &&
+    typeof data.code === "string"
+  ) {
+    return data.code;
+  }
+  return null;
 }

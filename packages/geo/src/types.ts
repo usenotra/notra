@@ -126,3 +126,17 @@ export interface NitroEventLike {
   node?: { req: NodeRequestLike };
   request?: Request;
 }
+
+export interface TanStackMiddlewareContext<T> {
+  request: Request;
+  next(): T | Promise<T>;
+}
+
+export interface AstroMiddlewareContext {
+  request: Request;
+}
+
+export interface SvelteKitHandleInput<TEvent, TResponse> {
+  event: TEvent;
+  resolve(event: TEvent): TResponse | Promise<TResponse>;
+}

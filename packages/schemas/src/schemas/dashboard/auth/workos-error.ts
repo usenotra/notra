@@ -12,6 +12,12 @@ export const workosErrorSchema = z.looseObject({
       email: z.string().optional(),
       pending_authentication_token: z.string().optional(),
       organizations: z.array(z.looseObject({ id: z.string() })).optional(),
+      authentication_factors: z
+        .array(z.looseObject({ id: z.string(), type: z.string() }))
+        .optional(),
+      user: z
+        .looseObject({ id: z.string(), email: z.string().optional() })
+        .optional(),
     })
     .optional(),
 });

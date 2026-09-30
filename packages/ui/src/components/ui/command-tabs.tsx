@@ -41,6 +41,8 @@ interface CommandTabsProps {
   highlight?: boolean;
   label?: string;
   copyLabel?: string;
+  copiedLabel?: string;
+  scrollLabel?: string;
   onCopy?: (command: string) => void;
   className?: string;
 }
@@ -319,6 +321,7 @@ interface ScrollbarThumbProps {
   onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerEnd: () => void;
+  label: string;
 }
 
 function ScrollbarThumb({
@@ -330,6 +333,7 @@ function ScrollbarThumb({
   onPointerDown,
   onPointerMove,
   onPointerEnd,
+  label,
 }: ScrollbarThumbProps) {
   const scrollableTrackPct = PERCENT - thumb.widthPct;
   const valueNow =
@@ -340,7 +344,7 @@ function ScrollbarThumb({
   return (
     <div
       aria-controls={controls}
-      aria-label="Scroll command"
+      aria-label={label}
       aria-orientation="horizontal"
       aria-valuemax={PERCENT}
       aria-valuemin={0}
@@ -383,6 +387,8 @@ export function CommandTabs({
   highlight = false,
   label = "Choose a tool",
   copyLabel = "Copy",
+  copiedLabel = "Copied",
+  scrollLabel = "Scroll command",
   onCopy,
   className,
 }: CommandTabsProps) {
@@ -471,6 +477,7 @@ export function CommandTabs({
             <ScrollbarThumb
               controls={commandId}
               dragging={dragging}
+              label={scrollLabel}
               onKeyDown={handleThumbKeyDown}
               onPointerDown={handleThumbPointerDown}
               onPointerEnd={handleThumbPointerEnd}
@@ -515,7 +522,7 @@ export function CommandTabs({
                 transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
               >
                 <HugeiconsIcon icon={copied ? Tick02Icon : Copy01Icon} />
-                <span>{copied ? "Copied" : copyLabel}</span>
+                <span>{copied ? copiedLabel : copyLabel}</span>
               </m.span>
             </AnimatePresence>
           </MotionButton>

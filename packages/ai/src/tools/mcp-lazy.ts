@@ -98,8 +98,12 @@ export async function createLazyMcpRuntime({
   ]);
 
   const tools: Record<string, Tool> = sharedTools ?? {};
+  const approvalToolNames = new Set<string>();
 
   const ensureRuntimeTool = (indexedTool: IndexedMcpTool) => {
+    if (shouldRequireApproval(indexedTool.annotations)) {
+      approvalToolNames.add(indexedTool.runtimeToolName);
+    }
     tools[indexedTool.runtimeToolName] ??= createRuntimeMcpTool({
       organizationId,
       sessionId,
@@ -297,6 +301,7 @@ export async function createLazyMcpRuntime({
     prepareStep: async () => ({
       activeTools: Array.from(activeToolNames),
     }),
+    requiresApproval: (toolName) => approvalToolNames.has(toolName),
     descriptions: [
       LAZY_MCP_DESCRIPTION,
       ...formatActiveToolDescriptions(activatedTools),
@@ -330,7 +335,6 @@ function createRuntimeMcpTool({
     description:
       indexedTool.description ??
       `MCP tool ${indexedTool.serverToolName} from ${indexedTool.serverName}`,
-    needsApproval: shouldRequireApproval(indexedTool.annotations),
     inputSchema: jsonSchema(toAiSdkInputJsonSchema(indexedTool.inputSchema)),
     execute: async (input, options) => {
       const isActivated = await isMcpToolActivatedForSession({
@@ -604,7 +608,7 @@ function toMcpDefinitionInputSchema(
   } as McpToolDefinition["inputSchema"];
 }
 
-function withExecutionTimeout(options: ToolExecutionOptions) {
+function withExecutionTimeout(options: ToolExecutionOptions<unknown>) {
   const timeoutSignal = AbortSignal.timeout(MCP_EXECUTION_TIMEOUT_MS);
   return options.abortSignal
     ? AbortSignal.any([options.abortSignal, timeoutSignal])

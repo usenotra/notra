@@ -1,5 +1,7 @@
 export type { TextSelection } from "./orchestration";
 
+import type { ToneProfile } from "@notra/ai/schemas/tone";
+
 import type { ChatWorkspace } from "./chat-workspace";
 import type { TextSelection } from "./orchestration";
 
@@ -14,6 +16,8 @@ export interface BaseTonePromptInput {
   audience?: string;
   customInstructions?: string | null;
   language?: string;
+  toneProfile?: ToneProfile | null;
+  customTone?: string | null;
 }
 
 export type ChangelogTonePromptInput = BaseTonePromptInput;

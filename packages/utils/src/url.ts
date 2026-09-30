@@ -256,7 +256,7 @@ export async function resolvePublicHttpUrl(
 
   let addresses: LookupAddress[];
   try {
-    addresses = await lookup(hostname, { all: true, verbatim: true });
+    addresses = await lookup(hostname, { all: true, verbatim: false });
   } catch {
     throw new PublicUrlValidationError("URL hostname could not be resolved");
   }

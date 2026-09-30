@@ -1,17 +1,14 @@
 import {
   GEO_FAMILY_BRANDS_LIMIT,
-  GEO_FAMILY_OWN_BRAND_FALLBACK,
   OWN_BRAND_ROW_ID,
 } from "@notra/geo-core/constants/geo";
 import { competitorKey } from "@notra/geo-core/geo/domain";
 import type {
   GeoCompetitor,
-  GeoCompetitorKind,
   GeoCompetitorPromptRow,
   GeoCompetitorPromptSummary,
   GeoCompetitorSharePoint,
   GeoCompetitorShareTimeseriesPoint,
-  GeoCompetitorTypeFilter,
   GeoPromptResultSummary,
   GeoSparklinePoint,
   ShareOfVoiceRow,
@@ -35,10 +32,6 @@ const DOMAIN_LIKE_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const URL_PROTOCOL_PREFIX_REGEX = /^https?:\/\//;
 const WWW_PREFIX_REGEX = /^www\./;
 const TRAILING_SLASH_REGEX = /\/+$/;
-
-export function formatCompetitorKind(kind: GeoCompetitorKind): string {
-  return kind === "direct" ? "Direct" : "Indirect";
-}
 
 export function findOwnBrandDomain(aliases: readonly string[]): string | null {
   for (const alias of aliases) {
@@ -108,23 +101,22 @@ export function isTrackedShareOfVoiceBrand(
 export function competitorPromptSummary(
   rows: readonly GeoCompetitorPromptRow[]
 ): GeoCompetitorPromptSummary {
+  const prompts = new Set<string>();
   const engines = new Set<string>();
-  let mentioned = 0;
-  let bestPosition: number | null = null;
+  let ownMentioned = 0;
   for (const row of rows) {
-    engines.add(row.engine);
-    if (!row.mentioned) {
-      continue;
-    }
-    mentioned += 1;
-    if (
-      row.position !== null &&
-      (bestPosition === null || row.position < bestPosition)
-    ) {
-      bestPosition = row.position;
+    prompts.add(row.promptId);
+    engines.add(engineFamilyOf(row.engine));
+    if (row.mentioned) {
+      ownMentioned += 1;
     }
   }
-  return { mentioned, total: rows.length, bestPosition, engines: engines.size };
+  return {
+    answers: rows.length,
+    prompts: prompts.size,
+    engines: engines.size,
+    ownMentioned,
+  };
 }
 
 /**
@@ -136,7 +128,8 @@ export function competitorPromptSummary(
 export function engineFamilyBrandRows(
   family: string,
   results: readonly GeoPromptResultSummary[],
-  scope: EngineFamilyBrandScope = {},
+  scope: EngineFamilyBrandScope,
+  ownFallbackName: string,
   limit = GEO_FAMILY_BRANDS_LIMIT
 ): EngineFamilyBrandRow[] {
   const scoped = results.filter(
@@ -185,7 +178,7 @@ export function engineFamilyBrandRows(
   });
   const ownRow = toRow(
     OWN_BRAND_ROW_ID,
-    scope.companyName?.trim() || GEO_FAMILY_OWN_BRAND_FALLBACK,
+    scope.companyName?.trim() || ownFallbackName,
     ownMentionedPrompts.size,
     true
   );
@@ -425,8 +418,7 @@ export function buildCompetitorRows(
   companyName: string,
   aliases: readonly string[],
   ownDomain: string | null,
-  search: string,
-  typeFilter: GeoCompetitorTypeFilter
+  search: string
 ): GeoCompetitorRowEntry[] {
   const query = search.trim().toLowerCase();
   const rows: GeoCompetitorRowEntry[] = [
@@ -455,12 +447,9 @@ export function buildCompetitorRows(
     });
   });
 
-  const filtered = rows.filter((row) => {
-    if (typeFilter !== "all" && !row.isOwnBrand && row.kind !== typeFilter) {
-      return false;
-    }
-    return fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query);
-  });
+  const filtered = rows.filter((row) =>
+    fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query)
+  );
 
   if (query.length === 0) {
     return filtered;

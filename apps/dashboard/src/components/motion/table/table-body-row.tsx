@@ -5,6 +5,7 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import { useTranslations } from "next-intl";
 
 import { Checkbox } from "@/components/motion/checkbox";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,8 @@ export function TableBodyRow<T>({
   isSelected,
   columns,
   onRowClick,
+  detailId,
+  expanded,
   onRowPointerEnter,
   hasRowMenu,
   onActivate,
@@ -50,6 +53,8 @@ export function TableBodyRow<T>({
   isSelected: boolean;
   columns: TableColumn<T>[];
   onRowClick?: (row: T) => void;
+  detailId?: string;
+  expanded?: boolean;
   onRowPointerEnter?: (row: T) => void;
   hasRowMenu: boolean;
   onActivate?: (id: string, index: number) => void;
@@ -59,11 +64,14 @@ export function TableBodyRow<T>({
   renderRowContextMenu: TableProps<T>["renderRowContextMenu"];
   rowRef: (el: HTMLTableRowElement | null) => void;
 }) {
+  const t = useTranslations("shared.table");
   // The virtualizer's bottom spacer <tr> can be :last-child, so a CSS
   // last-child rule misses the real final row; flag it explicitly instead.
   const cellBorder = isLastRow ? "border-b-0" : "border-border/60 border-b";
   const tableRow = (
     <tr
+      aria-controls={detailId}
+      aria-expanded={expanded}
       className={cn(
         "group transition-colors",
         "data-[selected=true]:bg-primary/5",
@@ -117,7 +125,7 @@ export function TableBodyRow<T>({
         <td className={cn("text-center", cellBorder)}>
           <div className="flex items-center justify-center">
             <Checkbox
-              aria-label={`Select row ${index + 1}`}
+              aria-label={t("selectRow", { row: index + 1 })}
               checked={isSelected}
               className="size-6"
               onCheckedChange={() => onToggleRow(entry.id)}
@@ -147,7 +155,7 @@ export function TableBodyRow<T>({
           >
             {!column.cell && column.editable ? (
               <EditableCell
-                label={`${column.key} for row ${index + 1}`}
+                label={t("cellLabel", { column: column.key, row: index + 1 })}
                 onChange={(next) => onCellEdit?.(entry.id, column.key, next)}
                 value={String(readCell(entry.row, column) ?? "")}
               />

@@ -1,3 +1,5 @@
+import type { GeoRangePreset } from "@notra/geo-core/types/geo";
+
 export const GEO_DEFAULT_SCAN_TRIGGER = "manual" as const;
 
 export const GEO_PROMPT_SOURCES = {
@@ -19,6 +21,7 @@ export const GEO_PROMPT_DETAIL_SURFACES = {
   ENGINE_SHEET: "engine_sheet",
   GAPS: "gaps",
   OVERVIEW: "overview",
+  COMPETITOR_DETAIL: "competitor_detail",
 } as const;
 
 export const GEO_COMPETITOR_DETAIL_SURFACES = {
@@ -79,3 +82,13 @@ export const GEO_SCAN_FAILURE_REASONS = {
   RETRY_NO_SUCCESSFUL_CHECKS: "retry_no_successful_checks",
   UNKNOWN: "unknown",
 } as const;
+
+export const GEO_RANGE_PRESET_LABEL_KEYS = {
+  today: "today",
+  yesterday: "yesterday",
+  "7d": "last7Days",
+  "14d": "last14Days",
+  "30d": "last30Days",
+  "90d": "last90Days",
+  ytd: "yearToDate",
+} as const satisfies Record<GeoRangePreset, string>;

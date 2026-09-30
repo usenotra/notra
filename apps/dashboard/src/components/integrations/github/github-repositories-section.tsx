@@ -1,5 +1,6 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { GitHubRepositoriesSkeleton } from "@/app/(dashboard)/[slug]/integrations/github/skeleton";
 import { Button } from "@/components/button";
@@ -18,19 +19,23 @@ function RepositoryList({
   isConnected,
   migrationMutation,
 }: GitHubRepositoriesSectionProps) {
+  const t = useTranslations("integrations.github");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   if (isLoadingLegacyIntegrations) {
     return <GitHubRepositoriesSkeleton />;
   }
   if (repositoriesDb.isError && !repositoriesDb.hasData) {
     return (
       <div role="alert" className="py-6">
-        <p className="text-sm">Unable to load repositories.</p>
+        <p className="text-sm">{t("repositoriesSection.loadFailed")}</p>
         <Button
           className="mt-2"
           variant="outline"
           onClick={() => repositoriesDb.refetch()}
         >
-          Retry
+          {tCommon("actions.retry")}
         </Button>
       </div>
     );
@@ -39,15 +44,9 @@ function RepositoryList({
     return (
       <div className="flex flex-col items-center px-4 py-10 text-center sm:py-14">
         <GitHubRepositoryPreview />
-        <div className="mt-2 max-w-sm space-y-2">
-          <h3 className="text-lg font-semibold tracking-tight">
-            Connect your first repository
-          </h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Add a repository to turn your updates into changelogs and blog
-            posts, delivered as draft pull requests.
-          </p>
-        </div>
+        <h3 className="mt-2 text-lg font-semibold tracking-tight">
+          {t("repositoriesSection.emptyTitle")}
+        </h3>
         <Button
           className="mt-5 gap-1.5"
           onClick={
@@ -55,7 +54,9 @@ function RepositoryList({
           }
         >
           <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-          {isConnected ? "Add repositories" : "Connect GitHub"}
+          {isConnected
+            ? t("page.addRepositories")
+            : tIntegrationsShared("connectGithub")}
         </Button>
       </div>
     );
@@ -82,6 +83,8 @@ function RepositoryList({
 export function GitHubRepositoriesSection(
   props: GitHubRepositoriesSectionProps
 ) {
+  const t = useTranslations("integrations.github.repositoriesSection");
+  const tCommon = useTranslations("common");
   const { githubIntegrations, isLoadingLegacyIntegrations, repositoriesDb } =
     props;
   useRepositoryHashScroll(githubIntegrations);
@@ -103,15 +106,11 @@ export function GitHubRepositoriesSection(
           className="text-base font-semibold"
           id="github-repositories-heading"
         >
-          Repositories{" "}
+          {tCommon("labels.repositories")}{" "}
           <span className="text-muted-foreground bg-muted ml-1 rounded-md px-1.5 py-0.5 text-xs font-normal tabular-nums">
             {githubIntegrations.length}
           </span>
         </h2>
-        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          Choose what each repository publishes and where draft pull requests
-          are saved.
-        </p>
       </div>
       <div className="min-w-0 space-y-4">
         {repositoriesDb.isError && repositoriesDb.hasData ? (
@@ -119,13 +118,13 @@ export function GitHubRepositoriesSection(
             role="alert"
             className="flex items-center justify-between gap-3 text-sm"
           >
-            <p>Unable to refresh repositories. Showing the last loaded data.</p>
+            <p>{t("refreshFailed")}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => repositoriesDb.refetch()}
             >
-              Retry
+              {tCommon("actions.retry")}
             </Button>
           </div>
         ) : null}

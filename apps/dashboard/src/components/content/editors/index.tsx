@@ -1,15 +1,32 @@
 "use client";
 
-import { BlogEditor } from "./blog-editor";
-import { ChangelogEditor } from "./changelog-editor";
-import { ImageEditor } from "./image-editor";
-import { LinkedInEditor } from "./linkedin-editor";
-import { TwitterEditor } from "./twitter-editor";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import dynamic from "next/dynamic";
+
 import type { ContentEditorProps } from "./types";
 
 interface ContentEditorSwitchProps extends ContentEditorProps {
   contentType: string;
 }
+
+const editorFallback = <Skeleton className="h-64 w-full" />;
+
+const ImageEditor = dynamic(
+  () => import("./image-editor").then((mod) => mod.ImageEditor),
+  { loading: () => editorFallback, ssr: false }
+);
+const LinkedInEditor = dynamic(
+  () => import("./linkedin-editor").then((mod) => mod.LinkedInEditor),
+  { loading: () => editorFallback, ssr: false }
+);
+const TwitterEditor = dynamic(
+  () => import("./twitter-editor").then((mod) => mod.TwitterEditor),
+  { loading: () => editorFallback, ssr: false }
+);
+const LongFormEditor = dynamic(
+  () => import("./long-form-editor").then((mod) => mod.LongFormEditor),
+  { loading: () => editorFallback, ssr: false }
+);
 
 export function ContentEditorSwitch({
   contentType,
@@ -25,10 +42,7 @@ export function ContentEditorSwitch({
     case "twitter_post":
       return <TwitterEditor {...props} />;
 
-    case "blog_post":
-      return <BlogEditor {...props} />;
-
     default:
-      return <ChangelogEditor {...props} />;
+      return <LongFormEditor {...props} />;
   }
 }

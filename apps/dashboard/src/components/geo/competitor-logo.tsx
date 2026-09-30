@@ -3,10 +3,13 @@
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
+import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { CompetitorLogoProps } from "@/types/geo";
 
@@ -34,6 +37,7 @@ function CompetitorLogoInner({
   className,
   onSettled,
 }: CompetitorLogoProps & { logo: string | null }) {
+  const tCommon = useTranslations("common");
   const sources = competitorLogoSources(domain ?? null, logo);
   const [sourceIndex, setSourceIndex] = useState(0);
   const src = sources[sourceIndex] ?? null;
@@ -50,7 +54,7 @@ function CompetitorLogoInner({
   return (
     <span className={cn(shellClassName, "bg-muted")}>
       <Image
-        alt={`${name} logo`}
+        alt={tCommon("labels.nameLogo", { name })}
         className="size-full object-contain"
         height={GEO_LOGO_SIZE_PX}
         onError={() => {
@@ -77,11 +81,28 @@ export function CompetitorLogo({
   className,
   onSettled,
 }: CompetitorLogoProps) {
-  const trackedDomain = domain ?? findCompetitorDomain(competitors, name);
-  const { data } = useCompanyLogo(trackedDomain, name);
+  const engine = brandEngineIconKey(name);
+  const trackedDomain = engine
+    ? null
+    : (domain ?? findCompetitorDomain(competitors, name));
+  const { data } = useCompanyLogo(trackedDomain, engine ? null : name);
+  useEffect(() => {
+    if (engine) {
+      onSettled?.();
+    }
+  }, [engine, onSettled]);
+
+  if (engine) {
+    return (
+      <EngineIcon
+        className={cn("size-5 shrink-0", className)}
+        engine={engine}
+      />
+    );
+  }
+
   const resolvedDomain = trackedDomain ?? data?.domain ?? null;
   const logo = data?.url ?? null;
-
   return (
     <CompetitorLogoInner
       className={className}

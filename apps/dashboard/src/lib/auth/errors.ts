@@ -8,6 +8,7 @@ export class AuthSessionError extends Data.TaggedError("AuthSessionError")<{
 export class UserSyncError extends Data.TaggedError("UserSyncError")<{
   readonly message: string;
   readonly cause?: unknown;
+  readonly reason?: "email_unverified";
 }> {}
 
 export class SocialConnectionError extends Data.TaggedError(

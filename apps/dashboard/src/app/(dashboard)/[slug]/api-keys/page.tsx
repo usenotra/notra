@@ -74,6 +74,7 @@ import type {
   KeyResponseData,
   V2KeysCreateKeyResponseData,
 } from "@unkey/api/models/components";
+import { useLocale, useTranslations } from "next-intl";
 import {
   parseAsArrayOf,
   parseAsString,
@@ -87,20 +88,23 @@ import {
   useReducer,
 } from "react";
 import { toast } from "sonner";
+import * as z from "zod";
 
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
 import { ApiKeyPermissionSelector } from "@/components/api-keys/permission-selector";
 import { TrackingTokenCard } from "@/components/api-keys/tracking-token-card";
 import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   API_KEY_EXPIRATION_OPTIONS,
-  API_KEY_PERMISSION_SUMMARY,
+  type API_KEY_PERMISSION_SUMMARY,
 } from "@/constants/api-keys";
 import { API_KEY_CARD_ITEMS, API_KEY_PRESETS } from "@/lib/api-keys/presets";
 import { expandLegacyApiKeyScopes } from "@/lib/api-keys/scopes";
+import { useApiKeyExpirationItems } from "@/lib/hooks/use-api-key-expiration-items";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   ApiKeyAccessMode,
@@ -163,7 +167,7 @@ type ApiKeyListItem = Omit<
   name: string;
   accessMode: ApiKeyAccessMode;
   expires: number | null;
-  permission: keyof typeof API_KEY_PERMISSION_SUMMARY;
+  permission: (typeof API_KEY_PERMISSION_SUMMARY)[number];
   permissions: string[];
   createdBy: string | null;
 };
@@ -227,21 +231,6 @@ function apiKeysUiReducer(
   }
 }
 
-function formatExpiry(expires: number | null) {
-  if (!expires) {
-    return "Never";
-  }
-  const date = new Date(expires);
-  if (date.getTime() < Date.now()) {
-    return "Expired";
-  }
-  return date.toLocaleDateString();
-}
-
-function formatPermissionLabel(apiKey: ApiKeyListItem) {
-  return API_KEY_PERMISSION_SUMMARY[apiKey.permission];
-}
-
 function getDefaultEditExpiration(
   createdAt: number,
   expires: number | null
@@ -269,18 +258,18 @@ function getDefaultEditExpiration(
 }
 
 function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
+  const t = useTranslations("apiKeys");
+  const tCommon2 = useTranslations("common");
   return (
-    <div className="flex items-center justify-between">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
-        <p className="text-muted-foreground">
-          Manage API keys for programmatic access to your organization
-        </p>
-      </div>
+    <PageHeading
+      className="@min-[40rem]/main:items-center"
+      description={t("description")}
+      title={tCommon2("labels.apiKeys")}
+    >
       <div className="flex items-center gap-2">
         <Button className="gap-1.5" onClick={onCreate}>
           <HugeiconsIcon className="size-4" icon={Add01Icon} />
-          Create API Key
+          {t("createKey")}
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
         </Button>
         <TooltipProvider>
@@ -302,11 +291,11 @@ function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
             >
               <HugeiconsIcon className="size-4" icon={Book01Icon} />
             </TooltipTrigger>
-            <TooltipContent>View API documentation</TooltipContent>
+            <TooltipContent>{t("viewDocs")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-    </div>
+    </PageHeading>
   );
 }
 
@@ -323,17 +312,35 @@ function ApiKeysTable({
   onDelete: (key: ApiKeyListItem) => void;
   onEdit: (key: ApiKeyListItem) => void;
 }) {
+  const t = useTranslations("apiKeys");
+  const tApiKeysShared = useTranslations("apiKeys.shared");
+  const tCommon2 = useTranslations("common");
+  const locale = useLocale();
+  const formatExpiry = (expires: number | null) => {
+    if (!expires) {
+      return tCommon2("labels.never");
+    }
+    const date = new Date(expires);
+    if (date.getTime() < Date.now()) {
+      return t("expiry.expired");
+    }
+    return date.toLocaleDateString(locale);
+  };
   const columns: TableColumn<ApiKeyListItem>[] = [
     {
       key: "name",
-      header: "Name",
+      header: tCommon2("labels.name"),
       width: "1fr",
       minWidth: "10rem",
-      cell: (apiKey) => <span className="font-medium">{apiKey.name}</span>,
+      cell: (apiKey) => (
+        <span className="font-medium" title={apiKey.name}>
+          {apiKey.name}
+        </span>
+      ),
     },
     {
       key: "start",
-      header: "Key",
+      header: t("columns.key"),
       width: "1fr",
       minWidth: "9rem",
       cell: (apiKey) => (
@@ -344,14 +351,15 @@ function ApiKeysTable({
     },
     {
       key: "permission",
-      header: "Permission",
+      header: t("columns.permission"),
       width: "1fr",
       minWidth: "9rem",
-      cell: formatPermissionLabel,
+      cell: (apiKey) =>
+        t("permissionSummary", { permission: apiKey.permission }),
     },
     {
       key: "expires",
-      header: "Expires",
+      header: tCommon2("labels.expires"),
       width: "8.75rem",
       cell: (apiKey) => (
         <span className="text-muted-foreground text-sm">
@@ -361,12 +369,12 @@ function ApiKeysTable({
     },
     {
       key: "createdAt",
-      header: "Created At",
+      header: tCommon2("labels.createdAt"),
       sortable: true,
       width: "9.5rem",
       cell: (apiKey) => (
         <span className="text-muted-foreground text-sm">
-          {new Date(apiKey.createdAt).toLocaleDateString()}
+          {new Date(apiKey.createdAt).toLocaleDateString(locale)}
         </span>
       ),
     },
@@ -381,7 +389,9 @@ function ApiKeysTable({
           <DropdownMenuTrigger
             render={
               <Button
-                aria-label={`Actions for ${apiKey.name}`}
+                aria-label={tCommon2("labels.actionsForName", {
+                  name: apiKey.name,
+                })}
                 size="icon"
                 variant="ghost"
               >
@@ -396,7 +406,7 @@ function ApiKeysTable({
                 onClick={() => onEdit(apiKey)}
               >
                 <HugeiconsIcon className="size-4" icon={Edit02Icon} />
-                Edit API key
+                {tApiKeysShared("editApiKey")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -405,7 +415,7 @@ function ApiKeysTable({
                 variant="destructive"
               >
                 <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                Delete API key
+                {tApiKeysShared("deleteApiKey")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
@@ -419,7 +429,7 @@ function ApiKeysTable({
     <Table
       columns={columns}
       data={keys}
-      emptyState="No API keys yet"
+      emptyState={t("empty")}
       getRowId={(apiKey) => apiKey.keyId}
       height={(visibleRows + 1) * 48}
       loading={isPending}
@@ -429,15 +439,23 @@ function ApiKeysTable({
 }
 
 function ApiKeyQuickStart({ onSelect }: { onSelect: (id: string) => void }) {
+  const t = useTranslations("apiKeys.quickStart");
+  const tCommon2 = useTranslations("common");
+  const items = API_KEY_CARD_ITEMS.map((item) => ({
+    ...item,
+    description: t("presetDescription", { id: item.id }),
+    docsLabel: t("viewDocs"),
+    selectLabel: t("createKey", { title: item.title }),
+  }));
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">Quick start</h2>
-        <p className="text-muted-foreground text-sm">
-          Spin up a key preconfigured for how you plan to use the API.
-        </p>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {tCommon2("labels.quickStart")}
+        </h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
-      <ConnectedCards items={API_KEY_CARD_ITEMS} onSelect={onSelect} />
+      <ConnectedCards items={items} onSelect={onSelect} />
     </div>
   );
 }
@@ -469,6 +487,9 @@ function CreateApiKeyDialog({
   onSubmit: () => void;
   open: boolean;
 }) {
+  const t = useTranslations("apiKeys");
+  const expirationItems = useApiKeyExpirationItems();
+  const tCommon = useTranslations("common");
   return (
     <ResponsiveDialog
       onOpenChange={onOpenChange}
@@ -486,49 +507,57 @@ function CreateApiKeyDialog({
         {createdKey ? (
           <>
             <ResponsiveDialogHeader className="shrink-0">
-              <ResponsiveDialogTitle>View API Key</ResponsiveDialogTitle>
+              <ResponsiveDialogTitle>
+                {t("create.viewTitle")}
+              </ResponsiveDialogTitle>
             </ResponsiveDialogHeader>
             <div className="space-y-4">
               <Alert variant="info">
                 <HugeiconsIcon icon={InformationCircleIcon} />
                 <AlertDescription>
-                  You can only see this key once.{" "}
-                  <span className="text-foreground font-medium">
-                    Store it safely.
-                  </span>
+                  {t.rich("create.onceNotice", {
+                    strong: (chunks) => (
+                      <span className="text-foreground font-medium">
+                        {chunks}
+                      </span>
+                    ),
+                  })}
                 </AlertDescription>
               </Alert>
               <Field>
-                <FieldLabel>API Key</FieldLabel>
+                <FieldLabel>{tCommon("labels.apiKey")}</FieldLabel>
                 <ApiKeyRevealField value={createdKey} />
               </Field>
             </div>
             <ResponsiveDialogFooter>
-              <ResponsiveDialogClose render={<Button>Done</Button>} />
+              <ResponsiveDialogClose
+                render={<Button>{tCommon("actions.done")}</Button>}
+              />
             </ResponsiveDialogFooter>
           </>
         ) : (
           <>
             <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
               <ResponsiveDialogTitle className="text-2xl">
-                Create API Key
+                {t("createKey")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Create a new API key for your organization.
+                {t("create.description")}
               </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
             <form action={onSubmit} className="flex min-h-0 flex-1 flex-col">
               <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
                 <Field className="shrink-0">
                   <FieldLabel>
-                    Name<span className="text-destructive -ml-1">*</span>
+                    {tCommon("labels.name")}
+                    <span className="text-destructive -ml-1">*</span>
                   </FieldLabel>
                   <Input
                     disabled={isPending}
                     onChange={(event) =>
                       onNameChange(event.target.value || null)
                     }
-                    placeholder="e.g. CI/CD Pipeline"
+                    placeholder={t("form.namePlaceholder")}
                     value={input.name}
                   />
                   {createError ? (
@@ -538,25 +567,26 @@ function CreateApiKeyDialog({
 
                 <Field className="shrink-0">
                   <FieldLabel>
-                    Expiration
+                    {t("form.expiration")}
                     <span className="text-muted-foreground -ml-1 text-xs">
-                      (Optional)
+                      {tCommon("labels.optional")}
                     </span>
                   </FieldLabel>
                   <Select
                     disabled={isPending}
+                    items={expirationItems}
                     onValueChange={(value) =>
                       onExpirationChange(value as ApiKeyExpiration)
                     }
                     value={input.expiration}
                   >
                     <SelectTrigger>
-                      <SelectValue className="capitalize" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {API_KEY_EXPIRATION_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {t("expirationOption", { value: option.value })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -565,7 +595,7 @@ function CreateApiKeyDialog({
 
                 <Field className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                   <FieldLabel>
-                    Permissions
+                    {tCommon("labels.permissions")}
                     <span className="text-destructive -ml-1">*</span>
                   </FieldLabel>
                   <ApiKeyPermissionSelector
@@ -581,10 +611,14 @@ function CreateApiKeyDialog({
               <ResponsiveDialogFooter className="bg-background/95 supports-backdrop-filter:bg-background/80 mx-0 mb-0 shrink-0 rounded-b-xl border-t p-4 sm:justify-between">
                 <ResponsiveDialogClose
                   disabled={isPending}
-                  render={<Button variant="outline">Cancel</Button>}
+                  render={
+                    <Button variant="outline">
+                      {tCommon("actions.cancel")}
+                    </Button>
+                  }
                 />
                 <Button disabled={isPending} type="submit">
-                  {isPending ? "Creating…" : "Create Key"}
+                  {isPending ? tCommon("actions.creating") : t("create.submit")}
                 </Button>
               </ResponsiveDialogFooter>
             </form>
@@ -608,6 +642,15 @@ function EditApiKeyDialog({
   onSubmit: () => void;
   open: boolean;
 }) {
+  const t = useTranslations("apiKeys");
+  const expirationItems = useApiKeyExpirationItems();
+  const tApiKeysShared = useTranslations("apiKeys.shared");
+  const tCommon = useTranslations("common");
+  const nameSchema = z
+    .string()
+    .min(1, tCommon("labels.nameIsRequired"))
+    .max(100)
+    .trim();
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent
@@ -617,18 +660,16 @@ function EditApiKeyDialog({
         <form action={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
             <ResponsiveDialogTitle className="text-2xl">
-              Edit API Key
+              {tApiKeysShared("editApiKey")}
             </ResponsiveDialogTitle>
           </ResponsiveDialogHeader>
           <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-            <editForm.Field
-              name="name"
-              validators={{ onChange: updateApiKeySchema.shape.name }}
-            >
+            <editForm.Field name="name" validators={{ onChange: nameSchema }}>
               {(field) => (
                 <Field className="shrink-0">
                   <FieldLabel>
-                    Name<span className="text-destructive -ml-1">*</span>
+                    {tCommon("labels.name")}
+                    <span className="text-destructive -ml-1">*</span>
                   </FieldLabel>
                   <Input
                     autoFocus
@@ -636,7 +677,7 @@ function EditApiKeyDialog({
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onFocus={(e) => e.currentTarget.select()}
-                    placeholder="e.g. CI/CD Pipeline"
+                    placeholder={t("form.namePlaceholder")}
                     value={field.state.value as string}
                   />
                   {field.state.meta.isTouched &&
@@ -645,7 +686,7 @@ function EditApiKeyDialog({
                       {typeof field.state.meta.errors[0] === "string"
                         ? field.state.meta.errors[0]
                         : ((field.state.meta.errors[0] as { message?: string })
-                            ?.message ?? "Invalid value")}
+                            ?.message ?? tCommon("labels.invalidValue"))}
                     </p>
                   ) : null}
                 </Field>
@@ -655,21 +696,22 @@ function EditApiKeyDialog({
             <editForm.Field name="expiration">
               {(field) => (
                 <Field className="shrink-0">
-                  <FieldLabel>Expiration</FieldLabel>
+                  <FieldLabel>{t("form.expiration")}</FieldLabel>
                   <Select
                     disabled={isPending}
+                    items={expirationItems}
                     onValueChange={(value) =>
                       field.handleChange(value as ApiKeyExpiration)
                     }
                     value={field.state.value as ApiKeyExpiration}
                   >
                     <SelectTrigger>
-                      <SelectValue className="capitalize" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {API_KEY_EXPIRATION_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {t("expirationOption", { value: option.value })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -684,7 +726,7 @@ function EditApiKeyDialog({
                   {(scopesField) => (
                     <Field className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                       <FieldLabel>
-                        Permissions
+                        {tCommon("labels.permissions")}
                         <span className="text-destructive -ml-1">*</span>
                       </FieldLabel>
                       <ApiKeyPermissionSelector
@@ -711,10 +753,14 @@ function EditApiKeyDialog({
           <ResponsiveDialogFooter className="bg-background/95 supports-backdrop-filter:bg-background/80 mx-0 mb-0 shrink-0 rounded-b-xl border-t p-4">
             <ResponsiveDialogClose
               disabled={isPending}
-              render={<Button variant="outline">Cancel</Button>}
+              render={
+                <Button variant="outline">{tCommon("actions.cancel")}</Button>
+              }
             />
             <Button disabled={isPending} type="submit">
-              {isPending ? "Saving…" : "Save Changes"}
+              {isPending
+                ? tCommon("actions.saving")
+                : tCommon("actions.saveChanges")}
             </Button>
           </ResponsiveDialogFooter>
         </form>
@@ -734,29 +780,32 @@ function DeleteApiKeyDialog({
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useTranslations("apiKeys.delete");
+  const tApiKeysShared = useTranslations("apiKeys.shared");
+  const tCommon = useTranslations("common");
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={!!apiKey}>
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            Delete API Key?
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            This will permanently delete
-            {apiKey ? ` ${apiKey.name}` : " this API key"}. This action cannot
-            be undone.
+          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription className="wrap-anywhere">
+            {apiKey
+              ? t("descriptionNamed", { name: apiKey.name })
+              : t("description")}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isPending}>
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={!apiKey || isPending}
             onClick={onConfirm}
           >
-            {isPending ? "Deleting…" : "Delete API Key"}
+            {isPending
+              ? tCommon("actions.deleting")
+              : tApiKeysShared("deleteApiKey")}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>
@@ -765,6 +814,8 @@ function DeleteApiKeyDialog({
 }
 
 export default function ApiKeysPage() {
+  const t = useTranslations("apiKeys");
+  const tCommon2 = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const queryClient = useQueryClient();
@@ -835,12 +886,22 @@ export default function ApiKeysPage() {
     setNewKeyConfig(config);
   };
 
+  const getCreateErrorMessage = (field: PropertyKey | undefined) => {
+    if (field === "name") {
+      return tCommon2("labels.nameIsRequired");
+    }
+    if (field === "scopes") {
+      return t("validation.selectPermission");
+    }
+    return t("validation.invalidKey");
+  };
+
   const handleCreateSubmit = () => {
     const result = createApiKeySchema.safeParse(createInput);
     if (!result.success) {
       dispatchUi({
         type: "createErrorChanged",
-        createError: result.error.issues[0]?.message ?? "Invalid API key",
+        createError: getCreateErrorMessage(result.error.issues[0]?.path[0]),
       });
       return;
     }
@@ -863,7 +924,7 @@ export default function ApiKeysPage() {
   const mutation = useMutation({
     mutationFn: async (values: CreateApiKeyInput) => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
 
       return dashboardOrpc.apiKeys.create.call({
@@ -880,7 +941,7 @@ export default function ApiKeysPage() {
           input: { organizationId: organizationId ?? "" },
         }),
       });
-      toast.success("API key created");
+      toast.success(t("toasts.created"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -890,7 +951,7 @@ export default function ApiKeysPage() {
   const editMutation = useMutation({
     mutationFn: async (values: UpdateApiKeyInput) => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
 
       return dashboardOrpc.apiKeys.update.call({
@@ -907,7 +968,7 @@ export default function ApiKeysPage() {
           input: { organizationId: organizationId ?? "" },
         }),
       });
-      toast.success("API key updated");
+      toast.success(t("toasts.updated"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -917,7 +978,7 @@ export default function ApiKeysPage() {
   const deleteMutation = useMutation({
     mutationFn: async (keyId: string) => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
 
       return dashboardOrpc.apiKeys.delete.call({
@@ -933,7 +994,7 @@ export default function ApiKeysPage() {
           input: { organizationId: organizationId ?? "" },
         }),
       });
-      toast.success("API key deleted");
+      toast.success(t("toasts.deleted"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

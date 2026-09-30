@@ -1,5 +1,5 @@
 import { classifyAgentFeedback } from "@notra/ai/jobs/feedback-classifier";
-import { agentFeedback, projects } from "@notra/db/schema";
+import { agentFeedback, organizations, projects } from "@notra/db/schema";
 import { and, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { nanoid } from "nanoid";
@@ -7,12 +7,14 @@ import { nanoid } from "nanoid";
 import {
   FeedbackDatabaseError,
   FeedbackNotFoundError,
+  FeedbackOrganizationNotFoundError,
   FeedbackProjectNotFoundError,
 } from "../errors/feedback";
 import type {
   ListFeedbackProgramInput,
   ListFeedbackProgramSuccess,
   NamedFeedbackProgramInput,
+  ResolveOrganizationIdBySlugInput,
   SubmitFeedbackProgramInput,
   SubmitFeedbackProgramSuccess,
   UpdateFeedbackProgramInput,
@@ -74,6 +76,23 @@ const findByOrganizationAndId = (
       ),
     })
   );
+
+export const resolveOrganizationIdBySlug = Effect.fn(
+  "feedback.resolveOrganizationIdBySlug"
+)(function* ({ db, slug }: ResolveOrganizationIdBySlugInput) {
+  const organization = yield* database(() =>
+    db.query.organizations.findFirst({
+      columns: { id: true },
+      where: eq(organizations.slug, slug.toLowerCase()),
+    })
+  );
+
+  if (!organization) {
+    return yield* new FeedbackOrganizationNotFoundError();
+  }
+
+  return organization.id;
+});
 
 export const listFeedback = Effect.fn("feedback.list")(function* ({
   db,

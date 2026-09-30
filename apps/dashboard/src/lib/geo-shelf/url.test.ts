@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   canonicalizeShelfUrl,
   isAllowedShelfUrl,
+  isShelfRootUrl,
   shelfFetchUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
 
@@ -27,5 +28,19 @@ describe("shelf URL validation", () => {
 
   test("rejects exact reserved hostname suffixes", () => {
     expect(isAllowedShelfUrl("https://home.arpa/article")).toBeFalse();
+  });
+});
+
+describe("shelf root URL detection", () => {
+  test("treats bare origins as root URLs", () => {
+    expect(isShelfRootUrl("https://e2b.dev/")).toBeTrue();
+    expect(isShelfRootUrl("https://e2b.dev")).toBeTrue();
+    expect(isShelfRootUrl("http://www.daytona.io/")).toBeTrue();
+  });
+
+  test("keeps pages with a path or query", () => {
+    expect(isShelfRootUrl("https://e2b.dev/blog/sandboxes")).toBeFalse();
+    expect(isShelfRootUrl("https://e2b.dev/?ref=x")).toBeFalse();
+    expect(isShelfRootUrl("https://g2.com/categories/ai")).toBeFalse();
   });
 });

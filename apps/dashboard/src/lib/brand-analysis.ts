@@ -8,6 +8,7 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
 
 import { startBrandAnalysisRun } from "@/lib/workflows/start";
@@ -126,18 +127,20 @@ export async function queueBrandAnalysisForOnboarding({
   websiteUrl,
   name,
 }: QueueBrandAnalysisInput): Promise<QueueBrandAnalysisResult | null> {
-  if (!redis) {
-    return null;
-  }
-
   const jobId = createBrandAnalysisJobId();
-  const brandName = name?.trim() || "Untitled Brand Voice";
+  const brandName =
+    name?.trim() ||
+    (await getTranslations("brand.defaults"))("untitledIdentity");
 
   const brandIdentity = await insertBrandIdentity({
     organizationId,
     brandName,
     websiteUrl,
   });
+
+  if (!redis) {
+    return { jobId, brandIdentityId: brandIdentity.id };
+  }
 
   after(() =>
     dispatchBrandAnalysisWorkflow({

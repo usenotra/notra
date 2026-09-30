@@ -7,6 +7,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
@@ -75,10 +76,6 @@ function retryAnswerMarkdown(): void {
   void loadAnswerMarkdown().catch(() => undefined);
 }
 
-const answerMarkdownFallback = (
-  <p className="text-muted-foreground animate-pulse">Thinking…</p>
-);
-
 function AnswerMarkdown({
   mode,
   skin,
@@ -88,6 +85,9 @@ function AnswerMarkdown({
   skin: GeoChatSkin;
   text: string;
 }) {
+  const t = useTranslations("geo.conversationReplayThread");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const status = useSyncExternalStore(
     subscribeMarkdownStatus,
     getMarkdownStatusSnapshot,
@@ -101,20 +101,24 @@ function AnswerMarkdown({
   if (status === "error") {
     return (
       <p className="text-muted-foreground">
-        Could not load the answer.{" "}
+        {t("loadFailed")}{" "}
         <button
           className="underline underline-offset-4"
           onClick={retryAnswerMarkdown}
           type="button"
         >
-          Retry
+          {tCommon("retry")}
         </button>
       </p>
     );
   }
 
   if (status !== "ready" || !AnswerMarkdownImpl) {
-    return answerMarkdownFallback;
+    return (
+      <p className="text-muted-foreground animate-pulse">
+        {tCommon2("labels.thinking")}
+      </p>
+    );
   }
 
   return <AnswerMarkdownImpl mode={mode} skin={skin} text={text} />;
@@ -132,11 +136,12 @@ function SourcePills({ sources }: { sources: PerplexitySearchSource[] }) {
     <div className="flex flex-wrap gap-1.5 pt-1">
       {sources.map((source) => (
         <a
-          className="border-border text-muted-foreground hover:text-foreground inline-flex items-center rounded-full border px-2 py-0.5 text-xs transition-colors"
+          className="border-border text-muted-foreground hover:text-foreground max-w-full truncate rounded-full border px-2 py-0.5 text-xs transition-colors"
           href={source.url}
           key={source.url ?? source.domain}
           rel="noopener noreferrer"
           target="_blank"
+          title={source.domain}
         >
           {source.domain}
         </a>
@@ -146,16 +151,20 @@ function SourcePills({ sources }: { sources: PerplexitySearchSource[] }) {
 }
 
 function MentionPill({ turn }: { turn: GeoSequenceTurnResult }) {
+  const t = useTranslations("geo.conversationReplayThread");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <p className="pt-1 text-xs">
       {turn.mentioned ? (
         <span className="text-geo-up font-medium">
           {turn.position !== null
-            ? `Mentioned at #${turn.position}`
-            : "Mentioned"}
+            ? t("mentionedAt", { position: turn.position })
+            : tGeoShared("mentioned")}
         </span>
       ) : (
-        <span className="text-muted-foreground">Not mentioned</span>
+        <span className="text-muted-foreground">
+          {tGeoShared("notMentioned")}
+        </span>
       )}
     </p>
   );

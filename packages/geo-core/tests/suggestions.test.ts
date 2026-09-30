@@ -56,7 +56,7 @@ describe("suggestion transactions", () => {
   test("foreign suggestions and foreign projects are refused", async () => {
     const scope = await seedProject("own");
     await seedProject("foreign", { organizationId: "other-org" });
-    await seedSuggestion("foreign-suggestion", "other-org");
+    await seedSuggestion("foreign-suggestion", "other-org", "foreign");
     const result = await Effect.runPromise(
       acceptSuggestion({ ...scope, suggestionId: "foreign-suggestion" }).pipe(
         Effect.result
@@ -75,15 +75,40 @@ describe("suggestion transactions", () => {
     expect(foreignProject.failure._tag).toBe("GeoProjectNotFoundError");
   });
 
-  test("list, dismiss, and accept-all retain pending-only transitions", async () => {
+  test("suggestions cannot be listed, accepted, or dismissed from a sibling project", async () => {
+    const first = await seedProject("first");
+    const second = await seedProject("second");
+    await seedSuggestion("first-only", "org-test", "first");
     expect(
-      (
-        await Effect.runPromise(
-          acceptAllSuggestions({ organizationId: "absent" })
-        )
-      ).accepted
+      (await Effect.runPromise(listSuggestions(second))).suggestions
+    ).toHaveLength(0);
+    expect(
+      (await Effect.runPromise(listSuggestions(first))).suggestions
+    ).toHaveLength(1);
+    const accepted = await Effect.runPromise(
+      acceptSuggestion({ ...second, suggestionId: "first-only" }).pipe(
+        Effect.result
+      )
+    );
+    const dismissed = await Effect.runPromise(
+      dismissSuggestion({ ...second, suggestionId: "first-only" }).pipe(
+        Effect.result
+      )
+    );
+    assert.ok(Result.isFailure(accepted));
+    assert.ok(Result.isFailure(dismissed));
+    expect(accepted.failure._tag).toBe("GeoSuggestionNotFoundError");
+    expect(dismissed.failure._tag).toBe("GeoSuggestionNotFoundError");
+    expect(
+      (await Effect.runPromise(acceptAllSuggestions(second))).accepted
     ).toBe(0);
+  });
+
+  test("list, dismiss, and accept-all retain pending-only transitions", async () => {
     const scope = await seedProject("selected");
+    expect(
+      (await Effect.runPromise(acceptAllSuggestions(scope))).accepted
+    ).toBe(0);
     await seedSuggestion("one");
     await seedSuggestion("two");
     await seedSuggestion("three");

@@ -30,6 +30,8 @@ import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -42,6 +44,7 @@ import { LegacyAddIntegrationDialog as AddIntegrationDialog } from "@/components
 import { DEFAULT_DATA_POINTS } from "@/constants/content-preview";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { useWizardStepLabels } from "@/lib/hooks/use-wizard-step-labels";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ContentCreateEntry } from "@/types/analytics/studio-events";
 import type {
@@ -67,18 +70,6 @@ interface CreateContentDialogProps {
 
 const STEP_ORDER: WizardStep[] = ["formats", "activity", "identities"];
 
-const STEP_TITLES: Record<WizardStep, string> = {
-  formats: "Create Content",
-  activity: "Activity",
-  identities: "Brand Identity",
-};
-
-const STEP_LABELS: Record<WizardStep, string> = {
-  formats: "Formats",
-  activity: "Activity",
-  identities: "Identity",
-};
-
 function getDefaultContentFormValues(): CreateContentFormValues {
   return {
     formats: [],
@@ -89,6 +80,153 @@ function getDefaultContentFormValues(): CreateContentFormValues {
   };
 }
 
+function CreateContentDialogTrigger({
+  hidden,
+  isProjectResolved,
+  organizationId,
+}: {
+  hidden: boolean;
+  isProjectResolved: boolean;
+  organizationId: string;
+}) {
+  if (hidden) {
+    return null;
+  }
+  return (
+    <ResponsiveDialogTrigger
+      render={
+        <CreateContentButton disabled={!organizationId || !isProjectResolved} />
+      }
+    />
+  );
+}
+
+function CreateContentDialogFooter({
+  footer,
+  identityButtonLabel,
+  isPending,
+  isProjectResolved,
+  onBack,
+  onCreate,
+  onNext,
+  step,
+}: {
+  footer: { text: string; tone: "warning" | "muted" };
+  identityButtonLabel: string;
+  isPending: boolean;
+  isProjectResolved: boolean;
+  onBack: () => void;
+  onCreate: () => void;
+  onNext: () => void;
+  step: WizardStep;
+}) {
+  const t = useTranslations("content.create.dialog");
+  const tCommon = useTranslations("common");
+  return (
+    <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {step !== "formats" && (
+            <Button
+              disabled={isPending}
+              onClick={onBack}
+              type="button"
+              variant="outline"
+            >
+              <HugeiconsIcon className="size-3.5" icon={ArrowLeft01Icon} />
+              {tCommon("actions.back")}
+            </Button>
+          )}
+          <span
+            className={cn(
+              "flex min-w-0 items-center gap-1.5 text-xs",
+              footer.tone === "warning"
+                ? "text-destructive font-medium"
+                : "text-muted-foreground"
+            )}
+          >
+            {footer.tone === "warning" && (
+              <HugeiconsIcon
+                className="size-3.5 shrink-0"
+                icon={AlertCircleIcon}
+              />
+            )}
+            {footer.text}
+          </span>
+        </div>
+        {step === "identities" ? (
+          <Button
+            disabled={isPending || !isProjectResolved}
+            onClick={onCreate}
+            type="button"
+          >
+            {isPending ? (
+              <>
+                <HugeiconsIcon
+                  className="size-4 animate-spin"
+                  icon={Loading03Icon}
+                />
+                {t("generating")}
+              </>
+            ) : (
+              <>
+                {identityButtonLabel}
+                <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button disabled={isPending} onClick={onNext} type="button">
+            {tCommon("actions.continue")}
+            <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddRepositoryFlowDialogs({
+  githubIntegrationId,
+  mode,
+  onFlowComplete,
+  onOpenChange,
+  onSuccess,
+  open,
+  organizationId,
+}: {
+  githubIntegrationId: string | undefined;
+  mode: "integration" | "repository" | null;
+  onFlowComplete: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+  open: boolean;
+  organizationId: string;
+}) {
+  if (mode === "repository" && githubIntegrationId) {
+    return (
+      <AddRepositoryDialog
+        integrationId={githubIntegrationId}
+        onOpenChange={onOpenChange}
+        open={open}
+        organizationId={organizationId}
+      />
+    );
+  }
+  if (mode === "integration") {
+    return (
+      <AddIntegrationDialog
+        onFlowComplete={onFlowComplete}
+        onOpenChange={onOpenChange}
+        onSuccess={onSuccess}
+        open={open}
+        organizationId={organizationId}
+      />
+    );
+  }
+  return null;
+}
+
 export function CreateContentDialog({
   entry,
   hideTrigger = false,
@@ -96,7 +234,12 @@ export function CreateContentDialog({
   open: controlledOpen,
   organizationId,
 }: CreateContentDialogProps) {
+  const t = useTranslations("content.create.dialog");
+  const stepLabels = useWizardStepLabels();
+  const tCommon = useTranslations("common");
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const router = useRouter();
+  const { slug: organizationSlug } = useParams<{ slug?: string }>();
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
   const open = controlledOpen ?? uncontrolledOpen;
@@ -154,7 +297,7 @@ export function CreateContentDialog({
       onSubmit: ({ value }) => {
         const result = createContentFormSchema.safeParse(value);
         if (!result.success) {
-          return result.error.issues[0]?.message ?? "Form is invalid";
+          return tCommon("labels.invalidValue");
         }
         return;
       },
@@ -382,13 +525,17 @@ export function CreateContentDialog({
       return;
     }
     previewWarningKeyRef.current = warningKey;
-    toast.warning(
-      `${previewFailures.length} repository preview ${previewFailures.length === 1 ? "issue was" : "issues were"} detected.`
-    );
-  }, [previewFailures, previewParamsKey]);
+    toast.warning(t("toasts.previewIssues", { count: previewFailures.length }));
+  }, [previewFailures, previewParamsKey, t]);
 
   const mutation = useMutation<
-    { succeeded: number; total: number },
+    {
+      succeeded: number;
+      total: number;
+      collectionId: string;
+      requestOrganizationId: string;
+      requestOrganizationSlug: string | undefined;
+    },
     Error,
     {
       formats: OnDemandContentType[];
@@ -398,8 +545,10 @@ export function CreateContentDialog({
   >({
     mutationFn: async ({ formats, voiceIds, selectedItems }) => {
       if (!isProjectResolved) {
-        throw new Error("Project is still loading");
+        throw new Error(t("errors.projectLoading"));
       }
+      const requestOrganizationId = organizationId;
+      const requestOrganizationSlug = organizationSlug;
       const hasLinear = selectedLinearIds.length > 0;
       const calls = formats.flatMap((format) =>
         voiceIds.map((voiceId) => ({ format, voiceId }))
@@ -410,7 +559,7 @@ export function CreateContentDialog({
       // outputs are coordinated instead of independently drafted.
       const { collectionId } =
         await dashboardOrpc.content.createCollection.call({
-          organizationId,
+          organizationId: requestOrganizationId,
           projectId: activeProjectId ?? undefined,
           contentTypes: formats,
           expectedPostCount: calls.length,
@@ -419,7 +568,7 @@ export function CreateContentDialog({
       const results = await Promise.allSettled(
         calls.map(({ format, voiceId }) =>
           dashboardOrpc.content.generate.call({
-            organizationId,
+            organizationId: requestOrganizationId,
             collectionId,
             contentType: format,
             lookbackWindow,
@@ -437,7 +586,7 @@ export function CreateContentDialog({
       if (succeeded === 0) {
         await dashboardOrpc.content.collections.delete
           .call({
-            organizationId,
+            organizationId: requestOrganizationId,
             collectionId,
           })
           .catch(() => null);
@@ -447,39 +596,58 @@ export function CreateContentDialog({
           reason.status === "rejected" &&
           reason.reason instanceof Error
             ? reason.reason.message
-            : "Failed to start any content generation";
+            : t("errors.generationFailed");
         throw new Error(message);
       }
       if (succeeded < results.length) {
         await dashboardOrpc.content.collections.updateExpectedPostCount.call({
-          organizationId,
+          organizationId: requestOrganizationId,
           collectionId,
           expectedPostCount: succeeded,
         });
       }
-      return { succeeded, total: results.length };
+      return {
+        succeeded,
+        total: results.length,
+        collectionId,
+        requestOrganizationId,
+        requestOrganizationSlug,
+      };
     },
-    onSuccess: ({ succeeded, total }) => {
+    onSuccess: ({
+      succeeded,
+      total,
+      collectionId,
+      requestOrganizationId,
+      requestOrganizationSlug,
+    }) => {
       setDialogOpen(false);
       if (succeeded === total) {
-        toast.success(
-          succeeded === 1
-            ? "Content generation started"
-            : `${succeeded} content generations started`
-        );
+        toast.success(t("toasts.generationStarted", { count: succeeded }));
       } else {
         toast.warning(
-          `${succeeded} of ${total} content generations started; ${total - succeeded} failed`
+          t("toasts.generationPartial", {
+            succeeded,
+            total,
+            failed: total - succeeded,
+          })
         );
       }
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.activeGenerations.list.queryKey({
-          input: { organizationId },
+          input: { organizationId: requestOrganizationId },
         }),
       });
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.collections.list.key(),
       });
+      if (
+        requestOrganizationSlug &&
+        requestOrganizationId === organizationId &&
+        requestOrganizationSlug === organizationSlug
+      ) {
+        router.push(`/${requestOrganizationSlug}/collection/${collectionId}`);
+      }
     },
     onError: (err) => {
       toast.error(err.message);
@@ -835,8 +1003,8 @@ export function CreateContentDialog({
 
   const identityButtonLabel =
     selectedBrandVoiceIds.length === 0
-      ? "Skip & start creating"
-      : `Start creating with ${selectedBrandVoiceIds.length} ${selectedBrandVoiceIds.length === 1 ? "identity" : "identities"}`;
+      ? t("skipAndStart")
+      : t("startWithIdentities", { count: selectedBrandVoiceIds.length });
 
   const stepIndex = STEP_ORDER.indexOf(step);
 
@@ -850,16 +1018,16 @@ export function CreateContentDialog({
       selectedFormats.length === 0
     ) {
       return {
-        text: "Select at least one content format",
+        text: t("footer.selectFormat"),
         tone: "warning",
       };
     }
     if (attemptedAdvance && step === "activity") {
       if (selectedRepoIds.length === 0) {
-        return { text: "Select at least one source", tone: "warning" };
+        return { text: t("footer.selectSource"), tone: "warning" };
       }
       if (eventCounts.selected === 0) {
-        return { text: "Select at least one event", tone: "warning" };
+        return { text: t("footer.selectEvent"), tone: "warning" };
       }
     }
     if (
@@ -868,30 +1036,36 @@ export function CreateContentDialog({
       selectedFormats.length === 0
     ) {
       return {
-        text: "Select a content format before creating",
+        text: t("footer.selectFormatBeforeCreating"),
         tone: "warning",
       };
     }
     if (step === "formats") {
       return {
-        text: `${selectedFormats.length} format${selectedFormats.length === 1 ? "" : "s"} selected`,
+        text: t("footer.formatsSelected", { count: selectedFormats.length }),
         tone: "muted",
       };
     }
     if (step === "activity") {
       if (selectedRepoIds.length === 0) {
-        return { text: "No sources selected yet", tone: "muted" };
+        return { text: tCommon("labels.noSourcesSelectedYet"), tone: "muted" };
       }
       return {
-        text: `${eventCounts.selected} / ${eventCounts.total} events · ${selectedRepoIds.length} source${selectedRepoIds.length === 1 ? "" : "s"}`,
+        text: t("footer.eventsAndSources", {
+          selected: eventCounts.selected,
+          total: eventCounts.total,
+          sources: selectedRepoIds.length,
+        }),
         tone: "muted",
       };
     }
     return {
       text:
         selectedBrandVoiceIds.length === 0
-          ? "No identities selected"
-          : `${selectedBrandVoiceIds.length} ${selectedBrandVoiceIds.length === 1 ? "identity" : "identities"} selected`,
+          ? t("footer.noIdentities")
+          : t("footer.identitiesSelected", {
+              count: selectedBrandVoiceIds.length,
+            }),
       tone: "muted",
     };
   }, [
@@ -901,25 +1075,22 @@ export function CreateContentDialog({
     selectedRepoIds.length,
     eventCounts,
     selectedBrandVoiceIds.length,
+    t,
   ]);
 
   return (
     <>
       <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-        {!hideTrigger && (
-          <ResponsiveDialogTrigger
-            render={
-              <CreateContentButton
-                disabled={!organizationId || !isProjectResolved}
-              />
-            }
-          />
-        )}
+        <CreateContentDialogTrigger
+          hidden={hideTrigger}
+          isProjectResolved={isProjectResolved}
+          organizationId={organizationId}
+        />
         <ResponsiveDialogContent className="flex h-[85vh] max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
           <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
             <div className="flex items-center justify-between gap-4">
               <ResponsiveDialogTitle className="text-base">
-                {STEP_TITLES[step]}
+                {stepLabels[step].title}
               </ResponsiveDialogTitle>
               <StepProgress activeIndex={stepIndex} onStepSelect={goToStep} />
             </div>
@@ -1020,104 +1191,34 @@ export function CreateContentDialog({
               )}
             </div>
 
-            <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  {step !== "formats" && (
-                    <Button
-                      disabled={mutation.isPending}
-                      onClick={goBack}
-                      type="button"
-                      variant="outline"
-                    >
-                      <HugeiconsIcon
-                        className="size-3.5"
-                        icon={ArrowLeft01Icon}
-                      />
-                      Back
-                    </Button>
-                  )}
-                  <span
-                    className={cn(
-                      "flex items-center gap-1.5 text-xs",
-                      footerLeft.tone === "warning"
-                        ? "text-destructive font-medium"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {footerLeft.tone === "warning" && (
-                      <HugeiconsIcon
-                        className="size-3.5"
-                        icon={AlertCircleIcon}
-                      />
-                    )}
-                    {footerLeft.text}
-                  </span>
-                </div>
-                {step === "identities" ? (
-                  <Button
-                    disabled={mutation.isPending || !isProjectResolved}
-                    onClick={handleCreate}
-                    type="button"
-                  >
-                    {mutation.isPending ? (
-                      <>
-                        <HugeiconsIcon
-                          className="size-4 animate-spin"
-                          icon={Loading03Icon}
-                        />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        {identityButtonLabel}
-                        <HugeiconsIcon
-                          className="size-3.5"
-                          icon={ArrowRight01Icon}
-                        />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    disabled={mutation.isPending}
-                    onClick={goNext}
-                    type="button"
-                  >
-                    Continue
-                    <HugeiconsIcon
-                      className="size-3.5"
-                      icon={ArrowRight01Icon}
-                    />
-                  </Button>
-                )}
-              </div>
-            </div>
+            <CreateContentDialogFooter
+              footer={footerLeft}
+              identityButtonLabel={identityButtonLabel}
+              isPending={mutation.isPending}
+              isProjectResolved={isProjectResolved}
+              onBack={goBack}
+              onCreate={handleCreate}
+              onNext={goNext}
+              step={step}
+            />
           </div>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-      {addRepoMode === "repository" && githubIntegrationId && (
-        <AddRepositoryDialog
-          integrationId={githubIntegrationId}
-          onOpenChange={handleAddRepoOpenChange}
-          open={addRepoOpen}
-          organizationId={organizationId}
-        />
-      )}
-      {addRepoMode === "integration" && (
-        <AddIntegrationDialog
-          onFlowComplete={handleIntegrationFlowComplete}
-          onOpenChange={handleAddRepoOpenChange}
-          onSuccess={handleIntegrationSuccess}
-          open={addRepoOpen}
-          organizationId={organizationId}
-        />
-      )}
+      <AddRepositoryFlowDialogs
+        githubIntegrationId={githubIntegrationId}
+        mode={addRepoMode}
+        onFlowComplete={handleIntegrationFlowComplete}
+        onOpenChange={handleAddRepoOpenChange}
+        onSuccess={handleIntegrationSuccess}
+        open={addRepoOpen}
+        organizationId={organizationId}
+      />
     </>
   );
 }
 
 function StepProgress({ activeIndex, onStepSelect }: StepProgressProps) {
+  const stepLabels = useWizardStepLabels();
   return (
     <div className="flex items-center gap-2">
       {STEP_ORDER.map((stepKey, idx) => {
@@ -1147,7 +1248,7 @@ function StepProgress({ activeIndex, onStepSelect }: StepProgressProps) {
                   : "text-muted-foreground"
               )}
             >
-              {STEP_LABELS[stepKey]}
+              {stepLabels[stepKey].label}
             </span>
           </>
         );

@@ -44,6 +44,7 @@ export interface FeedbackToolOptions extends FeedbackClientOptions {
 
 export interface FeedbackToolResult {
   content: { type: "text"; text: string }[];
+  structuredContent?: FeedbackSubmitResult;
   isError?: boolean;
 }
 
@@ -54,6 +55,7 @@ export interface FeedbackToolServer {
       description: string;
       annotations?: Record<string, unknown>;
       inputSchema: Record<string, unknown>;
+      outputSchema?: Record<string, unknown>;
     },
     handler: (args: Record<string, unknown>) => Promise<FeedbackToolResult>
   ): unknown;

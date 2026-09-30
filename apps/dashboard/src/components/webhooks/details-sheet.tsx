@@ -9,6 +9,7 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { WebhookAttemptList } from "@/components/webhooks/attempt-list";
@@ -27,6 +28,9 @@ export function WebhookDetailsSheet({
   retrying,
   canRetry,
 }: WebhookDetailsProps) {
+  const t = useTranslations("settings.panes.webhooks.details");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const detail = useQuery({
     ...dashboardOrpc.outboundWebhooks.detail.queryOptions({
       input: { organizationId, deliveryId: delivery?.id ?? "" },
@@ -47,17 +51,21 @@ export function WebhookDetailsSheet({
     >
       <SheetContent className="flex flex-col gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-xl">
         <SheetHeader className="border-b px-6 py-5 pr-14">
-          <SheetTitle>Delivery details</SheetTitle>
+          <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>
             {entry
-              ? formatLogTimestamp(entry.createdAt, "long")
-              : "Every attempt, from first send to final response."}
+              ? formatLogTimestamp(entry.createdAt, locale)
+              : t("description")}
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
           {entry ? <WebhookDeliverySummary entry={entry} /> : null}
           {loading ? (
-            <div className="space-y-2" role="status" aria-label="Loading">
+            <div
+              className="space-y-2"
+              role="status"
+              aria-label={tCommon("states.loading")}
+            >
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-24 rounded-lg" />
             </div>
@@ -70,7 +78,7 @@ export function WebhookDetailsSheet({
                 size="sm"
                 onClick={() => detail.refetch()}
               >
-                Try again
+                {tCommon("actions.tryAgain")}
               </Button>
             </div>
           ) : null}
@@ -78,7 +86,7 @@ export function WebhookDetailsSheet({
             <>
               <section className="space-y-3">
                 <h3 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-                  Attempt history
+                  {t("history")}
                 </h3>
                 <WebhookAttemptList attempts={detail.data.attempts} />
               </section>
@@ -87,16 +95,14 @@ export function WebhookDetailsSheet({
           ) : null}
         </div>
         <SheetFooter className="flex flex-wrap gap-2 border-t px-6 py-4 sm:flex-row sm:justify-between">
-          <p className="text-muted-foreground text-xs">
-            Delivery history is kept for 30 days.
-          </p>
+          <p className="text-muted-foreground text-xs">{t("retention")}</p>
           {entry?.status === "failed" ? (
             <Button
               disabled={retrying || !canRetry}
               variant="outline"
               onClick={() => onRetry(entry.id)}
             >
-              {retrying ? "Queueing…" : "Retry delivery"}
+              {retrying ? t("queueing") : t("retry")}
             </Button>
           ) : null}
         </SheetFooter>

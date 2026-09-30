@@ -1,6 +1,7 @@
 "use client";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { WEBHOOK_METRICS } from "@/constants/outbound-webhooks";
@@ -10,11 +11,12 @@ import type {
 } from "@/types/webhooks/outbound";
 
 export function WebhookMetrics({ stats }: WebhookMetricsProps) {
+  const t = useTranslations("settings.panes.webhooks.metrics");
   return (
     <div className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border sm:grid-cols-4">
       {WEBHOOK_METRICS.map((metric) => (
         <div key={metric.key} className="bg-background space-y-1 px-4 py-3">
-          <p className="text-muted-foreground text-xs">{metric.label}</p>
+          <p className="text-muted-foreground text-xs">{t(metric.key)}</p>
           {stats ? (
             <p className={cn("font-mono text-2xl tabular-nums", metric.tone)}>
               {stats[metric.key].toLocaleString()}
@@ -34,12 +36,14 @@ export function WebhookEndpoints({
   onRemove,
   onCreate,
 }: WebhookEndpointsProps) {
+  const t = useTranslations("settings.panes.webhooks");
+  const tActions = useTranslations("common.actions");
   if (endpoints.length === 0) {
     return (
       <div className="space-y-2 rounded-lg border p-8 text-center">
-        <p className="text-sm font-medium">Connect your first endpoint</p>
+        <p className="text-sm font-medium">{t("endpointsEmpty.title")}</p>
         <p className="text-muted-foreground text-xs">
-          Choose which events to send to your workflow.
+          {t("endpointsEmpty.description")}
         </p>
         <Button
           size="sm"
@@ -47,7 +51,7 @@ export function WebhookEndpoints({
           disabled={disabled}
           onClick={onCreate}
         >
-          Add endpoint
+          {t("addEndpoint")}
         </Button>
       </div>
     );
@@ -71,7 +75,7 @@ export function WebhookEndpoints({
             disabled={disabled}
             onClick={() => onRemove(endpoint.id)}
           >
-            Remove
+            {tActions("remove")}
           </Button>
         </li>
       ))}

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type SitemapStatus = "queued" | "crawling" | "ready" | "failed";
 
 export type SitemapPageCategory = "crawled" | "redirect" | "queued" | "failed";
@@ -18,6 +20,10 @@ export interface Sitemap {
   lastCrawledAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SitemapsQueryOptions {
+  enabled?: boolean;
 }
 
 export interface SitemapPage {
@@ -69,11 +75,8 @@ export interface SitemapSelectorProps {
   onSelect: (sitemapId: string) => void;
 }
 
-export interface SitemapStatsProps {
-  sitemap: Sitemap;
-}
-
 export interface SitemapPagesTableProps {
+  children?: ReactNode;
   sitemapId: string;
   organizationId: string;
   voiceId: string;

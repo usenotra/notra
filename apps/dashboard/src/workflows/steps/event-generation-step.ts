@@ -53,6 +53,7 @@ export async function runEventGeneration(
         companyDescription: brand?.companyDescription ?? undefined,
         audience: brand?.audience ?? undefined,
         customInstructions: brand?.customInstructions ?? null,
+        customTone: brand?.customTone ?? null,
       },
       sourceMetadata,
       autoPublish: trigger.autoPublish,

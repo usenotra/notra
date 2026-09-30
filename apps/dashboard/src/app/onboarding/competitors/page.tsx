@@ -4,18 +4,27 @@ import { normalizeCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
+import { ONBOARDING_STEP_COMPETITORS } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
-import { geoDashboardPath, geoOnboardingPath } from "@/utils/geo-paths";
+import {
+  geoDashboardPath,
+  geoOnboardingPath,
+  geoOnboardingPricingPath,
+} from "@/utils/geo-paths";
+import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { CompetitorsForm } from "./competitors-form";
 
-export const metadata: Metadata = {
-  title: "Pick your competitors",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("onboarding.competitors");
+  return { title: t("metaTitle") };
+}
 
 export default async function OnboardingCompetitorsPage({
   searchParams,
@@ -39,24 +48,30 @@ export default async function OnboardingCompetitorsPage({
     redirect("/onboarding/workspace");
   }
 
-  const { project } = await searchParams;
+  const { project, replay } = await searchParams;
   const projectId =
     typeof project === "string" && project ? project : undefined;
+  const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
+
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
 
   const [stage, hasPaidHistory] = await Promise.all([
     getGeoOnboardingStage(organization.id, projectId),
     hasPaidSubscriptionHistory(organization.id),
   ]);
-  const inOnboardingFlow = !hasPaidHistory;
-  const nextHref = inOnboardingFlow
-    ? "/onboarding/pricing"
-    : geoDashboardPath(organization.slug, projectId);
+  const inOnboardingFlow = isDevReplay || !hasPaidHistory;
+  const nextHref =
+    inOnboardingFlow && !isDevReplay
+      ? geoOnboardingPricingPath(projectId)
+      : geoDashboardPath(organization.slug, projectId);
 
-  if (stage === "brand") {
+  if (!isDevReplay && stage === "brand") {
     redirect(geoOnboardingPath(projectId));
-  }
-  if (stage === "complete") {
-    redirect(nextHref);
   }
 
   return (
@@ -66,6 +81,14 @@ export default async function OnboardingCompetitorsPage({
       inOnboardingFlow={inOnboardingFlow}
       nextHref={nextHref}
       organizationId={organization.id}
+      progressHrefs={onboardingProgressHrefs({
+        current: ONBOARDING_STEP_COMPETITORS,
+        hasBrand: true,
+        hasOrganization: true,
+        projectId,
+        replay: isDevReplay,
+        stage,
+      })}
       projectId={projectId}
     />
   );

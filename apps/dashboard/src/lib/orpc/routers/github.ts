@@ -1,16 +1,18 @@
 import {
   deleteGitHubAppInstallationForOrganization,
-  getGitHubAppInstallationPublishAccess,
+  getCachedGitHubAppCanPublish,
   GitHubAppNotConfiguredError,
   getGitHubAppInstallUrl,
   getSelectedGitHubAppRepositoryIds,
+  githubAppRepositoryCacheIsWarm,
   isGitHubAccountConnectionRequired,
   listGitHubAppInstallationsByOrganization,
   listGitHubAppRepositoriesEffect,
+  listStoredGitHubAppRepositories,
+  readCachedGitHubAppCanPublish,
   setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
 import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
-import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import {
   createOctokit,
   GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
@@ -26,8 +28,12 @@ import {
   saveGitHubAppRepositoriesInputSchema,
 } from "@notra/schemas/dashboard/github";
 import { Data, Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 
-import { GITHUB_INSTALL_STATE_TTL_SECONDS } from "@/constants/github";
+import {
+  GITHUB_INSTALL_STATE_TTL_SECONDS,
+  REPOSITORY_PROBE_UNAVAILABLE_CODE,
+} from "@/constants/github";
 import {
   INTEGRATION_AUTH_KINDS,
   INTEGRATION_PROVIDERS,
@@ -59,14 +65,15 @@ class GitHubRepositoryProbeError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-function mapGitHubAppInstallPreparationError(
+async function mapGitHubAppInstallPreparationError(
   error: GitHubAppInstallPreparationError
-): never {
+): Promise<Error> {
   if (error.cause instanceof GitHubAppNotConfiguredError) {
-    throw badRequest("GitHub App is not configured");
+    const tErrors = await getTranslations("errors.github");
+    return badRequest(tErrors("appNotConfigured"));
   }
 
-  throw internalServerError(error.message, error.cause);
+  return internalServerError(error.message, error.cause);
 }
 
 function hasNumericStatus(error: unknown): error is Error & { status: number } {
@@ -77,26 +84,50 @@ function hasNumericStatus(error: unknown): error is Error & { status: number } {
   );
 }
 
-function mapGitHubRepositoryProbeError(
+async function mapGitHubRepositoryProbeError(
   error: GitHubRepositoryProbeError
-): never {
+): Promise<Error> {
   const status = hasNumericStatus(error.cause) ? error.cause.status : 500;
+  const tErrors = await getTranslations("errors.integrations");
 
   if (status === 404) {
-    throw badRequest("Repository not found", { status: "not_found" });
-  }
-
-  if (status === 401 || status === 403) {
-    throw badRequest("Repository access denied", {
-      status: "unauthorized",
+    return badRequest(tErrors("repositoryInaccessible"), {
+      status: "not_found",
+      code: REPOSITORY_PROBE_UNAVAILABLE_CODE,
     });
   }
 
-  throw internalServerError("Failed to probe repository", error.cause);
+  if (status === 401 || status === 403) {
+    return badRequest(tErrors("repositoryInaccessible"), {
+      status: "unauthorized",
+      code: REPOSITORY_PROBE_UNAVAILABLE_CODE,
+    });
+  }
+
+  return internalServerError("Failed to probe repository", error.cause);
 }
 
 function toGitHubAccountType(accountType: string): GitHubAccountType {
   return accountType === "Organization" ? "Organization" : "User";
+}
+
+async function loadGitHubAppAccounts(
+  installations: Awaited<
+    ReturnType<typeof listGitHubAppInstallationsByOrganization>
+  >,
+  canPublishFor: (installationId: string) => Promise<boolean | null>
+) {
+  return Promise.all(
+    installations.map(async (installation) => ({
+      id: installation.accountId,
+      installationId: installation.installationId,
+      login: installation.accountLogin,
+      name: installation.accountName,
+      avatarUrl: installation.accountAvatarUrl,
+      type: toGitHubAccountType(installation.accountType),
+      canPublish: await canPublishFor(installation.installationId),
+    }))
+  );
 }
 
 const prepareGitHubAppInstall = Effect.fn("prepareGitHubAppInstall")(function* (
@@ -182,16 +213,62 @@ export const githubRouter = {
           };
         }
 
-        const { success: withinLimit } =
-          await ratelimit.githubAppRepositories.limit(
-            `${context.user.id}:${input.organizationId}`
-          );
-        if (!withinLimit) {
-          throw tooManyRequests(
-            "Too many GitHub repository requests. Please try again shortly."
-          );
+        const installationIds = installations.map(
+          (installation) => installation.id
+        );
+        const [accounts, repositories, selectedRepositoryIds] =
+          await Promise.all([
+            loadGitHubAppAccounts(installations, readCachedGitHubAppCanPublish),
+            listStoredGitHubAppRepositories(
+              input.organizationId,
+              installationIds
+            ),
+            getSelectedGitHubAppRepositoryIds(
+              input.organizationId,
+              installationIds
+            ),
+          ]);
+        return {
+          accounts,
+          repositories,
+          selectedRepositoryIds,
+        };
+      }),
+    catalog: authorizedProcedure
+      .input(organizationIdInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+        });
+
+        const installations = await listGitHubAppInstallationsByOrganization(
+          input.organizationId
+        );
+
+        if (installations.length === 0) {
+          return {
+            accounts: [],
+            repositories: [],
+            selectedRepositoryIds: [],
+          };
         }
 
+        if (!(await githubAppRepositoryCacheIsWarm(installations))) {
+          const { success: withinLimit } =
+            await ratelimit.githubAppRepositories.limit(
+              `${context.user.id}:${input.organizationId}`
+            );
+          if (!withinLimit) {
+            const tErrors = await getTranslations("errors.github");
+            throw tooManyRequests(tErrors("tooManyRepositoryRequests"));
+          }
+        }
+
+        const accountsPromise = loadGitHubAppAccounts(
+          installations,
+          getCachedGitHubAppCanPublish
+        );
         const { repositories, selectedRepositoryIds } = await runOrpcEffect(
           Effect.all(
             {
@@ -216,22 +293,7 @@ export const githubRouter = {
           ),
           toGitHubOperationOrpcError
         );
-        const accounts = await Promise.all(
-          installations.map(async (installation) => {
-            const publishAccess = await getGitHubAppInstallationPublishAccess(
-              installation.installationId
-            );
-            return {
-              id: installation.accountId,
-              installationId: installation.installationId,
-              login: installation.accountLogin,
-              name: installation.accountName,
-              avatarUrl: installation.accountAvatarUrl,
-              type: toGitHubAccountType(installation.accountType),
-              canPublish: githubAppInstallationCanPublishContent(publishAccess),
-            };
-          })
-        );
+        const accounts = await accountsPromise;
         return {
           accounts,
           repositories,
@@ -315,16 +377,12 @@ export const githubRouter = {
           organizationId: input.organizationId,
         });
 
-        return Effect.runPromise(
+        return runOrpcEffect(
           prepareGitHubAppInstall({
             ...input,
             userId: auth.user.id,
-          }).pipe(
-            Effect.match({
-              onFailure: mapGitHubAppInstallPreparationError,
-              onSuccess: (preparedInstall) => preparedInstall,
-            })
-          )
+          }),
+          mapGitHubAppInstallPreparationError
         );
       }),
   },
@@ -335,16 +393,15 @@ export const githubRouter = {
         context.user.id
       );
       if (!withinLimit) {
-        throw tooManyRequests(
-          "Too many GitHub repository checks. Please try again shortly."
-        );
+        const tErrors = await getTranslations("errors.github");
+        throw tooManyRequests(tErrors("tooManyRepositoryChecks"));
       }
 
       const octokit = createOctokit(input.token || undefined, {
         requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
       });
 
-      return Effect.runPromise(
+      return runOrpcEffect(
         Effect.tryPromise({
           try: async () => {
             const { data } = await octokit.request(
@@ -363,12 +420,8 @@ export const githubRouter = {
             };
           },
           catch: (cause) => new GitHubRepositoryProbeError({ cause }),
-        }).pipe(
-          Effect.match({
-            onFailure: mapGitHubRepositoryProbeError,
-            onSuccess: (repository) => repository,
-          })
-        )
+        }),
+        mapGitHubRepositoryProbeError
       );
     }),
 };

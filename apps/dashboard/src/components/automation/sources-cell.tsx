@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 const LINEAR_PREFIX = /^linear:/;
 
@@ -17,11 +18,12 @@ export function SourcesCell({
   repositoryIds,
   repositoryMap,
 }: SourcesCellProps) {
+  const tCommon = useTranslations("common");
   const count = repositoryIds.length;
   return (
     <Tooltip>
       <TooltipTrigger className="cursor-help">
-        {count} {count === 1 ? "source" : "sources"}
+        {tCommon("messages.countPluralOneSourceOther", { count })}
       </TooltipTrigger>
       <TooltipContent className="max-w-xs" side="top">
         <ul className="space-y-1">
@@ -35,7 +37,7 @@ export function SourcesCell({
                 ) : (
                   <Github className="size-3 shrink-0" />
                 )}
-                <span>{label}</span>
+                <span className="min-w-0 wrap-anywhere">{label}</span>
               </li>
             );
           })}

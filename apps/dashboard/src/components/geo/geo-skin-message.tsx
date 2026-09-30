@@ -1,12 +1,12 @@
 "use client";
 
-import { ChatgptMessage } from "@notra/ui/components/brainless/chatgpt/chatgpt-message";
-import { ClaudeChatMessage } from "@notra/ui/components/brainless/claude-chat/claude-chat-message";
-import { ClaudeMessage } from "@notra/ui/components/brainless/claude/claude-message";
-import { CodexMessage } from "@notra/ui/components/brainless/codex/codex-message";
-import { GeminiMessage } from "@notra/ui/components/brainless/gemini/gemini-message";
-import { OpencodeMessage } from "@notra/ui/components/brainless/opencode/opencode-message";
-import { PerplexityMessage } from "@notra/ui/components/brainless/perplexity/perplexity-message";
+import { ChatgptMessage } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-message";
+import { ClaudeChatMessage } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-message";
+import { ClaudeCodeMessage } from "@notra/ui/components/ai-skins/claude-code/claude-code-message";
+import { CodexMessage } from "@notra/ui/components/ai-skins/codex/codex-message";
+import { GeminiMessage } from "@notra/ui/components/ai-skins/gemini/gemini-message";
+import { OpencodeMessage } from "@notra/ui/components/ai-skins/opencode/opencode-message";
+import { PerplexityMessage } from "@notra/ui/components/ai-skins/perplexity/perplexity-message";
 
 import type { GeoSkinMessageProps } from "@/types/geo";
 
@@ -47,12 +47,12 @@ export function GeoSkinMessage({
   }
   if (skin === "claude-code") {
     if (from === "user") {
-      return <ClaudeMessage from={from}>{children}</ClaudeMessage>;
+      return <ClaudeCodeMessage from={from}>{children}</ClaudeCodeMessage>;
     }
     return (
       <div className="flex w-full flex-col items-start gap-3">
         {search}
-        <ClaudeMessage from={from}>{children}</ClaudeMessage>
+        <ClaudeCodeMessage from={from}>{children}</ClaudeCodeMessage>
         {actions}
       </div>
     );

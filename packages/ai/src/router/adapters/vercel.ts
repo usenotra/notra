@@ -1,5 +1,5 @@
 import { createGateway } from "@ai-sdk/gateway";
-import type { SharedV3ProviderMetadata } from "@ai-sdk/provider";
+import type { SharedV4ProviderMetadata } from "@ai-sdk/provider";
 import type {
   GatewayAdapter,
   GatewayBalance,
@@ -60,7 +60,7 @@ export function createVercelAdapter(
     },
     getBalance,
     extractRouteMetadata(
-      providerMetadata: SharedV3ProviderMetadata | undefined
+      providerMetadata: SharedV4ProviderMetadata | undefined
     ) {
       const gateway = providerMetadata?.gateway;
       if (!gateway || typeof gateway !== "object") {

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { changelog } from "@/../.source/server";
+import { MCP_USE_CASES, MCP_USE_CASES_PATH } from "@/constants/mcp-use-cases";
 import { fetchIntegrations } from "@/lib/integrations/fetch";
 import { getIntegrationHref } from "@/lib/integrations/helpers";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/utils/authors";
 import { listNotraBlogPosts } from "@/utils/blog";
 import { listNotraChangelogPosts } from "@/utils/changelog";
+import { getMcpUseCaseHref } from "@/utils/mcp-use-cases";
 import { SITE_URL } from "@/utils/urls";
 
 import { getShowcaseEntrySlug, SHOWCASE_COMPANIES } from "../utils/showcase";
@@ -114,6 +116,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/mcp`,
       lastModified: STATIC_PAGE_LAST_MODIFIED,
     },
+    {
+      url: `${SITE_URL}${MCP_USE_CASES_PATH}`,
+      lastModified: STATIC_PAGE_LAST_MODIFIED,
+    },
+    ...MCP_USE_CASES.map((entry) => ({
+      url: `${SITE_URL}${getMcpUseCaseHref(entry)}`,
+      lastModified: STATIC_PAGE_LAST_MODIFIED,
+    })),
     {
       url: `${SITE_URL}/feedback-md`,
       lastModified: STATIC_PAGE_LAST_MODIFIED,

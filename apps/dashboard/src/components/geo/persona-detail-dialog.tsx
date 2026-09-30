@@ -1,0 +1,422 @@
+"use client";
+
+import {
+  AiChat01Icon,
+  Loading03Icon,
+  PauseIcon,
+  PlayIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
+
+import { Button } from "@/components/button";
+import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
+import { PersonaAvatar } from "@/components/geo/persona-avatar";
+import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
+import { PersonaPrompts } from "@/components/geo/persona-prompts";
+import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
+import { GeoConversationSkeleton } from "@/components/geo/skeleton-parts";
+import { GEO_PERSONA_DIALOG_VIEWS } from "@/constants/geo-personas";
+import { useIsGeoScanning } from "@/lib/hooks/use-geo";
+import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
+import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
+import type { GeoSequenceEngineThread } from "@/types/geo";
+import type {
+  PersonaDetailDialogProps,
+  PersonaDetailHeaderProps,
+  PersonaConversationEmptyProps,
+  PersonaConversationProps,
+  PersonaDialogView,
+} from "@/types/geo-personas-ui";
+import {
+  adjacentPromptEngine,
+  promptEngineArrowDelta,
+} from "@/utils/geo-prompt-engines";
+
+const DEFAULT_VIEW: PersonaDialogView = "profile";
+
+function latestCheckAt(threads: GeoSequenceEngineThread[]): string | null {
+  let latest: string | null = null;
+  for (const thread of threads) {
+    for (const turn of thread.turns) {
+      if (!latest || turn.lastCheckedAt > latest) {
+        latest = turn.lastCheckedAt;
+      }
+    }
+  }
+  return latest;
+}
+
+function PersonaDetailHeader({
+  persona,
+  threads,
+  active,
+  scans,
+  selectedScanId,
+  view,
+  isRunning,
+  onRun,
+  onSelectScan,
+  onEngineChange,
+  onViewChange,
+}: PersonaDetailHeaderProps) {
+  const t = useTranslations("geo.personaDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("common.labels");
+  const viewLabels: Record<PersonaDialogView, string> = {
+    conversation: tGeoShared("conversation"),
+    prompts: tLabels("prompts"),
+    profile: t("views.profile"),
+  };
+  const locale = useLocale();
+  const latestCheck = latestCheckAt(threads);
+  const selectedScan =
+    scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
+
+  return (
+    <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
+      <div className="flex items-start gap-3">
+        <PersonaAvatar className="mt-0.5 size-12" persona={persona} size="lg" />
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <div className="flex min-w-0 items-center gap-3">
+            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance wrap-anywhere">
+              {persona.name}
+            </SheetTitle>
+            <Button
+              className="shrink-0"
+              disabled={
+                !persona.enabled ||
+                persona.conversationPrompts.length === 0 ||
+                isRunning
+              }
+              onClick={onRun}
+              size="sm"
+              type="button"
+            >
+              <HugeiconsIcon
+                className={isRunning ? "animate-spin" : undefined}
+                icon={isRunning ? Loading03Icon : PlayIcon}
+                size={14}
+              />
+              {isRunning ? t("running") : tGeoShared("runScan")}
+            </Button>
+          </div>
+          <SheetDescription className="text-muted-foreground text-sm leading-snug">
+            {persona.role} · {persona.company}
+          </SheetDescription>
+          {latestCheck ? (
+            <SheetDescription className="text-muted-foreground text-xs leading-snug">
+              {formatAiTrafficTimestamp(latestCheck, locale)}
+            </SheetDescription>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Tabs
+          className="gap-0"
+          onValueChange={(value) => onViewChange(value as PersonaDialogView)}
+          value={view}
+        >
+          <TabsList aria-label={t("viewAria")}>
+            {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
+              <TabsTrigger
+                className="px-2.5 text-xs"
+                key={option}
+                value={option}
+              >
+                {viewLabels[option]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+      {view === "conversation" && active ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <PromptEngineSwitcher
+            active={active}
+            onChange={onEngineChange}
+            results={threads}
+          />
+          {selectedScan && selectedScanId ? (
+            <Select
+              disabled={isRunning}
+              onValueChange={onSelectScan}
+              value={selectedScanId}
+            >
+              <SelectTrigger aria-label={t("scanHistory")} className="w-44">
+                <SelectValue>
+                  {selectedScan.id === scans.at(0)?.id
+                    ? t("latestScan", {
+                        time: formatAiTrafficTimestamp(
+                          selectedScan.capturedAt,
+                          locale
+                        ),
+                      })
+                    : formatAiTrafficTimestamp(selectedScan.capturedAt, locale)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {scans.map((scan, index) => (
+                  <SelectItem key={scan.id} value={scan.id}>
+                    {index === 0
+                      ? t("latestScan", {
+                          time: formatAiTrafficTimestamp(
+                            scan.capturedAt,
+                            locale
+                          ),
+                        })
+                      : formatAiTrafficTimestamp(scan.capturedAt, locale)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+        </div>
+      ) : null}
+    </SheetHeader>
+  );
+}
+
+function ConversationEmpty({
+  enabled,
+  isScanning,
+  canRun,
+  onRun,
+}: PersonaConversationEmptyProps) {
+  const t = useTranslations("geo.personaDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  if (isScanning) {
+    return (
+      <Empty aria-busy="true" aria-live="polite" className="h-full">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon
+              className="motion-safe:animate-spin"
+              icon={Loading03Icon}
+            />
+          </EmptyMedia>
+          <EmptyTitle>
+            <Shimmer as="span">{t("scanningTitle")}</Shimmer>
+          </EmptyTitle>
+          <EmptyDescription>{t("scanningDescription")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+  return (
+    <Empty className="h-full">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={enabled ? AiChat01Icon : PauseIcon} />
+        </EmptyMedia>
+        <EmptyTitle>{enabled ? t("emptyTitle") : t("pausedTitle")}</EmptyTitle>
+        <EmptyDescription>
+          {enabled ? t("emptyDescription") : t("pausedDescription")}
+        </EmptyDescription>
+      </EmptyHeader>
+      {enabled ? (
+        <EmptyContent>
+          <Button disabled={!canRun} onClick={onRun} size="sm" type="button">
+            <HugeiconsIcon icon={PlayIcon} size={14} />
+            {tGeoShared("runScan")}
+          </Button>
+        </EmptyContent>
+      ) : null}
+    </Empty>
+  );
+}
+
+function PersonaConversation({
+  organizationId,
+  active,
+  isLoading,
+  isScanning,
+  enabled,
+  canRun,
+  onRun,
+}: PersonaConversationProps) {
+  if (active) {
+    return (
+      <ConversationReplayThread
+        engine={active.engine}
+        key={active.engine}
+        organizationId={organizationId}
+        progress={null}
+        turns={active.turns}
+      />
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="h-full overflow-y-auto" aria-busy="true">
+        <GeoConversationSkeleton />
+      </div>
+    );
+  }
+  return (
+    <ConversationEmpty
+      canRun={canRun}
+      enabled={enabled}
+      isScanning={isScanning}
+      onRun={onRun}
+    />
+  );
+}
+
+export function PersonaDetailDialog({
+  open,
+  onOpenChange,
+  organizationId,
+  persona: personaProp,
+}: PersonaDetailDialogProps) {
+  const [persona, releasePersona] = useRetainedValue(personaProp);
+  const [view, setView] = useState<PersonaDialogView>(DEFAULT_VIEW);
+  const showConversation = view === "conversation";
+  const generatePersona = useGeoPersonasGenerate(organizationId);
+  const {
+    runPersona,
+    threads,
+    active,
+    isWaitingForScan,
+    isConversationLoading: showConversationLoading,
+    scans,
+    selectedScanId,
+    selectScan,
+    setEngine,
+  } = usePersonaConversation(organizationId, persona, open, showConversation);
+
+  const isProjectScanning = useIsGeoScanning(organizationId);
+
+  if (!persona) {
+    return null;
+  }
+
+  const onRun = () =>
+    runPersona.mutate(persona.id, {
+      onSuccess: () => selectScan(null),
+    });
+
+  return (
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releasePersona}
+      open={open}
+    >
+      <SheetContent
+        onKeyDown={(event) => {
+          if (!showConversation || !active || event.defaultPrevented) {
+            return;
+          }
+          if (
+            event.target instanceof HTMLElement &&
+            event.target.closest(
+              '[role="tablist"], [role="menu"], [role="listbox"]'
+            )
+          ) {
+            return;
+          }
+          const delta = promptEngineArrowDelta(event, threads.length);
+          if (delta === null) {
+            return;
+          }
+          event.preventDefault();
+          setEngine(
+            adjacentPromptEngine(
+              threads.map((thread) => thread.engine),
+              active.engine,
+              delta
+            )
+          );
+        }}
+        side="right"
+        className="flex flex-col gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),40rem)]"
+      >
+        <PersonaDetailHeader
+          active={active}
+          isRunning={runPersona.isPending}
+          onEngineChange={setEngine}
+          onRun={onRun}
+          onSelectScan={selectScan}
+          onViewChange={setView}
+          persona={persona}
+          scans={scans}
+          selectedScanId={selectedScanId}
+          view={view}
+          threads={threads}
+        />
+
+        <div className="relative min-h-0 flex-1 overflow-hidden border-t">
+          {showConversation ? (
+            <PersonaConversation
+              organizationId={organizationId}
+              active={active}
+              isLoading={showConversationLoading}
+              isScanning={
+                isWaitingForScan ||
+                (persona.enabled &&
+                  persona.conversationPrompts.length > 0 &&
+                  isProjectScanning)
+              }
+              enabled={persona.enabled}
+              canRun={
+                persona.conversationPrompts.length > 0 && !runPersona.isPending
+              }
+              onRun={onRun}
+            />
+          ) : null}
+          {view === "prompts" ? (
+            <PersonaPrompts
+              disabled={generatePersona.isPending}
+              isGenerating={
+                generatePersona.isPending &&
+                generatePersona.generatingPersonaId === persona.id
+              }
+              onGenerate={() =>
+                generatePersona.mutate({
+                  personaId: persona.id,
+                  promptsOnly: true,
+                })
+              }
+              prompts={persona.conversationPrompts}
+            />
+          ) : null}
+          <div hidden={view !== "profile"} className="h-full">
+            <PersonaProfileEditor
+              key={`${persona.id}:${persona.updatedAt}`}
+              persona={persona}
+              organizationId={organizationId}
+              onCancel={() => onOpenChange(false)}
+            />
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

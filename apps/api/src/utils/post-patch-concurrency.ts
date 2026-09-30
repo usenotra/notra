@@ -15,6 +15,6 @@ export function postUpdatedAtMatches(stored: Date, expected: Date) {
 export function matchesPostUpdatedAt(expected: Date) {
   return eq(
     sql<Date>`date_trunc('milliseconds', ${posts.updatedAt})`,
-    normalizePostUpdatedAt(expected)
+    sql.param(normalizePostUpdatedAt(expected), posts.updatedAt)
   );
 }

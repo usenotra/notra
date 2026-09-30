@@ -12,8 +12,9 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -23,22 +24,33 @@ import {
 } from "@/components/providers/organization-provider";
 import { OrganizationMembershipActionDialog } from "@/components/settings/organization-membership-action-dialog";
 import { authClient } from "@/lib/auth/client";
-import {
-  getOrganizationMembershipAction,
-  getOrganizationMembershipActionLabel,
-} from "@/lib/organizations/membership-action";
+import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
+import { getOrganizationMembershipAction } from "@/lib/organizations/membership-action";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { errorMessageOr } from "@/lib/utils";
 import { setLastVisitedOrganization } from "@/utils/cookies";
-import { getHeardAboutNotraLabel } from "@/utils/onboarding";
+import { isHeardAboutNotraSource } from "@/utils/onboarding";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { settingsPath } from "@/utils/settings-path";
 
 export function OrganizationsSection() {
+  const t = useTranslations("settings.organizations");
+  const tCommon = useTranslations("common");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tAction = useTranslations("settings.membershipAction");
+  const heardAboutLabels = useHeardAboutLabels();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { organizations, activeOrganization, isLoading } =
-    useOrganizationsContext();
+  const {
+    organizations,
+    activeOrganization,
+    isOrganizationListLoading,
+    requestOrganizations,
+  } = useOrganizationsContext();
+
+  useEffect(() => {
+    requestOrganizations();
+  }, [requestOrganizations]);
 
   const [isSwitching, setIsSwitching] = useState<string | null>(null);
   const [isProcessingOrgAction, setIsProcessingOrgAction] = useState<
@@ -75,7 +87,10 @@ export function OrganizationsSection() {
 
       if (error) {
         toast.error(
-          errorMessageOr(error.message, "Failed to switch organization")
+          errorMessageOr(
+            error.message,
+            tCommon("labels.failedToSwitchOrganization")
+          )
         );
         setIsSwitching(null);
         return;
@@ -89,7 +104,7 @@ export function OrganizationsSection() {
 
       router.push(settingsPath(org.slug, "account"));
     } catch (error) {
-      toast.error("Failed to switch organization");
+      toast.error(tCommon("labels.failedToSwitchOrganization"));
       console.error(error);
     }
     setIsSwitching(null);
@@ -109,9 +124,9 @@ export function OrganizationsSection() {
       });
 
       if (action === "delete") {
-        toast.success(`Deleted ${org.name}`);
+        toast.success(tSettingsShared("deletedName", { name: org.name }));
       } else {
-        toast.success(`Left ${org.name}`);
+        toast.success(tSettingsShared("leftName", { name: org.name }));
       }
 
       await queryClient.invalidateQueries({
@@ -143,29 +158,29 @@ export function OrganizationsSection() {
         }
       }
     } catch (error) {
-      toast.error("Failed to update organization membership");
+      toast.error(tSettingsShared("failedToUpdateOrganizationMembership"));
       console.error(error);
     }
     setIsProcessingOrgAction(null);
   }
 
-  if (isLoading) {
+  if (isOrganizationListLoading) {
     return (
-      <TitleCard className="lg:col-span-2" heading="Organizations">
-        <div className="space-y-3">
+      <TitleCard heading={tCommon("labels.organizations")}>
+        <div className="divide-y">
           {[1, 2, 3].map((i) => (
             <div
-              className="flex items-center justify-between rounded-lg border p-4"
+              className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
               key={i}
             >
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-10 rounded-lg" />
-                <div className="space-y-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <Skeleton className="size-10 shrink-0 rounded-lg" />
+                <div className="min-w-0 space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-3 w-16" />
                 </div>
               </div>
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20 shrink-0" />
             </div>
           ))}
         </div>
@@ -174,32 +189,37 @@ export function OrganizationsSection() {
   }
 
   return (
-    <TitleCard className="lg:col-span-2" heading="Organizations">
+    <TitleCard
+      className="lg:col-span-2"
+      heading={tCommon("labels.organizations")}
+    >
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">
-          Organizations you are a member of
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
 
-        <div className="space-y-3">
+        <div className="divide-y">
           {organizations.map((org) => {
             const isActive = activeOrganization?.id === org.id;
             const ownedOrg = ownedOrganizationsById.get(org.id);
             const isOwnedByCurrentUser = !!ownedOrg;
             const hasOtherMembers = (ownedOrg?.memberCount ?? 0) > 1;
-            const heardAboutLabel = getHeardAboutNotraLabel(
-              ownedOrg?.heardAboutNotraSource
-            );
+            const heardAboutSource = ownedOrg?.heardAboutNotraSource;
+            let heardAboutLabel: string | null = null;
+            if (heardAboutSource) {
+              heardAboutLabel = isHeardAboutNotraSource(heardAboutSource)
+                ? heardAboutLabels[heardAboutSource]
+                : heardAboutSource;
+            }
             const action =
               getOrganizationMembershipAction(isOwnedByCurrentUser);
-            const actionLabel = getOrganizationMembershipActionLabel(action);
+            const actionLabel = tAction("label", { action });
 
             return (
               <div
-                className="flex items-center justify-between rounded-lg border p-4"
+                className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                 key={org.id}
               >
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-10 rounded-lg after:rounded-lg">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="size-10 shrink-0 rounded-lg after:rounded-lg">
                     <AvatarImage
                       alt={org.name}
                       className="rounded-lg"
@@ -209,32 +229,44 @@ export function OrganizationsSection() {
                       {org.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{org.name}</p>
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <p
+                        className="max-w-full min-w-0 truncate text-sm font-medium"
+                        title={org.name}
+                      >
+                        {org.name}
+                      </p>
                       {isActive && (
                         <Badge
                           className="bg-success/10 text-success hover:bg-success/20 px-1.5 py-0 text-[10px] font-semibold"
                           variant="secondary"
                         >
-                          Active
+                          {tCommon("states.active")}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-muted-foreground text-xs">{org.slug}</p>
+                    <p
+                      className="text-muted-foreground truncate text-xs"
+                      title={org.slug}
+                    >
+                      {org.slug}
+                    </p>
                     {isOwnedByCurrentUser && heardAboutLabel ? (
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Heard about Notra: {heardAboutLabel}
-                        {ownedOrg?.heardAboutNotraSource === "other" &&
-                        ownedOrg.heardAboutNotraOther
-                          ? ` (${ownedOrg.heardAboutNotraOther})`
-                          : ""}
+                      <p className="text-muted-foreground mt-1 text-xs wrap-anywhere">
+                        {t("heardAbout", {
+                          source:
+                            ownedOrg?.heardAboutNotraSource === "other" &&
+                            ownedOrg.heardAboutNotraOther
+                              ? `${heardAboutLabel} (${ownedOrg.heardAboutNotraOther})`
+                              : heardAboutLabel,
+                        })}
                       </p>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
                   {!isActive && (
                     <Button
                       disabled={isSwitching === org.id}
@@ -247,7 +279,7 @@ export function OrganizationsSection() {
                       ) : (
                         <>
                           <HugeiconsIcon icon={ViewIcon} size={16} />
-                          View
+                          {t("view")}
                         </>
                       )}
                     </Button>
@@ -285,9 +317,7 @@ export function OrganizationsSection() {
 
         {organizations.length === 0 && (
           <div className="rounded-lg border border-dashed p-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              You are not a member of any organizations
-            </p>
+            <p className="text-muted-foreground text-sm">{t("empty")}</p>
           </div>
         )}
       </div>

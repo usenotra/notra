@@ -1,16 +1,12 @@
 "use client";
 
-import { GEO_UPGRADE_TOOLTIP } from "@notra/geo-core/constants/geo";
 import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 
-import {
-  NAV_CATEGORY_LABELS,
-  NAV_GEO_LINKS,
-  NAV_GEO_VISIBILITY_LINKS,
-} from "@/constants/nav";
+import { NAV_GEO_LINKS, NAV_GEO_VISIBILITY_LINKS } from "@/constants/nav";
 import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
 import type { NavGeoProps } from "@/types/components/nav";
@@ -21,6 +17,8 @@ import { NavLockHint } from "./nav-lock-hint";
 import { SidebarLabel } from "./sidebar-label";
 
 export function NavGeo({ slug, pathname, projectId }: NavGeoProps) {
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const visibility = useNavVisibility();
   const { isLocked: geoLocked } = useHasGeoFeature();
   const activeLink = resolveActiveNavLink(pathname, slug, NAV_GEO_LINKS);
@@ -31,8 +29,8 @@ export function NavGeo({ slug, pathname, projectId }: NavGeoProps) {
     <>
       <SidebarGroup>
         <SidebarGroupLabel>
-          <SidebarLabel>{NAV_CATEGORY_LABELS.visibility}</SidebarLabel>
-          {geoLocked && <NavLockHint message={GEO_UPGRADE_TOOLTIP} />}
+          <SidebarLabel>{tCommon("labels.visibility")}</SidebarLabel>
+          {geoLocked && <NavLockHint message={t("geoUpgradeTooltip")} />}
         </SidebarGroupLabel>
         <NavList
           activeLink={activeLink}
@@ -45,7 +43,7 @@ export function NavGeo({ slug, pathname, projectId }: NavGeoProps) {
       </SidebarGroup>
       <SidebarGroup>
         <SidebarGroupLabel>
-          <SidebarLabel>{NAV_CATEGORY_LABELS.improve}</SidebarLabel>
+          <SidebarLabel>{t("groups.improve")}</SidebarLabel>
         </SidebarGroupLabel>
         <NavList
           activeLink={activeLink}

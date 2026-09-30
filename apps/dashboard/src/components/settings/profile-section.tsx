@@ -2,7 +2,6 @@
 
 import { Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { userNameSchema } from "@notra/schemas/dashboard/auth/user-actions";
 import {
   Avatar,
   AvatarFallback,
@@ -13,8 +12,10 @@ import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
@@ -27,6 +28,10 @@ export function ProfileSection({
   user,
   onSessionRefetch,
 }: ProfileSectionProps) {
+  const t = useTranslations("settings.profile");
+  const tCommon2 = useTranslations("common");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common.actions");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,25 +50,20 @@ export function ProfileSection({
 
       if (result.error) {
         toast.error(
-          errorMessageOr(
-            result.error.message,
-            "Failed to update profile picture"
-          )
+          errorMessageOr(result.error.message, t("pictureUpdateFailed"))
         );
         setIsUploadingAvatar(false);
         return;
       }
 
-      toast.success("Profile picture updated");
+      toast.success(t("pictureUpdated"));
       if (onSessionRefetch) {
         await onSessionRefetch();
       }
     } catch (error) {
       console.error("Avatar upload error:", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to upload profile picture"
+        error instanceof Error ? error.message : t("pictureUploadFailed")
       );
     }
     setIsUploadingAvatar(false);
@@ -74,11 +74,15 @@ export function ProfileSection({
       name: user.name,
     },
     onSubmit: async ({ value }) => {
-      const validated = userNameSchema.safeParse(value.name);
+      const validated = z
+        .string()
+        .trim()
+        .min(1, t("nameEmpty"))
+        .safeParse(value.name);
 
       if (!validated.success) {
         const issue = validated.error?.issues[0];
-        toast.error(issue?.message ?? "Invalid name");
+        toast.error(issue?.message ?? t("nameEmpty"));
         return;
       }
 
@@ -93,26 +97,24 @@ export function ProfileSection({
         });
 
         if (result.error) {
-          toast.error(
-            errorMessageOr(result.error.message, "Failed to update profile")
-          );
+          toast.error(errorMessageOr(result.error.message, t("updateFailed")));
           setIsUpdating(false);
           return;
         }
 
-        toast.success("Profile updated successfully");
+        toast.success(t("updated"));
         if (onSessionRefetch) {
           await onSessionRefetch();
         }
       } catch {
-        toast.error("Failed to update profile");
+        toast.error(t("updateFailed"));
       }
       setIsUpdating(false);
     },
   });
 
   return (
-    <TitleCard heading="Your Profile">
+    <TitleCard heading={t("heading")}>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <input
@@ -124,7 +126,7 @@ export function ProfileSection({
             type="file"
           />
           <button
-            aria-label="Upload profile picture"
+            aria-label={t("uploadPictureAria")}
             className="group group/avatar relative cursor-pointer disabled:cursor-not-allowed"
             disabled={isUploadingAvatar}
             onClick={() => fileInputRef.current?.click()}
@@ -139,7 +141,7 @@ export function ProfileSection({
                 src={getUserAvatarUrl(user.image, user.email)}
               />
               <AvatarFallback className="rounded-lg text-xl">
-                {user.name.charAt(0).toUpperCase()}
+                {(user.name || user.email).charAt(0).toUpperCase()}
               </AvatarFallback>
               {isUploadingAvatar && (
                 <span className="bg-background/80 absolute inset-0 flex items-center justify-center rounded-lg">
@@ -151,12 +153,12 @@ export function ProfileSection({
               </span>
             </Avatar>
           </button>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Profile picture</p>
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-medium">{t("picture")}</p>
             <p className="text-muted-foreground text-xs">
               {isUploadingAvatar
-                ? "Uploading..."
-                : "Click to upload a new profile picture"}
+                ? tSettingsShared("uploading")
+                : t("uploadHint")}
             </p>
           </div>
         </div>
@@ -170,21 +172,26 @@ export function ProfileSection({
           <form.Field name="name">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Full Name</Label>
-                <div className="flex gap-2">
+                <Label htmlFor={field.name}>{t("fullName")}</Label>
+                <div className="flex min-w-0 gap-2">
                   <Input
                     autoComplete="name"
                     id={field.name}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Your name"
+                    placeholder={tCommon2("labels.yourName")}
                     value={field.state.value}
                   />
-                  <Button disabled={isUpdating} size="default" type="submit">
+                  <Button
+                    className="shrink-0"
+                    disabled={isUpdating}
+                    size="default"
+                    type="submit"
+                  >
                     {isUpdating ? (
                       <Loader2Icon className="size-4 animate-spin" />
                     ) : (
-                      "Save"
+                      tCommon("save")
                     )}
                   </Button>
                 </div>

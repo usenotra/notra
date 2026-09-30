@@ -11,6 +11,25 @@ const scanSchema = z
     startedAt: z.string(),
     finishedAt: z.string().nullable(),
     createdAt: z.string(),
+    summary: z.object({
+      plannedChecks: z.number().int().min(0).nullable(),
+      completedChecks: z.number().int().min(0),
+      mentionCount: z.number().int().min(0),
+      failedChecks: z.number().int().min(0),
+      engines: z.array(
+        z.object({
+          engine: z.string(),
+          plannedChecks: z.number().int().min(0).nullable(),
+          completedChecks: z.number().int().min(0),
+          mentionCount: z.number().int().min(0),
+          failedChecks: z.number().int().min(0),
+        })
+      ),
+    }),
+    errorCode: z.string().nullable(),
+    errorMessage: z.string().nullable(),
+    failedStage: z.enum(["handoff", "execution", "stale"]).nullable(),
+    retryable: z.boolean().nullable(),
   })
   .openapi("GeoScan");
 

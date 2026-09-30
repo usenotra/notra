@@ -1,16 +1,19 @@
 import {
+  GEO_COMMERCE_AUDIENCE_ENGINE_IDS,
   GEO_DEFAULT_ENGINE_IDS,
+  GEO_GENERAL_AUDIENCE_ENGINE_IDS,
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_CATALOG_STATIC,
   GEO_MODEL_EXCLUDED_ID_PATTERN,
   GEO_MODEL_EXCLUDED_IDS,
   GEO_MODEL_EXCLUDED_SLUG_PATTERN,
   GEO_MODEL_EXCLUDED_TAGS,
+  GEO_MODEL_HIDDEN_ID_PATTERN,
   GEO_MODEL_PROVIDERS,
-  GEO_MODELS_PER_PROVIDER,
   GEO_STATIC_ENGINE_ENV,
 } from "../constants/geo-model-catalog";
 import type {
+  GeoAudienceType,
   GeoGatewayModel,
   GeoModelCatalog,
   GeoModelCatalogEntry,
@@ -20,6 +23,9 @@ import type {
 const MS_PER_SECOND = 1000;
 const DAY_LENGTH = 10;
 const DEFAULT_ENGINE_SET = new Set<string>(GEO_DEFAULT_ENGINE_IDS);
+const SEED_RELEASE_DATES = new Map(
+  GEO_MODEL_CATALOG_SEED.map((entry) => [entry.id, entry.released])
+);
 
 function isEligibleFeedModel(model: GeoGatewayModel): boolean {
   if (model.type !== "language" || model.deprecated_at) {
@@ -44,14 +50,15 @@ function toCatalogEntry(
     provider,
     label: model.name,
     zdr: model.zdr,
-    released: toDayString(model.released),
+    released:
+      toDayString(model.released) || (SEED_RELEASE_DATES.get(model.id) ?? ""),
     default: DEFAULT_ENGINE_SET.has(model.id),
     gateways: ["vercel"],
   };
 }
 
 function toDayString(seconds: number | undefined): string {
-  if (seconds === undefined) {
+  if (!seconds) {
     return "";
   }
   return new Date(seconds * MS_PER_SECOND).toISOString().slice(0, DAY_LENGTH);
@@ -78,7 +85,9 @@ function staticEntriesForProvider(
 ): GeoModelCatalogEntry[] {
   return GEO_MODEL_CATALOG_STATIC.filter(
     (entry) =>
-      entry.provider === providerId && isGeoStaticEngineAvailable(entry)
+      entry.provider === providerId &&
+      !GEO_MODEL_EXCLUDED_IDS.has(entry.id) &&
+      isGeoStaticEngineAvailable(entry)
   );
 }
 
@@ -89,17 +98,24 @@ export function buildGeoModelCatalogFromFeed(
   for (const provider of GEO_MODEL_PROVIDERS) {
     const entries = feed
       .filter(
-        (model) => model.owned_by === provider.id && isEligibleFeedModel(model)
+        (model) =>
+          model.owned_by === provider.id &&
+          (provider.id !== "perplexity" || model.id === "perplexity/sonar") &&
+          isEligibleFeedModel(model)
       )
-      .sort((left, right) => (right.released ?? 0) - (left.released ?? 0))
-      .map((model) => toCatalogEntry(model, provider.id));
-    const newest = entries.slice(0, GEO_MODELS_PER_PROVIDER);
-    const olderDefaults = entries
-      .slice(GEO_MODELS_PER_PROVIDER)
-      .filter((entry) => entry.default);
+      .map((model) => toCatalogEntry(model, provider.id))
+      .sort(byReleaseDescending);
+    const fallback =
+      provider.id === "perplexity"
+        ? GEO_MODEL_CATALOG_SEED.filter(
+            (entry) =>
+              entry.provider === provider.id &&
+              !GEO_MODEL_EXCLUDED_IDS.has(entry.id) &&
+              !entries.some((model) => model.id === entry.id)
+          )
+        : [];
     models.push(
-      ...newest,
-      ...olderDefaults,
+      ...markHiddenGeoModels([...entries, ...fallback]),
       ...staticEntriesForProvider(provider.id)
     );
   }
@@ -109,12 +125,36 @@ export function buildGeoModelCatalogFromFeed(
   return { providers, models };
 }
 
+function byReleaseDescending(
+  left: GeoModelCatalogEntry,
+  right: GeoModelCatalogEntry
+): number {
+  return right.released.localeCompare(left.released);
+}
+
+/**
+ * Hide niche variants from the picker. Defaults are never hidden. Hidden
+ * models stay in the catalog so stored selections keep resolving.
+ */
+function markHiddenGeoModels(
+  entries: readonly GeoModelCatalogEntry[]
+): GeoModelCatalogEntry[] {
+  return entries.map((entry) => {
+    const hidden = !entry.default && GEO_MODEL_HIDDEN_ID_PATTERN.test(entry.id);
+    return hidden ? { ...entry, hidden } : entry;
+  });
+}
+
 export function seedGeoModelCatalog(): GeoModelCatalog {
   const models: GeoModelCatalogEntry[] = [];
   for (const provider of GEO_MODEL_PROVIDERS) {
     models.push(
-      ...GEO_MODEL_CATALOG_SEED.filter(
-        (entry) => entry.provider === provider.id
+      ...markHiddenGeoModels(
+        GEO_MODEL_CATALOG_SEED.filter(
+          (entry) =>
+            entry.provider === provider.id &&
+            !GEO_MODEL_EXCLUDED_IDS.has(entry.id)
+        )
       ),
       ...staticEntriesForProvider(provider.id)
     );
@@ -161,12 +201,21 @@ const STATIC_ENGINE_IDS = new Set(
   GEO_MODEL_CATALOG_STATIC.map((entry) => entry.id)
 );
 
+/**
+ * Picker models for one provider. Hidden models are only listed while
+ * `selected` still contains them, so a project can switch them off.
+ */
 export function geoModelsForProvider(
   catalog: GeoModelCatalog,
-  providerId: GeoModelProviderId
+  providerId: GeoModelProviderId,
+  selected: ReadonlySet<string> = new Set()
 ): GeoModelCatalogEntry[] {
   return catalog.models
-    .filter((model) => model.provider === providerId)
+    .filter(
+      (model) =>
+        model.provider === providerId &&
+        (!model.hidden || selected.has(model.id))
+    )
     .sort((left, right) => {
       const leftStatic = STATIC_ENGINE_IDS.has(left.id);
       const rightStatic = STATIC_ENGINE_IDS.has(right.id);
@@ -185,4 +234,29 @@ export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {
     return defaults;
   }
   return catalog.models.slice(0, 1).map((model) => model.id);
+}
+
+/**
+ * Engines seeded at onboarding. Non-technical audiences get the models the
+ * assistant apps default to, but only while the catalog has all of them: a
+ * partial set would be stored as the project's selection for good, so it
+ * falls back to the full default set instead. The Google AI Overview is the
+ * one optional engine, since it depends on a credential.
+ */
+export function geoEnginesForAudience(
+  catalog: GeoModelCatalog,
+  audienceType: GeoAudienceType | undefined
+): string[] {
+  if (audienceType !== "general" && audienceType !== "commerce") {
+    return geoDefaultEngines(catalog);
+  }
+  const known = new Set(catalog.models.map((model) => model.id));
+  if (!GEO_GENERAL_AUDIENCE_ENGINE_IDS.every((id) => known.has(id))) {
+    return geoDefaultEngines(catalog);
+  }
+  const preferred =
+    audienceType === "commerce"
+      ? GEO_COMMERCE_AUDIENCE_ENGINE_IDS
+      : GEO_GENERAL_AUDIENCE_ENGINE_IDS;
+  return preferred.filter((id) => known.has(id));
 }

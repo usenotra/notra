@@ -1,50 +1,64 @@
 "use client";
 
-import { GEO_JOURNEY_TRAIL_TABLE_LIMIT } from "@notra/geo-core/constants/geo";
+import { Route01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
-import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 
+import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { JourneyDetailDialog } from "@/components/geo/journey-detail-dialog";
-import { JourneyPathTrail } from "@/components/geo/journey-path-trail";
+import { JourneyEmpty } from "@/components/geo/journey-empty";
+import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
 import {
   InstrumentEmpty,
+  InstrumentModule,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { trackEvent } from "@/lib/analytics/posthog-client";
 import type { JourneysCardProps } from "@/types/geo";
+import { withGeoProject } from "@/utils/geo-paths";
 import { tableHeightFor } from "@/utils/table";
 
-export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
-  const [selected, setSelected] = useState<GeoJourney | null>(null);
-  const openJourney = (journey: GeoJourney) => {
-    trackEvent(POSTHOG_EVENTS.GEO_JOURNEY_OPENED, {
-      visitor_type: journey.visitorType,
-      source: journey.source,
-      pages: journey.pages,
-      distinct_paths: journey.distinctPaths,
-    });
-    setSelected(journey);
-  };
+const JOURNEYS_PAGE_SIZE = 50;
+
+export function JourneysCard({
+  failed,
+  journeys,
+  organizationSlug,
+  onOpenJourney,
+  onPrefetchJourney,
+  loading = false,
+}: JourneysCardProps) {
+  const t = useTranslations("geo.journeysCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const [limit, setLimit] = useState(JOURNEYS_PAGE_SIZE);
+  const { projectId } = useGeoProjectScope();
+  const hasMore = limit < journeys.length;
 
   const columns: TableColumn<GeoJourney>[] = [
     {
       key: "source",
-      header: "Source",
+      header: tCommon("labels.source"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
         <button
-          aria-label={`Open ${formatGeoSource(row.source)} journey from ${formatAiTrafficTimestamp(row.lastSeenAt)}`}
+          aria-label={t("openJourney", {
+            source: formatGeoSource(row.source),
+            time: formatAiTrafficTimestamp(row.lastSeenAt, locale),
+          })}
           className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center gap-2 rounded-sm text-left text-sm hover:underline focus-visible:ring-2"
-          onClick={() => openJourney(row)}
+          onClick={() => onOpenJourney(row)}
           type="button"
         >
           <EngineIcon engine={row.source} />
@@ -55,76 +69,93 @@ export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
     },
     {
       key: "pages",
-      header: "Pages",
+      header: tGeoShared("pages"),
       width: "5.625rem",
       sortable: true,
       cell: (row) => <span className="text-sm tabular-nums">{row.pages}</span>,
     },
     {
       key: "lastSeenAt",
-      header: "Last seen",
+      header: tGeoShared("lastSeen"),
       width: "9.375rem",
       sortable: true,
       cell: (row) => (
         <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt)}
+          {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
         </span>
       ),
     },
     {
       key: "entryPath",
-      header: "Path",
+      header: tGeoShared("path"),
       width: "2fr",
       cell: (row) => (
-        <JourneyPathTrail
-          className="flex-nowrap overflow-hidden"
-          limit={GEO_JOURNEY_TRAIL_TABLE_LIMIT}
+        <JourneyPathSummary
+          distinctPaths={row.distinctPaths}
+          entryPath={row.entryPath}
           paths={row.samplePaths}
         />
       ),
-      sortValue: (row) => row.samplePaths[0] ?? "",
+      sortValue: (row) => row.entryPath,
     },
   ];
 
-  return (
-    <InstrumentSection
-      eyebrow="Agent journeys"
-      readout={
-        journeys.length > 0
-          ? `${journeys.length.toLocaleString()} captured`
-          : "no journeys yet"
-      }
-    >
-      {journeys.length === 0 ? (
-        <InstrumentEmpty
-          message="No agent journeys captured yet"
-          seed="geo-journeys"
-        />
-      ) : (
-        <div className="flex flex-col gap-2">
-          <Table
-            className="rounded-2xl"
-            columns={columns}
-            data={journeys}
-            defaultSort={{ key: "lastSeenAt", direction: "desc" }}
-            emptyState="No agent journeys captured yet"
-            getRowId={(row) => row.journeyId}
-            height={tableHeightFor(journeys.length)}
-            onRowClick={openJourney}
-            resizable
-            rowHeight={TABLE_ROW_HEIGHT}
+  if (journeys.length === 0) {
+    return (
+      <InstrumentModule eyebrow={tGeoShared("agentJourneys")}>
+        {failed ? (
+          <InstrumentEmpty
+            message={t("loadFailed")}
+            seed="geo-journeys-error"
           />
-        </div>
-      )}
-      <JourneyDetailDialog
-        journey={selected}
-        onOpenChange={(next) => {
-          if (!next) {
-            setSelected(null);
-          }
-        }}
-        open={selected !== null}
-        organizationId={organizationId}
+        ) : (
+          <JourneyEmpty
+            action={
+              <Button
+                nativeButton={false}
+                render={
+                  <Link
+                    href={withGeoProject(
+                      `/${organizationSlug}/geo/traffic`,
+                      projectId
+                    )}
+                  />
+                }
+              >
+                {t("viewAiTraffic")}
+              </Button>
+            }
+            className="min-h-72 px-6 py-10 [&_h3]:text-lg"
+            description={t("emptyDescription")}
+            media={<HugeiconsIcon icon={Route01Icon} className="size-5" />}
+            title={t("emptyTitle")}
+          />
+        )}
+      </InstrumentModule>
+    );
+  }
+
+  return (
+    <InstrumentSection eyebrow={tGeoShared("agentJourneys")}>
+      <Table
+        className="rounded-2xl"
+        columns={columns}
+        data={journeys}
+        defaultSort={{ key: "lastSeenAt", direction: "desc" }}
+        emptyState={tGeoShared("noAgentJourneysCapturedYet")}
+        getRowId={(row) => row.journeyId}
+        height={tableHeightFor(journeys.length)}
+        loading={loading}
+        onEndReached={
+          hasMore
+            ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
+            : undefined
+        }
+        onRowClick={onOpenJourney}
+        onRowPointerEnter={onPrefetchJourney}
+        pageSize={limit}
+        resizable
+        rowHeight={TABLE_ROW_HEIGHT}
       />
     </InstrumentSection>
   );

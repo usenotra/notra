@@ -228,7 +228,7 @@ export function ContactForm() {
               </Label>
               <Textarea
                 aria-invalid={field.state.meta.errors.length > 0}
-                className="h-40 min-h-40 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 py-3 text-[0.9375rem]/5.5 placeholder:text-[#1E1E1E66] dark:border-white/12 dark:placeholder:text-white/40"
+                className="max-h-80 min-h-40 resize-none overflow-y-auto rounded-xl border-[#E4E4E4] bg-transparent px-3.5 py-3 text-[0.9375rem]/5.5 placeholder:text-[#1E1E1E66] dark:border-white/12 dark:placeholder:text-white/40"
                 id={field.name}
                 name={field.name}
                 onBlur={field.handleBlur}
@@ -289,7 +289,7 @@ export function ContactForm() {
             {CONTACT_FORM_ASSURANCE}
           </p>
           <p className="font-sans text-xs/4.5 text-[#1E1E1E80] dark:text-white/40">
-            By submitting you agree to our{" "}
+            We screen messages for spam. See our{" "}
             <Link
               className="hover:text-primary font-medium text-[#1E1E1E] underline underline-offset-2 dark:text-white"
               href="/privacy"

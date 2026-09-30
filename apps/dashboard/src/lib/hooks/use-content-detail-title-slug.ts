@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { extractTitleFromMarkdown } from "@/utils/content-detail";
@@ -15,13 +16,16 @@ export function useContentDetailTitleSlug({
   contentSlug,
   currentMarkdown,
 }: UseContentDetailTitleSlugParams) {
+  const tCommon = useTranslations("common");
   const [persistedTitle, setPersistedTitle] = useState<string | null>(null);
   const [persistedSlug, setPersistedSlug] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
 
   const serverTitle =
-    persistedTitle ?? contentTitle ?? extractTitleFromMarkdown(currentMarkdown);
+    persistedTitle ??
+    contentTitle ??
+    extractTitleFromMarkdown(currentMarkdown, tCommon("labels.untitled"));
   const title = editingTitle ?? serverTitle;
   const hasTitleChanges =
     editingTitle !== null && editingTitle.trim() !== serverTitle;

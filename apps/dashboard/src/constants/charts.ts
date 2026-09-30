@@ -42,6 +42,7 @@ export const SHARE_OF_VOICE_AGGREGATE_LABEL = "Other brands";
 export const SHARE_OF_VOICE_RANKING_LIMIT = 4;
 export const CHART_PERCENT_SCALE = 100;
 export const CHART_MIN_BAR_PERCENT = 2;
+export const CHART_SCRUB_POSITION_LERP = 0.35;
 export const SPARKLINE_SERIES_KEY = "value";
 
 export const SPARKLINE_CHART_OPTIONS: Record<string, unknown> = {
@@ -49,7 +50,6 @@ export const SPARKLINE_CHART_OPTIONS: Record<string, unknown> = {
 };
 
 export const CHAT_TOOL_CHART_HEIGHT_CLASS = "h-40";
-export const CHAT_TOOL_CHART_EMPTY_SERIES = "No data points to plot.";
 export const CHAT_TOOL_CHART_OPTIONS: Record<string, unknown> = {
   grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
 };

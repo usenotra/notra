@@ -27,6 +27,5 @@ export type ChatHistoryGroupId =
 
 export interface ChatHistoryGroup {
   id: ChatHistoryGroupId;
-  label: string;
   sessions: ChatSessionSummary[];
 }

@@ -1,10 +1,9 @@
-import { organizations } from "@notra/db/schema";
-import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { Context } from "hono";
 
 import {
   FEEDBACK_NOT_FOUND_ERROR,
+  FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR,
   FEEDBACK_PROJECT_NOT_FOUND_ERROR,
 } from "../constants/feedback";
 import type { FeedbackDatabaseError } from "../errors/feedback";
@@ -16,6 +15,7 @@ import type {
 } from "../types/feedback";
 
 const PUBLIC_FEEDBACK_INGEST_PATH_REGEX = /^\/v1\/feedback\/[^/]+\/?$/;
+const FEEDBACK_API_PATH_REGEX = /^\/v1\/feedback(?:\/|$)/;
 
 export function serializeFeedback(
   row: AgentFeedbackRow
@@ -44,15 +44,12 @@ export function isPublicFeedbackIngestRequest(
   return method === "POST" && PUBLIC_FEEDBACK_INGEST_PATH_REGEX.test(pathname);
 }
 
-export async function findOrganizationIdBySlug(
-  c: Context,
-  slug: string
-): Promise<string | null> {
-  const organization = await c.get("db").query.organizations.findFirst({
-    columns: { id: true },
-    where: eq(organizations.slug, slug.toLowerCase()),
-  });
-  return organization?.id ?? null;
+/**
+ * Any request aimed at the feedback resource — public slug ingest included.
+ * The subscription gate skips the whole resource because feedback is free.
+ */
+export function isFeedbackApiRequest(pathname: string): boolean {
+  return FEEDBACK_API_PATH_REGEX.test(pathname);
 }
 
 /** Leave unexpected database errors to Hono's central error handler. */
@@ -74,6 +71,9 @@ export function respondToFeedbackFailure(
   c: Context,
   failure: FeedbackDomainError
 ) {
+  if (failure._tag === "FeedbackOrganizationNotFoundError") {
+    return c.json({ error: FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR }, 404);
+  }
   if (failure._tag === "FeedbackProjectNotFoundError") {
     return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
   }

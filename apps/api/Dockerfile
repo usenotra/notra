@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy workspace manifests needed to resolve the full dependency graph
 COPY package.json bun.lock bunfig.toml ./
+COPY patches ./patches
 COPY apps/agent/package.json ./apps/agent/package.json
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/dashboard/package.json ./apps/dashboard/package.json

@@ -1,10 +1,10 @@
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
 
 import {
-  CHAT_HISTORY_GROUP_LABELS,
   CHAT_HISTORY_GROUP_ORDER,
   CHAT_HISTORY_LAST_7_DAYS,
   CHAT_HISTORY_LAST_MONTH_DAYS,
+  DEFAULT_CHAT_TITLE,
 } from "@/constants/chat-history";
 import type { ChatHistoryGroup, ChatHistoryGroupId } from "@/types/chat";
 
@@ -94,9 +94,48 @@ export function getChatHistoryGroups(
     return [
       {
         id,
-        label: CHAT_HISTORY_GROUP_LABELS[id],
         sessions: grouped.slice().sort(compareSessionsByUpdatedAtDesc),
       },
     ];
   });
+}
+
+export function mergePendingChatSessions(
+  sessions: ChatSessionSummary[],
+  pendingSessions: ChatSessionSummary[]
+): ChatSessionSummary[] {
+  const stillPending = excludeArrivedPendingSessions(pendingSessions, sessions);
+  if (stillPending.length === 0) {
+    return sessions;
+  }
+
+  return [...stillPending, ...sessions];
+}
+
+export function excludeArrivedPendingSessions(
+  pendingSessions: ChatSessionSummary[],
+  sessions: ChatSessionSummary[]
+): ChatSessionSummary[] {
+  if (pendingSessions.length === 0) {
+    return pendingSessions;
+  }
+
+  const existingIds = new Set(sessions.map((session) => session.chatId));
+  return pendingSessions.filter((session) => !existingIds.has(session.chatId));
+}
+
+export function excludeArrivedGeneratingIds(
+  generatingIds: string[],
+  sessions: ChatSessionSummary[]
+): string[] {
+  if (generatingIds.length === 0) {
+    return generatingIds;
+  }
+
+  const existingIds = new Set(sessions.map((session) => session.chatId));
+  return generatingIds.filter((id) => !existingIds.has(id));
+}
+
+export function displayChatTitle(title: string, newChatLabel: string): string {
+  return title === DEFAULT_CHAT_TITLE ? newChatLabel : title;
 }

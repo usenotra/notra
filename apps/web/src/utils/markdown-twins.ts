@@ -2,10 +2,34 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { CollectionEntry } from "@dualmark/converters";
-import type { CollectionConfig, StaticPageConfig } from "@dualmark/nextjs";
+import type {
+  CollectionConfig,
+  ParameterizedRouteConfig,
+  StaticPageConfig,
+} from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
+import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
+import {
+  buildBlogAuthorMarkdown,
+  listBlogAuthorMarkdownPages,
+} from "@/lib/blog/author-markdown";
+import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
+import {
+  buildIntegrationMarkdown,
+  buildIntegrationsMarkdown,
+  buildSlackIntegrationMarkdown,
+  listIntegrationMarkdownEntries,
+} from "@/lib/integrations/markdown";
+import { buildMarketingAssetsMarkdown } from "@/lib/marketing-assets/markdown";
+import {
+  buildMcpMarkdown,
+  buildMcpUseCaseMarkdown,
+  buildMcpUseCasesMarkdown,
+  listMcpUseCaseMarkdownEntries,
+} from "@/lib/mcp/markdown";
+import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
   getChangelogPostHref,
@@ -13,6 +37,7 @@ import {
 } from "@/utils/changelog";
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
+import { MarkdownNotFoundError } from "@/utils/not-found";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -51,6 +76,17 @@ const LEGAL_PAGES = [
     title: "Legal Notice",
     filename: "legal.mdx",
   },
+] as const;
+
+const STATIC_MARKDOWN_PAGES = [
+  "about",
+  "contact",
+  "free-hat",
+  "html-to-figma",
+  "html-to-paper",
+  "oss-program",
+  "repo-star-video",
+  "twitter-thread-creator",
 ] as const;
 
 function absoluteUrl(pathname: string) {
@@ -169,6 +205,33 @@ async function getShowcaseEntries(name: string): Promise<MarkdownTwinEntry[]> {
   );
 }
 
+function toMarkdownEntries(
+  pages: BlogAuthorMarkdownPage[],
+  bodies: (string | null)[]
+): MarkdownTwinEntry[] {
+  return pages.map((page, index) => ({
+    id: page.slug,
+    data: { title: page.title, description: page.description },
+    body: bodies[index] ?? "",
+  }));
+}
+
+async function getBlogAuthorEntries() {
+  const pages = await listBlogAuthorMarkdownPages();
+  const bodies = await Promise.all(
+    pages.map((page) => buildBlogAuthorMarkdown(page.slug))
+  );
+  return toMarkdownEntries(pages, bodies);
+}
+
+function getMcpUseCaseEntries() {
+  const pages = listMcpUseCaseMarkdownEntries();
+  return toMarkdownEntries(
+    pages,
+    pages.map((page) => buildMcpUseCaseMarkdown(page.slug))
+  );
+}
+
 async function buildBlogIndexMarkdown() {
   const posts = await listNotraBlogPosts();
   const list = posts
@@ -277,6 +340,19 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/pricing", render: () => buildPricingMarkdown() },
     { pattern: "/brand", render: () => buildBrandMarkdown() },
     { pattern: "/feedback-md", render: () => buildFeedbackMdPageMarkdown() },
+    { pattern: "/agent", render: () => buildAgentPageMarkdown() },
+    { pattern: "/mcp", render: () => buildMcpMarkdown() },
+    { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/contributors", render: () => buildContributorsMarkdown() },
+    { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
+    {
+      pattern: "/integrations/slack",
+      render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/features/marketing/assets",
+      render: () => buildMarketingAssetsMarkdown(),
+    },
     { pattern: "/blog", render: () => buildBlogIndexMarkdown() },
     { pattern: "/changelog", render: () => buildChangelogHubMarkdown() },
     {
@@ -287,6 +363,10 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
       pattern: `/changelog/${company.slug}`,
       render: () => buildShowcaseCompanyMarkdown(company.slug),
     })),
+    ...STATIC_MARKDOWN_PAGES.map((page) => ({
+      pattern: `/${page}`,
+      render: () => readAppMarkdownSource("pages", `${page}.md`),
+    })),
     ...LEGAL_PAGES.map((page) => ({
       pattern: page.pattern,
       render: () => buildLegalMarkdown(page.title, page.filename),
@@ -296,6 +376,18 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
 
 export function buildDualmarkCollections() {
   const collections: Record<string, CollectionConfig> = {
+    blogAuthors: {
+      route: "blog/author",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getBlogAuthorEntries,
+    },
+    mcpUseCases: {
+      route: "mcp/use-cases",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getMcpUseCaseEntries,
+    },
     blog: {
       route: "blog",
       emitListing: false,
@@ -320,4 +412,26 @@ export function buildDualmarkCollections() {
   }
 
   return collections;
+}
+
+export function buildDualmarkParameterizedRoutes(): ParameterizedRouteConfig[] {
+  return [
+    {
+      pattern: "/integrations/[id]",
+      getStaticPaths: async () =>
+        (await listIntegrationMarkdownEntries()).map((entry) => ({
+          params: { id: entry.id },
+        })),
+      render: async ({ params }) => {
+        const id = params.id ?? "";
+        const markdown = await buildIntegrationMarkdown(id);
+
+        if (!markdown) {
+          throw new MarkdownNotFoundError(`/integrations/${id}`);
+        }
+
+        return withTrailingNewline(markdown);
+      },
+    },
+  ];
 }

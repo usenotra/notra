@@ -17,13 +17,31 @@ apps/api /v2/agent-chats
   └─ create / send / stream sessions 1:1 against this deployment
 
 eve agent (this package, separate Vercel project)
-  ├─ root: Notra assistant (anthropic/claude-sonnet-4.6)
+  ├─ root: Notra assistant (eve autoModel: gpt-6-luna / claude-sonnet-5 / claude-opus-5.5)
   ├─ Slack: mentions, DMs, and active thread replies through /eve/v1/slack
-  ├─ subagents/content-writer (anthropic/claude-sonnet-5, structured result)
+  ├─ subagents/content-writer (openai/gpt-6-sol, structured result)
   └─ subagents/image-designer (wraps the @upstash/box sandbox image pipeline)
 ```
 
 Tool implementations live in `@notra/tools` (`src/assistant`, `src/content-writer`, `src/image`); this app only holds one-line adapter files, the channel, hooks, and instructions. Business logic (post persistence, image post persistence) is shared with the legacy AI SDK path via `@notra/ai/utils/post-service` and `@notra/ai/utils/image-post-service`.
+
+The content-writer loads `unslop` for a final editing pass before saving. Its seeded text matches the harness skill. Existing organizations receive the skill when their catalog is read, and can edit it like other system skills. The legacy background generator uses the same final pass.
+
+## Model routing
+
+The root agent picks its model per turn with eve's `autoModel`
+(`agent/lib/utils/model.ts`), which asks the `typesafe-ai/jev` evaluation model
+to choose between the options in `ASSISTANT_AUTO_MODEL_OPTIONS`: a fast model
+for turns answered from general knowledge, the everyday model for anything
+touching the user's content or connected data, and a deep model for long-form
+or research-heavy work. The option descriptions are the entire routing policy —
+the evaluator sees only them plus recent message text.
+
+The choice is made once per turn and reused for the turn's tool-loop steps. eve
+does not expose the resolved model to hooks, so the resolver records it in
+session state and `getSelectedAssistantModelId` hands it to AI-credit metering
+and to mirrored Slack messages. `NOTRA_JEV_CLASSIFIERS=off` skips the evaluator
+and pins the agent to `ASSISTANT_MODEL_ID`.
 
 ## Authentication and tenancy
 

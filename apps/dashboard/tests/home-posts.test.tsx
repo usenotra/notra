@@ -22,9 +22,9 @@ mock.module("@/lib/orpc/query", () => ({
           }),
         },
       },
-      list: {
+      recents: {
         queryOptions: ({ input }: { input: unknown }) => ({
-          queryKey: ["content", "list", input],
+          queryKey: ["content", "recents", input],
           queryFn: async () => ({ posts: [] }),
         }),
       },
@@ -32,7 +32,7 @@ mock.module("@/lib/orpc/query", () => ({
   },
 }));
 
-const { useDashboardHomeContent, usePosts } =
+const { useDashboardHomeContent, useRecentPosts } =
   await import("../src/lib/hooks/use-posts");
 let organizationId = "org-1";
 
@@ -41,8 +41,8 @@ function TodayPostsProbe() {
   return null;
 }
 
-function ContentListProbe() {
-  usePosts(organizationId, 2);
+function RecentsProbe() {
+  useRecentPosts(organizationId);
   return null;
 }
 
@@ -70,24 +70,40 @@ describe("dashboard home post query", () => {
     ]);
   });
 
-  test("keeps content-list pagination at twelve posts", () => {
+  test("requests three project-scoped recents without list pagination", () => {
     const client = new QueryClient();
     renderToStaticMarkup(
       <QueryClientProvider client={client}>
-        <ContentListProbe />
+        <RecentsProbe />
       </QueryClientProvider>
     );
 
     expect(client.getQueryCache().getAll()[0]?.queryKey).toEqual([
       "content",
-      "list",
+      "recents",
       {
         organizationId: "org-1",
         projectId: "project-1",
-        page: 2,
-        pageSize: 12,
+        limit: 3,
       },
     ]);
+  });
+
+  test("waits for the active project before requesting recents", () => {
+    activeProject.mockReturnValue({
+      projectId: "project-1",
+      isResolved: false,
+    });
+    const client = new QueryClient();
+    renderToStaticMarkup(
+      <QueryClientProvider client={client}>
+        <RecentsProbe />
+      </QueryClientProvider>
+    );
+
+    expect(client.getQueryCache().getAll()[0]?.options).toMatchObject({
+      enabled: false,
+    });
   });
 
   test("waits for the active project before requesting today's posts", () => {

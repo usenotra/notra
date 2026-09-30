@@ -2,19 +2,21 @@
 
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import {
-  GEO_WRITE_BRIEF_STATUS_LABELS,
   GEO_WRITE_TABLE_HEIGHT,
   GEO_WRITE_TABLE_MIN_ROWS,
   GEO_WRITE_TABLE_ROW_HEIGHT,
 } from "@notra/geo-core/constants/geo";
 import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { formatDistanceToNowStrict } from "date-fns";
+import { useTranslations } from "next-intl";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
+import { useBriefStatusLabels } from "@/lib/hooks/use-brief-status-labels";
+import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import type { BriefHistoryProps } from "@/types/components/geo-writer";
-import { formatRelativeDate } from "@/utils/content-preview";
 import { briefDisplayTitle } from "@/utils/geo-write-entry";
 
 function statusVariant(
@@ -30,13 +32,14 @@ function statusVariant(
 }
 
 function BriefStatusBadge({ status }: { status: GeoContentBriefStatus }) {
+  const statusLabels = useBriefStatusLabels();
   return (
     <Badge
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
       {status === "writing" ? <StatusSpinner /> : null}
-      {GEO_WRITE_BRIEF_STATUS_LABELS[status]}
+      {statusLabels[status]}
     </Badge>
   );
 }
@@ -96,7 +99,12 @@ export function BriefHistory({
   activeBriefId,
   onOpen,
   onHover,
+  loading = false,
 }: BriefHistoryProps) {
+  const t = useTranslations("geo.writer.briefHistory");
+  const tCommon = useTranslations("common");
+  const statusLabels = useBriefStatusLabels();
+  const dateLocale = useDateFnsLocale();
   const [tableRef, tableHeight] = useFillHeight(GEO_WRITE_TABLE_HEIGHT);
   const tableBodyHeight = Math.min(
     tableHeight,
@@ -110,7 +118,7 @@ export function BriefHistory({
     () => [
       {
         key: "article",
-        header: "Article",
+        header: t("article"),
         width: "1fr",
         sortable: true,
         sortValue: (brief) => briefDisplayTitle(brief),
@@ -133,26 +141,29 @@ export function BriefHistory({
       },
       {
         key: "status",
-        header: "Status",
+        header: tCommon("labels.status"),
         width: "7.5rem",
         sortable: true,
-        sortValue: (brief) => GEO_WRITE_BRIEF_STATUS_LABELS[brief.status],
+        sortValue: (brief) => statusLabels[brief.status],
         cell: (brief) => <BriefStatusBadge status={brief.status} />,
       },
       {
         key: "createdAt",
-        header: "Created",
+        header: tCommon("labels.created"),
         width: "8rem",
         sortable: true,
         sortValue: (brief) => brief.createdAt,
         cell: (brief) => (
           <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-            {formatRelativeDate(brief.createdAt)}
+            {formatDistanceToNowStrict(new Date(brief.createdAt), {
+              addSuffix: true,
+              locale: dateLocale,
+            })}
           </span>
         ),
       },
     ],
-    []
+    [dateLocale, t]
   );
 
   if (briefs.length === 0) {
@@ -168,6 +179,7 @@ export function BriefHistory({
         defaultSort={{ key: "createdAt", direction: "desc" }}
         getRowId={(brief) => brief.id}
         height={tableBodyHeight}
+        loading={loading}
         onRowClick={(brief) => onOpen(brief.id)}
         onRowPointerEnter={(brief) => onHover?.(brief.id)}
         rowHeight={GEO_WRITE_TABLE_ROW_HEIGHT}

@@ -2,6 +2,11 @@
 
 import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  GEO_SHELF_SEARCH_MAX_LENGTH,
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_TICKET_FILTERS,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -10,13 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useTranslations } from "next-intl";
 
-import {
-  GEO_SHELF_SHELF_FILTER_OPTIONS,
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTER_OPTIONS,
-  GEO_SHELF_TICKET_FILTERS,
-} from "@/constants/geo-shelf";
+import { useGeoShelfTicketFilterLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import type {
   GeoShelfShelfFilter,
   GeoShelfTicketFilter,
@@ -37,6 +38,9 @@ export function ShelfToolbar({
   onShelfFilterChange,
   onTicketFilterChange,
 }: GeoShelfToolbarProps) {
+  const t = useTranslations("geo.shelf.shelfToolbar");
+  const tGeoShared = useTranslations("geo.shared");
+  const ticketFilterLabels = useGeoShelfTicketFilterLabels();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="relative min-w-0 flex-1 basis-full sm:max-w-72 sm:basis-auto">
@@ -46,10 +50,11 @@ export function ShelfToolbar({
           size={15}
         />
         <Input
-          aria-label="Filter shelves"
+          aria-label={t("filterShelves")}
           className="pl-9 placeholder:truncate"
+          maxLength={GEO_SHELF_SEARCH_MAX_LENGTH}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Filter shelves..."
+          placeholder={t("filterPlaceholder")}
           value={filters.search}
         />
       </div>
@@ -61,22 +66,26 @@ export function ShelfToolbar({
       >
         <SelectTrigger className="min-w-0 flex-1 sm:w-44 sm:flex-none">
           <SelectValue>
-            {GEO_SHELF_SHELF_FILTER_OPTIONS.find(
-              (option) => option.value === filters.shelf
-            )?.label ?? "All shelves"}
+            {filters.shelf === "unknown"
+              ? tGeoShared("notChecked")
+              : t(`shelfFilter.${filters.shelf}.label`)}
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="w-72">
-          {GEO_SHELF_SHELF_FILTER_OPTIONS.map((option) => (
+          {GEO_SHELF_SHELF_FILTERS.map((option) => (
             <SelectItem
               className="items-start py-1.5"
-              key={option.value}
-              value={option.value}
+              key={option}
+              value={option}
             >
               <span className="flex min-w-0 flex-col gap-0.5">
-                <span>{option.label}</span>
+                <span>
+                  {option === "unknown"
+                    ? tGeoShared("notChecked")
+                    : t(`shelfFilter.${option}.label`)}
+                </span>
                 <span className="text-muted-foreground text-xs whitespace-normal">
-                  {option.description}
+                  {t(`shelfFilter.${option}.description`)}
                 </span>
               </span>
             </SelectItem>
@@ -90,16 +99,12 @@ export function ShelfToolbar({
         value={filters.ticket}
       >
         <SelectTrigger className="min-w-0 flex-1 sm:w-44 sm:flex-none">
-          <SelectValue>
-            {GEO_SHELF_TICKET_FILTER_OPTIONS.find(
-              (option) => option.value === filters.ticket
-            )?.label ?? "Any ticket state"}
-          </SelectValue>
+          <SelectValue>{ticketFilterLabels[filters.ticket]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {GEO_SHELF_TICKET_FILTER_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
+          {GEO_SHELF_TICKET_FILTERS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {ticketFilterLabels[option]}
             </SelectItem>
           ))}
         </SelectContent>

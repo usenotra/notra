@@ -12,6 +12,7 @@ import {
 } from "@notra/schemas/dashboard/upload";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { getTranslations } from "next-intl/server";
 
 import {
   COMPANY_LOGO_FETCH_TIMEOUT_MS,
@@ -83,7 +84,9 @@ export const uploadRouter = {
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
-        throw unauthorized("Active organization required for logo upload");
+        throw unauthorized(
+          (await getTranslations("common.labels"))("noActiveOrganization")
+        );
       }
 
       const membership = await db.query.members.findFirst({
@@ -95,7 +98,8 @@ export const uploadRouter = {
       });
 
       if (!membership) {
-        throw forbidden("You do not have access to this organization");
+        const tErrors = await getTranslations("errors.upload");
+        throw forbidden(tErrors("noOrganizationAccess"));
       }
 
       const sourceUrl = new URL(input.sourceUrl);
@@ -104,22 +108,30 @@ export const uploadRouter = {
         COMPANY_LOGO_SOURCE_HOSTS.some((host) => host === sourceUrl.hostname);
 
       if (!isAllowedSource) {
-        throw badRequest("Logo source is not allowed");
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoSourceNotAllowed"));
       }
 
-      const response = await fetch(sourceUrl, {
-        signal: AbortSignal.timeout(COMPANY_LOGO_FETCH_TIMEOUT_MS),
-      });
+      let response: Response;
+      try {
+        response = await fetch(sourceUrl, {
+          signal: AbortSignal.timeout(COMPANY_LOGO_FETCH_TIMEOUT_MS),
+        });
+      } catch {
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoFetchFailed"));
+      }
 
       if (!response.ok) {
-        throw badRequest("Could not fetch the logo image");
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoFetchFailed"));
       }
 
       const fileType =
         response.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
       const body = Buffer.from(await response.arrayBuffer());
 
-      validateUpload({
+      await validateUpload({
         type: "logo",
         fileType,
         fileSize: body.byteLength,
@@ -151,7 +163,9 @@ export const uploadRouter = {
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
-        throw unauthorized("Active organization required for SVG upload");
+        throw unauthorized(
+          (await getTranslations("common.labels"))("noActiveOrganization")
+        );
       }
 
       const membership = await db.query.members.findFirst({
@@ -163,7 +177,8 @@ export const uploadRouter = {
       });
 
       if (!membership) {
-        throw forbidden("You do not have access to this organization");
+        const tErrors = await getTranslations("errors.upload");
+        throw forbidden(tErrors("noOrganizationAccess"));
       }
 
       let sanitized: string;
@@ -171,7 +186,8 @@ export const uploadRouter = {
         sanitized = await sanitizeSvg(input.svg);
       } catch (error) {
         if (error instanceof SvgSanitizationError) {
-          throw badRequest(error.message);
+          const tErrors = await getTranslations("errors.upload");
+          throw badRequest(tErrors("svgInvalid"));
         }
         throw error;
       }

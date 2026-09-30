@@ -10,5 +10,3 @@ export const GEO_PROMPT_SOURCE_FILTER_VALUES = [
   "custom",
   "auto",
 ] as const;
-export const GEO_PROMPT_SAVED_VIEWS_MAX = 20;
-export const GEO_PROMPT_VIEW_NAME_MAX_LENGTH = 40;

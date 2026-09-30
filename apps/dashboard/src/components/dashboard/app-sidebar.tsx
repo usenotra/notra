@@ -9,18 +9,22 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarRail,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 
-import { ChatHistoryNav } from "./chat-history-nav";
-import { DeferredSidebarStatus } from "./deferred-sidebar-status";
+import {
+  DeferredSidebarStatus,
+  DeferredSidebarUpgrade,
+} from "./deferred-sidebar-status";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
 import { NavUtility } from "./nav-utility";
@@ -30,17 +34,40 @@ import { SidebarProjectSwitcher } from "./sidebar-project-switcher";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
 import { SidebarSwap } from "./sidebar-swap";
 
+const ChatHistoryNav = dynamic(
+  () => import("./chat-history-nav").then((module) => module.ChatHistoryNav),
+  {
+    loading: () => <ChatHistoryNavLoading />,
+  }
+);
+
+function ChatHistoryNavLoading() {
+  const t = useTranslations("nav.sidebar");
+  return (
+    <div
+      aria-label={t("loadingChatHistory")}
+      className="space-y-2 p-3"
+      role="status"
+    >
+      <Skeleton className="h-5 w-24" />
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-4/5" />
+    </div>
+  );
+}
+
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
+  const t = useTranslations("common.actions");
   return (
     <div className="bg-sidebar sticky top-0 z-10 p-2">
       <SidebarMenu>
         <SidebarMenuButton
           className="hover:bg-sidebar-accent duration-normal cursor-pointer transition-colors [&>*]:group-data-[collapsible=icon]:-translate-x-px"
           onClick={onBack}
-          tooltip="Back"
+          tooltip={t("back")}
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} />
-          <SidebarLabel>Back</SidebarLabel>
+          <SidebarLabel>{t("back")}</SidebarLabel>
         </SidebarMenuButton>
       </SidebarMenu>
     </div>
@@ -68,6 +95,26 @@ export function DashboardSidebar({
   const section = pathnameSegments[1];
   const panelId = section === "chat" || section === "brand" ? section : "main";
   const isSubpage = panelId !== "main";
+
+  const [hasMoreNavigation, setHasMoreNavigation] = useState(false);
+  const scrollEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = scrollEndRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) {
+          setHasMoreNavigation(!entry.isIntersecting);
+        }
+      },
+      { root: node.parentElement }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const hasVisitedMainRef = useRef(false);
   const previousNavigationKeyRef = useRef(navigationKey);
@@ -97,7 +144,7 @@ export function DashboardSidebar({
       collapsible="icon"
       {...props}
       className={cn(
-        "overflow-hidden overscroll-none border-none",
+        "overscroll-none border-none",
         resizing && "transition-none!",
         className
       )}
@@ -141,11 +188,21 @@ export function DashboardSidebar({
           <NavUtility slug={slug} />
           <DeferredSidebarStatus />
         </div>
+        <div aria-hidden className="h-px shrink-0" ref={scrollEndRef} />
       </SidebarContent>
+      <div className="relative shrink-0">
+        {hasMoreNavigation && (
+          <div
+            aria-hidden
+            className="from-sidebar pointer-events-none absolute inset-x-0 bottom-full z-10 h-8 bg-linear-to-t to-transparent group-data-[collapsible=icon]:hidden"
+            data-sidebar="scroll-fade"
+          />
+        )}
+        <DeferredSidebarUpgrade />
+      </div>
       <SidebarFooter>
         <OrgSelector />
       </SidebarFooter>
-      <SidebarRail />
       <SidebarResizeHandle
         onWidthChange={onWidthChange}
         onWidthChangeEnd={onWidthChangeEnd}

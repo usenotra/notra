@@ -3,21 +3,27 @@ import { brandSettings } from "@notra/db/schema";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
+import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoDashboardPath,
   geoOnboardingCompetitorsPath,
+  geoOnboardingPricingPath,
 } from "@/utils/geo-paths";
+import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { VisibilityForm } from "./visibility-form";
 
-export const metadata: Metadata = {
-  title: "Track your AI visibility",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("onboarding.visibility");
+  return { title: t("metaTitle") };
+}
 
 export default async function OnboardingVisibilityPage({
   searchParams,
@@ -41,32 +47,43 @@ export default async function OnboardingVisibilityPage({
     redirect("/onboarding/workspace");
   }
 
-  const { project } = await searchParams;
+  const { project, replay } = await searchParams;
   const projectId =
     typeof project === "string" && project ? project : undefined;
+  const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
+
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
 
   const [stage, hasPaidHistory] = await Promise.all([
     getGeoOnboardingStage(organization.id, projectId),
     hasPaidSubscriptionHistory(organization.id),
   ]);
-  const inOnboardingFlow = !hasPaidHistory;
-  const skipHref = inOnboardingFlow
-    ? "/onboarding/pricing"
-    : geoDashboardPath(organization.slug, projectId);
-
-  if (stage === "complete") {
-    redirect(skipHref);
-  }
-  if (stage === "competitors") {
-    redirect(geoOnboardingCompetitorsPath(projectId));
-  }
+  const inOnboardingFlow = isDevReplay || !hasPaidHistory;
+  const dashboardHref = geoDashboardPath(organization.slug, projectId);
+  const skipHref =
+    inOnboardingFlow && !isDevReplay
+      ? geoOnboardingPricingPath(projectId)
+      : dashboardHref;
 
   return (
     <VisibilityForm
       companyName={brand.companyName}
       inOnboardingFlow={inOnboardingFlow}
-      nextHref={geoOnboardingCompetitorsPath(projectId)}
+      nextHref={geoOnboardingCompetitorsPath(projectId, isDevReplay)}
       organizationId={organization.id}
+      progressHrefs={onboardingProgressHrefs({
+        current: ONBOARDING_STEP_VISIBILITY,
+        hasBrand: true,
+        hasOrganization: true,
+        projectId,
+        replay: isDevReplay,
+        stage,
+      })}
       projectId={projectId}
       skipHref={skipHref}
       websiteUrl={brand.websiteUrl}

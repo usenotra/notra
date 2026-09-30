@@ -8,9 +8,11 @@ import {
 } from "../constants/sentiment-analysis";
 import type {
   SentimentAnalysisRun,
+  SentimentAnalysisSnapshot,
   SentimentAnalysisState,
   SentimentAnalysisStore,
 } from "../types/sentiment-analysis";
+import { logGeoSkip } from "../utils/geo-log";
 import { validateSentimentThemes } from "../utils/sentiment-analysis";
 
 export function sentimentAnalysisStore(): SentimentAnalysisStore | null {
@@ -67,6 +69,81 @@ export async function readSentimentAnalysis(
       };
 }
 
+async function completeSentimentAnalysis(
+  run: SentimentAnalysisRun,
+  snapshot: SentimentAnalysisSnapshot,
+  key: string,
+  lock: string,
+  token: string
+): Promise<SentimentAnalysisState> {
+  let state: SentimentAnalysisState;
+  try {
+    // Another request can finish between our first read and acquiring the lease.
+    const settled = await run.store.get(key);
+    if (settled?.status === "ready") {
+      state = settled;
+    } else {
+      const sample = await run.sample();
+      const current = await run.snapshot();
+      if (current.fingerprint !== snapshot.fingerprint) {
+        state = {
+          status: "stale",
+          result: null,
+          message: "Saved answers changed. Refresh the analysis.",
+        };
+      } else {
+        const themes = sample.length
+          ? validateSentimentThemes(
+              await run.extract(sample, () => run.store.renew(lock, token)),
+              sample
+            )
+          : [];
+        const fresh =
+          (await run.snapshot()).fingerprint === snapshot.fingerprint;
+        state = fresh
+          ? {
+              status: "ready",
+              message: null,
+              result: {
+                fingerprint: snapshot.fingerprint,
+                generatedAt: new Date().toISOString(),
+                sampled: sample.length,
+                eligible: snapshot.eligible,
+                themes,
+              },
+            }
+          : {
+              status: "stale",
+              result: null,
+              message: "Saved answers changed. Refresh the analysis.",
+            };
+      }
+    }
+  } catch (error) {
+    logGeoSkip(
+      "Sentiment analysis failed",
+      { event: "geo.sentiment_analysis.failed" },
+      error
+    );
+    state = {
+      status: "failed",
+      result: null,
+      message:
+        error instanceof Error && error.message === "AI credits unavailable"
+          ? "Analysis could not complete. Check AI credits and provider availability, then retry."
+          : "Analysis could not complete. Please retry.",
+    };
+  }
+  if (!(await run.store.commit(lock, key, token, state, `${run.key}:latest`))) {
+    return {
+      status: "stale",
+      result: null,
+      message: "Analysis expired. Refresh to try again.",
+    };
+  }
+  return state;
+}
+
 export async function runSentimentAnalysis(
   run: SentimentAnalysisRun
 ): Promise<SentimentAnalysisState> {
@@ -81,56 +158,13 @@ export async function runSentimentAnalysis(
   if (!(await run.store.claim(lock, token))) {
     return { status: "pending", result: null, message: null };
   }
-  let state: SentimentAnalysisState;
-  try {
-    // Another request can finish between our first read and acquiring the lease.
-    const settled = await run.store.get(key);
-    if (settled?.status === "ready") {
-      await run.store.commit(lock, key, token, settled, `${run.key}:latest`);
-      return settled;
-    }
-    const sample = await run.sample();
-    if ((await run.snapshot()).fingerprint !== snapshot.fingerprint) {
-      throw new Error("Historical inputs changed");
-    }
-    const themes = sample.length
-      ? validateSentimentThemes(
-          await run.extract(sample, () => run.store.renew(lock, token)),
-          sample
-        )
-      : [];
-    const fresh = (await run.snapshot()).fingerprint === snapshot.fingerprint;
-    state = fresh
-      ? {
-          status: "ready",
-          message: null,
-          result: {
-            fingerprint: snapshot.fingerprint,
-            generatedAt: new Date().toISOString(),
-            sampled: sample.length,
-            eligible: snapshot.eligible,
-            themes,
-          },
-        }
-      : {
-          status: "stale",
-          result: null,
-          message: "Saved answers changed. Refresh the analysis.",
-        };
-  } catch {
-    state = {
-      status: "failed",
-      result: null,
-      message:
-        "Analysis could not complete. Check AI credits and provider availability, then retry.",
-    };
+  const complete = () =>
+    completeSentimentAnalysis(run, snapshot, key, lock, token);
+  if (run.defer) {
+    run.defer(async () => {
+      await complete();
+    });
+    return { status: "pending", result: null, message: null };
   }
-  if (!(await run.store.commit(lock, key, token, state, `${run.key}:latest`))) {
-    return {
-      status: "stale",
-      result: null,
-      message: "Analysis expired. Refresh to try again.",
-    };
-  }
-  return state;
+  return complete();
 }

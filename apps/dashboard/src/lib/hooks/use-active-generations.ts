@@ -5,15 +5,15 @@ import type {
   GenerationResult,
 } from "@notra/geo-core/types/generation-tracking";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { activeGenerationsPollInterval } from "@/utils/active-generations-poll";
 import { hasShownToast, markToastShown } from "@/utils/toast-dedupe";
 
 import { dashboardOrpc } from "../orpc/query";
-
-const ACTIVE_POLL_INTERVAL = 3000;
 
 interface ActiveGenerationsResponse {
   generations: ActiveGeneration[];
@@ -21,6 +21,7 @@ interface ActiveGenerationsResponse {
 }
 
 export function useActiveGenerations(organizationId: string) {
+  const tToast = useTranslations("content.toasts");
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
@@ -31,15 +32,9 @@ export function useActiveGenerations(organizationId: string) {
     dashboardOrpc.content.activeGenerations.list.queryOptions({
       input: { organizationId },
       enabled: !!organizationId,
-      meta: { errorMessage: "Failed to load active generations" },
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        // Scheduled work and other sessions cannot invalidate this browser's cache.
-        if (!data || data.generations.length === 0) {
-          return 15_000;
-        }
-        return ACTIVE_POLL_INTERVAL;
-      },
+      meta: { errorMessage: tToast("loadActiveGenerationsFailed") },
+      refetchInterval: (query) =>
+        activeGenerationsPollInterval(query.state.data?.generations),
       refetchIntervalInBackground: false,
     })
   );
@@ -64,22 +59,24 @@ export function useActiveGenerations(organizationId: string) {
       if (result.status === "success") {
         shouldRefreshContent = true;
         toast.success(
-          result.title ? `"${result.title}" generated` : "Content generated",
+          result.title
+            ? tToast("titledContentGenerated", { title: result.title })
+            : tToast("contentGenerated"),
           { id: result.runId }
         );
       } else if (result.status === "skipped") {
-        toast.info("Content generation skipped", {
+        toast.info(tToast("contentGenerationSkipped"), {
           id: result.runId,
           action: {
-            label: "View logs",
+            label: tToast("viewLogs"),
             onClick: () => router.push(logsPath),
           },
         });
       } else {
-        toast.error("Content generation failed", {
+        toast.error(tToast("contentGenerationFailed"), {
           id: result.runId,
           action: {
-            label: "View logs",
+            label: tToast("viewLogs"),
             onClick: () => router.push(logsPath),
           },
         });
@@ -94,6 +91,9 @@ export function useActiveGenerations(organizationId: string) {
       void queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.list.key(),
       });
+      void queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.content.recents.key(),
+      });
     }
   }, [
     clearResultMutate,
@@ -102,6 +102,7 @@ export function useActiveGenerations(organizationId: string) {
     queryClient,
     query.data,
     router,
+    tToast,
   ]);
 
   return {

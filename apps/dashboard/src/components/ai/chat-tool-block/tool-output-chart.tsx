@@ -6,13 +6,13 @@ import type {
   ChartArtifact,
   PieChartArtifact,
 } from "@notra/ai/types/chart-artifact";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
-  CHAT_TOOL_CHART_EMPTY_SERIES,
   CHAT_TOOL_CHART_HEIGHT_CLASS,
   CHAT_TOOL_CHART_OPTIONS,
   CHAT_TOOL_RANK_TRACK_CLASS,
@@ -48,7 +48,7 @@ function ChartFrame({
 }) {
   return (
     <div className="border-border bg-muted/20 mt-3 overflow-hidden rounded-lg border">
-      <div className="px-3 pt-2.5 pb-1">
+      <div className="px-3 pt-2.5 pb-1 wrap-anywhere">
         <p className="text-foreground text-sm font-medium">{title}</p>
         {subtitle ? (
           <p className="text-muted-foreground text-xs">{subtitle}</p>
@@ -68,6 +68,7 @@ function EmptyChartMessage({ message }: { message: string }) {
 }
 
 function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
+  const t = useTranslations("ai.toolBlock");
   const series = chart.series;
   const data = pivotChartSeries(series);
   const keyedSeries = series.map((entry, index) => ({
@@ -83,7 +84,7 @@ function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
   }
 
   if (data.length === 0) {
-    return <EmptyChartMessage message={CHAT_TOOL_CHART_EMPTY_SERIES} />;
+    return <EmptyChartMessage message={t("chartEmptySeries")} />;
   }
 
   return (
@@ -143,7 +144,13 @@ function RankMeter({ row }: { row: ToolOutputRankRow }) {
 }
 
 function BarArtifactChart({ chart }: { chart: BarChartArtifact }) {
-  const rows = rankBarChartSegments(chart.segments);
+  const tMode = useTranslations("geo.shared.engineMode");
+  const locale = useLocale();
+  const rows = rankBarChartSegments(
+    chart.segments,
+    (engine) => tMode("engineWithoutSearch", { engine }),
+    locale
+  );
 
   if (rows.length === 0) {
     return null;

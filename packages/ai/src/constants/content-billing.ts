@@ -43,3 +43,5 @@ export const CONTENT_BILLING_LOCK_TTL_MS = 60 * 60 * 1000;
 export const AI_CREDIT_LIMIT_MESSAGE = "AI credit limit reached";
 export const CONTENT_PLAN_REQUIRED_MESSAGE =
   "Your plan doesn't include this content type. Upgrade your plan or add AI credits to create it.";
+export const AI_GENERATION_PLAN_REQUIRED_MESSAGE =
+  "Your plan doesn't include AI generation. Upgrade your plan or add AI credits to continue.";

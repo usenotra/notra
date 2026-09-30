@@ -10,6 +10,7 @@ import {
   recommendationsGuidance,
   sharedToolGuidance,
 } from "../_shared";
+import { toneRule } from "../_shared/tone";
 
 interface TwitterPromptOptions {
   toneContext: string;
@@ -32,6 +33,7 @@ export function buildTwitterPrompt(options: TwitterPromptOptions): string {
 
     <rules>
     - ${languageRule}
+    - ${toneRule}
     ${factualityRules}
     - CRITICAL: The tweet MUST be 280 characters or fewer. Count carefully.
     - Aim for 100-250 characters. Shorter tweets get more engagement.

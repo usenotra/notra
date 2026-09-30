@@ -2,6 +2,7 @@
 
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
@@ -40,31 +41,33 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 }
 
 function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
+  const t = useTranslations("geo.pages.overview");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
-            <p className="text-muted-foreground">
-              How AI engines talk about {page.companyName}
-            </p>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <GeoRangePicker control={page.geoRange} />
+              <Button
+                className="w-fit gap-2"
+                disabled={page.isScanning}
+                onClick={page.onRunScan}
+                size="sm"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <GeoScanSpinner visible={page.isScanning} />
+                  {tGeoShared("runScan")}
+                </span>
+                <Kbd className="hidden sm:inline-flex">R</Kbd>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <GeoRangePicker control={page.geoRange} />
-            <Button
-              className="w-fit gap-2"
-              disabled={page.isScanning}
-              onClick={page.onRunScan}
-              size="sm"
-            >
-              <span className="inline-flex items-center gap-1.5">
-                <GeoScanSpinner visible={page.isScanning} />
-                Run Scan
-              </span>
-              <Kbd className="hidden sm:inline-flex">R</Kbd>
-            </Button>
-          </div>
+          <p className="text-muted-foreground">
+            {t("description", { companyName: page.companyName })}
+          </p>
         </header>
 
         <GeoTabs {...page.tabs} />

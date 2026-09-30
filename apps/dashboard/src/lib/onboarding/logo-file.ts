@@ -3,7 +3,11 @@ import {
   MAX_LOGO_FILE_SIZE,
 } from "@notra/schemas/constants/dashboard/upload";
 
+import type { LogoFileValidationError } from "@/types/onboarding";
+
 const BYTES_PER_MEGABYTE = 1024 * 1024;
+
+export const MAX_LOGO_FILE_SIZE_MB = MAX_LOGO_FILE_SIZE / BYTES_PER_MEGABYTE;
 
 export function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -21,13 +25,13 @@ export function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-export function validateLogoFile(file: File): string | null {
+export function validateLogoFile(file: File): LogoFileValidationError | null {
   if (!ALLOWED_RASTER_MIME_TYPES.some((mimeType) => mimeType === file.type)) {
-    return "Please choose a JPEG, PNG, GIF, WebP, or AVIF image.";
+    return "invalidType";
   }
 
   if (file.size > MAX_LOGO_FILE_SIZE) {
-    return `Logo image must be less than ${MAX_LOGO_FILE_SIZE / BYTES_PER_MEGABYTE}MB.`;
+    return "tooLarge";
   }
 
   return null;

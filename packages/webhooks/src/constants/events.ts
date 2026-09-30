@@ -1,5 +1,3 @@
-// The event row and its per-endpoint delivery rows are one statement so a
-// subscription snapshot is created atomically with the event.
 export const EVENT_INSERT_QUERY = `WITH inserted AS (
     INSERT INTO webhook_events (id, organization_id, source_key, event_type, payload)
     VALUES ($1, $2, $3, $4, $5) ON CONFLICT (organization_id, source_key) DO NOTHING RETURNING *

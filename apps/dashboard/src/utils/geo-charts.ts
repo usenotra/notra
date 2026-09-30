@@ -1,11 +1,8 @@
 import {
   GEO_ENGINE_LABELS,
-  GEO_MENTION_TREND_BACKFILL_DAYS,
   GEO_MENTION_TREND_TOTAL_KEY,
-  GEO_SEARCH_LABEL,
   GEO_SHARE_OF_VOICE_TOP_BRANDS,
   GEO_SPARKLINE_MIN_POINTS,
-  GEO_STAT_DELTA_NEW_LABEL,
 } from "@notra/geo-core/constants/geo";
 import type {
   EngineFamilyModeTrendRow,
@@ -41,6 +38,7 @@ import {
   engineFamilyOf,
   engineModelOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { hasGroundedVariant } from "@notra/geo-core/utils/geo-grounded-engines";
 import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
@@ -50,6 +48,11 @@ import {
   SHARE_OF_VOICE_AGGREGATE_LABEL,
   CHART_PERCENT_SCALE,
 } from "@/constants/charts";
+import type { GeoStatDeltaLabels } from "@/types/geo";
+import type {
+  GeoEngineAnswerMode,
+  GeoMentionTrendEmptyState,
+} from "@/types/geo-shared";
 
 import { chartKey } from "./chart-keys";
 import {
@@ -58,9 +61,6 @@ import {
 } from "./geo-competitors";
 import { formatModelLabel } from "./geo-model-display";
 
-const GPT_PREFIX_PATTERN = /^gpt-/i;
-const MINI_SUFFIX_PATTERN = /-mini$/i;
-
 export function buildShareOfVoiceBreakdown(
   points: readonly GeoCompetitorSharePoint[],
   options?: {
@@ -68,6 +68,7 @@ export function buildShareOfVoiceBreakdown(
     competitors?: readonly GeoCompetitor[];
     companyName?: string | null;
     aliases?: readonly string[];
+    otherLabel?: string;
   }
 ): ShareOfVoiceBreakdown {
   const limit = options?.limit ?? GEO_SHARE_OF_VOICE_TOP_BRANDS;
@@ -101,7 +102,7 @@ export function buildShareOfVoiceBreakdown(
     rows.push({
       id: SHARE_OF_VOICE_AGGREGATE_ID,
       kind: "aggregate",
-      brand: SHARE_OF_VOICE_AGGREGATE_LABEL,
+      brand: options?.otherLabel ?? SHARE_OF_VOICE_AGGREGATE_LABEL,
       mentions: otherTotal,
       share: total > 0 ? otherTotal / total : 0,
       trend: sumGeoSparklinePoints(rest.map((point) => point.trend ?? [])),
@@ -123,6 +124,7 @@ export function buildShareOfVoiceRows(
     competitors?: readonly GeoCompetitor[];
     companyName?: string | null;
     aliases?: readonly string[];
+    otherLabel?: string;
   }
 ): ShareOfVoiceRow[] {
   return buildShareOfVoiceBreakdown(points, options).rows;
@@ -145,8 +147,8 @@ export function formatChartPercent(value: number): string {
   return `${Math.round(value)}%`;
 }
 
-export function formatChartInteger(value: number): string {
-  return Math.round(value).toLocaleString("en-US");
+export function formatChartInteger(value: number, locale: string): string {
+  return Math.round(value).toLocaleString(locale);
 }
 
 const SHARE_DECIMALS = 10;
@@ -165,26 +167,6 @@ export function barWidthPercent(value: number, max: number): number {
     return 0;
   }
   return Math.max((value / max) * CHART_PERCENT_SCALE, CHART_MIN_BAR_PERCENT);
-}
-
-const DAY_MS = 86_400_000;
-
-export function listDaysThrough(firstDay: string, lastDay: string): string[] {
-  const start = new Date(`${firstDay}T00:00:00Z`);
-  const end = new Date(`${lastDay}T00:00:00Z`);
-  if (
-    Number.isNaN(start.getTime()) ||
-    Number.isNaN(end.getTime()) ||
-    start.getTime() > end.getTime()
-  ) {
-    return [];
-  }
-  const days: string[] = [];
-  for (let time = start.getTime(); time <= end.getTime(); time += DAY_MS) {
-    const day = new Date(time).toISOString().slice(0, 10);
-    days.push(day);
-  }
-  return days;
 }
 
 export function fitMentionTrendLine(
@@ -233,20 +215,13 @@ export function fitMentionTrendLine(
   );
 }
 
-export function mentionTrendEmptyLabel(
+export function mentionTrendEmptyState(
   row: Record<string, unknown> | undefined,
   keys: readonly string[]
-): string {
+): GeoMentionTrendEmptyState {
   const scanned =
     row != null && keys.some((key) => typeof row[key] === "number");
-  return scanned ? "No visibility" : "Not scanned";
-}
-
-export function latestChartDay(
-  lastKnownDay: string,
-  today = todayIsoDate()
-): string {
-  return lastKnownDay > today ? lastKnownDay : today;
+  return scanned ? "trend.noVisibility" : "notScanned";
 }
 
 function ratePercent(mentions: number, checks: number): number | null {
@@ -292,25 +267,6 @@ export function mentionRateSparkline(
   });
 }
 
-export function mentionRateSparklineLabel(
-  points: readonly GeoSparklinePoint[]
-): string {
-  const first = points[0];
-  const last = points.at(-1);
-  if (!(first && last)) {
-    return "Brand visibility trend";
-  }
-  const from = formatChartPercent(first.value);
-  const to = formatChartPercent(last.value);
-  if (points.length === 1) {
-    return `Brand visibility ${from}`;
-  }
-  if (from === to) {
-    return `Brand visibility held at ${to} over ${points.length} days`;
-  }
-  return `Brand visibility ${from} to ${to} over ${points.length} days`;
-}
-
 function daysWithSettledUsage(
   knownDays: readonly string[],
   today = todayIsoDate()
@@ -331,7 +287,8 @@ function engineMentionTotal(
 }
 
 export function buildMentionTrendRows(
-  points: GeoTimeseriesPoint[]
+  points: GeoTimeseriesPoint[],
+  locale: string
 ): MentionTrend {
   const byDay = new Map<string, Map<string, GeoTimeseriesPoint>>();
   for (const point of points) {
@@ -359,24 +316,11 @@ export function buildMentionTrendRows(
   const engines = [
     ...new Set(points.map((point) => engineFamilyOf(point.engine))),
   ];
-  const firstDay = knownDays.at(0);
-  const lastDay = knownDays.at(-1);
-  const isFirstScan = knownDays.length === 1;
-  const chartFirstDay =
-    firstDay && isFirstScan
-      ? new Date(
-          new Date(`${firstDay}T00:00:00Z`).getTime() -
-            GEO_MENTION_TREND_BACKFILL_DAYS * DAY_MS
-        )
-          .toISOString()
-          .slice(0, 10)
-      : firstDay;
-  const days =
-    isFirstScan && chartFirstDay && lastDay
-      ? listDaysThrough(chartFirstDay, lastDay)
-      : knownDays;
-  const rows = days.map((day) => {
-    const row: MentionTrendRow = { day: formatDayLabel(day), rawDay: day };
+  const rows = knownDays.map((day) => {
+    const row: MentionTrendRow = {
+      day: formatDayLabel(day, locale),
+      rawDay: day,
+    };
     const dayPoints = byDay.get(day);
     let total = 0;
     let sampled = false;
@@ -389,8 +333,7 @@ export function buildMentionTrendRows(
         sampled = true;
       }
     }
-    row[GEO_MENTION_TREND_TOTAL_KEY] =
-      sampled || (isFirstScan && !dayPoints) ? total : null;
+    row[GEO_MENTION_TREND_TOTAL_KEY] = sampled ? total : null;
     return row;
   });
 
@@ -403,24 +346,6 @@ export function buildMentionTrendRows(
   return { rows, engines: ranked };
 }
 
-export function engineVariantLabel(model: string, brandLabel: string): string {
-  const label = engineFamilyLabel(model);
-  const prefix = `${brandLabel} `;
-  if (label.startsWith(prefix)) {
-    return label.slice(prefix.length);
-  }
-  if (label !== brandLabel) {
-    return label;
-  }
-  const slug = engineModelOf(model).split("/").at(-1);
-  if (slug?.toLowerCase().startsWith("gpt-")) {
-    return slug
-      .replace(GPT_PREFIX_PATTERN, "GPT-")
-      .replace(MINI_SUFFIX_PATTERN, " mini");
-  }
-  return label;
-}
-
 export function formatEngineFamily(engine: string): string {
   const model = engineModelOf(engine);
   return (
@@ -431,13 +356,16 @@ export function formatEngineFamily(engine: string): string {
   );
 }
 
-export function engineAnswerMode(engine: string): string | null {
-  return isGroundedEngine(engine) ? GEO_SEARCH_LABEL : null;
+export function engineAnswerMode(engine: string): GeoEngineAnswerMode | null {
+  if (isGroundedEngine(engine)) {
+    return null;
+  }
+  return hasGroundedVariant(engine) ? "withoutSearch" : null;
 }
 
 export function sharedEngineAnswerMode(
   engines: readonly string[]
-): string | null {
+): GeoEngineAnswerMode | null {
   const first = engines[0];
   if (!first) {
     return null;
@@ -446,12 +374,6 @@ export function sharedEngineAnswerMode(
   return engines.every((engine) => engineAnswerMode(engine) === mode)
     ? mode
     : null;
-}
-
-export function formatEngineWithMode(engine: string): string {
-  const family = formatEngineFamily(engine);
-  const mode = engineAnswerMode(engine);
-  return mode ? `${family} ${mode}` : family;
 }
 
 export function engineFamilySources(
@@ -580,7 +502,8 @@ function totalsForEngines(
 
 export function buildEngineFamilyModeTrendRows(
   points: readonly GeoTimeseriesPoint[],
-  family: string
+  family: string,
+  locale: string
 ): EngineFamilyModeTrendRow[] {
   const all = mentionRateSparkline(points, { family, mode: "all" });
   const search = mentionRateSparkline(points, { family, mode: "search" });
@@ -595,13 +518,8 @@ export function buildEngineFamilyModeTrendRows(
       ...memoryByDay.keys(),
     ]),
   ].sort();
-  const firstDay = knownDays.at(0);
-  const lastDay = knownDays.at(-1);
-  const days =
-    firstDay && lastDay ? listDaysThrough(firstDay, lastDay) : knownDays;
-
-  return days.map((day) => ({
-    day: formatDayLabel(day),
+  return knownDays.map((day) => ({
+    day: formatDayLabel(day, locale),
     rawDay: day,
     all: allByDay.get(day) ?? null,
     search: searchByDay.get(day) ?? null,
@@ -693,6 +611,34 @@ export function withTrackedMentionEngines(
   return extras.length === 0 ? [...scanned] : [...scanned, ...extras];
 }
 
+/**
+ * Engine families the workspace currently scans. An empty tracked list means
+ * the workspace never narrowed its engines, so everything counts as tracked —
+ * filtering on it would blank the surface instead of trimming it.
+ */
+export function trackedEngineFamilies(
+  trackedEngines: readonly string[] = []
+): ReadonlySet<string> {
+  return new Set(trackedEngines.map((engine) => engineFamilyOf(engine)));
+}
+
+export function isTrackedFamily(
+  family: string,
+  tracked: ReadonlySet<string>
+): boolean {
+  return tracked.size === 0 || tracked.has(family);
+}
+
+/** Drops families the workspace stopped scanning, keeping their history out
+ * of a performance table where a frozen 0% reads as a bad result. */
+export function keepTrackedFamilies(
+  families: readonly GeoEngineFamily[],
+  trackedEngines: readonly string[] = []
+): GeoEngineFamily[] {
+  const tracked = trackedEngineFamilies(trackedEngines);
+  return families.filter((family) => isTrackedFamily(family.family, tracked));
+}
+
 function compareMentionProviderRows(
   left: MentionProviderRow,
   right: MentionProviderRow
@@ -716,16 +662,14 @@ export function buildMentionProviderRows(
     withTrackedMentionEngines(scanned, options?.trackedEngines)
   );
   const points = options?.timeseriesPoints ?? [];
-  const trackedFamilies = new Set(
-    (options?.trackedEngines ?? []).map((engine) => engineFamilyOf(engine))
-  );
+  const tracked = trackedEngineFamilies(options?.trackedEngines);
   return families
     .map((family) => ({
       family,
       totals: engineFamilyTotals(family) ?? EMPTY_FAMILY_TOTALS,
       visibilityDelta: engineFamilyStatTrends(points, family.family)
         .visibilityDelta,
-      tracked: trackedFamilies.size === 0 || trackedFamilies.has(family.family),
+      tracked: isTrackedFamily(family.family, tracked),
     }))
     .sort(compareMentionProviderRows);
 }
@@ -848,8 +792,8 @@ export function geoStatDeltaTone(
   if (isGeoStatDeltaNew(delta)) {
     return "up";
   }
-  const rounded =
-    kind === "position" ? Math.round(delta * 10) / 10 : Math.round(delta);
+  const oneDecimal = kind === "position" || kind === "score";
+  const rounded = oneDecimal ? Math.round(delta * 10) / 10 : Math.round(delta);
   const effective = kind === "position" ? -rounded : rounded;
   if (effective > 0) {
     return "up";
@@ -862,10 +806,12 @@ export function geoStatDeltaTone(
 
 export function formatGeoStatDelta(
   delta: number,
-  kind: GeoStatDeltaKind
+  kind: GeoStatDeltaKind,
+  locale: string,
+  labels: GeoStatDeltaLabels
 ): string {
   if (isGeoStatDeltaNew(delta)) {
-    return GEO_STAT_DELTA_NEW_LABEL;
+    return labels.new;
   }
   const tone = geoStatDeltaTone(delta, kind);
   const signed = tone !== "flat";
@@ -874,13 +820,19 @@ export function formatGeoStatDelta(
     const rounded = Math.round(Math.abs(delta));
     return signed ? `${delta >= 0 ? "+" : "-"}${rounded}%` : `${rounded}%`;
   }
+  if (kind === "score") {
+    const rounded = Math.round(delta * 10) / 10;
+    const points = labels.points(rounded);
+    return signed && rounded >= 0 ? `+${points}` : points;
+  }
   if (kind === "rate") {
     const rounded = Math.round(delta);
-    return signed
-      ? `${rounded >= 0 ? "+" : ""}${rounded} pts`
-      : `${rounded} pts`;
+    const points = labels.points(rounded);
+    return signed && rounded >= 0 ? `+${points}` : points;
   }
   const rounded = Math.round(delta * 10) / 10;
-  const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  const text = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 1,
+  }).format(rounded);
   return signed ? `${rounded > 0 ? "+" : ""}${text}` : text;
 }

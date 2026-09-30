@@ -1,11 +1,13 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { authClient } from "@/lib/auth/client";
 
 export function BannedNotice() {
+  const t = useTranslations("auth.banned");
   const [isSigningOut, setIsSigningOut] = useState(false);
   const signOut = authClient.useSignOut();
 
@@ -16,13 +18,12 @@ export function BannedNotice() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-md border p-8 text-center">
-      <h1 className="text-lg font-semibold">Account suspended</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
       <p className="text-muted-foreground text-sm">
-        Your account has been suspended. If you believe this is a mistake,
-        contact support at support@usenotra.com.
+        {t("description", { email: "support@usenotra.com" })}
       </p>
       <Button disabled={isSigningOut} onClick={handleSignOut} variant="outline">
-        Sign out
+        {t("signOut")}
       </Button>
     </div>
   );

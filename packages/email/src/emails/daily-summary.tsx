@@ -54,93 +54,6 @@ function toneFromDelta(label: string): DailySummaryChangeTone {
   return "neutral";
 }
 
-function toneFromNet(net: number): DailySummaryChangeTone {
-  if (net > 0) {
-    return "up";
-  }
-  if (net < 0) {
-    return "down";
-  }
-  return "neutral";
-}
-
-function splitHeadlineNumber(
-  headline: string,
-  netChange: number
-): { before: string; number: string; after: string } | null {
-  if (netChange > 0) {
-    return splitToken(headline, `+${netChange}`);
-  }
-
-  if (netChange < 0) {
-    const match = headline.match(new RegExp(`\\b${Math.abs(netChange)}\\b`));
-    if (!match || match.index === undefined) {
-      return null;
-    }
-
-    return {
-      before: headline.slice(0, match.index),
-      number: match[0],
-      after: headline.slice(match.index + match[0].length),
-    };
-  }
-
-  // Scan once: an unanchored digit regex retries long runs without a trailing %.
-  let start = 0;
-  for (let index = 0; index < headline.length; index += 1) {
-    const character = headline.charAt(index);
-    if (character >= "0" && character <= "9") {
-      continue;
-    }
-    if (character === "%" && start < index) {
-      return {
-        before: headline.slice(0, start),
-        number: headline.slice(start, index + 1),
-        after: headline.slice(index + 1),
-      };
-    }
-    start = index + 1;
-  }
-
-  return null;
-}
-
-function splitToken(headline: string, token: string) {
-  const index = headline.indexOf(token);
-  if (index === -1) {
-    return null;
-  }
-
-  return {
-    before: headline.slice(0, index),
-    number: token,
-    after: headline.slice(index + token.length),
-  };
-}
-
-function HeadlineNumber({
-  headline,
-  netChange,
-}: {
-  headline: string;
-  netChange: number;
-}) {
-  const parts = splitHeadlineNumber(headline, netChange);
-  if (!parts) {
-    return headline;
-  }
-
-  return (
-    <>
-      {parts.before}
-      <span style={{ color: PILL[toneFromNet(netChange)].color }}>
-        {parts.number}
-      </span>
-      {parts.after}
-    </>
-  );
-}
-
 function toneMark(tone: DailySummaryChangeTone): string {
   if (tone === "up") {
     return "+";
@@ -167,39 +80,40 @@ export const DailySummaryEmail = ({
   organizationName = "Acme Inc",
   organizationSlug = "acme",
   dateLabel = "September 4, 2026",
-  headline = "You're +7 prompts better than yesterday.",
+  headline = "You gained 8 prompts but lost 1 yesterday.",
   mentionRateLabel = "42%",
   mentionRateDeltaLabel = "+3 pts",
   scansCompleted = 1,
-  netChange = 7,
+  gained = 8,
+  lost = 1,
   items = [
     {
+      id: "prompt-1:openai",
       title: "What is the best changelog tool for startups?",
-      detail: "Gained mention",
+      changes: [{ id: "gained_mention", detail: "Gained mention", tone: "up" }],
       engineLabel: "ChatGPT",
       engineIconSrc: engineEmailLogoSrc("openai"),
-      tone: "up",
     },
     {
+      id: "prompt-2:perplexity",
       title: "How should small SaaS teams write release notes?",
-      detail: "Lost mention",
+      changes: [{ id: "lost_mention", detail: "Lost mention", tone: "down" }],
       engineLabel: "Perplexity",
       engineIconSrc: engineEmailLogoSrc("perplexity"),
-      tone: "down",
     },
     {
+      id: "prompt-3:gemini",
       title: "Which AI tools generate changelogs from GitHub?",
-      detail: "Position up",
+      changes: [{ id: "position_improved", detail: "Position up", tone: "up" }],
       engineLabel: "Gemini",
       engineIconSrc: engineEmailLogoSrc("gemini"),
-      tone: "up",
     },
   ],
   remainingCount = 2,
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: DailySummaryEmailProps) => {
   const rateTone = toneFromDelta(mentionRateDeltaLabel);
-  const netLabel = netChange > 0 ? `+${netChange}` : String(netChange);
+  const promptChangesLabel = `+${gained}/-${lost}`;
   const subtext = dailySummarySubtext(organizationName, scansCompleted);
 
   return (
@@ -212,7 +126,7 @@ export const DailySummaryEmail = ({
             <EmailLogo className="mt-0 text-center" variant="wordmark" />
 
             <Heading className="mt-5 mb-3 text-center text-2xl font-medium text-black">
-              <HeadlineNumber headline={headline} netChange={netChange} />
+              {headline}
             </Heading>
             <Text className="mt-0 mb-8 text-center text-base leading-relaxed text-[#737373]">
               {subtext}
@@ -241,7 +155,7 @@ export const DailySummaryEmail = ({
                     tone={rateTone}
                     value={mentionRateLabel}
                   />
-                  <MetricCell last label="Prompts" value={netLabel} />
+                  <MetricCell last label="Prompts" value={promptChangesLabel} />
                 </Row>
               </EmailTitleCard>
             </Section>
@@ -253,7 +167,7 @@ export const DailySummaryEmail = ({
                     <ChangeRow
                       first={index === 0}
                       item={item}
-                      key={`${item.tone}-${item.title}`}
+                      key={item.id}
                       last={index === items.length - 1}
                     />
                   ))}
@@ -384,35 +298,46 @@ function ChangeRow({
       </Text>
       <Row>
         <Column style={{ paddingTop: "6px" }}>
-          <GeoToneMark tone={item.tone} />
-          <span
-            style={{
-              color: EMAIL_THEME.mutedForeground,
-              fontSize: "12px",
-              verticalAlign: "middle",
-            }}
-          >
-            {item.detail}
-            {item.engineLabel ? (
-              <>
-                {" · "}
-                {item.engineIconSrc ? (
-                  <Img
-                    alt=""
-                    height="14"
-                    src={item.engineIconSrc}
-                    style={{
-                      display: "inline-block",
-                      margin: "0 4px 0 0",
-                      verticalAlign: "middle",
-                    }}
-                    width="14"
-                  />
-                ) : null}
-                {item.engineLabel}
-              </>
-            ) : null}
-          </span>
+          {item.changes.map((change) => (
+            <span
+              key={change.id}
+              style={{
+                color: EMAIL_THEME.mutedForeground,
+                display: "inline-block",
+                fontSize: "12px",
+                marginRight: "8px",
+                verticalAlign: "middle",
+              }}
+            >
+              <GeoToneMark tone={change.tone} />
+              {change.detail}
+            </span>
+          ))}
+          {item.engineLabel ? (
+            <span
+              style={{
+                color: EMAIL_THEME.mutedForeground,
+                display: "inline-block",
+                fontSize: "12px",
+                verticalAlign: "middle",
+              }}
+            >
+              {item.engineIconSrc ? (
+                <Img
+                  alt=""
+                  height="14"
+                  src={item.engineIconSrc}
+                  style={{
+                    display: "inline-block",
+                    margin: "0 4px 0 0",
+                    verticalAlign: "middle",
+                  }}
+                  width="14"
+                />
+              ) : null}
+              {item.engineLabel}
+            </span>
+          ) : null}
         </Column>
       </Row>
     </Section>
@@ -482,37 +407,56 @@ DailySummaryEmail.PreviewProps = {
   organizationName: "Acme Inc",
   organizationSlug: "acme",
   dateLabel: "September 4, 2026",
-  headline: "You're +7 prompts better than yesterday.",
+  headline: "You gained 8 prompts but lost 1 yesterday.",
   mentionRateLabel: "42%",
   mentionRateDeltaLabel: "+3 pts",
   scansCompleted: 1,
   gained: 8,
   lost: 1,
-  netChange: 7,
   items: [
     {
-      title: "What is the best changelog tool for startups?",
-      detail: "Gained mention",
-      engineLabel: "ChatGPT",
-      engineIconSrc: engineEmailLogoSrc("openai"),
-      tone: "up",
+      id: "prompt-1:anthropic",
+      title:
+        "can you recommend something for ai-powered desktop transcription application",
+      changes: [
+        {
+          id: "citation_added",
+          detail: "12 citations added",
+          tone: "up",
+        },
+        {
+          id: "citation_removed",
+          detail: "7 citations removed",
+          tone: "down",
+        },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "How should small SaaS teams write release notes?",
-      detail: "Lost mention",
-      engineLabel: "Perplexity",
-      engineIconSrc: engineEmailLogoSrc("perplexity"),
-      tone: "down",
+      id: "prompt-2:anthropic",
+      title:
+        "how do i get started with ai-powered desktop transcription application",
+      changes: [
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "Which AI tools generate changelogs from GitHub?",
-      detail: "Position up",
-      engineLabel: "Gemini",
-      engineIconSrc: engineEmailLogoSrc("gemini"),
-      tone: "up",
+      id: "prompt-3:anthropic",
+      title:
+        "looking for an alternative for ai-powered desktop transcription application, what should i try?",
+      changes: [
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
   ],
-  remainingCount: 2,
+  remainingCount: 18,
   dashboardLink: "https://app.usenotra.com/acme/geo",
 } satisfies DailySummaryEmailProps;
 

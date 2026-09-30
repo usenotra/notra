@@ -2,7 +2,6 @@
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import {
   Sheet,
@@ -11,15 +10,22 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
+import { Discussion } from "@/components/comments/discussion";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-table";
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
-import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate } from "@/utils/geo-shelf";
+import {
+  formatShelfDate,
+  groupShelfCitationEngines,
+  isGeoShelfFixtureSourceId,
+} from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -39,9 +45,10 @@ function SectionHeader({
 }
 
 export function ShelfDetailDialog({
+  organizationId,
   open,
   onOpenChange,
-  row,
+  row: rowProp,
   members,
   currentMemberId,
   ownBrandName,
@@ -49,29 +56,49 @@ export function ShelfDetailDialog({
   onSetPlacementStatus,
   isPending,
 }: GeoShelfDetailDialogProps) {
+  const t = useTranslations("geo.shelf.shelfDetailDialog");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("geo.shelf.labels");
+  const locale = useLocale();
+  const formatRelative = useFormatRelative();
+  const [row, releaseRow] = useRetainedValue(rowProp);
   if (!row) {
     return null;
   }
   const citations = row.citations;
   const stats = [
     {
-      label: `Last ${GEO_SHELF_CITATION_WINDOW_DAYS} days`,
-      value: citations.windowCount.toLocaleString(),
+      label: t("lastDays", { days: GEO_SHELF_CITATION_WINDOW_DAYS }),
+      value: citations.windowCount.toLocaleString(locale),
     },
-    { label: "All time", value: citations.totalCount.toLocaleString() },
-    { label: "Prompts", value: citations.promptCount.toLocaleString() },
+    {
+      label: tCommon("labels.allTime"),
+      value: citations.totalCount.toLocaleString(locale),
+    },
+    {
+      label: tCommon("labels.prompts"),
+      value: citations.promptCount.toLocaleString(locale),
+    },
   ];
   const pageLabel = stripWebsiteProtocol(row.url);
   const ticketMeta = row.opportunity
-    ? `Opened ${formatRelative(row.opportunity.createdAt)}${
-        row.opportunity.resolvedAt
-          ? ` · closed ${formatRelative(row.opportunity.resolvedAt)}`
-          : ""
-      }`
+    ? row.opportunity.resolvedAt
+      ? t("ticketOpenedClosed", {
+          opened: formatRelative(row.opportunity.createdAt),
+          closed: formatRelative(row.opportunity.resolvedAt),
+        })
+      : t("ticketOpened", {
+          opened: formatRelative(row.opportunity.createdAt),
+        })
     : null;
 
   return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseRow}
+      open={open}
+    >
       <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
         <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
           <SheetTitle className="text-xl font-semibold tracking-tight text-pretty wrap-break-word">
@@ -96,7 +123,7 @@ export function ShelfDetailDialog({
 
         <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
           <section className="space-y-3">
-            <SectionHeader title="Citations" />
+            <SectionHeader title={tGeoShared("citations")} />
             <div className="space-y-5">
               <dl className="grid grid-cols-3 gap-4 py-1">
                 {stats.map((stat) => (
@@ -115,43 +142,53 @@ export function ShelfDetailDialog({
               </dl>
               <div className="text-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-xs">
                 <span>
-                  First cited{" "}
-                  <span className="text-foreground">
-                    {formatShelfDate(citations.firstCitedAt)}
-                  </span>
+                  {t.rich("firstCited", {
+                    date: formatShelfDate(citations.firstCitedAt, locale),
+                    value: (chunks) => (
+                      <span className="text-foreground">{chunks}</span>
+                    ),
+                  })}
                 </span>
                 <span>
-                  Last cited{" "}
-                  <span className="text-foreground">
-                    {formatShelfDate(citations.lastCitedAt)}
-                  </span>
+                  {t.rich("lastCited", {
+                    date: formatShelfDate(citations.lastCitedAt, locale),
+                    value: (chunks) => (
+                      <span className="text-foreground">{chunks}</span>
+                    ),
+                  })}
                 </span>
               </div>
               {citations.engines.length > 0 ? (
                 <div className="space-y-2">
-                  <p className="text-muted-foreground text-xs">Cited by</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t("citedBy")}
+                  </p>
                   <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    {citations.engines.map((engine) => (
-                      <li
-                        className="flex items-center gap-1.5 text-xs"
-                        key={engine}
-                      >
-                        <EngineIcon className="size-4" engine={engine} />
-                        {engineFamilyLabel(engine)}
-                      </li>
-                    ))}
+                    {groupShelfCitationEngines(citations.engines).map(
+                      ({ family, label, models }) => (
+                        <li
+                          className="flex items-center gap-1.5 text-xs"
+                          key={family}
+                          title={models.join(", ")}
+                        >
+                          <EngineIcon
+                            className="size-4"
+                            engine={models[0] ?? family}
+                          />
+                          {label}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-xs">
-                  No engine has cited this page for your prompts yet.
-                </p>
+                <p className="text-muted-foreground text-xs">{t("noEngine")}</p>
               )}
             </div>
           </section>
 
           <section className="space-y-3">
-            <SectionHeader title="Who is on the shelf" />
+            <SectionHeader title={t("whoIsOnShelf")} />
             <ShelfPlacementsTable
               disabled={isPending}
               onSetPlacementStatus={onSetPlacementStatus}
@@ -161,7 +198,7 @@ export function ShelfDetailDialog({
           </section>
 
           <section className="space-y-3">
-            <SectionHeader meta={ticketMeta} title="Ticket" />
+            <SectionHeader meta={ticketMeta} title={tLabels("ticket")} />
             {row.opportunity ? (
               <ShelfTicketForm
                 currentMemberId={currentMemberId}
@@ -175,8 +212,8 @@ export function ShelfDetailDialog({
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed px-4 py-4">
                 <p className="text-muted-foreground text-sm text-pretty">
                   {row.isOpportunity
-                    ? "Competitors are listed here and you are not. Open a ticket to work on it."
-                    : "No one is working on this page."}
+                    ? t("opportunityHint")
+                    : t("nobodyWorking")}
                 </p>
                 <Button
                   disabled={isPending}
@@ -189,11 +226,19 @@ export function ShelfDetailDialog({
                   size="sm"
                   variant="outline"
                 >
-                  Open ticket
+                  {t("openTicket")}
                 </Button>
               </div>
             )}
           </section>
+          {isGeoShelfFixtureSourceId(row.id) ? null : (
+            <Discussion
+              key={row.id}
+              organizationId={organizationId}
+              targetId={row.id}
+              targetType="shelf"
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>

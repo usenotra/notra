@@ -203,26 +203,6 @@ export const socialPostSources = defineDatasource("social_post_sources", {
   }),
 });
 
-export const aiTrafficEvents = defineDatasource("ai_traffic_events", {
-  description:
-    "Append-only log of AI agent requests to an organization's site, one row per detected hit",
-  schema: {
-    organization_id: t.string(),
-    agent: t.string().lowCardinality(),
-    category: t.string().lowCardinality(),
-    confidence: t.string().lowCardinality(),
-    path: t.string(),
-    host: t.string(),
-    method: t.string().lowCardinality(),
-    referer: t.string().nullable(),
-    captured_at: t.dateTime(),
-  },
-  engine: engine.mergeTree({
-    sortingKey: ["organization_id", "captured_at"],
-    partitionKey: "toYYYYMM(captured_at)",
-  }),
-});
-
 export const geoTrafficEvents = defineDatasource("geo_traffic_events", {
   description:
     "Append-only log of AI requests captured by the geo SDK, classified into AI crawlers and AI assistant referrals; human requests are dropped at ingest",
@@ -236,7 +216,7 @@ export const geoTrafficEvents = defineDatasource("geo_traffic_events", {
     category: t.string().lowCardinality(),
     confidence: t.string().lowCardinality(),
     path: t.string(),
-    host: t.string(),
+    host: t.string().lowCardinality(),
     method: t.string().lowCardinality(),
     referer: t.string(),
     ua: t.string(),
@@ -284,36 +264,6 @@ export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
   jsonPaths: false,
 });
 
-export const geoTrafficPagesDaily = defineDatasource(
-  "geo_traffic_pages_daily",
-  {
-    description:
-      "Daily rollup of geo_traffic_events per organization, visitor type, source and path; read with countMerge/maxMerge",
-    schema: {
-      day: t.date(),
-      organization_id: t.string(),
-      project_id: t.string().lowCardinality(),
-      visitor_type: t.string().lowCardinality(),
-      source: t.string().lowCardinality(),
-      path: t.string(),
-      visits_state: t.aggregateFunction("count"),
-      last_seen_state: t.aggregateFunction("max", t.dateTime()),
-    },
-    engine: engine.aggregatingMergeTree({
-      sortingKey: [
-        "organization_id",
-        "project_id",
-        "visitor_type",
-        "source",
-        "day",
-        "path",
-      ],
-      partitionKey: "toYYYYMM(day)",
-    }),
-    jsonPaths: false,
-  }
-);
-
 export const geoTrafficPagesByHostDaily = defineDatasource(
   "geo_traffic_pages_by_host_daily",
   {
@@ -351,5 +301,4 @@ export type SocialAccountStatsRow = InferRow<typeof socialAccountStats>;
 export type SocialPostRow = InferRow<typeof socialPosts>;
 export type SocialPostStatsRow = InferRow<typeof socialPostStats>;
 export type SocialPostSourceRow = InferRow<typeof socialPostSources>;
-export type AiTrafficEventRow = InferRow<typeof aiTrafficEvents>;
 export type GeoTrafficEventRow = InferRow<typeof geoTrafficEvents>;

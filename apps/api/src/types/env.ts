@@ -17,6 +17,7 @@ interface ApiBindings {
   UPSTASH_REDIS_REST_URL?: string;
   WORKFLOW_BASE_URL?: string;
   WORKOS_AUTHKIT_DOMAIN?: string;
+  WORKOS_API_KEY?: string;
   WORKOS_CLIENT_ID?: string;
 }
 

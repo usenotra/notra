@@ -6,7 +6,11 @@ import { ContactForm } from "@/components/contact/contact-form";
 import { ContactResources } from "@/components/contact/contact-resources";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { CONTACT_RESPONSE_TIME } from "@/constants/contact";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Contact Notra";
@@ -17,7 +21,7 @@ const url = `${SITE_URL}/contact`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

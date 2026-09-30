@@ -1,5 +1,14 @@
 # AGENTS.md
 
+## Ponytail
+
+Codex, Claude Code, and OpenCode use Ponytail's native plugin; respect its current
+mode, including off. See CONTRIBUTING.md for setup. In Amp, for coding tasks,
+read and apply `.agents/skills/ponytail/SKILL.md` from the repository root,
+defaulting to full unless the user chooses another level or disables Ponytail.
+Explicit requirements and this repo's conventions take precedence. Companion
+`ponytail-*` skills are available on request.
+
 ## Cursor Cloud specific instructions
 
 This repo is a Bun + Turborepo monorepo (product: **Notra**, an AI content-generation
@@ -70,9 +79,8 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   (its own oRPC `/rpc`, Better Auth `/api/auth`, chat). Run with
   `bun run dev --filter=dashboard`. This is the app to exercise end-to-end.
 - `apps/web` (port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
-  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard),
-  `packages/email` preview (`bun run email:dev`, port 3002) — all optional for the
-  core flow.
+  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard) — all
+  optional for the core flow.
 
 ### Auth note
 - Email/password sign-up works without OAuth/email providers and does not require email

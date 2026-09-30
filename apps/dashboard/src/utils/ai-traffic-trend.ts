@@ -82,7 +82,8 @@ export function buildTrafficTrendRowsForProviders(
   points: readonly GeoTrafficPoint[],
   providers: readonly TrafficTrendProvider[],
   days: readonly string[],
-  hiddenKeys: ReadonlySet<string>
+  hiddenKeys: ReadonlySet<string>,
+  locale: string
 ): GeoTrafficTrendRow[] {
   const dayIndex = new Map(days.map((day, index) => [day, index]));
   const providerBySource = new Map<string, TrafficTrendProvider>();
@@ -93,7 +94,7 @@ export function buildTrafficTrendRowsForProviders(
   }
   const rows: GeoTrafficTrendRow[] = days.map((day) => {
     const row: GeoTrafficTrendRow = {
-      day: formatDayLabel(day),
+      day: formatDayLabel(day, locale),
       rawDay: day,
       [GEO_TRAFFIC_TREND_CRAWLER_KEY]: 0,
       [GEO_TRAFFIC_TREND_REFERRAL_KEY]: 0,

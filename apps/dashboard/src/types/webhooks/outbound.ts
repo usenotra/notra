@@ -24,7 +24,6 @@ export type WebhookStatusVariant = NonNullable<
 
 export interface WebhookMetric {
   readonly key: keyof WebhookStats;
-  readonly label: string;
   readonly tone: string;
 }
 

@@ -64,3 +64,26 @@ export function sentimentTailEstimate(
   }
   return estimates;
 }
+
+export function sentimentNoDataBaseline(
+  points: readonly Pick<GeoSentimentResponse["points"][number], "score">[],
+  estimates: readonly (number | null)[]
+): (number | null)[] {
+  const baseline: (number | null)[] = points.map((point, index) =>
+    point.score === null && estimates[index] == null ? 0 : null
+  );
+  for (let index = 0; index < baseline.length; index++) {
+    if (baseline[index] !== 0) {
+      continue;
+    }
+    if (baseline[index - 1] === null) {
+      baseline[index - 1] =
+        estimates[index - 1] ?? points[index - 1]?.score ?? null;
+    }
+    if (baseline[index + 1] === null) {
+      baseline[index + 1] =
+        estimates[index + 1] ?? points[index + 1]?.score ?? null;
+    }
+  }
+  return baseline;
+}

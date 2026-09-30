@@ -1,12 +1,10 @@
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 import { WEBHOOK_STATUS_VARIANTS } from "@/constants/outbound-webhooks";
 import type { OutboundDelivery } from "@/types/webhooks/outbound";
 
 export function WebhookStatus({ status }: Pick<OutboundDelivery, "status">) {
-  return (
-    <Badge className="capitalize" variant={WEBHOOK_STATUS_VARIANTS[status]}>
-      {status}
-    </Badge>
-  );
+  const t = useTranslations("settings.panes.webhooks.statuses");
+  return <Badge variant={WEBHOOK_STATUS_VARIANTS[status]}>{t(status)}</Badge>;
 }

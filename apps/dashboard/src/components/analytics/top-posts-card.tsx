@@ -2,7 +2,6 @@
 
 import { Linkedin02Icon, NewTwitterIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { formatDayLabel } from "@notra/geo-core/utils/day-label";
 import { DelayedTooltip } from "@notra/ui/components/shared/delayed-tooltip";
 import {
   Avatar,
@@ -13,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useFormatter, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import {
@@ -21,9 +21,11 @@ import {
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { ANALYTICS_TOOLTIP_DELAY_MS } from "@/constants/analytics";
-import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { TABLE_ROW_HEIGHT, TABLE_SKELETON_ROWS } from "@/constants/table";
+import { useDayLabel } from "@/lib/hooks/use-day-label";
+import { useFormatMetric } from "@/lib/hooks/use-format-metric";
 import type { TopPostItem, TopPostsCardProps } from "@/types/analytics";
-import { formatMetric, previewPostContent } from "@/utils/analytics-charts";
+import { previewPostContent } from "@/utils/analytics-charts";
 import { tableHeightFor } from "@/utils/table";
 
 function PostAvatar({ post }: { post: TopPostItem }) {
@@ -40,12 +42,22 @@ function PostAvatar({ post }: { post: TopPostItem }) {
   );
 }
 
-export function TopPostsCard({ posts, action }: TopPostsCardProps) {
+export function TopPostsCard({
+  posts,
+  action,
+  isPending = false,
+}: TopPostsCardProps) {
+  const t = useTranslations("analytics.topPosts");
+  const tCommon = useTranslations("common");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const formatMetric = useFormatMetric();
+  const format = useFormatter();
+  const formatDayLabel = useDayLabel();
   const columns = useMemo<TableColumn<TopPostItem>[]>(
     () => [
       {
         key: "account",
-        header: "Account",
+        header: tCommon("labels.account"),
         width: "7rem",
         sortable: true,
         cell: (row) => (
@@ -74,7 +86,9 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
       {
         key: "content",
         header:
-          posts.length > 0 ? `Post (${posts.length.toLocaleString()})` : "Post",
+          posts.length > 0
+            ? t("postCount", { count: format.number(posts.length) })
+            : tCommon("labels.post"),
         width: "2.6fr",
         cell: (row) => (
           <DelayedTooltip delay={ANALYTICS_TOOLTIP_DELAY_MS}>
@@ -93,7 +107,7 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
       },
       {
         key: "postedAt",
-        header: "Posted",
+        header: tAnalyticsShared("posted"),
         width: "7.5rem",
         sortable: true,
         cell: (row) => (
@@ -104,7 +118,7 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
       },
       {
         key: "impressions",
-        header: "Impressions",
+        header: tCommon("labels.impressions"),
         width: "8.5rem",
         align: "right",
         sortable: true,
@@ -117,7 +131,7 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
       },
       {
         key: "engagement",
-        header: "Engagement",
+        header: tAnalyticsShared("engagement"),
         width: "9rem",
         align: "right",
         sortable: true,
@@ -128,20 +142,20 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
         ),
       },
     ],
-    [posts.length]
+    [posts.length, t, format, formatDayLabel, formatMetric]
   );
 
   return (
     <InstrumentModule
       action={action}
       bareBody
-      eyebrow="Top posts"
+      eyebrow={t("title")}
       variant="panel"
     >
-      {posts.length === 0 ? (
+      {posts.length === 0 && !isPending ? (
         <InstrumentEmpty
           className="h-40"
-          message="No posts for this time frame"
+          message={tAnalyticsShared("noPostsForThisTime")}
           seed="Top posts"
         />
       ) : (
@@ -150,9 +164,12 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
           columns={columns}
           data={posts}
           defaultSort={{ key: "engagement", direction: "desc" }}
-          emptyState="No posts for this time frame"
+          emptyState={tAnalyticsShared("noPostsForThisTime")}
           getRowId={(row) => `${row.provider}:${row.platformPostId}`}
-          height={tableHeightFor(posts.length)}
+          height={tableHeightFor(
+            isPending ? TABLE_SKELETON_ROWS : posts.length
+          )}
+          loading={isPending}
           onRowClick={(row) => {
             if (row.url) {
               window.open(row.url, "_blank", "noopener,noreferrer");

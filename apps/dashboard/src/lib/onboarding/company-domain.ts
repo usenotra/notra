@@ -75,11 +75,13 @@ function requestWebsiteAddress(
       {
         family: address.family,
         lookup: (_hostname, options, callback) => {
-          if (options.all) {
-            callback(null, [address]);
-            return;
-          }
-          callback(null, address.address, address.family);
+          queueMicrotask(() => {
+            if (options.all) {
+              callback(null, [address]);
+              return;
+            }
+            callback(null, address.address, address.family);
+          });
         },
         method,
         signal,

@@ -1,7 +1,9 @@
 import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 
+import { REFERENCE_LIMIT_REACHED_CODE } from "@/constants/brand";
 import {
   DUPLICATE_POST_DOCS_URLS,
+  SOCIAL_DUPLICATE_CONTENT_CODE,
   SOCIAL_PLATFORM_LABELS,
 } from "@/constants/social-connect";
 import type {
@@ -9,6 +11,7 @@ import type {
   PublishedSocialPost,
 } from "@/types/content/post-social";
 import type { ConnectedAccount } from "@/types/hooks/connected-accounts";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 
 export function buildPublishedChatMessage(
   published: PublishedSocialPost
@@ -33,17 +36,15 @@ function hasReconnectCode(error: unknown): boolean {
   );
 }
 
-const DUPLICATE_CONTENT_RE = /already scheduled|duplicate/i;
-
 export function getPublishErrorInfo(
   error: unknown,
+  fallback: string,
   platform?: SocialConnectPlatform
 ): PublishErrorInfo {
   const message =
-    error instanceof Error && error.message
-      ? error.message
-      : "Failed to publish post";
-  const isDuplicate = DUPLICATE_CONTENT_RE.test(message);
+    error instanceof Error && error.message ? error.message : fallback;
+  const isDuplicate =
+    getOrpcErrorDataCode(error) === SOCIAL_DUPLICATE_CONTENT_CODE;
 
   return {
     message,
@@ -98,8 +99,5 @@ export function buildReferenceInput(
 }
 
 export function isReferenceLimitError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    error.message.toLowerCase().includes("reference limit")
-  );
+  return getOrpcErrorDataCode(error) === REFERENCE_LIMIT_REACHED_CODE;
 }

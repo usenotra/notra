@@ -22,7 +22,7 @@ import type { SessionContext } from "eve/context";
 import type { HookContext } from "eve/hooks";
 
 import {
-  MIRROR_ASSISTANT_METADATA,
+  MIRROR_REQUESTED_MODEL,
   MIRROR_DELTA_THROTTLE_MAX_ENTRIES,
   MIRROR_DELTA_THROTTLE_MS,
   MIRROR_TOOL_NAME_OVERRIDES,
@@ -31,10 +31,12 @@ import {
 } from "../constants/chat-mirror";
 import { ChatMirrorError } from "../schemas/chat-mirror";
 import type { MirrorTarget, MirrorUiMessage } from "../types/chat-mirror";
+import { getSelectedAssistantModelId } from "./model";
 
 const SNAKE_SEGMENT_REGEX = /_([a-z0-9])/gu;
 
-const deltaThrottle = new Map<string, number>();
+// eve streams deltas only, so each in-flight message keeps its own buffer.
+const deltaBuffers = new Map<string, { publishedAt: number; text: string }>();
 
 export function mirrorStep<T>(
   operation: string,
@@ -212,39 +214,52 @@ export async function mirrorSessionStatus(
   );
 }
 
+export function mirrorAssistantMetadata(turnId: string) {
+  return {
+    model: getSelectedAssistantModelId(turnId),
+    requestedModel: MIRROR_REQUESTED_MODEL,
+  };
+}
+
 export async function mirrorAssistantDelta(
   ctx: SessionContext,
   data: MessageAppendedStreamEvent["data"]
 ): Promise<void> {
-  if (!data.messageSoFar.trim()) {
-    return;
-  }
   const target = getMirrorTarget(ctx);
   if (!target) {
     return;
   }
 
   const messageId = `eve:${target.sessionId}:${data.turnId}:${data.stepIndex}`;
+  const buffer = deltaBuffers.get(messageId) ?? { publishedAt: 0, text: "" };
+  buffer.text += data.messageDelta;
+  if (!deltaBuffers.has(messageId)) {
+    if (deltaBuffers.size >= MIRROR_DELTA_THROTTLE_MAX_ENTRIES) {
+      const oldestKey = deltaBuffers.keys().next().value;
+      if (oldestKey !== undefined) {
+        deltaBuffers.delete(oldestKey);
+      }
+    }
+    deltaBuffers.set(messageId, buffer);
+  }
+
   const now = Date.now();
-  const last = deltaThrottle.get(messageId) ?? 0;
-  if (now - last < MIRROR_DELTA_THROTTLE_MS) {
+  if (
+    !buffer.text.trim() ||
+    now - buffer.publishedAt < MIRROR_DELTA_THROTTLE_MS
+  ) {
     return;
   }
-  if (deltaThrottle.size >= MIRROR_DELTA_THROTTLE_MAX_ENTRIES) {
-    const oldestKey = deltaThrottle.keys().next().value;
-    if (oldestKey !== undefined) {
-      deltaThrottle.delete(oldestKey);
-    }
-  }
-  deltaThrottle.set(messageId, now);
+  buffer.publishedAt = now;
+  const text = buffer.text;
 
   await runMirrorEffect(
     mirrorStep("publish-mirror-delta", () =>
       publishChatMirrorMessage(target.organizationId, target.chatId, {
         id: messageId,
         role: "assistant",
-        parts: [{ type: "text", text: data.messageSoFar }],
-        metadata: MIRROR_ASSISTANT_METADATA,
+        parts: [{ type: "text", text }],
+        metadata: mirrorAssistantMetadata(data.turnId),
       })
     )
   );

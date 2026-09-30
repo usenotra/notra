@@ -3,12 +3,18 @@ import {
   engineFamilyLabel,
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
-import { sentimentFamilyScore } from "@notra/geo-core/utils/geo-sentiment";
+import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 
-import { SENTIMENT_FAMILY_ORDER } from "@/constants/geo-sentiment";
+import {
+  SENTIMENT_BAND_MIXED_MIN,
+  SENTIMENT_BAND_POSITIVE_MIN,
+  SENTIMENT_BAND_STRONG_MIN,
+} from "@/constants/geo-sentiment";
 import type {
-  SentimentFamilyRow,
+  SentimentFamilyBucket,
+  SentimentScoreBand,
   SentimentTrendCardProps,
+  SentimentThemesMessage,
   SentimentThemesStateInput,
 } from "@/types/geo-sentiment";
 
@@ -24,9 +30,21 @@ export function isolatedSentimentPointIndices(
   );
 }
 
-export function sentimentEmptyMessage(
+export function sentimentHasDisplayableData(
   summary?: GeoSentimentResponse["summary"]
-) {
+): boolean {
+  return Boolean(summary && summary.classifiedMentions > 0);
+}
+
+export function sentimentSummaryShowsEmpty(
+  summary?: GeoSentimentResponse["summary"]
+): boolean {
+  return Boolean(summary && !sentimentHasDisplayableData(summary));
+}
+
+export function sentimentEmptyMessageKey(
+  summary?: GeoSentimentResponse["summary"]
+): "noSavedAnswers" | "noRatedMentions" {
   if (
     summary &&
     summary.classifiedMentions +
@@ -34,9 +52,9 @@ export function sentimentEmptyMessage(
       summary.notMentioned ===
       0
   ) {
-    return "No saved answers. Run a scan or change the date range.";
+    return "noSavedAnswers";
   }
-  return "No rated mentions in this period.";
+  return "noRatedMentions";
 }
 
 export function sentimentThemesState({
@@ -50,32 +68,32 @@ export function sentimentThemesState({
   const busy = !isError && (isAnalyzing || state?.status === "pending");
   const loading = !isError && (isPending || aggregatePending);
   const noRatings = summary?.classifiedMentions === 0;
-  let message = "";
+  let message: SentimentThemesMessage | null = null;
   if (state?.status === "ready") {
-    message = "No supported themes in the sampled answers.";
+    message = { kind: "key", key: "noSupportedThemes" };
   }
   if (state?.status === "failed") {
-    message = state.message ?? "Could not find themes. Try again.";
+    message = state.message
+      ? { kind: "text", text: state.message }
+      : { kind: "key", key: "couldNotFind" };
   }
   if (noRatings) {
-    message = sentimentEmptyMessage(summary);
+    message = { kind: "empty", key: sentimentEmptyMessageKey(summary) };
   }
   if (state?.status === "unavailable") {
-    message =
-      state.message ?? "Theme analysis is not configured for this project.";
-  }
-  if (busy) {
-    message = "Analyzing saved answers…";
+    message = state.message
+      ? { kind: "text", text: state.message }
+      : { kind: "key", key: "notConfigured" };
   }
   const settled = !loading && !isError && !busy && !noRatings;
   const showResults =
     !isError && !noRatings && (state?.result?.themes.length ?? 0) > 0;
-  let statusText = "";
-  if (busy) {
-    statusText = "Analyzing saved answers…";
-  }
+  let statusKey: "loading" | "finding" | null = null;
   if (loading) {
-    statusText = "Loading analysis…";
+    statusKey = "loading";
+  }
+  if (busy) {
+    statusKey = "finding";
   }
   const canAnalyze =
     settled &&
@@ -83,19 +101,31 @@ export function sentimentThemesState({
     (state?.status === "stale" || state?.status === "failed");
   return {
     pending: (busy || loading) && !showResults,
-    title: showResults ? "Update themes" : "No themes yet",
     message,
-    statusText,
+    statusKey,
     showResults,
-    showTable: busy || loading || showResults,
-    showEmpty: !loading && !busy && !isError && (!showResults || canAnalyze),
+    showTable: loading || showResults,
+    showEmpty: !loading && !isError && !showResults,
     canAnalyze,
   };
 }
 
-export function sentimentFamilyRows(
+export function sentimentScoreBand(score: number): SentimentScoreBand {
+  if (score >= SENTIMENT_BAND_STRONG_MIN) {
+    return "strong";
+  }
+  if (score >= SENTIMENT_BAND_POSITIVE_MIN) {
+    return "positive";
+  }
+  if (score >= SENTIMENT_BAND_MIXED_MIN) {
+    return "mixed";
+  }
+  return "negative";
+}
+
+export function sentimentFamilyBuckets(
   engines: GeoSentimentResponse["engines"]
-): SentimentFamilyRow[] {
+): SentimentFamilyBucket[] {
   const engineNames = engines.map(({ engine }) => engine).sort();
   const families = [...new Set(engineNames.map(engineFamilyOf))];
   return families
@@ -105,16 +135,13 @@ export function sentimentFamilyRows(
         engineNames.find((engine) => engineFamilyOf(engine) === family) ??
         family,
       label: engineFamilyLabel(family),
-      score: sentimentFamilyScore(engines, family),
+      bucket: summarizeSentiment(
+        engines.filter((row) => engineFamilyOf(row.engine) === family)
+      ),
     }))
-    .sort((left, right) => {
-      const leftIndex = SENTIMENT_FAMILY_ORDER.indexOf(left.family);
-      const rightIndex = SENTIMENT_FAMILY_ORDER.indexOf(right.family);
-      return (
-        (leftIndex < 0 ? Infinity : leftIndex) -
-          (rightIndex < 0 ? Infinity : rightIndex) ||
-        left.label.localeCompare(right.label, "en") ||
-        left.family.localeCompare(right.family, "en")
-      );
-    });
+    .sort(
+      (left, right) =>
+        (right.bucket.score ?? -1) - (left.bucket.score ?? -1) ||
+        left.label.localeCompare(right.label, "en")
+    );
 }

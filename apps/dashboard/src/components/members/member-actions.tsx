@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useReducer } from "react";
 import { toast } from "sonner";
@@ -46,10 +47,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
-import {
-  isTeamMemberLimitError,
-  mapBillingLimitErrorMessage,
-} from "@/lib/billing/limits";
+import { isTeamMemberLimitError } from "@/lib/billing/limits";
 import { errorMessageOr } from "@/lib/utils";
 import type {
   MemberActionsAction,
@@ -92,6 +90,10 @@ function normalizeMemberRole(role: string): MemberRole {
 }
 
 export function MemberActions({ member }: MemberActionsProps) {
+  const t = useTranslations("members.memberActions");
+  const tMembersShared = useTranslations("members.shared");
+  const tMembers = useTranslations("members");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const router = useRouter();
@@ -145,15 +147,12 @@ export function MemberActions({ member }: MemberActionsProps) {
       });
 
       if (error) {
-        const message = mapBillingLimitErrorMessage(
-          error.message,
-          "Failed to update member role"
-        );
+        const message = error.message || t("updateRoleFailed");
 
-        if (isTeamMemberLimitError(error.message)) {
+        if (isTeamMemberLimitError(error.code)) {
           toast.error(message, {
             action: {
-              label: "View plans",
+              label: tMembers("viewPlans"),
               onClick: () =>
                 router.push(`/${activeOrganization.slug}/settings/billing`),
             },
@@ -168,7 +167,10 @@ export function MemberActions({ member }: MemberActionsProps) {
       }
 
       toast.success(
-        `${member.user.name}'s role has been updated to ${newRole}`
+        t("roleUpdated", {
+          name: member.user.name,
+          role: tMembers("roleLabel", { role: newRole }),
+        })
       );
 
       await queryClient.invalidateQueries({
@@ -178,7 +180,7 @@ export function MemberActions({ member }: MemberActionsProps) {
       dispatch({ type: "roleDialogChanged", open: false });
     } catch (error) {
       console.error("Error changing member role:", error);
-      toast.error("Failed to update member role");
+      toast.error(t("updateRoleFailed"));
     }
     dispatch({ type: "roleChangeFinished" });
   }
@@ -196,14 +198,12 @@ export function MemberActions({ member }: MemberActionsProps) {
       });
 
       if (error) {
-        toast.error(errorMessageOr(error.message, "Failed to remove member"));
+        toast.error(errorMessageOr(error.message, t("removeFailed")));
         dispatch({ type: "removeFinished" });
         return;
       }
 
-      toast.success(
-        `${member.user.name} has been removed from the organization`
-      );
+      toast.success(t("removed", { name: member.user.name }));
 
       await queryClient.invalidateQueries({
         queryKey: ["members", activeOrganization.id],
@@ -212,7 +212,7 @@ export function MemberActions({ member }: MemberActionsProps) {
       dispatch({ type: "removeDialogChanged", open: false });
     } catch (error) {
       console.error("Error removing member:", error);
-      toast.error("Failed to remove member");
+      toast.error(t("removeFailed"));
     }
     dispatch({ type: "removeFinished" });
   }
@@ -223,7 +223,7 @@ export function MemberActions({ member }: MemberActionsProps) {
         <DropdownMenuTrigger
           render={
             <Button className="size-8 p-0" variant="ghost">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{tCommon("labels.openMenu")}</span>
               <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
             </Button>
           }
@@ -240,7 +240,7 @@ export function MemberActions({ member }: MemberActionsProps) {
             }}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={UserEdit01Icon} />
-            Change role
+            {tMembersShared("changeRole")}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={isChangingRole || isRemoving}
@@ -250,7 +250,7 @@ export function MemberActions({ member }: MemberActionsProps) {
             variant="destructive"
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Delete02Icon} />
-            Remove member
+            {tMembersShared("removeMember")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -265,14 +265,17 @@ export function MemberActions({ member }: MemberActionsProps) {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change Role</DialogTitle>
-            <DialogDescription>
-              Update {member.user.name}'s role in {activeOrganization.name}.
+            <DialogTitle>{tMembersShared("changeRole")}</DialogTitle>
+            <DialogDescription className="wrap-anywhere">
+              {t("changeRoleDescription", {
+                name: member.user.name,
+                organization: activeOrganization.name,
+              })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{tCommon("labels.role")}</Label>
               <Select
                 disabled={isChangingRole}
                 onValueChange={(val) =>
@@ -285,11 +288,15 @@ export function MemberActions({ member }: MemberActionsProps) {
                 value={newRole}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="member">
+                    {tMembers("roleLabel", { role: "member" })}
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    {tMembers("roleLabel", { role: "admin" })}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -303,14 +310,14 @@ export function MemberActions({ member }: MemberActionsProps) {
               type="button"
               variant="outline"
             >
-              Cancel
+              {tCommon("actions.cancel")}
             </Button>
             <Button
               disabled={isChangingRole || newRole === member.role}
               onClick={handleChangeRole}
               type="button"
             >
-              {isChangingRole ? "Updating..." : "Update Role"}
+              {isChangingRole ? tCommon("labels.updating") : t("updateRole")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -326,25 +333,26 @@ export function MemberActions({ member }: MemberActionsProps) {
       >
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Remove {member.user.name}?
+            <ResponsiveAlertDialogTitle className="wrap-anywhere">
+              {t("removeTitle", { name: member.user.name })}
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will remove {member.user.name} from {activeOrganization.name}
-              . They will lose access to all organization content and will need
-              to be invited again to rejoin.
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
+              {t("removeDescription", {
+                name: member.user.name,
+                organization: activeOrganization.name,
+              })}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
             <ResponsiveAlertDialogCancel disabled={isRemoving}>
-              Cancel
+              {tCommon("actions.cancel")}
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isRemoving}
               onClick={handleRemoveMember}
             >
-              {isRemoving ? "Removing..." : "Remove Member"}
+              {isRemoving ? t("removing") : tMembersShared("removeMember")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

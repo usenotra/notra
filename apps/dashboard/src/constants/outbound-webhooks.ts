@@ -25,16 +25,6 @@ export const WEBHOOK_FILTERS = [
   "cancelled",
 ] as const satisfies readonly WebhookFilter[];
 
-export const WEBHOOK_FILTER_LABELS: Record<WebhookFilter, string> = {
-  all: "All statuses",
-  succeeded: "Delivered",
-  failed: "Failed",
-  retrying: "Retrying",
-  pending: "Pending",
-  sending: "Sending",
-  cancelled: "Cancelled",
-};
-
 export const WEBHOOK_EVENTS = [
   "post.generation.completed",
   "post.generation.failed",
@@ -57,8 +47,8 @@ export const WEBHOOK_STATUS_VARIANTS: Record<
 };
 
 export const WEBHOOK_METRICS: readonly WebhookMetric[] = [
-  { key: "total", label: "Deliveries", tone: "" },
-  { key: "succeeded", label: "Delivered", tone: "text-success" },
-  { key: "active", label: "In progress", tone: "text-warning" },
-  { key: "failed", label: "Failed", tone: "text-destructive" },
+  { key: "total", tone: "" },
+  { key: "succeeded", tone: "text-success" },
+  { key: "active", tone: "text-warning" },
+  { key: "failed", tone: "text-destructive" },
 ];

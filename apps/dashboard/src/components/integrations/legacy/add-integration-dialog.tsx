@@ -1,11 +1,9 @@
 "use client";
 
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import {
-  type AddGitHubIntegrationFormValues,
-  addGitHubIntegrationFormSchema,
-  githubPersonalAccessTokenSchema,
-} from "@notra/schemas/dashboard/integrations";
+import type { AddGitHubIntegrationFormValues } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -27,23 +25,29 @@ import { Input } from "@notra/ui/components/ui/input";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDownIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { isValidElement, useEffect, useRef, useState } from "react";
+import { isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { REPOSITORY_PROBE_UNAVAILABLE_CODE } from "@/constants/github";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseGitHubUrl } from "@/lib/utils/github";
+import {
+  createAddGitHubIntegrationFormSchema,
+  createGitHubPersonalAccessTokenSchema,
+} from "@/schemas/github-integration-forms";
 import type {
   AddIntegrationDialogProps,
   GitHubIntegration,
   GitHubRepoInfo,
 } from "@/types/integrations";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 
 import { WebhookSetupDialog } from "../wehook-setup-dialog";
 
@@ -73,6 +77,18 @@ export function LegacyAddIntegrationDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: AddIntegrationDialogProps) {
+  const t = useTranslations("integrations.legacy.add");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tForms = useTranslations("integrations.githubForms");
+  const tCommon = useTranslations("common");
+  const addGitHubIntegrationFormSchema = useMemo(
+    () => createAddGitHubIntegrationFormSchema(tForms),
+    [tForms]
+  );
+  const githubPersonalAccessTokenSchema = useMemo(
+    () => createGitHubPersonalAccessTokenSchema(tForms),
+    [tForms]
+  );
   const router = useRouter();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = propOrganizationId ?? activeOrganization?.id;
@@ -129,11 +145,7 @@ export function LegacyAddIntegrationDialog({
         return null;
       }
 
-      if (
-        error instanceof Error &&
-        (error.message === "Repository not found" ||
-          error.message === "Repository access denied")
-      ) {
+      if (getOrpcErrorDataCode(error) === REPOSITORY_PROBE_UNAVAILABLE_CODE) {
         setProbeStatus("not_found");
         setTokenOpen(true);
         return null;
@@ -165,11 +177,11 @@ export function LegacyAddIntegrationDialog({
   const mutation = useMutation({
     mutationFn: async (values: AddGitHubIntegrationFormValues) => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon("labels.organizationIdIsRequired"));
       }
       const parsed = parseGitHubUrl(values.repoUrl);
       if (!parsed) {
-        throw new Error("Invalid GitHub repository URL");
+        throw new Error(t("invalidUrl"));
       }
 
       trackEvent(POSTHOG_EVENTS.INTEGRATION_CONNECT_STARTED, {
@@ -198,7 +210,7 @@ export function LegacyAddIntegrationDialog({
           }),
         });
       }
-      toast.success("GitHub integration added successfully");
+      toast.success(t("added"));
       setOpen(false);
       form.reset();
       setProbeStatus("idle");
@@ -319,11 +331,10 @@ export function LegacyAddIntegrationDialog({
         <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-[520px] [&>*]:min-w-0">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="text-2xl">
-              Add GitHub Integration
+              {t("title")}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Connect a GitHub repository to enable AI-powered outputs like
-              changelogs, blog posts, and tweets.
+              {t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form
@@ -343,7 +354,7 @@ export function LegacyAddIntegrationDialog({
               >
                 {(field) => (
                   <Field>
-                    <FieldLabel>GitHub Repository</FieldLabel>
+                    <FieldLabel>{t("repository")}</FieldLabel>
                     <Input
                       disabled={mutation.isPending}
                       onBlur={field.handleBlur}
@@ -374,7 +385,7 @@ export function LegacyAddIntegrationDialog({
                             form.getFieldValue("token")?.trim() || undefined,
                         });
                       }}
-                      placeholder="https://github.com/facebook/react or facebook/react"
+                      placeholder={t("repositoryPlaceholder")}
                       value={field.state.value}
                     />
                     {hasAttemptedSubmit &&
@@ -384,7 +395,7 @@ export function LegacyAddIntegrationDialog({
                           ? field.state.meta.errors[0]
                           : ((
                               field.state.meta.errors[0] as { message?: string }
-                            )?.message ?? "Invalid value")}
+                            )?.message ?? tCommon("labels.invalidValue"))}
                       </p>
                     ) : null}
                     {repoInfo ? (
@@ -401,7 +412,7 @@ export function LegacyAddIntegrationDialog({
                           rel="noopener noreferrer"
                           target="_blank"
                         >
-                          View on GitHub
+                          {t("viewOnGitHub")}
                         </a>
                       </div>
                     ) : null}
@@ -412,13 +423,13 @@ export function LegacyAddIntegrationDialog({
               <form.Field name="branch">
                 {(field) => (
                   <Field>
-                    <FieldLabel>Default Branch</FieldLabel>
+                    <FieldLabel>{t("defaultBranch")}</FieldLabel>
                     <Input
                       disabled={mutation.isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder={
-                        probeStatus === "loading" ? "Detecting..." : "main"
+                        probeStatus === "loading" ? t("detecting") : "main"
                       }
                       value={field.state.value}
                     />
@@ -428,12 +439,13 @@ export function LegacyAddIntegrationDialog({
 
               <Collapsible onOpenChange={setTokenOpen} open={tokenOpen}>
                 <CollapsibleTrigger className="flex w-full items-center gap-2 text-sm font-medium">
-                  <ChevronDownIcon
+                  <HugeiconsIcon
+                    icon={ArrowDown01Icon}
                     className={`h-4 w-4 transition-transform ${tokenOpen ? "" : "-rotate-90"}`}
                   />
-                  Personal Access Token
+                  {tIntegrationsShared("personalAccessToken")}
                   <span className="text-muted-foreground text-xs font-normal">
-                    (optional)
+                    {tCommon("labels.optional")}
                   </span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -463,13 +475,11 @@ export function LegacyAddIntegrationDialog({
                         <Field>
                           {probeStatus === "not_found" ? (
                             <p className="text-warning mb-2 text-xs">
-                              This repository appears to be private or not
-                              found. A token is required to access it.
+                              {t("privateWarning")}
                             </p>
                           ) : (
                             <p className="text-muted-foreground mb-2 text-xs">
-                              Only required for private repositories. Public
-                              repos work without a token.
+                              {t("publicHint")}
                             </p>
                           )}
                           <Input
@@ -501,7 +511,7 @@ export function LegacyAddIntegrationDialog({
                               setHasAttemptedSubmit(false);
                               field.handleChange(e.target.value);
                             }}
-                            placeholder="ghp_... (leave empty for public repos)"
+                            placeholder={t("tokenPlaceholder")}
                             value={field.state.value}
                           />
                           {hasAttemptedSubmit &&
@@ -513,19 +523,25 @@ export function LegacyAddIntegrationDialog({
                                     field.state.meta.errors[0] as unknown as {
                                       message?: string;
                                     }
-                                  )?.message ?? "Invalid value")}
+                                  )?.message ?? tCommon("labels.invalidValue"))}
                             </p>
                           ) : null}
                           <p className="text-muted-foreground mt-1 text-xs">
-                            <a
-                              className="text-primary hover:underline"
-                              href="https://github.com/settings/tokens/new?scopes=repo&description=Notra%20Integration"
-                              rel="noopener noreferrer"
-                              target="_blank"
-                            >
-                              Generate a token on GitHub
-                            </a>{" "}
-                            with <code className="text-xs">repo</code> scope
+                            {t.rich("tokenHelp", {
+                              link: (chunks) => (
+                                <a
+                                  className="text-primary hover:underline"
+                                  href="https://github.com/settings/tokens/new?scopes=repo&description=Notra%20Integration"
+                                  rel="noopener noreferrer"
+                                  target="_blank"
+                                >
+                                  {chunks}
+                                </a>
+                              ),
+                              code: (chunks) => (
+                                <code className="text-xs">{chunks}</code>
+                              ),
+                            })}
                           </p>
                         </Field>
                       )}
@@ -539,7 +555,7 @@ export function LegacyAddIntegrationDialog({
                 disabled={mutation.isPending}
                 render={<Button variant="outline" />}
               >
-                Cancel
+                {tCommon("actions.cancel")}
               </ResponsiveDialogClose>
               <form.Subscribe selector={(state) => [state.canSubmit]}>
                 {([canSubmit]) => (
@@ -552,7 +568,9 @@ export function LegacyAddIntegrationDialog({
                     }}
                     type="button"
                   >
-                    {mutation.isPending ? "Adding..." : "Add Integration"}
+                    {mutation.isPending
+                      ? tCommon("labels.adding")
+                      : tIntegrationsShared("addIntegration")}
                   </Button>
                 )}
               </form.Subscribe>

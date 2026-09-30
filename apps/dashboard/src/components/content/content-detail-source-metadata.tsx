@@ -12,15 +12,12 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { getBrandFaviconUrl } from "@/utils/brand";
-import {
-  formatDateRange,
-  formatLookbackWindow,
-  formatRepos,
-  formatTriggerType,
-} from "@/utils/content-detail";
+import { formatDateRange, formatLookbackWindow } from "@/utils/content-detail";
+import { formatSnakeCaseLabel } from "@/utils/format";
 
 interface ContentDetailSourceMetadataProps {
   organizationId: string;
@@ -50,7 +47,14 @@ function SourceMetadataRepoLabel({
 }: {
   repositories: ParsedSourceMetadata["repositories"];
 }) {
-  const repoLabel = formatRepos(repositories);
+  const tCommon = useTranslations("common");
+  const [firstRepository] = repositories;
+  const repoLabel =
+    repositories.length === 1 && firstRepository
+      ? `${firstRepository.owner}/${firstRepository.repo}`
+      : tCommon("messages.countPluralOneRepositoryOther", {
+          count: repositories.length,
+        });
   if (repositories.length <= 1) {
     return <>{repoLabel}</>;
   }
@@ -84,6 +88,7 @@ function SourceMetadataBrandVoiceLabel({
   brandVoiceName: string;
   voice?: SourceMetadataVoice;
 }) {
+  const tCommon = useTranslations("common");
   if (!voice) {
     return <>{brandVoiceName}</>;
   }
@@ -109,9 +114,21 @@ function SourceMetadataBrandVoiceLabel({
         </Avatar>
         <div className="space-y-0.5">
           <div className="font-medium">{voice.name}</div>
-          {voice.toneProfile ? <div>Tone: {voice.toneProfile}</div> : null}
-          {voice.language ? <div>Language: {voice.language}</div> : null}
-          {voice.companyName ? <div>Company: {voice.companyName}</div> : null}
+          {voice.toneProfile ? (
+            <div>
+              {tCommon("labels.toneValue", { value: voice.toneProfile })}
+            </div>
+          ) : null}
+          {voice.language ? (
+            <div>
+              {tCommon("labels.languageValue", { value: voice.language })}
+            </div>
+          ) : null}
+          {voice.companyName ? (
+            <div>
+              {tCommon("labels.companyValue", { value: voice.companyName })}
+            </div>
+          ) : null}
         </div>
       </TooltipContent>
     </Tooltip>
@@ -155,6 +172,8 @@ export function ContentDetailSourceMetadata({
   organizationId,
   sourceMetadata,
 }: ContentDetailSourceMetadataProps) {
+  const t = useTranslations("content.detail.source");
+  const locale = useLocale();
   const { data: brandResponse } = useQuery(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
@@ -177,17 +196,29 @@ export function ContentDetailSourceMetadata({
     : undefined;
 
   return (
-    <div className="text-muted-foreground text-xs">
-      <span className="capitalize">
-        {formatTriggerType(meta.triggerSourceType)}
+    <div className="text-muted-foreground text-xs wrap-anywhere">
+      <span>
+        {t("trigger", {
+          type: meta.triggerSourceType,
+          fallback: formatSnakeCaseLabel(meta.triggerSourceType),
+        })}
       </span>
       {" \u00B7 "}
       <SourceMetadataRepoLabel repositories={meta.repositories} />
       {" \u00B7 "}
-      <span className="capitalize">
-        {formatLookbackWindow(meta.lookbackWindow)}
+      <span>
+        {t("lookback", {
+          window: meta.lookbackWindow,
+          fallback: formatLookbackWindow(meta.lookbackWindow),
+        })}
       </span>{" "}
-      ({formatDateRange(meta.lookbackRange.start, meta.lookbackRange.end)})
+      (
+      {formatDateRange(
+        meta.lookbackRange.start,
+        meta.lookbackRange.end,
+        locale
+      )}
+      )
       {meta.brandVoiceName ? (
         <>
           {" \u00B7 "}

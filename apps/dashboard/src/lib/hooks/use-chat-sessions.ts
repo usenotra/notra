@@ -11,18 +11,128 @@ import {
   chatSessionsQueryKey,
   sortChatSessions,
 } from "@notra/ai/utils/chat";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { DEFAULT_CHAT_TITLE } from "@/constants/chat-history";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import {
+  excludeArrivedGeneratingIds,
+  excludeArrivedPendingSessions,
+  mergePendingChatSessions,
+} from "@/utils/chat-history-groups";
+
+function chatSessionsPendingQueryKey(
+  organizationId: string | undefined,
+  projectId?: string | null
+) {
+  return ["chat-sessions-pending", organizationId, projectId ?? null] as const;
+}
+
+function chatTitleGeneratingQueryKey(
+  organizationId: string | undefined,
+  projectId?: string | null
+) {
+  return ["chat-title-generating", organizationId, projectId ?? null] as const;
+}
+
+function createPendingChatSession(chatId: string): ChatSessionSummary {
+  const now = new Date().toISOString();
+  return {
+    chatId,
+    title: DEFAULT_CHAT_TITLE,
+    createdAt: now,
+    updatedAt: now,
+    pinnedAt: null,
+  };
+}
+
+const EMPTY_PENDING_CHAT_SESSIONS: ChatSessionSummary[] = [];
+const EMPTY_GENERATING_TITLE_IDS: string[] = [];
+
+export function markChatTitleReady(
+  queryClient: QueryClient,
+  organizationId: string | undefined,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  if (!organizationId) {
+    return;
+  }
+
+  queryClient.setQueryData<string[]>(
+    chatTitleGeneratingQueryKey(organizationId, projectId),
+    (current = []) => current.filter((id) => id !== chatId)
+  );
+}
+
+function createdChatIsInSessionList(
+  queryClient: QueryClient,
+  organizationId: string,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  const sessions =
+    queryClient.getQueryData<ChatSessionSummary[]>(
+      chatSessionsQueryKey(organizationId, projectId)
+    ) ?? [];
+  return sessions.some((session) => session.chatId === chatId);
+}
+
+export async function reconcileCreatedChatTitle(
+  queryClient: QueryClient,
+  organizationId: string | undefined,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  if (!organizationId) {
+    return;
+  }
+
+  const orgId = organizationId;
+
+  async function reconcileOnce() {
+    await queryClient.invalidateQueries({
+      queryKey: ["chat-sessions", orgId],
+    });
+    if (!createdChatIsInSessionList(queryClient, orgId, projectId, chatId)) {
+      throw new Error("Created chat is missing from the session list");
+    }
+    markChatTitleReady(queryClient, orgId, projectId, chatId);
+  }
+
+  try {
+    await reconcileOnce();
+  } catch {
+    try {
+      await reconcileOnce();
+    } catch {
+      // Keep the generating skeleton until a later refetch succeeds.
+    }
+  }
+}
 
 export function useChatSessions() {
+  const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
+  const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
+  const generatingQueryKey = chatTitleGeneratingQueryKey(
+    organizationId,
+    projectId
+  );
 
   const query = useQuery({
     queryKey,
@@ -42,9 +152,60 @@ export function useChatSessions() {
     enabled: Boolean(organizationId) && isResolved,
     staleTime: 1000 * 60,
   });
+  const pendingQuery = useQuery({
+    queryKey: pendingQueryKey,
+    queryFn: async () => EMPTY_PENDING_CHAT_SESSIONS,
+    enabled: false,
+    initialData: EMPTY_PENDING_CHAT_SESSIONS,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+  const generatingQuery = useQuery({
+    queryKey: generatingQueryKey,
+    queryFn: async () => EMPTY_GENERATING_TITLE_IDS,
+    enabled: false,
+    initialData: EMPTY_GENERATING_TITLE_IDS,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+
+  const sessions = mergePendingChatSessions(
+    query.data ?? [],
+    pendingQuery.data ?? []
+  );
+
+  useEffect(() => {
+    const serverSessions = query.data ?? [];
+
+    const pendingSessions = pendingQuery.data ?? [];
+    const nextPending = excludeArrivedPendingSessions(
+      pendingSessions,
+      serverSessions
+    );
+    if (nextPending.length !== pendingSessions.length) {
+      queryClient.setQueryData(pendingQueryKey, nextPending);
+    }
+
+    const generatingIds = generatingQuery.data ?? [];
+    const nextGenerating = excludeArrivedGeneratingIds(
+      generatingIds,
+      serverSessions
+    );
+    if (nextGenerating.length !== generatingIds.length) {
+      queryClient.setQueryData(generatingQueryKey, nextGenerating);
+    }
+  }, [
+    generatingQuery.data,
+    generatingQueryKey,
+    pendingQuery.data,
+    pendingQueryKey,
+    query.data,
+    queryClient,
+  ]);
 
   return {
-    sessions: query.data ?? [],
+    sessions,
+    generatingTitleChatIds: new Set(generatingQuery.data ?? []),
     isLoading: query.isPending && query.fetchStatus !== "idle",
     organizationId,
     queryKey,
@@ -52,12 +213,58 @@ export function useChatSessions() {
 }
 
 export function useChatSessionMutations() {
+  const tToast = useTranslations("chat.toasts");
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
+  const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
+  const generatingQueryKey = chatTitleGeneratingQueryKey(
+    organizationId,
+    projectId
+  );
   const renameInFlightRef = useRef<Set<string>>(new Set());
+
+  function insertPendingChatSession(chatId: string) {
+    if (!organizationId || !isResolved) {
+      return;
+    }
+
+    const existing =
+      queryClient.getQueryData<ChatSessionSummary[]>(queryKey) ?? [];
+    if (existing.some((item) => item.chatId === chatId)) {
+      return;
+    }
+
+    queryClient.setQueryData<ChatSessionSummary[]>(
+      pendingQueryKey,
+      (current = []) => {
+        if (current.some((item) => item.chatId === chatId)) {
+          return current;
+        }
+        return [createPendingChatSession(chatId), ...current];
+      }
+    );
+    queryClient.setQueryData<string[]>(generatingQueryKey, (current = []) =>
+      current.includes(chatId) ? current : [...current, chatId]
+    );
+  }
+
+  function markTitleReady(chatId: string) {
+    markChatTitleReady(queryClient, organizationId, projectId, chatId);
+  }
+
+  function removePendingChatSession(chatId: string) {
+    queryClient.setQueryData<ChatSessionSummary[]>(
+      pendingQueryKey,
+      (current = []) => current.filter((item) => item.chatId !== chatId)
+    );
+    markTitleReady(chatId);
+  }
 
   function replaceSessionInCache(
     chatId: string,
@@ -96,7 +303,7 @@ export function useChatSessionMutations() {
 
       if (!response.ok) {
         queryClient.setQueryData(queryKey, previousSessions);
-        toast.error("Failed to rename chat");
+        toast.error(tToast("renameChatFailed"));
         renameInFlightRef.current.delete(chatId);
         return false;
       }
@@ -110,7 +317,7 @@ export function useChatSessionMutations() {
       return true;
     } catch {
       queryClient.setQueryData(queryKey, previousSessions);
-      toast.error("Failed to rename chat");
+      toast.error(tToast("renameChatFailed"));
       renameInFlightRef.current.delete(chatId);
       return false;
     }
@@ -143,7 +350,7 @@ export function useChatSessionMutations() {
 
       if (!response.ok) {
         queryClient.setQueryData(queryKey, previousSessions);
-        toast.error("Failed to update chat pin");
+        toast.error(tToast("updateChatPinFailed"));
         return false;
       }
 
@@ -155,7 +362,7 @@ export function useChatSessionMutations() {
       return true;
     } catch {
       queryClient.setQueryData(queryKey, previousSessions);
-      toast.error("Failed to update chat pin");
+      toast.error(tToast("updateChatPinFailed"));
       return false;
     }
   }
@@ -171,13 +378,14 @@ export function useChatSessionMutations() {
       });
 
       if (!response.ok) {
-        toast.error("Failed to delete chat");
+        toast.error(tToast("deleteChatFailed"));
         return false;
       }
 
       queryClient.setQueryData<ChatSessionSummary[]>(queryKey, (current = []) =>
         current.filter((item) => item.chatId !== chatId)
       );
+      removePendingChatSession(chatId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey }),
         queryClient.invalidateQueries({
@@ -185,13 +393,19 @@ export function useChatSessionMutations() {
         }),
       ]);
 
-      toast.success("Chat deleted");
+      toast.success(tToast("chatDeleted"));
       return true;
     } catch {
-      toast.error("Failed to delete chat");
+      toast.error(tToast("deleteChatFailed"));
       return false;
     }
   }
 
-  return { renameChat, togglePinned, deleteChat };
+  return {
+    insertPendingChatSession,
+    removePendingChatSession,
+    renameChat,
+    togglePinned,
+    deleteChat,
+  };
 }

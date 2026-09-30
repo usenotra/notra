@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import {
   GEO_SCAN_BATCH_CONCURRENCY,
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
@@ -18,6 +19,7 @@ const listProjects = mock<typeof Steps.listGeoScanProjectsStep>();
 const prepare = mock<typeof Steps.prepareGeoScanProjectStep>();
 const taskBatch = mock<typeof Steps.runGeoScanTaskBatchStep>();
 const sequenceBatch = mock<typeof Steps.runGeoScanSequenceBatchStep>();
+const personaBatch = mock<typeof Steps.runGeoScanPersonaBatchStep>();
 const renewClaim = mock<typeof Steps.renewGeoScanClaimStep>();
 const finalize = mock<typeof Steps.finalizeGeoScanProjectStep>();
 const trackRetry = mock<typeof Steps.trackGeoScanRetryScheduledStep>();
@@ -28,6 +30,10 @@ const startSentiment =
   mock<
     typeof import("../src/workflows/steps/start-geo-sentiment").startGeoSentimentStep
   >();
+const syncShelf =
+  mock<
+    typeof import("../src/workflows/steps/sync-geo-shelf-citations").syncGeoShelfCitationsStep
+  >();
 // These tests exercise orchestration decisions as ordinary functions. The
 // durable runtime and model/billing steps have separate integration
 // boundaries — the activity-log steps are mocked too, otherwise they would
@@ -35,6 +41,9 @@ const startSentiment =
 mock.module("workflow", () => ({ FatalError, sleep }));
 mock.module("../src/workflows/steps/start-geo-sentiment", () => ({
   startGeoSentimentStep: startSentiment,
+}));
+mock.module("../src/workflows/steps/sync-geo-shelf-citations", () => ({
+  syncGeoShelfCitationsStep: syncShelf,
 }));
 mock.module("../src/workflows/steps/content-generation-steps", () => ({
   appendAutomationLog: appendLog,
@@ -54,6 +63,7 @@ mock.module("../src/workflows/steps/geo-scan-steps", () => ({
   prepareGeoScanProjectStep: prepare,
   runGeoScanTaskBatchStep: taskBatch,
   runGeoScanSequenceBatchStep: sequenceBatch,
+  runGeoScanPersonaBatchStep: personaBatch,
   renewGeoScanClaimStep: renewClaim,
   finalizeGeoScanProjectStep: finalize,
   trackGeoScanRetryScheduledStep: trackRetry,
@@ -77,6 +87,7 @@ beforeEach(() => {
     prepare,
     taskBatch,
     sequenceBatch,
+    personaBatch,
     renewClaim,
     finalize,
     trackRetry,
@@ -84,11 +95,13 @@ beforeEach(() => {
     appendLog,
     fetchRetention,
     startSentiment,
+    syncShelf,
   ]) {
     fn.mockReset();
   }
   appendLog.mockResolvedValue(undefined);
   startSentiment.mockResolvedValue("sentiment-run");
+  syncShelf.mockResolvedValue(0);
   fetchRetention.mockResolvedValue(30);
   renewClaim.mockImplementation(async (_projectId, claimedAt) => claimedAt);
   listProjects.mockResolvedValue(["project-test"]);
@@ -115,11 +128,69 @@ beforeEach(() => {
     usage: EMPTY_AGENT_TOKEN_USAGE,
   }));
   finalize.mockResolvedValue(undefined);
+  personaBatch.mockImplementation(async (_context, batch) => ({
+    checks: batch.length,
+    mentions: 0,
+    dropped: 0,
+    usage: EMPTY_AGENT_TOKEN_USAGE,
+  }));
   trackRetry.mockResolvedValue(undefined);
   sleep.mockResolvedValue(undefined);
 });
 
 describe("GEO scan workflow orchestration", () => {
+  test("persona-only scans execute and contribute to finalization", async () => {
+    const plan = scanPlan("project-test", 0, 0);
+    plan.personas = [
+      {
+        personaId: "persona-test",
+        prompts: ["first question", "follow-up question"],
+        snapshot: createPersonaSnapshot(
+          {
+            id: "persona-test",
+            name: "Budgeter",
+            role: "Founder",
+            company: "Small company",
+            summary: "Reduces spend",
+            searchStyle: "Direct",
+            profile: {
+              goals: [],
+              painPoints: [],
+              currentStack: [],
+              buyingTriggers: [],
+              objections: [],
+            },
+          },
+          [],
+          ["first question", "follow-up question"]
+        ),
+        engine: "test/engine",
+        groundedKey: "test/engine",
+        zdr: "none",
+      },
+    ];
+    prepare.mockResolvedValue({ status: "planned", plan });
+
+    await geoScanWorkflow({ organizationId: "org-test" });
+
+    expect(personaBatch).toHaveBeenCalledWith(plan.context, plan.personas);
+    expect(finalize).toHaveBeenCalledWith(
+      plan.context,
+      {
+        checks: 1,
+        mentions: 0,
+        dropped: 0,
+        usage: EMPTY_AGENT_TOKEN_USAGE,
+        engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
+      },
+      "completed",
+      plan.claimedAt,
+      { retried: false }
+    );
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
   test("invalid payloads do not reach project discovery", async () => {
     expect(await geoScanWorkflow({ organizationId: "" })).toEqual({
       status: "invalid_payload",
@@ -270,6 +341,14 @@ describe("GEO scan workflow orchestration", () => {
           totalTokens: 30,
           totalUsd: 0.25,
         },
+        engineUsage: {
+          ...EMPTY_AGENT_TOKEN_USAGE,
+          inputTokens: 20,
+          outputTokens: 10,
+          totalTokens: 30,
+          totalUsd: 0.25,
+        },
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
       },
       "completed",
       plan.claimedAt,
@@ -355,7 +434,13 @@ describe("GEO scan workflow orchestration", () => {
       return new Promise((resolve, reject) => {
         releases.push(() => {
           if (index === 2) {
-            reject(new Error("Engine unavailable"));
+            reject(
+              Object.assign(new Error("Engine unavailable"), {
+                _tag: "GeoScanError",
+                name: "GeoScanError",
+                timedOut: true,
+              })
+            );
             return;
           }
           resolve({
@@ -395,7 +480,16 @@ describe("GEO scan workflow orchestration", () => {
       }),
       "failed",
       plan.claimedAt,
-      { retried: false, failureReason: "Error" }
+      {
+        retried: false,
+        failureReason: "GeoScanError",
+        failure: {
+          errorCode: "geo_scan_error",
+          errorMessage: "Engine unavailable",
+          failedStage: "execution",
+          retryable: true,
+        },
+      }
     );
     expect(appendLog).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -404,7 +498,7 @@ describe("GEO scan workflow orchestration", () => {
         integrationType: "geo",
         title: "GEO scan failed for Notra",
         status: "failed",
-        errorMessage: "Error",
+        errorMessage: "GeoScanError",
       })
     );
   });
@@ -469,10 +563,21 @@ describe("GEO scan workflow orchestration", () => {
         mentions: 1,
         dropped: 1,
         usage: { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 0 },
+        engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
       },
       "failed",
       plan.claimedAt,
-      { retried: false, failureReason: "Error" }
+      {
+        retried: false,
+        failureReason: "Error",
+        failure: {
+          errorCode: "scan_execution_failed",
+          errorMessage: "The scan could not be completed.",
+          failedStage: "execution",
+          retryable: null,
+        },
+      }
     );
     expect(sequenceBatch).not.toHaveBeenCalled();
     expect(sleep).not.toHaveBeenCalled();
@@ -580,6 +685,26 @@ describe("GEO scan workflow orchestration", () => {
     });
   });
 
+  test("a shelf citation sync failure is logged without failing the scan", async () => {
+    syncShelf.mockRejectedValue(new Error("Database unavailable"));
+    expect(await geoScanWorkflow({ organizationId: "org-test" })).toMatchObject(
+      { status: "completed" }
+    );
+    expect(syncShelf).toHaveBeenCalledWith({
+      organizationId: "org-test",
+      projectId: "project-test",
+    });
+    expect(startSentiment).toHaveBeenCalledTimes(1);
+    expect(appendLog.mock.calls.map(([input]) => input.status)).toEqual([
+      "failed",
+      "success",
+    ]);
+    expect(appendLog.mock.calls[0]?.[0]).toMatchObject({
+      integrationType: "geo",
+      errorMessage: "Database unavailable",
+    });
+  });
+
   test("a logging failure after a failed wave does not escalate the failure", async () => {
     const plan = scanPlan("project-test", GEO_SCAN_TASK_BATCH_SIZE + 1);
     prepare.mockResolvedValue({ status: "planned", plan });
@@ -612,7 +737,16 @@ describe("GEO scan workflow orchestration", () => {
       expect.objectContaining({ checks: 2 }),
       "failed",
       plan.claimedAt,
-      { retried: false, failureReason: "Error" }
+      {
+        retried: false,
+        failureReason: "Error",
+        failure: {
+          errorCode: "scan_execution_failed",
+          errorMessage: "The scan could not be completed.",
+          failedStage: "execution",
+          retryable: null,
+        },
+      }
     );
     expect(appendLog).toHaveBeenCalledTimes(1);
   });

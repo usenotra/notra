@@ -1,46 +1,46 @@
-export function formatDollars(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
+import type { CurrencyAffix } from "@/types/billing/plan";
+
+export function formatDollars(cents: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "USD",
   }).format(cents / 100);
 }
 
-const COUNT_FORMATTER = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
-
-const PERCENT_FORMATTER = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 1,
-});
-
-export function formatCount(value: number): string {
-  return COUNT_FORMATTER.format(value);
+export function currencyAffix(locale: string, value: number): CurrencyAffix {
+  const parts = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+  }).formatToParts(value);
+  const currencyIndex = parts.findIndex((part) => part.type === "currency");
+  const integerIndex = parts.findIndex((part) => part.type === "integer");
+  return {
+    symbol: parts[currencyIndex]?.value ?? "$",
+    position: currencyIndex > integerIndex ? "suffix" : "prefix",
+  };
 }
 
-export function formatPercent(value: number): string {
-  return PERCENT_FORMATTER.format(value);
+export function formatCount(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(
+    value
+  );
 }
 
-export function formatShortDate(timestamp: number): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(timestamp));
+export function formatPercent(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(
+    value
+  );
 }
 
-export function formatFullDate(timestamp: number): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(timestamp));
+export function formatOneDecimal(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
-export function formatArticleDate(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+export function formatArticleDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -83,36 +83,22 @@ export function formatSnakeCaseLabel(value: string): string {
   return value.replaceAll("_", " ").trim();
 }
 
-export function formatRelativeTime(date: Date, now = Date.now()): string {
-  const seconds = Math.max(0, Math.floor((now - date.getTime()) / 1000));
-  if (seconds < 10) {
-    return "Saved just now";
-  }
-
-  if (seconds < 60) {
-    return "Saved seconds ago";
-  }
-
-  const minutes = Math.floor(seconds / 60);
-  if (minutes === 1) {
-    return "Saved 1 min ago";
-  }
-
-  if (minutes < 60) {
-    return `Saved ${minutes} min ago`;
-  }
-
-  return "Saved over an hour ago";
-}
-
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number, locale: string): string {
+  const format = (value: number, unit: "byte" | "kilobyte" | "megabyte") =>
+    new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit,
+      unitDisplay: "short",
+      maximumFractionDigits: unit === "byte" ? 0 : 1,
+      minimumFractionDigits: unit === "byte" ? 0 : 1,
+    }).format(value);
   if (bytes < 1024) {
-    return `${bytes} B`;
+    return format(bytes, "byte");
   }
   if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KiB`;
+    return format(bytes / 1024, "kilobyte");
   }
-  return `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+  return format(bytes / 1024 / 1024, "megabyte");
 }
 
 export function truncateSnippet(text: string, max: number): string {

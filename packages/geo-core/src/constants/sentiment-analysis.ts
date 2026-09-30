@@ -1,4 +1,5 @@
-export const SENTIMENT_ANALYSIS_MODEL = "zai/glm-5.3-flash";
+export const SENTIMENT_ANALYSIS_MODEL = "openai/gpt-5.4-mini";
+export const SENTIMENT_ANALYSIS_MAX_TOKENS = 8_000;
 export const SENTIMENT_ANALYSIS_SAMPLE_PER_POLARITY = 12;
 export const SENTIMENT_ANALYSIS_ANSWER_CHARS = 2000;
 export const SENTIMENT_ANALYSIS_TIMEOUT_MS = 60_000;

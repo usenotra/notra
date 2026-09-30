@@ -1,4 +1,4 @@
-import { ASSISTANT_MODEL_ID } from "../lib/constants/models";
 import { createUsageHook } from "../lib/hooks/usage";
+import { getSelectedAssistantModelId } from "../lib/utils/model";
 
-export default createUsageHook(ASSISTANT_MODEL_ID);
+export default createUsageHook(getSelectedAssistantModelId);

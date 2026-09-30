@@ -3,6 +3,7 @@ import { runGeoSequenceNow } from "@notra/geo-core/geo/scan";
 import { geoSequenceRunInputSchema } from "@notra/geo-core/schemas/geo";
 import { Effect } from "effect";
 
+import { scheduleGeoShelfCitationSync } from "@/lib/geo-shelf/service";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { verifyInternalWorkflowRequest } from "@/lib/workflows/internal-auth";
 import { ratelimit } from "@/utils/ratelimit";
@@ -73,6 +74,10 @@ export async function POST(request: Request) {
       { failure: toGeoFailureWire(outcome.failure) },
       { status: GEO_FAILURE_STATUS }
     );
+  }
+
+  if (outcome.success.checks > 0) {
+    scheduleGeoShelfCitationSync(parsed.data);
   }
 
   return Response.json(outcome.success, { status: 200 });

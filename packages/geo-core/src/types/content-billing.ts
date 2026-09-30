@@ -14,6 +14,7 @@ export interface GateContentBillingInput {
   units?: number;
   lockTtlMs?: number;
   countTowardQuota?: boolean;
+  allowPlanIncluded?: boolean;
 }
 
 export interface FinalizeContentBillingInput {

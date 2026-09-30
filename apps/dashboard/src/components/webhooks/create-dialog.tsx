@@ -12,6 +12,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -30,6 +31,8 @@ export function WebhookCreateDialog({
   onOpenChange,
   onCreated,
 }: WebhookCreateProps) {
+  const t = useTranslations("settings.panes.webhooks.create");
+  const tActions = useTranslations("common.actions");
   const [url, setUrl] = useState("");
   const [events, setEvents] = useState<WebhookEventName[]>([
     "post.generation.completed",
@@ -61,17 +64,15 @@ export function WebhookCreateDialog({
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {secret ? "Your endpoint is ready" : "Add an endpoint"}
+            {secret ? t("readyTitle") : t("title")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {secret
-              ? "Copy the signing secret now. It will not be shown again."
-              : "Send Notra events to any public HTTPS endpoint."}
+            {secret ? t("readyDescription") : t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         {secret ? (
           <div className="space-y-3">
-            <Label htmlFor="webhook-secret">Signing secret</Label>
+            <Label htmlFor="webhook-secret">{t("secret")}</Label>
             <div className="flex gap-2">
               <Input
                 id="webhook-secret"
@@ -82,18 +83,13 @@ export function WebhookCreateDialog({
               <Button
                 variant="outline"
                 size="icon"
-                aria-label="Copy signing secret"
-                onClick={() =>
-                  copyTextToClipboard(secret, "Signing secret copied")
-                }
+                aria-label={t("copySecret")}
+                onClick={() => copyTextToClipboard(secret, t("secretCopied"))}
               >
                 <HugeiconsIcon icon={Copy01Icon} className="size-4" />
               </Button>
             </div>
-            <p className="text-muted-foreground text-xs">
-              Use this secret to verify each request signature before processing
-              it.
-            </p>
+            <p className="text-muted-foreground text-xs">{t("secretHint")}</p>
           </div>
         ) : (
           <form
@@ -105,7 +101,7 @@ export function WebhookCreateDialog({
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="webhook-url">Endpoint URL</Label>
+              <Label htmlFor="webhook-url">{t("url")}</Label>
               <Input
                 id="webhook-url"
                 type="url"
@@ -117,7 +113,9 @@ export function WebhookCreateDialog({
               />
             </div>
             <fieldset className="space-y-2">
-              <legend className="mb-2 text-sm font-medium">Listen for</legend>
+              <legend className="mb-2 text-sm font-medium">
+                {t("events")}
+              </legend>
               {WEBHOOK_EVENTS.map((name) => (
                 <label
                   key={name}
@@ -139,7 +137,9 @@ export function WebhookCreateDialog({
         )}
         <ResponsiveDialogFooter>
           {secret ? (
-            <Button onClick={() => onOpenChange(false)}>Done</Button>
+            <Button onClick={() => onOpenChange(false)}>
+              {tActions("done")}
+            </Button>
           ) : (
             <>
               <Button
@@ -147,14 +147,14 @@ export function WebhookCreateDialog({
                 disabled={create.isPending}
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {tActions("cancel")}
               </Button>
               <Button
                 type="submit"
                 form="create-webhook"
                 disabled={create.isPending || events.length === 0}
               >
-                {create.isPending ? "Creating…" : "Create endpoint"}
+                {create.isPending ? tActions("creating") : t("submit")}
               </Button>
             </>
           )}

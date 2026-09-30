@@ -10,6 +10,7 @@ import {
   $getRoot,
   $getSelection,
   $isRangeSelection,
+  type LexicalCommand,
 } from "lexical";
 import { type RefObject, useImperativeHandle } from "react";
 
@@ -28,6 +29,7 @@ export interface EditorRefHandle {
   insertAtCursor: (text: string) => void;
   getSelection: () => SelectionInfo | null;
   focus: () => void;
+  dispatchCommand: <T>(command: LexicalCommand<T>, payload: T) => boolean;
 }
 
 interface EditorRefPluginProps {
@@ -130,6 +132,9 @@ export function EditorRefPlugin({
       focus: () => {
         editor.focus();
       },
+
+      dispatchCommand: (command, payload) =>
+        editor.dispatchCommand(command, payload),
     }),
     [editor, isProgrammaticUpdateRef]
   );

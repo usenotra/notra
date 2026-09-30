@@ -116,9 +116,6 @@ export async function updateBrandAnalysisJob(
     updatedAt: new Date().toISOString(),
   });
 
-  // Terminal event is written to the webhook outbox before the Redis job
-  // state, mirroring content-generation: on failure the step retries and the
-  // stable source key prevents a duplicate event.
   if (nextJob.status === "completed" || nextJob.status === "failed") {
     await recordBrandAnalysisOutcome(nextJob);
   }

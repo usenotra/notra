@@ -5,6 +5,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { resetPostHogIdentity } from "@/lib/analytics/posthog-client";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import {
+  discardTotpEnrollmentAction,
+  getSecurityOverviewAction,
+  regenerateBackupCodesAction,
+  removeAuthFactorAction,
+  startTotpEnrollmentAction,
+  verifyTotpEnrollmentAction,
+} from "@/lib/auth/security-actions";
+import {
   deleteUserAction,
   listAccountsAction,
   requestPasswordResetAction,
@@ -110,6 +118,14 @@ export const authClient = {
   requestPasswordReset: requestPasswordResetAction,
   listAccounts: listAccountsAction,
   unlinkAccount: unlinkAccountAction,
+  security: {
+    getOverview: getSecurityOverviewAction,
+    startTotpEnrollment: startTotpEnrollmentAction,
+    verifyTotpEnrollment: verifyTotpEnrollmentAction,
+    discardTotpEnrollment: discardTotpEnrollmentAction,
+    removeAuthFactor: removeAuthFactorAction,
+    regenerateBackupCodes: regenerateBackupCodesAction,
+  },
   organization: {
     create: createOrganizationAction,
     update: updateOrganizationAction,

@@ -1,28 +1,32 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AI_TRAFFIC_PURPOSE_DESCRIPTIONS,
-  AI_TRAFFIC_PURPOSE_LABELS,
-} from "@notra/geo-core/constants/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
+import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
 import type { PurposeBadgeProps } from "@/types/geo";
+import { aiTrafficPurposeKey } from "@/utils/geo-traffic-purpose";
 
 export function PurposeBadge({
   category,
   compact = false,
   tooltip = true,
 }: PurposeBadgeProps) {
+  const t = useTranslations("geo.purposeBadge");
+  const tGeoShared = useTranslations("geo.shared");
   const icon = AI_TRAFFIC_PURPOSE_ICONS[category];
-  const label = AI_TRAFFIC_PURPOSE_LABELS[category] ?? category;
-  const description = AI_TRAFFIC_PURPOSE_DESCRIPTIONS[category] ?? category;
+  const purpose = aiTrafficPurposeKey(category);
+  const label = purpose
+    ? tGeoShared(AI_TRAFFIC_PURPOSE_LABEL_KEYS[purpose])
+    : category;
+  const description = purpose ? t(`description.${purpose}`) : category;
 
   const badge = (
     <Badge

@@ -22,19 +22,21 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { Effect } from "effect";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { LinkedInPost } from "@/components/linkedin-post";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { useSelectedSocialAccount } from "@/lib/hooks/use-selected-social-account";
 import type {
   PreviewEffectiveState,
   SocialPreviewProps,
 } from "@/types/content/ai-preview";
 import { linkedInAuthorFromAccount } from "@/utils/linkedin";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { OutputTypeIcon } from "@/utils/output-types";
 import { socialPreviewReducer } from "@/utils/social-preview-reducer";
 
 export function LinkedInPreview({
@@ -50,6 +52,9 @@ export function LinkedInPreview({
   onPublished,
   onRegenerate,
 }: SocialPreviewProps) {
+  const t = useTranslations("ai.preview");
+  const tCommon = useTranslations("common");
+  const outputTypeLabel = useOutputTypeLabel();
   const [
     {
       userAction,
@@ -78,7 +83,7 @@ export function LinkedInPreview({
   const author = selectedAccount
     ? linkedInAuthorFromAccount(selectedAccount)
     : {
-        name: organization?.name ?? "Your Name",
+        name: organization?.name ?? tCommon("labels.yourName"),
         avatar: organization?.logo ?? undefined,
       };
 
@@ -105,7 +110,7 @@ export function LinkedInPreview({
   const handleApprove = () => {
     dispatch({ type: "userActionChanged", userAction: "saving" });
     dispatch({ type: "openChanged", open: false });
-    const toastId = toast.loading("Saving draft...");
+    const toastId = toast.loading(t("savingDraft"));
     const save = Effect.tryPromise({
       try: async () => {
         if (onPersist) {
@@ -118,19 +123,19 @@ export function LinkedInPreview({
         onApprove?.();
       },
       catch: (cause) =>
-        cause instanceof Error ? cause : new Error("Failed to save draft"),
+        cause instanceof Error ? cause : new Error(t("saveDraftFailed")),
     });
     Effect.runFork(
       save.pipe(
         Effect.match({
           onSuccess: () => {
             dispatch({ type: "userActionChanged", userAction: "none" });
-            toast.success("Saved as draft", { id: toastId });
+            toast.success(t("savedAsDraft"), { id: toastId });
           },
           onFailure: (error) => {
             dispatch({ type: "userActionChanged", userAction: "save-failed" });
             dispatch({ type: "openChanged", open: true });
-            toast.error(error.message || "Failed to save draft", {
+            toast.error(error.message || t("saveDraftFailed"), {
               id: toastId,
             });
           },
@@ -141,7 +146,7 @@ export function LinkedInPreview({
 
   const handleDeny = () => {
     onDeny?.();
-    toast("Canceled");
+    toast(tCommon("labels.canceled"));
   };
 
   const handleRegenerate = () => {
@@ -151,7 +156,7 @@ export function LinkedInPreview({
       return;
     }
     dispatch({ type: "userActionChanged", userAction: "generating" });
-    toast("Generating post...");
+    toast(t("generatingPostToast"));
     onRegenerate?.(instructions, {
       title,
       markdown: draftMarkdown,
@@ -179,15 +184,15 @@ export function LinkedInPreview({
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               {showStatusBadge && (
                 <Badge className="text-[0.625rem]" variant="outline">
-                  {persistedStatus}
+                  {t(`status.${persistedStatus}`)}
                 </Badge>
               )}
               <Badge
-                className="flex items-center gap-1 text-[0.625rem] capitalize"
+                className="flex items-center gap-1 text-[0.625rem]"
                 variant="secondary"
               >
                 <OutputTypeIcon className="size-3" outputType="linkedin_post" />
-                {getOutputTypeLabel("linkedin_post")}
+                {outputTypeLabel("linkedin_post")}
               </Badge>
             </div>
           </CollapsibleTrigger>
@@ -213,7 +218,7 @@ export function LinkedInPreview({
                             draftMarkdown: value,
                           })
                   }
-                  timestamp="Just now"
+                  timestamp={tCommon("labels.justNow")}
                   truncate={false}
                 />
               </div>
@@ -232,7 +237,7 @@ export function LinkedInPreview({
                       handleRegenerate();
                     }
                   }}
-                  placeholder="What should change?"
+                  placeholder={t("regeneratePlaceholder")}
                   value={regenerateInstructions}
                 />
               )}
@@ -243,7 +248,11 @@ export function LinkedInPreview({
             <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
               {userAction === "generating" && (
                 <div className="text-muted-foreground mr-auto flex min-w-0 items-center gap-2 text-xs">
-                  <BrailleLoader className="text-xs" label="Generating post" />
+                  <BrailleLoader
+                    className="text-xs"
+                    ariaLabel={t("generatingPost")}
+                    label={t("generatingPost")}
+                  />
                 </div>
               )}
               {effectiveState === "draft" && (
@@ -252,7 +261,7 @@ export function LinkedInPreview({
                     <TooltipTrigger
                       render={
                         <Button
-                          aria-label="Regenerate"
+                          aria-label={tCommon("labels.regenerate")}
                           onClick={() =>
                             dispatch({ type: "regenerateOpenToggled" })
                           }
@@ -266,11 +275,13 @@ export function LinkedInPreview({
                         icon={ArrowReloadHorizontalIcon}
                       />
                     </TooltipTrigger>
-                    <TooltipContent>Regenerate</TooltipContent>
+                    <TooltipContent>
+                      {tCommon("labels.regenerate")}
+                    </TooltipContent>
                   </Tooltip>
                   <Button onClick={handleDeny} size="sm" variant="ghost">
                     <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-                    Discard
+                    {tCommon("labels.discard")}
                   </Button>
                 </div>
               )}
@@ -284,7 +295,7 @@ export function LinkedInPreview({
                   {effectiveState === "loading" ? (
                     <>
                       <Loader2Icon className="size-4 animate-spin" />
-                      Saving
+                      {tCommon("labels.saving")}
                     </>
                   ) : (
                     <>
@@ -292,7 +303,7 @@ export function LinkedInPreview({
                         className="size-4"
                         icon={CheckmarkSquare01Icon}
                       />
-                      Save as draft
+                      {t("saveAsDraft")}
                     </>
                   )}
                 </Button>

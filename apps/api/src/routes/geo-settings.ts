@@ -102,6 +102,7 @@ geoSettingsRoutes.openapi(patchSettingsRoute, async (c) => {
       engines: body.engines,
       enforceZdr: body.enforceZdr,
       nonZdrApprovedEngines: body.nonZdrApprovedEngines,
+      trackWithoutSearch: body.trackWithoutSearch,
       pausedAutoPromptIds: body.pausedAutoPromptIds,
       removedAutoPromptIds: body.removedAutoPromptIds,
       enabled: body.enabled,

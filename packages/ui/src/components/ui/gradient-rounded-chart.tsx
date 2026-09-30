@@ -1,5 +1,7 @@
 "use client";
 
+import { AnalyticsDownIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import {
@@ -16,7 +18,6 @@ import {
   ChartTooltipContent,
 } from "@notra/ui/components/ui/chart";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { TrendingDown } from "lucide-react";
 
 const chartData = [
   { month: "January", desktop: 342, mobile: 245 },
@@ -54,7 +55,7 @@ export function GradientRoundedAreaChart() {
             variant="outline"
             className="text-red-500 bg-red-500/10 border-none ml-2"
           >
-            <TrendingDown className="h-4 w-4" />
+            <HugeiconsIcon icon={AnalyticsDownIcon} className="h-4 w-4" />
             <span>-5.2%</span>
           </Badge>
         </CardTitle>

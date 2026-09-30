@@ -1,0 +1,25 @@
+# Ignore root files unless required to install or build.
+/*
+!/apps/
+!/packages/
+!/package.json
+!/bun.lock
+!/package-lock.json
+!/bunfig.toml
+!/.npmrc
+!/turbo.json
+!/patches/
+
+# package.json's prepare hook invokes this even on Vercel.
+!/scripts/
+/scripts/*
+!/scripts/prepare-effect.sh
+
+# Agent configuration and vendored skills are development-only, including in apps.
+**/.agents/
+**/.claude/
+**/.codex/
+**/.opencode/
+**/.amp/
+**/AGENTS.md
+**/CLAUDE.md

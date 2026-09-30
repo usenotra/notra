@@ -43,6 +43,13 @@ export const EmailFooter = ({
         </Link>
         {" · "}
         <Link
+          href="https://usenotra.com/terms"
+          style={{ color: "#717175", textDecoration: "underline" }}
+        >
+          Terms of Service
+        </Link>
+        {" · "}
+        <Link
           href="https://usenotra.com/privacy"
           style={{ color: "#717175", textDecoration: "underline" }}
         >

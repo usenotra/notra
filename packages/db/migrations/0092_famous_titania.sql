@@ -1,0 +1,1 @@
+ALTER TABLE "geo_personas" ADD COLUMN "archived_at" timestamp;

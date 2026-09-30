@@ -1,5 +1,6 @@
 import {
   AiBrowserIcon,
+  Alert02Icon,
   AnalyticsUpIcon,
   Attachment01Icon,
   ChartAnalysisIcon,
@@ -7,30 +8,34 @@ import {
   CreditCardIcon,
   Globe02Icon,
   Notification01Icon,
+  PaintBoardIcon,
   PlugIcon,
   Settings01Icon,
+  SourceCodeIcon,
   UserCircleIcon,
   UserGroupIcon,
   Wallet01Icon,
 } from "@hugeicons/core-free-icons";
 
 import type {
-  SettingsNavGroup,
+  SettingsNavGroupConfig,
   SettingsSectionId,
 } from "@/types/settings/modal";
 
 export const SETTINGS_SECTION_IDS = [
   "account",
+  "appearance",
   "general",
   "members",
   "notifications",
   "attachments",
-  "integrations",
   "billing",
   "usage",
+  "usage-alerts",
   "credits",
   "webhooks",
   "logs",
+  ...(process.env.NODE_ENV === "development" ? (["dev"] as const) : []),
   "geo",
   "geo-brand",
   "geo-languages",
@@ -39,41 +44,57 @@ export const SETTINGS_SECTION_IDS = [
 
 export const SETTINGS_QUERY_KEY = "settings";
 
-export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
+export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
   {
     id: "account",
-    label: "Account",
     items: [
       {
         id: "account",
-        label: "Account",
-        description: "Profile, login, and privacy",
         icon: UserCircleIcon,
         keywords: [
           "profile",
           "user",
           "email",
           "password",
-          "privacy",
-          "chat",
           "avatar",
           "login",
           "google",
           "github",
           "name",
           "delete account",
+          "security",
+          "2fa",
+          "mfa",
+          "two-factor",
+          "authenticator",
+          "backup codes",
+        ],
+      },
+      {
+        id: "appearance",
+        icon: PaintBoardIcon,
+        keywords: [
+          "preferences",
+          "appearance",
+          "language",
+          "locale",
+          "privacy",
+          "chat",
+          "theme",
+          "mode",
+          "light",
+          "dark",
+          "system",
+          "color scheme",
         ],
       },
     ],
   },
   {
     id: "organization",
-    label: "Organization",
     items: [
       {
         id: "general",
-        label: "General",
-        description: "Name, logo, and connected accounts",
         icon: Settings01Icon,
         keywords: [
           "organization",
@@ -89,8 +110,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "members",
-        label: "Members",
-        description: "Team access and invitations",
         icon: UserGroupIcon,
         keywords: [
           "team",
@@ -105,8 +124,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "notifications",
-        label: "Notifications",
-        description: "Email alerts and recaps",
         icon: Notification01Icon,
         keywords: [
           "alerts",
@@ -120,71 +137,11 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "attachments",
-        label: "Attachments",
-        description: "Uploaded files",
         icon: Attachment01Icon,
         keywords: ["files", "uploads", "media", "pdf", "images", "storage"],
       },
       {
-        id: "integrations",
-        label: "Integrations",
-        description: "GitHub, Linear, and other connections",
-        icon: PlugIcon,
-        keywords: [
-          "github",
-          "linear",
-          "slack",
-          "granola",
-          "framer",
-          "raycast",
-          "repositories",
-          "pull request",
-          "draft",
-          "connect",
-        ],
-      },
-      {
-        id: "billing",
-        label: "Billing",
-        description: "Plans, invoices, and subscription",
-        icon: CreditCardIcon,
-        keywords: [
-          "subscription",
-          "plan",
-          "invoice",
-          "payment",
-          "stripe",
-          "trial",
-          "upgrade",
-        ],
-      },
-      {
-        id: "usage",
-        label: "Usage",
-        description: "Remaining quotas and usage",
-        icon: ChartAnalysisIcon,
-        keywords: [
-          "usage",
-          "remaining",
-          "limits",
-          "quota",
-          "answers",
-          "cycle",
-          "breakdown",
-        ],
-      },
-      {
-        id: "credits",
-        label: "Credits",
-        description: "AI credit balance and top-ups",
-        icon: Wallet01Icon,
-        keywords: ["balance", "top up", "topup", "tokens", "ai", "spend"],
-        requiresAiCredits: true,
-      },
-      {
         id: "webhooks",
-        label: "Webhooks",
-        description: "Endpoints and delivery history",
         icon: PlugIcon,
         keywords: [
           "webhooks",
@@ -197,8 +154,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "logs",
-        label: "Logs",
-        description: "Integration events",
         icon: AnalyticsUpIcon,
         keywords: [
           "audit",
@@ -213,13 +168,59 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
     ],
   },
   {
+    id: "billing",
+    items: [
+      {
+        id: "billing",
+        icon: CreditCardIcon,
+        keywords: [
+          "subscription",
+          "plan",
+          "invoice",
+          "payment",
+          "stripe",
+          "trial",
+          "upgrade",
+        ],
+      },
+      {
+        id: "usage",
+        icon: ChartAnalysisIcon,
+        keywords: [
+          "usage",
+          "remaining",
+          "limits",
+          "quota",
+          "answers",
+          "cycle",
+          "breakdown",
+        ],
+      },
+      {
+        id: "usage-alerts",
+        icon: Alert02Icon,
+        keywords: [
+          "usage",
+          "alerts",
+          "threshold",
+          "remaining",
+          "percentage",
+          "limits",
+        ],
+      },
+      {
+        id: "credits",
+        icon: Wallet01Icon,
+        keywords: ["balance", "top up", "topup", "tokens", "ai", "spend"],
+        requiresAiCredits: true,
+      },
+    ],
+  },
+  {
     id: "geo",
-    label: "GEO",
     items: [
       {
         id: "geo-brand",
-        label: "Brand",
-        description: "Name, aliases, and conversion paths",
         icon: CorporateIcon,
         keywords: [
           "geo",
@@ -235,8 +236,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "geo-languages",
-        label: "Languages",
-        description: "Languages prompts are scanned in",
         icon: Globe02Icon,
         keywords: [
           "geo",
@@ -249,8 +248,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "geo-models",
-        label: "Models",
-        description: "Engines, schedule, and scanning",
         icon: AiBrowserIcon,
         keywords: [
           "geo",
@@ -268,44 +265,27 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
     ],
   },
+  ...(process.env.NODE_ENV === "development"
+    ? [
+        {
+          id: "dev" as const,
+          items: [
+            {
+              id: "dev" as const,
+              icon: SourceCodeIcon,
+              keywords: [
+                "developer",
+                "onboarding",
+                "replay",
+                "test",
+                "sample data",
+              ],
+            },
+          ],
+        },
+      ]
+    : []),
 ];
-
-export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
-  account: "Account",
-  general: "General",
-  members: "Members",
-  notifications: "Notifications",
-  attachments: "Attachments",
-  integrations: "Integrations",
-  billing: "Billing",
-  usage: "Usage",
-  credits: "Credits",
-  webhooks: "Webhooks",
-  logs: "Logs",
-  geo: "Brand",
-  "geo-brand": "Brand",
-  "geo-languages": "Languages",
-  "geo-models": "Models",
-};
-
-export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
-  {
-    account: "Manage your profile and account settings",
-    general: "Manage your organization settings",
-    members: "Manage who has access to this organization",
-    notifications: "Configure email notifications for your organization",
-    attachments: "Manage your uploaded files and attachments",
-    integrations: "Open GitHub, Linear, and other connected services",
-    billing: "Manage your plan, invoices, and subscription",
-    usage: "See remaining quotas and usage over time",
-    credits: "Monitor your AI credit balance and usage",
-    webhooks: "Connect your workflows and inspect every delivery",
-    logs: "View integration events and their delivery status",
-    geo: "How your brand is identified in answers",
-    "geo-brand": "How your brand is identified in answers",
-    "geo-languages": "Languages your prompts are scanned in",
-    "geo-models": "Which providers run, and how often",
-  };
 
 export const DEFAULT_SETTINGS_SECTION: SettingsSectionId = "account";
 export const DEFAULT_GEO_SETTINGS_SECTION: SettingsSectionId = "geo-brand";

@@ -19,7 +19,11 @@ import {
 } from "@/lib/ip-checker/sources";
 import type { IpCheckerPageProps } from "@/types/ip-checker";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  pageAlternates,
+  TWITTER_HANDLE,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = IP_CHECKER_TITLE;
@@ -29,10 +33,7 @@ const url = IP_CHECKER_URL;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: url,
-    types: { "text/markdown": `${url}.md` },
-  },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

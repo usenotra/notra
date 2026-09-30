@@ -1,11 +1,7 @@
-import { ASSISTANT_MODEL_ID } from "./models";
-
 export const MIRRORED_CHANNEL_KINDS = new Set(["channel:slack"]);
 
-export const MIRROR_ASSISTANT_METADATA = {
-  model: ASSISTANT_MODEL_ID,
-  requestedModel: ASSISTANT_MODEL_ID,
-} as const;
+/** `auto` makes the dashboard render the routed model the way chat does. */
+export const MIRROR_REQUESTED_MODEL = "auto";
 
 export const MIRROR_DELTA_THROTTLE_MS = 400;
 

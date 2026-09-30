@@ -13,6 +13,7 @@ import {
 import type { ComposeOption, ImagePatternObject } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "next-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -29,6 +30,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
@@ -73,6 +75,7 @@ import type {
 } from "@/types/charts";
 import { stackSegmentGapValues } from "@/utils/chart-stack-gap";
 import { echartsDatumValue } from "@/utils/echarts-datum";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1696,17 +1699,14 @@ function bindBarChartInstance({
     }
   };
 
-  const resizeObserver = new ResizeObserver(() => {
-    if (
-      mount.clientWidth === chart.getWidth() &&
-      mount.clientHeight === chart.getHeight()
-    ) {
-      return;
-    }
-    chart.resize();
-    live.repush();
+  // 2D gradient textures are baked at renderer size — rebuild them once the
+  // size settles.
+  // The brush overlay is raw zrender, outside the option — nothing resizes it,
+  // so it is repositioned with every resize while the repush stays deferred.
+  const stopResizeObserver = observeChartResize(mount, chart, {
+    onResized: () => syncBrushOverlayNow(),
+    onSettled: () => live.repush(),
   });
-  resizeObserver.observe(mount);
 
   const themeObserver = new MutationObserver(() => {
     live.repush();
@@ -1890,7 +1890,7 @@ function bindBarChartInstance({
     chart.off("click");
     chart.off("datazoom");
     chart.off("finished");
-    resizeObserver.disconnect();
+    stopResizeObserver();
     themeObserver.disconnect();
     chart.dispose();
     echartsRef.current = null;
@@ -1972,7 +1972,11 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
   const [hoveredDataKey, setHoveredDataKey] = useState<string | null>(null);
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleTooltip(collectConfig(children), locale),
+    [children, locale]
+  );
   const {
     bars,
     xAxis: xAxisSlot,
@@ -1993,7 +1997,15 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
 
   // Category axis is x when vertical, y when horizontal; value axis the other.
   const categorySlot = isHorizontal ? yAxisSlot : xAxisSlot;
-  const valueSlot = isHorizontal ? xAxisSlot : yAxisSlot;
+  const valueSlot = useMemo(() => {
+    const slot = isHorizontal ? xAxisSlot : yAxisSlot;
+    return {
+      ...slot,
+      tickFormatter:
+        slot.tickFormatter ??
+        ((value: string) => Number(value).toLocaleString(locale)),
+    };
+  }, [isHorizontal, xAxisSlot, yAxisSlot, locale]);
 
   const seriesKeys = useMemo(() => bars.map((bar) => bar.dataKey), [bars]);
 

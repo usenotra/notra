@@ -10,6 +10,7 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import { useTranslations } from "next-intl";
 
 import type { SkillDeleteDialogProps } from "@/types/skills/page";
 
@@ -20,27 +21,27 @@ export function SkillDeleteDialog({
   onOpenChange,
   onConfirm,
 }: SkillDeleteDialogProps) {
+  const t = useTranslations("skills.delete");
+  const tCommon = useTranslations("common.actions");
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>Delete skill?</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            This will permanently delete the skill "{name}". Schedules that
-            reference it will still run, but without its guidance their output
-            may be lower quality.
+          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription className="wrap-anywhere">
+            {t("description", { name })}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={pending}>
-            Cancel
+            {tCommon("cancel")}
           </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={pending}
             onClick={onConfirm}
           >
-            {pending ? "Deleting…" : "Delete skill"}
+            {pending ? tCommon("deleting") : t("confirm")}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>

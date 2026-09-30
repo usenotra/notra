@@ -178,3 +178,18 @@ export const WEB_SEARCH_TOOL_DESCRIPTION =
 
 export const FETCH_WEBPAGE_TOOL_DESCRIPTION =
   "**Fetch Webpage**: Fetch a specific public URL using fetchWebpage and return clean markdown plus metadata. Use this when the user provides a URL and asks to read, browse, summarize, inspect, or extract from that page. Requires Context.dev API configuration to return live data.";
+
+export function registerWebSearchTools(
+  tools: Record<string, Tool>,
+  descriptions: string[] = []
+) {
+  const hasContextDev = isWebSearchAvailable();
+  tools[FETCH_WEBPAGE_TOOL_NAME] = hasContextDev
+    ? createFetchWebpageTool()
+    : createUnavailableFetchWebpageTool();
+  tools[WEB_SEARCH_TOOL_NAME] = hasContextDev
+    ? createWebSearchTool()
+    : createUnavailableWebSearchTool();
+  descriptions.push(FETCH_WEBPAGE_TOOL_DESCRIPTION);
+  descriptions.push(WEB_SEARCH_TOOL_DESCRIPTION);
+}

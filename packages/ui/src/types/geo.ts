@@ -5,12 +5,22 @@ export type GeoPresenceStatus =
   | "retrieval-only"
   | "invisible";
 
+export interface GeoPresenceBadgeLabels {
+  retrievalOnly: string;
+  retrievalOnlyTitle: string;
+  invisible: string;
+  invisibleTitle: string;
+}
+
 export interface PresenceBadgeProps {
   status: GeoPresenceStatus | null;
+  labels?: Partial<GeoPresenceBadgeLabels>;
 }
 
 export interface PurposeBadgeProps {
   category: string;
+  label?: string;
+  description?: string;
 }
 
 export interface PromptOutcomeIconProps {
@@ -106,10 +116,16 @@ export interface GeoAnswerResult {
   mentioned: boolean;
 }
 
+export interface GeoAnswerThreadLabels {
+  mentionedWithoutExcerpt: string;
+  notMentioned: string;
+}
+
 export interface GeoPromptAnswerThreadProps {
   prompt: string;
   result: GeoAnswerResult;
   timestamp: string;
+  labels?: Partial<GeoAnswerThreadLabels>;
 }
 
 export interface PromptEngineSwitcherItem {
@@ -123,6 +139,14 @@ export interface PromptEngineSwitcherProps {
   items: PromptEngineSwitcherItem[];
   active: string;
   onChange: (engine: string, direction: number) => void;
+  labels?: Partial<PromptEngineSwitcherLabels>;
+}
+
+export interface PromptEngineSwitcherLabels {
+  engines: string;
+  search: string;
+  previousEngine: string;
+  nextEngine: string;
 }
 
 export type GeoGapsMeterTone = "empty" | "low" | "mid" | "high";
@@ -143,6 +167,19 @@ export interface LogoStackProps {
   items: LogoStackItem[];
   limit?: number;
   emptyLabel?: string;
+  /**
+   * Spells out the brand next to each visible logo. Bare logos only work where
+   * the reader already knows the set (engines); for competitors they force a
+   * hover just to learn who is in the row.
+   */
+  showLabel?: boolean;
+  labels?: Partial<LogoStackLabels>;
+}
+
+export interface LogoStackLabels {
+  none: string;
+  additionalItems: string;
+  showAdditionalItems: (count: number) => string;
 }
 
 export interface StatTile {
@@ -154,6 +191,7 @@ export interface StatTile {
 export interface StatTilesProps {
   tiles: StatTile[];
   className?: string;
+  locale?: string;
 }
 
 export interface ConversationRowProps {
@@ -165,6 +203,18 @@ export interface ConversationRowProps {
   onEdit?: () => void;
   onToggle?: (enabled: boolean) => void;
   onDelete?: () => void;
+  labels?: Partial<ConversationRowLabels>;
+}
+
+export interface ConversationRowLabels {
+  turns: (count: number) => string;
+  edit: string;
+  pause: (name: string) => string;
+  enable: (name: string) => string;
+  includedInScans: string;
+  pausedInScans: string;
+  delete: string;
+  deleteItem: (name: string) => string;
 }
 
 export interface CompetitorLogoProps {

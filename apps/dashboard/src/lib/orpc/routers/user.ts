@@ -6,6 +6,7 @@ import {
 } from "@notra/schemas/dashboard/api-params";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 
 import { deleteAutumnCustomer } from "@/lib/billing/delete-autumn-customer";
 import {
@@ -140,7 +141,8 @@ export const userRouter = {
           });
 
           if (!membership) {
-            throw forbidden("You are not a member of this organization");
+            const tErrors = await getTranslations("errors.user");
+            throw forbidden(tErrors("notMember"));
           }
 
           const [membershipCountResult] = await tx
@@ -151,14 +153,14 @@ export const userRouter = {
           const membershipCount = membershipCountResult?.count ?? 0;
 
           if (membershipCount <= 1) {
-            throw badRequest("You must keep at least one organization");
+            const tCommon = await getTranslations("common");
+            throw badRequest(tCommon("messages.youMustKeepAtLeast"));
           }
 
           if (input.action === "delete") {
             if (membership.role !== "owner") {
-              throw forbidden(
-                "Only organization owners can delete organizations"
-              );
+              const tErrors = await getTranslations("errors.user");
+              throw forbidden(tErrors("ownerOnlyDelete"));
             }
 
             const organization = await tx.query.organizations.findFirst({
@@ -180,9 +182,8 @@ export const userRouter = {
           }
 
           if (membership.role === "owner") {
-            throw badRequest(
-              "Organization owners cannot leave directly. Delete the organization instead."
-            );
+            const tErrors = await getTranslations("errors.user");
+            throw badRequest(tErrors("ownerCannotLeave"));
           }
 
           await tx
@@ -252,9 +253,8 @@ export const userRouter = {
           });
 
           if (!membership) {
-            throw forbidden(
-              `You are not the owner of organization ${transfer.orgId}`
-            );
+            const tErrors = await getTranslations("errors.user");
+            throw forbidden(tErrors("notOwner", { orgId: transfer.orgId }));
           }
 
           if (transfer.action === "transfer") {
@@ -276,8 +276,9 @@ export const userRouter = {
             }
 
             if (!newOwner) {
+              const tErrors = await getTranslations("errors.user");
               throw badRequest(
-                `No other members to transfer ownership to for organization ${transfer.orgId}`
+                tErrors("noTransferTarget", { orgId: transfer.orgId })
               );
             }
 

@@ -38,6 +38,11 @@ mock.module("@/lib/hooks/use-geo-db", () => ({
   useGeoCompetitorsDb: () => ({ competitors: [] }),
 }));
 mock.module("@/lib/hooks/use-geo-writer", () => ({
+  useGeoPromptGapIgnore: () => ({
+    isPending: false,
+    mutate: mock(),
+    mutateAsync: mock(async () => undefined),
+  }),
   useGeoWriterGaps: () => ({
     data:
       !gapsFails || cachedGaps

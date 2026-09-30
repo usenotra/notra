@@ -1,5 +1,6 @@
 import { getChatProjectId } from "@notra/ai/chat/history";
 import { maybeGenerateCollectionTitle } from "@notra/ai/jobs/collection-title";
+import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import type {
   CreatePostRecordParams,
   CreatePostRecordResult,
@@ -21,50 +22,92 @@ const generatePostId = customAlphabet(
   16
 );
 
+function isPostSlugConflict(error: unknown): boolean {
+  for (let current = error, depth = 0; current && depth < 6; depth++) {
+    if (
+      typeof current === "object" &&
+      (("code" in current &&
+        current.code === "23505" &&
+        "constraint" in current &&
+        current.constraint === "posts_org_slug_uidx") ||
+        (current instanceof Error &&
+          current.message.includes("posts_org_slug_uidx")))
+    ) {
+      return true;
+    }
+    current =
+      typeof current === "object" && "cause" in current
+        ? current.cause
+        : undefined;
+  }
+  return false;
+}
+
+function uniquifySlug(slug: string, n: number) {
+  const suffix = `-${n}`;
+  return `${slug.slice(0, POST_SLUG_MAX_LENGTH - suffix.length)}${suffix}`;
+}
+
 export async function createPostRecord(
   params: CreatePostRecordParams
 ): Promise<CreatePostRecordResult> {
   const id = params.postId ?? generatePostId();
   const content = sanitizeMarkdownHtml(await marked.parse(params.markdown));
+  const baseSlug = params.slug ?? null;
 
-  const deduplicated = await db.transaction(async (tx) => {
-    const inserted = await tx
-      .insert(posts)
-      .values({
-        id,
-        organizationId: params.organizationId,
-        collectionId: params.collectionId,
-        title: params.title,
-        slug: params.slug ?? null,
-        content,
-        markdown: params.markdown,
-        recommendations: params.recommendations ?? null,
-        contentType: params.contentType,
-        contentSubtype: params.contentSubtype ?? null,
-        status: params.autoPublish ? "published" : "draft",
-        sourceMetadata: params.sourceMetadata ?? null,
-      })
-      .onConflictDoNothing({ target: posts.id })
-      .returning({ id: posts.id });
+  const insert = async (slug: string | null) =>
+    db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(posts)
+        .values({
+          id,
+          organizationId: params.organizationId,
+          collectionId: params.collectionId,
+          title: params.title,
+          slug,
+          content,
+          markdown: params.markdown,
+          recommendations: params.recommendations ?? null,
+          contentType: params.contentType,
+          contentSubtype: params.contentSubtype ?? null,
+          status: params.autoPublish ? "published" : "draft",
+          sourceMetadata: params.sourceMetadata ?? null,
+        })
+        .onConflictDoNothing({ target: posts.id })
+        .returning({ id: posts.id });
 
-    if (inserted.length === 0) {
-      return true;
+      if (inserted.length === 0) {
+        return true;
+      }
+
+      await tx
+        .update(postCollections)
+        .set({
+          completedPostCount: sql`${postCollections.completedPostCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(postCollections.id, params.collectionId),
+            eq(postCollections.organizationId, params.organizationId)
+          )
+        );
+      return false;
+    });
+
+  let slug = baseSlug;
+  let deduplicated = false;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      deduplicated = await insert(slug);
+      break;
+    } catch (error) {
+      if (!(baseSlug && isPostSlugConflict(error) && attempt < 5)) {
+        throw error;
+      }
+      slug = uniquifySlug(baseSlug, attempt + 2);
     }
-
-    await tx
-      .update(postCollections)
-      .set({
-        completedPostCount: sql`${postCollections.completedPostCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(postCollections.id, params.collectionId),
-          eq(postCollections.organizationId, params.organizationId)
-        )
-      );
-    return false;
-  });
+  }
 
   if (!deduplicated) {
     await maybeGenerateCollectionTitle({

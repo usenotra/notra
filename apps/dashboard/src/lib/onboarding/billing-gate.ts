@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { getAllUserOrganizations } from "@/lib/auth/actions";
-import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
+import { findFirstPaidOrganization } from "@/lib/onboarding/first-paid-organization";
 
 export async function redirectIfAnyOrganizationHasPaidHistory() {
-  const allOrgs = await getAllUserOrganizations();
-  for (const org of allOrgs) {
-    if (await hasPaidSubscriptionHistory(org.id)) {
-      redirect(`/${org.slug}`);
-    }
+  const paidOrg = await findFirstPaidOrganization();
+  if (paidOrg) {
+    redirect(`/${paidOrg.slug}`);
   }
 }

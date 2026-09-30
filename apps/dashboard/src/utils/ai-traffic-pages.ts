@@ -80,11 +80,6 @@ export function groupTrafficPages(
   return result;
 }
 
-export function trafficPageSourcesLabel(group: GeoTrafficPageGroup): string {
-  const count = group.sources.length;
-  return `${count} ${count === 1 ? "source" : "sources"}`;
-}
-
 export function filterTrafficPageGroups(
   groups: readonly GeoTrafficPageGroup[],
   query: string

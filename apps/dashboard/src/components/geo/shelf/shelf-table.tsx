@@ -2,7 +2,6 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
@@ -15,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -31,35 +31,29 @@ import {
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
 import {
-  GEO_SHELF_ADD_LABEL,
-  GEO_SHELF_COMPETITORS_NONE_HINT,
-  GEO_SHELF_COMPETITORS_UNCHECKED_HINT,
   GEO_SHELF_COMPETITOR_STACK_LIMIT,
-  GEO_SHELF_EMPTY_SCANNED_DESCRIPTION,
-  GEO_SHELF_EMPTY_TITLE,
-  GEO_SHELF_EMPTY_UNSCANNED_DESCRIPTION,
   GEO_SHELF_ENGINE_STACK_LIMIT,
   GEO_SHELF_HOVER_DELAY_MS,
-  GEO_SHELF_NO_MATCHES_MESSAGE,
-  GEO_SHELF_PLACEMENT_LABELS,
-  GEO_SHELF_SOURCE_KIND_LABELS,
   GEO_SHELF_TABLE_COLUMN,
   GEO_SHELF_TABLE_HEIGHT,
   GEO_SHELF_TABLE_ROW_HEIGHT,
 } from "@/constants/geo-shelf";
+import { useGeoShelfKindLabels } from "@/lib/hooks/use-geo-shelf-labels";
+import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
 import { cn } from "@/lib/utils";
 import type { GeoShelfRow, GeoShelfTableProps } from "@/types/geo-shelf";
+import { groupShelfCitationEngines } from "@/utils/geo-shelf";
+import { toGeoShelfSortState } from "@/utils/geo-shelf-page";
 
 /** Below `md` the page, citations and presence columns carry the story. */
 const MOBILE_HIDDEN_COLUMN_KEYS: readonly string[] = ["competitors"];
 
-function pageSubtitle(row: GeoShelfRow): string {
-  const kind = GEO_SHELF_SOURCE_KIND_LABELS[row.kind];
-  const base = `${kind} · ${row.domain}`;
-  return row.origin === "manual" ? `${base} · added manually` : base;
-}
-
 function PageCell({ row }: { row: GeoShelfRow }) {
+  const t = useTranslations("geo.shelf.shelfTable");
+  const kindLabels = useGeoShelfKindLabels();
+  const kind = kindLabels[row.kind];
+  const subtitle =
+    row.origin === "manual" ? t("addedManually", { kind }) : kind;
   const title = row.title ?? row.url;
   return (
     <span className="flex min-w-0 items-center gap-2.5">
@@ -73,7 +67,7 @@ function PageCell({ row }: { row: GeoShelfRow }) {
           {title}
         </TruncateWithTooltip>
         <TruncateWithTooltip className="text-muted-foreground text-xs">
-          {pageSubtitle(row)}
+          {subtitle}
         </TruncateWithTooltip>
       </span>
     </span>
@@ -81,20 +75,32 @@ function PageCell({ row }: { row: GeoShelfRow }) {
 }
 
 function CitationsCell({ row }: { row: GeoShelfRow }) {
+  const logoStackLabels = useLogoStackLabels();
   const count = row.citations.windowCount;
+  const families = groupShelfCitationEngines(row.citations.engines).map(
+    ({ family, label, models }) => ({
+      key: family,
+      label,
+      detail: models.join(", "),
+      renderIcon: (className: string) => (
+        <EngineIcon className={className} engine={models[0] ?? family} />
+      ),
+    })
+  );
   return (
-    <span className="flex min-w-0 items-center gap-2">
-      <span className="tabular-nums">{count > 0 ? count : "-"}</span>
-      {row.citations.engines.length > 0 ? (
+    <span className="flex min-w-0 items-center gap-2.5">
+      <span
+        className={cn(
+          "w-8 shrink-0 text-right tabular-nums",
+          count === 0 && "text-muted-foreground"
+        )}
+      >
+        {count > 0 ? count : "–"}
+      </span>
+      {families.length > 0 ? (
         <LogoStack
-          items={row.citations.engines.map((engine) => ({
-            key: engine,
-            label: engineFamilyLabel(engine),
-            detail: engine,
-            renderIcon: (className) => (
-              <EngineIcon className={className} engine={engine} />
-            ),
-          }))}
+          labels={logoStackLabels}
+          items={families}
           limit={GEO_SHELF_ENGINE_STACK_LIMIT}
         />
       ) : null}
@@ -103,19 +109,23 @@ function CitationsCell({ row }: { row: GeoShelfRow }) {
 }
 
 function CompetitorsCell({ row }: { row: GeoShelfRow }) {
+  const logoStackLabels = useLogoStackLabels();
+  const t = useTranslations("geo.shelf.shelfTable");
+  const tGeoShared = useTranslations("geo.shared");
+  const tStates = useTranslations("common.states");
   if (row.presentCompetitors.length === 0) {
     const unknownCount = row.competitorPlacements.filter(
       (placement) => placement.status === "unknown"
     ).length;
     const isUnchecked = unknownCount > 0;
-    const label = isUnchecked ? GEO_SHELF_PLACEMENT_LABELS.unknown : "None";
+    const label = isUnchecked ? tGeoShared("notChecked") : tStates("none");
     const description = isUnchecked
-      ? GEO_SHELF_COMPETITORS_UNCHECKED_HINT
-      : GEO_SHELF_COMPETITORS_NONE_HINT;
+      ? t("competitorsUnchecked")
+      : t("competitorsNone");
     return (
       <Tooltip>
         <TooltipTrigger
-          aria-label={`${label}. ${description}`}
+          aria-label={t("hintLabel", { label, description })}
           className="text-muted-foreground inline-flex cursor-help rounded-sm border-0 bg-transparent p-0 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {label}
@@ -129,11 +139,12 @@ function CompetitorsCell({ row }: { row: GeoShelfRow }) {
   }
   return (
     <LogoStack
+      labels={logoStackLabels}
       items={row.presentCompetitors.map((placement) => ({
         key: placement.competitorId ?? placement.brandName,
         label: placement.brandName,
         detail: placement.position
-          ? `#${placement.position} on the page`
+          ? t("positionOnPage", { position: placement.position })
           : null,
         renderIcon: (className) => (
           <CompetitorLogo
@@ -149,8 +160,14 @@ function CompetitorsCell({ row }: { row: GeoShelfRow }) {
 }
 
 function TicketCell({ row }: { row: GeoShelfRow }) {
+  const t = useTranslations("geo.shelf.shelfTable");
+  const tLabels = useTranslations("geo.shelf.labels");
   if (!row.opportunity) {
-    return <span className="text-muted-foreground text-xs">No ticket</span>;
+    return (
+      <span className="text-muted-foreground text-xs">
+        {tLabels("noTicket")}
+      </span>
+    );
   }
   const badge = (
     <ShelfTicketBadge className="shrink-0" status={row.opportunity.status} />
@@ -165,7 +182,7 @@ function TicketCell({ row }: { row: GeoShelfRow }) {
         delay={GEO_SHELF_HOVER_DELAY_MS}
         render={
           <button
-            aria-label={`Assigned to ${name}, show details`}
+            aria-label={t("assignedTo", { name })}
             className="focus-visible:ring-ring/50 inline-flex cursor-default rounded-sm outline-hidden focus-visible:ring-[3px]"
             type="button"
           />
@@ -185,6 +202,13 @@ function TicketCell({ row }: { row: GeoShelfRow }) {
 export function ShelfTable({
   rows,
   totalCount,
+  filteredCount,
+  sort,
+  onSortChange,
+  hasNextPage,
+  isFetching,
+  isFetchingNextPage,
+  onLoadMore,
   currentMemberId,
   onRowClick,
   onUpdateOpportunity,
@@ -193,15 +217,19 @@ export function ShelfTable({
   hasScanData,
   onAddShelf,
 }: GeoShelfTableProps) {
+  const t = useTranslations("geo.shelf.shelfTable");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const tLabels = useTranslations("geo.shelf.labels");
   const isMobile = useIsMobile();
   const columns: TableColumn<GeoShelfRow>[] = [
     {
       key: "title",
       header: (
         <span className="inline-flex items-center gap-1.5">
-          Page
+          {tGeoShared("page")}
           <span className="text-muted-foreground font-normal tabular-nums">
-            ({rows.length})
+            ({filteredCount})
           </span>
         </span>
       ),
@@ -213,7 +241,7 @@ export function ShelfTable({
     },
     {
       key: "citations",
-      header: "Cited",
+      header: tGeoShared("cited"),
       width: GEO_SHELF_TABLE_COLUMN.citations.width,
       sortable: true,
       cell: (row) => <CitationsCell row={row} />,
@@ -221,7 +249,7 @@ export function ShelfTable({
     },
     {
       key: "own",
-      header: "You",
+      header: tGeoShared("youLabel"),
       width: GEO_SHELF_TABLE_COLUMN.own.width,
       sortable: true,
       cell: (row) => (
@@ -234,14 +262,14 @@ export function ShelfTable({
     },
     {
       key: "competitors",
-      header: "Competitors",
+      header: tCommon("labels.competitors"),
       width: GEO_SHELF_TABLE_COLUMN.competitors.width,
       cell: (row) => <CompetitorsCell row={row} />,
       sortValue: (row) => row.presentCompetitors.length,
     },
     {
       key: "ticket",
-      header: "Ticket",
+      header: tLabels("ticket"),
       width: GEO_SHELF_TABLE_COLUMN.ticket.width,
       sortable: true,
       cell: (row) => <TicketCell row={row} />,
@@ -255,21 +283,17 @@ export function ShelfTable({
         action={
           <Button className="gap-1.5" onClick={onAddShelf}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            {GEO_SHELF_ADD_LABEL}
+            {tGeoShared("addShelf")}
           </Button>
         }
-        description={
-          hasScanData
-            ? GEO_SHELF_EMPTY_SCANNED_DESCRIPTION
-            : GEO_SHELF_EMPTY_UNSCANNED_DESCRIPTION
-        }
+        description={hasScanData ? t("emptyScanned") : t("emptyUnscanned")}
         preview={
           <EmptyStateTablePreview
             columns={EMPTY_STATE_TABLE_COLUMNS.shelf}
             rows={EMPTY_STATE_TABLE_ROWS}
           />
         }
-        title={GEO_SHELF_EMPTY_TITLE}
+        title={t("emptyTitle")}
       />
     );
   }
@@ -285,12 +309,18 @@ export function ShelfTable({
       className="rounded-2xl"
       columns={visibleColumns}
       data={rows}
-      defaultSort={{ key: "citations", direction: "desc" }}
-      emptyState={GEO_SHELF_NO_MATCHES_MESSAGE}
+      emptyState={tLabels("noMatches")}
       getRowId={(row) => row.id}
       height={GEO_SHELF_TABLE_HEIGHT}
       isRowPinned={(row) => pendingSourceIds.has(row.id)}
+      loading={isFetchingNextPage}
+      loadingMore={isFetchingNextPage}
+      manualSort
+      // The table only re-arms end-of-list after `loading` settles, so it must
+      // not fire during a filter or refetch that `loadMore` would ignore.
+      onEndReached={hasNextPage && !isFetching ? onLoadMore : undefined}
       onRowClick={onRowClick}
+      onSortChange={(next) => onSortChange(toGeoShelfSortState(next))}
       renderRowContextMenu={(row) => (
         <ShelfTableContextMenu
           currentMemberId={currentMemberId}
@@ -303,6 +333,7 @@ export function ShelfTable({
       )}
       resizable
       rowHeight={GEO_SHELF_TABLE_ROW_HEIGHT}
+      sort={sort}
     />
   );
 }

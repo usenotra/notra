@@ -17,6 +17,7 @@ export interface TriggerTarget {
 export interface TriggerSourceConfig {
   eventTypes?: WebhookEventType[];
   includePreReleases?: boolean;
+  ignoreCommitPatterns?: string[];
   cron?: {
     frequency: "daily" | "weekly" | "monthly" | "custom";
     hour: number;

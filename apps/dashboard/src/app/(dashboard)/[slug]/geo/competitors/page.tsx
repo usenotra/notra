@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import { GeoPageSkeleton } from "../skeleton";
-import PageClient from "./page-client";
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
 
-export const metadata: Metadata = {
-  title: "GEO Competitors",
-};
+import PageClient from "./page-client";
+import { GeoCompetitorsSkeleton } from "./skeleton";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("geo.pages.competitors");
+  return { title: t("metaTitle") };
+}
 
 export const instant = true;
 
@@ -29,8 +33,10 @@ function Page({
   }>;
 }) {
   return (
-    <Suspense fallback={<GeoPageSkeleton />}>
-      <PageContent params={params} />
+    <Suspense fallback={<GeoCompetitorsSkeleton />}>
+      <GeoPageGate fallback={<GeoCompetitorsSkeleton />}>
+        <PageContent params={params} />
+      </GeoPageGate>
     </Suspense>
   );
 }

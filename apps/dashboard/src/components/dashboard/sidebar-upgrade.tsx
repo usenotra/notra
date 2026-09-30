@@ -1,12 +1,15 @@
 "use client";
 
+import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { useListPlans } from "autumn-js/react";
+import { useFormatter, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { PAYWALL_KINDS, PLAN_SURFACES } from "@/constants/analytics-events";
@@ -15,13 +18,22 @@ import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useOnboardingStatus } from "@/lib/hooks/use-onboarding";
-import { groupBillingPlans, nextPlanGroup } from "@/utils/billing-plans";
+import {
+  getProductPrice,
+  groupBillingPlans,
+  nextPlanGroup,
+  planRenewalTerms,
+} from "@/utils/billing-plans";
 import {
   canShowSidebarUpgrade,
   sidebarUpgradeCopy,
 } from "@/utils/sidebar-upgrade";
 
 export function SidebarUpgrade() {
+  const t = useTranslations("nav.upgrade");
+  const tCommon = useTranslations("common");
+  const tBilling = useTranslations("billing.plans");
+  const format = useFormatter();
   const { activeOrganization } = useOrganizationsContext();
   const orgId = activeOrganization?.id ?? "";
 
@@ -33,6 +45,7 @@ export function SidebarUpgrade() {
   const {
     attach,
     data: customer,
+    isLoading: customerLoading,
     refetch,
   } = useBillingCustomer({
     expand: ["subscriptions.plan"],
@@ -43,9 +56,13 @@ export function SidebarUpgrade() {
     },
   });
   const [loading, setLoading] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const activeSubscription = customer?.subscriptions.find(
-    (subscription) => !subscription.addOn && subscription.status === "active"
+    (subscription) =>
+      !subscription.addOn &&
+      subscription.status === "active" &&
+      PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
   );
   const activePlanId =
     activeSubscription?.plan?.id ?? activeSubscription?.planId;
@@ -54,19 +71,20 @@ export function SidebarUpgrade() {
   const targetGroup = nextPlanGroup(groupBillingPlans(plans), activePlanId);
   const targetPlan = targetGroup?.monthly ?? targetGroup?.annual ?? null;
 
-  const showTrial =
-    hasNoPlan &&
-    !!targetPlan?.freeTrial &&
-    !!targetPlan.customerEligibility?.trialAvailable;
+  const { buttonLabel, description, heading } = sidebarUpgradeCopy(
+    {
+      hasNoPlan,
+      isLoading: loading,
+      planName: targetGroup?.name,
+    },
+    t,
+    tCommon
+  );
 
-  const { buttonLabel, description, heading } = sidebarUpgradeCopy({
-    hasNoPlan,
-    isLoading: loading,
-    planName: targetGroup?.name,
-    showTrial,
-  });
-
-  const isVisible = canShowUpgrade && targetPlan !== null;
+  const isVisible =
+    !customerLoading &&
+    !!customer &&
+    (hasNoPlan || (canShowUpgrade && targetPlan !== null));
   const pathname = usePathname();
   const route = toAnalyticsRoute(pathname, activeOrganization?.slug);
   const shownRef = useRef(false);
@@ -83,11 +101,21 @@ export function SidebarUpgrade() {
     });
   }, [isVisible, activePlanId, route]);
 
-  if (!(isVisible && targetPlan)) {
+  if (!isVisible) {
     return null;
   }
 
   async function handleUpgrade() {
+    if (hasNoPlan) {
+      trackEvent(POSTHOG_EVENTS.UPGRADE_CLICKED, {
+        surface: PLAN_SURFACES.SIDEBAR,
+        target_plan: null,
+        interval: null,
+        zdr: false,
+      });
+      setUpgradeOpen(true);
+      return;
+    }
     if (!targetPlan) {
       return;
     }
@@ -125,7 +153,7 @@ export function SidebarUpgrade() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not update billing. Please try again."
+          : tCommon("messages.couldNotUpdateBillingPlease")
       );
       return;
     }
@@ -148,8 +176,30 @@ export function SidebarUpgrade() {
           >
             {buttonLabel}
           </Button>
+          {!hasNoPlan && targetPlan ? (
+            <p className="text-muted-foreground text-xs">
+              {tBilling("renewalTerms", {
+                kind: planRenewalTerms(targetPlan),
+                price: format.number(getProductPrice(targetPlan).amount, {
+                  style: "currency",
+                  currency: "USD",
+                }),
+                interval: targetGroup?.monthly
+                  ? tCommon("labels.month")
+                  : tCommon("labels.year"),
+              })}
+            </p>
+          ) : null}
         </div>
       </div>
+      {upgradeOpen && hasNoPlan && activeOrganization?.slug && (
+        <GeoUpgradeDialog
+          entry="sidebar"
+          onOpenChange={setUpgradeOpen}
+          open={upgradeOpen}
+          slug={activeOrganization.slug}
+        />
+      )}
     </SidebarGroup>
   );
 }

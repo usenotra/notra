@@ -7,6 +7,7 @@ import type {
   ResolveIntegrationContext,
   ResolveLinearIntegrationContext,
 } from "@notra/ai/types/agents";
+import type { BaseTonePromptInput } from "@notra/ai/types/prompts";
 import type { TccMetadata } from "@notra/ai/types/tcc";
 import type { GitHubSelectionFilters } from "@notra/ai/types/tools";
 import type { PostSourceMetadata } from "@notra/db/schema";
@@ -25,18 +26,7 @@ export interface ContentGenerationContext {
   }>;
   linearIntegrations?: LinearIntegrationRef[];
   tone: ToneProfile;
-  promptInput: {
-    sourceTargets: string;
-    todayUtc: string;
-    lookbackLabel: string;
-    lookbackStartIso: string;
-    lookbackEndIso: string;
-    companyName?: string;
-    companyDescription?: string;
-    audience?: string;
-    customInstructions?: string | null;
-    language?: string;
-  };
+  promptInput: BaseTonePromptInput;
   sourceMetadata: PostSourceMetadata;
   dataPointSettings?: AgentDataPointSettings;
   selectionFilters?: GitHubSelectionFilters;

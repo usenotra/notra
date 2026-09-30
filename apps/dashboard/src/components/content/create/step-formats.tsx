@@ -18,10 +18,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 import { CREATE_CONTENT_FORMAT_ORDER } from "@/constants/content-formats";
 import type { FormatsStepProps } from "@/types/content/create";
-import { formatSnakeCaseLabel } from "@/utils/format";
 
 import { DataPointToggle } from "./data-point-toggle";
 import { FormatCard } from "./format-card";
@@ -35,15 +35,16 @@ export function StepFormats({
   onDataPointChange,
   timezone,
 }: FormatsStepProps) {
+  const t = useTranslations("content.create.stepFormats");
+  const tLookback = useTranslations("content.create.lookback");
+  const tCommon = useTranslations("common.labels");
+  const lookbackLabel = (window: LookbackWindow) =>
+    window === "yesterday" ? tCommon("yesterday") : tLookback(window);
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">
-          What do you want to create?
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Select one or more content formats. We'll help you craft each one.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -61,10 +62,10 @@ export function StepFormats({
         <div className="grid gap-3 md:grid-cols-[1fr_auto]">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-sm font-medium">Timeframe</p>
+              <p className="text-sm font-medium">{t("timeframe")}</p>
               <Tooltip>
                 <TooltipTrigger
-                  aria-label="Timeframe timezone information"
+                  aria-label={t("timezoneInfoLabel")}
                   className="text-muted-foreground hover:text-foreground cursor-help transition-colors"
                   type="button"
                 >
@@ -75,16 +76,18 @@ export function StepFormats({
                 </TooltipTrigger>
                 <TooltipContent className="max-w-60">
                   <p>
-                    Activity is gathered in your timezone (
-                    <span className="font-medium">{timezone}</span>). Today and
-                    Yesterday follow your local day. Rolling ranges like Last 7
-                    Days are identical in every timezone.
+                    {t.rich("timezoneInfo", {
+                      timezone,
+                      strong: (chunks) => (
+                        <span className="font-medium">{chunks}</span>
+                      ),
+                    })}
                   </p>
                 </TooltipContent>
               </Tooltip>
             </div>
             <p className="text-muted-foreground text-xs">
-              How far back to look when gathering activity data.
+              {t("timeframeDescription")}
             </p>
           </div>
           <Select
@@ -96,16 +99,14 @@ export function StepFormats({
             value={lookbackWindow}
           >
             <SelectTrigger className="w-full md:w-56">
-              <SelectValue placeholder="Select timeframe">
-                <span className="capitalize">
-                  {formatSnakeCaseLabel(lookbackWindow)}
-                </span>
+              <SelectValue placeholder={t("selectTimeframe")}>
+                <span>{lookbackLabel(lookbackWindow)}</span>
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {LOOKBACK_WINDOWS.map((w) => (
                 <SelectItem key={w} value={w}>
-                  <span className="capitalize">{formatSnakeCaseLabel(w)}</span>
+                  <span>{lookbackLabel(w)}</span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -115,20 +116,20 @@ export function StepFormats({
         <div className="grid gap-2 sm:grid-cols-3">
           <DataPointToggle
             checked={dataPoints.includePullRequests}
-            description="Merged PR metadata"
-            label="Pull Requests"
+            description={t("dataPoints.pullRequests.description")}
+            label={t("dataPoints.pullRequests.label")}
             onCheckedChange={(v) => onDataPointChange("includePullRequests", v)}
           />
           <DataPointToggle
             checked={dataPoints.includeCommits}
-            description="Commit-level changes"
-            label="Commits"
+            description={t("dataPoints.commits.description")}
+            label={t("dataPoints.commits.label")}
             onCheckedChange={(v) => onDataPointChange("includeCommits", v)}
           />
           <DataPointToggle
             checked={dataPoints.includeReleases}
-            description="GitHub releases"
-            label="Releases"
+            description={t("dataPoints.releases.description")}
+            label={t("dataPoints.releases.label")}
             onCheckedChange={(v) => onDataPointChange("includeReleases", v)}
           />
         </div>

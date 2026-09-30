@@ -1,0 +1,12 @@
+@theme {
+  --animate-skeleton-shimmer: skeleton-shimmer 1.8s ease-in-out infinite;
+
+  @keyframes skeleton-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+}

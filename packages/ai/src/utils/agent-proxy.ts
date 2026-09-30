@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { AGENT_SESSION_ROUTE_PATH } from "@notra/ai/constants/agent";
+import { createSessionResponseSchema } from "@notra/ai/schemas/agent-proxy";
 import type {
   CreateAgentSessionParams,
   CreateAgentSessionResult,
@@ -14,17 +15,6 @@ import {
 import { db } from "@notra/db/drizzle";
 import { agentSessions } from "@notra/db/schema";
 import { and, desc, eq } from "drizzle-orm";
-import { z } from "zod";
-
-const createSessionResponseSchema = z.object({
-  ok: z.literal(true),
-  sessionId: z.string().min(1),
-  continuationToken: z.string().min(1),
-});
-
-const followUpResponseSchema = z.looseObject({
-  continuationToken: z.string().min(1).optional(),
-});
 
 export class AgentSendLockedError extends Error {
   constructor(eveSessionId: string) {
@@ -65,7 +55,6 @@ export async function createAgentSessionWithMapping(
       contentId: params.scope.contentId ?? null,
       collectionId: params.scope.collectionId ?? null,
       eveSessionId: payload.sessionId,
-      continuationToken: payload.continuationToken,
     })
     .onConflictDoNothing({ target: agentSessions.eveSessionId })
     .returning({ id: agentSessions.id });
@@ -88,7 +77,6 @@ export async function createAgentSessionWithMapping(
   return {
     agentSessionId,
     eveSessionId: payload.sessionId,
-    continuationToken: payload.continuationToken,
   };
 }
 
@@ -100,20 +88,12 @@ export async function forwardAgentFollowUp(
     throw new AgentSendLockedError(params.eveSessionId);
   }
   try {
-    const [currentSession] = await db
-      .select({ continuationToken: agentSessions.continuationToken })
-      .from(agentSessions)
-      .where(eq(agentSessions.eveSessionId, params.eveSessionId))
-      .limit(1);
-    const continuationToken =
-      currentSession?.continuationToken ?? params.continuationToken;
     const upstream = await params.fetchUpstream(
       `${AGENT_SESSION_ROUTE_PATH}/${params.eveSessionId}`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          continuationToken,
           ...(params.message ? { message: params.message } : {}),
           ...(params.inputResponses?.length
             ? { inputResponses: params.inputResponses }
@@ -122,21 +102,6 @@ export async function forwardAgentFollowUp(
       }
     );
     const upstreamText = await upstream.text();
-    if (upstream.ok) {
-      let upstreamJson: unknown = null;
-      try {
-        upstreamJson = JSON.parse(upstreamText);
-      } catch {
-        upstreamJson = null;
-      }
-      const parsed = followUpResponseSchema.safeParse(upstreamJson);
-      if (parsed.success && parsed.data.continuationToken) {
-        await db
-          .update(agentSessions)
-          .set({ continuationToken: parsed.data.continuationToken })
-          .where(eq(agentSessions.eveSessionId, params.eveSessionId));
-      }
-    }
     return new Response(upstreamText, {
       status: upstream.status,
       headers: {

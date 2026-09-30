@@ -1,11 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 
 import { CompetitorDetailView } from "@/components/geo/competitor-detail-view";
 import { CompetitorModal } from "@/components/geo/competitor-modal";
-import { StatusSpinner } from "@/components/geo/status-spinner";
+import { GeoPageGate } from "@/components/geo/geo-page-gate";
+
+import { CompetitorDetailSkeleton } from "../../../competitors/skeleton";
 
 function PageContent() {
   const { slug, competitor } = useParams<{
@@ -22,21 +25,17 @@ function PageContent() {
 }
 
 export default function Page() {
+  const tGeoShared = useTranslations("geo.shared");
+  const fallback = (
+    <CompetitorModal title={tGeoShared("competitor")}>
+      <CompetitorDetailSkeleton />
+    </CompetitorModal>
+  );
   return (
-    <Suspense
-      fallback={
-        <CompetitorModal title="Competitor">
-          <div
-            className="flex items-center justify-center gap-2 py-12"
-            role="status"
-          >
-            <StatusSpinner />
-            <span>Loading competitor</span>
-          </div>
-        </CompetitorModal>
-      }
-    >
-      <PageContent />
+    <Suspense fallback={fallback}>
+      <GeoPageGate fallback={fallback}>
+        <PageContent />
+      </GeoPageGate>
     </Suspense>
   );
 }

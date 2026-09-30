@@ -4,6 +4,7 @@ import {
   GEO_TRAFFIC_OTHER_GROUP,
 } from "@notra/geo-core/constants/geo";
 import type {
+  GeoTrafficPage,
   GeoTrafficPoint,
   GeoTrafficSource,
   GeoTrafficSourceGroupDefinition,
@@ -16,6 +17,7 @@ import {
 import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 
 import type {
+  GeoTrafficGroupPage,
   GeoTrafficPurposeTotal,
   GeoTrafficSourceBand,
   GeoTrafficSourceGroup,
@@ -179,4 +181,51 @@ export function trafficGroupPurposeTotals(
     existing.members.push(member.source);
   }
   return [...totals.values()].sort((left, right) => right.visits - left.visits);
+}
+
+/** Busiest pages for a source group, summed across its bots and hosts. */
+export function trafficGroupTopPages(
+  pages: readonly GeoTrafficPage[],
+  group: GeoTrafficSourceGroup,
+  limit: number
+): GeoTrafficGroupPage[] {
+  const members = new Set(group.members.map((member) => member.source));
+  const byPage = new Map<string, GeoTrafficGroupPage>();
+  for (const page of pages) {
+    if (page.visitorType !== group.visitorType || !members.has(page.source)) {
+      continue;
+    }
+    const key = `${page.host}${page.path}`;
+    const existing = byPage.get(key);
+    if (existing) {
+      existing.visits += page.visits;
+      if (page.lastSeenAt > existing.lastSeenAt) {
+        existing.lastSeenAt = page.lastSeenAt;
+      }
+    } else {
+      byPage.set(key, {
+        key,
+        host: page.host,
+        path: page.path,
+        visits: page.visits,
+        lastSeenAt: page.lastSeenAt,
+      });
+    }
+  }
+  return [...byPage.values()]
+    .sort((left, right) => right.visits - left.visits)
+    .slice(0, limit);
+}
+
+export function trafficGroupPreviousVisits(
+  group: GeoTrafficSourceGroup
+): number | null {
+  let previous = 0;
+  for (const member of group.members) {
+    if (member.previousVisits === undefined) {
+      return null;
+    }
+    previous += member.previousVisits;
+  }
+  return previous;
 }

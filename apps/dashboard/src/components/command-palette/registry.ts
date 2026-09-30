@@ -96,6 +96,22 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     path: (slug) => `/${slug}/geo/prompts`,
   },
   {
+    id: "geo-personas",
+    label: "Personas",
+    keywords: [
+      "geo",
+      "ai",
+      "personas",
+      "buyers",
+      "icp",
+      "customer profiles",
+      "memories",
+    ],
+    icon: UserGroupIcon,
+    section: "GEO",
+    path: (slug) => `/${slug}/geo/personas`,
+  },
+  {
     id: "geo-gaps",
     label: "Content Gaps",
     keywords: [
@@ -250,22 +266,6 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     icon: Github01Icon,
     section: "Manage",
     path: (slug) => `/${slug}/integrations/github`,
-  },
-  {
-    id: "settings-integrations",
-    label: "Integrations",
-    keywords: [
-      "github",
-      "linear",
-      "slack",
-      "granola",
-      "connect",
-      "repositories",
-    ],
-    icon: PlugIcon,
-    section: "Settings",
-    path: (slug) => `/${slug}?settings=integrations`,
-    settingsSection: "integrations",
   },
   {
     id: "logs",

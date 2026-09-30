@@ -17,8 +17,6 @@ import {
   eventSelectBySourceParameters,
 } from "../utils/events";
 
-// Shared by the Effect pipeline and the transactional drizzle adapter so both
-// produce byte-identical payloads.
 export const buildEventRecord = Effect.fn("webhooks.buildEventRecord")(
   function* (input: unknown) {
     const body = yield* Schema.decodeUnknownEffect(PublishInput)(input).pipe(

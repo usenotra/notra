@@ -24,8 +24,9 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 import type * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";
@@ -39,7 +40,10 @@ import {
   TWEET_COUNTER_WARNING_REMAINING,
 } from "@/constants/twitter";
 import { cn } from "@/lib/utils";
-import type { TwitterPostProps } from "@/types/content/twitter-post";
+import type {
+  TwitterPostProps,
+  TwitterPostIdentityProps,
+} from "@/types/content/twitter-post";
 import { formatTweetContent } from "@/utils/format-tweet-content";
 import {
   getTwitterCharLimit,
@@ -132,7 +136,7 @@ function TweetContent({
 
   return (
     <div
-      className="text-[0.9375rem] leading-snug whitespace-pre-wrap"
+      className="text-[0.9375rem] leading-snug wrap-anywhere whitespace-pre-wrap"
       ref={contentRef}
     >
       {formatTweetContent(content)}
@@ -141,6 +145,7 @@ function TweetContent({
 }
 
 function CharacterCounter({ count, limit }: { count: number; limit: number }) {
+  const t = useTranslations("content.socialPost");
   const remaining = limit - count;
   const isOver = remaining < 0;
   const warningThreshold = Math.max(
@@ -163,7 +168,7 @@ function CharacterCounter({ count, limit }: { count: number; limit: number }) {
         </span>
       )}
       <svg
-        aria-label={`${count} of ${limit} characters used`}
+        aria-label={t("charactersUsed", { count, limit })}
         className="-rotate-90"
         height={TWEET_COUNTER_RING_SIZE}
         role="img"
@@ -197,28 +202,16 @@ function CharacterCounter({ count, limit }: { count: number; limit: number }) {
   );
 }
 
-function TwitterPost({
+function TwitterPostIdentity({
   author,
   accountSelector,
-  content,
-  onContentChange,
-  onSelectionChange,
   timestamp,
   menuItems,
-  className,
-  ...props
-}: TwitterPostProps) {
-  const isEditable = Boolean(onContentChange);
-  const hasSquareAvatar = isSquareTwitterAvatar(author.verifiedType);
+}: TwitterPostIdentityProps) {
+  const t = useTranslations("content.socialPost");
   const hasAccountSelector =
     accountSelector !== undefined && accountSelector.accounts.length > 1;
-  const [localValue, setLocalValue] = useState(() => content ?? "");
-
-  const readOnlyContent = content ? (
-    <TweetContent content={content} onSelectionChange={onSelectionChange} />
-  ) : null;
-
-  const authorIdentity = (
+  const identity = (
     <>
       <span className="truncate text-[0.9375rem] leading-tight font-bold">
         {author.name}
@@ -235,6 +228,103 @@ function TwitterPost({
       )}
     </>
   );
+  return (
+    <div className="flex items-center gap-1">
+      {hasAccountSelector ? (
+        <SocialAccountSelector
+          accounts={accountSelector.accounts}
+          className="-mx-1 px-1"
+          onSelect={accountSelector.onSelect}
+          trigger={
+            <>
+              {identity}
+              <HugeiconsIcon
+                className="text-muted-foreground size-3.5 shrink-0"
+                icon={ArrowDown01Icon}
+              />
+            </>
+          }
+        />
+      ) : (
+        identity
+      )}
+      {timestamp && (
+        <>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground shrink-0 text-[0.9375rem]">
+            {timestamp}
+          </span>
+        </>
+      )}
+      {menuItems && menuItems.length > 0 ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t("postActions")}
+            className="text-muted-foreground hover:bg-accent ml-auto flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full"
+          >
+            <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {menuItems.map((item) => (
+              <DropdownMenuItem
+                key={item.label}
+                onClick={item.onClick}
+                variant={item.variant}
+              >
+                {item.icon}
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Button
+          aria-label={t("postActions")}
+          className="text-muted-foreground ml-auto"
+          size="icon-sm"
+          variant="ghost"
+        >
+          <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function TwitterPost({
+  author,
+  accountSelector,
+  content,
+  onContentChange,
+  onSelectionChange,
+  timestamp,
+  menuItems,
+  className,
+  ...props
+}: TwitterPostProps) {
+  const t = useTranslations("content.socialPost");
+  const isEditable = Boolean(onContentChange);
+  const hasSquareAvatar = isSquareTwitterAvatar(author.verifiedType);
+  const [localValue, setLocalValue] = useState(() => content ?? "");
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const syncHighlightScroll = (textarea: HTMLTextAreaElement) => {
+    if (highlightRef.current) {
+      highlightRef.current.scrollTop = textarea.scrollTop;
+      highlightRef.current.scrollLeft = textarea.scrollLeft;
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (textareaRef.current) {
+      syncHighlightScroll(textareaRef.current);
+    }
+  }, [localValue]);
+
+  const readOnlyContent = content ? (
+    <TweetContent content={content} onSelectionChange={onSelectionChange} />
+  ) : null;
 
   if ((content ?? "") !== localValue) {
     setLocalValue(content ?? "");
@@ -254,82 +344,38 @@ function TwitterPost({
         </Avatar>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-1">
-            {hasAccountSelector ? (
-              <SocialAccountSelector
-                accounts={accountSelector.accounts}
-                className="-mx-1 px-1"
-                onSelect={accountSelector.onSelect}
-                trigger={
-                  <>
-                    {authorIdentity}
-                    <HugeiconsIcon
-                      className="text-muted-foreground size-3.5 shrink-0"
-                      icon={ArrowDown01Icon}
-                    />
-                  </>
-                }
-              />
-            ) : (
-              authorIdentity
-            )}
-            {timestamp && (
-              <>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground shrink-0 text-[0.9375rem]">
-                  {timestamp}
-                </span>
-              </>
-            )}
-            {menuItems && menuItems.length > 0 ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent ml-auto flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full">
-                  <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {menuItems.map((item) => (
-                    <DropdownMenuItem
-                      key={item.label}
-                      onClick={item.onClick}
-                      variant={item.variant}
-                    >
-                      {item.icon}
-                      {item.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                className="text-muted-foreground ml-auto"
-                size="icon-sm"
-                variant="ghost"
-              >
-                <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
-              </Button>
-            )}
-          </div>
+          <TwitterPostIdentity
+            author={author}
+            accountSelector={accountSelector}
+            timestamp={timestamp}
+            menuItems={menuItems}
+          />
 
           <div className="flex flex-1 flex-col pb-3">
             {isEditable ? (
               <div className="space-y-1">
-                <div className="grid w-full grid-cols-1">
+                <div className="relative grid w-full grid-cols-1">
                   <div
                     aria-hidden
-                    className="pointer-events-none col-start-1 row-start-1 min-h-[4rem] min-w-0"
+                    ref={highlightRef}
+                    className="pointer-events-none absolute inset-0 min-w-0 [scrollbar-gutter:stable] overflow-hidden"
                     style={TWEET_EDITOR_TEXT_STYLE}
                   >
                     {formatTweetContent(localValue)}
                     {"\u200b"}
                   </div>
                   <Textarea
-                    className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[4rem] min-w-0 resize-none overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                    ref={textareaRef}
+                    onScroll={(event) => {
+                      syncHighlightScroll(event.currentTarget);
+                    }}
+                    className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-80 min-h-[4rem] min-w-0 resize-none [scrollbar-gutter:stable] overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
                     onChange={(e) => {
                       const value = e.target.value;
                       setLocalValue(value);
                       onContentChange?.(value);
                     }}
-                    placeholder="What is happening?!"
+                    placeholder={t("twitterPlaceholder")}
                     spellCheck={false}
                     style={TWEET_EDITOR_OVERLAY_STYLE}
                     value={localValue}

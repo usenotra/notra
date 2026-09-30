@@ -24,7 +24,7 @@ export function PlanText({
       aria-label={ariaLabel}
       autoFocus={autoFocus}
       className={cn(
-        "caret-foreground field-sizing-content w-full resize-none bg-transparent",
+        "caret-foreground field-sizing-content w-full min-w-0 resize-none bg-transparent",
         "-mx-1 rounded-sm px-1 py-0.5",
         "placeholder:text-muted-foreground/70",
         "hover:bg-muted/40 focus:bg-muted/40",

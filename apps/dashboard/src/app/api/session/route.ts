@@ -2,7 +2,9 @@ import type { NextRequest } from "next/server";
 
 import { getAuthSession } from "@/lib/auth/server";
 import { buildSessionCorsHeaders } from "@/lib/auth/session-cors";
+import { readLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import type { ClientSessionData } from "@/types/auth/session";
+import { isDashboardLocale } from "@/utils/i18n";
 
 export function OPTIONS(request: NextRequest) {
   return new Response(null, {
@@ -23,6 +25,13 @@ export async function GET(request: NextRequest) {
     return Response.json(null, { headers });
   }
 
+  const preference = isDashboardLocale(data.user.locale)
+    ? data.user.locale
+    : null;
+  if ((await readLocaleCookie()) !== preference) {
+    await writeLocaleCookie(preference);
+  }
+
   const payload: ClientSessionData = {
     session: data.session,
     user: {
@@ -34,6 +43,7 @@ export async function GET(request: NextRequest) {
       role: data.user.role,
       hidePersonalData: data.user.hidePersonalData,
       showAgentStats: data.user.showAgentStats,
+      locale: data.user.locale,
       createdAt: data.user.createdAt,
     },
   };

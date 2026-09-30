@@ -6,7 +6,11 @@ import {
   buildChangelogTimelineItems,
   listNotraChangelogPosts,
 } from "@/utils/changelog";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra Changelog";
@@ -16,9 +20,7 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: `${SITE_URL}/changelog/notra`,
-  },
+  alternates: pageAlternates(`${SITE_URL}/changelog/notra`),
   openGraph: {
     title,
     description,

@@ -3,6 +3,7 @@
 import { Cancel01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GEO_MAX_SEQUENCES,
   GEO_PROMPT_MIN_LENGTH,
   GEO_SEQUENCE_MAX_TURNS,
 } from "@notra/geo-core/constants/geo";
@@ -16,6 +17,7 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -44,10 +46,15 @@ export function ConversationBuilderDialog({
   organizationId,
   sequence,
 }: ConversationBuilderDialogProps) {
+  const t = useTranslations("geo.conversationBuilderDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const nameId = useId();
-  const { addSequence, updateSequence } = useGeoSequencesDb(organizationId, {
-    enabled: open,
-  });
+  const { addSequence, sequences, updateSequence } = useGeoSequencesDb(
+    organizationId,
+    { enabled: open }
+  );
   const [name, setName] = useState(sequence?.name ?? "");
   const [steps, setSteps] = useState<ConversationTurnDraft[]>(() =>
     turnsFromSequence(sequence)
@@ -57,7 +64,10 @@ export function ConversationBuilderDialog({
     const text = step.text.trim();
     return text.length >= GEO_PROMPT_MIN_LENGTH ? [text] : [];
   });
-  const canSave = name.trim().length > 0 && validSteps.length > 0;
+  const canSave =
+    name.trim().length > 0 &&
+    validSteps.length > 0 &&
+    (sequence !== null || sequences.length < GEO_MAX_SEQUENCES);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -85,26 +95,27 @@ export function ConversationBuilderDialog({
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
-            {sequence ? `Edit ${sequence.name}` : "New conversation"}
+          <ResponsiveDialogTitle className="wrap-anywhere">
+            {sequence
+              ? tCommon2("labels.editName", { name: sequence.name })
+              : tGeoShared("newConversation")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            A real buyer conversation: an opening question and the follow-ups
-            that decide the purchase. Every turn is checked for your brand.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="space-y-4 px-4 md:px-0">
           <div className="space-y-1.5">
-            <Label htmlFor={nameId}>Name</Label>
+            <Label htmlFor={nameId}>{tCommon2("labels.name")}</Label>
             <Input
               id={nameId}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Changelog tool research"
+              placeholder={t("namePlaceholder")}
               value={name}
             />
           </div>
           <div className="space-y-2">
-            <Label>Turns</Label>
+            <Label>{tGeoShared("turns")}</Label>
             <div className="space-y-2">
               {steps.map((step, index) => (
                 <div className="flex items-start gap-2" key={step.id}>
@@ -113,7 +124,7 @@ export function ConversationBuilderDialog({
                   </span>
                   <div className="border-border bg-muted/40 min-w-0 flex-1 rounded-lg border px-3 py-2">
                     <textarea
-                      className="placeholder:text-muted-foreground block w-full resize-none bg-transparent text-sm outline-none"
+                      className="placeholder:text-muted-foreground block field-sizing-content max-h-80 w-full resize-none overflow-y-auto bg-transparent text-sm outline-none"
                       onChange={(event) =>
                         setSteps((previous) =>
                           previous.map((item) =>
@@ -125,8 +136,8 @@ export function ConversationBuilderDialog({
                       }
                       placeholder={
                         index === 0
-                          ? "What is the best tool to automate changelogs?"
-                          : "Which of those is the cheapest?"
+                          ? t("firstTurnPlaceholder")
+                          : t("followUpPlaceholder")
                       }
                       rows={2}
                       value={step.text}
@@ -134,7 +145,7 @@ export function ConversationBuilderDialog({
                   </div>
                   {steps.length > 1 && (
                     <Button
-                      aria-label={`Remove turn ${index + 1}`}
+                      aria-label={t("removeTurn", { number: index + 1 })}
                       className="mt-1 shrink-0"
                       onClick={() =>
                         setSteps((previous) =>
@@ -162,14 +173,14 @@ export function ConversationBuilderDialog({
                 variant="outline"
               >
                 <HugeiconsIcon icon={PlusSignIcon} size={14} />
-                Add follow-up
+                {t("addFollowUp")}
               </Button>
             )}
           </div>
         </div>
         <ResponsiveDialogFooter>
           <Button disabled={!canSave} onClick={handleSave} type="button">
-            {sequence ? "Save changes" : "Create conversation"}
+            {sequence ? tCommon("saveChanges") : t("create")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

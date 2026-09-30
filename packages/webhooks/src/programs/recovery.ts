@@ -6,9 +6,6 @@ import { queryRows } from "../services/database";
 import { WebhookQueues } from "../services/queue";
 import type { EventId } from "../types/webhooks";
 
-// One compact snapshot per cron run. These are the alertable signals:
-// dispatch lag (oldestUndispatchedSeconds), backlog pressure (openDeliveries,
-// oldestOpenSeconds) and outcome rate (succeeded/failedLastMinute).
 export const emitMetrics = Effect.fn("webhooks.emitMetrics")(function* () {
   const [metrics] = yield* queryRows(
     PipelineMetrics,
@@ -95,8 +92,6 @@ export const recover = Effect.fn("webhooks.recover")(function* () {
   );
   const deliveries = yield* queryRows(
     IdentifierRow,
-    // Fresh deliveries (attempt_count = 0) outrank retries, so one tenant's
-    // retry backlog cannot starve other tenants' new work.
     `SELECT id FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now() ORDER BY attempt_count, next_attempt_at, id LIMIT $1`,
     [RECOVERY_BATCH_SIZE]
   );

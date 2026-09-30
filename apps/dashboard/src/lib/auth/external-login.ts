@@ -1,4 +1,5 @@
 import { externalLoginCompleteResponseSchema } from "@notra/schemas/dashboard/auth/external-login";
+import { buildOAuthConsentOptions } from "@notra/utils/oauth-consent";
 import { Effect } from "effect";
 
 import { WorkOSAuthError } from "@/lib/auth/errors";
@@ -22,6 +23,7 @@ export const completeExternalLogin = Effect.fn("auth.external.complete")(
           },
           body: JSON.stringify({
             external_auth_id: externalAuthId,
+            user_consent_options: buildOAuthConsentOptions(),
             user: {
               id: user.id,
               email: user.email,

@@ -6,9 +6,6 @@ export interface GitHubSettingsPageProps {
 export interface GitHubInstallResumeParams {
   callbackPath: string;
   organizationId: string;
-  reauthorizationInstallationId: string | null;
-  reauthorizationState: string | null;
-  shouldResume: boolean;
 }
 export type GitHubSettingsState = ReturnType<typeof useGitHubSettings>;
 export type GitHubRepositoriesSectionProps = Pick<

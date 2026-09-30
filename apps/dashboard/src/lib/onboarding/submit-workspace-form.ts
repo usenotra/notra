@@ -6,12 +6,25 @@ import {
   triggerOnboardingAgentSetup,
   triggerOnboardingBrandAnalysis,
 } from "@/app/onboarding/workspace/actions";
+import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { uploadFile } from "@/lib/upload/client";
 import { generateOrganizationAvatar } from "@/lib/utils";
 import type { SubmitWorkspaceFormArgs } from "@/types/onboarding";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+
+function isAllowedLogoSourceUrl(sourceUrl: string): boolean {
+  try {
+    const parsed = new URL(sourceUrl);
+    return (
+      parsed.protocol === "https:" &&
+      COMPANY_LOGO_SOURCE_HOSTS.some((host) => host === parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
 
 async function setOrganizationLogo(organizationId: string, logoUrl: string) {
   const result = await authClient.organization.update({
@@ -20,7 +33,7 @@ async function setOrganizationLogo(organizationId: string, logoUrl: string) {
   });
 
   if (result.error) {
-    throw new Error(result.error.message ?? "Failed to set workspace logo");
+    throw new Error(result.error.message);
   }
 }
 
@@ -48,9 +61,7 @@ export async function submitWorkspaceForm({
   const parsed = onboardingWorkspaceSchema.safeParse(value);
 
   if (!parsed.success) {
-    throw new Error(
-      parsed.error.issues[0]?.message ?? "Please check your inputs"
-    );
+    throw new Error(parsed.error.issues[0]?.message);
   }
 
   let organizationId: string;
@@ -70,7 +81,7 @@ export async function submitWorkspaceForm({
     });
 
     if (error || !data) {
-      throw new Error(error?.message ?? "Failed to create workspace");
+      throw new Error(error?.message);
     }
 
     organizationId = data.id;
@@ -85,13 +96,13 @@ export async function submitWorkspaceForm({
     try {
       if (logoFile) {
         await applyOrganizationLogo(organizationId, logoFile);
-      } else if (logoSourceUrl) {
+      } else if (logoSourceUrl && isAllowedLogoSourceUrl(logoSourceUrl)) {
         await applyOrganizationLogoFromUrl(organizationId, logoSourceUrl);
       }
     } catch (error) {
       console.error("[Onboarding] Failed to set organization logo", {
         organizationId,
-        error,
+        error: error instanceof Error ? error.message : error,
       });
     }
   }

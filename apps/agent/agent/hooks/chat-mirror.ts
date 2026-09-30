@@ -2,10 +2,10 @@ import { getSessionAttribute } from "@notra/tools/utils/session";
 import { Effect } from "effect";
 import { defineHook } from "eve/hooks";
 
-import { MIRROR_ASSISTANT_METADATA } from "../lib/constants/chat-mirror";
 import { ChatMirrorError } from "../lib/schemas/chat-mirror";
 import {
   appendAndPublishMirrorMessage,
+  mirrorAssistantMetadata,
   resolveMirrorChatId,
 } from "../lib/utils/chat-mirror";
 
@@ -36,7 +36,7 @@ export default defineHook({
             id: `eve:${ctx.session.id}:${event.data.turnId}:${event.data.stepIndex}`,
             role: "assistant",
             parts: [{ type: "text", text: messageText }],
-            metadata: MIRROR_ASSISTANT_METADATA,
+            metadata: mirrorAssistantMetadata(event.data.turnId),
           });
         }).pipe(
           Effect.catch((error) =>

@@ -29,7 +29,6 @@ export interface StartAgentSessionInput {
 export interface StartAgentSessionResult {
   agentSessionId: string;
   eveSessionId: string;
-  continuationToken: string;
 }
 
 export interface AgentTaskRunResult {

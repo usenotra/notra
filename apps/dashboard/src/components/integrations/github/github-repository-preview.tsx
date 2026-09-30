@@ -1,7 +1,11 @@
 import { Folder01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 export function GitHubRepositoryPreview() {
+  const t = useTranslations("integrations.github.preview");
+  const tCommon = useTranslations("common");
+
   return (
     <div
       aria-hidden="true"
@@ -22,7 +26,7 @@ export function GitHubRepositoryPreview() {
           <div className="bg-primary/10 ml-auto h-5 w-14 rounded-full" />
         </div>
         <div className="space-y-4 px-4 py-4">
-          {["Changelog", "Blog posts"].map((label) => (
+          {[tCommon("labels.changelog"), t("blogPosts")].map((label) => (
             <div className="flex items-center gap-3" key={label}>
               <div className="bg-primary/25 flex h-4 w-7 shrink-0 items-center justify-end rounded-full px-0.5">
                 <div className="bg-background size-3 rounded-full shadow-sm" />

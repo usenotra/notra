@@ -6,7 +6,7 @@ function createDatasetDrain(dataset: string | undefined) {
     return undefined;
   }
   return createAxiomPipeline({
-    token: process.env.AXIOM_TOKEN,
+    apiKey: process.env.AXIOM_TOKEN,
     dataset,
     orgId: process.env.AXIOM_ORG_ID,
   });

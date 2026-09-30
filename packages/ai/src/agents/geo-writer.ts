@@ -2,9 +2,9 @@ import {
   GEO_WRITER_HUMANIZER_MAX_TOKENS,
   GEO_WRITER_MAX_STEPS,
   GEO_WRITER_MODEL,
+  GEO_WRITER_PLANNER_MODEL,
   GEO_WRITER_PLANNER_MAX_TOKENS,
   GEO_WRITER_PLANNER_REPAIR_ATTEMPTS,
-  GEO_WRITER_PLANNER_TEMPERATURE,
 } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
@@ -35,6 +35,7 @@ import {
   createGetSitemapPagesTool,
 } from "@notra/ai/tools/sitemap";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
+import { registerWebSearchTools } from "@notra/ai/tools/web-search";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   GenerateGeoContentBriefOptions,
@@ -47,18 +48,21 @@ import type {
   PostToolsConfig,
   PostToolsResult,
 } from "@notra/ai/types/post-tools";
+import type { RouteUsageSummary } from "@notra/ai/types/router";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
   generateText,
   type FinishReason,
+  isStepCount,
   type LanguageModelUsage,
   NoObjectGeneratedError,
   Output,
-  stepCountIs,
+  type Tool,
   ToolLoopAgent,
 } from "ai";
 import { and, eq } from "drizzle-orm";
@@ -79,16 +83,15 @@ export class GeoWriterError extends Error {
 
 function toTokenUsage(
   usage: LanguageModelUsage | undefined,
-  route?: AgentTokenUsage["route"]
+  modelId = GEO_WRITER_MODEL,
+  routeUsage?: RouteUsageSummary
 ): AgentTokenUsage {
   return {
-    inputTokens: usage?.inputTokens ?? 0,
-    outputTokens: usage?.outputTokens ?? 0,
-    totalTokens: usage?.totalTokens ?? 0,
-    cacheReadTokens: usage?.inputTokenDetails?.cacheReadTokens ?? 0,
-    cacheWriteTokens: usage?.inputTokenDetails?.cacheWriteTokens ?? 0,
-    modelId: GEO_WRITER_MODEL,
-    route,
+    ...toAgentTokenUsage(usage),
+    modelId,
+    maxPromptTokens: routeUsage?.maxPromptTokens,
+    tokenCostUsd: routeUsage?.tokenCostUsd,
+    route: routeUsage?.route,
     raw: usage,
   };
 }
@@ -104,7 +107,15 @@ function mergeTokenUsage(
     cacheReadTokens: base.cacheReadTokens + extra.cacheReadTokens,
     cacheWriteTokens: base.cacheWriteTokens + extra.cacheWriteTokens,
     modelId: base.modelId ?? extra.modelId,
-    route: base.route ?? extra.route,
+    maxPromptTokens: Math.max(
+      base.maxPromptTokens ?? 0,
+      extra.maxPromptTokens ?? 0
+    ),
+    tokenCostUsd:
+      base.tokenCostUsd === undefined && extra.tokenCostUsd === undefined
+        ? undefined
+        : (base.tokenCostUsd ?? 0) + (extra.tokenCostUsd ?? 0),
+    route: extra.route ?? base.route,
     raw: { agent: base.raw, humanizer: extra.raw },
   };
 }
@@ -187,11 +198,14 @@ export async function generateGeoContentBrief(
 ): Promise<GenerateGeoContentBriefResult> {
   const { organizationId, input, log } = options;
 
-  await assertRouteHasCredits({ organizationId, modelId: GEO_WRITER_MODEL });
+  await assertRouteHasCredits({
+    organizationId,
+    modelId: GEO_WRITER_PLANNER_MODEL,
+  });
 
   const model = createModel(
     organizationId,
-    GEO_WRITER_MODEL,
+    GEO_WRITER_PLANNER_MODEL,
     { disableMemory: true },
     log
   );
@@ -199,7 +213,10 @@ export async function generateGeoContentBrief(
   const basePrompt = buildGeoPlannerPrompt(input);
 
   let prompt = basePrompt;
-  let usage: AgentTokenUsage = toTokenUsage(undefined);
+  let usage: AgentTokenUsage = toTokenUsage(
+    undefined,
+    GEO_WRITER_PLANNER_MODEL
+  );
   let lastError = "The planner produced no output";
 
   for (
@@ -211,15 +228,24 @@ export async function generateGeoContentBrief(
       const result = await generateText({
         model,
         output: Output.object({ schema: geoContentBriefSchema }),
-        system,
+        instructions: system,
         prompt,
-        temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
-        providerOptions: withRouterDefaults(undefined, {
-          modelId: GEO_WRITER_MODEL,
-        }),
+        providerOptions: withRouterDefaults(
+          { gateway: { tags: ["geo-writer"] } },
+          {
+            modelId: GEO_WRITER_PLANNER_MODEL,
+          }
+        ),
       });
-      usage = mergeTokenUsage(usage, toTokenUsage(result.usage));
+      const routeUsage = await summarizeRouteUsage(
+        result.steps,
+        GEO_WRITER_PLANNER_MODEL
+      );
+      usage = mergeTokenUsage(
+        usage,
+        toTokenUsage(result.usage, GEO_WRITER_PLANNER_MODEL, routeUsage)
+      );
       if (result.finishReason !== "stop") {
         const failure = describeUnfinishedPlan(
           result.finishReason,
@@ -359,26 +385,121 @@ async function humanizeMarkdown(
 
   const result = await generateText({
     model,
-    system: GEO_HUMANIZER_SYSTEM,
+    instructions: GEO_HUMANIZER_SYSTEM,
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
-    providerOptions: withRouterDefaults(undefined, {
-      modelId: GEO_WRITER_MODEL,
-    }),
-    experimental_telemetry: buildExperimentalTelemetry({
+    providerOptions: withRouterDefaults(
+      { gateway: { tags: ["geo-writer"] } },
+      {
+        modelId: GEO_WRITER_MODEL,
+      }
+    ),
+    ...buildTelemetryOptions({
       ...options.telemetryMetadata,
       stage: "geo_writer_humanize",
     }),
   });
 
   const humanized = stripDashesFromText(unwrapCodeFence(result.text));
-  const usage = toTokenUsage(result.usage);
+  const routeUsage = await summarizeRouteUsage(result.steps, GEO_WRITER_MODEL);
+  const usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage);
 
   if (!isHumanizedDraftAcceptable(markdown, humanized)) {
     return { markdown: null, usage };
   }
 
   return { markdown: humanized, usage };
+}
+
+function isSuccessfulWebSearch(result: unknown): boolean {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "success" in result &&
+    result.success === true
+  );
+}
+
+function headingLines(markdown: string): string[] {
+  return [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) =>
+    (match[1] ?? "").trim().toLowerCase()
+  );
+}
+
+function missingBriefSectionHeadings(
+  brief: GeoContentBrief,
+  markdown: string
+): string[] {
+  const headings = headingLines(markdown);
+  return brief.sections
+    .filter((section) => {
+      const target = section.heading.trim().toLowerCase();
+      return !headings.some(
+        (heading) => heading.includes(target) || target.includes(heading)
+      );
+    })
+    .map((section) => section.heading);
+}
+
+function getCreatePostMarkdown(input: unknown): string {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "markdown" in input &&
+    typeof input.markdown === "string"
+  ) {
+    return input.markdown;
+  }
+  return "";
+}
+
+function gateGeoWriterSave(
+  tools: Record<string, Tool>,
+  brief: GeoContentBrief
+): { didResearch: () => boolean } {
+  const state = { researched: false };
+  const webSearch = tools.webSearch;
+  const originalSearch = webSearch?.execute;
+  if (webSearch && originalSearch) {
+    tools.webSearch = {
+      ...webSearch,
+      execute: async (input, options) => {
+        const result = await originalSearch(input, options);
+        if (isSuccessfulWebSearch(result)) {
+          state.researched = true;
+        }
+        return result;
+      },
+    };
+  }
+
+  const createBlogPost = tools.createBlogPost;
+  const originalCreate = createBlogPost?.execute;
+  if (createBlogPost && originalCreate) {
+    tools.createBlogPost = {
+      ...createBlogPost,
+      execute: async (input, options) => {
+        if (!state.researched) {
+          return {
+            error:
+              "Call webSearch successfully before createBlogPost. Do not save an unresearched draft.",
+          };
+        }
+        const missing = missingBriefSectionHeadings(
+          brief,
+          getCreatePostMarkdown(input)
+        );
+        if (missing.length > 0) {
+          return {
+            error: `Every brief section needs an H2 with specific facts before saving. Missing: ${missing.join(", ")}`,
+          };
+        }
+        return originalCreate(input, options);
+      },
+    };
+  }
+
+  return { didResearch: () => state.researched };
 }
 
 function formatMonthYear(date: Date): string {
@@ -403,6 +524,8 @@ export async function runGeoWriter(
     brief,
     topic,
     brandName,
+    toneProfile,
+    customTone,
     sourceMetadata,
     log,
     telemetryMetadata,
@@ -425,6 +548,8 @@ export async function runGeoWriter(
   const instructions = buildGeoWriterInstructions({
     brief,
     brandName,
+    toneProfile,
+    customTone,
     topic,
     today: now.toISOString().slice(0, 10),
     monthYear: formatMonthYear(now),
@@ -442,96 +567,101 @@ export async function runGeoWriter(
     targetPostId: postId ?? undefined,
   };
 
+  const tools: Record<string, Tool> = {
+    getBrandReferences: createGetBrandReferencesTool({
+      organizationId,
+      voiceId: brandSettingsId,
+      agentType: "blog",
+    }),
+    searchBrandReferences: createSearchBrandReferencesTool({
+      organizationId,
+      voiceId: brandSettingsId,
+      agentType: "blog",
+    }),
+    getSitemapPages: createGetSitemapPagesTool({ brandSettingsId }),
+    fetchSitemapPage: createFetchSitemapPageTool({ brandSettingsId }),
+    getGeoContext: createGetGeoContextTool({ organizationId, projectId }),
+    listAvailableSkills: listAvailableSkills({ organizationId }),
+    getSkillByName: getSkillByName({ organizationId }),
+    createBlogPost: createCreatePostTool(postToolsConfig, postToolsResult),
+    viewPost: createViewPostTool(postToolsConfig),
+    fail: createFailTool(postToolsResult),
+  };
+  registerWebSearchTools(tools);
+  const { didResearch } = gateGeoWriterSave(tools, brief);
+
   const agent = new ToolLoopAgent({
     model,
     providerOptions: withRouterDefaults(
-      { anthropic: { thinking: { type: "adaptive" } } },
+      {
+        anthropic: { thinking: { type: "adaptive" } },
+        gateway: { tags: ["geo-writer"] },
+      },
       { modelId: GEO_WRITER_MODEL }
     ),
-    tools: {
-      getBrandReferences: createGetBrandReferencesTool({
-        organizationId,
-        voiceId: brandSettingsId,
-        agentType: "blog",
-      }),
-      searchBrandReferences: createSearchBrandReferencesTool({
-        organizationId,
-        voiceId: brandSettingsId,
-        agentType: "blog",
-      }),
-      getSitemapPages: createGetSitemapPagesTool({ brandSettingsId }),
-      fetchSitemapPage: createFetchSitemapPageTool({ brandSettingsId }),
-      getGeoContext: createGetGeoContextTool({ organizationId, projectId }),
-      listAvailableSkills: listAvailableSkills({ organizationId }),
-      getSkillByName: getSkillByName({ organizationId }),
-      createBlogPost: createCreatePostTool(postToolsConfig, postToolsResult),
-      viewPost: createViewPostTool(postToolsConfig),
-      fail: createFailTool(postToolsResult),
-    },
+    tools,
     instructions,
-    stopWhen: stepCountIs(GEO_WRITER_MAX_STEPS),
-    experimental_telemetry: buildExperimentalTelemetry({
+    stopWhen: isStepCount(GEO_WRITER_MAX_STEPS),
+    ...buildTelemetryOptions({
       ...telemetryMetadata,
       stage: "geo_writer_draft",
     }),
   });
 
   const result = await agent.generate({
-    prompt: `Write the article "${brief.workingTitle}" now. Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
+    prompt: `Research with webSearch first, then write the article "${brief.workingTitle}". Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
   });
-
-  if (postToolsResult.failReason) {
-    throw new GeoWriterError(postToolsResult.failReason);
-  }
-
-  const primaryPost = postToolsResult.posts?.at(0);
-  if (!primaryPost) {
-    throw new GeoWriterError(
-      "The writer finished without saving a post. No createBlogPost call was made."
-    );
-  }
-
   const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.totalUsage, routeUsage.route);
+  let usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage);
+  const primaryPost = postToolsResult.posts?.at(0);
 
-  const draft = await db.query.posts.findFirst({
-    columns: { markdown: true },
-    where: and(
-      eq(posts.id, primaryPost.postId),
-      eq(posts.organizationId, organizationId)
-    ),
-  });
+  if (!postToolsResult.failReason && primaryPost) {
+    const draft = await db.query.posts.findFirst({
+      columns: { markdown: true },
+      where: and(
+        eq(posts.id, primaryPost.postId),
+        eq(posts.organizationId, organizationId)
+      ),
+    });
 
-  let humanized = false;
-  if (draft?.markdown) {
-    try {
-      const pass = await humanizeMarkdown(options, draft.markdown);
-      usage = mergeTokenUsage(usage, pass.usage);
-      if (pass.markdown) {
-        const update = await updatePostRecord({
-          organizationId,
+    let humanized = false;
+    if (draft?.markdown) {
+      try {
+        const pass = await humanizeMarkdown(options, draft.markdown);
+        usage = mergeTokenUsage(usage, pass.usage);
+        if (pass.markdown) {
+          const update = await updatePostRecord({
+            organizationId,
+            postId: primaryPost.postId,
+            markdown: pass.markdown,
+          });
+          humanized = update.status === "updated";
+        } else {
+          console.warn(
+            "[GEO writer] humanizer output failed invariants, keeping raw draft",
+            { postId: primaryPost.postId }
+          );
+        }
+      } catch (error) {
+        console.warn("[GEO writer] humanizer pass failed, keeping raw draft", {
           postId: primaryPost.postId,
-          markdown: pass.markdown,
+          error: describeError(error),
         });
-        humanized = update.status === "updated";
-      } else {
-        console.warn(
-          "[GEO writer] humanizer output failed invariants, keeping raw draft",
-          { postId: primaryPost.postId }
-        );
       }
-    } catch (error) {
-      console.warn("[GEO writer] humanizer pass failed, keeping raw draft", {
-        postId: primaryPost.postId,
-        error: describeError(error),
-      });
     }
+
+    return {
+      postId: primaryPost.postId,
+      title: primaryPost.title,
+      humanized,
+      usage,
+    };
   }
 
-  return {
-    postId: primaryPost.postId,
-    title: primaryPost.title,
-    humanized,
-    usage,
-  };
+  throw new GeoWriterError(
+    postToolsResult.failReason ??
+      (didResearch()
+        ? "The writer finished without saving a post. No createBlogPost call was made."
+        : "The writer could not complete live research before saving. Check CONTEXT_DEV_API_KEY and try again.")
+  );
 }

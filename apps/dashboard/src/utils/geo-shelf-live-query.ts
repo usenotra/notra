@@ -1,8 +1,11 @@
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 
+import { GEO_SHELF_EMPTY_BOARD_COUNTS } from "@/constants/geo-shelf";
 import type {
+  GeoShelfBoardCounts,
   GeoShelfFilterState,
   GeoShelfMember,
+  GeoShelfSortState,
   GeoShelfSource,
 } from "@/types/geo-shelf";
 import { isOpenShelfStatus, resolveShelfPoc } from "@/utils/geo-shelf";
@@ -123,6 +126,50 @@ export function matchesSourceSearch(
     .toLowerCase();
 
   return haystack.includes(query);
+}
+
+function shelfSortValue(
+  source: GeoShelfSource,
+  key: GeoShelfSortState["key"]
+): string | number {
+  switch (key) {
+    case "title":
+      return (source.title ?? source.url).toLowerCase();
+    case "own":
+      return getOwnPlacement(source)?.status ?? "unknown";
+    case "ticket":
+      return source.opportunity?.status ?? "zz";
+    default:
+      return source.citations.windowCount;
+  }
+}
+
+/** JS twin of the page query's `order by`, ties broken by id. */
+export function compareGeoShelfSources(
+  left: GeoShelfSource,
+  right: GeoShelfSource,
+  sort: GeoShelfSortState
+): number {
+  const leftValue = shelfSortValue(left, sort.key);
+  const rightValue = shelfSortValue(right, sort.key);
+  const compared =
+    typeof leftValue === "number" && typeof rightValue === "number"
+      ? leftValue - rightValue
+      : String(leftValue).localeCompare(String(rightValue));
+  if (compared !== 0) {
+    return sort.direction === "asc" ? compared : -compared;
+  }
+  return left.id.localeCompare(right.id);
+}
+
+export function countGeoShelfBoardColumns(
+  sources: readonly GeoShelfSource[]
+): GeoShelfBoardCounts {
+  const counts: GeoShelfBoardCounts = { ...GEO_SHELF_EMPTY_BOARD_COUNTS };
+  for (const source of sources) {
+    counts[source.opportunity?.status ?? "untracked"] += 1;
+  }
+  return counts;
 }
 
 export function matchesGeoShelfSourceFilters(

@@ -1,164 +1,33 @@
 import {
-  GEO_SHELF_FETCH_STATUSES,
   GEO_SHELF_OPPORTUNITY_STATUSES,
-  GEO_SHELF_OWNERSHIPS,
-  GEO_SHELF_PLACEMENT_STATUSES,
-  GEO_SHELF_PRIORITIES,
   GEO_SHELF_SOURCE_KINDS,
-  GEO_SHELF_TITLE_MAX_LENGTH,
-  GEO_SHELF_URL_MAX_LENGTH,
+  GEO_SHELF_TICKET_FILTERS,
 } from "@notra/schemas/constants/dashboard/geo-shelf";
 
-export const GEO_SHELF_SHELF_FILTERS = [
-  "all",
-  "opportunities",
-  "on_shelf",
-  "unknown",
-] as const;
-
-export const GEO_SHELF_TICKET_FILTERS = [
-  "any",
-  "open",
-  "in_progress",
-  "mine",
-  "unassigned",
-  "closed",
-] as const;
+/** The table is virtualized, so a page only bounds the payload per request. */
+export const GEO_SHELF_PAGE_SIZE = 100;
+export const GEO_SHELF_SEARCH_DEBOUNCE_MS = 250;
+export const GEO_SHELF_DEFAULT_SORT = {
+  key: "citations",
+  direction: "desc",
+} as const;
+export const GEO_SHELF_EMPTY_BOARD_COUNTS = {
+  untracked: 0,
+  open: 0,
+  in_progress: 0,
+  won: 0,
+  lost: 0,
+  dismissed: 0,
+} as const;
 
 export const GEO_SHELF_VIEWS = ["table", "board"] as const;
-
-export const GEO_SHELF_VIEW_LABELS: Record<
-  (typeof GEO_SHELF_VIEWS)[number],
-  string
-> = {
-  table: "Table",
-  board: "Board",
-};
-
-export const GEO_SHELF_SOURCE_KIND_LABELS: Record<
-  (typeof GEO_SHELF_SOURCE_KINDS)[number],
-  string
-> = {
-  listicle: "Listicle",
-  review_site: "Review site",
-  community: "Community",
-  news: "News",
-  docs: "Docs",
-  video: "Video",
-  other: "Other",
-};
-
-export const GEO_SHELF_OWNERSHIP_LABELS: Record<
-  (typeof GEO_SHELF_OWNERSHIPS)[number],
-  string
-> = {
-  third_party: "Third party",
-  own: "Your site",
-  competitor: "Competitor site",
-};
-
-export const GEO_SHELF_PLACEMENT_LABELS: Record<
-  (typeof GEO_SHELF_PLACEMENT_STATUSES)[number],
-  string
-> = {
-  present: "On shelf",
-  absent: "Missing",
-  unknown: "Not checked",
-};
-
-export const GEO_SHELF_PLACEMENT_HINTS: Record<
-  (typeof GEO_SHELF_PLACEMENT_STATUSES)[number],
-  string
-> = {
-  present: "This brand is listed on the page",
-  absent: "This brand is not listed on the page",
-  unknown:
-    "We haven't checked if this brand is listed on the page. Open the row to mark it.",
-};
-
-export const GEO_SHELF_COMPETITORS_UNCHECKED_HINT =
-  "We haven't checked if competitors are listed on this page. Open the row to mark them.";
-export const GEO_SHELF_COMPETITORS_NONE_HINT =
-  "None of your tracked competitors are marked as listed on this page.";
-
-export const GEO_SHELF_OPPORTUNITY_STATUS_LABELS: Record<
-  (typeof GEO_SHELF_OPPORTUNITY_STATUSES)[number],
-  string
-> = {
-  open: "Open",
-  in_progress: "In progress",
-  won: "Won",
-  lost: "Lost",
-  dismissed: "Dismissed",
-};
-
-export const GEO_SHELF_PRIORITY_LABELS: Record<
-  (typeof GEO_SHELF_PRIORITIES)[number],
-  string
-> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
-
-export const GEO_SHELF_FETCH_STATUS_LABELS: Record<
-  (typeof GEO_SHELF_FETCH_STATUSES)[number],
-  string
-> = {
-  pending: "Not checked yet",
-  ok: "Verified",
-  blocked: "Page blocked our fetch",
-  failed: "Fetch failed",
-};
-
-export const GEO_SHELF_SHELF_FILTER_OPTIONS: {
-  value: (typeof GEO_SHELF_SHELF_FILTERS)[number];
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: "all",
-    label: "All shelves",
-    description: "Every page engines cite for your prompts",
-  },
-  {
-    value: "opportunities",
-    label: "Opportunities",
-    description: "Competitors are on the page and you are not",
-  },
-  {
-    value: "on_shelf",
-    label: "You're on it",
-    description: "Pages where your brand is already present",
-  },
-  {
-    value: "unknown",
-    label: "Not checked",
-    description: "We haven't checked yet if you're listed on the page",
-  },
-];
-
-export const GEO_SHELF_TICKET_FILTER_OPTIONS: {
-  value: (typeof GEO_SHELF_TICKET_FILTERS)[number];
-  label: string;
-}[] = [
-  { value: "any", label: "Any ticket state" },
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In progress" },
-  { value: "mine", label: "Assigned to me" },
-  { value: "unassigned", label: "Unassigned" },
-  { value: "closed", label: "Closed" },
-];
 
 export const GEO_SHELF_OPEN_STATUSES: readonly (typeof GEO_SHELF_OPPORTUNITY_STATUSES)[number][] =
   ["open", "in_progress"];
 
 export const GEO_SHELF_BOARD_COLUMNS = [
-  { id: "untracked", name: "No ticket" },
-  ...GEO_SHELF_OPPORTUNITY_STATUSES.map((status) => ({
-    id: status,
-    name: GEO_SHELF_OPPORTUNITY_STATUS_LABELS[status],
-  })),
+  { id: "untracked" },
+  ...GEO_SHELF_OPPORTUNITY_STATUSES.map((status) => ({ id: status })),
 ];
 
 export const GEO_SHELF_BOARD_COLUMN_IDS_BY_TICKET_FILTER = {
@@ -186,7 +55,7 @@ export const GEO_SHELF_TABLE_HEIGHT = 560;
 /** `title` flexes; other columns size to their header/content so the row fits. */
 export const GEO_SHELF_TABLE_COLUMN = {
   title: { width: "1fr", minWidth: "10rem" },
-  citations: { width: "8rem" },
+  citations: { width: "10rem" },
   own: { width: "9rem" },
   competitors: { width: "7.5rem" },
   ticket: { width: "7rem" },
@@ -286,24 +155,8 @@ export const GEO_SHELF_BLOCKED_IPV6_SUBNETS: readonly (readonly [
   ["ff00::", 8],
 ];
 
-export const GEO_SHELF_URL_TOO_LONG_MESSAGE = `Page URL must be ${GEO_SHELF_URL_MAX_LENGTH.toLocaleString()} characters or fewer`;
-export const GEO_SHELF_TITLE_TOO_LONG_MESSAGE = `Title must be ${GEO_SHELF_TITLE_MAX_LENGTH} characters or fewer`;
-export const GEO_SHELF_DUPLICATE_URL_MESSAGE =
-  "This page is already on your shelf";
-export const GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE =
-  "Too many page lookups. Please wait a minute.";
+export const GEO_SHELF_PREVIEW_RATE_LIMIT_CODE = "shelf_preview_rate_limited";
 export const GEO_SHELF_PREVIEW_RATE_LIMIT_SCOPE = "shelf-preview";
-export const GEO_SHELF_PREVIEW_UNAVAILABLE_MESSAGE =
-  "Couldn't read the page title, you can type it";
-
-export const GEO_SHELF_ADD_LABEL = "Add shelf";
-export const GEO_SHELF_NO_MATCHES_MESSAGE = "No shelves match these filters";
-export const GEO_SHELF_EMPTY_TITLE = "No shelf space tracked yet";
-export const GEO_SHELF_EMPTY_SCANNED_DESCRIPTION =
-  "No third-party page has been cited for your prompts yet. Add a page you want to be listed on, or wait for the next scan.";
-export const GEO_SHELF_EMPTY_UNSCANNED_DESCRIPTION =
-  "Shelves appear once a scan cites third-party pages for your prompts. You can also add a page you want to be listed on.";
-
 export const GEO_SHELF_PREVIEW_OUTCOMES = {
   RATE_LIMITED: "rate_limited",
   FETCHED: "fetched",

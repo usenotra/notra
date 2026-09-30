@@ -53,11 +53,13 @@ export const fakeModels: GeoModelServiceShape = {
     }),
   translate: () => Effect.die("Unexpected translation"),
   suggest: () =>
-    Effect.succeed([
-      {
-        prompt: "What are the best tools for sending email?",
-        title: "Email tools",
-        keywords: ["email tools"],
-      },
-    ]),
+    Effect.succeed({
+      prompts: [
+        {
+          prompt: "What are the best tools for sending email?",
+          title: "Email tools",
+          keywords: ["email tools"],
+        },
+      ],
+    }),
 };

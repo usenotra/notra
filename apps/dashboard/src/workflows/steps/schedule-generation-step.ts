@@ -91,6 +91,8 @@ export async function runScheduledGeneration(
     audience: brand?.audience ?? undefined,
     customInstructions: customInstructions || null,
     language: brand?.language ?? undefined,
+    toneProfile: getValidToneProfile(brand?.toneProfile, "Conversational"),
+    customTone: brand?.customTone ?? null,
   };
 
   const repositoryParams = repositories.map((repository) => ({

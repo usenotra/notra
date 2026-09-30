@@ -1,9 +1,11 @@
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 export function TriggerStatusBadge({ enabled }: { enabled: boolean }) {
+  const tCommon = useTranslations("common");
   return (
     <Badge variant={enabled ? "default" : "secondary"}>
-      {enabled ? "Active" : "Paused"}
+      {enabled ? tCommon("states.active") : tCommon("labels.paused")}
     </Badge>
   );
 }

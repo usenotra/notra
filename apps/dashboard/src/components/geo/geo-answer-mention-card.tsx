@@ -2,24 +2,14 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { BrandTrackingBadge } from "@/components/geo/share-of-voice-brand-tag";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
-import {
-  GEO_ANSWER_MENTION_ALSO_KNOWN_AS,
-  GEO_ANSWER_MENTION_BEST_POSITION_LABEL,
-  GEO_ANSWER_MENTION_DOMAIN_LABEL,
-  GEO_ANSWER_MENTION_KIND_LABEL,
-  GEO_ANSWER_MENTION_MENTIONS_LABEL,
-  GEO_ANSWER_MENTION_VIEW_COMPETITOR,
-} from "@/constants/geo-answer-mentions";
-import { useGeoCompetitorDetail } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorPromptSummary } from "@/lib/hooks/use-geo";
 import type { GeoAnswerMentionCompetitorCardProps } from "@/types/geo-answer-mentions";
-import {
-  competitorPromptSummary,
-  formatCompetitorKind,
-} from "@/utils/geo-competitors";
 
 function MentionStatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -41,11 +31,14 @@ export function GeoAnswerMentionCompetitorCard({
   showView,
   onView,
 }: GeoAnswerMentionCompetitorCardProps) {
-  const { data } = useGeoCompetitorDetail(organizationId, open ? brand : null);
-  const summary =
-    data?.prompts && data.prompts.length > 0
-      ? competitorPromptSummary(data.prompts)
-      : null;
+  const t = useTranslations("geo.geoAnswerMentionCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const { data, isLoading } = useGeoCompetitorPromptSummary(
+    organizationId,
+    open ? brand : null
+  );
+  const summary = data?.summary ?? null;
 
   return (
     <TrafficBreakdownCard
@@ -62,35 +55,51 @@ export function GeoAnswerMentionCompetitorCard({
     >
       <dl className="text-xs">
         {domain ? (
-          <MentionStatRow
-            label={GEO_ANSWER_MENTION_DOMAIN_LABEL}
-            value={domain}
-          />
+          <MentionStatRow label={tGeoShared("domain")} value={domain} />
         ) : null}
         {kind ? (
           <MentionStatRow
-            label={GEO_ANSWER_MENTION_KIND_LABEL}
-            value={formatCompetitorKind(kind)}
+            label={tCommon("labels.type")}
+            value={
+              kind === "direct" ? tGeoShared("direct") : tGeoShared("indirect")
+            }
           />
         ) : null}
         {synonyms.length > 0 ? (
           <MentionStatRow
-            label={GEO_ANSWER_MENTION_ALSO_KNOWN_AS}
+            label={t("alsoKnownAs")}
             value={synonyms.join(", ")}
+          />
+        ) : null}
+        {isLoading ? (
+          <div
+            aria-label={t("loadingMentions")}
+            className="flex items-center justify-between gap-3 px-3 py-1.5"
+            role="status"
+          >
+            <span className="text-muted-foreground shrink-0">
+              {tGeoShared("mentionsLabel")}
+            </span>
+            <Skeleton className="h-3 w-20" />
+          </div>
+        ) : null}
+        {!isLoading && summary ? (
+          <MentionStatRow
+            label={tGeoShared("mentionsLabel")}
+            value={tGeoShared("countPluralOneAnswerOther", {
+              count: summary.answers,
+            })}
           />
         ) : null}
         {summary ? (
           <MentionStatRow
-            label={GEO_ANSWER_MENTION_MENTIONS_LABEL}
-            value={`${summary.mentioned.toLocaleString()} of ${summary.total.toLocaleString()}`}
+            label={tGeoShared("withYourBrand")}
+            value={t("withYouValue", {
+              own: summary.ownMentioned,
+              total: summary.answers,
+            })}
           />
         ) : null}
-        {summary?.bestPosition === null || summary === null ? null : (
-          <MentionStatRow
-            label={GEO_ANSWER_MENTION_BEST_POSITION_LABEL}
-            value={`#${summary.bestPosition.toLocaleString()}`}
-          />
-        )}
       </dl>
       {showView ? (
         <div className="border-border mt-1 border-t px-1 py-1">
@@ -99,7 +108,7 @@ export function GeoAnswerMentionCompetitorCard({
             onClick={onView}
             type="button"
           >
-            {GEO_ANSWER_MENTION_VIEW_COMPETITOR}
+            {t("viewCompetitor")}
             <HugeiconsIcon
               aria-hidden="true"
               className="text-muted-foreground size-3.5"

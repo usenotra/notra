@@ -1,6 +1,7 @@
 /**
  * Cache policy for the GEO mention-check aggregates (overview, timeseries,
- * prompt summaries, language and competitor breakdowns).
+ * sentiment, prompt summaries, language and competitor breakdowns, persona
+ * activity).
  *
  * These queries scan a project's whole window on every dashboard render and
  * only change when a scan inserts new checks. Drizzle's auto-invalidation drops

@@ -1,3 +1,6 @@
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+
 import { ONBOARDING_STEP_COUNT } from "@/constants/onboarding";
 import { cn } from "@/lib/utils";
 import type { OnboardingProgressProps } from "@/types/onboarding";
@@ -17,23 +20,50 @@ function getStepClasses(step: number, current: number) {
   return "w-1.5 bg-muted-foreground/30";
 }
 
-export function OnboardingProgress({ current }: OnboardingProgressProps) {
+export function OnboardingProgress({
+  current,
+  hrefs,
+}: OnboardingProgressProps) {
+  const t = useTranslations("onboarding.progress");
   return (
-    <div
-      aria-label={`Step ${current} of ${STEPS.length}`}
+    <nav
+      aria-label={t("label", { current, total: STEPS.length })}
       className="flex items-center gap-1.5"
-      role="progressbar"
     >
-      {STEPS.map((step) => (
-        <span
-          aria-current={step === current ? "step" : undefined}
-          className={cn(
-            "h-1.5 rounded-full transition-all",
-            getStepClasses(step, current)
-          )}
-          key={step}
-        />
-      ))}
-    </div>
+      {STEPS.map((step) => {
+        const href = hrefs?.[step - 1];
+        const pill = (
+          <span
+            aria-current={step === current ? "step" : undefined}
+            className={cn(
+              "block h-1.5 rounded-full transition-all",
+              getStepClasses(step, current)
+            )}
+          />
+        );
+
+        if (!href) {
+          return (
+            <span
+              className="flex size-6 items-center justify-center"
+              key={step}
+            >
+              {pill}
+            </span>
+          );
+        }
+
+        return (
+          <Link
+            aria-label={t("goTo", { step: String(step) })}
+            className="focus-visible:ring-ring flex size-6 items-center justify-center rounded-full hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+            href={href}
+            key={step}
+          >
+            {pill}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

@@ -7,12 +7,6 @@ import {
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AGENT_READINESS_MUST_DO_HINT,
-  AGENT_READINESS_MUST_DO_LABEL,
-  AGENT_READINESS_SHOULD_DO_HINT,
-  AGENT_READINESS_SHOULD_DO_LABEL,
-} from "@notra/geo-core/constants/agent-readiness";
 import type { AgentReadinessIssueGroups } from "@notra/geo-core/types/agent-readiness";
 import {
   buildAgentReadinessAllFixesPrompt,
@@ -21,6 +15,7 @@ import {
 } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { useCopyCode } from "@/components/geo/code-snippet";
@@ -44,6 +39,7 @@ function CopyPromptButton({
   variant = "outline",
   size = "sm",
 }: AgentReadinessCopyPromptButtonProps) {
+  const tCommon = useTranslations("common");
   const { copied, copy } = useCopyCode(prompt);
 
   return (
@@ -61,17 +57,20 @@ function CopyPromptButton({
       variant={variant}
     >
       <HugeiconsIcon icon={copied ? Tick01Icon : Copy01Icon} size={14} />
-      {copied ? "Copied" : label}
+      {copied ? tCommon("actions.copied") : label}
     </Button>
   );
 }
 
 function ResultBadge({ result }: AgentReadinessResultBadgeProps) {
+  const t = useTranslations("geo.agentReadiness.checklist");
+  const tCommon = useTranslations("common");
+
   if (result === "failed") {
-    return <Badge variant="destructive">Failed</Badge>;
+    return <Badge variant="destructive">{tCommon("labels.failed")}</Badge>;
   }
 
-  return <Badge variant="warning">Partial</Badge>;
+  return <Badge variant="warning">{t("partial")}</Badge>;
 }
 
 function formatIssueIndex(index: number): string {
@@ -92,6 +91,7 @@ function ChecklistPromptActions({
   targetUrl,
   groups,
 }: AgentReadinessChecklistPromptActionsProps) {
+  const t = useTranslations("geo.agentReadiness.checklist");
   const hasMustDo = groups.mustDo.length > 0;
   const hasShouldDo = groups.shouldDo.length > 0;
   const masterPrompt = buildAgentReadinessAllFixesPrompt(
@@ -103,14 +103,14 @@ function ChecklistPromptActions({
     <>
       <CopyPromptButton
         copyKind={AGENT_READINESS_FIX_COPY_KINDS.MASTER}
-        label="Copy master prompt"
+        label={t("copyMasterPrompt")}
         prompt={masterPrompt}
         variant="default"
       />
       {hasMustDo && hasShouldDo ? (
         <CopyPromptButton
           copyKind={AGENT_READINESS_FIX_COPY_KINDS.BACKLOG}
-          label="Copy full backlog"
+          label={t("copyFullBacklog")}
           prompt={buildFullBacklogPrompt(targetUrl, groups)}
         />
       ) : null}
@@ -123,6 +123,7 @@ function IssueEntry({
   index,
   targetUrl,
 }: AgentReadinessIssueEntryProps) {
+  const t = useTranslations("geo.agentReadiness.checklist");
   const fixPrompt = buildAgentReadinessFixPrompt(targetUrl, issue);
 
   return (
@@ -144,12 +145,12 @@ function IssueEntry({
           <div className="mt-3 overflow-hidden rounded-lg border">
             <div className="bg-muted/40 flex items-center justify-between gap-2 border-b py-1 pr-1 pl-3">
               <span className="text-muted-foreground text-xs font-medium">
-                Suggested fix
+                {t("suggestedFix")}
               </span>
               <CopyPromptButton
                 checkId={issue.id}
                 copyKind={AGENT_READINESS_FIX_COPY_KINDS.FIX}
-                label="Copy fix"
+                label={t("copyFix")}
                 prompt={fixPrompt}
                 size="xs"
                 variant="ghost"
@@ -164,7 +165,7 @@ function IssueEntry({
             <CopyPromptButton
               checkId={issue.id}
               copyKind={AGENT_READINESS_FIX_COPY_KINDS.FIX}
-              label="Copy fix"
+              label={t("copyFix")}
               prompt={fixPrompt}
             />
           </div>
@@ -204,6 +205,7 @@ export function AgentReadinessChecklist({
   targetUrl,
   issues,
 }: AgentReadinessChecklistProps) {
+  const t = useTranslations("geo.agentReadiness");
   const groups = groupAgentReadinessIssues(issues);
   const hasFixableIssues =
     groups.mustDo.length > 0 || groups.shouldDo.length > 0;
@@ -216,17 +218,17 @@ export function AgentReadinessChecklist({
         ) : undefined
       }
       bodyClassName="gap-0 px-5 pb-2"
-      eyebrow="Checklist"
+      eyebrow={t("checklist.eyebrow")}
       variant="table"
     >
       {groups.mustDo.length > 0 ? (
         <section className="pt-6 first:pt-1">
           <SectionHeader
             count={groups.mustDo.length}
-            hint={AGENT_READINESS_MUST_DO_HINT}
+            hint={t("groups.mustDoHint")}
             icon={AlertCircleIcon}
             iconClassName="text-destructive"
-            label={AGENT_READINESS_MUST_DO_LABEL}
+            label={t("groups.mustDoLabel")}
           />
           <div>
             {groups.mustDo.map((issue, index) => (
@@ -244,10 +246,10 @@ export function AgentReadinessChecklist({
         <section className="pt-6 first:pt-1">
           <SectionHeader
             count={groups.shouldDo.length}
-            hint={AGENT_READINESS_SHOULD_DO_HINT}
+            hint={t("groups.shouldDoHint")}
             icon={Alert02Icon}
             iconClassName="text-warning"
-            label={AGENT_READINESS_SHOULD_DO_LABEL}
+            label={t("groups.shouldDoLabel")}
           />
           <div>
             {groups.shouldDo.map((issue, index) => (
@@ -263,7 +265,7 @@ export function AgentReadinessChecklist({
       ) : null}
       {hasFixableIssues ? null : (
         <p className="text-muted-foreground py-8 text-sm">
-          All eligible checks passed
+          {t("checklist.allPassed")}
         </p>
       )}
     </InstrumentModule>

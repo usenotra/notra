@@ -3,6 +3,7 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
@@ -17,10 +18,7 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
-import {
-  GEO_SHELF_ADD_HOTKEY,
-  GEO_SHELF_ADD_LABEL,
-} from "@/constants/geo-shelf";
+import { GEO_SHELF_ADD_HOTKEY } from "@/constants/geo-shelf";
 import { useGeoShelfPage } from "@/lib/hooks/use-geo-shelf-page";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
@@ -31,10 +29,6 @@ import { withGeoProject } from "@/utils/geo-paths";
 import { buildOptimisticShelfSource } from "@/utils/geo-shelf";
 
 import { GeoShelfSkeleton } from "./skeleton";
-
-const PAGE_TITLE = "Shelf Space";
-const PAGE_DESCRIPTION =
-  "Third-party pages AI engines cite for your prompts, and whether you're on them";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   return <GeoShelfPageContent organizationSlug={organizationSlug} />;
@@ -63,12 +57,18 @@ function GeoShelfNotSetup({
   organizationSlug,
   projectId,
 }: GeoShelfNotSetupProps) {
+  const t = useTranslations("geo.pages.shelfSpace");
+  const tCommon = useTranslations("common");
+  const tShared = useTranslations("geo.pages.shared");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{PAGE_TITLE}</h1>
-          <p className="text-muted-foreground">{PAGE_DESCRIPTION}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {tCommon("labels.shelfSpace")}
+          </h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </header>
         <EmptyState
           action={
@@ -80,17 +80,17 @@ function GeoShelfNotSetup({
                 />
               }
             >
-              Set up GEO tracking
+              {tGeoShared("setUpGeoTracking")}
             </Button>
           }
-          description="Set up GEO tracking first, then see which pages engines cite and who is listed on them."
+          description={t("setupDescription")}
           preview={
             <EmptyStateTablePreview
               columns={EMPTY_STATE_TABLE_COLUMNS.shelf}
               rows={EMPTY_STATE_TABLE_ROWS}
             />
           }
-          title="Not set up yet"
+          title={tShared("notSetUpTitle")}
         />
       </div>
     </PageContainer>
@@ -98,20 +98,25 @@ function GeoShelfNotSetup({
 }
 
 function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
+  const t = useTranslations("geo.pages.shelfSpace");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">{PAGE_TITLE}</h1>
-            <p className="text-muted-foreground">{PAGE_DESCRIPTION}</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {tCommon("labels.shelfSpace")}
+            </h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </div>
           <Button
             className="gap-1.5"
             onClick={() => page.onAddOpenChange(true)}
           >
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            {GEO_SHELF_ADD_LABEL}
+            {tGeoShared("addShelf")}
             <Kbd className="ml-1 hidden sm:inline-flex">
               {GEO_SHELF_ADD_HOTKEY}
             </Kbd>
@@ -119,7 +124,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
         </header>
 
         <div className="space-y-3">
-          {page.rows.length > 0 ? (
+          {page.totalCount > 0 ? (
             <ShelfPageControls
               filters={page.filters}
               hasRows
@@ -131,22 +136,31 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
             />
           ) : null}
           <ShelfView
+            boardCounts={page.boardCounts}
             currentMemberId={page.currentMemberId}
+            filteredCount={page.filteredCount}
+            hasNextPage={page.hasNextPage}
             hasScanData={page.hasScanData}
+            isFetching={page.isFetching}
+            isFetchingNextPage={page.isFetchingNextPage}
             onAddShelf={() => page.onAddOpenChange(true)}
+            onLoadMore={page.onLoadMore}
             onRowClick={page.onRowClick}
             onSetPlacementStatus={page.setPlacementStatus}
+            onSortChange={page.onSortChange}
             onUpdateOpportunity={page.updateOpportunity}
             pendingSourceIds={page.pendingSourceIds}
-            rows={page.filteredRows}
+            rows={page.rows}
+            sort={page.sort}
             ticketFilter={page.filters.ticket}
-            totalCount={page.rows.length}
+            totalCount={page.totalCount}
             view={page.view}
           />
         </div>
       </div>
 
       <ShelfDetailDialog
+        organizationId={page.organizationId}
         currentMemberId={page.currentMemberId}
         isPending={
           page.selectedRow

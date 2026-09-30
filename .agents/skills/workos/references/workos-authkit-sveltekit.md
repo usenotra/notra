@@ -33,7 +33,7 @@ Before installing the SDK, check if a previous AuthKit attempt already exists:
 
 1. Check if `@workos/authkit-sveltekit` is already in `package.json`
 2. Check for incomplete setup signals:
-   - `src/hooks.server.ts` has commented-out `authkitHandle` import or exports a passthrough handle
+   - `src/hooks.server.ts` has commented-out `authKitHandle` import or exports a passthrough handle
    - `src/routes/+layout.server.ts` has TODO comments about loading the session
    - No callback `+server.ts` route exists in `src/routes/`
    - No `WORKOS_COOKIE_PASSWORD` in `.env`
@@ -42,7 +42,7 @@ Before installing the SDK, check if a previous AuthKit attempt already exists:
    - Read existing files to understand what's done vs missing
    - Complete the integration by filling gaps rather than starting fresh
    - The most common gap is the missing callback route — create it
-   - Wire up `authkitHandle` in hooks.server.ts properly (use `sequence()` if other hooks exist)
+   - Wire up `authKitHandle` in hooks.server.ts properly (use `sequence()` if other hooks exist)
    - Complete the layout load function
    - Ensure `WORKOS_COOKIE_PASSWORD` is set in `.env`
 
@@ -64,10 +64,10 @@ If existing auth detected (Lucia is most common in SvelteKit):
 
   ```typescript
   import { sequence } from '@sveltejs/kit/hooks';
-  import { authkitHandle } from '@workos/authkit-sveltekit';
+  import { authKitHandle } from '@workos/authkit-sveltekit';
 
   // Keep existing handle, compose with AuthKit
-  export const handle = sequence(authkitHandle, existingHandle);
+  export const handle = sequence(authKitHandle(), existingHandle);
   ```
 
 - AuthKit handle should come FIRST in `sequence()` so it runs before other middleware
@@ -92,7 +92,7 @@ else → npm install @workos/authkit-sveltekit
 
 SvelteKit uses `src/hooks.server.ts` for server-side middleware. This is where the AuthKit handler is registered.
 
-Create or update `src/hooks.server.ts` with the authkit handle function from the README.
+Create or update `src/hooks.server.ts` with the AuthKit handle function from the README. When using SvelteKit's `$env` modules, call `configureAuthKit` as shown in the README before creating the hook.
 
 ### Existing Hooks (IMPORTANT)
 
@@ -100,9 +100,9 @@ If `src/hooks.server.ts` already exists with custom logic, use SvelteKit's `sequ
 
 ```typescript
 import { sequence } from '@sveltejs/kit/hooks';
-import { authkitHandle } from '@workos/authkit-sveltekit'; // Check README for exact export
+import { authKitHandle } from '@workos/authkit-sveltekit';
 
-export const handle = sequence(authkitHandle, yourExistingHandle);
+export const handle = sequence(authKitHandle(), yourExistingHandle);
 ```
 
 Check README for the exact export name and usage pattern.
@@ -132,9 +132,8 @@ Check README for the exact pattern — typically a `load` function that returns 
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async (event) => {
-  // Check README for exact API — session is typically on event.locals
   return {
-    user: event.locals.user, // or similar from README
+    user: event.locals.auth.user,
   };
 };
 ```

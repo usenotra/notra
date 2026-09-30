@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { IrisArtifactCard } from "@/components/iris/iris-artifact-card";
@@ -56,21 +57,26 @@ function noticeClass(tone: "info" | "warning" | "danger") {
 }
 
 export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
-  const decision = describeIrisDecision(run);
-  const outboxNotice = describeIrisOutbox(run.outbox);
+  const t = useTranslations("iris");
+  const tLabels = useTranslations("common.labels");
+  const tCommon = useTranslations("common");
+  const decision = describeIrisDecision(t, run);
+  const outboxNotice = describeIrisOutbox(t, run.outbox);
   const showTasks = run.decision === "plan" && run.tasks.length > 0;
 
   return (
     <article className="border-border space-y-4 rounded-xl border p-4">
       <div className="flex flex-wrap items-center gap-2">
         <IrisRunStatusBadge status={run.status} />
-        <Badge variant="outline">{humanizeIrisTrigger(run.trigger)}</Badge>
+        <Badge variant="outline">
+          {humanizeIrisTrigger(t, tLabels, run.trigger)}
+        </Badge>
         <span className="text-muted-foreground ml-auto text-xs">
-          {formatIrisRelativeTime(run.startedAt)}
+          {formatIrisRelativeTime(t, tCommon, run.startedAt)}
         </span>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1 wrap-anywhere">
         <p className="text-sm font-medium">{decision.headline}</p>
         {decision.detail ? (
           <p className="text-muted-foreground text-xs leading-relaxed">
@@ -91,13 +97,16 @@ export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
                 icon={taskIcon(task.status)}
               />
               <span className="font-medium">
-                {humanizeIrisCapability(task.capabilityName)}
+                {humanizeIrisCapability(t, tLabels, task.capabilityName)}
               </span>
               <span className="text-muted-foreground">
-                {humanizeIrisTaskStatus(task.status)}
+                {humanizeIrisTaskStatus(t, tLabels, task.status)}
               </span>
               {task.errorMessage ? (
-                <span className="text-destructive min-w-0 flex-1 truncate">
+                <span
+                  className="text-destructive min-w-0 flex-1 truncate"
+                  title={task.errorMessage}
+                >
                   {task.errorMessage}
                 </span>
               ) : null}
@@ -125,13 +134,15 @@ export function IrisRunCard({ run, organizationSlug }: IrisRunCardProps) {
             noticeClass(outboxNotice.tone)
           )}
         >
-          <span className="flex-1">{outboxNotice.message}</span>
+          <span className="min-w-0 flex-1 wrap-anywhere">
+            {outboxNotice.message}
+          </span>
           {outboxNotice.needsSlackFix ? (
             <Link
               className="text-foreground inline-flex shrink-0 items-center gap-1 font-medium hover:underline"
               href={`/${organizationSlug}/integrations/slack`}
             >
-              Fix Slack
+              {t("runCard.fixSlack")}
               <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
             </Link>
           ) : null}

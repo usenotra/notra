@@ -1,4 +1,5 @@
 import { runGeoWriter } from "@notra/ai/agents/geo-writer";
+import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterResult } from "@notra/ai/types/geo-writer";
 import { db } from "@notra/db/drizzle";
 import {
@@ -60,7 +61,12 @@ export async function loadGeoWriterContext(input: {
 
   const [brand, settings] = await Promise.all([
     db.query.brandSettings.findFirst({
-      columns: { companyName: true, language: true },
+      columns: {
+        companyName: true,
+        language: true,
+        toneProfile: true,
+        customTone: true,
+      },
       where: and(
         eq(brandSettings.id, brief.brandSettingsId),
         eq(brandSettings.organizationId, input.organizationId)
@@ -87,6 +93,8 @@ export async function loadGeoWriterContext(input: {
       brand?.companyName?.trim() ||
       "the brand",
     language: brand?.language ?? null,
+    toneProfile: getValidToneProfile(brand?.toneProfile, "Conversational"),
+    customTone: brand?.customTone ?? null,
     topic: brief.topic,
     brief: brief.brief,
     sourceKind: brief.sourceKind,
@@ -108,6 +116,8 @@ export async function runGeoWriterStep(
     brief: context.brief,
     topic: context.topic,
     brandName: context.brandName,
+    toneProfile: context.toneProfile,
+    customTone: context.customTone,
     language: context.language,
     sourceMetadata: {
       triggerId: GEO_WRITER_TRIGGER_ID,

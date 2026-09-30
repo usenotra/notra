@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
-import { geoScans } from "@notra/db/schema";
+import { geoMentionChecks, geoScans } from "@notra/db/schema";
+import type { GeoScanPlanSummary } from "@notra/db/types/geo-scan";
 import {
   loadAgentReadiness,
   startAgentReadinessScan,
@@ -13,10 +14,11 @@ import {
   isSupportedGeoLanguage,
   SUPPORTED_GEO_LANGUAGES,
 } from "@notra/geo-core/utils/geo-language-rows";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { GeoScanNotFoundError, GeoSelectionInvalidError } from "../errors/geo";
+import { geoScanPlanSummarySelection } from "../utils/geo-scan-plan-summary";
 
 export interface ValidateGeoSelectionInput {
   readonly organizationId: string;
@@ -125,12 +127,90 @@ interface GeoScanRecord {
   readonly id: string;
   readonly projectId: string;
   readonly status: "running" | "completed" | "failed";
+  readonly planSummary: GeoScanPlanSummary | null;
+  readonly errorCode: string | null;
+  readonly errorMessage: string | null;
+  readonly failedStage: "handoff" | "execution" | "stale" | null;
+  readonly retryable: boolean | null;
   readonly startedAt: Date;
   readonly finishedAt: Date | null;
   readonly createdAt: Date;
 }
 
-function serializeGeoScan(row: GeoScanRecord) {
+function geoScanReadColumns() {
+  return {
+    id: true,
+    projectId: true,
+    status: true,
+    errorCode: true,
+    errorMessage: true,
+    failedStage: true,
+    retryable: true,
+    startedAt: true,
+    finishedAt: true,
+    createdAt: true,
+  } as const;
+}
+
+interface GeoScanEngineCounts {
+  readonly scanId: string;
+  readonly engine: string;
+  readonly completedChecks: number;
+  readonly mentionCount: number;
+}
+
+function scanSummary(
+  row: GeoScanRecord,
+  storedCounts: readonly GeoScanEngineCounts[]
+) {
+  const engines = new Set(row.planSummary?.engines ?? []);
+  const taskCountsByEngine = new Map(
+    row.planSummary?.taskCounts.map((counts) => [counts.engine, counts]) ?? []
+  );
+  const failedChecks =
+    row.planSummary?.taskCounts.reduce(
+      (total, counts) => total + counts.failedChecks,
+      0
+    ) ?? 0;
+
+  const storedCountsByEngine = new Map<string, GeoScanEngineCounts>();
+  let completedChecks = 0;
+  let mentionCount = 0;
+  for (const countRow of storedCounts) {
+    engines.add(countRow.engine);
+    storedCountsByEngine.set(countRow.engine, countRow);
+    completedChecks += countRow.completedChecks;
+    mentionCount += countRow.mentionCount;
+  }
+
+  const engineSummaries = [...engines].sort().map((engine) => {
+    const taskCounts = taskCountsByEngine.get(engine);
+    const counts = storedCountsByEngine.get(engine);
+    return {
+      engine,
+      plannedChecks: row.planSummary?.hasTasks
+        ? (taskCounts?.plannedChecks ?? 0)
+        : null,
+      completedChecks: counts?.completedChecks ?? 0,
+      mentionCount: counts?.mentionCount ?? 0,
+      failedChecks: taskCounts?.failedChecks ?? 0,
+    };
+  });
+
+  return {
+    plannedChecks: row.planSummary?.plannedChecks ?? null,
+    completedChecks,
+    mentionCount,
+    failedChecks,
+    engines: engineSummaries,
+  };
+}
+
+function serializeGeoScan(
+  row: GeoScanRecord,
+  storedCounts: readonly GeoScanEngineCounts[]
+) {
+  const failed = row.status === "failed";
   return {
     id: row.id,
     projectId: row.projectId,
@@ -138,8 +218,43 @@ function serializeGeoScan(row: GeoScanRecord) {
     startedAt: row.startedAt.toISOString(),
     finishedAt: row.finishedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
+    summary: scanSummary(row, storedCounts),
+    errorCode: failed ? row.errorCode : null,
+    errorMessage: failed ? row.errorMessage : null,
+    failedStage: failed ? row.failedStage : null,
+    retryable: failed ? row.retryable : null,
   };
 }
+
+const loadGeoScanCounts = Effect.fn("geo.scans.counts")(function* (
+  input: GeoProjectScopeInput,
+  scanIds: readonly string[]
+) {
+  if (scanIds.length === 0) {
+    return [];
+  }
+  return yield* geoDb("get geo scan counts", () =>
+    db
+      .select({
+        scanId: geoMentionChecks.scanId,
+        engine: geoMentionChecks.engine,
+        completedChecks: count(),
+        mentionCount:
+          sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
+            Number
+          ),
+      })
+      .from(geoMentionChecks)
+      .where(
+        and(
+          eq(geoMentionChecks.organizationId, input.organizationId),
+          eq(geoMentionChecks.projectId, input.projectId),
+          inArray(geoMentionChecks.scanId, [...scanIds])
+        )
+      )
+      .groupBy(geoMentionChecks.scanId, geoMentionChecks.engine)
+  );
+});
 
 export const listGeoScansForProject = Effect.fn("geo.scans.list")(function* (
   input: ListGeoScansInput
@@ -156,6 +271,8 @@ export const listGeoScansForProject = Effect.fn("geo.scans.list")(function* (
     geoDb("list geo scans", () =>
       db.query.geoScans.findMany({
         where: scope,
+        columns: geoScanReadColumns(),
+        extras: { planSummary: geoScanPlanSummarySelection() },
         orderBy: [desc(geoScans.startedAt)],
         limit: input.limit,
         offset: (input.page - 1) * input.limit,
@@ -165,9 +282,18 @@ export const listGeoScansForProject = Effect.fn("geo.scans.list")(function* (
 
   const totalItems = totals.at(0)?.value ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / input.limit));
+  const counts = yield* loadGeoScanCounts(
+    input,
+    rows.map((row) => row.id)
+  );
 
   return {
-    scans: rows.map(serializeGeoScan),
+    scans: rows.map((row) =>
+      serializeGeoScan(
+        row,
+        counts.filter((countRow) => countRow.scanId === row.id)
+      )
+    ),
     pagination: {
       limit: input.limit,
       currentPage: input.page,
@@ -193,6 +319,8 @@ export const getGeoScanForProject = Effect.fn("geo.scans.get")(function* (
         eq(geoScans.projectId, input.projectId),
         eq(geoScans.organizationId, input.organizationId)
       ),
+      columns: geoScanReadColumns(),
+      extras: { planSummary: geoScanPlanSummarySelection() },
     })
   );
 
@@ -202,5 +330,6 @@ export const getGeoScanForProject = Effect.fn("geo.scans.get")(function* (
     );
   }
 
-  return { scan: serializeGeoScan(row) };
+  const counts = yield* loadGeoScanCounts(input, [row.id]);
+  return { scan: serializeGeoScan(row, counts) };
 });

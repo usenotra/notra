@@ -1,3 +1,11 @@
+import type {
+  ConversationRowLabels,
+  GeoAnswerThreadLabels,
+  GeoPresenceBadgeLabels,
+  LogoStackLabels,
+  PromptEngineSwitcherLabels,
+} from "@notra/ui/types/geo";
+
 export const GEO_SEARCH_LABEL = "Search";
 
 export const GEO_PRESENCE_LABELS: Record<string, string> = {
@@ -22,6 +30,43 @@ export const AI_TRAFFIC_PURPOSE_DESCRIPTIONS: Record<string, string> = {
 };
 
 export const GEO_GAPS_LOGO_STACK_LIMIT = 4;
+
+export const DEFAULT_GEO_PRESENCE_BADGE_LABELS: GeoPresenceBadgeLabels = {
+  retrievalOnly: `${GEO_SEARCH_LABEL} only`,
+  retrievalOnlyTitle: "Mentioned in Search only: found live, not in the model",
+  invisible: "Not mentioned",
+  invisibleTitle: "No engine mentions you on this prompt yet",
+};
+
+export const DEFAULT_GEO_ANSWER_THREAD_LABELS: GeoAnswerThreadLabels = {
+  mentionedWithoutExcerpt: "Mentioned, but no excerpt was captured.",
+  notMentioned: "This engine did not mention you.",
+};
+
+export const DEFAULT_LOGO_STACK_LABELS: LogoStackLabels = {
+  none: "None",
+  additionalItems: "Additional items",
+  showAdditionalItems: (count) => `Show ${count} additional items`,
+};
+
+export const DEFAULT_PROMPT_ENGINE_SWITCHER_LABELS: PromptEngineSwitcherLabels =
+  {
+    engines: "Engines",
+    search: GEO_SEARCH_LABEL,
+    previousEngine: "Previous engine",
+    nextEngine: "Next engine",
+  };
+
+export const DEFAULT_CONVERSATION_ROW_LABELS: ConversationRowLabels = {
+  turns: (count) => `${count} ${count === 1 ? "turn" : "turns"}`,
+  edit: "Edit",
+  pause: (name) => `Pause ${name}`,
+  enable: (name) => `Enable ${name}`,
+  includedInScans: "Included in scans",
+  pausedInScans: "Paused — skipped in scans",
+  delete: "Delete",
+  deleteItem: (name) => `Delete ${name}`,
+};
 
 export const GEO_GAPS_METER_STEPS = 5;
 

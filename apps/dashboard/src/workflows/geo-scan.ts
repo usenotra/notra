@@ -5,15 +5,18 @@ import {
   GEO_SCAN_SEQUENCE_BATCH_SIZE,
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
+import { GEO_SCAN_PERSONA_BATCH_SIZE } from "@notra/geo-core/constants/geo-personas";
 import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
+  GeoScanFailureMetadata,
   GeoScanProjectContext,
   GeoScanProjectPlan,
   GeoScanProjectTotals,
   GeoScanResult,
 } from "@notra/geo-core/types/geo";
 import {
+  classifyGeoScanExecutionFailure,
   chunkGeoScanItems,
   describeGeoScanFailure,
 } from "@notra/geo-core/utils/geo-scan";
@@ -36,10 +39,12 @@ import {
   listGeoScanProjectsStep,
   prepareGeoScanProjectStep,
   renewGeoScanClaimStep,
+  runGeoScanPersonaBatchStep,
   runGeoScanSequenceBatchStep,
   runGeoScanTaskBatchStep,
   trackGeoScanRetryScheduledStep,
 } from "./steps/geo-scan-steps";
+import { syncGeoShelfCitationsStep } from "./steps/sync-geo-shelf-citations";
 
 interface GeoScanProjectOutcome {
   totals: GeoScanProjectTotals;
@@ -59,7 +64,17 @@ function addBatchOutcome(
   totals.checks += outcome.checks;
   totals.mentions += outcome.mentions;
   totals.dropped += outcome.dropped;
-  totals.usage = addAgentTokenUsage(totals.usage, outcome.usage);
+  const engine = outcome.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  const judge = outcome.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  totals.engineUsage = addAgentTokenUsage(
+    totals.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage
+  );
+  totals.judgeUsage = addAgentTokenUsage(
+    totals.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    judge
+  );
+  totals.usage = addAgentTokenUsage(totals.engineUsage, totals.judgeUsage);
 }
 
 function isClaimRenewalDue(claimedAt: string, now: number): boolean {
@@ -156,15 +171,41 @@ async function finalizeProjectRun(
   options: {
     retried: boolean;
     failureReason?: string;
+    failure?: GeoScanFailureMetadata;
     retentionDays?: LogRetentionDays;
   }
 ): Promise<void> {
   await finalizeGeoScanProjectStep(plan.context, totals, status, claimedAt, {
     retried: options.retried,
     ...(options.failureReason ? { failureReason: options.failureReason } : {}),
+    ...(options.failure ? { failure: options.failure } : {}),
   });
   const { context } = plan;
   if (status === "completed" && totals.checks > 0) {
+    // Shelf space reads the synced citations instead of folding the whole
+    // mention-check history on every page view.
+    try {
+      await syncGeoShelfCitationsStep({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      });
+    } catch (error) {
+      await appendAutomationLogBestEffort({
+        organizationId: context.organizationId,
+        integrationId: context.projectId,
+        integrationType: "geo",
+        title: `GEO shelf space could not refresh for ${context.companyName}`,
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        referenceId: context.runId,
+        payload: {
+          scanId: context.scanId,
+        },
+        ...(options.retentionDays
+          ? { retentionDays: options.retentionDays }
+          : {}),
+      });
+    }
     try {
       await startGeoSentimentStep({
         organizationId: context.organizationId,
@@ -220,7 +261,7 @@ async function finalizeProjectRun(
 
 /**
  * One project scan as a chain of small steps: plan → task batches →
- * sequence batches → finalize. Each batch persists its own results, so a
+ * sequence batches → persona batches → finalize. Each batch persists its own results, so a
  * killed invocation costs one batch, not the scan — the previous single-step
  * design was killed wholesale by the function timeout once an organization
  * tracked enough engines, leaving the scan on "running" forever with zero
@@ -258,11 +299,14 @@ async function runGeoScanProjectRun(
       checks: 0,
       mentions: 0,
       dropped: 0,
-      usage: EMPTY_AGENT_TOKEN_USAGE,
+      usage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
+      engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+      judgeUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
     } satisfies GeoScanProjectTotals,
   };
   const { totals } = state;
-  const attempted = plan.tasks.length + plan.sequences.length;
+  const attempted =
+    plan.tasks.length + plan.sequences.length + plan.personas.length;
 
   try {
     await runGeoScanBatchWindow(
@@ -279,10 +323,18 @@ async function runGeoScanProjectRun(
       runGeoScanSequenceBatchStep,
       state
     );
+    await runGeoScanBatchWindow(
+      plan.context,
+      plan.personas,
+      GEO_SCAN_PERSONA_BATCH_SIZE,
+      runGeoScanPersonaBatchStep,
+      state
+    );
   } catch (error) {
     await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
       retried: options.retried,
       failureReason: describeGeoScanFailure(error),
+      failure: classifyGeoScanExecutionFailure(error),
       ...(retentionDays ? { retentionDays } : {}),
     });
     return { totals, attempted, noSuccessfulChecks: totals.checks === 0 };

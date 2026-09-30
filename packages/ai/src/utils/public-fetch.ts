@@ -18,21 +18,23 @@ async function fetchPublicRequest(
     pipelining: 0,
     connect: {
       lookup: (_hostname, options, callback) => {
-        if (options.all) {
-          callback(null, addresses);
-          return;
-        }
-        const address = addresses[addressIndex % addresses.length];
-        addressIndex += 1;
-        if (!address) {
-          callback(
-            new Error("No validated public address is available."),
-            "",
-            4
-          );
-          return;
-        }
-        callback(null, address.address, address.family);
+        queueMicrotask(() => {
+          if (options.all) {
+            callback(null, addresses);
+            return;
+          }
+          const address = addresses[addressIndex % addresses.length];
+          addressIndex += 1;
+          if (!address) {
+            callback(
+              new Error("No validated public address is available."),
+              "",
+              4
+            );
+            return;
+          }
+          callback(null, address.address, address.family);
+        });
       },
     },
   });

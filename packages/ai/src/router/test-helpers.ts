@@ -1,11 +1,11 @@
 import type {
-  LanguageModelV3,
-  LanguageModelV3CallOptions,
-  LanguageModelV3GenerateResult,
-  LanguageModelV3StreamPart,
-  LanguageModelV3StreamResult,
-  SharedV3ProviderMetadata,
-  SharedV3ProviderOptions,
+  LanguageModelV4,
+  LanguageModelV4CallOptions,
+  LanguageModelV4GenerateResult,
+  LanguageModelV4StreamPart,
+  LanguageModelV4StreamResult,
+  SharedV4ProviderMetadata,
+  SharedV4ProviderOptions,
 } from "@ai-sdk/provider";
 import type {
   ModelRouter,
@@ -35,7 +35,7 @@ export function createFakeAdapter(options: FakeAdapterOptions): FakeAdapter {
       : buildOpenRouterProviderOptions;
   const metadataKey = options.id === "vercel" ? "gateway" : "openrouter";
 
-  const providerMetadata = (): SharedV3ProviderMetadata =>
+  const providerMetadata = (): SharedV4ProviderMetadata =>
     options.id === "vercel"
       ? {
           [metadataKey]: { generationId: "gen_test" },
@@ -46,14 +46,14 @@ export function createFakeAdapter(options: FakeAdapterOptions): FakeAdapter {
           },
         };
 
-  const createModel = (modelId: string): LanguageModelV3 => {
+  const createModel = (modelId: string): LanguageModelV4 => {
     createdModels.push(modelId);
     return {
-      specificationVersion: "v3",
+      specificationVersion: "v4",
       provider: `fake-${options.id}`,
       modelId,
       supportedUrls: {},
-      doGenerate(callOptions): Promise<LanguageModelV3GenerateResult> {
+      doGenerate(callOptions): Promise<LanguageModelV4GenerateResult> {
         const call = { gateway: options.id, modelId, options: callOptions };
         calls.push(call);
         options.onCall?.(call);
@@ -68,11 +68,11 @@ export function createFakeAdapter(options: FakeAdapterOptions): FakeAdapter {
           providerMetadata: providerMetadata(),
         });
       },
-      doStream(callOptions): Promise<LanguageModelV3StreamResult> {
+      doStream(callOptions): Promise<LanguageModelV4StreamResult> {
         const call = { gateway: options.id, modelId, options: callOptions };
         calls.push(call);
         options.onCall?.(call);
-        const parts: LanguageModelV3StreamPart[] = [
+        const parts: LanguageModelV4StreamPart[] = [
           { type: "stream-start", warnings: [] },
           {
             type: "text-start",
@@ -101,7 +101,7 @@ export function createFakeAdapter(options: FakeAdapterOptions): FakeAdapter {
           },
         ];
         return Promise.resolve({
-          stream: new ReadableStream<LanguageModelV3StreamPart>({
+          stream: new ReadableStream<LanguageModelV4StreamPart>({
             start(controller) {
               for (const part of parts) {
                 controller.enqueue(part);
@@ -231,8 +231,8 @@ export function createTestRouter(options: TestRouterOptions = {}): {
 }
 
 export function callOptions(
-  providerOptions?: SharedV3ProviderOptions
-): LanguageModelV3CallOptions {
+  providerOptions?: SharedV4ProviderOptions
+): LanguageModelV4CallOptions {
   return {
     prompt: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
     ...(providerOptions ? { providerOptions } : {}),
@@ -251,9 +251,9 @@ export function httpError(statusCode: number, message = "upstream failed") {
 }
 
 export async function readStreamParts(
-  result: LanguageModelV3StreamResult
-): Promise<LanguageModelV3StreamPart[]> {
-  const parts: LanguageModelV3StreamPart[] = [];
+  result: LanguageModelV4StreamResult
+): Promise<LanguageModelV4StreamPart[]> {
+  const parts: LanguageModelV4StreamPart[] = [];
   const reader = result.stream.getReader();
   for (;;) {
     const { done, value } = await reader.read();

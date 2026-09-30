@@ -3,7 +3,6 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_LANGUAGE_PERFORMANCE_HINT,
   GEO_MAX_LANGUAGES,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_VISIBILITY_TABLE_ROWS,
@@ -29,6 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -41,6 +41,7 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoSettingsLanguageAdd } from "@/lib/hooks/use-geo";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { cn } from "@/lib/utils";
 import type { LanguagePerformanceCardProps } from "@/types/geo";
 import { formatMentionRate } from "@/utils/geo-charts";
@@ -53,6 +54,7 @@ function LanguageNameCell({
   language: string;
   muted?: boolean;
 }) {
+  const languageLabel = useLanguageLabel();
   return (
     <span
       className={cn(
@@ -63,10 +65,10 @@ function LanguageNameCell({
       <Twemoji
         className={cn("size-4 shrink-0", muted && "opacity-40")}
         emoji={LANGUAGE_FLAGS[language as keyof typeof LANGUAGE_FLAGS] ?? ""}
-        label={language}
+        label={languageLabel(language)}
       />
       <span className={cn("min-w-0 truncate", !muted && "font-medium")}>
-        {language}
+        {languageLabel(language)}
       </span>
     </span>
   );
@@ -85,6 +87,9 @@ function LanguageAddButton({
   pending: boolean;
   onAdd: (language: string) => void;
 }) {
+  const t = useTranslations("geo.languagePerformanceCard");
+  const languageLabel = useLanguageLabel();
+  const tCommon2 = useTranslations("common");
   const content = pending ? (
     <StatusSpinner />
   ) : (
@@ -98,7 +103,9 @@ function LanguageAddButton({
           render={
             <Button
               aria-disabled="true"
-              aria-label={`Add ${language}`}
+              aria-label={t("addLanguageAria", {
+                language: languageLabel(language),
+              })}
               className="shrink-0 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:active:scale-100"
               onClick={(event) => event.preventDefault()}
               size="sm"
@@ -108,11 +115,13 @@ function LanguageAddButton({
           }
         >
           {content}
-          Add
+          {tCommon2("actions.add")}
         </TooltipTrigger>
         <TooltipContent className="max-w-64">
-          You can track up to {GEO_MAX_LANGUAGES} additional languages. Remove
-          one in Languages to add {language}.
+          {t("limitTooltip", {
+            max: GEO_MAX_LANGUAGES,
+            language: languageLabel(language),
+          })}
         </TooltipContent>
       </Tooltip>
     );
@@ -120,7 +129,7 @@ function LanguageAddButton({
 
   return (
     <Button
-      aria-label={`Add ${language}`}
+      aria-label={t("addLanguageAria", { language: languageLabel(language) })}
       className="shrink-0"
       disabled={disabled}
       onClick={() => onAdd(language)}
@@ -129,89 +138,9 @@ function LanguageAddButton({
       variant="outline"
     >
       {content}
-      Add
+      {tCommon2("actions.add")}
     </Button>
   );
-}
-
-function languagePerformanceColumns({
-  adding,
-  atLimit,
-  pendingLanguage,
-  onAddLanguage,
-}: {
-  adding: boolean;
-  atLimit: boolean;
-  pendingLanguage: string | undefined;
-  onAddLanguage: (language: string) => void;
-}): TableColumn<LanguagePerformanceRow>[] {
-  return [
-    {
-      key: "language",
-      header: "Language",
-      width: "1fr",
-      sortable: true,
-      cell: (row) => (
-        <LanguageNameCell
-          language={row.language}
-          muted={row.kind === "suggested"}
-        />
-      ),
-    },
-    {
-      key: "mentionRate",
-      header: "Brand visibility",
-      width: "1.3fr",
-      sortable: true,
-      sortValue: (row) =>
-        row.kind === "tracked"
-          ? (row.visibilityRate ?? row.mentionRate)
-          : Number.NEGATIVE_INFINITY,
-      cell: (row) =>
-        row.kind === "suggested" ? (
-          <span className="text-muted-foreground/50 text-xs">Not tracked</span>
-        ) : (
-          <span className="flex items-center gap-2">
-            <GeoBar
-              className="h-2 max-w-40"
-              fillClassName="bg-geo-search"
-              value={row.visibilityRate ?? row.mentionRate}
-            />
-            <span className="shrink-0 text-xs tabular-nums">
-              {formatMentionRate(row.visibilityRate ?? row.mentionRate)}
-            </span>
-          </span>
-        ),
-    },
-    {
-      key: "trend",
-      header: "Trend",
-      width: "7.5rem",
-      cell: (row) => {
-        if (row.kind === "suggested") {
-          return (
-            <LanguageAddButton
-              disabled={adding || atLimit}
-              language={row.language}
-              limitReached={atLimit}
-              onAdd={onAddLanguage}
-              pending={pendingLanguage === row.language}
-            />
-          );
-        }
-        if ((row.trend?.length ?? 0) >= GEO_SPARKLINE_MIN_POINTS) {
-          return (
-            <GeoRateSparkline
-              className="text-geo-search"
-              label={`${row.language} mention rate trend`}
-              points={row.trend ?? []}
-            />
-          );
-        }
-        return <span className="text-muted-foreground text-xs">-</span>;
-      },
-    },
-  ];
 }
 
 export function LanguagePerformanceCard({
@@ -219,6 +148,10 @@ export function LanguagePerformanceCard({
   organizationId,
   settings,
 }: LanguagePerformanceCardProps) {
+  const t = useTranslations("geo.languagePerformanceCard");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
   const [languageToAdd, setLanguageToAdd] = useState<string>();
   const addLanguage = useGeoSettingsLanguageAdd(organizationId);
   const savedExtras = trackedGeoLanguages(settings.languages);
@@ -242,20 +175,85 @@ export function LanguagePerformanceCard({
       return;
     }
     addLanguage.mutate(languageToAdd, {
-      onSuccess: () => toast.success(`${languageToAdd} added to tracking`),
+      onSuccess: () =>
+        toast.success(t("addedToTracking", { language: languageToAdd })),
     });
     setLanguageToAdd(undefined);
   };
 
-  const columns = useMemo(
-    () =>
-      languagePerformanceColumns({
-        adding: addLanguage.isPending,
-        atLimit,
-        onAddLanguage: setLanguageToAdd,
-        pendingLanguage,
-      }),
-    [addLanguage.isPending, atLimit, pendingLanguage]
+  const adding = addLanguage.isPending;
+  const columns = useMemo<TableColumn<LanguagePerformanceRow>[]>(
+    () => [
+      {
+        key: "language",
+        header: tCommon2("labels.language"),
+        width: "1fr",
+        sortable: true,
+        cell: (row) => (
+          <LanguageNameCell
+            language={row.language}
+            muted={row.kind === "suggested"}
+          />
+        ),
+      },
+      {
+        key: "mentionRate",
+        header: tGeoShared("brandVisibility"),
+        width: "1.3fr",
+        sortable: true,
+        sortValue: (row) =>
+          row.kind === "tracked"
+            ? (row.visibilityRate ?? row.mentionRate)
+            : Number.NEGATIVE_INFINITY,
+        cell: (row) =>
+          row.kind === "suggested" ? (
+            <span className="text-muted-foreground/50 text-xs">
+              {t("notTracked")}
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <GeoBar
+                className="h-2 max-w-40"
+                fillClassName="bg-geo-search"
+                value={row.visibilityRate ?? row.mentionRate}
+              />
+              <span className="shrink-0 text-xs tabular-nums">
+                {formatMentionRate(row.visibilityRate ?? row.mentionRate)}
+              </span>
+            </span>
+          ),
+      },
+      {
+        key: "trend",
+        collapsePriority: 1,
+        header: tGeoShared("trendLabel"),
+        width: "7.5rem",
+        cell: (row) => {
+          if (row.kind === "suggested") {
+            return (
+              <LanguageAddButton
+                disabled={adding || atLimit}
+                language={row.language}
+                limitReached={atLimit}
+                onAdd={setLanguageToAdd}
+                pending={pendingLanguage === row.language}
+              />
+            );
+          }
+          if ((row.trend?.length ?? 0) >= GEO_SPARKLINE_MIN_POINTS) {
+            return (
+              <GeoRateSparkline
+                className="text-geo-search"
+                label={t("trendLabel", { language: row.language })}
+                points={row.trend ?? []}
+              />
+            );
+          }
+          return <span className="text-muted-foreground text-xs">-</span>;
+        },
+      },
+    ],
+    [adding, atLimit, pendingLanguage, t]
   );
 
   return (
@@ -263,15 +261,15 @@ export function LanguagePerformanceCard({
       <InstrumentSection
         bodyClassName="flex min-h-0 flex-1 flex-col"
         className="h-full"
-        eyebrow="Performance by language"
-        hint={GEO_LANGUAGE_PERFORMANCE_HINT}
+        eyebrow={tGeoShared("performanceByLanguage")}
+        hint={t("hint")}
       >
         <Table
           className="rounded-2xl"
           columns={columns}
           data={rows}
           defaultSort={{ key: "mentionRate", direction: "desc" }}
-          emptyState="No language results yet"
+          emptyState={t("noResults")}
           getRowId={(row) => `${row.kind}:${row.language}`}
           height={GEO_VISIBILITY_TABLE_HEIGHT}
           minHeight={GEO_VISIBILITY_TABLE_HEIGHT}
@@ -290,17 +288,18 @@ export function LanguagePerformanceCard({
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
             <ResponsiveAlertDialogTitle>
-              Add {languageToAdd}?
+              {t("confirmTitle", { language: languageToAdd ?? "" })}
             </ResponsiveAlertDialogTitle>
             <ResponsiveAlertDialogDescription>
-              This will run the same prompts in {languageToAdd} so you can track
-              performance in this language.
+              {t("confirmDescription", { language: languageToAdd ?? "" })}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+            <ResponsiveAlertDialogCancel>
+              {tCommon("cancel")}
+            </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction onClick={handleConfirmAddLanguage}>
-              Add language
+              {t("addLanguage")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

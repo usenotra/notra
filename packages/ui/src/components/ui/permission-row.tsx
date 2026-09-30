@@ -116,7 +116,7 @@ export function PermissionRow({
     <PermissionRowContext.Provider value={context}>
       <LazyMotion features={domMax}>
         {layout === "compact" ? (
-          optionGroup
+          <div className="max-w-full min-w-0 overflow-x-auto">{optionGroup}</div>
         ) : (
           <div
             className={cn(

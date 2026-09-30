@@ -39,8 +39,7 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Symlinked skill directories (source is in .agents/skills/)
-.claude/skills/
+# Local skill links (Claude links are committed; source is in .agents/skills/)
 .claude/worktrees/
 .claude/settings.local.json
 .cursor/skills/

@@ -1,5 +1,6 @@
 import type { GeoContentSubtype } from "@notra/ai/types/geo-writer";
 import type {
+  GeoCompetitor,
   GeoContentBriefDetail,
   GeoContentBriefSummary,
   GeoWriterSourceKind,
@@ -7,6 +8,7 @@ import type {
 import type { ReactNode } from "react";
 
 import type { GeoWriteDialogEntry } from "@/types/analytics/geo-events";
+import type { GeoProjectBrandIdentity } from "@/types/geo";
 import type { Sitemap } from "@/types/hooks/brand-sitemaps";
 
 export interface BriefHistoryProps {
@@ -14,6 +16,7 @@ export interface BriefHistoryProps {
   activeBriefId?: string;
   onOpen: (briefId: string) => void;
   onHover?: (briefId: string) => void;
+  loading?: boolean;
 }
 
 export interface GeoWriterNeedsSetupProps {
@@ -28,6 +31,41 @@ export type WriteDialogSectionId =
   | "brand"
   | "sitemap"
   | "competitors";
+
+export interface WriterBrandSelectionInput {
+  organizationId: string;
+  projectBrandId: string | null | undefined;
+  initialBrandId: string | undefined;
+  enabled: boolean;
+}
+
+export interface WriteCompetitorChoicesProps {
+  competitors: GeoCompetitor[];
+  selectedIds: string[];
+  mentionedCompetitors: readonly string[];
+  onChange: (ids: string[]) => void;
+  children: ReactNode;
+}
+
+export interface WritePromptInputProps {
+  topicId: string;
+  topic: string;
+  prompts: { id: string; prompt: string }[];
+  sourceKind: WriteDialogSourceKind;
+  sourceId: string | undefined;
+  badgeLabel: string | null;
+  onTopicChange: (topic: string) => void;
+  onPromptSelect: (id: string) => void;
+  children: ReactNode;
+}
+
+export interface WriteBrandSelectProps {
+  id: string;
+  voices: GeoProjectBrandIdentity[];
+  value: string | null;
+  projectBrandId: string | null | undefined;
+  onChange: (id: string | null) => void;
+}
 
 export interface WriteSitemapSectionProps {
   organizationId: string;
@@ -63,9 +101,10 @@ export interface WriteDialogBaseline {
 }
 
 export interface WriteFormatRecommendation {
-  id: GeoContentSubtype;
-  reason: string;
+  id: Extract<GeoContentSubtype, "comparison" | "listicle" | "guide">;
 }
+
+export type WriteAction = "plan" | "write";
 
 export type WriteDialogSourceKind = GeoWriterSourceKind;
 
@@ -102,6 +141,7 @@ export interface GeoGapsWriteEntry {
 export interface WriterExecuteRootProps {
   organizationId: string;
   briefId: string | null;
+  projectId?: string;
   hasUnsavedChanges: boolean;
   onArticleReady: () => void | Promise<void>;
   children: ReactNode;
@@ -118,10 +158,4 @@ export interface WriterExecuteState {
 
 export interface WriterExecuteActions {
   execute: () => void;
-}
-
-export interface WriteSectionSidebarProps {
-  activeSection: WriteDialogSectionId;
-  collapsed: boolean;
-  onJump: (section: WriteDialogSectionId) => void;
 }

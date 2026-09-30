@@ -1,3 +1,5 @@
+import type { GeoPersonaSnapshot } from "./geo-personas";
+
 export interface GeoCheckScope {
   organizationId: string;
   projectId: string | null;
@@ -32,6 +34,8 @@ export interface GeoCheckWrite {
   engine: string;
   promptId: string;
   sequenceId?: string | null;
+  personaId?: string | null;
+  personaSnapshot?: GeoPersonaSnapshot | null;
   turn?: number;
   prompt: string;
   answer: string;
@@ -49,7 +53,15 @@ export interface GeoCheckWrite {
   outputTokens: number | null;
   reasoningTokens: number | null;
   zdrEnforced?: boolean | null;
+  durationMs?: number | null;
+  costUsd?: number | null;
+  judgeTokens?: number | null;
   capturedAt: Date;
+}
+
+export interface GeoCheckInsertSummary {
+  checks: number;
+  mentions: number;
 }
 
 export interface GeoCheckOverviewRow {
@@ -114,6 +126,14 @@ export type GeoCheckPromptSummaryRow = Pick<
   | "lastCheckedAt"
 > & { checkId: string };
 
+export interface GeoCheckPromptSummaryQuery {
+  offset: number;
+  limit: number;
+  engine?: string;
+  mentioned?: boolean;
+  query?: string;
+}
+
 export interface GeoCheckPromptHistoryRow {
   id: string;
   scanId: string;
@@ -157,6 +177,13 @@ export interface GeoCheckCompetitorPromptRow {
   mentioned: boolean;
   position: number | null;
   capturedAt: Date;
+}
+
+export interface GeoCheckCompetitorPromptSummaryRow {
+  answers: number;
+  prompts: number;
+  engineIds: string[];
+  ownMentioned: number;
 }
 
 export interface GeoCheckLanguageShareRow {
@@ -222,6 +249,7 @@ export interface GeoCheckScanComparisonRow {
   promptId: string;
   prompt: string;
   mentioned: boolean;
+  ownedSourceCited: boolean;
   position: number | null;
   competitors: string[];
   grounding: GeoCheckGrounding;

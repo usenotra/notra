@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { Button } from "@/components/button";
 import type { GeoPromptDetailStatusProps } from "@/types/geo-prompt-detail";
 
@@ -5,23 +7,23 @@ export function PromptDetailStatus({
   status,
   onRetry,
 }: GeoPromptDetailStatusProps) {
+  const t = useTranslations("geo.promptDetailStatus");
+  const tCommon = useTranslations("common.actions");
   if (status === "loading") {
     return (
       <p className="text-muted-foreground p-6 text-sm" role="status">
-        Loading answer…
+        {t("loading")}
       </p>
     );
   }
   return (
     <div className="space-y-3 p-6">
       <p className="text-muted-foreground text-sm" role="status">
-        {status === "error"
-          ? "Could not load this answer. Try again."
-          : "This answer is no longer available. Refresh the results to select another answer."}
+        {status === "error" ? t("error") : t("unavailable")}
       </p>
       {status === "error" ? (
         <Button onClick={onRetry} type="button" variant="outline">
-          Try again
+          {tCommon("tryAgain")}
         </Button>
       ) : null}
     </div>

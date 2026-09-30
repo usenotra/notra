@@ -1,4 +1,4 @@
-import { PUBLIC_API_SCOPES } from "@notra/utils/api-scopes";
+import { CONNECT_OAUTH_SCOPES } from "@notra/utils/constants/oauth-consent";
 
 export const API_URL = "https://api.usenotra.com";
 const DEFAULT_AUTHKIT_DOMAIN = "oauth.usenotra.com";
@@ -46,7 +46,7 @@ export function buildProtectedResourceMetadata(resource = API_URL) {
   return {
     resource: normalizeProtectedResource(resource),
     authorization_servers: [AUTH_ISSUER_URL],
-    scopes_supported: PUBLIC_API_SCOPES,
+    scopes_supported: CONNECT_OAUTH_SCOPES,
     bearer_methods_supported: ["header"],
     resource_documentation: AUTH_GUIDE_URL,
   };
@@ -69,7 +69,7 @@ export function buildAuthorizationServerMetadata() {
     ],
     token_endpoint_auth_methods_supported: ["none"],
     code_challenge_methods_supported: ["S256"],
-    scopes_supported: PUBLIC_API_SCOPES,
+    scopes_supported: CONNECT_OAUTH_SCOPES,
     agent_auth: AGENT_AUTH_METADATA,
   };
 }

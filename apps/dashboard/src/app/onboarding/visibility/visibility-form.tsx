@@ -1,5 +1,6 @@
 "use client";
 
+import { promptKey } from "@notra/geo-core/geo/prompt-key";
 import { buildBrandTerms } from "@notra/geo-core/geo/suggestion-keywords";
 import { normalizeWebsiteUrl } from "@notra/geo-core/utils/geo-website";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -8,6 +9,7 @@ import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -15,6 +17,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { BrandReviewSkeleton } from "@/components/onboarding/brand-review-skeleton";
 import { OnboardingProgress } from "@/components/onboarding/progress";
+import { PromptChoiceRow } from "@/components/onboarding/prompt-choice-row";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
 import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { ONBOARDING_STEPS } from "@/constants/analytics-events";
@@ -33,6 +36,7 @@ import type {
 } from "@/types/onboarding";
 import { stripWebsitePrefix } from "@/utils/onboarding";
 import {
+  selectedVisibilityPrompts,
   toVisibilityBrandInput,
   uniqueVisibilityPrompts,
 } from "@/utils/onboarding-brand";
@@ -45,36 +49,63 @@ function VisibilityReview({
   nextHref,
   skipHref,
 }: VisibilityReviewProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tOnboardingShared = useTranslations("onboarding.shared");
+  const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
   const [companyName, setCompanyName] = useState(
     () => discovery?.companyName ?? fallbackCompanyName
   );
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const companyInputRef = useRef<HTMLInputElement>(null);
+  const [droppedKeys, setDroppedKeys] = useState(() => new Set<string>());
   const save = useGeoOnboardingBrand(organizationId);
   const [isLeaving, setIsLeaving] = useState(false);
   const busy = save.isPending || isLeaving;
-  const canSubmit = companyName.trim().length > 0 && !busy;
-  const promptCount = uniqueVisibilityPrompts(
+  const prompts = uniqueVisibilityPrompts(
     discovery?.prompts ?? [],
     buildBrandTerms({
       companyName,
       aliases: [...(discovery?.aliases ?? [])],
     })
-  ).length;
+  );
+  const selectedPrompts = selectedVisibilityPrompts(prompts, droppedKeys);
+  const companyNameMissing = companyName.trim().length === 0;
+  const websiteHost = stripWebsitePrefix(websiteUrl);
+
+  const togglePrompt = (key: string) => {
+    setDroppedKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const handleSubmit = () => {
-    if (!canSubmit) {
+    if (busy) {
+      return;
+    }
+    if (companyNameMissing) {
+      setAttemptedSubmit(true);
+      requestAnimationFrame(() => companyInputRef.current?.focus());
       return;
     }
     const brandInput = toVisibilityBrandInput({
       companyName,
       aliases: discovery?.aliases ?? [],
-      prompts: discovery?.prompts ?? [],
+      audienceType: discovery?.audienceType,
+      prompts: selectedPrompts,
     });
     save.mutate(brandInput, {
       onSuccess: () => {
         trackEvent(POSTHOG_EVENTS.ONBOARDING_BRAND_SAVED, {
           alias_count: brandInput.aliases.length,
+          audience_type: brandInput.audienceType ?? null,
           prompt_count: brandInput.prompts.length,
         });
         setIsLeaving(true);
@@ -93,36 +124,68 @@ function VisibilityReview({
       }}
     >
       <div className="grid gap-2">
-        <Label htmlFor={`${id}-company`}>Brand name</Label>
+        <Label htmlFor={`${id}-company`}>{t("brandName")}</Label>
         <Input
-          aria-invalid={companyName.trim().length === 0}
+          aria-describedby={
+            attemptedSubmit && companyNameMissing
+              ? `${id}-company-error`
+              : undefined
+          }
+          aria-invalid={attemptedSubmit && companyNameMissing}
           className={ONBOARDING_FIELD_CLASS}
           disabled={busy}
           id={`${id}-company`}
           onChange={(event) => setCompanyName(event.target.value)}
-          placeholder="Acme"
+          placeholder={t("brandNamePlaceholder")}
+          ref={companyInputRef}
           value={companyName}
         />
-        <p className="text-muted-foreground text-xs">
-          What we look for in answers. Usually the name on{" "}
-          {stripWebsitePrefix(websiteUrl)}.
-        </p>
-        {promptCount > 0 ? (
-          <p className="text-muted-foreground text-xs">
-            We pulled {promptCount} questions from your site to start with. Edit
-            them later under Prompts.
+        {attemptedSubmit && companyNameMissing ? (
+          <p className="text-destructive text-sm" id={`${id}-company-error`}>
+            {t("brandNameRequired")}
           </p>
         ) : null}
       </div>
 
-      <CtaButton className="w-full" disabled={!canSubmit} type="submit">
+      {prompts.length > 0 ? (
+        <div className="grid gap-2">
+          <p className="text-sm font-medium">
+            {t.rich(websiteHost ? "questionsFrom" : "questions", {
+              host: websiteHost,
+              selected: selectedPrompts.length,
+              total: prompts.length,
+              muted: (chunks) => (
+                <span className="text-muted-foreground text-xs font-normal">
+                  {chunks}
+                </span>
+              ),
+            })}
+          </p>
+          <ul className="w-full max-w-full min-w-0 space-y-1.5 overflow-hidden">
+            {prompts.map((entry) => {
+              const key = promptKey(entry.prompt);
+              return (
+                <PromptChoiceRow
+                  disabled={busy}
+                  key={key}
+                  onToggle={() => togglePrompt(key)}
+                  prompt={entry.prompt}
+                  selected={!droppedKeys.has(key)}
+                />
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      <CtaButton className="w-full" disabled={busy} type="submit">
         {busy ? (
           <>
             <Loader2Icon className="size-4 animate-spin" />
-            Saving
+            {tOnboardingShared("saving")}
           </>
         ) : (
-          "Continue"
+          tCommon("actions.continue")
         )}
       </CtaButton>
 
@@ -140,7 +203,7 @@ function VisibilityReview({
           size="sm"
           variant="link"
         >
-          Skip for now
+          {t("skipStep")}
         </Button>
       </div>
     </form>
@@ -155,7 +218,10 @@ export function VisibilityForm({
   nextHref,
   skipHref,
   inOnboardingFlow,
+  progressHrefs,
 }: VisibilityFormProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tCommon2 = useTranslations("common");
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
     stripWebsitePrefix(websiteUrl)
@@ -217,20 +283,20 @@ export function VisibilityForm({
           inOnboardingFlow={inOnboardingFlow}
           step={ONBOARDING_STEPS.VISIBILITY}
         />
-        {inOnboardingFlow ? (
-          <div className="flex justify-center">
-            <OnboardingProgress current={ONBOARDING_STEP_VISIBILITY} />
-          </div>
-        ) : null}
+        <div className="flex justify-center">
+          <OnboardingProgress
+            current={ONBOARDING_STEP_VISIBILITY}
+            hrefs={progressHrefs}
+          />
+        </div>
 
-        <AuthFormHeader
-          description="We ask ChatGPT, Claude, Gemini and Perplexity what your buyers ask them, then check if you come up."
-          title="See what AI says about you"
-        />
+        <AuthFormHeader description={t("description")} title={t("title")} />
 
         <div className="mt-2 space-y-5">
           <div className="grid gap-2">
-            <Label htmlFor={`${id}-website`}>Website</Label>
+            <Label htmlFor={`${id}-website`}>
+              {tCommon2("labels.website")}
+            </Label>
             <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px]">
               <label
                 className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -261,14 +327,13 @@ export function VisibilityForm({
               ) : null}
             </div>
             {isAnalyzing ? (
-              <p className="text-muted-foreground text-xs">
-                Reading {analyzedHost}. Takes about 20 seconds.
+              <p className="text-muted-foreground text-xs wrap-anywhere">
+                {t("reading", { host: analyzedHost })}
               </p>
             ) : null}
             {discover.isError ? (
-              <p className="text-destructive text-sm">
-                Could not read {analyzedHost}. Check the address, or just type
-                your brand name below.
+              <p className="text-destructive text-sm wrap-anywhere">
+                {t("readFailed", { host: analyzedHost })}
               </p>
             ) : null}
           </div>

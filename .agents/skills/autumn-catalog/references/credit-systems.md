@@ -1,0 +1,443 @@
+## Credit Systems
+
+Credit systems let you track actions with different credit costs from a single balance pool.
+
+A credit system is made up of a list of [features](/documentation/concepts/features) that can draw from it, and a credit cost per unit of usage for each feature.
+
+> **Example** <br />
+> You have a Pro plan that gives users `100 basic messages` per month, and `10 premium messages` per month. These 2 balances are separate and independent of each other.
+> To give your users more flexibility, you instead decide to use a credit system, where:
+> - `basic message`: costs 1 credit per message
+> - `premium message`: costs 10 credits per message
+>
+> Instead of having 2 separate balances for each message type, your Pro plan can have `200 credits` per month. Your users can use the credits in any combination of basic and premium messages they want.
+
+## Creating a credit system
+
+  Make sure you have some metered features created before creating a credit
+  system.
+
+Define metered features, then create a `credit_system` feature with a `creditSchema` that maps each feature to a credit cost:
+
+```ts autumn.config.ts
+import { atmn, feature, plan } from "atmn";
+
+export const basicMessage = feature({
+  featureId: "basic_message",
+  name: "Basic Message",
+  type: "metered",
+  consumable: true,
+});
+
+export const premiumMessage = feature({
+  featureId: "premium_message",
+  name: "Premium Message",
+  type: "metered",
+  consumable: true,
+});
+
+export const credits = feature({
+  featureId: "credits",
+  name: "Credits",
+  type: "credit_system",
+  creditSchema: [
+    { meteredFeatureId: basicMessage.featureId, creditCost: 1 },
+    { meteredFeatureId: premiumMessage.featureId, creditCost: 10 },
+  ],
+});
+
+export const pro = plan({
+  planId: "pro",
+  versionSlug: "v1",
+  active: true,
+  name: "Pro",
+  price: { amount: 20, interval: "month" },
+  items: [
+    {
+      featureId: credits.featureId,
+      included: 200,
+      reset: { interval: "month" },
+    },
+  ],
+});
+
+export default atmn({
+  features: [basicMessage, premiumMessage, credits],
+  plans: [pro],
+});
+```
+
+Preview with `atmn push`, then apply with `atmn push --yes`.
+
+**Example**
+
+If each `premium_request` is worth 3 credits, then using 6 premium requests will cost 18 credits.
+
+Now you can add this credit system to a plan, such as granting 50 credits per month or charging $1 per credit.
+
+## Tracking and limiting credit usage
+
+When implementing a credit system into your application, **you should interact with the underlying features -- not the credit system itself**. This means passing in the underlying `feature_id` when checking or tracking usage.
+
+#### Checking access
+
+Before allowing a customer to use a feature, `check` if they have enough credits to do so. If each "premium request" is worth 3 credits, then this example will check if the customer has at least 18 credits remaining.
+
+<CodeGroup>
+
+```typescript TypeScript
+import { Autumn } from "autumn-js";
+
+const autumn = new Autumn({ secretKey: "am_sk_test_1234" });
+
+const response = await autumn.check({
+  customerId: "user_123",
+  featureId: "premium_request",
+  requiredBalance: 6,
+});
+
+console.log(response.allowed);
+```
+
+```python Python
+from autumn_sdk import Autumn
+
+autumn = Autumn("am_sk_test_1234")
+
+response = await autumn.check(
+    customer_id="user_123",
+    feature_id="premium_request",
+    required_balance=6,
+)
+print(response.allowed)
+```
+
+```bash cURL
+curl -X POST "https://api.useautumn.com/v1/check" \
+  -H "Authorization: Bearer am_sk_test_1234" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "user_123",
+    "feature_id": "premium_request",
+    "required_balance": 6
+  }'
+```
+
+</CodeGroup>
+
+The response will contain the balance for the credit system that is being deducted from.
+
+```json
+{
+  "allowed": true,
+  "customerId": "user_123",
+  "requiredBalance": 6,
+  "balance": {
+    "featureId": "credits",
+    "granted": 100,
+    "remaining": 100,
+    "usage": 0,
+    "unlimited": false,
+    "overageAllowed": false,
+    "nextResetAt": 1757192635393
+  }
+}
+```
+
+In this case, we have a balance of 100 credits remaining, so we're allowed to use our 6 "premium requests" feature.
+
+  If a feature is not defined in the credit system, it will return `allowed: false`
+
+#### Tracking usage
+
+Since the customer has sufficient credits, you can let them use their 6 "premium requests". Afterwards, you can [track](/documentation/customers/tracking-usage) the usage to update their balance.
+
+This will decrement the customer's balance by 18 credits (6 requests * 3 credits per request).
+
+<CodeGroup>
+```typescript TypeScript
+import { Autumn } from "autumn-js";
+
+const autumn = new Autumn({ secretKey: "am_sk_test_1234" });
+
+await autumn.track({
+  customerId: "user_123",
+  featureId: "premium_request",
+  value: 6,
+});
+```
+
+```python Python
+from autumn_sdk import Autumn
+
+autumn = Autumn("am_sk_test_1234")
+
+await autumn.track(
+    customer_id="user_123",
+    feature_id="premium_request",
+    value=6,
+)
+```
+
+```bash cURL
+curl -X POST "https://api.useautumn.com/v1/track" \
+  -H "Authorization: Bearer am_sk_test_1234" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "user_123",
+    "feature_id": "premium_request",
+    "value": 6
+  }'
+```
+
+</CodeGroup>
+
+```json
+{
+  "customerId": "user_123",
+  "value": 6,
+  "balance": {
+    "featureId": "credits",
+    "granted": 100,
+    "remaining": 82,
+    "usage": 18,
+    "unlimited": false,
+    "overageAllowed": false,
+    "nextResetAt": 1757192635393
+  }
+}
+```
+
+Since the customer started with a balance of 100 credits, and used 18 credits, their remaining balance is 82 credits.
+
+## Rate cards and dimensions
+
+The `creditSchema` is the credit system's **rate card**: one row per metered feature. A row's rate can be flat, graduated by usage, or vary by the properties you send with each event.
+
+### Billing units
+
+`billingUnits` prices a bundle of usage at once: `{ meteredFeatureId: 'tokens', billingUnits: 1000, creditCost: 1 }` charges 1 credit per 1,000 tokens.
+
+### Graduated rates
+
+A graduated row steps the credit cost as usage in the current cycle grows. Tier boundaries are in units and the cost is per `billingUnits`, priced tier by tier: below, the first 10,000 tokens cost 1 credit per 1,000 tokens (10 credits), and everything after costs 0.5 credits per 1,000 tokens.
+
+```ts autumn.config.ts
+{
+  meteredFeatureId: tokens.featureId,
+  billingUnits: 1000,
+  tierBehavior: 'graduated',
+  tiers: [
+    { to: 10_000, creditCost: 1 },
+    { to: 'inf', creditCost: 0.5 },
+  ],
+}
+```
+
+The final tier must use `'inf'`, and boundaries must strictly increase.
+
+### Dimensions
+
+A **dimension** is a named alternative rate that applies when an event's `properties` match. Pass the properties on `track` and `check`:
+
+```ts
+await autumn.track({
+  customer_id: 'cus_123',
+  feature_id: 'actions',
+  value: 1,
+  properties: { size: 'large', region: 'eu' },
+});
+```
+
+```ts autumn.config.ts
+{
+  meteredFeatureId: actions.featureId,
+  creditCost: 1,
+  dimensions: {
+    size_large: { match: { size: 'large' }, creditCost: 16 },
+    size_large_region_eu: {
+      match: { size: 'large', region: 'eu' },
+      creditCost: 20,
+    },
+    size_xl: {
+      match: { size: 'xl' },
+      tierBehavior: 'graduated',
+      tiers: [
+        { to: 5, creditCost: 2 },
+        { to: 'inf', creditCost: 1 },
+      ],
+    },
+  },
+  multipliers: {
+    lifecycle_spot: { match: { lifecycle: 'spot' }, factor: 0.3 },
+  },
+}
+```
+
+How a rate is chosen for an event:
+
+1. The dimension whose `match` has the **most keys** that all match the event wins. `{ size: 'large', region: 'eu' }` beats `{ size: 'large' }`.
+2. Ties on key count are broken by `priority` (higher wins). Two dimensions that could both match the same event with the same key count and no priority are rejected when you save.
+3. If no dimension matches, the row's own rate applies.
+4. **Multipliers** then scale the chosen rate: every matching multiplier's `factor` is multiplied together and every `add` is summed. A multiplier set that could push a rate below zero is rejected at save time.
+
+Property values are compared as strings, so `{ size: 1 }` and `{ size: '1' }` match the same dimension. Dimension names must be at most 64 characters and cannot contain `::`.
+
+Usage is attributed per dimension, so graduated dimensions progress through their own tiers, and invoice credit line items are broken down by feature and dimension.
+
+  A plan item can override its credit system's rate card for customers on that plan via `featureOverride: { creditSchema: [...] }`. The override replaces the rate card entirely, dimensions included.
+
+## Itemized invoice credits
+
+When a plan bills a credit system **pay-per-use at exactly one currency unit per credit** (for example `$1` per credit, or `$100` per 100 credits), Autumn treats the balance as invoice credits: every tracked usage is attributed to the feature that spent it, and the invoice lists one line per feature ("Premium messages, 40 units … $8") plus a "Credits applied" line for the credits the plan included. Balances like this can only be moved by tracked usage and cycle resets, so the invoice always matches the ledger.
+
+Any other price shape (a fractional price per credit, prepaid packs, included-only or pooled items) bills as an ordinary overage. The decision is made per customer when the plan is attached, so changing a plan's price later never rewrites an existing customer's invoices.
+
+  There is no switch to turn this on. The plan item's price decides, so a credit system can itemize on one plan and bill plainly on another.
+
+## Stacking with direct balances
+
+A feature can have both a direct balance **and** belong to a credit system. When this happens, the balances stack and **direct balances are always consumed before credit system balances**, regardless of interval.
+
+> **Example** <br />
+> A customer's plan grants `10 premium messages` per month directly, plus `200 credits` per month from a credit system (where each premium message costs 10 credits). <br /><br />
+> When the customer sends a premium message, Autumn deducts from the direct premium message balance first. Once those 10 direct messages are used up, subsequent premium messages draw from the credit pool instead.
+
+  The `check` endpoint accounts for both balances. If the customer has 5 direct premium messages remaining plus 100 credits (enough for 10 more premium messages), `check` will report that the customer is allowed.
+
+## Monetary credits
+
+You may want your credit system to represent a monetary value: eg, $10 of credits. To implement this, you can map each credit to a cent value (eg, 1 credit = 1 cent).
+
+1. When creating your credit system, define credit amounts in the per-cent cost
+
+   Eg: if each `premium_request` costs 3 cents, our credit cost should be 3.
+
+2. When adding the credits to a plan, set the granted amount of credits in cents
+
+   Eg, if customers get 5 USD credits for free, they should have an included usage of `500`.
+
+3. When charging for the credits, set the cost of each credit to 1 cent
+
+See the credits pricing guide for a more detailed example of setting up a monetary credits system
+
+## AI Credit Systems
+
+For AI applications that need to track token usage with per-model pricing, you can create an AI credit system. This lets you define markup percentages for each model and automatically calculate costs based on input/output tokens.
+
+Markups are optional. `defaultMarkup` applies to every model unless overridden — by `providerMarkups` (keyed by the first segment of the model ID, e.g. `openrouter`), or by `modelMarkups` for a specific model, which takes highest priority. With no markups set, models are billed at their Models.dev base cost.
+
+A markup of `-100` makes the model free: usage events are still recorded, but nothing is deducted from the balance.
+
+```ts Simplest setup — one markup for everything
+export const aiCredits = feature({
+  featureId: 'ai_credits',
+  name: 'AI Credits',
+  type: 'ai_credit_system',
+  defaultMarkup: 30, // every model billed at models.dev cost + 30%
+});
+```
+
+Or mix the levels for finer control:
+
+```ts autumn.config.ts
+import { atmn, feature, plan } from "atmn";
+
+export const aiCredits = feature({
+  featureId: "ai_credits",
+  name: "AI Credits",
+  type: "ai_credit_system",
+  // Global fallback markup
+  defaultMarkup: 30,
+  // Per-provider defaults
+  providerMarkups: {
+    openrouter: { markup: 25 },
+  },
+  // Per-model overrides (highest priority)
+  modelMarkups: {
+    "anthropic/claude-opus-4-5": { markup: 20 },
+    "anthropic/claude-sonnet-4-5": { markup: 15 },
+    "openai/gpt-4o-mini": { markup: -100 }, // free for customers
+    // For custom/self-hosted models, specify input/output costs in $/M tokens
+    "custom/my-model": { markup: 25, inputCost: 0.01, outputCost: 0.03 },
+  },
+});
+
+export const pro = plan({
+  planId: "pro",
+  versionSlug: "v1",
+  active: true,
+  name: "Pro",
+  price: { amount: 50, interval: "month" },
+  items: [
+    {
+      featureId: aiCredits.featureId,
+      included: 10, // $10 worth of AI credits
+      reset: { interval: "month" },
+    },
+  ],
+});
+
+export default atmn({ features: [aiCredits], plans: [pro] });
+```
+
+Preview with `atmn push`, then apply with `atmn push --yes`.
+
+### Model ID Format
+
+Model IDs follow the `provider/model` format:
+- Standard models: `anthropic/claude-opus-4-5`, `openai/gpt-4o`
+- OpenRouter models: `openrouter/anthropic/claude-opus-4.6`
+- Custom models: `custom/my-model-name`
+
+For standard models, pricing is automatically fetched from models.dev, including separate rates for cache reads/writes, reasoning, and audio tokens where the model publishes them, plus large-context tier pricing (e.g. above 200k input tokens) when applicable.
+
+For custom models, you must specify both `inputCost` and `outputCost` in dollars per million tokens — tracking fails if either is missing. Custom models bill input and output tokens only; cache, reasoning, and audio pools are ignored.
+
+### Tracking Token Usage
+
+Use the `trackTokens` endpoint to deduct credits based on token usage:
+
+<CodeGroup>
+
+```typescript TypeScript
+import { Autumn } from "autumn-js";
+
+const autumn = new Autumn({ secretKey: "am_sk_test_1234" });
+
+await autumn.balances.trackTokens({
+  customerId: "user_123",
+  modelId: "anthropic/claude-opus-4-5",
+  inputTokens: 1500,
+  outputTokens: 500,
+});
+```
+
+```python Python
+from autumn_sdk import Autumn
+
+autumn = Autumn("am_sk_test_1234")
+
+await autumn.balances.track_tokens(
+    customer_id="user_123",
+    model_id="anthropic/claude-opus-4-5",
+    input_tokens=1500,
+    output_tokens=500,
+)
+```
+
+```bash cURL
+curl -X POST "https://api.useautumn.com/v1/balances.track_tokens" \
+  -H "Authorization: Bearer am_sk_test_1234" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "user_123",
+    "model_id": "anthropic/claude-opus-4-5",
+    "input_tokens": 1500,
+    "output_tokens": 500
+  }'
+```
+
+</CodeGroup>
+
+The cost is calculated automatically based on the model's pricing plus your configured markup percentage.

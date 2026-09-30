@@ -1,3 +1,8 @@
+import { normalizeIgnoreCommitPatterns } from "@notra/ai/schemas/ignore-commit-patterns";
+import {
+  joinIgnoreCommitPatterns,
+  splitIgnoreCommitPatternsText,
+} from "@notra/ai/utils/ignore-commit-patterns";
 import {
   type AutomationOutputType,
   SUPPORTED_AUTOMATION_OUTPUT_TYPES,
@@ -14,6 +19,7 @@ export const DEFAULT_EVENT_TRIGGER_VALUES: EventTriggerFormValues = {
   brandVoiceId: "",
   autoPublish: false,
   includePreReleases: true,
+  ignoreCommitPatternsText: "",
 };
 
 export function isAutomationOutputType(
@@ -48,5 +54,14 @@ export function getDefaultEventTriggerValues(
     brandVoiceId: normalizeBrandVoiceId(trigger.outputConfig?.brandVoiceId),
     autoPublish: trigger.autoPublish,
     includePreReleases: trigger.sourceConfig.includePreReleases ?? true,
+    ignoreCommitPatternsText: joinIgnoreCommitPatterns(
+      trigger.sourceConfig.ignoreCommitPatterns ?? []
+    ),
   };
+}
+
+export function parseIgnoreCommitPatternsText(value?: string): string[] {
+  return normalizeIgnoreCommitPatterns(
+    splitIgnoreCommitPatternsText(value ?? "")
+  );
 }

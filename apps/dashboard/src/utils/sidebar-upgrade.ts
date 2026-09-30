@@ -1,7 +1,9 @@
 import type {
   SidebarUpgradeCopy,
   SidebarUpgradeCopyInput,
+  SidebarUpgradeTranslator,
 } from "@/types/dashboard/sidebar-upgrade";
+import type { CommonTranslator } from "@/types/i18n";
 
 export function canShowSidebarUpgrade(
   completed?: boolean | null,
@@ -13,38 +15,22 @@ export function canShowSidebarUpgrade(
   );
 }
 
-function upgradeButtonLabel(
-  { hasNoPlan, isLoading, showTrial }: SidebarUpgradeCopyInput,
-  upgradeLabel: string
-): string {
-  if (isLoading) {
-    return "Loading...";
-  }
-  if (showTrial) {
-    return "Start free trial";
-  }
-  return hasNoPlan ? "Get started" : upgradeLabel;
-}
-
-function upgradeDescription({
-  hasNoPlan,
-  showTrial,
-}: SidebarUpgradeCopyInput): string {
-  if (!hasNoPlan) {
-    return "Get more AI answers, projects, and higher usage limits.";
-  }
-  return showTrial
-    ? "Start your free trial and unlock AI-powered workflows."
-    : "Pick a plan to unlock AI-powered workflows.";
-}
-
 export function sidebarUpgradeCopy(
-  input: SidebarUpgradeCopyInput
+  input: SidebarUpgradeCopyInput,
+  t: SidebarUpgradeTranslator,
+  tCommon: CommonTranslator
 ): SidebarUpgradeCopy {
-  const upgradeLabel = `Upgrade to ${input.planName}`;
+  if (input.hasNoPlan) {
+    return {
+      buttonLabel: t("upgradeNow"),
+      description: t("freeDescription"),
+      heading: t("freeHeading"),
+    };
+  }
+  const upgradeLabel = t("upgradeToPlan", { plan: input.planName ?? "" });
   return {
-    buttonLabel: upgradeButtonLabel(input, upgradeLabel),
-    description: upgradeDescription(input),
-    heading: input.hasNoPlan ? "Get Started" : upgradeLabel,
+    buttonLabel: input.isLoading ? tCommon("states.loading") : upgradeLabel,
+    description: t("paidDescription"),
+    heading: upgradeLabel,
   };
 }

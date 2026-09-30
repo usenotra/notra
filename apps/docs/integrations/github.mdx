@@ -33,6 +33,7 @@ The GitHub App asks for:
 
 * Read access to repository metadata, branches, and releases
 * Write access to Contents and Pull requests, so Notra can open a draft pull request with the generated Markdown
+* Write access to Issues, so Notra can add and remove status reactions on PR conversation comments through GitHub's issue-comment API. Mentions on ordinary issues are ignored.
 * Webhook events for the repositories you choose
 * Access only to the repositories you grant during installation
 
@@ -92,6 +93,53 @@ The Payload URL has the form `https://app.usenotra.com/api/webhooks/github/{orga
 | anything else  | Logged as ignored and answered with `200`.                                       |
 
 Every delivery is written to the organization's webhook log (**Settings**, then **Logs**). See [Webhooks Overview](/api/webhooks/overview) for response shapes.
+
+## Mention Notra on pull requests
+
+Mention Notra in a pull request comment, for example `@usenotra shorten the intro`. Mentions on ordinary issues are ignored without a reply or reaction. You do not need the exact App name: `@usenotra`, `@notra`, `@notra-ai`, and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done or 👎 when a safeguard declines the request. The reply and any commits come from the App's bot account.
+
+When your comment is about how something reads ("the intro feels heavy", "show me a punchier opening"), Notra does not commit. It answers with a GitHub suggestion on the lines in question, and you apply it with **Commit suggestion**, or reply "shorter please" to get another take. Nothing on the branch changes until you accept one. Applying that suggestion, or a commit Notra makes itself, updates the matching Notra post. Notra commits directly when you tell it to ("apply it", "go ahead"), for plain corrections such as a typo or a wrong number, and for changes a suggestion cannot express, like edits across several files.
+
+Notra writes in the brand voice the post was created with, and it reads the pull request description, so an edit from a comment sounds like the rest of the post.
+
+After a commit, Notra replies right at the lines it edited under **Files changed**, with a before and after of the text and a link to the commit. When you wrote in a review thread, the reply stays in that thread. You can also mention Notra in a review comment on specific lines, or reply inside its thread ("shorter please"); it reads the earlier comments, so you do not have to repeat yourself.
+
+* **Questions** get an answer in the thread. Nothing is committed.
+* **Change requests** on a pull request Notra published commit the file onto that pull request, then synchronize the Notra post. The same happens when you apply a GitHub suggestion on that file.
+* **Separate pull request**: say so in the comment ("open a separate PR") and Notra commits to a new branch and opens a draft pull request stacked on the one you commented on. The Notra post stays as it is. Once you merge that pull request into the published one, the next change picks it up.
+
+Notra only acts on comments from members of your Notra organization whose login is linked to the commenting GitHub account. Other mentions are ignored and logged as skipped. Mentions inside code, quotes, or email addresses do not count.
+
+Comments written by bots never start Notra, so a review from Greptile or CodeRabbit is left alone. To have Notra act on such a finding, reply inside the bot's review thread and mention Notra ("@notra fix this"). Notra reads the finding you replied to and follows your instruction.
+
+### What a mention costs
+
+Every mention runs an agent, so it is billed. Each plan includes a budget of pull request credits that only the bot spends:
+
+| Plan | Included |
+| ----- | -------- |
+| Free | $1, once |
+| Starter | $10 per month |
+| Growth | $15 per month |
+| Scale | $25 per month |
+
+A mention is charged what its model calls cost, the same way AI credits are charged elsewhere in Notra. The remaining budget is shown under **Settings → Billing → Usage**. Once it is used up, mentions keep working and fall back to your AI credits, so a busy week does not stop the bot. When both are empty, Notra replies once that there is nothing left to spend and does nothing else; top up credits or move to a bigger plan, then mention it again.
+
+One organization can start 20 mention runs in 10 minutes. Above that Notra replies that it paused and when to try again. Nothing is billed for a mention it refuses.
+
+If the GitHub App is missing a permission, Notra does not retry. It replies once with the permission that is missing and a link to the installation settings, and the mention shows up as failed in the webhook log. Mention Notra again after an owner has approved the permissions.
+
+Notra acknowledges a mention only after a durable workflow has been queued. Redis is required to prevent competing deliveries from running the same mention. If processing is interrupted after it starts, Notra records a failure instead of automatically repeating potentially completed GitHub writes. Check the pull request for a commit or reply before posting a new mention. Redelivering the interrupted delivery does not start another agent run.
+
+Notra never commits to the repository's default branch. Ask for a separate pull request instead. Fork pull requests support answers only, including when a separate pull request is requested.
+
+Mentions edit content, not code. Notra commits Markdown, MDX, and text files, plus the JSON, YAML, TOML, or CSV data that sits next to them, such as a docs navigation file. Code, scripts, dot files and folders like `.github`, and build or tool configuration such as `package.json` or `vercel.json` are never committed, whatever the comment asks for. If you ask for one of those, Notra tells you it needs a regular commit.
+
+The same goes for active content inside Markdown and MDX. A mention can reword a page with unchanged standalone imports, but files containing exports or complex imports require a regular commit. It cannot add new `import` or `export` lines, MDX expressions such as `{props.value}` (plain literals like `width={600}` are fine), `<script>` tags, iframes, `javascript:` links, or inline event handlers. Code samples in fenced blocks are fine. If any sandbox change is blocked, the entire patch is rejected. Deleting a linked publication is not supported.
+
+If someone pushed to the pull request after Notra's last commit, Notra continues from the file on the pull request, so edits made by hand are kept and flow back into the Notra post with the next change.
+
+Mentions arrive through the GitHub App, not the per-repository webhook above. The App must be subscribed to the **Issue comment**, **Pull request review comment**, and **Pull request** events. GitHub uses **Issue comment** for ordinary PR conversation comments too, so this subscription is required even though Notra ignores issues. Closing or merging a pull request Notra published marks that publication as closed so the post can be published again.
 
 ## Legacy: personal access token
 

@@ -3,7 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { Metadata } from "next";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra for Open Source";
@@ -14,7 +18,7 @@ const url = `${SITE_URL}/oss-program`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

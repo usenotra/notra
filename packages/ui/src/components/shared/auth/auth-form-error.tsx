@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { TRANSITION } from "@notra/ui/lib/motion";
-import type { AuthFormErrorProps } from "../../../lib/auth-types";
+import type { AuthFormErrorProps } from "../../../types/auth";
 
 export function AuthFormError({ error, className }: AuthFormErrorProps) {
   const reduceMotion = useReducedMotion();

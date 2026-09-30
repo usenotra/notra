@@ -13,10 +13,6 @@ import {
   eventSelectBySourceParameters,
 } from "./utils/events";
 
-// Converts the parameterized "$n" statements shared with the Effect programs
-// into drizzle SQL templates so the raw SQL stays single-sourced. Only safe
-// for statements without "$n" sequences inside string literals — all webhook
-// statements satisfy that.
 const toDrizzleSql = (query: string, parameters: readonly unknown[]): SQL => {
   const chunks: SQL[] = [];
   let lastIndex = 0;
@@ -32,9 +28,6 @@ const toDrizzleSql = (query: string, parameters: readonly unknown[]): SQL => {
   return sql.join(chunks, sql.raw(""));
 };
 
-// tx.execute resolves to a driver-specific shape: node-postgres and pglite
-// return a result object with `rows`, postgres-js returns the rows array
-// directly. Normalize both.
 const rowsOf = <T>(result: unknown): T[] => {
   if (Array.isArray(result)) {
     return result as T[];
@@ -48,12 +41,6 @@ const rowsOf = <T>(result: unknown): T[] => {
   return [];
 };
 
-// Transactional variant of publishEvent: identical statement, identical
-// payload, but executed on the caller's drizzle transaction so the webhook
-// outbox row commits or rolls back together with the surrounding write.
-// Throws WebhookValidationError on invalid input and WebhookStorageError if
-// the insert produced no row; both roll the transaction back, making the
-// caller's retry safe through the (organization_id, source_key) dedupe.
 export const publishEventInTransaction = async (
   tx: DrizzleExecutor,
   input: unknown

@@ -1,0 +1,1 @@
+export const CHAT_COMPOSER_DRAFT_PERSIST_MS = 400;

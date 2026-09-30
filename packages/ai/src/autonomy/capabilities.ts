@@ -102,7 +102,6 @@ const CHANGELOG_MAX_OUTPUT_TOKENS = 3000;
 const BLOG_POST_MAX_OUTPUT_TOKENS = 4000;
 const SOCIAL_POST_MAX_OUTPUT_TOKENS = 800;
 const IMAGE_REVIEW_MAX_OUTPUT_TOKENS = 700;
-const CONTENT_TEMPERATURE = 0.6;
 const ISO_DATE_LENGTH = 10;
 
 export const IRIS_CONTENT_MODEL_ID = AGENT_DEFAULT_MODEL;
@@ -205,15 +204,17 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
           model: gateway(IRIS_CONTENT_MODEL_ID, {
             organizationId: params.input.organizationId,
           }),
-          system: buildIrisContentSystemPrompt({
+          instructions: buildIrisContentSystemPrompt({
             objective: params.input.mandate.objective,
           }),
           prompt: params.prompt,
-          temperature: CONTENT_TEMPERATURE,
           maxOutputTokens: params.maxOutputTokens,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IRIS_CONTENT_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-content"] } },
+            {
+              modelId: IRIS_CONTENT_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) =>
         new IrisCapabilityError({
@@ -480,9 +481,12 @@ const reviewIrisImage = Effect.fn("iris.capabilities.reviewImage")(
             },
           ],
           maxOutputTokens: IMAGE_REVIEW_MAX_OUTPUT_TOKENS,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IMAGE_REVIEW_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-image-review"] } },
+            {
+              modelId: IMAGE_REVIEW_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) => cause,
     });

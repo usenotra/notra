@@ -1,5 +1,7 @@
 "use client";
 
+import { Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useDirection } from "@base-ui/react/direction-provider";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
@@ -8,7 +10,7 @@ import { useAsRef } from "@notra/ui/hooks/use-as-ref";
 import { useIsomorphicLayoutEffect } from "@notra/ui/hooks/use-isomorphic-layout-effect";
 import { useLazyRef } from "@notra/ui/hooks/use-lazy-ref";
 import { cn } from "@notra/ui/lib/utils";
-import { Check } from "lucide-react";
+
 import * as React from "react";
 
 const ROOT_NAME = "Stepper";
@@ -1023,7 +1025,7 @@ function StepperIndicator(props: StepperIndicatorProps) {
     ) : children ? (
       children
     ) : dataState === "completed" ? (
-      <Check className="size-4" />
+      <HugeiconsIcon icon={Tick02Icon} className="size-4" strokeWidth={2} />
     ) : (
       stepPosition
     );

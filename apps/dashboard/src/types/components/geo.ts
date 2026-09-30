@@ -1,3 +1,4 @@
+import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type {
   GeoCsvParseResult,
   GeoImportKind,
@@ -21,37 +22,46 @@ export interface SuggestionRowActionsProps {
   suggestion: GeoPromptSuggestion;
 }
 
+export interface SuggestionColumnsOptions {
+  acceptingSuggestionIds: ReadonlySet<string>;
+  dismissingSuggestionIds: ReadonlySet<string>;
+  /** Blocks every row while a scan or "Track all" is running. */
+  disabled: boolean;
+  onAccept: (suggestionId: string) => void;
+  onDismiss: (suggestion: GeoPromptSuggestion) => void;
+  onOpen: (suggestion: GeoPromptSuggestion) => void;
+  locale: string;
+  labels: {
+    prompt: string;
+    impressions: string;
+    clicks: string;
+    position: string;
+    openDetails: (prompt: string) => string;
+  };
+}
+
 export interface SearchConsoleToolbarProps {
   action?: ReactNode;
   organizationId: string;
   callbackPath: string;
   isPending: boolean;
-  onDismiss?: () => void;
   onPropertyPickerOpenChange: (open: boolean) => void;
   propertyPickerOpen: boolean;
   status: GeoSearchConsoleStatus | undefined;
 }
 
-export interface SearchConsoleHeaderRowProps {
-  action?: ReactNode;
-  titleId: string;
-  onDismiss?: () => void;
-}
-
-export interface SearchConsoleConnectActionProps {
+export interface SearchConsoleSetupStateProps {
   organizationId: string;
   callbackPath: string;
-  configured: boolean;
-  reauth: boolean;
-}
-
-export interface SearchConsoleSelectSiteStateProps {
-  organizationId: string;
-  callbackPath: string;
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
   status: GeoSearchConsoleStatus;
   websiteUrl: string | null;
+}
+
+export interface SearchConsoleReconnectButtonProps {
+  organizationId: string;
+  callbackPath: string;
+  label: string;
+  variant?: "default" | "outline";
 }
 
 export interface SearchConsolePropertyPickerProps {
@@ -71,8 +81,49 @@ export interface SearchConsoleConnectedStateProps {
   websiteUrl: string | null;
 }
 
+export interface TrackAllButtonProps {
+  pending: boolean;
+  onClick: () => void;
+}
+
+export interface SuggestionDetailActionsProps {
+  accepting: boolean;
+  disabled: boolean;
+  dismissing: boolean;
+  onAccept: () => void;
+  onDismiss: () => void;
+}
+
+export interface DismissSuggestionDialogProps {
+  suggestion: GeoPromptSuggestion | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (suggestionId: string) => void;
+}
+
+export interface PromptSuggestionSheetProps {
+  suggestion: GeoPromptSuggestion | null;
+  actions?: ReactNode;
+  onOpenChange: (open: boolean) => void;
+}
+
+export interface SuggestionQueryTableProps {
+  queries: readonly GeoSuggestionKeyword[];
+}
+
+export interface SuggestionKeywordTotals {
+  impressions: number;
+  clicks: number;
+  position: number | null;
+  ctr: number | null;
+}
+
 export interface GeoUpgradeGateProps {
   slug: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export interface GeoPageGateProps {
   children: ReactNode;
   fallback: ReactNode;
 }
@@ -81,6 +132,8 @@ export interface GeoUpgradeDialogProps {
   slug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onOpenChangeComplete?: (open: boolean) => void;
+  entry?: "geo" | "sidebar" | "studio";
 }
 
 export interface GeoCsvImportDialogProps<TRow> {

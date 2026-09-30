@@ -161,3 +161,34 @@ export function svgPrimitiveToSubpaths(
   }
   return parseSvgPath(d);
 }
+
+function svgLengthAttr(el: Element, name: string): string | null {
+  const raw = el.getAttribute(name);
+  if (!raw?.trim().endsWith("%")) {
+    return raw;
+  }
+  const animated: unknown = Reflect.get(el, name);
+  return animated instanceof SVGAnimatedLength
+    ? String(animated.baseVal.value)
+    : raw;
+}
+
+export function svgPrimitiveAttrs(el: Element): SvgPrimitiveAttrs {
+  return {
+    d: el.getAttribute("d"),
+    cx: svgLengthAttr(el, "cx"),
+    cy: svgLengthAttr(el, "cy"),
+    r: svgLengthAttr(el, "r"),
+    rx: svgLengthAttr(el, "rx"),
+    ry: svgLengthAttr(el, "ry"),
+    x: svgLengthAttr(el, "x"),
+    y: svgLengthAttr(el, "y"),
+    width: svgLengthAttr(el, "width"),
+    height: svgLengthAttr(el, "height"),
+    x1: svgLengthAttr(el, "x1"),
+    y1: svgLengthAttr(el, "y1"),
+    x2: svgLengthAttr(el, "x2"),
+    y2: svgLengthAttr(el, "y2"),
+    points: el.getAttribute("points"),
+  };
+}

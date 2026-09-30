@@ -4,6 +4,8 @@ export interface ComposerFrameProps {
   children: ReactNode;
   nudge?: ReactNode;
   connectedTop?: boolean;
+  /** Tighter radius and no shadow, for inline composers like comments. */
+  flat?: boolean;
   className?: string;
 }
 
@@ -20,6 +22,8 @@ export interface ComposerChipProps {
   removeLabel?: string;
   onEdit?: () => void;
   editLabel?: string;
+  onSteer?: () => void;
+  steerLabel?: string;
   onClick?: () => void;
   pending?: boolean;
   className?: string;

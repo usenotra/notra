@@ -1,5 +1,5 @@
 import { shouldTrackRequest } from "./exclude";
-import { sendRequestLog } from "./send";
+import { reportGeoError, sendRequestLog } from "./send";
 import { serializeRequest } from "./serialize";
 import type { GeoRequestPayload, GeoTrackerOptions } from "./types";
 
@@ -25,7 +25,7 @@ export class Tracker {
     try {
       url = new URL(request.url);
     } catch (error) {
-      this.options.onError?.(error);
+      reportGeoError(this.options.onError, error);
       return null;
     }
 
@@ -52,7 +52,7 @@ export class Tracker {
       }
       await sendRequestLog(payload, this.options);
     } catch (error) {
-      this.options.onError?.(error);
+      reportGeoError(this.options.onError, error);
     }
   }
 }

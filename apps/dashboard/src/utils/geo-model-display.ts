@@ -1,7 +1,4 @@
-import {
-  GEO_ENGINE_LABELS,
-  GEO_SEARCH_LABEL,
-} from "@notra/geo-core/constants/geo";
+import { GEO_ENGINE_LABELS } from "@notra/geo-core/constants/geo";
 import {
   engineFamilyLabel,
   engineModelOf,
@@ -117,15 +114,16 @@ export function formatChartEngineLabel(label: string): string {
 
 export function formatChartEngineRankLabel(
   label: string,
-  showSearchMode: boolean
+  showSearchMode: boolean,
+  formatWithoutSearch: (engine: string) => string
 ): string {
   const name = formatChartEngineLabel(label);
   if (!showSearchMode) {
     return name;
   }
   return isGroundedEngine(resolveChartEngineId(label))
-    ? `${name} ${GEO_SEARCH_LABEL}`
-    : name;
+    ? name
+    : formatWithoutSearch(name);
 }
 
 function formatModelSlug(slug: string): string {

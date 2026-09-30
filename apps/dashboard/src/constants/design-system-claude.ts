@@ -1,8 +1,8 @@
 import type {
-  ClaudeEffort,
-  ClaudeMode,
-} from "@notra/ui/components/brainless/claude/claude-prompt";
-import type { ClaudeTodo } from "@notra/ui/components/brainless/claude/claude-todo-list";
+  ClaudeCodeEffort,
+  ClaudeCodeMode,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-prompt";
+import type { ClaudeCodeTodo } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
 
 import type {
   ClaudeStoryPromptVariant,
@@ -10,7 +10,7 @@ import type {
   ClaudeStoryToolCall,
 } from "@/types/design-system-claude";
 
-export const CLAUDE_STORY_MODES: ClaudeMode[] = [
+export const CLAUDE_STORY_MODES: ClaudeCodeMode[] = [
   "auto",
   "manual",
   "accept-edits",
@@ -18,7 +18,7 @@ export const CLAUDE_STORY_MODES: ClaudeMode[] = [
   "bypass",
 ];
 
-export const CLAUDE_STORY_EFFORTS: ClaudeEffort[] = [
+export const CLAUDE_STORY_EFFORTS: ClaudeCodeEffort[] = [
   "low",
   "medium",
   "high",
@@ -30,53 +30,54 @@ export const CLAUDE_STORY_EFFORTS: ClaudeEffort[] = [
 export const CLAUDE_STORY_SESSION: ClaudeStorySession = {
   title: "claude — ~/acme/web",
   header: {
-    version: "v2.1.206",
-    user: "Dominik",
-    model: "Fable 5 with xhigh effort · Claude Max",
-    org: "dominik@usenotra.com's Organization",
+    version: "v2.1.285",
+    model: "Opus 5.5 (1M context)",
+    org: "Claude Max",
     cwd: "~/acme/web",
     tips: [
-      "Ask Claude to draft this week's changelog",
-      "Shift+Tab cycles permission mode",
+      "SessionStart:startup hook succeeded",
+      "notra MCP server connected · 24 tools",
     ],
     whatsNew: [
-      "MCP tool calls now stream progress",
-      "Added a /doctor check that proposes trims",
+      "Get to finished work sooner with Opus 5.5. Switch anytime with `/model`.",
     ],
   },
-  userMessage: "draft a changelog from this week's merged PRs and post it",
+  userMessage: "what changed since the last release?",
+  commands: [
+    {
+      id: "git-log",
+      tool: "Bash",
+      arg: "git log --oneline v1.8.0..HEAD",
+      result: "14 commits",
+    },
+  ],
   assistantMessage:
-    "I'll pull the week from notra, draft it in your voice, then publish.",
+    "Since **v1.8.0** there are 14 merged PRs on `main`.\n\n`apps/dashboard` got the new **GEO scan** view, `packages/api` added `POST /v1/posts/:id/schedule`, and `apps/web` moved the changelog to `/changelog/[slug]`.\n\nWant me to draft the changelog for v1.9 from these?",
+  summary: { verb: "Cogitated", duration: "7s", doneAt: "9:41 AM" },
+  followUpMessage: "draft the changelog for v1.9 and queue it in notra",
   todos: [
-    { label: "Pull this week's merged PRs via notra", status: "done" },
+    { label: "Group the 14 merged PRs by area", status: "done" },
     { label: "Draft the changelog in brand voice", status: "active" },
-    { label: "Publish and schedule social updates", status: "todo" },
+    { label: "Queue the post in notra", status: "todo" },
   ],
-  toolCalls: [
-    {
-      id: "list-events",
-      tool: "notra · list_events",
-      arg: "week",
-      result: "14 merged PRs, 2 releases",
-    },
-    {
-      id: "create-post",
-      tool: "notra · create_post",
-      arg: "changelog",
-      result: '"Scheduler v2, 40% faster builds"',
-    },
-    {
-      id: "publish-post",
-      tool: "notra · publish_post",
-      arg: "changelog",
-      result: "live at acme.com/changelog",
-    },
-  ],
-  resultMessage: "Published. Drafted in your voice from 14 PRs in 22 seconds.",
-  promptPlaceholder: 'Try "draft a launch post for the new API"',
+  pendingToolCall: {
+    id: "brand-voice",
+    tool: "Checking brand voice and the last changelogs",
+    result: "$ notra brand voice --json && notra posts list --type changelog",
+    status: "pending",
+  },
+  spinner: {
+    verb: "Sketching",
+    elapsed: "14s",
+    tokens: 688,
+    details: ["thinking"],
+    tip: "Tip: Run `/resume` to pick up an earlier conversation",
+  },
+  promptPlaceholder: 'Try "write a LinkedIn post about the release"',
+  pullRequestNumber: 1317,
 };
 
-export const CLAUDE_STORY_TODO_STATES: ClaudeTodo[] = [
+export const CLAUDE_STORY_TODO_STATES: ClaudeCodeTodo[] = [
   { label: "Read the brand voice from notra", status: "done" },
   { label: "Draft the LinkedIn post", status: "active" },
   { label: "Queue the X thread", status: "todo" },
@@ -85,23 +86,22 @@ export const CLAUDE_STORY_TODO_STATES: ClaudeTodo[] = [
 export const CLAUDE_STORY_TOOL_STATUSES: ClaudeStoryToolCall[] = [
   {
     id: "success",
-    tool: "notra · list_events",
-    arg: "week",
+    tool: "notra - list_events (MCP)",
+    arg: 'range: "week"',
     result: "14 merged PRs, 2 releases",
     status: "success",
   },
   {
     id: "pending",
-    tool: "notra · create_post",
-    arg: "changelog",
-    result: "Drafting in brand voice…",
+    tool: "Drafting the changelog in notra",
+    result: "$ notra posts create --type changelog --from-prs v1.8.0..HEAD",
     status: "pending",
   },
   {
     id: "error",
-    tool: "notra · publish_post",
-    arg: "changelog",
-    result: "Publish failed · retry with /retry",
+    tool: "notra - publish_post (MCP)",
+    arg: 'type: "changelog"',
+    result: "Error: post is still in review",
     status: "error",
   },
   {

@@ -1,0 +1,1 @@
+export const MAX_JUDGE_COMPETITORS = 10;

@@ -53,7 +53,6 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
 
   limiters[kind] = new Ratelimit({
     redis: new Redis({ url, token }),
-    analytics: true,
     prefix,
     limiter: Ratelimit.slidingWindow(config.requests, config.window),
   });

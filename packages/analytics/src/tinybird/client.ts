@@ -11,14 +11,13 @@ import type { AnalyticsCacheScope } from "../types/cache";
 import type {
   AccountLeaderboardParams,
   AccountLeaderboardRow,
-  AiTrafficLogRow,
-  AiTrafficOverviewRow,
-  AiTrafficTimeseriesRow,
   EngagementTimeseriesParams,
   EngagementTimeseriesRow,
   FollowerGrowthParams,
   FollowerGrowthRow,
   GeoJourneyDetailRow,
+  GeoJourneyPagesRow,
+  GeoJourneySourcesRow,
   GeoTrafficJourneysRow,
   GeoTrafficLogParams,
   GeoTrafficLogRow,
@@ -36,8 +35,6 @@ import type {
   TopPostsRow,
 } from "../types/tinybird-endpoints";
 import {
-  type AiTrafficEventRow,
-  aiTrafficEvents,
   type GeoTrafficEventRow,
   geoTrafficEvents,
   type SocialAccountRow,
@@ -52,12 +49,9 @@ import {
   socialPosts,
 } from "./datasources";
 import {
-  aiTrafficLog,
-  aiTrafficOverview,
-  aiTrafficTimeseries,
-} from "./pipes/ai-traffic";
-import {
   geoJourneyDetail,
+  geoJourneyPages,
+  geoJourneySources,
   geoTrafficJourneys,
   geoTrafficLog,
   geoTrafficOverview,
@@ -100,7 +94,6 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       socialPosts,
       socialPostStats,
       socialPostSources,
-      aiTrafficEvents,
       geoTrafficEvents,
     },
     pipes: {
@@ -112,14 +105,13 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       notraAdoption,
       postMetricsLookup,
       accountLeaderboard,
-      aiTrafficOverview,
-      aiTrafficTimeseries,
-      aiTrafficLog,
       geoTrafficOverview,
       geoTrafficTimeseries,
       geoTrafficPages,
       geoTrafficLog,
       geoTrafficJourneys,
+      geoJourneySources,
+      geoJourneyPages,
       geoJourneyDetail,
     },
   });
@@ -245,17 +237,6 @@ export function ingestSocialPostSources(
   );
 }
 
-export function ingestAiTrafficEvents(
-  rows: AiTrafficEventRow[]
-): Promise<IngestResult | null> {
-  return ingestRows(
-    rows,
-    "traffic",
-    rows.map((row) => row.organization_id),
-    (client, batch) => client.aiTrafficEvents.ingestBatch(batch)
-  );
-}
-
 export function ingestGeoTrafficEvents(
   rows: GeoTrafficEventRow[]
 ): Promise<IngestResult | null> {
@@ -371,45 +352,6 @@ export function queryPostMetricsLookup(params: {
   );
 }
 
-export function queryAiTrafficOverview(params: {
-  organization_id: string;
-  days?: number;
-}): Promise<QueryResult<AiTrafficOverviewRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_overview",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficOverview.query(params)
-  );
-}
-
-export function queryAiTrafficTimeseries(params: {
-  organization_id: string;
-  days?: number;
-}): Promise<QueryResult<AiTrafficTimeseriesRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_timeseries",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficTimeseries.query(params)
-  );
-}
-
-export function queryAiTrafficLog(params: {
-  organization_id: string;
-  limit?: number;
-}): Promise<QueryResult<AiTrafficLogRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_log",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficLog.query(params)
-  );
-}
-
 export function queryGeoTrafficOverview(
   params: InferParams<typeof geoTrafficOverview>
 ): Promise<QueryResult<GeoTrafficOverviewRow> | null> {
@@ -467,6 +409,30 @@ export function queryGeoTrafficJourneys(
     params,
     params.organization_id,
     (client) => client.geoTrafficJourneys.query(params)
+  );
+}
+
+export function queryGeoJourneySources(
+  params: InferParams<typeof geoJourneySources>
+): Promise<QueryResult<GeoJourneySourcesRow> | null> {
+  return cachedPipeQuery(
+    "geo",
+    "geo_journey_sources",
+    params,
+    params.organization_id,
+    (client) => client.geoJourneySources.query(params)
+  );
+}
+
+export function queryGeoJourneyPages(
+  params: InferParams<typeof geoJourneyPages>
+): Promise<QueryResult<GeoJourneyPagesRow> | null> {
+  return cachedPipeQuery(
+    "geo",
+    "geo_journey_pages",
+    params,
+    params.organization_id,
+    (client) => client.geoJourneyPages.query(params)
   );
 }
 

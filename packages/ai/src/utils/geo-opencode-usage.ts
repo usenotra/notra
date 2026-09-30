@@ -21,6 +21,5 @@ export function geoBoxTokenUsage(
       reasoningTokens: undefined,
     },
     totalTokens: cost.inputTokens + cost.outputTokens,
-    cachedInputTokens: cost.cachedInputTokens,
   };
 }

@@ -9,7 +9,7 @@ import {
 } from "@notra/ai/utils/operational-context";
 import type { DrainContext } from "evlog";
 import { createEvlog } from "evlog/next";
-import { createInstrumentation } from "evlog/next/instrumentation";
+import { createInstrumentation } from "evlog/next/instrumentation/create";
 
 const service = process.env.NODE_ENV === "development" ? "notra-dev" : "notra";
 
@@ -32,8 +32,9 @@ function routeDrain(ctx: DrainContext) {
   try {
     runtime.flushScheduler?.(flushLogs);
   } catch {
-    // Next's after() is unavailable outside a request. Long-lived runtimes
-    // use the batch timer and explicitly flush during graceful shutdown.
+    // createLogFlushScheduler already falls back to a macrotask flush when the
+    // host hook (Next's after()) is unavailable; this is defense-in-depth so a
+    // scheduler failure can never break the drain call chain.
   }
 }
 

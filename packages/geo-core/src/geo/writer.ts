@@ -1,6 +1,6 @@
 import { generateGeoContentBrief } from "@notra/ai/agents/geo-writer";
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
-import { GEO_WRITER_MODEL } from "@notra/ai/constants/models";
+import { GEO_WRITER_PLANNER_MODEL } from "@notra/ai/constants/models";
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import type {
   GeoContentBrief,
@@ -595,6 +595,42 @@ const approveAndStartGeoWriterInScope = Effect.fn("geo.writer.startInScope")(
   }
 );
 
+const reuseOpenBrief = Effect.fn("geo.writer.reuseOpenBrief")(function* (
+  scope: Required<GeoScopeInput>,
+  open: BriefRow,
+  autoApprove: boolean | undefined
+) {
+  const isReviewable = open.status === "draft" || open.status === "failed";
+  let postId = open.postId;
+  if (!postId && isReviewable) {
+    const repairedDraft = yield* createBriefDraftPost({
+      organizationId: scope.organizationId,
+      projectId: scope.projectId,
+      briefId: open.id,
+      brief: open.brief,
+      brandVoiceId: open.brandSettingsId,
+      sourceKind: open.sourceKind,
+      sourceId: open.sourceId,
+      collectionId: open.collectionId,
+      postId: open.postId,
+    });
+    postId = repairedDraft.postId;
+  }
+  if (!autoApprove || !isReviewable) {
+    return { ...toPlanResponse(open), postId };
+  }
+  const started = yield* approveAndStartGeoWriterInScope(scope, open.id, {
+    autoApproved: true,
+  });
+  const response: GeoWriterPlanResponse = {
+    ...toPlanResponse(open),
+    status: "writing",
+    runId: started.runId,
+    postId,
+  };
+  return response;
+});
+
 export const approveAndStartGeoWriter = Effect.fn("geo.writer.start")(
   function* (
     input: GeoScopeInput,
@@ -629,24 +665,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   if (sourceKind !== "manual" && sourceId) {
     const open = yield* findReusableBrief(scope, sourceKind, sourceId);
     if (open) {
-      if (
-        !open.postId &&
-        (open.status === "draft" || open.status === "failed")
-      ) {
-        const repairedDraft = yield* createBriefDraftPost({
-          organizationId: scope.organizationId,
-          projectId: scope.projectId,
-          briefId: open.id,
-          brief: open.brief,
-          brandVoiceId: open.brandSettingsId,
-          sourceKind: open.sourceKind,
-          sourceId: open.sourceId,
-          collectionId: open.collectionId,
-          postId: open.postId,
-        });
-        return { ...toPlanResponse(open), postId: repairedDraft.postId };
-      }
-      return toPlanResponse(open);
+      return yield* reuseOpenBrief(scope, open, input.autoApprove);
     }
   }
 
@@ -763,7 +782,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
           reservation: gate,
           action: "confirm",
           usage: result.usage,
-          fallbackModelId: GEO_WRITER_MODEL,
+          fallbackModelId: GEO_WRITER_PLANNER_MODEL,
           properties: {
             source: "geo_writer_planner",
             run_id: planningRunId,
@@ -832,7 +851,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   if (inserted.length === 0 && sourceKind !== "manual" && sourceId) {
     const winner = yield* findReusableBrief(scope, sourceKind, sourceId);
     if (winner) {
-      return toPlanResponse(winner);
+      return yield* reuseOpenBrief(scope, winner, input.autoApprove);
     }
   }
 
@@ -899,7 +918,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         columns: { prompt: true },
         where: and(
           eq(geoPromptSuggestions.id, sourceId),
-          eq(geoPromptSuggestions.organizationId, organizationId)
+          eq(geoPromptSuggestions.organizationId, organizationId),
+          eq(geoPromptSuggestions.projectId, projectId)
         ),
       })
     );
@@ -908,7 +928,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         new GeoPromptNotFoundError({ promptId: sourceId })
       );
     }
-    return suggestion.prompt;
+    // Keep the suggestion as the reuse key, but honor edits to its topic.
+    return input.topic;
   }
 
   const promptRow = yield* geoDb("prompt lookup failed", () =>

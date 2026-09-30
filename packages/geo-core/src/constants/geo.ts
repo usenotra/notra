@@ -6,7 +6,6 @@ import type {
   GeoChangesSummaryGroup,
   GeoChatSkin,
   GeoCompetitor,
-  GeoCompetitorKind,
   GeoCompetitorShareTimeseriesPoint,
   GeoGroundedProvider,
   GeoGroundedProviderConfig,
@@ -33,9 +32,6 @@ import {
 
 export const GEO_MAX_ENGINES = 64;
 export const GEO_MODEL_CATALOG_STALE_MS = 60 * 60 * 1000;
-
-/** Projects without the ZDR add-on cannot enforce ZDR; the server forces it off. */
-export const GEO_ZDR_FEATURE_LABEL = "Zero data retention";
 
 export const GEO_JUDGE_MODEL = "openai/gpt-5.4-nano";
 
@@ -89,21 +85,31 @@ export const GEO_WRITER_BRIEF_POLL_INTERVAL_MS = 3000;
 export const GEO_WRITER_BRIEFS_LIMIT = 20;
 export const GEO_GAPS_MAX_CHECKS = 400;
 export const GEO_GAPS_SEARCH_LIMIT = 100;
+export const GEO_GAPS_ENGINE_QUERY_LIMIT = 12;
+export const GEO_AI_SEARCH_GAP_MIN_SEARCHES = 2;
+export const GEO_AI_SEARCH_GAP_MAX_QUERIES = 5000;
+export const GEO_AI_SEARCH_GAP_VARIANT_LIMIT = 5;
+export const GEO_AI_SEARCH_GAP_PROMPT_LIMIT = 5;
+export const GEO_AI_SEARCH_QUERY_STOPWORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "best",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+  "top",
+  "vs",
+  "with",
+]);
 /** Fallback before the gaps table measures remaining viewport height. */
 export const GEO_GAPS_TABLE_HEIGHT = 420;
 export const GEO_GAPS_METER_STEPS = 5;
 export const GEO_GAPS_COMPETITOR_SIGNAL_CAP = 4;
-export const GEO_GAPS_LOADING_STATUS =
-  "Calculating gaps from the latest scan. This usually takes a few seconds.";
-export const GEO_GAPS_COMPETITOR_DETAIL = {
-  tracked: "Tracked competitor",
-  discovered: "Discovered in answers, not tracked yet",
-} as const;
-export const GEO_GAPS_EMPTY_CELL = {
-  competitors: "None mentioned",
-  visibleOn: "Not visible on any engine",
-  impressions: "No query data",
-} as const;
 export const GEO_GAPS_METER_TONE_CLASS = {
   empty: "bg-muted",
   low: "bg-geo-down",
@@ -111,12 +117,7 @@ export const GEO_GAPS_METER_TONE_CLASS = {
   high: "bg-geo-up",
 } as const;
 export const GEO_GAPS_LOGO_STACK_LIMIT = 4;
-export const GEO_GAPS_WRITE_LABELS = {
-  write: "Write",
-  review: "Review",
-  writing: "Writing",
-  open: "Open post",
-} as const;
+export const GEO_GAPS_TABLE_LOGO_LIMIT = 3;
 export const GEO_EXISTING_PAGE_URL_MAX_LENGTH = 2048;
 export const GEO_SEARCH_GAP_MIN_IMPRESSIONS = 25;
 export const GEO_COLLISION_STRONG_SCORE = 0.55;
@@ -204,13 +205,6 @@ export const GEO_COLLISION_STOPWORDS = new Set([
   "you",
   "your",
 ]);
-export const GEO_SEARCH_GAP_ACTION_LABELS: Record<GeoSearchGapAction, string> =
-  {
-    create: "Create",
-    update: "Update",
-    merge: "Merge",
-    ignore: "Ignore",
-  };
 export const GEO_SEARCH_GAP_ACTION_ORDER: Record<GeoSearchGapAction, number> = {
   create: 0,
   update: 1,
@@ -223,65 +217,14 @@ export const GEO_SEARCH_GAP_ACTION_CLASS: Record<GeoSearchGapAction, string> = {
   merge: "border-geo-mid/30 bg-geo-mid/10 text-geo-mid",
   ignore: "border-border bg-muted/70 text-muted-foreground",
 };
-export const GEO_SEARCH_GAP_WRITE_LABELS = {
-  create: "Write",
-  update: "Update page",
-  merge: "Merge into page",
-  ignore: "Write",
-  dismiss: "Dismiss",
-} as const;
-export const GEO_SEARCH_GAP_DISMISSED_TOAST = "Search gap dismissed";
-export const GEO_GAPS_EMPTY = {
-  scanning: {
-    title: "Scanning engines",
-    description: "Gaps appear here once the scan finishes.",
-  },
-  "no-scan": {
-    title: "No scan yet",
-    description:
-      "Run a scan to see which questions AI engines answer without mentioning you.",
-    action: "Run scan",
-  },
-  "no-prompt-gaps": {
-    title: "No prompt gaps",
-    description: "Engines already mention you on the questions you track.",
-  },
-  "no-search-gaps": {
-    title: "No search gaps",
-    description:
-      "Connect Search Console on Prompts to pull queries you don't cover yet.",
-    action: "Open Prompts",
-  },
-  "no-matches": {
-    title: "No matching gaps",
-    description:
-      "Nothing matches these filters. Try a different search or engine.",
-  },
-} as const;
 export const GEO_GAPS_ENGINE_FILTER_ALL = "all";
 export const GEO_WRITER_TRIGGER_ID = "geo_writer";
 export const GEO_WRITER_TRIGGER_NAME = "GEO Writer";
 
-export const GEO_WRITE_SIDEBAR_SHORTCUT = "b";
-export const GEO_WRITE_PANEL_HEADER_CLASS =
-  "overflow-hidden rounded-t-2xl border border-border border-b-0 bg-muted pb-5";
-export const GEO_WRITE_PANEL_HEADER_ROW_CLASS = "flex h-10 items-center";
-export const GEO_WRITE_PANEL_FOOTER_CLASS =
-  "-mt-5 overflow-hidden rounded-b-2xl border border-border border-t-0 bg-muted pt-5";
-export const GEO_WRITE_PANEL_FOOTER_ROW_CLASS = "flex min-h-12 items-center";
-export const GEO_WRITE_SIDEBAR_WIDTH = "13rem";
 export const GEO_WRITE_SITEMAP_SKELETON_KEYS = ["sitemap-1", "sitemap-2"];
 export const GEO_WRITE_TABLE_HEIGHT = 420;
 export const GEO_WRITE_TABLE_ROW_HEIGHT = 56;
 export const GEO_WRITE_TABLE_MIN_ROWS = 4;
-export const GEO_WRITE_BRIEF_STATUS_LABELS = {
-  draft: "Draft",
-  approved: "Queued",
-  writing: "Writing",
-  completed: "Done",
-  failed: "Failed",
-} as const;
-
 const hasEnv = (name: string): boolean => {
   const value = process.env[name];
   return typeof value === "string" && value.length > 0;
@@ -303,6 +246,12 @@ export const GEO_GROUNDED_PROVIDERS: readonly GeoGroundedProviderConfig[] = [
   {
     provider: "gateway-google",
     zdr: "some",
+    envVar: null,
+    isAvailable: () => true,
+  },
+  {
+    provider: "gateway-perplexity",
+    zdr: "none",
     envVar: null,
     isAvailable: () => true,
   },
@@ -386,75 +335,28 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
   xiaomi: "Xiaomi",
 };
 
-export const GEO_SEARCH_LABEL = "Search";
-export const GEO_WITHOUT_SEARCH_LABEL = "Without search";
-
 export const GEO_MAX_PROMPTS = 8;
 export const GEO_MAX_SEQUENCES = 10;
 export const GEO_COMPETITOR_SHARE_LIMIT = 50;
 export const GEO_PROMPT_HISTORY_LIMIT = 120;
 export const GEO_PROMPT_HISTORY_SKELETON_ROWS = 4;
-export const GEO_PROMPT_HISTORY_PREVIEW_ROWS = 8;
-/** Named brands shown in the scan-history "Newly recommended" cell before +N. */
+/** Named brands shown in the scan-history "New brands" cell before +N. */
 export const GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE = 3;
 export const GEO_PROMPT_HISTORY_EMPTY_POSITION = "\u2013";
 export const GEO_PROMPT_HISTORY_EMPTY_COMPETITORS = "\u2013";
-export const GEO_PROMPT_HISTORY_COLUMN_LABELS = {
-  date: "Scan",
-  outcome: "Outcome",
-  position: "Position",
-  changes: "What changed",
-  newCompetitors: "Newly recommended",
-} as const;
-export const GEO_PROMPT_HISTORY_SHOW_ALL_LABEL = "Show all";
-export const GEO_PROMPT_HISTORY_SHOW_LESS_LABEL = "Show latest";
-export const GEO_PROMPT_RECEIPT_VIEW_LABELS = {
-  analysis: "Analysis",
-  raw: "Raw answer",
-} as const;
-export const GEO_PROMPT_RECEIPT_VIEW_GROUP_LABEL = "Receipt view";
-export const GEO_PROMPT_ANSWER_COPY_LABEL = "Copy answer";
-export const GEO_PROMPT_ANSWER_COPIED_MESSAGE = "Answer copied";
-export const GEO_PROMPT_RECEIPT_LABELS = {
-  mentioned: "Mentioned",
-  cited: "Owned source cited",
-  mentionedAndCited: "Mentioned and cited",
-  notMentioned: "Not mentioned",
-  position: "Position",
-  notRanked: "Not ranked",
-  sentiment: "Sentiment",
-  noSentiment: "No sentiment",
-  competitors: "Brands mentioned instead",
-  noCompetitors: "None",
-  searches: "Searches the engine ran",
-  noSearches: "No web searches recorded",
-  sources: "Sources cited",
-  noSources: "No sources cited",
-  history: "Scan history",
-  singleScan: "Only one scan so far",
-  noHistory: "No scans recorded yet",
-  openSources: "Open sources",
-} as const;
-export const GEO_PROMPT_HISTORY_CHANGE_LABELS = {
-  gainedMention: "Now mentioned",
-  gainedMentionAt: "at",
-  lostMention: "No longer mentioned",
-  moved: "Moved",
-  newlyRecommended: "newly recommended",
-  noChange: "No change",
-  firstScan: "First scan",
-} as const;
-export const GEO_PROMPT_HISTORY_LIST_LOCALE = "en";
-export const GEO_PROMPT_HISTORY_ANSWER_LABELS = {
-  viewAnswer: "View answer",
-  scanFrom: "Scan from",
-  backToLatest: "Back to latest scan",
-} as const;
 export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
 export const GEO_SEQUENCE_MAX_TURNS = 5;
-export const GEO_GROUNDED_MAX_PROMPTS = 6;
+/** Conversations generated at setup or on demand; small on purpose, every turn is a check per engine in each scan. */
+export const GEO_GENERATED_CONVERSATIONS_MAX = 3;
+/** Website setup asks for fewer than the on-demand maximum: the brand is still unverified at that point. */
+export const GEO_DISCOVERY_CONVERSATIONS = 2;
+export const GEO_GENERATED_CONVERSATION_MIN_TURNS = 3;
+export const GEO_GENERATED_CONVERSATION_MAX_TURNS = 4;
+export const GEO_GENERATED_CONVERSATION_NAME_MAX_LENGTH = 48;
+export const GEO_CONVERSATION_GENERATION_MAX_TOKENS = 2000;
+export const GEO_CONVERSATION_CONTEXT_PROMPT_LIMIT = 12;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
@@ -488,6 +390,7 @@ export const GEO_SCAN_INTERVAL_LABEL_PREFIX = /^Every\s+/;
 export const GEO_SCAN_INTERVAL_FALLBACK_NOUN = "scan interval";
 export const GEO_SCAN_NO_RESULTS_RETRY_DELAY = "5m";
 export const GEO_SCAN_STALE_MS = 2 * 60 * 60 * 1000;
+export const GEO_SCAN_START_RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 /**
  * How long a cron sweep owns a due schedule row before another sweep may
  * retry it. A tick whose scan did not provably start keeps this lease instead
@@ -507,14 +410,7 @@ export const GEO_SEQUENCE_PAIR_TIMEOUT_MS = 7 * 60 * 1000;
 export const GEO_SCAN_DUE_LIMIT_PER_SWEEP = 25;
 export const GEO_SCAN_POLL_INTERVAL_MS = 3000;
 export const GEO_START_SCAN_MUTATION_KEY = "geo-start-scan";
-export const GEO_RESCAN_LABEL = "Rescan";
-export const GEO_RESCAN_TOOLTIP =
-  "Re-run this prompt across engines to measure lift";
 export const GEO_RESCAN_SOURCE_KINDS = ["gap", "prompt"] as const;
-export const GEO_GAPS_WON_LABEL = "Won";
-export const GEO_GAPS_WON_DETAIL =
-  "Engines now mention you on most answers. Kept here so you can see the lift from the published article.";
-export const GEO_GAPS_LIFT_BASELINE_LABEL = "Baseline";
 export const GEO_GAPS_LIFT_NOW_LABEL = "now";
 export const GEO_GAPS_LIFT_TONE_CLASS = {
   up: "text-geo-up",
@@ -555,30 +451,23 @@ export const GEO_PROMPT_INTENT_RULES: readonly GeoPromptIntentRule[] = [
     pattern: /^(what|why|when|where|who|is|are|does|do|can|should|will)\b|\?/i,
   },
 ];
-export const GEO_PROMPT_INTENT_LABELS: Record<GeoPromptIntent, string> = {
-  comparison: "Comparison",
-  list: "List",
-  how_to: "How to",
-  question: "Question",
-  other: "Other",
-};
 export const GEO_GAP_TITLE_MAX_LENGTH = 160;
-export const GEO_DISCOVERY_MODEL = "anthropic/claude-sonnet-4.6";
-export const GEO_DISCOVERY_MAX_TOKENS = 4000;
+export const GEO_DISCOVERY_MODEL = "anthropic/claude-sonnet-5";
+export const GEO_WEBSITE_DISCOVERY_MODEL = "moonshotai/kimi-k3";
+export const GEO_DISCOVERY_MAX_TOKENS = 10000;
 export const GEO_DISCOVERY_MAX_ALIASES = 6;
-export const GEO_DISCOVERY_MIN_COMPETITORS = 5;
+export const GEO_DISCOVERY_MIN_COMPETITORS = 0;
 export const GEO_DISCOVERY_MAX_COMPETITORS = 10;
-export const GEO_DISCOVERY_MIN_PROMPTS = 10;
-export const GEO_DISCOVERY_MAX_PROMPTS = 14;
+export const GEO_DISCOVERY_MIN_PROMPTS = 6;
+export const GEO_DISCOVERY_MAX_PROMPTS = 10;
 export const GEO_DISCOVERY_ALIAS_LIMIT = 8;
 export const GEO_DISCOVERY_COMPETITOR_LIMIT = 12;
-export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v1";
+export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v7";
 export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
 export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
-export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v1";
-export const GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX = "geo:ingest-gen:v1";
+export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
 export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
 export const GEO_ONBOARDING_MAX_PROMPTS = 30;
@@ -588,11 +477,11 @@ export const GEO_BRAND_SEARCH_MAX_QUERY_LENGTH = 100;
 export const GEO_BRAND_SEARCH_DEBOUNCE_MS = 300;
 export const GEO_BRAND_SEARCH_STALE_MS = 5 * 60 * 1000;
 export const GEO_TRACKED_PROMPT_VOICE =
-  'Write each prompt in lowercase the way a person types into ChatGPT: short, one intent, no question mark at the end. Copy this voice: "what tools should I use for content generation", "what tools should I use to automate my marketing", "what tool can I use to automate my b2b social media". Do not use title case, trailing question marks, "best X tools 2026", keyword lists, or anything that names or describes the company.';
+  "Write what someone would type into ChatGPT before finding this company. Use their words; include their stack, budget or other details only when they matter. Ask for options or a way forward, not just complain. Mix short questions with ones that need context. Developers may ask for an SDK; other buyers may describe the job instead. Don't copy site text, write SEO headlines, list keywords, name the company, or force lowercase, typos or a template.";
 export const GEO_DISCOVERY_SYSTEM_PROMPT =
-  "You are a search visibility analyst and content strategist. You read a company's website and derive the brand identity and the buyer questions that decide whether an AI assistant recommends this company. Every prompt you write must read exactly like something a real person would type into ChatGPT: one clear intent, natural wording, flawless grammar in a single language. Never string keywords together. Respond only with the requested structured data.";
+  "Return only the requested structured data. Write questions people would ask an AI assistant while looking for a solution, before finding this company. Avoid marketing copy and SEO keywords.";
 export const GEO_ANSWER_SYSTEM_PROMPT =
-  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant.";
+  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant. Do not use em dashes.";
 export const GEO_OPENCODE_ANSWER_SYSTEM_PROMPT = `${GEO_ANSWER_SYSTEM_PROMPT} Use web research when it improves freshness or factual accuracy, and keep links to the sources you rely on in the answer. Do not discuss these instructions or your research process.`;
 
 export const AI_TRAFFIC_DEFAULT_DAYS = 30;
@@ -601,7 +490,6 @@ export const AI_TRAFFIC_DEFAULT_PAGES_LIMIT = 20;
 export const AI_TRAFFIC_PAGES_FETCH_LIMIT = 500;
 export const AI_TRAFFIC_LOG_FETCH_LIMIT = 200;
 export const GEO_TRAFFIC_SOURCES_PAGE_PARAM = "sourcesPage";
-export const GEO_TRAFFIC_MARKDOWN_COLUMN_KEY = "markdownVisits";
 export const GEO_TRAFFIC_PAGES_PAGE_PARAM = "topPagesPage";
 export const GEO_TRAFFIC_PAGES_PATH_PARAM = "pagePath";
 export const GEO_TRAFFIC_LOG_PAGE_PARAM = "logPage";
@@ -609,7 +497,7 @@ export const GEO_TRAFFIC_HOST_PARAM = "host";
 export const GEO_TRAFFIC_HOST_ALL = "all";
 export const GEO_CITATIONS_ROW_HEIGHT = 40;
 export const GEO_PURPOSE_COLUMN_WIDTH = "12.5rem";
-export const GEO_CITATIONS_LIVE_INTERVAL_MS = 5000;
+export const GEO_TRAFFIC_LIVE_INTERVAL_MS = 30_000;
 export const GEO_INGEST_PATH = "/api/geo/ingest";
 export const GEO_INGEST_SNIPPET_FALLBACK =
   "// Set GEO_INGEST_SECRET to generate your install snippet";
@@ -633,6 +521,9 @@ export const GEO_INGEST_DEFAULT_FRAMEWORK: GeoIngestFramework = "next";
 export const GEO_INGEST_FRAMEWORK_OPTIONS = [
   { value: "next", label: "Next.js", file: "proxy.ts" },
   { value: "nuxt", label: "Nuxt", file: "server/middleware/geo.ts" },
+  { value: "tanstack", label: "TanStack Start", file: "src/start.ts" },
+  { value: "astro", label: "Astro", file: "src/middleware.ts" },
+  { value: "sveltekit", label: "SvelteKit", file: "src/hooks.server.ts" },
   {
     value: "netlify",
     label: "Netlify",
@@ -647,36 +538,11 @@ export const GEO_INGEST_SECRET_ENV = "GEO_INGEST_SECRET";
 export const GEO_INGEST_SECRET_FALLBACK_ENV = "BEACON_INGEST_SECRET";
 export const GEO_INGEST_TOKEN_SEPARATOR = ".";
 export const GEO_INGEST_BEARER_PREFIX = "Bearer ";
-export const GEO_MAX_STORED_UA_LENGTH = 512;
+export const GEO_MAX_STORED_UA_LENGTH = 200;
 export const AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT = 25;
 
 export const OWN_BRAND_ROW_ID = "own-brand";
 
-export const COMPETITOR_KIND_HINT =
-  "Direct sells what you sell. Indirect solves the same problem differently.";
-
-export const COMPETITOR_TYPE_FILTER_VALUES = [
-  "all",
-  "direct",
-  "indirect",
-] as const;
-
-export const COMPETITOR_TYPE_FILTERS = [
-  { value: "all", label: "All types", description: "Every tracked competitor" },
-  { value: "direct", label: "Direct", description: "Sells what you sell" },
-  {
-    value: "indirect",
-    label: "Indirect",
-    description: "Solves the same problem differently",
-  },
-] as const;
-
-export const GEO_COMPETITOR_KIND_DETAIL: Record<GeoCompetitorKind, string> = {
-  direct: "Direct competitor",
-  indirect: "Indirect competitor",
-};
-
-export const COMPETITORS_TABLE_HEIGHT = 420;
 export const COMPETITOR_PROMPTS_TABLE_HEIGHT = 288;
 export const COMPETITOR_PROMPTS_PAGE_TABLE_HEIGHT = 620;
 export const COMPETITORS_TABLE_ROW_HEIGHT = 52;
@@ -700,6 +566,10 @@ export const GEO_JOURNEY_IPV4_OCTETS = 3;
 export const GEO_JOURNEY_IPV6_GROUPS = 4;
 export const GEO_JOURNEY_CHIP_LENGTH = 6;
 export const GEO_JOURNEY_DETAIL_LIMIT = 200;
+/** Pages returned by the journey stats query, busiest first. */
+export const GEO_JOURNEY_PAGES_LIMIT = 500;
+/** Newest journeys loaded for drill-down lists; totals come from journey stats. */
+export const GEO_JOURNEY_RECENT_LIMIT = 100;
 
 export const GEO_AI_REFERRER_HOSTS: Record<string, string> = {
   "chatgpt.com": "chatgpt",
@@ -740,6 +610,7 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   qwen: "Qwen",
   alibaba: "Alibaba",
   meta: "Meta",
+  "meta-webindexer": "Meta",
   instagram: "Instagram",
   amazon: "Amazon",
   apple: "Apple",
@@ -778,6 +649,20 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   zai: "Z.ai",
 };
 
+/** Display names for bots whose user-agent token is lowercase. */
+export const GEO_AGENT_LABELS: Record<string, string> = {
+  "meta-externalagent": "Meta-ExternalAgent",
+  "meta-externalfetcher": "Meta-ExternalFetcher",
+  "meta-webindexer": "Meta-WebIndexer",
+  "meta-externalads": "Meta-ExternalAds",
+  "anthropic-ai": "Anthropic-AI",
+  "claude-web": "Claude-Web",
+  "cohere-ai": "Cohere-AI",
+  "cohere-training-data-crawler": "Cohere Training Crawler",
+  "kagi-fetcher": "Kagi-Fetcher",
+  omgili: "Omgili",
+};
+
 export const GEO_NON_AI_BOT_PATTERNS: readonly string[] = [
   "googlebot",
   "bingbot",
@@ -809,28 +694,6 @@ export const GEO_BROWSER_UA_PATTERNS: readonly string[] = [
 ];
 
 export const GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT = 4;
-
-export const GEO_VISITOR_TYPE_LABELS: Record<string, string> = {
-  crawler: "AI crawler",
-  ai_referral: "AI referral",
-  unknown: "Unknown",
-};
-
-export const AI_TRAFFIC_PURPOSE_LABELS: Record<string, string> = {
-  "training-crawler": "Model training",
-  "search-index": "Search index",
-  "assistant-browse": "Cited in answer",
-  "assistant-referral": "Referral",
-};
-
-export const AI_TRAFFIC_PURPOSE_DESCRIPTIONS: Record<string, string> = {
-  "training-crawler": "Collects pages for model training corpora",
-  "search-index": "Builds the index an AI answer engine searches",
-  "assistant-browse":
-    "Fetched while an assistant was answering someone. A fetch is not proof of a citation",
-  "assistant-referral":
-    "A person clicked through to your site from an AI answer",
-};
 
 const GEO_TRAFFIC_GOOGLE_GROUP: GeoTrafficSourceGroupDefinition = {
   key: "google",
@@ -880,19 +743,31 @@ export const GEO_TRAFFIC_GROUPS_BY_ENGINE: Partial<
     icon: "firecrawlagent",
   },
   parallel: { key: "parallel", label: "Parallel", icon: "shapbot" },
+  cloudflare: {
+    key: "cloudflare",
+    label: "Cloudflare",
+    icon: "cloudflare-autorag",
+  },
+  liner: { key: "liner", label: "Liner", icon: "linerbot" },
+  diffbot: { key: "diffbot", label: "Diffbot", icon: "diffbot" },
+  timpi: { key: "timpi", label: "Timpi", icon: "timpibot" },
+  devin: { key: "devin", label: "Devin", icon: "devin" },
+  cline: { key: "cline", label: "Cline", icon: "cline" },
+  mozilla: { key: "mozilla", label: "Mozilla", icon: "mozilla tabstack" },
+  kagi: { key: "kagi", label: "Kagi", icon: "kagi-fetcher" },
+  tavily: { key: "tavily", label: "Tavily", icon: "tavilybot" },
+  tencent: { key: "tencent", label: "Tencent", icon: "tencent" },
+  xiaomi: { key: "xiaomi", label: "Xiaomi", icon: "xiaomi" },
+  youcom: { key: "youcom", label: "You.com", icon: "youbot" },
+  kimi: { key: "kimi", label: "Kimi", icon: "kimi-searchbot" },
+  zai: { key: "zai", label: "Z.ai", icon: "chatglm-spider" },
+  huawei: { key: "huawei", label: "Huawei", icon: "pangubot" },
+  manus: { key: "manus", label: "Manus", icon: "manus-user" },
 };
 
 export const GEO_TRAFFIC_TREND_CRAWLER_KEY = "crawler";
 export const GEO_TRAFFIC_TREND_REFERRAL_KEY = "aiReferral";
-export const GEO_TRAFFIC_TREND_CRAWLER_LABEL = "Crawlers";
-export const GEO_TRAFFIC_TREND_CITED_LABEL = "Cited";
-export const GEO_TRAFFIC_TREND_REFERRAL_LABEL = "Referrals";
-export const GEO_TRAFFIC_CRAWLER_HINT =
-  "Bots fetching your pages to train models or build a search index";
-export const GEO_TRAFFIC_REFERRAL_HINT =
-  "People who clicked through to your site from an AI answer";
 export const GEO_STAT_DELTA_NEW = Number.POSITIVE_INFINITY;
-export const GEO_STAT_DELTA_NEW_LABEL = "New";
 export const GEO_TRAFFIC_STAT_TREND_HINT =
   "vs previous period of the same length";
 export const GEO_TRAFFIC_FUNNEL_STAGES: readonly GeoTrafficFunnelStage[] = [
@@ -918,29 +793,17 @@ export const GEO_TRAFFIC_FUNNEL_STAGES: readonly GeoTrafficFunnelStage[] = [
     description: "AI referrals that reached a conversion path",
   },
 ];
-export const GEO_TRAFFIC_CONVERSIONS_NOT_CONFIGURED_LABEL = "Not configured";
-export const GEO_TRAFFIC_CONVERSIONS_SETUP_LABEL = "Set conversion paths";
-export const GEO_TRAFFIC_CITATIONS_ONLY_LABEL = "Citations only";
-
 export const GEO_TRAFFIC_LOG_VISITOR_OPTIONS: readonly GeoTrafficLogVisitorOption[] =
-  [
-    { value: "crawler", label: "AI crawler" },
-    { value: "ai_referral", label: "AI referral" },
-  ];
+  [{ value: "crawler" }, { value: "ai_referral" }];
 
 export const GEO_UNTRACKED_VISITOR_TYPES: readonly GeoVisitorType[] = ["human"];
 
 export const GEO_TRAFFIC_LOG_PURPOSE_OPTIONS: readonly GeoTrafficLogPurposeOption[] =
   [
-    { value: "training-crawler", label: "Model training" },
-    { value: "search-index", label: "Search index" },
-    { value: "assistant-browse", label: "Cited in answer" },
+    { value: "training-crawler" },
+    { value: "search-index" },
+    { value: "assistant-browse" },
   ];
-
-export const GEO_JOURNEY_KIND_LABELS: Record<string, string> = {
-  tagged: "Tagged journey, followed a tagged link",
-  fingerprint: "Fingerprinted journey, matched by heuristic",
-};
 
 export const GEO_JOURNEY_PATH_KINDS = [
   "home",
@@ -949,15 +812,6 @@ export const GEO_JOURNEY_PATH_KINDS = [
   "search",
   "page",
 ] as const;
-
-export const GEO_JOURNEY_PATH_KIND_LABELS: Record<GeoJourneyPathKind, string> =
-  {
-    home: "Home",
-    docs: "Docs",
-    blog: "Posts",
-    search: "Search",
-    page: "Pages",
-  };
 
 export const GEO_JOURNEY_PATH_KIND_CLASS: Record<GeoJourneyPathKind, string> = {
   home: "border-geo-up/30 bg-geo-up/10 text-geo-up",
@@ -1002,99 +856,35 @@ export const GEO_JOURNEY_SEARCH_PREFIXES = [
   "/find",
 ] as const;
 
-export const GEO_JOURNEY_OVERVIEW_SOURCES = 5;
-export const GEO_JOURNEY_OVERVIEW_PATHS = 5;
-export const GEO_JOURNEY_TRAIL_TABLE_LIMIT = 4;
-export const GEO_JOURNEY_TRAIL_DETAIL_LIMIT = 10;
+export const GEO_JOURNEY_OVERVIEW_ROWS = 5;
 export const GEO_JOURNEY_PATH_LABEL_MAX = 28;
 
-export const AI_TRAFFIC_CONFIDENCE_LABELS: Record<string, string> = {
-  verified: "Verified",
-  reported: "Reported",
-  heuristic: "Heuristic",
-};
-
-export const GEO_PRESENCE_LABELS: Record<string, string> = {
-  "training-data": "In knowledge",
-  "retrieval-only": `${GEO_SEARCH_LABEL} only`,
-  invisible: "Not mentioned",
-};
-
-export const GEO_SENTIMENT_LABELS: Record<string, string> = {
-  positive: "Positive",
-  neutral: "Neutral",
-  negative: "Negative",
-};
-
 export const GEO_PROMPT_PREVIEW_ROW_HEIGHT = 72;
-export const GEO_PROMPT_NO_MENTION = "No engine named you";
-
-export const GEO_MENTION_TREND_BACKFILL_DAYS = 6;
 export const GEO_MENTION_TREND_TOTAL_KEY = "total";
 export const GEO_MENTION_TREND_TOTAL_LABEL = "All Models";
 export const GEO_DEFAULT_RANGE: GeoRangePreset = "30d";
 export const GEO_MENTION_TREND_LINE_KEY = "trend";
-export const GEO_MENTION_TREND_LINE_LABEL = "Trend";
 export const GEO_MENTION_TREND_AGENT_ICON_LIMIT = 4;
 export const GEO_MENTION_TREND_ALL_PROVIDERS_LABEL = "All Models";
-export const GEO_MENTION_ACTIVITY_LABEL = "Visibility activity";
 export const GEO_MENTION_SUMMARY_VISIBLE = 5;
 export const GEO_MENTION_ROW_HEIGHT_REM = 2.75;
 export const GEO_MENTION_FADE_HEIGHT_REM = 2;
-export const GEO_MENTION_UNTRACKED_HINT =
-  "This visibility comes from earlier scans. Add the model back in GEO settings to keep tracking it.";
-export const GEO_PROVIDER_COLUMN_LABEL = "Provider";
-export const GEO_PROVIDER_MENTIONS_COLUMN_LABEL = "Visibility · change";
-export const GEO_BRAND_TRACKED_LABEL = "Tracked";
-export const GEO_BRAND_DISCOVERED_LABEL = "Discovered";
-export const GEO_BRAND_TRACK_ACTION = "Track";
-export const GEO_SHARE_OF_VOICE_TRACKING_HINT =
-  "Discovered brands come from scan answers. Tracked brands are called out in scans and available in the writer.";
-export const GEO_LANGUAGE_PERFORMANCE_HINT =
-  "The same prompts run in each tracked language. Visibility includes brand mentions and citations from owned sources.";
-export const GEO_ENGINE_PERFORMANCE_HINT =
-  "How often each engine mentioned your brand or cited an owned source in this range. Manage engines in GEO settings.";
-export const GEO_PROMPT_AUTO_MANAGED_LABEL = "Managed automatically";
-export const GEO_PROMPT_AUTO_MANAGED_HINT =
-  "Generated from your site. Pause it to skip it in scans, or remove it if you do not want it tracked.";
-export const GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST =
-  "Tags apply to custom prompts. Auto-generated prompts were skipped.";
-export const GEO_SCAN_PREFLIGHT_TITLE = "Run a scan now?";
-export const GEO_SCAN_PREFLIGHT_BODY =
-  "Your selection applies only to this scan and won't change your tracked engines.";
-export const GEO_SCAN_PREFLIGHT_CONFIRM = "Run scan";
-export const GEO_SCAN_PREFLIGHT_CANCEL = "Cancel";
+/*
+ * Visible counts `mentioned OR ownedSourceCited`, Citations counts
+ * `ownedSourceCited` alone, so Citations is a subset of Visible and the two
+ * never add up. Spell that out: side by side the numbers read as rival totals.
+ */
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
-export const GEO_SCAN_PREFLIGHT_PROMPTS_LABEL = "Prompts";
-export const GEO_SCAN_PREFLIGHT_ENGINES_LABEL = "Engines";
-export const GEO_SCAN_PREFLIGHT_LANGUAGES_LABEL = "Languages";
-export const GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL = "Last scan";
-export const GEO_SCAN_PREFLIGHT_NEVER_SCANNED = "Not yet";
-export const GEO_SCAN_SIZE_LABEL = "Estimated checks";
-export const GEO_SCAN_SIZE_WARN_THRESHOLD = 150;
-export const GEO_SCAN_SIZE_DANGER_THRESHOLD = 300;
-export const GEO_SCAN_SIZE_WARN =
-  "Large scan. It takes longer and costs more. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_DANGER =
-  "Very large scan. It will likely take a long time. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_MESSAGES = {
-  warn: GEO_SCAN_SIZE_WARN,
-  danger: GEO_SCAN_SIZE_DANGER,
-};
-export const GEO_SCAN_PREFLIGHT_SELECT_ALL = "Select all";
-export const GEO_SCAN_PREFLIGHT_DESELECT_ALL = "Deselect all";
-export const GEO_SCAN_PREFLIGHT_NEED_ENGINE = "Pick at least one engine.";
 export const GEO_RANGE_PRESETS = [
-  { value: "today", label: "Today" },
-  { value: "yesterday", label: "Yesterday" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "14d", label: "Last 14 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "90d", label: "Last 90 days" },
-  { value: "ytd", label: "Year to date" },
+  { value: "today" },
+  { value: "yesterday" },
+  { value: "7d" },
+  { value: "14d" },
+  { value: "30d" },
+  { value: "90d" },
+  { value: "ytd" },
 ] as const satisfies readonly {
   value: GeoRangePreset;
-  label: string;
 }[];
 export const GEO_RANGE_PRESET_DAYS = {
   today: 0,
@@ -1105,23 +895,14 @@ export const GEO_RANGE_PRESET_DAYS = {
   "90d": 89,
 } as const;
 export const GEO_DEFAULT_QUERY_DAYS = 30;
+export const GEO_MAX_RANGE_DAYS = 366;
 export const GEO_FILTER_TRIGGER_CLASS =
   "corner-squircle flex h-7 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring";
-export const GEO_MENTION_RATE_LABEL = "Brand visibility";
-export const GEO_MENTIONS_LABEL = "Visibility";
-export const GEO_AVG_POSITION_LABEL = "Avg position";
-export const GEO_FAMILY_STAT_TREND_HINT = "vs first half of this range";
 /** Search vs memory gap that names a specific bottleneck. */
 export const GEO_FAMILY_IMPROVE_SPLIT = 0.25;
 /** Overall rate high enough that remaining misses are the whole job. */
 export const GEO_FAMILY_IMPROVE_STRONG_RATE = 0.7;
-export const GEO_FAMILY_IMPROVE_CTA_GAPS = "Close these gaps";
-export const GEO_FAMILY_ALL_MODES_LABEL = "All";
-export const GEO_FAMILY_BRANDS_LABEL = "Brand ranking";
-export const GEO_FAMILY_BRANDS_HINT =
-  "How often each brand shows up in this engine's answers to your prompts";
 export const GEO_FAMILY_BRANDS_LIMIT = 6;
-export const GEO_FAMILY_OWN_BRAND_FALLBACK = "You";
 export const GEO_SPARKLINE_MIN_POINTS = 2;
 export const GEO_SPARKLINE_FLAT_THRESHOLD = 0.05;
 export const GEO_SPARKLINE_TREND_CLASS: Record<"up" | "down" | "flat", string> =
@@ -1150,17 +931,8 @@ export const GEO_MAX_ALIASES = 10;
 export const GEO_MAX_COMPETITORS = 25;
 export const GEO_MAX_CONVERSION_PATHS = 20;
 export const GEO_CONVERSION_PATH_MAX_LENGTH = 200;
-export const GEO_CONVERSION_PATHS_LABEL = "Conversion paths";
-export const GEO_CONVERSION_PATHS_DESCRIPTION =
-  "Paths that count as a conversion when an AI referral reaches them, for example /signup or /pricing. Prefix match; /pricing also counts /pricing/teams.";
 export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";
 export const GEO_MAX_DOMAINS = 20;
-export const GEO_PROJECT_DOMAINS_LABEL = "Tracked domains";
-export const GEO_PROJECT_DOMAINS_DESCRIPTION =
-  "Other sites besides the brand website. Same ingest token; only listed domains and their subdomains are recorded.";
-export const GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL = "Brand website";
-export const GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT =
-  "Always recorded. Change it in Brand → Identity.";
 export const GEO_PROJECT_DOMAINS_PLACEHOLDER = "docs.example.com";
 export const GEO_COMPETITOR_MAX_SYNONYMS = 8;
 export const GEO_SHORT_FIELD_MAX_LENGTH = 128;
@@ -1169,7 +941,6 @@ export const GEO_DOMAIN_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export const GEO_SETTINGS_AUTO_SAVE_MS = 800;
 export const GEO_MAX_LANGUAGES = 4;
 export const GEO_LANGUAGE_MAX_PROMPTS = 5;
-export const GEO_LANGUAGE_GROUNDED_MAX_PROMPTS = 3;
 export const GEO_TRANSLATION_MAX_TOKENS = 2000;
 
 export const COPY_FEEDBACK_MS = 2000;
@@ -1189,9 +960,9 @@ export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
   chatgpt: "bg-background",
   gemini: "bg-white dark:bg-[#1f1f1f]",
   perplexity: "bg-white dark:bg-[#111]",
-  opencode: "bg-[var(--opencode-tui-background,#fdfdfd)]",
-  "claude-code": "bg-[#1a1a1a]",
-  codex: "bg-[#1a1a1a]",
+  opencode: "bg-[var(--opencode-tui-background,#090909)]",
+  "claude-code": "bg-[#0f0f0f]",
+  codex: "bg-[#0f0f0f]",
 };
 
 export const GEO_TAB_BREADCRUMB_LABELS = {
@@ -1212,47 +983,24 @@ export const GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS = "h-56";
 /** Dev-only: enables seeding GEO sample data from the settings page. */
 export const GEO_SAMPLE_DATA_ENABLED = process.env.NODE_ENV === "development";
 
-export const GEO_UPGRADE_TITLE = "Upgrade required";
-export const GEO_UPGRADE_DESCRIPTION =
-  "AI visibility tracking is included in Starter, Growth, and Scale. Pick a plan to unlock GEO for this workspace.";
-export const GEO_UPGRADE_TOOLTIP = "Upgrade your plan to unlock GEO";
-export const GEO_LOCKED_TITLE = "GEO is locked on your current plan";
-
 export const GEO_CHANGES_LIMIT = 40;
 export const GEO_CHANGES_LABEL = "What changed";
-export const GEO_CHANGES_SUBLINE_PREFIX = "Latest scan vs previous scan";
-export const GEO_CHANGES_SCANNING_SUBLINE = "Scan in progress";
-export const GEO_CHANGES_EMPTY_NEEDS_SCANS =
-  "Run two scans to see what changed";
-export const GEO_CHANGES_EMPTY_NO_CHANGES =
-  "No changes between the last two scans";
 export const GEO_CHANGES_ITEM_LABEL = "changes";
 export const GEO_CHANGES_PAGE_KEY = "changes";
 export const GEO_CHANGES_SKELETON_ROWS = 5;
-export const GEO_CHANGES_COLUMN_LABELS = {
-  change: "Change",
-  engine: "Engine",
-  prompt: "Prompt",
-  position: "Position",
-  detail: "Recommended instead",
-} as const;
-export const GEO_CHANGES_STATE_NEW = "New";
-export const GEO_CHANGES_STATE_NOT_MENTIONED = "Not mentioned";
-export const GEO_CHANGES_STATE_MENTIONED = "Mentioned";
+/** One named brand fits the column; the rest collapse into a "+N" tooltip. */
+export const GEO_CHANGES_COMPETITOR_STACK_LIMIT = 1;
 export const GEO_CHANGES_POSITION_PREFIX = "#";
 export const GEO_CHANGES_EMPTY_DETAIL = "-";
-export const GEO_CHANGES_COMPETITORS_PREFIX = "Now recommended";
-export const GEO_CHANGES_CITATIONS_ADDED_PREFIX = "New citations";
-export const GEO_CHANGES_CITATIONS_REMOVED_PREFIX = "Citations dropped";
-
 export const GEO_CHANGE_KIND_LABELS: Record<GeoChangeKind, string> = {
   gained_mention: "Gained mention",
   lost_mention: "Lost mention",
   position_improved: "Position up",
   position_dropped: "Position down",
   competitor_displaced: "Displaced by competitor",
-  citation_added: "Citation added",
-  citation_removed: "Citation removed",
+  citation_added: "Citation gained",
+  citation_removed: "Citation lost",
+  competitor_cited: "Competitor cited",
   new_engine: "New engine",
 };
 
@@ -1264,44 +1012,19 @@ export const GEO_CHANGE_KIND_ORDER: Record<GeoChangeKind, number> = {
   position_dropped: 2,
   citation_added: 3,
   citation_removed: 3,
+  competitor_cited: 3,
   new_engine: 4,
 };
 
-export const GEO_CHANGES_SUMMARY_LABELS: Record<
-  keyof GeoChangesSummary,
-  string
-> = {
-  gained: "Gained",
-  lost: "Lost",
-  positionImproved: "Position up",
-  positionDropped: "Position down",
-  citationsAdded: "Citations added",
-  citationsRemoved: "Citations removed",
-};
-
-export const GEO_CHANGES_SUMMARY_HINTS: Record<
-  keyof GeoChangesSummary,
-  string
-> = {
-  gained: "Prompts where an engine started mentioning your brand",
-  lost: "Prompts where an engine stopped mentioning your brand",
-  positionImproved: "Prompts where your brand moved up in the answer",
-  positionDropped: "Prompts where your brand moved down in the answer",
-  citationsAdded: "Prompts where an engine started citing your pages",
-  citationsRemoved: "Prompts where an engine stopped citing your pages",
-};
-
 export const GEO_CHANGES_SUMMARY_GROUPS: readonly GeoChangesSummaryGroup[] = [
-  { key: "mentions", label: "Mentions", up: "gained", down: "lost" },
+  { key: "mentions", up: "gained", down: "lost" },
   {
     key: "position",
-    label: "Position",
     up: "positionImproved",
     down: "positionDropped",
   },
   {
     key: "citations",
-    label: "Citations",
     up: "citationsAdded",
     down: "citationsRemoved",
   },
@@ -1315,3 +1038,10 @@ export const GEO_EMPTY_CHANGES_SUMMARY: GeoChangesSummary = {
   citationsAdded: 0,
   citationsRemoved: 0,
 };
+
+/** Typed sentiment/position evaluation (Jev) that runs beside the judge LLM. */
+export const GEO_MENTION_EVALUATION_FEATURE = "geo_mention_evaluation";
+export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
+/** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
+export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
+export const GEO_MENTION_EVALUATION_NO_POSITION = "none";

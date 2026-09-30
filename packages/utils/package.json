@@ -5,8 +5,11 @@
   "type": "module",
   "exports": {
     "./api-scopes": "./src/api-scopes.ts",
+    "./oauth-consent": "./src/oauth-consent.ts",
+    "./constants/oauth-consent": "./src/constants/oauth-consent.ts",
     "./url": "./src/url.ts",
     "./logo-link": "./src/logo-link.ts",
+    "./google-favicon": "./src/google-favicon.ts",
     "./callback-url": "./src/callback-url.ts",
     "./oauth-popup": "./src/oauth-popup.ts",
     "./slugify": "./src/slugify.ts",

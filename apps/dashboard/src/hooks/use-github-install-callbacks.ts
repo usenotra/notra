@@ -1,7 +1,9 @@
+import { useTranslations } from "next-intl";
+import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-import { GITHUB_CALLBACK_ERROR_MESSAGES } from "@/constants/github";
+import { GITHUB_CALLBACK_ERROR_MESSAGE_KEYS } from "@/constants/github";
 import {
   hasAttemptedGitHubReauthorization,
   markGitHubReauthorizationAttempted,
@@ -10,61 +12,80 @@ import {
 } from "@/lib/integrations/github/install";
 import type { GitHubInstallResumeParams } from "@/types/integrations/github-settings";
 
-export function useGitHubCallbackErrorToast(errorCode: string | null) {
+export function useGitHubCallbackErrorToast() {
+  const t = useTranslations("integrations.github.callbackErrors");
+  const tShared = useTranslations("integrations.shared");
+  const [{ githubError: errorCode }, setParams] = useQueryStates(
+    { githubError: parseAsString },
+    { history: "replace" }
+  );
   const handledErrorRef = useRef(false);
   useEffect(() => {
     if (!errorCode || handledErrorRef.current) {
       return;
     }
     handledErrorRef.current = true;
-    const nextUrl = new URL(window.location.href);
-    nextUrl.searchParams.delete("githubError");
-    window.history.replaceState(null, "", nextUrl);
+    void setParams({ githubError: null });
     toast.error(
-      GITHUB_CALLBACK_ERROR_MESSAGES[errorCode] ??
-        GITHUB_CALLBACK_ERROR_MESSAGES.github_callback_failed
+      errorCode === "forbidden"
+        ? tShared("youDoNotHaveAccess")
+        : t(GITHUB_CALLBACK_ERROR_MESSAGE_KEYS[errorCode] ?? "callbackFailed")
     );
-  }, [errorCode]);
+  }, [errorCode, setParams, t, tShared]);
 }
 
 export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
+  const t = useTranslations("integrations.github.toasts");
+  const [
+    {
+      githubAccountConnected: shouldResume,
+      githubReauthorizeInstallationId: reauthorizationInstallationId,
+      githubReauthorizeState: reauthorizationState,
+    },
+    setParams,
+  ] = useQueryStates(
+    {
+      githubAccountConnected: parseAsBoolean,
+      githubReauthorizeInstallationId: parseAsString,
+      githubReauthorizeState: parseAsString,
+    },
+    { history: "replace" }
+  );
   const resumedInstallRef = useRef(false);
   useEffect(() => {
     if (
-      (!params.shouldResume &&
-        !(
-          params.reauthorizationInstallationId && params.reauthorizationState
-        )) ||
+      (!shouldResume &&
+        !(reauthorizationInstallationId && reauthorizationState)) ||
       !params.organizationId ||
       resumedInstallRef.current
     ) {
       return;
     }
     resumedInstallRef.current = true;
-    const nextUrl = new URL(window.location.href);
-    nextUrl.searchParams.delete("githubAccountConnected");
-    nextUrl.searchParams.delete("githubReauthorizeInstallationId");
-    nextUrl.searchParams.delete("githubReauthorizeState");
-    window.history.replaceState(null, "", nextUrl);
-    if (params.reauthorizationInstallationId && params.reauthorizationState) {
-      if (hasAttemptedGitHubReauthorization(params.reauthorizationState)) {
-        toast.error("Failed to reconnect GitHub. Please try again.");
+    void setParams({
+      githubAccountConnected: null,
+      githubReauthorizeInstallationId: null,
+      githubReauthorizeState: null,
+    });
+    if (reauthorizationInstallationId && reauthorizationState) {
+      if (hasAttemptedGitHubReauthorization(reauthorizationState)) {
+        toast.error(t("reconnectFailedRetry"));
         return;
       }
-      markGitHubReauthorizationAttempted(params.reauthorizationState);
+      markGitHubReauthorizationAttempted(reauthorizationState);
       const callbackUrl = new URL(
         "/api/integrations/github/callback",
         window.location.origin
       );
       callbackUrl.searchParams.set(
         "installation_id",
-        params.reauthorizationInstallationId
+        reauthorizationInstallationId
       );
-      callbackUrl.searchParams.set("state", params.reauthorizationState);
+      callbackUrl.searchParams.set("state", reauthorizationState);
       reauthorizeGitHub(`${callbackUrl.pathname}${callbackUrl.search}`).then(
         (started) => {
           if (!started) {
-            toast.error("Failed to reconnect GitHub");
+            toast.error(t("reconnectFailed"));
           }
         }
       );
@@ -80,15 +101,17 @@ export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
       }
       toast.error(
         result.reason === "account-connection-incomplete"
-          ? "GitHub account connection didn't complete. Please try connecting again."
-          : "Failed to resume GitHub installation"
+          ? t("accountConnectionIncomplete")
+          : t("resumeFailed")
       );
     });
   }, [
     params.callbackPath,
     params.organizationId,
-    params.reauthorizationInstallationId,
-    params.reauthorizationState,
-    params.shouldResume,
+    reauthorizationInstallationId,
+    reauthorizationState,
+    shouldResume,
+    setParams,
+    t,
   ]);
 }

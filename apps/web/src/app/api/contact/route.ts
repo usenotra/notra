@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { isContactSpam } from "@/lib/contact/classify-spam";
 import {
   enforceContactMessageRateLimit,
   enforceContactVerificationRateLimit,
@@ -45,7 +46,10 @@ export async function POST(request: NextRequest) {
         request,
         parsed.data.email
       );
-      yield* sendContactMessageEmail(parsed.data);
+      const spam = yield* Effect.promise(() => isContactSpam(parsed.data));
+      if (!spam) {
+        yield* sendContactMessageEmail(parsed.data);
+      }
 
       return NextResponse.json(
         { success: true },

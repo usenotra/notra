@@ -34,6 +34,15 @@ mock.module("@notra/db/drizzle", () => ({
 }));
 mock.module("@notra/ai/integrations/github", () => ({
   getTokenForIntegrationId: token,
+  // mock.module replaces the whole module process-wide: other test files
+  // importing this specifier (e.g. via repo-image or integrations-cache)
+  // must still find every export they use, or their module load throws.
+  getGitHubCloneToken: token,
+  getGitHubCloneTokenForOrganization: token,
+  getGitHubIntegrationById: async () => null,
+  getGitHubIntegrationsByOrganization: async () => [],
+  getGitHubToolRepositoryContextByIntegrationId: async () => null,
+  validateRepositoryBranchExists: async () => true,
 }));
 mock.module("@notra/ai/utils/octokit", () => ({
   createOctokit: (auth?: string) => new Octokit({ auth, baseUrl: github.url }),

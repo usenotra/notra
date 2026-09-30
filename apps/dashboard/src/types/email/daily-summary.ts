@@ -19,8 +19,7 @@ export interface DailySummaryMentionTotals {
 export interface DailySummaryUnchangedInput {
   yesterday: DailySummaryMentionTotals;
   previousDay: DailySummaryMentionTotals;
-  changes: GeoChangesSummary;
-  hasNewEngine: boolean;
+  hasChanges: boolean;
 }
 
 export interface BuiltDailySummary {
@@ -31,7 +30,6 @@ export interface BuiltDailySummary {
   scansCompleted: number;
   gained: number;
   lost: number;
-  netChange: number;
   items: DailySummaryEmailItem[];
   remainingCount: number;
 }

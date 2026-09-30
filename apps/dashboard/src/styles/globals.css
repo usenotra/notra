@@ -20,6 +20,19 @@
   html,
   body {
     scrollbar-gutter: stable;
+    /* The dashboard is a fixed-height app shell; overlays and portals must
+       never make the document itself scroll sideways under the fixed sidebar. */
+    overflow-x: clip;
+  }
+
+  /* No macOS rubber-band on the fixed app shell. Scoped to shell routes so
+     scrollable pages (onboarding, auth) keep it, and gated to fine pointers
+     so touch devices keep pull-to-refresh. */
+  @media (pointer: fine) {
+    html:has([data-dashboard-shell]),
+    html:has([data-dashboard-shell]) body {
+      overscroll-behavior: none;
+    }
   }
 }
 
@@ -45,101 +58,107 @@
     );
   }
 
-  /* Container variants using container queries */
-  .page-container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container {
-      max-width: 48rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container {
-      max-width: 80rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container {
-      max-width: 96rem;
-    }
-  }
-
-  /* Relaxed variant - balanced for readability */
-  .page-container-relaxed {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container-relaxed {
-      max-width: 44rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container-relaxed {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container-relaxed {
-      max-width: 68rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-relaxed {
-      max-width: 76rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-relaxed {
-      max-width: 80rem;
-    }
-  }
-
-  /* Compact variant - focused for forms/settings */
+  /*
+   * Container variants. Widths are continuous functions of the container
+   * (cqw) instead of stepped breakpoints: a stepped max-width snaps when the
+   * sidebar or right panel animates the container across a breakpoint, and the
+   * centered content then drifts until the animation ends.
+   */
+  .page-container,
+  .page-container-relaxed,
   .page-container-compact {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
-  @container (min-width: 40rem) {
-    .page-container-compact {
-      max-width: 40rem;
-    }
+
+  .page-container {
+    max-width: 96rem;
   }
-  @container (min-width: 48rem) {
-    .page-container-compact {
-      max-width: 48rem;
-    }
+
+  /* Relaxed variant - balanced for readability */
+  .page-container-relaxed {
+    max-width: min(calc(40rem + 41.667cqw), 80rem);
   }
-  @container (min-width: 64rem) {
-    .page-container-compact {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-compact {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-compact {
-      max-width: 72rem;
-    }
+
+  /* Compact variant - focused for forms/settings */
+  .page-container-compact {
+    max-width: min(calc(24rem + 50cqw), 72rem);
   }
 }
 
 @keyframes logs-table-content-fade {
   from {
     opacity: 0.72;
+  }
+}
+
+@keyframes sentiment-analysis-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+
+@keyframes sentiment-scan-wave {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sentiment-scan-fill {
+  0% {
+    transform: scaleX(0.12);
+  }
+  65%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sentiment-scan-bar {
+    transform-origin: bottom;
+    animation: sentiment-scan-wave 2s ease-in-out infinite backwards;
+    animation-delay: calc(var(--scan-index) * 110ms);
+  }
+
+  .sentiment-scan-fill {
+    transform-origin: left;
+    animation: sentiment-scan-fill 2.6s cubic-bezier(0.23, 1, 0.32, 1) infinite
+      backwards;
+    animation-delay: calc(var(--scan-index) * 320ms);
+  }
+
+  .sentiment-analysis-progress {
+    animation: sentiment-analysis-progress 24s cubic-bezier(0.23, 1, 0.32, 1)
+      forwards;
+  }
+
+  .sentiment-results-table[data-ready="true"] tbody tr {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .sentiment-state-copy {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @starting-style {
+    .sentiment-results-table[data-ready="true"] tbody tr {
+      opacity: 0.55;
+    }
+
+    .sentiment-state-copy {
+      opacity: 0.55;
+    }
   }
 }
 
@@ -170,22 +189,6 @@
   animation: chat-input-slide-down 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes chat-messages-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.chat-messages-fade-in {
-  animation: chat-messages-fade-in 360ms ease-out both;
-  animation-delay: 120ms;
-}
-
 @keyframes chat-branch-fade-in {
   from {
     opacity: 0;
@@ -199,4 +202,33 @@
 
 .chat-branch-fade-in {
   animation: chat-branch-fade-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-input-slide-down,
+  .chat-branch-fade-in {
+    animation: none;
+  }
+}
+
+/* Pierre diffs inherit these into Shadow DOM. */
+.chat-document-diff {
+  --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-sans);
+  --diffs-font-size: 0.75rem;
+  --diffs-line-height: 1.25rem;
+  --diffs-light-bg: var(--background);
+  --diffs-dark-bg: var(--background);
+  --diffs-light: var(--foreground);
+  --diffs-dark: var(--foreground);
+  --diffs-added-light: var(--success);
+  --diffs-added-dark: var(--success);
+  --diffs-deleted-light: var(--destructive);
+  --diffs-deleted-dark: var(--destructive);
+  --diffs-modified-light: var(--info);
+  --diffs-modified-dark: var(--info);
+  --diffs-fg-number-override: var(--muted-foreground);
+  --diffs-bg-separator-override: var(--muted);
+  --diffs-token-light-bg: transparent;
+  --diffs-token-dark-bg: transparent;
 }

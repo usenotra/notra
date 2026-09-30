@@ -1,38 +1,16 @@
-import {
-  checkContentBilling,
-  describeContentBillingDenial,
-} from "@notra/ai/billing/content-billing";
-import {
-  getGitHubAppBotLogin,
-  getGitHubAppInstallationPublishAccess,
-  getTokenForIntegrationId,
-  isGitHubAppConfigured,
-  listGitHubAppInstallationsByOrganization,
-} from "@notra/ai/integrations/github";
-import {
-  getGitHubPublishTokenEffect,
-  selectGitHubAppInstallationForOwner,
-} from "@notra/ai/integrations/github-publish-auth";
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
+import { getTokenForIntegrationId } from "@notra/ai/integrations/github";
 import {
   getDecryptedLinearToken,
   getLinearIntegrationsByOrganization,
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
-import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
-import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
-import {
-  githubAppInstallations,
-  githubIntegrations,
-  organizations,
-  postCollections,
-  posts,
-  repositoryOutputs,
-} from "@notra/db/schema";
+import { githubIntegrations, postCollections, posts } from "@notra/db/schema";
 import type { BlogPostSubtype } from "@notra/db/types/content";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { extractImageArtifactHtml } from "@notra/db/utils/post-image-artifacts";
@@ -41,9 +19,9 @@ import {
   projectScopeFilter,
 } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { GITHUB_CONTENT_PATH_MAX_LENGTH } from "@notra/schemas/constants/dashboard/github";
 import {
   contentListQuerySchema,
+  contentRecentsQuerySchema,
   dashboardHomeContentQuerySchema,
 } from "@notra/schemas/dashboard/api-params";
 import type {
@@ -55,16 +33,17 @@ import {
   contentOrganizationIdInputSchema,
   contentPreviewRequestSchema,
   createPostCollectionInputSchema,
+  createPostInputSchema,
   generateContentInputSchema,
   postCollectionInputSchema,
   postCollectionsListInputSchema,
+  postGitHubPublishSchema,
   publishContentToGitHubSchema,
   renamePostCollectionInputSchema,
   updateContentSchema,
   updateExpectedPostCountInputSchema,
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
-import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
 import { slugify } from "@notra/utils/slugify";
 import { publishEventInTransaction } from "@notra/webhooks/drizzle";
 import { postPublishedInput } from "@notra/webhooks/utils/posts";
@@ -82,6 +61,7 @@ import {
 } from "drizzle-orm";
 import { marked } from "marked";
 import { nanoid } from "nanoid";
+import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
 
 import {
@@ -90,10 +70,6 @@ import {
   GITHUB_API_MAX_RESULTS,
   GITHUB_API_PAGE_SIZE,
 } from "@/constants/content-preview";
-import {
-  DEFAULT_GITHUB_CONTENT_DIRECTORIES,
-  DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED,
-} from "@/constants/github";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getEnabledDataPoints } from "@/lib/analytics/studio-events";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
@@ -109,19 +85,8 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
-import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
-import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
-import {
-  publishContentDraftPullRequest,
-  resolveGitHubContentPath,
-} from "@/lib/integrations/github/publish-content-to-github";
-import {
-  buildOpenInNotraBadgeUrls,
-  resolveNotraBaseUrl,
-} from "@/lib/integrations/github/pull-request-body";
+import { publishSavedContentToGitHub } from "@/lib/integrations/github/publish-saved-content";
 import { baseProcedure } from "@/lib/orpc/base";
-import { runOrpcEffect } from "@/lib/orpc/effect";
-import { toGitHubPublishOrpcError } from "@/lib/orpc/utils/github-publish-error";
 import { startOnDemandRun } from "@/lib/workflows/start";
 import type {
   CommitPreview,
@@ -131,15 +96,12 @@ import type {
   RepositoryPreview,
   RepositoryPreviewFailure,
 } from "@/types/content/preview";
-import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
-import { getGitHubAppPermissionsRecovery } from "@/utils/github-publish-policy";
 import { resolveLookbackRange } from "@/utils/lookback";
 import { ratelimit } from "@/utils/ratelimit";
 
 import {
   badRequest,
   conflict,
-  forbidden,
   internalServerError,
   notFound,
   paymentRequired,
@@ -166,6 +128,7 @@ const postReadColumns = {
   contentSubtype: true,
   createdAt: true,
   sourceMetadata: true,
+  githubPublish: true,
   status: true,
   updatedAt: true,
 } as const;
@@ -237,9 +200,12 @@ function serializeContent(post: {
   recommendations: string | null;
   slug: string | null;
   sourceMetadata: unknown;
+  githubPublish: unknown;
   status: "draft" | "published";
   title: string;
 }): ContentResponse {
+  const githubPublish = postGitHubPublishSchema.safeParse(post.githubPublish);
+
   return {
     id: post.id,
     title: post.title,
@@ -253,6 +219,7 @@ function serializeContent(post: {
     status: post.status,
     date: post.createdAt.toISOString(),
     sourceMetadata: post.sourceMetadata as ContentResponse["sourceMetadata"],
+    githubPublish: githubPublish.success ? githubPublish.data : null,
   };
 }
 
@@ -551,6 +518,36 @@ export const contentRouter = {
         };
       }),
   },
+  recents: baseProcedure
+    .input(contentOrganizationIdInputSchema.and(contentRecentsQuerySchema))
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+      });
+
+      const filters = [eq(posts.organizationId, input.organizationId)];
+      const collectionIds = projectScopedCollectionIds(
+        input.organizationId,
+        input.projectId
+      );
+      if (collectionIds) {
+        filters.push(inArray(posts.collectionId, collectionIds));
+      }
+
+      const items = await db.query.posts.findMany({
+        where: and(...filters),
+        orderBy: [desc(posts.createdAt), desc(posts.id)],
+        limit: input.limit,
+        columns: {
+          id: true,
+          title: true,
+          status: true,
+        },
+      });
+
+      return { posts: items };
+    }),
   list: baseProcedure
     .input(contentOrganizationIdInputSchema.and(contentListQuerySchema))
     .handler(async ({ context, input }) => {
@@ -562,7 +559,9 @@ export const contentRouter = {
       const dateRange = getUtcDayRange(input.date ?? null);
 
       if (input.date && !dateRange) {
-        throw badRequest("Invalid date");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
 
       const baseFilters = [eq(posts.organizationId, input.organizationId)];
@@ -668,6 +667,94 @@ export const contentRouter = {
           : null,
       };
     }),
+  create: baseProcedure
+    .input(createPostInputSchema)
+    .handler(async ({ context, input }) => {
+      const auth = await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+      });
+      await assertActiveSubscription(input.organizationId);
+
+      if (
+        input.projectId &&
+        !(await isProjectInOrganization(input.organizationId, input.projectId))
+      ) {
+        throw badRequest((await getTranslations("errors.server"))("notFound"));
+      }
+
+      if (input.slug && !supportsPostSlug(input.contentType)) {
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("slugNotSupported"));
+      }
+
+      const now = new Date();
+      const collectionId = nanoid();
+      const contentId = nanoid();
+      const markdown = input.markdown ?? "";
+      const content =
+        markdown.length > 0
+          ? sanitizeMarkdownHtml(await marked.parse(markdown))
+          : "";
+
+      try {
+        await db.transaction(async (tx) => {
+          await tx.insert(postCollections).values({
+            id: collectionId,
+            organizationId: input.organizationId,
+            projectId: input.projectId ?? null,
+            source: "manual",
+            sourceId: collectionId,
+            name: buildPostCollectionName([input.contentType], now),
+            nameSource: "generated",
+            contentTypes: [input.contentType],
+            expectedPostCount: 1,
+            completedPostCount: 1,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          await tx.insert(posts).values({
+            id: contentId,
+            organizationId: input.organizationId,
+            collectionId,
+            title: input.title,
+            slug: input.slug ?? null,
+            content,
+            markdown,
+            contentType: input.contentType,
+            status: "draft",
+            sourceMetadata: null,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          error.code === "23505"
+        ) {
+          const tErrors = await getTranslations("errors.content");
+          throw conflict(tErrors("slugTaken"));
+        }
+        throw error;
+      }
+
+      trackServerEvent({
+        event: POSTHOG_EVENTS.CONTENT_SAVED,
+        headers: context.headers,
+        userId: auth.user.id,
+        organizationId: input.organizationId,
+        properties: {
+          content_id: contentId,
+          type: input.contentType,
+        },
+      });
+
+      return { contentId, collectionId };
+    }),
   update: baseProcedure
     .input(contentInputSchema.and(updateContentSchema))
     .handler(async ({ context, input }) => {
@@ -700,9 +787,8 @@ export const contentRouter = {
 
       if (input.slug !== undefined) {
         if (!supportsPostSlug(existingPost.contentType)) {
-          throw badRequest(
-            "Slug can only be set for blog posts and changelogs"
-          );
+          const tErrors = await getTranslations("errors.content");
+          throw badRequest(tErrors("slugNotSupported"));
         }
         updateData.slug = input.slug;
       }
@@ -731,6 +817,7 @@ export const contentRouter = {
               contentType: posts.contentType,
               createdAt: posts.createdAt,
               sourceMetadata: posts.sourceMetadata,
+              githubPublish: posts.githubPublish,
               status: posts.status,
               updatedAt: posts.updatedAt,
             });
@@ -740,8 +827,6 @@ export const contentRouter = {
             row.status === "published" &&
             existingPost.status !== "published"
           ) {
-            // The webhook outbox row commits with the post update: a failure
-            // rolls both back, and the source key dedupes the retried request.
             await publishEventInTransaction(
               tx,
               postPublishedInput({
@@ -789,8 +874,6 @@ export const contentRouter = {
           });
         }
 
-        // The post.published webhook event is written transactionally with
-        // the update above; only the GEO rescan stays post-commit.
         if (
           updatedPost.status === "published" &&
           existingPost.status !== "published"
@@ -814,7 +897,8 @@ export const contentRouter = {
           "code" in error &&
           error.code === "23505"
         ) {
-          throw conflict("A post with this slug already exists");
+          const tErrors = await getTranslations("errors.content");
+          throw conflict(tErrors("slugTaken"));
         }
         throw error;
       }
@@ -836,278 +920,12 @@ export const contentRouter = {
           `${auth.user.id}:${input.organizationId}`
         );
         if (!withinLimit) {
-          throw tooManyRequests(
-            "Too many GitHub publish requests. Please try again shortly."
-          );
+          const tErrors = await getTranslations("errors.content");
+          throw tooManyRequests(tErrors("tooManyPublishRequests"));
         }
       }
 
-      const [post, integration, organization] = await Promise.all([
-        db.query.posts.findFirst({
-          where: and(
-            eq(posts.id, input.contentId),
-            eq(posts.organizationId, input.organizationId)
-          ),
-          columns: {
-            title: true,
-            slug: true,
-            markdown: true,
-            contentType: true,
-          },
-        }),
-        db
-          .select({
-            id: githubIntegrations.id,
-            owner: githubIntegrations.owner,
-            repo: githubIntegrations.repo,
-            defaultBranch: githubIntegrations.defaultBranch,
-            installationId: githubAppInstallations.installationId,
-            installationAccountType: githubAppInstallations.accountType,
-            installationAccountLogin: githubAppInstallations.accountLogin,
-            githubAppInstallationId: githubIntegrations.githubAppInstallationId,
-            encryptedToken: githubIntegrations.encryptedToken,
-            outputConfig: repositoryOutputs.config,
-            outputEnabled: repositoryOutputs.enabled,
-            outputId: repositoryOutputs.id,
-          })
-          .from(githubIntegrations)
-          .leftJoin(
-            githubAppInstallations,
-            and(
-              eq(
-                githubIntegrations.githubAppInstallationId,
-                githubAppInstallations.id
-              ),
-              eq(githubAppInstallations.organizationId, input.organizationId)
-            )
-          )
-          .leftJoin(
-            repositoryOutputs,
-            and(
-              eq(repositoryOutputs.repositoryId, githubIntegrations.id),
-              eq(repositoryOutputs.outputType, input.contentType)
-            )
-          )
-          .where(
-            and(
-              eq(githubIntegrations.organizationId, input.organizationId),
-              eq(githubIntegrations.id, input.repositoryId),
-              eq(githubIntegrations.enabled, true),
-              eq(githubIntegrations.repositoryEnabled, true)
-            )
-          )
-          .limit(1)
-          .then(([result]) => result),
-        db.query.organizations.findFirst({
-          columns: { slug: true },
-          where: eq(organizations.id, input.organizationId),
-        }),
-      ]);
-
-      if (!post) {
-        throw notFound("Content not found");
-      }
-      if (post.contentType !== input.contentType) {
-        throw badRequest("Content type does not match the saved post");
-      }
-      if (!post.markdown) {
-        throw badRequest("Save the content before publishing it to GitHub");
-      }
-      const savedMarkdown = post.markdown;
-      if (!(integration?.owner && integration.repo)) {
-        throw notFound("Selected GitHub repository not found");
-      }
-      if (!integration.defaultBranch) {
-        throw badRequest(
-          "Selected GitHub repository does not have a default branch"
-        );
-      }
-      const connectionMethod = isGitHubAppConfigured()
-        ? "github-app"
-        : getGitHubConnectionMethod(integration);
-      if (connectionMethod === "unauthenticated") {
-        throw forbidden(
-          "Connect this repository through the GitHub App before publishing.",
-          { code: "github_repository_connection_required" }
-        );
-      }
-      let contentOutput = integration.outputId
-        ? {
-            id: integration.outputId,
-            config: integration.outputConfig,
-            enabled: integration.outputEnabled ?? false,
-          }
-        : null;
-      if (!contentOutput) {
-        if (!DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED[input.contentType]) {
-          throw forbidden("GitHub content publishing is paused", {
-            code: "github_content_publishing_paused",
-          });
-        }
-
-        await db
-          .insert(repositoryOutputs)
-          .values({
-            id: nanoid(),
-            repositoryId: integration.id,
-            outputType: input.contentType,
-            enabled: true,
-            config: null,
-          })
-          .onConflictDoNothing({
-            target: [
-              repositoryOutputs.repositoryId,
-              repositoryOutputs.outputType,
-            ],
-          });
-        contentOutput =
-          (await db.query.repositoryOutputs.findFirst({
-            where: and(
-              eq(repositoryOutputs.repositoryId, integration.id),
-              eq(repositoryOutputs.outputType, input.contentType)
-            ),
-            columns: { id: true, config: true, enabled: true },
-          })) ?? null;
-      }
-      if (!contentOutput) {
-        throw internalServerError("Failed to configure GitHub publishing");
-      }
-      if (!contentOutput.enabled) {
-        throw forbidden("GitHub content publishing is paused", {
-          code: "github_content_publishing_paused",
-        });
-      }
-      const outputConfig = repositoryContentDirectoryConfigSchema.safeParse(
-        contentOutput.config
-      );
-      const directory = outputConfig.success
-        ? (outputConfig.data.directory ??
-          DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType])
-        : DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType];
-      const path = resolveGitHubContentPath({
-        contentId: input.contentId,
-        customPath: input.path,
-        directory,
-        pathTemplate: outputConfig.success
-          ? outputConfig.data.contentPath
-          : null,
-        slug: post.slug,
-        title: post.title,
-      });
-      if (path.length > GITHUB_CONTENT_PATH_MAX_LENGTH) {
-        throw badRequest(
-          "The configured directory and content slug exceed GitHub's file path limit"
-        );
-      }
-
-      const contentSlug =
-        slugify(post.slug ?? "") || slugify(post.title) || input.contentId;
-
-      const notraBaseUrl = resolveNotraBaseUrl();
-      let publishInstallationId = integration.installationId ?? null;
-      let publishInstallationAccountType = integration.installationAccountType;
-      let publishInstallationAccountLogin =
-        integration.installationAccountLogin;
-      if (connectionMethod === "github-app" && !publishInstallationId) {
-        const fallback = selectGitHubAppInstallationForOwner(
-          await listGitHubAppInstallationsByOrganization(input.organizationId),
-          integration.owner
-        );
-        if (fallback) {
-          publishInstallationId = fallback.installationId;
-          publishInstallationAccountType = fallback.accountType;
-          publishInstallationAccountLogin = fallback.accountLogin;
-        }
-      }
-      if (connectionMethod === "github-app" && publishInstallationId) {
-        const publishAccess = await getGitHubAppInstallationPublishAccess(
-          publishInstallationId
-        );
-        if (githubAppInstallationCanPublishContent(publishAccess) === false) {
-          const recovery = getGitHubAppPermissionsRecovery({
-            installationId: publishInstallationId,
-            installationAccountType: publishInstallationAccountType,
-            installationAccountLogin: publishInstallationAccountLogin,
-          });
-          throw forbidden(recovery.message, recovery.data);
-        }
-      }
-
-      const token = await runOrpcEffect(
-        getGitHubPublishTokenEffect(integration.id, {
-          organizationId: input.organizationId,
-        }),
-        toGitHubOperationOrpcError
-      );
-
-      const octokit = createOctokit(token);
-      const publisherLogin =
-        getGitHubAppBotLogin() ??
-        (await octokit
-          .request("GET /user")
-          .then(({ data }) => data.login)
-          .catch(() => undefined));
-
-      try {
-        const result = await publishContentDraftPullRequest(octokit, {
-          contentId: input.contentId,
-          contentType: input.contentType,
-          owner: integration.owner,
-          repo: integration.repo,
-          defaultBranch: integration.defaultBranch,
-          path,
-          title: post.title,
-          markdown: savedMarkdown,
-          pullRequestMarkdown: savedMarkdown,
-          ...(publisherLogin ? { publisherLogin } : {}),
-          ...(outputConfig.success && outputConfig.data.imagePath
-            ? {
-                prepareContent: async (contentPath: string) => {
-                  const preparedContent = await prepareR2GitHubContentAssets({
-                    contentPath,
-                    imagePathTemplate: outputConfig.data.imagePath ?? "",
-                    markdown: savedMarkdown,
-                    slug: contentSlug,
-                  });
-                  if (
-                    preparedContent.assets.some(
-                      (asset) =>
-                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
-                    )
-                  ) {
-                    throw badRequest(
-                      "The configured image path exceeds GitHub's path limit"
-                    );
-                  }
-                  return preparedContent;
-                },
-              }
-            : {}),
-          ...(notraBaseUrl && organization
-            ? {
-                badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
-                contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
-              }
-            : {}),
-        });
-        await clearGitHubPublishFailures({
-          organizationId: input.organizationId,
-          outputType: input.contentType,
-          repositoryId: integration.id,
-        });
-        return result;
-      } catch (error) {
-        throw await toGitHubPublishOrpcError(error, {
-          organizationId: input.organizationId,
-          repositoryId: integration.id,
-          outputId: contentOutput.id,
-          outputType: input.contentType,
-          connectionMethod,
-          installationId: publishInstallationId,
-          installationAccountType: publishInstallationAccountType,
-          installationAccountLogin: publishInstallationAccountLogin,
-        });
-      }
+      return publishSavedContentToGitHub(input);
     }),
   delete: baseProcedure
     .input(contentInputSchema)
@@ -1196,6 +1014,12 @@ export const contentRouter = {
                   total: sql<number>`count(*)::int`,
                   draft: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
                   published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
+                  postId: sql<
+                    string | null
+                  >`case when count(*) = 1 then min(${posts.id}) end`,
+                  postTitle: sql<
+                    string | null
+                  >`case when count(*) = 1 then min(${posts.title}) end`,
                   types: sql<
                     string[] | null
                   >`array_agg(distinct ${posts.contentType})`,
@@ -1213,6 +1037,8 @@ export const contentRouter = {
               draft: Number(row.draft),
               published: Number(row.published),
               types: row.types ?? [],
+              postId: row.postId,
+              postTitle: row.postTitle,
             },
           ])
         );
@@ -1241,6 +1067,13 @@ export const contentRouter = {
             nameSource: collection.nameSource,
             contentTypes,
             postCount,
+            singlePost:
+              postCount === 1 && aggregate?.postId
+                ? {
+                    id: aggregate.postId,
+                    title: aggregate.postTitle ?? collection.name,
+                  }
+                : null,
             expectedPostCount: collection.expectedPostCount,
             isGenerating,
             statusSummary: {
@@ -1748,7 +1581,7 @@ export const contentRouter = {
         input.projectId &&
         !(await isProjectInOrganization(input.organizationId, input.projectId))
       ) {
-        throw badRequest("Project not found");
+        throw badRequest((await getTranslations("errors.server"))("notFound"));
       }
 
       const now = new Date();
@@ -1797,7 +1630,8 @@ export const contentRouter = {
         !input.dataPoints.includeReleases &&
         !input.dataPoints.includeLinearData
       ) {
-        throw badRequest("At least one data source must be enabled.");
+        const tErrors = await getTranslations("errors.content");
+        throw badRequest(tErrors("dataSourceRequired"));
       }
 
       if (input.selectedItems) {
@@ -1808,7 +1642,8 @@ export const contentRouter = {
           (input.selectedItems.linearIssueIds?.length ?? 0) > 0;
 
         if (!hasAnySelected) {
-          throw badRequest("At least one event must be selected.");
+          const tErrors = await getTranslations("errors.content");
+          throw badRequest(tErrors("eventRequired"));
         }
       }
 
@@ -1833,7 +1668,9 @@ export const contentRouter = {
             format: input.contentType,
           },
         });
-        throw paymentRequired(describeContentBillingDenial(billing));
+        throw paymentRequired(
+          (await getTranslations("errors.billing"))("contentLimitReached")
+        );
       }
 
       const runId = generateRunId("manual_on_demand");

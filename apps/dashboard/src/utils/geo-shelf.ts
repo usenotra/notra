@@ -1,5 +1,9 @@
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 import {
+  engineFamilyLabel,
+  engineFamilyOf,
+} from "@notra/geo-core/utils/geo-engine-family";
+import {
   canonicalizeShelfUrl,
   isAllowedShelfUrl,
   shelfDomainFromUrl,
@@ -31,6 +35,11 @@ import {
   getPresentCompetitorPlacements,
   isShelfOpportunitySource,
 } from "./geo-shelf-live-query";
+
+/** Demo rows from `buildGeoShelfFixture`; they are not stored, so comments cannot attach. */
+export function isGeoShelfFixtureSourceId(id: string) {
+  return id.startsWith("shelf-src-");
+}
 
 export function isOpenShelfStatus(
   status: GeoShelfOpportunity["status"] | null | undefined
@@ -252,10 +261,8 @@ export function mergeShelfOpportunity(
     updatedAt: nowIso,
   };
   const next: GeoShelfOpportunity = { ...base, ...changes, updatedAt: nowIso };
-  if (
-    changes.assigneeMemberId !== undefined &&
-    next.pocMemberId === changes.assigneeMemberId
-  ) {
+  // Like the server, a point of contact equal to the assignee is not stored.
+  if (next.pocMemberId !== null && next.pocMemberId === next.assigneeMemberId) {
     next.pocMemberId = null;
   }
   next.resolvedAt = isOpenShelfStatus(next.status)
@@ -273,31 +280,42 @@ export function toShelfPlacementWrites(
   }));
 }
 
-/**
- * Placements carry fetch evidence the client cannot reproduce, so only the
- * entries whose status actually changed are sent back to the server.
- */
-export function changedShelfPlacementWrites(
-  modified: GeoShelfSource,
-  original: GeoShelfSource
-): GeoShelfPlacementWrite[] | undefined {
-  const previousStatusById = new Map(
-    original.placements.map((placement) => [
-      placement.competitorId,
-      placement.status,
-    ])
-  );
-  const changed = modified.placements.flatMap<GeoShelfPlacementWrite>(
-    (placement) => {
-      if (previousStatusById.get(placement.competitorId) === placement.status) {
-        return [];
+export function applyShelfOpportunityChanges(
+  source: GeoShelfSource,
+  changes: GeoShelfOpportunityPatch,
+  nowIso: string
+): GeoShelfSource {
+  return {
+    ...source,
+    opportunity: mergeShelfOpportunity(source.opportunity, changes, nowIso),
+    updatedAt: nowIso,
+  };
+}
+
+export function applyShelfPlacementStatus(
+  source: GeoShelfSource,
+  competitorId: string | null,
+  status: GeoShelfPlacement["status"],
+  nowIso: string
+): GeoShelfSource {
+  return {
+    ...source,
+    placements: source.placements.map((placement) => {
+      if (placement.competitorId !== competitorId) {
+        return placement;
       }
-      return [
-        { competitorId: placement.competitorId, status: placement.status },
-      ];
-    }
-  );
-  return changed.length > 0 ? changed : undefined;
+      const isPresent = status === "present";
+      return {
+        ...placement,
+        status,
+        evidence: "manual",
+        checkedAt: nowIso,
+        position: isPresent ? placement.position : null,
+        hasLink: isPresent ? placement.hasLink : false,
+      };
+    }),
+    updatedAt: nowIso,
+  };
 }
 
 export function toShelfOpportunityWrite(
@@ -315,45 +333,6 @@ export function toShelfOpportunityWrite(
     notes: opportunity.notes,
     dueAt: opportunity.dueAt,
   };
-}
-
-function isSameOpportunityWrite(
-  next: GeoShelfOpportunityWrite | null,
-  previous: GeoShelfOpportunityWrite | null
-): boolean {
-  if (next === null || previous === null) {
-    return next === previous;
-  }
-  return (
-    next.status === previous.status &&
-    next.priority === previous.priority &&
-    next.assigneeMemberId === previous.assigneeMemberId &&
-    next.pocMemberId === previous.pocMemberId &&
-    next.notes === previous.notes &&
-    next.dueAt === previous.dueAt
-  );
-}
-
-/** `undefined` means "leave the stored ticket alone". */
-export function changedShelfOpportunityWrite(
-  modified: GeoShelfSource,
-  original: GeoShelfSource
-): GeoShelfOpportunityPatch | null | undefined {
-  const next = toShelfOpportunityWrite(modified);
-  const previous = toShelfOpportunityWrite(original);
-  if (isSameOpportunityWrite(next, previous)) {
-    return undefined;
-  }
-  if (next === null || previous === null) {
-    return next;
-  }
-  const changes: GeoShelfOpportunityPatch = {};
-  for (const key of Object.keys(next) as (keyof GeoShelfOpportunityWrite)[]) {
-    if (next[key] !== previous[key]) {
-      Object.assign(changes, { [key]: next[key] });
-    }
-  }
-  return changes;
 }
 
 /** Canonicalize like the server so the optimistic row matches the created one. */
@@ -428,26 +407,22 @@ export function shelfMemberInitial(member: GeoShelfMember): string {
   return (member.name || member.email).charAt(0).toUpperCase();
 }
 
-const shelfDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-});
-
-const shelfDueDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-export function formatShelfDate(iso: string | null): string {
+export function formatShelfDate(iso: string | null, locale: string): string {
   if (!iso) {
     return "-";
   }
-  return shelfDateFormatter.format(new Date(iso));
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(iso));
 }
 
-export function formatShelfDueDate(iso: string): string {
-  return shelfDueDateFormatter.format(new Date(iso));
+export function formatShelfDueDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(iso));
 }
 
 export function shelfDueDateToIso(date: Date): string {
@@ -455,4 +430,28 @@ export function shelfDueDateToIso(date: Date): string {
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12)
   );
   return noon.toISOString();
+}
+
+/**
+ * One entry per engine family: several models of the same provider would
+ * otherwise repeat the same logo. `models` keeps the exact engine ids.
+ */
+export function groupShelfCitationEngines(
+  engines: readonly string[]
+): { family: string; label: string; models: string[] }[] {
+  const byFamily = new Map<string, string[]>();
+  for (const engine of engines) {
+    const family = engineFamilyOf(engine);
+    const models = byFamily.get(family);
+    if (models) {
+      models.push(engine);
+    } else {
+      byFamily.set(family, [engine]);
+    }
+  }
+  return [...byFamily.entries()].map(([family, models]) => ({
+    family,
+    label: engineFamilyLabel(family),
+    models,
+  }));
 }

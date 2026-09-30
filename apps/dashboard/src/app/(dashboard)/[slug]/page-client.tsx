@@ -3,6 +3,7 @@
 import type { ContentType } from "@notra/ai/schemas/content";
 import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useId } from "react";
 
@@ -26,6 +27,8 @@ export default function PageClient({
   greetingText,
   organizationSlug,
 }: DashboardHomePageClientProps) {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -104,10 +107,10 @@ export default function PageClient({
             nativeButton={false}
             render={<Link href={`/${organizationSlug}/content`} />}
           >
-            View content
+            {t("emptyAction")}
           </Button>
         }
-        description="You have no new posts today. Create one now or review your existing drafts on the content page."
+        description={t("emptyDescription")}
         preview={
           <EmptyStateCardsPreview
             columns={3}
@@ -115,7 +118,7 @@ export default function PageClient({
             variant="content"
           />
         }
-        title="No content created today"
+        title={t("emptyTitle")}
       />
     );
   })();
@@ -124,20 +127,23 @@ export default function PageClient({
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{greetingText}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-balance @min-[40rem]/main:text-3xl">
+            {greetingText}
+          </h1>
         </div>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Today&apos;s Content</h2>
+          <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold">{t("todayTitle")}</h2>
               <p className="text-muted-foreground text-sm">
-                Latest items created today
+                {t("todayDescription")}
               </p>
             </div>
             <LazyCreateContentDialog
               entry="home"
               organizationId={organizationId}
+              organizationSlug={organizationSlug}
             />
           </div>
 
@@ -146,9 +152,11 @@ export default function PageClient({
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Content Activity</h2>
+            <h2 className="text-lg font-semibold">
+              {tCommon("labels.contentActivity")}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              Your content creation over the year
+              {t("activityDescription")}
             </p>
           </div>
 

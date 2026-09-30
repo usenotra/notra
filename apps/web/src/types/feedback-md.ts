@@ -1,4 +1,4 @@
-import type { ClaudeToolCallStatus } from "@notra/ui/components/brainless/claude/claude-tool-call";
+import type { ClaudeCodeToolCallStatus } from "@notra/ui/components/ai-skins/claude-code/claude-code-tool-call";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 export interface FeedbackMdPrinciple {
@@ -53,7 +53,6 @@ export interface FeedbackMdCommandTabsProps {
 
 export interface FeedbackMdTerminalHeader {
   version: string;
-  user: string;
   model: string;
   org: string;
   cwd: string;
@@ -65,7 +64,7 @@ export interface FeedbackMdTerminalToolCall {
   tool: string;
   arg: string;
   result: string;
-  status: ClaudeToolCallStatus;
+  status: ClaudeCodeToolCallStatus;
 }
 
 export type FeedbackMdLineKind =

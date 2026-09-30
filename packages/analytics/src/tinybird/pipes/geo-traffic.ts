@@ -8,6 +8,7 @@ import {
 } from "@tinybirdco/sdk";
 
 import {
+  GEO_CAPTURED_COMPARISON_WINDOW_SQL,
   GEO_CAPTURED_CURRENT_CONDITION,
   GEO_CAPTURED_PREVIOUS_CONDITION,
   GEO_CAPTURED_WINDOW_SQL,
@@ -19,15 +20,13 @@ import {
   GEO_EXCLUDED_SOURCES_SQL,
   GEO_HOST_FILTER_PARAMS,
   GEO_HOST_FILTER_SQL,
+  GEO_JOURNEY_DEEP_CRAWL_PAGES_SQL,
+  GEO_JOURNEY_FIRST_SEEN_CURRENT_CONDITION,
   GEO_PROJECT_SCOPE_PARAMS,
   GEO_PROJECT_SCOPE_SQL,
   GEO_WINDOW_PARAMS,
 } from "../../constants/geo-queries";
-import {
-  geoTrafficDaily,
-  geoTrafficPagesByHostDaily,
-  geoTrafficPagesDaily,
-} from "../datasources";
+import { geoTrafficDaily, geoTrafficPagesByHostDaily } from "../datasources";
 
 const GEO_TRAFFIC_PAGES_BY_HOST_DAILY_SQL = `
           SELECT
@@ -70,33 +69,6 @@ export const geoTrafficDailyMv = defineMaterializedView(
         FROM geo_traffic_events
         GROUP BY day, organization_id, project_id, visitor_type, source
       `,
-      }),
-    ],
-  }
-);
-
-export const geoTrafficPagesDailyMv = defineMaterializedView(
-  "geo_traffic_pages_daily_mv",
-  {
-    description:
-      "Rolls geo_traffic_events into geo_traffic_pages_daily on every ingest",
-    datasource: geoTrafficPagesDaily,
-    nodes: [
-      node({
-        name: "traffic_pages_daily",
-        sql: `
-          SELECT
-            toDate(captured_at) AS day,
-            organization_id,
-            project_id,
-            visitor_type,
-            source,
-            path,
-            countState() AS visits_state,
-            maxState(captured_at) AS last_seen_state
-          FROM geo_traffic_events
-          GROUP BY day, organization_id, project_id, visitor_type, source, path
-        `,
       }),
     ],
   }
@@ -236,8 +208,9 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
   nodes: [
     node({
       name: "top_pages",
-      // Keep the host filter on geo_traffic_events until
-      // geo_traffic_pages_by_host_daily_backfill has replaced the rollup.
+      // Reads the raw event table on purpose: the by-host rollup would
+      // require a one-time backfill to serve full history, and the 30s
+      // query cache bounds the raw scan cost.
       sql: `
         SELECT
           host,
@@ -323,6 +296,7 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
             {{String(category, '')}} = ''
             OR has(splitByChar(',', {{String(category, '')}}), category)
           )
+          AND captured_at >= now() - toIntervalDay(90)
           ${GEO_HOST_FILTER_SQL}
         ORDER BY captured_at DESC
         LIMIT {{Int32(limit, 50)}}
@@ -385,7 +359,8 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
           uniqExact(path) AS distinct_paths,
           min(captured_at) AS first_seen_at,
           max(captured_at) AS last_seen_at,
-          arraySlice(groupUniqArray(path), 1, 5) AS sample_paths
+          argMin(path, captured_at) AS entry_path,
+          arraySlice(groupUniqArray(path), 1, 1000) AS sample_paths
         FROM journey_events
         GROUP BY journey_id
         ORDER BY last_seen_at DESC, journey_id ASC
@@ -401,7 +376,207 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
     distinct_paths: t.uint64(),
     first_seen_at: t.dateTime(),
     last_seen_at: t.dateTime(),
+    entry_path: t.string(),
     sample_paths: t.array(t.string()),
+  },
+});
+
+/**
+ * Journey events across the selected window and the one before it. Filters
+ * on the sorting key (organization_id, visitor_type, captured_at) so both
+ * windows prune by primary key.
+ */
+const GEO_JOURNEY_COMPARISON_EVENTS_SQL = `
+        SELECT
+          journey_id,
+          source,
+          visitor_type,
+          if(
+            replaceRegexpOne(splitByChar('?', path)[1], '/+$', '') = '',
+            '/',
+            replaceRegexpOne(splitByChar('?', path)[1], '/+$', '')
+          ) AS path,
+          captured_at
+        FROM geo_traffic_events
+        WHERE organization_id = {{String(organization_id)}}
+          AND visitor_type IN ('crawler', 'ai_referral')
+          ${GEO_PROJECT_SCOPE_SQL}
+          ${GEO_EXCLUDED_SOURCES_SQL}
+          ${GEO_CAPTURED_COMPARISON_WINDOW_SQL}
+          AND journey_id != ''
+      `;
+
+export const geoJourneySources = defineEndpoint("geo_journey_sources", {
+  description:
+    "Exact journey counts per source for the window and the previous window, with a daily series for the current window",
+  params: {
+    organization_id: p.string().describe("Organization id"),
+    ...GEO_PROJECT_SCOPE_PARAMS,
+    ...GEO_EXCLUDED_SOURCES_PARAMS,
+    ...GEO_WINDOW_PARAMS,
+  },
+  nodes: [
+    node({
+      name: "journey_source_events",
+      sql: GEO_JOURNEY_COMPARISON_EVENTS_SQL,
+    }),
+    node({
+      name: "journey_source_rollup",
+      sql: `
+        SELECT
+          journey_id,
+          any(source) AS source,
+          any(visitor_type) AS visitor_type,
+          count() AS pages,
+          min(captured_at) AS first_seen_at,
+          max(captured_at) AS last_seen_at
+        FROM journey_source_events
+        GROUP BY journey_id
+      `,
+    }),
+    node({
+      name: "journey_source_days",
+      sql: `
+        SELECT
+          source,
+          visitor_type,
+          toDate(first_seen_at) AS day,
+          (${GEO_JOURNEY_FIRST_SEEN_CURRENT_CONDITION}) AS is_current,
+          count() AS day_journeys,
+          sum(pages) AS day_pages,
+          countIf(pages <= 1) AS day_single_fetch,
+          countIf(pages >= ${GEO_JOURNEY_DEEP_CRAWL_PAGES_SQL}) AS day_deep_crawls,
+          max(last_seen_at) AS day_last_seen_at
+        FROM journey_source_rollup
+        GROUP BY source, visitor_type, day, is_current
+      `,
+    }),
+    node({
+      name: "journey_sources",
+      sql: `
+        SELECT
+          source,
+          visitor_type,
+          sumIf(day_journeys, is_current) AS journeys,
+          sumIf(day_journeys, NOT is_current) AS previous_journeys,
+          sumIf(day_pages, is_current) AS pages,
+          sumIf(day_single_fetch, is_current) AS single_fetch,
+          sumIf(day_deep_crawls, is_current) AS deep_crawls,
+          maxIf(day_last_seen_at, is_current) AS last_seen_at,
+          arrayMap(x -> x.1, arraySort(groupArrayIf((day, day_journeys), is_current))) AS days,
+          arrayMap(x -> x.2, arraySort(groupArrayIf((day, day_journeys), is_current))) AS daily_journeys
+        FROM journey_source_days
+        GROUP BY source, visitor_type
+        HAVING journeys > 0 OR previous_journeys > 0
+        ORDER BY journeys DESC, source ASC
+      `,
+    }),
+  ],
+  output: {
+    source: t.string(),
+    visitor_type: t.string(),
+    journeys: t.uint64(),
+    previous_journeys: t.uint64(),
+    pages: t.uint64(),
+    single_fetch: t.uint64(),
+    deep_crawls: t.uint64(),
+    last_seen_at: t.dateTime(),
+    days: t.array(t.date()),
+    daily_journeys: t.array(t.uint64()),
+  },
+});
+
+export const geoJourneyPages = defineEndpoint("geo_journey_pages", {
+  description:
+    "Exact journeys per fetched page for the window and the previous window, with entry counts and a daily series",
+  params: {
+    organization_id: p.string().describe("Organization id"),
+    ...GEO_PROJECT_SCOPE_PARAMS,
+    ...GEO_EXCLUDED_SOURCES_PARAMS,
+    ...GEO_WINDOW_PARAMS,
+    limit: p.int32().optional(500).describe("Max pages"),
+  },
+  nodes: [
+    node({
+      name: "journey_page_events",
+      sql: GEO_JOURNEY_COMPARISON_EVENTS_SQL,
+    }),
+    node({
+      name: "journey_page_rollup",
+      sql: `
+        SELECT
+          journey_id,
+          argMin(path, captured_at) AS entry_path,
+          groupUniqArray(path) AS paths,
+          min(captured_at) AS first_seen_at,
+          max(captured_at) AS last_seen_at
+        FROM journey_page_events
+        GROUP BY journey_id
+      `,
+    }),
+    node({
+      name: "journey_page_days",
+      sql: `
+        SELECT
+          arrayJoin(paths) AS page,
+          toDate(first_seen_at) AS day,
+          (${GEO_JOURNEY_FIRST_SEEN_CURRENT_CONDITION}) AS is_current,
+          count() AS day_journeys,
+          countIf(entry_path = page) AS day_entries,
+          max(last_seen_at) AS day_last_seen_at
+        FROM journey_page_rollup
+        GROUP BY page, day, is_current
+      `,
+    }),
+    node({
+      name: "journey_page_totals",
+      sql: `
+        SELECT
+          page AS path,
+          sumIf(day_journeys, is_current) AS journeys,
+          sumIf(day_journeys, NOT is_current) AS previous_journeys,
+          sumIf(day_entries, is_current) AS entries,
+          maxIf(day_last_seen_at, is_current) AS last_seen_at,
+          arrayMap(x -> x.1, arraySort(groupArrayIf((day, day_journeys), is_current))) AS days,
+          arrayMap(x -> x.2, arraySort(groupArrayIf((day, day_journeys), is_current))) AS daily_journeys
+        FROM journey_page_days
+        GROUP BY page
+      `,
+    }),
+    node({
+      name: "journey_page_counts",
+      sql: `
+        SELECT
+          *,
+          countIf(journeys > 0) OVER () AS total_paths,
+          countIf(previous_journeys > 0) OVER () AS previous_total_paths
+        FROM journey_page_totals
+      `,
+    }),
+    node({
+      name: "journey_pages",
+      // Previous-window-only pages stay in so the totals on every row survive a
+      // window with no journeys at all; they sort last and the caller drops
+      // them from the page list.
+      sql: `
+        SELECT *
+        FROM journey_page_counts
+        WHERE journeys > 0 OR previous_journeys > 0
+        ORDER BY journeys DESC, path ASC
+        LIMIT {{Int32(limit, 500)}}
+      `,
+    }),
+  ],
+  output: {
+    path: t.string(),
+    journeys: t.uint64(),
+    previous_journeys: t.uint64(),
+    entries: t.uint64(),
+    last_seen_at: t.dateTime(),
+    days: t.array(t.date()),
+    daily_journeys: t.array(t.uint64()),
+    total_paths: t.uint64(),
+    previous_total_paths: t.uint64(),
   },
 });
 

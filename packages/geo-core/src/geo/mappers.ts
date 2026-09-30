@@ -14,6 +14,11 @@ import type {
   GeoTrackedPrompt,
   GeoTrafficLogEntry,
 } from "../types/geo";
+import type {
+  GeoPersona,
+  GeoPersonaMemoryRow,
+  GeoPersonaRow,
+} from "../types/geo-personas";
 import { toGeoVisitorType } from "../utils/ai-traffic";
 import {
   remapRetiredGeoEngineIds,
@@ -50,6 +55,7 @@ export function toGeoSettings(
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,
     nonZdrApprovedEngines: remapRetiredGeoEngineIds(row.nonZdrApprovedEngines),
+    trackWithoutSearch: row.trackWithoutSearch,
     pausedAutoPromptIds: row.pausedAutoPromptIds,
     removedAutoPromptIds: row.removedAutoPromptIds,
     enabled: row.enabled,
@@ -118,4 +124,29 @@ function toNullableNumber(value: number | bigint | null): number | null {
     return null;
   }
   return Number(value);
+}
+
+export function toGeoPersona(
+  row: GeoPersonaRow,
+  memories: readonly GeoPersonaMemoryRow[]
+): GeoPersona {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    company: row.company,
+    summary: row.summary,
+    searchStyle: row.searchStyle,
+    profile: row.profile,
+    conversationPrompts: row.conversationPrompts,
+    enabled: row.enabled,
+    archivedAt: row.archivedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    memories: memories.map((memory) => ({
+      id: memory.id,
+      kind: memory.kind,
+      content: memory.content,
+    })),
+  };
 }

@@ -164,7 +164,6 @@ export function createCreatePostTool(
       usageNotes:
         "Requires a title (plain text, max 120 chars) and markdown content body. You may call this multiple times only when there are multiple meaningfully distinct posts to save.",
     }),
-    needsApproval: config.needsApproval ?? false,
     inputSchema: z.object(
       withSlug ? createPostSlugInputShape : createPostBaseInputShape
     ),

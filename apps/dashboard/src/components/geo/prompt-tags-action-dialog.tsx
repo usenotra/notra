@@ -1,5 +1,6 @@
+import { useTranslations } from "next-intl";
+
 import { PromptTagsDialog } from "@/components/geo/prompt-tags-dialog";
-import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import type { PromptTagsActionDialogProps } from "@/types/geo";
 
 export function PromptTagsActionDialog({
@@ -8,17 +9,13 @@ export function PromptTagsActionDialog({
   onConfirm,
   onClose,
 }: PromptTagsActionDialogProps) {
+  const t = useTranslations("geo.promptTagsActionDialog");
+  const tGeoShared = useTranslations("geo.shared");
   const edit = target?.mode === "edit";
   return (
     <PromptTagsDialog
-      confirmLabel={
-        edit ? GEO_PROMPT_TAGS_COPY.confirm : GEO_PROMPT_TAGS_COPY.bulkConfirm
-      }
-      description={
-        edit
-          ? GEO_PROMPT_TAGS_COPY.editDescription
-          : GEO_PROMPT_TAGS_COPY.bulkDescription
-      }
+      confirmLabel={edit ? t("editConfirm") : tGeoShared("addTags")}
+      description={edit ? t("editDescription") : t("bulkDescription")}
       initialTags={edit ? (target?.rows[0]?.tags ?? []) : []}
       onConfirm={onConfirm}
       onOpenChange={(open) => {
@@ -28,7 +25,7 @@ export function PromptTagsActionDialog({
       }}
       open={target !== null}
       suggestions={suggestions}
-      title={edit ? GEO_PROMPT_TAGS_COPY.edit : GEO_PROMPT_TAGS_COPY.bulkTitle}
+      title={edit ? tGeoShared("editTags") : tGeoShared("addTags")}
     />
   );
 }

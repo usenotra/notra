@@ -4,7 +4,8 @@ import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { cn } from "@notra/ui/lib/utils";
-import { type KeyboardEvent, useState } from "react";
+import { useTranslations } from "next-intl";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import type {
   SettingsModalNavProps,
@@ -57,8 +58,12 @@ export function SettingsModalNav({
   onSelect,
   searchInputId,
 }: SettingsModalNavProps) {
+  const t = useTranslations("settings.nav");
+  const tCommon = useTranslations("common");
   const isSearching = query.trim().length > 0;
   const flatItems = groups.flatMap((group) => group.items);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [navFocus, setNavFocus] = useState({ query, index: 0 });
   const lastIndex = Math.max(0, flatItems.length - 1);
   const focusedIndex =
@@ -72,6 +77,36 @@ export function SettingsModalNav({
   function selectItem(id: SettingsSectionId) {
     onSelect(id);
   }
+
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      searchRef.current?.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller || window.matchMedia("(min-width: 768px)").matches) {
+      return;
+    }
+    const active = scroller.querySelector<HTMLElement>("[aria-current='page']");
+    if (!active) {
+      return;
+    }
+    const scrollerRect = scroller.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const fullyVisible =
+      activeRect.left >= scrollerRect.left - 1 &&
+      activeRect.right <= scrollerRect.right + 1;
+    if (fullyVisible) {
+      return;
+    }
+    const delta =
+      activeRect.left -
+      scrollerRect.left -
+      (scrollerRect.width - activeRect.width) / 2;
+    scroller.scrollBy({ left: delta });
+  }, [activeSection]);
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape" && isSearching) {
@@ -110,8 +145,8 @@ export function SettingsModalNav({
 
   return (
     <nav
-      aria-label="Settings"
-      className="flex min-h-0 w-full shrink-0 flex-col border-b md:w-56 md:border-r md:border-b-0"
+      aria-label={tCommon("actions.settings")}
+      className="flex w-full shrink-0 flex-col border-b pt-[env(safe-area-inset-top)] md:min-h-0 md:w-56 md:border-b-0 md:pt-0"
     >
       <div className="p-3 pb-2">
         <div className="relative">
@@ -127,9 +162,8 @@ export function SettingsModalNav({
                 : undefined
             }
             aria-controls={`${searchInputId}-results`}
-            aria-label="Search settings"
+            aria-label={t("searchLabel")}
             autoComplete="off"
-            autoFocus
             className={cn(
               "bg-muted/50 h-8 pl-8",
               isSearching ? "pr-8" : "pr-2.5"
@@ -137,14 +171,15 @@ export function SettingsModalNav({
             id={searchInputId}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={onSearchKeyDown}
-            placeholder="Search settings"
+            placeholder={t("searchLabel")}
+            ref={searchRef}
             spellCheck={false}
             type="text"
             value={query}
           />
           {isSearching ? (
             <button
-              aria-label="Clear search"
+              aria-label={tCommon("labels.clearSearch")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm"
               onClick={() => onQueryChange("")}
               type="button"
@@ -154,45 +189,69 @@ export function SettingsModalNav({
           ) : null}
         </div>
       </div>
-      <div
-        className="flex min-h-0 flex-1 flex-row gap-3 overflow-x-auto overflow-y-hidden px-2 pb-2 md:flex-col md:gap-4 md:overflow-x-hidden md:overflow-y-auto md:px-2 md:pb-3"
-        id={`${searchInputId}-results`}
-        role={isSearching ? "listbox" : undefined}
-      >
-        {groups.length === 0 ? (
-          <p className="text-muted-foreground px-2 py-3 text-xs">
-            No matching settings
-          </p>
-        ) : (
-          groups.map((group) => (
-            <div
-              className="flex min-w-max flex-col gap-1 md:min-w-0"
-              key={group.id}
-            >
-              <p className="text-muted-foreground px-2 pt-1 text-[11px] font-medium tracking-wide uppercase">
-                {group.label}
-              </p>
-              <div className="flex flex-row gap-1 md:flex-col">
-                {group.items.map((item) => {
-                  const isActive = item.id === activeSection;
-                  const isFocused = isSearching && item.id === focusedId;
-                  return (
-                    <SettingsNavButton
-                      id={`${searchInputId}-${item.id}`}
-                      isActive={isActive}
-                      isFocused={isFocused}
-                      isSearching={isSearching}
-                      item={item}
-                      key={item.id}
-                      onSelect={selectItem}
-                      query={query}
-                    />
-                  );
-                })}
+      <div className="relative min-w-0 md:flex md:min-h-0 md:flex-1 md:flex-col">
+        <div
+          className={cn(
+            "flex min-w-0 gap-1 px-2 pb-2",
+            isSearching
+              ? "max-h-64 flex-col overflow-y-auto"
+              : "flex-row overflow-x-auto overflow-y-hidden",
+            "md:max-h-none md:min-h-0 md:flex-1 md:flex-col md:gap-4 md:overflow-x-hidden md:overflow-y-auto md:px-2 md:pb-3"
+          )}
+          id={`${searchInputId}-results`}
+          ref={scrollerRef}
+          role={isSearching ? "listbox" : undefined}
+        >
+          {groups.length === 0 ? (
+            <p className="text-muted-foreground px-2 py-3 text-xs">
+              {t("noMatches")}
+            </p>
+          ) : (
+            groups.map((group) => (
+              <div
+                className={cn(
+                  "flex flex-col gap-1",
+                  isSearching ? "min-w-0" : "shrink-0",
+                  "md:min-w-0 md:shrink"
+                )}
+                key={group.id}
+              >
+                <p
+                  className={cn(
+                    "text-muted-foreground px-2 pt-1 text-[11px] font-medium uppercase",
+                    !isSearching && "max-md:sr-only"
+                  )}
+                >
+                  {group.label}
+                </p>
+                <div
+                  className={cn(
+                    "flex gap-1",
+                    isSearching ? "flex-col" : "flex-row",
+                    "md:flex-col"
+                  )}
+                >
+                  {group.items.map((item) => {
+                    const isActive = item.id === activeSection;
+                    const isFocused = isSearching && item.id === focusedId;
+                    return (
+                      <SettingsNavButton
+                        id={`${searchInputId}-${item.id}`}
+                        isActive={isActive}
+                        isFocused={isFocused}
+                        isSearching={isSearching}
+                        item={item}
+                        key={item.id}
+                        onSelect={selectItem}
+                        query={query}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </nav>
   );
@@ -220,7 +279,10 @@ function SettingsNavButton({
       aria-current={isActive ? "page" : undefined}
       aria-selected={isSearching ? isFocused : undefined}
       className={cn(
-        "duration-fast flex min-h-8 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] transition-colors",
+        "duration-fast flex min-h-8 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] transition-colors md:w-full md:shrink md:whitespace-normal",
+        isSearching
+          ? "w-full whitespace-normal"
+          : "w-auto shrink-0 whitespace-nowrap",
         "hover:bg-muted/80",
         isActive || isFocused
           ? "bg-muted text-foreground"

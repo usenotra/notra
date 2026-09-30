@@ -13,6 +13,7 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -39,6 +40,8 @@ import type {
 } from "@/types/webhooks/outbound";
 
 function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
+  const t = useTranslations("settings.panes.webhooks");
+  const tActions = useTranslations("common.actions");
   const [tab, setTab] = useState<WebhookTab>("deliveries");
   const [filter, setFilter] = useState<WebhookFilter>("all");
   const [offset, setOffset] = useState(0);
@@ -56,7 +59,7 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
   const retry = useMutation(
     dashboardOrpc.outboundWebhooks.retry.mutationOptions({
       onSuccess: () => {
-        toast.success("Delivery queued for retry");
+        toast.success(t("toasts.retryQueued"));
         setSelected(null);
         refresh();
       },
@@ -66,7 +69,7 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
   const remove = useMutation(
     dashboardOrpc.outboundWebhooks.remove.mutationOptions({
       onSuccess: () => {
-        toast.success("Endpoint removed");
+        toast.success(t("toasts.endpointRemoved"));
         refresh();
       },
       onError: (error) => toast.error(error.message),
@@ -79,12 +82,12 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
   return (
     <SettingsPane className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-muted-foreground text-xs">Last 30 days</p>
+        <p className="text-muted-foreground text-xs">{t("period")}</p>
         <div className="flex gap-2">
           <Button
             size="icon"
             variant="outline"
-            aria-label="Refresh webhook activity"
+            aria-label={t("refresh")}
             disabled={overview.isFetching}
             onClick={refresh}
           >
@@ -99,7 +102,7 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
             onClick={() => setCreating(true)}
           >
             <HugeiconsIcon icon={PlusSignIcon} className="size-4" />
-            Add endpoint
+            {t("addEndpoint")}
           </Button>
         </div>
       </div>
@@ -108,15 +111,15 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
         <div role="alert" className="space-y-2 rounded-lg border p-4 text-sm">
           <p>{overview.error.message}</p>
           <Button size="sm" variant="outline" onClick={refresh}>
-            Try again
+            {tActions("tryAgain")}
           </Button>
         </div>
       ) : null}
       <Tabs onValueChange={setTab} value={tab}>
-        <TabsList aria-label="Webhook views">
-          <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
+        <TabsList aria-label={t("views")}>
+          <TabsTrigger value="deliveries">{t("deliveries")}</TabsTrigger>
           <TabsTrigger value="endpoints">
-            Endpoints
+            {t("endpoints")}
             {overview.data ? (
               <Badge size="sm" variant="secondary">
                 {endpoints.length}

@@ -24,8 +24,8 @@ export function getContentChatHistoryGroups(
   }
 
   return [
-    { label: "Today", sessions: today },
-    { label: "Previous 7 days", sessions: previousSevenDays },
-    { label: "Older", sessions: older },
+    { key: "today" as const, sessions: today },
+    { key: "previousSevenDays" as const, sessions: previousSevenDays },
+    { key: "older" as const, sessions: older },
   ].filter((group) => group.sessions.length > 0);
 }

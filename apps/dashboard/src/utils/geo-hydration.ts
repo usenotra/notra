@@ -1,11 +1,15 @@
 import {
   GEO_DEFAULT_RANGE,
   GEO_DEFAULT_TAB,
+  GEO_TRAFFIC_HOST_PARAM,
 } from "@notra/geo-core/constants/geo";
 
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
+  geoTrafficJourneysQueryInput,
+  geoTrafficLogQueryInput,
+  geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { parseGeoRangeParam } from "@/utils/geo-range";
 import { toGeoTab } from "@/utils/geo-tabs";
@@ -35,7 +39,8 @@ export function geoRequestedProjectId(
 export function geoProjectRepairPath(
   slug: string,
   search: Record<string, string | string[] | undefined>,
-  projectId: string | undefined
+  projectId: string | undefined,
+  basePath = "/geo"
 ): string {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(search)) {
@@ -50,7 +55,7 @@ export function geoProjectRepairPath(
     query.set("project", projectId);
   }
   const suffix = query.toString();
-  return `/${encodeURIComponent(slug)}/geo${suffix ? `?${suffix}` : ""}`;
+  return `/${encodeURIComponent(slug)}${basePath}${suffix ? `?${suffix}` : ""}`;
 }
 
 export function normalizeGeoProjectId(
@@ -76,10 +81,8 @@ export function geoHydrationInputs(
     firstSearchParam(search.range) ?? GEO_DEFAULT_RANGE
   );
   const activeTab = toGeoTab(firstSearchParam(search.tab) ?? GEO_DEFAULT_TAB);
-  const windowed = geoOverviewQueryInput(scope, {
-    from: range.dateFrom,
-    to: range.dateTo,
-  });
+  const window = { from: range.dateFrom, to: range.dateTo };
+  const windowed = geoOverviewQueryInput(scope, window);
 
   return {
     activeTab,
@@ -90,8 +93,39 @@ export function geoHydrationInputs(
     promptResultSummaries: windowed,
     competitorShare: windowed,
     languageShare: windowed,
-    trafficJourneys: windowed,
+    journeyStats: windowed,
+    trafficJourneys: geoTrafficJourneysQueryInput(scope, window),
     prompts: geoSettingsQueryInput(scope),
     competitors: geoSettingsQueryInput(scope),
+  };
+}
+
+/**
+ * Inputs for the `/geo/traffic` page. The host mirrors the project provider's
+ * first render: the raw `?host=` param, canonicalised; the suppressed state
+ * only exists after a client-side project switch, which the server never sees.
+ */
+export function geoTrafficHydrationInputs(
+  organizationId: string,
+  projectId: string | undefined,
+  search: Record<string, string | string[] | undefined>
+) {
+  const scope = { organizationId, projectId };
+  const { range } = parseGeoRangeParam(
+    firstSearchParam(search.range) ?? GEO_DEFAULT_RANGE
+  );
+  const window = { from: range.dateFrom, to: range.dateTo };
+  const host = firstSearchParam(search[GEO_TRAFFIC_HOST_PARAM]);
+
+  return {
+    settings: geoSettingsQueryInput(scope),
+    aiTraffic: geoOverviewQueryInput(scope, window),
+    trafficPages: geoTrafficPagesQueryInput(scope, window, host),
+    trafficLog: geoTrafficLogQueryInput(
+      scope,
+      { visitorTypes: [], categories: [] },
+      host
+    ),
+    ingestSetup: geoSettingsQueryInput(scope),
   };
 }

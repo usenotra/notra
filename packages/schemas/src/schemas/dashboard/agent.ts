@@ -4,12 +4,10 @@ import { z } from "zod";
 export const agentCreateSessionResponseSchema = z.object({
   ok: z.literal(true),
   sessionId: z.string().min(1),
-  continuationToken: z.string().min(1),
 });
 
 export const agentFollowUpResponseSchema = z.looseObject({
   ok: z.literal(true),
-  continuationToken: z.string().min(1).optional(),
 });
 
 export const agentStreamEventSchema = z.looseObject({

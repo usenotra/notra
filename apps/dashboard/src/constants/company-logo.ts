@@ -8,3 +8,6 @@ export const COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE = 5;
 export const COMPANY_LOGO_SOURCE_HOSTS = ["media.brand.dev"] as const;
 
 export const COMPANY_LOGO_FETCH_TIMEOUT_MS = 10_000;
+
+/** The brand lookup sits in the dashboard RPC batch, so a slow upstream must not hold the batch. */
+export const COMPANY_LOGO_LOOKUP_TIMEOUT_MS = 2500;

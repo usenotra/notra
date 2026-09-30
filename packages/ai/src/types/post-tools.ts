@@ -12,7 +12,6 @@ export interface PostToolsConfig {
   contentSubtype?: BlogPostSubtype | null;
   sourceMetadata?: PostSourceMetadata;
   autoPublish?: boolean;
-  needsApproval?: boolean;
   targetPostId?: string;
 }
 

@@ -9,7 +9,7 @@ export const slugSchema = z.string().slugify();
 export const organizationSlugSchema = z
   .string()
   .slugify()
-  .min(3, "Organization slug must be at least 3 characters long")
+  .min(2, "Organization slug must be at least 2 characters")
   .max(63, "Organization slug must be at most 63 characters long")
   .refine(
     (value) =>

@@ -1,8 +1,6 @@
 export const MAX_ATTEMPTS = 8;
 export const LEASE_SECONDS = 60;
 export const HTTP_TIMEOUT_MS = 10_000;
-// sendBatch makes enqueueing cheap, so the recovery scan can drain a
-// post-incident backlog at 500 events + 500 deliveries per minute.
 export const RECOVERY_BATCH_SIZE = 500;
 export const RETENTION_DAYS = 30;
 export const SIGNATURE_TOLERANCE_SECONDS = 300;

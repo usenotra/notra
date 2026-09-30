@@ -11,24 +11,29 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useQuery } from "@tanstack/react-query";
+import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
 import { LogEventSummary } from "@/components/logs/log-event-summary";
 import { LogTechnicalDetails } from "@/components/logs/log-technical-details";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { LogDetailsSheetProps } from "@/types/logs/details-sheet";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import { getLogDestination } from "@/utils/log-details";
-import { formatLogTimestamp } from "@/utils/logs";
 
 export function LogDetailsSheet({
-  log,
+  log: logProp,
   onOpenChange,
   open,
   organizationId,
   organizationSlug,
 }: LogDetailsSheetProps) {
+  const t = useTranslations("logs.details");
+  const tLabels = useTranslations("common.labels");
+  const format = useFormatter();
+  const [log, releaseLog] = useRetainedValue(logProp);
   const detail = useQuery({
     ...dashboardOrpc.logs.webhooks.get.queryOptions({
       input: { organizationId, logId: log?.id ?? "" },
@@ -42,14 +47,25 @@ export function LogDetailsSheet({
     ? getLogDestination(entry.integrationType, organizationSlug)
     : null;
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseLog}
+    >
       <SheetContent className="flex flex-col gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-xl">
         <SheetHeader className="border-b px-6 py-5 pr-14">
-          <SheetTitle>Event details</SheetTitle>
+          <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>
             {entry
-              ? formatLogTimestamp(entry.createdAt, "long")
-              : "Inspect this integration event."}
+              ? format.dateTime(new Date(entry.createdAt), {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : t("inspect")}
           </SheetDescription>
         </SheetHeader>
         {entry ? (
@@ -57,18 +73,20 @@ export function LogDetailsSheet({
             <LogEventSummary entry={entry} />
             {log?.hasPayload && detail.isPending ? (
               <p className="text-muted-foreground text-sm" role="status">
-                Loading event context…
+                {t("loadingContext")}
               </p>
             ) : null}
             {detail.isError ? (
               <div className="space-y-2" role="alert">
-                <p className="text-sm">{detail.error.message}</p>
+                <p className="text-sm wrap-break-word">
+                  {detail.error.message}
+                </p>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => detail.refetch()}
                 >
-                  Retry details
+                  {t("retry")}
                 </Button>
               </div>
             ) : null}
@@ -80,14 +98,11 @@ export function LogDetailsSheet({
             <Button
               variant="outline"
               onClick={() =>
-                copyTextToClipboard(
-                  JSON.stringify(entry, null, 2),
-                  "Event details copied"
-                )
+                copyTextToClipboard(JSON.stringify(entry, null, 2), t("copied"))
               }
             >
               <HugeiconsIcon icon={Copy01Icon} className="size-4" />
-              Copy details
+              {t("copy")}
             </Button>
             {destination ? (
               <Button
@@ -95,7 +110,9 @@ export function LogDetailsSheet({
                 nativeButton={false}
                 onClick={() => onOpenChange(false)}
               >
-                {destination.label}
+                {destination.labelKey === "manageIntegration"
+                  ? tLabels("manageIntegration")
+                  : t(`destinations.${destination.labelKey}`)}
               </Button>
             ) : null}
           </SheetFooter>

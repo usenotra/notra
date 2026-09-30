@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { CONNECT_X_CLASS } from "@/constants/analytics";
@@ -24,14 +25,15 @@ import { cn } from "@/lib/utils";
 import type { ConnectAccountsButtonsProps } from "@/types/analytics";
 
 const SPLIT_SHELL_CLASS =
-  "m-0 inline-flex min-w-0 items-stretch overflow-hidden border-0 bg-[#0f1419] p-0 shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset] corner-squircle rounded-[1rem] supports-[corner-shape:round]:rounded-[1.25rem] dark:bg-white";
+  "m-0 inline-flex min-w-0 items-stretch overflow-hidden border-0 bg-[#0f1419] p-0 shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset] corner-squircle rounded-md supports-[corner-shape:squircle]:rounded-[1.25rem] dark:bg-white";
 
 const SPLIT_SEGMENT_CLASS =
-  "rounded-none shadow-none supports-[corner-shape:round]:rounded-none active:scale-100 focus-visible:z-10 focus-visible:ring-inset";
+  "rounded-none shadow-none active:scale-100 focus-visible:z-10 focus-visible:ring-inset";
 
 export function ConnectAccountsButtons({
   organizationId,
 }: ConnectAccountsButtonsProps) {
+  const t = useTranslations("analytics.connect");
   const twitter = useHandleConnectSocialAccount(organizationId, "twitter");
   const linkedin = useHandleConnectSocialAccount(organizationId, "linkedin");
 
@@ -52,13 +54,13 @@ export function ConnectAccountsButtons({
         ) : (
           <HugeiconsIcon className="size-4" icon={NewTwitterIcon} />
         )}
-        Connect X
+        {t("connectX")}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label="Connect another platform"
+              aria-label={t("another")}
               className={cn(
                 CONNECT_X_CLASS,
                 SPLIT_SEGMENT_CLASS,
@@ -84,7 +86,7 @@ export function ConnectAccountsButtons({
             ) : (
               <HugeiconsIcon className="size-4" icon={Linkedin02Icon} />
             )}
-            <span className="whitespace-nowrap">Connect LinkedIn</span>
+            <span className="whitespace-nowrap">{t("connectLinkedIn")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

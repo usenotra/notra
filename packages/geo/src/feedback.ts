@@ -3,6 +3,7 @@ export {
   buildFeedbackToolDescription,
   createFeedbackToolHandler,
   feedbackToolInputSchema,
+  feedbackToolOutputSchema,
   registerFeedbackTool,
 } from "./feedback/mcp";
 export type {

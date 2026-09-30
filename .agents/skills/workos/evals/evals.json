@@ -10,11 +10,7 @@
         {
           "text": "Mentions Sign-in endpoint as the WorkOS-side term for this concept",
           "kind": "content_contains_any",
-          "needles": [
-            "Sign-in endpoint",
-            "sign-in endpoint",
-            "Sign-In endpoint"
-          ]
+          "needles": ["Sign-in endpoint", "sign-in endpoint", "Sign-In endpoint"]
         },
         {
           "text": "Points to Dashboard → Redirects as the config location",
@@ -24,11 +20,7 @@
         {
           "text": "Cites an actual workos.com/docs URL (not llms.txt)",
           "kind": "content_contains_any",
-          "needles": [
-            "workos.com/docs/authkit",
-            "workos.com/docs/sso",
-            "workos.com/docs/reference"
-          ]
+          "needles": ["workos.com/docs/authkit", "workos.com/docs/sso", "workos.com/docs/reference"]
         },
         {
           "text": "Does NOT invent a URL like /docs/initiate-login-uri",
@@ -78,11 +70,7 @@
         {
           "text": "Does NOT invent /docs/sign-in-endpoint",
           "kind": "content_contains_none",
-          "needles": [
-            "/docs/sign-in-endpoint",
-            "/docs/authkit/sign-in-endpoint",
-            "/docs/reference/sign-in-endpoint"
-          ]
+          "needles": ["/docs/sign-in-endpoint", "/docs/authkit/sign-in-endpoint", "/docs/reference/sign-in-endpoint"]
         }
       ]
     },
@@ -95,14 +83,7 @@
         {
           "text": "States the 32+ character requirement",
           "kind": "content_contains_any",
-          "needles": [
-            "32+ character",
-            "32+ chars",
-            "32 characters",
-            "at least 32",
-            "minimum 32",
-            "32-character"
-          ]
+          "needles": ["32+ character", "32+ chars", "32 characters", "at least 32", "minimum 32", "32-character"]
         },
         {
           "text": "Shows how to generate one with openssl",
@@ -114,11 +95,7 @@
           "kind": "content_contains_any",
           "needles": ["seal", "encrypt", "session cookie"]
         },
-        {
-          "text": "Cites a workos.com/docs URL",
-          "kind": "content_contains_any",
-          "needles": ["workos.com/docs"]
-        }
+        { "text": "Cites a workos.com/docs URL", "kind": "content_contains_any", "needles": ["workos.com/docs"] }
       ]
     },
     {
@@ -153,11 +130,7 @@
         {
           "text": "Cites a workos.com/docs URL",
           "kind": "content_contains_any",
-          "needles": [
-            "workos.com/docs/sso",
-            "workos.com/docs/authkit",
-            "workos.com/docs/reference"
-          ]
+          "needles": ["workos.com/docs/sso", "workos.com/docs/authkit", "workos.com/docs/reference"]
         }
       ]
     },
@@ -175,9 +148,7 @@
         {
           "text": "Cites the Directory Sync IdP role assignment docs URL",
           "kind": "content_contains_any",
-          "needles": [
-            "workos.com/docs/directory-sync/identity-provider-role-assignment"
-          ]
+          "needles": ["workos.com/docs/directory-sync/identity-provider-role-assignment"]
         },
         {
           "text": "Says roles must be configured first",
@@ -195,12 +166,7 @@
         {
           "text": "Mentions Admin Portal or WorkOS Dashboard as the config surface",
           "kind": "content_contains_any",
-          "needles": [
-            "Admin Portal",
-            "WorkOS Dashboard",
-            "WorkOS dashboard",
-            "dashboard.workos.com"
-          ]
+          "needles": ["Admin Portal", "WorkOS Dashboard", "WorkOS dashboard", "dashboard.workos.com"]
         },
         {
           "text": "Does NOT invent a workos CLI command for this operation",
@@ -245,12 +211,7 @@
         {
           "text": "Mentions Admin Portal as where the mapping happens, or the directory page",
           "kind": "content_contains_any",
-          "needles": [
-            "Admin Portal",
-            "directory page",
-            "Authorization page",
-            "Authorization"
-          ]
+          "needles": ["Admin Portal", "directory page", "Authorization page", "Authorization"]
         },
         {
           "text": "Does NOT fabricate a dashboard.workos.com/... deep link",
@@ -346,14 +307,7 @@
         {
           "text": "Points user to change the mapping at the IdP / directory / Admin Portal instead",
           "kind": "content_contains_any",
-          "needles": [
-            "Admin Portal",
-            "directory",
-            "directory group",
-            "IdP",
-            "identity provider",
-            "mapping"
-          ]
+          "needles": ["Admin Portal", "directory", "directory group", "IdP", "identity provider", "mapping"]
         },
         {
           "text": "Cites the canonical docs URL for precedence",
@@ -387,12 +341,7 @@
         {
           "text": "Points at portal generate-link OR the Admin Portal / Dashboard as the right place",
           "kind": "content_contains_any",
-          "needles": [
-            "portal generate-link",
-            "Admin Portal",
-            "WorkOS Dashboard",
-            "WorkOS dashboard"
-          ]
+          "needles": ["portal generate-link", "Admin Portal", "WorkOS Dashboard", "WorkOS dashboard"]
         },
         {
           "text": "Does NOT invent a creation command",
@@ -427,13 +376,7 @@
         {
           "text": "Points at portal generate-link OR the Admin Portal / Dashboard as the right place",
           "kind": "content_contains_any",
-          "needles": [
-            "portal generate-link",
-            "Admin Portal",
-            "WorkOS Dashboard",
-            "WorkOS dashboard",
-            "dsync"
-          ]
+          "needles": ["portal generate-link", "Admin Portal", "WorkOS Dashboard", "WorkOS dashboard", "dsync"]
         },
         {
           "text": "Does NOT invent a creation command",
@@ -461,12 +404,7 @@
         {
           "text": "Does NOT fabricate a role-rule command",
           "kind": "content_contains_none",
-          "needles": [
-            "workos role-rule",
-            "workos role-rules",
-            "workos role assignment-rule",
-            "workos role rule"
-          ]
+          "needles": ["workos role-rule", "workos role-rules", "workos role assignment-rule", "workos role rule"]
         }
       ]
     },
@@ -479,11 +417,7 @@
         {
           "text": "Tells the user to check the latest version via npm view rather than guessing",
           "kind": "content_contains_any",
-          "needles": [
-            "npm view workos version",
-            "npm view workos",
-            "npm view workos dist-tags"
-          ]
+          "needles": ["npm view workos version", "npm view workos", "npm view workos dist-tags"]
         },
         {
           "text": "Provides at least one concrete upgrade command using @latest (npm/pnpm or npx)",

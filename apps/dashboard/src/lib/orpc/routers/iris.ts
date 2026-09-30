@@ -19,6 +19,7 @@ import {
 } from "@notra/schemas/dashboard/iris";
 import { and, count, desc, eq, gte, isNotNull, lt } from "drizzle-orm";
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 
 import {
   IRIS_DEFAULT_POLICY,
@@ -390,7 +391,8 @@ export const irisRouter = {
 
       const busy = await Effect.runPromise(hasOpenRun(input.organizationId));
       if (busy) {
-        throw conflict("Iris is already working on a run");
+        const tErrors = await getTranslations("errors.iris");
+        throw conflict(tErrors("runInProgress"));
       }
 
       const { runId } = await startIrisRun({
@@ -399,7 +401,8 @@ export const irisRouter = {
         executionId: `iris-manual-${crypto.randomUUID()}`,
       });
       if (!runId) {
-        throw conflict("Iris is already working on a run");
+        const tErrors = await getTranslations("errors.iris");
+        throw conflict(tErrors("runInProgress"));
       }
 
       trackServerEvent({

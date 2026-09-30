@@ -4,10 +4,11 @@
 @import "@c15t/nextjs/styles.css";
 @import "../../../../packages/ui/src/styles/cta-button.css";
 @import "../../../../packages/ui/src/styles/motion.css";
+@import "../../../../packages/ui/src/styles/skeleton-shimmer.css";
 @import "../../../../packages/ui/src/styles/status.css";
 
 @source "../../mdx-components.tsx";
-@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";
@@ -78,7 +79,7 @@
   --destructive: hsl(358 100% 50%);
   --destructive-foreground: hsl(0 0% 99%);
   --border: hsl(0 1% 17%);
-  --input: hsl(0 0% 14.9%);
+  --input: hsl(240 4% 20%);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.709 0.1592 293.5412);
   --chart-2: oklch(0.8112 0.1013 293.5712);

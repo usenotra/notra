@@ -34,3 +34,7 @@ export interface TwitterPostProps extends ComponentProps<"div"> {
   timestamp?: string;
   menuItems?: TwitterPostMenuItem[];
 }
+export type TwitterPostIdentityProps = Pick<
+  TwitterPostProps,
+  "author" | "accountSelector" | "timestamp" | "menuItems"
+>;

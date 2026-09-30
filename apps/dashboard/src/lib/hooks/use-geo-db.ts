@@ -19,6 +19,7 @@ import {
   useDbClient,
   useLiveQuery,
 } from "@tanstack/react-db";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -33,9 +34,6 @@ import {
   geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
-  geoShelfCollection,
-  getGeoShelfSampleData,
-  subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
 import {
   abandonProjectCreateHandoff,
@@ -54,18 +52,8 @@ import {
   subscribeToPendingRows,
 } from "@/lib/db/pending-rows";
 import type { GeoProjectCreateInput } from "@/types/geo";
-import type {
-  GeoShelfDbApi,
-  GeoShelfFilterState,
-  GeoShelfMember,
-  GeoShelfOpportunityWrite,
-  GeoShelfPlacementStatus,
-  GeoShelfSource,
-} from "@/types/geo-shelf";
 import { toErrorMessage } from "@/utils/error-message";
 import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
-import { mergeShelfOpportunity } from "@/utils/geo-shelf";
-import { matchesGeoShelfSourceFilters } from "@/utils/geo-shelf-live-query";
 
 /**
  * Dialogs that stay mounted while closed pass `enabled: false` so the collection
@@ -106,6 +94,7 @@ export function useGeoPromptsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -130,13 +119,17 @@ export function useGeoPromptsDb(
       collection.update(promptId, (draft) => {
         draft.enabled = enabled;
       }),
-      "Failed to update prompt"
+      tToast("updatePromptFailed")
     );
   };
 
   const removePrompts = (promptIds: string[]) => {
     for (const promptId of promptIds) {
-      track(promptId, collection.delete(promptId), "Failed to remove prompt");
+      track(
+        promptId,
+        collection.delete(promptId),
+        tToast("removePromptFailed")
+      );
     }
   };
 
@@ -146,7 +139,7 @@ export function useGeoPromptsDb(
       collection.update(promptId, (draft) => {
         draft.tags = tags;
       }),
-      "Failed to update tags"
+      tToast("updateTagsFailed")
     );
   };
 
@@ -157,7 +150,7 @@ export function useGeoPromptsDb(
         collection.update(promptId, (draft) => {
           draft.tags = mergePromptTags(draft.tags, tags);
         }),
-        "Failed to update tags"
+        tToast("updateTagsFailed")
       );
     }
   };
@@ -174,7 +167,7 @@ export function useGeoPromptsDb(
         tags: [],
         createdAt: new Date().toISOString(),
       }),
-      "Failed to add prompt"
+      tToast("addPromptFailed")
     );
   };
 
@@ -194,6 +187,8 @@ export function useGeoProjectsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
+  const tCommon = useTranslations("common");
   const isEnabled = options?.enabled ?? true;
   const scope = { organizationId };
   const collectionId = geoCollectionId("projects", scope);
@@ -246,7 +241,7 @@ export function useGeoProjectsDb(
     });
     const createdPromise = waitForProjectCreateHandoff(transaction.id);
     void createdPromise.catch(() => undefined);
-    track(tempId, transaction, "Failed to create project");
+    track(tempId, transaction, tCommon("labels.failedToCreateProject"));
 
     let persistError: unknown;
     await Promise.race([
@@ -268,20 +263,32 @@ export function useGeoProjectsDb(
 
     if (persistError) {
       if (persistError instanceof GeoProjectCreateTimeoutError) {
-        toast.error(toErrorMessage(persistError, "Failed to create project"));
+        toast.error(
+          toErrorMessage(persistError, tCommon("labels.failedToCreateProject"))
+        );
       }
       throw persistError;
     }
 
     const created = await createdPromise.catch(() => null);
     if (!created) {
-      const error = new Error("Failed to resolve created project");
-      toast.error(toErrorMessage(error, "Failed to create project"));
+      const error = new Error(tToast("resolveCreatedProjectFailed"));
+      toast.error(
+        toErrorMessage(error, tCommon("labels.failedToCreateProject"))
+      );
       throw error;
     }
 
-    toast.success("Project created");
+    toast.success(tToast("projectCreated"));
     return created;
+  };
+
+  const updateProjectBrand = (projectId: string, brandSettingsId: string) => {
+    const transaction = collection.update(projectId, (draft) => {
+      draft.brandSettingsId = brandSettingsId;
+    });
+    track(projectId, transaction, tToast("updateProjectBrandIdentityFailed"));
+    return transaction.isPersisted.promise;
   };
 
   const deleteProject = async (projectId: string) => {
@@ -292,10 +299,10 @@ export function useGeoProjectsDb(
 
     setIsDeleting(true);
     const transaction = collection.delete(projectId);
-    track(projectId, transaction, "Failed to delete project");
+    track(projectId, transaction, tToast("deleteProjectFailed"));
     await transaction.isPersisted.promise
       .then(() => {
-        toast.success("Project deleted");
+        toast.success(tToast("projectDeleted"));
       })
       .finally(() => {
         clearPendingDeleteSnapshot(collectionId, projectId);
@@ -312,6 +319,7 @@ export function useGeoProjectsDb(
     isCreating,
     isDeleting,
     createProject,
+    updateProjectBrand,
     deleteProject,
   };
 }
@@ -320,6 +328,7 @@ export function useGeoCompetitorsDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -332,7 +341,10 @@ export function useGeoCompetitorsDb(
 
   const { data } = useLiveQuery({
     queryKey: [definition.id, isEnabled],
-    query: (q) => q.from({ competitor: definition }),
+    query: (q) =>
+      q
+        .from({ competitor: definition })
+        .orderBy(({ competitor }) => competitor.name, "asc"),
     startSync: isEnabled,
   });
 
@@ -345,14 +357,14 @@ export function useGeoCompetitorsDb(
           Object.assign(draft, competitor);
         })
       : collection.insert(competitor);
-    track(competitor.id, transaction, "Failed to save competitor");
+    track(competitor.id, transaction, tToast("saveCompetitorFailed"));
   };
 
   const removeCompetitor = (competitorId: string) => {
     track(
       competitorId,
       collection.delete(competitorId),
-      "Failed to remove competitor"
+      tToast("removeCompetitorFailed")
     );
   };
 
@@ -368,6 +380,7 @@ export function useGeoSequencesDb(
   organizationId: string,
   options?: GeoDbOptions
 ) {
+  const tToast = useTranslations("geo.toasts");
   const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
@@ -397,7 +410,7 @@ export function useGeoSequencesDb(
         enabled: true,
         createdAt: new Date().toISOString(),
       }),
-      "Failed to add conversation"
+      tToast("addConversationFailed")
     );
   };
 
@@ -410,7 +423,7 @@ export function useGeoSequencesDb(
       collection.update(sequenceId, (draft) => {
         Object.assign(draft, changes);
       }),
-      "Failed to update conversation"
+      tToast("updateConversationFailed")
     );
   };
 
@@ -418,7 +431,7 @@ export function useGeoSequencesDb(
     track(
       sequenceId,
       collection.delete(sequenceId),
-      "Failed to remove conversation"
+      tToast("removeConversationFailed")
     );
   };
 
@@ -429,174 +442,5 @@ export function useGeoSequencesDb(
     addSequence,
     updateSequence,
     removeSequence,
-  };
-}
-
-export function useGeoShelfFilteredSourcesDb(
-  organizationId: string,
-  input: {
-    filters: GeoShelfFilterState;
-    members: readonly GeoShelfMember[];
-    competitors: readonly GeoCompetitor[];
-    enabled?: boolean;
-  }
-) {
-  const isEnabled = input.enabled ?? true;
-  const { projectId } = useGeoProjectScope();
-  const shelfDefinition = geoShelfCollection({ organizationId, projectId });
-
-  const { data, isLoading } = useLiveQuery({
-    queryKey: [
-      shelfDefinition.id,
-      isEnabled,
-      input.filters.search,
-      input.filters.shelf,
-      input.filters.ticket,
-      input.filters.currentMemberId,
-      input.members,
-      input.competitors,
-    ],
-    startSync: isEnabled,
-    query: (q) => {
-      return q
-        .from({ shelf: shelfDefinition })
-        .where(({ shelf }) => {
-          switch (input.filters.ticket) {
-            case "open":
-              return eq(shelf.opportunity?.status, "open");
-            case "in_progress":
-              return eq(shelf.opportunity?.status, "in_progress");
-            case "closed":
-              return and(
-                not(isNull(shelf.opportunity)),
-                inArray(shelf.opportunity?.status, ["won", "lost", "dismissed"])
-              );
-            case "unassigned":
-              return and(
-                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
-                isNull(shelf.opportunity?.assigneeMemberId)
-              );
-            case "mine":
-              if (!input.filters.currentMemberId) {
-                return eq(1, 0);
-              }
-              return and(
-                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
-                or(
-                  eq(
-                    shelf.opportunity?.assigneeMemberId,
-                    input.filters.currentMemberId
-                  ),
-                  eq(
-                    shelf.opportunity?.pocMemberId,
-                    input.filters.currentMemberId
-                  )
-                )
-              );
-            default:
-              return eq(1, 1);
-          }
-        })
-        .fn.where((row) =>
-          matchesGeoShelfSourceFilters(
-            row.shelf,
-            input.filters,
-            input.members,
-            input.competitors
-          )
-        )
-        .select(({ shelf }) => shelf);
-    },
-  });
-
-  const sources: GeoShelfSource[] = data ?? [];
-
-  return {
-    sources,
-    isLoading,
-  };
-}
-
-export function useGeoShelfDb(organizationId: string): GeoShelfDbApi {
-  const { projectId } = useGeoProjectScope();
-  const dbClient = useDbClient();
-  const definition = geoShelfCollection({ organizationId, projectId });
-  const collection = dbClient.collection(definition);
-  const { pendingIds, track } = usePendingRows("shelf", {
-    organizationId,
-    projectId,
-  });
-
-  const { data, isLoading } = useLiveQuery({
-    query: (q) => q.from({ shelf: definition }),
-  });
-
-  const readSampleData = () =>
-    getGeoShelfSampleData({ organizationId, projectId });
-  const isSampleData = useSyncExternalStore(
-    subscribeToGeoShelfSampleData,
-    readSampleData,
-    readSampleData
-  );
-
-  const sources: GeoShelfSource[] = data ?? [];
-
-  const addSource = (source: GeoShelfSource) => {
-    track(source.id, collection.insert(source), "Failed to add shelf");
-  };
-
-  const updateOpportunity = (
-    sourceId: string,
-    changes: Partial<GeoShelfOpportunityWrite>
-  ) => {
-    const nowIso = new Date().toISOString();
-    track(
-      sourceId,
-      collection.update(sourceId, (draft) => {
-        draft.opportunity = mergeShelfOpportunity(
-          draft.opportunity,
-          changes,
-          nowIso
-        );
-        draft.updatedAt = nowIso;
-      }),
-      "Failed to update ticket"
-    );
-  };
-
-  const setPlacementStatus = (
-    sourceId: string,
-    competitorId: string | null,
-    status: GeoShelfPlacementStatus
-  ) => {
-    const nowIso = new Date().toISOString();
-    track(
-      sourceId,
-      collection.update(sourceId, (draft) => {
-        for (const placement of draft.placements) {
-          if (placement.competitorId === competitorId) {
-            placement.status = status;
-            placement.evidence = "manual";
-            placement.checkedAt = nowIso;
-            if (status !== "present") {
-              placement.position = null;
-              placement.hasLink = false;
-            }
-          }
-        }
-        draft.updatedAt = nowIso;
-      }),
-      "Failed to update placement"
-    );
-  };
-
-  return {
-    sources,
-    isLoading,
-    isSampleData,
-    pendingSourceIds: pendingIds,
-    addSource,
-    updateOpportunity,
-    setPlacementStatus,
   };
 }

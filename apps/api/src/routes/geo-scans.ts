@@ -64,6 +64,8 @@ const listScansRoute = createRoute({
   tags: [GEO_TAG],
   operationId: "listGeoScans",
   summary: "List GEO scans",
+  description:
+    "Lists scans with planned, completed, mentioned, and explicitly failed check totals by engine. Failed scans include safe failure metadata when available.",
   request: { params: projectParamsSchema, query: listScansQuerySchema },
   responses: {
     200: {
@@ -80,6 +82,8 @@ const getScanRoute = createRoute({
   tags: [GEO_TAG],
   operationId: "getGeoScan",
   summary: "Get a single GEO scan",
+  description:
+    "Returns scan status, check progress and mentions by engine, plus safe failure metadata for failed scans. Legacy scans without a saved plan report null planned totals.",
   request: { params: scanParamsSchema },
   responses: {
     200: {

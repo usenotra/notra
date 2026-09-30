@@ -4,11 +4,29 @@ import {
   LANGUAGE_FLAGS,
 } from "@/constants/brand-identity";
 import type {
+  BrandFormInitialData,
   BrandIdentityUiAction,
   BrandIdentityUiState,
   StepIconState,
 } from "@/types/brand-identity";
-import type { ProgressData } from "@/types/hooks/brand-analysis";
+import type { BrandSettings, ProgressData } from "@/types/hooks/brand-analysis";
+
+export function getBrandFormInitialData(
+  voice: BrandSettings
+): BrandFormInitialData {
+  return {
+    name: voice.name,
+    websiteUrl: voice.websiteUrl ? sanitizeBrandUrlInput(voice.websiteUrl) : "",
+    companyName: voice.companyName ?? "",
+    companyDescription: voice.companyDescription ?? "",
+    toneProfile: (voice.toneProfile as ToneProfile) ?? "Professional",
+    customTone: voice.customTone ?? "",
+    customInstructions: voice.customInstructions ?? "",
+    useCustomTone: Boolean(voice.customTone),
+    audience: voice.audience ?? "",
+    language: getValidLanguage(voice.language),
+  };
+}
 
 const BRITISH_ENGLISH_LOCALE_REGEX = /^en[-_]GB\b/i;
 
@@ -70,39 +88,14 @@ export function isBrandAnalysisRunning(
   );
 }
 
-export function getModalTitle(
-  isPendingSettings: boolean,
-  isAnalyzing: boolean,
-  status: string
-): string {
-  if (isPendingSettings) {
-    return "Loading...";
-  }
+export function getModalState(isAnalyzing: boolean, status: string) {
   if (isAnalyzing) {
-    return "Analyzing Website";
+    return "analyzing";
   }
   if (status === "failed") {
-    return "Analysis Failed";
+    return "failed";
   }
-  return "Add Your Brand";
-}
-
-export function getModalDescription(
-  isPendingSettings: boolean,
-  isAnalyzing: boolean,
-  status: string,
-  error?: string
-): string {
-  if (isPendingSettings) {
-    return "Checking your brand settings";
-  }
-  if (isAnalyzing) {
-    return "Please wait while we extract your brand information";
-  }
-  if (status === "failed") {
-    return error ?? "Something went wrong";
-  }
-  return "Enter your website URL to automatically extract your brand identity";
+  return "idle";
 }
 
 export const sanitizeBrandUrlInput = (value: string) =>
@@ -144,8 +137,6 @@ export function getInitialBrandIdentityUiState(): BrandIdentityUiState {
     addSitemapOpen: false,
     deleteTargetVoiceId: null,
     isSaving: false,
-    lastSavedAtMs: null,
-    relativeTimeNow: Date.now(),
     storedVoiceId: null,
     url: "",
   };
@@ -168,10 +159,6 @@ export function brandIdentityUiReducer(
       return state.isSaving === action.isSaving
         ? state
         : { ...state, isSaving: action.isSaving };
-    case "set-last-saved-at-ms":
-      return { ...state, lastSavedAtMs: action.savedAtMs };
-    case "set-relative-time-now":
-      return { ...state, relativeTimeNow: action.now };
     case "set-stored-voice-id":
       return { ...state, storedVoiceId: action.voiceId };
     case "set-url":
@@ -180,3 +167,5 @@ export function brandIdentityUiReducer(
       return state;
   }
 }
+import type { ToneProfile } from "@notra/ai/schemas/tone";
+import { getValidLanguage } from "@notra/schemas/dashboard/brand";

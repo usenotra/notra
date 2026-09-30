@@ -2,6 +2,7 @@ import type { ContentGenerationJob } from "@notra/content-generation/schemas";
 import type { posts } from "@notra/db/schema";
 import type {
   createPostGenerationRequestSchema,
+  createPostRequestSchema,
   getPostsOpenApiQuerySchema,
   patchPostRequestSchema,
 } from "@notra/schemas/api/content";
@@ -79,6 +80,14 @@ export interface DeletePostProgramInput extends PostProgramInput {
 
 export interface DeletePostProgramSuccess {
   id: string;
+}
+
+export interface CreatePostProgramInput extends PostProgramInput {
+  body: z.infer<typeof createPostRequestSchema>;
+}
+
+export interface CreatePostProgramSuccess {
+  post: PostRow;
 }
 
 export interface PatchPostProgramInput extends PostProgramInput {

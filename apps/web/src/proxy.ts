@@ -16,8 +16,8 @@ const dualmarkProxy = createDualmarkMiddleware({
     skipPaths: [
       "/.well-known",
       "/api",
+      "/ask",
       "/apple-icon.png",
-      "/contributors",
       "/demo-dark.webp",
       "/demo.webp",
       "/design.md",

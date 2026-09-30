@@ -4,7 +4,6 @@ import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  GlobalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -21,16 +20,13 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import type { PromptEngineSwitcherProps } from "@/types/geo";
-import {
-  engineAnswerMode,
-  formatEngineFamily,
-  formatEngineWithMode,
-  sharedEngineAnswerMode,
-} from "@/utils/geo-charts";
+import { formatEngineFamily, sharedEngineAnswerMode } from "@/utils/geo-charts";
 import { adjacentPromptEngine } from "@/utils/geo-prompt-engines";
 
 const COUNTER_TRANSITION = {
@@ -40,33 +36,20 @@ const COUNTER_TRANSITION = {
 } as const;
 const INSTANT = { duration: 0 } as const;
 
-function engineLabel(engine: string, answerMode: string | null): string {
-  return answerMode ? formatEngineFamily(engine) : formatEngineWithMode(engine);
-}
-
-function SearchModeIcon() {
-  return (
-    <HugeiconsIcon
-      aria-hidden="true"
-      className="text-muted-foreground size-3 shrink-0"
-      icon={GlobalIcon}
-      strokeWidth={2}
-    />
-  );
-}
-
 export function PromptEngineSwitcher({
   results,
   active,
   onChange,
 }: PromptEngineSwitcherProps) {
+  const t = useTranslations("geo.promptEngineSwitcher");
   const engines = results.map((result) => result.engine);
   const answerMode = sharedEngineAnswerMode(engines);
+  const formatEngineWithMode = useEngineModeLabel();
+  const engineLabel = (engine: string) =>
+    answerMode ? formatEngineFamily(engine) : formatEngineWithMode(engine);
   const activeIndex = engines.indexOf(active.engine);
   const reduceMotion = useReducedMotion();
   const counterTransition = reduceMotion ? INSTANT : COUNTER_TRANSITION;
-  const showsSearchIcon = (engine: string) =>
-    answerMode === null && engineAnswerMode(engine) !== null;
 
   if (results.length === 1) {
     return (
@@ -76,7 +59,6 @@ export function PromptEngineSwitcher({
           <span className="truncate">
             {formatEngineWithMode(active.engine)}
           </span>
-          {engineAnswerMode(active.engine) !== null ? <SearchModeIcon /> : null}
         </span>
       </div>
     );
@@ -89,18 +71,19 @@ export function PromptEngineSwitcher({
           <DropdownMenuTrigger
             render={
               <Button
-                aria-label={`Engine: ${engineLabel(active.engine, answerMode)}`}
-                className="max-w-full min-w-0"
+                aria-label={t("engine", {
+                  engine: engineLabel(active.engine),
+                })}
+                // The menu anchors to this trigger; scaling it on press drags
+                // the popup with it.
+                className="max-w-full min-w-0 active:scale-100"
                 size="sm"
                 variant="outline"
               />
             }
           >
             <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
-            <span className="truncate">
-              {engineLabel(active.engine, answerMode)}
-            </span>
-            {showsSearchIcon(active.engine) ? <SearchModeIcon /> : null}
+            <span className="truncate">{engineLabel(active.engine)}</span>
             <span
               className={`text-muted-foreground/70 items-center text-xs tabular-nums ${results.length > 1 ? "inline-flex" : "hidden"}`}
             >
@@ -143,10 +126,7 @@ export function PromptEngineSwitcher({
                   value={result.engine}
                 >
                   <EngineIcon className="size-3.5" engine={result.engine} />
-                  <span className="truncate">
-                    {engineLabel(result.engine, answerMode)}
-                  </span>
-                  {showsSearchIcon(result.engine) ? <SearchModeIcon /> : null}
+                  <span className="truncate">{engineLabel(result.engine)}</span>
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
@@ -155,7 +135,7 @@ export function PromptEngineSwitcher({
         {results.length > 1 ? (
           <div className="flex shrink-0 items-center gap-0.5">
             <Button
-              aria-label="Previous engine"
+              aria-label={t("previous")}
               onClick={() =>
                 onChange(adjacentPromptEngine(engines, active.engine, -1), -1)
               }
@@ -166,7 +146,7 @@ export function PromptEngineSwitcher({
               <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
             </Button>
             <Button
-              aria-label="Next engine"
+              aria-label={t("next")}
               onClick={() =>
                 onChange(adjacentPromptEngine(engines, active.engine, 1), 1)
               }

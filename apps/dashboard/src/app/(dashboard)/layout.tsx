@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-import { requireAuthIdentity } from "@/lib/auth/actions";
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard");
+  return {
+    title: {
+      template: "%s - Notra",
+      default: t("metaTitle"),
+    },
+  };
+}
 
-export const instant = false;
-
-export const metadata: Metadata = {
-  title: {
-    template: "%s - Notra",
-    default: "Dashboard",
-  },
-};
-
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuthIdentity();
-
+  // The proxy gates the session; the [slug] layout checks membership and bans.
   return children;
 }

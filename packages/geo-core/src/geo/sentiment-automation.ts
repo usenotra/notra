@@ -55,7 +55,6 @@ export const runAutomaticSentiment = Effect.fn("geo.runAutomaticSentiment")(
       return;
     }
     const projectId = scope.projectId;
-    // Atomic persisted throttle also prevents workflow retries from charging twice.
     const checkWindow = toGeoCheckWindow(window);
     if (!checkWindow) {
       return;
@@ -72,21 +71,21 @@ export const runAutomaticSentiment = Effect.fn("geo.runAutomaticSentiment")(
     ) {
       return;
     }
-    const now = new Date();
+    const capturedAt = new Date(latest.latestCapturedAt);
+    // Store the answer watermark, not wall-clock now. Checks keep the scan
+    // start time, so a scan that is still running at claim time would otherwise
+    // look older than this attempt after it commits.
     const claimed = yield* geoDb("sentiment automation claim failed", () =>
       db
         .update(geoSettings)
-        .set({ sentimentAttemptedAt: now })
+        .set({ sentimentAttemptedAt: capturedAt })
         .where(
           and(
             eq(geoSettings.organizationId, input.organizationId),
             eq(geoSettings.projectId, projectId),
             or(
               isNull(geoSettings.sentimentAttemptedAt),
-              lt(
-                geoSettings.sentimentAttemptedAt,
-                new Date(now.getTime() - 86_400_000)
-              )
+              lt(geoSettings.sentimentAttemptedAt, capturedAt)
             )
           )
         )

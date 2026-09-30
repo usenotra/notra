@@ -34,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -57,10 +58,6 @@ import {
 } from "../../../../../../lib/hooks/use-brand-references";
 
 type Step = "source" | "tweet-url" | "import-x" | "custom";
-
-function pluralSuffix(count: number) {
-  return count === 1 ? "" : "s";
-}
 
 function useReferenceBalance() {
   const { check, data: customer } = useBillingCustomer();
@@ -113,6 +110,7 @@ function useReferenceBalance() {
 }
 
 function ReferenceUsageInfo({ afterCount }: { afterCount: number }) {
+  const t = useTranslations("brand.references.add.usage");
   const { remaining, included, overages, overageAllowed, unlimited } =
     useReferenceBalance();
 
@@ -121,28 +119,21 @@ function ReferenceUsageInfo({ afterCount }: { afterCount: number }) {
   }
 
   if (remaining === 0) {
-    return (
-      <p className="text-destructive text-xs">
-        No references remaining. Upgrade your plan to add more.
-      </p>
-    );
+    return <p className="text-destructive text-xs">{t("noneRemaining")}</p>;
   }
 
   const afterRemaining = Math.max(0, remaining - afterCount);
 
   return (
     <p className="text-muted-foreground text-xs">
-      You have {remaining} remaining · after this you will have {afterRemaining}{" "}
-      left
+      {t("remaining", { remaining, afterRemaining })}
       {overageAllowed && included !== null && (
         <span className="text-muted-foreground/70">
           {" "}
-          · {included} included
-          {typeof overages === "number" && overages > 0 && (
-            <>
-              , {overages} overage{overages === 1 ? "" : "s"}
-            </>
-          )}
+          {t("included", {
+            included,
+            overages: typeof overages === "number" ? overages : 0,
+          })}
         </span>
       )}
     </p>
@@ -207,33 +198,37 @@ export function AddReferenceDialog({
 }
 
 function SourceStep({ onSelect }: { onSelect: (step: Step) => void }) {
+  const t = useTranslations("brand.references.add.source");
+  const tBrandShared = useTranslations("brand.shared");
   const sources = [
     {
       step: "tweet-url" as Step,
       icon: Link04Icon,
-      title: "Tweet URL",
-      description: "Paste a link to a specific tweet",
+      title: t("tweetUrlTitle"),
+      description: t("tweetUrlDescription"),
     },
     {
       step: "import-x" as Step,
       icon: NewTwitterIcon,
-      title: "Import from X",
-      description: "Bulk import recent posts from an account",
+      title: tBrandShared("importFromX"),
+      description: t("importXDescription"),
     },
     {
       step: "custom" as Step,
       icon: TextIcon,
-      title: "Custom text",
-      description: "Write or paste your own text",
+      title: t("customTitle"),
+      description: t("customDescription"),
     },
   ];
 
   return (
     <>
       <ResponsiveDialogHeader>
-        <ResponsiveDialogTitle>Add Reference</ResponsiveDialogTitle>
+        <ResponsiveDialogTitle>
+          {tBrandShared("addReference")}
+        </ResponsiveDialogTitle>
         <ResponsiveDialogDescription>
-          Choose a source to add writing style references.
+          {t("description")}
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
       <div className="grid gap-3 py-4">
@@ -271,6 +266,10 @@ function TweetUrlStep({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("brand.references.add");
+  const tCommon2 = useTranslations("common");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const [url, setUrl] = useState("");
   const fetchTweet = useFetchTweet(organizationId, voiceId);
   const createReference = useCreateReference(organizationId, voiceId);
@@ -303,11 +302,11 @@ function TweetUrlStep({
         note: null,
         applicableTo: ["twitter"],
       });
-      toast.success("Reference added");
+      toast.success(t("added"));
       onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to add tweet"
+        error instanceof Error ? error.message : t("tweet.addFailed")
       );
     }
   };
@@ -322,9 +321,9 @@ function TweetUrlStep({
   return (
     <>
       <ResponsiveDialogHeader>
-        <ResponsiveDialogTitle>Add Tweet</ResponsiveDialogTitle>
+        <ResponsiveDialogTitle>{t("tweet.title")}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription>
-          Paste a tweet URL to add it as a writing style reference.
+          {t("tweet.description")}
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
@@ -341,7 +340,7 @@ function TweetUrlStep({
       <ResponsiveDialogFooter>
         <Button onClick={onBack} variant="outline">
           <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} />
-          Back
+          {tCommon("back")}
         </Button>
         <Button
           disabled={isPending || !url.trim() || remaining === 0}
@@ -350,10 +349,10 @@ function TweetUrlStep({
           {isPending ? (
             <>
               <Loader2Icon className="size-4 animate-spin" />
-              Adding...
+              {tCommon2("labels.adding")}
             </>
           ) : (
-            "Add Reference"
+            tBrandShared("addReference")
           )}
         </Button>
       </ResponsiveDialogFooter>
@@ -372,6 +371,10 @@ function ImportXStep({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("brand.references.add.importX");
+  const tCommon2 = useTranslations("common");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const { data, isLoading } = useConnectedAccounts(organizationId);
   const { handleConnect, isPending: isConnecting } =
     useHandleConnectSocialAccount(organizationId, "twitter");
@@ -395,10 +398,12 @@ function ImportXStep({
   const handleDisconnect = async (account: ConnectedAccount) => {
     try {
       await disconnectAccount.mutateAsync(account.id);
-      toast.success(`Disconnected @${account.username}`);
+      toast.success(t("disconnected", { username: account.username }));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to disconnect account"
+        error instanceof Error
+          ? error.message
+          : tCommon2("labels.failedToDisconnectAccount")
       );
     }
   };
@@ -412,28 +417,25 @@ function ImportXStep({
       });
       if (result.count > 0) {
         toast.success(
-          `Imported ${result.count} post${pluralSuffix(result.count)} from @${account.username}`
+          t("imported", { count: result.count, username: account.username })
         );
         onClose();
       } else {
-        toast.info(
-          "No new posts to import — all recent posts are already added."
-        );
+        toast.info(t("nothingNew"));
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to import tweets"
-      );
+      toast.error(error instanceof Error ? error.message : t("importFailed"));
     }
   };
 
   return (
     <>
       <ResponsiveDialogHeader>
-        <ResponsiveDialogTitle>Import from X</ResponsiveDialogTitle>
+        <ResponsiveDialogTitle>
+          {tBrandShared("importFromX")}
+        </ResponsiveDialogTitle>
         <ResponsiveDialogDescription>
-          Select a connected account to import recent posts, or connect a new
-          one.
+          {t("description")}
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
@@ -446,7 +448,7 @@ function ImportXStep({
                   className="text-xs whitespace-nowrap"
                   htmlFor="max-results"
                 >
-                  Amount of posts to import:
+                  {t("amountLabel")}
                 </Label>
                 <Tooltip>
                   <TooltipTrigger className="text-muted-foreground cursor-help">
@@ -456,7 +458,7 @@ function ImportXStep({
                     />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Maximum 20 posts per import</p>
+                    <p>{t("maxTooltip")}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -493,9 +495,11 @@ function ImportXStep({
               <HugeiconsIcon className="size-6" icon={NewTwitterIcon} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium">No X accounts connected</p>
+              <p className="text-sm font-medium">
+                {tCommon2("labels.noXAccountsConnected")}
+              </p>
               <p className="text-muted-foreground text-xs">
-                Connect an X account to import recent posts.
+                {t("noAccountsDescription")}
               </p>
             </div>
           </div>
@@ -525,8 +529,8 @@ function ImportXStep({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1 truncate text-sm font-medium">
-                    {account.displayName}
+                  <p className="flex items-center gap-1 text-sm font-medium">
+                    <span className="truncate">{account.displayName}</span>
                     {account.verified && (
                       <XVerifiedBadge className="size-4 shrink-0" />
                     )}
@@ -545,11 +549,11 @@ function ImportXStep({
                   {isImporting && (
                     <>
                       <Loader2Icon className="size-3.5 animate-spin" />
-                      Importing...
+                      {t("importing")}
                     </>
                   )}
-                  {!isImporting && didImport && "Imported"}
-                  {!isImporting && !didImport && "Import"}
+                  {!isImporting && didImport && t("importedLabel")}
+                  {!isImporting && !didImport && tCommon2("actions.import")}
                 </Button>
                 <button
                   className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors"
@@ -579,8 +583,8 @@ function ImportXStep({
             </div>
             <p className="text-muted-foreground text-sm font-medium">
               {twitterAccounts.length === 0
-                ? "Connect an X account"
-                : "Connect another X account"}
+                ? t("connect")
+                : t("connectAnother")}
             </p>
           </button>
         )}
@@ -589,20 +593,17 @@ function ImportXStep({
       <ResponsiveDialogFooter>
         <Button onClick={onBack} variant="outline">
           <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} />
-          Back
+          {tCommon("back")}
         </Button>
-        {importTweets.isSuccess && <Button onClick={onClose}>Done</Button>}
+        {importTweets.isSuccess && (
+          <Button onClick={onClose}>{tCommon("done")}</Button>
+        )}
       </ResponsiveDialogFooter>
     </>
   );
 }
 
-const PLATFORM_OPTIONS = [
-  { value: "all", label: "All platforms" },
-  { value: "twitter", label: "Twitter / X" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "blog", label: "Blog & Changelog" },
-] as const;
+const PLATFORM_OPTIONS = ["all", "twitter", "linkedin", "blog"] as const;
 
 function CustomTextStep({
   organizationId,
@@ -615,6 +616,11 @@ function CustomTextStep({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("brand.references.add");
+  const tCommon3 = useTranslations("common");
+  const tCard = useTranslations("brand.references.card");
+  const tCommon = useTranslations("common.actions");
+  const tLabels = useTranslations("common.labels");
   const [content, setContent] = useState("");
   const [note, setNote] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
@@ -641,7 +647,7 @@ function CustomTextStep({
   const handleSave = async () => {
     const trimmed = content.trim();
     if (!trimmed) {
-      toast.error("Please enter some text");
+      toast.error(t("custom.contentRequired"));
       return;
     }
 
@@ -656,11 +662,11 @@ function CustomTextStep({
         note: trimmedNote,
         applicableTo,
       });
-      toast.success("Reference added");
+      toast.success(t("added"));
       onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save reference"
+        error instanceof Error ? error.message : t("custom.saveFailed")
       );
     }
   };
@@ -668,27 +674,31 @@ function CustomTextStep({
   return (
     <>
       <ResponsiveDialogHeader>
-        <ResponsiveDialogTitle>Add Custom Reference</ResponsiveDialogTitle>
+        <ResponsiveDialogTitle>{t("custom.title")}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription>
-          Paste or write text that represents your writing style.
+          {t("custom.description")}
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
       <div className="space-y-4 py-4">
         <div className="space-y-2">
-          <Label htmlFor="custom-content">Content</Label>
+          <Label htmlFor="custom-content">
+            {tCommon3("labels.contentSingular")}
+          </Label>
           <Textarea
             className="max-h-[15rem] overflow-y-auto"
             id="custom-content"
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Paste or write text that represents your writing style..."
+            placeholder={t("custom.contentPlaceholder")}
             rows={5}
             value={content}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="custom-source-url">Source URL (optional)</Label>
+          <Label htmlFor="custom-source-url">
+            {t("custom.sourceUrlLabel")}
+          </Label>
           <Input
             id="custom-source-url"
             onChange={(event) => setSourceUrl(event.target.value)}
@@ -699,32 +709,34 @@ function CustomTextStep({
         </div>
 
         <div className="space-y-2">
-          <Label>Use for</Label>
+          <Label>{tCard("useFor")}</Label>
           <div className="flex flex-wrap gap-2">
             {PLATFORM_OPTIONS.map((option) => (
               <button
                 className={`cursor-pointer rounded-full border px-3 py-1 text-xs transition-colors ${
-                  applicableTo.includes(option.value)
+                  applicableTo.includes(option)
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border hover:bg-muted"
                 }`}
-                key={option.value}
-                onClick={() => togglePlatform(option.value)}
+                key={option}
+                onClick={() => togglePlatform(option)}
                 type="button"
               >
-                {option.label}
+                {option === "linkedin"
+                  ? tLabels("linkedin")
+                  : tCard(`platformOptions.${option}`)}
               </button>
             ))}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="custom-note">Note (optional)</Label>
+          <Label htmlFor="custom-note">{t("custom.noteLabel")}</Label>
           <Textarea
             className="max-h-[7.5rem] overflow-y-auto"
             id="custom-note"
             onChange={(e) => setNote(e.target.value)}
-            placeholder="When should the AI use this as reference?"
+            placeholder={t("custom.notePlaceholder")}
             rows={2}
             value={note}
           />
@@ -734,13 +746,13 @@ function CustomTextStep({
       <ResponsiveDialogFooter>
         <Button onClick={onBack} variant="outline">
           <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} />
-          Back
+          {tCommon("back")}
         </Button>
         <Button
           disabled={createReference.isPending || !content.trim()}
           onClick={handleSave}
         >
-          {createReference.isPending ? "Saving..." : "Save Reference"}
+          {createReference.isPending ? tCommon("saving") : t("custom.submit")}
         </Button>
       </ResponsiveDialogFooter>
     </>

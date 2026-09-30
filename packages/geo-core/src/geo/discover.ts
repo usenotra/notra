@@ -8,21 +8,19 @@ import { Effect } from "effect";
 
 import {
   GEO_DISCOVERY_ALIAS_LIMIT,
-  GEO_DISCOVERY_CACHE_PREFIX,
   GEO_DISCOVERY_CACHE_TTL_SECONDS,
   GEO_DISCOVERY_COMPETITOR_LIMIT,
+  GEO_DISCOVERY_CONVERSATIONS,
   GEO_DISCOVERY_MAX_ALIASES,
   GEO_DISCOVERY_MAX_COMPETITORS,
   GEO_DISCOVERY_MAX_PROMPTS,
   GEO_DISCOVERY_MAX_TOKENS,
-  GEO_DISCOVERY_MIN_COMPETITORS,
   GEO_DISCOVERY_MIN_PROMPTS,
-  GEO_DISCOVERY_MODEL,
+  GEO_WEBSITE_DISCOVERY_MODEL,
   GEO_DISCOVERY_SYSTEM_PROMPT,
   GEO_GAP_TITLE_MAX_LENGTH,
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
-  GEO_TRACKED_PROMPT_VOICE,
 } from "../constants/geo";
 import { geoWebsiteDiscoverySchema } from "../schemas/geo";
 import type { DbTransaction } from "../types/db";
@@ -30,16 +28,21 @@ import type {
   GeoCompetitorSeed,
   GeoDiscoverWebsiteResult,
   GeoGenerateFromWebsiteResult,
+  GeoGeneratedConversation,
   GeoPromptInsert,
   GeoScopeInput,
   GeoWebsiteDiscovery,
 } from "../types/geo";
+import { geoConversationRules } from "../utils/conversation-generation-prompt";
+import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
+import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
 import { geoSkip } from "./effect";
 import { GeoDiscoveryError } from "./errors";
 import { invalidateGeoIngestHostsCache } from "./ingest-hosts-cache";
 import { toGeoProject } from "./mappers";
+import { loadGeoModelCatalog } from "./model-catalog";
 import {
   insertPromptsInTransaction,
   reconcileCompetitorsInTransaction,
@@ -47,6 +50,10 @@ import {
 import { ensureGeoProject } from "./projects";
 import { startClaimedGeoScanRun } from "./scan-handoff";
 import { claimGeoScanRun } from "./scan-status";
+import {
+  insertGeneratedConversationsIfEmpty,
+  normalizeGeneratedConversations,
+} from "./sequence-generation";
 import { buildBrandTerms, promptMentionsBrand } from "./suggestion-keywords";
 
 const MIN_PROMPT_LENGTH = GEO_PROMPT_MIN_LENGTH;
@@ -61,24 +68,24 @@ Website content:
 ${content}
 """
 
-Derive the brand tracking configuration for this company:
+Return:
+- companyName: the name used on the site.
+- aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} specific names, spellings or domains for this company. No generic terms.
+- competitors: up to ${GEO_DISCOVERY_MAX_COMPETITORS} real products that replace this one. An integration, sponsor or underlying provider is not a competitor. For an SDK, list other SDKs, not the services it connects to. Include a bare domain only when sure; otherwise use null. Zero competitors is fine.
+- audienceType: "technical" for developer tools, APIs, infrastructure and AI products bought by technical teams; "commerce" for products or services consumers buy, book or visit; "general" for other buyers. Classify the buyer, not the industry they serve. Software sold to shops is not "commerce".
+- prompts: ${GEO_DISCOVERY_MIN_PROMPTS} to ${GEO_DISCOVERY_MAX_PROMPTS} distinct buyer questions, each with a "prompt" and "title". Fewer is fine for a narrow product.
+- conversations: exactly ${GEO_DISCOVERY_CONVERSATIONS} conversations with a "name" and ordered "steps". Follow the rules below.
 
-1. companyName: the company or product name exactly as it brands itself.
-2. aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} alternative spellings that identify this company - product names, the bare domain, and common misspellings. Never include generic words that could refer to anything else.
-3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
-4. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+Write questions someone would actually type into ChatGPT before finding this company. Use their words, not SEO phrases. Ask for options or a way forward; a complaint alone is not enough. Write questions before titles.
+- Start with 2 short questions for 6 or 7 prompts, or 3 or 4 for 8 to 10. Keep them around 40 to 90 characters, each about a specific need this product solves. Write a similar number around 90 to 170 characters with one useful detail. Use the remaining slots for longer questions when buyers have real constraints to explain. Don't add a backstory to fill space.
+- Stay at this product's level. A provider-agnostic email library can answer questions about switching or using multiple providers, not which provider to buy, how to fix deliverability or how to schedule sends. A social SDK is not a post scheduler. If this product would not be a direct answer, replace the question.
+- Cover different jobs. No more than two questions about the same problem; changing the provider, role or opener does not make a new question. Mix recommendations with practical questions and tradeoffs.
+- Never name this company, its products, aliases or domain in a prompt. Do not copy its wording. Mention a direct competitor only when a buyer would naturally compare it.
+- Use the audience's language. Do not invent claims about prices, legal deadlines, features or release dates. Each prompt must be ${MIN_PROMPT_LENGTH} to ${MAX_PROMPT_LENGTH} characters; do not append "${year}".
 
-Prompt rules:
-- A prompt is the exact text a real buyer would type into ChatGPT while researching this category - before they know this company exists. ${GEO_TRACKED_PROMPT_VOICE}
-- Never mention the company name, product name, domain, or any alias. Not even once. Competitor names are allowed only in alternatives or comparison prompts, still in the same lowercase voice ("what's a good hootsuite alternative").
-- Never copy taglines, product descriptions, or marketing copy from the website into a prompt. Do not explain what the company is.
-- Never concatenate keywords, never mix languages within a prompt, and never write anything you would not plausibly type yourself.
-- Cover different intents across the set in that same voice: what tools to use, how to do a task, what to compare, what a competitor alternative is. Do not append "${year}".
-- Each prompt must be between ${MIN_PROMPT_LENGTH} and ${MAX_PROMPT_LENGTH} characters.
+Give each question a useful article title in the same language, under ${GEO_GAP_TITLE_MAX_LENGTH} characters. Use natural capitalization for that language. Only ranking or comparison titles may include "${year}".
 
-Title rules:
-- The title is the headline of the article that would win this prompt: specific, publishable and in Title Case, following proven formats such as "Best {Category} Tools in ${year}: {Facets} Compared", "Best {Competitor} Alternatives for {Use Case} in ${year}", "{A} vs {B}: Features, Pricing & Which to Choose in ${year}", "{Product} Pricing: Plans & Cost Breakdown for ${year}", "How to {Task} (Step-by-Step ${year})", or "What Is {Term}? Definition, Examples & How to Measure It".
-- Write titles in the same language as the prompt and keep each under ${GEO_GAP_TITLE_MAX_LENGTH} characters.`;
+${geoConversationRules("the company")}`;
 }
 
 function normalizeKey(value: string): string {
@@ -121,7 +128,7 @@ function buildCompetitorSeeds(
   }));
 }
 
-const prepareGeoWebsiteGeneration = Effect.fn(
+export const prepareGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.prepare"
 )(function* (
   discovery: GeoWebsiteDiscovery,
@@ -134,7 +141,10 @@ const prepareGeoWebsiteGeneration = Effect.fn(
     GEO_DISCOVERY_ALIAS_LIMIT
   );
   const companyName = existingCompanyName ?? discovery.companyName;
-  const brandTerms = buildBrandTerms({ companyName, aliases });
+  const brandTerms = buildBrandTerms({
+    companyName: discovery.companyName,
+    aliases: [companyName, ...existingAliases, ...discovery.aliases],
+  });
   const entries: GeoPromptInsert[] = [];
 
   for (const entry of discovery.prompts) {
@@ -158,7 +168,13 @@ const prepareGeoWebsiteGeneration = Effect.fn(
     );
   }
 
-  return { aliases, companyName, entries };
+  const conversations = normalizeGeneratedConversations(
+    discovery.conversations,
+    brandTerms,
+    GEO_DISCOVERY_CONVERSATIONS
+  );
+
+  return { aliases, companyName, entries, conversations };
 });
 
 const scrapeWebsite = Effect.fn("geo.discover.scrape")(function* (url: string) {
@@ -183,12 +199,13 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
   const result = yield* Effect.tryPromise({
     try: () =>
       generateText({
-        model: gateway(GEO_DISCOVERY_MODEL, {
+        model: gateway(GEO_WEBSITE_DISCOVERY_MODEL, {
           organizationId,
         }),
+        providerOptions: { gateway: { tags: ["geo-discovery"] } },
         output: Output.object({ schema: geoWebsiteDiscoverySchema }),
         prompt: buildDiscoveryPrompt(url, content),
-        system: GEO_DISCOVERY_SYSTEM_PROMPT,
+        instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
         maxOutputTokens: GEO_DISCOVERY_MAX_TOKENS,
       }),
     catch: (cause) =>
@@ -202,16 +219,15 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
   return discovery;
 });
 
-function discoveryCacheKey(organizationId: string, url: string): string {
-  return `${GEO_DISCOVERY_CACHE_PREFIX}:${organizationId}:${url}`;
-}
-
 export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   organizationId: string,
-  url: string
+  url: string,
+  fresh = false
 ) {
-  const cacheKey = discoveryCacheKey(organizationId, url);
-  const cached = yield* readGeoCache(cacheKey, geoWebsiteDiscoverySchema);
+  const cacheKey = geoDiscoveryCacheKey(organizationId, url);
+  const cached = fresh
+    ? null
+    : yield* readGeoCache(cacheKey, geoWebsiteDiscoverySchema);
   if (cached) {
     const result: GeoDiscoverWebsiteResult = { url, discovery: cached };
     return result;
@@ -223,6 +239,21 @@ export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   return result;
 });
 
+/**
+ * Engines a newly created settings row starts with. Technical brands stay on
+ * null so they keep following the default set.
+ */
+const resolveSeedEngines = Effect.fn("geo.discover.seedEngines")(function* (
+  organizationId: string,
+  discovery: GeoWebsiteDiscovery
+) {
+  if (discovery.audienceType === "technical") {
+    return null;
+  }
+  const catalog = yield* loadGeoModelCatalog(organizationId);
+  return geoEnginesForAudience(catalog, discovery.audienceType);
+});
+
 const persistGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.persist"
 )(function* (
@@ -232,7 +263,9 @@ const persistGeoWebsiteGeneration = Effect.fn(
   companyName: string,
   aliases: string[],
   entries: readonly GeoPromptInsert[],
-  discoveredCompetitors: readonly GeoCompetitorSeed[]
+  conversations: readonly GeoGeneratedConversation[],
+  discoveredCompetitors: readonly GeoCompetitorSeed[],
+  seedEngines: string[] | null
 ) {
   yield* Effect.tryPromise({
     try: () =>
@@ -245,6 +278,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
           companyName,
           aliases,
           competitors: [],
+          // Only a new row is seeded; an existing selection is left alone.
+          engines: seedEngines,
           enabled: true,
         })
         .onConflictDoUpdate({
@@ -288,6 +323,21 @@ const persistGeoWebsiteGeneration = Effect.fn(
     entries
   );
 
+  const conversationsAdded = yield* Effect.tryPromise({
+    try: () =>
+      insertGeneratedConversationsIfEmpty(
+        tx,
+        organizationId,
+        projectId,
+        conversations
+      ),
+    catch: (cause) =>
+      new GeoDiscoveryError({
+        message: "Failed to save generated conversations",
+        cause,
+      }),
+  });
+
   const summary: GeoGenerateFromWebsiteResult = {
     companyName,
     aliases,
@@ -295,6 +345,7 @@ const persistGeoWebsiteGeneration = Effect.fn(
       (competitor) => competitor.name
     ),
     promptsAdded: inserted.length,
+    conversationsAdded,
   };
   return summary;
 });
@@ -336,7 +387,7 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
 export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
   function* (scopeInput: GeoScopeInput, url: string) {
     const organizationId = scopeInput.organizationId;
-    const { discovery } = yield* discoverGeoWebsite(organizationId, url);
+    const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
 
     const projectId = yield* ensureGeoProject(
       scopeInput,
@@ -379,12 +430,14 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
         }),
     });
 
-    const { aliases, companyName, entries } =
+    const { aliases, companyName, entries, conversations } =
       yield* prepareGeoWebsiteGeneration(
         discovery,
         existing?.companyName,
         existing?.aliases
       );
+
+    const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
 
     const summary = yield* Effect.tryPromise({
       try: () =>
@@ -397,7 +450,9 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
               companyName,
               aliases,
               entries,
-              discovery.competitors
+              conversations,
+              discovery.competitors,
+              seedEngines
             )
           )
         ),
@@ -428,9 +483,10 @@ export const createGeoProjectFromWebsite = Effect.fn(
   brandSettingsId: string,
   url: string
 ) {
-  const { discovery } = yield* discoverGeoWebsite(organizationId, url);
-  const { aliases, companyName, entries } =
+  const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
+  const { aliases, companyName, entries, conversations } =
     yield* prepareGeoWebsiteGeneration(discovery);
+  const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
 
   const project = yield* Effect.tryPromise({
     try: () =>
@@ -457,7 +513,9 @@ export const createGeoProjectFromWebsite = Effect.fn(
             companyName,
             aliases,
             entries,
-            discovery.competitors
+            conversations,
+            discovery.competitors,
+            seedEngines
           )
         );
         return toGeoProject(row);

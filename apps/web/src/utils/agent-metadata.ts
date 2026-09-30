@@ -1,4 +1,4 @@
-import { PUBLIC_API_SCOPES } from "@notra/utils/api-scopes";
+import { CONNECT_OAUTH_SCOPES } from "@notra/utils/constants/oauth-consent";
 
 import { SITE_DESCRIPTION } from "@/utils/metadata";
 import { SOCIAL_LINKS } from "@/utils/social-links";
@@ -68,7 +68,7 @@ export function buildProtectedResourceMetadata() {
   return {
     resource: apiUrl(),
     authorization_servers: [authIssuerUrl()],
-    scopes_supported: PUBLIC_API_SCOPES,
+    scopes_supported: CONNECT_OAUTH_SCOPES,
     bearer_methods_supported: ["header"],
     resource_documentation: siteUrl(AGENT_DISCOVERY_PATHS.authMarkdown),
   };

@@ -4,7 +4,6 @@ import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_TRAFFIC_HOST_ALL,
-  GEO_TRAFFIC_PAGES_PAGE_PARAM,
   GEO_TRAFFIC_PAGES_PATH_PARAM,
 } from "@notra/geo-core/constants/geo";
 import {
@@ -15,7 +14,6 @@ import {
   formatTrafficLocation,
   trafficLogHostFilter,
 } from "@notra/geo-core/utils/geo-project-domains";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
 import {
@@ -25,11 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useLocale, useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
-import type { ReactNode } from "react";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";
 import {
   InstrumentEmpty,
@@ -38,8 +35,12 @@ import {
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
-import type { GeoTrafficPageGroup, TrafficPagesCardProps } from "@/types/geo";
+import type {
+  GeoTrafficPageGroup,
+  TrafficPagesCardProps,
+  TrafficPagesFiltersProps,
+  TrafficPagesResultsProps,
+} from "@/types/geo";
 import {
   filterTrafficPageGroups,
   filterTrafficPageGroupsByHost,
@@ -48,50 +49,25 @@ import {
   trafficHostSelectValue,
   trafficHostsFromPages,
 } from "@/utils/ai-traffic-pages";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const PAGE_SKELETON_ROWS = 4;
 const PAGE_COLUMN_WIDTH = "1fr";
 const SOURCE_COLUMN_WIDTH = "1fr";
 const VISITS_COLUMN_WIDTH = "9.5rem";
 
-export function TrafficPagesCard({
-  pages,
-  isPending = false,
-  hosts,
-}: TrafficPagesCardProps) {
-  const [pathQuery, setPathQuery] = useQueryState(
-    GEO_TRAFFIC_PAGES_PATH_PARAM,
-    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
-  );
-  const groups = groupTrafficPages(pages);
-  const observedHosts = hosts ?? trafficHostsFromPages(pages);
-  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();
-  const appliedHost = trafficLogHostFilter(hostQuery);
-  const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
-  const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
-  const hasActiveFilter = appliedHost.length > 0 || pathQuery.trim().length > 0;
-  const filteredGroups = filterTrafficPageGroupsByHost(
-    filterTrafficPageGroups(groups, pathQuery),
-    appliedHost
-  );
-  const pagination = useTablePagination({
-    key: GEO_TRAFFIC_PAGES_PAGE_PARAM,
-    totalItems: filteredGroups.length,
-    isReady: !isPending,
-  });
-  const handlePathQueryChange = (value: string) => {
-    pagination.setPage(1);
-    setPathQuery(value);
-  };
-  const handleHostQueryChange = (value: string) => {
-    pagination.setPage(1);
-    setHostQuery(value);
-  };
-  const columns: TableColumn<GeoTrafficPageGroup>[] = [
+function trafficPageColumns(
+  labels: {
+    page: string;
+    sources: string;
+    visits: string;
+  },
+  locale: string
+): TableColumn<GeoTrafficPageGroup>[] {
+  return [
     {
       key: "path",
-      header: "Page",
+      header: labels.page,
       width: PAGE_COLUMN_WIDTH,
       sortable: true,
       cell: (row) => (
@@ -103,7 +79,7 @@ export function TrafficPagesCard({
     },
     {
       key: "sources",
-      header: "Sources",
+      header: labels.sources,
       width: SOURCE_COLUMN_WIDTH,
       sortable: true,
       cell: (row) => <TrafficPageSourcesCell group={row} />,
@@ -114,7 +90,7 @@ export function TrafficPagesCard({
     },
     {
       key: "visits",
-      header: "Visits",
+      header: labels.visits,
       width: VISITS_COLUMN_WIDTH,
       align: "right",
       sortable: true,
@@ -127,7 +103,7 @@ export function TrafficPagesCard({
         return (
           <span className="flex items-center justify-end gap-2">
             <span className="text-sm tabular-nums">
-              {row.visits.toLocaleString()}
+              {row.visits.toLocaleString(locale)}
             </span>
             <GeoStatDelta delta={delta} />
           </span>
@@ -135,101 +111,164 @@ export function TrafficPagesCard({
       },
     },
   ];
+}
 
-  let body: ReactNode;
-  if (isPending) {
-    body = <GeoTableSkeleton rows={PAGE_SKELETON_ROWS} />;
-  } else if (groups.length === 0 && !hasActiveFilter) {
-    body = (
-      <InstrumentEmpty
-        message="No AI visits captured yet"
-        seed="geo-traffic-pages"
-      />
-    );
-  } else {
-    body = (
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {showHostFilter ? (
-            <Select
-              onValueChange={(value) => {
-                if (value) {
-                  handleHostQueryChange(
-                    value === GEO_TRAFFIC_HOST_ALL ? "" : value
-                  );
-                }
-              }}
-              value={trafficHostSelectValue(hostQuery)}
-            >
-              <SelectTrigger
-                aria-label="Filter pages by domain"
-                className="w-full min-w-0 sm:max-w-52"
-                size="sm"
-              >
-                <SelectValue placeholder="All domains" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={GEO_TRAFFIC_HOST_ALL}>
-                  All domains
-                </SelectItem>
-                {hostOptions.map((host) => (
-                  <SelectItem key={host} value={host}>
-                    {host}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
-          <div className="relative max-w-xs min-w-40 flex-1">
-            <HugeiconsIcon
-              className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
-              icon={SearchIcon}
-              size={15}
-            />
-            <Input
-              aria-label="Filter pages by path"
-              className="pl-9"
-              onChange={(event) => handlePathQueryChange(event.target.value)}
-              placeholder="Filter by path..."
-              value={pathQuery}
-            />
-          </div>
-        </div>
-        {filteredGroups.length === 0 ? (
-          <InstrumentEmpty
-            message="No pages match this filter"
-            seed="geo-traffic-pages-filter"
-          />
-        ) : (
-          <Table
-            className="rounded-2xl"
-            columns={columns}
-            data={filteredGroups}
-            defaultSort={{ key: "visits", direction: "desc" }}
-            emptyState="No pages match this filter"
-            footer={<TablePagination {...pagination} itemLabel="pages" />}
-            getRowId={(row) => `${row.host}\n${row.path}`}
-            height={paginatedTableHeightFor(pagination.pageRowCount)}
-            onSortChange={() => pagination.setPage(1)}
-            page={pagination.page}
-            pageSize={pagination.pageSize}
-            resizable
-            rowHeight={TABLE_ROW_HEIGHT}
-          />
-        )}
+function TrafficPagesFilters({
+  showHostFilter,
+  hostSelectValue,
+  hostOptions,
+  onHostChange,
+  pathQuery,
+  onPathQueryChange,
+}: TrafficPagesFiltersProps) {
+  const t = useTranslations("geo.trafficPagesCard");
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {showHostFilter ? (
+        <Select
+          onValueChange={(value) => {
+            if (value) {
+              onHostChange(value === GEO_TRAFFIC_HOST_ALL ? "" : value);
+            }
+          }}
+          value={hostSelectValue}
+        >
+          <SelectTrigger
+            aria-label={t("filterByDomain")}
+            className="w-full min-w-0 sm:max-w-52"
+            size="sm"
+          >
+            <SelectValue>
+              {hostSelectValue === GEO_TRAFFIC_HOST_ALL
+                ? t("allDomains")
+                : hostSelectValue}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={GEO_TRAFFIC_HOST_ALL}>
+              {t("allDomains")}
+            </SelectItem>
+            {hostOptions.map((host) => (
+              <SelectItem key={host} value={host}>
+                {host}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+      <div className="relative max-w-xs min-w-40 flex-1">
+        <HugeiconsIcon
+          className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
+          icon={SearchIcon}
+          size={15}
+        />
+        <Input
+          aria-label={t("filterByPath")}
+          className="pl-9"
+          onChange={(event) => onPathQueryChange(event.target.value)}
+          placeholder={t("filterPlaceholder")}
+          value={pathQuery}
+        />
       </div>
+    </div>
+  );
+}
+
+function TrafficPagesResults({
+  columns,
+  filteredGroups,
+  isPending,
+}: TrafficPagesResultsProps) {
+  const t = useTranslations("geo.trafficPagesCard");
+  if (filteredGroups.length === 0 && !isPending) {
+    return (
+      <InstrumentEmpty message={t("noMatch")} seed="geo-traffic-pages-filter" />
+    );
+  }
+  return (
+    <Table
+      className="rounded-2xl"
+      columns={columns}
+      data={filteredGroups}
+      defaultSort={{ key: "visits", direction: "desc" }}
+      emptyState={t("noMatch")}
+      getRowId={(row) => `${row.host}\n${row.path}`}
+      height={tableHeightFor(
+        filteredGroups.length === 0 ? PAGE_SKELETON_ROWS : filteredGroups.length
+      )}
+      loading={isPending}
+      resizable
+      rowHeight={TABLE_ROW_HEIGHT}
+    />
+  );
+}
+
+export function TrafficPagesCard({
+  pages,
+  isPending = false,
+  hosts,
+}: TrafficPagesCardProps) {
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const [pathQuery, setPathQuery] = useQueryState(
+    GEO_TRAFFIC_PAGES_PATH_PARAM,
+    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
+  );
+  const groups = groupTrafficPages(pages);
+  const observedHosts = hosts ?? trafficHostsFromPages(pages);
+  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();
+  const hostSelectValue = trafficHostSelectValue(hostQuery);
+  const appliedHost = trafficLogHostFilter(hostQuery);
+  const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
+  const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
+  const hasActiveFilter = appliedHost.length > 0 || pathQuery.trim().length > 0;
+  const filteredGroups = filterTrafficPageGroupsByHost(
+    filterTrafficPageGroups(groups, pathQuery),
+    appliedHost
+  );
+  const handlePathQueryChange = (value: string) => {
+    setPathQuery(value);
+  };
+  const handleHostQueryChange = (value: string) => {
+    setHostQuery(value);
+  };
+
+  if (groups.length === 0 && !hasActiveFilter && !isPending) {
+    return (
+      <InstrumentSection eyebrow={tGeoShared("topPagesByAiSource")}>
+        <InstrumentEmpty
+          message={tGeoShared("noAiVisitsCapturedYet")}
+          seed="geo-traffic-pages"
+        />
+      </InstrumentSection>
     );
   }
 
   return (
-    <InstrumentSection
-      eyebrow={
-        groups.length > 0
-          ? `Top pages by AI source (${groups.length.toLocaleString()})`
-          : "Top pages by AI source"
-      }
-    >
-      {body}
+    <InstrumentSection eyebrow={tGeoShared("topPagesByAiSource")}>
+      <div className="flex flex-col gap-2">
+        <TrafficPagesFilters
+          hostOptions={hostOptions}
+          hostSelectValue={hostSelectValue}
+          onHostChange={handleHostQueryChange}
+          onPathQueryChange={handlePathQueryChange}
+          pathQuery={pathQuery}
+          showHostFilter={showHostFilter}
+        />
+        <TrafficPagesResults
+          columns={trafficPageColumns(
+            {
+              page: tGeoShared("page"),
+              sources: tCommon("labels.sources"),
+              visits: tGeoShared("visits"),
+            },
+            locale
+          )}
+          filteredGroups={filteredGroups}
+          isPending={isPending}
+        />
+      </div>
     </InstrumentSection>
   );
 }

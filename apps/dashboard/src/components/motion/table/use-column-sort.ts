@@ -9,12 +9,14 @@ export function useColumnSort<T>({
   sort: sortProp,
   defaultSort = null,
   onSortChange,
+  manualSort = false,
 }: {
   rows: TableRow<T>[];
   columns: TableColumn<T>[];
   sort?: SortState | null;
   defaultSort?: SortState | null;
   onSortChange?: (sort: SortState | null) => void;
+  manualSort?: boolean;
 }) {
   const [internalSort, setInternalSort] = useState<SortState | null>(
     defaultSort
@@ -45,7 +47,7 @@ export function useColumnSort<T>({
   );
 
   const sortedRows = useMemo(() => {
-    if (!sort) {
+    if (!sort || manualSort) {
       return rows;
     }
     const column = columns.find((c) => c.key === sort.key);
@@ -65,7 +67,7 @@ export function useColumnSort<T>({
       return sort.direction === "asc" ? cmp : -cmp;
     });
     return copy;
-  }, [rows, sort, columns]);
+  }, [rows, sort, columns, manualSort]);
 
   return { sort, sortedRows, toggleSort };
 }

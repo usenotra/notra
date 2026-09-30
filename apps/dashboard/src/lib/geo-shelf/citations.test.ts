@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { GeoShelfCitationRawRow } from "@/types/geo-shelf";
+import { groupShelfCitationEngines } from "@/utils/geo-shelf";
 
 import { foldShelfCitationRows } from "./citations";
 
@@ -23,6 +24,18 @@ function citationRow(
 }
 
 describe("foldShelfCitationRows", () => {
+  test("drops bare homepages so root domains never reach the shelf", () => {
+    const pages = foldShelfCitationRows([
+      citationRow({ url: "https://e2b.dev/" }),
+      citationRow({ url: "https://www.daytona.io" }),
+      citationRow({ url: "https://example.com/article" }),
+    ]);
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/article",
+    ]);
+  });
+
   test("counts a mention check once across canonical URL variants", () => {
     const [page] = foldShelfCitationRows([
       citationRow({
@@ -59,5 +72,18 @@ describe("foldShelfCitationRows", () => {
 
     expect(page?.citations.totalCount).toBe(3);
     expect(page?.citations.windowCount).toBe(3);
+  });
+});
+
+describe("groupShelfCitationEngines", () => {
+  test("collapses models of one provider into a single family", () => {
+    const groups = groupShelfCitationEngines([
+      "anthropic/claude-sonnet-5-grounded",
+      "anthropic/claude-opus-5",
+      "ai-overview",
+    ]);
+
+    expect(groups.map((group) => group.family)).toEqual(["claude", "google"]);
+    expect(groups[0]?.models).toHaveLength(2);
   });
 });

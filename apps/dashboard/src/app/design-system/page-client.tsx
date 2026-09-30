@@ -177,7 +177,6 @@ import {
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Toaster } from "@notra/ui/components/ui/sonner";
 import {
   Stepper,
   StepperContent,
@@ -226,6 +225,7 @@ import { DesignSystemOpencodeCatalog } from "@/app/design-system/opencode/page-c
 import { DesignSystemPerplexityCatalog } from "@/app/design-system/perplexity/page-client";
 import { Button, buttonVariants } from "@/components/button";
 import ChatInput from "@/components/chat-input";
+import { DesignSystemChatQueueDemo } from "@/components/design-system/design-system-chat-queue-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
@@ -368,10 +368,6 @@ function ColorSwatch({ name, label }: { name: string; label: string }) {
   );
 }
 
-/*
- * Tailwind must see these class strings literally, so each row spells out its
- * own utilities rather than interpolating the token name.
- */
 const MOTION_DURATIONS = [
   {
     token: "duration-instant",
@@ -1422,6 +1418,17 @@ export default function DesignSystemClientPage() {
 
       <Separator />
 
+      <section className="scroll-mt-10 space-y-6" id="chat-queue">
+        <DesignSystemSectionHeader
+          description="Queued follow-ups stay visible until the steered send starts. The pending chip is muted and only offers cancel."
+          id="chat-queue"
+          title="Chat Queue"
+        />
+        <DesignSystemChatQueueDemo />
+      </section>
+
+      <Separator />
+
       <section className="scroll-mt-10 space-y-6" id="identity">
         <DesignSystemSectionHeader id="identity" title="Identity & Layout" />
         <div className="grid gap-6 lg:grid-cols-2">
@@ -1485,7 +1492,7 @@ export default function DesignSystemClientPage() {
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-4">
               <Avatar>
-                <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=AJ" />
+                <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=AJ" />
                 <AvatarFallback>AJ</AvatarFallback>
                 <AvatarBadge />
               </Avatar>
@@ -1494,11 +1501,11 @@ export default function DesignSystemClientPage() {
               </Avatar>
               <AvatarGroup>
                 <Avatar>
-                  <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=SA" />
+                  <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=SA" />
                   <AvatarFallback>SA</AvatarFallback>
                 </Avatar>
                 <Avatar>
-                  <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=KM" />
+                  <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=KM" />
                   <AvatarFallback>KM</AvatarFallback>
                 </Avatar>
                 <AvatarGroupCount>+3</AvatarGroupCount>
@@ -1615,7 +1622,7 @@ export default function DesignSystemClientPage() {
           <LinkedInPost
             author={{
               name: "Avery Lane",
-              avatar: "https://api.dicebear.com/9.x/avataaars/svg?seed=Avery",
+              avatar: "https://api.dicebear.com/9.x/micah/svg?seed=Avery",
               headline: "77,350 followers",
             }}
             comments={42}
@@ -1758,6 +1765,8 @@ export default function DesignSystemClientPage() {
         </div>
       </section>
 
+      <Separator />
+
       <DesignSystemWriteDialogDemo />
       <DesignSystemClaudeCatalog />
       <DesignSystemCodexCatalog />
@@ -1766,8 +1775,6 @@ export default function DesignSystemClientPage() {
       <DesignSystemClaudeChatCatalog />
       <DesignSystemGeminiCatalog />
       <DesignSystemPerplexityCatalog />
-
-      <Toaster richColors />
     </DesignSystemFrame>
   );
 }

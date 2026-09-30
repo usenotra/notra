@@ -1,11 +1,15 @@
 import type {
+  GeoAudienceType,
   GeoBrandSearchResult,
   GeoCompetitor,
   GeoDiscoveredPrompt,
+  GeoOnboardingStage,
   GeoWebsiteDiscovery,
 } from "@notra/geo-core/types/geo";
 import type { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
 import type * as z from "zod";
+
+import type { OnboardingStep } from "@/types/analytics/events";
 
 export type OnboardingWorkspaceInput = z.infer<
   typeof onboardingWorkspaceSchema
@@ -17,8 +21,12 @@ export interface CompanyLogoResult {
   url: string | null;
 }
 
+export type OnboardingProgressHrefs = readonly (string | null)[];
+
 export interface PricingClientProps {
+  canSkipOnboarding: boolean;
   slug: string;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface OnboardingExistingOrg {
@@ -34,14 +42,34 @@ export interface OnboardingExistingOrg {
 
 export interface WorkspaceFormProps {
   existingOrg?: OnboardingExistingOrg;
+  progressHrefs?: OnboardingProgressHrefs;
+}
+
+export interface WorkspaceSlugCheck {
+  slug: string;
+  status: "checking" | "available" | "unavailable" | "error";
 }
 
 export interface OnboardingSplitLayoutProps {
   children: React.ReactNode;
 }
 
+export interface OnboardingStepLayoutProps extends OnboardingSplitLayoutProps {
+  step: OnboardingStep;
+}
+
 export interface OnboardingProgressProps {
   current: number;
+  hrefs?: OnboardingProgressHrefs;
+}
+
+export interface OnboardingProgressHrefInput {
+  current: number;
+  hasOrganization: boolean;
+  hasBrand: boolean;
+  stage: GeoOnboardingStage | null;
+  projectId?: string;
+  replay?: boolean;
 }
 
 export interface VisibilityFormProps {
@@ -52,6 +80,7 @@ export interface VisibilityFormProps {
   nextHref: string;
   skipHref: string;
   inOnboardingFlow: boolean;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface VisibilityReviewProps {
@@ -70,6 +99,7 @@ export interface CompetitorsFormProps {
   companyName: string;
   nextHref: string;
   inOnboardingFlow: boolean;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface CompetitorBrandLogoProps {
@@ -88,6 +118,13 @@ export interface CompetitorChoiceRowProps {
   onToggle: () => void;
 }
 
+export interface PromptChoiceRowProps {
+  prompt: string;
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}
+
 export type CompetitorsPickerProps = Omit<
   CompetitorsFormProps,
   "projectId" | "inOnboardingFlow" | "companyName"
@@ -98,17 +135,61 @@ export interface CompetitorSearchProps {
   ownDomain: string | null;
   selected: readonly GeoCompetitor[];
   disabled: boolean;
-  onAdd: (result: GeoBrandSearchResult) => void;
+  onAdd: (result: CompetitorSearchResult) => void;
+}
+
+export interface CompetitorSearchResult extends Omit<
+  GeoBrandSearchResult,
+  "domain"
+> {
+  domain: string | null;
+  source: "manual" | "search";
+}
+
+export interface CompetitorSearchItemsInput {
+  ownDomain: string | null;
+  query: string;
+  searchResults: readonly GeoBrandSearchResult[];
+  searching: boolean;
+  selected: readonly GeoCompetitor[];
+}
+
+export interface UseCompetitorSearchStateInput {
+  organizationId: string;
+  ownDomain: string | null;
+  selected: readonly GeoCompetitor[];
+}
+
+export interface CompetitorSearchContentProps {
+  items: readonly CompetitorSearchResult[];
+  onRetry: () => void;
+  searchError: boolean;
+  searchFetching: boolean;
+  searching: boolean;
+}
+
+export interface SearchRetryNoticeProps {
+  onRetry: () => void;
+  searchFetching: boolean;
+}
+
+export interface CompetitorSearchResultRowProps {
+  entry: CompetitorSearchResult;
+  searchUnavailable: boolean;
 }
 
 export interface VisibilityBrandDraft {
   companyName: string;
   aliases: readonly string[];
+  audienceType?: GeoAudienceType;
   prompts: readonly GeoDiscoveredPrompt[];
 }
 
 export interface OnboardingGeoPageProps {
-  searchParams: Promise<{ project?: string | string[] }>;
+  searchParams: Promise<{
+    project?: string | string[];
+    replay?: string | string[];
+  }>;
 }
 
 export interface OrgLogoFieldProps {
@@ -163,3 +244,12 @@ export interface OnboardingEmailPrefsProps {
   onDailySummaryChange: (checked: boolean) => void;
   onMarketingEmailsChange: (checked: boolean) => void;
 }
+
+export type LogoFileValidationError = "invalidType" | "tooLarge";
+
+export type WorkspaceFormField =
+  | "name"
+  | "slug"
+  | "websiteUrl"
+  | "heardAboutNotraSource"
+  | "heardAboutNotraOther";
