@@ -55,6 +55,7 @@ function renderAssistantPart(
 ) {
   if (part.type === "text") {
     return (
+      // react-doctor-disable-next-line react-doctor/no-array-index-as-key -- text parts have no id and a message's parts are only appended
       <MessageResponse
         isAnimating={message.isStreaming}
         key={`${message.id}-text-${String(index)}`}

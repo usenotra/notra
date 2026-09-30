@@ -16,7 +16,7 @@ export function useCodeResearchPlayback() {
   const steps = useMemo(() => scenario?.steps ?? [], [scenario]);
   const startAt = scenario?.startAt ?? 0;
   const [cursor, setCursor] = useState(startAt);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [wantsToPlay, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
 
   const state = useMemo(
@@ -24,6 +24,8 @@ export function useCodeResearchPlayback() {
     [steps, cursor]
   );
   const isAtEnd = cursor >= steps.length;
+  // Derived, so reaching the end stops playback without an effect update.
+  const isPlaying = wantsToPlay && !isAtEnd;
 
   useEffect(() => {
     if (!isPlaying) {
@@ -31,7 +33,6 @@ export function useCodeResearchPlayback() {
     }
     const next = steps[cursor];
     if (!next) {
-      setIsPlaying(false);
       return;
     }
     const timer = window.setTimeout(
