@@ -47,7 +47,7 @@ import {
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useTranslations } from "next-intl";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -217,6 +217,7 @@ export function PromptsTable({
       ? t("removeDescriptionMany")
       : t("removeDescriptionOne", { prompt: items[0] ?? "" });
   const {
+    isLoading: promptsLoading,
     pendingPromptIds,
     togglePrompt,
     removePrompts,
@@ -307,6 +308,20 @@ export function PromptsTable({
     setTag(GEO_PROMPT_DEFAULT_FILTERS.tag);
     setSource(GEO_PROMPT_DEFAULT_FILTERS.source);
   };
+
+  const noPromptsTracked = !promptsLoading && prompts.length === 0;
+  const staleFilters = noPromptsTracked && promptFiltersActive(filters);
+  // The empty state hides the filter bar, so filters left in the URL would
+  // silently hide the next prompt someone adds.
+  useEffect(() => {
+    if (!staleFilters) {
+      return;
+    }
+    void setSearch(GEO_PROMPT_DEFAULT_FILTERS.q);
+    void setIntent(GEO_PROMPT_DEFAULT_FILTERS.intent);
+    void setTag(GEO_PROMPT_DEFAULT_FILTERS.tag);
+    void setSource(GEO_PROMPT_DEFAULT_FILTERS.source);
+  }, [staleFilters, setSearch, setIntent, setTag, setSource]);
 
   let emptyState: ReactNode = (
     <Empty className="py-8 md:py-8">
@@ -412,7 +427,7 @@ export function PromptsTable({
   ];
 
   // Nothing tracked yet: filters and an empty table would only add noise.
-  if (prompts.length === 0 && !isScanning) {
+  if (noPromptsTracked && !isScanning) {
     return (
       <Empty>
         <EmptyHeader>
