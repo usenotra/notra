@@ -29,12 +29,18 @@ import {
 import {
   PROMPT_CALCULATOR_ANCHOR,
   PROMPT_CALCULATOR_DAYS_PER_MONTH,
+  PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
+  PROMPT_CALCULATOR_DEFAULT_PROMPTS,
   PROMPT_CALCULATOR_FREQUENCIES,
   PROMPT_CALCULATOR_MAX_PROMPTS,
+  PROMPT_CALCULATOR_MILESTONES,
+  PROMPT_CALCULATOR_MIN_PROMPTS,
   PROMPT_CALCULATOR_PARAMS,
 } from "@/constants/landing/prompt-calculator";
 import { PROMPT_CALCULATOR_ENGINES } from "@/constants/landing/prompt-calculator-engines";
 import { BRAND_ASSETS, BRAND_COLORS, BRAND_FONTS } from "@/lib/brand/constants";
+import type { PromptCalculatorInput } from "@/types/landing/prompt-calculator";
+import { NOTRA_CONTACT_EMAIL } from "@/utils/agent-metadata";
 import {
   COMPARISON_FEATURES,
   PRICING_PLANS,
@@ -43,6 +49,11 @@ import {
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { markdownSection } from "@/utils/markdown";
 import { SITE_DESCRIPTION, SITE_TAGLINE } from "@/utils/metadata";
+import {
+  buildPromptCalculatorSearch,
+  estimatePromptUsage,
+  findFittingCadence,
+} from "@/utils/prompt-calculator";
 import { SITE_URL } from "@/utils/urls";
 
 function renderPlanPrice(
@@ -154,39 +165,130 @@ export function buildFeaturesMarkdown() {
   ].join("\n");
 }
 
+const CALCULATOR_EXAMPLES: {
+  situation: string;
+  input: PromptCalculatorInput;
+}[] = [
+  {
+    situation: "A startup checking whether AI engines mention it at all",
+    input: {
+      prompts: 25,
+      models: ["chatgpt", "claude", "perplexity"],
+      frequency: "weekly",
+    },
+  },
+  {
+    situation: "A team tracking one category every day",
+    input: {
+      prompts: 100,
+      models: ["chatgpt", "claude", "gemini"],
+      frequency: "daily",
+    },
+  },
+  {
+    situation: "An agency tracking several brands on every engine",
+    input: {
+      prompts: 250,
+      models: ["chatgpt", "claude", "gemini", "perplexity", "grok"],
+      frequency: "daily",
+    },
+  },
+];
+
+function calculatorUrl(input: PromptCalculatorInput) {
+  return `${SITE_URL}/pricing${buildPromptCalculatorSearch(input)}`;
+}
+
+function describeEstimate(input: PromptCalculatorInput) {
+  const estimate = estimatePromptUsage(input);
+  const answers = estimate.answersPerMonth.toLocaleString("en-US");
+  if (estimate.plan.answersPerMonth !== null) {
+    return `${answers} AI answers / month → ${estimate.plan.name} (${estimate.plan.price.monthly}${estimate.plan.priceSuffix?.monthly ?? ""})`;
+  }
+  const fit = findFittingCadence(input);
+  if (!fit) {
+    return `${answers} AI answers / month → Enterprise, contact ${NOTRA_CONTACT_EMAIL}`;
+  }
+  const slower = { ...input, frequency: fit.frequency };
+  const slowerAnswers =
+    estimatePromptUsage(slower).answersPerMonth.toLocaleString("en-US");
+  return `${answers} AI answers / month → Enterprise. Scanning \`${fit.frequency}\` instead brings it to ${slowerAnswers} → ${fit.plan.name} (${fit.plan.price.monthly}/month): ${calculatorUrl(slower)}`;
+}
+
 function buildPromptCalculatorMarkdown() {
-  const example = `${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=120&${PROMPT_CALCULATOR_PARAMS.models}=chatgpt,claude,gemini&${PROMPT_CALCULATOR_PARAMS.frequency}=weekly#${PROMPT_CALCULATOR_ANCHOR}`;
   const quotas = PRICING_CARD_PLANS.map((plan) =>
     plan.answersPerMonth === null
-      ? `- ${plan.name}: more than the largest plan, custom quota`
-      : `- ${plan.name}: up to ${plan.answersPerMonth.toLocaleString("en-US")} AI answers / month`
+      ? `| ${plan.name} | more than ${PRICING_CARD_PLANS.at(-2)?.answersPerMonth?.toLocaleString("en-US") ?? ""} | ${plan.price.monthly} |`
+      : `| ${plan.name} | ${plan.answersPerMonth.toLocaleString("en-US")} | ${plan.price.monthly}/month or ${plan.price.yearly}/year |`
   );
   const frequencies = PROMPT_CALCULATOR_FREQUENCIES.map((option) => {
     const scans =
       Math.round(
         (PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays) * 10
       ) / 10;
-    return `\`${option.id}\` (${scans} ${scans === 1 ? "scan" : "scans"} / month)`;
+    return `\`${option.id}\` (${scans})`;
   });
+  const promptGuide = PROMPT_CALCULATOR_MILESTONES.map(
+    (milestone) =>
+      `- Up to ${milestone.prompts.toLocaleString("en-US")}: ${milestone.name} ${milestone.detail}`
+  );
+  const examples = CALCULATOR_EXAMPLES.map(({ situation, input }, index) =>
+    [
+      `${index + 1}. ${situation}: ${input.prompts} prompts on ${input.models.join(", ")}, \`${input.frequency}\``,
+      `   - ${calculatorUrl(input)}`,
+      `   - ${describeEstimate(input)}`,
+    ].join("\n")
+  );
 
   return [
     "## Estimate your AI answers",
     "",
     "Plans are sized by AI answers tracked per month. One AI answer is one prompt answered by one model in one scan.",
     "",
-    `AI answers / month = prompts × models × scans per month (a month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days, rounded up).`,
-    "",
-    "Pick the smallest plan whose quota covers the estimate:",
-    "",
+    "| Plan | AI answers / month | Price |",
+    "| --- | --- | --- |",
     ...quotas,
     "",
-    "The calculator on the pricing page reads its inputs from query params, so you can link a prefilled estimate:",
+    "### Guide for AI agents",
     "",
-    `- \`${PROMPT_CALCULATOR_PARAMS.prompts}\`: number of prompts, 1 to ${PROMPT_CALCULATOR_MAX_PROMPTS.toLocaleString("en-US")}`,
-    `- \`${PROMPT_CALCULATOR_PARAMS.models}\`: comma-separated, any of ${PROMPT_CALCULATOR_ENGINES.map((engine) => `\`${engine.id}\``).join(", ")}`,
-    `- \`${PROMPT_CALCULATOR_PARAMS.frequency}\`: one of ${frequencies.join(", ")}`,
+    "Use these steps to recommend a plan and hand the user a link with the calculator already filled in.",
     "",
-    `Example: ${example}`,
+    `1. **Models.** Ask which AI engines their buyers use. Each model counts separately. An engine name like \`claude\` stands for its default model; to track two models of one engine (say Claude Opus 5.5 and Sonnet 5), list both model ids. See the model list below.`,
+    "2. **Prompts.** Estimate how many buyer questions they want to track:",
+    ...promptGuide.map((line) => `   ${line}`),
+    `3. **Frequency.** Default to \`${PROMPT_CALCULATOR_DEFAULT_FREQUENCY}\`. Slower scans cost fewer answers.`,
+    `4. **Compute.** AI answers / month = prompts × models × scans per month, rounded up. A month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days.`,
+    "5. **Pick the plan.** Choose the smallest plan whose quota is at least the estimate.",
+    "6. **Too big for Scale?** Try the next slower frequency until the estimate fits a plan. Recommend that, or Enterprise if even `monthly` doesn't fit.",
+    `7. **Share the link.** \`${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=…&${PROMPT_CALCULATOR_PARAMS.models}=…&${PROMPT_CALCULATOR_PARAMS.frequency}=…#${PROMPT_CALCULATOR_ANCHOR}\``,
+    "",
+    "### Query params",
+    "",
+    "| Param | Values | Default |",
+    "| --- | --- | --- |",
+    `| \`${PROMPT_CALCULATOR_PARAMS.prompts}\` | Whole number, ${PROMPT_CALCULATOR_MIN_PROMPTS} to ${PROMPT_CALCULATOR_MAX_PROMPTS.toLocaleString("en-US")}. Out-of-range values are clamped | ${PROMPT_CALCULATOR_DEFAULT_PROMPTS} |`,
+    `| \`${PROMPT_CALCULATOR_PARAMS.models}\` | Comma-separated engine names or model ids, mixed freely. Unknown ids are ignored; if none are left, the default applies | ${PROMPT_CALCULATOR_ENGINES.slice(
+      0,
+      3
+    )
+      .map((engine) => engine.id)
+      .join(",")} |`,
+    `| \`${PROMPT_CALCULATOR_PARAMS.frequency}\` | One of ${frequencies.join(", ")}; scans per month in brackets | ${PROMPT_CALCULATOR_DEFAULT_FREQUENCY} |`,
+    "",
+    "Params you leave out fall back to their default, and the page updates the URL as the user changes inputs, so the link always matches what they see.",
+    "",
+    "### Models",
+    "",
+    "| Engine name | Model ids, newest first |",
+    "| --- | --- |",
+    ...PROMPT_CALCULATOR_ENGINES.map(
+      (engine) =>
+        `| \`${engine.id}\` (${engine.name}) | ${engine.models.map((model) => `\`${model.id}\`${model.id === engine.defaultModel ? " (default)" : ""}`).join(", ")} |`
+    ),
+    "",
+    "### Worked examples",
+    "",
+    ...examples,
     "",
   ].join("\n");
 }

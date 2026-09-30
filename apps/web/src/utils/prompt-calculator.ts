@@ -2,6 +2,7 @@ import { PRICING_PLANS } from "@/constants/landing/pricing";
 import {
   PROMPT_CALCULATOR_ANCHOR,
   PROMPT_CALCULATOR_DAYS_PER_MONTH,
+  PROMPT_CALCULATOR_DEFAULT_MODELS,
   PROMPT_CALCULATOR_FREQUENCIES,
   PROMPT_CALCULATOR_MAX_PROMPTS,
   PROMPT_CALCULATOR_MILESTONES,
@@ -9,6 +10,10 @@ import {
   PROMPT_CALCULATOR_PARAMS,
   PROMPT_CALCULATOR_STOPS,
 } from "@/constants/landing/prompt-calculator";
+import {
+  PROMPT_CALCULATOR_ENGINES,
+  PROMPT_CALCULATOR_MODEL_IDS,
+} from "@/constants/landing/prompt-calculator-engines";
 import type { PricingPlan } from "@/types/landing/pricing";
 import type {
   PromptCalculatorEstimate,
@@ -158,4 +163,22 @@ export function findFittingCadence(input: PromptCalculatorInput) {
     }
   }
   return null;
+}
+
+/**
+ * Turns the raw `models` param into catalog model ids: engine names like
+ * `claude` become that engine's default model, unknown ids drop out, and the
+ * result keeps catalog order. Falls back to the defaults when nothing is left.
+ */
+export function normalizeModelIds(raw: readonly string[]) {
+  const wanted = new Set<string>();
+  for (const id of raw) {
+    const engine = PROMPT_CALCULATOR_ENGINES.find((entry) => entry.id === id);
+    const model = engine ? engine.defaultModel : id;
+    if (model) {
+      wanted.add(model);
+    }
+  }
+  const models = PROMPT_CALCULATOR_MODEL_IDS.filter((id) => wanted.has(id));
+  return models.length > 0 ? models : [...PROMPT_CALCULATOR_DEFAULT_MODELS];
 }

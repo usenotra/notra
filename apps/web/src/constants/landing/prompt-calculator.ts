@@ -1,7 +1,4 @@
-import type {
-  PromptCalculatorEngineId,
-  PromptCalculatorFrequencyId,
-} from "@/types/landing/prompt-calculator";
+import type { PromptCalculatorFrequencyId } from "@/types/landing/prompt-calculator";
 
 /** Mirrors the query params, so `/pricing?prompts=120&models=chatgpt,claude&frequency=weekly` prefills the calculator. */
 export const PROMPT_CALCULATOR_PARAMS = {
@@ -12,13 +9,21 @@ export const PROMPT_CALCULATOR_PARAMS = {
 
 export const PROMPT_CALCULATOR_ANCHOR = "calculator";
 
-/** Engine ids accepted in the `models` query param, in display order. */
+/**
+ * Engine ids. The `models` query param takes these as shortcuts for each
+ * engine's default model, so `?models=chatgpt,claude` works.
+ */
 export const PROMPT_CALCULATOR_ENGINE_IDS = [
   "chatgpt",
   "claude",
   "gemini",
   "perplexity",
   "grok",
+  "kimi",
+  "deepseek",
+  "mistral",
+  "meta",
+  "zai",
 ] as const;
 
 /** Scan cadences offered in the dashboard's GEO settings. */
@@ -67,10 +72,11 @@ export const PROMPT_CALCULATOR_MIN_PROMPTS = 1;
 export const PROMPT_CALCULATOR_MAX_PROMPTS = 10_000;
 
 export const PROMPT_CALCULATOR_DEFAULT_PROMPTS = 50;
-export const PROMPT_CALCULATOR_DEFAULT_MODELS: PromptCalculatorEngineId[] = [
-  "chatgpt",
-  "claude",
-  "gemini",
+/** The default models of ChatGPT, Claude and Gemini. */
+export const PROMPT_CALCULATOR_DEFAULT_MODELS: string[] = [
+  "openai/gpt-5.6-sol",
+  "anthropic/claude-opus-5.5",
+  "google/gemini-3.8-flash",
 ];
 export const PROMPT_CALCULATOR_DEFAULT_FREQUENCY: PromptCalculatorFrequencyId =
   "daily";

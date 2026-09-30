@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowRight02Icon, Link01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  Link01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { cn } from "@notra/ui/lib/utils";
@@ -9,10 +14,19 @@ import Link from "next/link";
 import {
   parseAsArrayOf,
   parseAsInteger,
+  parseAsString,
   parseAsStringLiteral,
   useQueryStates,
 } from "nuqs";
-import { type CSSProperties, Suspense, useId } from "react";
+import {
+  type CSSProperties,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import {
   FadeText,
@@ -27,7 +41,6 @@ import {
   PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
   PROMPT_CALCULATOR_DEFAULT_MODELS,
   PROMPT_CALCULATOR_DEFAULT_PROMPTS,
-  PROMPT_CALCULATOR_ENGINE_IDS,
   PROMPT_CALCULATOR_FREQUENCIES,
   PROMPT_CALCULATOR_HEADING,
   PROMPT_CALCULATOR_MAX_PROMPTS,
@@ -36,10 +49,12 @@ import {
   PROMPT_CALCULATOR_MIN_PROMPTS,
   PROMPT_CALCULATOR_SUBHEADING,
 } from "@/constants/landing/prompt-calculator";
-import { PROMPT_CALCULATOR_ENGINES } from "@/constants/landing/prompt-calculator-engines";
+import {
+  PROMPT_CALCULATOR_ENGINES,
+  PROMPT_CALCULATOR_MODEL_IDS,
+} from "@/constants/landing/prompt-calculator-engines";
 import type {
   PromptCalculatorEngine,
-  PromptCalculatorEngineId,
   PromptCalculatorFrequencyId,
   PromptCalculatorInput,
   PromptCalculatorPanelProps,
@@ -51,6 +66,7 @@ import {
   estimatePromptUsage,
   findFittingCadence,
   milestoneFor,
+  normalizeModelIds,
   nearestStopIndex,
   promptsToStopRatio,
   stopRatio,
@@ -63,9 +79,9 @@ const NON_DIGITS = /\D/g;
 
 const calculatorParsers = {
   prompts: parseAsInteger.withDefault(PROMPT_CALCULATOR_DEFAULT_PROMPTS),
-  models: parseAsArrayOf(
-    parseAsStringLiteral(PROMPT_CALCULATOR_ENGINE_IDS)
-  ).withDefault(PROMPT_CALCULATOR_DEFAULT_MODELS),
+  models: parseAsArrayOf(parseAsString).withDefault(
+    PROMPT_CALCULATOR_DEFAULT_MODELS
+  ),
   frequency: parseAsStringLiteral(
     PROMPT_CALCULATOR_FREQUENCIES.map((option) => option.id)
   ).withDefault(PROMPT_CALCULATOR_DEFAULT_FREQUENCY),
@@ -278,8 +294,71 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
   );
 }
 
+const MORE_ENGINE_COUNT = PROMPT_CALCULATOR_ENGINES.filter(
+  (engine) => !engine.featured
+).length;
+/** Distance from either end, in px, under which the strip counts as at that end. */
+const STRIP_EDGE_PX = 4;
+/** Width of the fade at a scrollable edge of the engine strip. */
+const STRIP_FADE_PX = 48;
+
 function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
-  function toggle(id: PromptCalculatorEngineId) {
+  const stripRef = useRef<HTMLDivElement>(null);
+  const exactPanelId = useId();
+  const [showExact, setShowExact] = useState(false);
+  const [edges, setEdges] = useState({ atStart: true, atEnd: false });
+
+  const updateEdges = useCallback(() => {
+    const strip = stripRef.current;
+    if (!strip) {
+      return;
+    }
+    const maxScroll = strip.scrollWidth - strip.clientWidth;
+    // The fades grow with the distance to each end, so they ease in and out
+    // while scrolling instead of switching on and off.
+    strip.style.setProperty(
+      "--fade-start",
+      `${Math.min(strip.scrollLeft, STRIP_FADE_PX)}px`
+    );
+    strip.style.setProperty(
+      "--fade-end",
+      `${Math.min(Math.max(maxScroll - strip.scrollLeft, 0), STRIP_FADE_PX)}px`
+    );
+    const atStart = strip.scrollLeft <= STRIP_EDGE_PX;
+    const atEnd = strip.scrollLeft >= maxScroll - STRIP_EDGE_PX;
+    setEdges((current) =>
+      current.atStart === atStart && current.atEnd === atEnd
+        ? current
+        : { atStart, atEnd }
+    );
+  }, []);
+
+  useEffect(() => {
+    updateEdges();
+    const strip = stripRef.current;
+    if (!strip) {
+      return;
+    }
+    const observer = new ResizeObserver(updateEdges);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [updateEdges]);
+
+  const canScroll = !(edges.atStart && edges.atEnd);
+
+  function scrollStrip() {
+    const strip = stripRef.current;
+    if (!strip) {
+      return;
+    }
+    strip.scrollTo({
+      left: edges.atEnd ? 0 : strip.scrollWidth,
+      behavior: "smooth",
+    });
+  }
+
+  /** Adds or removes one model, keeping catalog order and at least one model. */
+  function toggleModel(id: string) {
     if (value.models.includes(id)) {
       if (value.models.length > 1) {
         onChange({ models: value.models.filter((model) => model !== id) });
@@ -287,48 +366,187 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
       return;
     }
     onChange({
-      models: PROMPT_CALCULATOR_ENGINE_IDS.filter(
+      models: PROMPT_CALCULATOR_MODEL_IDS.filter(
         (model) => model === id || value.models.includes(model)
       ),
     });
   }
 
+  /** An engine pill adds its default model, or drops every model of it. */
+  function toggleEngine(engine: PromptCalculatorEngine) {
+    const engineModels = new Set(engine.models.map((model) => model.id));
+    const remaining = value.models.filter((id) => !engineModels.has(id));
+    if (remaining.length < value.models.length) {
+      if (remaining.length > 0) {
+        onChange({ models: remaining });
+      }
+      return;
+    }
+    toggleModel(engine.defaultModel);
+  }
+
   return (
-    <fieldset className="flex flex-col gap-3">
+    <fieldset className="flex min-w-0 flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <legend className={GROUP_LABEL}>Models</legend>
         <span className={GROUP_META}>
-          {value.models.length} of {PROMPT_CALCULATOR_ENGINES.length}
+          {value.models.length} {value.models.length === 1 ? "model" : "models"}
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {PROMPT_CALCULATOR_ENGINES.map((engine) => {
-          const checked = value.models.includes(engine.id);
+      <div className="flex items-center gap-2">
+        <div
+          className="relative -my-1 flex min-w-0 flex-1 [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_var(--fade-start,0px),#000_calc(100%-var(--fade-end,0px)),transparent)] py-1 [&::-webkit-scrollbar]:hidden"
+          onScroll={updateEdges}
+          ref={stripRef}
+        >
+          {PROMPT_CALCULATOR_ENGINES.map((engine) => {
+            const selectedCount = engine.models.filter((model) =>
+              value.models.includes(model.id)
+            ).length;
+            const checked = selectedCount > 0;
 
-          return (
-            <label
-              className={cn(PILL_BASE, checked ? PILL_ACTIVE : PILL_INACTIVE)}
-              key={engine.id}
-            >
-              <input
-                checked={checked}
-                className="sr-only"
-                disabled={checked && value.models.length === 1}
-                onChange={() => toggle(engine.id)}
-                type="checkbox"
-              />
-              <span
+            return (
+              <label
                 className={cn(
-                  "flex size-5 items-center justify-center rounded-full",
-                  checked && "bg-white dark:bg-[#1E1E1E]/10"
+                  PILL_BASE,
+                  "first:ml-px last:mr-px",
+                  checked ? PILL_ACTIVE : PILL_INACTIVE
                 )}
+                key={engine.id}
               >
-                <EngineLogo engine={engine} onDarkPill={!checked} />
-              </span>
-              {engine.name}
-            </label>
-          );
-        })}
+                <input
+                  checked={checked}
+                  className="sr-only"
+                  disabled={checked && selectedCount === value.models.length}
+                  onChange={() => toggleEngine(engine)}
+                  type="checkbox"
+                />
+                <span
+                  className={cn(
+                    "flex size-5 items-center justify-center rounded-full",
+                    checked && "bg-white dark:bg-[#1E1E1E]/10"
+                  )}
+                >
+                  <EngineLogo engine={engine} onDarkPill={!checked} />
+                </span>
+                {engine.name}
+                {selectedCount > 1 ? (
+                  <span className="tabular-nums opacity-60">
+                    · {selectedCount}
+                  </span>
+                ) : null}
+              </label>
+            );
+          })}
+        </div>
+        {canScroll ? (
+          <button
+            aria-label={
+              edges.atEnd ? "Back to the first models" : "See more models"
+            }
+            className={cn(
+              PILL_BASE,
+              PILL_INACTIVE,
+              "focus-visible:ring-primary grid focus-visible:ring-2"
+            )}
+            onClick={scrollStrip}
+            type="button"
+          >
+            {/* Both labels share one cell so the button never changes width. */}
+            <span
+              aria-hidden="true"
+              className={cn(
+                "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
+                edges.atEnd ? "opacity-0" : "opacity-100"
+              )}
+            >
+              See {MORE_ENGINE_COUNT} more
+              <HugeiconsIcon className="size-3.5" icon={ArrowRight02Icon} />
+            </span>
+            <span
+              aria-hidden="true"
+              className={cn(
+                "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
+                edges.atEnd ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <HugeiconsIcon className="size-3.5" icon={ArrowLeft02Icon} />
+              Back
+            </span>
+          </button>
+        ) : null}
+      </div>
+
+      <div>
+        <button
+          aria-controls={exactPanelId}
+          aria-expanded={showExact}
+          className="focus-visible:ring-primary flex cursor-pointer items-center gap-1 rounded-md font-sans text-sm tracking-[-0.01em] text-[#1E1E1E99] transition-colors duration-100 outline-none hover:text-[#1E1E1E] focus-visible:ring-2 dark:text-white/50 dark:hover:text-white"
+          onClick={() => setShowExact((current) => !current)}
+          type="button"
+        >
+          {showExact ? "Hide exact models" : "Pick exact models"}
+          <HugeiconsIcon
+            aria-hidden="true"
+            className={cn(
+              "size-3.5 transition-transform duration-200",
+              showExact && "rotate-180"
+            )}
+            icon={ArrowDown01Icon}
+          />
+        </button>
+        {/* Grid rows animate from 0fr to 1fr, so the panel opens smoothly. */}
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            showExact
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
+          )}
+          id={exactPanelId}
+          inert={!showExact}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="mt-3 flex flex-col divide-y divide-[#1E1E1E0F] rounded-2xl bg-white px-4 shadow-[0_0.125rem_0.3125rem_#00000008] dark:divide-white/[0.06] dark:bg-white/[0.04]">
+              {PROMPT_CALCULATOR_ENGINES.map((engine) => (
+                <div
+                  className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4"
+                  key={engine.id}
+                >
+                  <span className="flex w-28 shrink-0 items-center gap-2 font-sans text-sm font-medium text-[#1E1E1E] dark:text-white">
+                    <EngineLogo engine={engine} onDarkPill />
+                    {engine.name}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {engine.models.map((model) => {
+                      const checked = value.models.includes(model.id);
+
+                      return (
+                        <label
+                          className={cn(
+                            PILL_BASE,
+                            "px-3 py-1 text-[0.8125rem]",
+                            checked ? PILL_ACTIVE : PILL_INACTIVE
+                          )}
+                          key={model.id}
+                        >
+                          <input
+                            checked={checked}
+                            className="sr-only"
+                            disabled={checked && value.models.length === 1}
+                            onChange={() => toggleModel(model.id)}
+                            type="checkbox"
+                          />
+                          {model.label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </fieldset>
   );
@@ -489,7 +707,8 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
                   AI answers / mo
                 </span>
                 <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
-                  {numberFormat.format(value.prompts)} prompts ×{" "}
+                  {numberFormat.format(value.prompts)}{" "}
+                  {value.prompts === 1 ? "prompt" : "prompts"} ×{" "}
                   {value.models.length} models × {scans} scans
                 </span>
               </div>
@@ -573,8 +792,7 @@ function UrlBoundPromptCalculator() {
 
   const normalized: PromptCalculatorInput = {
     prompts: clampPrompts(value.prompts),
-    models:
-      value.models.length > 0 ? value.models : PROMPT_CALCULATOR_DEFAULT_MODELS,
+    models: normalizeModelIds(value.models),
     frequency: value.frequency,
   };
 
