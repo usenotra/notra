@@ -8,7 +8,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
   OPENCODE_DEFAULT_CWD,
@@ -17,6 +16,7 @@ import {
   OPENCODE_MCP_STATUS_CLASS,
 } from "../constants/opencode";
 import type { OpencodeSidebarProps } from "../types/opencode";
+import { OpencodeScrollArea } from "./opencode-scroll-area";
 
 const splitBranch = (branch: string) => {
   const cut = branch.lastIndexOf("/") + 1;
@@ -61,7 +61,7 @@ export const OpencodeSidebar = ({
     data-slot="opencode-sidebar"
     {...props}
   >
-    <ScrollArea className="min-h-0 flex-1 [&>[data-slot=scroll-area-viewport]>div]:min-h-full">
+    <OpencodeScrollArea className="min-h-0 flex-1 [&>[data-slot=opencode-scroll-area-viewport]>div]:min-h-full">
       <div className="flex min-h-full flex-col gap-[1lh] px-[2ch] py-[1lh]">
         <h2 className="text-[length:inherit] leading-[inherit] font-bold wrap-break-word">
           {title}
@@ -136,6 +136,6 @@ export const OpencodeSidebar = ({
           </p>
         </div>
       </div>
-    </ScrollArea>
+    </OpencodeScrollArea>
   </aside>
 );

@@ -9880,8 +9880,8 @@
       "type": "registry:component",
       "title": "OpenCode Sidebar",
       "description": "Session title, context usage, a collapsible MCP list, LSP state, cwd with branch and version.",
-      "dependencies": ["cn"],
-      "registryDependencies": ["button", "collapsible", "scroll-area"],
+      "dependencies": ["@base-ui/react", "cn"],
+      "registryDependencies": ["button", "collapsible"],
       "cssVars": {
         "theme": {
           "color-opencode-bg": "var(--opencode-bg)",
@@ -9929,6 +9929,11 @@
       },
       "files": [
         {
+          "path": "registry/notra/opencode/components/opencode-scroll-area.tsx",
+          "type": "registry:component",
+          "target": "components/opencode/components/opencode-scroll-area.tsx"
+        },
+        {
           "path": "registry/notra/opencode/components/opencode-sidebar.tsx",
           "type": "registry:component",
           "target": "components/opencode/components/opencode-sidebar.tsx"
@@ -9950,14 +9955,13 @@
       "type": "registry:block",
       "title": "OpenCode",
       "description": "A recreation of an OpenCode terminal session with a transcript, the prompt and the sidebar.",
-      "dependencies": ["cn"],
+      "dependencies": ["@base-ui/react", "cn"],
       "registryDependencies": [
         "button",
         "card",
         "collapsible",
         "input-group",
-        "kbd",
-        "scroll-area"
+        "kbd"
       ],
       "cssVars": {
         "theme": {
@@ -10049,6 +10053,11 @@
           "path": "registry/notra/opencode/components/opencode-composer.tsx",
           "type": "registry:component",
           "target": "components/opencode/components/opencode-composer.tsx"
+        },
+        {
+          "path": "registry/notra/opencode/components/opencode-scroll-area.tsx",
+          "type": "registry:component",
+          "target": "components/opencode/components/opencode-scroll-area.tsx"
         },
         {
           "path": "registry/notra/opencode/components/opencode-sidebar.tsx",

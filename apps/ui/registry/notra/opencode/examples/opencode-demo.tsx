@@ -1,8 +1,11 @@
-import { Fragment } from "react";
+"use client";
+
+import { Fragment, useLayoutEffect, useRef } from "react";
 
 import { OpencodeActivity } from "../components/opencode-activity";
 import { OpencodeComposer } from "../components/opencode-composer";
 import { OpencodeMessage } from "../components/opencode-message";
+import { OpencodeScrollArea } from "../components/opencode-scroll-area";
 import { OpencodeSidebar } from "../components/opencode-sidebar";
 import { OpencodeTurnFooter } from "../components/opencode-turn-footer";
 import { OpencodeWindow } from "../components/opencode-window";
@@ -69,13 +72,23 @@ const groupActivities = (activities: OpencodeDemoActivity[]) =>
 
 export default function OpencodeDemo() {
   const session = OPENCODE_DEMO_SESSION;
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Open on the latest turn like a terminal. Scrolling the viewport directly
+  // keeps the host page from jumping.
+  useLayoutEffect(() => {
+    const viewport = scrollRef.current?.querySelector(
+      '[data-slot="opencode-scroll-area-viewport"]'
+    );
+    viewport?.scrollTo({ top: viewport.scrollHeight });
+  }, []);
 
   return (
     <OpencodeWindow className="h-150">
       <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_minmax(16rem,30%)]">
         <div className="flex min-h-0 min-w-0 flex-col gap-[1lh] px-[2ch] pt-[1lh] pb-[0.5lh]">
-          <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
-            <div className="flex flex-col gap-[1lh]">
+          <OpencodeScrollArea className="min-h-0 flex-1" ref={scrollRef}>
+            <div className="flex flex-col gap-[1lh] pr-[1.5ch]">
               {OPENCODE_DEMO_TURNS.map((turn) => (
                 <Fragment key={turn.id}>
                   <OpencodeMessage from="user">{turn.prompt}</OpencodeMessage>
@@ -99,7 +112,7 @@ export default function OpencodeDemo() {
                 </Fragment>
               ))}
             </div>
-          </div>
+          </OpencodeScrollArea>
           <OpencodeComposer
             agent={session.agent}
             context={session.context}
