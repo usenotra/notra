@@ -696,9 +696,10 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   // and always stays tracked; otherwise scans would only run translations.
   const promptLanguage =
     existingSettings?.promptLanguage ?? input.promptLanguage ?? null;
+  const requestedLanguages = [...new Set(input.languages)];
   const missingPromptLanguage =
-    promptLanguage !== null && !input.languages.includes(promptLanguage);
-  if (missingPromptLanguage && input.languages.length >= GEO_MAX_LANGUAGES) {
+    promptLanguage !== null && !requestedLanguages.includes(promptLanguage);
+  if (missingPromptLanguage && requestedLanguages.length >= GEO_MAX_LANGUAGES) {
     return yield* Effect.fail(
       new GeoSettingsTrackingError({
         message: `${promptLanguage} is the prompt language and stays tracked, so choose at most ${GEO_MAX_LANGUAGES - 1} other languages`,
@@ -706,8 +707,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     );
   }
   const languages = missingPromptLanguage
-    ? [promptLanguage, ...input.languages]
-    : input.languages;
+    ? [promptLanguage, ...requestedLanguages]
+    : requestedLanguages;
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
       unavailableStaticEngines.size > 0 && unavailableStaticEngines.has(engine)
