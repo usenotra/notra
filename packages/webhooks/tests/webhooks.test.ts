@@ -56,6 +56,7 @@ import { signatureMessage, verifySignature } from "../src/utils/signature";
 import { isPublicAddress, validateEndpointUrl } from "../src/utils/url";
 import worker from "../src/worker";
 
+const PGLITE_SETUP_TIMEOUT_MS = 30_000;
 const db = new PGlite();
 const sql = <T = Record<string, unknown>>(
   query: string,
@@ -137,46 +138,50 @@ const publish = (sourceKey = "job-1", organizationId = org) =>
     },
   });
 
-beforeAll(() =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* sql("CREATE TABLE organizations (id text PRIMARY KEY)");
-      const migrations = new URL("../../db/migrations/", import.meta.url);
-      const files = yield* Effect.promise(() => readdir(migrations));
-      const contents = yield* Effect.promise(() =>
-        Promise.all(
-          files
-            .filter((name) => name.endsWith(".sql"))
-            .map((name) => readFile(new URL(name, migrations), "utf8"))
-        )
-      );
-      const migration = contents.find((content) =>
-        content.includes('CREATE TABLE "webhook_endpoints"')
-      );
-      if (!migration) {
-        return yield* Effect.die("missing webhook migration");
-      }
-      yield* Effect.promise(() => db.exec(migration));
-      yield* sql("INSERT INTO organizations VALUES ('org-one'), ('org-two')");
-    })
-  )
+beforeAll(
+  () =>
+    Effect.runPromise(
+      Effect.gen(function* () {
+        yield* sql("CREATE TABLE organizations (id text PRIMARY KEY)");
+        const migrations = new URL("../../db/migrations/", import.meta.url);
+        const files = yield* Effect.promise(() => readdir(migrations));
+        const contents = yield* Effect.promise(() =>
+          Promise.all(
+            files
+              .filter((name) => name.endsWith(".sql"))
+              .map((name) => readFile(new URL(name, migrations), "utf8"))
+          )
+        );
+        const migration = contents.find((content) =>
+          content.includes('CREATE TABLE "webhook_endpoints"')
+        );
+        if (!migration) {
+          return yield* Effect.die("missing webhook migration");
+        }
+        yield* Effect.promise(() => db.exec(migration));
+        yield* sql("INSERT INTO organizations VALUES ('org-one'), ('org-two')");
+      })
+    ),
+  PGLITE_SETUP_TIMEOUT_MS
 );
-beforeEach(() =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* sql("TRUNCATE webhook_events, webhook_endpoints CASCADE");
-      sent.length = 0;
-      queuedEvents.length = 0;
-      queuedDeliveries.length = 0;
-      queueFails = false;
-      outcome = {
-        statusCode: 200,
-        error: null,
-        durationMs: 20,
-        retryAfterSeconds: null,
-      };
-    })
-  )
+beforeEach(
+  () =>
+    Effect.runPromise(
+      Effect.gen(function* () {
+        yield* sql("TRUNCATE webhook_events, webhook_endpoints CASCADE");
+        sent.length = 0;
+        queuedEvents.length = 0;
+        queuedDeliveries.length = 0;
+        queueFails = false;
+        outcome = {
+          statusCode: 200,
+          error: null,
+          durationMs: 20,
+          retryAfterSeconds: null,
+        };
+      })
+    ),
+  PGLITE_SETUP_TIMEOUT_MS
 );
 afterAll(() => db.close());
 
