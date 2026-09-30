@@ -98,3 +98,6 @@ export const GEO_PROMPTS_PAGE_TABS = [
   "suggestions",
   "answers",
 ] as const;
+
+/** Matches `duration-slow`, the built-in tabs indicator's slide. */
+export const GEO_PROMPTS_TAB_INDICATOR_MS = 300;

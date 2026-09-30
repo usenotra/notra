@@ -46,9 +46,14 @@ const tabsListVariants = cva(
 function TabsList({
   className,
   variant = "default",
+  indicator = true,
   children,
   ...props
-}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
+}: TabsPrimitive.List.Props &
+  VariantProps<typeof tabsListVariants> & {
+    /** Render the built-in sliding indicator. Turn off to supply your own. */
+    indicator?: boolean;
+  }) {
   const layoutId = useId();
 
   return (
@@ -60,7 +65,7 @@ function TabsList({
         {...props}
       >
         {children}
-        {variant === "default" ? (
+        {variant === "default" && indicator ? (
           <TabsPrimitive.Indicator className="pointer-events-none absolute top-0 left-0 z-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) translate-y-(--active-tab-top) rounded-md bg-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[width,height,translate] duration-slow ease-emphasized dark:bg-foreground/10" />
         ) : null}
       </TabsPrimitive.List>

@@ -32,6 +32,7 @@ import { PromptAddDialog } from "@/components/geo/prompt-add-dialog";
 import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
 import { ScanActivity } from "@/components/geo/scan-activity";
+import { SlidingTabIndicator } from "@/components/geo/sliding-tab-indicator";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GeoScanControlsProvider } from "@/components/providers/geo-scan-controls-provider";
@@ -65,9 +66,8 @@ interface PageClientProps {
 
 /**
  * Icon that only shows on the active tab: it widens and fades in beside the
- * label, so inactive tabs stay text-only. The resize waits until the tab
- * indicator has settled; resizing tabs mid-slide moves its target and the
- * chasing indicator overshoots the list. `pinned` keeps it visible anyway,
+ * label, so inactive tabs stay text-only. `SlidingTabIndicator` follows the
+ * resize frame by frame. `pinned` keeps it visible anyway,
  * e.g. for a live scan spinner.
  */
 function SlideInTabIcon({ children, pinned = false }: PromptsPageTabIconProps) {
@@ -75,13 +75,13 @@ function SlideInTabIcon({ children, pinned = false }: PromptsPageTabIconProps) {
     <span
       aria-hidden="true"
       className={cn(
-        "duration-normal ease-emphasized -me-1.5 flex w-0 shrink-0 items-center justify-center overflow-hidden opacity-0 transition-all delay-200 group-data-active/tab:me-0 group-data-active/tab:w-4 group-data-active/tab:opacity-100 motion-reduce:transition-none",
+        "duration-normal ease-emphasized -me-1.5 flex w-0 shrink-0 items-center justify-center overflow-hidden opacity-0 transition-all group-data-active/tab:me-0 group-data-active/tab:w-4 group-data-active/tab:opacity-100 motion-reduce:transition-none",
         pinned && "me-0 w-4 opacity-100"
       )}
     >
       <span
         className={cn(
-          "duration-normal ease-emphasized flex scale-50 items-center transition-transform delay-200 group-data-active/tab:scale-100 motion-reduce:transition-none",
+          "duration-normal ease-emphasized flex scale-50 items-center transition-transform group-data-active/tab:scale-100 motion-reduce:transition-none",
           pinned && "scale-100"
         )}
       >
@@ -210,7 +210,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="max-w-full overflow-x-auto">
-                <TabsList>
+                <TabsList indicator={false}>
+                  <SlidingTabIndicator value={tab} />
                   <TabsTrigger className="group/tab" value="prompts">
                     <SlideInTabIcon>
                       <HugeiconsIcon icon={BubbleChatQuestionIcon} size={15} />
