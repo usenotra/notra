@@ -131,7 +131,7 @@ export function UserMessageActions({
 
       <div className="flex items-center gap-1">
         <DropdownMenu onOpenChange={setRetryOpen} open={retryOpen}>
-          <Tooltip>
+          <Tooltip disableHoverablePopup>
             <TooltipTrigger
               render={
                 <DropdownMenuTrigger
@@ -178,7 +178,7 @@ export function UserMessageActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Tooltip>
+        <Tooltip disableHoverablePopup>
           <TooltipTrigger
             render={
               <Button
@@ -197,7 +197,7 @@ export function UserMessageActions({
           <TooltipContent>{tCommon("edit")}</TooltipContent>
         </Tooltip>
 
-        <Tooltip>
+        <Tooltip disableHoverablePopup>
           <TooltipTrigger
             render={
               <Button

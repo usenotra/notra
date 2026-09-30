@@ -90,6 +90,7 @@ import {
 } from "@/components/chat/user-message-actions";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS } from "@/constants/chat-active-stream";
+import { ACTIVITY_STEP_SETTLE_MS } from "@/constants/chat-activity";
 import { MAX_VISIBLE_CHAT_IMAGES } from "@/constants/chat-images";
 import {
   AVAILABLE_MODELS,
@@ -114,6 +115,7 @@ import {
   reconcileCreatedChatTitle,
   useChatSessionMutations,
 } from "@/lib/hooks/use-chat-sessions";
+import { useDelayedAppearance } from "@/lib/hooks/use-delayed-appearance";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
@@ -2073,6 +2075,15 @@ function StandaloneChatPageClient({
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),
   });
+  // Between steps of an assistant reply the indicator would blink in and out
+  // for a few frames, so it only appears once that gap actually lasts.
+  const showThinkingIndicator = useDelayedAppearance(
+    chatActivity.showThinkingIndicator,
+    {
+      delayMs: ACTIVITY_STEP_SETTLE_MS,
+      immediate: messages.at(-1)?.role !== "assistant",
+    }
+  );
 
   function renderPart(
     part: ChatUIMessage["parts"][number],
@@ -2626,7 +2637,6 @@ function StandaloneChatPageClient({
   }
 
   const lastMessage = messages.at(-1);
-  const { showThinkingIndicator } = chatActivity;
   const visibleMessages = messages.filter((message) =>
     hasVisibleChatContent(message)
   );
