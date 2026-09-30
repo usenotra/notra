@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -68,6 +69,10 @@ const ensureWorkOSOrganization = Effect.fn(
 export const syncOrganizationNameToWorkOS = Effect.fn(
   "organizations.sync.syncOrganizationName"
 )(function* (organizationId: string, name: string) {
+  // The public demo has no WorkOS; memberships only live in the database.
+  if (isDemoMode()) {
+    return;
+  }
   yield* Effect.gen(function* () {
     const { workosOrgId } = yield* ensureWorkOSOrganization(organizationId);
 
@@ -165,6 +170,10 @@ const createWorkOSMembership = Effect.fn(
 export const updateMembershipRoleInWorkOS = Effect.fn(
   "organizations.sync.updateWorkOSMembershipRole"
 )(function* (organizationId: string, userId: string, roleSlug: string) {
+  // The public demo has no WorkOS; memberships only live in the database.
+  if (isDemoMode()) {
+    return;
+  }
   yield* Effect.tryPromise({
     try: async () => {
       const [organization, user] = await Promise.all([
@@ -215,6 +224,10 @@ export const updateMembershipRoleInWorkOS = Effect.fn(
 export const deleteOrganizationFromWorkOS = Effect.fn(
   "organizations.sync.deleteWorkOSOrganization"
 )(function* (workosOrgId: string | null) {
+  // The public demo has no WorkOS; memberships only live in the database.
+  if (isDemoMode()) {
+    return;
+  }
   if (!workosOrgId) {
     return;
   }
@@ -232,6 +245,10 @@ export const deleteOrganizationFromWorkOS = Effect.fn(
 export const removeMembershipFromWorkOS = Effect.fn(
   "organizations.sync.removeWorkOSMembership"
 )(function* (organizationId: string, userId: string) {
+  // The public demo has no WorkOS; memberships only live in the database.
+  if (isDemoMode()) {
+    return;
+  }
   yield* Effect.tryPromise({
     try: async () => {
       const [organization, user] = await Promise.all([

@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { defineNodeInstrumentation } from "evlog/next/instrumentation";
 
 const evlogInstrumentation = defineNodeInstrumentation(async () => {
@@ -11,6 +12,12 @@ const evlogInstrumentation = defineNodeInstrumentation(async () => {
 
 export async function register() {
   await evlogInstrumentation.register();
+
+  if (process.env.NEXT_RUNTIME === "nodejs" && isDemoMode()) {
+    const { registerGeoDemoTraffic } =
+      await import("@notra/geo-core/geo/demo-traffic");
+    registerGeoDemoTraffic();
+  }
 
   if (
     process.env.NEXT_RUNTIME === "nodejs" &&

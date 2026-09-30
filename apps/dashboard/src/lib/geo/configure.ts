@@ -9,9 +9,11 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
-import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
 import { GeoFlagEvaluationError } from "@notra/geo-core/geo/errors";
-import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import {
+  agentReadinessNetworkLayer,
+  geoModelLayer,
+} from "@notra/geo-core/geo/host-layers";
 import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import { Effect, Layer } from "effect";
 
@@ -124,8 +126,8 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
 
 /** Complete dashboard runtime for GEO programs. */
 export const geoCoreDashboardLayer = Layer.mergeAll(
-  agentReadinessNetworkLive,
-  geoModelLive,
+  agentReadinessNetworkLayer,
+  geoModelLayer,
   geoSearchConsoleLive,
   workflowLayer,
   billingLayer,

@@ -1,6 +1,12 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import { shouldBypassAutumnInDevelopment } from "@notra/ai/utils/autumn-development";
+import { isDemoMode } from "@notra/utils/demo-mode";
 
+import {
+  DEMO_BILLING_CREDITS,
+  DEMO_BILLING_PERIOD_DAYS,
+  DEMO_BILLING_PLAN,
+} from "@/constants/demo";
 import type { DevelopmentBillingCustomerIdResolver } from "@/types/billing/development-usage-alerts";
 import { getDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";
 
@@ -19,10 +25,71 @@ type DevelopmentAggregateEventsRequest = {
   range?: string;
 };
 
+/**
+ * The public demo shows a paying workspace mid-cycle: an active Growth plan
+ * and partially used credits, instead of local development's empty account.
+ */
+function createDemoSubscriptions(now: number) {
+  const periodStart = now - DEMO_BILLING_PLAN.periodElapsedDays * MS_PER_DAY;
+  return [
+    {
+      id: `demo-${DEMO_BILLING_PLAN.id}`,
+      planId: DEMO_BILLING_PLAN.id,
+      plan: {
+        id: DEMO_BILLING_PLAN.id,
+        name: DEMO_BILLING_PLAN.name,
+        description: null,
+        group: null,
+        version: 1,
+        addOn: false,
+        autoEnable: false,
+        price: null,
+        items: [],
+      },
+      autoEnable: false,
+      addOn: false,
+      status: "active",
+      pastDue: false,
+      canceledAt: null,
+      expiresAt: null,
+      trialEndsAt: null,
+      startedAt: periodStart - 60 * MS_PER_DAY,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodStart + DEMO_BILLING_PERIOD_DAYS * MS_PER_DAY,
+      quantity: 1,
+    },
+  ];
+}
+
+function demoBalance(featureId: string, now: number) {
+  const resetAt =
+    now +
+    (DEMO_BILLING_PERIOD_DAYS - DEMO_BILLING_PLAN.periodElapsedDays) *
+      MS_PER_DAY;
+  if (featureId === FEATURES.AI_CREDITS) {
+    return {
+      granted: DEMO_BILLING_CREDITS.granted,
+      remaining: DEMO_BILLING_CREDITS.granted - DEMO_BILLING_CREDITS.used,
+      usage: DEMO_BILLING_CREDITS.used,
+      unlimited: false,
+      nextResetAt: resetAt,
+    };
+  }
+  return {
+    granted: DEVELOPMENT_BALANCE,
+    remaining: DEVELOPMENT_BALANCE,
+    usage: 0,
+    unlimited: true,
+    nextResetAt: null,
+  };
+}
+
 function createDevelopmentAutumnCustomer(customerId: string) {
+  const demo = isDemoMode();
+  const now = Date.now();
   return {
     id: customerId,
-    name: "Local development",
+    name: demo ? "Fieldnote" : "Local development",
     email: null,
     createdAt: 0,
     fingerprint: null,
@@ -33,7 +100,7 @@ function createDevelopmentAutumnCustomer(customerId: string) {
     billingControls: {
       usageAlerts: getDevelopmentUsageAlerts(customerId),
     },
-    subscriptions: [],
+    subscriptions: demo ? createDemoSubscriptions(now) : [],
     purchases: [],
     licenses: [],
     balances: Object.fromEntries(
@@ -48,13 +115,17 @@ function createDevelopmentAutumnCustomer(customerId: string) {
             consumable: true,
             archived: false,
           },
-          granted: DEVELOPMENT_BALANCE,
-          remaining: DEVELOPMENT_BALANCE,
-          usage: 0,
-          unlimited: true,
+          ...(demo
+            ? demoBalance(featureId, now)
+            : {
+                granted: DEVELOPMENT_BALANCE,
+                remaining: DEVELOPMENT_BALANCE,
+                usage: 0,
+                unlimited: true,
+                nextResetAt: null,
+              }),
           overageAllowed: false,
           maxPurchase: null,
-          nextResetAt: null,
         },
       ])
     ),

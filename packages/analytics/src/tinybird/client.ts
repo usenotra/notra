@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { createTimeoutFetch } from "@notra/utils/timeout-fetch";
 import {
   type InferParams,
@@ -48,6 +49,7 @@ import {
   socialPostStats,
   socialPosts,
 } from "./datasources";
+import { queryDemoPipe } from "./demo-geo-traffic";
 import {
   geoJourneyDetail,
   geoJourneyPages,
@@ -169,6 +171,10 @@ function cachedPipeQuery<TParams extends Record<string, unknown>, TRow>(
     client: NonNullable<ReturnType<typeof getTinybirdQueryClient>>
   ) => Promise<QueryResult<TRow>>
 ): Promise<QueryResult<TRow> | null> {
+  // The public demo has no Tinybird; GEO traffic is generated at read time.
+  if (isDemoMode()) {
+    return Promise.resolve(queryDemoPipe<TRow>(pipe, params));
+  }
   const client = getTinybirdQueryClient();
   if (!client) {
     return Promise.resolve(null);

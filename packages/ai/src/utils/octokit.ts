@@ -1,5 +1,8 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { createTimeoutFetch } from "@notra/utils/timeout-fetch";
 import { Octokit } from "@octokit/core";
+
+import { demoGitHubFetch } from "./demo-github";
 
 /**
  * Budget for GitHub reads that a user is waiting on (repo probe, repository
@@ -13,6 +16,10 @@ export function createOctokit(
   auth?: string,
   options?: { requestTimeoutMs?: number }
 ) {
+  // The public demo reads a fictional repository and never calls GitHub.
+  if (isDemoMode()) {
+    return new Octokit({ auth, request: { fetch: demoGitHubFetch } });
+  }
   return new Octokit({
     auth,
     ...(options?.requestTimeoutMs === undefined

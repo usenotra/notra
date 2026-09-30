@@ -1,3 +1,5 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import type {
   AiTrafficResponse,
   EngineIconKey,
@@ -987,8 +989,12 @@ export const GEO_COMPETITOR_DETAIL_MIN_POINTS = 2;
 export const GEO_COMPETITOR_DETAIL_SERIES_KEY = "mentions";
 export const GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS = "h-56";
 
-/** Dev-only: enables seeding GEO sample data from the settings page. */
-export const GEO_SAMPLE_DATA_ENABLED = process.env.NODE_ENV === "development";
+/**
+ * Enables GEO sample data (settings seeding, shelf fixtures) in local
+ * development and in the public demo, where every workspace is sample data.
+ */
+export const GEO_SAMPLE_DATA_ENABLED =
+  process.env.NODE_ENV === "development" || isDemoMode();
 
 export const GEO_CHANGES_LIMIT = 40;
 export const GEO_CHANGES_LABEL = "What changed";

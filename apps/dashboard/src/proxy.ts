@@ -1,7 +1,9 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { authkit, handleAuthkitProxy } from "@workos-inc/authkit-nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { NON_DASHBOARD_PATH } from "@/constants/auth-routes";
+import { demoProxy } from "@/utils/demo-proxy";
 import {
   evaluateLocalDevAuth,
   isLocalDevAuthEnabled,
@@ -30,6 +32,11 @@ export default async function proxy(request: NextRequest) {
     /^\/design-system(?:\/|$)/.test(request.nextUrl.pathname)
   ) {
     return new NextResponse(null, { status: 404 });
+  }
+
+  // The public demo has no WorkOS; visitors get an anonymous sandbox.
+  if (isDemoMode()) {
+    return demoProxy(request);
   }
 
   // Local impersonation has no WorkOS session and still requires loopback.

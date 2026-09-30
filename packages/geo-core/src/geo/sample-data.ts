@@ -31,31 +31,25 @@ import {
   GEO_SAMPLE_DATA_ENABLED,
 } from "../constants/geo";
 import {
-  GEO_SAMPLE_COMPETITORS,
   GEO_SAMPLE_CRAWLERS,
-  GEO_SAMPLE_DAYS,
+  GEO_SAMPLE_DEFAULT_PROFILE,
   GEO_SAMPLE_ENGINES,
   GEO_SAMPLE_GROUNDED_ENGINES,
   GEO_SAMPLE_LANGUAGES,
-  GEO_SAMPLE_OPENCODE_SOURCES,
-  GEO_SAMPLE_PROJECT_NAME,
-  GEO_SAMPLE_PROMPTS,
   GEO_SAMPLE_REFERRALS,
   GEO_SAMPLE_SEARCH_ENGINES,
   GEO_SAMPLE_SEARCH_QUERY_MAX,
   GEO_SAMPLE_SEARCH_QUERY_MIN,
   GEO_SAMPLE_SEARCH_QUERY_SUFFIXES,
-  GEO_SAMPLE_SEQUENCES,
   GEO_SAMPLE_SOURCE_MAX,
   GEO_SAMPLE_SOURCE_MIN,
-  GEO_SAMPLE_SOURCES,
-  GEO_SAMPLE_TRAFFIC_PATHS,
 } from "../constants/geo-sample";
 import type {
   GeoSampleDataClearResponse,
   GeoSampleDataResponse,
   GeoScopeInput,
 } from "../types/geo";
+import type { GeoSampleProfile, GeoSampleSeedInput } from "../types/geo-sample";
 import { competitorKey } from "./domain";
 import { geoDb } from "./effect";
 import {
@@ -79,16 +73,8 @@ const COUNTRIES = ["US", "DE", "GB", "FR"] as const;
 const MAX_JUDGE_COMPETITORS = 4;
 const TREND_GAIN = 0.12;
 const SCAN_DURATION_MS = 60_000;
-const SAMPLE_TRAFFIC_HOSTS = [
-  "www.example.com",
-  "docs.example.com",
-  "app.example.com",
-] as const;
-const SAMPLE_TRAFFIC_EXTRA_DOMAINS = [
-  "www.example.com",
-  "docs.example.com",
-  "app.example.com",
-] as const;
+/** Keeps "today 09:41" from landing in the future when seeded earlier. */
+const FUTURE_CLAMP_MS = 7 * 60_000;
 const HASH_MODULUS = 2_147_483_647;
 
 function hashInt(seed: string): number {
@@ -115,15 +101,22 @@ function utcDay(now: Date, daysAgo: number, hours: number, minutes: number) {
   const date = new Date(now);
   date.setUTCDate(date.getUTCDate() - daysAgo);
   date.setUTCHours(hours, minutes, hashInt(`${daysAgo}-${hours}`) % 50, 0);
+  if (date.getTime() > now.getTime()) {
+    return new Date(now.getTime() - FUTURE_CLAMP_MS);
+  }
   return date;
 }
 
-function competitorNames(): string[] {
-  return GEO_SAMPLE_COMPETITORS.map((competitor) => competitor.name);
+function competitorNames(profile: GeoSampleProfile): string[] {
+  return profile.competitors.map((competitor) => competitor.name);
 }
 
-function mentionedCompetitors(seed: string, companyName: string): string[] {
-  const names = competitorNames().filter(
+function mentionedCompetitors(
+  seed: string,
+  companyName: string,
+  profile: GeoSampleProfile
+): string[] {
+  const names = competitorNames(profile).filter(
     (name) => competitorKey(name) !== competitorKey(companyName)
   );
   if (names.length === 0) {
@@ -166,7 +159,7 @@ function sampleSearchQueries(seed: string, prompt: string): string[] {
 
 function sampleSources(
   seed: string,
-  pool: readonly GeoCheckSource[] = GEO_SAMPLE_SOURCES
+  pool: readonly GeoCheckSource[]
 ): GeoCheckGrounding["sources"] {
   const count = rangeCount(
     `${seed}-sources`,
@@ -183,12 +176,13 @@ function sampleSources(
 function sampleGrounding(
   seed: string,
   engine: string,
-  prompt: string
+  prompt: string,
+  profile: GeoSampleProfile
 ): GeoCheckGrounding {
   if (engine === GEO_OPENCODE_ENGINE_ID) {
     return {
       queries: sampleSearchQueries(seed, prompt),
-      sources: [...GEO_SAMPLE_OPENCODE_SOURCES],
+      sources: [...profile.codingAgentSources],
     };
   }
   if (!GEO_SAMPLE_SEARCH_ENGINES.includes(engine)) {
@@ -196,28 +190,43 @@ function sampleGrounding(
   }
   return {
     queries: sampleSearchQueries(seed, prompt),
-    sources: sampleSources(seed),
+    sources: sampleSources(seed, profile.sources),
   };
 }
 
-function mentionRateFor(engineRate: number, dayIndex: number): number {
-  const progress = GEO_SAMPLE_DAYS <= 1 ? 1 : dayIndex / (GEO_SAMPLE_DAYS - 1);
+function mentionRateFor(
+  engineRate: number,
+  dayIndex: number,
+  days: number
+): number {
+  const progress = days <= 1 ? 1 : dayIndex / (days - 1);
   return Math.min(0.92, engineRate + progress * TREND_GAIN);
 }
 
-function buildExcerpt(
-  companyName: string,
-  mentioned: boolean,
-  language: string
-): string {
-  if (language === "German") {
-    return mentioned
-      ? `${companyName} wird häufig für GEO und KI-Content empfohlen, neben Jasper und Copy.ai.`
-      : "Die Antwort nennt Jasper, Copy.ai und Writer, ohne die eigene Marke.";
+function joinNames(names: readonly string[], language: string): string {
+  const conjunction = language === "German" ? "und" : "and";
+  if (names.length <= 1) {
+    return names[0] ?? "";
   }
-  return mentioned
-    ? `${companyName} shows up as a strong option for GEO and AI content, alongside Jasper and Copy.ai.`
-    : "The answer lists Jasper, Copy.ai, and Writer without naming the company.";
+  return `${names.slice(0, -1).join(", ")} ${conjunction} ${names.at(-1)}`;
+}
+
+function buildExcerpt(input: {
+  profile: GeoSampleProfile;
+  companyName: string;
+  mentioned: boolean;
+  language: string;
+  competitors: readonly string[];
+}): string {
+  const { excerpts } = input.profile;
+  const german = input.language === "German";
+  let template = german ? excerpts.missingGerman : excerpts.missing;
+  if (input.mentioned) {
+    template = german ? excerpts.mentionedGerman : excerpts.mentioned;
+  }
+  return template
+    .replaceAll("{brand}", input.companyName)
+    .replaceAll("{competitors}", joinNames(input.competitors, input.language));
 }
 
 function buildMentionRow(input: {
@@ -233,17 +242,25 @@ function buildMentionRow(input: {
   companyName: string;
   language: string;
   mentionRate: number;
+  profile: GeoSampleProfile;
 }): GeoCheckWrite {
   const seed = `${input.scanId}:${input.engine}:${input.promptId}:${input.turn}:${input.language}`;
   const mentioned = unit(seed) < input.mentionRate;
   const position = mentioned ? 1 + (hashInt(`${seed}-pos`) % 5) : null;
   const sentiment = mentioned ? pick(SENTIMENTS, `${seed}-sentiment`) : null;
-
-  const excerpt = buildExcerpt(
+  const competitors = mentionedCompetitors(
+    seed,
     input.companyName,
+    input.profile
+  );
+
+  const excerpt = buildExcerpt({
+    profile: input.profile,
+    companyName: input.companyName,
     mentioned,
-    input.language
-  ).slice(0, GEO_EXCERPT_MAX_LENGTH);
+    language: input.language,
+    competitors,
+  }).slice(0, GEO_EXCERPT_MAX_LENGTH);
 
   return {
     organizationId: input.organizationId,
@@ -260,9 +277,9 @@ function buildMentionRow(input: {
     ownedSourceCited: false,
     position,
     sentiment,
-    competitors: mentionedCompetitors(seed, input.companyName),
+    competitors,
     excerpt,
-    grounding: sampleGrounding(seed, input.engine, input.prompt),
+    grounding: sampleGrounding(seed, input.engine, input.prompt, input.profile),
     language: input.language,
     finishReason: null,
     promptTokens: null,
@@ -281,12 +298,14 @@ function buildMentionChecks(input: {
     steps: readonly string[];
   }[];
   now: Date;
+  profile: GeoSampleProfile;
 }): { scans: GeoSampleScan[]; checks: GeoCheckWrite[] } {
   const rows: GeoCheckWrite[] = [];
   const scans: GeoSampleScan[] = [];
+  const { profile } = input;
 
-  for (let daysAgo = GEO_SAMPLE_DAYS - 1; daysAgo >= 0; daysAgo--) {
-    const dayIndex = GEO_SAMPLE_DAYS - 1 - daysAgo;
+  for (let daysAgo = profile.days - 1; daysAgo >= 0; daysAgo--) {
+    const dayIndex = profile.days - 1 - daysAgo;
     const captured = utcDay(input.now, daysAgo, 9, 41);
     const capturedAt = captured;
     const scanId = crypto.randomUUID();
@@ -296,8 +315,8 @@ function buildMentionChecks(input: {
       finishedAt: captured,
     });
 
-    for (const engine of GEO_SAMPLE_ENGINES) {
-      const rate = mentionRateFor(engine.mentionRate, dayIndex);
+    for (const engine of profile.engines ?? GEO_SAMPLE_ENGINES) {
+      const rate = mentionRateFor(engine.mentionRate, dayIndex, profile.days);
       for (const prompt of input.prompts) {
         rows.push(
           buildMentionRow({
@@ -313,10 +332,11 @@ function buildMentionChecks(input: {
             companyName: input.companyName,
             language: "English",
             mentionRate: rate,
+            profile,
           })
         );
 
-        if (daysAgo % 2 === 0) {
+        if (profile.germanChecks !== false && daysAgo % 2 === 0) {
           rows.push(
             buildMentionRow({
               organizationId: input.organizationId,
@@ -331,6 +351,7 @@ function buildMentionChecks(input: {
               companyName: input.companyName,
               language: "German",
               mentionRate: rate * 0.85,
+              profile,
             })
           );
         }
@@ -338,8 +359,12 @@ function buildMentionChecks(input: {
     }
 
     for (const sequence of input.sequences) {
-      for (const engine of GEO_SAMPLE_GROUNDED_ENGINES) {
-        const rate = mentionRateFor(0.55, dayIndex);
+      for (const engine of GEO_SAMPLE_GROUNDED_ENGINES.filter(
+        (grounded) =>
+          !profile.engines ||
+          profile.engines.some((candidate) => candidate.engine === grounded)
+      )) {
+        const rate = mentionRateFor(0.55, dayIndex, profile.days);
         sequence.steps.forEach((step, index) => {
           rows.push(
             buildMentionRow({
@@ -355,6 +380,7 @@ function buildMentionChecks(input: {
               companyName: input.companyName,
               language: "English",
               mentionRate: rate,
+              profile,
             })
           );
         });
@@ -365,14 +391,20 @@ function buildMentionChecks(input: {
   return { scans, checks: rows };
 }
 
-function buildTrafficEvents(input: {
+/**
+ * Deterministic AI traffic for a sample project. Exported so the public demo
+ * can build the same events at read time instead of ingesting them.
+ */
+export function buildGeoSampleTrafficEvents(input: {
   organizationId: string;
   projectId: string;
   now: Date;
+  profile?: GeoSampleProfile;
 }): GeoTrafficEventRow[] {
   const rows: GeoTrafficEventRow[] = [];
+  const profile = input.profile ?? GEO_SAMPLE_DEFAULT_PROFILE;
 
-  for (let daysAgo = GEO_SAMPLE_DAYS - 1; daysAgo >= 0; daysAgo--) {
+  for (let daysAgo = profile.days - 1; daysAgo >= 0; daysAgo--) {
     GEO_SAMPLE_CRAWLERS.forEach((crawler, crawlerIndex) => {
       const pages = 3 + (hashInt(`${daysAgo}-${crawler.agent}`) % 4);
       const journeyId = `sample-${crawler.agent}-${daysAgo}`;
@@ -392,8 +424,8 @@ function buildTrafficEvents(input: {
           agent: crawler.agent,
           category: crawler.category,
           confidence: "verified",
-          path: pick(GEO_SAMPLE_TRAFFIC_PATHS, `${journeyId}-${pageIndex}`),
-          host: pick(SAMPLE_TRAFFIC_HOSTS, `${journeyId}-${pageIndex}`),
+          path: pick(profile.trafficPaths, `${journeyId}-${pageIndex}`),
+          host: pick(profile.trafficHosts, `${journeyId}-${pageIndex}`),
           method: "GET",
           referer: "",
           ua: `${crawler.agent}/1.0`,
@@ -416,7 +448,7 @@ function buildTrafficEvents(input: {
           14 + (visitIndex % 5),
           referralIndex * 7 + visitIndex * 3
         );
-        const path = pick(GEO_SAMPLE_TRAFFIC_PATHS, `${seed}-${visitIndex}`);
+        const path = pick(profile.trafficPaths, `${seed}-${visitIndex}`);
         rows.push({
           organization_id: input.organizationId,
           project_id: input.projectId,
@@ -427,7 +459,7 @@ function buildTrafficEvents(input: {
           category: "assistant-referral",
           confidence: "reported",
           path,
-          host: pick(SAMPLE_TRAFFIC_HOSTS, `${seed}-${visitIndex}`),
+          host: pick(profile.trafficHosts, `${seed}-${visitIndex}`),
           method: "GET",
           referer: referral.referer,
           ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -505,8 +537,9 @@ export const clearGeoSampleData = Effect.fn("geo.sampleDataClear")(function* (
 });
 
 export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
-  input: GeoScopeInput
+  input: GeoSampleSeedInput
 ) {
+  const profile = input.profile ?? GEO_SAMPLE_DEFAULT_PROFILE;
   if (!GEO_SAMPLE_DATA_ENABLED) {
     return yield* Effect.fail(new GeoSampleDataDisabledError({}));
   }
@@ -539,7 +572,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
       .values({
         id: crypto.randomUUID(),
         organizationId: input.organizationId,
-        name: GEO_SAMPLE_PROJECT_NAME,
+        name: profile.projectName,
         brandSettingsId: identity.id,
         isSample: true,
       })
@@ -549,7 +582,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   if (!projectId) {
     return yield* Effect.fail(new GeoProjectCreateFailedError({}));
   }
-  const now = new Date();
+  const now = input.now ?? new Date();
   const scanFinishedAt = now;
   const aliases = org?.slug && org.slug !== companyName ? [org.slug] : [];
 
@@ -574,7 +607,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
           // scans on the freshly seeded project until it went stale.
           scanStartedAt: null,
           lastScanAt: scanFinishedAt,
-          domains: [...SAMPLE_TRAFFIC_EXTRA_DOMAINS],
+          domains: [...profile.trafficHosts],
         })
         .where(eq(geoSettings.projectId, projectId))
     );
@@ -586,8 +619,8 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
         projectId,
         companyName,
         aliases,
-        competitors: competitorNames(),
-        domains: [...SAMPLE_TRAFFIC_EXTRA_DOMAINS],
+        competitors: competitorNames(profile),
+        domains: [...profile.trafficHosts],
         languages: [...GEO_SAMPLE_LANGUAGES],
         enabled: true,
         lastScanAt: scanFinishedAt,
@@ -602,7 +635,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
       const currentKeys = new Set(
         current.map((competitor) => competitorKey(competitor.name))
       );
-      const missing = GEO_SAMPLE_COMPETITORS.filter(
+      const missing = profile.competitors.filter(
         (entry) => !currentKeys.has(competitorKey(entry.name))
       );
       competitorsAdded = missing.length;
@@ -617,11 +650,11 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   );
   const insertedPrompts = yield* insertGeoPrompts(
     { organizationId: input.organizationId, projectId },
-    GEO_SAMPLE_PROMPTS.map((prompt) => ({ prompt: prompt.english }))
+    profile.prompts.map((prompt) => ({ prompt: prompt.english }))
   );
 
   const promptByEnglish = new Map(
-    GEO_SAMPLE_PROMPTS.map((prompt) => [prompt.english, prompt])
+    profile.prompts.map((prompt) => [prompt.english, prompt])
   );
   const promptRowsForChecks = [
     ...existingPrompts.flatMap((row) => {
@@ -642,7 +675,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
     db
       .insert(geoPromptSequences)
       .values(
-        GEO_SAMPLE_SEQUENCES.map((sequence) => ({
+        profile.sequences.map((sequence) => ({
           id: crypto.randomUUID(),
           organizationId: input.organizationId,
           projectId,
@@ -653,7 +686,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
       .returning({ id: geoPromptSequences.id, name: geoPromptSequences.name })
   );
   const sequencesForChecks = insertedSequences.flatMap((row) => {
-    const sequence = GEO_SAMPLE_SEQUENCES.find(
+    const sequence = profile.sequences.find(
       (candidate) => candidate.name === row.name
     );
     return sequence ? [{ id: row.id, steps: sequence.steps }] : [];
@@ -666,6 +699,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
     prompts: promptRowsForChecks,
     sequences: sequencesForChecks,
     now,
+    profile,
   });
 
   yield* geoDb("sample scans insert failed", () =>
@@ -683,10 +717,11 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   yield* geoDb("sample checks insert failed", () =>
     insertGeoMentionChecks(mentionChecks)
   );
-  const trafficEvents = buildTrafficEvents({
+  const trafficEvents = buildGeoSampleTrafficEvents({
     organizationId: input.organizationId,
     projectId,
     now,
+    profile,
   });
 
   const analyticsIngested = isTinybirdConfigured();

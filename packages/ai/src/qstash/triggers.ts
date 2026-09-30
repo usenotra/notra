@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Client as QStashClient } from "@upstash/qstash";
 
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "../constants/schedule-interval";
@@ -116,6 +117,10 @@ export async function createQstashSchedule({
   cron,
   scheduleId,
 }: CreateQstashScheduleProps) {
+  // The public demo saves schedules but never registers real callbacks.
+  if (isDemoMode()) {
+    return scheduleId ?? `demo-schedule-${triggerId}`;
+  }
   const client = getQStashClient();
   const appUrl = getAppUrl();
 
@@ -146,6 +151,9 @@ export async function createQstashRouteSchedule({
   body,
   scheduleId,
 }: CreateQstashRouteScheduleProps) {
+  if (isDemoMode()) {
+    return scheduleId ?? `demo-schedule-${crypto.randomUUID()}`;
+  }
   const client = getQStashClient();
   const appUrl = getAppUrl();
 
@@ -169,6 +177,9 @@ export async function createQstashRouteSchedule({
 }
 
 export async function deleteQstashSchedule(scheduleId: string) {
+  if (isDemoMode()) {
+    return;
+  }
   const client = getQStashClient();
   await client.schedules.delete(scheduleId);
 }

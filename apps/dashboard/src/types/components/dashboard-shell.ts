@@ -22,6 +22,7 @@ export interface DashboardOnboardingBannerProps {
 
 export interface DashboardShellStyle extends CSSProperties {
   "--eve-banner-height": string;
+  "--demo-banner-height"?: string;
 }
 
 export interface DashboardSidebarStyle extends CSSProperties {

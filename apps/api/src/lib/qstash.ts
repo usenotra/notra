@@ -2,6 +2,7 @@ import {
   QstashError,
   qstashScheduleResponseSchema,
 } from "@notra/schemas/api/qstash";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Context, Effect, Layer, Schedule } from "effect";
 
 import {
@@ -17,7 +18,24 @@ export class QstashService extends Context.Service<
 
 // Keep the existing platform fetch transport, but own cancellation and decoding
 // inside the adapter rather than leaking them into schedule transactions.
+/**
+ * The public demo never schedules real QStash callbacks; schedules are saved
+ * and can be run on demand from the dashboard instead.
+ */
+const demoQstashLayer = Layer.succeed(
+  QstashService,
+  QstashService.of({
+    create: Effect.fn("Qstash.createDemo")((input) =>
+      Effect.succeed(input.scheduleId ?? `demo-schedule-${input.triggerId}`)
+    ),
+    delete: Effect.fn("Qstash.deleteDemo")(() => Effect.void),
+  })
+);
+
 export function qstashLayer(env: QstashEnv, request: typeof fetch = fetch) {
+  if (isDemoMode()) {
+    return demoQstashLayer;
+  }
   return Layer.succeed(
     QstashService,
     QstashService.of({

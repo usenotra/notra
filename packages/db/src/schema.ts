@@ -24,6 +24,7 @@ import {
   BLOG_POST_SUBTYPES,
   CONTENT_PUBLICATION_STATUSES,
 } from "./constants/content";
+import { DEMO_REQUEST_SOURCES } from "./constants/demo";
 import { GEO_PERSONA_MEMORY_KINDS } from "./constants/geo-personas";
 import { GEO_PROSPECT_REPORT_STATUSES } from "./constants/geo-prospect-reports";
 import {
@@ -35,6 +36,7 @@ import type {
   AgentReadinessIssue,
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
+import type { DemoAffectedEntity, DemoPersonalization } from "./types/demo";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type {
   GeoPersonaProfile,
@@ -3791,6 +3793,69 @@ export const discussionReactions = pgTable(
       table.commentId,
       table.userId,
       table.emoji
+    ),
+  ]
+);
+
+/**
+ * One row per anonymous visitor of the public demo (demo.usenotra.com). Only
+ * ever written when NOTRA_DEMO_MODE is on; production never has rows here.
+ * Deleting the organization cascades the sandbox and its request log.
+ */
+export const demoSandboxes = pgTable(
+  "demo_sandboxes",
+  {
+    anonymousId: text("anonymous_id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Demo keys only work against demo-api and expire with the sandbox, so
+    // keeping the plaintext lets the in-app API console send real requests.
+    apiKey: text("api_key"),
+    apiKeyId: text("api_key_id"),
+    timeZone: text("time_zone").default("UTC").notNull(),
+    anchorAt: timestamp("anchor_at").notNull(),
+    ipHash: text("ip_hash"),
+    // What the visitor entered under "Customize your experience"; reapplied
+    // on every reset. Null means the default Fieldnote workspace.
+    personalization: jsonb("personalization").$type<DemoPersonalization>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("demo_sandboxes_organization_id_uidx").on(table.organizationId),
+    index("demo_sandboxes_expires_at_idx").on(table.expiresAt),
+  ]
+);
+
+export const demoRequestLog = pgTable(
+  "demo_request_log",
+  {
+    id: text("id").primaryKey(),
+    anonymousId: text("anonymous_id")
+      .notNull()
+      .references(() => demoSandboxes.anonymousId, { onDelete: "cascade" }),
+    source: text("source", { enum: DEMO_REQUEST_SOURCES }).notNull(),
+    method: text("method").notNull(),
+    path: text("path").notNull(),
+    status: integer("status").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    requestBody: text("request_body"),
+    responseBody: text("response_body"),
+    affected: jsonb("affected")
+      .$type<DemoAffectedEntity[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("demo_request_log_anonymous_id_created_at_idx").on(
+      table.anonymousId,
+      table.createdAt
     ),
   ]
 );

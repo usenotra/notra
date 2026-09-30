@@ -1,3 +1,5 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import { runDailySummaryCron } from "@/lib/email/daily-summary";
 
 export const maxDuration = 60;
@@ -7,6 +9,10 @@ export const maxDuration = 60;
  * unchanged days are skipped so owners only hear from us when GEO moved.
  */
 export async function GET(request: Request) {
+  // The public demo runs no background jobs; scans start on demand.
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
+  }
   const cronSecret = process.env.CRON_SECRET;
   if (
     !cronSecret ||

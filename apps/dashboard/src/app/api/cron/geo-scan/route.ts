@@ -1,5 +1,6 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 import { runGeoScanCronSweep } from "@notra/geo-core/geo/scan-schedule";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
@@ -18,6 +19,10 @@ export const maxDuration = 300;
  * be diagnosed from the log drain instead of the database.
  */
 export async function GET(request: Request) {
+  // The public demo runs no background jobs; scans start on demand.
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
+  }
   const cronSecret = process.env.CRON_SECRET;
   if (
     !cronSecret ||

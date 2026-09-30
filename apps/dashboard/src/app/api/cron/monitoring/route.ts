@@ -1,4 +1,5 @@
 import { flushLogs } from "@notra/ai/evlog";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect, Result } from "effect";
 
 import { checkMissedGeoScans } from "@/lib/analytics/geo-scan-watchdog";
@@ -10,6 +11,10 @@ import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 export const maxDuration = 120;
 
 export async function GET(request: Request) {
+  // The public demo runs no background jobs; scans start on demand.
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
+  }
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return new Response("Unauthorized", { status: 401 });

@@ -6443,5 +6443,126 @@
       "opacity": "Opacity",
       "eyeDropper": "Pick a color from the screen"
     }
+  },
+  "demo": {
+    "start": {
+      "title": "Preparing your demo workspace…",
+      "description": "We're filling a workspace with sample data for Fieldnote, a fictional company. This takes a few seconds.",
+      "errorTitle": "The demo workspace couldn't be created",
+      "errorDescription": "Please try again in a moment.",
+      "retry": "Try again"
+    },
+    "banner": {
+      "title": "Explore the Notra demo.",
+      "titleNamed": "Welcome to the Notra demo, {name}.",
+      "customize": "Customize",
+      "api": "Try the API",
+      "reset": "Reset",
+      "signup": "Create account",
+      "resetTitle": "Reset your demo workspace?",
+      "resetDescription": "Everything you changed is thrown away and the sample data is restored. Your demo ID, API key and customization stay the same.",
+      "cancel": "Cancel",
+      "resetConfirm": "Reset workspace",
+      "resetting": "Resetting…",
+      "resetFailed": "The workspace couldn't be reset. Please try again."
+    },
+    "playground": {
+      "title": "API playground",
+      "description": "Send real requests to the demo API and watch them change this workspace.",
+      "tabs": {
+        "console": "Console",
+        "requests": "Requests",
+        "missions": "Missions"
+      },
+      "toastStatus": "{status}",
+      "toastChanged": "{status} · {label}",
+      "view": "View",
+      "openFeed": "Details",
+      "demoId": "Demo ID {id}",
+      "idCopied": "Demo ID copied"
+    },
+    "console": {
+      "keyLabel": "Your demo API key",
+      "copy": "Copy",
+      "keyCopied": "API key copied",
+      "keyHint": "Works with curl, the Notra CLI and MCP against {url}. It expires with your workspace.",
+      "noKey": "No API key is available for this workspace.",
+      "preset": "Example",
+      "method": "Method",
+      "path": "Path",
+      "body": "Request body (JSON)",
+      "send": "Send request",
+      "sending": "Sending…",
+      "copyCurl": "Copy as curl",
+      "curlCopied": "curl command copied",
+      "seeFeed": "The request also shows up under Requests, and the dashboard updates live.",
+      "presets": {
+        "listPosts": "List recent posts",
+        "createPost": "Create a draft post",
+        "createPrompt": "Track a new GEO prompt",
+        "startScan": "Start a GEO scan",
+        "visibility": "Get AI visibility overview",
+        "traffic": "Get AI traffic overview",
+        "listSchedules": "List schedules",
+        "createSkill": "Create a skill"
+      }
+    },
+    "feed": {
+      "loading": "Loading…",
+      "emptyTitle": "No requests yet",
+      "emptyDescription": "Send a request from the console, use curl, or click around the dashboard. Everything shows up here.",
+      "sources": {
+        "api": "API",
+        "console": "Console",
+        "ui": "UI",
+        "webhook": "Webhook"
+      },
+      "sameViaApi": "Do the same via the API",
+      "copyCurl": "Copy curl",
+      "curlCopied": "curl command copied",
+      "request": "Request",
+      "response": "Response"
+    },
+    "missions": {
+      "progress": "{done} of {total} done",
+      "complete": "Done",
+      "open": "Not done yet",
+      "scan": {
+        "title": "Run a GEO scan",
+        "description": "Click Run scan on the GEO overview and watch new results come in."
+      },
+      "apiPrompt": {
+        "title": "Add a prompt through the API",
+        "description": "Send \"Track a new GEO prompt\" from the console. It appears under GEO › Prompts right away."
+      },
+      "agentPost": {
+        "title": "Write a post, then fetch it via API",
+        "description": "Ask the agent to write a post, then run \"List recent posts\"."
+      },
+      "schedule": {
+        "title": "Automate content",
+        "description": "Create a schedule under Automation or use Run now on one."
+      },
+      "externalClient": {
+        "title": "Call the API from your machine",
+        "description": "Copy a request as curl and run it in your terminal, or connect the CLI or MCP with your demo key."
+      },
+      "finishedTitle": "You've seen it all",
+      "finishedDescription": "Set Notra up for your own brand in a few minutes.",
+      "signup": "Start free",
+      "openConsole": "Open the console"
+    },
+    "customize": {
+      "title": "Customize the Notra demo",
+      "description": "Tell us who you are and the demo is rebuilt around your company: brand, AI visibility, content and team.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "companyName": "Company name",
+      "note": "Takes a few seconds. What you entered only lives in this demo workspace.",
+      "cancel": "Cancel",
+      "submit": "Customize demo",
+      "saving": "Rebuilding…",
+      "failed": "The demo couldn't be customized. Please try again."
+    }
   }
 }

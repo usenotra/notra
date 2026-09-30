@@ -4,6 +4,10 @@ import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
 import { COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE } from "@/constants/company-logo";
+import {
+  DEMO_SANDBOX_CREATE_LIMIT,
+  DEMO_SANDBOX_CREATE_WINDOW,
+} from "@/constants/demo";
 
 const redis = Redis.fromEnv();
 
@@ -176,6 +180,14 @@ export const ratelimit = {
     analytics: true,
     prefix: "ratelimit:auth-mfa-verify",
     limiter: Ratelimit.slidingWindow(5, "1m"),
+  }),
+  demoSandboxCreate: new Ratelimit({
+    redis,
+    prefix: "ratelimit:demo-sandbox-create",
+    limiter: Ratelimit.slidingWindow(
+      DEMO_SANDBOX_CREATE_LIMIT,
+      DEMO_SANDBOX_CREATE_WINDOW
+    ),
   }),
   backupCode: new Ratelimit({
     redis,
