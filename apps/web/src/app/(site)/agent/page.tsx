@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { buildAgentJson, siteUrl } from "@/utils/agent-metadata";
+import { pageAlternates } from "@/utils/metadata";
+import { SITE_URL } from "@/utils/urls";
 
 export const metadata: Metadata = {
   title: "Notra Agent Interface",
   description:
     "Explore Notra's generative engine optimization (GEO) tools for AI visibility, competitor share of voice, and content gaps through the API and MCP.",
+  alternates: pageAlternates(`${SITE_URL}/agent`),
 };
 
 export default function AgentPage() {

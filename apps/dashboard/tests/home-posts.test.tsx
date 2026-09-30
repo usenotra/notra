@@ -22,12 +22,6 @@ mock.module("@/lib/orpc/query", () => ({
           }),
         },
       },
-      list: {
-        queryOptions: ({ input }: { input: unknown }) => ({
-          queryKey: ["content", "list", input],
-          queryFn: async () => ({ posts: [] }),
-        }),
-      },
       recents: {
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ["content", "recents", input],
@@ -38,17 +32,12 @@ mock.module("@/lib/orpc/query", () => ({
   },
 }));
 
-const { useDashboardHomeContent, usePosts, useRecentPosts } =
+const { useDashboardHomeContent, useRecentPosts } =
   await import("../src/lib/hooks/use-posts");
 let organizationId = "org-1";
 
 function TodayPostsProbe() {
   useDashboardHomeContent(organizationId);
-  return null;
-}
-
-function ContentListProbe() {
-  usePosts(organizationId, 2);
   return null;
 }
 
@@ -77,26 +66,6 @@ describe("dashboard home post query", () => {
       {
         organizationId: "org-1",
         projectId: "project-1",
-      },
-    ]);
-  });
-
-  test("keeps content-list pagination at twelve posts", () => {
-    const client = new QueryClient();
-    renderToStaticMarkup(
-      <QueryClientProvider client={client}>
-        <ContentListProbe />
-      </QueryClientProvider>
-    );
-
-    expect(client.getQueryCache().getAll()[0]?.queryKey).toEqual([
-      "content",
-      "list",
-      {
-        organizationId: "org-1",
-        projectId: "project-1",
-        page: 2,
-        pageSize: 12,
       },
     ]);
   });

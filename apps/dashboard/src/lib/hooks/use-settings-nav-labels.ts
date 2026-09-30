@@ -11,6 +11,7 @@ export function useSettingsNavLabels(): SettingsNavLabels {
     groups: {
       account: tLabels("account"),
       organization: tLabels("organization"),
+      billing: tLabels("billing"),
       geo: tLabels("geo"),
       dev: t("nav.groups.dev"),
     },

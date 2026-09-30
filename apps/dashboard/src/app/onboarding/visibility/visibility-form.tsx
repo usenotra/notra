@@ -57,6 +57,8 @@ function VisibilityReview({
   const [companyName, setCompanyName] = useState(
     () => discovery?.companyName ?? fallbackCompanyName
   );
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const companyInputRef = useRef<HTMLInputElement>(null);
   const [droppedKeys, setDroppedKeys] = useState(() => new Set<string>());
   const save = useGeoOnboardingBrand(organizationId);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -69,7 +71,7 @@ function VisibilityReview({
     })
   );
   const selectedPrompts = selectedVisibilityPrompts(prompts, droppedKeys);
-  const canSubmit = companyName.trim().length > 0 && !busy;
+  const companyNameMissing = companyName.trim().length === 0;
   const websiteHost = stripWebsitePrefix(websiteUrl);
 
   const togglePrompt = (key: string) => {
@@ -85,7 +87,12 @@ function VisibilityReview({
   };
 
   const handleSubmit = () => {
-    if (!canSubmit) {
+    if (busy) {
+      return;
+    }
+    if (companyNameMissing) {
+      setAttemptedSubmit(true);
+      requestAnimationFrame(() => companyInputRef.current?.focus());
       return;
     }
     const brandInput = toVisibilityBrandInput({
@@ -119,14 +126,25 @@ function VisibilityReview({
       <div className="grid gap-2">
         <Label htmlFor={`${id}-company`}>{t("brandName")}</Label>
         <Input
-          aria-invalid={companyName.trim().length === 0}
+          aria-describedby={
+            attemptedSubmit && companyNameMissing
+              ? `${id}-company-error`
+              : undefined
+          }
+          aria-invalid={attemptedSubmit && companyNameMissing}
           className={ONBOARDING_FIELD_CLASS}
           disabled={busy}
           id={`${id}-company`}
           onChange={(event) => setCompanyName(event.target.value)}
           placeholder={t("brandNamePlaceholder")}
+          ref={companyInputRef}
           value={companyName}
         />
+        {attemptedSubmit && companyNameMissing ? (
+          <p className="text-destructive text-sm" id={`${id}-company-error`}>
+            {t("brandNameRequired")}
+          </p>
+        ) : null}
       </div>
 
       {prompts.length > 0 ? (
@@ -160,7 +178,7 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={!canSubmit} type="submit">
+      <CtaButton className="w-full" disabled={busy} type="submit">
         {busy ? (
           <>
             <Loader2Icon className="size-4 animate-spin" />

@@ -13,7 +13,7 @@ import {
   CONTRIBUTORS_HERO_TITLE,
 } from "@/constants/contributors";
 import { GITHUB_REPO_URL } from "@/utils/github";
-import { TWITTER_HANDLE } from "@/utils/metadata";
+import { TWITTER_HANDLE, pageAlternates } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Contributors & Community";
@@ -26,7 +26,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

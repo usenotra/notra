@@ -1,0 +1,50 @@
+---
+title: ChatGPT
+description: A full recreation of a ChatGPT conversation with thinking, web search, reasoning and the model picker.
+---
+
+A pixel-matched rebuild of a ChatGPT thread, composed from the [ChatGPT components](/components/chatgpt/thread). The reasoning step and its web search start collapsed: open "Worked for 21s" to see the tool calls, then "Searched 6 websites" for the Activity sheet. The answer carries [source chips](/components/chatgpt/source-chip) that open a hover card. Send a message, or click the effort chip to move the effort slider and pick a model.
+
+<Component path="chatgpt/examples/chatgpt-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/chatgpt
+```
+
+This adds every ChatGPT component to `components/chatgpt`, the demo conversation and the `useChatgptPlayback` hook that streams replies.
+
+The components use the system UI font stack, like ChatGPT itself, so there's no font to load. Source favicons load from Google's favicon service unless you pass a `favicon` URL.
+
+## ChatgptThread
+
+The root is a plain `div` that paints ChatGPT's background, text color and font. It scrolls its children in a centered column and pins `footer` underneath.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `footer` | | Rendered under the scroll area, usually a `ChatgptComposer`. |
+| `autoScroll` | `true` | Follows new content while you're at the bottom. |
+
+Every other component also sets the ChatGPT font and colors, so you can use them outside a thread too.
+
+## Playback
+
+`useChatgptPlayback(script)` returns `messages`, `completeIds`, `thinking` and `playing`, plus `stop` and `send(text, reply)`. It shows the thinking state, then streams each assistant reply word by word. With reduced motion on, replies appear at once.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Avatar`, `Badge`, `Button`, `Card`, `Collapsible`, `HoverCard`, `InputGroup`, `Item`, `Popover`, `ScrollArea`, `Separator`, `Sheet`, `Slider`, `ToggleGroup` and `Tooltip`, and the CLI installs any you're missing. The thinking state uses the Notra [Shimmer](https://ui.usenotra.com/r/shimmer.json).
+
+Its colors are `--chatgpt-*` tokens that the CLI adds to your CSS with ChatGPT's light and dark values, mapped to utilities like `bg-chatgpt-bubble` and `text-chatgpt-muted`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --chatgpt-send: var(--primary);
+  --chatgpt-bubble: var(--muted);
+}
+```
+
+## Trademarks
+
+ChatGPT, OpenAI and the OpenAI logo are trademarks of OpenAI. Notra is not affiliated with or endorsed by OpenAI. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

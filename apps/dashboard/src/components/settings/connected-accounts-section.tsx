@@ -79,10 +79,7 @@ export function ConnectedAccountsSection({
 
   if (isError) {
     return (
-      <TitleCard
-        className="lg:col-span-2"
-        heading={tSettingsShared("connectedAccounts")}
-      >
+      <TitleCard heading={tSettingsShared("connectedAccounts")}>
         <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4 text-center">
           <p className="text-destructive text-sm">{t("loadFailed")}</p>
         </div>
@@ -98,8 +95,8 @@ export function ConnectedAccountsSection({
       <div className="space-y-4">
         <p className="text-muted-foreground text-sm">{t("description")}</p>
 
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <div className="divide-y">
+          <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
                 <Google className="size-5" />
@@ -148,7 +145,7 @@ export function ConnectedAccountsSection({
             )}
           </div>
 
-          <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
                 <Github className="size-5" />

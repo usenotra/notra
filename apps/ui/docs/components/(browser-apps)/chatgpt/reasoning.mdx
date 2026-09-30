@@ -1,0 +1,19 @@
+---
+title: Reasoning
+description: The collapsible "Worked for Ns" trace above an answer.
+---
+
+<Component path="chatgpt/examples/chatgpt-reasoning" />
+
+```bash
+bunx shadcn@latest add @notra/chatgpt-reasoning
+```
+
+`ChatgptReasoning` is a shadcn `Collapsible` whose trigger is a ghost `Button`. It stays open while the answer streams and folds shut when `complete` turns `true`. Children and `search` slide in when the panel opens. Without either, it renders the label as plain text.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `seconds` | | Shown as "Worked for Ns". |
+| `complete` | `false` | Collapses the trace when the answer finishes. |
+| `search` | | Rendered under the trace, usually a `ChatgptActivity`. |
+| `open`, `onOpenChange` | | Collapsible state, if you want to control it. |

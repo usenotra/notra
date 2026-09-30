@@ -882,16 +882,6 @@ export const GEO_MENTION_FADE_HEIGHT_REM = 2;
  * never add up. Spell that out: side by side the numbers read as rival totals.
  */
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
-export const GEO_SCAN_SIZE_WARN_THRESHOLD = 150;
-export const GEO_SCAN_SIZE_DANGER_THRESHOLD = 300;
-export const GEO_SCAN_SIZE_WARN =
-  "Large scan. It takes longer and costs more. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_DANGER =
-  "Very large scan. It will likely take a long time. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_MESSAGES = {
-  warn: GEO_SCAN_SIZE_WARN,
-  danger: GEO_SCAN_SIZE_DANGER,
-};
 export const GEO_RANGE_PRESETS = [
   { value: "today" },
   { value: "yesterday" },
@@ -912,6 +902,7 @@ export const GEO_RANGE_PRESET_DAYS = {
   "90d": 89,
 } as const;
 export const GEO_DEFAULT_QUERY_DAYS = 30;
+export const GEO_MAX_RANGE_DAYS = 366;
 export const GEO_FILTER_TRIGGER_CLASS =
   "corner-squircle flex h-7 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring";
 /** Search vs memory gap that names a specific bottleneck. */

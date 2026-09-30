@@ -1,0 +1,17 @@
+---
+title: Search
+description: The "Searched N websites" line with ChatGPT's dotted globe or stacked favicons.
+---
+
+<Component path="chatgpt/examples/chatgpt-search" />
+
+```bash
+bunx shadcn@latest add @notra/chatgpt-search
+```
+
+`ChatgptSearch` is a ghost shadcn `Button` that pluralizes "website" for you. It takes every Button prop, so you can wire it to your own panel. `ChatgptActivity` uses it as its trigger.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `websites` | | The number of websites searched. |
+| `sites` | | Optional `{ domain, favicon? }` list. The first three favicons stack in front of the label, in place of the globe. |

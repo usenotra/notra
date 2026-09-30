@@ -6,7 +6,11 @@ import { SlackFeatureList } from "@/components/integrations/slack/slack-feature-
 import { SlackHero } from "@/components/integrations/slack/slack-hero";
 import { SlackToolsSection } from "@/components/integrations/slack/slack-tools-section";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Slack integration for Notra";
@@ -17,7 +21,7 @@ const url = `${SITE_URL}/integrations/slack`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

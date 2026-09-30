@@ -14,7 +14,7 @@ export function ChatSection() {
     useShowAgentStats();
 
   return (
-    <TitleCard className="lg:col-span-2" heading={tCommon("labels.chat")}>
+    <TitleCard heading={tCommon("labels.chat")}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <Label

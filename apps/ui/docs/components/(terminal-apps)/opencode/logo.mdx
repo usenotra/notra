@@ -1,0 +1,17 @@
+---
+title: Logo
+description: The pixel wordmark from the OpenCode welcome screen.
+---
+
+<Component path="opencode/examples/opencode-logo" />
+
+```bash
+bunx shadcn@latest add @notra/opencode-logo
+```
+
+`OpencodeLogo` is an `svg` drawn on a 234 by 42 grid. Its three fills come from the `--opencode-logo-*` tokens, so it switches with light and dark mode.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `scale` | `1` | Multiplies the 234 by 42 size. |
+| `aria-label` | `OpenCode` | The accessible name. |

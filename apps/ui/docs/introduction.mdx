@@ -7,6 +7,12 @@ description: What Notra UI is and how the site is organized.
 
 **Notra UI** is the showcase for `@notra/ui`, the component package behind the Notra dashboard. Components shown here are built with the same tokens and styles, as site examples you can copy into your app.
 
+Every component and block is published to the official shadcn registry directory under `@notra`, so you can install them by name.
+
+```bash
+bunx shadcn@latest add @notra/google-ai-overview
+```
+
 Run it locally with `bun run dev --filter=ui` and open [localhost:3006](http://localhost:3006).
 
 <CardGroup cols={2}>
@@ -15,5 +21,20 @@ Run it locally with `bun run dev --filter=ui` and open [localhost:3006](http://l
   </Card>
   <Card title="Google AI Overview" href="/blocks/google-ai-overview">
     Google's AI Overview with highlights, citation chips and Show more.
+  </Card>
+  <Card title="Perplexity" href="/blocks/perplexity">
+    A Perplexity answer thread with the search step, citation pills, a sources sheet and the composer.
+  </Card>
+  <Card title="ChatGPT" href="/blocks/chatgpt">
+    A ChatGPT conversation with reasoning, web search, an Activity sheet and the model picker.
+  </Card>
+  <Card title="Gemini" href="/blocks/gemini">
+    The Gemini chat with its animated sparkle, streamed replies and the model picker.
+  </Card>
+  <Card title="Claude" href="/blocks/claude">
+    The claude.ai chat with a live search timeline, serif replies and the effort picker.
+  </Card>
+  <Card title="OpenCode" href="/blocks/opencode">
+    The OpenCode workspace with activity, cited sources and the sidebar.
   </Card>
 </CardGroup>

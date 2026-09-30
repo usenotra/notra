@@ -16,6 +16,7 @@ import {
   DEFAULT_SOCIAL_IMAGE,
   PAGE_SOCIAL_IMAGES,
   TWITTER_HANDLE,
+  pageAlternates,
 } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
@@ -71,9 +72,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: url,
-  },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

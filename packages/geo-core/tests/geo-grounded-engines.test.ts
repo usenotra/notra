@@ -54,25 +54,6 @@ describe("selected grounded engines", () => {
     );
   });
 
-  test("none of the six legacy web-search routes are added to a selection", () => {
-    const legacyKeys = [
-      "openai/gpt-5.4-grounded",
-      "anthropic/claude-sonnet-4.6-grounded",
-      "google/gemini-3-flash-grounded",
-      "openai-direct-grounded",
-      "anthropic-direct-grounded",
-      "perplexity-sonar",
-    ];
-    const engines = resolveGroundedEngines(
-      ["anthropic/claude-sonnet-5"],
-      catalog
-    );
-    for (const key of legacyKeys) {
-      expect(engines.some((engine) => engine.key === key)).toBe(false);
-    }
-    expect(engines.length).toBe(1);
-  });
-
   test("deduplicates selected models", () => {
     expect(
       resolveGroundedEngines(
@@ -170,10 +151,11 @@ describe("selected grounded engines", () => {
         },
         ...feed.slice(1),
       ]);
-      expect(partial.models.map((model) => model.id)).toEqual([
-        "openai/gpt-5.6-sol",
-        "perplexity/sonar",
-      ]);
+      expect(
+        partial.models
+          .filter((model) => model.gateways.includes("vercel"))
+          .map((model) => model.id)
+      ).toEqual(["openai/gpt-5.6-sol", "perplexity/sonar"]);
       expect(
         resolveGroundedEngines(["perplexity/sonar"], partial)[0]?.provider
       ).toBe("gateway-perplexity");

@@ -18,7 +18,7 @@ import {
   blogAuthorAvatarTransitionName,
   blogAuthorNameTransitionName,
 } from "@/utils/blog-view-transitions";
-import { TWITTER_HANDLE } from "@/utils/metadata";
+import { TWITTER_HANDLE, pageAlternates } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 export const revalidate = 3000;
@@ -47,7 +47,7 @@ export async function generateMetadata({
   return {
     title: { absolute: socialTitle },
     description,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title: socialTitle,
       description,

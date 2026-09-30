@@ -24,20 +24,35 @@ export function GuidelinesTypographySection({
   const t = useTranslations("brand.guidelines");
   const tCommon = useTranslations("common");
   const [editing, setEditing] = useState<BrandGuidelineFont | null>(null);
+  const [unavailableFonts, setUnavailableFonts] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     const families = [
       ...new Set(fonts.flatMap((font) => (font.family ? [font.family] : []))),
     ];
 
-    if (families.length === 0) {
-      return;
-    }
-
     const links = families.map((family) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = googleFontHref(family);
+      const markUnavailable = () => {
+        if (link.isConnected) {
+          setUnavailableFonts((previous) => new Set(previous).add(family));
+        }
+      };
+      link.onload = () => {
+        document.fonts
+          .load(`16px ${cssFontFamily(family)}`, family)
+          .then((loaded) => {
+            if (loaded.length === 0) {
+              markUnavailable();
+            }
+          })
+          .catch(markUnavailable);
+      };
+      link.onerror = markUnavailable;
       document.head.appendChild(link);
       return link;
     });
@@ -95,6 +110,11 @@ export function GuidelinesTypographySection({
                 {meta ? (
                   <p className="text-muted-foreground mt-2 truncate text-xs">
                     {meta}
+                  </p>
+                ) : null}
+                {unavailableFonts.has(font.family) ? (
+                  <p className="text-muted-foreground mt-2 text-xs">
+                    {t("typography.previewUnavailable")}
                   </p>
                 ) : null}
               </div>

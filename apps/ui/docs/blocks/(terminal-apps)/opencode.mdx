@@ -1,0 +1,39 @@
+---
+title: OpenCode
+description: A full recreation of an OpenCode session with activity, sources, a composer and the sidebar.
+---
+
+A rebuild of a session in the OpenCode terminal UI, composed from the [OpenCode components](/components/opencode/window). The sidebar shows from the `md` breakpoint up.
+
+<Component path="opencode/examples/opencode-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/opencode
+```
+
+This adds every OpenCode component to `components/opencode` along with the demo session.
+
+The components use the system monospace stack through `font-opencode`. Point it at your own mono font to change it.
+
+## OpencodeWindow
+
+The root is a shadcn `Card` that paints the workspace background and border, so it takes every `Card` prop. The demo splits it into a transcript column and an `OpencodeSidebar` with a CSS grid.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Badge`, `Button`, `Card`, `Collapsible`, `InputGroup`, `Item`, `Kbd` and `ScrollArea`, and the CLI installs any you're missing.
+
+Its colors are `--opencode-*` tokens that the CLI adds to your CSS with light and dark values, mapped to utilities like `bg-opencode-surface` and `text-opencode-purple`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --opencode-bg: var(--background);
+  --opencode-purple: var(--primary);
+}
+```
+
+## Trademarks
+
+OpenCode is a trademark of its respective owner. Notra is not affiliated with or endorsed by the OpenCode project. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

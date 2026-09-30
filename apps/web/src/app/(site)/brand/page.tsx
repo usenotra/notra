@@ -13,7 +13,11 @@ import {
   FONT_SAMPLE,
 } from "@/lib/brand/constants";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Brand Guidelines";
@@ -29,9 +33,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: url,
-  },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

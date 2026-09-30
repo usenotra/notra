@@ -19,11 +19,13 @@ apps/api /v2/agent-chats
 eve agent (this package, separate Vercel project)
   ├─ root: Notra assistant (eve autoModel: gpt-6-luna / claude-sonnet-5 / claude-opus-5.5)
   ├─ Slack: mentions, DMs, and active thread replies through /eve/v1/slack
-  ├─ subagents/content-writer (anthropic/claude-sonnet-5, structured result)
+  ├─ subagents/content-writer (openai/gpt-6-sol, structured result)
   └─ subagents/image-designer (wraps the @upstash/box sandbox image pipeline)
 ```
 
 Tool implementations live in `@notra/tools` (`src/assistant`, `src/content-writer`, `src/image`); this app only holds one-line adapter files, the channel, hooks, and instructions. Business logic (post persistence, image post persistence) is shared with the legacy AI SDK path via `@notra/ai/utils/post-service` and `@notra/ai/utils/image-post-service`.
+
+The content-writer loads `unslop` for a final editing pass before saving. Its seeded text matches the harness skill. Existing organizations receive the skill when their catalog is read, and can edit it like other system skills. The legacy background generator uses the same final pass.
 
 ## Model routing
 

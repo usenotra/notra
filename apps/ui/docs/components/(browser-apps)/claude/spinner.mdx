@@ -1,0 +1,18 @@
+---
+title: Spinner
+description: Claude's starburst that grows and shrinks its rays.
+---
+
+<Component path="claude/examples/claude-spinner" />
+
+```bash
+bunx shadcn@latest add @notra/claude-spinner
+```
+
+`ClaudeSpinner` draws the starburst as SVG lines and steps through six frames, from a dot to ten rays and back, every 120ms. It is announced like shadcn `Spinner`, with `role="status"` and an `aria-label` that defaults to "Loading". It uses `currentColor` and defaults to Claude's orange. Without `animated`, or with reduced motion, it shows the full starburst.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `animated` | `false` | Runs the animation. |
+| `size` | `16` | Width and height in pixels. |
+| `reducedMotion` | system setting | Forces reduced motion on or off. |

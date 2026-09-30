@@ -1,0 +1,23 @@
+---
+title: Shimmer
+description: A light sweep across text for thinking and loading states.
+---
+
+<Component path="shimmer/examples/shimmer" />
+
+```bash
+bunx shadcn@latest add @notra/shimmer
+```
+
+The Perplexity, ChatGPT, Gemini and Claude blocks use it for their thinking labels. The text keeps its own color and a highlight sweeps across it. Reduced motion turns the sweep off.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `duration` | `1.7` | Seconds per sweep. |
+| `spread` | `4` | Width of the highlight in `ch`. |
+
+The highlight uses the `foreground` theme color. Set `--shimmer-highlight` to change it:
+
+```tsx
+<Shimmer className="[--shimmer-highlight:white]">Thinking...</Shimmer>
+```

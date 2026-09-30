@@ -8,7 +8,11 @@ import type { ShowcaseCompanyPageProps } from "~types/showcase";
 import { changelog } from "@/../.source/server";
 import { ChangelogPageHeader } from "@/components/changelog-page-header";
 import { ChangelogTimeline } from "@/components/changelog-timeline";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -37,7 +41,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title: title.absolute,
       description,

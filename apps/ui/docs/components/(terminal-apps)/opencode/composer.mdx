@@ -1,0 +1,21 @@
+---
+title: Composer
+description: The OpenCode prompt with agent, model and shortcuts.
+---
+
+<Component path="opencode/examples/opencode-composer" />
+
+```bash
+bunx shadcn@latest add @notra/opencode-composer
+```
+
+`OpencodeComposer` is a shadcn `InputGroup`. The agent and model line is an `InputGroupAddon` aligned to the block end, and the `tab` and `ctrl+p` hints are shadcn `Kbd`. It passes every other prop to the `InputGroupInput`, so use `value` and `onChange` for a controlled prompt or `defaultValue` for an uncontrolled one. `className` styles the wrapper and `inputClassName` the input.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `placeholder` | `Ask anything... "Fix a TODO in the codebase"` | The input placeholder. |
+| `agent` | `Build` | Shown in purple. |
+| `model` | `GPT-5.6 Sol` | The model name. |
+| `provider` | `OpenAI` | Shown muted after the model. |
+| `effort` | `low` | Shown in orange. |
+| `context` | | Context usage on the right of the shortcut row. |

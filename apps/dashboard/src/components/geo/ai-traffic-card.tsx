@@ -44,6 +44,7 @@ import {
 export function AiTrafficCard({
   traffic,
   pages,
+  range,
   settingsHref,
   isPending = false,
 }: AiTrafficCardProps) {
@@ -57,7 +58,6 @@ export function AiTrafficCard({
     sources,
     previousConversions
   );
-  const trendRows = buildTrafficTrendRows(points, locale);
   const groups = groupTrafficSources(sources).map((group) =>
     group.key === GEO_TRAFFIC_OTHER_GROUP.key
       ? { ...group, label: tCommon("labels.other") }
@@ -78,7 +78,11 @@ export function AiTrafficCard({
     });
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
   const isMobile = useIsMobile();
-  const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
+  const sparklineDays = useMemo(
+    () => trafficSparklineDays(points, range?.from, range?.to),
+    [points, range?.from, range?.to]
+  );
+  const trendRows = buildTrafficTrendRows(points, locale, sparklineDays);
   const canSparkline = hasTrafficSourceSeries(points);
   const seriesByGroup = useMemo(() => {
     const map = new Map<string, { day: string; value: number }[]>();

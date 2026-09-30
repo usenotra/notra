@@ -99,7 +99,7 @@ function CitedSearchPanel({
 }) {
   const t = useTranslations("geo.geoAnswerSearch");
   const tCommon = useTranslations("common");
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const classes = GEO_ANSWER_SEARCH_SKIN_CLASS[skin];
   const hasBody = queries.length > 0 || sources.length > 0;
 

@@ -6,7 +6,7 @@ export default defineConfig({
   agents: {
     llmsTxt: {
       details:
-        "Notra UI is a shadcn registry. Install any component or block with `bunx shadcn@latest add https://ui.usenotra.com/r/<name>.json`, for example `bunx shadcn@latest add https://ui.usenotra.com/r/google-ai-overview.json`. The CLI installs missing shadcn dependencies automatically.",
+        "Notra UI is a shadcn registry. Install any component or block with `bunx shadcn@latest add @notra/<name>`, for example `bunx shadcn@latest add @notra/google-ai-overview`. The CLI installs missing shadcn dependencies automatically.",
     },
   },
   deployment: {
@@ -44,13 +44,14 @@ export default defineConfig({
   logo: {
     image: {
       alt: "Notra logo",
-      dark: "/logo.svg",
-      light: "/logo.svg",
+      dark: "/logo-dark.svg",
+      light: "/logo-light.svg",
     },
     text: "Notra UI",
   },
   navigation: {
     sidebar: { display: "group" },
+    tabs: [{ href: "/introduction", label: "Docs", path: "/" }],
   },
   seo: {
     og: {

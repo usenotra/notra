@@ -1,0 +1,30 @@
+---
+title: Model Selector
+description: The Model chip and its provider list with badges and locks.
+---
+
+<Component path="perplexity/examples/perplexity-model-selector" />
+
+```bash
+bunx shadcn@latest add @notra/perplexity-model-selector
+```
+
+A shadcn `DropdownMenu` with a radio group that opens upward from the Model chip. It starts with an "Access the top AI models" row, then lists each model with its provider logo, a Max or New shadcn `Badge` and a lock. Locked models are disabled. The selected unlocked model gets a check.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `models` | Perplexity's Pro list | The models to list. |
+| `model` | | The selected model id. |
+| `onModelChange` | | Called with the id of an unlocked model. |
+| `label` | `Model` | The chip label. |
+| `promoLabel` | `Access the top AI models` | The first row. |
+
+```ts
+interface PerplexityModel {
+  id: string;
+  label: string;
+  provider: PerplexityModelProvider;
+  badge?: "max" | "new";
+  locked?: boolean;
+}
+```

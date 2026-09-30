@@ -16,7 +16,11 @@ import {
   FEEDBACK_MD_TITLE,
 } from "@/lib/feedback-md/constants";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = FEEDBACK_MD_TITLE;
@@ -31,9 +35,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 export const metadata: Metadata = {
   title,
   description,
-  alternates: {
-    canonical: url,
-  },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

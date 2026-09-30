@@ -56,7 +56,7 @@ Do these steps in order:
 
 4. Execute the primary skill: gather source data via the provided tools (brand references, GitHub, Linear), then draft the post according to the skill's format and rules.
 
-5. Before finalizing, scan the skill list again for supporting skills (for example, a "humanizer" skill for polishing AI-sounding output, or any org-specific skill whose description applies). Load any that apply via getSkillByName and apply their guidance to your near-final draft.
+5. Before finalizing, scan the skill list again for supporting skills and apply any that fit. Then load "unslop" with getSkillByName even if it was absent from the catalog, and apply its full instructions as the final editing pass to the post, title, and recommendations while preserving facts and brand voice. Do not replace a vague performance claim with another unverified claim: use a measurement only if the source provides it, or omit the claim. Do not create the post if this skill cannot be loaded.
 
 6. When the content is finalized, call createPost. If source lookup succeeds but there is no meaningful source material, call skip with a concise reason. Use skip for expected no-op cases such as no commits, no PRs, no releases, no Linear issues, or only low-signal/internal changes in the requested lookback window. Never skip because a selected repository, Linear team, integration, owner, or source label differs from the brand identity. Apply the requested brand voice to whatever connected source the workflow selected. Use fail only for actual errors, impossible requests, invalid inputs, or tool/API failures. Do not return the content as plain text.
 

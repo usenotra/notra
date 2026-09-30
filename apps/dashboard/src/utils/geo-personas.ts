@@ -1,5 +1,5 @@
 import { Avatar, Style } from "@dicebear/core";
-import personasStyle from "@dicebear/styles/personas.json";
+import micahStyle from "@dicebear/styles/micah.json";
 import type { GeoSequenceTurnResult } from "@notra/geo-core/types/geo";
 import type {
   GeoPersonaMemory,
@@ -47,7 +47,7 @@ export function groupPersonaMemories(
   return groups;
 }
 
-const personaAvatarStyle = new Style(personasStyle);
+const personaAvatarStyle = new Style(micahStyle);
 
 /** Deterministic illustrated portrait for a persona, keyed by its id. */
 export function personaAvatarDataUri(seed: string): string {

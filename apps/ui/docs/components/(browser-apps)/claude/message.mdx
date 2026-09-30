@@ -1,0 +1,19 @@
+---
+title: Message
+description: User bubbles and serif assistant replies with slots for search, sources and actions.
+---
+
+<Component path="claude/examples/claude-message" />
+
+```bash
+bunx shadcn@latest add @notra/claude-message
+```
+
+With `from="user"` the message is a warm gray bubble aligned to the end, at most 70% wide. With `from="assistant"` it is full-width serif text. The `search` slot renders above the reply. The `sources` slot renders inside the reply text, after the answer. The `actions` slot fades in when the message is hovered or focused, and stays visible on touch screens.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `from` | | `user` or `assistant`. |
+| `search` | | Assistant only. Usually a [Search](/components/claude/search). |
+| `sources` | | Assistant only. Usually [Sources](/components/claude/sources), rendered inside the reply. |
+| `actions` | | Usually [Actions](/components/claude/actions). |

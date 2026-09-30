@@ -5,7 +5,11 @@ import { IntegrationDetailView } from "@/components/integrations/integration-det
 import { fetchIntegration } from "@/lib/integrations/fetch";
 import type { IntegrationDetailPageProps } from "@/types/integrations";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 export async function generateMetadata({
@@ -27,7 +31,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title,
       description,

@@ -7,7 +7,6 @@ import {
   buildJourneyOverview,
   buildJourneyPathTree,
   countJourneyBranches,
-  formatJourneyDepth,
   journeySeries,
   journeyTrendDays,
 } from "@/utils/geo-journey";
@@ -108,10 +107,5 @@ describe("journey trends", () => {
         (point) => point.value
       )
     ).toEqual([0, 0, 0, 1]);
-  });
-
-  test("formats average depth", () => {
-    expect(formatJourneyDepth(7, 2)).toBe("3.5 pages");
-    expect(formatJourneyDepth(0, 0)).toBe("0 pages");
   });
 });

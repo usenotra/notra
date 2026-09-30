@@ -10,7 +10,11 @@ import {
   getMcpUseCaseHref,
   getRelatedMcpUseCases,
 } from "@/utils/mcp-use-cases";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 export const dynamicParams = false;
@@ -36,7 +40,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title,
       description,

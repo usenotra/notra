@@ -9,7 +9,11 @@ import { MCP_FALLBACK_TOOL_CARDS } from "@/constants/mcp";
 import { fetchMcpTools } from "@/lib/mcp/tools";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { formatMcpHeroSubhead } from "@/utils/mcp";
-import { PAGE_SOCIAL_IMAGES, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  PAGE_SOCIAL_IMAGES,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra MCP Server";
@@ -20,7 +24,7 @@ const url = `${SITE_URL}/mcp`;
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: url },
+  alternates: pageAlternates(url),
   openGraph: {
     title,
     description,

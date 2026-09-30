@@ -4,6 +4,7 @@ import { Effect, Result } from "effect";
 import { checkMissedGeoScans } from "@/lib/analytics/geo-scan-watchdog";
 import { runMonitoringSweep } from "@/lib/analytics/monitoring-sweep";
 import { scheduleRequestErrorTelemetry } from "@/utils/request-error-telemetry";
+import { retryWorkflowFailureAlerts } from "@/utils/workflow-failure-alert";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
 export const maxDuration = 120;
@@ -21,6 +22,15 @@ export async function GET(request: Request) {
       outcome: "error",
       errorName: error instanceof Error ? error.name : "UnknownError",
       errorMessage: error instanceof Error ? error.message : String(error),
+    });
+  }
+  try {
+    await retryWorkflowFailureAlerts();
+  } catch (error) {
+    logWorkflowTelemetry({
+      event: "workflow.alert.failed",
+      outcome: "error",
+      errorName: error instanceof Error ? error.name : "UnknownError",
     });
   }
   if (!process.env.AXIOM_TOKEN || !process.env.AXIOM_AI_DATASET) {

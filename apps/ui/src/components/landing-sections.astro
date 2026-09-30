@@ -1,0 +1,44 @@
+---
+import { LANDING_SECTIONS } from "../constants/landing";
+import AIOverviewPreview from "./previews/ai-overview-preview.astro";
+import TooltipPreview from "./previews/tooltip-preview.astro";
+
+const previews = { "ai-overview": AIOverviewPreview, tooltip: TooltipPreview };
+---
+
+<div class="mx-auto flex max-w-6xl flex-col gap-14 px-6 pt-16 pb-20">
+  {
+    LANDING_SECTIONS.map((section) => (
+      <section class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1">
+          <h2 class="font-display text-2xl font-semibold tracking-tight text-foreground">{section.title}</h2>
+          <p class="text-sm text-muted-foreground">{section.description}</p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {section.items.map((item) => {
+            const Preview = item.preview ? previews[item.preview] : undefined;
+            return (
+              <div class="group relative">
+                {Preview && (
+                  <div
+                    class="pointer-events-none invisible absolute inset-x-0 bottom-full z-10 mb-3 flex h-56 translate-y-1 items-start justify-center overflow-hidden rounded-2xl border border-border bg-muted pt-6 opacity-0 shadow-md transition duration-150 ease-out dot-grid group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none"
+                    inert
+                  >
+                    <Preview />
+                  </div>
+                )}
+                <a
+                  class="flex h-full flex-col gap-1.5 rounded-xl border border-border bg-(--notra-card) p-5 no-underline shadow-xs transition-colors hover:border-[color-mix(in_oklab,var(--notra-primary)_45%,var(--blume-border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--notra-primary)"
+                  href={item.href}
+                >
+                  <span class="text-sm font-semibold text-foreground">{item.title}</span>
+                  <span class="text-sm text-pretty text-muted-foreground">{item.description}</span>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    ))
+  }
+</div>

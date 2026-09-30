@@ -13,11 +13,12 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { PlanCard } from "@/components/billing/plan-card";
-import { PAYWALL_KINDS, PLAN_SURFACES } from "@/constants/analytics-events";
+import { UPGRADE_DIALOG_EVENTS } from "@/constants/analytics-events";
 import { FEATURED_PLAN_TIER } from "@/constants/billing";
 import {
   billingInterval,
@@ -35,6 +36,7 @@ import {
   getProductPrice,
   groupBillingPlans,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -43,12 +45,16 @@ export function GeoUpgradeDialog({
   slug,
   open,
   onOpenChange,
+  onOpenChangeComplete,
+  entry = "geo",
 }: GeoUpgradeDialogProps) {
   const t = useTranslations("billing.geoUpgrade");
+  const tUpgrade = useTranslations("nav.upgrade");
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.states");
   const tBilling = useTranslations("billing");
   const locale = useLocale();
+  const router = useRouter();
   const { data: plans, isLoading: plansLoading } = useListPlans({
     queryOptions: { enabled: open },
   });
@@ -58,6 +64,8 @@ export function GeoUpgradeDialog({
   const [includeZdr, setIncludeZdr] = useState(false);
 
   const planGroups = groupBillingPlans(plans);
+  const { kind, surface } = UPGRADE_DIALOG_EVENTS[entry];
+  const upgradeFlow = entry !== "geo";
   const intervalLabel = isYearly
     ? tCommon2("labels.year")
     : tCommon2("labels.month");
@@ -65,7 +73,7 @@ export function GeoUpgradeDialog({
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
       trackEvent(POSTHOG_EVENTS.PAYWALL_DISMISSED, {
-        kind: PAYWALL_KINDS.GEO_LOCKED,
+        kind,
       });
     }
     onOpenChange(nextOpen);
@@ -75,7 +83,7 @@ export function GeoUpgradeDialog({
     const yearly = value === "yearly";
     trackEvent(POSTHOG_EVENTS.PRICING_INTERVAL_TOGGLED, {
       interval: billingInterval(yearly),
-      surface: PLAN_SURFACES.GEO_PAYWALL,
+      surface,
     });
     setIsYearly(yearly);
   }
@@ -83,7 +91,7 @@ export function GeoUpgradeDialog({
   function handleIncludeZdrChange(checked: boolean) {
     trackEvent(POSTHOG_EVENTS.ZDR_ADDON_TOGGLED, {
       enabled: checked,
-      surface: PLAN_SURFACES.GEO_PAYWALL,
+      surface,
     });
     setIncludeZdr(checked);
   }
@@ -97,7 +105,7 @@ export function GeoUpgradeDialog({
         planId,
         isYearly,
         includeZdr,
-        surface: PLAN_SURFACES.GEO_PAYWALL,
+        surface,
       })
     );
     try {
@@ -106,17 +114,22 @@ export function GeoUpgradeDialog({
         multiAttach,
         planId,
         includeZdr,
-        successUrl: `${window.location.origin}/${slug}/geo`,
+        successUrl: upgradeFlow
+          ? `${window.location.origin}/${slug}/settings/billing/success`
+          : `${window.location.origin}/${slug}/geo`,
       });
       if (result.paymentUrl) {
         window.location.assign(result.paymentUrl);
         return;
       }
       await refetch();
+      if (upgradeFlow) {
+        router.refresh();
+      }
     } catch (err) {
       trackEvent(POSTHOG_EVENTS.CHECKOUT_FAILED, {
         plan_id: planId,
-        surface: PLAN_SURFACES.GEO_PAYWALL,
+        surface,
       });
       toast.error(
         err instanceof Error
@@ -163,17 +176,26 @@ export function GeoUpgradeDialog({
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={planRenewalTerms(plan)}
       />
     );
   }
 
   return (
-    <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
+    <ResponsiveDialog
+      onOpenChange={handleOpenChange}
+      onOpenChangeComplete={onOpenChangeComplete}
+      open={open}
+    >
       <ResponsiveDialogContent className="flex max-h-[90svh] flex-col overflow-hidden sm:max-w-5xl">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {upgradeFlow ? tUpgrade("freeHeading") : t("title")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {tCommon2("messages.aiVisibilityTrackingIsIncluded")}
+            {upgradeFlow
+              ? tUpgrade("freeDescription")
+              : tCommon2("messages.aiVisibilityTrackingIsIncluded")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="flex justify-center">

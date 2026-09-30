@@ -1,3 +1,4 @@
+import { ensureUnslopSkill } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { skills } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -61,6 +62,7 @@ export const skillsRouter = {
         user: context.user,
       });
 
+      await ensureUnslopSkill(input.organizationId);
       const rows = await db
         .select({
           id: skills.id,
@@ -88,6 +90,9 @@ export const skillsRouter = {
         user: context.user,
       });
 
+      if (input.name === "unslop") {
+        await ensureUnslopSkill(input.organizationId);
+      }
       const row = await db.query.skills.findFirst({
         where: and(
           eq(skills.organizationId, input.organizationId),

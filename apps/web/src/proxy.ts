@@ -18,7 +18,6 @@ const dualmarkProxy = createDualmarkMiddleware({
       "/api",
       "/ask",
       "/apple-icon.png",
-      "/contributors",
       "/demo-dark.webp",
       "/demo.webp",
       "/design.md",

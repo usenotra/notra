@@ -24,7 +24,12 @@ export type StandardSettingsSectionId = Exclude<
   "geo" | "geo-brand" | "geo-languages" | "geo-models"
 >;
 
-export type SettingsNavGroupId = "account" | "organization" | "geo" | "dev";
+export type SettingsNavGroupId =
+  | "account"
+  | "organization"
+  | "billing"
+  | "geo"
+  | "dev";
 
 export interface SettingsSectionLabels {
   label: string;

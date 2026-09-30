@@ -16,7 +16,11 @@ import {
   buildBreadcrumbJsonLd,
   serializeJsonLd,
 } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  TWITTER_HANDLE,
+  pageAlternates,
+} from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 export function generateStaticParams() {
@@ -40,7 +44,7 @@ export async function generateMetadata({
   return {
     title: { absolute: post.title },
     description: post.excerpt,
-    alternates: { canonical: url },
+    alternates: pageAlternates(url),
     openGraph: {
       title: post.title,
       description: post.excerpt,

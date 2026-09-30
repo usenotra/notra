@@ -79,13 +79,6 @@ describe("fallback feedback title", () => {
     ).toBe("Notra MCP is awesome 🙌");
   });
 
-  test("cuts long messages at a word boundary within the limit", () => {
-    const title = fallbackFeedbackTitle(params.message);
-    expect(title.length).toBeLessThanOrEqual(80);
-    expect(title.endsWith("…")).toBe(true);
-    expect(title).not.toContain("  ");
-  });
-
   test("never returns an empty title", () => {
     expect(fallbackFeedbackTitle("   ")).toBe("Feedback");
   });

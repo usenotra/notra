@@ -1,6 +1,7 @@
 import {
   GEO_DEFAULT_QUERY_DAYS,
   GEO_DEFAULT_RANGE,
+  GEO_MAX_RANGE_DAYS,
   GEO_RANGE_PRESET_DAYS,
   GEO_RANGE_PRESETS,
 } from "@notra/geo-core/constants/geo";
@@ -65,7 +66,13 @@ export function parseGeoRangeParam(value: string): GeoRangeState {
     return { preset: value, range: geoPresetRange(value) };
   }
   const match = CUSTOM_PARAM_REGEX.exec(value);
-  if (match?.[1] && match[2] && match[1] <= match[2]) {
+  if (
+    match?.[1] &&
+    match[2] &&
+    match[1] <= match[2] &&
+    geoRangeSpanDays({ dateFrom: match[1], dateTo: match[2] }) <=
+      GEO_MAX_RANGE_DAYS
+  ) {
     return {
       preset: "custom",
       range: { dateFrom: match[1], dateTo: match[2] },

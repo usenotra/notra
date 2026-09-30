@@ -1,0 +1,21 @@
+---
+title: Actions
+description: Copy, share, redo and more buttons under an answer.
+---
+
+<Component path="chatgpt/examples/chatgpt-actions" />
+
+```bash
+bunx shadcn@latest add @notra/chatgpt-actions
+```
+
+Each action is a ghost shadcn `Button` with a shadcn `Tooltip`. Copy writes `text` to the clipboard and shows a check for 1.5 seconds. The rest call your handlers.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `text` | | What Copy puts on the clipboard. |
+| `onShare` | | Called by Share. |
+| `onRedo` | | Called by Redo. |
+| `onMore` | | Called by More. |
+
+`ChatgptActionButton` is exported too, if you want to add your own action.
