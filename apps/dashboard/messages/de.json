@@ -2910,10 +2910,11 @@
       "scanHistory": "Scan-Verlauf der Persona",
       "latestScan": "Neuester · {time}",
       "emptyTitle": "Noch keine Unterhaltung",
-      "emptyDescription": "Personas sprechen während eines Scans mit jeder KI-Engine.",
+      "emptyDescription": "Personas sprechen bei jedem Scan mit allen Engines. Starte jetzt einen, um diese Unterhaltung zu sehen.",
       "pausedDescription": "Diese Persona ist pausiert. Nimm sie in Scans auf, um eine Unterhaltung zu starten.",
-      "waitingForScan": "Scan läuft. Die Unterhaltung dieser Persona erscheint, sobald die Ergebnisse bereit sind.",
-      "loadingConversation": "Unterhaltung wird geladen…"
+      "pausedTitle": "Persona pausiert",
+      "scanningTitle": "Scan läuft…",
+      "scanningDescription": "Diese Persona spricht gerade mit deinen Engines. Die Unterhaltung erscheint hier, sobald die Antworten da sind."
     },
     "personaProfileEditor": {
       "savePersona": "Persona speichern",
@@ -3839,6 +3840,9 @@
       "loadPersonaActivityFailed": "Persona-Aktivität konnte nicht geladen werden",
       "checkPersonaGenerationFailed": "Persona-Erstellung konnte nicht geprüft werden",
       "generatePersonasFailed": "Personas konnten nicht erstellt werden",
+      "generatingPersonas": "Personas werden erstellt",
+      "generatingPersona": "Persona wird erstellt",
+      "generatingPersonasDescription": "Das läuft im Hintergrund, du kannst die Seite also verlassen und später wiederkommen.",
       "updatePersonaFailed": "Persona konnte nicht aktualisiert werden",
       "personaArchived": "Persona archiviert",
       "archivePersonaFailed": "Persona konnte nicht archiviert werden",

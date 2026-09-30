@@ -2910,10 +2910,11 @@
       "scanHistory": "Persona scan history",
       "latestScan": "Latest · {time}",
       "emptyTitle": "No conversation yet",
-      "emptyDescription": "Personas talk to every engine during a scan.",
+      "emptyDescription": "Personas talk to every engine during each scan. Run one now to see this conversation.",
       "pausedDescription": "This persona is paused. Include it in scans to start a conversation.",
-      "waitingForScan": "Scan in progress. This persona's conversation will appear when results are ready.",
-      "loadingConversation": "Loading conversation…"
+      "pausedTitle": "Persona paused",
+      "scanningTitle": "Scanning…",
+      "scanningDescription": "This persona is talking to your engines. The conversation shows up here once the answers are in."
     },
     "personaProfileEditor": {
       "savePersona": "Save persona",
@@ -3839,6 +3840,9 @@
       "loadPersonaActivityFailed": "Failed to load persona activity",
       "checkPersonaGenerationFailed": "Failed to check persona generation",
       "generatePersonasFailed": "Failed to generate personas",
+      "generatingPersonas": "Generating personas",
+      "generatingPersona": "Generating persona",
+      "generatingPersonasDescription": "This runs in the background, so you can leave this page and come back later.",
       "updatePersonaFailed": "Failed to update the persona",
       "personaArchived": "Persona archived",
       "archivePersonaFailed": "Failed to archive the persona",
