@@ -23,8 +23,19 @@ import {
 import { MARQUEE_CAPTION } from "@/constants/landing/marquee-quote";
 import {
   PRICING_HEADING,
+  PRICING_PLANS as PRICING_CARD_PLANS,
   PRICING_SUBHEADING,
 } from "@/constants/landing/pricing";
+import {
+  PROMPT_CALCULATOR_ANCHOR,
+  PROMPT_CALCULATOR_DAYS_PER_MONTH,
+  PROMPT_CALCULATOR_ENGINE_IDS,
+  PROMPT_CALCULATOR_FREQUENCIES,
+  PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES,
+  PROMPT_CALCULATOR_MAX_PROMPTS,
+  PROMPT_CALCULATOR_PARAMS,
+  PROMPT_CALCULATOR_TRANSLATED_PROMPTS,
+} from "@/constants/landing/prompt-calculator";
 import { BRAND_ASSETS, BRAND_COLORS, BRAND_FONTS } from "@/lib/brand/constants";
 import {
   COMPARISON_FEATURES,
@@ -145,6 +156,46 @@ export function buildFeaturesMarkdown() {
   ].join("\n");
 }
 
+function buildPromptCalculatorMarkdown() {
+  const example = `${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=120&${PROMPT_CALCULATOR_PARAMS.models}=chatgpt,claude,gemini&${PROMPT_CALCULATOR_PARAMS.frequency}=weekly#${PROMPT_CALCULATOR_ANCHOR}`;
+  const quotas = PRICING_CARD_PLANS.map((plan) =>
+    plan.answersPerMonth === null
+      ? `- ${plan.name}: more than the largest plan, custom quota`
+      : `- ${plan.name}: up to ${plan.answersPerMonth.toLocaleString("en-US")} AI answers / month`
+  );
+  const frequencies = PROMPT_CALCULATOR_FREQUENCIES.map((option) => {
+    const scans =
+      Math.round(
+        (PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays) * 10
+      ) / 10;
+    return `\`${option.id}\` (${scans} ${scans === 1 ? "scan" : "scans"} / month)`;
+  });
+
+  return [
+    "## Estimate your AI answers",
+    "",
+    "Plans are sized by AI answers tracked per month. One AI answer is one prompt answered by one model in one scan.",
+    "",
+    `AI answers / month = prompt runs × models × scans per month (a month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days, rounded up).`,
+    "",
+    `Prompt runs = prompts + min(prompts, ${PROMPT_CALCULATOR_TRANSLATED_PROMPTS}) × extra languages. Each language beyond English re-runs the first ${PROMPT_CALCULATOR_TRANSLATED_PROMPTS} prompts, up to ${PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES} extra languages.`,
+    "",
+    "Pick the smallest plan whose quota covers the estimate:",
+    "",
+    ...quotas,
+    "",
+    "The calculator on the pricing page reads its inputs from query params, so you can link a prefilled estimate:",
+    "",
+    `- \`${PROMPT_CALCULATOR_PARAMS.prompts}\`: number of prompts, 1 to ${PROMPT_CALCULATOR_MAX_PROMPTS.toLocaleString("en-US")}`,
+    `- \`${PROMPT_CALCULATOR_PARAMS.models}\`: comma-separated, any of ${PROMPT_CALCULATOR_ENGINE_IDS.map((id) => `\`${id}\``).join(", ")}`,
+    `- \`${PROMPT_CALCULATOR_PARAMS.frequency}\`: one of ${frequencies.join(", ")}`,
+    `- \`${PROMPT_CALCULATOR_PARAMS.languages}\`: extra languages beyond English, 0 to ${PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES}`,
+    "",
+    `Example: ${example}`,
+    "",
+  ].join("\n");
+}
+
 export function buildPricingMarkdown() {
   const planSections = Object.values(PRICING_PLANS)
     .map((plan) =>
@@ -184,6 +235,7 @@ export function buildPricingMarkdown() {
     "Upgrade when you need more images, posts, or projects.",
     "",
     planSections,
+    buildPromptCalculatorMarkdown(),
     "## Feature Comparison",
     "",
     comparisonSections,

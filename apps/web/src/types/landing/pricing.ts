@@ -38,6 +38,8 @@ interface PricingCta {
 
 export interface PricingPlan {
   id: string;
+  /** Monthly `ai_answers` quota; `null` means unlimited (Enterprise). */
+  answersPerMonth: number | null;
   name: string;
   description: string;
   price: Record<BillingPeriod, string>;

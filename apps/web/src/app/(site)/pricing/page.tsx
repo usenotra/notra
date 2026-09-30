@@ -3,6 +3,7 @@ import type { OfferLike } from "~types/jsonld";
 
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { LandingPricingSection } from "@/components/landing/pricing-section";
+import { PromptCalculatorSection } from "@/components/landing/prompt-calculator";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import PricingComparisonTable from "@/components/pricing-comparison-table";
 import { PRICING_SUBHEADING } from "@/constants/landing/pricing";
@@ -117,6 +118,8 @@ export default function PricingPage() {
 
       <div className="flex w-full flex-col items-stretch justify-start overflow-x-clip">
         <LandingPricingSection showHeader={false} />
+
+        <PromptCalculatorSection />
 
         <PricingComparisonTable />
 

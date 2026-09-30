@@ -433,6 +433,15 @@
   }
 }
 
+@keyframes promptSliderSweep {
+  from {
+    mask-position: -60% 0;
+  }
+  to {
+    mask-position: 160% 0;
+  }
+}
+
 @keyframes progressBar {
   0% {
     transform: translateX(-100%);
