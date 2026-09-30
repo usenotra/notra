@@ -1,6 +1,6 @@
 ---
 title: Sidebar
-description: Session context, MCP servers, LSP state and version.
+description: Session title, context usage, MCP servers, LSP state and version.
 ---
 
 <Component path="opencode/examples/opencode-sidebar" />
@@ -9,14 +9,15 @@ description: Session context, MCP servers, LSP state and version.
 bunx shadcn@latest add @notra/opencode-sidebar
 ```
 
-The sidebar scrolls inside a shadcn `ScrollArea`. The MCP list is a shadcn `Collapsible` that starts open, with a `Button` trigger, and each server is an `Item` with its status in a `Badge`. Each server's dot is green when connected, orange on error and muted when disconnected.
+The sidebar sits on its own darker panel and scrolls inside a shadcn `ScrollArea`. The MCP list is a shadcn `Collapsible` that starts open. Each server's dot is green when connected, orange when it failed and muted when disconnected. The working directory and version stick to the bottom. With `branch`, the path reads `cwd:branch` and the branch's last segment is highlighted.
 
 | Prop | Default | Description |
 | --- | --- | --- |
 | `title` | `New session` | The session title. |
-| `tokens`, `used`, `spent` | | The three Context lines. |
-| `servers` | notra, github, linear | `{ name, status? }` entries. `status` is `Connected`, `Disconnected` or `Error`. |
+| `tokens`, `used`, `spent` | `0 tokens`, `0% used`, `$0.00 spent` | The three Context lines. |
+| `servers` | notra, github, linear | `{ name, status? }` entries. `status` is `Connected`, `Disconnected` or `Failed`. |
 | `mcpOpen`, `onMcpOpenChange` | | Controls the MCP list. |
 | `lsp` | `LSPs are disabled` | The LSP line. |
-| `cwd` | `~/acme/web` | The working directory at the bottom. |
-| `version` | `1.18.25` | The version next to the product name. |
+| `cwd` | `~/acme/web` | The working directory. |
+| `branch` | | The git branch after the cwd. |
+| `version` | `1.18.33` | Shown after the product name. |

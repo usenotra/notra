@@ -8,6 +8,7 @@ export default defineMeta({
     "message",
     "activity",
     "sources",
+    "turn-footer",
     "composer",
     "sidebar",
   ],

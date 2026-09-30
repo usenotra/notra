@@ -1,0 +1,19 @@
+---
+title: Todo List
+description: The Update Todos tool call with done, active and pending items.
+---
+
+<Component path="claude-code/examples/claude-code-todo-list" />
+
+```bash
+bunx shadcn@latest add @notra/claude-code-todo-list
+```
+
+`ClaudeCodeTodoList` prints the `● Update Todos` call with the list hanging off a `⎿` below it. Done todos get a `☒` and a dim strikethrough, the active one is bold white and pending ones stay in the body color. Screen readers hear the status before each label. Change the heading with `heading`, or pass `heading={null}` to print the list on its own.
+
+```ts
+interface ClaudeCodeTodo {
+  label: string;
+  status: "done" | "active" | "todo";
+}
+```

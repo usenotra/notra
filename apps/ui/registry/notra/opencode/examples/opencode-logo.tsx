@@ -4,27 +4,30 @@ import { OpencodeWindow } from "../components/opencode-window";
 import { OPENCODE_DEMO_SESSION } from "../constants/opencode-demo";
 
 export default function OpencodeLogoExample() {
+  const session = OPENCODE_DEMO_SESSION;
+
   return (
-    <div className="p-6">
-      <OpencodeWindow>
-        <div className="flex flex-col px-5 py-4">
-          <div className="m-auto w-full max-w-xl">
-            <OpencodeLogo
-              className="mx-auto mb-5 h-auto max-w-full"
-              scale={1.2}
-            />
-            <OpencodeComposer />
-            <p className="text-opencode-muted mt-5 mb-4 text-center text-[0.8125rem] leading-[1.3]">
-              <span className="text-opencode-orange">● Tip</span> Create JSON
-              theme files in{" "}
-              <span className="text-opencode-fg">.opencode/themes/</span>{" "}
-              directory
-            </p>
-          </div>
-          <div className="text-opencode-muted flex items-center justify-between text-[0.8125rem] leading-[1.3]">
-            <span>{OPENCODE_DEMO_SESSION.cwd} · 3 MCP</span>
-            <span>{OPENCODE_DEMO_SESSION.version}</span>
-          </div>
+    <div className="w-full p-6">
+      <OpencodeWindow className="px-[2ch] pt-[2lh] pb-[0.5lh]">
+        <div className="m-auto flex w-full max-w-xl flex-col gap-[2lh]">
+          <OpencodeLogo className="mx-auto h-auto max-w-full" />
+          <OpencodeComposer
+            agent={session.agent}
+            effort={session.effort}
+            model={session.model}
+            provider={session.provider}
+          />
+          <p className="text-opencode-muted text-center">
+            <span className="text-opencode-orange">● Tip</span> Press{" "}
+            <span className="text-opencode-fg">tab</span> to switch between the
+            Build and Plan agents
+          </p>
+        </div>
+        <div className="text-opencode-muted mt-[2lh] flex justify-between gap-[2ch]">
+          <span className="truncate">
+            {session.cwd}:{session.branch}
+          </span>
+          <span>{session.version}</span>
         </div>
       </OpencodeWindow>
     </div>

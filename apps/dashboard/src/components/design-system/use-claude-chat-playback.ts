@@ -1,6 +1,6 @@
 "use client";
 
-import { claudeChatSearchDuration } from "@notra/ui/components/brainless/claude-chat/claude-chat-search-timing";
+import { claudeChatSearchDuration } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-search-timing";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ClaudeChatStoryMessage } from "@/types/design-system-claude-chat";

@@ -1,9 +1,9 @@
 ---
 title: OpenCode
-description: A full recreation of an OpenCode session with activity, sources, a composer and the sidebar.
+description: A recreation of an OpenCode terminal session with a transcript, the prompt and the sidebar.
 ---
 
-A rebuild of a session in the OpenCode terminal UI, composed from the [OpenCode components](/components/opencode/window). The sidebar shows from the `md` breakpoint up.
+A rebuild of a session in the OpenCode terminal UI, composed from the [OpenCode components](/components/opencode/window). The transcript sticks to the bottom like a terminal and the sidebar shows from the `md` breakpoint up.
 
 <Component path="opencode/examples/opencode-demo" />
 
@@ -15,25 +15,25 @@ bunx shadcn@latest add @notra/opencode
 
 This adds every OpenCode component to `components/opencode` along with the demo session.
 
-The components use the system monospace stack through `font-opencode`. Point it at your own mono font to change it.
+The components use the system monospace stack through `font-opencode`. Point it at your own mono font to change it. Spacing is measured in terminal cells, `ch` across and `lh` down, so it follows the font.
 
-## OpencodeWindow
+## Layout
 
-The root is a shadcn `Card` that paints the workspace background and border, so it takes every `Card` prop. The demo splits it into a transcript column and an `OpencodeSidebar` with a CSS grid.
+`OpencodeWindow` is a shadcn `Card`. The demo splits it with a CSS grid into the transcript column and an `OpencodeSidebar`. The transcript is a reversed flex column, so it opens scrolled to the latest turn, and `OpencodeComposer` sits under it.
 
 ## Theming
 
-The block is built on the shadcn Base UI style. It uses shadcn `Badge`, `Button`, `Card`, `Collapsible`, `InputGroup`, `Item`, `Kbd` and `ScrollArea`, and the CLI installs any you're missing.
+The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup`, `Kbd` and `ScrollArea`, and the CLI installs any you're missing.
 
-Its colors are `--opencode-*` tokens that the CLI adds to your CSS with light and dark values, mapped to utilities like `bg-opencode-surface` and `text-opencode-purple`. Change them in your CSS to retheme it, or point them at your own tokens:
+Its colors are `--opencode-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-opencode-panel` and `text-opencode-blue`. OpenCode is shown in its dark theme in both light and dark mode. Change the tokens in your CSS to retheme it:
 
 ```css
 :root {
-  --opencode-bg: var(--background);
-  --opencode-purple: var(--primary);
+  --opencode-bg: #090909;
+  --opencode-blue: var(--primary);
 }
 ```
 
 ## Trademarks
 
-OpenCode is a trademark of its respective owner. Notra is not affiliated with or endorsed by the OpenCode project. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).
+OpenCode is a trademark of its respective owner. Notra is not affiliated with or endorsed by the OpenCode project. See [Trademarks](/trademarks).

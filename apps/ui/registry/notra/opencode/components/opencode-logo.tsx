@@ -1,9 +1,32 @@
 import { cn } from "cn";
 
+import { OPENCODE_LOGO_CELL, OPENCODE_LOGO_ROWS } from "../constants/opencode";
 import type { OpencodeLogoProps } from "../types/opencode";
 
-const LOGO_WIDTH = 234;
-const LOGO_HEIGHT = 42;
+const COLUMNS = OPENCODE_LOGO_ROWS[0].length;
+const WIDTH = COLUMNS * OPENCODE_LOGO_CELL;
+const HEIGHT = OPENCODE_LOGO_ROWS.length * OPENCODE_LOGO_CELL;
+
+const CELL_FILL: Record<string, string> = {
+  "+": "fill-opencode-logo-fill",
+  c: "fill-opencode-logo-code",
+  o: "fill-opencode-logo-open",
+};
+
+const LOGO_CELLS = OPENCODE_LOGO_ROWS.flatMap((row, y) =>
+  [...row].flatMap((cell, x) =>
+    cell in CELL_FILL
+      ? [
+          {
+            className: CELL_FILL[cell],
+            key: `${x}-${y}`,
+            x: x * OPENCODE_LOGO_CELL,
+            y: y * OPENCODE_LOGO_CELL,
+          },
+        ]
+      : []
+  )
+);
 
 export const OpencodeLogo = ({
   "aria-label": ariaLabel = "OpenCode",
@@ -15,34 +38,22 @@ export const OpencodeLogo = ({
     aria-label={ariaLabel}
     className={cn("block", className)}
     data-slot="opencode-logo"
-    height={LOGO_HEIGHT * scale}
+    height={HEIGHT * scale}
     role="img"
     shapeRendering="crispEdges"
-    viewBox={`0 0 ${LOGO_WIDTH} ${LOGO_HEIGHT}`}
-    width={LOGO_WIDTH * scale}
+    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+    width={WIDTH * scale}
     {...props}
   >
-    <g className="fill-opencode-logo-fill">
-      <path d="M18 30H6V18H18V30Z" />
-      <path d="M48 30H36V18H48V30Z" />
-      <path d="M84 24V30H66V24H84Z" />
-      <path d="M108 36H96V18H108V36Z" />
-      <path d="M144 30H126V18H144V30Z" />
-      <path d="M168 30H156V18H168V30Z" />
-      <path d="M198 30H186V18H198V30Z" />
-      <path d="M234 24V30H216V24H234Z" />
-    </g>
-    <g className="fill-opencode-logo-open">
-      <path d="M18 12H6V30H18V12ZM24 36H0V6H24V36Z" />
-      <path d="M36 30H48V12H36V30ZM54 36H36V42H30V6H54V36Z" />
-      <path d="M84 24H66V30H84V36H60V6H84V24ZM66 18H78V12H66V18Z" />
-      <path d="M108 12H96V36H90V6H108V12ZM114 36H108V12H114V36Z" />
-    </g>
-    <g className="fill-opencode-logo-code">
-      <path d="M144 12H126V30H144V36H120V6H144V12Z" />
-      <path d="M168 12H156V30H168V12ZM174 36H150V6H174V36Z" />
-      <path d="M198 12H186V30H198V12ZM204 36H180V6H198V0H204V36Z" />
-      <path d="M216 12V18H228V12H216ZM234 24H216V30H234V36H210V6H234V24Z" />
-    </g>
+    {LOGO_CELLS.map((cell) => (
+      <rect
+        className={cell.className}
+        height={OPENCODE_LOGO_CELL}
+        key={cell.key}
+        width={OPENCODE_LOGO_CELL}
+        x={cell.x}
+        y={cell.y}
+      />
+    ))}
   </svg>
 );

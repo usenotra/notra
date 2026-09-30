@@ -1,6 +1,6 @@
 ---
 title: Activity
-description: Reasoning and tool lines from the OpenCode activity stream.
+description: Thoughts, file reads and tool calls from the OpenCode activity stream.
 ---
 
 <Component path="opencode/examples/opencode-activity" />
@@ -9,13 +9,22 @@ description: Reasoning and tool lines from the OpenCode activity stream.
 bunx shadcn@latest add @notra/opencode-activity
 ```
 
-`OpencodeActivity` is a shadcn `Collapsible` around an `Item`. `kind="thought"` renders an orange `Thought:` line. `kind="read"` renders a muted `→ Read path` line. `kind="tool"`, the default, renders a muted tool call with a gear. Pass `children` as the step's body, such as reasoning or tool output. The body is collapsed by default and opens when you click the line.
+`OpencodeActivity` is a shadcn `Collapsible`. Each `kind` has its own line:
+
+- `thought` renders an orange `Thought · 1.4s` line. With `pending` it becomes a spinning `Thinking` line.
+- `read` renders a muted `→ Read path` line.
+- `search` renders a muted `◈ Web Search "query"` line.
+- `tool`, the default, renders a muted `⚙ name [args]` line.
+
+Pass `children` as the step's body, like reasoning or tool output. The body is collapsed and opens when you click the line. Stack consecutive tool lines in one wrapper and put a line of space around thoughts to match the TUI.
 
 | Prop | Default | Description |
 | --- | --- | --- |
-| `label` | | The thought or tool name. |
-| `kind` | `tool` | `thought`, `read` or `tool`. |
-| `children` | | The collapsed body. Without it the line isn't expandable. |
-| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Collapsible state, controlled or uncontrolled. |
-| `detail` | | Arguments shown in brackets, like `range=week`. |
+| `kind` | `tool` | `thought`, `read`, `search` or `tool`. |
+| `label` | by kind | Replaces `Thought`, `Read`, `Web Search` or the tool name. |
+| `detail` | | Arguments after the label, like a path or a query. |
 | `duration` | | Shown after a dot, like `1.4s`. |
+| `pending` | `false` | Shows the animated `Thinking` line for a running thought. |
+| `reducedMotion` | user preference | Freezes the spinner. |
+| `children` | | The collapsed body. Without it the line isn't expandable. |
+| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Collapsible state. |

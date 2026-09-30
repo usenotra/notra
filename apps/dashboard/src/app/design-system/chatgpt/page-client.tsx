@@ -2,12 +2,12 @@
 
 import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ChatgptActions } from "@notra/ui/components/brainless/chatgpt/chatgpt-actions";
-import { ChatgptActivity } from "@notra/ui/components/brainless/chatgpt/chatgpt-activity";
-import { ChatgptComposer } from "@notra/ui/components/brainless/chatgpt/chatgpt-composer";
-import { ChatgptMessage } from "@notra/ui/components/brainless/chatgpt/chatgpt-message";
-import { ChatgptReasoning } from "@notra/ui/components/brainless/chatgpt/chatgpt-reasoning";
-import { ChatgptThinking } from "@notra/ui/components/brainless/chatgpt/chatgpt-thinking";
+import { ChatgptActions } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-actions";
+import { ChatgptActivity } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-activity";
+import { ChatgptComposer } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-composer";
+import { ChatgptMessage } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-message";
+import { ChatgptReasoning } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-reasoning";
+import { ChatgptThinking } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-thinking";
 import {
   MessageScroller,
   MessageScrollerButton,

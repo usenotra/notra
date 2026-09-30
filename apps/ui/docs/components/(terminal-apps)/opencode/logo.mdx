@@ -1,6 +1,6 @@
 ---
 title: Logo
-description: The pixel wordmark from the OpenCode welcome screen.
+description: The block-letter wordmark from the OpenCode home screen.
 ---
 
 <Component path="opencode/examples/opencode-logo" />
@@ -9,7 +9,7 @@ description: The pixel wordmark from the OpenCode welcome screen.
 bunx shadcn@latest add @notra/opencode-logo
 ```
 
-`OpencodeLogo` is an `svg` drawn on a 234 by 42 grid. Its three fills come from the `--opencode-logo-*` tokens, so it switches with light and dark mode.
+`OpencodeLogo` draws the wordmark as square cells on a 39 by 7 grid. "open" uses `--opencode-logo-open`, "code" uses `--opencode-logo-code` and the counters inside the letters use `--opencode-logo-fill`.
 
 | Prop | Default | Description |
 | --- | --- | --- |

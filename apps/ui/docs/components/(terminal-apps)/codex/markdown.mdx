@@ -1,0 +1,19 @@
+---
+title: Markdown
+description: Lists, tables and inline code styled like Codex's rendered answers.
+---
+
+<Component path="codex/examples/codex-markdown" />
+
+```bash
+bunx shadcn@latest add @notra/codex-markdown
+```
+
+Put these inside an assistant `CodexMessage`. `CodexList` draws `•` bullets with a hanging indent. `CodexTable` has bold yellow headers and thin gray rules under each row, with gaps between the columns. `CodexCode` colors inline code green.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `headers` | | `CodexTable` column headers. |
+| `rows` | | `CodexTable` rows, one array of cells per row. |
+| `codeColumns` | `[]` | `CodexTable` column indexes to color like code. |
+| `items` | | `CodexList` items. |

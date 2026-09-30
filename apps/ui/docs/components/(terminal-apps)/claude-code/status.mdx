@@ -1,0 +1,23 @@
+---
+title: Status
+description: The orange spinner line while Claude works and the dim summary after a turn.
+---
+
+<Component path="claude-code/examples/claude-code-status" />
+
+```bash
+bunx shadcn@latest add @notra/claude-code-status
+```
+
+`ClaudeCodeSpinner` is the line Claude Code shows while a turn runs: an orange glyph that cycles through `· ✢ ✳ ✶ ✻ ✽`, the verb in orange and the elapsed time, tokens and extra details in dim parentheses. A `tip` prints on a `⎿` line under it. The glyph holds still with `paused` or when the visitor prefers reduced motion, and the root is a `role="status"` region.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `verb` | `Thinking` | Printed with a trailing `…`, like `Sketching…`. |
+| `elapsed` | | Like `14s`. |
+| `tokens` | | Shown as `↓ 688 tokens`. |
+| `details` | `[]` | More fields in the parentheses, like `thinking`. |
+| `tip` | | The `⎿` line below. Supports `` `code` ``. |
+| `paused` | `false` | Freezes the glyph. |
+
+`ClaudeCodeTurnSummary` is the dim `✻ Cogitated for 7s · done 9:41 AM` line after a finished turn. It takes `duration`, `doneAt` and `verb`, which defaults to `Worked`.

@@ -7,12 +7,12 @@ import {
 
 export default function OpencodeSourcesExample() {
   return (
-    <div className="p-6">
-      <OpencodeWindow className="p-5 sm:p-6">
+    <div className="w-full p-6">
+      <OpencodeWindow className="px-[2ch] py-[1lh]">
         <OpencodeSources
           defaultOpen
           queries={OPENCODE_DEMO_QUERIES}
-          sources={OPENCODE_DEMO_SOURCES.slice(0, 4)}
+          sources={OPENCODE_DEMO_SOURCES}
         />
       </OpencodeWindow>
     </div>

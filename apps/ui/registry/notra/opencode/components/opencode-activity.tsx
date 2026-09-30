@@ -8,17 +8,33 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
 
+import {
+  OPENCODE_ACTIVITY_GLYPH,
+  OPENCODE_ACTIVITY_LABEL,
+  OPENCODE_THINKING_FRAME_MS,
+  OPENCODE_THINKING_FRAMES,
+} from "../constants/opencode";
+import { useOpencodeFrame } from "../hooks/use-opencode-frame";
+import { useOpencodeReducedMotion } from "../hooks/use-opencode-reduced-motion";
 import type { OpencodeActivityProps } from "../types/opencode";
 
-const ACTIVITY_ICONS = { read: "→", thought: "+", tool: "⚙" } as const;
+const TRIGGER_CLASS =
+  "focus-visible:ring-opencode-blue h-auto justify-start gap-0 rounded-none p-0 text-start text-[length:inherit] leading-[inherit] font-normal whitespace-normal text-current hover:bg-transparent hover:text-current focus-visible:border-transparent focus-visible:ring-1 active:not-aria-[haspopup]:translate-y-0 aria-expanded:bg-transparent aria-expanded:text-current dark:hover:bg-transparent";
+
+const ThinkingGlyph = ({ reducedMotion }: { reducedMotion?: boolean }) => {
+  const reduced = useOpencodeReducedMotion(reducedMotion);
+  const frame = useOpencodeFrame(
+    OPENCODE_THINKING_FRAMES.length,
+    OPENCODE_THINKING_FRAME_MS,
+    !reduced
+  );
+  return (
+    <span aria-hidden="true" className="inline-block w-[2ch] shrink-0">
+      {OPENCODE_THINKING_FRAMES[frame]}
+    </span>
+  );
+};
 
 export const OpencodeActivity = ({
   children,
@@ -28,22 +44,39 @@ export const OpencodeActivity = ({
   duration,
   kind = "tool",
   label,
+  pending = false,
+  reducedMotion,
   ...props
 }: OpencodeActivityProps) => {
   const isThought = kind === "thought";
-  const summary = (
-    <>
-      {isThought && <span>Thought: </span>}
-      <span>{label}</span>
-      {detail && <span> [{detail}]</span>}
-      {duration && <span> · {duration}</span>}
-    </>
-  );
+  const glyph = OPENCODE_ACTIVITY_GLYPH[kind];
+  const name = label ?? OPENCODE_ACTIVITY_LABEL[kind];
+
+  const summary =
+    isThought && pending ? (
+      <>
+        <ThinkingGlyph reducedMotion={reducedMotion} />
+        <span>Thinking</span>
+      </>
+    ) : (
+      <>
+        {glyph && (
+          <span aria-hidden="true" className="inline-block w-[2ch] shrink-0">
+            {glyph}
+          </span>
+        )}
+        <span className="min-w-0 wrap-break-word">
+          {name}
+          {detail && <> {detail}</>}
+          {duration && <> · {duration}</>}
+        </span>
+      </>
+    );
 
   return (
     <Collapsible
       className={cn(
-        "font-opencode text-[0.8125rem] leading-[1.3]",
+        "ps-[3ch]",
         isThought ? "text-opencode-orange" : "text-opencode-muted",
         className
       )}
@@ -52,45 +85,27 @@ export const OpencodeActivity = ({
       defaultOpen={defaultOpen}
       {...props}
     >
-      <Item className="flex-nowrap items-start gap-[1ch] rounded-none border-0 p-0 text-[length:inherit] leading-[inherit]">
-        <ItemMedia
-          aria-hidden="true"
-          className="group-has-data-[slot=item-description]/item:translate-y-0"
+      {children ? (
+        <CollapsibleTrigger
+          render={<Button className={TRIGGER_CLASS} variant="ghost" />}
         >
-          {ACTIVITY_ICONS[kind]}
-        </ItemMedia>
-        <ItemContent className="min-w-0 gap-0">
-          <ItemTitle className="line-clamp-none block w-auto text-[length:inherit] leading-[inherit] font-normal wrap-break-word">
-            {children ? (
-              <CollapsibleTrigger
-                render={
-                  <Button
-                    className="group/opencode-activity focus-visible:ring-opencode-purple/60 inline h-auto rounded-xs p-0 text-start text-[length:inherit] leading-[inherit] font-normal whitespace-normal text-current hover:bg-transparent hover:text-current focus-visible:border-transparent focus-visible:ring-1 active:not-aria-[haspopup]:translate-y-0 aria-expanded:bg-transparent aria-expanded:text-current dark:hover:bg-transparent"
-                    variant="ghost"
-                  />
-                }
-              >
-                {summary}
-                <span
-                  aria-hidden="true"
-                  className="ms-[1ch] inline-block text-[0.625rem] opacity-70 transition-transform duration-150 group-hover/opencode-activity:opacity-100 group-data-panel-open/opencode-activity:rotate-90 motion-reduce:transition-none"
-                >
-                  ▶
-                </span>
-              </CollapsibleTrigger>
-            ) : (
-              summary
+          <span className="flex min-w-0">{summary}</span>
+        </CollapsibleTrigger>
+      ) : (
+        <div className="flex min-w-0">{summary}</div>
+      )}
+      {children && (
+        <CollapsibleContent>
+          <div
+            className={cn(
+              "text-opencode-muted mt-[1lh] whitespace-pre-wrap",
+              isThought ? "italic" : "ps-[2ch]"
             )}
-          </ItemTitle>
-          {children && (
-            <CollapsibleContent>
-              <ItemDescription className="text-opencode-muted line-clamp-none text-[length:inherit] leading-[inherit] whitespace-pre-wrap">
-                {children}
-              </ItemDescription>
-            </CollapsibleContent>
-          )}
-        </ItemContent>
-      </Item>
+          >
+            {children}
+          </div>
+        </CollapsibleContent>
+      )}
     </Collapsible>
   );
 };

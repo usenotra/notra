@@ -1,0 +1,16 @@
+---
+title: Message
+description: User and assistant turns in the Codex transcript.
+---
+
+<Component path="codex/examples/codex-message" />
+
+```bash
+bunx shadcn@latest add @notra/codex-message
+```
+
+`from="user"` draws the turn on a full-width gray band with a dim `›`. Assistant turns, the default, start with a dim `•` in the gutter and stack their children with a blank line between them, so paragraphs, [lists and tables](/components/codex/markdown) read like Codex's rendered markdown. Both render a `div` and take all of its props.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `from` | `assistant` | `user` or `assistant`. |

@@ -1,59 +1,127 @@
-import { ItemGroup } from "@/components/ui/item";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Fragment } from "react";
 
 import { OpencodeActivity } from "../components/opencode-activity";
 import { OpencodeComposer } from "../components/opencode-composer";
 import { OpencodeMessage } from "../components/opencode-message";
 import { OpencodeSidebar } from "../components/opencode-sidebar";
-import { OpencodeSources } from "../components/opencode-sources";
+import { OpencodeTurnFooter } from "../components/opencode-turn-footer";
 import { OpencodeWindow } from "../components/opencode-window";
 import {
   OPENCODE_DEMO_SESSION,
-  OPENCODE_DEMO_SOURCES,
+  OPENCODE_DEMO_TURNS,
 } from "../constants/opencode-demo";
+import type {
+  OpencodeDemoActivity,
+  OpencodeDemoBlock,
+  OpencodeDemoSpan,
+} from "../types/opencode";
+
+const spanKey = (span: OpencodeDemoSpan, index: number) =>
+  `${index}-${typeof span === "string" ? span : Object.values(span)[0]}`;
+
+const Spans = ({ spans }: { spans: OpencodeDemoSpan[] }) =>
+  spans.map((span, index) => {
+    const key = spanKey(span, index);
+    if (typeof span === "string") {
+      return <Fragment key={key}>{span}</Fragment>;
+    }
+    if ("code" in span) {
+      return <code key={key}>{span.code}</code>;
+    }
+    return <strong key={key}>{span.strong}</strong>;
+  });
+
+const ReplyBlock = ({ block }: { block: OpencodeDemoBlock }) => {
+  if ("heading" in block) {
+    return <h3>{block.heading}</h3>;
+  }
+  if ("items" in block) {
+    return (
+      <ul>
+        {block.items.map((item) => (
+          <li key={item.id}>
+            <Spans spans={item.spans} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <p>
+      <Spans spans={block.text} />
+    </p>
+  );
+};
+
+/** Consecutive tool lines stack without a gap, thoughts stand alone. */
+const groupActivities = (activities: OpencodeDemoActivity[]) =>
+  activities.reduce<OpencodeDemoActivity[][]>((groups, activity) => {
+    const last = groups.at(-1);
+    const stacks =
+      last && activity.kind !== "thought" && last[0]?.kind !== "thought";
+    if (stacks) {
+      last.push(activity);
+    } else {
+      groups.push([activity]);
+    }
+    return groups;
+  }, []);
 
 export default function OpencodeDemo() {
   const session = OPENCODE_DEMO_SESSION;
 
   return (
-    <div className="w-full min-w-0">
-      <OpencodeWindow className="h-150">
-        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_15rem]">
-          <div className="flex min-h-0 min-w-0 flex-col">
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="space-y-[1.0625rem] p-4 pb-0 sm:p-6 sm:pb-0">
-                <OpencodeMessage from="user">
-                  {session.userMessage}
-                </OpencodeMessage>
-                <OpencodeMessage>{session.assistantMessage}</OpencodeMessage>
-                <ItemGroup className="gap-0">
-                  {session.activities.map(({ body, id, ...activity }) => (
-                    <OpencodeActivity key={id} role="listitem" {...activity}>
-                      {body}
-                    </OpencodeActivity>
+    <OpencodeWindow className="h-150">
+      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_minmax(16rem,30%)]">
+        <div className="flex min-h-0 min-w-0 flex-col gap-[1lh] px-[2ch] pt-[1lh] pb-[0.5lh]">
+          <div className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto">
+            <div className="flex flex-col gap-[1lh]">
+              {OPENCODE_DEMO_TURNS.map((turn) => (
+                <Fragment key={turn.id}>
+                  <OpencodeMessage from="user">{turn.prompt}</OpencodeMessage>
+                  {groupActivities(turn.activities).map((group) => (
+                    <div key={group[0]?.id}>
+                      {group.map(({ id, ...activity }) => (
+                        <OpencodeActivity key={id} {...activity} />
+                      ))}
+                    </div>
                   ))}
-                </ItemGroup>
-                <OpencodeSources sources={OPENCODE_DEMO_SOURCES} />
-                <OpencodeMessage>{session.resultMessage}</OpencodeMessage>
-              </div>
-            </ScrollArea>
-            <OpencodeComposer
-              className="shrink-0 px-4 pt-[1.0625rem] pb-4 sm:px-6 sm:pb-6"
-              context={session.context}
-              placeholder={session.promptPlaceholder}
-            />
+                  <OpencodeMessage>
+                    {turn.reply.map((block) => (
+                      <ReplyBlock block={block} key={block.id} />
+                    ))}
+                  </OpencodeMessage>
+                  <OpencodeTurnFooter
+                    agent={session.agent}
+                    duration={turn.duration}
+                    model={session.model}
+                  />
+                </Fragment>
+              ))}
+            </div>
           </div>
-          <OpencodeSidebar
-            className="hidden min-h-0 md:flex"
+          <OpencodeComposer
+            agent={session.agent}
+            context={session.context}
             cwd={session.cwd}
-            servers={session.servers}
-            title={session.title}
-            tokens={session.tokens}
-            used={session.used}
-            version={session.version}
+            effort={session.effort}
+            model={session.model}
+            placeholder=""
+            provider={session.provider}
           />
         </div>
-      </OpencodeWindow>
-    </div>
+        <OpencodeSidebar
+          branch={session.branch}
+          className="hidden md:flex"
+          cwd={session.cwd}
+          servers={session.servers}
+          spent={session.spent}
+          title={session.title}
+          tokens={session.tokens}
+          used={session.used}
+          version={session.version}
+        />
+      </div>
+    </OpencodeWindow>
   );
 }

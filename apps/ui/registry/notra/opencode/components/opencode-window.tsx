@@ -10,7 +10,7 @@ export const OpencodeWindow = ({
 }: OpencodeWindowProps) => (
   <Card
     className={cn(
-      "border-opencode-subtle bg-opencode-bg font-opencode text-opencode-fg flex w-full flex-col gap-0 overflow-hidden rounded-[1.25rem] border py-0 text-base antialiased ring-0",
+      "border-opencode-subtle bg-opencode-bg font-opencode text-opencode-fg flex w-full flex-col gap-0 overflow-hidden rounded-xl border py-0 text-[0.8125rem] leading-5 antialiased ring-0",
       className
     )}
     data-slot="opencode-window"

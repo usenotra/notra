@@ -6,12 +6,14 @@ export default function OpencodeSidebarExample() {
   const session = OPENCODE_DEMO_SESSION;
 
   return (
-    <div className="p-4">
-      <OpencodeWindow className="max-w-sm">
+    <div className="w-full p-6">
+      <OpencodeWindow className="h-120 max-w-xs">
         <OpencodeSidebar
-          className="border-s-0"
+          branch={session.branch}
+          className="flex-1"
           cwd={session.cwd}
           servers={session.servers}
+          spent={session.spent}
           title={session.title}
           tokens={session.tokens}
           used={session.used}

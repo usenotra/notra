@@ -1,6 +1,6 @@
 ---
 title: Message
-description: User and assistant turns in the OpenCode transcript.
+description: User prompts and assistant replies in the OpenCode transcript.
 ---
 
 <Component path="opencode/examples/opencode-message" />
@@ -9,7 +9,9 @@ description: User and assistant turns in the OpenCode transcript.
 bunx shadcn@latest add @notra/opencode-message
 ```
 
-`from="user"` renders the turn in a panel with OpenCode's purple rule. Assistant turns, the default, are plain text with two optional slots.
+`from="user"` renders the prompt on a raised panel with a blue rule on the left. Assistant replies, the default, are indented plain text. Markup inside a reply takes the TUI's markdown colors: headings and `strong` in bold orange, `code` in green, and list items get an orange dash.
+
+Space the transcript one line apart, like the terminal, with `gap-[1lh]` on the parent.
 
 | Prop | Default | Description |
 | --- | --- | --- |

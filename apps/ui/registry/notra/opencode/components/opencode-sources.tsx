@@ -9,12 +9,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Item,
-  ItemDescription,
-  ItemGroup,
-  ItemTitle,
-} from "@/components/ui/item";
 
 import { OPENCODE_SEARCH_STAGGER_MS } from "../constants/opencode";
 import { useOpencodeReducedMotion } from "../hooks/use-opencode-reduced-motion";
@@ -26,17 +20,11 @@ import type {
 } from "../types/opencode";
 import { OpencodeActivity } from "./opencode-activity";
 
-const MARKDOWN_URL_AFFIX_PATTERN = /\)\*+$/u;
-const EMPTY_QUERIES: readonly string[] = [];
+const TRAILING_MARKDOWN_PATTERN = /\)\*+$/u;
+const NO_QUERIES: readonly string[] = [];
 
-const ENTER_CLASS =
-  "translate-y-0 opacity-100 transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] starting:translate-y-1 starting:opacity-0 motion-reduce:transition-none motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-100";
-
-const ROW_CLASS =
-  "text-opencode-fg focus-visible:ring-opencode-purple/60 grid grid-cols-[minmax(0,20ch)_minmax(0,1fr)] items-baseline gap-[2ch] rounded-sm border-0 p-0 text-[0.8125rem] leading-[1.3] focus-visible:border-transparent focus-visible:ring-1 [a]:hover:bg-transparent";
-
-const CELL_CLASS =
-  "block w-auto min-w-0 truncate text-[length:inherit] leading-[inherit] font-normal";
+const REVEAL_CLASS =
+  "opacity-100 transition-opacity duration-200 ease-out delay-(--opencode-delay) starting:opacity-0 motion-reduce:transition-none";
 
 const DEFAULT_LABELS: OpencodeSourcesLabels = {
   citedSources: (count) =>
@@ -44,72 +32,64 @@ const DEFAULT_LABELS: OpencodeSourcesLabels = {
   openSource: (title, domain) => `Open ${title} on ${domain}`,
 };
 
-const citedSourceUrl = (url: string) =>
-  url.replace(MARKDOWN_URL_AFFIX_PATTERN, "");
+const cleanUrl = (url: string) => url.replace(TRAILING_MARKDOWN_PATTERN, "");
 
-const sourceHref = (url: string | undefined) => {
+const safeHref = (url: string | undefined) => {
   if (!url) {
     return null;
   }
   try {
-    const parsed = new URL(citedSourceUrl(url));
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return null;
-    }
-    return parsed.href;
+    const parsed = new URL(cleanUrl(url));
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.href
+      : null;
   } catch {
     return null;
   }
 };
 
-const OpencodeSourceRow = ({
-  className,
+const SourceLine = ({
   delayMs,
   openLabel,
   source,
 }: {
-  className?: string;
   delayMs?: number;
   openLabel: OpencodeSourcesLabels["openSource"];
   source: OpencodeSource;
 }) => {
-  const href = sourceHref(source.url);
-  const urlLabel = source.url ? citedSourceUrl(source.url) : source.title;
+  const href = safeHref(source.url);
+  const style =
+    delayMs === undefined
+      ? undefined
+      : ({ "--opencode-delay": `${delayMs}ms` } as CSSProperties);
+  const content = (
+    <>
+      <span className="text-opencode-fg truncate">{source.domain}</span>
+      <span className="text-opencode-muted truncate">
+        {source.url ? cleanUrl(source.url) : source.title}
+      </span>
+    </>
+  );
+  const lineClass = cn(
+    "grid grid-cols-[minmax(0,18ch)_minmax(0,1fr)] gap-[2ch]",
+    delayMs !== undefined && REVEAL_CLASS
+  );
 
   return (
-    <li className="contents">
-      <Item
-        aria-label={href ? openLabel(source.title, source.domain) : undefined}
-        className={cn(
-          ROW_CLASS,
-          delayMs !== undefined && "delay-(--opencode-delay)",
-          className
-        )}
-        render={
-          href
-            ? (linkProps) => (
-                <a
-                  {...linkProps}
-                  href={href}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  {linkProps.children}
-                </a>
-              )
-            : undefined
-        }
-        style={
-          delayMs === undefined
-            ? undefined
-            : ({ "--opencode-delay": `${delayMs}ms` } as CSSProperties)
-        }
-      >
-        <ItemTitle className={CELL_CLASS}>{source.domain}</ItemTitle>
-        <ItemDescription className={cn(CELL_CLASS, "text-opencode-muted")}>
-          {urlLabel}
-        </ItemDescription>
-      </Item>
+    <li className={lineClass} style={style}>
+      {href ? (
+        <a
+          aria-label={openLabel(source.title, source.domain)}
+          className="focus-visible:ring-opencode-blue col-span-2 grid grid-cols-subgrid outline-none hover:underline focus-visible:ring-1"
+          href={href}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {content}
+        </a>
+      ) : (
+        content
+      )}
     </li>
   );
 };
@@ -118,75 +98,67 @@ export const OpencodeSources = ({
   className,
   defaultOpen = false,
   labels = DEFAULT_LABELS,
-  queries = EMPTY_QUERIES,
+  queries = NO_QUERIES,
   reducedMotion,
   sequential = false,
   sources,
   ...props
 }: OpencodeSourcesProps) => {
   const reduced = useOpencodeReducedMotion(reducedMotion);
-  const shouldSequence = sequential && !reduced;
+  const staged = sequential && !reduced;
   const progress = useOpencodeSourcesSequence(
-    shouldSequence,
+    staged,
     queries.length,
     sources.length
   );
-
-  const visibleQueryCount = shouldSequence ? progress.queries : queries.length;
-  const showSources = shouldSequence ? progress.sources : sources.length > 0;
 
   if (sources.length === 0 && queries.length === 0) {
     return null;
   }
 
-  const visibleQueries = queries.slice(0, visibleQueryCount);
-  const enterClass = shouldSequence ? ENTER_CLASS : undefined;
+  const shownQueries = staged ? queries.slice(0, progress.queries) : queries;
+  const showSources = staged ? progress.sources : sources.length > 0;
 
   return (
     <Collapsible
-      aria-live={shouldSequence ? "polite" : undefined}
-      className={cn("font-opencode flex w-full flex-col gap-0", className)}
+      aria-live={staged ? "polite" : undefined}
+      className={cn("flex w-full min-w-0 flex-col", className)}
       data-slot="opencode-sources"
       defaultOpen={defaultOpen}
       {...props}
     >
-      {visibleQueries.map((query) => (
+      {shownQueries.map((query) => (
         <OpencodeActivity
-          className={enterClass}
-          detail={`query=${query}`}
+          className={cn(staged && REVEAL_CLASS)}
+          detail={`"${query}"`}
           key={query}
-          kind="tool"
-          label="websearch"
+          kind="search"
         />
       ))}
       {showSources && (
-        <div className="flex flex-col gap-0">
+        <div className={cn("ps-[5ch]", staged && REVEAL_CLASS)}>
           <CollapsibleTrigger
             render={
               <Button
-                className={cn(
-                  "group/opencode-sources text-opencode-muted hover:text-opencode-fg aria-expanded:text-opencode-muted focus-visible:ring-opencode-purple/60 h-auto w-fit justify-start gap-[1ch] rounded-xs p-0 text-[0.8125rem] leading-[1.3] font-normal hover:bg-transparent focus-visible:border-transparent focus-visible:ring-1 active:not-aria-[haspopup]:translate-y-0 aria-expanded:bg-transparent dark:hover:bg-transparent",
-                  enterClass
-                )}
+                className="group/sources text-opencode-muted hover:text-opencode-fg aria-expanded:text-opencode-muted focus-visible:ring-opencode-blue h-auto gap-[1ch] rounded-none p-0 text-[length:inherit] leading-[inherit] font-normal hover:bg-transparent focus-visible:border-transparent focus-visible:ring-1 active:not-aria-[haspopup]:translate-y-0 aria-expanded:bg-transparent dark:hover:bg-transparent"
                 variant="ghost"
               />
             }
           >
-            {labels.citedSources(sources.length)}
             <span
               aria-hidden="true"
-              className="inline-block text-[0.625rem] transition-transform duration-150 group-data-panel-open/opencode-sources:rotate-90 motion-reduce:transition-none"
+              className="inline-block w-[1ch] text-[0.75em] transition-transform duration-150 group-aria-expanded/sources:rotate-90 motion-reduce:transition-none"
             >
               ▶
             </span>
+            {labels.citedSources(sources.length)}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <ItemGroup className="gap-0">
+            <ul className="ps-[2ch]">
               {sources.map((source, index) => (
-                <OpencodeSourceRow
-                  className={enterClass}
+                <SourceLine
                   delayMs={
-                    shouldSequence
+                    staged
                       ? (index + 1) * OPENCODE_SEARCH_STAGGER_MS
                       : undefined
                   }
@@ -195,7 +167,7 @@ export const OpencodeSources = ({
                   source={source}
                 />
               ))}
-            </ItemGroup>
+            </ul>
           </CollapsibleContent>
         </div>
       )}

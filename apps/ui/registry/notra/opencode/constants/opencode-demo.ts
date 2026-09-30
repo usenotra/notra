@@ -1,99 +1,181 @@
 import type {
   OpencodeDemoActivity,
   OpencodeDemoSession,
+  OpencodeDemoTurn,
   OpencodeSource,
 } from "../types/opencode";
 
 export const OPENCODE_DEMO_SESSION: OpencodeDemoSession = {
-  activities: [
-    {
-      body: "Pull merged PRs for the week, group them by area, then draft in the brand voice.",
-      duration: "1.4s",
-      id: "prepare",
-      kind: "thought",
-      label: "Preparing changelog workflow",
-    },
-    {
-      body: 'export const brandVoice = { tone: "direct", person: "we" };',
-      id: "read",
-      kind: "read",
-      label: "Read apps/web/src/brand-voice.ts",
-    },
-    {
-      body: "14 merged PRs, 2 releases",
-      detail: "range=week",
-      id: "events",
-      kind: "tool",
-      label: "notra_list_events",
-    },
-    {
-      body: "live at acme.com/changelog",
-      detail: "type=changelog",
-      id: "publish",
-      kind: "tool",
-      label: "notra_publish_post",
-    },
-  ],
-  assistantMessage:
-    "I'll pull the week's merged work, draft the changelog in your voice, and publish it.",
-  context: "26.2K (7%)",
+  agent: "Build",
+  branch: "feat/changelog-week-39",
+  context: "41.2K (4%)",
   cwd: "~/acme/web",
-  promptPlaceholder: 'Ask anything... "Draft a launch post"',
-  resultMessage: "Published. Drafted in your voice from 14 PRs in 22 seconds.",
+  effort: "high",
+  model: "Sonnet 5",
+  provider: "Anthropic",
   servers: [
     { name: "notra", status: "Connected" },
     { name: "github", status: "Connected" },
     { name: "linear", status: "Connected" },
+    { name: "vercel", status: "Disconnected" },
   ],
-  title: "OpenCode — ~/acme/web",
-  tokens: "26,167 tokens",
-  used: "7% used",
-  userMessage: "draft a changelog from this week's merged PRs and post it",
-  version: "1.18.25",
+  spent: "$0.18 spent",
+  title: "Weekly changelog draft",
+  tokens: "41,207 tokens",
+  used: "4% used",
+  version: "1.18.33",
 };
 
-export const OPENCODE_DEMO_SOURCES: OpencodeSource[] = [
-  { domain: "chatgpt.com", title: "ChatGPT", url: "https://chatgpt.com/" },
-  { domain: "claude.ai", title: "Claude", url: "https://claude.ai/" },
-  { domain: "jasper.ai", title: "Jasper", url: "https://www.jasper.ai/" },
-  { domain: "canva.com", title: "Canva", url: "https://www.canva.com/" },
-  { domain: "adobe.com", title: "Adobe", url: "https://www.adobe.com/" },
+export const OPENCODE_DEMO_TURNS: OpencodeDemoTurn[] = [
   {
-    domain: "descript.com",
-    title: "Descript",
-    url: "https://www.descript.com/",
+    activities: [{ duration: "1.1s", id: "t1-thought", kind: "thought" }],
+    duration: "4.2s",
+    id: "greeting",
+    prompt: "is the notra mcp connected?",
+    reply: [
+      {
+        id: "greeting-reply",
+        text: [
+          "Yes. ",
+          { code: "notra" },
+          " is connected, so I can read this week's events and publish posts.",
+        ],
+      },
+    ],
   },
   {
-    domain: "gemini.google.com",
-    title: "Gemini",
-    url: "https://gemini.google.com/",
+    activities: [
+      { duration: "1.4s", id: "t2-thought", kind: "thought" },
+      { detail: "CHANGELOG.md", id: "t2-read-changelog", kind: "read" },
+      { detail: "brand-voice.md", id: "t2-read-voice", kind: "read" },
+      {
+        detail: "[range=week]",
+        id: "t2-events",
+        kind: "tool",
+        label: "notra_list_events",
+      },
+      { duration: "2.0s", id: "t2-thought-2", kind: "thought" },
+    ],
+    duration: "17.8s",
+    id: "changelog",
+    prompt: "draft this week's changelog from the merged PRs",
+    reply: [
+      {
+        id: "changelog-intro",
+        text: [
+          "Drafted ",
+          { strong: "Acme v2.4" },
+          " from 14 merged PRs, grouped by area and written in your brand voice.",
+        ],
+      },
+      { heading: "Features:", id: "changelog-features" },
+      {
+        id: "changelog-feature-list",
+        items: [
+          {
+            id: "scheduler",
+            spans: [
+              { code: "apps/scheduler" },
+              " - Scheduled posts now publish on every plan",
+            ],
+          },
+          {
+            id: "geo",
+            spans: [
+              { code: "apps/geo" },
+              " - Share-of-voice chart per AI engine",
+            ],
+          },
+          {
+            id: "api",
+            spans: [
+              { code: "apps/api" },
+              ", ",
+              { code: "packages/sdk" },
+              " - Webhooks for published posts",
+            ],
+          },
+        ],
+      },
+      { heading: "Fixes:", id: "changelog-fixes" },
+      {
+        id: "changelog-fix-list",
+        items: [
+          {
+            id: "editor",
+            spans: [
+              { code: "apps/editor" },
+              " - Image uploads no longer drop alt text",
+            ],
+          },
+          {
+            id: "billing",
+            spans: [
+              { code: "packages/billing" },
+              " - Seat counts update right after an invite",
+            ],
+          },
+        ],
+      },
+      {
+        id: "changelog-next",
+        text: [
+          "Saved as a draft in Notra. Run ",
+          { code: "notra_publish_post" },
+          " when you're ready to ship it.",
+        ],
+      },
+    ],
   },
-];
-
-export const OPENCODE_DEMO_QUERIES: string[] = [
-  "best AI writing tools 2026",
-  "AI changelog generators",
 ];
 
 export const OPENCODE_DEMO_ACTIVITIES: OpencodeDemoActivity[] = [
   {
-    body: "Load the brand voice, then draft from the merged PRs.",
+    body: "The user wants the week's changes. Read the brand voice first, then pull merged PRs from Notra.",
     duration: "1.4s",
     id: "thought",
     kind: "thought",
-    label: "Preparing executor for changelog workflow",
   },
+  { detail: "CHANGELOG.md", id: "read-changelog", kind: "read" },
+  { detail: "brand-voice.md", id: "read-voice", kind: "read" },
   {
-    body: 'export const brandVoice = { tone: "direct", person: "we" };',
-    id: "read",
-    kind: "read",
-    label: "Read apps/web/src/brand-voice.ts",
-  },
-  {
-    body: '"Scheduler v2, 40% faster builds"',
-    detail: "type=changelog, voice=brand",
+    body: "14 merged PRs, 2 releases",
+    detail: "[range=week]",
     id: "tool",
     kind: "tool",
-    label: "notra_create_post",
+    label: "notra_list_events",
   },
+  {
+    detail: '"AI changelog tools 2026"',
+    id: "search",
+    kind: "search",
+  },
+];
+
+export const OPENCODE_DEMO_SOURCES: OpencodeSource[] = [
+  {
+    domain: "usenotra.com",
+    title: "Notra changelog",
+    url: "https://usenotra.com/changelog",
+  },
+  {
+    domain: "keepachangelog.com",
+    title: "Keep a Changelog",
+    url: "https://keepachangelog.com/",
+  },
+  {
+    domain: "github.blog",
+    title: "GitHub changelog",
+    url: "https://github.blog/changelog/",
+  },
+  {
+    domain: "linear.app",
+    title: "Linear changelog",
+    url: "https://linear.app/changelog",
+  },
+];
+
+export const OPENCODE_DEMO_QUERIES: string[] = [
+  "best AI changelog tools 2026",
+  "how teams write release notes",
 ];

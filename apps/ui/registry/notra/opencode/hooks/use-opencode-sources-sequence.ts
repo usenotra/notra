@@ -13,48 +13,43 @@ interface OpencodeSourcesSequence {
   sources: boolean;
 }
 
-const INITIAL_SEQUENCE: OpencodeSourcesSequence = {
-  queries: 0,
-  sources: false,
-};
+const HIDDEN: OpencodeSourcesSequence = { queries: 0, sources: false };
 
-/** Reveals the query lines one by one, then the cited sources. */
+/** Reveals the search lines one at a time, then the cited sources. */
 export const useOpencodeSourcesSequence = (
   enabled: boolean,
   queryCount: number,
   sourceCount: number
 ): OpencodeSourcesSequence => {
-  const [sequence, setSequence] = useState(INITIAL_SEQUENCE);
+  const [sequence, setSequence] = useState(HIDDEN);
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
-
     const timers: number[] = [];
-    let elapsed = OPENCODE_SEARCH_HEADER_MS;
-
-    for (let index = 0; index < queryCount; index += 1) {
+    const schedule = (at: number, next: Partial<OpencodeSourcesSequence>) => {
       timers.push(
         window.setTimeout(() => {
-          setSequence((current) => ({ ...current, queries: index + 1 }));
-        }, elapsed)
+          setSequence((current) => ({ ...current, ...next }));
+        }, at)
       );
-      elapsed += OPENCODE_SEARCH_QUERY_MS;
+    };
+
+    let at = OPENCODE_SEARCH_HEADER_MS;
+    for (let shown = 1; shown <= queryCount; shown += 1) {
+      schedule(at, { queries: shown });
+      at += OPENCODE_SEARCH_QUERY_MS;
     }
     if (sourceCount > 0) {
-      timers.push(
-        window.setTimeout(() => {
-          setSequence((current) => ({ ...current, sources: true }));
-        }, elapsed + OPENCODE_SEARCH_SOURCES_MS)
-      );
+      schedule(at + OPENCODE_SEARCH_SOURCES_MS, { sources: true });
     }
 
     return () => {
       for (const timer of timers) {
         window.clearTimeout(timer);
       }
-      setSequence(INITIAL_SEQUENCE);
+      setSequence(HIDDEN);
     };
   }, [enabled, queryCount, sourceCount]);
 
