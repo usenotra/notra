@@ -7,7 +7,7 @@ import {
   PROMPT_CALCULATOR_MILESTONES,
   PROMPT_CALCULATOR_MIN_PROMPTS,
   PROMPT_CALCULATOR_PARAMS,
-  PROMPT_CALCULATOR_TRANSLATED_PROMPTS,
+  PROMPT_CALCULATOR_STOPS,
 } from "@/constants/landing/prompt-calculator";
 import type { PricingPlan } from "@/types/landing/pricing";
 import type {
@@ -33,43 +33,57 @@ export function scansPerMonth(frequency: PromptCalculatorFrequencyId) {
   return PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays;
 }
 
-const LAST_STOP = PROMPT_CALCULATOR_MILESTONES.length - 1;
+const LAST_STOP = PROMPT_CALCULATOR_STOPS.length - 1;
+
+function logDistance(a: number, b: number) {
+  return Math.abs(Math.log(a) - Math.log(b));
+}
 
 /** The nearest slider stop for `prompts`, used as the range input's value. */
-export function nearestMilestoneIndex(prompts: number) {
+export function nearestStopIndex(prompts: number) {
   let best = 0;
-  for (const [index, entry] of PROMPT_CALCULATOR_MILESTONES.entries()) {
-    const current =
-      PROMPT_CALCULATOR_MILESTONES[best]?.prompts ?? entry.prompts;
-    if (
-      Math.abs(Math.log(entry.prompts) - Math.log(prompts)) <
-      Math.abs(Math.log(current) - Math.log(prompts))
-    ) {
+  for (const [index, stop] of PROMPT_CALCULATOR_STOPS.entries()) {
+    const current = PROMPT_CALCULATOR_STOPS[best] ?? stop;
+    if (logDistance(stop, prompts) < logDistance(current, prompts)) {
       best = index;
     }
   }
   return best;
 }
 
+/** Where a stop sits on the track, 0–1; stops are evenly spaced. */
+export function stopRatio(index: number) {
+  return index / LAST_STOP;
+}
+
 /**
- * Where `prompts` sits on the stepped slider, 0–1. Stops are evenly spaced;
- * amounts between two stops are placed on a log scale between them.
+ * Where `prompts` sits on the stepped slider, 0–1. Amounts between two stops
+ * are placed on a log scale between them.
  */
 export function promptsToStopRatio(prompts: number) {
-  const upper = PROMPT_CALCULATOR_MILESTONES.findIndex(
-    (entry) => prompts <= entry.prompts
-  );
+  const upper = PROMPT_CALCULATOR_STOPS.findIndex((stop) => prompts <= stop);
   if (upper === -1) {
     return 1;
   }
   if (upper === 0) {
     return 0;
   }
-  const low = PROMPT_CALCULATOR_MILESTONES[upper - 1]?.prompts ?? prompts;
-  const high = PROMPT_CALCULATOR_MILESTONES[upper]?.prompts ?? prompts;
+  const low = PROMPT_CALCULATOR_STOPS[upper - 1] ?? prompts;
+  const high = PROMPT_CALCULATOR_STOPS[upper] ?? prompts;
   const within =
     (Math.log(prompts) - Math.log(low)) / (Math.log(high) - Math.log(low));
-  return (upper - 1 + within) / LAST_STOP;
+  return stopRatio(upper - 1 + within);
+}
+
+/** The caption for `prompts`: the first milestone at or above it. */
+export function milestoneFor(prompts: number) {
+  const last = PROMPT_CALCULATOR_MILESTONES.at(
+    -1
+  ) as (typeof PROMPT_CALCULATOR_MILESTONES)[number];
+  return (
+    PROMPT_CALCULATOR_MILESTONES.find((entry) => prompts <= entry.prompts) ??
+    last
+  );
 }
 
 function findPlan(answersPerMonth: number): PricingPlan {
@@ -82,33 +96,18 @@ function findPlan(answersPerMonth: number): PricingPlan {
   );
 }
 
-/**
- * Prompt runs per scan, matching how a GEO scan plans its checks: every
- * prompt in English, plus up to `PROMPT_CALCULATOR_TRANSLATED_PROMPTS` of
- * them again in each extra language.
- */
-function promptRunsPerScan(prompts: number, languages: number) {
-  return (
-    prompts +
-    Math.min(prompts, PROMPT_CALCULATOR_TRANSLATED_PROMPTS) * languages
-  );
-}
-
 export function estimatePromptUsage({
   prompts,
   models,
   frequency,
-  languages,
 }: PromptCalculatorInput): PromptCalculatorEstimate {
   const scans = scansPerMonth(frequency);
-  const promptRuns = promptRunsPerScan(prompts, languages);
-  const answersPerMonth = Math.ceil(promptRuns * models.length * scans);
+  const answersPerMonth = Math.ceil(prompts * models.length * scans);
   const plan = findPlan(answersPerMonth);
 
   if (plan.answersPerMonth === null || models.length === 0) {
     return {
       answersPerMonth,
-      promptRuns,
       scansPerMonth: scans,
       plan,
       usage: null,
@@ -116,17 +115,15 @@ export function estimatePromptUsage({
     };
   }
 
-  // Past the translated few, each extra prompt only adds its English run.
   const answersPerPrompt = models.length * scans;
-  const runsThatFit = Math.floor(plan.answersPerMonth / answersPerPrompt);
+  const maxPrompts = Math.floor(plan.answersPerMonth / answersPerPrompt);
 
   return {
     answersPerMonth,
-    promptRuns,
     scansPerMonth: scans,
     plan,
     usage: answersPerMonth / plan.answersPerMonth,
-    promptHeadroom: Math.max(0, runsThatFit - promptRuns),
+    promptHeadroom: Math.max(0, maxPrompts - prompts),
   };
 }
 
@@ -134,14 +131,31 @@ export function buildPromptCalculatorSearch({
   prompts,
   models,
   frequency,
-  languages,
 }: PromptCalculatorInput) {
   // Built by hand so the model list keeps readable commas instead of `%2C`.
   const params = [
     `${PROMPT_CALCULATOR_PARAMS.prompts}=${prompts}`,
     `${PROMPT_CALCULATOR_PARAMS.models}=${models.join(",")}`,
     `${PROMPT_CALCULATOR_PARAMS.frequency}=${frequency}`,
-    `${PROMPT_CALCULATOR_PARAMS.languages}=${languages}`,
   ];
   return `?${params.join("&")}#${PROMPT_CALCULATOR_ANCHOR}`;
+}
+
+/**
+ * When an estimate lands on Enterprise, the most frequent slower cadence that
+ * brings it back under a self-serve plan, or `null` when even monthly scans
+ * don't fit.
+ */
+export function findFittingCadence(input: PromptCalculatorInput) {
+  const current = PROMPT_CALCULATOR_FREQUENCIES.findIndex(
+    (option) => option.id === input.frequency
+  );
+  for (const option of PROMPT_CALCULATOR_FREQUENCIES.slice(current + 1)) {
+    const frequency = option.id as PromptCalculatorFrequencyId;
+    const { plan } = estimatePromptUsage({ ...input, frequency });
+    if (plan.answersPerMonth !== null) {
+      return { frequency, label: option.label, plan };
+    }
+  }
+  return null;
 }

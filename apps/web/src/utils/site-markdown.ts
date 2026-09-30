@@ -29,13 +29,11 @@ import {
 import {
   PROMPT_CALCULATOR_ANCHOR,
   PROMPT_CALCULATOR_DAYS_PER_MONTH,
-  PROMPT_CALCULATOR_ENGINE_IDS,
   PROMPT_CALCULATOR_FREQUENCIES,
-  PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES,
   PROMPT_CALCULATOR_MAX_PROMPTS,
   PROMPT_CALCULATOR_PARAMS,
-  PROMPT_CALCULATOR_TRANSLATED_PROMPTS,
 } from "@/constants/landing/prompt-calculator";
+import { PROMPT_CALCULATOR_ENGINES } from "@/constants/landing/prompt-calculator-engines";
 import { BRAND_ASSETS, BRAND_COLORS, BRAND_FONTS } from "@/lib/brand/constants";
 import {
   COMPARISON_FEATURES,
@@ -176,9 +174,7 @@ function buildPromptCalculatorMarkdown() {
     "",
     "Plans are sized by AI answers tracked per month. One AI answer is one prompt answered by one model in one scan.",
     "",
-    `AI answers / month = prompt runs × models × scans per month (a month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days, rounded up).`,
-    "",
-    `Prompt runs = prompts + min(prompts, ${PROMPT_CALCULATOR_TRANSLATED_PROMPTS}) × extra languages. Each language beyond English re-runs the first ${PROMPT_CALCULATOR_TRANSLATED_PROMPTS} prompts, up to ${PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES} extra languages.`,
+    `AI answers / month = prompts × models × scans per month (a month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days, rounded up).`,
     "",
     "Pick the smallest plan whose quota covers the estimate:",
     "",
@@ -187,9 +183,8 @@ function buildPromptCalculatorMarkdown() {
     "The calculator on the pricing page reads its inputs from query params, so you can link a prefilled estimate:",
     "",
     `- \`${PROMPT_CALCULATOR_PARAMS.prompts}\`: number of prompts, 1 to ${PROMPT_CALCULATOR_MAX_PROMPTS.toLocaleString("en-US")}`,
-    `- \`${PROMPT_CALCULATOR_PARAMS.models}\`: comma-separated, any of ${PROMPT_CALCULATOR_ENGINE_IDS.map((id) => `\`${id}\``).join(", ")}`,
+    `- \`${PROMPT_CALCULATOR_PARAMS.models}\`: comma-separated, any of ${PROMPT_CALCULATOR_ENGINES.map((engine) => `\`${engine.id}\``).join(", ")}`,
     `- \`${PROMPT_CALCULATOR_PARAMS.frequency}\`: one of ${frequencies.join(", ")}`,
-    `- \`${PROMPT_CALCULATOR_PARAMS.languages}\`: extra languages beyond English, 0 to ${PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES}`,
     "",
     `Example: ${example}`,
     "",

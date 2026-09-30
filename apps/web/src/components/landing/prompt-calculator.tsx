@@ -24,19 +24,17 @@ import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import { PRICING_ICONS } from "@/constants/landing/pricing-icons";
 import {
   PROMPT_CALCULATOR_ANCHOR,
-  PROMPT_CALCULATOR_DEFAULT_EXTRA_LANGUAGES,
   PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
   PROMPT_CALCULATOR_DEFAULT_MODELS,
   PROMPT_CALCULATOR_DEFAULT_PROMPTS,
   PROMPT_CALCULATOR_ENGINE_IDS,
   PROMPT_CALCULATOR_FREQUENCIES,
   PROMPT_CALCULATOR_HEADING,
-  PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES,
   PROMPT_CALCULATOR_MAX_PROMPTS,
   PROMPT_CALCULATOR_MILESTONES,
+  PROMPT_CALCULATOR_STOPS,
   PROMPT_CALCULATOR_MIN_PROMPTS,
   PROMPT_CALCULATOR_SUBHEADING,
-  PROMPT_CALCULATOR_TRANSLATED_PROMPTS,
 } from "@/constants/landing/prompt-calculator";
 import { PROMPT_CALCULATOR_ENGINES } from "@/constants/landing/prompt-calculator-engines";
 import type {
@@ -51,8 +49,11 @@ import {
   buildPromptCalculatorSearch,
   clampPrompts,
   estimatePromptUsage,
-  nearestMilestoneIndex,
+  findFittingCadence,
+  milestoneFor,
+  nearestStopIndex,
   promptsToStopRatio,
+  stopRatio,
   scansPerMonth,
 } from "@/utils/prompt-calculator";
 import { SITE_URL } from "@/utils/urls";
@@ -68,18 +69,17 @@ const calculatorParsers = {
   frequency: parseAsStringLiteral(
     PROMPT_CALCULATOR_FREQUENCIES.map((option) => option.id)
   ).withDefault(PROMPT_CALCULATOR_DEFAULT_FREQUENCY),
-  languages: parseAsInteger.withDefault(
-    PROMPT_CALCULATOR_DEFAULT_EXTRA_LANGUAGES
-  ),
 };
 
 const DEFAULT_INPUT: PromptCalculatorInput = {
   prompts: PROMPT_CALCULATOR_DEFAULT_PROMPTS,
   models: PROMPT_CALCULATOR_DEFAULT_MODELS,
   frequency: PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
-  languages: PROMPT_CALCULATOR_DEFAULT_EXTRA_LANGUAGES,
 };
 
+/** Ratio distance under which a stop counts as covered by the thumb. */
+const STOP_UNDER_THUMB = 0.01;
+const THOUSAND = 1000;
 /** Half the slider thumb, so the fill and dots line up with where it stops. */
 const THUMB_HALF = "1rem";
 
@@ -104,17 +104,28 @@ function thumbCenter(ratio: number) {
   return `calc(${THUMB_HALF} + (100% - 2 * ${THUMB_HALF}) * ${ratio})`;
 }
 
-function EngineLogo({ engine }: { engine: PromptCalculatorEngine }) {
+/**
+ * `onDarkPill` picks the light mark for monochrome logos. Selected pills turn
+ * white in dark mode, so they keep the default (dark) mark in both themes.
+ */
+function EngineLogo({
+  engine,
+  onDarkPill,
+}: {
+  engine: PromptCalculatorEngine;
+  onDarkPill: boolean;
+}) {
   const Icon = engine.icon;
   const DarkIcon = engine.darkIcon;
+  const swapInDark = onDarkPill && DarkIcon;
 
   return (
     <>
       <Icon
         aria-hidden="true"
-        className={cn("size-4", DarkIcon && "dark:hidden")}
+        className={cn("size-4", swapInDark && "dark:hidden")}
       />
-      {DarkIcon ? (
+      {swapInDark ? (
         <DarkIcon aria-hidden="true" className="hidden size-4 dark:block" />
       ) : null}
     </>
@@ -124,10 +135,9 @@ function EngineLogo({ engine }: { engine: PromptCalculatorEngine }) {
 function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
   const inputId = useId();
   const ratio = promptsToStopRatio(value.prompts);
-  const stopIndex = nearestMilestoneIndex(value.prompts);
-  const milestone =
-    PROMPT_CALCULATOR_MILESTONES[stopIndex] ?? PROMPT_CALCULATOR_MILESTONES[0];
-  const lastStop = PROMPT_CALCULATOR_MILESTONES.length - 1;
+  const stopIndex = nearestStopIndex(value.prompts);
+  const milestone = milestoneFor(value.prompts);
+  const lastStop = PROMPT_CALCULATOR_STOPS.length - 1;
 
   return (
     <div className="m-1.75 flex flex-col gap-5 rounded-2xl bg-white px-4.25 pt-6 pb-6 shadow-[0_0.125rem_0.3125rem_#00000008] sm:px-6 dark:bg-white/[0.04]">
@@ -177,34 +187,21 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
           <div className="relative h-full">
             <input
               aria-label="Prompts"
-              aria-valuetext={`${milestone.name}, ${milestone.label} prompts`}
+              aria-valuetext={`${numberFormat.format(value.prompts)} prompts, ${milestone.name}`}
               className="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0 [&::-moz-range-thumb]:size-8 [&::-webkit-slider-thumb]:size-8 [&::-webkit-slider-thumb]:appearance-none"
               max={lastStop}
               min={0}
               onChange={(event) => {
                 const next =
-                  PROMPT_CALCULATOR_MILESTONES[Number(event.target.value)];
+                  PROMPT_CALCULATOR_STOPS[Number(event.target.value)];
                 if (next) {
-                  onChange({ prompts: next.prompts });
+                  onChange({ prompts: next });
                 }
               }}
               step={1}
               type="range"
               value={stopIndex}
             />
-
-            {PROMPT_CALCULATOR_MILESTONES.map((stop, index) => {
-              const stopRatio = index / lastStop;
-
-              return stopRatio > ratio ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 left-(--stop) size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1E1E1E33] dark:bg-white/30"
-                  key={stop.prompts}
-                  style={{ "--stop": thumbCenter(stopRatio) } as CSSProperties}
-                />
-              ) : null;
-            })}
 
             <div
               aria-hidden="true"
@@ -218,6 +215,28 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
               />
             </div>
 
+            {PROMPT_CALCULATOR_STOPS.map((stop, index) => {
+              const position = stopRatio(index);
+              // The thumb covers the stop it sits on.
+              if (Math.abs(position - ratio) < STOP_UNDER_THUMB) {
+                return null;
+              }
+
+              return (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "pointer-events-none absolute top-1/2 left-(--stop) size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300",
+                    position < ratio
+                      ? "bg-white/70"
+                      : "bg-[#1E1E1E33] dark:bg-white/30"
+                  )}
+                  key={stop}
+                  style={{ "--stop": thumbCenter(position) } as CSSProperties}
+                />
+              );
+            })}
+
             <span
               aria-hidden="true"
               className="pointer-events-none absolute top-1/2 left-(--thumb) size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(180deg,#FFFFFF,#F2F2F2)] shadow-[0_0.0625rem_0.25rem_#28282840,0_0_0_0.0625rem_#1E1E1E0D] transition-[left,scale] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] peer-focus-visible:ring-[0.1875rem] peer-focus-visible:ring-[#8B5CF6]/40 peer-active:scale-[0.96] motion-reduce:transition-none"
@@ -227,24 +246,32 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
         </div>
 
         <div className="relative mx-1 h-4 font-sans text-xs tracking-[-0.01em] text-[#1E1E1E80] tabular-nums dark:text-white/45">
-          {PROMPT_CALCULATOR_MILESTONES.map((stop, index) => (
-            <button
-              className={cn(
-                "absolute top-0 left-(--stop) -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] dark:hover:text-white",
-                stop.prompts === value.prompts &&
-                  "font-medium text-[#1E1E1E] dark:text-white"
-              )}
-              key={stop.prompts}
-              onClick={() => onChange({ prompts: stop.prompts })}
-              style={
-                { "--stop": thumbCenter(index / lastStop) } as CSSProperties
-              }
-              tabIndex={-1}
-              type="button"
-            >
-              {stop.label}
-            </button>
-          ))}
+          {PROMPT_CALCULATOR_STOPS.map((stop, index) => {
+            const isMajor = PROMPT_CALCULATOR_MILESTONES.some(
+              (entry) => entry.prompts === stop
+            );
+
+            return (
+              <button
+                className={cn(
+                  "absolute top-0 left-(--stop) -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] dark:hover:text-white",
+                  // Narrow screens keep the labeled milestones only.
+                  !isMajor && "hidden sm:block",
+                  stop === value.prompts &&
+                    "font-medium text-[#1E1E1E] dark:text-white"
+                )}
+                key={stop}
+                onClick={() => onChange({ prompts: stop })}
+                style={
+                  { "--stop": thumbCenter(stopRatio(index)) } as CSSProperties
+                }
+                tabIndex={-1}
+                type="button"
+              >
+                {stop >= THOUSAND ? `${stop / THOUSAND}K` : stop}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -296,63 +323,13 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
                   checked && "bg-white dark:bg-[#1E1E1E]/10"
                 )}
               >
-                <EngineLogo engine={engine} />
+                <EngineLogo engine={engine} onDarkPill={!checked} />
               </span>
               {engine.name}
             </label>
           );
         })}
       </div>
-    </fieldset>
-  );
-}
-
-function LanguagePills({ value, onChange }: PromptCalculatorPanelProps) {
-  const name = useId();
-  const translated = Math.min(
-    value.prompts,
-    PROMPT_CALCULATOR_TRANSLATED_PROMPTS
-  );
-
-  return (
-    <fieldset className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <legend className={GROUP_LABEL}>Extra languages</legend>
-        <span className={GROUP_META}>
-          {value.languages === 0
-            ? "English only"
-            : `+${numberFormat.format(translated * value.languages)} prompt runs`}
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {Array.from(
-          { length: PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES + 1 },
-          (_, count) => {
-            const checked = count === value.languages;
-
-            return (
-              <label
-                className={cn(PILL_BASE, checked ? PILL_ACTIVE : PILL_INACTIVE)}
-                key={count}
-              >
-                <input
-                  checked={checked}
-                  className="sr-only"
-                  name={name}
-                  onChange={() => onChange({ languages: count })}
-                  type="radio"
-                  value={count}
-                />
-                {count === 0 ? "None" : `+${count}`}
-              </label>
-            );
-          }
-        )}
-      </div>
-      <p className="font-sans text-[0.8125rem] leading-5 tracking-[-0.01em] text-[#1E1E1E80] dark:text-white/45">
-        Each extra language re-runs your first{" "}
-        {PROMPT_CALCULATOR_TRANSLATED_PROMPTS} prompts in that language.
-      </p>
     </fieldset>
   );
 }
@@ -396,15 +373,17 @@ function FrequencyPills({ value, onChange }: PromptCalculatorPanelProps) {
   );
 }
 
-function EstimateCard({ value }: Pick<PromptCalculatorPanelProps, "value">) {
+function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
   const estimate = estimatePromptUsage(value);
+  const fittingCadence =
+    estimate.usage === null ? findFittingCadence(value) : null;
   const { plan } = estimate;
   const isEnterprise = estimate.usage === null;
   const scans = Math.round(estimate.scansPerMonth * 10) / 10;
   const TrackingIcon = PRICING_ICONS.tracking;
   const ProjectsIcon = PRICING_ICONS.projects;
 
-  let headroom = "Past the largest plan, sized with you";
+  let headroom = "More than our largest plan includes";
   if (!isEnterprise) {
     headroom =
       estimate.promptHeadroom === 0
@@ -510,28 +489,55 @@ function EstimateCard({ value }: Pick<PromptCalculatorPanelProps, "value">) {
                   AI answers / mo
                 </span>
                 <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
-                  {numberFormat.format(estimate.promptRuns)}{" "}
-                  {value.languages > 0 ? "prompt runs" : "prompts"} ×{" "}
+                  {numberFormat.format(value.prompts)} prompts ×{" "}
                   {value.models.length} models × {scans} scans
                 </span>
               </div>
             </li>
-            <li className="flex items-center gap-2">
-              <ProjectsIcon className="size-6 shrink-0 text-white" />
-              <div className="flex flex-col">
-                <span className="font-sans text-sm leading-[1.125rem] text-white tabular-nums">
-                  <FadeText
-                    text={
-                      plan.answersPerMonth === null
-                        ? "Custom answer quota"
-                        : `${numberFormat.format(plan.answersPerMonth)} included`
-                    }
+            <li>
+              {fittingCadence ? (
+                <button
+                  className="-mx-2 -my-1 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-2 rounded-xl px-2 py-1 text-left transition-[background-color] duration-150 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/60"
+                  onClick={() =>
+                    onChange({ frequency: fittingCadence.frequency })
+                  }
+                  type="button"
+                >
+                  <ProjectsIcon className="size-6 shrink-0 text-white" />
+                  <span className="flex flex-1 flex-col">
+                    <span className="font-sans text-sm leading-[1.125rem] font-medium text-white">
+                      Stay on {fittingCadence.plan.name} for{" "}
+                      {fittingCadence.plan.price.monthly}/mo
+                    </span>
+                    <span className="min-h-8 font-sans text-xs leading-4 text-white/90 min-[25rem]:min-h-4">
+                      Scan {fittingCadence.label.toLowerCase()} instead
+                    </span>
+                  </span>
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-white"
+                    icon={ArrowRight02Icon}
                   />
-                </span>
-                <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
-                  <FadeText text={headroom} />
-                </span>
-              </div>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <ProjectsIcon className="size-6 shrink-0 text-white" />
+                  <div className="flex flex-col">
+                    <span className="font-sans text-sm leading-[1.125rem] text-white tabular-nums">
+                      <FadeText
+                        text={
+                          plan.answersPerMonth === null
+                            ? "Custom answer quota"
+                            : `${numberFormat.format(plan.answersPerMonth)} included`
+                        }
+                      />
+                    </span>
+                    <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
+                      <FadeText text={headroom} />
+                    </span>
+                  </div>
+                </div>
+              )}
             </li>
           </ul>
         </div>
@@ -546,15 +552,14 @@ function PromptCalculatorPanel({
 }: PromptCalculatorPanelProps) {
   return (
     <div className="grid w-full max-w-96 grid-cols-1 gap-4 sm:max-w-[40rem] lg:max-w-[80rem] lg:grid-cols-[minmax(0,1fr)_24rem]">
-      <div className="flex flex-col rounded-3xl bg-[#F7F7F7] dark:bg-white/[0.04]">
+      <div className="flex min-w-0 flex-col rounded-3xl bg-[#F7F7F7] dark:bg-white/[0.04]">
         <PromptsPanel onChange={onChange} value={value} />
         <div className="flex flex-col gap-7 px-6 pt-5 pb-7">
           <ModelPills onChange={onChange} value={value} />
           <FrequencyPills onChange={onChange} value={value} />
-          <LanguagePills onChange={onChange} value={value} />
         </div>
       </div>
-      <EstimateCard value={value} />
+      <EstimateCard onChange={onChange} value={value} />
     </div>
   );
 }
@@ -571,10 +576,6 @@ function UrlBoundPromptCalculator() {
     models:
       value.models.length > 0 ? value.models : PROMPT_CALCULATOR_DEFAULT_MODELS,
     frequency: value.frequency,
-    languages: Math.min(
-      PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES,
-      Math.max(0, value.languages)
-    ),
   };
 
   return <PromptCalculatorPanel onChange={setValue} value={normalized} />;

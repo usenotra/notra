@@ -8,7 +8,6 @@ export const PROMPT_CALCULATOR_PARAMS = {
   prompts: "prompts",
   models: "models",
   frequency: "frequency",
-  languages: "languages",
 } as const;
 
 export const PROMPT_CALCULATOR_ANCHOR = "calculator";
@@ -20,11 +19,6 @@ export const PROMPT_CALCULATOR_ENGINE_IDS = [
   "gemini",
   "perplexity",
   "grok",
-  "kimi",
-  "deepseek",
-  "mistral",
-  "meta",
-  "zai",
 ] as const;
 
 /** Scan cadences offered in the dashboard's GEO settings. */
@@ -80,16 +74,16 @@ export const PROMPT_CALCULATOR_DEFAULT_MODELS: PromptCalculatorEngineId[] = [
 ];
 export const PROMPT_CALCULATOR_DEFAULT_FREQUENCY: PromptCalculatorFrequencyId =
   "daily";
-export const PROMPT_CALCULATOR_DEFAULT_EXTRA_LANGUAGES = 0;
+
+/** Every stop the prompt slider snaps to; typed amounts sit between two stops. */
+export const PROMPT_CALCULATOR_STOPS = [
+  5, 10, 25, 50, 100, 150, 250, 500, 1000,
+] as const;
 
 /**
- * Mirrors `GEO_MAX_LANGUAGES` and `GEO_LANGUAGE_MAX_PROMPTS` in geo-core: a
- * scan re-runs at most this many prompts in each language beyond English.
+ * Labeled stops under the slider. Each caption covers the prompt counts up to
+ * its stop, so the in-between stops borrow the next one's caption.
  */
-export const PROMPT_CALCULATOR_MAX_EXTRA_LANGUAGES = 4;
-export const PROMPT_CALCULATOR_TRANSLATED_PROMPTS = 5;
-
-/** Stops on the prompt slider; typed amounts in between sit between two stops. */
 export const PROMPT_CALCULATOR_MILESTONES = [
   {
     prompts: 5,
