@@ -3334,8 +3334,7 @@
       "tableLabel": "Marken-Ranking nach Share of Voice",
       "emptyTitle": "Noch kein Share of Voice",
       "emptyScanningTitle": "Scan läuft",
-      "emptyDescription": "Nach dem nächsten Scan siehst du hier, wie oft KI-Engines dich im Vergleich zu deinen Wettbewerbern nennen.",
-      "openBrand": "{brand} öffnen"
+      "emptyDescription": "Nach dem nächsten Scan siehst du hier, wie oft KI-Engines dich im Vergleich zu deinen Wettbewerbern nennen."
     },
     "shareOfVoiceTable": {
       "trendLabel": "Share-of-Voice-Trend von {brand}",

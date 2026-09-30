@@ -96,7 +96,6 @@ function ShareOfVoiceRankingRow({
   const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
   const buttonProps = {
-    "aria-label": t("openBrand", { brand: row.brand }),
     className: cn(
       "border-border grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-1.5 border-b pr-2 text-left transition-colors",
       row.own ? "bg-primary/5" : undefined,
@@ -225,6 +224,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
   const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const {
     ranking,
+    allRanked: allBrands,
     own,
     slices,
     other,
@@ -234,14 +234,9 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
     shareDelta,
     rankDelta,
   } = buildShareOfVoiceChartModel(props, tGeoShared("otherBrands"));
-  // Every brand in one scrolling list; brands folded into "Other" in the
-  // donut share its gray swatch.
-  const { ranking: allBrands } = buildShareOfVoiceChartModel({
-    ...props,
-    limit: Number.POSITIVE_INFINITY,
-  });
   const summary = own ?? ranking[0];
   const sliceById = new Map(slices.map((row) => [row.id, row.slice]));
+  // Brands folded into "Other" in the donut share its gray swatch.
   const otherSlice = other ? (sliceById.get(other.id) ?? "") : "";
   const donutConfig = Object.fromEntries(
     Object.entries(config).map(([key, item]) => [

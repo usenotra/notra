@@ -125,9 +125,15 @@ export function CompetitorsTable({
               )}
             </span>
             {row.domain ? (
-              <span className="text-muted-foreground truncate text-xs">
+              <a
+                className="text-muted-foreground hover:text-foreground w-fit max-w-full truncate text-xs hover:underline"
+                href={`https://${row.domain}`}
+                onClick={(event) => event.stopPropagation()}
+                rel="noopener"
+                target="_blank"
+              >
                 {row.domain}
-              </span>
+              </a>
             ) : null}
           </span>
         </span>

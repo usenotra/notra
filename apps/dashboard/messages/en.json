@@ -3334,8 +3334,7 @@
       "tableLabel": "Brand ranking by share of voice",
       "emptyTitle": "No share of voice yet",
       "emptyScanningTitle": "Scan in progress",
-      "emptyDescription": "After your next scan, this shows how often AI engines name you compared with your competitors.",
-      "openBrand": "Open {brand}"
+      "emptyDescription": "After your next scan, this shows how often AI engines name you compared with your competitors."
     },
     "shareOfVoiceTable": {
       "trendLabel": "{brand} share of voice trend",
