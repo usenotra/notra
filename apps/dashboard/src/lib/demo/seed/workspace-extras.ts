@@ -177,7 +177,9 @@ export async function seedDemoSocial(context: DemoSeedContext) {
       id: crypto.randomUUID(),
       organizationId: context.organizationId,
       provider: account.provider,
-      providerAccountId: `demo-${account.provider}-${username}`,
+      // Own and tracked accounts never share an id, even when the visitor
+      // names their company after a seeded rival.
+      providerAccountId: `demo-${account.provider}-${account.kind}-${username}`,
       username,
       displayName: account.displayName ?? context.companyName,
       profileImageUrl: null,

@@ -10,10 +10,26 @@ export interface DemoSocialAccount {
   kind: "connected" | "tracked";
 }
 
-/** Lists an organization's demo social accounts (connected and tracked). */
-export type DemoSocialAccountsProvider = (
+/** A post the visitor "published" from the demo; its stats are generated. */
+export interface DemoPublishedPost {
+  provider: string;
+  providerAccountId: string;
+  platformPostId: string;
+  content: string;
+  /** ISO timestamp. */
+  postedAt: string;
+}
+
+export interface DemoSocialSource {
+  /** Connected and tracked accounts. */
+  accounts: DemoSocialAccount[];
+  published: DemoPublishedPost[];
+}
+
+/** Loads an organization's demo social accounts and published posts. */
+export type DemoSocialSourceProvider = (
   organizationId: string
-) => Promise<DemoSocialAccount[]>;
+) => Promise<DemoSocialSource>;
 
 export interface DemoSocialPost {
   provider: string;

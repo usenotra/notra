@@ -13,8 +13,9 @@ import {
   DEMO_SOCIAL_TRACKED_POSTS,
 } from "../constants/demo-social";
 import type {
+  DemoPublishedPost,
   DemoSocialAccount,
-  DemoSocialAccountsProvider,
+  DemoSocialSourceProvider,
   DemoSocialParams,
   DemoSocialPost,
 } from "../types/demo-social";
@@ -35,12 +36,12 @@ const HOUR_MS = 3_600_000;
 const FOLLOWER_SNAPSHOT_HOUR = 6;
 const DEFAULT_TIME_ZONE = "UTC";
 
-const PROVIDER_KEY = Symbol.for("notra.demo.socialAccountsProvider");
-type ProviderHolder = { [PROVIDER_KEY]?: DemoSocialAccountsProvider | null };
+const PROVIDER_KEY = Symbol.for("notra.demo.socialSourceProvider");
+type ProviderHolder = { [PROVIDER_KEY]?: DemoSocialSourceProvider | null };
 
 /** Registered once at startup by the host app (dashboard or API). */
-export function setDemoSocialAccountsProvider(
-  next: DemoSocialAccountsProvider | null
+export function setDemoSocialSourceProvider(
+  next: DemoSocialSourceProvider | null
 ) {
   (globalThis as ProviderHolder)[PROVIDER_KEY] = next;
 }
@@ -142,17 +143,6 @@ function postsForAccount(
       continue;
     }
     const viaNotra = account.kind === "connected" && day >= adoptedDay;
-    // Fresh posts are still collecting impressions.
-    const ageHours = (now.getTime() - postedAt.getTime()) / HOUR_MS;
-    const maturity = Math.min(1, 0.3 + ageHours / 72);
-    const impressions = Math.round(
-      baseImpressions *
-        between(random, 0.35, 2.6) *
-        (viaNotra ? DEMO_SOCIAL_NOTRA_LIFT : 1) *
-        maturity
-    );
-    const likes = Math.round(impressions * between(random, 0.015, 0.04));
-    const reposts = Math.round(likes * between(random, 0.08, 0.25));
     const platformPostId = `${1_800_000_000_000 + day * 1000 + (hashString(account.providerAccountId) % 1000)}`;
     posts.push({
       provider: account.provider,
@@ -161,16 +151,80 @@ function postsForAccount(
       content: pick(random, texts),
       url: postUrl(account, platformPostId),
       postedAt,
-      impressions,
-      likes,
-      replies: Math.round(likes * between(random, 0.06, 0.18)),
-      reposts,
-      quotes: Math.round(reposts * between(random, 0.1, 0.3)),
-      bookmarks: Math.round(likes * between(random, 0.08, 0.2)),
       viaNotra,
+      ...postMetrics(random, baseImpressions, viaNotra, postedAt, now),
     });
   }
   return posts;
+}
+
+function postMetrics(
+  random: () => number,
+  baseImpressions: number,
+  viaNotra: boolean,
+  postedAt: Date,
+  now: Date
+) {
+  // Fresh posts are still collecting impressions.
+  const ageHours = (now.getTime() - postedAt.getTime()) / HOUR_MS;
+  const maturity = Math.min(1, 0.3 + ageHours / 72);
+  const impressions = Math.round(
+    baseImpressions *
+      between(random, 0.35, 2.6) *
+      (viaNotra ? DEMO_SOCIAL_NOTRA_LIFT : 1) *
+      maturity
+  );
+  const likes = Math.round(impressions * between(random, 0.015, 0.04));
+  const reposts = Math.round(likes * between(random, 0.08, 0.25));
+  return {
+    impressions,
+    likes,
+    replies: Math.round(likes * between(random, 0.06, 0.18)),
+    reposts,
+    quotes: Math.round(reposts * between(random, 0.1, 0.3)),
+    bookmarks: Math.round(likes * between(random, 0.08, 0.2)),
+  };
+}
+
+/** Posts the visitor published from the demo, with generated stats. */
+function publishedPosts(
+  accounts: DemoSocialAccount[],
+  published: DemoPublishedPost[],
+  now: Date
+): DemoSocialPost[] {
+  return published.flatMap((post) => {
+    const account = accounts.find(
+      (candidate) =>
+        candidate.provider === post.provider &&
+        candidate.providerAccountId === post.providerAccountId
+    );
+    const postedAt = new Date(post.postedAt);
+    if (!account || postedAt > now) {
+      return [];
+    }
+    const baseImpressions =
+      DEMO_SOCIAL_BASE_IMPRESSIONS[account.kind][
+        providerKey(account.provider)
+      ] * accountScale(account);
+    return [
+      {
+        provider: post.provider,
+        providerAccountId: post.providerAccountId,
+        platformPostId: post.platformPostId,
+        content: post.content,
+        url: postUrl(account, post.platformPostId),
+        postedAt,
+        viaNotra: true,
+        ...postMetrics(
+          seededRandom(`published:${post.platformPostId}`),
+          baseImpressions,
+          true,
+          postedAt,
+          now
+        ),
+      },
+    ];
+  });
 }
 
 const localFormatters = new Map<string, Intl.DateTimeFormat>();
@@ -436,22 +490,10 @@ function postRow(post: DemoSocialPost) {
   };
 }
 
-function topPosts(
-  { accounts, posts }: DemoSocialData,
-  params: DemoSocialParams
-) {
+function topPosts({ posts }: DemoSocialData, params: DemoSocialParams) {
   const timeZone = params.timezone || DEFAULT_TIME_ZONE;
-  // Only the organization's own accounts: tracked accounts are benchmarks.
-  const own = new Set(
-    accounts
-      .filter((account) => account.kind === "connected")
-      .map((account) => `${account.provider}:${account.providerAccountId}`)
-  );
   return posts
     .filter((post) => {
-      if (!own.has(`${post.provider}:${post.providerAccountId}`)) {
-        return false;
-      }
       const day = localParts(post.postedAt, timeZone).day;
       return (
         (!params.date_from || day >= params.date_from) &&
@@ -624,8 +666,11 @@ export async function queryDemoSocialPipe<TRow>(
   }
   const parsed = toDemoSocialParams(params);
   const now = new Date();
-  const accounts = await provider(parsed.organization_id);
-  const posts = accounts.flatMap((account) => postsForAccount(account, now));
+  const { accounts, published } = await provider(parsed.organization_id);
+  const posts = [
+    ...accounts.flatMap((account) => postsForAccount(account, now)),
+    ...publishedPosts(accounts, published, now),
+  ];
   const data = handler({ accounts, posts }, parsed, now) as TRow[];
   return {
     data,

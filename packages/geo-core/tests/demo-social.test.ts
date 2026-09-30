@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   queryDemoSocialPipe,
-  setDemoSocialAccountsProvider,
+  setDemoSocialSourceProvider,
 } from "@notra/analytics/tinybird/demo-social";
 import type { DemoSocialAccount } from "@notra/analytics/types/demo-social";
 
@@ -27,7 +27,18 @@ const accounts: DemoSocialAccount[] = [
   },
 ];
 
-setDemoSocialAccountsProvider(async () => accounts);
+setDemoSocialSourceProvider(async () => ({
+  accounts,
+  published: [
+    {
+      provider: "twitter",
+      providerAccountId: "demo-twitter-fieldnote",
+      platformPostId: "demo-published-1",
+      content: "Published from the demo",
+      postedAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+    },
+  ],
+}));
 
 async function rows<T>(
   pipe: string,
@@ -64,16 +75,24 @@ describe("demo social pipes", () => {
     expect(second).toEqual(first);
   });
 
-  test("top posts only lists the organization's own accounts", async () => {
+  test("top posts rank every account by engagement", async () => {
     const top = await rows<{ provider_account_id: string; engagement: number }>(
       "top_posts",
-      { limit: 5 }
+      { limit: 20 }
     );
-    expect(top).toHaveLength(5);
-    expect(
-      top.every((row) => row.provider_account_id === "demo-twitter-fieldnote")
-    ).toBe(true);
-    expect(top[0]?.engagement).toBeGreaterThanOrEqual(top[4]?.engagement ?? 0);
+    expect(top).toHaveLength(20);
+    expect(new Set(top.map((row) => row.provider_account_id)).size).toBe(2);
+    expect(top[0]?.engagement).toBeGreaterThanOrEqual(top[19]?.engagement ?? 0);
+  });
+
+  test("published posts show up with generated stats", async () => {
+    const lookup = await rows<{ content: string; impressions: number }>(
+      "post_metrics_lookup",
+      { post_ids: ["demo-published-1"] }
+    );
+    expect(lookup).toHaveLength(1);
+    expect(lookup[0]?.content).toBe("Published from the demo");
+    expect(lookup[0]?.impressions).toBeGreaterThan(0);
   });
 
   test("leaderboard compares the current and previous window", async () => {

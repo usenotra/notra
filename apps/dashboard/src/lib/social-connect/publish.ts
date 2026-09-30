@@ -1,3 +1,4 @@
+import { recordDemoPublishedPost } from "@notra/ai/utils/demo-social";
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
 import { socialConnectPlatformSchema } from "@notra/schemas/dashboard/social-accounts";
@@ -39,7 +40,8 @@ function getResultErrorMessage(result: SocialPostResult): string {
 
 /**
  * The demo's accounts are fictional: publishing succeeds without reaching a
- * platform, so the post flow can be tried end to end.
+ * platform and the post shows up in analytics with generated stats, so the
+ * flow can be tried end to end.
  */
 const publishDemoPost = Effect.fn("publishDemoPost")(function* (
   params: PublishSocialPostParams
@@ -47,7 +49,7 @@ const publishDemoPost = Effect.fn("publishDemoPost")(function* (
   const account = yield* Effect.tryPromise({
     try: () =>
       db.query.connectedSocialAccounts.findFirst({
-        columns: { provider: true, username: true },
+        columns: { provider: true, providerAccountId: true, username: true },
         where: and(
           eq(connectedSocialAccounts.id, params.accountId),
           eq(connectedSocialAccounts.organizationId, params.organizationId)
@@ -67,9 +69,25 @@ const publishDemoPost = Effect.fn("publishDemoPost")(function* (
       })
     );
   }
+  const platformPostId = `demo-${crypto.randomUUID()}`;
+  yield* Effect.tryPromise({
+    try: () =>
+      recordDemoPublishedPost(params.organizationId, {
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        platformPostId,
+        content: params.content,
+        postedAt: new Date().toISOString(),
+      }),
+    catch: (cause) =>
+      new SocialConnectRequestError({
+        message: "Failed to publish post",
+        cause,
+      }),
+  });
   return {
-    postId: `demo-${crypto.randomUUID()}`,
-    platformPostId: null,
+    postId: platformPostId,
+    platformPostId,
     postUrl: null,
     username: account.username,
     platform: account.provider,
