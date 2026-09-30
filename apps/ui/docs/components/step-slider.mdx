@@ -1,0 +1,35 @@
+---
+title: Step Slider
+description: A slider that snaps to a fixed set of values, from the Notra pricing page.
+---
+
+<Component path="step-slider/examples/step-slider" />
+
+```bash
+bunx shadcn@latest add @notra/step-slider
+```
+
+`StepSlider` is built on Base UI's `Slider`, like the shadcn `Slider`, so it keeps keyboard, pointer and screen reader support. The values don't have to be evenly spaced: every stop takes the same room on the track. The purple fill carries a dot texture, and a brighter band of dots sweeps through it on every step, while dragging too. Reduced motion turns the sweep off.
+
+```tsx
+<StepSlider
+  aria-label="Prompts"
+  onValueChange={setPrompts}
+  steps={[5, 10, 25, 50, 100]}
+  value={prompts}
+/>
+```
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `steps` | | The values the slider snaps to, in ascending order. |
+| `value` | | The selected value. A value between stops shows as the nearest stop. |
+| `defaultValue` | first step | The starting value when `value` is not set. |
+| `onValueChange` | | Called with the new value on every step. |
+| `onValueCommitted` | | Called when a drag or key press ends. |
+| `formatLabel` | the number | Label under each stop. Clicking a label selects it. |
+| `majorSteps` | all steps | Steps whose label stays visible when the slider is narrower than 32rem. |
+| `hideLabels` | `false` | Hides the labels under the track. |
+| `getValueText` | the number | Screen reader text for a value, e.g. `"10 prompts"`. |
+
+Every other Base UI `Slider.Root` prop, such as `disabled` or `name`, is passed through. The sweep ships as the `animate-step-slider-sweep` utility, added to your CSS by the install.
