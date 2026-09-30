@@ -268,7 +268,7 @@ function buildPromptCalculatorMarkdown() {
     `4. **Compute.** AI answers / month = prompts × models × scans per month, where scans per month = ${PROMPT_CALCULATOR_DAYS_PER_MONTH} ÷ the interval in days (weekly is ${PROMPT_CALCULATOR_DAYS_PER_MONTH}/7, not 4.3). Round only the final total up.`,
     `5. **Pick the plan.** Choose the smallest plan whose quota is at least the estimate; an estimate exactly at the quota fits but leaves no room to add prompts, so mention the next plan if they expect to grow. Then check projects: each brand or website is usually its own project (${projectLimits}). When projects call for a larger plan, recommend that plan and use its quota for step 6.`,
     "6. **Too big for the plan?** Try the next slower frequency until the estimate fits the plan's quota, and recommend the fastest frequency that fits. If even `monthly` exceeds Scale, recommend Enterprise.",
-    `7. **Share the link.** \`${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=…&${PROMPT_CALCULATOR_PARAMS.models}=…&${PROMPT_CALCULATOR_PARAMS.frequency}=…#${PROMPT_CALCULATOR_ANCHOR}\``,
+    `7. **Share the link.** \`${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=…&${PROMPT_CALCULATOR_PARAMS.models}=…&${PROMPT_CALCULATOR_PARAMS.frequency}=…#${PROMPT_CALCULATOR_ANCHOR}\`. The calculator sizes the plan by AI answers only, so when projects call for a larger plan (step 5), say so next to the link, e.g. "the calculator shows Starter, but with 3 brands you need Growth".`,
     "",
     "### Query params",
     "",

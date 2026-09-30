@@ -323,9 +323,16 @@ const STRIP_EDGE_PX = 4;
 /** Width of the fade at a scrollable edge of the engine strip. */
 const STRIP_FADE_PX = 48;
 
-function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
-  const stripRef = useRef<HTMLDivElement>(null);
-  const selectedModels = new Set(value.models);
+/** Phones get one select-style field instead of a row of pills. */
+function EngineDropdown({
+  value,
+  selectedModels,
+  onToggleEngine,
+}: {
+  value: PromptCalculatorInput;
+  selectedModels: ReadonlySet<string>;
+  onToggleEngine: (engine: PromptCalculatorEngine) => void;
+}) {
   const selectedEngines = PROMPT_CALCULATOR_ENGINES.filter((engine) =>
     engine.models.some((model) => selectedModels.has(model.id))
   );
@@ -335,8 +342,79 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
       ? selectedEngines.slice(0, MAX_STACKED_LOGOS)
       : selectedEngines;
   const hiddenEngineCount = selectedEngines.length - stackedEngines.length;
-  const exactPanelId = useId();
-  const [showExact, setShowExact] = useState(false);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button className={cn(MOBILE_FIELD, "sm:hidden")} type="button" />
+        }
+      >
+        <span className="flex shrink-0 -space-x-1.5">
+          {stackedEngines.map((engine) => (
+            <span
+              className="flex size-6 items-center justify-center rounded-full bg-white shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:shadow-[0_0_0_0.125rem_#1E1E1E]"
+              key={engine.id}
+            >
+              <EngineLogo engine={engine} onDarkPill />
+            </span>
+          ))}
+          {hiddenEngineCount > 0 ? (
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#F4F4F5] px-1.5 font-sans text-[0.6875rem] font-medium text-[#1E1E1E] tabular-nums shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:text-white dark:shadow-[0_0_0_0.125rem_#1E1E1E]">
+              +{hiddenEngineCount}
+            </span>
+          ) : null}
+        </span>
+        <span className="min-w-0 flex-1 truncate">
+          {selectedEngines.map((engine) => engine.name).join(", ")}
+        </span>
+        <HugeiconsIcon
+          aria-hidden="true"
+          className="size-4 shrink-0 text-[#1E1E1E80] dark:text-white/50"
+          icon={ArrowDown01Icon}
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {PROMPT_CALCULATOR_ENGINES.map((engine) => {
+          const selectedCount = engine.models.filter((model) =>
+            selectedModels.has(model.id)
+          ).length;
+
+          return (
+            <DropdownMenuCheckboxItem
+              checked={selectedCount > 0}
+              disabled={
+                selectedCount > 0 && selectedCount === value.models.length
+              }
+              key={engine.id}
+              onCheckedChange={() => onToggleEngine(engine)}
+            >
+              <EngineLogo engine={engine} onDarkPill />
+              {engine.name}
+              {selectedCount > 1 ? (
+                <span className="text-muted-foreground tabular-nums">
+                  · {selectedCount}
+                </span>
+              ) : null}
+            </DropdownMenuCheckboxItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** The scrollable engine pills, from the sm breakpoint up. */
+function EngineStrip({
+  value,
+  selectedModels,
+  onToggleEngine,
+}: {
+  value: PromptCalculatorInput;
+  selectedModels: ReadonlySet<string>;
+  onToggleEngine: (engine: PromptCalculatorEngine) => void;
+}) {
+  const stripRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ atStart: true, atEnd: false });
 
   const updateEdges = useCallback(() => {
@@ -388,6 +466,199 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
     });
   }
 
+  return (
+    <div className="hidden items-center gap-2 sm:flex">
+      <div
+        className="relative -my-1 flex min-w-0 flex-1 [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_var(--fade-start,0px),#000_calc(100%-var(--fade-end,0px)),transparent)] py-1 [&::-webkit-scrollbar]:hidden"
+        onScroll={updateEdges}
+        ref={stripRef}
+      >
+        {PROMPT_CALCULATOR_ENGINES.map((engine) => {
+          const selectedCount = engine.models.filter((model) =>
+            selectedModels.has(model.id)
+          ).length;
+          const checked = selectedCount > 0;
+
+          return (
+            <label
+              className={cn(
+                PILL_BASE,
+                "first:ml-px last:mr-px",
+                checked ? PILL_ACTIVE : PILL_INACTIVE
+              )}
+              key={engine.id}
+            >
+              <input
+                checked={checked}
+                className="sr-only"
+                disabled={checked && selectedCount === value.models.length}
+                onChange={() => onToggleEngine(engine)}
+                type="checkbox"
+              />
+              <span
+                className={cn(
+                  "flex size-5 items-center justify-center rounded-full",
+                  checked && "bg-white dark:bg-[#1E1E1E]/10"
+                )}
+              >
+                <EngineLogo engine={engine} onDarkPill={!checked} />
+              </span>
+              {engine.name}
+              {/* Stays mounted and eases its width, so the pill grows
+                    smoothly when a second model of the engine is picked. The
+                    negative margin cancels the pill gap while collapsed. */}
+              <span
+                aria-hidden={selectedCount < 2}
+                className={cn(
+                  "-ml-2 inline-grid transition-[grid-template-columns,opacity] duration-200 ease-out motion-reduce:transition-none",
+                  selectedCount > 1
+                    ? "grid-cols-[1fr] opacity-60"
+                    : "grid-cols-[0fr] opacity-0"
+                )}
+              >
+                <span className="overflow-hidden pl-2 whitespace-nowrap tabular-nums">
+                  ·{" "}
+                  <RollingNumber
+                    numeric={Math.max(selectedCount, 2)}
+                    value={String(Math.max(selectedCount, 2))}
+                  />
+                </span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      {canScroll ? (
+        <button
+          aria-label={
+            edges.atEnd ? "Back to the first models" : "See more models"
+          }
+          className={cn(
+            PILL_BASE,
+            PILL_INACTIVE,
+            "focus-visible:ring-primary grid focus-visible:ring-2"
+          )}
+          onClick={scrollStrip}
+          type="button"
+        >
+          {/* Both labels share one cell so the button never changes width. */}
+          <span
+            aria-hidden="true"
+            className={cn(
+              "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
+              edges.atEnd ? "opacity-0" : "opacity-100"
+            )}
+          >
+            See {MORE_ENGINE_COUNT} more
+            <HugeiconsIcon className="size-3.5" icon={ArrowRight02Icon} />
+          </span>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
+              edges.atEnd ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <HugeiconsIcon className="size-3.5" icon={ArrowLeft02Icon} />
+            Back
+          </span>
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/** A disclosure listing every current model per engine. */
+function ExactModels({
+  value,
+  selectedModels,
+  onToggleModel,
+}: {
+  value: PromptCalculatorInput;
+  selectedModels: ReadonlySet<string>;
+  onToggleModel: (id: string) => void;
+}) {
+  const exactPanelId = useId();
+  const [showExact, setShowExact] = useState(false);
+
+  return (
+    <div>
+      <button
+        aria-controls={exactPanelId}
+        aria-expanded={showExact}
+        className="focus-visible:ring-primary flex cursor-pointer items-center gap-1 rounded-md font-sans text-sm tracking-[-0.01em] text-[#1E1E1E99] transition-colors duration-100 outline-none hover:text-[#1E1E1E] focus-visible:ring-2 dark:text-white/50 dark:hover:text-white"
+        onClick={() => setShowExact((current) => !current)}
+        type="button"
+      >
+        {showExact ? "Hide exact models" : "Pick exact models"}
+        <HugeiconsIcon
+          aria-hidden="true"
+          className={cn(
+            "size-3.5 transition-transform duration-200",
+            showExact && "rotate-180"
+          )}
+          icon={ArrowDown01Icon}
+        />
+      </button>
+      {/* Grid rows animate from 0fr to 1fr, so the panel opens smoothly. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          showExact
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0"
+        )}
+        id={exactPanelId}
+        inert={!showExact}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="mt-3 flex flex-col divide-y divide-[#1E1E1E0F] rounded-2xl bg-white px-4 shadow-[0_0.125rem_0.3125rem_#00000008] dark:divide-white/[0.06] dark:bg-white/[0.04]">
+            {PROMPT_CALCULATOR_ENGINES.map((engine) => (
+              <div
+                className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4"
+                key={engine.id}
+              >
+                <span className="flex w-28 shrink-0 items-center gap-2 font-sans text-sm font-medium text-[#1E1E1E] dark:text-white">
+                  <EngineLogo engine={engine} onDarkPill />
+                  {engine.name}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {engine.models.map((model) => {
+                    const checked = selectedModels.has(model.id);
+
+                    return (
+                      <label
+                        className={cn(
+                          PILL_BASE,
+                          "px-3 py-1 text-[0.8125rem]",
+                          checked ? PILL_ACTIVE : PILL_INACTIVE
+                        )}
+                        key={model.id}
+                      >
+                        <input
+                          checked={checked}
+                          className="sr-only"
+                          disabled={checked && value.models.length === 1}
+                          onChange={() => onToggleModel(model.id)}
+                          type="checkbox"
+                        />
+                        {model.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
+  const selectedModels = new Set(value.models);
+
   /** Adds or removes one model, keeping catalog order and at least one model. */
   function toggleModel(id: string) {
     if (value.models.includes(id)) {
@@ -424,233 +695,22 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
           {value.models.length} {value.models.length === 1 ? "model" : "models"}
         </span>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <button className={cn(MOBILE_FIELD, "sm:hidden")} type="button" />
-          }
-        >
-          <span className="flex shrink-0 -space-x-1.5">
-            {stackedEngines.map((engine) => (
-              <span
-                className="flex size-6 items-center justify-center rounded-full bg-white shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:shadow-[0_0_0_0.125rem_#1E1E1E]"
-                key={engine.id}
-              >
-                <EngineLogo engine={engine} onDarkPill />
-              </span>
-            ))}
-            {hiddenEngineCount > 0 ? (
-              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#F4F4F5] px-1.5 font-sans text-[0.6875rem] font-medium text-[#1E1E1E] tabular-nums shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:text-white dark:shadow-[0_0_0_0.125rem_#1E1E1E]">
-                +{hiddenEngineCount}
-              </span>
-            ) : null}
-          </span>
-          <span className="min-w-0 flex-1 truncate">
-            {selectedEngines.map((engine) => engine.name).join(", ")}
-          </span>
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="size-4 shrink-0 text-[#1E1E1E80] dark:text-white/50"
-            icon={ArrowDown01Icon}
-          />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {PROMPT_CALCULATOR_ENGINES.map((engine) => {
-            const selectedCount = engine.models.filter((model) =>
-              selectedModels.has(model.id)
-            ).length;
+      <EngineDropdown
+        onToggleEngine={toggleEngine}
+        selectedModels={selectedModels}
+        value={value}
+      />
+      <EngineStrip
+        onToggleEngine={toggleEngine}
+        selectedModels={selectedModels}
+        value={value}
+      />
 
-            return (
-              <DropdownMenuCheckboxItem
-                checked={selectedCount > 0}
-                disabled={
-                  selectedCount > 0 && selectedCount === value.models.length
-                }
-                key={engine.id}
-                onCheckedChange={() => toggleEngine(engine)}
-              >
-                <EngineLogo engine={engine} onDarkPill />
-                {engine.name}
-                {selectedCount > 1 ? (
-                  <span className="text-muted-foreground tabular-nums">
-                    · {selectedCount}
-                  </span>
-                ) : null}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <div className="hidden items-center gap-2 sm:flex">
-        <div
-          className="relative -my-1 flex min-w-0 flex-1 [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_var(--fade-start,0px),#000_calc(100%-var(--fade-end,0px)),transparent)] py-1 [&::-webkit-scrollbar]:hidden"
-          onScroll={updateEdges}
-          ref={stripRef}
-        >
-          {PROMPT_CALCULATOR_ENGINES.map((engine) => {
-            const selectedCount = engine.models.filter((model) =>
-              selectedModels.has(model.id)
-            ).length;
-            const checked = selectedCount > 0;
-
-            return (
-              <label
-                className={cn(
-                  PILL_BASE,
-                  "first:ml-px last:mr-px",
-                  checked ? PILL_ACTIVE : PILL_INACTIVE
-                )}
-                key={engine.id}
-              >
-                <input
-                  checked={checked}
-                  className="sr-only"
-                  disabled={checked && selectedCount === value.models.length}
-                  onChange={() => toggleEngine(engine)}
-                  type="checkbox"
-                />
-                <span
-                  className={cn(
-                    "flex size-5 items-center justify-center rounded-full",
-                    checked && "bg-white dark:bg-[#1E1E1E]/10"
-                  )}
-                >
-                  <EngineLogo engine={engine} onDarkPill={!checked} />
-                </span>
-                {engine.name}
-                {/* Stays mounted and eases its width, so the pill grows
-                    smoothly when a second model of the engine is picked. The
-                    negative margin cancels the pill gap while collapsed. */}
-                <span
-                  aria-hidden={selectedCount < 2}
-                  className={cn(
-                    "-ml-2 inline-grid transition-[grid-template-columns,opacity] duration-200 ease-out motion-reduce:transition-none",
-                    selectedCount > 1
-                      ? "grid-cols-[1fr] opacity-60"
-                      : "grid-cols-[0fr] opacity-0"
-                  )}
-                >
-                  <span className="overflow-hidden pl-2 whitespace-nowrap tabular-nums">
-                    ·{" "}
-                    <RollingNumber
-                      numeric={Math.max(selectedCount, 2)}
-                      value={String(Math.max(selectedCount, 2))}
-                    />
-                  </span>
-                </span>
-              </label>
-            );
-          })}
-        </div>
-        {canScroll ? (
-          <button
-            aria-label={
-              edges.atEnd ? "Back to the first models" : "See more models"
-            }
-            className={cn(
-              PILL_BASE,
-              PILL_INACTIVE,
-              "focus-visible:ring-primary grid focus-visible:ring-2"
-            )}
-            onClick={scrollStrip}
-            type="button"
-          >
-            {/* Both labels share one cell so the button never changes width. */}
-            <span
-              aria-hidden="true"
-              className={cn(
-                "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
-                edges.atEnd ? "opacity-0" : "opacity-100"
-              )}
-            >
-              See {MORE_ENGINE_COUNT} more
-              <HugeiconsIcon className="size-3.5" icon={ArrowRight02Icon} />
-            </span>
-            <span
-              aria-hidden="true"
-              className={cn(
-                "col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-200",
-                edges.atEnd ? "opacity-100" : "opacity-0"
-              )}
-            >
-              <HugeiconsIcon className="size-3.5" icon={ArrowLeft02Icon} />
-              Back
-            </span>
-          </button>
-        ) : null}
-      </div>
-
-      <div>
-        <button
-          aria-controls={exactPanelId}
-          aria-expanded={showExact}
-          className="focus-visible:ring-primary flex cursor-pointer items-center gap-1 rounded-md font-sans text-sm tracking-[-0.01em] text-[#1E1E1E99] transition-colors duration-100 outline-none hover:text-[#1E1E1E] focus-visible:ring-2 dark:text-white/50 dark:hover:text-white"
-          onClick={() => setShowExact((current) => !current)}
-          type="button"
-        >
-          {showExact ? "Hide exact models" : "Pick exact models"}
-          <HugeiconsIcon
-            aria-hidden="true"
-            className={cn(
-              "size-3.5 transition-transform duration-200",
-              showExact && "rotate-180"
-            )}
-            icon={ArrowDown01Icon}
-          />
-        </button>
-        {/* Grid rows animate from 0fr to 1fr, so the panel opens smoothly. */}
-        <div
-          className={cn(
-            "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            showExact
-              ? "grid-rows-[1fr] opacity-100"
-              : "grid-rows-[0fr] opacity-0"
-          )}
-          id={exactPanelId}
-          inert={!showExact}
-        >
-          <div className="min-h-0 overflow-hidden">
-            <div className="mt-3 flex flex-col divide-y divide-[#1E1E1E0F] rounded-2xl bg-white px-4 shadow-[0_0.125rem_0.3125rem_#00000008] dark:divide-white/[0.06] dark:bg-white/[0.04]">
-              {PROMPT_CALCULATOR_ENGINES.map((engine) => (
-                <div
-                  className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4"
-                  key={engine.id}
-                >
-                  <span className="flex w-28 shrink-0 items-center gap-2 font-sans text-sm font-medium text-[#1E1E1E] dark:text-white">
-                    <EngineLogo engine={engine} onDarkPill />
-                    {engine.name}
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {engine.models.map((model) => {
-                      const checked = selectedModels.has(model.id);
-
-                      return (
-                        <label
-                          className={cn(
-                            PILL_BASE,
-                            "px-3 py-1 text-[0.8125rem]",
-                            checked ? PILL_ACTIVE : PILL_INACTIVE
-                          )}
-                          key={model.id}
-                        >
-                          <input
-                            checked={checked}
-                            className="sr-only"
-                            disabled={checked && value.models.length === 1}
-                            onChange={() => toggleModel(model.id)}
-                            type="checkbox"
-                          />
-                          {model.label}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ExactModels
+        onToggleModel={toggleModel}
+        selectedModels={selectedModels}
+        value={value}
+      />
     </fieldset>
   );
 }
