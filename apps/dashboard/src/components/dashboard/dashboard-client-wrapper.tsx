@@ -26,7 +26,8 @@ const loadCommandPalette = () =>
 
 async function loadSettingsModal() {
   const settingsModule = await import("@/components/settings/settings-modal");
-  settingsModule.preloadDefaultSettingsPane().catch(() => undefined);
+  // Resolve only once the default pane is cached, so opening never shows its skeleton.
+  await settingsModule.preloadDefaultSettingsPane().catch(() => undefined);
   return settingsModule.SettingsModal;
 }
 
