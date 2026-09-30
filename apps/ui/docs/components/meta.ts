@@ -8,6 +8,7 @@ export default defineMeta({
     "marketing-button",
     "shimmer",
     "tooltip",
+    "chat-minimap",
     "ai-search",
     "ai-chat",
     "coding-agents",

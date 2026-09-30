@@ -935,6 +935,36 @@
       ]
     },
     {
+      "name": "chat-minimap",
+      "type": "registry:component",
+      "title": "Chat Minimap",
+      "description": "A rail of lines that maps a conversation, built on shadcn Button, Card, HoverCard and Tooltip.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["button", "card", "hover-card", "tooltip"],
+      "files": [
+        {
+          "path": "registry/notra/chat-minimap/components/chat-minimap.tsx",
+          "type": "registry:component",
+          "target": "components/chat-minimap/components/chat-minimap.tsx"
+        },
+        {
+          "path": "registry/notra/chat-minimap/types/chat-minimap.ts",
+          "type": "registry:lib",
+          "target": "components/chat-minimap/types/chat-minimap.ts"
+        },
+        {
+          "path": "registry/notra/chat-minimap/lib/chat-minimap.ts",
+          "type": "registry:lib",
+          "target": "components/chat-minimap/lib/chat-minimap.ts"
+        },
+        {
+          "path": "registry/notra/chat-minimap/hooks/use-chat-minimap-scroll-spy.ts",
+          "type": "registry:hook",
+          "target": "components/chat-minimap/hooks/use-chat-minimap-scroll-spy.ts"
+        }
+      ]
+    },
+    {
       "name": "perplexity-message",
       "type": "registry:component",
       "title": "Perplexity Message",
