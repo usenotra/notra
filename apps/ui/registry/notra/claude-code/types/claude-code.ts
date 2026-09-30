@@ -160,7 +160,10 @@ export interface ClaudeCodePromptProps extends Omit<
   mode?: ClaudeCodeMode;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
-  /** Called with the trimmed text on Enter. The prompt clears afterwards. */
+  /**
+   * Called with the trimmed text on Enter. An uncontrolled prompt clears
+   * afterwards; with `value`, clear it yourself here.
+   */
   onSend?: (text: string) => void;
   /** Called on Escape while `busy`, to interrupt the running turn. */
   onStop?: () => void;

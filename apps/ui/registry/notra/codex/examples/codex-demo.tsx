@@ -16,6 +16,9 @@ import type { CodexChatTurn } from "../types/codex";
 
 const PARAGRAPH_SEPARATOR = "\n\n";
 
+/** How close to the bottom still counts as following the transcript. */
+const FOLLOW_THRESHOLD_PX = 48;
+
 const CODE_PATTERN = /(`[^`]+`)/;
 
 /** Renders one paragraph, turning `backticks` into code. */
@@ -64,20 +67,44 @@ export default function CodexDemo() {
   const session = CODEX_DEMO_SESSION;
   const chat = useCodexChat(CODEX_REPLIES);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const hasMountedRef = useRef(false);
+  const followRef = useRef(false);
 
-  // Follow the running turn inside the fixed-height terminal. Scrolling the
-  // viewport directly (not scrollIntoView) keeps the host page still.
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-    const viewport = terminalRef.current?.querySelector(
+  // Follow new output only while the reader sits at the bottom, so
+  // scrolling up to reread a turn is not undone by the next streamed word.
+  // Sending always jumps back down. Scrolling the viewport directly (not
+  // scrollIntoView) keeps the host page still.
+  const viewportOf = () =>
+    terminalRef.current?.querySelector<HTMLElement>(
       '[data-slot="scroll-area-viewport"]'
     );
+
+  useEffect(() => {
+    const viewport = viewportOf();
+    if (!viewport) {
+      return;
+    }
+    const handleScroll = () => {
+      followRef.current =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+        FOLLOW_THRESHOLD_PX;
+    };
+    handleScroll();
+    viewport.addEventListener("scroll", handleScroll, { passive: true });
+    return () => viewport.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!followRef.current) {
+      return;
+    }
+    const viewport = viewportOf();
     viewport?.scrollTo({ top: viewport.scrollHeight });
   }, [chat.turns, chat.busy]);
+
+  const handleSend = (text: string) => {
+    followRef.current = true;
+    return chat.send(text);
+  };
 
   return (
     <div className="w-full min-w-0">
@@ -96,7 +123,7 @@ export default function CodexDemo() {
               cwd={session.header.cwd}
               effort={session.composer.effort}
               model={session.composer.model}
-              onSend={chat.send}
+              onSend={handleSend}
               onStop={chat.stop}
               placeholder={session.composer.placeholder}
               task={session.composer.task}

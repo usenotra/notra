@@ -20,7 +20,7 @@ The status row below shows the working directory while idle. With `busy` it show
 | `provider` | `Notra` | Shown muted after the model. |
 | `effort` | `high` | Shown in bold orange. |
 | `busy` | `false` | Swaps the cwd for the scanner and `esc interrupt`. Enter does not send and Escape calls `onStop`. |
-| `onSend` | | Called with the trimmed text on Enter. The composer clears afterwards. |
+| `onSend` | | Called with the trimmed text on Enter. An uncontrolled composer clears afterwards. With `value`, clear it yourself in `onSend`. |
 | `onStop` | | Called on Escape while `busy`. |
 | `cwd` | | The working directory on the idle status row. |
 | `context` | | Context usage, like `63.4K (6%)`. |

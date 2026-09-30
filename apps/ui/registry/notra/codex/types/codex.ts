@@ -101,7 +101,10 @@ export interface CodexComposerProps extends Omit<
   effort?: string;
   inputClassName?: string;
   model?: string;
-  /** Called with the trimmed text on Enter. The composer clears afterwards. */
+  /**
+   * Called with the trimmed text on Enter. An uncontrolled composer clears
+   * afterwards; with `value`, clear it yourself here.
+   */
   onSend?: (text: string) => void;
   /** Called on Escape while `busy`, to interrupt the running turn. */
   onStop?: () => void;

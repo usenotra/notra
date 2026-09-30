@@ -75,7 +75,7 @@ export const useOpencodeChat = (
     }
     runRef.current += 1;
     patch(id, (turn) => ({
-      activities: turn.activities.filter((activity) => !activity.pending),
+      activities: turn.activities.filter((activity) => !activity.running),
       status: "interrupted",
     }));
     finish();
@@ -114,7 +114,7 @@ export const useOpencodeChat = (
         patch(id, (turn) => ({
           activities: [
             ...turn.activities,
-            { ...activity, id: activityId, pending: isThought },
+            { ...activity, id: activityId, pending: isThought, running: true },
           ],
         }));
         // react-doctor-disable-next-line react-doctor/async-await-in-loop -- activity lines play one after another
@@ -124,16 +124,16 @@ export const useOpencodeChat = (
         if (!alive()) {
           return;
         }
-        if (isThought) {
-          const duration = formatSeconds(Date.now() - thoughtStart);
-          patch(id, (turn) => ({
-            activities: turn.activities.map((item) =>
-              item.id === activityId
-                ? { ...item, duration, pending: false }
-                : item
-            ),
-          }));
-        }
+        const duration = isThought
+          ? formatSeconds(Date.now() - thoughtStart)
+          : activity.duration;
+        patch(id, (turn) => ({
+          activities: turn.activities.map((item) =>
+            item.id === activityId
+              ? { ...item, duration, pending: false, running: false }
+              : item
+          ),
+        }));
       }
 
       if (!alive()) {

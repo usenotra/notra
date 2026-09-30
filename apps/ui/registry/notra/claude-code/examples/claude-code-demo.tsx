@@ -25,6 +25,9 @@ import {
 import { useClaudeCodeChat } from "../hooks/use-claude-code-chat";
 import type { ClaudeCodeChatTurn, ClaudeCodeMode } from "../types/claude-code";
 
+/** How close to the bottom still counts as following the transcript. */
+const FOLLOW_THRESHOLD_PX = 48;
+
 const nextMode = (current: ClaudeCodeMode) => {
   const index = CLAUDE_CODE_MODE_ORDER.indexOf(current);
   return CLAUDE_CODE_MODE_ORDER[(index + 1) % CLAUDE_CODE_MODE_ORDER.length];
@@ -72,21 +75,45 @@ export default function ClaudeCodeDemo() {
   const chat = useClaudeCodeChat(turns, CLAUDE_CODE_REPLIES);
   const [mode, setMode] = useState<ClaudeCodeMode>("bypass");
   const terminalRef = useRef<HTMLDivElement>(null);
-  const hasMountedRef = useRef(false);
+  const followRef = useRef(false);
   const activeTurn = chat.busy ? chat.turns.at(-1) : undefined;
 
-  // Follow the running turn inside the fixed-height terminal. Scrolling the
-  // viewport directly (not scrollIntoView) keeps the host page still.
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-    const viewport = terminalRef.current?.querySelector(
+  // Follow new output only while the reader sits at the bottom, so
+  // scrolling up to reread a turn is not undone by the next streamed word.
+  // Sending always jumps back down. Scrolling the viewport directly (not
+  // scrollIntoView) keeps the host page still.
+  const viewportOf = () =>
+    terminalRef.current?.querySelector<HTMLElement>(
       '[data-slot="scroll-area-viewport"]'
     );
+
+  useEffect(() => {
+    const viewport = viewportOf();
+    if (!viewport) {
+      return;
+    }
+    const handleScroll = () => {
+      followRef.current =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+        FOLLOW_THRESHOLD_PX;
+    };
+    handleScroll();
+    viewport.addEventListener("scroll", handleScroll, { passive: true });
+    return () => viewport.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!followRef.current) {
+      return;
+    }
+    const viewport = viewportOf();
     viewport?.scrollTo({ top: viewport.scrollHeight });
   }, [chat.turns, chat.busy]);
+
+  const handleSend = (text: string) => {
+    followRef.current = true;
+    return chat.send(text);
+  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Tab" && event.shiftKey) {
@@ -103,7 +130,7 @@ export default function ClaudeCodeDemo() {
           busy={chat.busy}
           mode={mode}
           onKeyDown={handleKeyDown}
-          onSend={chat.send}
+          onSend={handleSend}
           onStop={chat.stop}
           placeholder={promptPlaceholder}
           pullRequest={pullRequest}

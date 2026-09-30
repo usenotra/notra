@@ -58,6 +58,9 @@ const ReplyBlock = ({ block }: { block: OpencodeDemoBlock }) => {
   );
 };
 
+/** How close to the bottom still counts as following the transcript. */
+const FOLLOW_THRESHOLD_PX = 48;
+
 /** Consecutive tool lines stack without a gap, thoughts stand alone. */
 const groupActivities = (activities: OpencodeChatActivity[]) =>
   activities.reduce<OpencodeChatActivity[][]>((groups, activity) => {
@@ -76,28 +79,49 @@ export default function OpencodeDemo() {
   const session = OPENCODE_DEMO_SESSION;
   const chat = useOpencodeChat(OPENCODE_DEMO_TURNS, OPENCODE_REPLIES);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const hasMountedRef = useRef(false);
+  const followRef = useRef(true);
 
-  const scrollToEnd = () => {
-    const viewport = scrollRef.current?.querySelector(
+  const viewportOf = () =>
+    scrollRef.current?.querySelector<HTMLElement>(
       '[data-slot="opencode-scroll-area-viewport"]'
     );
-    viewport?.scrollTo({ top: viewport.scrollHeight });
-  };
 
-  // Open on the latest turn like a terminal, then follow the running turn.
-  // Scrolling the viewport directly keeps the host page from jumping.
+  // Open on the latest turn like a terminal. Scrolling the viewport directly
+  // keeps the host page from jumping.
   useLayoutEffect(() => {
-    scrollToEnd();
+    const viewport = viewportOf();
+    viewport?.scrollTo({ top: viewport.scrollHeight });
+  }, []);
+
+  // Follow new output only while the reader sits at the bottom, so scrolling
+  // up to reread a turn is not undone by the next reply block. Sending always
+  // jumps back down.
+  useEffect(() => {
+    const viewport = viewportOf();
+    if (!viewport) {
+      return;
+    }
+    const handleScroll = () => {
+      followRef.current =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+        FOLLOW_THRESHOLD_PX;
+    };
+    viewport.addEventListener("scroll", handleScroll, { passive: true });
+    return () => viewport.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
+    if (!followRef.current) {
       return;
     }
-    scrollToEnd();
+    const viewport = viewportOf();
+    viewport?.scrollTo({ top: viewport.scrollHeight });
   }, [chat.turns]);
+
+  const handleSend = (text: string) => {
+    followRef.current = true;
+    return chat.send(text);
+  };
 
   return (
     <OpencodeWindow className="h-150">
@@ -110,11 +134,13 @@ export default function OpencodeDemo() {
                   <OpencodeMessage from="user">{turn.prompt}</OpencodeMessage>
                   {groupActivities(turn.activities).map((group) => (
                     <div key={group[0]?.id}>
-                      {group.map(({ body, id, ...activity }) => (
-                        <OpencodeActivity key={id} {...activity}>
-                          {body}
-                        </OpencodeActivity>
-                      ))}
+                      {group.map(
+                        ({ body, id, running: _running, ...activity }) => (
+                          <OpencodeActivity key={id} {...activity}>
+                            {body}
+                          </OpencodeActivity>
+                        )
+                      )}
                     </div>
                   ))}
                   {turn.reply.length > 0 && (
@@ -144,7 +170,7 @@ export default function OpencodeDemo() {
             cwd={session.cwd}
             effort={session.effort}
             model={session.model}
-            onSend={chat.send}
+            onSend={handleSend}
             onStop={chat.stop}
             placeholder=""
             provider={session.provider}

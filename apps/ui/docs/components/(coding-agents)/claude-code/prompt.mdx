@@ -16,7 +16,7 @@ bunx shadcn@latest add @notra/claude-code-prompt
 | `mode` | `manual` | `manual`, `accept-edits`, `plan`, `auto` or `bypass`. `manual` shows `? for shortcuts`. |
 | `effort` | `false` | `low`, `medium`, `high`, `xhigh`, `max`, `ultracode`, or `false` to hide it. |
 | `pullRequest` | | `{ number, href? }`. Adds `· PR #1317` as an underlined yellow link. |
-| `onSend` | | Called with the trimmed text on Enter. The prompt clears afterwards. |
+| `onSend` | | Called with the trimmed text on Enter. An uncontrolled prompt clears afterwards. With `value`, clear it yourself in `onSend`. |
 | `busy` | `false` | A turn is running. Enter does not send and Escape calls `onStop`. |
 | `onStop` | | Called on Escape while `busy`. |
 | `value`, `defaultValue`, `onChange` | | Input state, controlled or uncontrolled. |

@@ -79,7 +79,10 @@ export interface OpencodeComposerProps extends Omit<
   effort?: string;
   inputClassName?: string;
   model?: string;
-  /** Called with the trimmed text on Enter. The composer clears afterwards. */
+  /**
+   * Called with the trimmed text on Enter. An uncontrolled composer clears
+   * afterwards; with `value`, clear it yourself here.
+   */
   onSend?: (text: string) => void;
   /** Called on Escape while `busy`, to interrupt the running turn. */
   onStop?: () => void;
@@ -191,7 +194,10 @@ export interface OpencodeReply {
 }
 
 export interface OpencodeChatActivity extends OpencodeDemoActivity {
+  /** A thought still thinking, shown with the spinner. */
   pending?: boolean;
+  /** Still playing back. Dropped from the transcript when interrupted. */
+  running?: boolean;
 }
 
 export interface OpencodeChatTurn {
