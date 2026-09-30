@@ -1,9 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
-import {
-  getGeoOnboardingLanguages,
-  getGeoOnboardingStage,
-} from "@notra/geo-core/geo/onboarding-status";
+import { getGeoOnboardingSnapshot } from "@notra/geo-core/geo/onboarding-status";
 import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
@@ -64,12 +61,11 @@ export default async function OnboardingVisibilityPage({
     isDevReplay
   );
 
-  const [stage, hasPaidHistory, requestHeaders, savedLanguages] =
+  const [{ stage, languages: savedLanguages }, hasPaidHistory, requestHeaders] =
     await Promise.all([
-      getGeoOnboardingStage(organization.id, projectId),
+      getGeoOnboardingSnapshot(organization.id, projectId),
       hasPaidSubscriptionHistory(organization.id),
       headers(),
-      getGeoOnboardingLanguages(organization.id, projectId),
     ]);
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const dashboardHref = geoDashboardPath(organization.slug, projectId);

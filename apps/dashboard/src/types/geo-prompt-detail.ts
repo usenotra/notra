@@ -5,6 +5,7 @@ import type {
   GeoPromptReceiptView,
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
+import type { ReactNode } from "react";
 
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { GeoPromptTableRow, PromptAnswerPageProps } from "@/types/geo";
@@ -71,6 +72,7 @@ export interface PromptAnswerTagsFooterProps {
   tags: string[];
   pending: boolean;
   onChange: (nextTags: string[]) => void;
+  children?: ReactNode;
 }
 
 export interface PromptAnswerEmptyProps {

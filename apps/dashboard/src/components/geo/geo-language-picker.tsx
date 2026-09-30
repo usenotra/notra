@@ -24,7 +24,7 @@ import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import type { GeoLanguagePickerProps } from "@/types/geo";
 
-function LanguageLabel({ language }: { language: string }) {
+export function LanguageLabel({ language }: { language: string }) {
   const languageLabel = useLanguageLabel();
   return (
     <span className="flex items-center gap-1.5">

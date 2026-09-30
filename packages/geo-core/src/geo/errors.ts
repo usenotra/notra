@@ -255,6 +255,18 @@ export class GeoWriterStartError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
+export class GeoPromptTranslationError extends Data.TaggedError(
+  "GeoPromptTranslationError"
+)<{
+  /**
+   * limit: the language already scans its maximum; last: a language keeps at
+   * least one prompt; not_picked: the prompt is not scanned in that language;
+   * language: the language is not a translated language of this project.
+   */
+  readonly reason: "limit" | "last" | "not_picked" | "language";
+  readonly limit?: number;
+}> {}
+
 export type GeoRouterError =
   | GeoSuggestionNotFoundError
   | GeoBrandIdentityMissingError
@@ -275,6 +287,7 @@ export type GeoRouterError =
   | GeoProjectNotFoundError
   | GeoPromptDuplicateError
   | GeoPromptNotFoundError
+  | GeoPromptTranslationError
   | GeoSampleDataDisabledError
   | GeoScanAlreadyRunningError
   | GeoScanEnginesEmptyError

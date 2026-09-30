@@ -52,6 +52,25 @@ export function trackedGeoLanguages(languages: readonly string[]): string[] {
   return tracked.length > 0 ? tracked : [DEFAULT_LANGUAGE];
 }
 
+/**
+ * Languages a settings save tracks. Stored prompts are written in the prompt
+ * language, so it always stays tracked and is put back first when missing.
+ * Null when the list has no room left for it.
+ */
+export function withPromptLanguage(
+  languages: readonly string[],
+  promptLanguage: string | null
+): string[] | null {
+  const requested = [...new Set(languages)];
+  if (!promptLanguage || requested.includes(promptLanguage)) {
+    return requested;
+  }
+  if (requested.length >= GEO_MAX_LANGUAGES) {
+    return null;
+  }
+  return [promptLanguage, ...requested];
+}
+
 function canAddGeoLanguage(
   configuredLanguages: readonly string[],
   language: string

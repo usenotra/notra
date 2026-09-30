@@ -41,6 +41,7 @@ import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
+import { PromptTranslationsSection } from "@/components/geo/prompt-translations-section";
 import {
   GeoScanControlsProvider,
   useGeoScanControls,
@@ -355,6 +356,7 @@ function PromptAnswerTagsFooter({
   tags,
   pending,
   onChange,
+  children,
 }: PromptAnswerTagsFooterProps) {
   const t = useTranslations("geo.promptDetailDialog");
   const tGeoShared = useTranslations("geo.shared");
@@ -384,6 +386,7 @@ function PromptAnswerTagsFooter({
           values={tags}
         />
       )}
+      {children}
     </section>
   );
 }
@@ -568,7 +571,13 @@ export function PromptAnswerPage({
             row={row}
             tags={tags}
             tagsInputId={tagsInputId}
-          />
+          >
+            <PromptTranslationsSection
+              open={open}
+              organizationId={organizationId}
+              row={row}
+            />
+          </PromptAnswerTagsFooter>
         ) : null}
       </div>
     </div>

@@ -909,6 +909,11 @@ export interface GeoDiscoverWebsiteResult {
 
 export type GeoOnboardingStage = "brand" | "competitors" | "complete";
 
+export interface GeoOnboardingSnapshot {
+  stage: GeoOnboardingStage;
+  languages: GeoOnboardingLanguages | null;
+}
+
 export interface GeoOnboardingLanguages {
   /** Fixed once set; null for projects created before prompt languages. */
   promptLanguage: string | null;
@@ -1462,6 +1467,8 @@ export interface GeoScanSizeInput {
   languages: readonly string[];
   /** Language the stored prompts are written in. Defaults to English. */
   promptLanguage?: string;
+  /** Prompts picked per translated language; unknown ones assume the limit. */
+  translatedPromptCounts?: Readonly<Record<string, number>>;
   trackWithoutSearch?: boolean;
   catalog: GeoResolvedModelCatalog;
   sequences: readonly Pick<
@@ -1919,4 +1926,69 @@ export interface GeoChangesResponse {
   currentScan: GeoChangeScan | null;
   summary: GeoChangesSummary;
   events: GeoChangeEvent[];
+}
+
+/** Stored state of one prompt in one translated language. */
+export interface GeoPromptTranslationRecord {
+  promptId: string;
+  language: string;
+  text: string | null;
+  sourceText: string | null;
+  edited: boolean;
+}
+
+export interface GeoPromptTranslationEntry {
+  promptId: string;
+  /** Current prompt text in the prompt language. */
+  sourceText: string;
+  /** Stored translation; null until translated. */
+  text: string | null;
+  edited: boolean;
+  /** Missing, or made from an older version of the prompt. */
+  needsTranslation: boolean;
+}
+
+export interface GeoPromptTranslationLanguagePlan {
+  language: string;
+  /** No prompt was picked yet, so these are the default picks. */
+  defaulted: boolean;
+  /** Prompts scanned in this language, in prompt order. */
+  entries: GeoPromptTranslationEntry[];
+}
+
+export interface GeoPromptTranslationsResponse {
+  promptLanguage: string;
+  /** Most prompts scanned per translated language. */
+  limit: number;
+  languages: GeoPromptTranslationLanguagePlan[];
+}
+
+export interface GeoPromptTranslationSelectInput extends GeoScopeInput {
+  promptId: string;
+  language: string;
+  selected: boolean;
+}
+
+export interface GeoPromptTranslationTarget extends GeoScopeInput {
+  promptId: string;
+  language: string;
+}
+
+export interface GeoPromptTranslationUpdateInput extends GeoPromptTranslationTarget {
+  text: string;
+}
+
+/** What website discovery writes for a project in one transaction. */
+export interface GeoWebsiteGenerationWrite {
+  organizationId: string;
+  projectId: string;
+  companyName: string;
+  aliases: string[];
+  entries: readonly GeoPromptInsert[];
+  conversations: readonly GeoGeneratedConversation[];
+  discoveredCompetitors: readonly GeoCompetitorSeed[];
+  /** Null keeps following the default engine set. */
+  seedEngines: string[] | null;
+  /** Null for projects created before prompt languages; first = prompt language. */
+  seedLanguages: readonly string[] | null;
 }

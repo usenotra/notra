@@ -4,7 +4,7 @@ import { scrapeWebsiteForBrandAnalysis } from "@notra/ai/utils/context-dev";
 import { db } from "@notra/db/drizzle";
 import { geoSettings, projects } from "@notra/db/schema";
 import { generateText, Output } from "ai";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -29,10 +29,10 @@ import type {
   GeoCompetitorSeed,
   GeoDiscoverWebsiteResult,
   GeoGenerateFromWebsiteResult,
-  GeoGeneratedConversation,
   GeoPromptInsert,
   GeoScopeInput,
   GeoWebsiteDiscovery,
+  GeoWebsiteGenerationWrite,
 } from "../types/geo";
 import { geoConversationRules } from "../utils/conversation-generation-prompt";
 import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
@@ -269,18 +269,18 @@ const resolveSeedEngines = Effect.fn("geo.discover.seedEngines")(function* (
 
 const persistGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.persist"
-)(function* (
-  tx: DbTransaction,
-  organizationId: string,
-  projectId: string,
-  companyName: string,
-  aliases: string[],
-  entries: readonly GeoPromptInsert[],
-  conversations: readonly GeoGeneratedConversation[],
-  discoveredCompetitors: readonly GeoCompetitorSeed[],
-  seedEngines: string[] | null,
-  seedLanguages: readonly string[] | null
-) {
+)(function* (tx: DbTransaction, input: GeoWebsiteGenerationWrite) {
+  const {
+    organizationId,
+    projectId,
+    companyName,
+    aliases,
+    entries,
+    conversations,
+    discoveredCompetitors,
+    seedEngines,
+    seedLanguages,
+  } = input;
   yield* Effect.tryPromise({
     try: () =>
       tx
@@ -400,13 +400,25 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
   }
 });
 
-/**
- * Prompt language of the project `ensureGeoProject` will pick (the oldest one
- * when no project is given), so regenerated prompts match it.
- */
-const loadGeoPromptLanguage = Effect.fn("geo.generateFromWebsite.language")(
-  function* (scopeInput: GeoScopeInput) {
-    const { projectId } = yield* resolveGeoScope(scopeInput).pipe(
+const loadExistingSettings = (projectId: string) =>
+  Effect.tryPromise({
+    try: () =>
+      db.query.geoSettings.findFirst({
+        where: eq(geoSettings.projectId, projectId),
+      }),
+    catch: (cause) =>
+      new GeoDiscoveryError({
+        message: "Failed to load GEO settings",
+        cause,
+      }),
+  });
+
+export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
+  function* (scopeInput: GeoScopeInput, url: string) {
+    const organizationId = scopeInput.organizationId;
+    // The project `ensureGeoProject` settles on (the oldest when none is
+    // given) decides the prompt language, so resolve it before discovery.
+    const scope = yield* resolveGeoScope(scopeInput).pipe(
       Effect.mapError(
         (cause) =>
           new GeoDiscoveryError({
@@ -415,37 +427,14 @@ const loadGeoPromptLanguage = Effect.fn("geo.generateFromWebsite.language")(
           })
       )
     );
-    if (!projectId) {
-      return DEFAULT_LANGUAGE;
-    }
-    const row = yield* Effect.tryPromise({
-      try: () =>
-        db.query.geoSettings.findFirst({
-          columns: { promptLanguage: true },
-          where: and(
-            eq(geoSettings.projectId, projectId),
-            eq(geoSettings.organizationId, scopeInput.organizationId)
-          ),
-        }),
-      catch: (cause) =>
-        new GeoDiscoveryError({
-          message: "Failed to load GEO settings",
-          cause,
-        }),
-    });
-    return row?.promptLanguage ?? DEFAULT_LANGUAGE;
-  }
-);
-
-export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
-  function* (scopeInput: GeoScopeInput, url: string) {
-    const organizationId = scopeInput.organizationId;
-    const language = yield* loadGeoPromptLanguage(scopeInput);
+    const existing = scope.projectId
+      ? yield* loadExistingSettings(scope.projectId)
+      : undefined;
     const { discovery } = yield* discoverGeoWebsite(
       organizationId,
       url,
       true,
-      language
+      existing?.promptLanguage ?? DEFAULT_LANGUAGE
     );
 
     const projectId = yield* ensureGeoProject(
@@ -477,18 +466,6 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
       })
     );
 
-    const existing = yield* Effect.tryPromise({
-      try: () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, projectId),
-        }),
-      catch: (cause) =>
-        new GeoDiscoveryError({
-          message: "Failed to load GEO settings",
-          cause,
-        }),
-    });
-
     const { aliases, companyName, entries, conversations } =
       yield* prepareGeoWebsiteGeneration(
         discovery,
@@ -502,18 +479,17 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
       try: () =>
         db.transaction((tx) =>
           Effect.runPromise(
-            persistGeoWebsiteGeneration(
-              tx,
+            persistGeoWebsiteGeneration(tx, {
               organizationId,
               projectId,
               companyName,
               aliases,
               entries,
               conversations,
-              discovery.competitors,
+              discoveredCompetitors: discovery.competitors,
               seedEngines,
-              null
-            )
+              seedLanguages: null,
+            })
           )
         ),
       catch: (cause) =>
@@ -575,18 +551,17 @@ export const createGeoProjectFromWebsite = Effect.fn(
         }
 
         await Effect.runPromise(
-          persistGeoWebsiteGeneration(
-            tx,
+          persistGeoWebsiteGeneration(tx, {
             organizationId,
-            row.id,
+            projectId: row.id,
             companyName,
             aliases,
             entries,
             conversations,
-            discovery.competitors,
+            discoveredCompetitors: discovery.competitors,
             seedEngines,
-            seedLanguages
-          )
+            seedLanguages,
+          })
         );
         return toGeoProject(row);
       }),

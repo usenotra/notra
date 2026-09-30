@@ -62,6 +62,17 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
       return badRequest(tErrors("enableTrackingFirst"));
     case "GeoSettingsTrackingError":
       return badRequest(tErrors("trackingSettingsRejected"));
+    case "GeoPromptTranslationError":
+      switch (failure.reason) {
+        case "limit":
+          return badRequest(
+            tErrors("translationLimit", { limit: failure.limit ?? 0 })
+          );
+        case "last":
+          return badRequest(tErrors("translationLast"));
+        default:
+          return badRequest(tErrors("translationUnavailable"));
+      }
     case "GeoSampleDataDisabledError":
       return notFound();
     case "GeoDiscoveryError":

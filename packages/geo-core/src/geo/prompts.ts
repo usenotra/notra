@@ -486,3 +486,27 @@ export function buildGeoPrompts(
     .filter((prompt) => !promptMentionsBrand(prompt.text, brandTerms))
     .slice(0, GEO_MAX_PROMPTS);
 }
+
+/**
+ * Prompts a scan asks, in scan order: unpaused auto prompts first, then the
+ * enabled custom prompts oldest first. Translation picks and defaults follow
+ * the same order.
+ */
+export function assembleGeoScanPrompts(input: {
+  autoPrompts: readonly GeoPromptDefinition[];
+  customRows: readonly { id: string; prompt: string }[];
+  pausedAutoPromptIds: readonly string[];
+  removedAutoPromptIds: readonly string[];
+}): GeoPromptDefinition[] {
+  const paused = new Set(input.pausedAutoPromptIds);
+  const removed = new Set(input.removedAutoPromptIds);
+  return [
+    ...input.autoPrompts
+      .filter((prompt) => isAutoPromptScanned(prompt.id, paused, removed))
+      .slice(0, GEO_MAX_PROMPTS),
+    ...input.customRows.map((row) => ({
+      id: customPromptScanId(row.id),
+      text: row.prompt,
+    })),
+  ];
+}

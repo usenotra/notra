@@ -1554,6 +1554,45 @@ export const geoPrompts = pgTable(
   ]
 );
 
+/**
+ * A prompt picked for scanning in one of the project's other tracked
+ * languages, with its stored translation. A row means "scan this prompt in
+ * this language"; `text` is null until it has been translated.
+ */
+export const geoPromptTranslations = pgTable(
+  "geo_prompt_translations",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    /** Scan prompt id: an auto prompt slug or `custom-<uuid>`. */
+    promptId: text("prompt_id").notNull(),
+    language: text("language").notNull(),
+    text: text("text"),
+    /** Prompt text the translation was made from, to spot stale ones. */
+    sourceText: text("source_text"),
+    /** Written by hand; kept even when the source prompt changes. */
+    edited: boolean("edited").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("geoPromptTranslations_project_prompt_language_idx").on(
+      table.projectId,
+      table.promptId,
+      table.language
+    ),
+    index("geoPromptTranslations_organizationId_idx").on(table.organizationId),
+  ]
+);
+
 export const geoPromptSequences = pgTable(
   "geo_prompt_sequences",
   {

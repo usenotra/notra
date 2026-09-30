@@ -785,6 +785,9 @@
       "conversationRunFailed": "Der Konversationslauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "personaRunFailed": "Der Persona-Lauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "trackingSettingsRejected": "Das kann mit deinen aktuellen Tracking-Einstellungen nicht hinzugefügt werden",
+      "translationLimit": "In dieser Sprache werden schon {limit} Prompts gescannt. Entferne zuerst einen.",
+      "translationLast": "Jede Sprache scannt mindestens einen Prompt. Um sie nicht mehr zu scannen, entferne die Sprache.",
+      "translationUnavailable": "Dieser Prompt wird in dieser Sprache nicht gescannt.",
       "websiteDiscoveryFailed": "Wir konnten diese Website nicht analysieren. Prüfe die URL und versuche es erneut.",
       "writerPlanFailed": "Der Inhaltsplan konnte nicht erstellt oder gespeichert werden. Bitte versuche es erneut.",
       "promptAlreadyTracked": "Dieser Prompt wird bereits getrackt",
@@ -2715,6 +2718,20 @@
       "proxyTitle": "Proxy hinzufügen",
       "framework": "Framework"
     },
+    "promptTranslations": {
+      "title": "Übersetzungen",
+      "count": "{count}/{limit}",
+      "scanIn": "Auf {language} scannen",
+      "translationIn": "Übersetzung auf {language}",
+      "full": "Auf {language} werden schon {limit} Prompts gescannt. Schalte einen aus, um diesen hinzuzufügen.",
+      "last": "Auf {language} wird mindestens ein Prompt gescannt. Entferne die Sprache, um sie nicht mehr zu scannen.",
+      "translating": "Wird übersetzt…",
+      "translatedOnScan": "Wird beim nächsten Scan übersetzt",
+      "edit": "Bearbeiten",
+      "reset": "Zurücksetzen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
     "geoLanguagePicker": {
       "description": "{language} ist standardmäßig aktiv. Scanne bis zu {max} Sprachen.",
       "add": "Sprache hinzufügen",
@@ -2797,7 +2814,7 @@
         "description": "Pfade, die als Conversion zählen, wenn ein KI-Verweis sie erreicht, zum Beispiel /signup oder /pricing. Präfix-Abgleich; /pricing zählt auch /pricing/teams."
       },
       "languages": {
-        "description": "Sprachen, in denen deine Prompts gescannt werden. Englisch ist standardmäßig aktiv."
+        "description": "Sprachen, in denen deine Prompts gescannt werden. Die Prompts sind auf {language} geschrieben, weitere Sprachen werden übersetzt."
       },
       "models": {
         "description": "Jeder aktivierte Anbieter führt jeden Prompt in der Häufigkeit aus, die du hier festlegst."
@@ -3784,6 +3801,9 @@
       "loadCompetitorDetailFailed": "Wettbewerberdetails konnten nicht geladen werden",
       "loadCompetitorSummaryFailed": "Wettbewerberübersicht konnte nicht geladen werden",
       "loadLanguagePerformanceFailed": "Sprach-Performance konnte nicht geladen werden",
+      "loadPromptTranslationsFailed": "Übersetzungen konnten nicht geladen werden",
+      "updatePromptTranslationFailed": "Die Übersetzung konnte nicht gespeichert werden",
+      "translatePromptsFailed": "Die Prompts konnten nicht übersetzt werden. Das passiert stattdessen beim nächsten Scan.",
       "geoTrackingGeneratedWebsite": "GEO-Tracking aus der Website erstellt",
       "generateGEOTrackingWebsiteFailed": "GEO-Tracking konnte nicht aus der Website erstellt werden",
       "importPromptsFailed": "Prompts konnten nicht importiert werden",

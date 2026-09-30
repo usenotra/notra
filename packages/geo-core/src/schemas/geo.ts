@@ -601,3 +601,17 @@ export const geoWriterWorkflowPayloadSchema = object({
 export const geoSuggestionIdInputSchema = geoOrganizationInputSchema.extend({
   suggestionId: string().min(1),
 });
+
+export const geoPromptTranslationTargetInputSchema =
+  geoOrganizationInputSchema.extend({
+    promptId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    language: geoSupportedLanguageSchema,
+  });
+
+export const geoPromptTranslationSelectInputSchema =
+  geoPromptTranslationTargetInputSchema.extend({ selected: boolean() });
+
+export const geoPromptTranslationUpdateInputSchema =
+  geoPromptTranslationTargetInputSchema.extend({
+    text: string().trim().min(1).max(MAX_PROMPT_LENGTH),
+  });

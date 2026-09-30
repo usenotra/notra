@@ -58,6 +58,7 @@ import type {
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
+  GeoPromptTranslationLanguagePlan,
 } from "@notra/geo-core/types/geo";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import type { useTranslations } from "next-intl";
@@ -1867,4 +1868,21 @@ export interface GscSyncResultMessage {
     | "noNewSuggestions"
     | "suggestionsAdded";
   count: number;
+}
+
+export interface PromptTranslationsSectionProps {
+  organizationId: string;
+  row: Pick<GeoPromptTableRow, "id" | "source" | "enabled">;
+  open: boolean;
+}
+
+export interface PromptTranslationRowProps {
+  plan: GeoPromptTranslationLanguagePlan;
+  promptId: string;
+  limit: number;
+  busy: boolean;
+  translating: boolean;
+  onSelect: (language: string, selected: boolean) => void;
+  onSave: (language: string, text: string) => void;
+  onReset: (language: string) => void;
 }

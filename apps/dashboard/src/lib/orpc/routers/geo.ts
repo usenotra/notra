@@ -106,6 +106,13 @@ import {
   loadGeoPromptResultSummaries,
 } from "@notra/geo-core/geo/prompt-results";
 import {
+  listGeoPromptTranslations,
+  resetGeoPromptTranslation,
+  selectGeoPromptTranslation,
+  translateGeoPromptTranslations,
+  updateGeoPromptTranslation,
+} from "@notra/geo-core/geo/prompt-translations";
+import {
   clearGeoSampleData,
   seedGeoSampleData,
 } from "@notra/geo-core/geo/sample-data";
@@ -163,6 +170,9 @@ import {
   geoJourneyDetailInputSchema,
   geoModelCatalogInputSchema,
   geoOnboardingBrandInputSchema,
+  geoPromptTranslationSelectInputSchema,
+  geoPromptTranslationTargetInputSchema,
+  geoPromptTranslationUpdateInputSchema,
   geoOrganizationInputSchema,
   geoProjectCreateInputSchema,
   geoProjectDeleteInputSchema,
@@ -1276,6 +1286,21 @@ export const geoRouter = {
       })
     )
   ),
+  promptTranslations: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoOpenHandler((input) => listGeoPromptTranslations(input))),
+  promptTranslationsTranslate: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoHandler((input) => translateGeoPromptTranslations(input))),
+  promptTranslationSelect: authorizedProcedure
+    .input(geoPromptTranslationSelectInputSchema)
+    .handler(geoHandler((input) => selectGeoPromptTranslation(input))),
+  promptTranslationUpdate: authorizedProcedure
+    .input(geoPromptTranslationUpdateInputSchema)
+    .handler(geoHandler((input) => updateGeoPromptTranslation(input))),
+  promptTranslationReset: authorizedProcedure
+    .input(geoPromptTranslationTargetInputSchema)
+    .handler(geoHandler((input) => resetGeoPromptTranslation(input))),
   promptsToggleAuto: authorizedProcedure
     .input(geoAutoPromptToggleInputSchema)
     .handler(

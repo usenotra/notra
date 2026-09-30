@@ -785,6 +785,9 @@
       "conversationRunFailed": "The conversation run failed. Please try again.",
       "personaRunFailed": "The persona run failed. Please try again.",
       "trackingSettingsRejected": "This can't be added under your current tracking settings",
+      "translationLimit": "This language already scans {limit} prompts. Remove one first.",
+      "translationLast": "Each language scans at least one prompt. To stop scanning it, remove the language.",
+      "translationUnavailable": "This prompt isn't scanned in that language.",
       "websiteDiscoveryFailed": "We couldn't analyze that website. Check the URL and try again.",
       "writerPlanFailed": "The content plan couldn't be created or saved. Please try again.",
       "promptAlreadyTracked": "This prompt is already tracked",
@@ -2715,6 +2718,20 @@
       "proxyTitle": "Add the proxy",
       "framework": "Framework"
     },
+    "promptTranslations": {
+      "title": "Translations",
+      "count": "{count}/{limit}",
+      "scanIn": "Scan in {language}",
+      "translationIn": "{language} translation",
+      "full": "{language} already scans {limit} prompts. Turn one off to add this one.",
+      "last": "{language} needs at least one prompt. Remove the language to stop scanning it.",
+      "translating": "Translating…",
+      "translatedOnScan": "Translated on the next scan",
+      "edit": "Edit",
+      "reset": "Reset",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
     "geoLanguagePicker": {
       "description": "{language} is on by default. Scan up to {max} languages.",
       "add": "Add a language",
@@ -2797,7 +2814,7 @@
         "description": "Paths that count as a conversion when an AI referral reaches them, for example /signup or /pricing. Prefix match; /pricing also counts /pricing/teams."
       },
       "languages": {
-        "description": "Languages your prompts are scanned in. English is on by default."
+        "description": "Languages your prompts are scanned in. Prompts are written in {language}, other languages are translated."
       },
       "models": {
         "description": "Each enabled provider runs every prompt at the frequency you set here."
@@ -3784,6 +3801,9 @@
       "loadCompetitorDetailFailed": "Failed to load competitor detail",
       "loadCompetitorSummaryFailed": "Failed to load competitor summary",
       "loadLanguagePerformanceFailed": "Failed to load language performance",
+      "loadPromptTranslationsFailed": "Failed to load prompt translations",
+      "updatePromptTranslationFailed": "Failed to update the translation",
+      "translatePromptsFailed": "Couldn't translate the prompts. They are translated on the next scan instead.",
       "geoTrackingGeneratedWebsite": "GEO tracking generated from website",
       "generateGEOTrackingWebsiteFailed": "Failed to generate GEO tracking from website",
       "importPromptsFailed": "Failed to import prompts",

@@ -4,6 +4,7 @@ import { calcGeoScanSize } from "@notra/geo-core/utils/geo-scan";
 
 import { useGeoModelCatalog, useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
+import { useGeoPromptTranslations } from "@/lib/hooks/use-geo-prompt-translations";
 import type { GeoScanEstimateInput } from "@/types/geo-scan-size";
 
 export function useGeoScanEstimate({
@@ -18,6 +19,7 @@ export function useGeoScanEstimate({
     useGeoSettings(organizationId);
   const { sequences, isLoading: sequencesLoading } =
     useGeoSequencesDb(organizationId);
+  const { data: translations } = useGeoPromptTranslations(organizationId);
 
   if (
     !catalog ||
@@ -33,6 +35,14 @@ export function useGeoScanEstimate({
     engines,
     languages,
     promptLanguage: settingsData?.settings?.promptLanguage,
+    translatedPromptCounts: translations
+      ? Object.fromEntries(
+          translations.languages.map((plan) => [
+            plan.language,
+            Math.min(plan.entries.length, promptCount),
+          ])
+        )
+      : undefined,
     trackWithoutSearch: settingsData?.settings?.trackWithoutSearch ?? false,
     catalog,
     sequences: includeSequences ? sequences : [],

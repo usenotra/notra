@@ -273,14 +273,20 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
   const passes = nativeSearchCount + groundedCount;
   const sourceLanguage = input.promptLanguage ?? DEFAULT_LANGUAGE;
   const scanSourceLanguage = input.languages.includes(sourceLanguage);
-  const extraLanguages = input.languages
+  const defaultTranslated = Math.min(
+    input.promptCount,
+    GEO_LANGUAGE_MAX_PROMPTS
+  );
+  const translatedPrompts = input.languages
     .filter((language) => language !== sourceLanguage)
-    .slice(0, GEO_MAX_LANGUAGES).length;
+    .slice(0, GEO_MAX_LANGUAGES)
+    .reduce(
+      (total, language) =>
+        total + (input.translatedPromptCounts?.[language] ?? defaultTranslated),
+      0
+    );
   const sourceChecks = scanSourceLanguage ? input.promptCount * passes : 0;
-  const localizedChecks =
-    extraLanguages *
-    Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) *
-    passes;
+  const localizedChecks = translatedPrompts * passes;
   const sequenceEngines =
     groundedCount +
     engines.filter(

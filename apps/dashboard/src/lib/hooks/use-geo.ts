@@ -106,6 +106,11 @@ async function invalidateCompetitorQueries(
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.promptTranslations.queryKey({
+        input: { organizationId, projectId },
+      }),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.competitors.queryKey({
         input: { organizationId, projectId },
       }),
@@ -127,6 +132,11 @@ async function invalidatePromptQueries(
   projectId: string | undefined
 ) {
   await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.promptTranslations.queryKey({
+        input: { organizationId, projectId },
+      }),
+    }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.promptsList.queryKey({
         input: { organizationId, projectId },

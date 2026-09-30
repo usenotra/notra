@@ -150,3 +150,17 @@ describe("scan size with a non-English prompt language", () => {
     ).toBe(8 + GEO_LANGUAGE_MAX_PROMPTS);
   });
 });
+
+test("picked translations replace the per-language limit", () => {
+  expect(
+    calcGeoScanSize({
+      promptCount: 8,
+      engines: ["anthropic/claude-sonnet-5"],
+      languages: ["German", "English", "French"],
+      promptLanguage: "German",
+      translatedPromptCounts: { English: 2 },
+      catalog,
+      sequences: [],
+    })
+  ).toBe(8 + 2 + GEO_LANGUAGE_MAX_PROMPTS);
+});
