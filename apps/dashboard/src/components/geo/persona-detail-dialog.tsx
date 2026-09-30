@@ -379,7 +379,10 @@ export function PersonaDetailDialog({
               active={active}
               isLoading={showConversationLoading}
               isScanning={
-                isWaitingForScan || (persona.enabled && isProjectScanning)
+                isWaitingForScan ||
+                (persona.enabled &&
+                  persona.conversationPrompts.length > 0 &&
+                  isProjectScanning)
               }
               enabled={persona.enabled}
               canRun={

@@ -67,8 +67,11 @@ export function personaInitials(name: string): string {
     .join("");
 }
 
-/** A sentence end glued to the next sentence, e.g. "early.Owns". */
-const GLUED_SENTENCE_BREAK = /(?<=[.!?])(?=\p{Lu})/gu;
+/**
+ * A sentence end glued to the next sentence, e.g. "early.Owns". Needs a
+ * lowercase letter on both sides so "U.S." or "Ph.D." stay intact.
+ */
+const GLUED_SENTENCE_BREAK = /(?<=\p{Ll}[.!?])(?=\p{Lu}\p{Ll})/gu;
 
 /**
  * Summary and search style are one point per line, but some generated

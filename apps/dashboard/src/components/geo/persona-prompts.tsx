@@ -27,7 +27,7 @@ export function PersonaPrompts({
             {prompts.map((prompt, index) => (
               <li
                 className="group/turn relative flex gap-4 pb-6 last:pb-0"
-                key={`${index}:${prompt}`}
+                key={prompt}
               >
                 <span
                   aria-hidden="true"

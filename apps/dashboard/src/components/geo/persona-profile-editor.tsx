@@ -21,6 +21,15 @@ import {
 import type { PersonaProfileEditorProps } from "@/types/geo-personas-ui";
 import { groupPersonaMemories, personaPointsText } from "@/utils/geo-personas";
 
+/**
+ * The editor splits glued points onto their own lines for display. An
+ * untouched field goes back as stored, so saving without edits does not
+ * count as a change (and regenerate prompts) or push it past the length cap.
+ */
+function unsplitPoints(value: FormDataEntryValue | null, stored: string) {
+  return value === personaPointsText(stored) ? stored : value;
+}
+
 export function PersonaProfileEditor({
   persona,
   organizationId,
@@ -70,8 +79,11 @@ export function PersonaProfileEditor({
           name: form.get("name"),
           role: form.get("role"),
           company: form.get("company"),
-          summary: form.get("summary"),
-          searchStyle: form.get("searchStyle"),
+          summary: unsplitPoints(form.get("summary"), persona.summary),
+          searchStyle: unsplitPoints(
+            form.get("searchStyle"),
+            persona.searchStyle
+          ),
           profile,
         });
         if (!parsed.success) {
@@ -206,14 +218,7 @@ export function PersonaProfileEditor({
                   {t(`sections.${section.key}`)}
                 </label>
                 {section.key === "currentStack" ? (
-                  <div
-                    className="border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex cursor-text flex-wrap items-center gap-1.5 rounded-lg border bg-transparent px-2 py-1.5 transition-colors focus-within:ring-2"
-                    onClick={(event) => {
-                      if (event.target === event.currentTarget) {
-                        stackInput.current?.focus();
-                      }
-                    }}
-                  >
+                  <div className="border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex flex-wrap items-center gap-1.5 rounded-lg border bg-transparent px-2 py-1.5 transition-colors focus-within:ring-2">
                     {stack.map((tool) => (
                       <Badge
                         className="max-w-full gap-1 pr-0.5 font-normal"
