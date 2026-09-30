@@ -91,6 +91,9 @@ export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
           body: hasBody ? body : null,
         })
       );
+    } catch {
+      // Network failures already come back as a status 0 response.
+      setResponse(null);
     } finally {
       setSending(false);
     }

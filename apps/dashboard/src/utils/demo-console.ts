@@ -31,6 +31,7 @@ export async function sendDemoConsoleRequest(
 ): Promise<DemoConsoleResponse> {
   const startedAt = performance.now();
   try {
+    // react-doctor-disable-next-line react-doctor/no-fetch-response-used-without-status-check -- the console shows error payloads as-is, next to the status
     const response = await fetch(`${request.baseUrl}${request.path}`, {
       method: request.method,
       headers: {

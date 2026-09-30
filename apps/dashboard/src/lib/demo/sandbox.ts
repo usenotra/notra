@@ -37,11 +37,18 @@ import { demoMaxActiveSandboxes } from "@/utils/demo-limits";
 const ID_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+// Largest multiple of the alphabet size below 256: bytes at or above it are
+// rejected so every character is equally likely.
+const UNBIASED_BYTE_LIMIT = 256 - (256 % ID_ALPHABET.length);
+
 function randomToken(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
   let token = "";
-  for (const byte of bytes) {
-    token += ID_ALPHABET[byte % ID_ALPHABET.length];
+  while (token.length < length) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(length))) {
+      if (byte < UNBIASED_BYTE_LIMIT && token.length < length) {
+        token += ID_ALPHABET[byte % ID_ALPHABET.length];
+      }
+    }
   }
   return token;
 }
