@@ -14,14 +14,14 @@ import {
 } from "../constants/chat-minimap";
 import type { ChatMinimapExampleProps } from "../types/chat-minimap";
 
-const LAST_START = CHAT_MINIMAP_DEMO_TURNS.length - CHAT_MINIMAP_VISIBLE_TURNS;
-
-const clampStart = (start: number) => Math.min(Math.max(start, 0), LAST_START);
-
 export default function ChatMinimapExample({
+  initialStart = 2,
   side = "right",
+  turns = CHAT_MINIMAP_DEMO_TURNS,
 }: ChatMinimapExampleProps) {
-  const [start, setStart] = useState(2);
+  const [start, setStart] = useState(initialStart);
+  const lastStart = turns.length - CHAT_MINIMAP_VISIBLE_TURNS;
+  const clampStart = (next: number) => Math.min(Math.max(next, 0), lastStart);
 
   return (
     <div
@@ -36,20 +36,20 @@ export default function ChatMinimapExample({
           disabled={start === 0}
           onClick={() => setStart((current) => clampStart(current - 1))}
         />
-        {CHAT_MINIMAP_DEMO_TURNS.map((turn, index) => (
+        {turns.map((turn, index) => (
           <ChatMinimapItem
             active={
               index >= start && index < start + CHAT_MINIMAP_VISIBLE_TURNS
             }
             description={turn.description}
-            key={turn.title}
+            key={turn.id}
             onClick={() => setStart(clampStart(index - 1))}
             title={turn.title}
           />
         ))}
         <ChatMinimapNavButton
           direction="next"
-          disabled={start === LAST_START}
+          disabled={start === lastStart}
           onClick={() => setStart((current) => clampStart(current + 1))}
         />
       </ChatMinimap>

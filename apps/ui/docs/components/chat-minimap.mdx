@@ -9,7 +9,7 @@ description: A rail of lines that maps a conversation, one line per turn.
 bunx shadcn@latest add @notra/chat-minimap
 ```
 
-Each line is a shadcn `Button` holding an SVG. The lines share one length at rest. The hovered line grows the most and its neighbours grow less the further away they are. Hovering a line opens a shadcn `HoverCard` with a `Card` inside. The up and down buttons stay hidden until they are hovered or focused, and use a shadcn `Tooltip`.
+Each line is a shadcn `Button` holding an SVG. The lines share one length at rest. The hovered line grows the most and its neighbours grow less the further away they are. Hovering a line opens a shadcn `HoverCard` with a `Card` inside. The up and down buttons stay hidden until they are hovered or focused, show all the time on touch screens, and use a shadcn `Tooltip`.
 
 ```tsx
 <ChatMinimap side="right">
@@ -30,9 +30,9 @@ Each line is a shadcn `Button` holding an SVG. The lines share one length at res
 | Component | Prop | Default | Description |
 | --- | --- | --- | --- |
 | `ChatMinimap` | `side` | `"right"` | Side the preview card opens on. `"left"` also aligns the lines to the right. |
-| `ChatMinimapItem` | `title` | | Card title and the line's `aria-label`. |
+| `ChatMinimapItem` | `title` | | Card title and the line's accessible name. |
 | `ChatMinimapItem` | `description` | | Card text, clamped to two lines. |
-| `ChatMinimapItem` | `active` | `false` | Highlights the line and sets `aria-current`. |
+| `ChatMinimapItem` | `active` | `false` | Highlights the line and sets `data-active`. |
 | `ChatMinimapNavButton` | `direction` | | `"previous"` or `"next"`. |
 | `ChatMinimapNavButton` | `label` | `"Previous turn"` or `"Next turn"` | Tooltip text and `aria-label`. |
 
@@ -41,6 +41,12 @@ Each line is a shadcn `Button` holding an SVG. The lines share one length at res
 Set `side="left"` to put the rail on the right edge of a thread. The lines line up on the right and the card opens to the left.
 
 <Component path="chat-minimap/examples/chat-minimap-left" />
+
+## Long threads
+
+The rail stays compact on long conversations. This one has 50 turns.
+
+<Component path="chat-minimap/examples/chat-minimap-long" />
 
 ## Scroll spy
 

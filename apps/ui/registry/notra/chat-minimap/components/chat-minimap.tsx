@@ -33,7 +33,7 @@ import type {
 const HOVER_OPEN_DELAY_MS = 80;
 const HOVER_CLOSE_DELAY_MS = 100;
 const ITEM_FALLOFF_CLASS_NAME =
-  "[&:is(:hover,:focus-visible)_svg]:w-6 [&:has(+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))_svg]:w-5 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+&_svg]:w-5 [&:has(+*+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))_svg]:w-4 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+*+&_svg]:w-4";
+  "[&:is(:hover,:focus-visible)_svg]:w-6 [&:has(+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))_svg]:w-5 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+&_svg]:w-5 [&:has(+*+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))_svg]:w-4 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+*+&_svg]:w-4 focus-visible:text-foreground [&:has(+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))]:text-foreground/75 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+&]:text-foreground/75 [&:has(+*+[data-slot=chat-minimap-item]:is(:hover,:focus-visible))]:text-foreground/55 [[data-slot=chat-minimap-item]:is(:hover,:focus-visible)+*+&]:text-foreground/55";
 
 const ChatMinimapContext = createContext<ChatMinimapSide>("right");
 
@@ -108,14 +108,13 @@ export const ChatMinimapItem = ({
       payload={payload}
       render={
         <Button
-          aria-current={active ? "step" : undefined}
-          aria-label={typeof title === "string" ? title : undefined}
           className={cn(
-            "text-muted-foreground/40 hover:text-foreground aria-[current=step]:text-foreground data-popup-open:text-foreground h-2 w-8 rounded-none px-1 transition-colors hover:bg-transparent active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
+            "text-muted-foreground/40 hover:text-foreground data-active:text-foreground data-popup-open:text-foreground h-2 w-8 rounded-none px-1 transition-colors hover:bg-transparent active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
             ITEM_FALLOFF_CLASS_NAME,
             side === "left" ? "justify-end" : "justify-start",
             className
           )}
+          data-active={active || undefined}
           data-slot="chat-minimap-item"
           size="icon-xs"
           variant="ghost"
@@ -134,6 +133,7 @@ export const ChatMinimapItem = ({
       >
         <rect fill="currentColor" height="2" width="24" />
       </svg>
+      <span className="sr-only">{title}</span>
     </HoverCardTrigger>
   );
 };
@@ -153,7 +153,7 @@ export const ChatMinimapNavButton = ({
           <Button
             aria-label={label}
             className={cn(
-              "text-muted-foreground hover:text-foreground h-5 w-8 rounded-none px-1 opacity-0 transition-opacity duration-150 hover:bg-transparent hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none dark:hover:bg-transparent",
+              "text-muted-foreground hover:text-foreground h-5 w-8 rounded-none px-1 opacity-0 transition-opacity duration-150 hover:bg-transparent hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none dark:hover:bg-transparent pointer-coarse:opacity-100",
               side === "left" ? "justify-end" : "justify-start",
               className
             )}

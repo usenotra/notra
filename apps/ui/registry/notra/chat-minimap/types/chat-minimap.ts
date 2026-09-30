@@ -30,6 +30,14 @@ export interface ChatMinimapNavButtonProps extends ComponentProps<
   label?: string;
 }
 
+export interface ChatMinimapDemoTurn {
+  description: string;
+  id: string;
+  title: string;
+}
+
 export interface ChatMinimapExampleProps {
+  initialStart?: number;
   side?: ChatMinimapSide;
+  turns?: readonly ChatMinimapDemoTurn[];
 }
