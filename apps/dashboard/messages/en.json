@@ -6180,9 +6180,7 @@
       "loadingDescription": "Loading the dashboard agent."
     },
     "overlays": {
-      "commandPalette": "Command palette",
-      "loadingSearch": "Loading search…",
-      "loadingSettings": "Loading settings…"
+      "commandPalette": "Command palette"
     },
     "brandSelector": {
       "createIdentity": "Create identity"

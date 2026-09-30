@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@notra/ui/components/ui/dialog";
-import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import {
   CommandPaletteProvider,
@@ -25,63 +19,59 @@ import {
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
-function CommandPaletteLoading() {
-  const t = useTranslations("dashboard.overlays");
-  const tCommon2 = useTranslations("common");
-  const { open, setOpen } = useCommandPalette();
-
-  return (
-    <Dialog onOpenChange={setOpen} open={open}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogTitle>{tCommon2("labels.commandPalette")}</DialogTitle>
-        <p role="status">{t("loadingSearch")}</p>
-      </DialogContent>
-    </Dialog>
+const loadCommandPalette = () =>
+  import("@/components/command-palette/command-palette").then(
+    (module) => module.CommandPalette
   );
+
+async function loadSettingsModal() {
+  const settingsModule = await import("@/components/settings/settings-modal");
+  settingsModule.preloadDefaultSettingsPane().catch(() => undefined);
+  return settingsModule.SettingsModal;
 }
 
-function SettingsModalLoading() {
-  const t = useTranslations("dashboard.overlays");
-  const tCommon = useTranslations("common");
-  const { isOpen, closeSettings } = useSettingsModal();
+/** Upper bound for waiting on an idle period before warming the overlays anyway. */
+const OVERLAY_PRELOAD_IDLE_TIMEOUT_MS = 3000;
+const OVERLAY_PRELOAD_FALLBACK_DELAY_MS = 1500;
 
-  return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (!open) {
-          closeSettings();
-        }
-      }}
-      open={isOpen}
-    >
-      <DialogContent className="sm:max-w-sm">
-        <DialogTitle>{tCommon("actions.settings")}</DialogTitle>
-        <p role="status">{t("loadingSettings")}</p>
-      </DialogContent>
-    </Dialog>
-  );
+// Overlays stay out of the initial bundle, but are fetched once the page is
+// idle so the first ⌘K or settings open never shows an interim loading dialog.
+const CommandPalette = dynamic(loadCommandPalette, {
+  loading: () => null,
+  ssr: false,
+});
+
+const SettingsModal = dynamic(loadSettingsModal, {
+  loading: () => null,
+  ssr: false,
+});
+
+function preloadOverlays() {
+  loadCommandPalette().catch(() => undefined);
+  loadSettingsModal().catch(() => undefined);
 }
 
-const CommandPalette = dynamic(
-  () =>
-    import("@/components/command-palette/command-palette").then(
-      (module) => module.CommandPalette
-    ),
-  { loading: CommandPaletteLoading, ssr: false }
-);
-
-const SettingsModal = dynamic(
-  () =>
-    import("@/components/settings/settings-modal").then(
-      (module) => module.SettingsModal
-    ),
-  { loading: SettingsModalLoading, ssr: false }
-);
+function useOverlayPreload() {
+  useEffect(() => {
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(preloadOverlays, {
+        timeout: OVERLAY_PRELOAD_IDLE_TIMEOUT_MS,
+      });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const handle = setTimeout(
+      preloadOverlays,
+      OVERLAY_PRELOAD_FALLBACK_DELAY_MS
+    );
+    return () => clearTimeout(handle);
+  }, []);
+}
 
 function DashboardOverlays() {
   const { open } = useCommandPalette();
   const { isOpen } = useSettingsModal();
   const [opened, setOpened] = useState({ palette: open, settings: isOpen });
+  useOverlayPreload();
 
   if ((open && !opened.palette) || (isOpen && !opened.settings)) {
     setOpened({

@@ -6180,9 +6180,7 @@
       "loadingDescription": "Der Dashboard-Agent wird geladen."
     },
     "overlays": {
-      "commandPalette": "Befehlspalette",
-      "loadingSearch": "Suche wird geladen…",
-      "loadingSettings": "Einstellungen werden geladen…"
+      "commandPalette": "Befehlspalette"
     },
     "brandSelector": {
       "createIdentity": "Identität erstellen"
