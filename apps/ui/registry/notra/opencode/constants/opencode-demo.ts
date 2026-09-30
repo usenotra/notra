@@ -11,8 +11,8 @@ export const OPENCODE_DEMO_SESSION: OpencodeDemoSession = {
   context: "41.2K (4%)",
   cwd: "~/acme/web",
   effort: "high",
-  model: "Sonnet 5",
-  provider: "Anthropic",
+  model: "Writer 0.1",
+  provider: "Notra",
   servers: [
     { name: "notra", status: "Connected" },
     { name: "github", status: "Connected" },

@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@notra/ui/components/ui/collapsible";
+import {
   OPENCODE_DEFAULT_CWD,
   OPENCODE_DEFAULT_SERVERS,
   OPENCODE_DEFAULT_VERSION,
@@ -8,7 +13,6 @@ import {
 } from "@notra/ui/constants/opencode-skin";
 import { cn } from "@notra/ui/lib/utils";
 import type { OpencodeSidebarProps } from "@notra/ui/types/opencode-skin";
-import { useState } from "react";
 
 function Location({ cwd, branch }: { cwd: string; branch?: string }) {
   if (!branch) {
@@ -37,8 +41,6 @@ export function OpencodeSidebar({
   version = OPENCODE_DEFAULT_VERSION,
   className,
 }: OpencodeSidebarProps) {
-  const [mcpOpen, setMcpOpen] = useState(true);
-
   return (
     <aside
       className={cn(
@@ -55,43 +57,33 @@ export function OpencodeSidebar({
         <p className="text-opencode-tui-muted tabular-nums">{spent}</p>
       </section>
 
-      <section>
-        <button
-          aria-expanded={mcpOpen}
-          className="flex items-center gap-[1ch] font-bold outline-none focus-visible:ring-1 focus-visible:ring-opencode-tui-blue"
-          onClick={() => setMcpOpen((open) => !open)}
-          type="button"
-        >
+      <Collapsible defaultOpen render={<section />}>
+        <CollapsibleTrigger className="group/mcp flex items-center gap-[1ch] font-bold outline-none focus-visible:ring-1 focus-visible:ring-opencode-tui-blue">
           <span
             aria-hidden
-            className={cn(
-              "inline-block w-[1ch] text-[0.75em] transition-transform duration-150 motion-reduce:transition-none",
-              mcpOpen && "rotate-90"
-            )}
+            className="inline-block w-[1ch] text-[0.75em] transition-transform duration-150 group-data-[panel-open]/mcp:rotate-90 motion-reduce:transition-none"
           >
             ▶
           </span>
           MCP
-        </button>
-        {mcpOpen ? (
-          <ul>
-            {servers.map((server) => {
-              const status = server.status ?? "Connected";
-              return (
-                <li className="flex min-w-0 gap-[1ch]" key={server.name}>
-                  <span aria-hidden className={OPENCODE_MCP_STATUS_CLASS[status]}>
-                    •
-                  </span>
-                  <span className="min-w-0 truncate">
-                    {server.name}{" "}
-                    <span className="text-opencode-tui-muted">{status}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </section>
+        </CollapsibleTrigger>
+        <CollapsibleContent render={<ul />}>
+          {servers.map((server) => {
+            const status = server.status ?? "Connected";
+            return (
+              <li className="flex min-w-0 gap-[1ch]" key={server.name}>
+                <span aria-hidden className={OPENCODE_MCP_STATUS_CLASS[status]}>
+                  •
+                </span>
+                <span className="min-w-0 truncate">
+                  {server.name}{" "}
+                  <span className="text-opencode-tui-muted">{status}</span>
+                </span>
+              </li>
+            );
+          })}
+        </CollapsibleContent>
+      </Collapsible>
 
       <section>
         <h3 className="font-bold">LSP</h3>

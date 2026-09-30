@@ -1,8 +1,12 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
-import { useState } from "react";
 
 export type ClaudeCodeToolCallStatus = "success" | "error" | "pending";
 
@@ -37,7 +41,6 @@ export function ClaudeCodeToolCall({
   className?: string;
   children?: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   const style = STATUS_STYLE[status];
   const hasDetail = Boolean(children);
   const resultLine = (
@@ -45,18 +48,21 @@ export function ClaudeCodeToolCall({
       <span aria-hidden="true">⎿</span>
       <span className="min-w-0 break-words whitespace-pre-wrap">
         {result}
-        {hasDetail && !open ? " (click to expand)" : null}
+        {hasDetail ? (
+          <span className="group-data-[open]/tool:hidden"> (click to expand)</span>
+        ) : null}
       </span>
     </>
   );
 
   return (
-    <div
+    <Collapsible
       className={cn(
-        "flex min-w-0 flex-col font-mono text-[13px] leading-5 text-[#f7f7f7]",
+        "group/tool flex min-w-0 flex-col font-mono text-[13px] leading-5 text-[#f7f7f7]",
         className
       )}
       data-status={status}
+      defaultOpen={defaultOpen}
     >
       <p className="grid min-w-0 grid-cols-[2ch_minmax(0,1fr)]">
         <span aria-hidden="true" className={style.className}>
@@ -74,26 +80,23 @@ export function ClaudeCodeToolCall({
         </span>
       </p>
       {hasDetail ? (
-        <button
-          aria-expanded={open}
+        <CollapsibleTrigger
           className={cn(
             RESULT_ROW,
             "w-full rounded-sm text-left text-[#8c8c8c] outline-none hover:text-[#f7f7f7] focus-visible:ring-2 focus-visible:ring-[#8c8c8c]/60"
           )}
-          onClick={() => setOpen((current) => !current)}
-          type="button"
         >
           {resultLine}
-        </button>
+        </CollapsibleTrigger>
       ) : (
         <p className={cn(RESULT_ROW, "text-[#8c8c8c]")}>{resultLine}</p>
       )}
-      {hasDetail && open ? (
-        <div className="pl-[5ch] break-words whitespace-pre-wrap text-[#8c8c8c]">
+      {hasDetail ? (
+        <CollapsibleContent className="pl-[5ch] break-words whitespace-pre-wrap text-[#8c8c8c]">
           {children}
-        </div>
+        </CollapsibleContent>
       ) : null}
-    </div>
+    </Collapsible>
   );
 }
 
@@ -112,7 +115,6 @@ export function ClaudeCodeToolSummary({
   className?: string;
   children?: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   const summary = (
     <>
       {verb} <span className="font-bold">{count}</span>{" "}
@@ -121,27 +123,25 @@ export function ClaudeCodeToolSummary({
   );
 
   return (
-    <div
+    <Collapsible
       className={cn(
         "flex min-w-0 flex-col gap-5 pl-[2ch] font-mono text-[13px] leading-5 text-[#8c8c8c]",
         className
       )}
+      defaultOpen={defaultOpen}
     >
       {children ? (
-        <button
-          aria-expanded={open}
-          className="w-fit rounded-sm text-left outline-none hover:text-[#f7f7f7] focus-visible:ring-2 focus-visible:ring-[#8c8c8c]/60"
-          onClick={() => setOpen((current) => !current)}
-          type="button"
-        >
+        <CollapsibleTrigger className="w-fit rounded-sm text-left outline-none hover:text-[#f7f7f7] focus-visible:ring-2 focus-visible:ring-[#8c8c8c]/60">
           {summary}
-        </button>
+        </CollapsibleTrigger>
       ) : (
         <p>{summary}</p>
       )}
-      {children && open ? (
-        <div className="-ml-[2ch] flex flex-col gap-5">{children}</div>
+      {children ? (
+        <CollapsibleContent className="-ml-[2ch] flex flex-col gap-5">
+          {children}
+        </CollapsibleContent>
       ) : null}
-    </div>
+    </Collapsible>
   );
 }

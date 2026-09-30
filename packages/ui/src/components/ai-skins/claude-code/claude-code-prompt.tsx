@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@notra/ui/components/ui/input-group";
+import { Kbd } from "@notra/ui/components/ui/kbd";
 import { cn } from "@notra/ui/lib/utils";
 import type {
   ChangeEvent,
@@ -42,6 +48,9 @@ const MODE_STATUS: Record<
     cycles: true,
   },
 };
+
+const KBD_CLASS =
+  "inline h-auto min-w-0 select-auto rounded-none bg-transparent p-0 font-mono text-[length:inherit] font-normal text-[#8c8c8c] leading-[inherit]";
 
 const EFFORT_GLYPH: Record<ClaudeCodeEffort, string> = {
   low: "○",
@@ -97,15 +106,15 @@ export function ClaudeCodePrompt({
         className
       )}
     >
-      <label className="grid min-w-0 cursor-text grid-cols-[2ch_minmax(0,1fr)] border-y border-[#7b7b7b] py-1.5">
-        <span aria-hidden="true" className="text-white select-none">
-          ❯
-        </span>
+      <InputGroup className="grid h-auto min-w-0 grid-cols-[2ch_minmax(0,1fr)] items-stretch rounded-none border-0 border-[#7b7b7b] border-y bg-transparent py-1.5 has-[[data-slot=input-group-control]:focus-visible]:border-[#7b7b7b] has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-transparent">
+        <InputGroupAddon className="order-none cursor-text justify-start p-0 font-normal text-[length:inherit] text-white leading-[inherit]">
+          <span aria-hidden="true">❯</span>
+        </InputGroupAddon>
         <span className="relative flex min-w-0">
-          <input
+          <InputGroupInput
             aria-label="Message Claude Code"
             className={cn(
-              "w-full min-w-0 bg-transparent p-0 font-mono text-[13px] leading-5 text-white caret-white outline-none placeholder:text-[#8c8c8c]",
+              "h-auto p-0 font-mono text-[13px] text-white leading-5 caret-white transition-none placeholder:text-[#8c8c8c] md:text-[13px]",
               isEmpty && "caret-transparent",
               inputClassName
             )}
@@ -124,11 +133,17 @@ export function ClaudeCodePrompt({
             />
           ) : null}
         </span>
-      </label>
+      </InputGroup>
       <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-[2ch] pl-[2ch] text-[#8c8c8c]">
         <p className="min-w-0">
           <span className={status.className}>{status.label}</span>
-          {status.cycles ? " (shift+tab to cycle)" : null}
+          {status.cycles ? (
+            <>
+              {" ("}
+              <Kbd className={KBD_CLASS}>shift+tab</Kbd>
+              {" to cycle)"}
+            </>
+          ) : null}
           {pullRequest ? (
             <>
               {" · PR "}

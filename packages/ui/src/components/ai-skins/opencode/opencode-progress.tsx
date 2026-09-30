@@ -11,17 +11,22 @@ import type { OpencodeProgressProps } from "@notra/ui/types/opencode-skin";
 import { useReducedMotion } from "motion/react";
 
 const LAST_CELL = OPENCODE_PROGRESS_CELLS - 1;
-/** One sweep right and one back, then a short rest. */
-const SWEEP_FRAMES = LAST_CELL * 2;
-const FRAME_COUNT = SWEEP_FRAMES + OPENCODE_PROGRESS_TRAIL.length;
+const TRAIL_LENGTH = OPENCODE_PROGRESS_TRAIL.length;
+/**
+ * The head sweeps from the first cell to the last and back to the first,
+ * then keeps moving off the left edge so the trail drains into cell 0.
+ */
+const SWEEP_FRAMES = LAST_CELL * 2 + TRAIL_LENGTH;
+/** The sweep, then the same number of frames at rest as the trail is long. */
+const FRAME_COUNT = SWEEP_FRAMES + TRAIL_LENGTH;
 const CELLS = Array.from({ length: OPENCODE_PROGRESS_CELLS }, (_, cell) => cell);
 
 function cellOpacity(cell: number, frame: number): number | null {
   if (frame >= SWEEP_FRAMES) {
     return null;
   }
-  const forward = frame < LAST_CELL;
-  const head = forward ? frame : SWEEP_FRAMES - frame;
+  const forward = frame <= LAST_CELL;
+  const head = forward ? frame : LAST_CELL * 2 - frame;
   const behind = forward ? head - cell : cell - head;
   return OPENCODE_PROGRESS_TRAIL[behind] ?? null;
 }

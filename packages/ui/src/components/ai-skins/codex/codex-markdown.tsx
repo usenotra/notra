@@ -1,3 +1,11 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@notra/ui/components/ui/table";
 import { CODEX_COLORS } from "@notra/ui/constants/codex-skin";
 import { cn } from "@notra/ui/lib/utils";
 import type { CodexListProps, CodexTableProps } from "@notra/ui/types/codex-skin";
@@ -47,16 +55,16 @@ export function CodexTable({
   });
 
   return (
-    <div className={cn("-ml-[2ch] max-w-[calc(100%+2ch)] overflow-x-auto", className)}>
-      <table
-        className="border-separate text-left"
+    <div className={cn("-ml-[2ch] max-w-[calc(100%+2ch)]", className)}>
+      <Table
+        className="w-auto text-left text-[length:inherit] normal-nums"
         style={{ borderSpacing: "2ch 0" }}
       >
-        <thead>
-          <tr>
+        <TableHeader className="bg-transparent text-inherit">
+          <TableRow className="hover:bg-transparent">
             {headers.map((header) => (
-              <th
-                className="px-[1ch] pb-[0.65em] font-bold"
+              <TableHead
+                className="h-auto px-[1ch] pb-[0.65em] font-bold whitespace-normal"
                 key={header}
                 scope="col"
                 style={{
@@ -65,33 +73,33 @@ export function CodexTable({
                 }}
               >
                 {header}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="[&>tr>td]:bg-transparent [&>tr:hover>td]:bg-transparent [&_tr:first-child>td]:shadow-none">
           {withTextKeys(rows, (row) => row.map(nodeText).join("|")).map(
             ({ item: row, key }, rowIndex) => (
-            <tr key={key}>
-              {row.map((cell, columnIndex) => (
-                <td
-                  className="px-[1ch] py-[0.65em] align-top"
-                  key={headers[columnIndex] ?? `extra-${columnIndex}`}
-                  style={{
-                    ...cellStyle(rowIndex === rows.length - 1),
-                    color: codeColumnSet.has(columnIndex)
-                      ? CODEX_COLORS.green
-                      : undefined,
-                  }}
-                >
-                  {cell}
-                </td>
-              ))}
-            </tr>
+              <TableRow className="hover:bg-transparent" key={key}>
+                {row.map((cell, columnIndex) => (
+                  <TableCell
+                    className="px-[1ch] py-[0.65em] align-top whitespace-normal"
+                    key={headers[columnIndex] ?? `extra-${columnIndex}`}
+                    style={{
+                      ...cellStyle(rowIndex === rows.length - 1),
+                      color: codeColumnSet.has(columnIndex)
+                        ? CODEX_COLORS.green
+                        : undefined,
+                    }}
+                  >
+                    {cell}
+                  </TableCell>
+                ))}
+              </TableRow>
             )
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -6,9 +6,9 @@ import type {
 
 export const OPENCODE_DEFAULT_AGENT = "Build";
 
-export const OPENCODE_DEFAULT_MODEL = "Sonnet 5";
+export const OPENCODE_DEFAULT_MODEL = "Writer 0.1";
 
-export const OPENCODE_DEFAULT_PROVIDER = "Anthropic";
+export const OPENCODE_DEFAULT_PROVIDER = "Notra";
 
 export const OPENCODE_DEFAULT_EFFORT = "high";
 

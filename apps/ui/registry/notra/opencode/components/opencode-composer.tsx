@@ -40,7 +40,7 @@ export const OpencodeComposer = ({
     className={cn("flex min-w-0 flex-col gap-[1lh]", className)}
     data-slot="opencode-composer"
   >
-    <InputGroup className="border-opencode-blue bg-opencode-panel dark:bg-opencode-panel has-[[data-slot=input-group-control]:focus-visible]:border-opencode-blue h-auto flex-col items-stretch gap-[1lh] rounded-none border-0 border-s-2 ps-[calc(3ch-2px)] pe-[2ch] pt-[1lh] pb-[0.5lh] has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[>[data-align=block-end]]:[&>input]:pt-0">
+    <InputGroup className="border-opencode-blue bg-opencode-panel dark:bg-opencode-panel has-[[data-slot=input-group-control]:focus-visible]:border-opencode-blue h-auto flex-col items-stretch gap-[0.5lh] rounded-none border-0 border-s-2 py-[0.5lh] ps-[calc(3ch-2px)] pe-[2ch] has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[>[data-align=block-end]]:[&>input]:pt-0">
       <InputGroupInput
         aria-label={ariaLabel}
         className={cn(
@@ -53,7 +53,7 @@ export const OpencodeComposer = ({
       />
       <span
         aria-hidden="true"
-        className="bg-opencode-fg pointer-events-none absolute start-[calc(3ch-2px)] top-[1lh] hidden h-[1lh] w-[1ch] peer-[:placeholder-shown:not(:focus)]:block"
+        className="bg-opencode-fg pointer-events-none absolute start-[calc(3ch-2px)] top-[0.5lh] hidden h-[1lh] w-[1ch] peer-[:placeholder-shown:not(:focus)]:block"
       />
       <InputGroupAddon
         align="block-end"

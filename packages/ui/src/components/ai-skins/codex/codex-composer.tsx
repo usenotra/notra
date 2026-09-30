@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@notra/ui/components/ui/input-group";
+import { Kbd } from "@notra/ui/components/ui/kbd";
+import {
   CODEX_COLORS,
   CODEX_DEFAULT_CWD,
   CODEX_DEFAULT_MODEL,
@@ -18,9 +24,12 @@ function Separator() {
 
 function Key({ children }: { children: string }) {
   return (
-    <span className="font-bold" style={{ color: CODEX_COLORS.foreground }}>
+    <Kbd
+      className="inline h-auto min-w-0 select-auto rounded-none bg-transparent p-0 font-bold font-mono text-[length:inherit] leading-[inherit]"
+      style={{ color: CODEX_COLORS.foreground }}
+    >
       {children}
-    </span>
+    </Kbd>
   );
 }
 
@@ -57,17 +66,19 @@ export function CodexComposer({
       className={cn("min-w-0 font-mono text-[13px] leading-[1.3]", className)}
       style={{ color: CODEX_COLORS.dim }}
     >
-      <div
-        className={cn(CODEX_ROW_CLASS, "py-[1.3em]")}
+      <InputGroup
+        className={cn(
+          CODEX_ROW_CLASS,
+          "h-auto items-stretch rounded-none border-0 py-[1.3em] has-[[data-slot=input-group-control]:focus-visible]:ring-0"
+        )}
         style={{ backgroundColor: CODEX_COLORS.composer }}
       >
-        <span
-          aria-hidden="true"
-          className="font-bold"
+        <InputGroupAddon
+          className="order-none cursor-text justify-start p-0 font-bold text-[length:inherit] leading-[inherit]"
           style={{ color: CODEX_COLORS.foreground }}
         >
-          ›
-        </span>
+          <span aria-hidden="true">›</span>
+        </InputGroupAddon>
         <div className="relative min-w-0">
           {isEmpty ? (
             <span
@@ -86,10 +97,10 @@ export function CodexComposer({
               {restChars.join("")}
             </span>
           ) : null}
-          <input
+          <InputGroupInput
             aria-label={placeholder}
             className={cn(
-              "relative block w-full min-w-0 bg-transparent p-0 outline-none",
+              "relative block h-auto p-0 font-mono text-[13px] leading-[1.3] transition-none md:text-[13px]",
               inputClassName
             )}
             onChange={handleChange}
@@ -103,7 +114,7 @@ export function CodexComposer({
             value={controlled ? value : draft}
           />
         </div>
-      </div>
+      </InputGroup>
       <div className={cn(CODEX_ROW_CLASS, "mt-[0.5em]")}>
         <p className="col-start-2 min-w-0 truncate">
           <span style={{ color: CODEX_COLORS.yellow }}>

@@ -1,6 +1,15 @@
 import { cn } from "cn";
 import type { ComponentProps, ReactNode } from "react";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 import type { CodexListProps, CodexTableProps } from "../types/codex";
 
 /** Keys items by their text, counting repeats so duplicate rows stay unique. */
@@ -50,48 +59,51 @@ export const CodexTable = ({
   const codeColumnSet = new Set(codeColumns);
 
   return (
-    <div className="-ms-[2ch] max-w-[calc(100%+2ch)] overflow-x-auto">
-      <table
+    <div className="-ms-[2ch] max-w-[calc(100%+2ch)]">
+      <Table
         className={cn(
-          "border-separate border-spacing-x-[2ch] border-spacing-y-0 text-start",
+          "w-auto border-separate border-spacing-x-[2ch] border-spacing-y-0 text-start text-[length:inherit]",
           className
         )}
         data-slot="codex-table"
         {...props}
       >
-        <thead>
-          <tr>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
             {headers.map((header) => (
-              <th
-                className="border-codex-rule text-codex-yellow border-b-2 px-[1ch] pb-[0.65em] text-start font-bold"
+              <TableHead
+                className="border-codex-rule text-codex-yellow h-auto border-b-2 px-[1ch] pb-[0.65em] text-start font-bold whitespace-normal"
                 key={header}
                 scope="col"
               >
                 {header}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {withTextKeys(rows, (row) => row.map(nodeText).join("|")).map(
             ({ item: row, key }) => (
-              <tr className="group/codex-row" key={key}>
+              <TableRow
+                className="group/codex-row hover:bg-transparent"
+                key={key}
+              >
                 {row.map((cell, columnIndex) => (
-                  <td
+                  <TableCell
                     className={cn(
-                      "border-codex-rule border-b px-[1ch] py-[0.65em] align-top group-last/codex-row:border-b-0",
+                      "border-codex-rule border-b px-[1ch] py-[0.65em] align-top whitespace-normal group-last/codex-row:border-b-0",
                       codeColumnSet.has(columnIndex) && "text-codex-green"
                     )}
                     key={headers[columnIndex] ?? `extra-${columnIndex}`}
                   >
                     {cell}
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             )
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };

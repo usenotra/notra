@@ -7970,7 +7970,7 @@
       "title": "Claude Code Prompt",
       "description": "The input between two rules with the permission mode, PR link and effort below.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "collapsible"],
+      "registryDependencies": ["card", "collapsible", "input-group", "kbd"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -8071,7 +8071,13 @@
       "title": "Claude Code",
       "description": "A Claude Code terminal session with the compact header, tool calls, a running turn and the prompt, built from the Claude Code components on shadcn Base UI.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "collapsible", "scroll-area"],
+      "registryDependencies": [
+        "card",
+        "collapsible",
+        "input-group",
+        "kbd",
+        "scroll-area"
+      ],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -8969,7 +8975,7 @@
       "title": "Codex Markdown",
       "description": "Bullet lists, tables with yellow headers and green inline code, styled like Codex answers.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "collapsible"],
+      "registryDependencies": ["card", "collapsible", "table"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -9176,7 +9182,8 @@
         "collapsible",
         "input-group",
         "kbd",
-        "scroll-area"
+        "scroll-area",
+        "table"
       ],
       "cssVars": {
         "theme": {

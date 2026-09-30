@@ -8,8 +8,8 @@ import type {
 export const OPENCODE_STORY_SESSION: OpencodeStorySession = {
   title: "Weekly changelog draft",
   agent: "Build",
-  model: "Sonnet 5",
-  provider: "Anthropic",
+  model: "Writer 0.1",
+  provider: "Notra",
   effort: "high",
   cwd: "~/acme/web",
   branch: "feat/changelog-week-39",

@@ -5,10 +5,20 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Kbd } from "@/components/ui/kbd";
+
+import {
   CLAUDE_CODE_EFFORTS,
   CLAUDE_CODE_MODES,
 } from "../constants/claude-code";
 import type { ClaudeCodePromptProps } from "../types/claude-code";
+
+const KBD_CLASS =
+  "font-claude-code text-claude-code-muted inline h-auto min-w-0 rounded-none bg-transparent p-0 text-[length:inherit] leading-[inherit] font-normal select-auto";
 
 export const ClaudeCodePrompt = ({
   className,
@@ -46,18 +56,15 @@ export const ClaudeCodePrompt = ({
       data-slot="claude-code-prompt"
       {...props}
     >
-      <label className="border-claude-code-rule grid min-w-0 cursor-text grid-cols-[2ch_minmax(0,1fr)] border-y py-1.5">
-        <span
-          aria-hidden="true"
-          className="text-claude-code-strong select-none"
-        >
-          ❯
-        </span>
+      <InputGroup className="border-claude-code-rule has-[[data-slot=input-group-control]:focus-visible]:border-claude-code-rule grid h-auto min-w-0 grid-cols-[2ch_minmax(0,1fr)] items-stretch rounded-none border-0 border-y bg-transparent py-1.5 has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-transparent">
+        <InputGroupAddon className="text-claude-code-strong order-none cursor-text justify-start p-0 text-[length:inherit] leading-[inherit] font-normal">
+          <span aria-hidden="true">❯</span>
+        </InputGroupAddon>
         <span className="relative flex min-w-0">
-          <input
+          <InputGroupInput
             aria-label="Message Claude Code"
             className={cn(
-              "font-claude-code text-claude-code-strong placeholder:text-claude-code-muted caret-claude-code-strong w-full min-w-0 bg-transparent p-0 outline-none",
+              "font-claude-code text-claude-code-strong placeholder:text-claude-code-muted caret-claude-code-strong h-auto p-0 text-[length:inherit] leading-[inherit] transition-none md:text-[length:inherit]",
               isEmpty && "caret-transparent",
               inputClassName
             )}
@@ -76,11 +83,17 @@ export const ClaudeCodePrompt = ({
             />
           )}
         </span>
-      </label>
+      </InputGroup>
       <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-[2ch] pl-[2ch]">
         <p className="text-claude-code-muted min-w-0">
           <span className={modeConfig.className}>{modeConfig.label}</span>
-          {modeConfig.cycles && " (shift+tab to cycle)"}
+          {modeConfig.cycles && (
+            <>
+              {" ("}
+              <Kbd className={KBD_CLASS}>shift+tab</Kbd>
+              {" to cycle)"}
+            </>
+          )}
           {pullRequest && (
             <>
               {" · PR "}
