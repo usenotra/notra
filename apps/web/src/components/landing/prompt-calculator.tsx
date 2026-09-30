@@ -35,6 +35,7 @@ import {
 } from "@/components/landing/animated-text";
 import { PricingProShader } from "@/components/landing/pricing-pro-shader";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
+import { PRICING_ANNUAL_BADGE } from "@/constants/landing/pricing";
 import { PRICING_ICONS } from "@/constants/landing/pricing-icons";
 import {
   PROMPT_CALCULATOR_ANCHOR,
@@ -53,8 +54,10 @@ import {
   PROMPT_CALCULATOR_ENGINES,
   PROMPT_CALCULATOR_MODEL_IDS,
 } from "@/constants/landing/prompt-calculator-engines";
+import type { PricingPlan } from "@/types/landing/pricing";
 import type {
   PromptCalculatorEngine,
+  PromptCalculatorEstimate,
   PromptCalculatorFrequencyId,
   PromptCalculatorInput,
   PromptCalculatorPanelProps,
@@ -150,6 +153,7 @@ function EngineLogo({
 
 function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
   const inputId = useId();
+  const [draft, setDraft] = useState<string | null>(null);
   const ratio = promptsToStopRatio(value.prompts);
   const stopIndex = nearestStopIndex(value.prompts);
   const milestone = milestoneFor(value.prompts);
@@ -171,14 +175,18 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
             inputMode="numeric"
             max={PROMPT_CALCULATOR_MAX_PROMPTS}
             min={PROMPT_CALCULATOR_MIN_PROMPTS}
+            onBlur={() => setDraft(null)}
             onChange={(event) => {
+              // Keep what the visitor types (even an empty field) until they
+              // leave it; only valid numbers reach the estimate.
+              setDraft(event.target.value);
               const next = Number.parseInt(event.target.value, 10);
               if (!Number.isNaN(next)) {
                 onChange({ prompts: clampPrompts(next) });
               }
             }}
             type="number"
-            value={value.prompts}
+            value={draft ?? value.prompts}
           />
           <span className="font-sans text-sm leading-[1.125rem] tracking-[-0.015em] text-[#1E1E1EB3] dark:text-white/60">
             prompts
@@ -304,6 +312,7 @@ const STRIP_FADE_PX = 48;
 
 function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
   const stripRef = useRef<HTMLDivElement>(null);
+  const selectedModels = new Set(value.models);
   const exactPanelId = useId();
   const [showExact, setShowExact] = useState(false);
   const [edges, setEdges] = useState({ atStart: true, atEnd: false });
@@ -401,7 +410,7 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
         >
           {PROMPT_CALCULATOR_ENGINES.map((engine) => {
             const selectedCount = engine.models.filter((model) =>
-              value.models.includes(model.id)
+              selectedModels.has(model.id)
             ).length;
             const checked = selectedCount > 0;
 
@@ -430,11 +439,26 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
                   <EngineLogo engine={engine} onDarkPill={!checked} />
                 </span>
                 {engine.name}
-                {selectedCount > 1 ? (
-                  <span className="tabular-nums opacity-60">
-                    · {selectedCount}
+                {/* Stays mounted and eases its width, so the pill grows
+                    smoothly when a second model of the engine is picked. The
+                    negative margin cancels the pill gap while collapsed. */}
+                <span
+                  aria-hidden={selectedCount < 2}
+                  className={cn(
+                    "-ml-2 inline-grid transition-[grid-template-columns,opacity] duration-200 ease-out motion-reduce:transition-none",
+                    selectedCount > 1
+                      ? "grid-cols-[1fr] opacity-60"
+                      : "grid-cols-[0fr] opacity-0"
+                  )}
+                >
+                  <span className="overflow-hidden pl-2 whitespace-nowrap tabular-nums">
+                    ·{" "}
+                    <RollingNumber
+                      numeric={Math.max(selectedCount, 2)}
+                      value={String(Math.max(selectedCount, 2))}
+                    />
                   </span>
-                ) : null}
+                </span>
               </label>
             );
           })}
@@ -519,7 +543,7 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {engine.models.map((model) => {
-                      const checked = value.models.includes(model.id);
+                      const checked = selectedModels.has(model.id);
 
                       return (
                         <label
@@ -587,7 +611,113 @@ function FrequencyPills({ value, onChange }: PromptCalculatorPanelProps) {
           );
         })}
       </div>
+      <p className="font-sans text-[0.8125rem] leading-5 tracking-[-0.01em] text-[#1E1E1E80] dark:text-white/45">
+        Extra languages and multi-turn conversations add answers on top of this
+        estimate.
+      </p>
     </fieldset>
+  );
+}
+
+function planHeadroom(estimate: PromptCalculatorEstimate) {
+  if (estimate.usage === null) {
+    return "More than our largest plan includes";
+  }
+  return estimate.promptHeadroom === 0
+    ? "Right at the plan limit"
+    : `Room for ${numberFormat.format(estimate.promptHeadroom ?? 0)} more prompts`;
+}
+
+function EstimatePrice({ plan }: { plan: PricingPlan }) {
+  const isCustom = plan.answersPerMonth === null;
+
+  return (
+    <>
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-[2.625rem] leading-13 font-normal tracking-[-0.01em] text-white tabular-nums">
+          {isCustom ? (
+            <FadeText text={plan.price.monthly} />
+          ) : (
+            <RollingNumber
+              numeric={Number(plan.price.monthly.replace(NON_DIGITS, ""))}
+              value={plan.price.monthly}
+            />
+          )}
+        </span>
+        {plan.priceSuffix ? (
+          <span className="font-sans text-sm leading-[1.125rem] tracking-[-0.015em] text-white/70">
+            {plan.priceSuffix.monthly}
+          </span>
+        ) : null}
+      </div>
+      <span className="-mt-2 font-sans text-xs leading-4 text-white/70 tabular-nums">
+        <FadeText
+          text={
+            isCustom
+              ? "Priced to your usage"
+              : `or ${plan.price.yearly}${plan.priceSuffix?.yearly ?? ""}, ${PRICING_ANNUAL_BADGE}`
+          }
+        />
+      </span>
+    </>
+  );
+}
+
+function PlanAllowance({ estimate }: { estimate: PromptCalculatorEstimate }) {
+  const ProjectsIcon = PRICING_ICONS.projects;
+  const { plan } = estimate;
+
+  return (
+    <div className="flex items-center gap-2">
+      <ProjectsIcon className="size-6 shrink-0 text-white" />
+      <div className="flex flex-col">
+        <span className="font-sans text-sm leading-[1.125rem] text-white tabular-nums">
+          <FadeText
+            text={
+              plan.answersPerMonth === null
+                ? "Custom answer quota"
+                : `${numberFormat.format(plan.answersPerMonth)} included`
+            }
+          />
+        </span>
+        <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
+          <FadeText text={planHeadroom(estimate)} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function CadenceSuggestion({
+  fit,
+  onApply,
+}: {
+  fit: NonNullable<ReturnType<typeof findFittingCadence>>;
+  onApply: () => void;
+}) {
+  const ProjectsIcon = PRICING_ICONS.projects;
+
+  return (
+    <button
+      className="-mx-2 -my-1 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-2 rounded-xl px-2 py-1 text-left transition-[background-color] duration-150 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/60"
+      onClick={onApply}
+      type="button"
+    >
+      <ProjectsIcon className="size-6 shrink-0 text-white" />
+      <span className="flex flex-1 flex-col">
+        <span className="font-sans text-sm leading-[1.125rem] font-medium text-white">
+          Stay on {fit.plan.name} for {fit.plan.price.monthly}/mo
+        </span>
+        <span className="min-h-8 font-sans text-xs leading-4 text-white/90 min-[25rem]:min-h-4">
+          Scan {fit.label.toLowerCase()} instead
+        </span>
+      </span>
+      <HugeiconsIcon
+        aria-hidden="true"
+        className="size-4 shrink-0 text-white"
+        icon={ArrowRight02Icon}
+      />
+    </button>
   );
 }
 
@@ -599,15 +729,6 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
   const isEnterprise = estimate.usage === null;
   const scans = Math.round(estimate.scansPerMonth * 10) / 10;
   const TrackingIcon = PRICING_ICONS.tracking;
-  const ProjectsIcon = PRICING_ICONS.projects;
-
-  let headroom = "More than our largest plan includes";
-  if (!isEnterprise) {
-    headroom =
-      estimate.promptHeadroom === 0
-        ? "Right at the plan limit"
-        : `Room for ${numberFormat.format(estimate.promptHeadroom ?? 0)} more prompts`;
-  }
 
   const ctaLink =
     plan.cta.kind === "signup" ? (
@@ -653,23 +774,7 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
 
         <div className="flex flex-1 flex-col px-6 pt-4.5 pb-6">
           <div className="flex flex-col items-start gap-3.25">
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-[2.625rem] leading-13 font-normal tracking-[-0.01em] text-white tabular-nums">
-                {isEnterprise ? (
-                  <FadeText text={plan.price.monthly} />
-                ) : (
-                  <RollingNumber
-                    numeric={Number(plan.price.monthly.replace(NON_DIGITS, ""))}
-                    value={plan.price.monthly}
-                  />
-                )}
-              </span>
-              {plan.priceSuffix ? (
-                <span className="font-sans text-sm leading-[1.125rem] tracking-[-0.015em] text-white/70">
-                  {plan.priceSuffix.monthly}
-                </span>
-              ) : null}
-            </div>
+            <EstimatePrice plan={plan} />
             <CtaButton
               className="w-full"
               nativeButton={false}
@@ -715,47 +820,14 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
             </li>
             <li>
               {fittingCadence ? (
-                <button
-                  className="-mx-2 -my-1 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-2 rounded-xl px-2 py-1 text-left transition-[background-color] duration-150 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/60"
-                  onClick={() =>
+                <CadenceSuggestion
+                  fit={fittingCadence}
+                  onApply={() =>
                     onChange({ frequency: fittingCadence.frequency })
                   }
-                  type="button"
-                >
-                  <ProjectsIcon className="size-6 shrink-0 text-white" />
-                  <span className="flex flex-1 flex-col">
-                    <span className="font-sans text-sm leading-[1.125rem] font-medium text-white">
-                      Stay on {fittingCadence.plan.name} for{" "}
-                      {fittingCadence.plan.price.monthly}/mo
-                    </span>
-                    <span className="min-h-8 font-sans text-xs leading-4 text-white/90 min-[25rem]:min-h-4">
-                      Scan {fittingCadence.label.toLowerCase()} instead
-                    </span>
-                  </span>
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    className="size-4 shrink-0 text-white"
-                    icon={ArrowRight02Icon}
-                  />
-                </button>
+                />
               ) : (
-                <div className="flex items-center gap-2">
-                  <ProjectsIcon className="size-6 shrink-0 text-white" />
-                  <div className="flex flex-col">
-                    <span className="font-sans text-sm leading-[1.125rem] text-white tabular-nums">
-                      <FadeText
-                        text={
-                          plan.answersPerMonth === null
-                            ? "Custom answer quota"
-                            : `${numberFormat.format(plan.answersPerMonth)} included`
-                        }
-                      />
-                    </span>
-                    <span className="min-h-8 font-sans text-xs leading-4 text-white/90 tabular-nums min-[25rem]:min-h-4">
-                      <FadeText text={headroom} />
-                    </span>
-                  </div>
-                </div>
+                <PlanAllowance estimate={estimate} />
               )}
             </li>
           </ul>

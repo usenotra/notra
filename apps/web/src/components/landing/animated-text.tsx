@@ -2,7 +2,7 @@
 
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, m, useReducedMotion } from "motion/react";
-import { Fragment, useRef } from "react";
+import { Fragment, useState } from "react";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const BLUR_IN = "blur(4px)";
@@ -70,9 +70,14 @@ export function RollingNumber({
   className?: string;
 }) {
   const shouldReduceMotion = useReducedMotion();
-  const previous = useRef(numeric);
-  const direction = numeric >= previous.current ? 1 : -1;
-  previous.current = numeric;
+  // Derived during render from the last value (React's "adjust state on
+  // prop change" pattern), so the roll knows which way to go.
+  const [previous, setPrevious] = useState(numeric);
+  const [direction, setDirection] = useState(1);
+  if (numeric !== previous) {
+    setDirection(numeric > previous ? 1 : -1);
+    setPrevious(numeric);
+  }
 
   if (shouldReduceMotion) {
     return <span className={className}>{value}</span>;
