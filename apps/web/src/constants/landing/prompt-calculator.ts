@@ -71,7 +71,7 @@ export const PROMPT_CALCULATOR_DAYS_PER_MONTH = 30;
 export const PROMPT_CALCULATOR_MIN_PROMPTS = 1;
 export const PROMPT_CALCULATOR_MAX_PROMPTS = 10_000;
 
-export const PROMPT_CALCULATOR_DEFAULT_PROMPTS = 50;
+export const PROMPT_CALCULATOR_DEFAULT_PROMPTS = 10;
 /** The default models of ChatGPT, Claude and Gemini. */
 export const PROMPT_CALCULATOR_DEFAULT_MODELS: string[] = [
   "openai/gpt-5.6-sol",

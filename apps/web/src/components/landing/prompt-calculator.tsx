@@ -8,6 +8,12 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 import { cn } from "@notra/ui/lib/utils";
 import { domMax, LazyMotion } from "motion/react";
 import Link from "next/link";
@@ -109,6 +115,13 @@ const PILL_ACTIVE =
   "bg-[#1E1E1E] text-white [box-shadow:#1E1E1E_0_0_0_0.0625rem] dark:bg-white dark:text-[#1E1E1E] dark:[box-shadow:#FFFFFF_0_0_0_0.0625rem]";
 const PILL_INACTIVE =
   "bg-white text-[#1E1E1EA6] [box-shadow:#ECECEC_0_0_0_0.0625rem] hover:text-[#1E1E1E] dark:bg-white/[0.04] dark:text-white/60 dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem] dark:hover:text-white";
+
+/** Logos the mobile engine field shows before collapsing the rest into "+N". */
+const MAX_STACKED_LOGOS = 3;
+
+/** A full-width select-style field for the compact mobile controls. */
+const MOBILE_FIELD =
+  "flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl bg-white px-3.5 text-left font-sans text-[0.9375rem] font-medium tracking-[-0.01em] text-[#1E1E1E] outline-none [box-shadow:#ECECEC_0_0_0_0.0625rem] focus-visible:ring-2 focus-visible:ring-primary dark:bg-white/[0.04] dark:text-white dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]";
 
 const GROUP_LABEL =
   "font-sans text-[0.9375rem] font-medium tracking-[-0.015em] text-[#1E1E1E] dark:text-white";
@@ -313,6 +326,15 @@ const STRIP_FADE_PX = 48;
 function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
   const stripRef = useRef<HTMLDivElement>(null);
   const selectedModels = new Set(value.models);
+  const selectedEngines = PROMPT_CALCULATOR_ENGINES.filter((engine) =>
+    engine.models.some((model) => selectedModels.has(model.id))
+  );
+  // From four engines on, the mobile field shows three logos and a "+N".
+  const stackedEngines =
+    selectedEngines.length > MAX_STACKED_LOGOS
+      ? selectedEngines.slice(0, MAX_STACKED_LOGOS)
+      : selectedEngines;
+  const hiddenEngineCount = selectedEngines.length - stackedEngines.length;
   const exactPanelId = useId();
   const [showExact, setShowExact] = useState(false);
   const [edges, setEdges] = useState({ atStart: true, atEnd: false });
@@ -402,7 +424,64 @@ function ModelPills({ value, onChange }: PromptCalculatorPanelProps) {
           {value.models.length} {value.models.length === 1 ? "model" : "models"}
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <button className={cn(MOBILE_FIELD, "sm:hidden")} type="button" />
+          }
+        >
+          <span className="flex shrink-0 -space-x-1.5">
+            {stackedEngines.map((engine) => (
+              <span
+                className="flex size-6 items-center justify-center rounded-full bg-white shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:shadow-[0_0_0_0.125rem_#1E1E1E]"
+                key={engine.id}
+              >
+                <EngineLogo engine={engine} onDarkPill />
+              </span>
+            ))}
+            {hiddenEngineCount > 0 ? (
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#F4F4F5] px-1.5 font-sans text-[0.6875rem] font-medium text-[#1E1E1E] tabular-nums shadow-[0_0_0_0.125rem_#FFFFFF,0_0_0_0.1875rem_#1E1E1E14] dark:bg-[#2a2a2a] dark:text-white dark:shadow-[0_0_0_0.125rem_#1E1E1E]">
+                +{hiddenEngineCount}
+              </span>
+            ) : null}
+          </span>
+          <span className="min-w-0 flex-1 truncate">
+            {selectedEngines.map((engine) => engine.name).join(", ")}
+          </span>
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="size-4 shrink-0 text-[#1E1E1E80] dark:text-white/50"
+            icon={ArrowDown01Icon}
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {PROMPT_CALCULATOR_ENGINES.map((engine) => {
+            const selectedCount = engine.models.filter((model) =>
+              selectedModels.has(model.id)
+            ).length;
+
+            return (
+              <DropdownMenuCheckboxItem
+                checked={selectedCount > 0}
+                disabled={
+                  selectedCount > 0 && selectedCount === value.models.length
+                }
+                key={engine.id}
+                onCheckedChange={() => toggleEngine(engine)}
+              >
+                <EngineLogo engine={engine} onDarkPill />
+                {engine.name}
+                {selectedCount > 1 ? (
+                  <span className="text-muted-foreground tabular-nums">
+                    · {selectedCount}
+                  </span>
+                ) : null}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <div className="hidden items-center gap-2 sm:flex">
         <div
           className="relative -my-1 flex min-w-0 flex-1 [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_var(--fade-start,0px),#000_calc(100%-var(--fade-end,0px)),transparent)] py-1 [&::-webkit-scrollbar]:hidden"
           onScroll={updateEdges}
@@ -588,7 +667,30 @@ function FrequencyPills({ value, onChange }: PromptCalculatorPanelProps) {
           {scans} {scans === 1 ? "scan" : "scans"} / month
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="relative sm:hidden">
+        <select
+          aria-label="Scan frequency"
+          className={cn(MOBILE_FIELD, "appearance-none pr-10")}
+          onChange={(event) =>
+            onChange({
+              frequency: event.target.value as PromptCalculatorFrequencyId,
+            })
+          }
+          value={value.frequency}
+        >
+          {PROMPT_CALCULATOR_FREQUENCIES.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <HugeiconsIcon
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-[#1E1E1E80] dark:text-white/50"
+          icon={ArrowDown01Icon}
+        />
+      </div>
+      <div className="hidden flex-wrap gap-2 sm:flex">
         {PROMPT_CALCULATOR_FREQUENCIES.map((option) => {
           const id = option.id as PromptCalculatorFrequencyId;
           const checked = id === value.frequency;
@@ -611,10 +713,6 @@ function FrequencyPills({ value, onChange }: PromptCalculatorPanelProps) {
           );
         })}
       </div>
-      <p className="font-sans text-[0.8125rem] leading-5 tracking-[-0.01em] text-[#1E1E1E80] dark:text-white/45">
-        Extra languages and multi-turn conversations add answers on top of this
-        estimate.
-      </p>
     </fieldset>
   );
 }
