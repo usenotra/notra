@@ -28,6 +28,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TooltipContent } from "@notra/ui/components/ui/tooltip";
 import { SPRING } from "@notra/ui/lib/motion";
 import { useForm } from "@tanstack/react-form";
@@ -65,60 +66,30 @@ function CompetitorKindToggle({
 }) {
   const t = useTranslations("geo.competitorEditForm");
   const tGeoShared = useTranslations("geo.shared");
-  const layoutId = useId();
-  const reduceMotion = useReducedMotion();
 
   return (
-    <div
-      aria-label={t("competitorType")}
-      className="bg-muted grid grid-cols-2 rounded-lg p-[3px]"
-      onKeyDown={(event) => {
-        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
-          return;
+    <Tabs
+      onValueChange={(next) => {
+        const kind = COMPETITOR_KIND_OPTIONS.find((option) => option === next);
+        if (kind) {
+          onChange(kind);
         }
-        event.preventDefault();
-        onChange(value === "direct" ? "indirect" : "direct");
       }}
-      role="radiogroup"
+      value={value}
     >
-      {COMPETITOR_KIND_OPTIONS.map((option) => {
-        const active = value === option;
-        return (
-          // biome-ignore lint/a11y/useSemanticElements: segmented control uses the radiogroup pattern; native radios cannot host the sliding pill.
-          <button
-            aria-checked={active}
-            className={cn(
-              "relative isolate h-7 rounded-md px-2.5 text-sm font-medium",
-              "duration-fast transition-colors ease-out",
-              "focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none",
-              active
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            key={option}
-            onClick={() => onChange(option)}
-            role="radio"
-            tabIndex={active ? 0 : -1}
-            type="button"
-          >
-            {active ? (
-              <motion.span
-                className="bg-background absolute inset-0 rounded-md shadow-sm"
-                layoutId={layoutId}
-                transition={
-                  reduceMotion ? INSTANT_TRANSITION : SPRING.indicatorFlat
-                }
-              />
-            ) : null}
-            <span className="relative z-10">
-              {option === "direct"
-                ? tGeoShared("directCompetitor")
-                : tGeoShared("indirectCompetitor")}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+      <TabsList
+        aria-label={t("competitorType")}
+        className="grid h-9 w-full grid-cols-2"
+      >
+        {COMPETITOR_KIND_OPTIONS.map((option) => (
+          <TabsTrigger key={option} value={option}>
+            {option === "direct"
+              ? tGeoShared("directCompetitor")
+              : tGeoShared("indirectCompetitor")}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }
 
