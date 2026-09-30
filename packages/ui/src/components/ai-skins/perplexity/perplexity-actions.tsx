@@ -14,11 +14,13 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 import { PerplexitySourcesSheet } from "@notra/ui/components/ai-skins/perplexity/perplexity-sources-sheet";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -36,11 +38,16 @@ function ActionButton({
     <TooltipPrimitive.Root>
       <TooltipTrigger
         render={
-          <button
+          <Button
             aria-label={label}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-full text-[#8d8d8d] outline-none transition-[color,background-color,transform] duration-fast hover:bg-[#f3f3f3] hover:text-[#1a1a1a] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] dark:text-[#a3a3a3] dark:hover:bg-white/10 dark:hover:text-foreground dark:focus-visible:ring-white/20 [&_svg]:size-4"
+            className={cn(
+              AI_SKIN_BUTTON_RESET,
+              "cursor-pointer rounded-full text-[#8d8d8d] outline-none transition-[color,background-color,transform] duration-fast hover:bg-[#f3f3f3] hover:text-[#1a1a1a] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] dark:text-[#a3a3a3] dark:hover:bg-white/10 dark:hover:text-foreground dark:focus-visible:ring-white/20 [&_svg:not([class*='size-'])]:size-4"
+            )}
             onClick={onClick}
+            size="icon"
             type="button"
+            variant="ghost"
           />
         }
       >

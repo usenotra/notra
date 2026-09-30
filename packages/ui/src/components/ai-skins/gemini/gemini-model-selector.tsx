@@ -2,13 +2,16 @@
 
 import { ArrowDown01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import { useState } from "react";
 import {
@@ -23,16 +26,15 @@ const MENU_SURFACE =
 function GeminiModelRow({
   option,
   selected,
-  onSelect,
 }: {
   option: GeminiModelOption;
   selected: boolean;
-  onSelect?: (id: GeminiModelId) => void;
 }) {
   return (
-    <DropdownMenuItem
-      className="cursor-pointer items-start gap-3 rounded-[1.1rem] px-2.5 py-2.5 data-highlighted:bg-[#f1f3f4] dark:data-highlighted:bg-white/10"
-      onClick={() => onSelect?.(option.id)}
+    <DropdownMenuRadioItem
+      className="cursor-pointer items-start gap-3 rounded-[1.1rem] px-2.5 py-2.5 data-highlighted:bg-[#f1f3f4] dark:data-highlighted:bg-white/10 [&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden"
+      closeOnClick
+      value={option.id}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {selected ? (
@@ -59,7 +61,7 @@ function GeminiModelRow({
           {option.description}
         </span>
       </span>
-    </DropdownMenuItem>
+    </DropdownMenuRadioItem>
   );
 }
 
@@ -81,14 +83,16 @@ export function GeminiModelSelector({
     <DropdownMenu modal={false} onOpenChange={setOpen} open={open}>
       <DropdownMenuTrigger
         render={
-          <button
+          <Button
             aria-label={`Modell ${selected.label}`}
             className={cn(
-              "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] leading-none text-[#3c4043] outline-none transition-[background-color,transform] duration-fast hover:bg-[#f1f3f4] focus-visible:ring-2 focus-visible:ring-[#1a73e8]/30 active:scale-[0.96] dark:text-foreground dark:hover:bg-white/10",
+              AI_SKIN_BUTTON_RESET,
+              "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] leading-none text-[#3c4043] outline-none transition-[background-color,transform] duration-fast hover:bg-[#f1f3f4] hover:text-[#3c4043] focus-visible:ring-2 focus-visible:ring-[#1a73e8]/30 active:scale-[0.96] aria-expanded:bg-[#f1f3f4] aria-expanded:text-[#3c4043] dark:text-foreground dark:hover:bg-white/10 dark:hover:text-foreground dark:aria-expanded:bg-white/10 dark:aria-expanded:text-foreground",
               open && "bg-[#f1f3f4] dark:bg-white/10",
               className
             )}
             type="button"
+            variant="ghost"
           />
         }
       >
@@ -109,25 +113,35 @@ export function GeminiModelSelector({
         side="top"
         sideOffset={10}
       >
-        {coreModels.map((option) => (
-          <GeminiModelRow
-            key={option.id}
-            onSelect={onModelChange}
-            option={option}
-            selected={option.id === model}
-          />
-        ))}
-        {thinkingModels.length > 0 ? (
-          <DropdownMenuSeparator className="mx-2 my-1 bg-[#e8eaed] dark:bg-white/10" />
-        ) : null}
-        {thinkingModels.map((option) => (
-          <GeminiModelRow
-            key={option.id}
-            onSelect={onModelChange}
-            option={option}
-            selected={option.id === model}
-          />
-        ))}
+        <DropdownMenuRadioGroup
+          onValueChange={(value) => {
+            const next = [...coreModels, ...thinkingModels].find(
+              (option) => option.id === value
+            );
+            if (next) {
+              onModelChange?.(next.id);
+            }
+          }}
+          value={model}
+        >
+          {coreModels.map((option) => (
+            <GeminiModelRow
+              key={option.id}
+              option={option}
+              selected={option.id === model}
+            />
+          ))}
+          {thinkingModels.length > 0 ? (
+            <DropdownMenuSeparator className="mx-2 my-1 bg-[#e8eaed] dark:bg-white/10" />
+          ) : null}
+          {thinkingModels.map((option) => (
+            <GeminiModelRow
+              key={option.id}
+              option={option}
+              selected={option.id === model}
+            />
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

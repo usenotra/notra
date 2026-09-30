@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@notra/ui/components/ui/button";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import type { ComponentProps } from "react";
 
@@ -45,18 +47,20 @@ export function ChatgptSearch({
   const noun = websites === 1 ? "website" : "websites";
 
   return (
-    <button
+    <Button
       className={cn(
-        "inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-[14px] leading-5 text-muted-foreground transition-colors hover:text-foreground",
+        AI_SKIN_BUTTON_RESET,
+        "inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-[14px] leading-5 text-muted-foreground transition-colors hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-muted-foreground dark:hover:bg-transparent",
         className
       )}
       type={type}
+      variant="ghost"
       {...props}
     >
       <ChatgptSearchGlyph className="size-3.5 shrink-0 text-[#e4543a]" />
       <span>
         Searched {websites} {noun}
       </span>
-    </button>
+    </Button>
   );
 }

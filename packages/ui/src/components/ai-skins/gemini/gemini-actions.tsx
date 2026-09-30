@@ -10,11 +10,13 @@ import {
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -32,11 +34,16 @@ function ActionButton({
     <TooltipPrimitive.Root>
       <TooltipTrigger
         render={
-          <button
+          <Button
             aria-label={label}
-            className="flex size-8 items-center justify-center rounded-full text-[#1f1f1f] transition-colors hover:bg-[#f1f3f4] dark:text-foreground dark:hover:bg-white/10 [&_svg]:size-5"
+            className={cn(
+              AI_SKIN_BUTTON_RESET,
+              "rounded-full text-[#1f1f1f] transition-colors hover:bg-[#f1f3f4] hover:text-[#1f1f1f] dark:text-foreground dark:hover:bg-white/10 dark:hover:text-foreground [&_svg:not([class*='size-'])]:size-4"
+            )}
             onClick={onClick}
+            size="icon"
             type="button"
+            variant="ghost"
           />
         }
       >

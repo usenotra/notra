@@ -148,6 +148,7 @@
 @source "../../../../packages/ui/src/components/ui/textarea.tsx";
 @source "../../../../packages/ui/src/components/ui/title-card.tsx";
 @source "../../../../packages/ui/src/components/ui/tooltip.tsx";
+@source "../../../../packages/ui/src/constants/ai-skin-primitives.ts";
 @source "../../../../packages/ui/src/constants/chatgpt-models.ts";
 @source "../../../../packages/ui/src/constants/claude-chat-models.ts";
 @source "../../../../packages/ui/src/constants/codex-skin.ts";

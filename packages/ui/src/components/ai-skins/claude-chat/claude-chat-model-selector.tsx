@@ -6,6 +6,7 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import { CLAUDE_CHAT_EFFORTS } from "../../../constants/claude-chat-models";
 import {
@@ -61,13 +63,15 @@ export function ClaudeChatModelSelector({
         delay={75}
         openOnHover
         render={
-          <button
+          <Button
             aria-label={`Modell ${selectedModel.label}, Aufwand ${selectedEffort.label}`}
             className={cn(
-              "group/claude-model flex h-8 items-center gap-1 rounded-full px-2 font-sans text-[13px] leading-none text-[#1f1e1b] outline-none transition-[background-color,transform] duration-fast hover:bg-[#eceae4] focus-visible:ring-2 focus-visible:ring-[#1f1e1b]/20 active:scale-[0.96] data-popup-open:bg-[#eceae4] dark:text-foreground dark:hover:bg-white/10 dark:data-popup-open:bg-white/10",
+              AI_SKIN_BUTTON_RESET,
+              "group/claude-model flex h-8 items-center gap-1 rounded-full px-2 font-sans text-[13px] leading-none text-[#1f1e1b] outline-none transition-[background-color,transform] duration-fast hover:bg-[#eceae4] hover:text-[#1f1e1b] focus-visible:ring-2 focus-visible:ring-[#1f1e1b]/20 active:scale-[0.96] aria-expanded:bg-[#eceae4] aria-expanded:text-[#1f1e1b] data-popup-open:bg-[#eceae4] dark:text-foreground dark:hover:bg-white/10 dark:hover:text-foreground dark:aria-expanded:bg-white/10 dark:aria-expanded:text-foreground dark:data-popup-open:bg-white/10",
               className
             )}
             type="button"
+            variant="ghost"
           />
         }
       >

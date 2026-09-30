@@ -7,12 +7,14 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PerplexityModelIcon } from "@notra/ui/components/ai-skins/perplexity/perplexity-model-icon";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import { useState } from "react";
 import { PERPLEXITY_MODEL_MENU } from "../../../constants/perplexity-models";
@@ -77,14 +79,16 @@ export function PerplexityModelSelector({
     <DropdownMenu modal={false} onOpenChange={setOpen} open={open}>
       <DropdownMenuTrigger
         render={
-          <button
+          <Button
             aria-label="Model"
             className={cn(
-              "flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#f2f2f2] px-2.5 font-sans text-[12px] leading-none text-[#3d3d3d] outline-none transition-[background-color,transform] duration-fast hover:bg-[#ebebeb] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15",
+              AI_SKIN_BUTTON_RESET,
+              "flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#f2f2f2] px-2.5 font-sans text-[12px] leading-none text-[#3d3d3d] outline-none transition-[background-color,transform] duration-fast hover:bg-[#ebebeb] hover:text-[#3d3d3d] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] aria-expanded:bg-[#ebebeb] aria-expanded:text-[#3d3d3d] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15 dark:hover:text-foreground dark:aria-expanded:bg-white/15 dark:aria-expanded:text-foreground",
               open && "bg-[#ebebeb] dark:bg-white/15",
               className
             )}
             type="button"
+            variant="ghost"
           />
         }
       >

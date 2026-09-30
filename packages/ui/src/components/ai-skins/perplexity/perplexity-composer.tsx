@@ -10,12 +10,25 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PerplexityModelSelector } from "@notra/ui/components/ai-skins/perplexity/perplexity-model-selector";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@notra/ui/components/ui/input-group";
+import {
+  AI_SKIN_BUTTON_RESET,
+  AI_SKIN_INPUT_GROUP_ADDON_RESET,
+  AI_SKIN_INPUT_GROUP_RESET,
+} from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { useState } from "react";
@@ -43,16 +56,17 @@ function IconButton({
   children: ReactNode;
 }) {
   return (
-    <button
+    <InputGroupButton
       aria-label={label}
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-full text-[#3d3d3d] outline-none transition-[background-color,transform] duration-fast hover:bg-[#f3f3f3] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] dark:text-foreground dark:hover:bg-white/10",
+        AI_SKIN_BUTTON_RESET,
+        "size-8 shrink-0 rounded-full text-[#3d3d3d] outline-none transition-[background-color,transform] duration-fast hover:bg-[#f3f3f3] hover:text-[#3d3d3d] focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96] dark:text-foreground dark:hover:bg-white/10 dark:hover:text-foreground",
         className
       )}
-      type="button"
+      size="icon-sm"
     >
       {children}
-    </button>
+    </InputGroupButton>
   );
 }
 
@@ -68,12 +82,13 @@ function ComposerSubmit({
   const enabled = busy || canSend;
 
   return (
-    <button
+    <InputGroupButton
       aria-label={busy ? "Stop" : "Send"}
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-full outline-none transition-[background-color,color,opacity,transform] duration-fast focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96]",
+        AI_SKIN_BUTTON_RESET,
+        "size-8 shrink-0 rounded-full outline-none transition-[background-color,color,opacity,transform] duration-fast focus-visible:ring-2 focus-visible:ring-black/15 active:scale-[0.96]",
         enabled
-          ? "bg-[#2a2a2a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#1a1a1a] dark:hover:bg-white/90"
+          ? "bg-[#2a2a2a] text-white hover:bg-[#1a1a1a] hover:text-white dark:bg-white dark:text-[#1a1a1a] dark:hover:bg-white/90 dark:hover:text-[#1a1a1a]"
           : "bg-[#d9d9d9] text-white dark:bg-white/20 dark:text-white/70"
       )}
       disabled={!enabled}
@@ -85,6 +100,7 @@ function ComposerSubmit({
             }
           : undefined
       }
+      size="icon-sm"
       type={canSend && !busy ? "submit" : "button"}
     >
       <HugeiconsIcon
@@ -92,7 +108,7 @@ function ComposerSubmit({
         size={busy ? 12 : 16}
         strokeWidth={2}
       />
-    </button>
+    </InputGroupButton>
   );
 }
 
@@ -161,90 +177,112 @@ export function PerplexityComposer({
   }
 
   return (
-    <form
-      className={cn(
-        "flex flex-col rounded-[1.65rem] border border-black/[0.08] bg-white px-3 pt-3 pb-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#1c1c1c] dark:shadow-none",
-        className
-      )}
-      onSubmit={handleSubmit}
-    >
-      <textarea
-        aria-label="Follow-up"
-        className="field-sizing-content max-h-80 min-h-[2.75rem] w-full resize-none overflow-y-auto bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1a1a1a] outline-none placeholder:text-[#8d8d8d] dark:text-foreground"
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        rows={1}
-        value={value}
-      />
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-0.5">
-          <IconButton label="Add">
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
-          </IconButton>
-          <DropdownMenu onOpenChange={setFocusOpen} open={focusOpen}>
-            <DropdownMenuTrigger
-              render={
-                <button
-                  aria-label={`Focus ${selectedFocus.label}`}
+    <form className="contents" onSubmit={handleSubmit}>
+      <InputGroup
+        className={cn(
+          AI_SKIN_INPUT_GROUP_RESET,
+          "flex-col items-stretch rounded-[1.65rem] border-black/[0.08] bg-white px-3 pt-3 pb-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] has-disabled:bg-white has-[[data-slot=input-group-control]:focus-visible]:border-black/[0.08] dark:border-white/10 dark:bg-[#1c1c1c] dark:shadow-none dark:has-disabled:bg-[#1c1c1c] dark:has-[[data-slot=input-group-control]:focus-visible]:border-white/10",
+          className
+        )}
+      >
+        <InputGroupTextarea
+          aria-label="Follow-up"
+          className="field-sizing-content max-h-80 min-h-[2.75rem] w-full flex-none resize-none overflow-y-auto bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1a1a1a] outline-none transition-none placeholder:text-[#8d8d8d] md:text-[15px] dark:text-foreground"
+          onChange={(event) => setValue(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          rows={1}
+          value={value}
+        />
+        <InputGroupAddon
+          align="block-end"
+          className={cn(AI_SKIN_INPUT_GROUP_ADDON_RESET, "justify-between gap-2")}
+        >
+          <div className="flex min-w-0 items-center gap-0.5">
+            <IconButton label="Add">
+              <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
+            </IconButton>
+            <DropdownMenu onOpenChange={setFocusOpen} open={focusOpen}>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label={`Focus ${selectedFocus.label}`}
+                    className={cn(
+                      AI_SKIN_BUTTON_RESET,
+                      CHIP_CLASS,
+                      "text-[#3d3d3d] hover:bg-[#f3f3f3] hover:text-[#3d3d3d] aria-expanded:bg-[#f3f3f3] aria-expanded:text-[#3d3d3d] dark:text-foreground dark:hover:bg-white/10 dark:hover:text-foreground dark:aria-expanded:bg-white/10 dark:aria-expanded:text-foreground",
+                      focusOpen && "bg-[#f3f3f3] dark:bg-white/10"
+                    )}
+                    type="button"
+                    variant="ghost"
+                  />
+                }
+              >
+                <HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={1.75} />
+                <span>{selectedFocus.label}</span>
+                <HugeiconsIcon
                   className={cn(
-                    CHIP_CLASS,
-                    "text-[#3d3d3d] hover:bg-[#f3f3f3] dark:text-foreground dark:hover:bg-white/10",
-                    focusOpen && "bg-[#f3f3f3] dark:bg-white/10"
+                    "text-[#8d8d8d] transition-transform duration-fast",
+                    focusOpen && "rotate-180"
                   )}
-                  type="button"
+                  icon={ArrowDown01Icon}
+                  size={11}
+                  strokeWidth={2}
                 />
-              }
-            >
-              <HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={1.75} />
-              <span>{selectedFocus.label}</span>
-              <HugeiconsIcon
-                className={cn(
-                  "text-[#8d8d8d] transition-transform duration-fast",
-                  focusOpen && "rotate-180"
-                )}
-                icon={ArrowDown01Icon}
-                size={11}
-                strokeWidth={2}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              className="min-w-52 rounded-[1.2rem] p-1.5 shadow-[0_8px_28px_rgba(0,0,0,0.12)]"
-              side="top"
-              sideOffset={8}
-            >
-              {PERPLEXITY_FOCUS_OPTIONS.map((option) => (
-                <DropdownMenuItem
-                  className="cursor-pointer flex-col items-start gap-0.5 rounded-[0.95rem] px-2.5 py-2 data-highlighted:bg-[#f3f3f3] dark:data-highlighted:bg-white/10"
-                  key={option.id}
-                  onClick={() => setFocus(option.id)}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="min-w-52 rounded-[1.2rem] p-1.5 shadow-[0_8px_28px_rgba(0,0,0,0.12)]"
+                side="top"
+                sideOffset={8}
+              >
+                <DropdownMenuRadioGroup
+                  onValueChange={(value) => {
+                    const next = PERPLEXITY_FOCUS_OPTIONS.find(
+                      (option) => option.id === value
+                    );
+                    if (next) {
+                      setFocus(next.id);
+                    }
+                  }}
+                  value={focus}
                 >
-                  <span className="font-medium text-[13px]">{option.label}</span>
-                  <span className="text-[12px] text-[#6b6b6b] dark:text-muted-foreground">
-                    {option.description}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <div className="flex shrink-0 items-center gap-0.5">
-          <PerplexityModelSelector
-            model={model}
-            onModelChange={(next) => {
-              if (modelProp === undefined) {
-                setUncontrolledModel(next);
-              }
-              onModelChange?.(next);
-            }}
-          />
-          <IconButton label="Voice input">
-            <HugeiconsIcon icon={Mic01Icon} size={16} strokeWidth={1.75} />
-          </IconButton>
-          <ComposerSubmit busy={busy} canSend={canSend} onStop={onStop} />
-        </div>
-      </div>
+                  {PERPLEXITY_FOCUS_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem
+                      className="cursor-pointer flex-col items-start gap-0.5 rounded-[0.95rem] px-2.5 py-2 data-highlighted:bg-[#f3f3f3] dark:data-highlighted:bg-white/10 [&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden"
+                      closeOnClick
+                      key={option.id}
+                      value={option.id}
+                    >
+                      <span className="font-medium text-[13px]">
+                        {option.label}
+                      </span>
+                      <span className="text-[12px] text-[#6b6b6b] dark:text-muted-foreground">
+                        {option.description}
+                      </span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            <PerplexityModelSelector
+              model={model}
+              onModelChange={(next) => {
+                if (modelProp === undefined) {
+                  setUncontrolledModel(next);
+                }
+                onModelChange?.(next);
+              }}
+            />
+            <IconButton label="Voice input">
+              <HugeiconsIcon icon={Mic01Icon} size={16} strokeWidth={1.75} />
+            </IconButton>
+            <ComposerSubmit busy={busy} canSend={canSend} onStop={onStop} />
+          </div>
+        </InputGroupAddon>
+      </InputGroup>
     </form>
   );
 }

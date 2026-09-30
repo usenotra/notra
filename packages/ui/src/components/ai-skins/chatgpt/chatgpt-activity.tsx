@@ -12,6 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@notra/ui/components/ui/sheet";
+import { Button } from "@notra/ui/components/ui/button";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
@@ -137,10 +139,15 @@ export function ChatgptActivity({
           </SheetDescription>
           <SheetClose
             render={
-              <button
+              <Button
                 aria-label="Close"
-                className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className={cn(
+                  AI_SKIN_BUTTON_RESET,
+                  "rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground dark:hover:bg-muted"
+                )}
+                size="icon"
                 type="button"
+                variant="ghost"
               />
             }
           >

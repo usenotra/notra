@@ -2,6 +2,7 @@
 
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
 import {
   CHATGPT_EFFORTS,
@@ -52,13 +54,15 @@ export function ChatgptModelSelector({
         delay={75}
         openOnHover
         render={
-          <button
+          <Button
             aria-label={`Model ${selectedModel.label}, effort ${selectedEffort.label}`}
             className={cn(
-              "group/chatgpt-model flex h-8 shrink-0 items-center gap-1 rounded-full bg-transparent px-2.5 text-[13px] leading-none text-foreground outline-none transition-[background-color,transform] duration-fast hover:bg-muted focus-visible:ring-2 focus-visible:ring-blue-600/35 active:scale-[0.96] data-popup-open:bg-muted",
+              AI_SKIN_BUTTON_RESET,
+              "group/chatgpt-model flex h-8 shrink-0 items-center gap-1 rounded-full bg-transparent px-2.5 text-[13px] leading-none text-foreground outline-none transition-[background-color,transform] duration-fast hover:bg-muted focus-visible:ring-2 focus-visible:ring-blue-600/35 active:scale-[0.96] data-popup-open:bg-muted dark:hover:bg-muted",
               className
             )}
             type="button"
+            variant="ghost"
           />
         }
       >
