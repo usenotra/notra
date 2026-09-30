@@ -44,6 +44,22 @@ function orderedPresets(pathname: string): readonly DemoConsolePreset[] {
   ];
 }
 
+/**
+ * Outside the component on purpose: React Compiler can't lower try/finally,
+ * and the flag must reset even if the request throws.
+ */
+async function sendWithLoadingFlag(
+  request: Parameters<typeof sendDemoConsoleRequest>[0],
+  setSending: (sending: boolean) => void
+): Promise<DemoConsoleResponse> {
+  setSending(true);
+  try {
+    return await sendDemoConsoleRequest(request);
+  } finally {
+    setSending(false);
+  }
+}
+
 function formatBody(body?: Record<string, unknown>) {
   return body ? JSON.stringify(body, null, 2) : "";
 }
@@ -80,23 +96,18 @@ export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
     if (!sandbox?.apiKey) {
       return;
     }
-    setSending(true);
-    try {
-      setResponse(
-        await sendDemoConsoleRequest({
+    setResponse(
+      await sendWithLoadingFlag(
+        {
           baseUrl: sandbox.apiBaseUrl,
           apiKey: sandbox.apiKey,
           method,
           path: resolvedPath,
           body: hasBody ? body : null,
-        })
-      );
-    } catch {
-      // Network failures already come back as a status 0 response.
-      setResponse(null);
-    } finally {
-      setSending(false);
-    }
+        },
+        setSending
+      )
+    );
   };
 
   if (!sandbox) {
