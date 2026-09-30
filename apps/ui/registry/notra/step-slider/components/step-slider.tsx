@@ -72,9 +72,15 @@ export const StepSlider = ({
       value={index}
       {...props}
     >
-      {/* Base UI works on step indices, so the form gets the real value from here. */}
+      {/* Base UI works on step indices, so the form gets the shown step from here. */}
       {name ? (
-        <input form={form} name={name} type="hidden" value={current} />
+        <input
+          disabled={disabled}
+          form={form}
+          name={name}
+          type="hidden"
+          value={steps[index] ?? current}
+        />
       ) : null}
       <div className="h-10 rounded-full bg-[#F1F1F2] p-1 shadow-[inset_0_0.0625rem_0.125rem_#1E1E1E0F] dark:bg-white/[0.06]">
         <SliderPrimitive.Control className="relative h-full cursor-pointer touch-none select-none data-disabled:cursor-not-allowed data-disabled:opacity-50">
