@@ -9,8 +9,10 @@ import type { DemoChatScenario } from "@notra/ai/types/demo-model";
 export const DEMO_MODEL_PROVIDER = "notra-demo";
 export const DEMO_STREAM_CHUNK_DELAY_MS = 18;
 export const DEMO_FAKE_MAX_DEPTH = 6;
-export const DEMO_GERMAN_HINT =
-  /\b(ich|und|nicht|bitte|wie|was|welche|warum|schreib|erstelle|zeig|mein|unsere?)\b/i;
+/** German words that are not also English; two distinct hits mean German. */
+export const DEMO_GERMAN_WORDS =
+  /\b(ich|und|nicht|bitte|wie|welche[rsnm]?|warum|schreib\w*|erstell\w*|zeig\w*|mein\w*|unser\w*|sind|wir|der|das|ist|für|über|einen?|mit|auf|dem|den|sichtbar\w*)\b/gi;
+export const DEMO_GERMAN_MIN_WORDS = 2;
 
 /** Tools that mark an unattended writer agent (schedules, events, GEO writer). */
 export const DEMO_BACKGROUND_WRITER_TOOLS = [
@@ -114,6 +116,19 @@ export const DEMO_FAKE_SENTENCES = {
     "Fieldnote wird häufiger genannt, wenn Antworten Suchfunktionen vergleichen.",
     "Konkurrenten gewinnen Prompts zu Integrationen mit Slack und Linear.",
     "Eine Vergleichsseite gäbe KI-Assistenten eine zitierbare Quelle.",
+  ],
+} as const;
+
+export const DEMO_FAKE_QUESTIONS = {
+  en: [
+    "Which AI meeting notes app is best for remote teams?",
+    "What are good Quillboard alternatives for startups?",
+    "Which meeting notes tool has the best search?",
+  ],
+  de: [
+    "Welche KI-App für Meeting-Notizen ist die beste für Remote-Teams?",
+    "Was sind gute Quillboard-Alternativen für Startups?",
+    "Welches Meeting-Notiz-Tool hat die beste Suche?",
   ],
 } as const;
 
@@ -227,3 +242,20 @@ Everything here runs on sample data for Fieldnote, a fictional company.`,
 
 Alles hier läuft auf Beispieldaten für Fieldnote, eine fiktive Firma.`,
 } as const;
+
+/** Stand-in homepage for brand analysis in the demo (no website is fetched). */
+export const DEMO_BRAND_WEBSITE_CONTENT = `# Fieldnote: AI meeting notes your team can search
+
+Fieldnote records your meetings, writes the summary and pulls out decisions and action items. A month later, ask "why did we move the launch?" and jump straight to the moment it was decided.
+
+## Built for product teams
+Product managers, engineering leads and founders at software companies use Fieldnote to cut status meetings and keep decisions findable.
+
+## Features
+- Automatic notes for every meeting on your calendar
+- Smart Search across all meetings, in plain language
+- Action items synced to Linear and Slack
+- EU data residency for Business workspaces
+
+## Pricing
+Free for 10 meetings a month. Team and Business plans for growing companies.`;

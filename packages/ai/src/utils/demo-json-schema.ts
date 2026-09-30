@@ -1,6 +1,7 @@
 import {
   DEMO_FAKE_MAX_DEPTH,
   DEMO_FAKE_PARAGRAPHS,
+  DEMO_FAKE_QUESTIONS,
   DEMO_FAKE_SENTENCES,
   DEMO_FAKE_TITLES,
 } from "@notra/ai/constants/demo-responses";
@@ -14,7 +15,8 @@ const LONG_TEXT_KEY =
   /markdown|content|body|text|answer|summary|description|draft|html|article/i;
 const TITLE_KEY = /title|headline|name|label|heading|subject/i;
 const URL_KEY = /url|link|href|website|domain/i;
-const SHORT_TEXT_KEY = /reason|rationale|explanation|note|why|comment|hint/i;
+const QUESTION_KEY = /prompt|question|query|search/i;
+const BRAND_KEY = /^(brand|company|organization)(name)?$/i;
 
 function hash(value: string): number {
   let result = 0;
@@ -88,16 +90,20 @@ function fakeString(
   if (/slug/i.test(key)) {
     return "ai-meeting-notes-guide";
   }
+  if (BRAND_KEY.test(key)) {
+    return clampText("Fieldnote", schema);
+  }
   if (LONG_TEXT_KEY.test(key)) {
     return clampText(pick(DEMO_FAKE_PARAGRAPHS[language], seed), schema);
   }
   if (TITLE_KEY.test(key)) {
     return clampText(pick(DEMO_FAKE_TITLES[language], seed), schema);
   }
-  if (SHORT_TEXT_KEY.test(key)) {
-    return clampText(pick(DEMO_FAKE_SENTENCES[language], seed), schema);
+  if (QUESTION_KEY.test(key)) {
+    return clampText(pick(DEMO_FAKE_QUESTIONS[language], seed), schema);
   }
-  return clampText("Fieldnote", schema);
+  // Anything else reads as a plain sentence rather than a bare brand name.
+  return clampText(pick(DEMO_FAKE_SENTENCES[language], seed), schema);
 }
 
 function fakeNumber(schema: DemoJsonSchema, key: string, seed: string) {

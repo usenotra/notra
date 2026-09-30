@@ -6,7 +6,13 @@ import {
   DEMO_BILLING_CREDITS,
   DEMO_BILLING_PERIOD_DAYS,
   DEMO_BILLING_PLAN,
+  DEMO_DISABLED_MESSAGE,
 } from "@/constants/demo";
+import {
+  DEMO_BILLING_PLANS,
+  DEMO_CREDIT_EVENT_COUNT,
+  DEMO_CREDIT_EVENT_PATTERN,
+} from "@/constants/demo-billing";
 import type { DevelopmentBillingCustomerIdResolver } from "@/types/billing/development-usage-alerts";
 import { getDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";
 
@@ -23,7 +29,60 @@ type DevelopmentAggregateEventsRequest = {
   featureId?: string | string[];
   feature_id?: string | string[];
   range?: string;
+  offset?: number;
+  limit?: number;
 };
+
+function createDemoPlans() {
+  return DEMO_BILLING_PLANS.flatMap((plan) =>
+    (["month", "year"] as const).map((interval) => ({
+      id: interval === "year" ? `${plan.id}_annual` : plan.id,
+      name: plan.name,
+      description: plan.description,
+      group: null,
+      version: 1,
+      addOn: false,
+      autoEnable: false,
+      price: {
+        amount: interval === "year" ? plan.annual : plan.monthly,
+        interval,
+      },
+      items: [],
+      createdAt: 0,
+      env: "sandbox",
+      archived: false,
+      baseVariantId: null,
+      config: { ignorePastDue: false },
+    }))
+  );
+}
+
+/** A believable spend history, newest first, paginated like Autumn. */
+function createDemoCreditEvents(body: DevelopmentAggregateEventsRequest) {
+  const offset = Math.max(0, Number(body.offset ?? 0));
+  const limit = Math.max(1, Number(body.limit ?? 20));
+  const now = Date.now();
+  const spanMs = DEMO_BILLING_PLAN.periodElapsedDays * MS_PER_DAY;
+  const all = Array.from({ length: DEMO_CREDIT_EVENT_COUNT }, (_, index) => {
+    const pattern =
+      DEMO_CREDIT_EVENT_PATTERN[index % DEMO_CREDIT_EVENT_PATTERN.length];
+    return {
+      id: `demo-credit-${index}`,
+      timestamp:
+        now - Math.round((spanMs * (index + 0.5)) / DEMO_CREDIT_EVENT_COUNT),
+      value: pattern?.value ?? 0,
+      properties: pattern?.properties ?? {},
+      featureId: FEATURES.AI_CREDITS,
+    };
+  });
+  return {
+    list: all.slice(offset, offset + limit),
+    hasMore: offset + limit < all.length,
+    offset,
+    limit,
+    total: all.length,
+  };
+}
 
 /**
  * The public demo shows a paying workspace mid-cycle: an active Growth plan
@@ -241,6 +300,8 @@ export function createDevelopmentAutumnHandler(
     return null;
   }
 
+  const demo = isDemoMode();
+
   return async (request) => {
     const route = new URL(request.url).pathname.split("/").at(-1);
 
@@ -252,9 +313,25 @@ export function createDevelopmentAutumnHandler(
       return Response.json(createDevelopmentAutumnCustomer(customerId));
     }
 
+    if (demo && route === "listPlans") {
+      return Response.json({ list: createDemoPlans() });
+    }
+
+    if (demo && route === "listEvents") {
+      return Response.json(createDemoCreditEvents(await readJsonBody(request)));
+    }
+
     if (route === "aggregateEvents") {
       const body = await readJsonBody(request);
       return Response.json(createDevelopmentAggregateEvents(body));
+    }
+
+    if (demo) {
+      // Checkout, portal and plan changes need a real account.
+      return Response.json(
+        { error: DEMO_DISABLED_MESSAGE, message: DEMO_DISABLED_MESSAGE },
+        { status: 403 }
+      );
     }
 
     return Response.json(

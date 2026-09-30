@@ -178,9 +178,7 @@ const mapMemberRows = (
 
 const tryWorkOS = <T>(run: () => Promise<T>, fallbackMessage: string) =>
   isDemoMode()
-    ? Effect.fail(
-        new ActionFailure({ message: DEMO_DISABLED_MESSAGE, cause: null })
-      )
+    ? Effect.fail(new ActionFailure({ message: DEMO_DISABLED_MESSAGE }))
     : Effect.tryPromise({
         try: run,
         catch: (cause) =>
@@ -205,7 +203,7 @@ const requireWorkOSOrganizationId = Effect.fn(
 )(function* (organizationId: string) {
   if (isDemoMode()) {
     return yield* Effect.fail(
-      new ActionFailure({ message: DEMO_DISABLED_MESSAGE, cause: null })
+      new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
     );
   }
   return yield* ensureWorkOSOrganizationWithMembers(organizationId).pipe(
@@ -275,7 +273,7 @@ export async function createOrganizationAction(
       // One sandbox workspace per demo visitor.
       if (isDemoMode()) {
         return yield* Effect.fail(
-          new ActionFailure({ message: DEMO_DISABLED_MESSAGE, cause: null })
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
         );
       }
       const session = yield* requireSession();
@@ -984,6 +982,12 @@ export async function inviteMemberAction(
 ): Promise<ActionResult<InvitationSummary>> {
   return runAction(
     Effect.gen(function* () {
+      // Invitations need WorkOS; explain instead of failing on the seat check.
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
       const input = yield* validateActionInput(
         inviteMemberInputSchema,

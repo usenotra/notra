@@ -6563,6 +6563,11 @@
       "submit": "Customize demo",
       "saving": "Rebuilding…",
       "failed": "The demo couldn't be customized. Please try again."
+    },
+    "apiCallout": {
+      "title": "Try the API with your demo key",
+      "description": "Send requests from the playground and watch them change this workspace live. curl, the CLI and MCP work too.",
+      "open": "Open API playground"
     }
   }
 }

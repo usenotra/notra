@@ -6563,6 +6563,11 @@
       "submit": "Demo anpassen",
       "saving": "Wird neu aufgebaut…",
       "failed": "Die Demo konnte nicht angepasst werden. Bitte versuch es erneut."
+    },
+    "apiCallout": {
+      "title": "Teste die API mit deinem Demo-Key",
+      "description": "Schick Requests aus dem Playground und sieh live, wie sie diesen Workspace verändern. curl, CLI und MCP gehen auch.",
+      "open": "API-Playground öffnen"
     }
   }
 }

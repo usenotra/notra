@@ -12,7 +12,8 @@ import {
   DEMO_CHAT_FALLBACK,
   DEMO_CHAT_SCENARIOS,
   DEMO_FAKE_TITLES,
-  DEMO_GERMAN_HINT,
+  DEMO_GERMAN_MIN_WORDS,
+  DEMO_GERMAN_WORDS,
   DEMO_MODEL_PROVIDER,
   DEMO_STREAM_CHUNK_DELAY_MS,
   DEMO_TOOL_HINTS,
@@ -100,6 +101,13 @@ function localized(
   return german ? text.de : text.en;
 }
 
+function isGerman(text: string): boolean {
+  const words = new Set(
+    [...text.matchAll(DEMO_GERMAN_WORDS)].map((match) => match[0].toLowerCase())
+  );
+  return words.size >= DEMO_GERMAN_MIN_WORDS;
+}
+
 function pickScenario(text: string): DemoChatScenario | undefined {
   return DEMO_CHAT_SCENARIOS.find((scenario) => scenario.pattern.test(text));
 }
@@ -124,7 +132,7 @@ function scenarioText(
 /** Decides what the fake model answers for one call. */
 function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
   const userText = lastUserText(options.prompt);
-  const german = DEMO_GERMAN_HINT.test(userText);
+  const german = isGerman(userText);
   const seed = userText.slice(0, 200);
 
   if (options.responseFormat?.type === "json") {
