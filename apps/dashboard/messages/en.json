@@ -2304,25 +2304,7 @@
       "exactExcerpt": "Exact excerpt: "
     },
     "brandSentimentCard": {
-      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage.",
-      "loadingThemes": "Loading themes…",
-      "noThemes": "No themes found",
-      "runAnalysis": "Run analysis to find themes",
-      "polarityShare": {
-        "positive": "{share} positive",
-        "neutral": "{share} neutral",
-        "negative": "{share} negative"
-      },
-      "cta": {
-        "positive": "See what's working in saved answers.",
-        "negative": "Catch what's hurting before it spreads."
-      },
-      "analysisStatus": {
-        "stalePrevious": "Showing previous themes. Analysis needs an update.",
-        "failedPrevious": "Analysis failed. Showing previous themes.",
-        "failedRetry": "Analysis failed. Try again.",
-        "unavailable": "Theme analysis is unavailable."
-      }
+      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
     },
     "citationsTable": {
       "showDetails": "{title}, show details",
@@ -3268,30 +3250,40 @@
     },
     "sentimentResultsTable": {
       "columns": {
-        "claim": "Claim",
+        "claim": "Theme",
         "evidence": "Evidence"
       },
       "empty": "No sentiment themes yet.",
-      "sheetDescription": "Exact quotes from the analyzed sample of saved answers.",
       "capturedAt": "{date} UTC"
     },
-    "sentimentScore": {
-      "comparisonLabel": "Score comparison and period dates",
-      "noComparable": "No comparable score",
-      "deltaVsPrevious": "{delta} pts vs. previous period",
-      "current": "Current: {period}",
-      "previous": "Previous: {period}",
-      "positionLabel": "Sentiment score position",
-      "outOf100": "{score} out of 100",
-      "currentScoreLabel": "Current sentiment score: {score} out of 100"
+    "sentimentBreakdown": {
+      "eyebrow": "Brand sentiment",
+      "byEngine": "By engine",
+      "enginesCount": "{count, plural, one {# engine} other {# engines}}",
+      "loading": {
+        "title": "Loading sentiment"
+      },
+      "empty": {
+        "title": "No sentiment yet",
+        "scanningTitle": "Scanning answers"
+      },
+      "error": {
+        "title": "Could not load sentiment",
+        "body": "Something went wrong while loading the score.",
+        "retry": "Try again"
+      },
+      "noRatedAnswers": "No rated answers",
+      "deltaLabel": "Sentiment score",
+      "deltaHint": "vs. previous period",
+      "band": {
+        "strong": "Strongly positive",
+        "positive": "Mostly positive",
+        "mixed": "Mixed",
+        "negative": "Mostly negative"
+      }
     },
     "sentimentSkeleton": {
       "loading": "Loading sentiment"
-    },
-    "sentimentSummary": {
-      "label": "Sentiment summary",
-      "loadError": "Could not load sentiment summary.",
-      "retry": "Retry summary"
     },
     "sentimentThemesEmpty": {
       "retryAnalysis": "Retry analysis",
@@ -3315,18 +3307,14 @@
         "couldNotFind": "Could not find themes. Try again.",
         "notConfigured": "Theme analysis is not configured for this project."
       },
+      "analysisStatus": {
+        "stalePrevious": "Showing previous themes. Analysis needs an update.",
+        "failedPrevious": "Analysis failed. Showing previous themes.",
+        "failedRetry": "Analysis failed. Try again.",
+        "unavailable": "Theme analysis is unavailable."
+      },
       "status": {
         "loading": "Loading analysis…"
-      }
-    },
-    "sentimentTrendCard": {
-      "label": "Sentiment history",
-      "loadError": "Could not load sentiment.",
-      "retry": "Retry sentiment",
-      "chart": {
-        "score": "Score",
-        "previous": "Previous period",
-        "estimate": "Estimated score"
       }
     },
     "shareOfVoiceBrandTag": {

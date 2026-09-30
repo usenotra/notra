@@ -145,7 +145,7 @@ export interface GeoTimeseriesPoint {
   avgPosition?: number | null;
 }
 
-export type GeoStatDeltaKind = "rate" | "mentions" | "position";
+export type GeoStatDeltaKind = "rate" | "mentions" | "position" | "score";
 
 export type GeoStatDeltaTone = "up" | "down" | "flat";
 
