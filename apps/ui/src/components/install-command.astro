@@ -9,13 +9,13 @@ const longestItem = Math.max(...items.map((item) => item.length));
 ---
 
 <notra-install-command
-  class="flex max-w-full items-center gap-3 rounded-2xl border border-white/70 bg-white/60 py-3 ps-4 pe-2 font-mono text-sm shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-black/40"
+  class="flex w-fit max-w-full items-center gap-4 rounded-xl border border-white/70 bg-white/60 py-2 ps-4 pe-2 font-mono text-sm shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-black/40"
   data-items={JSON.stringify(items)}
   data-prefix={prefix}
 >
-  <code class="min-w-0 truncate">
-    <span class="font-semibold text-foreground">{prefix}</span><span
-      class="inline-block text-muted-foreground transition-[opacity,translate] duration-200 ease-out data-hidden:-translate-y-1 data-hidden:opacity-0 motion-reduce:transition-none"
+  <code class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap">
+    <span class="text-muted-foreground">{prefix}</span><span
+      class="inline-block text-foreground"
       data-item
       style={`min-width: ${longestItem}ch`}>{firstItem}</span>
   </code>
@@ -38,7 +38,9 @@ const longestItem = Math.max(...items.map((item) => item.length));
 <script>
   const COPIED_MS = 1500;
   const ROTATE_MS = 2500;
-  const FADE_MS = 200;
+  const EXIT = { duration: 160, easing: "cubic-bezier(0.4, 0, 1, 1)" };
+  const ENTER = { duration: 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)" };
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   class NotraInstallCommand extends HTMLElement {
     connectedCallback() {
@@ -61,7 +63,6 @@ const longestItem = Math.max(...items.map((item) => item.length));
 
     resetTimer: number | undefined;
     rotateTimer: number | undefined;
-    swapTimer: number | undefined;
     index = 0;
 
     get items(): string[] {
@@ -84,22 +85,38 @@ const longestItem = Math.max(...items.map((item) => item.length));
       this.rotateTimer = window.setInterval(this.rotate, ROTATE_MS);
     };
 
-    rotate = () => {
-      if (document.hidden) {
-        return;
-      }
+    rotate = async () => {
       const label = this.querySelector<HTMLElement>("[data-item]");
-      if (!label) {
+      if (!label || document.hidden) {
         return;
       }
       const next = (this.index + 1) % this.items.length;
-      label.setAttribute("data-hidden", "");
-      window.clearTimeout(this.swapTimer);
-      this.swapTimer = window.setTimeout(() => {
-        this.index = next;
-        label.textContent = this.items[next] ?? "";
-        label.removeAttribute("data-hidden");
-      }, FADE_MS);
+      if (reducedMotion.matches) {
+        this.show(label, next);
+        return;
+      }
+      const exit = label.animate(
+        [
+          { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
+          { filter: "blur(4px)", opacity: 0, transform: "translateY(-0.6em)" },
+        ],
+        { ...EXIT, fill: "forwards" },
+      );
+      await exit.finished;
+      this.show(label, next);
+      label.animate(
+        [
+          { filter: "blur(4px)", opacity: 0, transform: "translateY(0.6em)" },
+          { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
+        ],
+        ENTER,
+      );
+      exit.cancel();
+    };
+
+    show = (label: HTMLElement, index: number) => {
+      this.index = index;
+      label.textContent = this.items[index] ?? "";
     };
 
     copy = async () => {

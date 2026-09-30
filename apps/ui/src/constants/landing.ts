@@ -8,7 +8,6 @@ export const LANDING_HERO: LandingHero = {
       "perplexity",
       "chatgpt",
       "claude-code",
-      "google-ai-overview",
       "gemini",
       "codex",
       "claude",
