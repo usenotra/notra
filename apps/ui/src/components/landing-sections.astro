@@ -2,6 +2,8 @@
 import { LANDING_SECTIONS } from "../constants/landing";
 import type { LandingPreview } from "../types/landing";
 import AIOverviewPreview from "./previews/ai-overview-preview.astro";
+import ButtonPreview from "./previews/button-preview";
+import ChatMinimapPreview from "./previews/chat-minimap-preview";
 import ChatgptPreview from "./previews/chatgpt-preview";
 import ClaudeCodePreview from "./previews/claude-code-preview";
 import ClaudePreview from "./previews/claude-preview";
@@ -15,6 +17,8 @@ import TooltipPreview from "./previews/tooltip-preview.astro";
 
 const previews = {
   "ai-overview": AIOverviewPreview,
+  button: ButtonPreview,
+  "chat-minimap": ChatMinimapPreview,
   chatgpt: ChatgptPreview,
   claude: ClaudePreview,
   "claude-code": ClaudeCodePreview,

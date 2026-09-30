@@ -22,6 +22,13 @@ export const LANDING_SECTIONS: LandingSection[] = [
     items: [
       {
         description:
+          "Primary, secondary, outline and destructive with a soft gradient and squircle corners.",
+        href: "/components/button",
+        preview: "button",
+        title: "Button",
+      },
+      {
+        description:
           "The gradient marketing buttons from the Notra landing page.",
         href: "/components/marketing-button",
         preview: "marketing-button",
@@ -39,6 +46,13 @@ export const LANDING_SECTIONS: LandingSection[] = [
         href: "/components/shimmer",
         preview: "shimmer",
         title: "Shimmer",
+      },
+      {
+        description:
+          "A rail of lines that maps a conversation, with a preview card per turn.",
+        href: "/components/chat-minimap",
+        preview: "chat-minimap",
+        title: "Chat Minimap",
       },
     ],
     description: "Primitives and small pieces used across the dashboard.",

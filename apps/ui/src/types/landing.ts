@@ -1,5 +1,7 @@
 export type LandingPreview =
   | "ai-overview"
+  | "button"
+  | "chat-minimap"
   | "chatgpt"
   | "claude"
   | "claude-code"
