@@ -19,11 +19,18 @@ export function engineFamilyOf(engine: string): string {
   return resolveEngineIconKey(engine) ?? engineModelOf(engine);
 }
 
+function ownLabel(
+  labels: Record<string, string>,
+  key: string
+): string | undefined {
+  return Object.hasOwn(labels, key) ? labels[key] : undefined;
+}
+
 export function engineFamilyLabel(family: string): string {
   return (
-    GEO_BRAND_LABELS[family] ??
-    GEO_ENGINE_LABELS[family] ??
-    GEO_ENGINE_LABELS[`${family}-grounded`] ??
+    ownLabel(GEO_BRAND_LABELS, family) ??
+    ownLabel(GEO_ENGINE_LABELS, family) ??
+    ownLabel(GEO_ENGINE_LABELS, `${family}-grounded`) ??
     family
   );
 }

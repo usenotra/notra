@@ -24,6 +24,16 @@
        never make the document itself scroll sideways under the fixed sidebar. */
     overflow-x: clip;
   }
+
+  /* No macOS rubber-band on the fixed app shell. Scoped to shell routes so
+     scrollable pages (onboarding, auth) keep it, and gated to fine pointers
+     so touch devices keep pull-to-refresh. */
+  @media (pointer: fine) {
+    html:has([data-dashboard-shell]),
+    html:has([data-dashboard-shell]) body {
+      overscroll-behavior: none;
+    }
+  }
 }
 
 @layer components {
@@ -92,7 +102,42 @@
   }
 }
 
+@keyframes sentiment-scan-wave {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sentiment-scan-fill {
+  0% {
+    transform: scaleX(0.12);
+  }
+  65%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
+  .sentiment-scan-bar {
+    transform-origin: bottom;
+    animation: sentiment-scan-wave 2s ease-in-out infinite backwards;
+    animation-delay: calc(var(--scan-index) * 110ms);
+  }
+
+  .sentiment-scan-fill {
+    transform-origin: left;
+    animation: sentiment-scan-fill 2.6s cubic-bezier(0.23, 1, 0.32, 1) infinite
+      backwards;
+    animation-delay: calc(var(--scan-index) * 320ms);
+  }
+
   .sentiment-analysis-progress {
     animation: sentiment-analysis-progress 24s cubic-bezier(0.23, 1, 0.32, 1)
       forwards;

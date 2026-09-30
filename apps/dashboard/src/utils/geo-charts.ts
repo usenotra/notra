@@ -792,8 +792,8 @@ export function geoStatDeltaTone(
   if (isGeoStatDeltaNew(delta)) {
     return "up";
   }
-  const rounded =
-    kind === "position" ? Math.round(delta * 10) / 10 : Math.round(delta);
+  const oneDecimal = kind === "position" || kind === "score";
+  const rounded = oneDecimal ? Math.round(delta * 10) / 10 : Math.round(delta);
   const effective = kind === "position" ? -rounded : rounded;
   if (effective > 0) {
     return "up";
@@ -819,6 +819,11 @@ export function formatGeoStatDelta(
   if (kind === "mentions") {
     const rounded = Math.round(Math.abs(delta));
     return signed ? `${delta >= 0 ? "+" : "-"}${rounded}%` : `${rounded}%`;
+  }
+  if (kind === "score") {
+    const rounded = Math.round(delta * 10) / 10;
+    const points = labels.points(rounded);
+    return signed && rounded >= 0 ? `+${points}` : points;
   }
   if (kind === "rate") {
     const rounded = Math.round(delta);

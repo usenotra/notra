@@ -93,3 +93,34 @@ export type SentimentAnalysisStatusKey =
   | "failedPrevious"
   | "failedRetry"
   | "unavailable";
+
+export type SentimentPolarity = "positive" | "neutral" | "negative";
+
+export type SentimentScoreBand = "strong" | "positive" | "mixed" | "negative";
+
+export interface SentimentBreakdownProps {
+  data: GeoSentimentResponse;
+  isScanning: boolean;
+}
+
+export interface SentimentFamilyBucket {
+  family: string;
+  iconEngine: string;
+  label: string;
+  bucket: GeoSentimentResponse["summary"];
+}
+
+export interface SentimentDistributionBarProps {
+  bucket: Pick<
+    GeoSentimentResponse["summary"],
+    "positiveShare" | "neutralShare" | "negativeShare"
+  >;
+  className?: string;
+}
+
+export interface SentimentBreakdownPlaceholderProps {
+  state: "pending" | "error" | "empty";
+  emptyKey: "noSavedAnswers" | "noRatedMentions";
+  isScanning: boolean;
+  retry: () => void;
+}
