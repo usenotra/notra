@@ -744,7 +744,7 @@ export function useGeoStartScan(organizationId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+        queryKey: dashboardOrpc.geo.scanRun.key({
           input: { organizationId, projectId },
         }),
       });
@@ -779,7 +779,7 @@ export function useGeoRescanPrompt(organizationId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+        queryKey: dashboardOrpc.geo.scanRun.key({
           input: { organizationId, projectId },
         }),
       });

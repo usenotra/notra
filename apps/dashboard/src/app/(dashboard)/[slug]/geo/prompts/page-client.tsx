@@ -31,7 +31,7 @@ import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PromptAddDialog } from "@/components/geo/prompt-add-dialog";
 import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
-import { ScanActivity } from "@/components/geo/scan-activity";
+import { ScanRunDetail } from "@/components/geo/scan-run-detail";
 import { SlidingTabIndicator } from "@/components/geo/sliding-tab-indicator";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -50,6 +50,7 @@ import {
 } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb, useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
+import { usePrefetchGeoLatestScanRun } from "@/lib/hooks/use-geo-scan-history";
 import { cn } from "@/lib/utils";
 import type {
   PromptsPageTabCountProps,
@@ -125,6 +126,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     geoRange.query
   );
   const isScanning = useIsGeoScanning(organizationId);
+  const prefetchAnswers = usePrefetchGeoLatestScanRun(organizationId);
   const { sequences } = useGeoSequencesDb(organizationId);
   const { data: suggestionsData } = useGeoSuggestions(organizationId);
   const [tab, setTab] = useQueryState(
@@ -233,7 +235,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                     {t("tabs.suggestions")}
                     <TabCount count={suggestionsData?.suggestions.length} />
                   </TabsTrigger>
-                  <TabsTrigger className="group/tab" value="answers">
+                  <TabsTrigger
+                    className="group/tab"
+                    onFocus={prefetchAnswers}
+                    onPointerEnter={prefetchAnswers}
+                    value="answers"
+                  >
                     <SlideInTabIcon pinned={isScanning}>
                       <HugeiconsIcon
                         className={
@@ -286,7 +293,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               />
             </TabsContent>
             <TabsContent className="mt-4" value="answers">
-              <ScanActivity organizationId={organizationId} />
+              <ScanRunDetail organizationId={organizationId} />
             </TabsContent>
           </Tabs>
         </div>
