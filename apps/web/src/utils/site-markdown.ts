@@ -221,13 +221,21 @@ function buildPromptCalculatorMarkdown() {
       ? `| ${plan.name} | more than ${PRICING_CARD_PLANS.at(-2)?.answersPerMonth?.toLocaleString("en-US") ?? ""} | ${plan.price.monthly} |`
       : `| ${plan.name} | ${plan.answersPerMonth.toLocaleString("en-US")} | ${plan.price.monthly}/month or ${plan.price.yearly}/year |`
   );
+  // Exact scans per month, so an agent's arithmetic matches the calculator.
   const frequencies = PROMPT_CALCULATOR_FREQUENCIES.map((option) => {
-    const scans =
-      Math.round(
-        (PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays) * 10
-      ) / 10;
-    return `\`${option.id}\` (${scans})`;
+    if (option.intervalDays === 1) {
+      return `\`${option.id}\` (${PROMPT_CALCULATOR_DAYS_PER_MONTH})`;
+    }
+    const exact = PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays;
+    const shown = Number.isInteger(exact)
+      ? String(exact)
+      : `${PROMPT_CALCULATOR_DAYS_PER_MONTH}/${option.intervalDays} ≈ ${exact.toFixed(3)}`;
+    return `\`${option.id}\` (${shown})`;
   });
+  const projectLimits = PRICING_CARD_PLANS.map(
+    (plan) =>
+      `${plan.name} ${plan.features.find((feature) => feature.icon === "projects")?.label ?? ""}`
+  ).join(", ");
   const promptGuide = PROMPT_CALCULATOR_MILESTONES.map(
     (milestone) =>
       `- Up to ${milestone.prompts.toLocaleString("en-US")}: ${milestone.name} ${milestone.detail}`
@@ -253,13 +261,13 @@ function buildPromptCalculatorMarkdown() {
     "",
     "Use these steps to recommend a plan and hand the user a link with the calculator already filled in.",
     "",
-    `1. **Models.** Ask which AI engines their buyers use. Each model counts separately. An engine name like \`claude\` stands for its default model; to track two models of one engine (say Claude Opus 5.5 and Sonnet 5), list both model ids. See the model list below.`,
-    "2. **Prompts.** Estimate how many buyer questions they want to track:",
+    `1. **Models.** Ask which AI engines their buyers use. Each model counts separately. An engine name like \`claude\` stands for its default model; to track two models of one engine (say Claude Opus 5.5 and Sonnet 5), list both model ids. An engine name and its default model id are the same model, and duplicates count once. Mixing engine names and model ids is fine. See the model list below.`,
+    '2. **Prompts.** Use the number the customer gives. Otherwise pick from these ranges, e.g. 5 to 10 for "a handful" or the upper bound of the matching range:',
     ...promptGuide.map((line) => `   ${line}`),
     `3. **Frequency.** Default to \`${PROMPT_CALCULATOR_DEFAULT_FREQUENCY}\`. Slower scans cost fewer answers.`,
-    `4. **Compute.** AI answers / month = prompts × models × scans per month, rounded up. A month counts as ${PROMPT_CALCULATOR_DAYS_PER_MONTH} days.`,
-    "5. **Pick the plan.** Choose the smallest plan whose quota is at least the estimate.",
-    "6. **Too big for Scale?** Try the next slower frequency until the estimate fits a plan. Recommend that, or Enterprise if even `monthly` doesn't fit.",
+    `4. **Compute.** AI answers / month = prompts × models × scans per month, where scans per month = ${PROMPT_CALCULATOR_DAYS_PER_MONTH} ÷ the interval in days (weekly is ${PROMPT_CALCULATOR_DAYS_PER_MONTH}/7, not 4.3). Round only the final total up.`,
+    `5. **Pick the plan.** Choose the smallest plan whose quota is at least the estimate; an estimate exactly at the quota fits but leaves no room to add prompts, so mention the next plan if they expect to grow. Then check projects: each brand or website is usually its own project (${projectLimits}). When projects call for a larger plan, recommend that plan and use its quota for step 6.`,
+    "6. **Too big for the plan?** Try the next slower frequency until the estimate fits the plan's quota, and recommend the fastest frequency that fits. If even `monthly` exceeds Scale, recommend Enterprise.",
     `7. **Share the link.** \`${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=…&${PROMPT_CALCULATOR_PARAMS.models}=…&${PROMPT_CALCULATOR_PARAMS.frequency}=…#${PROMPT_CALCULATOR_ANCHOR}\``,
     "",
     "### Query params",
@@ -276,6 +284,8 @@ function buildPromptCalculatorMarkdown() {
     `| \`${PROMPT_CALCULATOR_PARAMS.frequency}\` | One of ${frequencies.join(", ")}; scans per month in brackets | ${PROMPT_CALCULATOR_DEFAULT_FREQUENCY} |`,
     "",
     "Params you leave out fall back to their default, and the page updates the URL as the user changes inputs, so the link always matches what they see.",
+    "",
+    "Good to know: when an organization uses up its monthly AI answers, scheduled scans are skipped until the quota resets. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
     "",
     "### Models",
     "",
