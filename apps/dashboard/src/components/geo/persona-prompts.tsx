@@ -13,6 +13,13 @@ export function PersonaPrompts({
 }: PersonaPromptsProps) {
   const t = useTranslations("geo.personaPrompts");
   const tGeoShared = useTranslations("geo.shared");
+  // Two turns can share the same text, so number repeats to keep keys unique.
+  const occurrences = new Map<string, number>();
+  const items = prompts.map((prompt) => {
+    const occurrence = (occurrences.get(prompt) ?? 0) + 1;
+    occurrences.set(prompt, occurrence);
+    return { prompt, key: `${occurrence}:${prompt}` };
+  });
   return (
     <div className="h-full overflow-y-auto px-6 py-6">
       <div className="space-y-6">
@@ -24,10 +31,10 @@ export function PersonaPrompts({
         </div>
         {prompts.length > 0 ? (
           <ol>
-            {prompts.map((prompt, index) => (
+            {items.map(({ prompt, key }, index) => (
               <li
                 className="group/turn relative flex gap-4 pb-6 last:pb-0"
-                key={prompt}
+                key={key}
               >
                 <span
                   aria-hidden="true"
