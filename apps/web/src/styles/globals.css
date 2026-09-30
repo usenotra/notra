@@ -121,6 +121,18 @@
 }
 
 @theme inline {
+  /* Dot shimmer that runs through the pricing prompt slider on each step. */
+  --animate-prompt-slider-sweep: prompt-slider-sweep 900ms ease-out forwards;
+
+  @keyframes prompt-slider-sweep {
+    from {
+      mask-position: -60% 0;
+    }
+    to {
+      mask-position: 160% 0;
+    }
+  }
+
   --font-sans: var(--font-inter);
   --font-display: var(--font-satoshi);
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -430,15 +442,6 @@
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes promptSliderSweep {
-  from {
-    mask-position: -60% 0;
-  }
-  to {
-    mask-position: 160% 0;
   }
 }
 
