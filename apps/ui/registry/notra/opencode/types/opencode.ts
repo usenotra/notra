@@ -1,3 +1,4 @@
+import type { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 import type { ComponentProps, ReactNode } from "react";
 
 import type { Collapsible } from "@/components/ui/collapsible";
@@ -9,6 +10,8 @@ export type OpencodeMessageAuthor = "user" | "assistant";
 export type OpencodeMcpStatus = "Connected" | "Disconnected" | "Failed";
 
 export type OpencodeWindowProps = ComponentProps<"div">;
+
+export type OpencodeScrollAreaProps = ScrollAreaPrimitive.Root.Props;
 
 export interface OpencodeLogoProps extends Omit<
   ComponentProps<"svg">,

@@ -19,11 +19,11 @@ The components use the system monospace stack through `font-opencode`. Point it 
 
 ## Layout
 
-`OpencodeWindow` is a shadcn `Card`. The demo splits it with a CSS grid into the transcript column and an `OpencodeSidebar`. The transcript is a reversed flex column, so it opens scrolled to the latest turn, and `OpencodeComposer` sits under it.
+`OpencodeWindow` is a shadcn `Card`. The demo splits it with a CSS grid into the transcript column and an `OpencodeSidebar`. The transcript scrolls in an `OpencodeScrollArea`, a Base UI scroll area with a square terminal scrollbar, and opens on the latest turn. `OpencodeComposer` sits under it.
 
 ## Theming
 
-The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup`, `Kbd` and `ScrollArea`, and the CLI installs any you're missing.
+The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup` and `Kbd`, and the CLI installs any you're missing.
 
 Its colors are `--opencode-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-opencode-panel` and `text-opencode-blue`. OpenCode is shown in its dark theme in both light and dark mode. Change the tokens in your CSS to retheme it:
 
