@@ -15,9 +15,9 @@ const longestItem = Math.max(...items.map((item) => item.length));
 >
   <code class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap">
     <span class="text-muted-foreground">{prefix}</span><span
-      class="inline-block text-foreground"
-      data-item
-      style={`min-width: ${longestItem}ch`}>{firstItem}</span>
+      class="inline-grid text-foreground"
+      data-slot
+      style={`min-width: ${longestItem}ch`}><span class="[grid-area:1/1]" data-item>{firstItem}</span></span>
   </code>
   <button
     aria-label="Copy install command"
@@ -37,9 +37,10 @@ const longestItem = Math.max(...items.map((item) => item.length));
 
 <script>
   const COPIED_MS = 1500;
-  const ROTATE_MS = 2500;
-  const EXIT = { duration: 160, easing: "cubic-bezier(0.4, 0, 1, 1)" };
-  const ENTER = { duration: 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)" };
+  const ROTATE_MS = 2200;
+  const SWAP = { duration: 220, easing: "cubic-bezier(0.2, 0, 0, 1)" };
+  const OFFSET = "0.45em";
+  const BLUR = "blur(3px)";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   class NotraInstallCommand extends HTMLElement {
@@ -85,38 +86,36 @@ const longestItem = Math.max(...items.map((item) => item.length));
       this.rotateTimer = window.setInterval(this.rotate, ROTATE_MS);
     };
 
-    rotate = async () => {
-      const label = this.querySelector<HTMLElement>("[data-item]");
-      if (!label || document.hidden) {
+    rotate = () => {
+      const outgoing = this.querySelector<HTMLElement>("[data-item]:last-child");
+      if (!outgoing || document.hidden) {
         return;
       }
-      const next = (this.index + 1) % this.items.length;
+      this.index = (this.index + 1) % this.items.length;
+      const text = this.items[this.index] ?? "";
       if (reducedMotion.matches) {
-        this.show(label, next);
+        outgoing.textContent = text;
         return;
       }
-      const exit = label.animate(
+      const incoming = outgoing.cloneNode() as HTMLElement;
+      incoming.textContent = text;
+      outgoing.after(incoming);
+      outgoing
+        .animate(
+          [
+            { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
+            { filter: BLUR, opacity: 0, transform: `translateY(-${OFFSET})` },
+          ],
+          { ...SWAP, fill: "forwards" },
+        )
+        .finished.then(() => outgoing.remove(), () => outgoing.remove());
+      incoming.animate(
         [
-          { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
-          { filter: "blur(4px)", opacity: 0, transform: "translateY(-0.6em)" },
-        ],
-        { ...EXIT, fill: "forwards" },
-      );
-      await exit.finished;
-      this.show(label, next);
-      label.animate(
-        [
-          { filter: "blur(4px)", opacity: 0, transform: "translateY(0.6em)" },
+          { filter: BLUR, opacity: 0, transform: `translateY(${OFFSET})` },
           { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
         ],
-        ENTER,
+        SWAP,
       );
-      exit.cancel();
-    };
-
-    show = (label: HTMLElement, index: number) => {
-      this.index = index;
-      label.textContent = this.items[index] ?? "";
     };
 
     copy = async () => {
