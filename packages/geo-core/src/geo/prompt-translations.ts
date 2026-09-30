@@ -1,4 +1,5 @@
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
+import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import { db } from "@notra/db/drizzle";
 import { geoPromptTranslations, geoSettings } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -23,11 +24,7 @@ import type {
   GeoSkipFields,
 } from "../types/geo";
 import { planGeoPromptTranslations } from "../utils/geo-prompt-translations";
-import {
-  addAgentTokenUsage,
-  agentTokenUsageFrom,
-  EMPTY_AGENT_TOKEN_USAGE,
-} from "../utils/token-usage";
+import { addAgentTokenUsage, agentTokenUsageFrom } from "../utils/token-usage";
 import { geoDb, geoSkip } from "./effect";
 import {
   GeoPromptNotFoundError,
@@ -219,6 +216,11 @@ const syncLanguage = Effect.fn("geo.promptTranslations.syncLanguage")(
               })
             )
         : null;
+    const usage = translated ? agentTokenUsageFrom(translated.usage) : null;
+    if (usage) {
+      // Reported before saving: the model work happened even if a save fails.
+      options.onUsage?.(usage);
+    }
     const fresh = new Map<string, string>();
     if (translated && translated.translations.length === pending.length) {
       const candidates = pending.flatMap((entry, index) => {
@@ -238,11 +240,7 @@ const syncLanguage = Effect.fn("geo.promptTranslations.syncLanguage")(
       const text = fresh.get(entry.promptId) ?? entry.text;
       return text ? [{ id: entry.promptId, text }] : [];
     });
-    return {
-      language: plan.language,
-      prompts,
-      usage: translated ? agentTokenUsageFrom(translated.usage) : null,
-    };
+    return { language: plan.language, prompts, usage };
   }
 );
 
@@ -250,6 +248,8 @@ interface GeoPromptTranslationSyncOptions {
   /** Only these prompts are translated and returned, e.g. for a scoped scan. */
   promptIds?: ReadonlySet<string>;
   skipFields?: GeoSkipFields;
+  /** Called once per model call, as soon as its usage is known. */
+  onUsage?: (usage: AgentTokenUsage) => void;
 }
 
 /**
@@ -365,10 +365,7 @@ export const translateGeoPromptTranslations = Effect.fn(
       })
     );
   }
-  const settle = (
-    action: "confirm" | "release",
-    usage?: typeof EMPTY_AGENT_TOKEN_USAGE
-  ) =>
+  const settle = (action: "confirm" | "release", usage?: AgentTokenUsage) =>
     billing
       .finalizeContentBilling({
         reservation: gate,
@@ -394,17 +391,18 @@ export const translateGeoPromptTranslations = Effect.fn(
         )
       );
 
-  const results = yield* syncGeoPromptTranslations(scope).pipe(
-    Effect.tapError(() => settle("release"))
-  );
-  const usage = results.reduce(
-    (total, result) =>
-      result.usage ? addAgentTokenUsage(total, result.usage) : total,
-    EMPTY_AGENT_TOKEN_USAGE
-  );
-  yield* results.some((result) => result.usage)
-    ? settle("confirm", usage)
-    : settle("release");
+  // Bill whatever the model already did, also when a later step fails.
+  let spent: AgentTokenUsage | null = null;
+  const settleSpent = () =>
+    Effect.suspend(() =>
+      spent ? settle("confirm", spent) : settle("release")
+    );
+  yield* syncGeoPromptTranslations(scope, {
+    onUsage: (usage) => {
+      spent = spent ? addAgentTokenUsage(spent, usage) : usage;
+    },
+  }).pipe(Effect.tapError(settleSpent));
+  yield* settleSpent();
   return yield* respond(scope);
 });
 
