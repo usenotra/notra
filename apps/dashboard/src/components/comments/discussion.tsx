@@ -89,7 +89,10 @@ export function Discussion({
   } = useDiscussion(target);
   const t = useTranslations("comments");
   const isEmpty =
-    showEmptyState && !query.isPending && !query.isError && !items.length;
+    showEmptyState &&
+    !query.isPending &&
+    !query.isError &&
+    items.every((item) => item.deletedAt);
 
   return (
     <section

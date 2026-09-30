@@ -16,6 +16,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   AgentFeedbackListData,
   AgentFeedbackSetupResponse,
+  AgentFeedbackStatusChange,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
 import { withFeedbackStatus } from "@/utils/agent-feedback";
@@ -56,19 +57,20 @@ export function useAgentFeedbackUpdateStatus(organizationId: string) {
   const queryClient = useQueryClient();
   const listKey = dashboardOrpc.agentFeedback.list.key();
   return useMutation({
-    mutationFn: (input: { feedbackId: string; status: AgentFeedbackStatus }) =>
+    mutationFn: ({ feedbackId, status }: AgentFeedbackStatusChange) =>
       dashboardOrpc.agentFeedback.updateStatus.call({
         organizationId,
-        ...input,
+        feedbackId,
+        status,
       }),
-    onMutate: async ({ feedbackId, status }) => {
+    onMutate: async (change: AgentFeedbackStatusChange) => {
       await queryClient.cancelQueries({ queryKey: listKey });
       const previous = queryClient.getQueriesData<AgentFeedbackListData>({
         queryKey: listKey,
       });
       queryClient.setQueriesData<AgentFeedbackListData>(
         { queryKey: listKey },
-        (data) => (data ? withFeedbackStatus(data, feedbackId, status) : data)
+        (data) => (data ? withFeedbackStatus(data, change) : data)
       );
       return { previous };
     },

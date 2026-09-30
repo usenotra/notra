@@ -8,6 +8,7 @@ import {
 import type {
   AgentFeedbackListData,
   AgentFeedbackSnippetKey,
+  AgentFeedbackStatusChange,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
 
@@ -30,19 +31,16 @@ export function isAgentFeedbackSnippetKey(
 }
 
 /**
- * Applies a status change to cached list pages. Items stay in lists whose
- * filter they no longer match until the follow-up refetch, so rows don't
- * vanish mid-click.
+ * Applies a status change to cached list pages. Counts move in every cache,
+ * including lists that don't hold the item, so tabs stay consistent. Items
+ * stay in lists whose filter they no longer match until the follow-up
+ * refetch, so rows don't vanish mid-click.
  */
 export function withFeedbackStatus(
   data: AgentFeedbackListData,
-  feedbackId: string,
-  status: AgentFeedbackStatus
+  { feedbackId, previousStatus, status }: AgentFeedbackStatusChange
 ): AgentFeedbackListData {
-  const previousStatus = data.pages
-    .flatMap((page) => page.items)
-    .find((item) => item.id === feedbackId)?.status;
-  if (!previousStatus || previousStatus === status) {
+  if (previousStatus === status) {
     return data;
   }
 

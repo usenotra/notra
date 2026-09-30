@@ -106,7 +106,7 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
 
     syncSelected({ ...item, status });
     updateStatus.mutate(
-      { feedbackId: item.id, status },
+      { feedbackId: item.id, previousStatus: item.status, status },
       {
         onSuccess: (updated) => {
           syncSelected(updated);
@@ -187,6 +187,7 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
       </div>
 
       <AgentFeedbackDetailDialog
+        isUpdating={updateStatus.isPending}
         item={selectedItem}
         onDelete={() => {
           if (selectedItem) {

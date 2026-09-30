@@ -1,6 +1,10 @@
 "use client";
 
-import { Delete02Icon } from "@hugeicons/core-free-icons";
+import {
+  Copy01Icon,
+  Delete02Icon,
+  Tick01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_FEEDBACK_STATUSES } from "@notra/db/constants/agent-feedback";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
@@ -29,6 +33,7 @@ import {
 } from "@/components/agent-feedback/feedback-badges";
 import { Button } from "@/components/button";
 import { Discussion } from "@/components/comments/discussion";
+import { useCopyCode } from "@/components/geo/code-snippet";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useRetainedDetail } from "@/lib/hooks/use-retained-detail";
@@ -42,21 +47,43 @@ import { paginatedTableHeightFor } from "@/utils/table";
 
 const FEEDBACK_DETAIL_ROW_HEIGHT = 36;
 
+// Long IDs and URLs are truncated to keep rows compact; the copy button keeps
+// the full value reachable without hover.
+function CopyableValue({ value }: { value: string }) {
+  const tCommon = useTranslations("common");
+  const { copied, copy } = useCopyCode(value);
+  return (
+    <span className="flex min-w-0 items-center gap-1">
+      <span className="truncate font-mono text-xs" title={value}>
+        {value}
+      </span>
+      <Button
+        aria-label={
+          copied ? tCommon("actions.copied") : tCommon("actions.copy")
+        }
+        onClick={copy}
+        size="icon-xs"
+        variant="ghost"
+      >
+        <HugeiconsIcon icon={copied ? Tick01Icon : Copy01Icon} />
+      </Button>
+    </span>
+  );
+}
+
 function FeedbackDetailsTable({
   item,
+  isUpdating,
   onStatusChange,
 }: {
   item: AgentFeedbackItem;
+  isUpdating: boolean;
   onStatusChange: (status: AgentFeedbackStatus) => void;
 }) {
   const t = useTranslations("feedback.detail");
   const tCommon = useTranslations("common");
   const mono = (value: string | null) =>
-    value ? (
-      <span className="truncate font-mono text-xs" title={value}>
-        {value}
-      </span>
-    ) : null;
+    value ? <CopyableValue value={value} /> : null;
   const text = (value: string | null) =>
     value ? (
       <span className="truncate" title={value}>
@@ -70,6 +97,7 @@ function FeedbackDetailsTable({
       label: tCommon("labels.status"),
       value: (
         <Select
+          disabled={isUpdating}
           onValueChange={(value) => {
             if (value && isAgentFeedbackStatus(value)) {
               onStatusChange(value);
@@ -179,9 +207,11 @@ function FeedbackDetailsTable({
 
 function FeedbackQuickActions({
   status,
+  isUpdating,
   onStatusChange,
 }: {
   status: AgentFeedbackStatus;
+  isUpdating: boolean;
   onStatusChange: (status: AgentFeedbackStatus) => void;
 }) {
   const t = useTranslations("feedback.detail");
@@ -189,7 +219,12 @@ function FeedbackQuickActions({
 
   if (status === "resolved" || status === "archived") {
     return (
-      <Button onClick={() => onStatusChange("new")} size="sm" variant="outline">
+      <Button
+        disabled={isUpdating}
+        onClick={() => onStatusChange("new")}
+        size="sm"
+        variant="outline"
+      >
         {status === "resolved" ? t("reopen") : t("unarchive")}
       </Button>
     );
@@ -198,13 +233,18 @@ function FeedbackQuickActions({
   return (
     <>
       <Button
+        disabled={isUpdating}
         onClick={() => onStatusChange("archived")}
         size="sm"
         variant="outline"
       >
         {tCommon("actions.archive")}
       </Button>
-      <Button onClick={() => onStatusChange("resolved")} size="sm">
+      <Button
+        disabled={isUpdating}
+        onClick={() => onStatusChange("resolved")}
+        size="sm"
+      >
         {t("resolve")}
       </Button>
     </>
@@ -217,6 +257,7 @@ export function AgentFeedbackDetailDialog({
   onOpenChange,
   onStatusChange,
   onDelete,
+  isUpdating,
 }: AgentFeedbackDetailDialogProps) {
   const t = useTranslations("feedback.detail");
   const tCommon = useTranslations("common");
@@ -272,6 +313,7 @@ export function AgentFeedbackDetailDialog({
                 ) : null}
 
                 <FeedbackDetailsTable
+                  isUpdating={isUpdating}
                   item={item}
                   onStatusChange={onStatusChange}
                 />
@@ -306,6 +348,7 @@ export function AgentFeedbackDetailDialog({
               </Button>
               <div className="flex items-center gap-2">
                 <FeedbackQuickActions
+                  isUpdating={isUpdating}
                   onStatusChange={onStatusChange}
                   status={item.status}
                 />
