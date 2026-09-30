@@ -61,14 +61,13 @@ export const ClaudeCodePrompt = ({
               isEmpty && "caret-transparent",
               inputClassName
             )}
-            defaultValue={isControlled ? undefined : defaultValue}
             onChange={handleChange}
             onKeyDown={onKeyDown}
             placeholder={placeholder}
             ref={inputRef}
             spellCheck={false}
             type="text"
-            value={value}
+            value={isControlled ? value : draft}
           />
           {isEmpty && (
             <span

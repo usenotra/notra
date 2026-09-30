@@ -39,7 +39,7 @@ export const ClaudeCodeToolCall = ({
         {hasDetail && (
           <span className="group-data-[open]/tool:hidden">
             {" "}
-            (ctrl+o to expand)
+            (click to expand)
           </span>
         )}
       </span>
@@ -122,7 +122,7 @@ export const ClaudeCodeToolSummary = ({
           {summary}
           <span className="opacity-0 transition-opacity group-focus-within/summary:opacity-100 group-hover/summary:opacity-100 group-data-[open]/summary:hidden">
             {" "}
-            (ctrl+o to expand)
+            (click to expand)
           </span>
         </CollapsibleTrigger>
       ) : (

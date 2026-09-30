@@ -14,13 +14,13 @@ import {
   ClaudeCodeSpinner,
   ClaudeCodeTurnSummary,
 } from "@notra/ui/components/ai-skins/claude-code/claude-code-status";
+import { ClaudeCodeTerminal } from "@notra/ui/components/ai-skins/claude-code/claude-code-terminal";
 import { ClaudeCodeTodoList } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
 import {
   ClaudeCodeToolCall,
   ClaudeCodeToolSummary,
 } from "@notra/ui/components/ai-skins/claude-code/claude-code-tool-call";
 import { cn } from "@notra/ui/lib/utils";
-import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
@@ -34,41 +34,6 @@ import {
   CLAUDE_STORY_TOOL_STATUSES,
 } from "@/constants/design-system-claude";
 
-function ClaudeTerminal({
-  title,
-  children,
-  className,
-}: {
-  title?: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex w-full flex-col overflow-clip rounded-[1.25rem] bg-[#0f0f0f] [box-shadow:#28282833_0rem_1.5rem_3.5rem_-1rem]",
-        className
-      )}
-    >
-      <div className="relative flex min-h-10 items-center justify-center bg-[#1c1c1c] px-4.5 py-3">
-        <div className="absolute left-4.5 flex items-center gap-1.5">
-          <div className="size-2.5 shrink-0 rounded-full bg-[#3a3a3a]" />
-          <div className="size-2.5 shrink-0 rounded-full bg-[#3a3a3a]" />
-          <div className="size-2.5 shrink-0 rounded-full bg-[#3a3a3a]" />
-        </div>
-        {title ? (
-          <span className="font-mono text-[0.75rem] leading-4 text-[#FFFFFF66]">
-            {title}
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-col gap-5 px-3 py-4 sm:px-5 sm:py-5">
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function nextItem<T>(items: readonly T[], current: T): T {
   const index = items.indexOf(current);
   return items[(index + 1) % items.length] ?? current;
@@ -81,7 +46,7 @@ function ClaudePromptPlayground() {
 
   return (
     <div className="space-y-3">
-      <ClaudeTerminal title="claude — playground">
+      <ClaudeCodeTerminal title="claude — playground">
         <ClaudeCodePrompt
           effort={effort}
           mode={mode}
@@ -95,7 +60,7 @@ function ClaudePromptPlayground() {
           placeholder="Type here · Shift+Tab cycles mode"
           value={value}
         />
-      </ClaudeTerminal>
+      </ClaudeCodeTerminal>
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
         <span>Effort</span>
         <div className="flex flex-wrap gap-2">
@@ -132,7 +97,7 @@ export function DesignSystemClaudeCatalog() {
           id="claude-session"
           title="Full session"
         />
-        <ClaudeTerminal title={session.title}>
+        <ClaudeCodeTerminal title={session.title}>
           <ClaudeCodeHeader {...session.header} />
           <ClaudeCodeMessage from="user">
             {session.userMessage}
@@ -165,7 +130,7 @@ export function DesignSystemClaudeCatalog() {
             placeholder={session.promptPlaceholder}
             pullRequest={{ number: session.pullRequestNumber }}
           />
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-header">
@@ -174,10 +139,10 @@ export function DesignSystemClaudeCatalog() {
           id="claude-header"
           title="Header"
         />
-        <ClaudeTerminal title="claude — header">
+        <ClaudeCodeTerminal title="claude — header">
           <ClaudeCodeLogo size={132} />
           <ClaudeCodeHeader {...session.header} />
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-messages">
@@ -186,12 +151,12 @@ export function DesignSystemClaudeCatalog() {
           id="claude-messages"
           title="Messages"
         />
-        <ClaudeTerminal title="claude — messages">
+        <ClaudeCodeTerminal title="claude — messages">
           <ClaudeCodeMessage from="user">
             {session.userMessage}
           </ClaudeCodeMessage>
           <ClaudeCodeMessage>{session.assistantMessage}</ClaudeCodeMessage>
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-todos">
@@ -200,9 +165,9 @@ export function DesignSystemClaudeCatalog() {
           id="claude-todos"
           title="Todos"
         />
-        <ClaudeTerminal title="claude — todos">
+        <ClaudeCodeTerminal title="claude — todos">
           <ClaudeCodeTodoList todos={CLAUDE_STORY_TODO_STATES} />
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-tools">
@@ -211,7 +176,7 @@ export function DesignSystemClaudeCatalog() {
           id="claude-tools"
           title="Tool calls"
         />
-        <ClaudeTerminal title="claude — tools">
+        <ClaudeCodeTerminal title="claude — tools">
           <div className="flex flex-col gap-5">
             {CLAUDE_STORY_TOOL_STATUSES.map((call) => (
               <ClaudeCodeToolCall
@@ -236,7 +201,7 @@ export function DesignSystemClaudeCatalog() {
               ))}
             </ClaudeCodeToolSummary>
           </div>
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-status">
@@ -245,10 +210,10 @@ export function DesignSystemClaudeCatalog() {
           id="claude-status"
           title="Status"
         />
-        <ClaudeTerminal title="claude — status">
+        <ClaudeCodeTerminal title="claude — status">
           <ClaudeCodeSpinner {...session.spinner} />
           <ClaudeCodeTurnSummary {...session.summary} />
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-modes">
@@ -259,14 +224,17 @@ export function DesignSystemClaudeCatalog() {
         />
         <div className="grid gap-4 lg:grid-cols-2">
           {CLAUDE_STORY_PROMPT_MODES.map((variant) => (
-            <ClaudeTerminal key={variant.id} title={`claude — ${variant.mode}`}>
+            <ClaudeCodeTerminal
+              key={variant.id}
+              title={`claude — ${variant.mode}`}
+            >
               <ClaudeCodePrompt
                 defaultValue=""
                 effort={variant.effort}
                 mode={variant.mode}
                 placeholder={variant.mode}
               />
-            </ClaudeTerminal>
+            </ClaudeCodeTerminal>
           ))}
         </div>
       </section>
@@ -279,7 +247,7 @@ export function DesignSystemClaudeCatalog() {
         />
         <div className="grid gap-4 lg:grid-cols-2">
           {CLAUDE_STORY_PROMPT_EFFORTS.map((variant) => (
-            <ClaudeTerminal
+            <ClaudeCodeTerminal
               key={variant.id}
               title={`claude — ${variant.effort}`}
             >
@@ -289,7 +257,7 @@ export function DesignSystemClaudeCatalog() {
                 mode={variant.mode}
                 placeholder="/effort"
               />
-            </ClaudeTerminal>
+            </ClaudeCodeTerminal>
           ))}
         </div>
       </section>

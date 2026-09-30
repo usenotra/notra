@@ -78,7 +78,7 @@ export function CodexExec({
           </pre>
           {hidden > 0 ? (
             <span className="col-start-2">
-              + {hidden} lines (ctrl+t to expand)
+              + {hidden} more lines
             </span>
           ) : null}
         </div>

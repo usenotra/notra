@@ -100,7 +100,7 @@ export function CodexComposer({
               color: CODEX_COLORS.foreground,
             }}
             type="text"
-            {...(controlled ? { value } : { defaultValue })}
+            value={controlled ? value : draft}
           />
         </div>
       </div>

@@ -32,7 +32,7 @@ export const ClaudeCodeThinking = ({
         {label}
         <span className="not-italic group-data-[open]/thinking:hidden">
           {" "}
-          (ctrl+o to expand)
+          (click to expand)
         </span>
       </span>
     </CollapsibleTrigger>

@@ -7258,7 +7258,7 @@
       "title": "Claude Code Terminal",
       "description": "The dark terminal window with traffic lights and a title bar for Claude Code sessions.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "scroll-area"],
+      "registryDependencies": ["card", "collapsible", "scroll-area"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7354,7 +7354,7 @@
       "title": "Claude Code Header",
       "description": "Claude Code's compact header: the pixel mascot next to version, model and working directory, with notices below.",
       "dependencies": ["cn"],
-      "registryDependencies": [],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7465,7 +7465,7 @@
       "title": "Claude Code Message",
       "description": "User turns on a full-width bar and assistant turns behind a white bullet, with inline code and bold.",
       "dependencies": ["cn"],
-      "registryDependencies": [],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7566,7 +7566,7 @@
       "title": "Claude Code Todo List",
       "description": "The Update Todos tool call with done, active and pending items.",
       "dependencies": ["cn"],
-      "registryDependencies": [],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7667,7 +7667,7 @@
       "title": "Claude Code Thinking",
       "description": "The dim \"∴ Thinking…\" line that expands to the thoughts.",
       "dependencies": ["cn"],
-      "registryDependencies": ["collapsible"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7763,7 +7763,7 @@
       "title": "Claude Code Tool Call",
       "description": "Tool calls with a status bullet and a ⎿ result line, plus the collapsed \"Ran 3 shell commands\" summary.",
       "dependencies": ["cn"],
-      "registryDependencies": ["collapsible"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7864,7 +7864,7 @@
       "title": "Claude Code Status",
       "description": "The orange spinner line while Claude works and the dim \"✻ Worked for 19s\" summary after a turn.",
       "dependencies": ["cn"],
-      "registryDependencies": [],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -7970,7 +7970,7 @@
       "title": "Claude Code Prompt",
       "description": "The input between two rules with the permission mode, PR link and effort below.",
       "dependencies": ["cn"],
-      "registryDependencies": [],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-claude-code-bg": "var(--claude-code-bg)",
@@ -8227,7 +8227,7 @@
       "title": "Codex Terminal",
       "description": "The Codex window: a title bar, a scrolling transcript and a pinned footer for the prompt.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "scroll-area"],
+      "registryDependencies": ["card", "collapsible", "scroll-area"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8332,6 +8332,7 @@
       "title": "Codex Header",
       "description": "The OpenAI Codex banner with version, working directory and greeting.",
       "dependencies": ["cn"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8434,6 +8435,7 @@
       "title": "Codex Message",
       "description": "User turns on a full-width band and assistant turns behind a dim bullet.",
       "dependencies": ["cn"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8536,6 +8538,7 @@
       "title": "Codex Reasoning",
       "description": "The dim italic summary Codex shows while it reasons.",
       "dependencies": ["cn"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8638,7 +8641,7 @@
       "title": "Codex Exec",
       "description": "A Ran cell with shell syntax colors and output folded behind + N lines.",
       "dependencies": ["cn"],
-      "registryDependencies": ["button", "collapsible"],
+      "registryDependencies": ["button", "card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8753,7 +8756,7 @@
       "title": "Codex Explored",
       "description": "Grouped Read, Search and List calls with a + Show details fold.",
       "dependencies": ["cn"],
-      "registryDependencies": ["button", "collapsible"],
+      "registryDependencies": ["button", "card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8863,6 +8866,7 @@
       "title": "Codex Working",
       "description": "The shimmering Working (13s • esc to interrupt) status line.",
       "dependencies": ["cn"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -8965,6 +8969,7 @@
       "title": "Codex Markdown",
       "description": "Bullet lists, tables with yellow headers and green inline code, styled like Codex answers.",
       "dependencies": ["cn"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -9062,7 +9067,7 @@
       "title": "Codex Composer",
       "description": "The prompt band with a block cursor, the model and directory status line and shortcut hints.",
       "dependencies": ["cn"],
-      "registryDependencies": ["input-group", "kbd"],
+      "registryDependencies": ["card", "collapsible", "input-group", "kbd"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",

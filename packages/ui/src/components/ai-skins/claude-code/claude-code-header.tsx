@@ -1,7 +1,7 @@
 import { cn } from "@notra/ui/lib/utils";
 import { useId } from "react";
 
-import { renderClaudeCodeInline } from "./claude-code-message";
+import { renderClaudeCodeInline } from "./claude-code-inline";
 
 type Cell = [x: number, y: number, width: number, height: number];
 

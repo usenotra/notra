@@ -2,6 +2,21 @@ import { CODEX_COLORS } from "@notra/ui/constants/codex-skin";
 import { cn } from "@notra/ui/lib/utils";
 import type { CodexListProps, CodexTableProps } from "@notra/ui/types/codex-skin";
 import type * as React from "react";
+import type { ReactNode } from "react";
+
+/** Keys items by their text, counting repeats so duplicate rows stay unique. */
+const withTextKeys = <T,>(items: readonly T[], toText: (item: T) => string) => {
+  const seen = new Map<string, number>();
+  return items.map((item) => {
+    const text = toText(item);
+    const count = (seen.get(text) ?? 0) + 1;
+    seen.set(text, count);
+    return { item, key: `${text}#${count}` };
+  });
+};
+
+const nodeText = (node: ReactNode): string =>
+  typeof node === "string" || typeof node === "number" ? String(node) : "";
 
 export function CodexCode({ children }: { children: React.ReactNode }) {
   return <code style={{ color: CODEX_COLORS.green }}>{children}</code>;
@@ -10,10 +25,8 @@ export function CodexCode({ children }: { children: React.ReactNode }) {
 export function CodexList({ items, className }: CodexListProps) {
   return (
     <ul className={cn("grid grid-cols-[2ch_minmax(0,1fr)]", className)}>
-      {items.map((item, index) => (
-        // Markdown list items have no identity beyond their position.
-        // oxlint-disable-next-line react/no-array-index-key
-        <li className="contents" key={index}>
+      {withTextKeys(items, nodeText).map(({ item, key }) => (
+        <li className="contents" key={key}>
           <span aria-hidden="true">•</span>
           <span className="min-w-0">{item}</span>
         </li>
@@ -28,6 +41,7 @@ export function CodexTable({
   codeColumns = [],
   className,
 }: CodexTableProps) {
+  const codeColumnSet = new Set(codeColumns);
   const cellStyle = (isLastRow: boolean): React.CSSProperties => ({
     borderBottom: isLastRow ? undefined : `1px solid ${CODEX_COLORS.rule}`,
   });
@@ -56,15 +70,16 @@ export function CodexTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={row.join("|")}>
+          {withTextKeys(rows, (row) => row.map(nodeText).join("|")).map(
+            ({ item: row, key }, rowIndex) => (
+            <tr key={key}>
               {row.map((cell, columnIndex) => (
                 <td
                   className="px-[1ch] py-[0.65em] align-top"
-                  key={headers[columnIndex] ?? columnIndex}
+                  key={headers[columnIndex] ?? `extra-${columnIndex}`}
                   style={{
                     ...cellStyle(rowIndex === rows.length - 1),
-                    color: codeColumns.includes(columnIndex)
+                    color: codeColumnSet.has(columnIndex)
                       ? CODEX_COLORS.green
                       : undefined,
                   }}
@@ -73,7 +88,8 @@ export function CodexTable({
                 </td>
               ))}
             </tr>
-          ))}
+            )
+          )}
         </tbody>
       </table>
     </div>

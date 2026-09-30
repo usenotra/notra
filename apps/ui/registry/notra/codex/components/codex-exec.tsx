@@ -75,7 +75,7 @@ export const CodexExec = ({
                 }
               >
                 <span className="in-data-panel-open:hidden">
-                  {`+ ${rest.length} lines (ctrl+t to expand)`}
+                  {`+ ${rest.length} lines (click to expand)`}
                 </span>
                 <span className="hidden in-data-panel-open:inline">
                   − collapse

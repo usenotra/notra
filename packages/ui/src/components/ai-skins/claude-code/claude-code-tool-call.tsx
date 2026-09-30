@@ -45,7 +45,7 @@ export function ClaudeCodeToolCall({
       <span aria-hidden="true">⎿</span>
       <span className="min-w-0 break-words whitespace-pre-wrap">
         {result}
-        {hasDetail && !open ? " (ctrl+o to expand)" : null}
+        {hasDetail && !open ? " (click to expand)" : null}
       </span>
     </>
   );

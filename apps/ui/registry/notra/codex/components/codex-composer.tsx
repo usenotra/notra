@@ -87,10 +87,9 @@ export const CodexComposer = ({
               isEmpty && "caret-transparent",
               inputClassName
             )}
-            defaultValue={defaultValue}
             onChange={handleChange}
             type="text"
-            value={value}
+            value={value ?? draft}
             {...props}
           />
         </div>

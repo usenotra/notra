@@ -3,7 +3,7 @@
 import { cn } from "@notra/ui/lib/utils";
 import { useEffect, useState } from "react";
 
-import { renderClaudeCodeInline } from "./claude-code-message";
+import { renderClaudeCodeInline } from "./claude-code-inline";
 
 const SPINNER_FRAMES = ["·", "✢", "✳", "✶", "✻", "✽"];
 const FRAME_CYCLE = [...SPINNER_FRAMES, ...SPINNER_FRAMES.slice(1, -1).reverse()];

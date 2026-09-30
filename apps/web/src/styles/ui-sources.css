@@ -9,9 +9,11 @@
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-message.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-model-selector.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-header.tsx";
+@source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-inline.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-message.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-prompt.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-status.tsx";
+@source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-terminal.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-todo-list.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-code/claude-code-tool-call.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/codex/codex-composer.tsx";
