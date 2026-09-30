@@ -244,6 +244,8 @@ export const GEO_DEMO_PROFILE: GeoSampleProfile = {
 /** Long enough that 30- and 90-day traffic ranges have a previous period. */
 export const GEO_DEMO_TRAFFIC_DAYS = 180;
 export const GEO_DEMO_TRAFFIC_CACHE_MS = 5 * 60 * 1000;
+/** Traffic arrays are ~180 days each; cap how many a process keeps. */
+export const GEO_DEMO_TRAFFIC_CACHE_MAX_ENTRIES = 50;
 
 /** Agent readiness report the demo returns instead of calling is-agentic. */
 export const GEO_DEMO_AGENT_READINESS_REPORT: Omit<

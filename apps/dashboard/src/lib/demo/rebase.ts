@@ -54,10 +54,13 @@ export function shouldRebaseDemoSandbox(
 }
 
 /**
- * Shifts every timestamp in the sandbox forward by the time since it was last
- * anchored, so "last scan 2 h ago" stays true on day two. The anchor is moved
- * with a compare-and-set inside the transaction: of two concurrent requests
- * only one shifts, the other sees the new anchor and does nothing.
+ * Shifts the sandbox's timestamps forward by the time since it was last
+ * anchored, so "last scan 2 h ago" stays true on day two. Only values from
+ * before the old anchor (seeded history) or after now (schedules) move;
+ * whatever the visitor did in between already happened in real time and
+ * would otherwise land in the future. The anchor is moved with a
+ * compare-and-set inside the transaction: of two concurrent requests only one
+ * shifts, the other sees the new anchor and does nothing.
  */
 export async function rebaseDemoSandbox(
   sandbox: DemoSandbox,
@@ -69,6 +72,10 @@ export async function rebaseDemoSandbox(
   }
   const tables = await loadTimestampColumns();
   const interval = `${Math.round(deltaMs / 1000)} seconds`;
+  // Columns hold UTC wall time (drizzle writes ISO strings); casting the ISO
+  // string to timestamp keeps the comparison in UTC too.
+  const anchor = sql`${sandbox.anchorAt.toISOString()}::timestamp`;
+  const current = sql`${now.toISOString()}::timestamp`;
 
   const moved = await db.transaction(async (tx) => {
     const claimed = await tx
@@ -89,7 +96,11 @@ export async function rebaseDemoSandbox(
       const assignments = sql.join(
         columns.map(
           (column) =>
-            sql`${sql.identifier(column)} = ${sql.identifier(column)} + ${interval}::interval`
+            sql`${sql.identifier(column)} = CASE
+              WHEN ${sql.identifier(column)} <= ${anchor} OR ${sql.identifier(column)} > ${current}
+              THEN ${sql.identifier(column)} + ${interval}::interval
+              ELSE ${sql.identifier(column)}
+            END`
         ),
         sql`, `
       );

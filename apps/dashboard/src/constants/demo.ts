@@ -54,7 +54,6 @@ export const DEMO_ONBOARDING_PATH = /^\/onboarding(?:\/|$)/;
  */
 export const DEMO_HIDDEN_PAGE_PATH = /^\/([^/]+)\/geo\/directions(?:\/|$)/;
 
-export const DEMO_ORG_SLUG_PREFIX = "demo-";
 /** A path into some demo workspace; group 1 is everything after the slug. */
 export const DEMO_ORG_SLUG_PATH =
   /^\/(?:demo|fieldnote)-[a-z0-9]+((?:[/?#].*)?)$/;

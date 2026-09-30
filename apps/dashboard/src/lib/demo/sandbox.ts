@@ -1,15 +1,35 @@
+import {
+  DEMO_ORG_SLUG_PREFIX,
+  DEMO_SEEDING_GRACE_MINUTES,
+} from "@notra/db/constants/demo";
 import { db } from "@notra/db/drizzle";
-import { demoSandboxes, members, organizations, users } from "@notra/db/schema";
+import {
+  demoRequestLog,
+  demoSandboxes,
+  members,
+  organizations,
+  users,
+} from "@notra/db/schema";
 import type { DemoPersonalization } from "@notra/db/types/demo";
 import { normalizeTimeZone } from "@notra/utils/demo-clock";
-import { and, asc, count, eq, gt, lt, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gt,
+  inArray,
+  like,
+  lt,
+  notExists,
+  or,
+} from "drizzle-orm";
 
 import {
   DEMO_ANONYMOUS_ID_LENGTH,
   DEMO_CLEANUP_BATCH_SIZE,
   DEMO_ANONYMOUS_ID_PREFIX,
   DEMO_COMPANY_NAME,
-  DEMO_ORG_SLUG_PREFIX,
   DEMO_ORG_SLUG_SUFFIX_LENGTH,
   DEMO_SANDBOX_IDLE_TTL_MS,
   DEMO_SANDBOX_MAX_AGE_MS,
@@ -72,16 +92,13 @@ function sandboxExpiry(createdAt: Date, lastSeenAt: Date): Date {
  * database guard would treat as a real customer) is ever left behind.
  */
 async function withOrganizationRollback<T>(
-  organization: { organizationId: string; userId: string },
+  organization: { organizationId: string },
   work: () => Promise<T>
 ): Promise<T> {
   try {
     return await work();
   } catch (error) {
-    await deleteDemoOrganization(
-      organization.organizationId,
-      organization.userId
-    );
+    await deleteDemoOrganization(organization.organizationId);
     throw error;
   }
 }
@@ -127,7 +144,7 @@ async function createDemoOrganization(input: DemoOrganizationInput) {
     });
   });
 
-  await withOrganizationRollback({ organizationId, userId }, () =>
+  await withOrganizationRollback({ organizationId }, () =>
     seedDemoWorkspace({
       organizationId,
       companyName,
@@ -270,7 +287,9 @@ export async function resetDemoSandbox(
   });
   const { organizationId: nextOrganizationId, userId, slug } = next;
 
-  await withOrganizationRollback(next, () =>
+  // Compare-and-set on the old organization: of two concurrent resets only
+  // one wins; the loser deletes the workspace it built.
+  const claimed = await withOrganizationRollback(next, () =>
     db
       .update(demoSandboxes)
       .set({
@@ -281,27 +300,86 @@ export async function resetDemoSandbox(
         lastSeenAt: now,
         expiresAt: sandboxExpiry(sandbox.createdAt, now),
       })
-      .where(eq(demoSandboxes.anonymousId, sandbox.anonymousId))
+      .where(
+        and(
+          eq(demoSandboxes.anonymousId, sandbox.anonymousId),
+          eq(demoSandboxes.organizationId, sandbox.organizationId)
+        )
+      )
+      .returning({ anonymousId: demoSandboxes.anonymousId })
   );
-
-  await deleteDemoOrganization(sandbox.organizationId, sandbox.userId);
-
-  if (sandbox.apiKeyId) {
-    await updateDemoApiKey({
-      keyId: sandbox.apiKeyId,
-      organizationId: nextOrganizationId,
-    }).catch((error: unknown) => {
-      console.error("[demo] Failed to move sandbox API key", error);
-    });
+  if (claimed.length === 0) {
+    await deleteDemoOrganization(nextOrganizationId);
+    throw new Error("Demo sandbox was reset concurrently");
   }
+
+  // The key follows the workspace before the old one disappears; if it
+  // can't be moved, a fresh key replaces it so API access never dangles.
+  await moveDemoApiKey(sandbox, nextOrganizationId, now);
+  // The old feed describes records that no longer exist.
+  await db
+    .delete(demoRequestLog)
+    .where(eq(demoRequestLog.anonymousId, sandbox.anonymousId));
+  await deleteDemoOrganization(sandbox.organizationId);
 
   return { slug };
 }
 
-async function deleteDemoOrganization(organizationId: string, userId: string) {
-  // Organization cascades every org-scoped row; the user is global.
+async function moveDemoApiKey(
+  sandbox: DemoSandbox,
+  organizationId: string,
+  now: Date
+) {
+  if (sandbox.apiKeyId) {
+    const moved = await updateDemoApiKey({
+      keyId: sandbox.apiKeyId,
+      organizationId,
+    }).then(
+      () => true,
+      (error: unknown) => {
+        console.error("[demo] Failed to move sandbox API key", error);
+        return false;
+      }
+    );
+    if (moved) {
+      return;
+    }
+    await deleteDemoApiKey(sandbox.apiKeyId).catch(() => undefined);
+  }
+  const replacement = await createDemoApiKey({
+    organizationId,
+    anonymousId: sandbox.anonymousId,
+    expiresAt: new Date(sandbox.createdAt.getTime() + DEMO_SANDBOX_MAX_AGE_MS),
+  }).catch((error: unknown) => {
+    console.error("[demo] Failed to replace sandbox API key", error);
+    return null;
+  });
+  await db
+    .update(demoSandboxes)
+    .set({
+      apiKey: replacement?.key ?? null,
+      apiKeyId: replacement?.keyId ?? null,
+      lastSeenAt: now,
+    })
+    .where(eq(demoSandboxes.anonymousId, sandbox.anonymousId));
+}
+
+/**
+ * Deletes a demo organization and every user in it. Users are global rows,
+ * but in the demo database each one (owner and seeded teammates) belongs to
+ * exactly one sandbox.
+ */
+async function deleteDemoOrganization(organizationId: string) {
+  const memberRows = await db
+    .select({ userId: members.userId })
+    .from(members)
+    .where(eq(members.organizationId, organizationId));
+  // Organization cascades every org-scoped row, memberships included.
   await db.delete(organizations).where(eq(organizations.id, organizationId));
-  await db.delete(users).where(eq(users.id, userId));
+  const userIds = memberRows.map((row) => row.userId);
+  if (userIds.length > 0) {
+    await db.delete(users).where(inArray(users.id, userIds));
+  }
 }
 
 async function deleteDemoSandbox(sandbox: DemoSandbox) {
@@ -310,7 +388,36 @@ async function deleteDemoSandbox(sandbox: DemoSandbox) {
       console.error("[demo] Failed to delete sandbox API key", error);
     });
   }
-  await deleteDemoOrganization(sandbox.organizationId, sandbox.userId);
+  await deleteDemoOrganization(sandbox.organizationId);
+}
+
+/**
+ * Demo organizations whose sandbox row was never written, e.g. because the
+ * request was killed mid-seed. Past the seeding grace window they can't
+ * belong to a request that is still running.
+ */
+async function cleanupOrphanedDemoOrganizations(limit: number, now: Date) {
+  const orphans = await db
+    .select({ id: organizations.id })
+    .from(organizations)
+    .where(
+      and(
+        like(organizations.slug, `${DEMO_ORG_SLUG_PREFIX}%`),
+        lt(
+          organizations.createdAt,
+          new Date(now.getTime() - DEMO_SEEDING_GRACE_MINUTES * 60_000)
+        ),
+        notExists(
+          db
+            .select({ id: demoSandboxes.anonymousId })
+            .from(demoSandboxes)
+            .where(eq(demoSandboxes.organizationId, organizations.id))
+        )
+      )
+    )
+    .limit(limit);
+  await Promise.all(orphans.map((org) => deleteDemoOrganization(org.id)));
+  return orphans.length;
 }
 
 /** Deletes expired sandboxes. Returns how many were removed. */
@@ -329,7 +436,10 @@ export async function cleanupExpiredDemoSandboxes(
     limit,
   });
 
-  await Promise.all(expired.map(deleteDemoSandbox));
+  const [, orphaned] = await Promise.all([
+    Promise.all(expired.map(deleteDemoSandbox)),
+    cleanupOrphanedDemoOrganizations(limit, now),
+  ]);
 
-  return expired.length;
+  return expired.length + orphaned;
 }

@@ -3,6 +3,7 @@ import type { DemoTrafficEvent } from "@notra/analytics/types/demo-traffic";
 
 import {
   GEO_DEMO_PROFILE,
+  GEO_DEMO_TRAFFIC_CACHE_MAX_ENTRIES,
   GEO_DEMO_TRAFFIC_CACHE_MS,
   GEO_DEMO_TRAFFIC_DAYS,
 } from "../constants/geo-demo";
@@ -32,6 +33,18 @@ export function registerGeoDemoTraffic() {
       now: new Date(now),
       profile: { ...GEO_DEMO_PROFILE, days: GEO_DEMO_TRAFFIC_DAYS },
     });
+    // Bounded: sandboxes come and go, so drop stale and oldest entries.
+    for (const [entryKey, entry] of cache) {
+      if (now - entry.builtAt >= GEO_DEMO_TRAFFIC_CACHE_MS) {
+        cache.delete(entryKey);
+      }
+    }
+    if (cache.size >= GEO_DEMO_TRAFFIC_CACHE_MAX_ENTRIES) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== undefined) {
+        cache.delete(oldest);
+      }
+    }
     cache.set(key, { builtAt: now, events });
     return events;
   });
