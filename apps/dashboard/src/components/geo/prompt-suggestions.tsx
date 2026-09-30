@@ -34,7 +34,9 @@ import type {
   DismissSuggestionDialogProps,
   PromptSuggestionsProps,
   SuggestionColumnsOptions,
+  SuggestionDetailActionsProps,
   SuggestionRowActionsProps,
+  TrackAllButtonProps,
 } from "@/types/components/geo";
 import type { GeoPromptSuggestion } from "@/types/geo";
 import { formatCount, formatOneDecimal } from "@/utils/format";
@@ -269,6 +271,45 @@ function DismissSuggestionDialog({
   );
 }
 
+function TrackAllButton({ pending, onClick }: TrackAllButtonProps) {
+  const t = useTranslations("geo.promptSuggestions");
+  const tCommon = useTranslations("common");
+  return (
+    <Button disabled={pending} onClick={onClick} size="sm" variant="outline">
+      {pending ? (
+        <StatusSpinner />
+      ) : (
+        <HugeiconsIcon icon={PlusSignIcon} size={14} />
+      )}
+      {pending ? tCommon("labels.adding") : t("trackAll")}
+    </Button>
+  );
+}
+
+function SuggestionDetailActions({
+  accepting,
+  disabled,
+  dismissing,
+  onAccept,
+  onDismiss,
+}: SuggestionDetailActionsProps) {
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const tActions = useTranslations("common.actions");
+  return (
+    <>
+      <Button disabled={disabled} onClick={onDismiss} variant="outline">
+        {dismissing ? <StatusSpinner /> : null}
+        {tActions("remove")}
+      </Button>
+      <Button disabled={disabled} onClick={onAccept}>
+        {accepting ? <StatusSpinner /> : null}
+        {accepting ? tCommon("labels.adding") : tGeoShared("track")}
+      </Button>
+    </>
+  );
+}
+
 export function PromptSuggestions({
   organizationId,
   callbackPath,
@@ -276,7 +317,6 @@ export function PromptSuggestions({
   const t = useTranslations("geo.promptSuggestions");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon2 = useTranslations("common");
-  const tCommon = useTranslations("common.actions");
   const locale = useLocale();
   const { data, isPending: suggestionsPending } =
     useGeoSuggestions(organizationId);
@@ -310,7 +350,7 @@ export function PromptSuggestions({
   const hasSuggestions = suggestions.length > 0;
   const loading = checking || suggestionsPending;
   const showSuggestionsTable =
-    checking || hasSuggestions || isSearchConsoleSynced(searchConsoleStatus);
+    loading || hasSuggestions || isSearchConsoleSynced(searchConsoleStatus);
   const detail = suggestions.find((row) => row.id === detailId) ?? null;
   const trackAllPending = isTrackAllQueued || acceptAll.isPending;
   const detailBusy =
@@ -362,21 +402,12 @@ export function PromptSuggestions({
 
   const trackAllAction =
     !checking && suggestions.length > 1 ? (
-      <Button
-        disabled={trackAllPending}
+      <TrackAllButton
         onClick={() => {
           void acceptAllSuggestions();
         }}
-        size="sm"
-        variant="outline"
-      >
-        {trackAllPending ? (
-          <StatusSpinner />
-        ) : (
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
-        )}
-        {trackAllPending ? tCommon2("labels.adding") : t("trackAll")}
-      </Button>
+        pending={trackAllPending}
+      />
     ) : null;
 
   return (
@@ -413,29 +444,13 @@ export function PromptSuggestions({
       <PromptSuggestionSheet
         actions={
           detail ? (
-            <>
-              <Button
-                disabled={detailBusy}
-                onClick={() => setConfirmDismiss(detail)}
-                variant="outline"
-              >
-                {dismissingSuggestionIds.has(detail.id) ? (
-                  <StatusSpinner />
-                ) : null}
-                {tCommon("remove")}
-              </Button>
-              <Button
-                disabled={detailBusy}
-                onClick={() => acceptSuggestion(detail.id)}
-              >
-                {acceptingSuggestionIds.has(detail.id) ? (
-                  <StatusSpinner />
-                ) : null}
-                {acceptingSuggestionIds.has(detail.id)
-                  ? tCommon2("labels.adding")
-                  : tGeoShared("track")}
-              </Button>
-            </>
+            <SuggestionDetailActions
+              accepting={acceptingSuggestionIds.has(detail.id)}
+              disabled={detailBusy}
+              dismissing={dismissingSuggestionIds.has(detail.id)}
+              onAccept={() => acceptSuggestion(detail.id)}
+              onDismiss={() => setConfirmDismiss(detail)}
+            />
           ) : null
         }
         onOpenChange={(open) => {

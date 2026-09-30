@@ -3158,7 +3158,11 @@
       "running": "Scanning now, {checks} answers saved.",
       "failed": "The last scan stopped early {when}.",
       "finished": "Answers from the last scan, {when}.",
-      "progressLabel": "Saved scan answers"
+      "progressLabel": "Saved scan answers",
+      "empty": {
+        "title": "No answers yet",
+        "description": "Answers from each AI engine show up here after the first scan runs."
+      }
     },
     "scanAnswerSheet": {
       "title": "Scan answer",

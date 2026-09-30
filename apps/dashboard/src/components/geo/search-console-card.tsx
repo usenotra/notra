@@ -532,12 +532,22 @@ export function SearchConsoleToolbar({
     );
   }
 
-  return (
+  const setup = (
     <SetupState
       callbackPath={callbackPath}
       organizationId={organizationId}
       status={status}
       websiteUrl={websiteUrl}
     />
+  );
+  // Suggestions from an earlier sync stay actionable while Google is disconnected.
+  if (!action) {
+    return setup;
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">{action}</div>
+      {setup}
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
+import { EmptyState } from "@/components/empty-state";
 import { ScanActivityStatus } from "@/components/geo/scan-activity-status";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
@@ -15,6 +16,7 @@ const SCAN_SKELETON_ROWS = 3;
 /** The latest scan as a regular section: status header plus its answers table. */
 export function ScanActivity({ organizationId }: GeoScanActivityProps) {
   const tGeoShared = useTranslations("geo.shared");
+  const tEmpty = useTranslations("geo.scanActivityStatus.empty");
   const isScanning = useIsGeoScanning(organizationId);
   const latest = useGeoScanRuns(organizationId);
   const newest = latest.data?.runs[0];
@@ -32,7 +34,9 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
   }
 
   if (!newest && !isScanning) {
-    return null;
+    return (
+      <EmptyState description={tEmpty("description")} title={tEmpty("title")} />
+    );
   }
 
   return (

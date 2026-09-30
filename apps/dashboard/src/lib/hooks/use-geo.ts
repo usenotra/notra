@@ -94,7 +94,6 @@ import { dashboardOrpc } from "../orpc/query";
 import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
-const GSC_SELECT_SITE_TOAST_ID = "gsc-select-site";
 
 function gscAnalyzeMutationKey(organizationId: string, projectId?: string) {
   return [GSC_ANALYZE_MUTATION_KEY, organizationId, projectId] as const;
@@ -1148,6 +1147,8 @@ export function useGscSelectSite(organizationId: string) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateGscQueries(organizationId, projectId);
+  // Scoped so a slow sync in one project isn't overwritten by another.
+  const toastId = `gsc-select-site:${organizationId}:${projectId ?? "default"}`;
   return useMutation({
     mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
     mutationFn: (input: GscSelectSiteInput) =>
@@ -1165,7 +1166,7 @@ export function useGscSelectSite(organizationId: string) {
         }),
         {
           description: tToast("connectingPropertyDescription"),
-          id: GSC_SELECT_SITE_TOAST_ID,
+          id: toastId,
         }
       );
     },
@@ -1175,13 +1176,13 @@ export function useGscSelectSite(organizationId: string) {
       const notify = result.status === "failed" ? toast.error : toast.success;
       notify(
         tToast(`searchConsoleSync.${message.key}`, { count: message.count }),
-        { description: null, id: GSC_SELECT_SITE_TOAST_ID }
+        { description: null, id: toastId }
       );
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, tToast("selectPropertyFailed")), {
         description: null,
-        id: GSC_SELECT_SITE_TOAST_ID,
+        id: toastId,
       });
     },
   });

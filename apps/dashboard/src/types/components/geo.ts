@@ -81,6 +81,19 @@ export interface SearchConsoleConnectedStateProps {
   websiteUrl: string | null;
 }
 
+export interface TrackAllButtonProps {
+  pending: boolean;
+  onClick: () => void;
+}
+
+export interface SuggestionDetailActionsProps {
+  accepting: boolean;
+  disabled: boolean;
+  dismissing: boolean;
+  onAccept: () => void;
+  onDismiss: () => void;
+}
+
 export interface DismissSuggestionDialogProps {
   suggestion: GeoPromptSuggestion | null;
   onOpenChange: (open: boolean) => void;
