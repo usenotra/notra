@@ -53,7 +53,7 @@ The rail stays compact on long conversations. This one has 50 turns.
 Lines light up for every turn in view as the thread scrolls. `useChatMinimapScrollSpy` watches the turns with an `IntersectionObserver` and returns the visible indexes:
 
 ```tsx
-const { rootRef, scrollToTurn, turnRef, visible } = useChatMinimapScrollSpy();
+const { rootRef, scrollToTurn, turnRef, visible } = useChatMinimapScrollSpy(turns.length);
 
 <div className="overflow-y-auto" ref={rootRef}>
   {turns.map((turn, index) => (

@@ -1,52 +1,46 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type TurnRef = (element: HTMLElement | null) => () => void;
+type TurnRef = (element: HTMLElement | null) => void;
 
-export const useChatMinimapScrollSpy = () => {
+export const useChatMinimapScrollSpy = (turnCount: number) => {
+  const [root, setRoot] = useState<HTMLElement | null>(null);
   const [visible, setVisible] = useState<ReadonlySet<number>>(new Set());
   const elements = useRef(new Map<number, HTMLElement>());
-  const indexes = useRef(new WeakMap<Element, number>());
   const turnRefs = useRef(new Map<number, TurnRef>());
-  const observer = useRef<IntersectionObserver | null>(null);
-  const rootElement = useRef<HTMLElement | null>(null);
 
-  const rootRef = useCallback((root: HTMLElement | null) => {
+  useEffect(() => {
     if (!root) {
       return;
     }
-    const io = new IntersectionObserver(
+    const indexes = new Map<Element, number>();
+    const inView = new Set<number>();
+    const observer = new IntersectionObserver(
       (entries) => {
-        setVisible((previous) => {
-          const next = new Set(previous);
-          for (const entry of entries) {
-            const index = indexes.current.get(entry.target);
-            if (index === undefined) {
-              continue;
-            }
-            if (entry.isIntersecting) {
-              next.add(index);
-            } else {
-              next.delete(index);
-            }
+        for (const entry of entries) {
+          const index = indexes.get(entry.target);
+          if (index === undefined) {
+            continue;
           }
-          return next;
-        });
+          if (entry.isIntersecting) {
+            inView.add(index);
+          } else {
+            inView.delete(index);
+          }
+        }
+        setVisible(new Set(inView));
       },
       { root }
     );
-    observer.current = io;
-    rootElement.current = root;
-    for (const element of elements.current.values()) {
-      io.observe(element);
+    for (const [index, element] of elements.current) {
+      if (index < turnCount) {
+        indexes.set(element, index);
+        observer.observe(element);
+      }
     }
-    return () => {
-      io.disconnect();
-      observer.current = null;
-      rootElement.current = null;
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [root, turnCount]);
 
   const turnRef = useCallback((index: number) => {
     const cached = turnRefs.current.get(index);
@@ -56,37 +50,29 @@ export const useChatMinimapScrollSpy = () => {
     const ref: TurnRef = (element) => {
       if (element) {
         elements.current.set(index, element);
-        indexes.current.set(element, index);
-        observer.current?.observe(element);
-      }
-      return () => {
-        if (element) {
-          observer.current?.unobserve(element);
-        }
+      } else {
         elements.current.delete(index);
-        setVisible((previous) => {
-          const next = new Set(previous);
-          next.delete(index);
-          return next;
-        });
-      };
+      }
     };
     turnRefs.current.set(index, ref);
     return ref;
   }, []);
 
-  const scrollToTurn = useCallback((index: number) => {
-    const root = rootElement.current;
-    const element = elements.current.get(index);
-    if (!(root && element)) {
-      return;
-    }
-    root.scrollBy({
-      behavior: "smooth",
-      top:
-        element.getBoundingClientRect().top - root.getBoundingClientRect().top,
-    });
-  }, []);
+  const scrollToTurn = useCallback(
+    (index: number) => {
+      const element = elements.current.get(index);
+      if (!(root && element)) {
+        return;
+      }
+      root.scrollBy({
+        behavior: "smooth",
+        top:
+          element.getBoundingClientRect().top -
+          root.getBoundingClientRect().top,
+      });
+    },
+    [root]
+  );
 
-  return { rootRef, scrollToTurn, turnRef, visible };
+  return { rootRef: setRoot, scrollToTurn, turnRef, visible };
 };
