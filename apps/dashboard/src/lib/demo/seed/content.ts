@@ -10,6 +10,10 @@ import { personalizeDemoText } from "@/utils/demo-personalize";
 
 const POST_HOUR = 10;
 
+async function renderMarkdown(markdown: string): Promise<string> {
+  return sanitizeMarkdownHtml(await marked.parse(markdown));
+}
+
 export async function seedDemoContent(
   context: DemoSeedContext & { projectId: string | null }
 ) {
@@ -17,7 +21,7 @@ export async function seedDemoContent(
   const text = (value: string) =>
     personalizeDemoText(value, context.companyName);
   const collectionRows: (typeof postCollections.$inferInsert)[] = [];
-  const postRows: (typeof posts.$inferInsert)[] = [];
+  const postRows: Promise<typeof posts.$inferInsert>[] = [];
 
   for (const collection of DEMO_SEED_COLLECTIONS) {
     const collectionId = crypto.randomUUID();
@@ -48,24 +52,27 @@ export async function seedDemoContent(
         hour: POST_HOUR,
         minute: index * 7,
       });
-      postRows.push({
-        id: crypto.randomUUID().replaceAll("-", "").slice(0, 16),
-        organizationId: context.organizationId,
-        collectionId,
-        title: text(post.title),
-        slug: post.slug ?? null,
-        content: sanitizeMarkdownHtml(await marked.parse(text(post.markdown))),
-        markdown: text(post.markdown),
-        contentType: post.contentType,
-        contentSubtype: post.contentSubtype ?? null,
-        status: post.status,
-        sourceMetadata: { seed: "demo" },
-        createdAt: postCreatedAt,
-        updatedAt: postCreatedAt,
-      });
+      const markdown = text(post.markdown);
+      postRows.push(
+        renderMarkdown(markdown).then((content) => ({
+          id: crypto.randomUUID().replaceAll("-", "").slice(0, 16),
+          organizationId: context.organizationId,
+          collectionId,
+          title: text(post.title),
+          slug: post.slug ?? null,
+          content,
+          markdown,
+          contentType: post.contentType,
+          contentSubtype: post.contentSubtype ?? null,
+          status: post.status,
+          sourceMetadata: { seed: "demo" },
+          createdAt: postCreatedAt,
+          updatedAt: postCreatedAt,
+        }))
+      );
     }
   }
 
   await db.insert(postCollections).values(collectionRows);
-  await db.insert(posts).values(postRows);
+  await db.insert(posts).values(await Promise.all(postRows));
 }

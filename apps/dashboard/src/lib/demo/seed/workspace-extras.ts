@@ -30,26 +30,34 @@ import type { DemoSeedContext } from "@/types/demo";
  */
 export async function seedDemoTeam(context: DemoSeedContext) {
   const clock = createDemoClock(context.now, context.timeZone);
-  for (const teammate of DEMO_SEED_TEAMMATES) {
-    const userId = crypto.randomUUID();
-    const joinedAt = clock.ago({ days: teammate.joinedDaysAgo });
+  const teammates = DEMO_SEED_TEAMMATES.map((teammate) => {
     const [local, domain] = teammate.email.split("@");
-    await db.insert(users).values({
-      id: userId,
-      name: teammate.name,
+    return {
+      ...teammate,
+      userId: crypto.randomUUID(),
       email: `${local}+${context.organizationId.slice(0, 8)}@${domain}`,
+      joinedAt: clock.ago({ days: teammate.joinedDaysAgo }),
+    };
+  });
+  await db.insert(users).values(
+    teammates.map((teammate) => ({
+      id: teammate.userId,
+      name: teammate.name,
+      email: teammate.email,
       emailVerified: true,
-      createdAt: joinedAt,
-      updatedAt: joinedAt,
-    });
-    await db.insert(members).values({
+      createdAt: teammate.joinedAt,
+      updatedAt: teammate.joinedAt,
+    }))
+  );
+  await db.insert(members).values(
+    teammates.map((teammate) => ({
       id: crypto.randomUUID(),
       organizationId: context.organizationId,
-      userId,
+      userId: teammate.userId,
       role: teammate.role,
-      createdAt: joinedAt,
-    });
-  }
+      createdAt: teammate.joinedAt,
+    }))
+  );
 }
 
 export async function seedDemoSkills(context: DemoSeedContext) {
@@ -84,11 +92,15 @@ export async function seedDemoAutomation(context: DemoSeedContext) {
     updatedAt: connectedAt,
   });
 
-  for (const [index, schedule] of DEMO_SEED_SCHEDULES.entries()) {
-    const triggerId = crypto.randomUUID();
-    const createdAt = clock.ago({ days: 60 - index * 14 });
-    await db.insert(contentTriggers).values({
-      id: triggerId,
+  const schedules = DEMO_SEED_SCHEDULES.map((schedule, index) => ({
+    ...schedule,
+    index,
+    triggerId: crypto.randomUUID(),
+    createdAt: clock.ago({ days: 60 - index * 14 }),
+  }));
+  await db.insert(contentTriggers).values(
+    schedules.map((schedule) => ({
+      id: schedule.triggerId,
       organizationId: context.organizationId,
       name: schedule.name,
       sourceType: "cron",
@@ -96,19 +108,21 @@ export async function seedDemoAutomation(context: DemoSeedContext) {
       targets: { repositoryIds: [repositoryId] },
       outputType: schedule.outputType,
       outputConfig: { instructions: schedule.instructions },
-      dedupeHash: `demo-${schedule.outputType}-${index}`,
-      qstashScheduleId: `demo-schedule-${triggerId}`,
+      dedupeHash: `demo-${schedule.outputType}-${schedule.index}`,
+      qstashScheduleId: `demo-schedule-${schedule.triggerId}`,
       enabled: true,
       autoPublish: schedule.autoPublish,
-      createdAt,
-      updatedAt: createdAt,
-    });
-    await db.insert(contentTriggerLookbackWindows).values({
-      triggerId,
+      createdAt: schedule.createdAt,
+      updatedAt: schedule.createdAt,
+    }))
+  );
+  await db.insert(contentTriggerLookbackWindows).values(
+    schedules.map((schedule) => ({
+      triggerId: schedule.triggerId,
       window: schedule.lookbackWindow,
-      updatedAt: createdAt,
-    });
-  }
+      updatedAt: schedule.createdAt,
+    }))
+  );
 }
 
 export async function seedDemoGeoExtras(

@@ -46,7 +46,7 @@ function randomToken(length: number): string {
   return token;
 }
 
-export function createAnonymousId(): string {
+function createAnonymousId(): string {
   return `${DEMO_ANONYMOUS_ID_PREFIX}${randomToken(DEMO_ANONYMOUS_ID_LENGTH)}`;
 }
 
@@ -157,9 +157,7 @@ async function enforceDemoSandboxCap() {
     orderBy: [asc(demoSandboxes.lastSeenAt)],
     limit: overflow,
   });
-  for (const sandbox of oldest) {
-    await deleteDemoSandbox(sandbox);
-  }
+  await Promise.all(oldest.map(deleteDemoSandbox));
 }
 
 export async function createDemoSandbox(
@@ -219,14 +217,6 @@ export async function loadDemoSandbox(
     ),
   });
   return sandbox ?? null;
-}
-
-export function loadDemoSandboxByOrganization(
-  organizationId: string
-): Promise<DemoSandbox | undefined> {
-  return db.query.demoSandboxes.findFirst({
-    where: eq(demoSandboxes.organizationId, organizationId),
-  });
 }
 
 /**
@@ -332,9 +322,7 @@ export async function cleanupExpiredDemoSandboxes(
     limit,
   });
 
-  for (const sandbox of expired) {
-    await deleteDemoSandbox(sandbox);
-  }
+  await Promise.all(expired.map(deleteDemoSandbox));
 
   return expired.length;
 }

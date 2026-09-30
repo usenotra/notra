@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 
 import type { DemoPlaygroundTab } from "@/types/demo";
 
@@ -10,8 +10,3 @@ export interface DemoPlaygroundContextValue {
 
 export const DemoPlaygroundContext =
   createContext<DemoPlaygroundContextValue | null>(null);
-
-/** Null outside the public demo. */
-export function useDemoPlayground() {
-  return useContext(DemoPlaygroundContext);
-}

@@ -57,7 +57,7 @@ export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
     presets[0]?.method ?? "GET"
   );
   const [path, setPath] = useState(presets[0]?.path ?? "/v1/posts");
-  const [body, setBody] = useState(formatBody(presets[0]?.body));
+  const [body, setBody] = useState(() => formatBody(presets[0]?.body));
   const [sending, setSending] = useState(false);
   const [response, setResponse] = useState<DemoConsoleResponse | null>(null);
 
