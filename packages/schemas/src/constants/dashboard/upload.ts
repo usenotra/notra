@@ -31,8 +31,6 @@ export const ALLOWED_OPENAI_CHAT_MIME_TYPES = [
   "application/pdf",
 ] as const;
 
-export type AllowedRasterMimeType = (typeof ALLOWED_RASTER_MIME_TYPES)[number];
-export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
 export type AllowedChatMimeType = (typeof ALLOWED_CHAT_MIME_TYPES)[number];
 
 export const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
