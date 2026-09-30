@@ -25,11 +25,12 @@
     overflow-x: clip;
   }
 
-  /* No macOS rubber-band on the fixed app shell. Gated to fine pointers so
-     touch devices keep pull-to-refresh. */
+  /* No macOS rubber-band on the fixed app shell. Scoped to shell routes so
+     scrollable pages (onboarding, auth) keep it, and gated to fine pointers
+     so touch devices keep pull-to-refresh. */
   @media (pointer: fine) {
-    html,
-    body {
+    html:has([data-dashboard-shell]),
+    html:has([data-dashboard-shell]) body {
       overscroll-behavior: none;
     }
   }

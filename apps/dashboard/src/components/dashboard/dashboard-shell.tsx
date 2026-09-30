@@ -280,6 +280,7 @@ export function DashboardShell({
   return (
     <div
       className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
+      data-dashboard-shell
       style={shellStyle}
     >
       <DashboardOnboardingBanner
