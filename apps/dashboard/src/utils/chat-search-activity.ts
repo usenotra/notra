@@ -96,7 +96,9 @@ export function isSearchToolPart(part: AssistantMessagePart): boolean {
   return SEARCH_TOOL_NAME_SET.has(getToolName(part));
 }
 
-const PRIVATE_DOMAIN_SUFFIX = /\.(?:local|internal|lan|home|corp|localhost)$/i;
+// Includes the RFC 2606 reserved TLDs, which never resolve publicly.
+const PRIVATE_DOMAIN_SUFFIX =
+  /\.(?:local|internal|lan|home|corp|localhost|example|test|invalid)$/i;
 const IPV4_HOST = /^(?:\d{1,3}\.){3}\d{1,3}$/;
 
 export function isPublicSearchDomain(

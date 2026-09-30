@@ -1,6 +1,7 @@
 import { seedSystemSkills } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import {
+  connectedSocialAccounts,
   contentTriggerLookbackWindows,
   contentTriggers,
   geoAgentReadinessReports,
@@ -8,6 +9,7 @@ import {
   githubIntegrations,
   members,
   skills,
+  trackedSocialAccounts,
   users,
 } from "@notra/db/schema";
 import { GEO_DEMO_AGENT_READINESS_REPORT } from "@notra/geo-core/constants/geo-demo";
@@ -20,6 +22,7 @@ import {
   DEMO_SEED_PERSONAS,
   DEMO_SEED_SCHEDULES,
   DEMO_SEED_SKILLS,
+  DEMO_SEED_SOCIAL_ACCOUNTS,
   DEMO_SEED_TEAMMATES,
 } from "@/constants/demo-seed-workspace";
 import type { DemoSeedContext } from "@/types/demo";
@@ -157,4 +160,41 @@ export async function seedDemoGeoExtras(
     createdAt: scannedAt,
     updatedAt: scannedAt,
   });
+}
+
+const NON_HANDLE_CHARACTERS = /[^a-z0-9]+/g;
+
+/** The company's own X and LinkedIn accounts plus two tracked rivals. */
+export async function seedDemoSocial(context: DemoSeedContext) {
+  const clock = createDemoClock(context.now, context.timeZone);
+  const handle =
+    context.companyName.toLowerCase().replaceAll(NON_HANDLE_CHARACTERS, "") ||
+    "fieldnote";
+  const rows = DEMO_SEED_SOCIAL_ACCOUNTS.map((account) => {
+    const username = account.username ?? handle;
+    const joinedAt = clock.ago({ days: account.joinedDaysAgo });
+    return {
+      id: crypto.randomUUID(),
+      organizationId: context.organizationId,
+      provider: account.provider,
+      providerAccountId: `demo-${account.provider}-${username}`,
+      username,
+      displayName: account.displayName ?? context.companyName,
+      profileImageUrl: null,
+      verified: account.verified,
+      verifiedType: account.verified ? "business" : null,
+      createdAt: joinedAt,
+      updatedAt: joinedAt,
+      kind: account.kind,
+    };
+  });
+  const strip = ({ kind: _kind, ...row }: (typeof rows)[number]) => row;
+  await Promise.all([
+    db
+      .insert(connectedSocialAccounts)
+      .values(rows.filter((row) => row.kind === "connected").map(strip)),
+    db
+      .insert(trackedSocialAccounts)
+      .values(rows.filter((row) => row.kind === "tracked").map(strip)),
+  ]);
 }

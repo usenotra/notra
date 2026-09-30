@@ -48,6 +48,11 @@ export const DEMO_SIGNUP_PATH = /^\/signup(?:\/|$)/;
 export const DEMO_AUTH_PATH =
   /^\/(?:login|forgot-password|reset-password|callback|auth\/(?:callback|initiate|social|external))(?:\/|$)/;
 export const DEMO_ONBOARDING_PATH = /^\/onboarding(?:\/|$)/;
+/**
+ * Internal design studies that show hard-coded real brands; the demo sends
+ * them to the GEO overview. Group 1 is the organization slug.
+ */
+export const DEMO_HIDDEN_PAGE_PATH = /^\/([^/]+)\/geo\/directions(?:\/|$)/;
 
 export const DEMO_ORG_SLUG_PREFIX = "demo-";
 /** A path into some demo workspace; group 1 is everything after the slug. */

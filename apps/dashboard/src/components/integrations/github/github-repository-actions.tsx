@@ -42,6 +42,7 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
         <Switch
           id={pauseSwitchId}
           nativeButton
+          render={<button type="button" />}
           aria-label={
             isEnabled
               ? tCommon("labels.pauseName", { name: integration.displayName })

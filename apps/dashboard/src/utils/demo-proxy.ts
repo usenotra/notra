@@ -5,6 +5,7 @@ import {
   DEMO_AUTH_PATH,
   DEMO_BLOCKED_HTML,
   DEMO_BLOCKED_PATH,
+  DEMO_HIDDEN_PAGE_PATH,
   DEMO_ONBOARDING_PATH,
   DEMO_SESSION_COOKIE,
   DEMO_SIGNUP_PATH,
@@ -51,6 +52,12 @@ export function demoProxy(request: NextRequest): NextResponse {
     return redirectToStart(
       request,
       request.nextUrl.searchParams.get("returnTo")
+    );
+  }
+  const hiddenPage = DEMO_HIDDEN_PAGE_PATH.exec(pathname);
+  if (hiddenPage) {
+    return withNoIndex(
+      NextResponse.redirect(new URL(`/${hiddenPage[1]}/geo`, request.url))
     );
   }
   if (DEMO_ONBOARDING_PATH.test(pathname)) {

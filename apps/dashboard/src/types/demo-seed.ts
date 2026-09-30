@@ -57,3 +57,14 @@ export interface DemoSeedPersona {
   profile: GeoPersonaProfile;
   conversationPrompts: string[];
 }
+
+export interface DemoSeedSocialAccount {
+  provider: "twitter" | "linkedin";
+  /** Connected accounts belong to the company; tracked ones are rivals. */
+  kind: "connected" | "tracked";
+  /** Null for connected accounts: the handle comes from the company name. */
+  username: string | null;
+  displayName: string | null;
+  verified: boolean;
+  joinedDaysAgo: number;
+}

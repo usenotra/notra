@@ -50,6 +50,7 @@ import {
   socialPosts,
 } from "./datasources";
 import { queryDemoPipe } from "./demo-geo-traffic";
+import { isDemoSocialPipe, queryDemoSocialPipe } from "./demo-social";
 import {
   geoJourneyDetail,
   geoJourneyPages,
@@ -77,8 +78,16 @@ import {
  */
 const TINYBIRD_REQUEST_TIMEOUT_MS = 10_000;
 
-export function isTinybirdConfigured(): boolean {
+function hasTinybirdToken(): boolean {
   return Boolean(process.env.TINYBIRD_TOKEN);
+}
+
+/**
+ * Whether analytics can be read. The public demo has no Tinybird but answers
+ * every mirrored pipe from generated data; writes stay token-gated.
+ */
+export function isTinybirdConfigured(): boolean {
+  return hasTinybirdToken() || isDemoMode();
 }
 
 function createTinybirdClient(fetch?: typeof globalThis.fetch) {
@@ -123,7 +132,7 @@ let cachedQueryClient: ReturnType<typeof createTinybirdClient> | null = null;
 let cachedMutationClient: ReturnType<typeof createTinybirdClient> | null = null;
 
 function getTinybirdQueryClient() {
-  if (!isTinybirdConfigured()) {
+  if (!hasTinybirdToken()) {
     return null;
   }
   if (!cachedQueryClient) {
@@ -135,7 +144,7 @@ function getTinybirdQueryClient() {
 }
 
 function getTinybirdMutationClient() {
-  if (!isTinybirdConfigured()) {
+  if (!hasTinybirdToken()) {
     return null;
   }
   if (!cachedMutationClient) {
@@ -171,9 +180,11 @@ function cachedPipeQuery<TParams extends Record<string, unknown>, TRow>(
     client: NonNullable<ReturnType<typeof getTinybirdQueryClient>>
   ) => Promise<QueryResult<TRow>>
 ): Promise<QueryResult<TRow> | null> {
-  // The public demo has no Tinybird; GEO traffic is generated at read time.
+  // The public demo has no Tinybird; its analytics are generated at read time.
   if (isDemoMode()) {
-    return Promise.resolve(queryDemoPipe<TRow>(pipe, params));
+    return isDemoSocialPipe(pipe)
+      ? queryDemoSocialPipe<TRow>(pipe, params)
+      : Promise.resolve(queryDemoPipe<TRow>(pipe, params));
   }
   const client = getTinybirdQueryClient();
   if (!client) {

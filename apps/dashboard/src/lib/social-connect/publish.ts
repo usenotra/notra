@@ -1,6 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
 import { socialConnectPlatformSchema } from "@notra/schemas/dashboard/social-accounts";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { SocialPostResult } from "post-for-me/resources/social-post-results";
@@ -36,9 +37,51 @@ function getResultErrorMessage(result: SocialPostResult): string {
   return "The platform rejected the post";
 }
 
+/**
+ * The demo's accounts are fictional: publishing succeeds without reaching a
+ * platform, so the post flow can be tried end to end.
+ */
+const publishDemoPost = Effect.fn("publishDemoPost")(function* (
+  params: PublishSocialPostParams
+) {
+  const account = yield* Effect.tryPromise({
+    try: () =>
+      db.query.connectedSocialAccounts.findFirst({
+        columns: { provider: true, username: true },
+        where: and(
+          eq(connectedSocialAccounts.id, params.accountId),
+          eq(connectedSocialAccounts.organizationId, params.organizationId)
+        ),
+      }),
+    catch: (cause) =>
+      new SocialConnectRequestError({
+        message: "Failed to load connected account",
+        cause,
+      }),
+  });
+  if (!account) {
+    return yield* Effect.fail(
+      new SocialConnectRequestError({
+        message: "Connected account not found",
+        cause: null,
+      })
+    );
+  }
+  return {
+    postId: `demo-${crypto.randomUUID()}`,
+    platformPostId: null,
+    postUrl: null,
+    username: account.username,
+    platform: account.provider,
+  };
+});
+
 export const publishSocialPost = Effect.fn("publishSocialPost")(function* (
   params: PublishSocialPostParams
 ) {
+  if (isDemoMode()) {
+    return yield* publishDemoPost(params);
+  }
   if (!isSocialConnectConfigured()) {
     return yield* Effect.fail(
       new SocialConnectConfigError({

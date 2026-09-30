@@ -7,6 +7,7 @@ import type {
   DemoTrafficProvider,
 } from "../types/demo-traffic";
 import { toClickHouseDateTime } from "../utils/datetime";
+import { readNumber, readString } from "../utils/demo-params";
 
 /**
  * The public demo has no Tinybird. Its AI traffic is generated per request
@@ -536,16 +537,6 @@ const DEMO_PIPES: Record<
   geo_journey_pages: journeyPages,
   geo_journey_detail: journeyDetail,
 };
-
-function readString(params: Record<string, unknown>, key: string) {
-  const value = params[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-function readNumber(params: Record<string, unknown>, key: string) {
-  const value = params[key];
-  return typeof value === "number" ? value : undefined;
-}
 
 function toDemoTrafficParams(
   params: Record<string, unknown>

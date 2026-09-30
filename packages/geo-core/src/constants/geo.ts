@@ -980,6 +980,9 @@ export const GEO_TAB_BREADCRUMB_LABELS = {
   journeys: "Journeys",
 } satisfies Record<GeoTab, string>;
 
+/** Served by the dashboard app; stands in for fictional `.example` brands. */
+export const GEO_NOTRA_LOGO_PATH = "/icon0.svg";
+
 export const GEO_AVATAR_FALLBACK_BASE =
   "https://api.dicebear.com/9.x/glass/svg";
 export const GEO_LOGO_SIZE_PX = 40;

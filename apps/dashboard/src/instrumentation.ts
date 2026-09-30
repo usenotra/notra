@@ -14,9 +14,13 @@ export async function register() {
   await evlogInstrumentation.register();
 
   if (process.env.NEXT_RUNTIME === "nodejs" && isDemoMode()) {
-    const { registerGeoDemoTraffic } =
-      await import("@notra/geo-core/geo/demo-traffic");
+    const [{ registerGeoDemoTraffic }, { registerDemoSocialAnalytics }] =
+      await Promise.all([
+        import("@notra/geo-core/geo/demo-traffic"),
+        import("@notra/ai/utils/demo-social"),
+      ]);
     registerGeoDemoTraffic();
+    registerDemoSocialAnalytics();
   }
 
   if (

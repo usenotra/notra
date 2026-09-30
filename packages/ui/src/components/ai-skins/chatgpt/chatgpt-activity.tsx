@@ -15,6 +15,7 @@ import {
 import { Button } from "@notra/ui/components/ui/button";
 import { AI_SKIN_BUTTON_RESET } from "@notra/ui/constants/ai-skin-primitives";
 import { cn } from "@notra/ui/lib/utils";
+import { isReservedExampleDomain } from "@notra/utils/google-favicon";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -43,7 +44,8 @@ function SiteFavicon({
   domain: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
+  // Reserved `.example` domains (demo data) never have a favicon.
+  const [failed, setFailed] = useState(() => isReservedExampleDomain(domain));
 
   if (failed) {
     return (

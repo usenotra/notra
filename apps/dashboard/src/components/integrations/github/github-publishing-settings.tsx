@@ -129,6 +129,7 @@ function GitHubContentPublishingSettings({
         <Switch
           id={publishingSwitchId}
           nativeButton
+          render={<button type="button" />}
           aria-label={t("publishing.publishAriaLabel", {
             type: contentType,
             repository: `${selectedRepository.owner}/${selectedRepository.repo}`,

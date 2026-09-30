@@ -2,6 +2,7 @@ import type {
   DemoSeedPersona,
   DemoSeedSchedule,
   DemoSeedSkill,
+  DemoSeedSocialAccount,
   DemoSeedTeammate,
 } from "@/types/demo-seed";
 
@@ -151,5 +152,44 @@ export const DEMO_SEED_PERSONAS: readonly DemoSeedPersona[] = [
     conversationPrompts: [
       "Which meeting notes app works best for agencies with many clients?",
     ],
+  },
+];
+
+/**
+ * Social accounts behind the analytics pages. Their stats are generated at
+ * read time (see `@notra/analytics/tinybird/demo-social`).
+ */
+export const DEMO_SEED_SOCIAL_ACCOUNTS: readonly DemoSeedSocialAccount[] = [
+  {
+    provider: "twitter",
+    kind: "connected",
+    username: null,
+    displayName: null,
+    verified: true,
+    joinedDaysAgo: 200,
+  },
+  {
+    provider: "linkedin",
+    kind: "connected",
+    username: null,
+    displayName: null,
+    verified: false,
+    joinedDaysAgo: 150,
+  },
+  {
+    provider: "twitter",
+    kind: "tracked",
+    username: "quillboard",
+    displayName: "Quillboard",
+    verified: true,
+    joinedDaysAgo: 60,
+  },
+  {
+    provider: "twitter",
+    kind: "tracked",
+    username: "notablyhq",
+    displayName: "Notably",
+    verified: false,
+    joinedDaysAgo: 45,
   },
 ];

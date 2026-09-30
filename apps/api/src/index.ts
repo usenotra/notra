@@ -1,6 +1,7 @@
 import "./tcc";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { flushLogs } from "@notra/ai/evlog";
+import { registerDemoSocialAnalytics } from "@notra/ai/utils/demo-social";
 import { createDb } from "@notra/db/drizzle";
 import { registerGeoDemoTraffic } from "@notra/geo-core/geo/demo-traffic";
 import { shutdownPostHogServer } from "@notra/posthog/server";
@@ -138,6 +139,7 @@ assertRequiredEnv();
 
 if (IS_DEMO) {
   registerGeoDemoTraffic();
+  registerDemoSocialAnalytics();
   await assertDedicatedDemoDatabase(process.env.DATABASE_URL ?? "");
 }
 

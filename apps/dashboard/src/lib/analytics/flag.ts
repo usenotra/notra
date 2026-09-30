@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Cache, Effect } from "effect";
 
 import { makeAnalyticsFlagCache } from "@/lib/analytics/flag-client";
@@ -8,7 +9,7 @@ const flagCache = Effect.runSync(makeAnalyticsFlagCache(clientId));
 export function isAnalyticsEnabledForOrganization(
   organizationId: string
 ): Promise<boolean> {
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "development" || isDemoMode()) {
     return Promise.resolve(true);
   }
   if (clientId.length === 0) {

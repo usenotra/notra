@@ -4,7 +4,7 @@ import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -33,6 +33,7 @@ export function GuidelinesPanel({
   const tBrandShared = useTranslations("brand.shared");
   const tCommon = useTranslations("common.actions");
   const format = useFormatter();
+  const now = useNow();
   const { data, isError, isPending, refetch } = useBrandGuidelines(
     organizationId,
     voiceId
@@ -144,7 +145,7 @@ export function GuidelinesPanel({
       {guideline.lastGeneratedAt && !isGenerating ? (
         <p className="text-muted-foreground text-right text-xs">
           {t("updatedAt", {
-            time: format.relativeTime(new Date(guideline.lastGeneratedAt)),
+            time: format.relativeTime(new Date(guideline.lastGeneratedAt), now),
           })}
         </p>
       ) : null}

@@ -5,6 +5,7 @@ import {
   seedDemoAutomation,
   seedDemoGeoExtras,
   seedDemoSkills,
+  seedDemoSocial,
   seedDemoTeam,
 } from "@/lib/demo/seed/workspace-extras";
 import type { DemoSeedContext, DemoSeedResult } from "@/types/demo";
@@ -23,6 +24,7 @@ export async function seedDemoWorkspace(
     seedDemoTeam(context),
     seedDemoSkills(context),
     seedDemoAutomation(context),
+    seedDemoSocial(context),
   ]);
   await Promise.all([
     seedDemoContent({ ...context, projectId }),

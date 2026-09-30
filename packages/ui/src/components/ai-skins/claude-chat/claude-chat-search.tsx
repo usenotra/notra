@@ -16,6 +16,7 @@ import {
 } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-search-timing";
 import { ClaudeChatSpinner } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-spinner";
 import { cn } from "@notra/ui/lib/utils";
+import { isReservedExampleDomain } from "@notra/utils/google-favicon";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -57,7 +58,8 @@ function SiteFavicon({
   domain: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
+  // Reserved `.example` domains (demo data) never have a favicon.
+  const [failed, setFailed] = useState(() => isReservedExampleDomain(domain));
 
   if (failed) {
     return (
