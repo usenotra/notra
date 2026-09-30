@@ -2355,9 +2355,6 @@
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"
     },
-    "competitorShareCard": {
-      "description": "Dein Anteil an KI-Erwähnungen im Vergleich zu anderen Marken."
-    },
     "competitorsTable": {
       "nounSingular": "Wettbewerber",
       "nounPlural": "Wettbewerber",
@@ -2365,13 +2362,8 @@
       "removeDescriptionOne": "„{name}“ wird in GEO-Scans nicht mehr hervorgehoben. Bisherige Erwähnungen bleiben in deinen Ergebnissen.",
       "filterLabel": "Wettbewerber nach Name filtern",
       "filterPlaceholder": "Nach Name filtern…",
-      "typeFilters": {
-        "all": "Alle Arten",
-        "allDescription": "Alle getrackten Wettbewerber",
-        "directDescription": "Verkauft, was du verkaufst",
-        "indirectDescription": "Löst dasselbe Problem auf andere Weise"
-      },
-      "empty": "Keine Wettbewerber entsprechen diesen Filtern"
+      "empty": "Keine Wettbewerber entsprechen diesen Filtern",
+      "title": "Getrackte Wettbewerber"
     },
     "conversationBuilderDialog": {
       "description": "Eine echte Unterhaltung mit Käufern: eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden. Jede Runde wird auf deine Marke geprüft.",
@@ -3330,34 +3322,20 @@
     "shareOfVoiceBrandTag": {
       "trackBrand": "{brand} tracken"
     },
-    "shareOfVoiceBrandsDialog": {
-      "mentionsCount": "{count} Erwähnungen",
-      "title": "Weitere Marken",
-      "brands": "Marken",
-      "otherBrandsMentions": "Erwähnungen anderer Marken",
-      "searchPlaceholder": "Marken suchen…",
-      "filterLabel": "Marken nach Tracking-Status filtern",
-      "caption": "Weitere Marken, sortiert nach Erwähnungen. Der Anteil basiert auf allen Markenerwähnungen im ausgewählten Zeitraum.",
-      "change": "Veränderung",
-      "noMatching": "Keine passenden Marken",
-      "noBrandsInView": "Keine Marken in dieser Ansicht",
-      "tryAnother": "Versuche einen anderen Namen oder setze deine Filter zurück.",
-      "selectAnother": "Wähle einen anderen Tracking-Status, um mehr Marken zu sehen.",
-      "rowsOf": "{shown} von {total} Marken",
-      "shareFooter": "Anteil an allen Markenerwähnungen"
-    },
     "shareOfVoiceChart": {
       "mentionsSr": "Erwähnungen",
       "yourShare": "Dein Share of Voice",
       "leadingShare": "Führender Share of Voice",
       "shareHint": "Anteil an den erfassten Markenerwähnungen im ausgewählten Zeitraum.",
       "totalMentions": "Erwähnungen gesamt",
-      "legendLabel": "Legende des Share-of-Voice-Diagramms",
       "yourRank": "Dein Rang",
       "rankHint": "Rang nach Gesamterwähnungen im ausgewählten Zeitraum. Marken mit gleich vielen Erwähnungen teilen sich einen Rang.",
       "ofBrands": "von {count} Marken",
       "tableLabel": "Marken-Ranking nach Share of Voice",
-      "viewMore": "{count} weitere anzeigen"
+      "emptyTitle": "Noch kein Share of Voice",
+      "emptyScanningTitle": "Scan läuft",
+      "emptyDescription": "Nach dem nächsten Scan siehst du hier, wie oft KI-Engines dich im Vergleich zu deinen Wettbewerbern nennen.",
+      "openBrand": "{brand} öffnen"
     },
     "shareOfVoiceTable": {
       "trendLabel": "Share-of-Voice-Trend von {brand}",
@@ -3699,7 +3677,8 @@
       "competitors": {
         "metaTitle": "GEO-Wettbewerber",
         "description": "Wen KI-Engines statt dir empfehlen",
-        "setupDescription": "Richte zuerst das GEO-Tracking ein und verfolge dann, welche Wettbewerber KI-Engines nennen."
+        "setupDescription": "Richte zuerst das GEO-Tracking ein und verfolge dann, welche Wettbewerber KI-Engines nennen.",
+        "newCompetitor": "Neuer Wettbewerber"
       },
       "tabs": {
         "label": "GEO-Bereiche"

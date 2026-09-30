@@ -1315,35 +1315,6 @@ export interface TrackBrandButtonProps {
   className?: string;
 }
 
-export interface ShareOfVoiceBrandsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  other: ShareOfVoiceRow;
-  others: readonly ShareOfVoiceRow[];
-  /** Daily mentions keyed by row id, for the change indicators. */
-  mentionSparklines: ReadonlyMap<string, GeoSparklinePoint[]>;
-  competitors?: GeoCompetitor[];
-  companyName?: string | null;
-  aliases?: readonly string[];
-  ownDomain?: string | null;
-  onBrandClick?: (row: ShareOfVoiceRow) => void;
-  onBrandPointerEnter?: (row: ShareOfVoiceRow) => void;
-  onTrackBrand?: (brand: string) => void;
-}
-
-export type ShareOfVoiceBrandFilter = "all" | "tracked" | "discovered";
-
-export interface ShareOfVoiceBrandRowProps {
-  row: ShareOfVoiceRow;
-  mentionSeries: readonly GeoSparklinePoint[];
-  own: boolean;
-  competitors?: GeoCompetitor[];
-  ownDomain?: string | null;
-  onOpen?: (row: ShareOfVoiceRow) => void;
-  onPrefetch?: (row: ShareOfVoiceRow) => void;
-  onTrack?: (brand: string) => void;
-}
-
 export interface ShareOfVoiceChartProps {
   points: GeoCompetitorSharePoint[];
   /** Daily mentions per brand; drives the change indicators. */
@@ -1389,6 +1360,8 @@ export interface CompetitorEditDialogProps {
   organizationId: string;
   competitor: GeoCompetitor | null;
   initialName?: string;
+  /** Shows a CSV import shortcut in the footer; closes the dialog first. */
+  onImportCsv?: () => void;
 }
 
 export interface CompetitorEditFormProps {
@@ -1397,6 +1370,7 @@ export interface CompetitorEditFormProps {
   initialName?: string;
   onDone: () => void;
   onCancel?: () => void;
+  onImportCsv?: () => void;
 }
 
 export interface CompetitorSummaryStatsProps {
@@ -1458,6 +1432,8 @@ export interface CompetitorsTableProps {
   aliases: string[];
   ownDomain: string | null;
   isScanning?: boolean;
+  /** Share of voice per lowercased brand name; empty before the first scan. */
+  shareByBrand: ReadonlyMap<string, ShareOfVoiceRow>;
 }
 
 export interface PromptsTableProps {

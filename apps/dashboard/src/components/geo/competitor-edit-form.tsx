@@ -3,9 +3,11 @@
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import {
   Cancel01Icon,
+  Globe02Icon,
   InformationCircleIcon,
   PlusSignIcon,
   Tick01Icon,
+  Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_COLOR_DEBOUNCE_MS } from "@notra/geo-core/constants/geo";
@@ -315,12 +317,14 @@ export function CompetitorEditForm({
   initialName,
   onDone,
   onCancel,
+  onImportCsv,
 }: CompetitorEditFormProps) {
   const t = useTranslations("geo.competitorEditForm");
   const tCommon2 = useTranslations("common");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common.actions");
   const tColorPicker = useTranslations("ui.colorPicker");
+  const tShared = useTranslations("geo.pages.shared");
   const { saveCompetitor } = useGeoCompetitorsDb(organizationId);
   const nameId = useId();
   const websiteId = useId();
@@ -380,19 +384,60 @@ export function CompetitorEditForm({
         {(field) => (
           <div className="space-y-1.5">
             <Label htmlFor={websiteId}>{tCommon2("labels.website")}</Label>
-            <div className="flex items-center gap-2">
-              <CompetitorLogoPreview
-                className="size-8"
-                name={form.state.values.name || competitor?.name || "?"}
-                website={field.state.value}
-              />
+            <div className="relative">
+              <span className="pointer-events-none absolute top-1/2 left-2 flex size-5 -translate-y-1/2 items-center justify-center">
+                {field.state.value.trim().length > 0 ? (
+                  <CompetitorLogoPreview
+                    className="size-5"
+                    name={form.state.values.name || competitor?.name || ""}
+                    website={field.state.value}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    className="text-muted-foreground size-4"
+                    icon={Globe02Icon}
+                  />
+                )}
+              </span>
               <Input
+                className="pl-9"
                 id={websiteId}
                 onChange={(event) => field.handleChange(event.target.value)}
                 placeholder="example.com"
                 value={field.state.value}
               />
             </div>
+          </div>
+        )}
+      </form.Field>
+
+      <form.Field name="kind">
+        {(field) => (
+          <div className="space-y-1.5">
+            <TooltipPrimitive.Root>
+              <TooltipPrimitive.Trigger
+                delay={500}
+                render={
+                  <Label className="inline-flex w-fit items-center gap-1">
+                    {tGeoShared("type")}
+                    <span className="text-muted-foreground font-normal">
+                      {tCommon2("labels.optional")}
+                    </span>
+                    <HugeiconsIcon
+                      className="text-muted-foreground"
+                      icon={InformationCircleIcon}
+                      size={13}
+                    />
+                  </Label>
+                }
+              />
+              <TooltipContent>{t("kindHint")}</TooltipContent>
+            </TooltipPrimitive.Root>
+            <CompetitorKindToggle
+              onChange={field.handleChange}
+              value={field.state.value}
+            />
           </div>
         )}
       </form.Field>
@@ -478,37 +523,18 @@ export function CompetitorEditForm({
         }}
       </form.Field>
 
-      <form.Field name="kind">
-        {(field) => (
-          <div className="space-y-1.5">
-            <TooltipPrimitive.Root>
-              <TooltipPrimitive.Trigger
-                delay={500}
-                render={
-                  <Label className="inline-flex w-fit items-center gap-1">
-                    {tGeoShared("type")}
-                    <span className="text-muted-foreground font-normal">
-                      {tCommon2("labels.optional")}
-                    </span>
-                    <HugeiconsIcon
-                      className="text-muted-foreground"
-                      icon={InformationCircleIcon}
-                      size={13}
-                    />
-                  </Label>
-                }
-              />
-              <TooltipContent>{t("kindHint")}</TooltipContent>
-            </TooltipPrimitive.Root>
-            <CompetitorKindToggle
-              onChange={field.handleChange}
-              value={field.state.value}
-            />
-          </div>
-        )}
-      </form.Field>
-
       <div className="flex justify-end gap-2 pt-2">
+        {onImportCsv && !competitor ? (
+          <Button
+            className="mr-auto"
+            onClick={onImportCsv}
+            type="button"
+            variant="ghost"
+          >
+            <HugeiconsIcon icon={Upload01Icon} size={14} />
+            {tShared("importCsv")}
+          </Button>
+        ) : null}
         {onCancel && (
           <Button onClick={onCancel} type="button" variant="outline">
             {tCommon("cancel")}

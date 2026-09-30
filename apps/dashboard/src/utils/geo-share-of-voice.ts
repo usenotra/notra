@@ -233,3 +233,13 @@ export function buildShareOfVoiceChartModel(
     ...ownTrends,
   };
 }
+
+/** Share and mentions per brand (lowercased name), for tables beside the chart. */
+export function shareOfVoiceByBrand(
+  props: ShareOfVoiceChartProps
+): Map<string, ShareOfVoiceRow> {
+  const { ranking, others } = buildShareOfVoiceChartModel(props);
+  return new Map(
+    [...ranking, ...others].map((row) => [row.brand.toLowerCase(), row])
+  );
+}

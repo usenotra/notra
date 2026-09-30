@@ -1582,8 +1582,6 @@ export interface GeoCompetitorDetailResponse {
   summary?: GeoCompetitorPromptSummary;
 }
 
-export type GeoCompetitorTypeFilter = "all" | GeoCompetitorKind;
-
 export interface GeoSuggestionKeyword {
   query: string;
   clicks: number;

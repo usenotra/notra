@@ -2355,9 +2355,6 @@
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"
     },
-    "competitorShareCard": {
-      "description": "Your share of AI mentions compared with other brands."
-    },
     "competitorsTable": {
       "nounSingular": "competitor",
       "nounPlural": "competitors",
@@ -2365,13 +2362,8 @@
       "removeDescriptionOne": "\"{name}\" will no longer be called out in GEO scans. Historical mentions stay in your results.",
       "filterLabel": "Filter competitors by name",
       "filterPlaceholder": "Filter by name…",
-      "typeFilters": {
-        "all": "All types",
-        "allDescription": "Every tracked competitor",
-        "directDescription": "Sells what you sell",
-        "indirectDescription": "Solves the same problem differently"
-      },
-      "empty": "No competitors match these filters"
+      "empty": "No competitors match these filters",
+      "title": "Tracked competitors"
     },
     "conversationBuilderDialog": {
       "description": "A real buyer conversation: an opening question and the follow-ups that decide the purchase. Every turn is checked for your brand.",
@@ -3330,34 +3322,20 @@
     "shareOfVoiceBrandTag": {
       "trackBrand": "Track {brand}"
     },
-    "shareOfVoiceBrandsDialog": {
-      "mentionsCount": "{count} mentions",
-      "title": "Additional brands",
-      "brands": "Brands",
-      "otherBrandsMentions": "Other brands mentions",
-      "searchPlaceholder": "Search brands…",
-      "filterLabel": "Filter brands by tracking status",
-      "caption": "Additional brands sorted by mentions. Share is based on all brand mentions in the selected period.",
-      "change": "Change",
-      "noMatching": "No matching brands",
-      "noBrandsInView": "No brands in this view",
-      "tryAnother": "Try another name or clear your filters.",
-      "selectAnother": "Select another tracking status to see more brands.",
-      "rowsOf": "{shown} of {total} brands",
-      "shareFooter": "Share of all brand mentions"
-    },
     "shareOfVoiceChart": {
       "mentionsSr": "mentions",
       "yourShare": "Your share of voice",
       "leadingShare": "Leading share of voice",
       "shareHint": "Share of recorded brand mentions in the selected period.",
       "totalMentions": "Total mentions",
-      "legendLabel": "Share of voice chart legend",
       "yourRank": "Your rank",
       "rankHint": "Rank by total mentions in the selected period. Brands with equal mentions share a rank.",
       "ofBrands": "of {count} brands",
       "tableLabel": "Brand ranking by share of voice",
-      "viewMore": "View {count} more"
+      "emptyTitle": "No share of voice yet",
+      "emptyScanningTitle": "Scan in progress",
+      "emptyDescription": "After your next scan, this shows how often AI engines name you compared with your competitors.",
+      "openBrand": "Open {brand}"
     },
     "shareOfVoiceTable": {
       "trendLabel": "{brand} share of voice trend",
@@ -3699,7 +3677,8 @@
       "competitors": {
         "metaTitle": "GEO Competitors",
         "description": "Who AI engines recommend instead of you",
-        "setupDescription": "Set up GEO tracking first, then track which competitors AI engines surface."
+        "setupDescription": "Set up GEO tracking first, then track which competitors AI engines surface.",
+        "newCompetitor": "New competitor"
       },
       "tabs": {
         "label": "GEO sections"
