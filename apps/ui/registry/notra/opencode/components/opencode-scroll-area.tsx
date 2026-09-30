@@ -22,11 +22,12 @@ export const OpencodeScrollArea = ({
     >
       {children}
     </ScrollAreaPrimitive.Viewport>
+    {/* The track is a wider hit area, the thumb only paints its right edge. */}
     <ScrollAreaPrimitive.Scrollbar
-      className="flex w-[0.5ch] touch-none select-none"
+      className="flex w-[1.5ch] touch-none select-none"
       orientation="vertical"
     >
-      <ScrollAreaPrimitive.Thumb className="bg-opencode-subtle hover:bg-opencode-muted w-full transition-colors" />
+      <ScrollAreaPrimitive.Thumb className="before:bg-opencode-subtle hover:before:bg-opencode-muted relative w-full before:absolute before:inset-y-0 before:right-0 before:w-[0.5ch] before:transition-colors" />
     </ScrollAreaPrimitive.Scrollbar>
   </ScrollAreaPrimitive.Root>
 );
