@@ -14,7 +14,7 @@ export interface LandingSection {
 }
 
 export interface LandingInstallCommand {
-  item: string;
+  items: string[];
   prefix: string;
 }
 

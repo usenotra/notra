@@ -4,7 +4,16 @@ export const LANDING_HERO: LandingHero = {
   description:
     "The building blocks of the Notra dashboard, documented and rendered live with the real styles.",
   install: {
-    item: "perplexity",
+    items: [
+      "perplexity",
+      "chatgpt",
+      "claude-code",
+      "google-ai-overview",
+      "gemini",
+      "codex",
+      "claude",
+      "opencode",
+    ],
     prefix: "bunx shadcn@latest add @notra/",
   },
 };
