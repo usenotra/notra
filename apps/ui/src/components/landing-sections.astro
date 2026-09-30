@@ -1,9 +1,31 @@
 ---
 import { LANDING_SECTIONS } from "../constants/landing";
+import type { LandingPreview } from "../types/landing";
 import AIOverviewPreview from "./previews/ai-overview-preview.astro";
+import ChatgptPreview from "./previews/chatgpt-preview";
+import ClaudeCodePreview from "./previews/claude-code-preview";
+import ClaudePreview from "./previews/claude-preview";
+import CodexPreview from "./previews/codex-preview";
+import GeminiPreview from "./previews/gemini-preview";
+import MarketingButtonPreview from "./previews/marketing-button-preview";
+import OpencodePreview from "./previews/opencode-preview";
+import PerplexityPreview from "./previews/perplexity-preview";
+import ShimmerPreview from "./previews/shimmer-preview";
 import TooltipPreview from "./previews/tooltip-preview.astro";
 
-const previews = { "ai-overview": AIOverviewPreview, tooltip: TooltipPreview };
+const previews = {
+  "ai-overview": AIOverviewPreview,
+  chatgpt: ChatgptPreview,
+  claude: ClaudePreview,
+  "claude-code": ClaudeCodePreview,
+  codex: CodexPreview,
+  gemini: GeminiPreview,
+  "marketing-button": MarketingButtonPreview,
+  opencode: OpencodePreview,
+  perplexity: PerplexityPreview,
+  shimmer: ShimmerPreview,
+  tooltip: TooltipPreview,
+} satisfies Record<LandingPreview, unknown>;
 ---
 
 <div class="mx-auto flex max-w-6xl flex-col gap-14 px-6 pt-16 pb-20">

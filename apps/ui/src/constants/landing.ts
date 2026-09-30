@@ -24,6 +24,7 @@ export const LANDING_SECTIONS: LandingSection[] = [
         description:
           "The gradient marketing buttons from the Notra landing page.",
         href: "/components/marketing-button",
+        preview: "marketing-button",
         title: "Marketing Button",
       },
       {
@@ -36,6 +37,7 @@ export const LANDING_SECTIONS: LandingSection[] = [
         description:
           "A light sweep across text for thinking and loading states.",
         href: "/components/shimmer",
+        preview: "shimmer",
         title: "Shimmer",
       },
     ],
@@ -61,24 +63,28 @@ export const LANDING_SECTIONS: LandingSection[] = [
         description:
           "A Perplexity answer thread with the search step, citation pills, a sources sheet and the composer.",
         href: "/blocks/perplexity",
+        preview: "perplexity",
         title: "Perplexity",
       },
       {
         description:
           "A ChatGPT conversation with reasoning, web search, an Activity sheet and the model picker.",
         href: "/blocks/chatgpt",
+        preview: "chatgpt",
         title: "ChatGPT",
       },
       {
         description:
           "The Gemini chat with its animated sparkle, streamed replies and the model picker.",
         href: "/blocks/gemini",
+        preview: "gemini",
         title: "Gemini",
       },
       {
         description:
           "The claude.ai chat with a live search timeline, serif replies and the effort picker.",
         href: "/blocks/claude",
+        preview: "claude",
         title: "Claude",
       },
     ],
@@ -92,18 +98,21 @@ export const LANDING_SECTIONS: LandingSection[] = [
         description:
           "A Claude Code terminal session with tool calls, todos and the prompt.",
         href: "/blocks/claude-code",
+        preview: "claude-code",
         title: "Claude Code",
       },
       {
         description:
           "A Codex CLI session with Ran and Explored cells and the composer.",
         href: "/blocks/codex",
+        preview: "codex",
         title: "Codex",
       },
       {
         description:
           "The OpenCode workspace with activity, cited sources and the sidebar.",
         href: "/blocks/opencode",
+        preview: "opencode",
         title: "OpenCode",
       },
     ],
