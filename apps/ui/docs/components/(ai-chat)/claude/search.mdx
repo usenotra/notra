@@ -1,0 +1,57 @@
+---
+title: Search
+description: Claude's web search timeline with queries, result cards and status steps.
+---
+
+<Component path="claude/examples/claude-search" />
+
+```bash
+bunx shadcn@latest add @notra/claude-search
+```
+
+`ClaudeSearch` is a shadcn `Collapsible` step: the Claude spinner and a shimmering verb, like "Triangulating", with a chevron. It is collapsed by default, so only that line shows. Expanded, it shows a bordered `Card` of rows split by `Separator`s: an optional muted `thought`, one row per query and one per status step.
+
+Each query row is its own `Collapsible`, also closed by default. Its header reads "Searched the web" and the query; opened, it shows a gray Results panel with an `ItemGroup` of `Item` rows (favicon `Avatar`, title and host). Favicons load from Google's favicon service and fall back to a blank tile.
+
+With `sequential` the step opens while it plays: queries appear one by one, then the steps, and it collapses again when done. Pass `sequential` when a turn is still streaming.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `groups` | `[]` | One search per entry: `{ query, count, results: { title, domain }[] }[]`. |
+| `items` | `[]` | Mixed tool calls and thoughts, see below. |
+| `thought` | | A muted first row, like "Researching hoplite.sh." |
+| `steps` | `[]` | `{ icon: "clock" \| "check" \| "error", label }[]`. |
+| `verb` | `Untangling` | The header label while searching. |
+| `summary` | generated | The header label once done. Defaults to a summary of the tools used, like "Used Executor, searched the web", or `verb`. |
+| `queryLabel` | `Searched the web` | The muted label before each query. |
+| `resultsLabel` | `Results` | The label above each result list, given the result count. |
+| `open`, `defaultOpen`, `onOpenChange` | `false` | Collapsible state of the step, controlled or uncontrolled. |
+| `sequential` | `false` | Plays the step in. |
+| `reducedMotion` | system setting | Forces reduced motion on or off. |
+
+`claudeSearchDuration(groups, steps, reducedMotion)` in `lib/claude-search.ts` returns how long a sequential run takes, so you can start streaming the reply after it.
+
+## Multiple tool calls
+
+`items` renders any mix of tool calls and thoughts in order, inside the same bordered box. A thought is plain muted text. A tool row shows a muted `label` and a foreground `detail`, and gets a chevron only when it can expand.
+
+```ts
+type ClaudeStepItem =
+  | { type: "thought"; text: ReactNode }
+  | {
+      type: "tool";
+      label: ReactNode; // "Used Executor: Execute"
+      detail?: ReactNode; // one line, truncated
+      tool?: string; // counted in the generated summary
+      results?: { title: string; domain: string }[]; // opens a Results panel
+      count?: number;
+      code?: string; // opens a monospace block, scrollable sideways
+      content?: ReactNode; // opens any content
+    };
+```
+
+<Component path="claude/examples/claude-tool-calls" />
+
+Code blocks are a shadcn `ScrollArea` with a horizontal scrollbar. Rows with `results`, `code` or `content` are shadcn `Collapsible`s, closed by default. `claudeStepSummary(items, groups)` in `lib/claude-search.ts` builds the header text.
+
+<include>./_used-in.mdx</include>

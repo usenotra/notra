@@ -1,0 +1,20 @@
+---
+title: Turn Footer
+description: The agent, model and duration line that closes every assistant turn.
+---
+
+<Component path="opencode/examples/opencode-turn-footer" />
+
+```bash
+bunx shadcn@latest add @notra/opencode-turn-footer
+```
+
+`OpencodeTurnFooter` renders the blue square, the agent and the model under a reply. Leave out `duration` while the turn is still running.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `agent` | `Build` | The agent that answered. |
+| `model` | `Writer 0.1` | Shown muted after the agent. |
+| `duration` | | Wall time of the turn, like `17.8s`. |
+
+<include>./_used-in.mdx</include>

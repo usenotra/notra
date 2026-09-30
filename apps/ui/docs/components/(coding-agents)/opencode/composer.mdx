@@ -1,0 +1,28 @@
+---
+title: Composer
+description: The OpenCode prompt with the agent line and the status row under it.
+---
+
+<Component path="opencode/examples/opencode-composer" />
+
+```bash
+bunx shadcn@latest add @notra/opencode-composer
+```
+
+`OpencodeComposer` is a shadcn `InputGroup` on a raised panel with a blue rule. Under the input sits the agent line: the agent in blue, the model, the provider muted and the reasoning effort in bold orange. It passes every other prop to the `InputGroupInput`, so use `value` and `onChange` for a controlled prompt.
+
+The status row below shows the working directory while idle. With `busy` it shows the blue scanner and `esc interrupt` instead. On the right it shows the context usage once there is some, otherwise the `tab agents` hint, then `ctrl+p commands`. The scanner holds still when the user prefers reduced motion.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `agent` | `Build` | Shown in blue. |
+| `model` | `Writer 0.1` | The model name. |
+| `provider` | `Notra` | Shown muted after the model. |
+| `effort` | `high` | Shown in bold orange. |
+| `busy` | `false` | Swaps the cwd for the scanner and `esc interrupt`. |
+| `cwd` | | The working directory on the idle status row. |
+| `context` | | Context usage, like `63.4K (6%)`. |
+| `placeholder` | `Ask anything... "Draft this week's changelog"` | The input placeholder. |
+| `className`, `inputClassName` | | Style the wrapper and the input. |
+
+<include>./_used-in.mdx</include>

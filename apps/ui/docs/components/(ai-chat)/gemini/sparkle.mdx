@@ -1,0 +1,20 @@
+---
+title: Sparkle
+description: Gemini's three-dot mark that bounces and folds into a triangle.
+---
+
+<Component path="gemini/examples/gemini-sparkle" />
+
+```bash
+bunx shadcn@latest add @notra/gemini-sparkle
+```
+
+`GeminiSparkle` draws three dots in a line. With `animated` they bounce in a wave, fold into a triangle, hold and unfold, on a 3.4 second loop. It follows `prefers-reduced-motion` and stays still when the user asks for less motion. The mark uses `currentColor`. When `animated` it's announced like shadcn `Spinner`, with `role="status"` and a Loading label. The still mark is hidden from screen readers.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `animated` | `false` | Runs the loop. |
+| `size` | `18` | Width and height in pixels. |
+| `reducedMotion` | system setting | Forces the still mark when `true`, or the animation when `false`. |
+
+<include>./_used-in.mdx</include>

@@ -1,0 +1,22 @@
+---
+title: Terminal
+description: The dark terminal window the Claude Code parts sit in.
+---
+
+<Component path="claude-code/examples/claude-code-terminal" />
+
+```bash
+bunx shadcn@latest add @notra/claude-code-terminal
+```
+
+`ClaudeCodeTerminal` is the window the other Claude Code parts sit in. It paints Claude Code's near-black background, a slim title bar with three traffic lights and a body that stacks its children one blank terminal line apart.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `title` | | Text centered in the title bar, like `claude — ~/acme/web`. |
+| `contentClassName` | | Classes for the body, a flex column with `gap-5`. |
+| `footer` | | Pinned under the scrolling body. Put the `ClaudeCodePrompt` here so it stays visible. |
+
+It is a shadcn `Card`: the title bar is a `CardHeader` with a `CardTitle` and the body is a `CardContent` inside a `ScrollArea`. Give the terminal a height, like `h-150`, to scroll long sessions. The rest of the props go to the `Card`.
+
+<include>./_used-in.mdx</include>

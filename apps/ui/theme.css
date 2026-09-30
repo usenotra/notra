@@ -214,3 +214,12 @@ html {
     --marketing-gradient-to: oklab(85% 0 0);
   }
 }
+
+nav > ul > li > details > .blume-nav-summary {
+  color: var(--blume-foreground);
+  font-weight: 500;
+}
+
+li + li:has(> .blume-nav-heading) {
+  margin-top: 0.75rem;
+}

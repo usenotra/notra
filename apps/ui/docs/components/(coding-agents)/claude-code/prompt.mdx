@@ -1,0 +1,25 @@
+---
+title: Prompt
+description: The input between two rules, with the permission mode, PR link and effort below.
+---
+
+<Component path="claude-code/examples/claude-code-prompt" />
+
+```bash
+bunx shadcn@latest add @notra/claude-code-prompt
+```
+
+`ClaudeCodePrompt` is a shadcn `InputGroup` restyled as Claude Code's input: the `❯` sits in an `InputGroupAddon` and the `InputGroupInput` runs between two thin gray rules, with a block cursor while it is empty. The line below shows the permission mode in its color with the `(shift+tab to cycle)` hint, the key in a shadcn `Kbd`, an optional link to the branch's pull request and the effort level on the right. The example cycles modes on Shift+Tab like Claude Code and picks mode and effort with a shadcn `ToggleGroup`.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `mode` | `manual` | `manual`, `accept-edits`, `plan`, `auto` or `bypass`. `manual` shows `? for shortcuts`. |
+| `effort` | `false` | `low`, `medium`, `high`, `xhigh`, `max`, `ultracode`, or `false` to hide it. |
+| `pullRequest` | | `{ number, href? }`. Adds `· PR #1317` as an underlined yellow link. |
+| `value`, `defaultValue`, `onChange` | | Input state, controlled or uncontrolled. |
+| `onKeyDown`, `placeholder` | | Passed to the input. |
+| `inputRef`, `inputClassName` | | Ref and classes for the input. |
+
+The rest of the props go to the root `div`. `CLAUDE_CODE_MODE_ORDER` lists the modes in Shift+Tab order and `CLAUDE_CODE_EFFORT_ORDER` the efforts from low to ultracode.
+
+<include>./_used-in.mdx</include>

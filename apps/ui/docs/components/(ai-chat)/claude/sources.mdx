@@ -1,0 +1,25 @@
+---
+title: Sources
+description: The "Sources:" list of inline links Claude writes at the end of an answer.
+---
+
+<Component path="claude/examples/claude-sources" />
+
+```bash
+bunx shadcn@latest add @notra/claude-sources
+```
+
+Claude writes its sources into the reply itself. `ClaudeSources` renders a serif "Sources:" line and a bulleted list of `ClaudeSourceLink`s. Pass it to the `sources` slot of [Message](/components/claude/message) and it sits inside the reply text, after the answer.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `sources` | | `{ title, href, domain, favicon? }[]`. |
+| `label` | `Sources:` | The line above the list. |
+
+`ClaudeSourceLink` is the link on its own, so you can also use it inline in prose. It is a blue underlined `a`, opened in a new tab with `rel="noopener noreferrer"`, as the trigger of a shadcn `HoverCard`. Hovering shows a card with the page title, and below it the favicon (a shadcn `Avatar`, from Google's favicon service unless you set `favicon`) and the host.
+
+```tsx
+<ClaudeSourceLink source={source}>Reuters</ClaudeSourceLink>
+```
+
+<include>./_used-in.mdx</include>
