@@ -787,6 +787,7 @@
       "trackingSettingsRejected": "Das kann mit deinen aktuellen Tracking-Einstellungen nicht hinzugefügt werden",
       "translationLimit": "In dieser Sprache werden schon {limit} Prompts gescannt. Entferne zuerst einen.",
       "translationLast": "Jede Sprache scannt mindestens einen Prompt. Um sie nicht mehr zu scannen, entferne die Sprache.",
+      "translationDeferred": "Übersetzungen sind gerade nicht möglich. Sie werden beim nächsten Scan erstellt.",
       "translationUnavailable": "Dieser Prompt wird in dieser Sprache nicht gescannt.",
       "websiteDiscoveryFailed": "Wir konnten diese Website nicht analysieren. Prüfe die URL und versuche es erneut.",
       "writerPlanFailed": "Der Inhaltsplan konnte nicht erstellt oder gespeichert werden. Bitte versuche es erneut.",

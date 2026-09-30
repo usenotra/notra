@@ -15,9 +15,110 @@ import {
 } from "@/lib/hooks/use-geo-prompt-translations";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import type {
+  PromptTranslationEditorProps,
   PromptTranslationRowProps,
   PromptTranslationsSectionProps,
+  PromptTranslationTextProps,
 } from "@/types/geo";
+
+/** Why this prompt's switch is locked for a language, if it is. */
+function pickLock(
+  picked: boolean,
+  pickCount: number,
+  limit: number
+): "full" | "last" | null {
+  if (!picked && pickCount >= limit) {
+    return "full";
+  }
+  if (picked && pickCount <= 1) {
+    return "last";
+  }
+  return null;
+}
+
+function PromptTranslationEditor({
+  language,
+  initialText,
+  busy,
+  onSave,
+  onClose,
+}: PromptTranslationEditorProps) {
+  const t = useTranslations("geo.promptTranslations");
+  const [draft, setDraft] = useState(initialText);
+  const save = async () => {
+    // A failed save keeps the draft so nothing has to be typed again.
+    if (await onSave(draft)) {
+      onClose();
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <Textarea
+        aria-label={t("translationIn", { language })}
+        autoFocus
+        className="min-h-16 text-sm"
+        disabled={busy}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            onClose();
+          }
+        }}
+        value={draft}
+      />
+      <div className="flex justify-end gap-2">
+        <Button onClick={onClose} size="xs" type="button" variant="ghost">
+          {t("cancel")}
+        </Button>
+        <Button
+          disabled={busy || !draft.trim()}
+          onClick={() => {
+            void save();
+          }}
+          size="xs"
+        >
+          {t("save")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PromptTranslationText({
+  entry,
+  busy,
+  translating,
+  onEdit,
+  onReset,
+}: PromptTranslationTextProps) {
+  const t = useTranslations("geo.promptTranslations");
+  const waiting = !entry.text || (entry.needsTranslation && translating);
+  return (
+    <div className="flex items-start gap-2">
+      {waiting ? (
+        <p className="text-muted-foreground flex min-w-0 flex-1 items-center gap-1.5 text-sm">
+          {translating ? (
+            <Loader2Icon className="size-3.5 animate-spin" />
+          ) : null}
+          {translating ? t("translating") : t("translatedOnScan")}
+        </p>
+      ) : (
+        <p className="text-muted-foreground min-w-0 flex-1 text-sm break-words">
+          {entry.text}
+        </p>
+      )}
+      {entry.edited ? (
+        <Button disabled={busy} onClick={onReset} size="xs" variant="ghost">
+          {t("reset")}
+        </Button>
+      ) : null}
+      <Button disabled={busy} onClick={onEdit} size="xs" variant="ghost">
+        {t("edit")}
+      </Button>
+    </div>
+  );
+}
 
 function PromptTranslationRow({
   plan,
@@ -32,17 +133,11 @@ function PromptTranslationRow({
   const t = useTranslations("geo.promptTranslations");
   const languageLabel = useLanguageLabel();
   const id = useId();
-  const [draft, setDraft] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const entry = plan.entries.find((item) => item.promptId === promptId);
   const language = languageLabel(plan.language);
-  const full = !entry && plan.entries.length >= limit;
-  const last = Boolean(entry) && plan.entries.length <= 1;
-  let hint: string | null = null;
-  if (full) {
-    hint = t("full", { limit, language });
-  } else if (last) {
-    hint = t("last", { language });
-  }
+  const lock = pickLock(Boolean(entry), plan.entries.length, limit);
+  const hint = lock ? t(lock, { limit, language }) : null;
 
   return (
     <li className="space-y-1.5">
@@ -56,7 +151,7 @@ function PromptTranslationRow({
           aria-label={t("scanIn", { language })}
           checked={Boolean(entry)}
           className="ml-auto"
-          disabled={busy || full || last}
+          disabled={busy || lock !== null}
           onCheckedChange={(selected) => onSelect(plan.language, selected)}
         />
       </div>
@@ -65,77 +160,23 @@ function PromptTranslationRow({
           {hint}
         </p>
       ) : null}
-      {entry && draft !== null ? (
-        <form
-          className="space-y-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSave(plan.language, draft);
-            setDraft(null);
-          }}
-        >
-          <Textarea
-            aria-label={t("translationIn", { language })}
-            autoFocus
-            className="min-h-16 text-sm"
-            disabled={busy}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.stopPropagation();
-                setDraft(null);
-              }
-            }}
-            value={draft}
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              onClick={() => setDraft(null)}
-              size="xs"
-              type="button"
-              variant="ghost"
-            >
-              {t("cancel")}
-            </Button>
-            <Button disabled={busy || !draft.trim()} size="xs" type="submit">
-              {t("save")}
-            </Button>
-          </div>
-        </form>
+      {entry && editing ? (
+        <PromptTranslationEditor
+          busy={busy}
+          initialText={entry.text ?? ""}
+          language={language}
+          onClose={() => setEditing(false)}
+          onSave={(text) => onSave(plan.language, text)}
+        />
       ) : null}
-      {entry && draft === null ? (
-        <div className="flex items-start gap-2">
-          {entry.text && !(entry.needsTranslation && translating) ? (
-            <p className="text-muted-foreground min-w-0 flex-1 text-sm break-words">
-              {entry.text}
-            </p>
-          ) : (
-            <p className="text-muted-foreground flex min-w-0 flex-1 items-center gap-1.5 text-sm">
-              {translating ? (
-                <Loader2Icon className="size-3.5 animate-spin" />
-              ) : null}
-              {translating ? t("translating") : t("translatedOnScan")}
-            </p>
-          )}
-          {entry.edited ? (
-            <Button
-              disabled={busy}
-              onClick={() => onReset(plan.language)}
-              size="xs"
-              variant="ghost"
-            >
-              {t("reset")}
-            </Button>
-          ) : null}
-          <Button
-            disabled={busy || !entry.text}
-            onClick={() => setDraft(entry.text ?? "")}
-            size="xs"
-            variant="ghost"
-          >
-            {t("edit")}
-          </Button>
-        </div>
+      {entry && !editing ? (
+        <PromptTranslationText
+          busy={busy}
+          entry={entry}
+          onEdit={() => setEditing(true)}
+          onReset={() => onReset(plan.language)}
+          translating={translating}
+        />
       ) : null}
     </li>
   );
@@ -196,7 +237,10 @@ export function PromptTranslationsSection({
               )
             }
             onSave={(language, text) =>
-              update.mutate({ promptId, language, text })
+              update.mutateAsync({ promptId, language, text }).then(
+                () => true,
+                () => false
+              )
             }
             onSelect={(language, selected) =>
               select.mutate(

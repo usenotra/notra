@@ -1,5 +1,7 @@
 "use client";
 
+import { customPromptScanId } from "@notra/geo-core/geo/prompts";
+import type { GeoPromptTranslationsResponse } from "@notra/geo-core/types/geo";
 import { calcGeoScanSize } from "@notra/geo-core/utils/geo-scan";
 
 import { useGeoModelCatalog, useGeoSettings } from "@/lib/hooks/use-geo";
@@ -7,11 +9,34 @@ import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptTranslations } from "@/lib/hooks/use-geo-prompt-translations";
 import type { GeoScanEstimateInput } from "@/types/geo-scan-size";
 
+/**
+ * Prompts each translated language will scan. A single-prompt scan asks a
+ * language only when that language picked the prompt.
+ */
+function translatedPromptCounts(
+  translations: GeoPromptTranslationsResponse,
+  promptCount: number,
+  promptId: string | undefined
+): Record<string, number> {
+  const scanIds = promptId
+    ? new Set([promptId, customPromptScanId(promptId)])
+    : null;
+  return Object.fromEntries(
+    translations.languages.map((plan) => [
+      plan.language,
+      scanIds
+        ? Number(plan.entries.some((entry) => scanIds.has(entry.promptId)))
+        : Math.min(plan.entries.length, promptCount),
+    ])
+  );
+}
+
 export function useGeoScanEstimate({
   organizationId,
   promptCount,
   engines,
   languages,
+  promptId,
   includeSequences = true,
 }: GeoScanEstimateInput) {
   const { data: catalog } = useGeoModelCatalog(organizationId);
@@ -36,12 +61,7 @@ export function useGeoScanEstimate({
     languages,
     promptLanguage: settingsData?.settings?.promptLanguage,
     translatedPromptCounts: translations
-      ? Object.fromEntries(
-          translations.languages.map((plan) => [
-            plan.language,
-            Math.min(plan.entries.length, promptCount),
-          ])
-        )
+      ? translatedPromptCounts(translations, promptCount, promptId)
       : undefined,
     trackWithoutSearch: settingsData?.settings?.trackWithoutSearch ?? false,
     catalog,

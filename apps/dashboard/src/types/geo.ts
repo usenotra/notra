@@ -59,6 +59,7 @@ import type {
   MentionProviderRow,
   ShareOfVoiceRow,
   GeoPromptTranslationLanguagePlan,
+  GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import type { useTranslations } from "next-intl";
@@ -1426,6 +1427,8 @@ export interface ScanPreflightDialogProps {
   confirmationOnly?: boolean;
   organizationId: string;
   prompt?: string;
+  /** Id of the single prompt being scanned. */
+  promptId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (engines?: string[]) => void;
@@ -1883,6 +1886,23 @@ export interface PromptTranslationRowProps {
   busy: boolean;
   translating: boolean;
   onSelect: (language: string, selected: boolean) => void;
-  onSave: (language: string, text: string) => void;
+  /** Resolves false when the save failed, so the editor keeps its draft. */
+  onSave: (language: string, text: string) => Promise<boolean>;
   onReset: (language: string) => void;
+}
+
+export interface PromptTranslationEditorProps {
+  language: string;
+  initialText: string;
+  busy: boolean;
+  onSave: (text: string) => Promise<boolean>;
+  onClose: () => void;
+}
+
+export interface PromptTranslationTextProps {
+  entry: GeoPromptTranslationEntry;
+  busy: boolean;
+  translating: boolean;
+  onEdit: () => void;
+  onReset: () => void;
 }

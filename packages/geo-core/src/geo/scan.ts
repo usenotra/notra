@@ -938,7 +938,18 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         promptLanguage: sourceLanguage,
         prompts: allPrompts,
       },
-      { organizationId, projectId: settingsRow.projectId, scanId, runId }
+      {
+        // A scoped scan only translates and asks the prompts it was given.
+        promptIds: promptIds
+          ? new Set(prompts.map((prompt) => prompt.id))
+          : undefined,
+        skipFields: {
+          organizationId,
+          projectId: settingsRow.projectId,
+          scanId,
+          runId,
+        },
+      }
     ).pipe(
       Effect.mapError(
         (cause) =>
@@ -948,12 +959,8 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
           })
       )
     );
-    const scopedPromptIds = new Set(prompts.map((prompt) => prompt.id));
     for (const entry of localizedByLanguage) {
-      const { language } = entry;
-      const localized = entry.prompts.filter((prompt) =>
-        scopedPromptIds.has(prompt.id)
-      );
+      const { language, prompts: localized } = entry;
       if (entry.usage) {
         translateUsage = addTokenUsage(translateUsage, entry.usage);
       }

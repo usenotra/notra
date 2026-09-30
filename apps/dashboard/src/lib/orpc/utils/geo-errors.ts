@@ -70,6 +70,8 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
           );
         case "last":
           return badRequest(tErrors("translationLast"));
+        case "unavailable":
+          return badRequest(tErrors("translationDeferred"));
         default:
           return badRequest(tErrors("translationUnavailable"));
       }
