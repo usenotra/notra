@@ -1,11 +1,11 @@
 "use client";
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
-import { cn } from "cn";
+import { cn } from "@notra/ui/lib/utils";
 import { type CSSProperties, useState } from "react";
 
-import { nearestStepIndex, stepRatio } from "../lib/step-slider";
-import type { StepSliderProps } from "../types/step-slider";
+import { nearestStepIndex, stepRatio } from "@notra/ui/lib/step-slider";
+import type { StepSliderProps } from "@notra/ui/types/step-slider";
 
 /** Stops closer than this to the thumb sit under it and are not drawn. */
 const STOP_UNDER_THUMB = 0.01;
@@ -119,9 +119,7 @@ export const StepSlider = ({
                       : "bg-[#1E1E1E33] dark:bg-white/30"
                   )}
                   key={step}
-                  style={
-                    { "--stop": stopCenter(stopPosition) } as CSSProperties
-                  }
+                  style={{ "--stop": stopCenter(stopPosition) } as CSSProperties}
                 />
               );
             })}

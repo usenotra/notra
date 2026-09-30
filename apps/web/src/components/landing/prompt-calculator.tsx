@@ -14,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { StepSlider } from "@notra/ui/components/ui/step-slider";
 import { cn } from "@notra/ui/lib/utils";
 import { domMax, LazyMotion } from "motion/react";
 import Link from "next/link";
@@ -25,7 +26,6 @@ import {
   useQueryStates,
 } from "nuqs";
 import {
-  type CSSProperties,
   Suspense,
   useCallback,
   useEffect,
@@ -76,9 +76,7 @@ import {
   findFittingCadence,
   milestoneFor,
   normalizeModelIds,
-  nearestStopIndex,
   promptsToStopRatio,
-  stopRatio,
   scansPerMonth,
 } from "@/utils/prompt-calculator";
 import { SITE_URL } from "@/utils/urls";
@@ -102,11 +100,14 @@ const DEFAULT_INPUT: PromptCalculatorInput = {
   frequency: PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
 };
 
-/** Ratio distance under which a stop counts as covered by the thumb. */
-const STOP_UNDER_THUMB = 0.01;
 const THOUSAND = 1000;
-/** Half the slider thumb, so the fill and dots line up with where it stops. */
-const THUMB_HALF = "1rem";
+const LAST_STOP_INDEX = PROMPT_CALCULATOR_STOPS.length - 1;
+/** Stops whose label stays visible when the slider is narrow. */
+const MAJOR_STOPS = PROMPT_CALCULATOR_MILESTONES.map((entry) => entry.prompts);
+
+function formatStopLabel(stop: number) {
+  return stop >= THOUSAND ? `${stop / THOUSAND}K` : stop;
+}
 
 // Same pill language as the MCP use-case filters.
 const PILL_BASE =
@@ -130,10 +131,6 @@ const GROUP_META =
 
 function noop() {
   // The fallback renders before the URL is readable and ignores input.
-}
-
-function thumbCenter(ratio: number) {
-  return `calc(${THUMB_HALF} + (100% - 2 * ${THUMB_HALF}) * ${ratio})`;
 }
 
 /**
@@ -167,10 +164,7 @@ function EngineLogo({
 function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
   const inputId = useId();
   const [draft, setDraft] = useState<string | null>(null);
-  const ratio = promptsToStopRatio(value.prompts);
-  const stopIndex = nearestStopIndex(value.prompts);
   const milestone = milestoneFor(value.prompts);
-  const lastStop = PROMPT_CALCULATOR_STOPS.length - 1;
 
   return (
     <div className="m-1.75 flex flex-col gap-5 rounded-2xl bg-white px-4.25 pt-6 pb-6 shadow-[0_0.125rem_0.3125rem_#00000008] sm:px-6 dark:bg-white/[0.04]">
@@ -219,98 +213,18 @@ function PromptsPanel({ value, onChange }: PromptCalculatorPanelProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <div className="relative h-10 rounded-full bg-[#F1F1F2] p-1 shadow-[inset_0_0.0625rem_0.125rem_#1E1E1E0F] dark:bg-white/[0.06]">
-          <div className="relative h-full">
-            <input
-              aria-label="Prompts"
-              aria-valuetext={`${numberFormat.format(value.prompts)} prompts, ${milestone.name}`}
-              className="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0 [&::-moz-range-thumb]:size-8 [&::-webkit-slider-thumb]:size-8 [&::-webkit-slider-thumb]:appearance-none"
-              max={lastStop}
-              min={0}
-              onChange={(event) => {
-                const next =
-                  PROMPT_CALCULATOR_STOPS[Number(event.target.value)];
-                if (next) {
-                  onChange({ prompts: next });
-                }
-              }}
-              step={1}
-              type="range"
-              value={stopIndex}
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute inset-y-0 left-0 w-[calc(var(--thumb)+1rem)] overflow-hidden rounded-full bg-[linear-gradient(180deg,#8B5CF6,#7C3AED)] shadow-[inset_0_0.0625rem_0_#FFFFFF33] transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-              style={{ "--thumb": thumbCenter(ratio) } as CSSProperties}
-            >
-              <span className="absolute inset-0 bg-[radial-gradient(circle,#FFFFFF2E_0.75px,transparent_1.25px)] bg-size-[0.375rem_0.375rem]" />
-              <span
-                className="animate-prompt-slider-sweep absolute inset-0 bg-[radial-gradient(circle,#FFFFFFE6_0.9px,transparent_1.4px)] [mask-image:linear-gradient(90deg,transparent,#000_50%,transparent)] bg-size-[0.375rem_0.375rem] [mask-size:30%_100%] [mask-position:-60%_0] [mask-repeat:no-repeat] motion-reduce:hidden"
-                key={value.prompts}
-              />
-            </div>
-
-            {PROMPT_CALCULATOR_STOPS.map((stop, index) => {
-              const position = stopRatio(index);
-              // The thumb covers the stop it sits on.
-              if (Math.abs(position - ratio) < STOP_UNDER_THUMB) {
-                return null;
-              }
-
-              return (
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "pointer-events-none absolute top-1/2 left-(--stop) size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300",
-                    position < ratio
-                      ? "bg-white/70"
-                      : "bg-[#1E1E1E33] dark:bg-white/30"
-                  )}
-                  key={stop}
-                  style={{ "--stop": thumbCenter(position) } as CSSProperties}
-                />
-              );
-            })}
-
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-(--thumb) size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(180deg,#FFFFFF,#F2F2F2)] shadow-[0_0.0625rem_0.25rem_#28282840,0_0_0_0.0625rem_#1E1E1E0D] transition-[left,scale] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] peer-focus-visible:ring-[0.1875rem] peer-focus-visible:ring-[#8B5CF6]/40 peer-active:scale-[0.96] motion-reduce:transition-none"
-              style={{ "--thumb": thumbCenter(ratio) } as CSSProperties}
-            />
-          </div>
-        </div>
-
-        <div className="relative mx-1 h-4 font-sans text-xs tracking-[-0.01em] text-[#1E1E1E80] tabular-nums dark:text-white/45">
-          {PROMPT_CALCULATOR_STOPS.map((stop, index) => {
-            const isMajor = PROMPT_CALCULATOR_MILESTONES.some(
-              (entry) => entry.prompts === stop
-            );
-
-            return (
-              <button
-                className={cn(
-                  "absolute top-0 left-(--stop) -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] dark:hover:text-white",
-                  // Narrow screens keep the labeled milestones only.
-                  !isMajor && "hidden sm:block",
-                  stop === value.prompts &&
-                    "font-medium text-[#1E1E1E] dark:text-white"
-                )}
-                key={stop}
-                onClick={() => onChange({ prompts: stop })}
-                style={
-                  { "--stop": thumbCenter(stopRatio(index)) } as CSSProperties
-                }
-                tabIndex={-1}
-                type="button"
-              >
-                {stop >= THOUSAND ? `${stop / THOUSAND}K` : stop}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <StepSlider
+        aria-label="Prompts"
+        formatLabel={formatStopLabel}
+        getValueText={(prompts) =>
+          `${numberFormat.format(prompts)} prompts, ${milestoneFor(prompts).name}`
+        }
+        majorSteps={MAJOR_STOPS}
+        onValueChange={(prompts) => onChange({ prompts })}
+        positionOf={(prompts) => promptsToStopRatio(prompts) * LAST_STOP_INDEX}
+        steps={PROMPT_CALCULATOR_STOPS}
+        value={value.prompts}
+      />
     </div>
   );
 }

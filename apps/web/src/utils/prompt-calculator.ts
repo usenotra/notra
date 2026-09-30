@@ -40,24 +40,8 @@ export function scansPerMonth(frequency: PromptCalculatorFrequencyId) {
 
 const LAST_STOP = PROMPT_CALCULATOR_STOPS.length - 1;
 
-function logDistance(a: number, b: number) {
-  return Math.abs(Math.log(a) - Math.log(b));
-}
-
-/** The nearest slider stop for `prompts`, used as the range input's value. */
-export function nearestStopIndex(prompts: number) {
-  let best = 0;
-  for (const [index, stop] of PROMPT_CALCULATOR_STOPS.entries()) {
-    const current = PROMPT_CALCULATOR_STOPS[best] ?? stop;
-    if (logDistance(stop, prompts) < logDistance(current, prompts)) {
-      best = index;
-    }
-  }
-  return best;
-}
-
 /** Where a stop sits on the track, 0–1; stops are evenly spaced. */
-export function stopRatio(index: number) {
+function stopRatio(index: number) {
   return index / LAST_STOP;
 }
 

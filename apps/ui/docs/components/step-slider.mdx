@@ -31,6 +31,7 @@ bunx shadcn@latest add @notra/step-slider
 | `majorSteps` | all steps | Steps whose label stays visible when the slider is narrower than 32rem. |
 | `hideLabels` | `false` | Hides the labels under the track. |
 | `getValueText` | the number | Screen reader text for a value, e.g. `"10 prompts"`. |
+| `positionOf` | nearest step | Fractional step index for a value, to place typed values between stops, e.g. `2.5`. |
 | `name` | | Submits the selected value, not the step index, with a form. |
 
 Every other Base UI `Slider.Root` prop, such as `disabled`, is passed through. The sweep ships as the `animate-step-slider-sweep` utility, added to your CSS by the install. For right-to-left layouts, wrap the slider in Base UI's `DirectionProvider` with `direction="rtl"` so the thumb flips along with the stops.
