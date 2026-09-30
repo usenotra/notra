@@ -2106,7 +2106,6 @@
       "you": "(You)",
       "removeCount": "Remove ({count})",
       "playingAgainstTheEngines": "Playing against the engines…",
-      "multiTurnQuestionsWhereBuying": "Multi-turn questions where buying decisions happen",
       "span": "Span",
       "noAgentJourneysCapturedYet": "No agent journeys captured yet",
       "agentJourneys": "Agent journeys",
@@ -2402,7 +2401,12 @@
       "deleteNamed": "Delete {name}",
       "generate": "Generate",
       "emptyGenerating": "Writing conversations for your buyers…",
-      "empty": "Track an opening question plus the follow-ups that close the deal, or generate a few to start"
+      "empty": "Track an opening question plus the follow-ups that close the deal, or generate a few to start",
+      "run": "Run",
+      "moreActions": "More actions for {name}",
+      "turnsCount": "{count, plural, one {# turn} other {# turns}}",
+      "intro": "Multi-turn chats that follow a buyer from the first question to a decision",
+      "emptyTitle": "No conversations yet"
     },
     "directions": {
       "labels": {
@@ -3083,16 +3087,6 @@
       "analysis": "Analysis",
       "raw": "Raw answer"
     },
-    "promptSavedViewsMenu": {
-      "trigger": "Views",
-      "save": "Save current view",
-      "empty": "No saved views yet",
-      "saved": "Saved views",
-      "saveDescription": "Name this combination of search and filters so you can reapply it later.",
-      "namePlaceholder": "Comparison prompts",
-      "removeAria": "Delete view: {name}",
-      "allPrompts": "All prompts"
-    },
     "promptScanButton": {
       "scanInProgress": "Wait for the current scan to finish before starting another.",
       "promptDisabled": "Enable this prompt to run a scan.",
@@ -3107,7 +3101,6 @@
     },
     "promptSuggestions": {
       "trackAll": "Track all",
-      "description": "Based on queries your site already ranks for",
       "dismissTitle": "Remove suggestion?",
       "dismissDescription": "\"{prompt}\" won't be suggested again.",
       "empty": "No Google Search suggestions yet"
@@ -3134,9 +3127,6 @@
       "removeAction": "{count, plural, one {Remove prompt} other {Remove prompts}}",
       "nounSingular": "prompt",
       "nounPlural": "prompts",
-      "viewApplied": "View applied: {name}",
-      "viewSaved": "View saved",
-      "viewDeleted": "View deleted",
       "tagsCustomOnly": "Tags apply to custom prompts. Auto-generated prompts were skipped.",
       "columns": {
         "presence": "Presence"
@@ -3220,9 +3210,6 @@
       "filterByModel": "Filter scan results by model"
     },
     "searchConsoleCard": {
-      "description": "Prompt ideas from the queries you rank for in Google Search Console",
-      "cardOptions": "Search Console card options",
-      "hideCard": "Hide card",
       "property": "Property",
       "selectProperty": "Select a property",
       "connectProperty": "Connect property",
@@ -3234,7 +3221,23 @@
       "weeklySync": "Weekly sync",
       "actions": "Search Console actions",
       "reauthRequired": "Google access expired. Reconnect to keep syncing keyword suggestions.",
-      "choosePropertyHint": "Choose which Search Console property Notra should analyze."
+      "setupTitle": "Turn your Google searches into prompts",
+      "setupDescription": "Connect Search Console and Notra suggests prompts from the queries people already use to find you.",
+      "reauthTitle": "Reconnect Google",
+      "examples": {
+        "projectManagement": {
+          "query": "project management software",
+          "prompt": "Which project management tool works best for a small remote team?"
+        },
+        "startupCrm": {
+          "query": "crm for startups",
+          "prompt": "What CRM should an early-stage startup use?"
+        },
+        "invoicing": {
+          "query": "invoice template",
+          "prompt": "How can I send professional invoices without an accountant?"
+        }
+      }
     },
     "searchGapDetail": {
       "eyebrow": "Search gap · Source question",
@@ -3732,7 +3735,11 @@
       "prompts": {
         "metaTitle": "GEO Prompts",
         "description": "The questions we ask AI engines on your behalf",
-        "setupDescription": "Set up GEO tracking first, then manage the prompts scanned across AI engines."
+        "setupDescription": "Set up GEO tracking first, then manage the prompts scanned across AI engines.",
+        "tabs": {
+          "suggestions": "Suggestions",
+          "answers": "Answers"
+        }
       },
       "shelfSpace": {
         "metaTitle": "GEO Shelf Space",
@@ -3863,7 +3870,9 @@
       "undo": "Undo",
       "personaGenerationFailed": "Persona generation failed. Try again.",
       "personaScanned": "Persona scanned across {count, plural, one {# engine} other {# engines}}",
-      "resolveCreatedProjectFailed": "Failed to resolve created project"
+      "resolveCreatedProjectFailed": "Failed to resolve created project",
+      "connectingProperty": "Connecting {property}…",
+      "connectingPropertyDescription": "Reading your search queries. This can take a minute, keep working in the meantime."
     }
   },
   "integrations": {

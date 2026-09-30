@@ -46,7 +46,6 @@ import {
   PromptPresenceBadge,
 } from "@/components/geo/prompt-badges";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import { PromptSavedViewsMenu } from "@/components/geo/prompt-saved-views-menu";
 import { PromptTagsActionDialog } from "@/components/geo/prompt-tags-action-dialog";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
@@ -57,17 +56,15 @@ import {
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { useGeoPromptSourceLabels } from "@/lib/hooks/use-geo-prompt-source-labels";
-import { useGeoSavedViews } from "@/lib/hooks/use-geo-saved-views";
 import type {
   GeoPromptIntentFilter,
-  GeoPromptSavedView,
   GeoPromptTableFilters,
   GeoPromptTableRow,
   PromptTagsDialogTarget,
   PromptsTableProps,
 } from "@/types/geo";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
-import { promptFiltersActive } from "@/utils/geo-prompt-views";
+import { promptFiltersActive } from "@/utils/geo-prompt-filters";
 import {
   buildPromptTableRows,
   promptPresenceSortValue,
@@ -115,6 +112,7 @@ function PromptRowActions({
       {pauseSwitch}
       <Button
         aria-label={tGeoShared("removePrompt", { prompt: row.prompt })}
+        className="group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
         disabled={isPending}
         onClick={(event) => {
           event.stopPropagation();
@@ -211,7 +209,6 @@ export function PromptsTable({
     setPromptTags,
     addTagsToPrompts,
   } = useGeoPromptsDb(organizationId);
-  const { views, saveView, removeView } = useGeoSavedViews(organizationId);
   const [search, setSearch] = useQueryState(
     "q",
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
@@ -265,14 +262,6 @@ export function PromptsTable({
     }
     setPendingDelete(targets);
     setDeleteOpen(true);
-  };
-
-  const applyView = (view: GeoPromptSavedView) => {
-    setSearch(view.query.q);
-    setIntent(view.query.intent);
-    setTag(view.query.tag);
-    setSource(view.query.source);
-    toast.success(t("viewApplied", { name: view.name }));
   };
 
   const applyTags = (tags: string[]) => {
@@ -475,19 +464,6 @@ export function PromptsTable({
               ))}
             </SelectContent>
           </Select>
-          <PromptSavedViewsMenu
-            filters={filters}
-            onApply={applyView}
-            onRemove={(viewId) => {
-              removeView(viewId);
-              toast.success(t("viewDeleted"));
-            }}
-            onSave={(name) => {
-              saveView(name, filters);
-              toast.success(t("viewSaved"));
-            }}
-            views={views}
-          />
           {promptFiltersActive(filters) ? (
             <Button
               onClick={() => {

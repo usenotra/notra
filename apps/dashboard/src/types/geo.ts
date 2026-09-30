@@ -260,24 +260,6 @@ export interface GeoPromptTableFilters {
   source: GeoPromptSourceFilter;
 }
 
-export interface PromptFiltersSummaryLabels {
-  all: string;
-  intent: (intent: GeoPromptIntent) => string;
-  source: (source: GeoPromptSource) => string;
-}
-
-export interface GeoPromptSavedView {
-  id: string;
-  name: string;
-  query: GeoPromptTableFilters;
-}
-
-export interface UseGeoSavedViewsResult {
-  views: GeoPromptSavedView[];
-  saveView: (name: string, query: GeoPromptTableFilters) => void;
-  removeView: (viewId: string) => void;
-}
-
 export interface PromptTagsActionDialogProps {
   target: PromptTagsDialogTarget | null;
   suggestions: string[];
@@ -315,27 +297,35 @@ export interface PromptPresenceBadgeProps {
   status: GeoPresenceStatus | null;
 }
 
-export interface PromptSavedViewsMenuProps {
-  views: GeoPromptSavedView[];
-  filters: GeoPromptTableFilters;
-  onApply: (view: GeoPromptSavedView) => void;
-  onSave: (name: string) => void;
-  onRemove: (viewId: string) => void;
-}
-
-export interface PromptSaveViewDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (name: string) => void;
-}
-
 export interface PromptTagsDialogTarget {
   mode: "edit" | "bulk";
   rows: GeoPromptTableRow[];
 }
 
+export interface PromptsPageTabIconProps {
+  children: ReactNode;
+  pinned?: boolean;
+}
+
+export interface PromptsPageTabCountProps {
+  count: number | undefined;
+}
+
+export interface ConversationRowActionsProps {
+  sequence: GeoPromptSequence;
+  isRunning: boolean;
+  isPending: boolean;
+  isRunPending: boolean;
+  onRun: () => void;
+  onToggle: (enabled: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
 export interface ConversationsCardProps {
   organizationId: string;
+  /** Renders Generate and New conversation here instead of above the table. */
+  actionsContainer?: HTMLElement | null;
 }
 
 export interface ConversationTurnDraft {
@@ -1470,6 +1460,8 @@ export type PromptAddMode = "write" | "website";
 export interface PromptAddDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Opens the CSV import from the footer, for adding prompts in bulk. */
+  onImportCsv?: () => void;
   organizationId: string;
 }
 

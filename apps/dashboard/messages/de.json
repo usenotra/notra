@@ -2106,7 +2106,6 @@
       "you": "(Du)",
       "removeCount": "Entfernen ({count})",
       "playingAgainstTheEngines": "Wird mit den KI-Engines durchgespielt…",
-      "multiTurnQuestionsWhereBuying": "Mehrstufige Fragen, bei denen Kaufentscheidungen fallen",
       "span": "Dauer",
       "noAgentJourneysCapturedYet": "Noch keine Agent-Journeys erfasst",
       "agentJourneys": "Agent-Journeys",
@@ -2402,7 +2401,12 @@
       "deleteNamed": "{name} löschen",
       "generate": "Generieren",
       "emptyGenerating": "Unterhaltungen für deine Käufer werden geschrieben…",
-      "empty": "Tracke eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden, oder generiere ein paar zum Start"
+      "empty": "Tracke eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden, oder generiere ein paar zum Start",
+      "run": "Ausführen",
+      "moreActions": "Weitere Aktionen für {name}",
+      "turnsCount": "{count, plural, one {# Runde} other {# Runden}}",
+      "intro": "Unterhaltungen über mehrere Runden, die einen Käufer von der ersten Frage bis zur Entscheidung begleiten",
+      "emptyTitle": "Noch keine Unterhaltungen"
     },
     "directions": {
       "labels": {
@@ -3083,16 +3087,6 @@
       "analysis": "Analyse",
       "raw": "Rohantwort"
     },
-    "promptSavedViewsMenu": {
-      "trigger": "Ansichten",
-      "save": "Aktuelle Ansicht speichern",
-      "empty": "Noch keine gespeicherten Ansichten",
-      "saved": "Gespeicherte Ansichten",
-      "saveDescription": "Benenne diese Kombination aus Suche und Filtern, damit du sie später wieder anwenden kannst.",
-      "namePlaceholder": "Vergleichs-Prompts",
-      "removeAria": "Ansicht löschen: {name}",
-      "allPrompts": "Alle Prompts"
-    },
     "promptScanButton": {
       "scanInProgress": "Warte, bis der aktuelle Scan fertig ist, bevor du einen neuen startest.",
       "promptDisabled": "Aktiviere diesen Prompt, um einen Scan zu starten.",
@@ -3107,7 +3101,6 @@
     },
     "promptSuggestions": {
       "trackAll": "Alle tracken",
-      "description": "Basierend auf Suchanfragen, für die deine Website bereits rankt",
       "dismissTitle": "Vorschlag entfernen?",
       "dismissDescription": "„{prompt}“ wird nicht mehr vorgeschlagen.",
       "empty": "Noch keine Vorschläge aus der Google-Suche"
@@ -3134,9 +3127,6 @@
       "removeAction": "{count, plural, one {Prompt entfernen} other {Prompts entfernen}}",
       "nounSingular": "Prompt",
       "nounPlural": "Prompts",
-      "viewApplied": "Ansicht angewendet: {name}",
-      "viewSaved": "Ansicht gespeichert",
-      "viewDeleted": "Ansicht gelöscht",
       "tagsCustomOnly": "Tags gelten nur für eigene Prompts. Automatisch erzeugte Prompts wurden übersprungen.",
       "columns": {
         "presence": "Präsenz"
@@ -3220,9 +3210,6 @@
       "filterByModel": "Scan-Ergebnisse nach Modell filtern"
     },
     "searchConsoleCard": {
-      "description": "Prompt-Ideen aus den Suchanfragen, für die du in der Google Search Console rankst",
-      "cardOptions": "Optionen für die Search-Console-Karte",
-      "hideCard": "Karte ausblenden",
       "property": "Property",
       "selectProperty": "Property auswählen",
       "connectProperty": "Property verbinden",
@@ -3234,7 +3221,23 @@
       "weeklySync": "Wöchentliche Synchronisierung",
       "actions": "Search-Console-Aktionen",
       "reauthRequired": "Der Google-Zugriff ist abgelaufen. Verbinde dich neu, damit Keyword-Vorschläge weiter synchronisiert werden.",
-      "choosePropertyHint": "Wähle, welche Search-Console-Property Notra analysieren soll."
+      "setupTitle": "Mach aus deinen Google-Suchen Prompts",
+      "setupDescription": "Verbinde die Search Console und Notra schlägt Prompts aus den Suchanfragen vor, über die Leute dich schon finden.",
+      "reauthTitle": "Google neu verbinden",
+      "examples": {
+        "projectManagement": {
+          "query": "projektmanagement software",
+          "prompt": "Welches Projektmanagement-Tool eignet sich für ein kleines Remote-Team?"
+        },
+        "startupCrm": {
+          "query": "crm für startups",
+          "prompt": "Welches CRM sollte ein junges Startup nutzen?"
+        },
+        "invoicing": {
+          "query": "rechnungsvorlage",
+          "prompt": "Wie verschicke ich professionelle Rechnungen ohne Steuerberater?"
+        }
+      }
     },
     "searchGapDetail": {
       "eyebrow": "Suchlücke · Ausgangsfrage",
@@ -3732,7 +3735,11 @@
       "prompts": {
         "metaTitle": "GEO-Prompts",
         "description": "Die Fragen, die wir KI-Engines in deinem Namen stellen",
-        "setupDescription": "Richte zuerst das GEO-Tracking ein und verwalte dann die Prompts, die über KI-Engines gescannt werden."
+        "setupDescription": "Richte zuerst das GEO-Tracking ein und verwalte dann die Prompts, die über KI-Engines gescannt werden.",
+        "tabs": {
+          "suggestions": "Vorschläge",
+          "answers": "Antworten"
+        }
       },
       "shelfSpace": {
         "metaTitle": "GEO Shelf Space",
@@ -3863,7 +3870,9 @@
       "undo": "Rückgängig",
       "personaGenerationFailed": "Persona-Erstellung fehlgeschlagen. Versuch es nochmal.",
       "personaScanned": "Persona mit {count, plural, one {# KI-Engine} other {# KI-Engines}} gescannt",
-      "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden"
+      "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
+      "connectingProperty": "{property} wird verbunden…",
+      "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
     }
   },
   "integrations": {

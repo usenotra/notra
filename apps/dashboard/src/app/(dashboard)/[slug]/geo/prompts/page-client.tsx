@@ -1,10 +1,24 @@
 "use client";
 
-import { PlusSignIcon, Upload01Icon } from "@hugeicons/core-free-icons";
+import {
+  AiChat02Icon,
+  BubbleChatQuestionIcon,
+  Loading03Icon,
+  MessageMultiple01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Google } from "@notra/ui/components/ui/svgs/google";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -26,19 +40,65 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
+import { GEO_PROMPTS_PAGE_TABS } from "@/constants/geo-prompts";
 import {
   useGeoPromptResults,
   useGeoSettings,
+  useGeoSuggestions,
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
-import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useGeoPromptsDb, useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
+import { cn } from "@/lib/utils";
+import type {
+  PromptsPageTabCountProps,
+  PromptsPageTabIconProps,
+} from "@/types/geo";
+import { formatCount } from "@/utils/format";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPromptsSkeleton } from "./skeleton";
 
 interface PageClientProps {
   organizationSlug: string;
+}
+
+/**
+ * Icon that only shows on the active tab: it widens and fades in beside the
+ * label, so inactive tabs stay text-only. `pinned` keeps it visible anyway,
+ * e.g. for a live scan spinner.
+ */
+function SlideInTabIcon({ children, pinned = false }: PromptsPageTabIconProps) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "duration-normal ease-emphasized -me-1.5 flex w-0 shrink-0 items-center justify-center overflow-hidden opacity-0 transition-all group-data-active/tab:me-0 group-data-active/tab:w-4 group-data-active/tab:opacity-100 motion-reduce:transition-none",
+        pinned && "me-0 w-4 opacity-100"
+      )}
+    >
+      <span
+        className={cn(
+          "duration-normal ease-emphasized flex scale-50 items-center transition-transform group-data-active/tab:scale-100 motion-reduce:transition-none",
+          pinned && "scale-100"
+        )}
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
+
+function TabCount({ count }: PromptsPageTabCountProps) {
+  const locale = useLocale();
+  if (count === undefined || count === 0) {
+    return null;
+  }
+  return (
+    <span className="text-muted-foreground/70 text-xs font-normal tabular-nums">
+      {formatCount(count, locale)}
+    </span>
+  );
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
@@ -63,8 +123,20 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     geoRange.query
   );
   const isScanning = useIsGeoScanning(organizationId);
+  const { sequences } = useGeoSequencesDb(organizationId);
+  const { data: suggestionsData } = useGeoSuggestions(organizationId);
+  const [tab, setTab] = useQueryState(
+    "tab",
+    parseAsStringLiteral(GEO_PROMPTS_PAGE_TABS)
+      .withDefault("prompts")
+      .withOptions({ clearOnDefault: true })
+  );
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  // Tabs render their own actions into this slot, beside the tab switcher.
+  const [tabActionsSlot, setTabActionsSlot] = useState<HTMLDivElement | null>(
+    null
+  );
 
   useHotkey("P", () => setAddOpen(true), { enabled: !addOpen && !importOpen });
 
@@ -114,39 +186,107 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               <p className="text-muted-foreground">{t("description")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <GeoRangePicker control={geoRange} />
               <Button
                 className="gap-1.5"
-                onClick={() => setImportOpen(true)}
-                variant="outline"
+                onClick={() => setAddOpen(true)}
+                size="sm"
               >
-                <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-                {tShared("importCsv")}
-              </Button>
-              <Button className="gap-1.5" onClick={() => setAddOpen(true)}>
                 <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
                 {tGeoShared("addPrompt")}
                 <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
               </Button>
             </div>
           </header>
-          <PromptsTable
-            isScanning={isScanning}
-            organizationId={organizationId}
-            prompts={prompts}
-            results={promptResults?.results ?? []}
-          />
-          <ConversationsCard organizationId={organizationId} />
-          <PromptSuggestions
-            callbackPath={withGeoProject(
-              `/${organizationSlug}/geo/prompts`,
-              projectId
-            )}
-            organizationId={organizationId}
-          />
-          <ScanActivity organizationId={organizationId} />
+          <Tabs
+            onValueChange={(value) => {
+              const next = GEO_PROMPTS_PAGE_TABS.find(
+                (option) => option === value
+              );
+              void setTab(next ?? "prompts");
+            }}
+            value={tab}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="max-w-full overflow-x-auto">
+                <TabsList>
+                  <TabsTrigger className="group/tab" value="prompts">
+                    <SlideInTabIcon>
+                      <HugeiconsIcon icon={BubbleChatQuestionIcon} size={15} />
+                    </SlideInTabIcon>
+                    {tCommon("labels.prompts")}
+                    <TabCount count={prompts.length} />
+                  </TabsTrigger>
+                  <TabsTrigger className="group/tab" value="conversations">
+                    <SlideInTabIcon>
+                      <HugeiconsIcon icon={MessageMultiple01Icon} size={15} />
+                    </SlideInTabIcon>
+                    {tGeoShared("conversations")}
+                    <TabCount count={sequences.length} />
+                  </TabsTrigger>
+                  <TabsTrigger className="group/tab" value="suggestions">
+                    <SlideInTabIcon>
+                      <Google className="size-3.5" />
+                    </SlideInTabIcon>
+                    {t("tabs.suggestions")}
+                    <TabCount count={suggestionsData?.suggestions.length} />
+                  </TabsTrigger>
+                  <TabsTrigger className="group/tab" value="answers">
+                    <SlideInTabIcon pinned={isScanning}>
+                      <HugeiconsIcon
+                        className={
+                          isScanning
+                            ? "text-primary motion-safe:animate-spin"
+                            : undefined
+                        }
+                        icon={isScanning ? Loading03Icon : AiChat02Icon}
+                        size={15}
+                      />
+                    </SlideInTabIcon>
+                    {t("tabs.answers")}
+                    {isScanning ? (
+                      <span className="sr-only">
+                        {tGeoShared("scanningEngines")}
+                      </span>
+                    ) : null}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              {tab === "prompts" ? <GeoRangePicker control={geoRange} /> : null}
+              <div
+                className="flex flex-wrap items-center gap-2 empty:hidden"
+                ref={setTabActionsSlot}
+              />
+            </div>
+            <TabsContent className="mt-4" value="prompts">
+              <PromptsTable
+                isScanning={isScanning}
+                organizationId={organizationId}
+                prompts={prompts}
+                results={promptResults?.results ?? []}
+              />
+            </TabsContent>
+            <TabsContent className="mt-4" value="conversations">
+              <ConversationsCard
+                actionsContainer={tabActionsSlot}
+                organizationId={organizationId}
+              />
+            </TabsContent>
+            <TabsContent className="mt-4" value="suggestions">
+              <PromptSuggestions
+                callbackPath={withGeoProject(
+                  `/${organizationSlug}/geo/prompts?tab=suggestions`,
+                  projectId
+                )}
+                organizationId={organizationId}
+              />
+            </TabsContent>
+            <TabsContent className="mt-4" value="answers">
+              <ScanActivity organizationId={organizationId} />
+            </TabsContent>
+          </Tabs>
         </div>
         <PromptAddDialog
+          onImportCsv={() => setImportOpen(true)}
           onOpenChange={setAddOpen}
           open={addOpen}
           organizationId={organizationId}

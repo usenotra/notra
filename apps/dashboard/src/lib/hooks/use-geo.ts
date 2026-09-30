@@ -60,11 +60,10 @@ import {
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { geoDbOrgQueryKey, geoDbQueryKey } from "@/lib/db/geo-collections";
 import type { GeoScanTrigger } from "@/types/analytics/geo-events";
@@ -89,11 +88,13 @@ import {
   geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { toGeoWindowInput } from "@/utils/geo-range";
+import { formatGscSiteUrl } from "@/utils/gsc-site-url";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
+const GSC_SELECT_SITE_TOAST_ID = "gsc-select-site";
 
 function gscAnalyzeMutationKey(organizationId: string, projectId?: string) {
   return [GSC_ANALYZE_MUTATION_KEY, organizationId, projectId] as const;
@@ -1155,22 +1156,33 @@ export function useGscSelectSite(organizationId: string) {
         organizationId,
         projectId,
       }),
+    // The first sync can take a while, so progress lives in a toast and the
+    // caller can close its dialog right away.
+    onMutate: (input) => {
+      toast.loading(
+        tToast("connectingProperty", {
+          property: formatGscSiteUrl(input.siteUrl),
+        }),
+        {
+          description: tToast("connectingPropertyDescription"),
+          id: GSC_SELECT_SITE_TOAST_ID,
+        }
+      );
+    },
     onSuccess: async (result) => {
       await invalidate();
-      if (result.status === "failed") {
-        const message = describeSyncResult(result);
-        toast.error(
-          tToast(`searchConsoleSync.${message.key}`, { count: message.count })
-        );
-      } else {
-        const message = describeSyncResult(result);
-        toast.success(
-          tToast(`searchConsoleSync.${message.key}`, { count: message.count })
-        );
-      }
+      const message = describeSyncResult(result);
+      const notify = result.status === "failed" ? toast.error : toast.success;
+      notify(
+        tToast(`searchConsoleSync.${message.key}`, { count: message.count }),
+        { description: null, id: GSC_SELECT_SITE_TOAST_ID }
+      );
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, tToast("selectPropertyFailed")));
+      toast.error(toErrorMessage(error, tToast("selectPropertyFailed")), {
+        description: null,
+        id: GSC_SELECT_SITE_TOAST_ID,
+      });
     },
   });
 }
@@ -1345,32 +1357,4 @@ export function useGeoSuggestionDismiss(organizationId: string) {
       toast.error(toErrorMessage(error, tToast("dismissSuggestionFailed")));
     },
   });
-}
-
-const gscCardDismissListeners = new Set<() => void>();
-
-function subscribeToGscCardDismissal(callback: () => void) {
-  gscCardDismissListeners.add(callback);
-  window.addEventListener("storage", callback);
-  return () => {
-    gscCardDismissListeners.delete(callback);
-    window.removeEventListener("storage", callback);
-  };
-}
-
-export function useGscCardDismissal(organizationId: string) {
-  const storageKey = localStorageKeys.gscCardDismissed(organizationId);
-  const dismissed = useSyncExternalStore(
-    subscribeToGscCardDismissal,
-    () => localStorage.getItem(storageKey) === "true",
-    () => false
-  );
-  const dismiss = () => {
-    localStorage.setItem(storageKey, "true");
-    trackEvent(POSTHOG_EVENTS.GSC_CARD_DISMISSED);
-    for (const listener of gscCardDismissListeners) {
-      listener();
-    }
-  };
-  return { dismiss, dismissed };
 }
