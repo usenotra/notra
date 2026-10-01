@@ -44,7 +44,11 @@ export const DEMO_HOME_SECTION = "/geo";
 /** Entry route: claims a ready sandbox and redirects into it. */
 export const DEMO_ENTER_PATH = "/api/demo/enter";
 
-export const DEMO_SANDBOX_CREATE_LIMIT = 5;
+/**
+ * New workspaces per network per hour. Offices and conference wifi share one
+ * IP, so this is generous; the active-sandbox cap still bounds abuse.
+ */
+export const DEMO_SANDBOX_CREATE_LIMIT = 30;
 export const DEMO_SANDBOX_CREATE_WINDOW = "1 h";
 
 // Lives under the reserved /auth prefix so it can never collide with an
