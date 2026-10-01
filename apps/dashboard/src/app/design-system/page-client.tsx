@@ -178,6 +178,10 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
+  SplitButton,
+  SplitButtonTrigger,
+} from "@notra/ui/components/ui/split-button";
+import {
   Stepper,
   StepperContent,
   StepperDescription,
@@ -190,6 +194,7 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@notra/ui/components/ui/stepper";
+import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Table,
@@ -576,6 +581,43 @@ export default function DesignSystemClientPage() {
                 <ButtonGroupSeparator />
                 <Button variant="outline">Recent</Button>
               </ButtonGroup>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <SplitButton>
+                <Button>
+                  <XTwitter />
+                  Connect X
+                </Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger label="More connect options" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Connect another account</DropdownMenuItem>
+                    <DropdownMenuItem>Manage permissions</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
+              <SplitButton>
+                <Button variant="secondary">Publish</Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger variant="secondary" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Schedule</DropdownMenuItem>
+                    <DropdownMenuItem>Save as draft</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
+              <SplitButton>
+                <Button size="sm" variant="outline">
+                  Export
+                </Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger size="sm" variant="outline" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Markdown</DropdownMenuItem>
+                    <DropdownMenuItem>HTML</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
             </div>
           </CardContent>
         </Card>
