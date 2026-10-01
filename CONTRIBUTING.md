@@ -328,10 +328,13 @@ running, cancelled, or failed checks prevent all builds for that release window.
 There is no automatic deployment when CI finishes later; the next scheduled
 window checks again.
 
-Each project is compared with its successful production deployment and currently
-promoted production target. GitHub must confirm the selected commit is ahead of
-each project's production commit, or already identical. An older workflow rerun,
-diverged history, or a failed history lookup blocks all new builds. This prevents
+Each project is compared with its currently promoted production target. If the
+project response omits its commit SHA, the script fetches that target by deployment
+ID. An existing target whose commit cannot be identified blocks all new builds;
+the latest successful build is never used as a substitute. GitHub must confirm the
+selected commit is ahead of each project's production commit, or already identical.
+An older workflow rerun, diverged history, or a failed history lookup blocks all new
+builds. This prevents
 old runs from overwriting newer releases; use Vercel's rollback flow for a
 deliberate rollback.
 
@@ -345,8 +348,10 @@ already-active production build blocks the release before new builds start.
 The API requests use the same checked commit SHA and the `production` target for
 every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
-SHA, and reports failures in the Actions summary. Projects deploy independently;
-a failed project does not roll back another project's successful deployment.
+SHA, and reports failures in the Actions summary. Polling is limited to ten minutes
+per project, with a 45-minute job limit for all three projects and API overhead.
+Projects deploy independently; a failed project does not roll back another
+project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
 already have started a build.
 

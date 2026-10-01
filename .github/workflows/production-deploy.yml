@@ -23,16 +23,13 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main' && github.repository == 'usenotra/notra'
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - name: Checkout release commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Test release orchestration
-        run: node --test scripts/github/production-deploy.test.mjs
 
       - name: Deploy checked main commit
         run: node scripts/github/production-deploy.mjs

@@ -65,6 +65,10 @@ export async function release({
     throw new Error("Production releases must run from usenotra/notra main");
   }
   const sha = env.GITHUB_SHA;
+  const repositoryId = Number(env.GITHUB_REPOSITORY_ID);
+  if (!Number.isSafeInteger(repositoryId) || repositoryId <= 0) {
+    throw new Error("GITHUB_REPOSITORY_ID must be a positive safe integer");
+  }
   const report = async (message) => {
     console.log(message);
     if (env.GITHUB_STEP_SUMMARY) {
@@ -120,11 +124,6 @@ export async function release({
 
   const plans = [];
   for (const project of projects) {
-    const state = await request(
-      "vercel",
-      `/v6/deployments?projectId=${project.name}&target=production&limit=1&state=READY`
-    );
-    const previous = state.deployments[0];
     const active = await request(
       "vercel",
       `/v6/deployments?projectId=${project.name}&target=production&limit=1&state=QUEUED,INITIALIZING,BUILDING`
@@ -136,8 +135,20 @@ export async function release({
     if (latest.link?.productionBranch !== "main") {
       throw new Error(`${project.name} production branch must remain main`);
     }
-    const previousSha =
-      deploymentSha(latest.targets?.production) ?? deploymentSha(previous);
+    const production = latest.targets?.production;
+    let previousSha = deploymentSha(production);
+    if (production && !previousSha && production.id) {
+      const promoted = await request(
+        "vercel",
+        `/v13/deployments/${production.id}`
+      );
+      previousSha = deploymentSha(promoted);
+    }
+    if (production && !previousSha) {
+      throw new Error(
+        `${project.name}: cannot identify the current production commit; no builds started`
+      );
+    }
     if (previousSha && previousSha !== sha) {
       const comparison = await request(
         "github",
@@ -172,7 +183,7 @@ export async function release({
         target: "production",
         gitSource: {
           type: "github",
-          repoId: env.GITHUB_REPOSITORY_ID,
+          repoId: repositoryId,
           ref: "main",
           sha,
         },
@@ -182,7 +193,12 @@ export async function release({
       }
       await report(`${project.name}: started https://${deployment.url}`);
       let completed = false;
-      for (let attempt = 0; attempt < 60; attempt += 1) {
+      const deadline = Date.now() + 10 * 60_000;
+      for (
+        let attempt = 0;
+        attempt < 60 && Date.now() < deadline;
+        attempt += 1
+      ) {
         const status = await request(
           "vercel",
           `/v13/deployments/${deployment.id}`
@@ -200,7 +216,10 @@ export async function release({
             `${project.name}: deployment ended ${status.readyState}`
           );
         }
-        await sleep(10_000);
+        const remaining = deadline - Date.now();
+        if (remaining > 0) {
+          await sleep(Math.min(10_000, remaining));
+        }
       }
       if (!completed) {
         throw new Error(
