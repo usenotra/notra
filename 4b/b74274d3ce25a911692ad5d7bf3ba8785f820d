@@ -1,0 +1,37 @@
+apps/dashboard/src/components/geo/geo-stat-delta.tsx
+  s_f3b8e2b9d1afe4::t_73210ee327e05b 74
+  s_f3b8e2b9d1afe4::t_5059563f974c9a 11,94,112-120
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_f3b8e2b9d1afe4::t_c60aaca32c4c27 20,301
+  s_f3b8e2b9d1afe4::t_493c9a1381e172 112,117,121,289-294
+  s_f3b8e2b9d1afe4::t_d6329d8fc54921 30,296-300,302-309
+  s_f3b8e2b9d1afe4::t_1437bc8e83060a 118,123
+packages/ui/src/components/fade-swap.tsx
+  s_f3b8e2b9d1afe4::t_5a0363199b5985 1-4,6-8,10,18,35-36,38-42,44-47,58-64,66,68,72,75-81
+  s_f3b8e2b9d1afe4::t_18d92caeded0e1 5,37,43,48-57
+  s_f3b8e2b9d1afe4::t_1641aa19c6b44b 19-34,65,67,69-71,74
+  s_f3b8e2b9d1afe4::t_31ec4e52b40e9e 13-14,16-17
+  s_f3b8e2b9d1afe4::t_c60aaca32c4c27 73
+  s_f3b8e2b9d1afe4::t_333cc73ad55190 9,11-12,15
+apps/dashboard/src/types/geo.ts
+  s_f3b8e2b9d1afe4::t_73210ee327e05b 227-228
+packages/ui/src/types/fade-swap.ts
+  s_f3b8e2b9d1afe4::t_18d92caeded0e1 6-7
+  s_f3b8e2b9d1afe4::t_5a0363199b5985 1-5,8-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4bb74274d3ce25a911692ad5d7bf3ba8785f820d",
+  "prompts": {},
+  "sessions": {
+    "s_f3b8e2b9d1afe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f5b1a24-e260-4735-a3f9-7df21f2d14fb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
