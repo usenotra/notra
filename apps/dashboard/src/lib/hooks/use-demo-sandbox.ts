@@ -3,7 +3,7 @@
 import type { RealtimeSchema } from "@notra/ai/realtime";
 import type { DemoRequestEvent } from "@notra/db/types/demo";
 import { demoRequestChannel } from "@notra/db/utils/demo-channel";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@upstash/realtime/client";
 import { useCallback } from "react";
 
@@ -29,6 +29,25 @@ export function useDemoSandbox(enabled: boolean) {
     queryFn: () => fetchJson<DemoSandboxInfo>("/api/demo/sandbox/info"),
     enabled,
     staleTime: SANDBOX_STALE_MS,
+  });
+}
+
+/** Moves the sandbox to the visitor's time zone. */
+export function useSyncDemoTimeZone() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (timeZone: string) => {
+      const response = await fetch("/api/demo/sandbox/timezone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timeZone }),
+      });
+      if (!response.ok) {
+        throw new Error(`Time zone sync failed with ${response.status}`);
+      }
+    },
+    onSuccess: () =>
+      client.invalidateQueries({ queryKey: QUERY_KEYS.DEMO.sandbox }),
   });
 }
 

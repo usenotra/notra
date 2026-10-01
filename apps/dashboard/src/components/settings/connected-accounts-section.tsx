@@ -1,17 +1,14 @@
 "use client";
 
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { isDemoModeClient } from "@notra/utils/demo-mode";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/button";
+import { ConnectedAccountRow } from "@/components/settings/connected-account-row";
 import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { authClient } from "@/lib/auth/client";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
@@ -28,7 +25,6 @@ export function ConnectedAccountsSection({
 }: ConnectedAccountsSectionProps) {
   const t = useTranslations("settings.connectedAccounts");
   const tSettingsShared = useTranslations("settings.shared");
-  const tCommon = useTranslations("common.actions");
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const canUnlink = accounts.length > 1;
@@ -102,103 +98,26 @@ export function ConnectedAccountsSection({
         <p className="text-muted-foreground text-sm">{t("description")}</p>
 
         <div className="divide-y">
-          <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
-                <Google className="size-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Google</p>
-                <p className="text-muted-foreground text-xs">
-                  {hasGoogleLinked
-                    ? (disconnectHint ??
-                      t("connectedTo", { provider: "Google" }))
-                    : t("signInWith", { provider: "Google" })}
-                </p>
-              </div>
-            </div>
-            {hasGoogleLinked ? (
-              <Button
-                className="shrink-0 self-start sm:self-auto"
-                disabled={!canUnlink || loadingProvider === "google"}
-                onClick={() => handleUnlinkAccount("google")}
-                size="sm"
-                variant="outline"
-              >
-                {loadingProvider === "google" ? (
-                  <Loader2Icon className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                    {tCommon("disconnect")}
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                className="shrink-0 self-start sm:self-auto"
-                disabled={loadingProvider === "google"}
-                onClick={() => handleLinkAccount("google")}
-                size="sm"
-                variant="outline"
-              >
-                {loadingProvider === "google" ? (
-                  <Loader2Icon className="size-4 animate-spin" />
-                ) : (
-                  tCommon("connect")
-                )}
-              </Button>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
-                <Github className="size-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">GitHub</p>
-                <p className="text-muted-foreground text-xs">
-                  {hasGithubLinked
-                    ? (disconnectHint ??
-                      t("connectedTo", { provider: "GitHub" }))
-                    : t("signInWith", { provider: "GitHub" })}
-                </p>
-              </div>
-            </div>
-            {hasGithubLinked ? (
-              <Button
-                className="shrink-0 self-start sm:self-auto"
-                disabled={!canUnlink || loadingProvider === "github"}
-                onClick={() => handleUnlinkAccount("github")}
-                size="sm"
-                variant="outline"
-              >
-                {loadingProvider === "github" ? (
-                  <Loader2Icon className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                    {tCommon("disconnect")}
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                className="shrink-0 self-start sm:self-auto"
-                disabled={loadingProvider === "github"}
-                onClick={() => handleLinkAccount("github")}
-                size="sm"
-                variant="outline"
-              >
-                {loadingProvider === "github" ? (
-                  <Loader2Icon className="size-4 animate-spin" />
-                ) : (
-                  tCommon("connect")
-                )}
-              </Button>
-            )}
-          </div>
+          <ConnectedAccountRow
+            canUnlink={canUnlink}
+            disconnectHint={disconnectHint}
+            icon={<Google className="size-5" />}
+            linked={hasGoogleLinked}
+            loading={loadingProvider === "google"}
+            name="Google"
+            onLink={() => handleLinkAccount("google")}
+            onUnlink={() => handleUnlinkAccount("google")}
+          />
+          <ConnectedAccountRow
+            canUnlink={canUnlink}
+            disconnectHint={disconnectHint}
+            icon={<Github className="size-5" />}
+            linked={hasGithubLinked}
+            loading={loadingProvider === "github"}
+            name="GitHub"
+            onLink={() => handleLinkAccount("github")}
+            onUnlink={() => handleUnlinkAccount("github")}
+          />
         </div>
       </div>
     </TitleCard>

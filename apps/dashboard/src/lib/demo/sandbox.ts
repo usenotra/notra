@@ -375,9 +375,7 @@ async function refillPool(): Promise<void> {
       )
     ),
   });
-  for (const sandbox of stale) {
-    await rebaseDemoSandbox(sandbox, now);
-  }
+  await Promise.all(stale.map((sandbox) => rebaseDemoSandbox(sandbox, now)));
   // Recount before each seed: refills run after every visit, and a count
   // taken once would let concurrent refills overshoot the target.
   while ((await countPooledSandboxes()) < target) {

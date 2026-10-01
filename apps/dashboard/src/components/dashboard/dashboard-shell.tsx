@@ -24,11 +24,9 @@ import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { DemoBanner } from "@/components/demo/demo-banner";
+import { DashboardDemoChrome } from "@/components/demo/dashboard-demo-chrome";
 import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
-import { DemoTimeZoneSync } from "@/components/demo/demo-time-zone-sync";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { DEMO_BANNER_HEIGHT } from "@/constants/demo";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
@@ -42,8 +40,8 @@ import type {
   DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
-  DashboardShellStyle,
 } from "@/types/components/dashboard-shell";
+import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(
@@ -236,15 +234,7 @@ export function DashboardShell({
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
   const demo = isDemoModeClient();
   const showDemoBanner = demo && !demoBannerHidden;
-  const eveBannerHeight = visible ? EVE_BANNER_HEIGHT : "0rem";
-  // Everything below the top banners offsets by this; the demo bar is
-  // there in the public demo unless opened with `?banner=off`.
-  const shellStyle: DashboardShellStyle = showDemoBanner
-    ? {
-        "--eve-banner-height": `calc(${DEMO_BANNER_HEIGHT} + ${eveBannerHeight})`,
-        "--demo-banner-height": DEMO_BANNER_HEIGHT,
-      }
-    : { "--eve-banner-height": eveBannerHeight };
+  const shellStyle = dashboardShellStyle(showDemoBanner, visible);
   const {
     finishSidebarResize,
     setSidebarWidth,
@@ -297,8 +287,7 @@ export function DashboardShell({
       data-dashboard-shell
       style={shellStyle}
     >
-      {showDemoBanner ? <DemoBanner /> : null}
-      {demo ? <DemoTimeZoneSync /> : null}
+      {demo ? <DashboardDemoChrome showBanner={showDemoBanner} /> : null}
       <DashboardOnboardingBanner
         available={bannerAvailable}
         dismissing={dismissing}
