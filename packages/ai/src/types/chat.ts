@@ -46,6 +46,13 @@ export type ChatTransportRequestInput = z.infer<
   typeof chatTransportRequestInputSchema
 >;
 
+export interface ChatSessionState {
+  projectId: string | null;
+  externalChannelSource: string | null;
+  deletedAt: Date | null;
+  messages: UIMessage[];
+}
+
 export interface ChatUsageSnapshot {
   inputTokens?: number;
   outputTokens?: number;
