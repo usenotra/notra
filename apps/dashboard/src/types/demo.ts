@@ -3,10 +3,6 @@ import type { DemoPersonalization } from "@notra/db/types/demo";
 
 export type DemoSandbox = typeof demoSandboxes.$inferSelect;
 
-export interface DemoSessionPayload {
-  anonymousId: string;
-}
-
 export interface DemoOrganizationInput {
   anonymousId: string;
   timeZone: string;
@@ -86,7 +82,7 @@ export interface DemoRequestDetail {
   responseBody: string | null;
 }
 
-export type DemoConsolePresetId =
+type DemoConsolePresetId =
   | "listPosts"
   | "createPost"
   | "createPrompt"

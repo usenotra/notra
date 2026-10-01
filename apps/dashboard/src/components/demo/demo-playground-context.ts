@@ -4,7 +4,7 @@ import { createContext, useContext } from "react";
 
 import type { DemoPlaygroundTab } from "@/types/demo";
 
-export interface DemoPlaygroundContextValue {
+interface DemoPlaygroundContextValue {
   openPlayground: (tab?: DemoPlaygroundTab) => void;
 }
 

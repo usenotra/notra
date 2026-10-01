@@ -1,6 +1,6 @@
 import type { DEMO_REQUEST_SOURCES } from "../constants/demo";
 
-export type DemoRequestSource = (typeof DEMO_REQUEST_SOURCES)[number];
+type DemoRequestSource = (typeof DEMO_REQUEST_SOURCES)[number];
 
 export interface DemoAffectedEntity {
   type: string;

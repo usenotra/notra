@@ -2,7 +2,7 @@ import type { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
 import type { postCollectionSourceEnum } from "@notra/db/schema";
 import type { GeoPersonaProfile } from "@notra/db/types/geo-personas";
 
-export interface DemoSeedPost {
+interface DemoSeedPost {
   title: string;
   slug?: string;
   contentType: "blog_post" | "changelog" | "linkedin_post" | "twitter_post";

@@ -2,12 +2,12 @@ import type { GeoCheckSource } from "@notra/db/types/geo-checks";
 
 import type { GeoCompetitorSeed } from "./geo";
 
-export interface GeoSamplePrompt {
+interface GeoSamplePrompt {
   english: string;
   german: string;
 }
 
-export interface GeoSampleEngine {
+interface GeoSampleEngine {
   engine: string;
   mentionRate: number;
 }

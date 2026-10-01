@@ -7,7 +7,7 @@ const LABEL_KEYS = ["title", "name", "prompt", "label", "domain"] as const;
 const CONTEXT_KEYS = new Set(["organization", "project", "meta", "pagination"]);
 
 /** `/v1/projects/p1/geo/prompts/x` → `geo.prompt`; `/v1/posts` → `post`. */
-export function demoEntityTypeFromPath(path: string): string {
+function demoEntityTypeFromPath(path: string): string {
   const segments =
     path
       .split("?")[0]
