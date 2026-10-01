@@ -880,6 +880,24 @@ describe("scheduled GEO scans", () => {
     expect(settings?.nextScanAt?.getTime()).toBe(anchor.getTime() + DAY_MS);
   });
 
+  test("a running scan keeps the slot even when billing would deny it", async () => {
+    const anchor = wholeMinutesAgo(10);
+    await seedProject("busy-broke", {
+      scanStartedAt: new Date(),
+      nextScanAt: anchor,
+    });
+    checkScanBilling.mockImplementation(() =>
+      Effect.succeed({ ...ALLOWED_GATE, allowed: false, mode: "ai_credits" })
+    );
+
+    expect(await sweep()).toMatchObject({
+      alreadyRunning: 1,
+      billingDenied: 0,
+    });
+    expect(checkScanBilling).not.toHaveBeenCalled();
+    expect((await settingsFor("busy-broke"))?.nextScanAt).toEqual(anchor);
+  });
+
   test("a failing billing check still starts the scan", async () => {
     await seedProject("billing-outage");
     checkScanBilling.mockImplementation(() =>

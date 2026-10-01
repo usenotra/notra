@@ -18,7 +18,11 @@ import {
   findGeoScanBillingDenial,
   startClaimedGeoScanRun,
 } from "./scan-handoff";
-import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
+import {
+  claimGeoScanRun,
+  releaseGeoScanRun,
+  sweepStaleGeoScanRows,
+} from "./scan-status";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_MINUTE = 60 * 1000;
@@ -334,26 +338,6 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       const { leaseUntil } = lease;
       const row = { ...candidate, nextScanAt: lease.nextScanAt };
 
-      // A slot the billing gate would deny is skipped here, before a claim,
-      // a `geo_scans` row and a workflow run exist only to fail at that gate.
-      // It moves on like a started slot: retrying would deny it again.
-      const denial = yield* findGeoScanBillingDenial(
-        row.organizationId,
-        row.projectId
-      );
-      if (denial) {
-        billingDenied += 1;
-        yield* advance(row, leaseUntil);
-        yield* geoLogWarn({
-          event: "geo.scan.skipped",
-          reason: "billing",
-          organizationId: row.organizationId,
-          projectId: row.projectId,
-          detail: describeContentBillingDenial(denial),
-        });
-        continue;
-      }
-
       // An attempt that finished after this slot became due already answers
       // for it: starting another one would bill the organization twice for the
       // same slot. `last_scan_at` marks the last *attempt* (failed runs stamp
@@ -392,6 +376,31 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
           reason: "already_running",
           organizationId: row.organizationId,
           projectId: row.projectId,
+        });
+        continue;
+      }
+
+      // Checked only once this sweep owns the slot, so a scan that is still
+      // running keeps the slot on the already-running path above. A denied
+      // slot hands the claim back and moves on before a `geo_scans` row and a
+      // workflow run exist only to fail at the billing gate: retrying would
+      // deny it again.
+      const denial = yield* findGeoScanBillingDenial(
+        row.organizationId,
+        row.projectId
+      );
+      if (denial) {
+        yield* releaseGeoScanRun(row.projectId, claim.claimedAt).pipe(
+          geoSkip("scan claim release failed")
+        );
+        billingDenied += 1;
+        yield* advance(row, leaseUntil);
+        yield* geoLogWarn({
+          event: "geo.scan.skipped",
+          reason: "billing",
+          organizationId: row.organizationId,
+          projectId: row.projectId,
+          detail: describeContentBillingDenial(denial),
         });
         continue;
       }
