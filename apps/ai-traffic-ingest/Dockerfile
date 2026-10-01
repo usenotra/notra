@@ -25,6 +25,7 @@ COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/utils/package.json ./packages/utils/package.json
+COPY packages/webhooks/package.json ./packages/webhooks/package.json
 RUN bun install --frozen-lockfile --ignore-scripts
 COPY packages/ai ./packages/ai
 COPY packages/analytics ./packages/analytics

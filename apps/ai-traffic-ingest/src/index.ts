@@ -1,6 +1,10 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 
-import { INGEST_DEFAULT_PORT, INGEST_MAX_BODY_BYTES } from "./constants/server";
+import {
+  INGEST_DEFAULT_PORT,
+  INGEST_DRAIN_TIMEOUT_MS,
+  INGEST_MAX_BODY_BYTES,
+} from "./constants/server";
 import { createIngestApp } from "./http";
 import { missingIngestEnvironment } from "./utils/config";
 
@@ -34,11 +38,28 @@ const server = Bun.serve({
 
 console.info(`[geo-ingest] Listening on port ${server.port}`);
 
-async function shutdown() {
+async function drain() {
   const stopped = server.stop();
   await Promise.allSettled(active);
   await stopped;
   await Promise.allSettled(pending);
+}
+
+async function shutdown() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const drained = await Promise.race([
+    drain().then(() => true),
+    new Promise<false>((resolve) => {
+      timer = setTimeout(() => resolve(false), INGEST_DRAIN_TIMEOUT_MS);
+    }),
+  ]);
+  clearTimeout(timer);
+  if (!drained) {
+    console.error(
+      `[geo-ingest] Drain exceeded ${INGEST_DRAIN_TIMEOUT_MS}ms, closing connections`
+    );
+    server.stop(true);
+  }
   await flushGeoLog();
   process.exit(0);
 }

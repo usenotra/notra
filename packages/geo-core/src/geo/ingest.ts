@@ -168,14 +168,15 @@ export function verifyGeoIngestToken(token: string): GeoIngestIdentity | null {
   const payload = token.slice(0, separatorIndex);
   const signature = token.slice(separatorIndex + 1);
   const expected = sign(payload, secret);
-  if (signature.length !== expected.length) {
+  const signatureBytes = Buffer.from(signature);
+  const expectedBytes = Buffer.from(expected);
+  // Compare byte lengths: a multi-byte signature with the right character
+  // count would otherwise make timingSafeEqual throw.
+  if (signatureBytes.length !== expectedBytes.length) {
     return null;
   }
 
-  const matches = timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  const matches = timingSafeEqual(signatureBytes, expectedBytes);
   if (!matches) {
     return null;
   }
