@@ -6540,7 +6540,6 @@
       "title": "Explore the Notra demo.",
       "titleNamed": "Welcome to the Notra demo, {name}.",
       "customize": "Customize",
-      "api": "Try the API",
       "reset": "Reset",
       "signup": "Create account",
       "resetTitle": "Reset your demo workspace?",

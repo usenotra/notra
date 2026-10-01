@@ -12,11 +12,10 @@ export const DEMO_FRAME_ANCESTOR = "https://www.usenotra.com";
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
-/** A sandbox survives this long after the visitor's last request. */
-export const DEMO_SANDBOX_IDLE_TTL_MS = DAY_MS;
 /** Hard cap regardless of activity: no demo data lives longer than a day. */
 export const DEMO_SANDBOX_MAX_AGE_MS = DAY_MS;
-export const DEMO_SESSION_COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60;
+export const DEMO_SESSION_COOKIE_MAX_AGE_SECONDS =
+  DEMO_SANDBOX_MAX_AGE_MS / 1000;
 /** `last_seen_at` is only written when it is older than this. */
 export const DEMO_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -41,6 +40,13 @@ export const DEMO_POOL_FRESH_MS = 2 * 60 * 60 * 1000;
 /** One pool refill at a time; the lock outlives a stuck one. */
 export const DEMO_POOL_REFILL_LOCK_KEY = "demo:pool-refill";
 export const DEMO_POOL_REFILL_LOCK_SECONDS = 120;
+/** Releases the refill lock only while it still holds the caller's token. */
+export const DEMO_POOL_REFILL_RELEASE_SCRIPT = `
+if redis.call("get", KEYS[1]) == ARGV[1] then
+  return redis.call("del", KEYS[1])
+end
+return 0
+`;
 /** Where the demo opens inside a workspace: the GEO overview. */
 export const DEMO_HOME_SECTION = "/geo";
 /** Entry route: claims a ready sandbox and redirects into it. */
@@ -69,7 +75,6 @@ export const DEMO_VISITOR_NAME = "Demo Visitor";
 export const DEMO_COMPANY_NAME = "Fieldnote";
 export const DEMO_COMPANY_DOMAIN = "fieldnote.example";
 export const DEMO_COMPANY_HANDLE = "fieldnote";
-export const DEMO_COMPANY_WEBSITE = `https://${DEMO_COMPANY_DOMAIN}`;
 
 export const DEMO_CLEANUP_BATCH_SIZE = 50;
 
@@ -92,8 +97,7 @@ export const DEMO_ONBOARDING_PATH = /^\/onboarding(?:\/|$)/;
 export const DEMO_HIDDEN_PAGE_PATH = /^\/([^/]+)\/geo\/directions(?:\/|$)/;
 
 /** A path into some demo workspace; group 1 is everything after the slug. */
-export const DEMO_ORG_SLUG_PATH =
-  /^\/(?:demo|fieldnote)-[a-z0-9]+((?:[/?#].*)?)$/;
+export const DEMO_ORG_SLUG_PATH = /^\/demo-[a-z0-9]+((?:[/?#].*)?)$/;
 export const DEMO_ORG_SLUG_SUFFIX_LENGTH = 8;
 
 export const DEMO_BILLING_PLAN = {

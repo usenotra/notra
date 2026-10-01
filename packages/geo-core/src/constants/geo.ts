@@ -988,6 +988,7 @@ export const GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS = "h-56";
 /**
  * Enables GEO sample data (settings seeding, shelf fixtures) in local
  * development and in the public demo, where every workspace is sample data.
+ * The demo still refuses the seed/clear RPCs so visitors can't wipe it.
  */
 export const GEO_SAMPLE_DATA_ENABLED =
   process.env.NODE_ENV === "development" || isDemoMode();

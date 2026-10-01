@@ -2,14 +2,14 @@ import type { DemoSeedCollection } from "@/types/demo-seed";
 
 /**
  * Studio content for the demo workspace. Offsets are relative to the moment
- * the sandbox is created, so the newest draft is always from "today".
+ * the sandbox is created, so the newest draft is always from "today". A
+ * collection is dated by its oldest post.
  */
 export const DEMO_SEED_COLLECTIONS: readonly DemoSeedCollection[] = [
   {
     key: "launch",
     name: "Smart Search launch",
     source: "manual",
-    daysAgo: 12,
     posts: [
       {
         title: "Introducing Smart Search: find any decision in seconds",
@@ -67,7 +67,6 @@ No more digging through 40 docs to find one decision.`,
     key: "changelog",
     name: "Weekly changelog",
     source: "schedule",
-    daysAgo: 1,
     posts: [
       {
         title: "Changelog: Linear sync, faster summaries, EU data residency",
@@ -129,7 +128,6 @@ No more digging through 40 docs to find one decision.`,
     key: "geo",
     name: "AI search visibility",
     source: "automation",
-    daysAgo: 18,
     posts: [
       {
         title:
@@ -202,7 +200,6 @@ Folders break down at scale. Search that understands questions does not.`,
     key: "chat",
     name: "Launch posts from chat",
     source: "chat",
-    daysAgo: 4,
     posts: [
       {
         title: "Customer story: how Northwind cut status meetings in half",

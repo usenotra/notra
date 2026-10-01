@@ -16,7 +16,6 @@ export interface DemoSeedCollection {
   key: string;
   name: string;
   source: (typeof postCollectionSourceEnum.enumValues)[number];
-  daysAgo: number;
   posts: readonly DemoSeedPost[];
 }
 

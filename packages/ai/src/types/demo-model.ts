@@ -15,7 +15,6 @@ export interface DemoFakeContext {
 export type DemoToolArgs = Record<string, unknown>;
 
 export interface DemoChatScenario {
-  id: string;
   /** Matched against the latest user message. */
   pattern: RegExp;
   /** First tool whose name matches is called before answering. */

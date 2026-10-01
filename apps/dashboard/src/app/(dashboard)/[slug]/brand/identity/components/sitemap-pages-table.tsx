@@ -338,7 +338,7 @@ function PageLinksCell({ page }: { page: SitemapPage }) {
 function PageCrawledCell({ page }: { page: SitemapPage }) {
   const t = useTranslations("brand.sitemap.pages");
   const format = useFormatter();
-  const now = useNow();
+  const now = useNow({ updateInterval: 60_000 });
   const crawledAt = page.crawledAt ? new Date(page.crawledAt) : null;
   const isValid = crawledAt !== null && !Number.isNaN(crawledAt.getTime());
   return (

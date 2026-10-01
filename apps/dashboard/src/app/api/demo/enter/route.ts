@@ -1,13 +1,12 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { headers } from "next/headers";
-import { after, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { DEMO_CLEANUP_BATCH_SIZE, DEMO_START_PATH } from "@/constants/demo";
+import { DEMO_START_PATH } from "@/constants/demo";
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
 import {
   claimPooledSandbox,
-  cleanupExpiredDemoSandboxes,
-  refillDemoSandboxPool,
+  maintainDemoSandboxPool,
 } from "@/lib/demo/sandbox";
 import { getCurrentDemoSandbox, writeDemoSession } from "@/lib/demo/session";
 import { getDemoClientIp, hashDemoClientIp } from "@/utils/demo-ip-hash";
@@ -22,13 +21,6 @@ export const maxDuration = 60;
  */
 function redirectTo(location: string) {
   return new Response(null, { status: 307, headers: { location } });
-}
-
-function topUpPool() {
-  after(async () => {
-    await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
-    await refillDemoSandboxPool();
-  });
 }
 
 /**
@@ -53,10 +45,10 @@ export async function GET(request: NextRequest) {
     : null;
   // Denied requests must not buy pool maintenance (cleanup, rebase, seeding).
   if (success) {
-    topUpPool();
+    maintainDemoSandboxPool();
   }
 
-  if (!sandbox?.slug) {
+  if (!sandbox) {
     const query = target ? `?${new URLSearchParams({ returnTo: target })}` : "";
     return redirectTo(`${DEMO_START_PATH}${query}`);
   }

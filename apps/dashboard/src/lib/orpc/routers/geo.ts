@@ -308,6 +308,7 @@ import {
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
+  assertNotDemo,
   badRequest,
   notFound,
   serviceUnavailable,
@@ -1977,6 +1978,8 @@ export const geoRouter = {
       if (!GEO_SAMPLE_DATA_ENABLED) {
         throw notFound();
       }
+      // The demo is already sample data; reseeding would wipe the sandbox.
+      assertNotDemo();
       return geoHandler((input) => seedGeoSampleData(input))(options);
     }),
   sampleDataClear: authorizedProcedure
@@ -1985,6 +1988,8 @@ export const geoRouter = {
       if (!GEO_SAMPLE_DATA_ENABLED) {
         throw notFound();
       }
+      // The demo is already sample data; reseeding would wipe the sandbox.
+      assertNotDemo();
       return geoHandler((input) => clearGeoSampleData(input))(options);
     }),
   searchConsoleStatus: authorizedProcedure

@@ -75,9 +75,9 @@ async function requireUnkeyConfig() {
 }
 
 /** The sandbox's own key powers the API playground, so it must survive. */
-async function isDemoSandboxKey(organizationId: string, keyId: string) {
+async function assertNotDemoSandboxKey(organizationId: string, keyId: string) {
   if (!isDemoMode()) {
-    return false;
+    return;
   }
   const sandbox = await db.query.demoSandboxes.findFirst({
     where: and(
@@ -86,7 +86,9 @@ async function isDemoSandboxKey(organizationId: string, keyId: string) {
     ),
     columns: { anonymousId: true },
   });
-  return Boolean(sandbox);
+  if (sandbox) {
+    throw forbidden(DEMO_DISABLED_MESSAGE);
+  }
 }
 
 type ListKeysResult =
@@ -251,9 +253,7 @@ export const apiKeysRouter = {
       }
 
       // The playground depends on the demo key keeping full access.
-      if (await isDemoSandboxKey(input.organizationId, input.payload.keyId)) {
-        throw forbidden(DEMO_DISABLED_MESSAGE);
-      }
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
 
       const key = await findOrganizationKey(
         client,
@@ -346,9 +346,7 @@ export const apiKeysRouter = {
         );
       }
 
-      if (await isDemoSandboxKey(input.organizationId, input.payload.keyId)) {
-        throw forbidden(DEMO_DISABLED_MESSAGE);
-      }
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
 
       const key = await findOrganizationKey(
         client,

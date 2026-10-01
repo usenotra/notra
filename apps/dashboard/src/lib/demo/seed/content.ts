@@ -26,7 +26,7 @@ export async function seedDemoContent(
   for (const collection of DEMO_SEED_COLLECTIONS) {
     const collectionId = crypto.randomUUID();
     const createdAt = clock.local({
-      daysAgo: collection.daysAgo,
+      daysAgo: Math.max(...collection.posts.map((post) => post.daysAgo)),
       hour: POST_HOUR - 1,
     });
     const contentTypes = [

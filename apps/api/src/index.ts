@@ -365,9 +365,7 @@ app.doc31("/openapi.json", (_c) => ({
     description:
       "OpenAPI schema for Notra content endpoints. Use GET /v1/status for public reachability. Error responses include recovery guidance.",
   },
-  servers: IS_DEMO
-    ? [DEMO_SERVER, PRODUCTION_SERVER]
-    : [PRODUCTION_SERVER, DEMO_SERVER],
+  servers: IS_DEMO ? [DEMO_SERVER, PRODUCTION_SERVER] : [PRODUCTION_SERVER],
   security: [{ BearerAuth: [] }],
   tags: [...API_OPENAPI_TAGS],
 }));

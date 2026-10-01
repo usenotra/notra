@@ -175,12 +175,13 @@ export async function seedDemoGeoExtras(
 function personalizedReadinessReport(
   companyName: string
 ): typeof GEO_DEMO_AGENT_READINESS_REPORT {
-  return JSON.parse(
-    personalizeDemoText(
-      JSON.stringify(GEO_DEMO_AGENT_READINESS_REPORT),
-      companyName
-    )
-  );
+  return {
+    ...GEO_DEMO_AGENT_READINESS_REPORT,
+    issues: GEO_DEMO_AGENT_READINESS_REPORT.issues.map((issue) => ({
+      ...issue,
+      details: issue.details && personalizeDemoText(issue.details, companyName),
+    })),
+  };
 }
 
 /** The company's own X and LinkedIn accounts plus two tracked rivals. */

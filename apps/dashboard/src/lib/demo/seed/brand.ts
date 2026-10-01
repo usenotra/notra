@@ -70,6 +70,4 @@ export async function seedDemoBrand(context: DemoSeedContext) {
       updatedAt: now,
     }))
   );
-
-  return { brandSettingsId };
 }

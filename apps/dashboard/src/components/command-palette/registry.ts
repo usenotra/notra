@@ -367,9 +367,15 @@ export function isCommandRouteVisible(
   return !route.flag || visibility[route.flag];
 }
 
-export function commandRoutesForAI(slug: string, hasAiCredits: boolean) {
-  return COMMAND_ROUTES.filter((r) =>
-    isCommandRouteAvailable(r, hasAiCredits)
+export function commandRoutesForAI(
+  slug: string,
+  hasAiCredits: boolean,
+  visibility: NavVisibility
+) {
+  return COMMAND_ROUTES.filter(
+    (r) =>
+      isCommandRouteAvailable(r, hasAiCredits) &&
+      isCommandRouteVisible(r, visibility)
   ).map((r) => ({
     id: r.id,
     label: r.label,

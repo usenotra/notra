@@ -1,9 +1,5 @@
-import { DEMO_COMPANY_NAME, DEMO_COMPANY_WEBSITE } from "@/constants/demo";
-
+/** Name, company name and website come from the visitor's company. */
 export const DEMO_SEED_BRAND = {
-  name: "Fieldnote",
-  websiteUrl: DEMO_COMPANY_WEBSITE,
-  companyName: DEMO_COMPANY_NAME,
   companyDescription:
     "Fieldnote is an AI meeting notes app for product teams. It records calls, writes summaries and action items, and makes every decision searchable in plain language.",
   toneProfile: "Conversational",

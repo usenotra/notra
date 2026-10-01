@@ -168,7 +168,6 @@ Teams mit Fieldnote haben ihre wiederkehrenden Status-Meetings im ersten Quartal
 
 export const DEMO_CHAT_SCENARIOS: readonly DemoChatScenario[] = [
   {
-    id: "write-post",
     pattern:
       /\b(write|draft|create|generate|post|blog|linkedin|tweet|thread|changelog|article|schreib|erstell|entwurf|beitrag)\b/i,
     toolPattern: /^create(Post|BlogPost|LinkedInPost|TwitterPost|Changelog)$/,
@@ -192,7 +191,6 @@ export const DEMO_CHAT_SCENARIOS: readonly DemoChatScenario[] = [
     },
   },
   {
-    id: "geo-visibility",
     pattern:
       /\b(visib|geo|ai search|chatgpt|perplexity|claude|gemini|mention|rank|competitor|konkurren|sichtbar|erwähn)\w*/i,
     toolPattern: /^getGeo(Overview|CompetitorShare|PromptResults)$/,
@@ -218,7 +216,6 @@ Der schnellste Hebel: eine Vergleichsseite zu „Quillboard-Alternativen“ und 
     },
   },
   {
-    id: "schedule",
     pattern:
       /\b(schedule|automat|every week|weekly|daily|zeitplan|automati|wöchentlich|täglich)\w*/i,
     reply: {
@@ -245,7 +242,6 @@ Everything here runs on sample data for Fieldnote, a fictional company.`,
 Alles hier läuft auf Beispieldaten für Fieldnote, eine fiktive Firma.`,
 } as const;
 
-/** Stand-in homepage for brand analysis in the demo (no website is fetched). */
 /**
  * Brand analysis answer for the canned homepage below; keys missing from the
  * requested schema are dropped, the rest replace generic fake text.
@@ -261,6 +257,7 @@ export const DEMO_BRAND_ANALYSIS: Readonly<Record<string, unknown>> = {
   language: "English",
 };
 
+/** Stand-in homepage for brand analysis in the demo (no website is fetched). */
 export const DEMO_BRAND_WEBSITE_CONTENT = `# Fieldnote: AI meeting notes your team can search
 
 Fieldnote records your meetings, writes the summary and pulls out decisions and action items. A month later, ask "why did we move the launch?" and jump straight to the moment it was decided.

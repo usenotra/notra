@@ -1,15 +1,13 @@
-import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 import { getTranslations } from "next-intl/server";
 
-import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import {
   SOCIAL_DUPLICATE_CONTENT_CODE,
   SOCIAL_DUPLICATE_CONTENT_REGEX,
 } from "@/constants/social-connect";
 import {
+  assertNotDemo,
   badRequest,
-  forbidden,
   paymentRequired,
   serviceUnavailable,
 } from "@/lib/orpc/utils/errors";
@@ -46,9 +44,7 @@ export async function runSocialConnect<A>(
   const { error } = result;
   if (error._tag === "SocialConnectConfigError") {
     // The demo never links real accounts; its seeded ones are read-only.
-    if (isDemoMode()) {
-      throw forbidden(DEMO_DISABLED_MESSAGE);
-    }
+    assertNotDemo();
     const tCommonErrors = await getTranslations("common.errors");
     throw serviceUnavailable(tCommonErrors("generic"));
   }

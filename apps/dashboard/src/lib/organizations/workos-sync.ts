@@ -14,6 +14,12 @@ const logSyncFailure = (context: Record<string, unknown>) =>
     )
   );
 
+// The public demo has no WorkOS; memberships only live in the database.
+const skipInDemo = <A, E, R>(
+  effect: Effect.Effect<A, E, R>
+): Effect.Effect<A | void, E, R> =>
+  Effect.suspend(() => (isDemoMode() ? Effect.void : effect));
+
 const ensureWorkOSOrganization = Effect.fn(
   "organizations.sync.ensureWorkOSOrganization"
 )(function* (organizationId: string) {
@@ -69,10 +75,6 @@ const ensureWorkOSOrganization = Effect.fn(
 export const syncOrganizationNameToWorkOS = Effect.fn(
   "organizations.sync.syncOrganizationName"
 )(function* (organizationId: string, name: string) {
-  // The public demo has no WorkOS; memberships only live in the database.
-  if (isDemoMode()) {
-    return;
-  }
   yield* Effect.gen(function* () {
     const { workosOrgId } = yield* ensureWorkOSOrganization(organizationId);
 
@@ -88,7 +90,7 @@ export const syncOrganizationNameToWorkOS = Effect.fn(
           cause,
         }),
     });
-  }).pipe(logSyncFailure({ organizationId }));
+  }).pipe(logSyncFailure({ organizationId }), skipInDemo);
 });
 
 export const ensureWorkOSOrganizationWithMembers = Effect.fn(
@@ -170,10 +172,6 @@ const createWorkOSMembership = Effect.fn(
 export const updateMembershipRoleInWorkOS = Effect.fn(
   "organizations.sync.updateWorkOSMembershipRole"
 )(function* (organizationId: string, userId: string, roleSlug: string) {
-  // The public demo has no WorkOS; memberships only live in the database.
-  if (isDemoMode()) {
-    return;
-  }
   yield* Effect.tryPromise({
     try: async () => {
       const [organization, user] = await Promise.all([
@@ -218,16 +216,12 @@ export const updateMembershipRoleInWorkOS = Effect.fn(
         message: "Failed to update WorkOS membership role",
         cause,
       }),
-  }).pipe(logSyncFailure({ organizationId, userId }));
+  }).pipe(logSyncFailure({ organizationId, userId }), skipInDemo);
 });
 
 export const deleteOrganizationFromWorkOS = Effect.fn(
   "organizations.sync.deleteWorkOSOrganization"
 )(function* (workosOrgId: string | null) {
-  // The public demo has no WorkOS; memberships only live in the database.
-  if (isDemoMode()) {
-    return;
-  }
   if (!workosOrgId) {
     return;
   }
@@ -239,16 +233,12 @@ export const deleteOrganizationFromWorkOS = Effect.fn(
         message: "Failed to delete WorkOS organization",
         cause,
       }),
-  }).pipe(logSyncFailure({ workosOrgId }));
+  }).pipe(logSyncFailure({ workosOrgId }), skipInDemo);
 });
 
 export const removeMembershipFromWorkOS = Effect.fn(
   "organizations.sync.removeWorkOSMembership"
 )(function* (organizationId: string, userId: string) {
-  // The public demo has no WorkOS; memberships only live in the database.
-  if (isDemoMode()) {
-    return;
-  }
   yield* Effect.tryPromise({
     try: async () => {
       const [organization, user] = await Promise.all([
@@ -283,5 +273,5 @@ export const removeMembershipFromWorkOS = Effect.fn(
         message: "Failed to remove WorkOS membership",
         cause,
       }),
-  }).pipe(logSyncFailure({ organizationId, userId }));
+  }).pipe(logSyncFailure({ organizationId, userId }), skipInDemo);
 });

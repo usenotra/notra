@@ -3,14 +3,20 @@ import { createHmac } from "node:crypto";
 /**
  * The visitor's IP for demo rate limits. The demo is self-hosted behind
  * Cloudflare and Railway, where the shared ratelimit helper (Vercel only)
- * would hand every request a fresh random key. A client that bypasses
- * Cloudflare can spoof these headers, but that only buys it more sandboxes,
- * which the sandbox cap still bounds.
+ * would hand every request a fresh random key. `x-vercel-forwarded-for` is
+ * only trusted on Vercel: elsewhere any client could send it through
+ * Cloudflare to dodge the per-network limit. A client that bypasses
+ * Cloudflare can still spoof the other headers, but that only buys it more
+ * sandboxes, which the sandbox cap still bounds.
  */
 export function getDemoClientIp(headersList: Headers): string {
+  const vercelIp =
+    process.env.VERCEL === "1"
+      ? headersList.get("x-vercel-forwarded-for")?.trim()
+      : undefined;
   const forwarded = headersList.get("x-forwarded-for")?.split(",")[0];
   return (
-    headersList.get("x-vercel-forwarded-for")?.trim() ||
+    vercelIp ||
     headersList.get("cf-connecting-ip")?.trim() ||
     headersList.get("x-real-ip")?.trim() ||
     forwarded?.trim() ||

@@ -1,3 +1,5 @@
+import { DEMO_COMPETITORS } from "@notra/ai/constants/demo-context-dev";
+
 /**
  * Canned answers for structured AI calls the generic schema faker can't
  * satisfy: they carry rules JSON Schema doesn't express (two-word job titles,
@@ -226,11 +228,9 @@ export const DEMO_DISCOVERY_PROMPTS = [
   },
 ] as const;
 
-export const DEMO_DISCOVERY_COMPETITORS = [
-  { name: "Quillboard", domain: "quillboard.example" },
-  { name: "Notably", domain: "notably.example" },
-  { name: "Paperline", domain: "paperline.example" },
-] as const;
+export const DEMO_DISCOVERY_COMPETITORS = DEMO_COMPETITORS.map(
+  ({ name, domain }) => ({ name, domain })
+);
 
 /** Sentiment themes; claims cite verbatim sentences from the sampled answers. */
 export const DEMO_SENTIMENT_THEMES = [

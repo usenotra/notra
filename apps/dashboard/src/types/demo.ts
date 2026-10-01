@@ -1,10 +1,14 @@
+import type { db } from "@notra/db/drizzle";
 import type { demoSandboxes } from "@notra/db/schema";
 import type { DemoPersonalization } from "@notra/db/types/demo";
 
 export type DemoSandbox = typeof demoSandboxes.$inferSelect;
 
+export type DemoTransaction = Parameters<
+  Parameters<typeof db.transaction>[0]
+>[0];
+
 export interface DemoOrganizationInput {
-  anonymousId: string;
   timeZone: string;
   now: Date;
   personalization: DemoPersonalization | null;
@@ -30,17 +34,12 @@ export interface DemoSeedContext {
   now: Date;
 }
 
-export interface DemoSeedResult {
-  projectId: string | null;
-}
-
 export interface DemoTimestampColumns {
   table: string;
   columns: string[];
 }
 
 export interface DemoSandboxCreateResponse {
-  anonymousId: string;
   slug: string;
 }
 

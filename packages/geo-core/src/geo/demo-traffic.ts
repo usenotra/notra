@@ -1,5 +1,8 @@
 import { setDemoTrafficProvider } from "@notra/analytics/tinybird/demo-geo-traffic";
 import type { DemoTrafficEvent } from "@notra/analytics/types/demo-traffic";
+import { db } from "@notra/db/drizzle";
+import { geoSettings } from "@notra/db/schema";
+import { and, eq } from "drizzle-orm";
 
 import {
   GEO_DEMO_PROFILE,
@@ -11,8 +14,47 @@ import { buildGeoSampleTrafficEvents } from "./sample-data";
 
 const cache = new Map<
   string,
-  { builtAt: number; events: DemoTrafficEvent[] }
+  { builtAt: number; events: Promise<DemoTrafficEvent[]> }
 >();
+
+/**
+ * The sandbox's own hosts (seeded from the visitor's company name), so
+ * traffic shows the same domain as the rest of the project.
+ */
+async function trafficHosts(
+  organizationId: string,
+  projectId: string
+): Promise<readonly string[]> {
+  const settings = await db.query.geoSettings.findFirst({
+    columns: { domains: true },
+    where: projectId
+      ? and(
+          eq(geoSettings.organizationId, organizationId),
+          eq(geoSettings.projectId, projectId)
+        )
+      : eq(geoSettings.organizationId, organizationId),
+  });
+  return settings?.domains.length
+    ? settings.domains
+    : GEO_DEMO_PROFILE.trafficHosts;
+}
+
+async function buildEvents(
+  organizationId: string,
+  projectId: string,
+  now: number
+): Promise<DemoTrafficEvent[]> {
+  return buildGeoSampleTrafficEvents({
+    organizationId,
+    projectId,
+    now: new Date(now),
+    profile: {
+      ...GEO_DEMO_PROFILE,
+      days: GEO_DEMO_TRAFFIC_DAYS,
+      trafficHosts: await trafficHosts(organizationId, projectId),
+    },
+  });
+}
 
 /**
  * Serves the public demo's AI traffic from the same deterministic generator
@@ -27,11 +69,11 @@ export function registerGeoDemoTraffic() {
     if (cached && now - cached.builtAt < GEO_DEMO_TRAFFIC_CACHE_MS) {
       return cached.events;
     }
-    const events = buildGeoSampleTrafficEvents({
-      organizationId,
-      projectId,
-      now: new Date(now),
-      profile: { ...GEO_DEMO_PROFILE, days: GEO_DEMO_TRAFFIC_DAYS },
+    const events = buildEvents(organizationId, projectId, now);
+    events.catch(() => {
+      if (cache.get(key)?.events === events) {
+        cache.delete(key);
+      }
     });
     // Bounded: sandboxes come and go, so drop stale and oldest entries.
     for (const [entryKey, entry] of cache) {

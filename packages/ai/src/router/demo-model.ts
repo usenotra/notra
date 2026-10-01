@@ -2,6 +2,7 @@ import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,
   LanguageModelV4Content,
+  LanguageModelV4FinishReason,
   LanguageModelV4FunctionTool,
   LanguageModelV4Prompt,
   LanguageModelV4StreamPart,
@@ -18,12 +19,14 @@ import {
   DEMO_STREAM_CHUNK_DELAY_MS,
   DEMO_TOOL_HINTS,
 } from "@notra/ai/constants/demo-responses";
+import { CREATE_POST_TOOL_NAMES } from "@notra/ai/constants/post-tools";
+import { WEB_SEARCH_TOOL_NAME } from "@notra/ai/tools/web-search";
 import type {
   DemoChatScenario,
   DemoJsonSchema,
   DemoToolArgs,
 } from "@notra/ai/types/demo-model";
-import { fakeFromJsonSchema } from "@notra/ai/utils/demo-json-schema";
+import { fakeFromJsonSchema, seedHash } from "@notra/ai/utils/demo-json-schema";
 import {
   demoStructuredOutput,
   withDemoBrandAnalysis,
@@ -102,7 +105,7 @@ function toolArguments(
 }
 
 function localized(
-  text: { en: string; de: string } | undefined,
+  text: { readonly en: string; readonly de: string } | undefined,
   german: boolean
 ): string {
   if (!text) {
@@ -127,7 +130,7 @@ function scenarioText(
   german: boolean
 ): string {
   if (!scenario) {
-    return german ? DEMO_CHAT_FALLBACK.de : DEMO_CHAT_FALLBACK.en;
+    return localized(DEMO_CHAT_FALLBACK, german);
   }
   // Without the matching tool, show the result inline instead of promising
   // an action that cannot happen.
@@ -135,17 +138,7 @@ function scenarioText(
   if (typeof args?.markdown === "string") {
     return `**${String(args.title ?? "")}**\n\n${args.markdown}`;
   }
-  const text = scenario.followUp ?? scenario.reply;
-  return german ? text.de : text.en;
-}
-
-/** Decides what the fake model answers for one call. */
-function hashSeed(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index++) {
-    hash = (hash * 31 + value.charCodeAt(index)) % 2_147_483_647;
-  }
-  return hash;
+  return localized(scenario.followUp ?? scenario.reply, german);
 }
 
 /** GEO writer: search once, then save an article that passes the gate. */
@@ -163,8 +156,8 @@ function demoWriterPlan(
   }
   const called = calledTools(options.prompt);
   const promptText = options.prompt.map(messageText).join("\n");
-  if (!called.has("webSearch")) {
-    const search = tools.find((tool) => tool.name === "webSearch");
+  if (!called.has(WEB_SEARCH_TOOL_NAME)) {
+    const search = tools.find((tool) => tool.name === WEB_SEARCH_TOOL_NAME);
     return search
       ? {
           kind: "tool",
@@ -177,8 +170,10 @@ function demoWriterPlan(
         }
       : undefined;
   }
-  if (!called.has("createBlogPost")) {
-    const create = tools.find((tool) => tool.name === "createBlogPost");
+  if (!called.has(CREATE_POST_TOOL_NAMES.blog_post)) {
+    const create = tools.find(
+      (tool) => tool.name === CREATE_POST_TOOL_NAMES.blog_post
+    );
     const article = demoWriterArticle(promptText);
     return create
       ? {
@@ -197,6 +192,7 @@ function demoWriterPlan(
   return { kind: "text", text: "Saved the article." };
 }
 
+/** Decides what the fake model answers for one call. */
 function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
   const userText = lastUserText(options.prompt);
   const german = isGerman(userText);
@@ -207,7 +203,7 @@ function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
     const canned = demoStructuredOutput(
       schema,
       options.prompt.map(messageText).join("\n"),
-      hashSeed(seed)
+      seedHash(seed)
     );
     if (canned !== undefined) {
       return { kind: "text", text: JSON.stringify(canned) };
@@ -317,6 +313,12 @@ function usageFor(text: string) {
   };
 }
 
+function finishReasonFor(plan: DemoPlan): LanguageModelV4FinishReason {
+  return plan.kind === "tool"
+    ? { unified: "tool-calls", raw: undefined }
+    : { unified: "stop", raw: undefined };
+}
+
 function toolCallId(): string {
   return `demo_call_${crypto.randomUUID().slice(0, 8)}`;
 }
@@ -345,10 +347,7 @@ function streamParts(plan: DemoPlan): LanguageModelV4StreamPart[] {
   parts.push({
     type: "finish",
     usage: usageFor(plan.text),
-    finishReason:
-      plan.kind === "tool"
-        ? { unified: "tool-calls", raw: undefined }
-        : { unified: "stop", raw: undefined },
+    finishReason: finishReasonFor(plan),
   });
   return parts;
 }
@@ -384,10 +383,7 @@ export function createDemoLanguageModel(modelId: string): LanguageModelV4 {
       const plan = planResponse(options);
       return {
         content: generateContent(plan),
-        finishReason:
-          plan.kind === "tool"
-            ? { unified: "tool-calls", raw: undefined }
-            : { unified: "stop", raw: undefined },
+        finishReason: finishReasonFor(plan),
         usage: usageFor(plan.text),
         warnings: [],
         response: { id: `demo-${crypto.randomUUID()}`, modelId },

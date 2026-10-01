@@ -1,17 +1,22 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { os } from "@orpc/server";
 
 import { assertAuthenticated } from "@/lib/auth/organization";
-import { logDemoUiAction } from "@/lib/demo/ui-actions";
 
 import type { ORPCContext } from "./context";
 
 // In the public demo every successful mutation also lands in the visitor's
-// request feed; outside the demo this is a no-op.
+// request feed. Outside the demo this returns right away and the demo logger
+// is never loaded.
 export const baseProcedure = os
   .$context<ORPCContext>()
   .use(async ({ next, path }, input) => {
+    if (!isDemoMode()) {
+      return next();
+    }
     const startedAt = performance.now();
     const result = await next();
+    const { logDemoUiAction } = await import("@/lib/demo/ui-actions");
     logDemoUiAction({
       path,
       input,

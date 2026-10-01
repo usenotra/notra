@@ -1,7 +1,5 @@
-import { isDemoMode } from "@notra/utils/demo-mode";
-
+import { demoSandboxRoute } from "@/lib/demo/route";
 import { resetDemoSandbox } from "@/lib/demo/sandbox";
-import { getCurrentDemoSandbox } from "@/lib/demo/session";
 import { demoPersonalizationSchema } from "@/schemas/demo";
 
 export const maxDuration = 60;
@@ -10,14 +8,7 @@ export const maxDuration = 60;
  * "Customize your experience": rebuilds the visitor's workspace around their
  * own name and company. Nothing is stored beyond the sandbox itself.
  */
-export async function POST(request: Request) {
-  if (!isDemoMode()) {
-    return new Response(null, { status: 404 });
-  }
-  const sandbox = await getCurrentDemoSandbox();
-  if (!sandbox) {
-    return Response.json({ error: "No demo workspace" }, { status: 401 });
-  }
+export const POST = demoSandboxRoute(async (sandbox, request: Request) => {
   const parsed = demoPersonalizationSchema.safeParse(
     await request.json().catch(() => null)
   );
@@ -26,4 +17,4 @@ export async function POST(request: Request) {
   }
   const { slug } = await resetDemoSandbox(sandbox, parsed.data);
   return Response.json({ slug });
-}
+});

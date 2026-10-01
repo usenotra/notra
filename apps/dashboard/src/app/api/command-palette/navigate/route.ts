@@ -23,8 +23,10 @@ import { createRequestLogger } from "evlog";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { commandRoutesForAI } from "@/components/command-palette/registry";
+import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { getServerSession } from "@/lib/auth/session";
 import { hasAiCreditsGrant } from "@/lib/billing/subscription";
+import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
 import { getClientIp, ratelimit } from "@/utils/ratelimit";
 
 export const maxDuration = 15;
@@ -258,11 +260,13 @@ export async function POST(request: NextRequest) {
   }
 
   const organizationId = member.organizationId;
-  const [hasAiCredits, entities] = await Promise.all([
+  const [hasAiCredits, iris, analytics, entities] = await Promise.all([
     hasAiCreditsGrant(organizationId).catch(() => false),
+    isIrisEnabledForOrganization(organizationId).catch(() => false),
+    isAnalyticsEnabledForOrganization(organizationId).catch(() => false),
     fetchEntityContext(organizationId, query, slug),
   ]);
-  const routes = commandRoutesForAI(slug, hasAiCredits);
+  const routes = commandRoutesForAI(slug, hasAiCredits, { iris, analytics });
 
   const allPaths = [
     ...routes.map((r) => r.path),

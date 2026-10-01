@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   DEMO_GITHUB_BRANCHES,
   DEMO_GITHUB_COMMITS,
@@ -12,9 +14,6 @@ const REPO_PATH = /^\/repos\/([^/]+)\/([^/]+)(\/.*)?$/;
 const CONTENTS_PATH = /^\/contents(?:\/(.*))?$/;
 const EDGE_SLASHES = /^\/+|\/+$/g;
 const DEMO_FILE_SIZE_BYTES = 2048;
-const DEFAULT_PAGE_SIZE = 30;
-const SHA_LENGTH = 40;
-const HEX_RADIX = 16;
 
 function ago(days: number): string {
   return new Date(Date.now() - days * DAY_MS).toISOString();
@@ -80,36 +79,22 @@ function releases() {
 
 /** A stable, fake git object id so entries look like real GitHub ones. */
 function fakeSha(seed: string): string {
-  let hash = 0;
-  let sha = "";
-  while (sha.length < SHA_LENGTH) {
-    for (const char of `${seed}:${sha.length}`) {
-      hash = Math.imul(hash ^ char.charCodeAt(0), 16_777_619) >>> 0;
-    }
-    sha += hash.toString(HEX_RADIX).padStart(8, "0");
-  }
-  return sha.slice(0, SHA_LENGTH);
+  return createHash("sha1").update(seed).digest("hex");
 }
 
-function branches(owner: string, name: string, url: URL) {
-  const perPage = Number(url.searchParams.get("per_page")) || DEFAULT_PAGE_SIZE;
-  const page = Number(url.searchParams.get("page")) || 1;
-  return DEMO_GITHUB_BRANCHES.slice((page - 1) * perPage, page * perPage).map(
-    (branch, index) => {
-      const sha =
-        index === 0 && page === 1
-          ? (DEMO_GITHUB_COMMITS[0]?.sha ?? fakeSha(branch))
-          : fakeSha(branch);
-      return {
-        name: branch,
-        commit: {
-          sha,
-          url: `https://api.github.com/repos/${owner}/${name}/commits/${sha}`,
-        },
-        protected: branch === DEMO_GITHUB_BRANCHES[0],
-      };
-    }
-  );
+/** The default branch points at the newest commit; the rest get fake ids. */
+function branches(owner: string, name: string) {
+  return DEMO_GITHUB_BRANCHES.map((branch, index) => {
+    const sha = index === 0 ? DEMO_GITHUB_COMMITS[0].sha : fakeSha(branch);
+    return {
+      name: branch,
+      commit: {
+        sha,
+        url: `https://api.github.com/repos/${owner}/${name}/commits/${sha}`,
+      },
+      protected: index === 0,
+    };
+  });
 }
 
 function contentEntry(
@@ -214,7 +199,7 @@ export const demoGitHubFetch: typeof fetch = async (input, init) => {
     return json({ commits: commits(owner, name), files: [] });
   }
   if (rest === "/branches") {
-    return json(branches(owner, name, url));
+    return json(branches(owner, name));
   }
   const contentsMatch = CONTENTS_PATH.exec(rest);
   if (contentsMatch) {

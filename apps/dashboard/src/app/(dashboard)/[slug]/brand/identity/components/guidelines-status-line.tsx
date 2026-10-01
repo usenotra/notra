@@ -12,7 +12,7 @@ export function GuidelinesStatusLine({
 }: GuidelinesStatusLineProps) {
   const t = useTranslations("brand.guidelines.panel");
   const format = useFormatter();
-  const now = useNow();
+  const now = useNow({ updateInterval: 60_000 });
 
   if (generating) {
     return (

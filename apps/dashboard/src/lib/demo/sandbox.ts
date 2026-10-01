@@ -24,7 +24,7 @@ import {
   lt,
   notExists,
   notLike,
-  or,
+  type SQL,
   TransactionRollbackError,
 } from "drizzle-orm";
 import { after } from "next/server";
@@ -38,8 +38,8 @@ import {
   DEMO_POOL_ID_PREFIX,
   DEMO_POOL_REFILL_LOCK_KEY,
   DEMO_POOL_REFILL_LOCK_SECONDS,
+  DEMO_POOL_REFILL_RELEASE_SCRIPT,
   DEMO_ORG_SLUG_SUFFIX_LENGTH,
-  DEMO_SANDBOX_IDLE_TTL_MS,
   DEMO_SANDBOX_MAX_AGE_MS,
   DEMO_TOUCH_INTERVAL_MS,
   DEMO_USER_EMAIL_DOMAIN,
@@ -59,6 +59,7 @@ import type {
   DemoOrganizationInput,
   CreatedDemoSandbox,
   DemoSandbox,
+  DemoTransaction,
 } from "@/types/demo";
 import { demoMaxActiveSandboxes, demoPoolSize } from "@/utils/demo-limits";
 
@@ -85,13 +86,56 @@ function createAnonymousId(): string {
   return `${DEMO_ANONYMOUS_ID_PREFIX}${randomToken(DEMO_ANONYMOUS_ID_LENGTH)}`;
 }
 
-function sandboxExpiry(createdAt: Date, lastSeenAt: Date): Date {
-  return new Date(
-    Math.min(
-      lastSeenAt.getTime() + DEMO_SANDBOX_IDLE_TTL_MS,
-      createdAt.getTime() + DEMO_SANDBOX_MAX_AGE_MS
+function sandboxExpiry(createdAt: Date): Date {
+  return new Date(createdAt.getTime() + DEMO_SANDBOX_MAX_AGE_MS);
+}
+
+const POOLED_ID_PATTERN = `${DEMO_POOL_ID_PREFIX}%`;
+
+async function countDemoSandboxes(where?: SQL): Promise<number> {
+  const [{ value } = { value: 0 }] = await db
+    .select({ value: count() })
+    .from(demoSandboxes)
+    .where(where);
+  return value;
+}
+
+/**
+ * Locks the oldest unexpired pooled sandbox, optionally only one anchored
+ * after `anchoredAfter`. SKIP LOCKED lets concurrent visitors each take a
+ * different one; expired ones are skipped because cleanup could delete them
+ * right after the claim.
+ */
+async function lockNextPooledSandbox(
+  tx: DemoTransaction,
+  now: Date,
+  anchoredAfter?: Date
+) {
+  const [pooled] = await tx
+    .select({
+      anonymousId: demoSandboxes.anonymousId,
+      organizationId: demoSandboxes.organizationId,
+      userId: demoSandboxes.userId,
+      apiKeyId: demoSandboxes.apiKeyId,
+      anchorAt: demoSandboxes.anchorAt,
+      slug: organizations.slug,
+    })
+    .from(demoSandboxes)
+    .innerJoin(
+      organizations,
+      eq(organizations.id, demoSandboxes.organizationId)
     )
-  );
+    .where(
+      and(
+        like(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
+        gt(demoSandboxes.expiresAt, now),
+        anchoredAfter ? gt(demoSandboxes.anchorAt, anchoredAfter) : undefined
+      )
+    )
+    .orderBy(asc(demoSandboxes.createdAt))
+    .limit(1)
+    .for("update", { of: demoSandboxes, skipLocked: true });
+  return pooled ?? null;
 }
 
 /**
@@ -171,24 +215,18 @@ async function createDemoOrganization(input: DemoOrganizationInput) {
  */
 async function enforceDemoSandboxCap() {
   const cap = demoMaxActiveSandboxes();
-  const [{ value: active } = { value: 0 }] = await db
-    .select({ value: count() })
-    .from(demoSandboxes);
-  if (active < cap) {
+  if ((await countDemoSandboxes()) < cap) {
     return;
   }
   await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
-  const [{ value: remaining } = { value: 0 }] = await db
-    .select({ value: count() })
-    .from(demoSandboxes);
-  const overflow = remaining - cap + 1;
+  const overflow = (await countDemoSandboxes()) - cap + 1;
   if (overflow <= 0) {
     return;
   }
   // Visitors' sandboxes go first: the few waiting in the pool look idle but
   // are what keeps the next visitor from waiting.
   const oldest = await db.query.demoSandboxes.findMany({
-    where: notLike(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
+    where: notLike(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
     orderBy: [asc(demoSandboxes.lastSeenAt)],
     limit: overflow,
   });
@@ -201,10 +239,9 @@ async function seedDemoSandbox(
 ): Promise<CreatedDemoSandbox> {
   const timeZone = normalizeTimeZone(input.timeZone);
   const now = new Date();
-  const expiresAt = sandboxExpiry(now, now);
+  const expiresAt = sandboxExpiry(now);
 
   const organization = await createDemoOrganization({
-    anonymousId,
     timeZone,
     now,
     personalization: null,
@@ -215,7 +252,7 @@ async function seedDemoSandbox(
   const apiKey = await createDemoApiKey({
     organizationId,
     anonymousId,
-    expiresAt: new Date(now.getTime() + DEMO_SANDBOX_MAX_AGE_MS),
+    expiresAt,
   }).catch((error: unknown) => {
     console.error("[demo] Failed to create sandbox API key", error);
     return null;
@@ -243,7 +280,7 @@ async function seedDemoSandbox(
 /**
  * Hands a ready, pre-seeded sandbox to a new visitor: re-keys it to a fresh
  * anonymousId and shifts its data to the present. Null when the pool is
- * empty. SKIP LOCKED lets concurrent visitors each take a different one.
+ * empty.
  */
 export async function claimPooledSandbox(
   input: CreateDemoSandboxInput
@@ -251,21 +288,7 @@ export async function claimPooledSandbox(
   const anonymousId = createAnonymousId();
   const now = new Date();
   const claimed = await db.transaction(async (tx) => {
-    const [pooled] = await tx
-      .select({
-        anonymousId: demoSandboxes.anonymousId,
-        anchorAt: demoSandboxes.anchorAt,
-        slug: organizations.slug,
-      })
-      .from(demoSandboxes)
-      .innerJoin(
-        organizations,
-        eq(organizations.id, demoSandboxes.organizationId)
-      )
-      .where(like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`))
-      .orderBy(asc(demoSandboxes.createdAt))
-      .limit(1)
-      .for("update", { of: demoSandboxes, skipLocked: true });
+    const pooled = await lockNextPooledSandbox(tx, now);
     if (!pooled) {
       return null;
     }
@@ -286,7 +309,7 @@ export async function claimPooledSandbox(
         ipHash: input.ipHash,
         createdAt: now,
         lastSeenAt: now,
-        expiresAt: sandboxExpiry(now, now),
+        expiresAt: sandboxExpiry(now),
         ...(fresh ? { anchorAt: now } : {}),
       })
       .where(eq(demoSandboxes.anonymousId, pooled.anonymousId))
@@ -302,12 +325,11 @@ export async function claimPooledSandbox(
   const keyId = claimed.row.apiKeyId;
   if (keyId) {
     after(() =>
-      updateDemoApiKey({
-        keyId,
-        expiresAt: new Date(now.getTime() + DEMO_SANDBOX_MAX_AGE_MS),
-      }).catch((error: unknown) => {
-        console.error("[demo] Failed to extend claimed sandbox key", error);
-      })
+      updateDemoApiKey({ keyId, expiresAt: sandboxExpiry(now) }).catch(
+        (error: unknown) => {
+          console.error("[demo] Failed to extend claimed sandbox key", error);
+        }
+      )
     );
   }
   return {
@@ -323,19 +345,11 @@ export async function createDemoSandbox(
 ): Promise<CreatedDemoSandbox> {
   await assertDedicatedDemoDatabase();
   const pooled = await claimPooledSandbox(input);
-  if (pooled?.slug) {
+  if (pooled) {
     return pooled;
   }
   await enforceDemoSandboxCap();
   return seedDemoSandbox(createAnonymousId(), input);
-}
-
-async function countPooledSandboxes(): Promise<number> {
-  const [{ value } = { value: 0 }] = await db
-    .select({ value: count() })
-    .from(demoSandboxes)
-    .where(like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`));
-  return value;
 }
 
 /**
@@ -343,11 +357,14 @@ async function countPooledSandboxes(): Promise<number> {
  * so nobody waits on it; each sandbox is seeded in the server's time zone
  * and adopts the visitor's when claimed.
  */
-export async function refillDemoSandboxPool(): Promise<void> {
+async function refillDemoSandboxPool(): Promise<void> {
   // Refills run after every visit; serialize them so the pool doesn't
   // overshoot. Without Redis, concurrent refills only waste a seed or two.
+  // The token keeps a refill that outlived its lock from releasing the next
+  // holder's.
+  const token = crypto.randomUUID();
   const locked = redis
-    ? await redis.set(DEMO_POOL_REFILL_LOCK_KEY, "1", {
+    ? await redis.set(DEMO_POOL_REFILL_LOCK_KEY, token, {
         nx: true,
         ex: DEMO_POOL_REFILL_LOCK_SECONDS,
       })
@@ -358,8 +375,24 @@ export async function refillDemoSandboxPool(): Promise<void> {
   try {
     await refillPool();
   } finally {
-    await redis?.del(DEMO_POOL_REFILL_LOCK_KEY);
+    await redis?.eval(
+      DEMO_POOL_REFILL_RELEASE_SCRIPT,
+      [DEMO_POOL_REFILL_LOCK_KEY],
+      [token]
+    );
   }
+}
+
+/**
+ * Clears expired sandboxes and tops the pool back up once the response is
+ * sent. Piggybacks on new visitors instead of a cron: the demo shares
+ * vercel.json with production, where a demo cron would only 404.
+ */
+export function maintainDemoSandboxPool(): void {
+  after(async () => {
+    await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
+    await refillDemoSandboxPool();
+  });
 }
 
 async function refillPool(): Promise<void> {
@@ -368,7 +401,7 @@ async function refillPool(): Promise<void> {
   const now = new Date();
   const stale = await db.query.demoSandboxes.findMany({
     where: and(
-      like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
+      like(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
       lt(
         demoSandboxes.anchorAt,
         new Date(now.getTime() - DEMO_POOL_FRESH_MS / 2)
@@ -378,7 +411,11 @@ async function refillPool(): Promise<void> {
   await Promise.all(stale.map((sandbox) => rebaseDemoSandbox(sandbox, now)));
   // Recount before each seed: refills run after every visit, and a count
   // taken once would let concurrent refills overshoot the target.
-  while ((await countPooledSandboxes()) < target) {
+  while (
+    (await countDemoSandboxes(
+      like(demoSandboxes.anonymousId, POOLED_ID_PATTERN)
+    )) < target
+  ) {
     await enforceDemoSandboxCap();
     await seedDemoSandbox(
       `${DEMO_POOL_ID_PREFIX}${randomToken(DEMO_ANONYMOUS_ID_LENGTH)}`,
@@ -400,8 +437,8 @@ export async function loadDemoSandbox(
 }
 
 /**
- * Records activity and keeps the data current: extends the idle TTL and, on
- * the first request of a new local day, shifts every timestamp forward.
+ * Records activity and keeps the data current: on the first request of a new
+ * local day, shifts every timestamp forward.
  */
 export async function touchDemoSandbox(
   sandbox: DemoSandbox
@@ -417,12 +454,11 @@ export async function touchDemoSandbox(
     return current;
   }
 
-  const expiresAt = sandboxExpiry(current.createdAt, now);
   await db
     .update(demoSandboxes)
-    .set({ lastSeenAt: now, expiresAt })
+    .set({ lastSeenAt: now })
     .where(eq(demoSandboxes.anonymousId, current.anonymousId));
-  return { ...current, lastSeenAt: now, expiresAt };
+  return { ...current, lastSeenAt: now };
 }
 
 /**
@@ -473,31 +509,11 @@ async function swapInPooledWorkspace(
 ): Promise<{ organizationId: string; slug: string } | "conflict" | null> {
   const result = await db
     .transaction(async (tx) => {
-      const [pooled] = await tx
-        .select({
-          anonymousId: demoSandboxes.anonymousId,
-          organizationId: demoSandboxes.organizationId,
-          userId: demoSandboxes.userId,
-          apiKeyId: demoSandboxes.apiKeyId,
-          slug: organizations.slug,
-        })
-        .from(demoSandboxes)
-        .innerJoin(
-          organizations,
-          eq(organizations.id, demoSandboxes.organizationId)
-        )
-        .where(
-          and(
-            like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
-            gt(
-              demoSandboxes.anchorAt,
-              new Date(now.getTime() - DEMO_POOL_FRESH_MS)
-            )
-          )
-        )
-        .orderBy(asc(demoSandboxes.createdAt))
-        .limit(1)
-        .for("update", { of: demoSandboxes, skipLocked: true });
+      const pooled = await lockNextPooledSandbox(
+        tx,
+        now,
+        new Date(now.getTime() - DEMO_POOL_FRESH_MS)
+      );
       if (!pooled) {
         return null;
       }
@@ -512,7 +528,6 @@ async function swapInPooledWorkspace(
           anchorAt: now,
           personalization: null,
           lastSeenAt: now,
-          expiresAt: sandboxExpiry(sandbox.createdAt, now),
         })
         .where(
           and(
@@ -557,7 +572,6 @@ async function seedReplacementWorkspace(
   now: Date
 ): Promise<{ organizationId: string; slug: string } | null> {
   const next = await createDemoOrganization({
-    anonymousId: sandbox.anonymousId,
     timeZone: sandbox.timeZone,
     now,
     personalization,
@@ -571,7 +585,6 @@ async function seedReplacementWorkspace(
         anchorAt: now,
         personalization,
         lastSeenAt: now,
-        expiresAt: sandboxExpiry(sandbox.createdAt, now),
       })
       .where(
         and(
@@ -598,7 +611,7 @@ async function currentDemoSlug(anonymousId: string): Promise<string> {
       eq(organizations.id, demoSandboxes.organizationId)
     )
     .where(eq(demoSandboxes.anonymousId, anonymousId));
-  if (!row?.slug) {
+  if (!row) {
     throw new Error("Demo sandbox disappeared during reset");
   }
   return row.slug;
@@ -628,7 +641,7 @@ async function moveDemoApiKey(
   const replacement = await createDemoApiKey({
     organizationId,
     anonymousId: sandbox.anonymousId,
-    expiresAt: new Date(sandbox.createdAt.getTime() + DEMO_SANDBOX_MAX_AGE_MS),
+    expiresAt: sandboxExpiry(sandbox.createdAt),
   }).catch((error: unknown) => {
     console.error("[demo] Failed to replace sandbox API key", error);
     return null;
@@ -700,18 +713,10 @@ async function cleanupOrphanedDemoOrganizations(limit: number, now: Date) {
 }
 
 /** Deletes expired sandboxes. Returns how many were removed. */
-export async function cleanupExpiredDemoSandboxes(
-  limit: number
-): Promise<number> {
+async function cleanupExpiredDemoSandboxes(limit: number): Promise<number> {
   const now = new Date();
   const expired = await db.query.demoSandboxes.findMany({
-    where: or(
-      lt(demoSandboxes.expiresAt, now),
-      lt(
-        demoSandboxes.createdAt,
-        new Date(now.getTime() - DEMO_SANDBOX_MAX_AGE_MS)
-      )
-    ),
+    where: lt(demoSandboxes.expiresAt, now),
     limit,
   });
 

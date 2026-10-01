@@ -5,7 +5,7 @@ export type DemoTrafficEvent = GeoTrafficEventRow;
 export type DemoTrafficProvider = (scope: {
   organizationId: string;
   projectId: string;
-}) => DemoTrafficEvent[];
+}) => Promise<DemoTrafficEvent[]>;
 
 /** Union of every GEO traffic pipe parameter the demo mirrors. */
 export interface DemoTrafficParams {

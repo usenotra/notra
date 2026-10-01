@@ -184,7 +184,7 @@ function cachedPipeQuery<TParams extends Record<string, unknown>, TRow>(
   if (isDemoMode()) {
     return isDemoSocialPipe(pipe)
       ? queryDemoSocialPipe<TRow>(pipe, params)
-      : Promise.resolve(queryDemoPipe<TRow>(pipe, params));
+      : queryDemoPipe<TRow>(pipe, params);
   }
   const client = getTinybirdQueryClient();
   if (!client) {

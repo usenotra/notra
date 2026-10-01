@@ -7,6 +7,7 @@ import { getOrganizationIdFromAuth } from "../types/auth";
 import type { ApiEnv } from "../types/env";
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const EVENT_STREAM_CONTENT_TYPE = "text/event-stream";
 
 async function readBody(source: Request | Response): Promise<string | null> {
   try {
@@ -17,6 +18,13 @@ async function readBody(source: Request | Response): Promise<string | null> {
   }
 }
 
+function isEventStream(response: Response): boolean {
+  return (
+    response.headers.get("content-type")?.includes(EVENT_STREAM_CONTENT_TYPE) ??
+    false
+  );
+}
+
 /**
  * Public demo only: writes every authenticated request into the visitor's
  * request feed (and pushes it live to the dashboard) so API calls from curl,
@@ -24,9 +32,8 @@ async function readBody(source: Request | Response): Promise<string | null> {
  */
 export async function demoRequestLogMiddleware(c: Context<ApiEnv>, next: Next) {
   const startedAt = performance.now();
-  const requestBody = MUTATION_METHODS.has(c.req.method)
-    ? await readBody(c.req.raw)
-    : null;
+  const isMutation = MUTATION_METHODS.has(c.req.method);
+  const requestBody = isMutation ? await readBody(c.req.raw) : null;
 
   await next();
 
@@ -36,9 +43,12 @@ export async function demoRequestLogMiddleware(c: Context<ApiEnv>, next: Next) {
     return;
   }
   const path = new URL(c.req.url).pathname;
-  const responseBody = await readBody(c.res);
-  const isMutation = MUTATION_METHODS.has(c.req.method);
-  const record = recordDemoRequest({
+  // Reading a streamed body would wait for the whole stream and hold the
+  // response back, so event streams are logged without one.
+  const responseBody = isEventStream(c.res) ? null : await readBody(c.res);
+  // Bun serves this app directly, so finishing the write before responding
+  // is the only way to guarantee it; it adds a few milliseconds in the demo.
+  await recordDemoRequest({
     organizationId,
     source: c.req.header(DEMO_CONSOLE_HEADER) ? "console" : "api",
     method: c.req.method,
@@ -50,7 +60,4 @@ export async function demoRequestLogMiddleware(c: Context<ApiEnv>, next: Next) {
     affected:
       isMutation && c.res.ok ? extractDemoAffected(path, responseBody) : [],
   });
-  // Bun serves this app directly, so finishing the write before responding
-  // is the only way to guarantee it; it adds a few milliseconds in the demo.
-  await record;
 }

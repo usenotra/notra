@@ -7,22 +7,20 @@ export const DEMO_SOCIAL_NOTRA_ADOPTED_DAYS_AGO = 75;
 /** Engagement lifts once posts are written with Notra. */
 export const DEMO_SOCIAL_NOTRA_LIFT = 1.35;
 
-/** Probability of a post on a given day, per account kind and provider. */
-export const DEMO_SOCIAL_POST_CHANCE = {
-  connected: { twitter: 0.75, linkedin: 0.4 },
-  tracked: { twitter: 0.45, linkedin: 0.25 },
-} as const;
-
-/** Follower count today, before per-account jitter. */
-export const DEMO_SOCIAL_BASE_FOLLOWERS = {
-  connected: { twitter: 4800, linkedin: 2300 },
-  tracked: { twitter: 9000, linkedin: 5000 },
-} as const;
-
-/** Median impressions per post, before per-post jitter. */
-export const DEMO_SOCIAL_BASE_IMPRESSIONS = {
-  connected: { twitter: 2600, linkedin: 1500 },
-  tracked: { twitter: 3400, linkedin: 1900 },
+/**
+ * Per account kind and provider: probability of a post on a given day,
+ * follower count today and median impressions per post (both before
+ * per-account and per-post jitter).
+ */
+export const DEMO_SOCIAL_BASELINES = {
+  connected: {
+    twitter: { postChance: 0.75, followers: 4800, impressions: 2600 },
+    linkedin: { postChance: 0.4, followers: 2300, impressions: 1500 },
+  },
+  tracked: {
+    twitter: { postChance: 0.45, followers: 9000, impressions: 3400 },
+    linkedin: { postChance: 0.25, followers: 5000, impressions: 1900 },
+  },
 } as const;
 
 /** Daily follower growth rate, compounded backwards from today. */

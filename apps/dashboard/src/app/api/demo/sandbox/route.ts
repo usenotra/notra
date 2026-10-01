@@ -1,13 +1,7 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { headers } from "next/headers";
-import { after } from "next/server";
 
-import { DEMO_CLEANUP_BATCH_SIZE } from "@/constants/demo";
-import {
-  cleanupExpiredDemoSandboxes,
-  createDemoSandbox,
-  refillDemoSandboxPool,
-} from "@/lib/demo/sandbox";
+import { createDemoSandbox, maintainDemoSandboxPool } from "@/lib/demo/sandbox";
 import { writeDemoSession } from "@/lib/demo/session";
 import { demoSandboxCreateInputSchema } from "@/schemas/demo";
 import type { DemoSandboxCreateResponse } from "@/types/demo";
@@ -38,16 +32,8 @@ export async function POST(request: Request) {
     ipHash,
   });
   await writeDemoSession(sandbox.anonymousId);
-  // Piggyback cleanup on new visitors instead of a cron: the demo shares
-  // vercel.json with production, where a demo cron would only 404.
-  after(async () => {
-    await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
-    await refillDemoSandboxPool();
-  });
+  maintainDemoSandboxPool();
 
-  const body: DemoSandboxCreateResponse = {
-    anonymousId: sandbox.anonymousId,
-    slug: sandbox.slug,
-  };
+  const body: DemoSandboxCreateResponse = { slug: sandbox.slug };
   return Response.json(body, { status: 201 });
 }

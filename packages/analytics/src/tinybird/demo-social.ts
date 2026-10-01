@@ -1,14 +1,13 @@
+import { normalizeTimeZone, zonedParts } from "@notra/utils/demo-clock";
 import type { QueryResult } from "@tinybirdco/sdk";
 
 import {
-  DEMO_SOCIAL_BASE_FOLLOWERS,
-  DEMO_SOCIAL_BASE_IMPRESSIONS,
+  DEMO_SOCIAL_BASELINES,
   DEMO_SOCIAL_DAILY_GROWTH,
   DEMO_SOCIAL_HISTORY_DAYS,
   DEMO_SOCIAL_NOTRA_ADOPTED_DAYS_AGO,
   DEMO_SOCIAL_NOTRA_LIFT,
   DEMO_SOCIAL_OWN_POSTS,
-  DEMO_SOCIAL_POST_CHANCE,
   DEMO_SOCIAL_POSTING_HOURS,
   DEMO_SOCIAL_TRACKED_POSTS,
 } from "../constants/demo-social";
@@ -20,7 +19,13 @@ import type {
   DemoSocialPost,
 } from "../types/demo-social";
 import { toClickHouseDateTime } from "../utils/datetime";
-import { readNumber, readString } from "../utils/demo-params";
+import {
+  DAY_MS,
+  daysBetween,
+  demoProviderSlot,
+  demoQueryResult,
+  shiftDay,
+} from "../utils/demo-pipe";
 
 /**
  * The public demo has no Tinybird. Social analytics are generated from the
@@ -30,21 +35,16 @@ import { readNumber, readString } from "../utils/demo-params";
  * mirror the endpoints in `pipes/social.ts`.
  */
 
-const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
 /** Snapshot time of the daily follower count, in UTC hours. */
 const FOLLOWER_SNAPSHOT_HOUR = 6;
-const DEFAULT_TIME_ZONE = "UTC";
 
-const PROVIDER_KEY = Symbol.for("notra.demo.socialSourceProvider");
-type ProviderHolder = { [PROVIDER_KEY]?: DemoSocialSourceProvider | null };
+const providerSlot = demoProviderSlot<DemoSocialSourceProvider>(
+  "notra.demo.socialSourceProvider"
+);
 
 /** Registered once at startup by the host app (dashboard or API). */
-export function setDemoSocialSourceProvider(
-  next: DemoSocialSourceProvider | null
-) {
-  (globalThis as ProviderHolder)[PROVIDER_KEY] = next;
-}
+export const setDemoSocialSourceProvider = providerSlot.set;
 
 function hashString(value: string): number {
   let hash = 2_166_136_261;
@@ -78,6 +78,10 @@ function providerKey(provider: string): "twitter" | "linkedin" {
   return provider === "linkedin" ? "linkedin" : "twitter";
 }
 
+function baselineOf(account: Pick<DemoSocialAccount, "provider" | "kind">) {
+  return DEMO_SOCIAL_BASELINES[account.kind][providerKey(account.provider)];
+}
+
 function accountScale(
   account: Pick<DemoSocialAccount, "providerAccountId">
 ): number {
@@ -90,8 +94,7 @@ export function demoSocialFollowers(
   at: Date,
   now: Date
 ): number {
-  const base =
-    DEMO_SOCIAL_BASE_FOLLOWERS[account.kind][providerKey(account.provider)];
+  const base = baselineOf(account).followers;
   const scale = accountScale(account);
   const daysAgo = Math.max(0, (now.getTime() - at.getTime()) / DAY_MS);
   const noise = between(
@@ -116,14 +119,11 @@ function postsForAccount(
   account: DemoSocialAccount,
   now: Date
 ): DemoSocialPost[] {
-  const provider = providerKey(account.provider);
-  const chance = DEMO_SOCIAL_POST_CHANCE[account.kind][provider];
-  const baseImpressions =
-    DEMO_SOCIAL_BASE_IMPRESSIONS[account.kind][provider] *
-    accountScale(account);
+  const baseline = baselineOf(account);
+  const baseImpressions = baseline.impressions * accountScale(account);
   const texts =
     account.kind === "connected"
-      ? DEMO_SOCIAL_OWN_POSTS[provider]
+      ? DEMO_SOCIAL_OWN_POSTS[providerKey(account.provider)]
       : DEMO_SOCIAL_TRACKED_POSTS;
   const today = Math.floor(now.getTime() / DAY_MS);
   const adoptedDay = today - DEMO_SOCIAL_NOTRA_ADOPTED_DAYS_AGO;
@@ -131,7 +131,7 @@ function postsForAccount(
 
   for (let day = today - DEMO_SOCIAL_HISTORY_DAYS; day <= today; day += 1) {
     const random = seededRandom(`post:${account.providerAccountId}:${day}`);
-    if (random() > chance) {
+    if (random() > baseline.postChance) {
       continue;
     }
     const postedAt = new Date(
@@ -203,9 +203,7 @@ function publishedPosts(
       return [];
     }
     const baseImpressions =
-      DEMO_SOCIAL_BASE_IMPRESSIONS[account.kind][
-        providerKey(account.provider)
-      ] * accountScale(account);
+      baselineOf(account).impressions * accountScale(account);
     return [
       {
         provider: post.provider,
@@ -227,57 +225,15 @@ function publishedPosts(
   });
 }
 
-const localFormatters = new Map<string, Intl.DateTimeFormat>();
-
-function localFormatter(timeZone: string): Intl.DateTimeFormat {
-  let formatter = localFormatters.get(timeZone);
-  if (!formatter) {
-    try {
-      formatter = new Intl.DateTimeFormat("en-CA", {
-        timeZone,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        hourCycle: "h23",
-        weekday: "short",
-      });
-    } catch {
-      formatter = localFormatter(DEFAULT_TIME_ZONE);
-    }
-    localFormatters.set(timeZone, formatter);
-  }
-  return formatter;
-}
-
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 /** Local calendar day, ISO weekday (Mon = 1, like ClickHouse) and hour. */
 function localParts(date: Date, timeZone: string) {
-  const parts = Object.fromEntries(
-    localFormatter(timeZone)
-      .formatToParts(date)
-      .map((part) => [part.type, part.value])
-  );
+  const parts = zonedParts(date, timeZone);
+  const pad = (value: number) => String(value).padStart(2, "0");
   return {
-    day: `${parts.year}-${parts.month}-${parts.day}`,
-    weekday: WEEKDAYS.indexOf(parts.weekday ?? "Mon") + 1,
-    hour: Number(parts.hour),
+    day: `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`,
+    weekday: parts.weekday,
+    hour: parts.hour,
   };
-}
-
-function shiftDay(day: string, days: number): string {
-  return new Date(Date.parse(`${day}T00:00:00Z`) + days * DAY_MS)
-    .toISOString()
-    .slice(0, 10);
-}
-
-function daySpan(from: string, to: string): number {
-  return (
-    Math.round(
-      (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS
-    ) + 1
-  );
 }
 
 /** Mirrors the pipes' "trailing days, or local date_from..date_to" filter. */
@@ -287,7 +243,7 @@ function inWindow(
   defaultDays: number,
   now: Date
 ): boolean {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   const day = localParts(at, timeZone).day;
   if (params.date_to && day > params.date_to) {
     return false;
@@ -366,7 +322,7 @@ function engagementTimeseries(
   params: DemoSocialParams,
   now: Date
 ) {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   const buckets = new Map<
     string,
     {
@@ -411,7 +367,7 @@ function leaderboard(
   params: DemoSocialParams,
   now: Date
 ) {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   const days = params.days ?? 7;
   const isCurrent = (post: DemoSocialPost): boolean | null => {
     if (!params.date_from) {
@@ -422,7 +378,10 @@ function leaderboard(
       return age <= days * DAY_MS;
     }
     const to = params.date_to || localParts(now, timeZone).day;
-    const from = shiftDay(params.date_from, -daySpan(params.date_from, to));
+    const from = shiftDay(
+      params.date_from,
+      -(daysBetween(params.date_from, to) + 1)
+    );
     const day = localParts(post.postedAt, timeZone).day;
     if (day < from || day > to) {
       return null;
@@ -491,7 +450,7 @@ function postRow(post: DemoSocialPost) {
 }
 
 function topPosts({ posts }: DemoSocialData, params: DemoSocialParams) {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   return posts
     .filter((post) => {
       const day = localParts(post.postedAt, timeZone).day;
@@ -518,7 +477,7 @@ function postingPerformance(
   params: DemoSocialParams,
   now: Date
 ) {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   const slots = new Map<
     string,
     {
@@ -560,7 +519,7 @@ function followerGrowth(
   params: DemoSocialParams,
   now: Date
 ) {
-  const timeZone = params.timezone || DEFAULT_TIME_ZONE;
+  const timeZone = normalizeTimeZone(params.timezone);
   const today = Math.floor(now.getTime() / DAY_MS);
   const rows: {
     day: string;
@@ -636,46 +595,26 @@ export function isDemoSocialPipe(pipe: string): boolean {
   return pipe in DEMO_SOCIAL_PIPES;
 }
 
-function toDemoSocialParams(params: Record<string, unknown>): DemoSocialParams {
-  const postIds = params.post_ids;
-  return {
-    organization_id: readString(params, "organization_id") ?? "",
-    days: readNumber(params, "days"),
-    timezone: readString(params, "timezone"),
-    date_from: readString(params, "date_from"),
-    date_to: readString(params, "date_to"),
-    limit: readNumber(params, "limit"),
-    post_ids: Array.isArray(postIds)
-      ? postIds.filter((id): id is string => typeof id === "string")
-      : undefined,
-  };
-}
-
 /**
  * Answers a social pipe from generated data. The row type is the pipe's
  * declared output, which the mirrors above build field for field.
  */
 export async function queryDemoSocialPipe<TRow>(
   pipe: string,
-  params: Record<string, unknown>
+  params: object
 ): Promise<QueryResult<TRow> | null> {
   const handler = DEMO_SOCIAL_PIPES[pipe];
-  const provider = (globalThis as ProviderHolder)[PROVIDER_KEY];
+  const provider = providerSlot.get();
   if (!handler || !provider) {
     return null;
   }
-  const parsed = toDemoSocialParams(params);
+  // Every caller passes the pipe's typed params (`InferParams`).
+  const parsed = params as DemoSocialParams;
   const now = new Date();
   const { accounts, published } = await provider(parsed.organization_id);
   const posts = [
     ...accounts.flatMap((account) => postsForAccount(account, now)),
     ...publishedPosts(accounts, published, now),
   ];
-  const data = handler({ accounts, posts }, parsed, now) as TRow[];
-  return {
-    data,
-    meta: [],
-    rows: data.length,
-    statistics: { elapsed: 0, rows_read: data.length, bytes_read: 0 },
-  };
+  return demoQueryResult(handler({ accounts, posts }, parsed, now) as TRow[]);
 }

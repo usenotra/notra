@@ -2,6 +2,7 @@ import type {
   DemoClock,
   DemoClockLocalTime,
   DemoClockOffset,
+  ZonedParts,
 } from "./types/demo-clock";
 
 const MINUTE_MS = 60_000;
@@ -29,36 +30,43 @@ export function normalizeTimeZone(timeZone: string | null | undefined): string {
   }
 }
 
-interface ZonedParts {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+function zonedFormatter(timeZone: string): Intl.DateTimeFormat {
+  let formatter = formatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+    });
+    formatters.set(timeZone, formatter);
+  }
+  return formatter;
 }
 
-function zonedParts(date: Date, timeZone: string): ZonedParts {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
+/** Wall-clock parts of `date` in a valid IANA zone (see `normalizeTimeZone`). */
+export function zonedParts(date: Date, timeZone: string): ZonedParts {
   const values: Record<string, number> = {};
-  for (const part of formatter.formatToParts(date)) {
+  for (const part of zonedFormatter(timeZone).formatToParts(date)) {
     if (part.type !== "literal") {
       values[part.type] = Number(part.value);
     }
   }
+  const year = values.year ?? 1970;
+  const month = values.month ?? 1;
+  const day = values.day ?? 1;
+  const sundayBased = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
   return {
-    year: values.year ?? 1970,
-    month: values.month ?? 1,
-    day: values.day ?? 1,
+    year,
+    month,
+    day,
+    weekday: ((sundayBased + 6) % 7) + 1,
     hour: values.hour ?? 0,
     minute: values.minute ?? 0,
     second: values.second ?? 0,
@@ -80,7 +88,7 @@ function zoneOffsetMs(date: Date, timeZone: string): number {
 }
 
 function zonedWallTimeToUtc(
-  parts: Omit<ZonedParts, "second">,
+  parts: Pick<ZonedParts, "year" | "month" | "day" | "hour" | "minute">,
   timeZone: string
 ): Date {
   const guess = Date.UTC(
@@ -129,16 +137,8 @@ export function createDemoClock(
   };
 
   return {
-    now,
-    timeZone: zone,
     ago: (offset) => new Date(nowMs - offsetMs(offset)),
-    in: (offset) => new Date(nowMs + offsetMs(offset)),
     local,
-    startOfDay: (daysAgo) =>
-      zonedWallTimeToUtc(
-        { ...zonedCalendarDay(now, zone, daysAgo), hour: 0, minute: 0 },
-        zone
-      ),
   };
 }
 

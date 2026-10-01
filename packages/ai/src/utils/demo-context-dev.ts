@@ -48,9 +48,9 @@ export function demoContextDevResponse(
   path: string,
   init: RequestInit
 ): unknown {
-  const url = new URL(path, "https://api.context.dev/v1/");
+  const url = new URL(path, "https://api.context.dev");
   const params = url.searchParams;
-  const endpoint = url.pathname.replace(/^\/v1/, "");
+  const endpoint = url.pathname;
   const target =
     params.get("url") ?? params.get("directUrl") ?? params.get("domain");
   const domain = hostOf(target);

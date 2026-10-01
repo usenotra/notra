@@ -7,7 +7,13 @@ import type {
   DemoTrafficProvider,
 } from "../types/demo-traffic";
 import { toClickHouseDateTime } from "../utils/datetime";
-import { readNumber, readString } from "../utils/demo-params";
+import {
+  DAY_MS,
+  daysBetween,
+  demoProviderSlot,
+  demoQueryResult,
+  shiftDay,
+} from "../utils/demo-pipe";
 
 /**
  * The public demo has no Tinybird. Its AI traffic is generated per request
@@ -16,19 +22,15 @@ import { readNumber, readString } from "../utils/demo-params";
  * hour and nothing is ever ingested.
  */
 
-const DAY_MS = 86_400_000;
 const LOG_LOOKBACK_DAYS = 90;
 const AI_VISITOR_TYPES = new Set(["crawler", "ai_referral"]);
 
-// On globalThis because Next bundles instrumentation (where the provider is
-// registered) separately from route handlers (where it is read).
-const PROVIDER_KEY = Symbol.for("notra.demo.trafficProvider");
-type ProviderHolder = { [PROVIDER_KEY]?: DemoTrafficProvider | null };
+const providerSlot = demoProviderSlot<DemoTrafficProvider>(
+  "notra.demo.trafficProvider"
+);
 
 /** Registered once at startup by the host app (dashboard or API). */
-export function setDemoTrafficProvider(next: DemoTrafficProvider | null) {
-  (globalThis as ProviderHolder)[PROVIDER_KEY] = next;
-}
+export const setDemoTrafficProvider = providerSlot.set;
 
 function utcDay(value: string | Date): string {
   if (typeof value === "string") {
@@ -37,25 +39,15 @@ function utcDay(value: string | Date): string {
   return value.toISOString().slice(0, 10);
 }
 
-function addDays(day: string, days: number): string {
-  return utcDay(new Date(Date.parse(`${day}T00:00:00Z`) + days * DAY_MS));
-}
-
-function daysBetween(from: string, to: string): number {
-  return Math.round(
-    (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS
-  );
-}
-
 function windowOf(params: DemoTrafficParams, now: Date) {
   const days = params.days ?? 30;
   const today = utcDay(now);
-  const from = params.date_from || addDays(today, -days);
+  const from = params.date_from || shiftDay(today, -days);
   const to = params.date_to || null;
   const span = params.date_from
     ? daysBetween(params.date_from, params.date_to || today) + 1
     : days;
-  const previousFrom = addDays(from, -span);
+  const previousFrom = shiftDay(from, -span);
   return {
     isCurrent: (day: string) => day >= from && (to === null || day <= to),
     isPrevious: (day: string) => day >= previousFrom && day < from,
@@ -91,16 +83,19 @@ function listParam(value: string | undefined): Set<string> | null {
   return value ? new Set(value.split(",").filter(Boolean)) : null;
 }
 
-function scopedEvents(params: DemoTrafficParams): DemoTrafficEvent[] {
-  const provider = (globalThis as ProviderHolder)[PROVIDER_KEY];
+async function scopedEvents(
+  params: DemoTrafficParams
+): Promise<DemoTrafficEvent[]> {
+  const provider = providerSlot.get();
   if (!provider) {
     return [];
   }
   const excluded = listParam(params.excluded_sources);
-  return provider({
+  const events = await provider({
     organizationId: params.organization_id,
     projectId: params.project_id ?? "",
-  }).filter(
+  });
+  return events.filter(
     (event) =>
       (!params.project_id || event.project_id === params.project_id) &&
       !excluded?.has(event.source)
@@ -111,16 +106,11 @@ function maxTime(a: string | null, b: string): string {
   return a === null || b > a ? b : a;
 }
 
-function result<T>(data: T[]): QueryResult<T> {
-  return {
-    data,
-    meta: [],
-    rows: data.length,
-    statistics: { elapsed: 0, rows_read: data.length, bytes_read: 0 },
-  };
-}
-
-function overview(params: DemoTrafficParams, now: Date) {
+function overview(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
   const groups = new Map<
     string,
@@ -137,7 +127,7 @@ function overview(params: DemoTrafficParams, now: Date) {
       last_seen_at: string | null;
     }
   >();
-  for (const event of scopedEvents(params)) {
+  for (const event of events) {
     const day = utcDay(event.captured_at);
     const current = window.isCurrent(day);
     if (!(current || window.isPrevious(day))) {
@@ -179,13 +169,17 @@ function overview(params: DemoTrafficParams, now: Date) {
     }));
 }
 
-function timeseries(params: DemoTrafficParams, now: Date) {
+function timeseries(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
   const counts = new Map<
     string,
     { day: string; visitor_type: string; source: string; visits: number }
   >();
-  for (const event of scopedEvents(params)) {
+  for (const event of events) {
     const day = utcDay(event.captured_at);
     if (!window.isCurrent(day)) {
       continue;
@@ -208,7 +202,11 @@ function timeseries(params: DemoTrafficParams, now: Date) {
   );
 }
 
-function pages(params: DemoTrafficParams, now: Date) {
+function pages(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
   const groups = new Map<
     string,
@@ -222,7 +220,7 @@ function pages(params: DemoTrafficParams, now: Date) {
       last_seen_at: string | null;
     }
   >();
-  for (const event of scopedEvents(params)) {
+  for (const event of events) {
     if (
       !AI_VISITOR_TYPES.has(event.visitor_type) ||
       (params.visitor && event.visitor_type !== params.visitor) ||
@@ -267,13 +265,13 @@ function pages(params: DemoTrafficParams, now: Date) {
     .map((group) => ({ ...group, last_seen_at: group.last_seen_at ?? "" }));
 }
 
-function log(params: DemoTrafficParams, now: Date) {
+function log(events: DemoTrafficEvent[], params: DemoTrafficParams, now: Date) {
   const visitorTypes = listParam(params.visitor_type);
   const categories = listParam(params.category);
   const since = toClickHouseDateTime(
     new Date(now.getTime() - LOG_LOOKBACK_DAYS * DAY_MS)
   );
-  return scopedEvents(params)
+  return events
     .filter(
       (event) =>
         (visitorTypes
@@ -341,8 +339,8 @@ function rollupJourneys(events: DemoTrafficEvent[]): JourneyRollup[] {
   return [...journeys.values()];
 }
 
-function journeyEvents(params: DemoTrafficParams) {
-  return scopedEvents(params).filter(
+function journeyEvents(events: DemoTrafficEvent[]) {
+  return events.filter(
     (event) =>
       AI_VISITOR_TYPES.has(event.visitor_type) && event.journey_id !== ""
   );
@@ -353,21 +351,29 @@ function normalizePath(path: string): string {
   return trimmed === "" ? "/" : trimmed;
 }
 
-function comparisonJourneys(params: DemoTrafficParams, now: Date) {
+function comparisonJourneys(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
-  const events = journeyEvents(params)
+  const inRange = journeyEvents(events)
     .filter((event) => {
       const day = utcDay(event.captured_at);
       return window.isCurrent(day) || window.isPrevious(day);
     })
     .map((event) => ({ ...event, path: normalizePath(event.path) }));
-  return { window, journeys: rollupJourneys(events) };
+  return { window, journeys: rollupJourneys(inRange) };
 }
 
-function journeys(params: DemoTrafficParams, now: Date) {
+function journeys(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
   return rollupJourneys(
-    journeyEvents(params).filter((event) => window.inCapturedWindow(event))
+    journeyEvents(events).filter((event) => window.inCapturedWindow(event))
   )
     .sort(
       (a, b) =>
@@ -396,8 +402,12 @@ function dailySeries(counts: Map<string, number>) {
   };
 }
 
-function journeySources(params: DemoTrafficParams, now: Date) {
-  const { window, journeys: rollups } = comparisonJourneys(params, now);
+function journeySources(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
+  const { window, journeys: rollups } = comparisonJourneys(events, params, now);
   const groups = new Map<
     string,
     {
@@ -449,8 +459,12 @@ function journeySources(params: DemoTrafficParams, now: Date) {
     }));
 }
 
-function journeyPages(params: DemoTrafficParams, now: Date) {
-  const { window, journeys: rollups } = comparisonJourneys(params, now);
+function journeyPages(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
+  const { window, journeys: rollups } = comparisonJourneys(events, params, now);
   const pagesByPath = new Map<
     string,
     {
@@ -503,9 +517,13 @@ function journeyPages(params: DemoTrafficParams, now: Date) {
     }));
 }
 
-function journeyDetail(params: DemoTrafficParams, now: Date) {
+function journeyDetail(
+  events: DemoTrafficEvent[],
+  params: DemoTrafficParams,
+  now: Date
+) {
   const window = windowOf(params, now);
-  return scopedEvents(params)
+  return events
     .filter(
       (event) =>
         event.journey_id === params.journey_id && window.inCapturedWindow(event)
@@ -526,7 +544,11 @@ function journeyDetail(params: DemoTrafficParams, now: Date) {
 
 const DEMO_PIPES: Record<
   string,
-  (params: DemoTrafficParams, now: Date) => unknown[]
+  (
+    events: DemoTrafficEvent[],
+    params: DemoTrafficParams,
+    now: Date
+  ) => unknown[]
 > = {
   geo_traffic_overview: overview,
   geo_traffic_timeseries: timeseries,
@@ -538,37 +560,21 @@ const DEMO_PIPES: Record<
   geo_journey_detail: journeyDetail,
 };
 
-function toDemoTrafficParams(
-  params: Record<string, unknown>
-): DemoTrafficParams {
-  return {
-    organization_id: readString(params, "organization_id") ?? "",
-    project_id: readString(params, "project_id"),
-    excluded_sources: readString(params, "excluded_sources"),
-    days: readNumber(params, "days"),
-    date_from: readString(params, "date_from"),
-    date_to: readString(params, "date_to"),
-    visitor: readString(params, "visitor"),
-    visitor_type: readString(params, "visitor_type"),
-    category: readString(params, "category"),
-    host: readString(params, "host"),
-    journey_id: readString(params, "journey_id"),
-    limit: readNumber(params, "limit"),
-  };
-}
-
 /**
  * Answers a GEO traffic pipe from generated events; null for other pipes.
  * The row type is the pipe's declared output, which the mirrors above build
  * field for field.
  */
-export function queryDemoPipe<TRow>(
+export async function queryDemoPipe<TRow>(
   pipe: string,
-  params: Record<string, unknown>
-): QueryResult<TRow> | null {
+  params: object
+): Promise<QueryResult<TRow> | null> {
   const handler = DEMO_PIPES[pipe];
   if (!handler) {
     return null;
   }
-  return result(handler(toDemoTrafficParams(params), new Date()) as TRow[]);
+  // Every caller passes the pipe's typed params (`InferParams`).
+  const parsed = params as DemoTrafficParams;
+  const events = await scopedEvents(parsed);
+  return demoQueryResult(handler(events, parsed, new Date()) as TRow[]);
 }

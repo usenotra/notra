@@ -32,10 +32,11 @@ export const GEO_DEMO_USAGE: GeoModelTokenUsage = {
   totalUsd: 0,
 };
 
-/** Engines the demo fabricates history for (grounded + one coding agent). */
-// Kept small on purpose: enough to compare engines, few enough to read at a
-// glance (and each sandbox stays light).
-// Same three providers the project tracks, so no history row shows greyed out.
+/**
+ * Engines the demo fabricates history for: the same three providers the
+ * project tracks (so no history row shows greyed out), few enough to compare
+ * at a glance and keep each sandbox light.
+ */
 const GEO_DEMO_ENGINE_IDS: readonly string[] = [
   "openai/gpt-5.4-grounded",
   "anthropic/claude-sonnet-4.6-grounded",
@@ -66,7 +67,7 @@ const GEO_DEMO_REFERRALS: readonly GeoSampleReferral[] = [
   { source: "claude", referer: "https://claude.ai/" },
   { source: "gemini", referer: "https://gemini.google.com/" },
 ];
-/** Tracked prompts, most telling first; the demo uses the first few. */
+/** Tracked prompts, most telling first. */
 const GEO_DEMO_PROMPTS: GeoSampleProfile["prompts"] = [
   {
     english: "What is the best AI meeting notes app for remote teams?",
@@ -93,25 +94,7 @@ const GEO_DEMO_PROMPTS: GeoSampleProfile["prompts"] = [
     german:
       "Gibt es einen datenschutzfreundlichen KI-Notizdienst für EU-Firmen?",
   },
-  {
-    english: "Notably vs Paperline: which is better for product teams?",
-    german: "Notably oder Paperline: Was eignet sich besser für Produktteams?",
-  },
-  {
-    english: "What's the easiest way to share meeting decisions with my team?",
-    german: "Wie teile ich Meeting-Entscheidungen am einfachsten mit dem Team?",
-  },
-  {
-    english: "Which meeting notes tool has the best search?",
-    german: "Welches Meeting-Notiz-Tool hat die beste Suche?",
-  },
-  {
-    english: "What AI tools help engineering managers run 1:1s?",
-    german: "Welche KI-Tools helfen Engineering-Managern bei 1:1s?",
-  },
 ];
-
-const GEO_DEMO_PROMPT_COUNT = 6;
 
 /**
  * GEO sample data for the public demo. Fieldnote and every competitor are
@@ -159,7 +142,7 @@ export const GEO_DEMO_PROFILE: GeoSampleProfile = {
       kind: "indirect",
     },
   ],
-  prompts: GEO_DEMO_PROMPTS.slice(0, GEO_DEMO_PROMPT_COUNT),
+  prompts: GEO_DEMO_PROMPTS,
   sequences: [
     {
       name: "Buyer research",
@@ -278,6 +261,10 @@ export const GEO_DEMO_TRAFFIC_DAYS = 180;
 export const GEO_DEMO_TRAFFIC_CACHE_MS = 5 * 60 * 1000;
 /** Traffic arrays are ~180 days each; cap how many a process keeps. */
 export const GEO_DEMO_TRAFFIC_CACHE_MAX_ENTRIES = 50;
+
+/** Brand names answers are built from; short so renames show up quickly. */
+export const GEO_DEMO_BRANDS_CACHE_MS = 30_000;
+export const GEO_DEMO_BRANDS_CACHE_MAX_ENTRIES = 500;
 
 /** Agent readiness report the demo returns instead of calling is-agentic. */
 export const GEO_DEMO_AGENT_READINESS_REPORT: Omit<

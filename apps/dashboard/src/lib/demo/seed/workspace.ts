@@ -8,7 +8,7 @@ import {
   seedDemoSocial,
   seedDemoTeam,
 } from "@/lib/demo/seed/workspace-extras";
-import type { DemoSeedContext, DemoSeedResult } from "@/types/demo";
+import type { DemoSeedContext } from "@/types/demo";
 
 /**
  * Fills a fresh demo organization so no page starts empty. Every timestamp is
@@ -16,7 +16,7 @@ import type { DemoSeedContext, DemoSeedResult } from "@/types/demo";
  */
 export async function seedDemoWorkspace(
   context: DemoSeedContext
-): Promise<DemoSeedResult> {
+): Promise<void> {
   await seedDemoBrand(context);
   // GEO needs the brand identity; content and personas hang off the project.
   const [projectId] = await Promise.all([
@@ -30,5 +30,4 @@ export async function seedDemoWorkspace(
     seedDemoContent({ ...context, projectId }),
     seedDemoGeoExtras({ ...context, projectId }),
   ]);
-  return { projectId };
 }

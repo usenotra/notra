@@ -22,6 +22,7 @@ import type {
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -50,6 +51,7 @@ import type {
   GeoScopeInput,
 } from "../types/geo";
 import type { GeoSampleProfile, GeoSampleSeedInput } from "../types/geo-sample";
+import { hashInt, unit } from "../utils/geo-sample-hash";
 import { competitorKey } from "./domain";
 import { geoDb } from "./effect";
 import {
@@ -75,19 +77,7 @@ const TREND_GAIN = 0.12;
 const SCAN_DURATION_MS = 60_000;
 /** Keeps "today 09:41" from landing in the future when seeded earlier. */
 const FUTURE_CLAMP_MS = 7 * 60_000;
-const HASH_MODULUS = 2_147_483_647;
-
-function hashInt(seed: string): number {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index++) {
-    hash = (hash * 31 + seed.charCodeAt(index)) % HASH_MODULUS;
-  }
-  return hash;
-}
-
-function unit(seed: string): number {
-  return hashInt(seed) / HASH_MODULUS;
-}
+const DAY_MS = 86_400_000;
 
 function pick<T>(items: readonly T[], seed: string): T {
   const item = items[hashInt(seed) % items.length];
@@ -97,10 +87,16 @@ function pick<T>(items: readonly T[], seed: string): T {
   return item;
 }
 
+/** Days since the Unix epoch of the UTC day `daysAgo` days before `now`. */
+function epochDay(now: Date, daysAgo: number): number {
+  return Math.floor(now.getTime() / DAY_MS) - daysAgo;
+}
+
 function utcDay(now: Date, daysAgo: number, hours: number, minutes: number) {
   const date = new Date(now);
   date.setUTCDate(date.getUTCDate() - daysAgo);
-  date.setUTCHours(hours, minutes, hashInt(`${daysAgo}-${hours}`) % 50, 0);
+  const seconds = hashInt(`${epochDay(now, daysAgo)}-${hours}`) % 50;
+  date.setUTCHours(hours, minutes, seconds, 0);
   if (date.getTime() > now.getTime()) {
     return new Date(now.getTime() - FUTURE_CLAMP_MS);
   }
@@ -405,10 +401,13 @@ export function buildGeoSampleTrafficEvents(input: {
   const profile = input.profile ?? GEO_SAMPLE_DEFAULT_PROFILE;
 
   for (let daysAgo = profile.days - 1; daysAgo >= 0; daysAgo--) {
+    // Seeded by the absolute day so the demo, which rebuilds this at read
+    // time, keeps the same history and journey ids across midnight.
+    const day = epochDay(input.now, daysAgo);
     (profile.crawlers ?? GEO_SAMPLE_CRAWLERS).forEach(
       (crawler, crawlerIndex) => {
-        const pages = 3 + (hashInt(`${daysAgo}-${crawler.agent}`) % 4);
-        const journeyId = `sample-${crawler.agent}-${daysAgo}`;
+        const pages = 3 + (hashInt(`${day}-${crawler.agent}`) % 4);
+        const journeyId = `sample-${crawler.agent}-${day}`;
         for (let pageIndex = 0; pageIndex < pages; pageIndex++) {
           const captured = utcDay(
             input.now,
@@ -442,7 +441,7 @@ export function buildGeoSampleTrafficEvents(input: {
 
     (profile.referrals ?? GEO_SAMPLE_REFERRALS).forEach(
       (referral, referralIndex) => {
-        const seed = `${daysAgo}-${referral.source}`;
+        const seed = `${day}-${referral.source}`;
         const visits = 1 + (hashInt(seed) % 3);
         for (let visitIndex = 0; visitIndex < visits; visitIndex++) {
           const captured = utcDay(
@@ -468,8 +467,8 @@ export function buildGeoSampleTrafficEvents(input: {
             ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
             country: pick(COUNTRIES, `${seed}-country`),
             language: "en-US",
-            request_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
-            journey_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
+            request_id: `sample-ref-${day}-${referral.source}-${visitIndex}`,
+            journey_id: `sample-ref-${day}-${referral.source}-${visitIndex}`,
             wants_markdown: false,
           });
         }
@@ -590,6 +589,8 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   const scanFinishedAt = now;
   const slugAliases = org?.slug && org.slug !== companyName ? [org.slug] : [];
   const aliases = profile.aliases ? [...profile.aliases] : slugAliases;
+  const languages =
+    profile.germanChecks === false ? ["English"] : [...GEO_SAMPLE_LANGUAGES];
 
   const existingSettings = yield* geoDb("settings lookup failed", () =>
     db.query.geoSettings.findFirst({
@@ -606,7 +607,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
           languages:
             (existingSettings.languages?.length ?? 0) > 0
               ? existingSettings.languages
-              : [...GEO_SAMPLE_LANGUAGES],
+              : languages,
           // A finished scan leaves `scan_started_at` NULL (see
           // `markGeoScanFinished`); a non-null stamp here would block real
           // scans on the freshly seeded project until it went stale.
@@ -626,7 +627,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
         aliases,
         competitors: competitorNames(profile),
         domains: [...profile.trafficHosts],
-        languages: [...GEO_SAMPLE_LANGUAGES],
+        languages,
         engines: profile.trackedEngines ? [...profile.trackedEngines] : null,
         enabled: true,
         lastScanAt: scanFinishedAt,
@@ -723,14 +724,19 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   yield* geoDb("sample checks insert failed", () =>
     insertGeoMentionChecks(mentionChecks)
   );
-  const trafficEvents = buildGeoSampleTrafficEvents({
-    organizationId: input.organizationId,
-    projectId,
-    now,
-    profile,
-  });
+  // The demo builds its traffic at read time (see `demo-traffic.ts`) and
+  // has nowhere to ingest it.
+  const demo = isDemoMode();
+  const trafficEvents = demo
+    ? []
+    : buildGeoSampleTrafficEvents({
+        organizationId: input.organizationId,
+        projectId,
+        now,
+        profile,
+      });
 
-  const analyticsIngested = isTinybirdConfigured();
+  const analyticsIngested = !demo && isTinybirdConfigured();
   if (analyticsIngested) {
     yield* Effect.tryPromise({
       try: () => ingestChunks(trafficEvents, ingestGeoTrafficEvents),

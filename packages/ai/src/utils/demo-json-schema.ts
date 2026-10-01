@@ -17,8 +17,10 @@ const TITLE_KEY = /title|headline|name|label|heading|subject/i;
 const URL_KEY = /url|link|href|website|domain/i;
 const QUESTION_KEY = /prompt|question|query|search/i;
 const BRAND_KEY = /^(brand|company|organization)(name)?$/i;
+const EXCLUSIVE_BOUND_EPSILON = 0.001;
 
-function hash(value: string): number {
+/** Deterministic string hash so the same prompt gets the same fake answer. */
+export function seedHash(value: string): number {
   let result = 0;
   for (let index = 0; index < value.length; index++) {
     result = (result * 31 + value.charCodeAt(index)) % 2_147_483_647;
@@ -27,7 +29,7 @@ function hash(value: string): number {
 }
 
 function pick<T>(items: readonly T[], seed: string): T {
-  return items[hash(seed) % items.length] as T;
+  return items[seedHash(seed) % items.length] as T;
 }
 
 function resolveRef(
@@ -107,11 +109,19 @@ function fakeString(
 }
 
 function fakeNumber(schema: DemoJsonSchema, key: string, seed: string) {
-  const min = schema.minimum ?? schema.exclusiveMinimum ?? 0;
-  const max = schema.maximum ?? schema.exclusiveMaximum ?? Math.max(min, 100);
+  const integer = schema.type === "integer";
+  // Exclusive bounds are not valid values themselves; step just inside them.
+  const step = integer ? 1 : EXCLUSIVE_BOUND_EPSILON;
+  const { exclusiveMinimum, exclusiveMaximum } = schema;
+  const lowerExclusive =
+    exclusiveMinimum === undefined ? undefined : exclusiveMinimum + step;
+  const upperExclusive =
+    exclusiveMaximum === undefined ? undefined : exclusiveMaximum - step;
+  const min = schema.minimum ?? lowerExclusive ?? 0;
+  const max = schema.maximum ?? upperExclusive ?? Math.max(min, 100);
   const span = Math.max(0, max - min);
-  const value = min + (hash(`${seed}:${key}`) % (Math.floor(span) + 1));
-  return schema.type === "integer" ? Math.round(value) : value;
+  const value = min + (seedHash(`${seed}:${key}`) % (Math.floor(span) + 1));
+  return integer ? Math.round(value) : value;
 }
 
 function firstNonNull(
@@ -168,7 +178,7 @@ export function fakeFromJsonSchema(
     case "integer":
       return fakeNumber(schema, key, context.seed);
     case "boolean":
-      return hash(`${context.seed}:${key}`) % 2 === 0;
+      return seedHash(`${context.seed}:${key}`) % 2 === 0;
     case "null":
       return null;
     case "array": {

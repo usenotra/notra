@@ -7,6 +7,8 @@ import { Effect, Layer } from "effect";
 import { GEO_EXCERPT_MAX_LENGTH } from "../constants/geo";
 import {
   GEO_DEMO_BRAND_TRAITS,
+  GEO_DEMO_BRANDS_CACHE_MAX_ENTRIES,
+  GEO_DEMO_BRANDS_CACHE_MS,
   GEO_DEMO_DEFAULT_MENTION_RATE,
   GEO_DEMO_PROFILE,
   GEO_DEMO_USAGE,
@@ -15,45 +17,53 @@ import { GEO_SAMPLE_ENGINES } from "../constants/geo-sample";
 import { GeoModelService } from "../deps";
 import type { GeoDemoBrands, GeoDemoJudgeInput } from "../types/geo-demo";
 import { findBrandMention } from "../utils/geo-brand-mention";
+import { hashInt, unit } from "../utils/geo-sample-hash";
 
-const HASH_MODULUS = 2_147_483_647;
 const MAX_LISTED_BRANDS = 4;
 const JUDGE_INPUT_PATTERN = /INPUT_JSON:\n(.+)\n/;
 
-function hashInt(seed: string): number {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index++) {
-    hash = (hash * 31 + seed.charCodeAt(index)) % HASH_MODULUS;
-  }
-  return hash;
-}
+const brandsByOrganization = new Map<
+  string,
+  { loadedAt: number; brands: Promise<GeoDemoBrands> }
+>();
 
-function unit(seed: string): number {
-  return hashInt(seed) / HASH_MODULUS;
-}
-
-const brandsByOrganization = new Map<string, Promise<GeoDemoBrands>>();
-
+/**
+ * Brand and competitor names, cached briefly: a scan asks for them once per
+ * answer, while a rename or new competitor should show up on the next scan.
+ */
 function loadBrands(organizationId: string): Promise<GeoDemoBrands> {
-  let cached = brandsByOrganization.get(organizationId);
-  if (!cached) {
-    cached = Promise.all([
-      db.query.geoSettings.findFirst({
-        columns: { companyName: true },
-        where: eq(geoSettings.organizationId, organizationId),
-      }),
-      db.query.geoCompetitors.findMany({
-        columns: { name: true },
-        where: eq(geoCompetitors.organizationId, organizationId),
-      }),
-    ]).then(([settings, competitors]) => ({
-      companyName: settings?.companyName ?? "Fieldnote",
-      competitors: competitors.map((competitor) => competitor.name),
-    }));
-    cached.catch(() => brandsByOrganization.delete(organizationId));
-    brandsByOrganization.set(organizationId, cached);
+  const now = Date.now();
+  const cached = brandsByOrganization.get(organizationId);
+  if (cached && now - cached.loadedAt < GEO_DEMO_BRANDS_CACHE_MS) {
+    return cached.brands;
   }
-  return cached;
+  const brands = Promise.all([
+    db.query.geoSettings.findFirst({
+      columns: { companyName: true },
+      where: eq(geoSettings.organizationId, organizationId),
+    }),
+    db.query.geoCompetitors.findMany({
+      columns: { name: true },
+      where: eq(geoCompetitors.organizationId, organizationId),
+    }),
+  ]).then(([settings, competitors]) => ({
+    companyName: settings?.companyName ?? "Fieldnote",
+    competitors: competitors.map((competitor) => competitor.name),
+  }));
+  brands.catch(() => {
+    if (brandsByOrganization.get(organizationId)?.brands === brands) {
+      brandsByOrganization.delete(organizationId);
+    }
+  });
+  brandsByOrganization.delete(organizationId);
+  if (brandsByOrganization.size >= GEO_DEMO_BRANDS_CACHE_MAX_ENTRIES) {
+    const oldest = brandsByOrganization.keys().next().value;
+    if (oldest !== undefined) {
+      brandsByOrganization.delete(oldest);
+    }
+  }
+  brandsByOrganization.set(organizationId, { loadedAt: now, brands });
+  return brands;
 }
 
 function mentionRate(engine: string): number {
@@ -63,16 +73,15 @@ function mentionRate(engine: string): number {
   );
 }
 
+/** Two to four consecutive sources, wrapping around the list. */
 function pickSources(seed: string): GeoCheckSource[] {
+  const { sources } = GEO_DEMO_PROFILE;
   const count = 2 + (hashInt(`${seed}:sources`) % 3);
-  const offset = hashInt(`${seed}:offset`) % GEO_DEMO_PROFILE.sources.length;
-  return Array.from(
-    { length: count },
-    (_, index) =>
-      GEO_DEMO_PROFILE.sources[
-        (offset + index) % GEO_DEMO_PROFILE.sources.length
-      ] ?? GEO_DEMO_PROFILE.sources[0]
-  ).filter((source): source is GeoCheckSource => source !== undefined);
+  const offset = hashInt(`${seed}:offset`) % sources.length;
+  return [...sources.slice(offset), ...sources.slice(0, offset)].slice(
+    0,
+    count
+  );
 }
 
 /**

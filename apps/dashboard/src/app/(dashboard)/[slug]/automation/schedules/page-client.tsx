@@ -723,7 +723,7 @@ function ScheduleTable({
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const format = useFormatter();
-  const now = useNow();
+  const now = useNow({ updateInterval: 60_000 });
   const formatFrequency = useScheduleFrequencyLabel();
   const outputTypeLabel = useOutputTypeLabel();
   const columns: TableColumn<Trigger>[] = [
