@@ -5,7 +5,7 @@ import { isDemoModeClient } from "@notra/utils/demo-mode";
 
 import {
   DATABUDDY_DASHBOARD_WEBSITE_ID,
-  DATABUDDY_DEMO_WEBSITE_ID,
+  DATABUDDY_DEMO_DASHBOARD_WEBSITE_ID,
 } from "@/constants/databuddy";
 import {
   DATABUDDY_DASHBOARD_MASK_PATTERNS,
@@ -13,7 +13,7 @@ import {
 } from "@/utils/databuddy";
 
 const databuddyClientId = isDemoModeClient()
-  ? DATABUDDY_DEMO_WEBSITE_ID
+  ? DATABUDDY_DEMO_DASHBOARD_WEBSITE_ID
   : DATABUDDY_DASHBOARD_WEBSITE_ID;
 
 export function DatabuddyAnalytics() {
