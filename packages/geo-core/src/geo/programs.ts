@@ -1,3 +1,4 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,
@@ -140,6 +141,7 @@ import {
   GeoSettingsDisabledError,
   GeoSettingsMissingError,
   GeoSettingsTrackingError,
+  GeoWriterCreditsExhaustedError,
 } from "./errors";
 import { geoHiddenSourceParams } from "./hidden-sources";
 import { invalidateGeoIngestHostsCache } from "./ingest";
@@ -172,7 +174,10 @@ import {
   isGeoAutoPromptId,
   toAutoTrackedPrompts,
 } from "./prompts";
-import { startClaimedGeoScanRun } from "./scan-handoff";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
 import { rearmedGeoScanAt } from "./scan-schedule";
 import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
@@ -1956,6 +1961,20 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     if (scopeGeoScanEngines(catalog, tracked, engines).length === 0) {
       return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
     }
+  }
+
+  // Refuse before claiming, so an organization out of credits gets a 402 now
+  // instead of a scan id whose run fails at its billing gate.
+  const denial = yield* findGeoScanBillingDenial(
+    scope.organizationId,
+    projectId
+  );
+  if (denial) {
+    return yield* Effect.fail(
+      new GeoWriterCreditsExhaustedError({
+        message: describeContentBillingDenial(denial),
+      })
+    );
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings

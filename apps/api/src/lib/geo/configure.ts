@@ -2,6 +2,7 @@ import {
   allowUnmeteredAiInDevelopment,
   autumn,
 } from "@notra/ai/billing/autumn";
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import {
   GeoEntitlementService,
@@ -87,6 +88,18 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
         }
       });
     }
+  ),
+  checkScanBilling: Effect.fn("GeoApiEntitlement.checkScanBilling")(
+    (organizationId) =>
+      Effect.tryPromise({
+        try: () =>
+          checkContentBilling({
+            organizationId,
+            outputType: null,
+            quotaFeatureId: FEATURES.AI_ANSWERS,
+          }),
+        catch: (cause) => cause,
+      })
   ),
 });
 

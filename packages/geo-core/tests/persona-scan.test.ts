@@ -428,6 +428,7 @@ describe("planned persona snapshots", () => {
         Effect.provideService(GeoModelService, fakeModels),
         Effect.provideService(GeoEntitlementService, {
           resolveZdrEntitlement: () => Effect.succeed("not_entitled"),
+          checkScanBilling: () => Effect.die("Unexpected billing check"),
         })
       )
     );

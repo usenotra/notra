@@ -478,6 +478,8 @@ export interface GeoScanCronSweepResult {
   leaseLost: number;
   /** Rows whose project scan slot is still claimed by a running scan. */
   alreadyRunning: number;
+  /** Slots skipped because the billing gate would deny the scan. */
+  billingDenied: number;
   /** Hand-offs that failed; their row keeps its lease and is retried. */
   failed: number;
   /** Slots another sweep advanced while this one held a stale lease. */
@@ -664,7 +666,7 @@ export interface GeoScanProjectContext {
   domains?: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
-  /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
+  /** Prompt- or engine-scoped scans do not cover a scheduled project scan. Optional for persisted older plans. */
   scoped?: boolean;
 }
 

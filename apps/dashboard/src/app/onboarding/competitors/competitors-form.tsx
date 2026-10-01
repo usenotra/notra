@@ -8,6 +8,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
+import { ORPCError } from "@orpc/client";
 import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -125,10 +126,18 @@ function CompetitorsPicker({
       router.push(nextHref);
       return;
     }
+    const leave = () => {
+      setIsLeaving(true);
+      router.push(nextHref);
+    };
     startScan.mutate("onboarding", {
-      onSuccess: () => {
-        setIsLeaving(true);
-        router.push(nextHref);
+      onSuccess: leave,
+      // A scan billing refuses up front is no reason to block onboarding; the
+      // toast already explains it.
+      onError: (error) => {
+        if (error instanceof ORPCError && error.code === "PAYMENT_REQUIRED") {
+          leave();
+        }
       },
     });
   };

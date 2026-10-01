@@ -7,6 +7,7 @@ import {
 import type { GeoModelCatalog } from "../src/types/geo";
 import { engineModelOf } from "../src/utils/geo-engine-family";
 import {
+  isPartialGeoScanEngineScope,
   resolveGeoGroundedZdrMode,
   resolveTrackedEngines,
   scopeGeoScanEngines,
@@ -267,5 +268,30 @@ describe("selected grounded engines", () => {
         ["spacexai/grok-4.7"]
       );
     }
+  });
+});
+
+describe("partial engine scope", () => {
+  const tracked = ["anthropic/claude-sonnet-5", "openai/gpt-5.6-sol"];
+
+  test("a selection that leaves out a tracked engine is partial", () => {
+    expect(isPartialGeoScanEngineScope(tracked, ["openai/gpt-5.6-sol"])).toBe(
+      true
+    );
+  });
+
+  test("every tracked engine, with or without extra models, is a full scan", () => {
+    expect(isPartialGeoScanEngineScope(tracked, [...tracked].reverse())).toBe(
+      false
+    );
+    expect(
+      isPartialGeoScanEngineScope(tracked, [...tracked, "spacexai/grok-4.7"])
+    ).toBe(false);
+  });
+
+  test("a retired tracked id is matched through its replacement", () => {
+    expect(
+      isPartialGeoScanEngineScope(["spacexai/grok-4.6"], ["spacexai/grok-4.7"])
+    ).toBe(false);
   });
 });

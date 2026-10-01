@@ -79,6 +79,7 @@ import {
 import {
   geoScanEmptyEngineSkipReason,
   isGeoNativeSearchEngine,
+  isPartialGeoScanEngineScope,
   resolveGeoEngineGateway,
   resolveGeoGroundedZdrMode,
   resolveGeoZdrMode,
@@ -1104,7 +1105,9 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         domains: settings.domains,
         gate,
         startedAtMs: Date.now(),
-        scoped: promptIds !== undefined,
+        scoped:
+          promptIds !== undefined ||
+          isPartialGeoScanEngineScope(settings.engines, scanEngines),
       },
       claimedAt: claimedAt.toISOString(),
       tasks: interleaveGeoScanItemsByKey(tasks, (task) => task.engine),

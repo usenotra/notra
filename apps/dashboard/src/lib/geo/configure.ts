@@ -1,3 +1,5 @@
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
+import { FEATURES } from "@notra/ai/billing/features";
 import {
   GEO_CURSOR_FLAG_KEY,
   GEO_OPENCODE_FLAG_KEY,
@@ -74,6 +76,18 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
   resolveZdrEntitlement: Effect.fn("GeoDashboardEntitlement.resolveZdr")(
     (organizationId) =>
       Effect.promise(() => resolveZdrEntitlement(organizationId))
+  ),
+  checkScanBilling: Effect.fn("GeoDashboardEntitlement.checkScanBilling")(
+    (organizationId) =>
+      Effect.tryPromise({
+        try: () =>
+          checkContentBilling({
+            organizationId,
+            outputType: null,
+            quotaFeatureId: FEATURES.AI_ANSWERS,
+          }),
+        catch: (cause) => cause,
+      })
   ),
 });
 

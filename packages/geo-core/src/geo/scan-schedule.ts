@@ -1,3 +1,4 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { deleteStaleGeoOpenCodeBoxes } from "@notra/ai/utils/geo-opencode-box";
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
@@ -13,7 +14,10 @@ import {
 import type { DueGeoScanRow, GeoScanCronSweepResult } from "../types/geo";
 import { describeGeoError, geoLogInfo, geoLogWarn } from "../utils/geo-log";
 import { geoDb, geoSkip } from "./effect";
-import { startClaimedGeoScanRun } from "./scan-handoff";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
 import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
@@ -231,6 +235,8 @@ const backOffGeoScanLease = Effect.fn("geo.backOffScanLease")(function* (
  *   until the 12-hour retry window is exhausted),
  * - the process died mid-sweep.
  *
+ * A row the billing gate would deny is advanced without starting anything.
+ *
  * A slot that an attempt finishing after it became due already covered (that
  * manual scan, or an ambiguous hand-off that did start after all) is advanced
  * without starting anything, so a project is never scanned twice for one slot.
@@ -279,6 +285,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
     let covered = 0;
     let leaseLost = 0;
     let alreadyRunning = 0;
+    let billingDenied = 0;
     let failed = 0;
     let advanceLost = 0;
 
@@ -326,6 +333,26 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       }
       const { leaseUntil } = lease;
       const row = { ...candidate, nextScanAt: lease.nextScanAt };
+
+      // A slot the billing gate would deny is skipped here, before a claim,
+      // a `geo_scans` row and a workflow run exist only to fail at that gate.
+      // It moves on like a started slot: retrying would deny it again.
+      const denial = yield* findGeoScanBillingDenial(
+        row.organizationId,
+        row.projectId
+      );
+      if (denial) {
+        billingDenied += 1;
+        yield* advance(row, leaseUntil);
+        yield* geoLogWarn({
+          event: "geo.scan.skipped",
+          reason: "billing",
+          organizationId: row.organizationId,
+          projectId: row.projectId,
+          detail: describeContentBillingDenial(denial),
+        });
+        continue;
+      }
 
       // An attempt that finished after this slot became due already answers
       // for it: starting another one would bill the organization twice for the
@@ -484,6 +511,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       covered,
       leaseLost,
       alreadyRunning,
+      billingDenied,
       failed,
       advanceLost,
       staleScansFailed,
