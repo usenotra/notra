@@ -36,7 +36,7 @@ export const ChatgptActionButton = ({
       {children}
     </TooltipTrigger>
     <TooltipContent
-      className="bg-chatgpt-tooltip font-chatgpt text-chatgpt-tooltip-fg rounded-lg px-2 py-1 text-xs font-medium [--color-background:var(--chatgpt-tooltip-fg)] [--color-foreground:var(--chatgpt-tooltip)]"
+      className="bg-chatgpt-tooltip font-chatgpt text-chatgpt-tooltip-fg rounded-lg border-0 bg-none px-2 py-1 text-xs font-medium shadow-none [--color-background:var(--chatgpt-tooltip-fg)] [--color-foreground:var(--chatgpt-tooltip)] [corner-shape:round]"
       side="bottom"
       sideOffset={6}
     >

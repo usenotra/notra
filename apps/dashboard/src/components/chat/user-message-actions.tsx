@@ -21,6 +21,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
@@ -129,100 +130,107 @@ export function UserMessageActions({
         </div>
       )}
 
-      <div className="flex items-center gap-1">
-        <DropdownMenu onOpenChange={setRetryOpen} open={retryOpen}>
+      <TooltipProvider>
+        <div className="flex items-center gap-1">
+          <DropdownMenu onOpenChange={setRetryOpen} open={retryOpen}>
+            <Tooltip disableHoverablePopup>
+              <TooltipTrigger
+                render={
+                  <DropdownMenuTrigger
+                    disabled={!canInteract}
+                    render={
+                      <Button
+                        aria-label={tCommon("retry")}
+                        className="size-5"
+                        size="icon-sm"
+                        type="button"
+                        variant="ghost"
+                      />
+                    }
+                  />
+                }
+              >
+                <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+              </TooltipTrigger>
+              <TooltipContent>{tCommon("retry")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuItem onClick={() => onRetry()}>
+                <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+                <span className="text-sm">{t("retryWithSame")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>
+                  {tCommon2("labels.model")}
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              {availableModels.map((m) => (
+                <DropdownMenuItem key={m.id} onClick={() => onRetry(m.id)}>
+                  <ModelIcon
+                    className="size-4 shrink-0"
+                    provider={m.provider}
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm">{m.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {modelLabels.description(m)}
+                    </span>
+                    <span className="text-muted-foreground/70 text-[0.625rem]">
+                      {modelLabels.pricing(m)}
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Tooltip disableHoverablePopup>
             <TooltipTrigger
               render={
-                <DropdownMenuTrigger
+                <Button
+                  aria-label={t("editMessage")}
+                  className="size-5"
                   disabled={!canInteract}
-                  render={
-                    <Button
-                      aria-label={tCommon("retry")}
-                      className="size-5"
-                      size="icon-sm"
-                      type="button"
-                      variant="ghost"
-                    />
-                  }
+                  onClick={onEdit}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
                 />
               }
             >
-              <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+              <HugeiconsIcon icon={Edit02Icon} size={12} />
             </TooltipTrigger>
-            <TooltipContent>{tCommon("retry")}</TooltipContent>
+            <TooltipContent>{tCommon("edit")}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuItem onClick={() => onRetry()}>
-              <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
-              <span className="text-sm">{t("retryWithSame")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{tCommon2("labels.model")}</DropdownMenuLabel>
-            </DropdownMenuGroup>
-            {availableModels.map((m) => (
-              <DropdownMenuItem key={m.id} onClick={() => onRetry(m.id)}>
-                <ModelIcon className="size-4 shrink-0" provider={m.provider} />
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-sm">{m.label}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {modelLabels.description(m)}
-                  </span>
-                  <span className="text-muted-foreground/70 text-[0.625rem]">
-                    {modelLabels.pricing(m)}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
 
-        <Tooltip disableHoverablePopup>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("editMessage")}
-                className="size-5"
-                disabled={!canInteract}
-                onClick={onEdit}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
+          <Tooltip disableHoverablePopup>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={t("copyMessage")}
+                  className={cn(
+                    "size-5",
+                    copied && "text-success hover:text-success"
+                  )}
+                  onClick={handleCopy}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                />
+              }
+            >
+              <HugeiconsIcon
+                icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
+                size={12}
               />
-            }
-          >
-            <HugeiconsIcon icon={Edit02Icon} size={12} />
-          </TooltipTrigger>
-          <TooltipContent>{tCommon("edit")}</TooltipContent>
-        </Tooltip>
-
-        <Tooltip disableHoverablePopup>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("copyMessage")}
-                className={cn(
-                  "size-5",
-                  copied && "text-success hover:text-success"
-                )}
-                onClick={handleCopy}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              />
-            }
-          >
-            <HugeiconsIcon
-              icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
-              size={12}
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            {copied ? tCommon("copied") : tCommon("copy")}
-          </TooltipContent>
-        </Tooltip>
-      </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {copied ? tCommon("copied") : tCommon("copy")}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }

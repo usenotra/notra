@@ -141,9 +141,7 @@ export function OnboardingSuggestions({
                       >
                         <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
                       </TooltipTrigger>
-                      <TooltipContent className="data-open:zoom-in-100 data-[side=top]:slide-in-from-bottom-0 data-[state=delayed-open]:zoom-in-100">
-                        {t("dismissTooltip")}
-                      </TooltipContent>
+                      <TooltipContent>{t("dismissTooltip")}</TooltipContent>
                     </BaseTooltip.Root>
                   </div>
                 }
@@ -156,9 +154,7 @@ export function OnboardingSuggestions({
                     >
                       {suggestion.title}
                     </TooltipTrigger>
-                    <TooltipContent className="data-open:zoom-in-100 data-[side=top]:slide-in-from-bottom-0 data-[state=delayed-open]:zoom-in-100">
-                      {suggestion.title}
-                    </TooltipContent>
+                    <TooltipContent>{suggestion.title}</TooltipContent>
                   </BaseTooltip.Root>
                 }
                 icon={<HugeiconsIcon icon={SparklesIcon} />}

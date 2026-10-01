@@ -901,6 +901,20 @@
       ]
     },
     {
+      "name": "notra-tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "A Base UI tooltip with the Depth surface of the buttons that glides between neighbouring triggers.",
+      "dependencies": ["@base-ui/react", "cn"],
+      "files": [
+        {
+          "path": "components/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/tooltip.tsx"
+        }
+      ]
+    },
+    {
       "name": "shimmer",
       "type": "registry:component",
       "title": "Shimmer",

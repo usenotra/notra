@@ -35,10 +35,17 @@ export const LANDING_SECTIONS: LandingSection[] = [
         title: "Marketing Button",
       },
       {
-        description: "A muted header band tucked behind the content card.",
+        description:
+          "The Depth surface of the buttons, gliding between neighbouring triggers.",
         href: "/components/tooltip",
         preview: "tooltip",
         title: "Tooltip",
+      },
+      {
+        description: "A muted header band tucked behind the content card.",
+        href: "/components/duotone-tooltip",
+        preview: "duotone-tooltip",
+        title: "Duotone Tooltip",
       },
       {
         description:

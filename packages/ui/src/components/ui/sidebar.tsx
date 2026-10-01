@@ -19,6 +19,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
 	Tooltip,
 	TooltipContent,
+	TooltipProvider,
 	TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
@@ -279,7 +280,7 @@ function Sidebar({
 					data-sidebar="sidebar"
 					data-slot="sidebar-inner"
 				>
-					{children}
+					<TooltipProvider>{children}</TooltipProvider>
 				</div>
 			</div>
 		</div>

@@ -9,6 +9,7 @@ export default defineMeta({
     "shimmer",
     "step-slider",
     "tooltip",
+    "duotone-tooltip",
     "chat-minimap",
     "ai-search",
     "ai-chat",

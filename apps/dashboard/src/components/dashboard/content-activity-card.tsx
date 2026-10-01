@@ -12,6 +12,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
@@ -63,56 +64,58 @@ export const ContentActivityCard = () => {
             legend: { less: t("legendLess"), more: tCommon("labels.more") },
           }}
         >
-          <ContributionGraphCalendar>
-            {({ activity, dayIndex, weekIndex }) => {
-              const entry = activity as unknown as ContentActivityEntry;
+          <TooltipProvider>
+            <ContributionGraphCalendar>
+              {({ activity, dayIndex, weekIndex }) => {
+                const entry = activity as unknown as ContentActivityEntry;
 
-              return (
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <g>
-                        <ContributionGraphBlock
-                          activity={activity}
-                          className={cn(
-                            'data-[level="0"]:fill-muted dark:data-[level="0"]:fill-white/5',
-                            'data-[level="1"]:fill-primary/20 dark:data-[level="1"]:fill-primary/30',
-                            'data-[level="2"]:fill-primary/40 dark:data-[level="2"]:fill-primary/50',
-                            'data-[level="3"]:fill-primary/60 dark:data-[level="3"]:fill-primary/70',
-                            'data-[level="4"]:fill-primary/80 dark:data-[level="4"]:fill-primary/90'
-                          )}
-                          dayIndex={dayIndex}
-                          weekIndex={weekIndex}
-                        />
-                      </g>
-                    }
-                  />
-                  <TooltipContent className="space-y-1.5">
-                    <p className="font-semibold">
-                      {formatter.dateTime(parseISO(entry.date), {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                    <p className="text-sm font-medium">
-                      {tCommon("messages.countPluralOnePostOther", {
-                        count: entry.count,
-                      })}
-                    </p>
-                    {entry.count > 0 && (
-                      <div className="text-muted-foreground flex gap-3 text-xs">
-                        <span>{t("drafts", { count: entry.drafts })}</span>
-                        <span>
-                          {t("published", { count: entry.published })}
-                        </span>
-                      </div>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            }}
-          </ContributionGraphCalendar>
+                return (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <g>
+                          <ContributionGraphBlock
+                            activity={activity}
+                            className={cn(
+                              'data-[level="0"]:fill-muted dark:data-[level="0"]:fill-white/5',
+                              'data-[level="1"]:fill-primary/20 dark:data-[level="1"]:fill-primary/30',
+                              'data-[level="2"]:fill-primary/40 dark:data-[level="2"]:fill-primary/50',
+                              'data-[level="3"]:fill-primary/60 dark:data-[level="3"]:fill-primary/70',
+                              'data-[level="4"]:fill-primary/80 dark:data-[level="4"]:fill-primary/90'
+                            )}
+                            dayIndex={dayIndex}
+                            weekIndex={weekIndex}
+                          />
+                        </g>
+                      }
+                    />
+                    <TooltipContent className="space-y-1.5">
+                      <p className="font-semibold">
+                        {formatter.dateTime(parseISO(entry.date), {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+                      <p className="text-sm font-medium">
+                        {tCommon("messages.countPluralOnePostOther", {
+                          count: entry.count,
+                        })}
+                      </p>
+                      {entry.count > 0 && (
+                        <div className="text-muted-foreground flex gap-3 text-xs">
+                          <span>{t("drafts", { count: entry.drafts })}</span>
+                          <span>
+                            {t("published", { count: entry.published })}
+                          </span>
+                        </div>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }}
+            </ContributionGraphCalendar>
+          </TooltipProvider>
           <ContributionGraphFooter>
             <ContributionGraphTotalCount>
               {({ totalCount }) => (

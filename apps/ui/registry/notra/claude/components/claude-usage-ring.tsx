@@ -74,7 +74,7 @@ export const ClaudeUsageRing = ({
         />
       </TooltipTrigger>
       <TooltipContent
-        className="bg-claude-tooltip font-claude text-claude-tooltip-fg rounded-md px-2 py-1 text-xs [&>div]:hidden"
+        className="bg-claude-tooltip font-claude text-claude-tooltip-fg rounded-md border-0 bg-none px-2 py-1 text-xs shadow-none [corner-shape:round] [&>div:last-child]:hidden"
         side="top"
         sideOffset={6}
       >

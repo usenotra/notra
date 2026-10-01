@@ -104,7 +104,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       </Suspense>
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
         <UiLabelsProvider labels={uiLabels}>
-          <TooltipProvider delay={500}>
+          <TooltipProvider delay={500} glide={false}>
             <NuqsAdapter>
               {children}
               {POSTHOG_PROJECT_TOKEN ? (

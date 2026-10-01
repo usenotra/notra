@@ -75,7 +75,7 @@ const ActionButton = ({
         {children}
       </TooltipTrigger>
       <TooltipContent
-        className="bg-pplx-fg font-pplx text-pplx-bg [&>div]:bg-pplx-fg [&>div]:fill-pplx-fg"
+        className="bg-pplx-fg font-pplx text-pplx-bg [&>div]:bg-pplx-fg [&>div]:fill-pplx-fg rounded-md border-0 bg-none px-3 py-1.5 shadow-none [corner-shape:round]"
         side="bottom"
         sideOffset={6}
       >
