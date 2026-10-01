@@ -59,10 +59,10 @@ export default async function proxy(request: NextRequest) {
 // Machine-to-machine routes authenticate themselves (signatures, CRON_SECRET,
 // bearer tokens) and never read the AuthKit session, so running the proxy there
 // only adds an invocation per webhook, ingest event, cron and workflow callback.
-// `demo/` holds the public demo's static images, which the image optimizer
+// `demo/*.png` are the public demo's static images, which the image optimizer
 // fetches without a session.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|badges(?:/|$)|demo/|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt|design\\.md(?:/|$)|api/webhooks/|api/geo/ingest(?:/|$)|api/cron/|api/healthcheck(?:/|$)|api/workflows/|api/internal/|\\.well-known/workflow/|ingest/).*)",
+    "/((?!_next/static|_next/image|badges(?:/|$)|demo/[^/]+\\.png$|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt|design\\.md(?:/|$)|api/webhooks/|api/geo/ingest(?:/|$)|api/cron/|api/healthcheck(?:/|$)|api/workflows/|api/internal/|\\.well-known/workflow/|ingest/).*)",
   ],
 };

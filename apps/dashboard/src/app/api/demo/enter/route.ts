@@ -10,9 +10,9 @@ import {
   refillDemoSandboxPool,
 } from "@/lib/demo/sandbox";
 import { getCurrentDemoSandbox, writeDemoSession } from "@/lib/demo/session";
-import { hashDemoClientIp } from "@/utils/demo-ip-hash";
+import { getDemoClientIp, hashDemoClientIp } from "@/utils/demo-ip-hash";
 import { resolveDemoLanding, safeDemoReturnTo } from "@/utils/demo-return-to";
-import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
+import { ratelimit } from "@/utils/ratelimit";
 
 export const maxDuration = 60;
 
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   }
 
   await assertDedicatedDemoDatabase();
-  const ipHash = hashDemoClientIp(getClientIpFromHeaders(await headers()));
+  const ipHash = hashDemoClientIp(getDemoClientIp(await headers()));
   const { success } = await ratelimit.demoSandboxCreate.limit(ipHash);
   const sandbox = success
     ? await claimPooledSandbox({ timeZone: null, ipHash })
