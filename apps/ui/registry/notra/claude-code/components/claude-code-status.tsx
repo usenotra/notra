@@ -10,6 +10,7 @@ import {
 } from "../constants/claude-code";
 import { renderClaudeCodeInline } from "../lib/claude-code-inline";
 import type {
+  ClaudeCodeInterruptedProps,
   ClaudeCodeSpinnerProps,
   ClaudeCodeTurnSummaryProps,
 } from "../types/claude-code";
@@ -105,6 +106,28 @@ export const ClaudeCodeTurnSummary = ({
     <span className="min-w-0">
       {verb} for {duration}
       {doneAt && <> · done {doneAt}</>}
+    </span>
+  </p>
+);
+
+export const ClaudeCodeInterrupted = ({
+  className,
+  hint = "What should Claude do instead?",
+  ...props
+}: ClaudeCodeInterruptedProps) => (
+  <p
+    className={cn(
+      "font-claude-code text-claude-code-muted grid min-w-0 grid-cols-[3ch_minmax(0,1fr)] pl-[2ch] text-[0.8125rem] leading-5",
+      className
+    )}
+    data-slot="claude-code-interrupted"
+    role="status"
+    {...props}
+  >
+    <span aria-hidden="true">{CLAUDE_CODE_RESULT_GLYPH}</span>
+    <span className="min-w-0">
+      <span className="text-claude-code-error">Interrupted</span>
+      {hint && <> · {hint}</>}
     </span>
   </p>
 );

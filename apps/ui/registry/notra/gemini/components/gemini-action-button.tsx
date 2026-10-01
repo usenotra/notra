@@ -36,7 +36,7 @@ export const GeminiActionButton = ({
       {children}
     </TooltipTrigger>
     <TooltipContent
-      className="bg-gemini-tooltip font-gemini text-gemini-tooltip-fg *:bg-gemini-tooltip *:fill-gemini-tooltip"
+      className="bg-gemini-tooltip font-gemini text-gemini-tooltip-fg *:bg-gemini-tooltip *:fill-gemini-tooltip rounded-md border-0 bg-none px-3 py-1.5 shadow-none [corner-shape:round]"
       side="bottom"
       sideOffset={6}
     >

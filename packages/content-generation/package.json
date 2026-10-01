@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@notra/ai": "workspace:*",
+    "@notra/webhooks": "workspace:*",
     "@upstash/redis": "^1.38.4",
     "zod": "^4.6.5"
   },

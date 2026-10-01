@@ -70,7 +70,32 @@ export interface SceneNode {
   guid: Guid;
 }
 
-export interface AddFrameOptions {
+export interface FigmaEffect {
+  type: string;
+  visible?: boolean;
+  blendMode?: string;
+  color?: Color;
+  offset?: { x: number; y: number };
+  radius?: number;
+  spread?: number;
+  showShadowBehindNode?: boolean;
+}
+
+export interface DropShadowOptions {
+  dx: number;
+  dy: number;
+  blur: number;
+  color: RGBA;
+}
+
+export interface NodeExtras {
+  opacity?: number;
+  blendMode?: string;
+  effects?: FigmaEffect[];
+  mask?: boolean;
+}
+
+export interface AddFrameOptions extends NodeExtras {
   parent?: Guid;
   name?: string;
   x?: number;
@@ -85,6 +110,7 @@ export interface AddFrameOptions {
   stackMode?: string;
   stackSpacing?: number;
   padding?: [number, number, number, number];
+  clipsContent?: boolean;
 }
 
 export interface AddTextOptions {
@@ -108,7 +134,7 @@ export interface AddTextOptions {
   derivedTextData?: DerivedTextData;
 }
 
-export interface AddVectorOptions {
+export interface AddVectorOptions extends NodeExtras {
   parent: Guid;
   name?: string;
   x?: number;

@@ -9,7 +9,6 @@ import type {
   GeoCompetitorPromptSummary,
   GeoCompetitorSharePoint,
   GeoCompetitorShareTimeseriesPoint,
-  GeoCompetitorTypeFilter,
   GeoPromptResultSummary,
   GeoSparklinePoint,
   ShareOfVoiceRow,
@@ -419,8 +418,7 @@ export function buildCompetitorRows(
   companyName: string,
   aliases: readonly string[],
   ownDomain: string | null,
-  search: string,
-  typeFilter: GeoCompetitorTypeFilter
+  search: string
 ): GeoCompetitorRowEntry[] {
   const query = search.trim().toLowerCase();
   const rows: GeoCompetitorRowEntry[] = [
@@ -449,12 +447,9 @@ export function buildCompetitorRows(
     });
   });
 
-  const filtered = rows.filter((row) => {
-    if (typeFilter !== "all" && !row.isOwnBrand && row.kind !== typeFilter) {
-      return false;
-    }
-    return fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query);
-  });
+  const filtered = rows.filter((row) =>
+    fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query)
+  );
 
   if (query.length === 0) {
     return filtered;

@@ -60,7 +60,7 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
     const result =
       copyTarget === "figma"
         ? await copyHtmlAsFigma(html, HTML_EXPORT_LABEL)
-        : await copyHtmlAsPaper(html, HTML_EXPORT_LABEL);
+        : await copyHtmlAsPaper(html);
 
     setPendingTarget(null);
 

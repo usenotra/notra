@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { BlogPostCard } from "@/components/blog-post-card";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { buildBlogCardItems, listNotraBlogPosts } from "@/utils/blog";
+import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import {
   DEFAULT_SOCIAL_IMAGE,
   TWITTER_HANDLE,
@@ -35,12 +36,22 @@ export const metadata: Metadata = {
   },
 };
 
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", url: SITE_URL },
+  { name: "Blog", url: `${SITE_URL}/blog` },
+]);
+
 export default async function BlogPage() {
   const posts = await listNotraBlogPosts();
   const cardItems = buildBlogCardItems(posts);
 
   return (
     <div className="flex w-full flex-col items-center gap-12 md:gap-16">
+      <script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload is server-built and script-close-escaped
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+        type="application/ld+json"
+      />
       <MarketingHeroWash
         subtitle={description}
         title={

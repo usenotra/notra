@@ -9,20 +9,24 @@ const EXPORT_HEIGHT = "630px";
 const FONT_RENDER_DELAY_MS = 50;
 
 function createExportElement(html: string): HTMLDivElement {
+  const host = document.createElement("div");
+  host.style.all = "initial";
+  host.style.position = "fixed";
+  host.style.left = "-10000px";
+  host.style.top = "0";
+  host.style.pointerEvents = "none";
+
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
   container.style.width = EXPORT_WIDTH;
   container.style.height = EXPORT_HEIGHT;
   container.style.overflow = "visible";
   container.style.display = "flex";
   container.style.background = "#ffffff";
-  container.style.pointerEvents = "none";
 
   const range = document.createRange();
   container.replaceChildren(range.createContextualFragment(toSafeHtml(html)));
-  document.body.appendChild(container);
+  host.attachShadow({ mode: "open" }).appendChild(container);
+  document.body.appendChild(host);
 
   return container;
 }
@@ -60,7 +64,8 @@ async function copyHtml(
         error instanceof Error ? error.message : "Could not convert the HTML.",
     };
   } finally {
-    exportElement.remove();
+    const root = exportElement.getRootNode();
+    (root instanceof ShadowRoot ? root.host : exportElement).remove();
   }
 }
 
@@ -73,11 +78,6 @@ export function copyHtmlAsFigma(
   );
 }
 
-export function copyHtmlAsPaper(
-  html: string,
-  label: string
-): Promise<HtmlExportResult> {
-  return copyHtml(html, (element) =>
-    copyAsPaper(element, { label, name: label })
-  );
+export function copyHtmlAsPaper(html: string): Promise<HtmlExportResult> {
+  return copyHtml(html, (element) => copyAsPaper(element));
 }

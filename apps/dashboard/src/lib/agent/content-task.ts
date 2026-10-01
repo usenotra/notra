@@ -23,7 +23,7 @@ function buildTaskMessage(options: AgentContentTaskOptions): string {
     .join("\n");
 
   return [
-    "Delegate this task to the content-writer subagent in a single call, then report its structured result via final_output without changing it.",
+    "Call generate_content exactly once with the complete task below. It waits for the content-writer's final result. Then report that structured result via final_output without changing it. Do not call the background content-writer subagent directly or respond with a progress acknowledgement.",
     "",
     `Task for content-writer: produce one ${options.contentLabel} (contentType: ${options.contentType}).`,
     "",

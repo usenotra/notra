@@ -14,7 +14,7 @@ export const CodexTerminal = ({
 }: CodexTerminalProps) => (
   <Card
     className={cn(
-      "bg-codex-bg font-codex text-codex-fg w-full gap-0 overflow-clip rounded-xl py-0 text-[0.8125rem] leading-[1.3] antialiased shadow-[0_1.5rem_3.5rem_-1rem_var(--codex-shadow)] ring-0",
+      "bg-codex-bg font-codex text-codex-fg ring-codex-ring w-full gap-0 overflow-clip rounded-xl py-0 text-[0.8125rem] leading-[1.3] antialiased shadow-[0_1.5rem_3.5rem_-1rem_var(--codex-shadow)] ring-1",
       className
     )}
     data-slot="codex-terminal"

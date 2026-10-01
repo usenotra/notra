@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import { gateway } from "@notra/ai/gateway";
 import { scrapeWebsiteForBrandAnalysis } from "@notra/ai/utils/context-dev";
 import { db } from "@notra/db/drizzle";
@@ -28,13 +29,14 @@ import type {
   GeoCompetitorSeed,
   GeoDiscoverWebsiteResult,
   GeoGenerateFromWebsiteResult,
-  GeoGeneratedConversation,
   GeoPromptInsert,
   GeoScopeInput,
   GeoWebsiteDiscovery,
+  GeoWebsiteGenerationWrite,
 } from "../types/geo";
 import { geoConversationRules } from "../utils/conversation-generation-prompt";
 import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
+import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
@@ -47,7 +49,7 @@ import {
   insertPromptsInTransaction,
   reconcileCompetitorsInTransaction,
 } from "./programs";
-import { ensureGeoProject } from "./projects";
+import { ensureGeoProject, resolveGeoScope } from "./projects";
 import { startClaimedGeoScanRun } from "./scan-handoff";
 import { claimGeoScanRun } from "./scan-status";
 import {
@@ -59,7 +61,11 @@ import { buildBrandTerms, promptMentionsBrand } from "./suggestion-keywords";
 const MIN_PROMPT_LENGTH = GEO_PROMPT_MIN_LENGTH;
 const MAX_PROMPT_LENGTH = GEO_PROMPT_MAX_LENGTH;
 
-function buildDiscoveryPrompt(url: string, content: string): string {
+function buildDiscoveryPrompt(
+  url: string,
+  content: string,
+  language: string
+): string {
   const year = new Date().getFullYear();
   return `Website: ${url}
 
@@ -81,11 +87,11 @@ Write questions someone would actually type into ChatGPT before finding this com
 - Stay at this product's level. A provider-agnostic email library can answer questions about switching or using multiple providers, not which provider to buy, how to fix deliverability or how to schedule sends. A social SDK is not a post scheduler. If this product would not be a direct answer, replace the question.
 - Cover different jobs. No more than two questions about the same problem; changing the provider, role or opener does not make a new question. Mix recommendations with practical questions and tradeoffs.
 - Never name this company, its products, aliases or domain in a prompt. Do not copy its wording. Mention a direct competitor only when a buyer would naturally compare it.
-- Use the audience's language. Do not invent claims about prices, legal deadlines, features or release dates. Each prompt must be ${MIN_PROMPT_LENGTH} to ${MAX_PROMPT_LENGTH} characters; do not append "${year}".
+- Write every prompt in ${language}, even when the website uses another language. Do not invent claims about prices, legal deadlines, features or release dates. Each prompt must be ${MIN_PROMPT_LENGTH} to ${MAX_PROMPT_LENGTH} characters; do not append "${year}".
 
-Give each question a useful article title in the same language, under ${GEO_GAP_TITLE_MAX_LENGTH} characters. Use natural capitalization for that language. Only ranking or comparison titles may include "${year}".
+Give each question a useful article title in ${language}, under ${GEO_GAP_TITLE_MAX_LENGTH} characters. Use natural capitalization for that language. Only ranking or comparison titles may include "${year}".
 
-${geoConversationRules("the company")}`;
+${geoConversationRules("the company", language)}`;
 }
 
 function normalizeKey(value: string): string {
@@ -194,7 +200,8 @@ const scrapeWebsite = Effect.fn("geo.discover.scrape")(function* (url: string) {
 const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
   organizationId: string,
   url: string,
-  content: string
+  content: string,
+  language: string
 ) {
   const result = yield* Effect.tryPromise({
     try: () =>
@@ -204,7 +211,7 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
         }),
         providerOptions: { gateway: { tags: ["geo-discovery"] } },
         output: Output.object({ schema: geoWebsiteDiscoverySchema }),
-        prompt: buildDiscoveryPrompt(url, content),
+        prompt: buildDiscoveryPrompt(url, content, language),
         instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
         maxOutputTokens: GEO_DISCOVERY_MAX_TOKENS,
       }),
@@ -222,9 +229,10 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
 export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   organizationId: string,
   url: string,
-  fresh = false
+  fresh = false,
+  language: string = DEFAULT_LANGUAGE
 ) {
-  const cacheKey = geoDiscoveryCacheKey(organizationId, url);
+  const cacheKey = geoDiscoveryCacheKey(organizationId, url, language);
   const cached = fresh
     ? null
     : yield* readGeoCache(cacheKey, geoWebsiteDiscoverySchema);
@@ -233,7 +241,12 @@ export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
     return result;
   }
   const content = yield* scrapeWebsite(url);
-  const discovery = yield* extractDiscovery(organizationId, url, content);
+  const discovery = yield* extractDiscovery(
+    organizationId,
+    url,
+    content,
+    language
+  );
   yield* writeGeoCache(cacheKey, discovery, GEO_DISCOVERY_CACHE_TTL_SECONDS);
   const result: GeoDiscoverWebsiteResult = { url, discovery };
   return result;
@@ -256,17 +269,18 @@ const resolveSeedEngines = Effect.fn("geo.discover.seedEngines")(function* (
 
 const persistGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.persist"
-)(function* (
-  tx: DbTransaction,
-  organizationId: string,
-  projectId: string,
-  companyName: string,
-  aliases: string[],
-  entries: readonly GeoPromptInsert[],
-  conversations: readonly GeoGeneratedConversation[],
-  discoveredCompetitors: readonly GeoCompetitorSeed[],
-  seedEngines: string[] | null
-) {
+)(function* (tx: DbTransaction, input: GeoWebsiteGenerationWrite) {
+  const {
+    organizationId,
+    projectId,
+    companyName,
+    aliases,
+    entries,
+    conversations,
+    discoveredCompetitors,
+    seedEngines,
+    seedLanguages,
+  } = input;
   yield* Effect.tryPromise({
     try: () =>
       tx
@@ -280,6 +294,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
           competitors: [],
           // Only a new row is seeded; an existing selection is left alone.
           engines: seedEngines,
+          languages: seedLanguages ? [...seedLanguages] : null,
+          promptLanguage: seedLanguages?.at(0) ?? null,
           enabled: true,
         })
         .onConflictDoUpdate({
@@ -384,10 +400,42 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
   }
 });
 
+const loadExistingSettings = (projectId: string) =>
+  Effect.tryPromise({
+    try: () =>
+      db.query.geoSettings.findFirst({
+        where: eq(geoSettings.projectId, projectId),
+      }),
+    catch: (cause) =>
+      new GeoDiscoveryError({
+        message: "Failed to load GEO settings",
+        cause,
+      }),
+  });
+
 export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
   function* (scopeInput: GeoScopeInput, url: string) {
     const organizationId = scopeInput.organizationId;
-    const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
+    // The project `ensureGeoProject` settles on (the oldest when none is
+    // given) decides the prompt language, so resolve it before discovery.
+    const scope = yield* resolveGeoScope(scopeInput).pipe(
+      Effect.mapError(
+        (cause) =>
+          new GeoDiscoveryError({
+            message: "Failed to resolve the project",
+            cause,
+          })
+      )
+    );
+    const existing = scope.projectId
+      ? yield* loadExistingSettings(scope.projectId)
+      : undefined;
+    const { discovery } = yield* discoverGeoWebsite(
+      organizationId,
+      url,
+      true,
+      existing?.promptLanguage ?? DEFAULT_LANGUAGE
+    );
 
     const projectId = yield* ensureGeoProject(
       scopeInput,
@@ -418,18 +466,6 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
       })
     );
 
-    const existing = yield* Effect.tryPromise({
-      try: () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, projectId),
-        }),
-      catch: (cause) =>
-        new GeoDiscoveryError({
-          message: "Failed to load GEO settings",
-          cause,
-        }),
-    });
-
     const { aliases, companyName, entries, conversations } =
       yield* prepareGeoWebsiteGeneration(
         discovery,
@@ -443,17 +479,17 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
       try: () =>
         db.transaction((tx) =>
           Effect.runPromise(
-            persistGeoWebsiteGeneration(
-              tx,
+            persistGeoWebsiteGeneration(tx, {
               organizationId,
               projectId,
               companyName,
               aliases,
               entries,
               conversations,
-              discovery.competitors,
-              seedEngines
-            )
+              discoveredCompetitors: discovery.competitors,
+              seedEngines,
+              seedLanguages: null,
+            })
           )
         ),
       catch: (cause) =>
@@ -481,9 +517,18 @@ export const createGeoProjectFromWebsite = Effect.fn(
   organizationId: string,
   name: string,
   brandSettingsId: string,
-  url: string
+  url: string,
+  languages?: readonly string[]
 ) {
-  const { discovery } = yield* discoverGeoWebsite(organizationId, url, true);
+  const seedLanguages = languages?.length
+    ? trackedGeoLanguages(languages)
+    : null;
+  const { discovery } = yield* discoverGeoWebsite(
+    organizationId,
+    url,
+    true,
+    seedLanguages?.at(0) ?? DEFAULT_LANGUAGE
+  );
   const { aliases, companyName, entries, conversations } =
     yield* prepareGeoWebsiteGeneration(discovery);
   const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
@@ -506,17 +551,17 @@ export const createGeoProjectFromWebsite = Effect.fn(
         }
 
         await Effect.runPromise(
-          persistGeoWebsiteGeneration(
-            tx,
+          persistGeoWebsiteGeneration(tx, {
             organizationId,
-            row.id,
+            projectId: row.id,
             companyName,
             aliases,
             entries,
             conversations,
-            discovery.competitors,
-            seedEngines
-          )
+            discoveredCompetitors: discovery.competitors,
+            seedEngines,
+            seedLanguages,
+          })
         );
         return toGeoProject(row);
       }),

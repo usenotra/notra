@@ -4,6 +4,8 @@ export interface ComposerFrameProps {
   children: ReactNode;
   nudge?: ReactNode;
   connectedTop?: boolean;
+  /** Tighter radius and no shadow, for inline composers like comments. */
+  flat?: boolean;
   className?: string;
 }
 

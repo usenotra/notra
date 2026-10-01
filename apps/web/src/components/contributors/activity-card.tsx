@@ -14,7 +14,7 @@ export function ActivityCard({
   return (
     <div className="relative flex min-w-0 flex-col gap-7 overflow-clip rounded-[0.8125rem] bg-[linear-gradient(in_oklab_180deg,oklab(95.1%_0.011_-0.018_/_15%)_0%,oklab(93.7%_0.019_-0.031_/_75%)_100%)] p-6 [box-shadow:#0A0D1408_0rem_0.0625rem_0.125rem,#0A0D1408_0rem_0.0625rem_0.125rem,#ECECEC_0rem_0rem_0rem_0.0625rem] sm:p-8.75 dark:bg-white/[0.02] dark:bg-none dark:[box-shadow:#0A0D1408_0rem_0.0625rem_0.125rem,#0A0D1408_0rem_0.0625rem_0.125rem,#FFFFFF14_0rem_0rem_0rem_0.0625rem]">
       <DeferredDithering
-        className="absolute inset-0 h-full w-full [mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]"
+        className="absolute inset-0 h-full w-full [mask-image:linear-gradient(to_top,black_0%,transparent_70%)]"
         colorBack="#00000000"
         colorFront="#8B5CF62D"
         maxPixelCount={ACTIVITY_CARD_DITHER_MAX_PIXELS}

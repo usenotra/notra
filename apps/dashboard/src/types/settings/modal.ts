@@ -12,6 +12,7 @@ export type SettingsSectionId =
   | "usage"
   | "usage-alerts"
   | "credits"
+  | "webhooks"
   | "logs"
   | "dev"
   | "geo"

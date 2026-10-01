@@ -17,6 +17,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useTranslations } from "next-intl";
@@ -73,48 +74,50 @@ export function PersonaTableRowActions({
   }
 
   return (
-    <div className="flex items-center justify-end gap-1">
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={t("regenerateAria", { name: persona.name })}
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onRegenerate(persona.id);
-              }}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <HugeiconsIcon icon={Refresh03Icon} size={16} />
-            </Button>
-          }
-        />
-        <TooltipContent>{t("regenerate")}</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={t("archiveAria", { name: persona.name })}
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete(persona);
-              }}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <HugeiconsIcon icon={Archive02Icon} size={16} />
-            </Button>
-          }
-        />
-        <TooltipContent>{tGeoShared("archivePersona")}</TooltipContent>
-      </Tooltip>
-    </div>
+    <TooltipProvider>
+      <div className="flex items-center justify-end gap-1">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("regenerateAria", { name: persona.name })}
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRegenerate(persona.id);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <HugeiconsIcon icon={Refresh03Icon} size={16} />
+              </Button>
+            }
+          />
+          <TooltipContent>{t("regenerate")}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("archiveAria", { name: persona.name })}
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(persona);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <HugeiconsIcon icon={Archive02Icon} size={16} />
+              </Button>
+            }
+          />
+          <TooltipContent>{tGeoShared("archivePersona")}</TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 }
 

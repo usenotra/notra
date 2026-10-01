@@ -74,6 +74,7 @@ import {
   ChatInputAdvanced,
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
+import { ChatMinimapRail } from "@/components/chat/chat-minimap-rail";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import {
   ChatQuoteProvider,
@@ -90,6 +91,7 @@ import {
 } from "@/components/chat/user-message-actions";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS } from "@/constants/chat-active-stream";
+import { ACTIVITY_STEP_SETTLE_MS } from "@/constants/chat-activity";
 import { MAX_VISIBLE_CHAT_IMAGES } from "@/constants/chat-images";
 import {
   AVAILABLE_MODELS,
@@ -114,6 +116,7 @@ import {
   reconcileCreatedChatTitle,
   useChatSessionMutations,
 } from "@/lib/hooks/use-chat-sessions";
+import { useDelayedAppearance } from "@/lib/hooks/use-delayed-appearance";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
@@ -144,6 +147,7 @@ import {
   shouldShowChatAuthorAvatars,
   toChatMessageAuthor,
 } from "@/utils/chat-message-author";
+import { buildChatMinimapTurns } from "@/utils/chat-minimap";
 import {
   CHAT_PREFERENCES_STORAGE_KEY,
   DEFAULT_CHAT_PREFERENCES,
@@ -2073,6 +2077,15 @@ function StandaloneChatPageClient({
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),
   });
+  // Between steps of an assistant reply the indicator would blink in and out
+  // for a few frames, so it only appears once that gap actually lasts.
+  const showThinkingIndicator = useDelayedAppearance(
+    chatActivity.showThinkingIndicator,
+    {
+      delayMs: ACTIVITY_STEP_SETTLE_MS,
+      immediate: messages.at(-1)?.role !== "assistant",
+    }
+  );
 
   function renderPart(
     part: ChatUIMessage["parts"][number],
@@ -2626,9 +2639,11 @@ function StandaloneChatPageClient({
   }
 
   const lastMessage = messages.at(-1);
-  const { showThinkingIndicator } = chatActivity;
   const visibleMessages = messages.filter((message) =>
     hasVisibleChatContent(message)
+  );
+  const minimapTurns = buildChatMinimapTurns(visibleMessages, (message) =>
+    toDisplayText(getUserMessageText(message))
   );
 
   return (
@@ -2888,6 +2903,7 @@ function StandaloneChatPageClient({
                 </MessageScrollerContent>
               </MessageScrollerViewport>
               <MessageScrollerButton />
+              <ChatMinimapRail turns={minimapTurns} />
             </MessageScroller>
           </MessageScrollerProvider>
           <div

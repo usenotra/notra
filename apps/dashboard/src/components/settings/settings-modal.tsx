@@ -53,13 +53,19 @@ function SettingsPaneFallback() {
   );
 }
 
-const AccountSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/account-pane").then((mod) => ({
-      default: mod.AccountSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
+const loadAccountSettingsPane = () =>
+  import("@/components/settings/panes/account-pane").then((mod) => ({
+    default: mod.AccountSettingsPane,
+  }));
+
+/** Warms the pane settings opens on by default so it renders without a skeleton. */
+export function preloadDefaultSettingsPane() {
+  return loadAccountSettingsPane();
+}
+
+const AccountSettingsPane = dynamic(loadAccountSettingsPane, {
+  loading: SettingsPaneFallback,
+});
 const AppearanceSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/appearance-pane").then((mod) => ({
@@ -144,6 +150,13 @@ const UsageSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const WebhooksSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/webhooks-pane").then((mod) => ({
+      default: mod.WebhooksSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 
 const STANDARD_SETTINGS_PANES = {
   account: AccountSettingsPane,
@@ -158,6 +171,7 @@ const STANDARD_SETTINGS_PANES = {
   notifications: NotificationsSettingsPane,
   usage: UsageSettingsPane,
   "usage-alerts": UsageAlertsSettingsPane,
+  webhooks: WebhooksSettingsPane,
 } satisfies Record<StandardSettingsSectionId, ComponentType>;
 
 const GEO_SETTINGS_PANE_SECTIONS = {

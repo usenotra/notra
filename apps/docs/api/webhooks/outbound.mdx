@@ -1,0 +1,92 @@
+---
+title: "Outbound webhooks"
+description: "Get Notra events at your own endpoint and see every delivery attempt."
+---
+
+Go to **Settings**, then **Webhooks** to hook Notra up to n8n or any other public
+HTTPS endpoint. Pick the events you want and copy the signing secret you get after
+creating the endpoint. Owners and admins can manage endpoints and retry failed
+deliveries. Members can see the delivery history.
+
+## Events
+
+| Event | Data |
+| --- | --- |
+| `post.generation.completed` | `jobId`, `postId` |
+| `post.generation.failed` | `jobId`, `error` |
+| `post.generation.skipped` | `jobId`, `reason` |
+| `brand_identity.generation.completed` | `jobId`, `brandIdentityId` |
+| `brand_identity.generation.failed` | `jobId`, `error` |
+| `post.published` | `postId` |
+
+You get `post.generation.*` events for tracked post generation jobs, including the
+ones you start with `POST /v1/posts/generate`. `post.published` fires the first time
+a post moves to `published`. Unpublishing and publishing it again won't send a
+second event. We write the event in the same database transaction as the status
+change, so every published post has one. GEO scans don't send events yet, so keep
+polling for those.
+
+## Subscribe through the API
+
+Use an organization API key with the `webhooks.write` scope:
+
+```bash
+curl https://api.usenotra.com/v1/webhooks \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-app.com/webhook/notra","events":["post.generation.completed"]}'
+```
+
+The response has the `endpoint` and a one-time `secret`. Save the secret somewhere
+safe because you won't see it again. `GET /v1/webhooks` lists your subscriptions.
+`DELETE /v1/webhooks/{endpointId}` removes one and cancels anything not sent yet. A
+request that's already on its way can still reach the deleted endpoint.
+
+## Verify requests
+
+Read the body as raw text before you parse the JSON. Every request has these
+headers:
+
+- `x-notra-event`: the event type
+- `x-notra-event-id`: a stable event ID
+- `x-notra-delivery-id`: a stable delivery ID for this endpoint
+- `x-notra-timestamp`: when we signed it, in Unix seconds
+- `x-notra-signature`: `v1,` followed by a base64 HMAC-SHA256 signature
+
+Strip the `whsec_` prefix from your secret, base64-decode the rest and check the
+HMAC over this UTF-8 message:
+
+```text
+<eventId>.<deliveryId>.<timestamp>.<exact raw request body>
+```
+
+Compare signatures in constant time. Reject timestamps more than five minutes off
+in either direction. Answer with a 2xx quickly and push slow work into your own
+queue.
+
+Delivery is at least once. Dedupe by delivery ID, or by event ID if several
+subscriptions should only trigger one action on your side. Order isn't guaranteed.
+
+## Logs and retries
+
+The delivery table shows the status, response code, attempt count and when each
+delivery was created. Click a row to see the payload, the destination, the event and
+delivery IDs, how each attempt went and when the next retry is due. You can retry a
+failed delivery after a one-minute cooldown. Earlier attempts stay in the history.
+
+For API access, use `webhooks.read`:
+
+- `GET /v1/webhooks/deliveries?offset=0&status=all` returns 25 rows and `hasMore`.
+- `GET /v1/webhooks/deliveries/{deliveryId}` returns the payload and attempts.
+- `POST /v1/webhooks/deliveries/{deliveryId}/retry` queues a failed delivery. This
+  one needs `webhooks.write`.
+
+We retry network errors, timeouts, 408, 429 and 5xx responses up to eight times.
+Any other failed response stops delivery, redirects included. Requests time out
+after ten seconds. Backoff starts at 30 seconds, respects `Retry-After` and goes up
+to six hours. Dispatch and recovery run once a minute, so a delivery or retry can
+start a little after its scheduled time.
+
+Finished deliveries stay in the history for 30 days. Anything still in progress
+stays until it's done. We don't store response bodies. Your endpoint has to use a
+public HTTPS hostname on port 443.

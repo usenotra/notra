@@ -1,10 +1,8 @@
 "use client";
 
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
-import { useTranslations } from "next-intl";
 
 import { ShareOfVoiceChart } from "@/components/geo/share-of-voice-chart";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import type { CompetitorShareCardProps } from "@/types/geo";
 
@@ -18,8 +16,6 @@ export function CompetitorShareCard({
   organizationSlug,
   organizationId,
 }: CompetitorShareCardProps) {
-  const t = useTranslations("geo.competitorShareCard");
-  const tGeoShared = useTranslations("geo.shared");
   const navigation = useGeoCompetitorRowNavigation(
     organizationSlug,
     organizationId
@@ -40,22 +36,16 @@ export function CompetitorShareCard({
   };
 
   return (
-    <InstrumentSection
-      description={t("description")}
-      eyebrow={tGeoShared("shareOfVoice")}
-      hint={tGeoShared("discoveredBrandsComeFromScan")}
-    >
-      <ShareOfVoiceChart
-        aliases={aliases}
-        companyName={companyName}
-        competitors={competitors}
-        isScanning={isScanning}
-        onSliceClick={organizationSlug ? openRow : undefined}
-        onSlicePointerEnter={organizationSlug ? prefetchRow : undefined}
-        organizationId={organizationId}
-        points={points}
-        timeseries={timeseries}
-      />
-    </InstrumentSection>
+    <ShareOfVoiceChart
+      aliases={aliases}
+      companyName={companyName}
+      competitors={competitors}
+      isScanning={isScanning}
+      onSliceClick={organizationSlug ? openRow : undefined}
+      onSlicePointerEnter={organizationSlug ? prefetchRow : undefined}
+      organizationId={organizationId}
+      points={points}
+      timeseries={timeseries}
+    />
   );
 }

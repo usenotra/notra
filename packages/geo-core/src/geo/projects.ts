@@ -12,6 +12,7 @@ import type {
   GeoScopeInput,
 } from "../types/geo";
 import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
+import { SUPPORTED_GEO_LANGUAGES } from "../utils/geo-language-rows";
 import { normalizeWebsiteUrl } from "../utils/geo-website";
 import { memoizeGeoRequest } from "../utils/request-memo";
 import { deleteGeoCache } from "./cache";
@@ -271,15 +272,19 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
 
   if (outcome === "deleted") {
     if (URL.canParse(existing.websiteUrl)) {
-      yield* deleteGeoCache(
-        geoDiscoveryCacheKey(organizationId, existing.websiteUrl)
-      );
       const onboardingUrl = normalizeWebsiteUrl(existing.websiteUrl);
+      const urls = [existing.websiteUrl];
       if (onboardingUrl && onboardingUrl !== existing.websiteUrl) {
-        yield* deleteGeoCache(
-          geoDiscoveryCacheKey(organizationId, onboardingUrl)
-        );
+        urls.push(onboardingUrl);
       }
+      // Discovery is cached per prompt language, so drop every variant.
+      yield* deleteGeoCache(
+        ...urls.flatMap((url) =>
+          SUPPORTED_GEO_LANGUAGES.map((language) =>
+            geoDiscoveryCacheKey(organizationId, url, language)
+          )
+        )
+      );
     }
     yield* Effect.promise(() =>
       invalidateGeoIngestHostsCache(organizationId, projectId)

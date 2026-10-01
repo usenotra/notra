@@ -19,7 +19,7 @@ let timestampColumnsPromise: Promise<DemoTimestampColumns[]> | null = null;
  */
 function loadTimestampColumns(): Promise<DemoTimestampColumns[]> {
   timestampColumnsPromise ??= db
-    .execute(
+    .execute<DemoTimestampColumnRow>(
       sql`
         SELECT c.table_name, array_agg(c.column_name::text ORDER BY c.column_name) AS columns
         FROM information_schema.columns c
@@ -35,7 +35,7 @@ function loadTimestampColumns(): Promise<DemoTimestampColumns[]> {
       `
     )
     .then((result) =>
-      (result.rows as DemoTimestampColumnRow[])
+      result.rows
         .filter((row) => !DEMO_REBASE_EXCLUDED_TABLES.has(row.table_name))
         .map((row) => ({ table: row.table_name, columns: row.columns }))
     )

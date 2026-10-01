@@ -9,6 +9,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import {
@@ -65,6 +66,7 @@ export function LogoStack({
           : "inline-flex items-center gap-1"
       }
     >
+      <TooltipProvider>
       {visible.map((item) => (
         <Tooltip key={item.key}>
           <TooltipTrigger
@@ -91,6 +93,7 @@ export function LogoStack({
           </TooltipContent>
         </Tooltip>
       ))}
+      </TooltipProvider>
       {hidden.length > 0 ? (
         <Popover>
           <PopoverTrigger

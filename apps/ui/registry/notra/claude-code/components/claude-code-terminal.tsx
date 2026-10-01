@@ -15,7 +15,7 @@ export const ClaudeCodeTerminal = ({
 }: ClaudeCodeTerminalProps) => (
   <Card
     className={cn(
-      "bg-claude-code-bg font-claude-code text-claude-code-fg w-full min-w-0 gap-0 overflow-clip rounded-xl py-0 shadow-[0_1.5rem_3.5rem_-1rem_var(--claude-code-shadow)] ring-1 ring-white/10",
+      "bg-claude-code-bg font-claude-code text-claude-code-fg ring-claude-code-ring w-full min-w-0 gap-0 overflow-clip rounded-xl py-0 shadow-[0_1.5rem_3.5rem_-1rem_var(--claude-code-shadow)] ring-1",
       className
     )}
     data-slot="claude-code-terminal"

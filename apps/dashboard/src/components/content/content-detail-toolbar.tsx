@@ -74,7 +74,6 @@ function ContentDetailImageActions({
 
     copyImageAsPaper(
       document.imageExportRef.current,
-      document.title,
       imageExportHtml,
       imageExportHtmlUrl
     );

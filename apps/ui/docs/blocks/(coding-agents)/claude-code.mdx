@@ -3,7 +3,7 @@ title: Claude Code
 description: A Claude Code terminal session with the compact header, tool calls, a running turn and the prompt.
 ---
 
-A rebuild of the Claude Code terminal UI, composed from the [Claude Code components](/components/claude-code/terminal). One finished turn folds its shell call into `Ran 1 shell command`, answers and closes with a `✻ Cogitated for 7s` line. The next turn is still running, with its todos, a pending tool call and the orange spinner. Click `Ran 1 shell command` to see the call, and focus the prompt and press Shift+Tab to cycle the permission mode.
+A rebuild of the Claude Code terminal UI, composed from the [Claude Code components](/components/claude-code/terminal). It's a working chat: type a prompt and press Enter, and Claude spins with the orange status line, runs its tool calls one by one, streams the answer and closes the turn with a `✻ Crafted for 6s` line. Press Escape while it works to interrupt it. The first turn folds its shell call into `Ran 1 shell command` (click it to see the call), and Shift+Tab in the prompt cycles the permission mode.
 
 <Component path="claude-code/examples/claude-code-demo" />
 
@@ -13,7 +13,17 @@ A rebuild of the Claude Code terminal UI, composed from the [Claude Code compone
 bunx shadcn@latest add @notra/claude-code
 ```
 
-This adds every Claude Code component to `components/claude-code` and a demo session.
+This adds every Claude Code component to `components/claude-code`, a demo session and the `useClaudeCodeChat` hook that plays it back.
+
+## Chat
+
+`useClaudeCodeChat(history, replies)` holds the conversation. It starts with the finished `history` turns and answers each prompt with the next scripted reply from `CLAUDE_CODE_REPLIES`. Wire it to the prompt with `busy`, `onSend` and `onStop`, and swap the hook for your own agent's stream to run a real session.
+
+```tsx
+const chat = useClaudeCodeChat(CLAUDE_CODE_SESSION.turns, CLAUDE_CODE_REPLIES);
+
+<ClaudeCodePrompt busy={chat.busy} onSend={chat.send} onStop={chat.stop} />
+```
 
 The components use your system's monospace stack. Point `--font-claude-code` at your own mono font, like Geist Mono, to change it.
 
@@ -28,9 +38,9 @@ The root is a shadcn `Card` with a title bar and a stacked body. Put the other p
 
 ## Theming
 
-The block is built on the shadcn Base UI style. It uses shadcn `Card`, `Collapsible`, `InputGroup` and `ScrollArea`, and the CLI installs any you're missing.
+The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup`, `Kbd` and `ScrollArea`, and the CLI installs any you're missing.
 
-Its colors are `--claude-code-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-claude-code-bg` and `text-claude-code-accent`. The terminal stays dark in both light and dark mode. Change the tokens in your CSS to retheme it:
+Its colors are `--claude-code-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-claude-code-bg` and `text-claude-code-accent`. They ship with light and dark values based on Claude Code's light and dark themes, so the terminal follows your app's theme. Change the tokens in your CSS to retheme it:
 
 ```css
 :root {

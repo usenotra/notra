@@ -40,7 +40,7 @@ export async function GET(request: Request) {
       errorName: error instanceof Error ? error.name : "UnknownError",
     });
   }
-  if (!process.env.AXIOM_TOKEN || !process.env.AXIOM_AI_DATASET) {
+  if (!process.env.AXIOM_TOKEN) {
     scheduleRequestErrorTelemetry(flushLogs);
     return Response.json({ skipped: "telemetry_not_configured" });
   }

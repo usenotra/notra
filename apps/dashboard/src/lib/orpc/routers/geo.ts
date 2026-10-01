@@ -106,6 +106,13 @@ import {
   loadGeoPromptResultSummaries,
 } from "@notra/geo-core/geo/prompt-results";
 import {
+  listGeoPromptTranslations,
+  resetGeoPromptTranslation,
+  selectGeoPromptTranslation,
+  translateGeoPromptTranslations,
+  updateGeoPromptTranslation,
+} from "@notra/geo-core/geo/prompt-translations";
+import {
   clearGeoSampleData,
   seedGeoSampleData,
 } from "@notra/geo-core/geo/sample-data";
@@ -158,10 +165,14 @@ import {
   geoCompetitorDetailInputSchema,
   geoCompetitorSuggestionsInputSchema,
   geoCompetitorUpsertInputSchema,
+  geoDiscoverWebsiteInputSchema,
   geoGenerateFromWebsiteInputSchema,
   geoJourneyDetailInputSchema,
   geoModelCatalogInputSchema,
   geoOnboardingBrandInputSchema,
+  geoPromptTranslationSelectInputSchema,
+  geoPromptTranslationTargetInputSchema,
+  geoPromptTranslationUpdateInputSchema,
   geoOrganizationInputSchema,
   geoProjectCreateInputSchema,
   geoProjectDeleteInputSchema,
@@ -1275,6 +1286,21 @@ export const geoRouter = {
       })
     )
   ),
+  promptTranslations: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoOpenHandler((input) => listGeoPromptTranslations(input))),
+  promptTranslationsTranslate: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoHandler((input) => translateGeoPromptTranslations(input))),
+  promptTranslationSelect: authorizedProcedure
+    .input(geoPromptTranslationSelectInputSchema)
+    .handler(geoHandler((input) => selectGeoPromptTranslation(input))),
+  promptTranslationUpdate: authorizedProcedure
+    .input(geoPromptTranslationUpdateInputSchema)
+    .handler(geoHandler((input) => updateGeoPromptTranslation(input))),
+  promptTranslationReset: authorizedProcedure
+    .input(geoPromptTranslationTargetInputSchema)
+    .handler(geoHandler((input) => resetGeoPromptTranslation(input))),
   promptsToggleAuto: authorizedProcedure
     .input(geoAutoPromptToggleInputSchema)
     .handler(
@@ -1620,7 +1646,8 @@ export const geoRouter = {
                 input.organizationId,
                 input.name,
                 input.brandSettingsId,
-                identity.websiteUrl
+                identity.websiteUrl,
+                input.languages
               )
             )
           ),
@@ -1686,10 +1713,15 @@ export const geoRouter = {
       )
     ),
   discoverWebsite: authorizedProcedure
-    .input(geoGenerateFromWebsiteInputSchema)
+    .input(geoDiscoverWebsiteInputSchema)
     .handler(
       geoOpenHandler((input) =>
-        discoverGeoWebsite(input.organizationId, input.url)
+        discoverGeoWebsite(
+          input.organizationId,
+          input.url,
+          false,
+          input.language
+        )
       )
     ),
   onboardingBrand: authorizedProcedure

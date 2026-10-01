@@ -115,6 +115,11 @@ export interface ClaudeCodeTurnSummaryProps extends ComponentProps<"div"> {
   verb?: string;
 }
 
+export interface ClaudeCodeInterruptedProps extends ComponentProps<"p"> {
+  /** Shown after `Interrupted ·`. */
+  hint?: ReactNode;
+}
+
 export interface ClaudeCodeTodoListProps extends ComponentProps<"div"> {
   /** The tool line above the list. Pass `null` to leave it out. */
   heading?: string | null;
@@ -143,9 +148,11 @@ export interface ClaudeCodeToolSummaryProps extends Omit<
 }
 
 export interface ClaudeCodePromptProps extends Omit<
-  ComponentProps<"div">,
-  "defaultValue" | "onChange" | "onKeyDown"
+  ComponentProps<"form">,
+  "defaultValue" | "onChange" | "onKeyDown" | "onSubmit"
 > {
+  /** A turn is running: Enter does not send and Escape calls `onStop`. */
+  busy?: boolean;
   defaultValue?: string;
   effort?: ClaudeCodeEffort | false;
   inputClassName?: string;
@@ -153,6 +160,13 @@ export interface ClaudeCodePromptProps extends Omit<
   mode?: ClaudeCodeMode;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
+  /**
+   * Called with the trimmed text on Enter. An uncontrolled prompt clears
+   * afterwards; with `value`, clear it yourself here.
+   */
+  onSend?: (text: string) => void;
+  /** Called on Escape while `busy`, to interrupt the running turn. */
+  onStop?: () => void;
   placeholder?: string;
   pullRequest?: ClaudeCodePullRequest;
   value?: string;
@@ -189,8 +203,51 @@ export interface ClaudeCodeSessionTurn {
   commands: ClaudeCodeSessionToolCall[];
   id: string;
   prompt: string;
-  summary: { doneAt: string; duration: string; verb: string };
+  summary: ClaudeCodeSessionSummary;
   thinking?: string;
+  todos?: ClaudeCodeTodo[];
+}
+
+export interface ClaudeCodeSessionSummary {
+  doneAt: string;
+  duration: string;
+  verb: string;
+}
+
+export type ClaudeCodeTurnStatus =
+  | "working"
+  | "streaming"
+  | "done"
+  | "interrupted";
+
+/** A scripted answer the demo plays back when you send a prompt. */
+export interface ClaudeCodeReply {
+  answer: string;
+  commands: ClaudeCodeSessionToolCall[];
+  /** The spinner verb while the turn runs, like `Sketching`. */
+  spinnerVerb: string;
+  /** The verb on the summary line once the turn is done, like `Cooked`. */
+  summaryVerb: string;
+}
+
+export interface ClaudeCodeChatTurn extends Omit<
+  ClaudeCodeSessionTurn,
+  "summary"
+> {
+  status: ClaudeCodeTurnStatus;
+  summary?: ClaudeCodeSessionSummary;
+}
+
+export interface ClaudeCodeChat {
+  busy: boolean;
+  /** Whole seconds since the running turn started. */
+  elapsed: number;
+  send: (text: string) => Promise<void>;
+  spinnerVerb: string;
+  stop: () => void;
+  /** Tokens streamed in the running turn so far. */
+  tokens: number;
+  turns: ClaudeCodeChatTurn[];
 }
 
 export interface ClaudeCodeSessionPendingTurn {

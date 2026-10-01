@@ -66,6 +66,11 @@ export function useSettingsNavLabels(): SettingsNavLabels {
         description: t("nav.sections.credits.description"),
         modalDescription: t("modal.descriptions.credits"),
       },
+      webhooks: {
+        label: tLabels("webhooks"),
+        description: t("nav.sections.webhooks.description"),
+        modalDescription: t("modal.descriptions.webhooks"),
+      },
       logs: {
         label: tLabels("logs"),
         description: t("nav.sections.logs.description"),

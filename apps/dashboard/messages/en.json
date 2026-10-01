@@ -40,6 +40,9 @@
         "credits": {
           "description": "AI credit balance and top-ups"
         },
+        "webhooks": {
+          "description": "Endpoints and delivery history"
+        },
         "logs": {
           "description": "Integration events"
         },
@@ -68,6 +71,7 @@
         "usage": "See remaining quotas and usage over time",
         "usage-alerts": "Configure alerts for usage and remaining balances",
         "credits": "Monitor your AI credit balance and usage",
+        "webhooks": "Connect your workflows and check every delivery",
         "logs": "View integration events and their delivery status",
         "dev": "Development-only tools for testing local flows",
         "geo-languages": "Languages your prompts are scanned in",
@@ -164,6 +168,80 @@
         "resetFilters": "Reset filters",
         "emptyTitle": "No activity yet",
         "emptyDescription": "Events from integrations, automations, GEO scans and syncs will appear here when they run."
+      },
+      "webhooks": {
+        "period": "Last 30 days",
+        "refresh": "Refresh webhook activity",
+        "addEndpoint": "Add endpoint",
+        "views": "Webhook views",
+        "deliveries": "Deliveries",
+        "endpoints": "Endpoints",
+        "toasts": {
+          "retryQueued": "Delivery queued for retry",
+          "endpointRemoved": "Endpoint removed"
+        },
+        "metrics": {
+          "total": "Deliveries",
+          "succeeded": "Delivered",
+          "active": "In progress",
+          "failed": "Failed"
+        },
+        "statuses": {
+          "all": "All statuses",
+          "succeeded": "Delivered",
+          "failed": "Failed",
+          "retrying": "Retrying",
+          "pending": "Pending",
+          "sending": "Sending",
+          "cancelled": "Cancelled"
+        },
+        "columns": {
+          "event": "Event and destination",
+          "response": "Response",
+          "attempts": "Attempts"
+        },
+        "filterLabel": "Filter deliveries by status",
+        "empty": {
+          "allTitle": "Your events show up here",
+          "allDescription": "Add an endpoint, then generate a post. Every delivery and retry gets logged here.",
+          "filteredTitle": "No deliveries with this status",
+          "filteredDescription": "Pick another filter to see more of your history."
+        },
+        "pageSummary": "{range} deliveries, refreshes every {seconds}s",
+        "endpointsEmpty": {
+          "title": "Connect your first endpoint",
+          "description": "Pick which events go to your workflow."
+        },
+        "create": {
+          "readyTitle": "Your endpoint is ready",
+          "title": "Add an endpoint",
+          "readyDescription": "Copy the signing secret now. You won't see it again.",
+          "description": "Send Notra events to any public HTTPS endpoint.",
+          "secret": "Signing secret",
+          "copySecret": "Copy signing secret",
+          "secretCopied": "Signing secret copied",
+          "secretHint": "Use this secret to check each request's signature before you process it.",
+          "url": "Endpoint URL",
+          "events": "Listen for",
+          "submit": "Create endpoint"
+        },
+        "details": {
+          "title": "Delivery details",
+          "description": "Every attempt, from the first send to the final response.",
+          "history": "Attempt history",
+          "retention": "Delivery history is kept for 30 days.",
+          "retry": "Retry delivery",
+          "queueing": "Queueing…",
+          "destination": "Destination",
+          "eventId": "Event ID",
+          "deliveryId": "Delivery ID",
+          "nextAttempt": "Next attempt",
+          "queued": "Queued. The first attempt hasn't started yet.",
+          "attempt": "Attempt {number}",
+          "inFlight": "Sending",
+          "payload": "Request payload",
+          "payloadCopied": "Payload copied"
+        }
       }
     },
     "logs": {
@@ -578,7 +656,6 @@
       "received": "Received {time}",
       "via": "via",
       "inspect": "Inspect this feedback.",
-      "labels": "Labels",
       "statusLabel": "Feedback status",
       "message": "Message",
       "metadata": "Metadata",
@@ -587,7 +664,12 @@
         "externalId": "External ID",
         "contextUrl": "Context URL",
         "userAgent": "User agent"
-      }
+      },
+      "resolve": "Mark resolved",
+      "reopen": "Reopen",
+      "unarchive": "Unarchive",
+      "field": "Field",
+      "value": "Value"
     },
     "empty": {
       "title": "Your feedback inbox is empty",
@@ -612,9 +694,27 @@
       "received": "Received"
     },
     "table": {
-      "empty": "No feedback matches this filter",
       "viewDetails": "View details",
-      "setStatus": "Set status"
+      "setStatus": "Set status",
+      "filterEmpty": {
+        "new": {
+          "title": "You're all caught up",
+          "description": "New feedback from agents lands here first."
+        },
+        "triaged": {
+          "title": "Nothing triaged",
+          "description": "Feedback you've looked at but haven't resolved yet shows up here."
+        },
+        "resolved": {
+          "title": "Nothing resolved yet",
+          "description": "Feedback you mark as resolved shows up here."
+        },
+        "archived": {
+          "title": "Nothing archived",
+          "description": "Archive feedback to keep it out of your inbox without deleting it."
+        }
+      },
+      "showAll": "Show all feedback"
     },
     "page": {
       "description": "What AI agents are saying about your product."
@@ -785,6 +885,10 @@
       "conversationRunFailed": "The conversation run failed. Please try again.",
       "personaRunFailed": "The persona run failed. Please try again.",
       "trackingSettingsRejected": "This can't be added under your current tracking settings",
+      "translationLimit": "This language already scans {limit} prompts. Remove one first.",
+      "translationLast": "Each language scans at least one prompt. To stop scanning it, remove the language.",
+      "translationDeferred": "Translations can't run right now. They're made on the next scan instead.",
+      "translationUnavailable": "This prompt isn't scanned in that language.",
       "websiteDiscoveryFailed": "We couldn't analyze that website. Check the URL and try again.",
       "writerPlanFailed": "The content plan couldn't be created or saved. Please try again.",
       "promptAlreadyTracked": "This prompt is already tracked",
@@ -1072,7 +1176,8 @@
       "description": "Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.",
       "title": "See what AI says about you",
       "reading": "Reading {host}. Takes about 20 seconds.",
-      "readFailed": "Could not read {host}. Check the address, or just type your brand name below."
+      "readFailed": "Could not read {host}. Check the address, or just type your brand name below.",
+      "languagesHint": "Questions are written in {language}. Other languages are translated when we scan."
     },
     "pricing": {
       "freeTrial": "Free trial",
@@ -1967,6 +2072,7 @@
       "acmeIncSlug": "acme-inc",
       "clearSearch": "Clear search",
       "usageAlerts": "Usage alerts",
+      "webhooks": "Webhooks",
       "regenerate": "Regenerate",
       "nameLogo": "{name} logo",
       "loading": "Loading…",
@@ -2355,9 +2461,6 @@
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"
     },
-    "competitorShareCard": {
-      "description": "Your share of AI mentions compared with other brands."
-    },
     "competitorsTable": {
       "nounSingular": "competitor",
       "nounPlural": "competitors",
@@ -2365,13 +2468,8 @@
       "removeDescriptionOne": "\"{name}\" will no longer be called out in GEO scans. Historical mentions stay in your results.",
       "filterLabel": "Filter competitors by name",
       "filterPlaceholder": "Filter by name…",
-      "typeFilters": {
-        "all": "All types",
-        "allDescription": "Every tracked competitor",
-        "directDescription": "Sells what you sell",
-        "indirectDescription": "Solves the same problem differently"
-      },
-      "empty": "No competitors match these filters"
+      "empty": "No competitors match these filters",
+      "title": "Tracked competitors"
     },
     "conversationBuilderDialog": {
       "description": "A real buyer conversation: an opening question and the follow-ups that decide the purchase. Every turn is checked for your brand.",
@@ -2700,12 +2798,27 @@
       "proxyTitle": "Add the proxy",
       "framework": "Framework"
     },
+    "promptTranslations": {
+      "title": "Translations",
+      "count": "{count}/{limit}",
+      "scanIn": "Scan in {language}",
+      "translationIn": "{language} translation",
+      "full": "{language} already scans {limit} prompts. Turn one off to add this one.",
+      "last": "{language} needs at least one prompt. Remove the language to stop scanning it.",
+      "translating": "Translating…",
+      "translatedOnScan": "Translated on the next scan",
+      "edit": "Edit",
+      "reset": "Reset",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
     "geoLanguagePicker": {
       "description": "{language} is on by default. Scan up to {max} languages.",
       "add": "Add a language",
       "limitReached": "Language limit reached",
       "noMatches": "No languages match",
-      "remove": "Remove {language}"
+      "remove": "Remove {language}",
+      "locked": "Prompts are written in this language, so it stays tracked."
     },
     "geoPromptAnswerSkeleton": {
       "loading": "Loading answer"
@@ -2781,7 +2894,7 @@
         "description": "Paths that count as a conversion when an AI referral reaches them, for example /signup or /pricing. Prefix match; /pricing also counts /pricing/teams."
       },
       "languages": {
-        "description": "Languages your prompts are scanned in. English is on by default."
+        "description": "Languages your prompts are scanned in. Prompts are written in {language}, other languages are translated."
       },
       "models": {
         "description": "Each enabled provider runs every prompt at the frequency you set here."
@@ -2910,10 +3023,11 @@
       "scanHistory": "Persona scan history",
       "latestScan": "Latest · {time}",
       "emptyTitle": "No conversation yet",
-      "emptyDescription": "Personas talk to every engine during a scan.",
+      "emptyDescription": "Personas talk to every engine during each scan. Run one now to see this conversation.",
       "pausedDescription": "This persona is paused. Include it in scans to start a conversation.",
-      "waitingForScan": "Scan in progress. This persona's conversation will appear when results are ready.",
-      "loadingConversation": "Loading conversation…"
+      "pausedTitle": "Persona paused",
+      "scanningTitle": "Scanning…",
+      "scanningDescription": "This persona is talking to your engines. The conversation shows up here once the answers are in."
     },
     "personaProfileEditor": {
       "savePersona": "Save persona",
@@ -2985,12 +3099,11 @@
       "placeholder": "Choose an identity",
       "usesExisting": "Uses the existing identity and website: {url}",
       "multipleMatches": "Several identities use this website. Choose one for this project.",
-      "willCreateNamed": "We will create a brand identity named {name} and analyze this website to fill it in. The analysis runs in the background.",
-      "willCreateUnnamed": "We will create a brand identity named after this project and analyze this website to fill it in. The analysis runs in the background.",
-      "articlesNote": "New articles use the project identity. You can choose another identity for an individual article."
+      "willCreateNamed": "Creates the brand identity {name} from this website.",
+      "willCreateUnnamed": "Creates a brand identity from this website."
     },
     "projectCreateDialog": {
-      "description": "Start with the website you want to track. We'll find competitors, generate prompts and start the first scan.",
+      "description": "We'll find competitors, write prompts and run the first scan.",
       "nameLabel": "Project name",
       "invalidInput": "Enter a valid website and a project name.",
       "chooseIdentity": "Choose a brand identity for this website before continuing.",
@@ -3330,34 +3443,19 @@
     "shareOfVoiceBrandTag": {
       "trackBrand": "Track {brand}"
     },
-    "shareOfVoiceBrandsDialog": {
-      "mentionsCount": "{count} mentions",
-      "title": "Additional brands",
-      "brands": "Brands",
-      "otherBrandsMentions": "Other brands mentions",
-      "searchPlaceholder": "Search brands…",
-      "filterLabel": "Filter brands by tracking status",
-      "caption": "Additional brands sorted by mentions. Share is based on all brand mentions in the selected period.",
-      "change": "Change",
-      "noMatching": "No matching brands",
-      "noBrandsInView": "No brands in this view",
-      "tryAnother": "Try another name or clear your filters.",
-      "selectAnother": "Select another tracking status to see more brands.",
-      "rowsOf": "{shown} of {total} brands",
-      "shareFooter": "Share of all brand mentions"
-    },
     "shareOfVoiceChart": {
       "mentionsSr": "mentions",
       "yourShare": "Your share of voice",
       "leadingShare": "Leading share of voice",
       "shareHint": "Share of recorded brand mentions in the selected period.",
       "totalMentions": "Total mentions",
-      "legendLabel": "Share of voice chart legend",
       "yourRank": "Your rank",
       "rankHint": "Rank by total mentions in the selected period. Brands with equal mentions share a rank.",
       "ofBrands": "of {count} brands",
       "tableLabel": "Brand ranking by share of voice",
-      "viewMore": "View {count} more"
+      "emptyTitle": "No share of voice yet",
+      "emptyScanningTitle": "Scan in progress",
+      "emptyDescription": "After your next scan, this shows how often AI engines name you compared with your competitors."
     },
     "shareOfVoiceTable": {
       "trendLabel": "{brand} share of voice trend",
@@ -3699,7 +3797,8 @@
       "competitors": {
         "metaTitle": "GEO Competitors",
         "description": "Who AI engines recommend instead of you",
-        "setupDescription": "Set up GEO tracking first, then track which competitors AI engines surface."
+        "setupDescription": "Set up GEO tracking first, then track which competitors AI engines surface.",
+        "newCompetitor": "New competitor"
       },
       "tabs": {
         "label": "GEO sections"
@@ -3785,6 +3884,9 @@
       "loadCompetitorDetailFailed": "Failed to load competitor detail",
       "loadCompetitorSummaryFailed": "Failed to load competitor summary",
       "loadLanguagePerformanceFailed": "Failed to load language performance",
+      "loadPromptTranslationsFailed": "Failed to load prompt translations",
+      "updatePromptTranslationFailed": "Failed to update the translation",
+      "translatePromptsFailed": "Couldn't translate the prompts. They are translated on the next scan instead.",
       "geoTrackingGeneratedWebsite": "GEO tracking generated from website",
       "generateGEOTrackingWebsiteFailed": "Failed to generate GEO tracking from website",
       "importPromptsFailed": "Failed to import prompts",
@@ -3839,6 +3941,9 @@
       "loadPersonaActivityFailed": "Failed to load persona activity",
       "checkPersonaGenerationFailed": "Failed to check persona generation",
       "generatePersonasFailed": "Failed to generate personas",
+      "generatingPersonas": "Generating personas",
+      "generatingPersona": "Generating persona",
+      "generatingPersonasDescription": "This runs in the background, so you can leave this page and come back later.",
       "updatePersonaFailed": "Failed to update the persona",
       "personaArchived": "Persona archived",
       "archivePersonaFailed": "Failed to archive the persona",
@@ -6154,9 +6259,7 @@
       "loadingDescription": "Loading the dashboard agent."
     },
     "overlays": {
-      "commandPalette": "Command palette",
-      "loadingSearch": "Loading search…",
-      "loadingSettings": "Loading settings…"
+      "commandPalette": "Command palette"
     },
     "brandSelector": {
       "createIdentity": "Create identity"
@@ -6397,7 +6500,9 @@
     "writeComment": "Write a comment",
     "writeCommentPlaceholder": "Write a comment…",
     "writeReplyPlaceholder": "Write a reply…",
-    "send": "Send comment"
+    "send": "Send comment",
+    "emptyTitle": "No comments yet",
+    "emptyDescription": "Share context or next steps with your team."
   },
   "composer": {
     "preview": "Preview {label}",
@@ -6418,6 +6523,9 @@
     "nextSlide": "Next slide",
     "scrollToEnd": "Scroll to end",
     "scrollToStart": "Scroll to start",
+    "conversationTurns": "Conversation turns",
+    "previousTurn": "Previous turn",
+    "nextTurn": "Next turn",
     "commandPaletteDescription": "Search for a command to run…",
     "chooseOption": "Choose an option",
     "catalog": "Catalog",

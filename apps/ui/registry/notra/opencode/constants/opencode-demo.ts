@@ -2,6 +2,7 @@ import type {
   OpencodeDemoActivity,
   OpencodeDemoSession,
   OpencodeDemoTurn,
+  OpencodeReply,
   OpencodeSource,
 } from "../types/opencode";
 
@@ -178,4 +179,89 @@ export const OPENCODE_DEMO_SOURCES: OpencodeSource[] = [
 export const OPENCODE_DEMO_QUERIES: string[] = [
   "best AI changelog tools 2026",
   "how teams write release notes",
+];
+
+/** Answers the demo plays back, one per prompt you send, in order. */
+export const OPENCODE_REPLIES: OpencodeReply[] = [
+  {
+    activities: [
+      { id: "thought", kind: "thought" },
+      {
+        detail: "[id=changelog-week-39]",
+        id: "publish",
+        kind: "tool",
+        label: "notra_publish_post",
+      },
+    ],
+    reply: [
+      {
+        id: "published",
+        text: [
+          "Published ",
+          { strong: "Acme v2.4" },
+          ". It's live at ",
+          { code: "acme.com/changelog/v2-4" },
+          " and the RSS feed picked it up.",
+        ],
+      },
+      {
+        id: "next",
+        text: ["Want a short LinkedIn post for the release as well?"],
+      },
+    ],
+  },
+  {
+    activities: [
+      { id: "thought", kind: "thought" },
+      { detail: "apps/scheduler/src/publish.ts", id: "read", kind: "read" },
+    ],
+    reply: [
+      {
+        id: "retry",
+        text: [
+          "Failed publish jobs retry three times with backoff in ",
+          { code: "apps/scheduler/src/publish.ts" },
+          ".",
+        ],
+      },
+      { heading: "Covered by:", id: "tests-heading" },
+      {
+        id: "tests",
+        items: [
+          {
+            id: "retry-test",
+            spans: [{ code: "publish.test.ts" }, " - retries a failed publish"],
+          },
+          {
+            id: "fail-test",
+            spans: [
+              { code: "publish.test.ts" },
+              " - surfaces the error after the last attempt",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    activities: [
+      { id: "thought", kind: "thought" },
+      {
+        detail: "bun run test",
+        id: "tests",
+        kind: "tool",
+        label: "bash",
+      },
+    ],
+    reply: [
+      {
+        id: "green",
+        text: [
+          "All ",
+          { strong: "212 tests" },
+          " pass. Nothing is blocking the release.",
+        ],
+      },
+    ],
+  },
 ];

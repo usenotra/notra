@@ -1,11 +1,20 @@
 "use client";
 
+import { Comment01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { useTranslations } from "next-intl";
 
 import { DiscussionComposer } from "@/components/comments/discussion-composer";
 import { DiscussionList } from "@/components/comments/discussion-list";
 import { useDiscussion } from "@/lib/hooks/use-discussion";
-import type { CommentTarget, DiscussionFeedProps } from "@/types/comments";
+import type { DiscussionFeedProps, DiscussionProps } from "@/types/comments";
 
 function DiscussionFeed({
   isPending,
@@ -58,7 +67,10 @@ function DiscussionFeed({
   );
 }
 
-export function Discussion(target: CommentTarget) {
+export function Discussion({
+  showEmptyState = false,
+  ...target
+}: DiscussionProps) {
   const {
     query,
     items,
@@ -76,6 +88,11 @@ export function Discussion(target: CommentTarget) {
     reactToComment,
   } = useDiscussion(target);
   const t = useTranslations("comments");
+  const isEmpty =
+    showEmptyState &&
+    !query.isPending &&
+    !query.isError &&
+    items.every((item) => item.deletedAt);
 
   return (
     <section
@@ -108,6 +125,17 @@ export function Discussion(target: CommentTarget) {
         onDelete={deleteComment}
         onReact={reactToComment}
       />
+      {isEmpty ? (
+        <Empty className="gap-0 py-2 md:py-2">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon icon={Comment01Icon} />
+            </EmptyMedia>
+            <EmptyTitle className="text-base">{t("emptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : null}
       <DiscussionComposer
         draft={draft}
         reply={reply}
@@ -116,6 +144,7 @@ export function Discussion(target: CommentTarget) {
         textarea={textarea}
         onDraftChange={setDraft}
         onSubmit={submit}
+        sticky={!isEmpty}
         onCancelReply={() => {
           setReply(null);
           textarea.current?.focus();

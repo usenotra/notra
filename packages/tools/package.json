@@ -15,7 +15,7 @@
     "@notra/analytics": "workspace:*",
     "@notra/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-rc.112",
+    "effect": "4.0.0",
     "eve": "0.19.0",
     "post-for-me": "^2.7.0",
     "zod": "^4.6.5"

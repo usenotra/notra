@@ -545,13 +545,6 @@ export const AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT = 25;
 
 export const OWN_BRAND_ROW_ID = "own-brand";
 
-export const COMPETITOR_TYPE_FILTER_VALUES = [
-  "all",
-  "direct",
-  "indirect",
-] as const;
-
-export const COMPETITORS_TABLE_HEIGHT = 420;
 export const COMPETITOR_PROMPTS_TABLE_HEIGHT = 288;
 export const COMPETITOR_PROMPTS_PAGE_TABLE_HEIGHT = 620;
 export const COMPETITORS_TABLE_ROW_HEIGHT = 52;

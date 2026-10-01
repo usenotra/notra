@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 
+import { LAST_VISITED_ORGANIZATION_COOKIE } from "./src/constants/cookies";
+
 const nextConfig: NextConfig = {
   // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
   // previews should not become routes or bundles in a production build.
@@ -57,6 +59,7 @@ const nextConfig: NextConfig = {
     "@notra/email",
     "@notra/ai",
     "@notra/content-generation",
+    "@notra/webhooks",
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",
@@ -115,6 +118,18 @@ const nextConfig: NextConfig = {
         source: "/landing",
         destination: "https://www.usenotra.com/landing",
         permanent: true,
+      },
+      {
+        source: "/api-keys",
+        has: [
+          {
+            type: "cookie",
+            key: LAST_VISITED_ORGANIZATION_COOKIE,
+            value: "(?<slug>[a-z0-9-]+)",
+          },
+        ],
+        destination: "/:slug/api-keys",
+        permanent: false,
       },
       {
         source: "/:slug/settings",

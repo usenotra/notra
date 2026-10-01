@@ -18,6 +18,7 @@ import {
   blogAuthorAvatarTransitionName,
   blogAuthorNameTransitionName,
 } from "@/utils/blog-view-transitions";
+import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { TWITTER_HANDLE, pageAlternates } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
@@ -80,9 +81,19 @@ export default async function BlogAuthorPage({ params }: BlogAuthorPageProps) {
     .map(resolveSocialLink)
     .filter((social) => social !== null);
   const postLabel = authorPosts.length === 1 ? "post" : "posts";
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: SITE_URL },
+    { name: "Blog", url: `${SITE_URL}/blog` },
+    { name: author.name, url: `${SITE_URL}/blog/author/${slug}` },
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-220 px-4 pt-24 sm:px-6 sm:pt-28 md:px-8 md:pt-32 lg:px-0">
+      <script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload is server-built and script-close-escaped
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+        type="application/ld+json"
+      />
       <div className="flex flex-col items-start gap-5">
         <ViewTransition name={blogAuthorAvatarTransitionName(author.slug)}>
           <BlogAuthorAvatar image={author.image} name={author.name} size={80} />

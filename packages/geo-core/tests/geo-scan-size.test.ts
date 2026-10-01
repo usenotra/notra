@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { GEO_AI_OVERVIEW_ENGINE_ID } from "../src/constants/geo";
+import {
+  GEO_AI_OVERVIEW_ENGINE_ID,
+  GEO_LANGUAGE_MAX_PROMPTS,
+} from "../src/constants/geo";
 import {
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_PROVIDERS,
@@ -118,4 +121,46 @@ describe("scan size without bare model calls", () => {
       })
     ).toBe(8);
   });
+});
+
+describe("scan size with a non-English prompt language", () => {
+  test("prompts in the prompt language are not capped as translations", () => {
+    expect(
+      calcGeoScanSize({
+        promptCount: 8,
+        engines: ["anthropic/claude-sonnet-5"],
+        languages: ["German"],
+        promptLanguage: "German",
+        catalog,
+        sequences: [],
+      })
+    ).toBe(8);
+  });
+
+  test("English becomes a capped translation of German prompts", () => {
+    expect(
+      calcGeoScanSize({
+        promptCount: 8,
+        engines: ["anthropic/claude-sonnet-5"],
+        languages: ["German", "English"],
+        promptLanguage: "German",
+        catalog,
+        sequences: [],
+      })
+    ).toBe(8 + GEO_LANGUAGE_MAX_PROMPTS);
+  });
+});
+
+test("picked translations replace the per-language limit", () => {
+  expect(
+    calcGeoScanSize({
+      promptCount: 8,
+      engines: ["anthropic/claude-sonnet-5"],
+      languages: ["German", "English", "French"],
+      promptLanguage: "German",
+      translatedPromptCounts: { English: 2 },
+      catalog,
+      sequences: [],
+    })
+  ).toBe(8 + 2 + GEO_LANGUAGE_MAX_PROMPTS);
 });

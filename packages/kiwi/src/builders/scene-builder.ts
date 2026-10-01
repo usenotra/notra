@@ -3,7 +3,10 @@ import type {
   AddFrameOptions,
   AddTextOptions,
   AddVectorOptions,
+  DropShadowOptions,
+  FigmaEffect,
   Guid,
+  NodeExtras,
   SceneNode,
   SolidFill,
   Transform,
@@ -16,6 +19,7 @@ export type {
   AddVectorOptions,
   Color,
   DerivedTextData,
+  FigmaEffect,
   Guid,
   RGBA,
   SceneNode,
@@ -41,6 +45,57 @@ export function solidFill(r: number, g: number, b: number, a = 1): SolidFill {
     visible: true,
     blendMode: "NORMAL",
   };
+}
+
+function finiteOrZero(value: number): number {
+  return Number.isFinite(value) ? value : 0;
+}
+
+export function dropShadowEffect({
+  dx,
+  dy,
+  blur,
+  color: [r, g, b, a],
+}: DropShadowOptions): FigmaEffect {
+  return {
+    type: "DROP_SHADOW",
+    visible: true,
+    blendMode: "NORMAL",
+    color: {
+      r: finiteOrZero(r),
+      g: finiteOrZero(g),
+      b: finiteOrZero(b),
+      a: Math.max(0, Math.min(1, finiteOrZero(a))),
+    },
+    offset: { x: finiteOrZero(dx), y: finiteOrZero(dy) },
+    radius: Math.max(0, finiteOrZero(blur)),
+    spread: 0,
+    showShadowBehindNode: false,
+  };
+}
+
+export function layerBlurEffect(radius: number): FigmaEffect {
+  return {
+    type: "FOREGROUND_BLUR",
+    visible: true,
+    radius: Math.max(0, finiteOrZero(radius)),
+  };
+}
+
+function applyNodeExtras(node: SceneNode, options: NodeExtras): void {
+  if (options.opacity !== undefined) {
+    node.opacity = Math.max(0, Math.min(1, options.opacity));
+  }
+  if (options.blendMode) {
+    node.blendMode = options.blendMode;
+  }
+  if (options.effects && options.effects.length > 0) {
+    node.effects = options.effects;
+  }
+  if (options.mask) {
+    node.mask = true;
+    node.maskType = "ALPHA";
+  }
 }
 
 export function transformAt(x: number, y: number): Transform {
@@ -197,8 +252,10 @@ export class SceneBuilder {
       stackCounterAlignItems: "MIN",
       stackReverseZIndex: false,
       stackCounterSizing: "FIXED",
-      frameMaskDisabled: true,
+      frameMaskDisabled: !options.clipsContent,
     };
+
+    applyNodeExtras(node, options);
 
     if (hasRadius) {
       if (uniformRadius) {
@@ -325,11 +382,14 @@ export class SceneBuilder {
       dashPattern: hasStroke ? options.dashPattern : undefined,
       strokeJoin: options.strokeJoin ?? "MITER",
       fillPaints: options.fill ? [options.fill] : [],
+      effects: [],
       horizontalConstraint: "MIN",
       verticalConstraint: "MIN",
       frameMaskDisabled: true,
       vectorData: { vectorNetworkBlob: blobIndex },
     };
+
+    applyNodeExtras(node, options);
 
     if (hasStroke) {
       node.strokePaints = [stroke];

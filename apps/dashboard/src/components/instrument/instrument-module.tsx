@@ -2,6 +2,7 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Card,
   CardAction,
@@ -277,7 +278,7 @@ export function InstrumentEmpty({
             </span>
           ) : null}
           <p className="text-muted-foreground text-sm first-letter:uppercase">
-            {message}
+            {busy && message ? <Shimmer as="span">{message}</Shimmer> : message}
           </p>
         </div>
       ) : null}

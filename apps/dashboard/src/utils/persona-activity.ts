@@ -6,6 +6,8 @@ import type {
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 
 import {
+  GEO_PERSONA_CHART_MAX_STEP,
+  GEO_PERSONA_CHART_MIN_MAX,
   GEO_PERSONA_FORECAST_DAYS,
   GEO_PERSONA_FORECAST_SAMPLE_DAYS,
 } from "@/constants/geo-personas";
@@ -67,19 +69,37 @@ function mentionRate(point: GeoPersonaActivityPoint | undefined) {
     : null;
 }
 
-function firstScanDayByKey(points: readonly GeoPersonaActivityPoint[]) {
-  const firstDay = new Map<string, string>();
+function lastScanDayByKey(points: readonly GeoPersonaActivityPoint[]) {
+  const lastDay = new Map<string, string>();
   for (const point of points) {
     if (point.checks <= 0) {
       continue;
     }
     const key = personaActivityKey(point.personaId, point.snapshotVersion);
-    const current = firstDay.get(key);
-    if (!current || point.day < current) {
-      firstDay.set(key, point.day);
+    const current = lastDay.get(key);
+    if (!current || point.day > current) {
+      lastDay.set(key, point.day);
     }
   }
-  return firstDay;
+  return lastDay;
+}
+
+/**
+ * A day without checks reads as 0% so the line stays on the baseline instead
+ * of breaking. Two exceptions stay empty: today before its scan has landed
+ * (the forecast bridges it), and days after a previous snapshot was replaced.
+ */
+function missingDayRate(
+  item: PersonaActivitySeries,
+  day: string,
+  today: string,
+  lastScanDay: ReadonlyMap<string, string>
+) {
+  if (item.isCurrent) {
+    return day < today ? 0 : null;
+  }
+  const last = lastScanDay.get(item.dataKey);
+  return last !== undefined && day <= last ? 0 : null;
 }
 
 export function buildPersonaActivityRows(
@@ -93,7 +113,7 @@ export function buildPersonaActivityRows(
       point,
     ])
   );
-  const firstScanDay = firstScanDayByKey(activity.points);
+  const lastScanDay = lastScanDayByKey(activity.points);
   const rows: Record<string, string | number | null>[] = [];
   const date = new Date(`${activity.from}T00:00:00Z`);
   while (date.toISOString().slice(0, 10) < activity.to) {
@@ -103,9 +123,7 @@ export function buildPersonaActivityRows(
       const rate = mentionRate(
         points.get(activityPointKey(day, item.personaId, item.snapshotVersion))
       );
-      const first = firstScanDay.get(item.dataKey);
-      row[item.dataKey] =
-        rate ?? (first !== undefined && day < first ? 0 : null);
+      row[item.dataKey] = rate ?? missingDayRate(item, day, today, lastScanDay);
     }
     rows.push(row);
     date.setUTCDate(date.getUTCDate() + 1);
@@ -142,8 +160,20 @@ export function buildPersonaActivityRows(
       continue;
     }
     const key = personaForecastKey(item.personaId, item.snapshotVersion);
-    forecasts.set(key, Math.max(0, Math.min(100, (mentions / checks) * 100)));
-    last[key] = last[item.dataKey] ?? null;
+    const forecast = Math.max(0, Math.min(100, (mentions / checks) * 100));
+    forecasts.set(key, forecast);
+    // Start the dashed line on the latest actual value so it continues the
+    // solid one; while today's scan is pending, today already shows the forecast.
+    const todayRate = last[item.dataKey];
+    if (typeof todayRate === "number") {
+      last[key] = todayRate;
+      continue;
+    }
+    last[key] = forecast;
+    const previous = rows.at(-2);
+    if (previous) {
+      previous[key] = previous[item.dataKey] ?? null;
+    }
   }
   if (!forecasts.size) {
     return rows;
@@ -190,4 +220,27 @@ export function personaMentionRate(
     checks += point.checks;
   }
   return checks ? (mentions / checks) * 100 : null;
+}
+
+/**
+ * Y-axis ceiling for the visible series: the highest rate rounded up to the
+ * next step, so a 37% peak uses the chart height instead of a fixed 0–100%.
+ */
+export function personaActivityAxisMax(
+  rows: readonly Record<string, string | number | null>[],
+  keys: readonly string[]
+) {
+  let peak = 0;
+  for (const row of rows) {
+    for (const key of keys) {
+      const value = row[key];
+      if (typeof value === "number" && value > peak) {
+        peak = value;
+      }
+    }
+  }
+  const ceiling =
+    Math.floor(peak / GEO_PERSONA_CHART_MAX_STEP + 1) *
+    GEO_PERSONA_CHART_MAX_STEP;
+  return Math.min(100, Math.max(GEO_PERSONA_CHART_MIN_MAX, ceiling));
 }

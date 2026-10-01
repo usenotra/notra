@@ -313,7 +313,11 @@ export function LandingPricingSection({
   return (
     <LazyMotion features={domMax}>
       <section
-        className="flex w-full flex-col items-center gap-13.5 px-6 py-24"
+        className={cn(
+          "flex w-full flex-col items-center gap-13.5 px-6 pb-24",
+          // Without its own header the section sits right under the page hero.
+          showHeader ? "pt-24" : "pt-6"
+        )}
         id="pricing"
       >
         {showHeader ? (

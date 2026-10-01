@@ -1,4 +1,18 @@
-export type LandingPreview = "ai-overview" | "tooltip";
+export type LandingPreview =
+  | "ai-overview"
+  | "button"
+  | "chat-minimap"
+  | "chatgpt"
+  | "claude"
+  | "claude-code"
+  | "codex"
+  | "duotone-tooltip"
+  | "gemini"
+  | "marketing-button"
+  | "opencode"
+  | "perplexity"
+  | "shimmer"
+  | "tooltip";
 
 export interface LandingComponentLink {
   description: string;
@@ -14,7 +28,7 @@ export interface LandingSection {
 }
 
 export interface LandingInstallCommand {
-  item: string;
+  items: string[];
   prefix: string;
 }
 

@@ -16,6 +16,20 @@ export const CODEX_SHIMMER_MS = 2000;
 
 export const CODEX_BULLET_BLINK_MS = 1200;
 
+/** Pacing of a played-back turn in the demo chat. */
+export const CODEX_CHAT_TIMING = {
+  /** Working time before the first command. */
+  thinkMs: 1100,
+  /** How long each command shows as running. */
+  execMs: 1000,
+  /** Delay between streamed words. */
+  wordMs: 26,
+  /** Cap on every delay when the user prefers reduced motion. */
+  reducedMaxMs: 60,
+  /** How often the elapsed seconds tick. */
+  tickMs: 1000,
+} as const;
+
 export const CODEX_EXEC_STATUS_LABEL: Record<CodexExecStatus, string> = {
   failed: "Ran",
   ran: "Ran",

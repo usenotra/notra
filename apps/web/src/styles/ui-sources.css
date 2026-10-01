@@ -75,6 +75,7 @@
 @source "../../../../packages/ui/src/components/ui/separator.tsx";
 @source "../../../../packages/ui/src/components/ui/sheet.tsx";
 @source "../../../../packages/ui/src/components/ui/skeleton.tsx";
+@source "../../../../packages/ui/src/components/ui/step-slider.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/amazon.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/apple.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/appleDark.tsx";
@@ -181,6 +182,7 @@
 @source "../../../../packages/ui/src/lib/motion.ts";
 @source "../../../../packages/ui/src/lib/notra-mark.ts";
 @source "../../../../packages/ui/src/lib/perplexity-model.ts";
+@source "../../../../packages/ui/src/lib/step-slider.ts";
 @source "../../../../packages/ui/src/lib/utils.ts";
 @source "../../../../packages/ui/src/types/chatgpt.ts";
 @source "../../../../packages/ui/src/types/claude-chat.ts";
@@ -192,4 +194,5 @@
 @source "../../../../packages/ui/src/types/message-table.ts";
 @source "../../../../packages/ui/src/types/opencode-skin.ts";
 @source "../../../../packages/ui/src/types/perplexity.ts";
+@source "../../../../packages/ui/src/types/step-slider.ts";
 @source "../../../../packages/ui/src/types/ui-labels.ts";

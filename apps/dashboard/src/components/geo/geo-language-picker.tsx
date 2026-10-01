@@ -1,6 +1,6 @@
 "use client";
 
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, LockIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DEFAULT_LANGUAGE,
@@ -24,7 +24,7 @@ import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import type { GeoLanguagePickerProps } from "@/types/geo";
 
-function LanguageLabel({ language }: { language: string }) {
+export function LanguageLabel({ language }: { language: string }) {
   const languageLabel = useLanguageLabel();
   return (
     <span className="flex items-center gap-1.5">
@@ -43,6 +43,8 @@ export function GeoLanguagePicker({
   onChange,
   disabled = false,
   labeled = true,
+  inputId,
+  lockedLanguage,
 }: GeoLanguagePickerProps) {
   const t = useTranslations("geo.geoLanguagePicker");
   const tCommon = useTranslations("common");
@@ -79,8 +81,9 @@ export function GeoLanguagePicker({
         value={draft}
       >
         <ComboboxInput
-          aria-label={t("add")}
+          aria-label={inputId ? undefined : t("add")}
           className="w-full"
+          id={inputId}
           placeholder={atLimit ? t("limitReached") : t("add")}
         />
         <ComboboxContent>
@@ -99,17 +102,27 @@ export function GeoLanguagePicker({
           {selected.map((language) => (
             <Badge className="gap-1 pr-1" key={language} variant="secondary">
               <LanguageLabel language={language} />
-              <button
-                aria-label={t("remove", { language })}
-                className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={disabled || lastLanguage}
-                onClick={() =>
-                  onChange(selected.filter((item) => item !== language))
-                }
-                type="button"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={12} />
-              </button>
+              {language === lockedLanguage ? (
+                <span
+                  className="text-muted-foreground p-0.5"
+                  title={t("locked")}
+                >
+                  <HugeiconsIcon icon={LockIcon} size={12} />
+                  <span className="sr-only">{t("locked")}</span>
+                </span>
+              ) : (
+                <button
+                  aria-label={t("remove", { language })}
+                  className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={disabled || lastLanguage}
+                  onClick={() =>
+                    onChange(selected.filter((item) => item !== language))
+                  }
+                  type="button"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                </button>
+              )}
             </Badge>
           ))}
         </div>

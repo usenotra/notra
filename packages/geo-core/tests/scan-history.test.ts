@@ -335,7 +335,7 @@ describe("scan history", () => {
     ).toBeNull();
   });
 
-  test("counts saved answers, deduplicates sources and pages lightweight results", async () => {
+  test("counts saved answers, resolves the latest run and pages lightweight results", async () => {
     const scope = await seedProject("selected");
     const savedCount = GEO_SCAN_RESULTS_PAGE_SIZE + 2;
     const plan = {
@@ -375,7 +375,18 @@ describe("scan history", () => {
     const detail = await Effect.runPromise(
       loadGeoScanRun({ ...scope, scanId: "scan", offset: 0 })
     );
-    expect(detail?.uniqueSources).toBe(savedCount + 1);
+    expect(detail?.run).toMatchObject({
+      id: "scan",
+      checks: savedCount,
+      mentions: 3,
+      status: "running",
+    });
+    expect(detail?.run.plan).not.toHaveProperty("tasks");
+    const latest = await Effect.runPromise(
+      loadGeoScanRun({ ...scope, offset: 0 })
+    );
+    expect(latest?.run.id).toBe("scan");
+    expect(latest?.total).toBe(savedCount);
     expect(detail?.total).toBe(savedCount);
     expect(detail?.results).toHaveLength(GEO_SCAN_RESULTS_PAGE_SIZE);
     expect(detail?.results[0]).not.toHaveProperty("answer");
@@ -402,7 +413,7 @@ describe("scan history", () => {
     );
     expect(filtered?.total).toBe(1);
     expect(filtered?.results[0]?.engine).toBe("engine-b");
-    expect(filtered?.uniqueSources).toBe(savedCount + 1);
+    expect(filtered?.run.checks).toBe(savedCount);
   });
 
   test("paginates tied timestamps deterministically and supports legacy runs", async () => {

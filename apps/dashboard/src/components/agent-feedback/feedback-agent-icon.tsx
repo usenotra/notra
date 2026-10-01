@@ -23,7 +23,10 @@ import type {
   AgentFeedbackAgentProps,
   AgentFeedbackClientBrand,
 } from "@/types/agent-feedback";
-import { resolveAgentFeedbackClientBrand } from "@/utils/agent-feedback-client";
+import {
+  formatAgentFeedbackClient,
+  resolveAgentFeedbackClientBrand,
+} from "@/utils/agent-feedback-client";
 
 const ICON_CLASS = "size-4 shrink-0";
 
@@ -104,7 +107,7 @@ export function AgentFeedbackAgent({
   className,
 }: AgentFeedbackAgentProps) {
   const t = useTranslations("feedback");
-  const label = client ?? t("unspecified");
+  const label = client ? formatAgentFeedbackClient(client) : t("unspecified");
 
   return (
     <span
@@ -114,7 +117,7 @@ export function AgentFeedbackAgent({
       )}
     >
       <AgentFeedbackAgentIcon client={client} />
-      <span className="truncate" title={label}>
+      <span className="truncate" title={client ?? label}>
         {label}
       </span>
     </span>

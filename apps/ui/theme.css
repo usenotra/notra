@@ -1,3 +1,7 @@
+/* Blume inlines this file into .blume/src/generated/ and only rebases @source,
+   so the import path is relative to that folder. */
+@import "../../../src/styles/blocks.css";
+
 html {
   scrollbar-gutter: stable;
 }

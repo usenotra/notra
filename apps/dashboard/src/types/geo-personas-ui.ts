@@ -112,12 +112,16 @@ export interface GeneratePersonasButtonProps {
   progress: PersonaGenerationProgress | null;
   onClick: () => void;
 }
-export interface PersonaConversationProps {
+export interface PersonaConversationEmptyProps {
+  enabled: boolean;
+  isScanning: boolean;
+  canRun: boolean;
+  onRun: () => void;
+}
+export interface PersonaConversationProps extends PersonaConversationEmptyProps {
   organizationId: string;
   active: GeoSequenceEngineThread | null;
   isLoading: boolean;
-  isWaitingForScan: boolean;
-  enabled: boolean;
 }
 export interface PersonaAddDialogProps {
   open: boolean;

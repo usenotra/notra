@@ -8,7 +8,7 @@ import {
   CODEX_ROW_CLASS,
   CODEX_SHIMMER_MS,
 } from "../constants/codex";
-import type { CodexWorkingProps } from "../types/codex";
+import type { CodexInterruptedProps, CodexWorkingProps } from "../types/codex";
 
 export const CodexWorking = ({
   className,
@@ -60,3 +60,19 @@ export const CodexWorking = ({
     </div>
   );
 };
+
+export const CodexInterrupted = ({
+  children = "Conversation interrupted - tell the model what to do differently.",
+  className,
+  ...props
+}: CodexInterruptedProps) => (
+  <div
+    className={cn(CODEX_ROW_CLASS, "text-codex-red", className)}
+    data-slot="codex-interrupted"
+    role="status"
+    {...props}
+  >
+    <span aria-hidden="true">■</span>
+    <p className="min-w-0 wrap-break-word">{children}</p>
+  </div>
+);

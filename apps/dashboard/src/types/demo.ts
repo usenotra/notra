@@ -48,10 +48,11 @@ export interface DemoSandboxCreateResponse {
   slug: string;
 }
 
-export interface DemoTimestampColumnRow {
+// A type alias (not an interface) so it satisfies drizzle's row constraint.
+export type DemoTimestampColumnRow = {
   table_name: string;
   columns: string[];
-}
+};
 
 export interface DemoUiAction {
   method: "POST" | "PATCH" | "PUT" | "DELETE";

@@ -108,6 +108,20 @@ export const CLAUDE_CODE_SPINNER_INTERVAL_MS = 120;
 
 export const CLAUDE_CODE_RESULT_GLYPH = "⎿";
 
+/** Pacing of a played-back turn in the demo chat. */
+export const CLAUDE_CODE_CHAT_TIMING = {
+  /** Spinner time before the first tool call. */
+  thinkMs: 1200,
+  /** How long each tool call stays pending. */
+  toolMs: 900,
+  /** Delay between streamed words. */
+  wordMs: 28,
+  /** Cap on every delay when the user prefers reduced motion. */
+  reducedMaxMs: 60,
+  /** How often the elapsed seconds tick. */
+  tickMs: 1000,
+} as const;
+
 /** The mascot grid, in cells. */
 export const CLAUDE_CODE_MASCOT_SIZE = { height: 14, width: 22 };
 

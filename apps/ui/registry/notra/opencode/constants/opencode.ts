@@ -82,6 +82,18 @@ export const OPENCODE_SEARCH_STAGGER_MS = 56;
 /** Pause after the last query before the sources block. */
 export const OPENCODE_SEARCH_SOURCES_MS = 160;
 
+/** Pacing of a played-back turn in the demo chat. */
+export const OPENCODE_CHAT_TIMING = {
+  /** How long a thought shows the Thinking spinner. */
+  thinkMs: 1300,
+  /** Beat after each tool line. */
+  toolMs: 600,
+  /** Delay between reply blocks as they render. */
+  blockMs: 260,
+  /** Cap on every delay when the user prefers reduced motion. */
+  reducedMaxMs: 60,
+} as const;
+
 export const OPENCODE_REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**

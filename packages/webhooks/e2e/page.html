@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notra Webhooks — Live Test Inspector</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d10;
+        --panel: #12161b;
+        --border: #232a33;
+        --text: #e6e9ed;
+        --muted: #8b97a5;
+        --green: #3fb68b;
+        --red: #e5534b;
+        --amber: #d4a72c;
+        --blue: #539bf5;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font:
+          14px/1.5 -apple-system,
+          "SF Mono",
+          ui-monospace,
+          Menlo,
+          monospace;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 16px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stats {
+        display: flex;
+        gap: 12px;
+        margin-left: auto;
+      }
+      .stat {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .stat b {
+        display: block;
+        font-size: 18px;
+      }
+      main {
+        padding: 16px 24px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        border: 1px solid var(--border);
+      }
+      .ok {
+        color: var(--green);
+        border-color: var(--green);
+      }
+      .err {
+        color: var(--red);
+        border-color: var(--red);
+      }
+      .warn {
+        color: var(--amber);
+        border-color: var(--amber);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 12px;
+      }
+      details {
+        cursor: pointer;
+      }
+      pre {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        overflow: auto;
+        max-width: 720px;
+        font-size: 12px;
+      }
+      .empty {
+        color: var(--muted);
+        padding: 40px 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Notra Webhooks — Live Test Inspector</h1>
+      <span class="meta" id="origin"></span>
+      <div class="stats">
+        <div class="stat"><b id="total">0</b>requests</div>
+        <div class="stat">
+          <b id="verified" class="ok">0</b>valid signatures
+        </div>
+        <div class="stat">
+          <b id="invalid" class="err">0</b>invalid signatures
+        </div>
+      </div>
+    </header>
+    <main>
+      <div id="empty" class="empty">
+        Waiting for webhook deliveries… (polling every 2s)
+      </div>
+      <table id="table" hidden>
+        <thead>
+          <tr>
+            <th>Received at</th>
+            <th>Mode</th>
+            <th>Event</th>
+            <th>Attempt</th>
+            <th>Signature</th>
+            <th>Delivery</th>
+            <th>Payload</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const apiBase = params.get("api") ?? location.origin;
+      document.getElementById("origin").textContent = "receiver: " + apiBase;
+
+      const esc = (s) =>
+        String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c]
+        );
+
+      async function refresh() {
+        try {
+          const res = await fetch(apiBase + "/api/requests", {
+            cache: "no-store",
+          });
+          const data = await res.json();
+          document.getElementById("total").textContent = data.count;
+          const valid = data.received.filter(
+            (r) => r.signatureValid === true
+          ).length;
+          const invalid = data.received.filter(
+            (r) => r.signatureValid === false
+          ).length;
+          document.getElementById("verified").textContent = valid;
+          document.getElementById("invalid").textContent = invalid;
+          const table = document.getElementById("table");
+          const empty = document.getElementById("empty");
+          if (!data.received.length) {
+            table.hidden = true;
+            empty.hidden = false;
+            return;
+          }
+          table.hidden = false;
+          empty.hidden = true;
+          document.getElementById("rows").innerHTML = data.received
+            .map((r) => {
+              const sig =
+                r.signatureValid === null
+                  ? '<span class="badge warn">no secret</span>'
+                  : r.signatureValid
+                    ? '<span class="badge ok">valid</span>'
+                    : '<span class="badge err">INVALID</span>';
+              let payloadPretty = r.payload;
+              try {
+                payloadPretty = JSON.stringify(JSON.parse(r.payload), null, 2);
+              } catch {}
+              return `<tr>
+          <td class="mono">${esc(new Date(r.at).toLocaleTimeString())}</td>
+          <td><span class="badge ${r.mode === "ok" || r.mode === "flaky" ? "ok" : r.mode === "bad" ? "err" : "warn"}">${esc(r.mode)}</span></td>
+          <td class="mono">${esc(r.eventType)}</td>
+          <td class="mono">#${esc(r.attemptForDelivery)}</td>
+          <td>${sig}</td>
+          <td class="mono muted">${esc((r.deliveryId ?? "").slice(0, 26))}…</td>
+          <td><details><summary class="muted">view</summary><pre>${esc(payloadPretty)}</pre></details></td>
+        </tr>`;
+            })
+            .join("");
+        } catch (error) {
+          console.error("refresh failed", error);
+        }
+      }
+      refresh();
+      setInterval(refresh, 2000);
+    </script>
+  </body>
+</html>

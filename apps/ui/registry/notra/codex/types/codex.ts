@@ -75,6 +75,10 @@ export interface CodexWorkingProps extends ComponentProps<"div"> {
   label?: string;
 }
 
+export interface CodexInterruptedProps extends ComponentProps<"div"> {
+  children?: ReactNode;
+}
+
 export interface CodexTableProps extends ComponentProps<"table"> {
   codeColumns?: number[];
   headers: string[];
@@ -89,12 +93,21 @@ export interface CodexComposerProps extends Omit<
   ComponentProps<"input">,
   "className" | "type"
 > {
+  /** A turn is running: Enter does not send and Escape calls `onStop`. */
+  busy?: boolean;
   className?: string;
   context?: string;
   cwd?: string;
   effort?: string;
   inputClassName?: string;
   model?: string;
+  /**
+   * Called with the trimmed text on Enter. An uncontrolled composer clears
+   * afterwards; with `value`, clear it yourself here.
+   */
+  onSend?: (text: string) => void;
+  /** Called on Escape while `busy`, to interrupt the running turn. */
+  onStop?: () => void;
   task?: string;
   warnings?: number;
 }
@@ -142,4 +155,31 @@ export interface CodexDemoSession {
   tableIntro: string;
   title: string;
   userMessage: string;
+}
+
+export type CodexTurnStatus = "working" | "streaming" | "done" | "interrupted";
+
+/** A scripted answer the demo plays back when you send a prompt. */
+export interface CodexReply {
+  /** Commands Codex runs before it answers, with their final status. */
+  execs: CodexDemoExec[];
+  /** The answer. Blank lines split paragraphs, backticks mark code. */
+  text: string;
+}
+
+export interface CodexChatTurn {
+  execs: CodexDemoExec[];
+  id: string;
+  prompt: string;
+  reply: string;
+  status: CodexTurnStatus;
+}
+
+export interface CodexChat {
+  busy: boolean;
+  /** Whole seconds since the running turn started. */
+  elapsed: number;
+  send: (text: string) => Promise<void>;
+  stop: () => void;
+  turns: CodexChatTurn[];
 }

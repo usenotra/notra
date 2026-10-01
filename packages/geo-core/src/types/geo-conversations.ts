@@ -22,6 +22,8 @@ export interface GeoConversationSource {
   sequenceId?: string;
   personaId?: string;
   prompts: readonly string[];
+  /** Defaults to English. */
+  language?: string;
   snapshot?: GeoPersonaSnapshot;
   timeoutMs: number;
 }

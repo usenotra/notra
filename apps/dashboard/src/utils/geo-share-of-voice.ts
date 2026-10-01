@@ -166,6 +166,9 @@ export function buildShareOfVoiceChartModel(
   const brandCount = ranked.some((row) => row.own)
     ? ranked.length
     : ranked.length + (own ? 1 : 0);
+  // Every brand with a rank, you included even without mentions.
+  const allRanked =
+    own && !ranked.some((row) => row.own) ? [...ranked, own] : ranked;
   const leaders = ranked.slice(0, limit);
   const ranking =
     own && !leaders.some((row) => row.own) ? [...leaders, own] : leaders;
@@ -222,6 +225,7 @@ export function buildShareOfVoiceChartModel(
   }
   return {
     ranking,
+    allRanked,
     own,
     slices,
     others,
@@ -232,4 +236,12 @@ export function buildShareOfVoiceChartModel(
     mentionSparklines,
     ...ownTrends,
   };
+}
+
+/** Share and mentions per brand (lowercased name), for tables beside the chart. */
+export function shareOfVoiceByBrand(
+  props: ShareOfVoiceChartProps
+): Map<string, ShareOfVoiceRow> {
+  const { allRanked } = buildShareOfVoiceChartModel(props);
+  return new Map(allRanked.map((row) => [row.brand.toLowerCase(), row]));
 }

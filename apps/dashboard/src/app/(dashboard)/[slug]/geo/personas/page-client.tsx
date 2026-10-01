@@ -2,7 +2,16 @@
 
 import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import Counter from "@notra/ui/components/shared/counter";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -93,7 +102,12 @@ function GeneratePersonasButton({
         />
         {progress ? (
           <span className="inline-flex items-center gap-1.5 leading-none">
-            <span>{stepLabel}</span>
+            <Shimmer
+              as="span"
+              className="text-primary-foreground/70 [--foreground:var(--primary-foreground)]"
+            >
+              {stepLabel}
+            </Shimmer>
             <GenerationCounter progress={progress} />
           </span>
         ) : (
@@ -226,23 +240,22 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
         ) : null}
 
         {showEmptyState ? (
-          <EmptyState
-            action={
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <HugeiconsIcon icon={UserGroupIcon} />
+              </EmptyMedia>
+              <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+              <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
               <GeneratePersonasButton
                 hasPersonas={false}
                 onClick={onGenerateClick}
                 progress={progress}
               />
-            }
-            description={t("emptyDescription")}
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.personas}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title={t("emptyTitle")}
-          />
+            </EmptyContent>
+          </Empty>
         ) : null}
       </div>
       <PersonaAddDialog

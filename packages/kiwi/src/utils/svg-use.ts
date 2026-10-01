@@ -17,7 +17,13 @@ function copyAttrs(from: Element, to: Element, names: string[]): void {
 function useTarget(useEl: Element): Element | null {
   const href = useEl.getAttribute("href") ?? useEl.getAttribute("xlink:href");
   const id = href?.trim().replace(/^#/, "");
-  return id ? useEl.ownerDocument.getElementById(id) : null;
+  if (!id) {
+    return null;
+  }
+  const root = useEl.getRootNode();
+  const scoped =
+    root instanceof DocumentFragment ? root.getElementById(id) : null;
+  return scoped ?? useEl.ownerDocument.getElementById(id);
 }
 
 function inlineUse(useEl: Element, depth: number): Element | null {
