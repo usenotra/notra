@@ -224,6 +224,8 @@ export interface GeoStatDeltaProps {
   delta: number | null;
   kind?: GeoStatDeltaKind;
   variant?: "pill" | "plain";
+  /** Rolls changed characters when the delta updates (range switches). */
+  animated?: boolean;
   label?: string;
   hint?: string;
   className?: string;

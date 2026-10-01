@@ -17,6 +17,7 @@ import {
 } from "@notra/geo-core/utils/geo-engine-family";
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { FADE_SWAP_TRANSITION, FadeSwap } from "@notra/ui/components/fade-swap";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -26,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -107,15 +109,18 @@ function ProviderRow({
         <span className="truncate text-sm font-medium">{name}</span>
       </span>
       <span className="flex shrink-0 items-center justify-end gap-2">
-        <span
+        <FadeSwap
           className={cn(
             "text-sm tabular-nums",
             totals.visible === 0 && "text-muted-foreground"
           )}
+          swapKey={String(totals.visible)}
+          value={totals.visible}
         >
           {totals.visible.toLocaleString(locale)}
-        </span>
+        </FadeSwap>
         <GeoStatDelta
+          animated
           delta={visibilityDelta}
           label={t("visibilityLabel", { name })}
         />
@@ -281,14 +286,27 @@ export function MentionRateCard({
           <div className="flex flex-1 flex-col gap-4">
             <div className="flex items-end gap-2">
               <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {totals.visible.toLocaleString(locale)}
+                <FadeSwap
+                  swapKey={String(totals.visible)}
+                  value={totals.visible}
+                >
+                  {totals.visible.toLocaleString(locale)}
+                </FadeSwap>
               </p>
-              <GeoStatDelta
-                className="mb-0.5"
-                delta={overviewDelta}
-                hint={tGeoShared("vsFirstHalfOfThis")}
-                label={tCommon("labels.visibility")}
-              />
+              {/* Slides with the number's width instead of jumping under the
+                  outgoing value. */}
+              <motion.span
+                className="mb-0.5 inline-flex"
+                layout="position"
+                transition={FADE_SWAP_TRANSITION}
+              >
+                <GeoStatDelta
+                  animated
+                  delta={overviewDelta}
+                  hint={tGeoShared("vsFirstHalfOfThis")}
+                  label={tCommon("labels.visibility")}
+                />
+              </motion.span>
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
