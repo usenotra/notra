@@ -5,6 +5,8 @@ import {
   DEMO_ANONYMOUS_ID_PATTERN,
   DEMO_PERSONALIZATION_COMPANY_MAX,
   DEMO_PERSONALIZATION_NAME_MAX,
+  DEMO_THEME_MESSAGE,
+  DEMO_THEMES,
 } from "@/constants/demo";
 
 export const demoSessionPayloadSchema = z.object({
@@ -34,4 +36,9 @@ export const demoPersonalizationSchema = z.object({
   firstName: z.string().trim().min(1).max(DEMO_PERSONALIZATION_NAME_MAX),
   lastName: z.string().trim().max(DEMO_PERSONALIZATION_NAME_MAX),
   companyName: z.string().trim().min(1).max(DEMO_PERSONALIZATION_COMPANY_MAX),
+});
+
+export const demoThemeMessageSchema = z.object({
+  type: z.literal(DEMO_THEME_MESSAGE),
+  theme: z.enum(DEMO_THEMES),
 });

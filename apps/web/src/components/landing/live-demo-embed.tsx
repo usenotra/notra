@@ -2,6 +2,7 @@
 
 import { ArrowExpand01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,10 +15,13 @@ import {
   LIVE_DEMO_LOAD_TIMEOUT_MS,
   LIVE_DEMO_LOADING_LABEL,
   LIVE_DEMO_OPEN_LABEL,
+  LIVE_DEMO_ORIGIN,
   LIVE_DEMO_PREVIEW_ALT,
   LIVE_DEMO_PREVIEW_SRC,
   LIVE_DEMO_STALLED_ACTION,
   LIVE_DEMO_STALLED_LABEL,
+  LIVE_DEMO_THEME_MESSAGE,
+  LIVE_DEMO_THEME_PARAM,
 } from "@/constants/landing/live-demo";
 
 function openStandaloneDemo() {
@@ -26,12 +30,28 @@ function openStandaloneDemo() {
 
 export function LiveDemoEmbed() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   // The iframe mounts on the first click; the preview stays on top until the
   // demo has finished its entry redirects so fullscreen never opens blank.
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
   const [stalled, setStalled] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [initialTheme, setInitialTheme] = useState<string>();
+  const src = initialTheme
+    ? `${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`
+    : LIVE_DEMO_EMBED_URL;
+
+  useEffect(() => {
+    if (!ready || !resolvedTheme) {
+      return;
+    }
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: LIVE_DEMO_THEME_MESSAGE, theme: resolvedTheme },
+      LIVE_DEMO_ORIGIN
+    );
+  }, [ready, resolvedTheme]);
 
   useEffect(() => {
     if (!mounted || ready) {
@@ -64,6 +84,7 @@ export function LiveDemoEmbed() {
       openStandaloneDemo();
       return;
     }
+    setInitialTheme(resolvedTheme);
     setMounted(true);
     try {
       await container.requestFullscreen();
@@ -84,9 +105,10 @@ export function LiveDemoEmbed() {
             className="size-full"
             inert={!(expanded && ready)}
             onLoad={() => setReady(true)}
+            ref={iframeRef}
             referrerPolicy="strict-origin-when-cross-origin"
             sandbox={LIVE_DEMO_IFRAME_SANDBOX}
-            src={LIVE_DEMO_EMBED_URL}
+            src={src}
             title={LIVE_DEMO_IFRAME_TITLE}
           />
         ) : null}

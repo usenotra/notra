@@ -2,6 +2,12 @@ import { DEMO_URL } from "@/utils/urls";
 
 export const LIVE_DEMO_EMBED_URL = `${DEMO_URL}/?banner=off`;
 
+export const LIVE_DEMO_ORIGIN = DEMO_URL;
+
+export const LIVE_DEMO_THEME_PARAM = "theme";
+
+export const LIVE_DEMO_THEME_MESSAGE = "notra:demo-theme";
+
 export const LIVE_DEMO_FALLBACK_URL = DEMO_URL;
 
 export const LIVE_DEMO_IFRAME_SANDBOX = [

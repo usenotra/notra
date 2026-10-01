@@ -7,6 +7,13 @@ export const DEMO_BANNER_PARAM = "banner";
 export const DEMO_BANNER_COOKIE = "notra_demo_banner";
 export const DEMO_BANNER_OFF = "off";
 export const DEMO_BANNER_ON = "on";
+/**
+ * `?theme=light|dark` sets the demo theme on load; the embedding page keeps
+ * it in sync afterwards with a `DEMO_THEME_MESSAGE` postMessage.
+ */
+export const DEMO_THEME_PARAM = "theme";
+export const DEMO_THEME_MESSAGE = "notra:demo-theme";
+export const DEMO_THEMES = ["light", "dark"] as const;
 export const DEMO_FRAME_ANCESTOR = "https://www.usenotra.com";
 
 const HOUR_MS = 60 * 60 * 1000;
