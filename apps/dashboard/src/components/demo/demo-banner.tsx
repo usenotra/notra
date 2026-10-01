@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { DemoCustomizeDialog } from "@/components/demo/demo-customize-dialog";
 import { DEMO_SIGNUP_URL } from "@/constants/demo";
 import { useDemoSandbox } from "@/lib/hooks/use-demo-sandbox";
+import { demoHomePath } from "@/utils/demo-return-to";
 import { rebuildDemoSandbox } from "@/utils/demo-sandbox-request";
 
 /**
@@ -55,7 +56,7 @@ export function DemoBanner() {
     setResetting(true);
     try {
       const slug = await rebuildDemoSandbox("reset");
-      window.location.assign(`/${slug}`);
+      window.location.assign(demoHomePath(slug));
     } catch {
       setResetting(false);
       toast.error(t("resetFailed"));

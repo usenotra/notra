@@ -95,7 +95,9 @@ describe("demo landing", () => {
     expect(resolveDemoLanding("/fieldnote-ab12cd34", "fieldnote-zz99")).toBe(
       "/fieldnote-zz99"
     );
-    expect(resolveDemoLanding(null, "fieldnote-zz99")).toBe("/fieldnote-zz99");
+    expect(resolveDemoLanding(null, "fieldnote-zz99")).toBe(
+      "/fieldnote-zz99/geo"
+    );
   });
 });
 

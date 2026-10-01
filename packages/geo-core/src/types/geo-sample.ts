@@ -50,6 +50,8 @@ export interface GeoSampleProfile {
   /** AI crawlers and referral sources in the traffic; default: full catalog. */
   crawlers?: readonly GeoSampleCrawler[];
   referrals?: readonly GeoSampleReferral[];
+  /** Engines the project tracks; default: the model catalog's defaults. */
+  trackedEngines?: readonly string[];
   /** Engines to fabricate checks for; defaults to the full sample catalog. */
   engines?: readonly GeoSampleEngine[];
   /** Also fabricate German checks every other day (default true). */

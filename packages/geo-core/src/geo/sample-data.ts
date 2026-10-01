@@ -627,6 +627,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
         competitors: competitorNames(profile),
         domains: [...profile.trafficHosts],
         languages: [...GEO_SAMPLE_LANGUAGES],
+        engines: profile.trackedEngines ? [...profile.trackedEngines] : null,
         enabled: true,
         lastScanAt: scanFinishedAt,
       })

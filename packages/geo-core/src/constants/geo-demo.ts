@@ -35,11 +35,21 @@ export const GEO_DEMO_USAGE: GeoModelTokenUsage = {
 /** Engines the demo fabricates history for (grounded + one coding agent). */
 // Kept small on purpose: enough to compare engines, few enough to read at a
 // glance (and each sandbox stays light).
+// Same three providers the project tracks, so no history row shows greyed out.
 const GEO_DEMO_ENGINE_IDS: readonly string[] = [
   "openai/gpt-5.4-grounded",
-  "perplexity-sonar",
   "anthropic/claude-sonnet-4.6-grounded",
   "google/gemini-3-flash-grounded",
+];
+
+/**
+ * Models the demo project tracks and scans: the catalog defaults minus Grok,
+ * which the sample history has no answers for.
+ */
+const GEO_DEMO_TRACKED_ENGINES: readonly string[] = [
+  "openai/gpt-5.6-sol",
+  "anthropic/claude-opus-5.5",
+  "google/gemini-3.8-flash",
 ];
 
 /** One or two bots per AI vendor, so traffic tooltips stay short. */
@@ -246,6 +256,7 @@ export const GEO_DEMO_PROFILE: GeoSampleProfile = {
   engines: GEO_SAMPLE_ENGINES.filter((engine) =>
     GEO_DEMO_ENGINE_IDS.includes(engine.engine)
   ),
+  trackedEngines: GEO_DEMO_TRACKED_ENGINES,
   crawlers: GEO_DEMO_CRAWLERS,
   referrals: GEO_DEMO_REFERRALS,
   germanChecks: false,

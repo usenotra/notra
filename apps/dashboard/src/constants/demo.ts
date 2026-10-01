@@ -32,6 +32,8 @@ export const DEMO_POOL_FRESH_MS = 2 * 60 * 60 * 1000;
 /** One pool refill at a time; the lock outlives a stuck one. */
 export const DEMO_POOL_REFILL_LOCK_KEY = "demo:pool-refill";
 export const DEMO_POOL_REFILL_LOCK_SECONDS = 120;
+/** Where the demo opens inside a workspace: the GEO overview. */
+export const DEMO_HOME_SECTION = "/geo";
 /** Entry route: claims a ready sandbox and redirects into it. */
 export const DEMO_ENTER_PATH = "/api/demo/enter";
 

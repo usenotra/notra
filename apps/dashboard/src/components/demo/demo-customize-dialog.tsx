@@ -21,6 +21,7 @@ import {
   DEMO_PERSONALIZATION_NAME_MAX,
 } from "@/constants/demo";
 import { demoPersonalizationSchema } from "@/schemas/demo";
+import { demoHomePath } from "@/utils/demo-return-to";
 import { rebuildDemoSandbox } from "@/utils/demo-sandbox-request";
 
 interface DemoCustomizeDialogProps {
@@ -59,7 +60,7 @@ export function DemoCustomizeDialog({
     setSaving(true);
     try {
       const slug = await rebuildDemoSandbox("customize", parsed.data);
-      window.location.assign(`/${slug}`);
+      window.location.assign(demoHomePath(slug));
     } catch {
       setSaving(false);
       toast.error(t("failed"));

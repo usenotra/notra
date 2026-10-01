@@ -1,4 +1,4 @@
-import { DEMO_ORG_SLUG_PATH } from "@/constants/demo";
+import { DEMO_HOME_SECTION, DEMO_ORG_SLUG_PATH } from "@/constants/demo";
 
 /** Only same-origin absolute paths; never protocol-relative URLs. */
 export function safeDemoReturnTo(value: string | null | undefined) {
@@ -6,6 +6,11 @@ export function safeDemoReturnTo(value: string | null | undefined) {
     return null;
   }
   return value;
+}
+
+/** The demo's start page in a workspace. */
+export function demoHomePath(slug: string): string {
+  return `/${slug}${DEMO_HOME_SECTION}`;
 }
 
 /**
@@ -18,7 +23,7 @@ export function resolveDemoLanding(
   slug: string
 ): string {
   if (!returnTo || returnTo === "/") {
-    return `/${slug}`;
+    return demoHomePath(slug);
   }
   const match = DEMO_ORG_SLUG_PATH.exec(returnTo);
   if (match) {
