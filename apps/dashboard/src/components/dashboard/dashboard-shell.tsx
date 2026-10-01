@@ -26,6 +26,7 @@ import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
+import { DemoTimeZoneSync } from "@/components/demo/demo-time-zone-sync";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DEMO_BANNER_HEIGHT } from "@/constants/demo";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
@@ -206,6 +207,7 @@ function DashboardPageViewport({
 
 export function DashboardShell({
   children,
+  demoBannerHidden,
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
@@ -233,10 +235,11 @@ export function DashboardShell({
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
   const demo = isDemoModeClient();
+  const showDemoBanner = demo && !demoBannerHidden;
   const eveBannerHeight = visible ? EVE_BANNER_HEIGHT : "0rem";
   // Everything below the top banners offsets by this; the demo bar is
-  // always there in the public demo.
-  const shellStyle: DashboardShellStyle = demo
+  // there in the public demo unless opened with `?banner=off`.
+  const shellStyle: DashboardShellStyle = showDemoBanner
     ? {
         "--eve-banner-height": `calc(${DEMO_BANNER_HEIGHT} + ${eveBannerHeight})`,
         "--demo-banner-height": DEMO_BANNER_HEIGHT,
@@ -294,7 +297,8 @@ export function DashboardShell({
       data-dashboard-shell
       style={shellStyle}
     >
-      {demo ? <DemoBanner /> : null}
+      {showDemoBanner ? <DemoBanner /> : null}
+      {demo ? <DemoTimeZoneSync /> : null}
       <DashboardOnboardingBanner
         available={bannerAvailable}
         dismissing={dismissing}

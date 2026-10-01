@@ -1,4 +1,11 @@
 export const DEMO_SESSION_COOKIE = "notra_demo";
+/**
+ * `?banner=off` hides the demo bar (e.g. for embeds and screenshots) and
+ * `?banner=on` brings it back; the choice sticks for the session.
+ */
+export const DEMO_BANNER_PARAM = "banner";
+export const DEMO_BANNER_COOKIE = "notra_demo_banner";
+export const DEMO_BANNER_OFF = "off";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
