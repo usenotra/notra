@@ -25,6 +25,9 @@ jobs:
         with:
           bun-version: 1.4.0
 
+      - name: Test production release orchestration
+        run: node --test scripts/github/production-deploy.test.mjs
+
       - name: Check Vercel installs
         run: |
           for app in dashboard web ui agent onboarding-agent; do
