@@ -27,18 +27,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT_STANDALONE=1
 RUN bunx turbo run build --filter=dashboard
 
-# drizzle-kit is a dev dependency, so migrations get their own small install
-# at the versions pinned in bun.lock. Pre-deploy runs /migrate/run.sh.
-FROM base AS migrator
-WORKDIR /migrate
-COPY bun.lock /tmp/bun.lock
-COPY packages/db/drizzle.config.ts packages/db/drizzle.config.ts
-COPY packages/db/migrations packages/db/migrations
-RUN locked() { grep -o "\"$1@[0-9][0-9.]*\"" /tmp/bun.lock | head -1 | tr -d '"'; } \
-  && echo '{"name":"migrator","private":true}' > package.json \
-  && bun add "$(locked drizzle-kit)" "$(locked drizzle-orm)" "$(locked pg)" \
-  && printf '#!/bin/sh\nset -e\ncd /migrate\nDATABASE_URL="${MIGRATION_DATABASE_URL:-$DATABASE_URL}" exec node_modules/.bin/drizzle-kit migrate --config packages/db/drizzle.config.ts\n' > run.sh \
-  && chmod +x run.sh
+# Migrations run from a single bundled script (drizzle-orm's migrator, built
+# from the frozen install above), so the image needs no drizzle-kit.
+FROM builder AS migrator
+RUN mkdir -p /migrate \
+  && bun build packages/db/src/scripts/migrate.ts --target=node \
+    --external pg-native --outfile=/migrate/migrate.mjs \
+  && cp -r packages/db/migrations /migrate/migrations \
+  && printf '#!/bin/sh\nset -e\nexec node /migrate/migrate.mjs /migrate/migrations\n' > /migrate/run.sh \
+  && chmod +x /migrate/run.sh
 
 FROM base AS runner
 ENV NODE_ENV=production
