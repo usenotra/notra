@@ -51,7 +51,10 @@ export async function GET(request: NextRequest) {
   const sandbox = success
     ? await claimPooledSandbox({ timeZone: null, ipHash })
     : null;
-  topUpPool();
+  // Denied requests must not buy pool maintenance (cleanup, rebase, seeding).
+  if (success) {
+    topUpPool();
+  }
 
   if (!sandbox?.slug) {
     const query = target ? `?${new URLSearchParams({ returnTo: target })}` : "";
