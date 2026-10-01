@@ -6,6 +6,31 @@ import { withWorkflow } from "workflow/next";
 
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "./src/constants/cookies";
 
+// Mirrors resolveGeoIngestOrigin in @notra/geo-core; next.config cannot load
+// workspace TypeScript. A value without a scheme or pointing at the app itself
+// would fail the build or proxy ingest back into this route forever.
+function resolveIngestOrigin(): string | null {
+  const value = process.env.GEO_INGEST_URL?.trim();
+  if (!value) {
+    return null;
+  }
+  const url = URL.parse(value);
+  if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL without http(s) scheme"
+    );
+    return null;
+  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL;
+  if (appUrl && URL.parse(appUrl)?.origin === url.origin) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL that points at the app"
+    );
+    return null;
+  }
+  return url.origin;
+}
+
 const nextConfig: NextConfig = {
   // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
   // previews should not become routes or bundles in a production build.
@@ -75,12 +100,12 @@ const nextConfig: NextConfig = {
   ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
-    const ingestUrl = process.env.GEO_INGEST_URL?.trim();
-    const beforeFiles = ingestUrl
+    const ingestOrigin = resolveIngestOrigin();
+    const beforeFiles = ingestOrigin
       ? [
           {
             source: "/api/geo/ingest",
-            destination: new URL("/api/geo/ingest", ingestUrl).toString(),
+            destination: new URL("/api/geo/ingest", ingestOrigin).toString(),
           },
         ]
       : [];

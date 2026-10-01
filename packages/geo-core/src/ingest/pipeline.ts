@@ -8,6 +8,7 @@ import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
 import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
 
+import { GEO_INGEST_TINYBIRD_TIMEOUT_MS } from "../constants/ingest";
 import type { GeoIngestDefer, GeoIngestResult } from "../types/ingest";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
@@ -90,10 +91,38 @@ const parseUrl = Effect.fn("geoIngest.parseUrl")(function* (value: string) {
 const ingestEvent = Effect.fn("geoIngest.ingest")(function* (
   event: GeoTrafficEventRow
 ) {
-  yield* Effect.tryPromise({
+  const result = yield* Effect.tryPromise({
     try: () => ingestGeoTrafficEvents([event]),
     catch: (cause) => new GeoIngestFailedError({ cause }),
-  });
+  }).pipe(
+    Effect.timeoutOrElse({
+      duration: GEO_INGEST_TINYBIRD_TIMEOUT_MS,
+      orElse: () =>
+        Effect.fail(
+          new GeoIngestFailedError({
+            cause: new Error(
+              `Tinybird write timed out after ${GEO_INGEST_TINYBIRD_TIMEOUT_MS}ms`
+            ),
+          })
+        ),
+    })
+  );
+  // A 202 promises the event was stored: a missing client or a quarantined
+  // row would otherwise be acknowledged and silently lost.
+  if (!result) {
+    return yield* Effect.fail(
+      new GeoIngestFailedError({
+        cause: new Error("Tinybird is not configured"),
+      })
+    );
+  }
+  if (result.quarantined_rows > 0) {
+    return yield* Effect.fail(
+      new GeoIngestFailedError({
+        cause: new Error("Tinybird quarantined the event"),
+      })
+    );
+  }
 });
 
 // Auth errors stay authoritative over payload errors: before classification

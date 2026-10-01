@@ -20,6 +20,7 @@ import type {
   GeoIngestSnippets,
   GeoScopeInput,
 } from "../types/geo";
+import { resolveGeoIngestOrigin } from "../utils/geo-ingest-url";
 import { geoDb } from "./effect";
 import { resolveGeoScope } from "./projects";
 
@@ -204,10 +205,12 @@ export function buildGeoAppUrl(): string {
 }
 
 export function buildGeoIngestUrl(): string {
-  return new URL(
-    GEO_INGEST_PATH,
-    process.env.GEO_INGEST_URL?.trim() || buildGeoAppUrl()
-  ).toString();
+  const appUrl = buildGeoAppUrl();
+  const ingestOrigin = resolveGeoIngestOrigin(
+    process.env.GEO_INGEST_URL,
+    appUrl
+  );
+  return new URL(GEO_INGEST_PATH, ingestOrigin ?? appUrl).toString();
 }
 
 function processTokenExpr(): string {

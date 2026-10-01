@@ -7,6 +7,7 @@ import {
   buildGeoSnippet,
   buildGeoSnippets,
 } from "../src/geo/ingest";
+import { resolveGeoIngestOrigin } from "../src/utils/geo-ingest-url";
 
 const APP_URL = "https://app.usenotra.com";
 
@@ -80,5 +81,29 @@ describe("geo ingest snippets", () => {
         "});",
       ].join("\n")
     );
+  });
+});
+
+describe("resolveGeoIngestOrigin", () => {
+  test("accepts an absolute ingest origin", () => {
+    expect(
+      resolveGeoIngestOrigin(
+        " https://ingest.usenotra.com/path ",
+        "https://app.usenotra.com"
+      )
+    ).toBe("https://ingest.usenotra.com");
+  });
+
+  test("ignores values without a scheme or pointing at the app", () => {
+    expect(
+      resolveGeoIngestOrigin("ingest.usenotra.com", "https://app.usenotra.com")
+    ).toBeNull();
+    expect(
+      resolveGeoIngestOrigin(
+        "https://app.usenotra.com/",
+        "https://app.usenotra.com"
+      )
+    ).toBeNull();
+    expect(resolveGeoIngestOrigin(undefined, undefined)).toBeNull();
   });
 });

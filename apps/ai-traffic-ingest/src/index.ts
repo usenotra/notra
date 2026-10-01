@@ -3,6 +3,7 @@ import { flushGeoLog } from "@notra/ai/evlog";
 import {
   INGEST_DEFAULT_PORT,
   INGEST_DRAIN_TIMEOUT_MS,
+  INGEST_FLUSH_TIMEOUT_MS,
   INGEST_MAX_BODY_BYTES,
 } from "./constants/server";
 import { createIngestApp } from "./http";
@@ -45,22 +46,38 @@ async function drain() {
   await Promise.allSettled(pending);
 }
 
-async function shutdown() {
+async function withDeadline(
+  task: () => Promise<void>,
+  timeoutMs: number
+): Promise<boolean> {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const drained = await Promise.race([
-    drain().then(() => true),
-    new Promise<false>((resolve) => {
-      timer = setTimeout(() => resolve(false), INGEST_DRAIN_TIMEOUT_MS);
-    }),
-  ]);
-  clearTimeout(timer);
-  if (!drained) {
+  try {
+    return await Promise.race([
+      task().then(() => true),
+      new Promise<false>((resolve) => {
+        timer = setTimeout(() => resolve(false), timeoutMs);
+      }),
+    ]);
+  } catch (error) {
+    console.error("[geo-ingest] Shutdown step failed", error);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function shutdown() {
+  if (!(await withDeadline(drain, INGEST_DRAIN_TIMEOUT_MS))) {
     console.error(
       `[geo-ingest] Drain exceeded ${INGEST_DRAIN_TIMEOUT_MS}ms, closing connections`
     );
     server.stop(true);
   }
-  await flushGeoLog();
+  if (!(await withDeadline(flushGeoLog, INGEST_FLUSH_TIMEOUT_MS))) {
+    console.error(
+      `[geo-ingest] Log flush did not finish within ${INGEST_FLUSH_TIMEOUT_MS}ms`
+    );
+  }
   process.exit(0);
 }
 

@@ -4,7 +4,10 @@ import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import type { Ratelimit } from "@upstash/ratelimit";
 import { Effect } from "effect";
 
-const ingestGeoTrafficEvents = mock(async () => null);
+const STORED = { successful_rows: 1, quarantined_rows: 0 };
+const ingestGeoTrafficEvents = mock(
+  async (): Promise<typeof STORED | null> => STORED
+);
 const isGeoIngestIdentityActive = mock(async () => true);
 const loadIngestAllowedHosts = mock(async (): Promise<string[] | null> => [
   "example.com",
@@ -100,6 +103,28 @@ describe("runGeoIngest ordering", () => {
     isGeoIngestIdentityActive.mockImplementation(async () => true);
     loadIngestAllowedHosts.mockImplementation(async () => ["example.com"]);
     ratelimitLimit.mockImplementation(async () => ({ success: true }));
+    ingestGeoTrafficEvents.mockImplementation(async () => STORED);
+  });
+
+  test("fails instead of acknowledging when Tinybird is not configured", async () => {
+    ingestGeoTrafficEvents.mockImplementation(async () => null);
+    const outcome = await run(ingestRequest());
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestFailedError);
+    }
+  });
+
+  test("fails instead of acknowledging a quarantined row", async () => {
+    ingestGeoTrafficEvents.mockImplementation(async () => ({
+      successful_rows: 0,
+      quarantined_rows: 1,
+    }));
+    const outcome = await run(ingestRequest());
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestFailedError);
+    }
   });
 
   test("drops untracked visitors without any Redis/DB/Tinybird I/O", async () => {

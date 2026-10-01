@@ -3,11 +3,22 @@ import { toClickHouseDateTime } from "@notra/analytics/utils/datetime";
 import { GEO_MAX_STORED_UA_LENGTH } from "@notra/geo-core/constants/geo";
 import { GEO_MARKDOWN_ACCEPT_MATCHERS } from "@notra/geo-core/constants/geo-accept";
 
+import {
+  GEO_INGEST_MAX_CLOCK_SKEW_FUTURE_MS,
+  GEO_INGEST_MAX_EVENT_AGE_MS,
+} from "../constants/ingest";
 import type { GeoTrafficEventInput } from "../types/ingest";
 
-export function toCapturedDate(timestamp: string | undefined): Date {
-  const parsed = timestamp ? new Date(timestamp) : new Date();
-  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+export function toCapturedDate(
+  timestamp: string | undefined,
+  now: Date = new Date()
+): Date {
+  const parsed = timestamp ? new Date(timestamp).getTime() : Number.NaN;
+  const offset = parsed - now.getTime();
+  const plausible =
+    offset <= GEO_INGEST_MAX_CLOCK_SKEW_FUTURE_MS &&
+    offset >= -GEO_INGEST_MAX_EVENT_AGE_MS;
+  return plausible ? new Date(parsed) : now;
 }
 
 function toLanguage(acceptLanguage: string | undefined): string {
