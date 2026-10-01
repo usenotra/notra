@@ -9,7 +9,11 @@ const flagCache = Effect.runSync(makeAnalyticsFlagCache(clientId));
 export function isAnalyticsEnabledForOrganization(
   organizationId: string
 ): Promise<boolean> {
-  if (process.env.NODE_ENV === "development" || isDemoMode()) {
+  // The demo shows what a new workspace sees: flagged features stay off.
+  if (isDemoMode()) {
+    return Promise.resolve(false);
+  }
+  if (process.env.NODE_ENV === "development") {
     return Promise.resolve(true);
   }
   if (clientId.length === 0) {

@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
+import { isNavigation } from "@/utils/sidebar-navigation";
 
 import {
   DeferredSidebarStatus,
@@ -125,7 +126,10 @@ export function DashboardSidebar({
   }, [isSubpage]);
 
   useEffect(() => {
-    if (previousNavigationKeyRef.current !== navigationKey && isMobile) {
+    if (
+      isMobile &&
+      isNavigation(previousNavigationKeyRef.current, navigationKey)
+    ) {
       setOpenMobile(false);
     }
     previousNavigationKeyRef.current = navigationKey;

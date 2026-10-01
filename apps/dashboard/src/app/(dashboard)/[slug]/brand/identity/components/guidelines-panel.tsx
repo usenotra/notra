@@ -17,6 +17,7 @@ import {
   useRefreshBrandGuidelinesAction,
 } from "@/lib/hooks/use-brand-guidelines";
 import type { GuidelinesPanelProps } from "@/types/brand-identity";
+import { latest } from "@/utils/latest-date";
 
 import { GuidelinesAssetsSection } from "./guidelines-assets-section";
 import { GuidelinesColorsSection } from "./guidelines-colors-section";
@@ -145,7 +146,10 @@ export function GuidelinesPanel({
       {guideline.lastGeneratedAt && !isGenerating ? (
         <p className="text-muted-foreground text-right text-xs">
           {t("updatedAt", {
-            time: format.relativeTime(new Date(guideline.lastGeneratedAt), now),
+            time: format.relativeTime(
+              new Date(guideline.lastGeneratedAt),
+              latest(now, guideline.lastGeneratedAt)
+            ),
           })}
         </p>
       ) : null}

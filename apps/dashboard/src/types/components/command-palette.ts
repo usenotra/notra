@@ -1,6 +1,7 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import type { useTranslations } from "next-intl";
 
+import type { NavVisibility } from "@/types/components/nav";
 import type { SettingsSectionId } from "@/types/settings/modal";
 
 export type CommandSection =
@@ -52,6 +53,8 @@ export interface CommandRoute {
   path: (slug: string) => string;
   requiresAiCredits?: boolean;
   settingsSection?: SettingsSectionId;
+  /** Hidden unless this feature flag is on for the workspace. */
+  flag?: keyof NavVisibility;
 }
 
 export type AiResult =

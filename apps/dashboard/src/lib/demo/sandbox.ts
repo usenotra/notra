@@ -1,3 +1,4 @@
+import { redis } from "@notra/ai/utils/redis";
 import {
   DEMO_ORG_SLUG_PREFIX,
   DEMO_SEEDING_GRACE_MINUTES,
@@ -22,14 +23,21 @@ import {
   like,
   lt,
   notExists,
+  notLike,
   or,
+  TransactionRollbackError,
 } from "drizzle-orm";
+import { after } from "next/server";
 
 import {
   DEMO_ANONYMOUS_ID_LENGTH,
   DEMO_CLEANUP_BATCH_SIZE,
   DEMO_ANONYMOUS_ID_PREFIX,
   DEMO_COMPANY_NAME,
+  DEMO_POOL_FRESH_MS,
+  DEMO_POOL_ID_PREFIX,
+  DEMO_POOL_REFILL_LOCK_KEY,
+  DEMO_POOL_REFILL_LOCK_SECONDS,
   DEMO_ORG_SLUG_SUFFIX_LENGTH,
   DEMO_SANDBOX_IDLE_TTL_MS,
   DEMO_SANDBOX_MAX_AGE_MS,
@@ -52,7 +60,7 @@ import type {
   CreatedDemoSandbox,
   DemoSandbox,
 } from "@/types/demo";
-import { demoMaxActiveSandboxes } from "@/utils/demo-limits";
+import { demoMaxActiveSandboxes, demoPoolSize } from "@/utils/demo-limits";
 
 const ID_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -177,19 +185,20 @@ async function enforceDemoSandboxCap() {
   if (overflow <= 0) {
     return;
   }
+  // Visitors' sandboxes go first: the few waiting in the pool look idle but
+  // are what keeps the next visitor from waiting.
   const oldest = await db.query.demoSandboxes.findMany({
+    where: notLike(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
     orderBy: [asc(demoSandboxes.lastSeenAt)],
     limit: overflow,
   });
   await Promise.all(oldest.map(deleteDemoSandbox));
 }
 
-export async function createDemoSandbox(
+async function seedDemoSandbox(
+  anonymousId: string,
   input: CreateDemoSandboxInput
 ): Promise<CreatedDemoSandbox> {
-  await assertDedicatedDemoDatabase();
-  await enforceDemoSandboxCap();
-  const anonymousId = createAnonymousId();
   const timeZone = normalizeTimeZone(input.timeZone);
   const now = new Date();
   const expiresAt = sandboxExpiry(now, now);
@@ -229,6 +238,150 @@ export async function createDemoSandbox(
   );
 
   return { anonymousId, organizationId, slug };
+}
+
+/**
+ * Hands a ready, pre-seeded sandbox to a new visitor: re-keys it to a fresh
+ * anonymousId and shifts its data to the present. Null when the pool is
+ * empty. SKIP LOCKED lets concurrent visitors each take a different one.
+ */
+export async function claimPooledSandbox(
+  input: CreateDemoSandboxInput
+): Promise<CreatedDemoSandbox | null> {
+  const anonymousId = createAnonymousId();
+  const now = new Date();
+  const claimed = await db.transaction(async (tx) => {
+    const [pooled] = await tx
+      .select({
+        anonymousId: demoSandboxes.anonymousId,
+        anchorAt: demoSandboxes.anchorAt,
+        slug: organizations.slug,
+      })
+      .from(demoSandboxes)
+      .innerJoin(
+        organizations,
+        eq(organizations.id, demoSandboxes.organizationId)
+      )
+      .where(like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`))
+      .orderBy(asc(demoSandboxes.createdAt))
+      .limit(1)
+      .for("update", { of: demoSandboxes, skipLocked: true });
+    if (!pooled) {
+      return null;
+    }
+    // A fresh sandbox only needs its anchor moved; shifting every timestamp
+    // is the slow path, left for a pool that went stale.
+    const fresh =
+      now.getTime() - pooled.anchorAt.getTime() < DEMO_POOL_FRESH_MS;
+    const [row] = await tx
+      .update(demoSandboxes)
+      .set({
+        anonymousId,
+        timeZone: normalizeTimeZone(input.timeZone),
+        ipHash: input.ipHash,
+        createdAt: now,
+        lastSeenAt: now,
+        expiresAt: sandboxExpiry(now, now),
+        ...(fresh ? { anchorAt: now } : {}),
+      })
+      .where(eq(demoSandboxes.anonymousId, pooled.anonymousId))
+      .returning();
+    return row ? { row, slug: pooled.slug, fresh } : null;
+  });
+  if (!claimed) {
+    return null;
+  }
+  if (!claimed.fresh) {
+    await rebaseDemoSandbox(claimed.row, now);
+  }
+  const keyId = claimed.row.apiKeyId;
+  if (keyId) {
+    after(() =>
+      updateDemoApiKey({
+        keyId,
+        expiresAt: new Date(now.getTime() + DEMO_SANDBOX_MAX_AGE_MS),
+      }).catch((error: unknown) => {
+        console.error("[demo] Failed to extend claimed sandbox key", error);
+      })
+    );
+  }
+  return {
+    anonymousId,
+    organizationId: claimed.row.organizationId,
+    slug: claimed.slug,
+  };
+}
+
+/** A sandbox for a new visitor: from the pool when one is ready. */
+export async function createDemoSandbox(
+  input: CreateDemoSandboxInput
+): Promise<CreatedDemoSandbox> {
+  await assertDedicatedDemoDatabase();
+  const pooled = await claimPooledSandbox(input);
+  if (pooled?.slug) {
+    return pooled;
+  }
+  await enforceDemoSandboxCap();
+  return seedDemoSandbox(createAnonymousId(), input);
+}
+
+async function countPooledSandboxes(): Promise<number> {
+  const [{ value } = { value: 0 }] = await db
+    .select({ value: count() })
+    .from(demoSandboxes)
+    .where(like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`));
+  return value;
+}
+
+/**
+ * Tops the pool of ready sandboxes back up. Runs after a visitor is served,
+ * so nobody waits on it; each sandbox is seeded in the server's time zone
+ * and adopts the visitor's when claimed.
+ */
+export async function refillDemoSandboxPool(): Promise<void> {
+  // Refills run after every visit; serialize them so the pool doesn't
+  // overshoot. Without Redis, concurrent refills only waste a seed or two.
+  const locked = redis
+    ? await redis.set(DEMO_POOL_REFILL_LOCK_KEY, "1", {
+        nx: true,
+        ex: DEMO_POOL_REFILL_LOCK_SECONDS,
+      })
+    : "OK";
+  if (!locked) {
+    return;
+  }
+  try {
+    await refillPool();
+  } finally {
+    await redis?.del(DEMO_POOL_REFILL_LOCK_KEY);
+  }
+}
+
+async function refillPool(): Promise<void> {
+  const target = demoPoolSize();
+  // Keep waiting sandboxes current so claiming one never has to shift data.
+  const now = new Date();
+  const stale = await db.query.demoSandboxes.findMany({
+    where: and(
+      like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
+      lt(
+        demoSandboxes.anchorAt,
+        new Date(now.getTime() - DEMO_POOL_FRESH_MS / 2)
+      )
+    ),
+  });
+  for (const sandbox of stale) {
+    await rebaseDemoSandbox(sandbox, now);
+  }
+  // Recount before each seed: refills run after every visit, and a count
+  // taken once would let concurrent refills overshoot the target.
+  while ((await countPooledSandboxes()) < target) {
+    await enforceDemoSandboxCap();
+    await seedDemoSandbox(
+      `${DEMO_POOL_ID_PREFIX}${randomToken(DEMO_ANONYMOUS_ID_LENGTH)}`,
+      { timeZone: null, ipHash: null }
+    );
+  }
 }
 
 export async function loadDemoSandbox(
@@ -279,22 +432,139 @@ export async function resetDemoSandbox(
   personalization: DemoPersonalization | null = sandbox.personalization
 ): Promise<{ slug: string }> {
   const now = new Date();
+  // An un-customized reset takes a ready workspace from the pool; a
+  // personalized one has to be seeded with the visitor's names.
+  const swapped = personalization
+    ? null
+    : await swapInPooledWorkspace(sandbox, now);
+  if (swapped === "conflict") {
+    return { slug: await currentDemoSlug(sandbox.anonymousId) };
+  }
+  const next =
+    swapped ?? (await seedReplacementWorkspace(sandbox, personalization, now));
+  if (!next) {
+    return { slug: await currentDemoSlug(sandbox.anonymousId) };
+  }
+
+  // The key follows the workspace before the old one disappears; if it
+  // can't be moved, a fresh key replaces it so API access never dangles.
+  await moveDemoApiKey(sandbox, next.organizationId, now);
+  // The old feed describes records that no longer exist.
+  await db
+    .delete(demoRequestLog)
+    .where(eq(demoRequestLog.anonymousId, sandbox.anonymousId));
+  await deleteDemoOrganization(sandbox.organizationId);
+
+  return { slug: next.slug };
+}
+
+/**
+ * Moves a fresh pooled workspace under the visitor's sandbox in one
+ * transaction: the pool row is consumed and the visitor's row re-pointed
+ * with a compare-and-set on its old organization. Null when no fresh pooled
+ * workspace is waiting.
+ */
+async function swapInPooledWorkspace(
+  sandbox: DemoSandbox,
+  now: Date
+): Promise<{ organizationId: string; slug: string } | "conflict" | null> {
+  const result = await db
+    .transaction(async (tx) => {
+      const [pooled] = await tx
+        .select({
+          anonymousId: demoSandboxes.anonymousId,
+          organizationId: demoSandboxes.organizationId,
+          userId: demoSandboxes.userId,
+          apiKeyId: demoSandboxes.apiKeyId,
+          slug: organizations.slug,
+        })
+        .from(demoSandboxes)
+        .innerJoin(
+          organizations,
+          eq(organizations.id, demoSandboxes.organizationId)
+        )
+        .where(
+          and(
+            like(demoSandboxes.anonymousId, `${DEMO_POOL_ID_PREFIX}%`),
+            gt(
+              demoSandboxes.anchorAt,
+              new Date(now.getTime() - DEMO_POOL_FRESH_MS)
+            )
+          )
+        )
+        .orderBy(asc(demoSandboxes.createdAt))
+        .limit(1)
+        .for("update", { of: demoSandboxes, skipLocked: true });
+      if (!pooled) {
+        return null;
+      }
+      await tx
+        .delete(demoSandboxes)
+        .where(eq(demoSandboxes.anonymousId, pooled.anonymousId));
+      const moved = await tx
+        .update(demoSandboxes)
+        .set({
+          organizationId: pooled.organizationId,
+          userId: pooled.userId,
+          anchorAt: now,
+          personalization: null,
+          lastSeenAt: now,
+          expiresAt: sandboxExpiry(sandbox.createdAt, now),
+        })
+        .where(
+          and(
+            eq(demoSandboxes.anonymousId, sandbox.anonymousId),
+            eq(demoSandboxes.organizationId, sandbox.organizationId)
+          )
+        )
+        .returning({ anonymousId: demoSandboxes.anonymousId });
+      if (moved.length === 0) {
+        // A concurrent reset won; give the pooled workspace back untouched.
+        tx.rollback();
+      }
+      return pooled;
+    })
+    .catch((error: unknown) => {
+      if (error instanceof TransactionRollbackError) {
+        return "conflict" as const;
+      }
+      throw error;
+    });
+  if (result === null || result === "conflict") {
+    return result;
+  }
+  const pooledKeyId = result.apiKeyId;
+  if (pooledKeyId) {
+    after(() =>
+      deleteDemoApiKey(pooledKeyId).catch((error: unknown) => {
+        console.error("[demo] Failed to delete pooled sandbox key", error);
+      })
+    );
+  }
+  return { organizationId: result.organizationId, slug: result.slug };
+}
+
+/**
+ * Seeds a new workspace for the visitor and claims it with a compare-and-set
+ * on the old organization. Null when a concurrent reset won.
+ */
+async function seedReplacementWorkspace(
+  sandbox: DemoSandbox,
+  personalization: DemoPersonalization | null,
+  now: Date
+): Promise<{ organizationId: string; slug: string } | null> {
   const next = await createDemoOrganization({
     anonymousId: sandbox.anonymousId,
     timeZone: sandbox.timeZone,
     now,
     personalization,
   });
-  const { organizationId: nextOrganizationId, userId, slug } = next;
-
-  // Compare-and-set on the old organization: of two concurrent resets only
-  // one wins; the loser deletes the workspace it built.
   const claimed = await withOrganizationRollback(next, () =>
     db
       .update(demoSandboxes)
       .set({
-        organizationId: nextOrganizationId,
-        userId,
+        organizationId: next.organizationId,
+        userId: next.userId,
         anchorAt: now,
         personalization,
         lastSeenAt: now,
@@ -309,20 +579,26 @@ export async function resetDemoSandbox(
       .returning({ anonymousId: demoSandboxes.anonymousId })
   );
   if (claimed.length === 0) {
-    await deleteDemoOrganization(nextOrganizationId);
-    throw new Error("Demo sandbox was reset concurrently");
+    await deleteDemoOrganization(next.organizationId);
+    return null;
   }
+  return { organizationId: next.organizationId, slug: next.slug };
+}
 
-  // The key follows the workspace before the old one disappears; if it
-  // can't be moved, a fresh key replaces it so API access never dangles.
-  await moveDemoApiKey(sandbox, nextOrganizationId, now);
-  // The old feed describes records that no longer exist.
-  await db
-    .delete(demoRequestLog)
-    .where(eq(demoRequestLog.anonymousId, sandbox.anonymousId));
-  await deleteDemoOrganization(sandbox.organizationId);
-
-  return { slug };
+/** The workspace a concurrent reset just finished building. */
+async function currentDemoSlug(anonymousId: string): Promise<string> {
+  const [row] = await db
+    .select({ slug: organizations.slug })
+    .from(demoSandboxes)
+    .innerJoin(
+      organizations,
+      eq(organizations.id, demoSandboxes.organizationId)
+    )
+    .where(eq(demoSandboxes.anonymousId, anonymousId));
+  if (!row?.slug) {
+    throw new Error("Demo sandbox disappeared during reset");
+  }
+  return row.slug;
 }
 
 async function moveDemoApiKey(

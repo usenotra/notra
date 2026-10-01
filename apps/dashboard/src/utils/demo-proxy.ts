@@ -5,6 +5,7 @@ import {
   DEMO_AUTH_PATH,
   DEMO_BLOCKED_HTML,
   DEMO_BLOCKED_PATH,
+  DEMO_ENTER_PATH,
   DEMO_HIDDEN_PAGE_PATH,
   DEMO_ONBOARDING_PATH,
   DEMO_SESSION_COOKIE,
@@ -18,8 +19,10 @@ function withNoIndex(response: NextResponse): NextResponse {
   return response;
 }
 
+// Straight into a ready sandbox; the entry route falls back to the start
+// page only when none is waiting.
 function redirectToStart(request: NextRequest, returnTo: string | null) {
-  const url = new URL(DEMO_START_PATH, request.url);
+  const url = new URL(DEMO_ENTER_PATH, request.url);
   if (returnTo && returnTo !== "/") {
     url.searchParams.set("returnTo", returnTo);
   }

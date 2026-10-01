@@ -2,7 +2,11 @@ import type {
   ContextDevFetchWebpageInput,
   ContextDevWebSearchInput,
 } from "@notra/ai/types/context-dev";
-import { fetchWebpage, searchWeb } from "@notra/ai/utils/context-dev";
+import {
+  fetchWebpage,
+  isContextDevConfigured,
+  searchWeb,
+} from "@notra/ai/utils/context-dev";
 import { toolDescription } from "@notra/ai/utils/description";
 import { type Tool, tool } from "ai";
 import z from "zod";
@@ -11,7 +15,7 @@ export const WEB_SEARCH_TOOL_NAME = "webSearch";
 export const FETCH_WEBPAGE_TOOL_NAME = "fetchWebpage";
 
 export function isWebSearchAvailable(): boolean {
-  return Boolean(process.env.CONTEXT_DEV_API_KEY?.trim());
+  return isContextDevConfigured();
 }
 
 const webSearchInputSchema: z.ZodType<ContextDevWebSearchInput> = z.object({

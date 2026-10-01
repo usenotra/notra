@@ -128,8 +128,6 @@ function GitHubContentPublishingSettings({
       <div className="flex items-center gap-2">
         <Switch
           id={publishingSwitchId}
-          nativeButton
-          render={<button type="button" />}
           aria-label={t("publishing.publishAriaLabel", {
             type: contentType,
             repository: `${selectedRepository.owner}/${selectedRepository.repo}`,

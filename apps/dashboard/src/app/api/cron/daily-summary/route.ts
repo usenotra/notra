@@ -9,16 +9,18 @@ export const maxDuration = 60;
  * unchanged days are skipped so owners only hear from us when GEO moved.
  */
 export async function GET(request: Request) {
-  // The public demo runs no background jobs; scans start on demand.
-  if (isDemoMode()) {
-    return new Response(null, { status: 204 });
-  }
   const cronSecret = process.env.CRON_SECRET;
   if (
     !cronSecret ||
     request.headers.get("authorization") !== `Bearer ${cronSecret}`
   ) {
     return new Response("Unauthorized", { status: 401 });
+  }
+  // The public demo runs no background jobs; scans start on demand. Checked
+  // after auth so reading the request keeps this route dynamic (a static
+  // 204 breaks the build).
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
   }
 
   const result = await runDailySummaryCron();

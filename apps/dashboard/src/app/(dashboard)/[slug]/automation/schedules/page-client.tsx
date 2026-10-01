@@ -72,6 +72,7 @@ import type { SchedulePresetId } from "@/types/automation/schedule";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
 import { indexBrandVoices } from "@/utils/brand-voices";
+import { latest } from "@/utils/latest-date";
 import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 import { OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
@@ -807,7 +808,10 @@ function ScheduleTable({
       width: "6.5rem",
       cell: (trigger) => (
         <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-          {format.relativeTime(new Date(trigger.createdAt), now)}
+          {format.relativeTime(
+            new Date(trigger.createdAt),
+            latest(now, trigger.createdAt)
+          )}
         </span>
       ),
     },

@@ -6,6 +6,7 @@ import { DEMO_CLEANUP_BATCH_SIZE } from "@/constants/demo";
 import {
   cleanupExpiredDemoSandboxes,
   createDemoSandbox,
+  refillDemoSandboxPool,
 } from "@/lib/demo/sandbox";
 import { writeDemoSession } from "@/lib/demo/session";
 import { demoSandboxCreateInputSchema } from "@/schemas/demo";
@@ -39,7 +40,10 @@ export async function POST(request: Request) {
   await writeDemoSession(sandbox.anonymousId);
   // Piggyback cleanup on new visitors instead of a cron: the demo shares
   // vercel.json with production, where a demo cron would only 404.
-  after(() => cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE));
+  after(async () => {
+    await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
+    await refillDemoSandboxPool();
+  });
 
   const body: DemoSandboxCreateResponse = {
     anonymousId: sandbox.anonymousId,

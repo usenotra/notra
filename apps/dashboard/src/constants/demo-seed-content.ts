@@ -34,7 +34,7 @@ Fieldnote indexes every meeting summary, action item and transcript in your work
 
 ## Available today
 
-Smart Search is live for every workspace on the Team and Business plans. Open the search bar with <kbd>⌘</kbd> <kbd>K</kbd> and try it on your last week of meetings.`,
+Smart Search is live for every workspace on the Team and Business plans. Open the search bar with ⌘K and try it on your last week of meetings.`,
       },
       {
         title: "Smart Search is live",

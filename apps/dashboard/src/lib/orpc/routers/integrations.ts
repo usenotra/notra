@@ -113,6 +113,7 @@ import {
   slackListChannelsOptionsSchema,
   updateSlackIntegrationBodySchema,
 } from "@notra/schemas/dashboard/slack-integration";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { PublicUrlValidationError } from "@notra/utils/url";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -1099,13 +1100,15 @@ export const integrationsRouter = {
             );
           }
 
-          if (!token) {
+          // The demo repository has no credentials; its reads come from
+          // fixtures.
+          if (!(token || isDemoMode())) {
             const tErrors = await getTranslations("errors.integrations");
             throw forbidden(tErrors("githubAuthFailed"));
           }
 
           try {
-            const octokit = createOctokit(token, {
+            const octokit = createOctokit(token ?? undefined, {
               requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
             });
             const requestOptions = {

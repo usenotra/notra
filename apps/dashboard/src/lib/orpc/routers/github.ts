@@ -27,9 +27,11 @@ import {
   probeRepositoryInputSchema,
   saveGitHubAppRepositoriesInputSchema,
 } from "@notra/schemas/dashboard/github";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Data, Effect } from "effect";
 import { getTranslations } from "next-intl/server";
 
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import {
   GITHUB_INSTALL_STATE_TTL_SECONDS,
   REPOSITORY_PROBE_UNAVAILABLE_CODE,
@@ -44,6 +46,7 @@ import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
   badRequest,
+  forbidden,
   internalServerError,
   notFound,
   tooManyRequests,
@@ -376,6 +379,10 @@ export const githubRouter = {
           headers: context.headers,
           organizationId: input.organizationId,
         });
+        // The demo never installs the GitHub App; it ships a sample repository.
+        if (isDemoMode()) {
+          throw forbidden(DEMO_DISABLED_MESSAGE);
+        }
 
         return runOrpcEffect(
           prepareGitHubAppInstall({

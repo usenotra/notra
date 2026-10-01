@@ -34,6 +34,7 @@ import type {
   SitemapPageCategory,
   SitemapPagesTableProps,
 } from "@/types/hooks/brand-sitemaps";
+import { latest } from "@/utils/latest-date";
 
 import {
   PAGE_FILTER_TABS,
@@ -342,7 +343,9 @@ function PageCrawledCell({ page }: { page: SitemapPage }) {
   const isValid = crawledAt !== null && !Number.isNaN(crawledAt.getTime());
   return (
     <span className="text-muted-foreground text-sm">
-      {isValid ? format.relativeTime(crawledAt, now) : t("neverCrawled")}
+      {isValid
+        ? format.relativeTime(crawledAt, latest(now, crawledAt))
+        : t("neverCrawled")}
     </span>
   );
 }

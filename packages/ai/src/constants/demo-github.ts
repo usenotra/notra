@@ -80,3 +80,42 @@ export const DEMO_GITHUB_RELEASES = [
     daysAgo: 8,
   },
 ] as const;
+
+/** Branches the demo repository lists; the first one is the default. */
+export const DEMO_GITHUB_BRANCHES = [
+  "main",
+  "develop",
+  "release/3.8",
+  "feat/meeting-templates",
+  "fix/calendar-timezones",
+] as const;
+
+/**
+ * Every file in the demo repository. Folders are derived from these paths,
+ * so `changelogs` and `blog` (the default publishing folders) exist.
+ */
+export const DEMO_GITHUB_FILES = [
+  ".github/workflows/ci.yml",
+  ".github/workflows/release.yml",
+  "README.md",
+  "package.json",
+  "blog/2026-09-meeting-templates.mdx",
+  "blog/2026-08-linear-sync.mdx",
+  "blog/images/meeting-templates.png",
+  "changelogs/v3.7.0.mdx",
+  "changelogs/v3.8.0.mdx",
+  "docs/getting-started.md",
+  "docs/guides/smart-search.md",
+  "docs/guides/templates.md",
+  "docs/integrations/calendar.md",
+  "docs/integrations/linear.md",
+  "public/favicon.svg",
+  "public/images/og.png",
+  "src/app/layout.tsx",
+  "src/app/page.tsx",
+  "src/components/search/smart-search.tsx",
+  "src/components/templates/template-picker.tsx",
+  "src/lib/calendar/sync.ts",
+  "src/lib/linear/client.ts",
+  "src/lib/summaries/stream.ts",
+] as const;

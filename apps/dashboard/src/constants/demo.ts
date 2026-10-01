@@ -5,15 +5,35 @@ const DAY_MS = 24 * HOUR_MS;
 
 /** A sandbox survives this long after the visitor's last request. */
 export const DEMO_SANDBOX_IDLE_TTL_MS = DAY_MS;
-/** Hard cap regardless of activity. */
-export const DEMO_SANDBOX_MAX_AGE_MS = 7 * DAY_MS;
-export const DEMO_SESSION_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+/** Hard cap regardless of activity: no demo data lives longer than a day. */
+export const DEMO_SANDBOX_MAX_AGE_MS = DAY_MS;
+export const DEMO_SESSION_COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60;
 /** `last_seen_at` is only written when it is older than this. */
 export const DEMO_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
 export const DEMO_ANONYMOUS_ID_PREFIX = "anon_";
 export const DEMO_ANONYMOUS_ID_PATTERN = /^anon_[A-Za-z0-9_-]{16}$/;
 export const DEMO_ANONYMOUS_ID_LENGTH = 16;
+
+/**
+ * Pre-seeded sandboxes wait under this prefix until a visitor claims one, so
+ * opening the demo never waits on seeding. The prefix can't pass the session
+ * cookie's id pattern, so an unclaimed sandbox is unreachable.
+ */
+export const DEMO_POOL_ID_PREFIX = "pool_";
+/** Ready sandboxes kept in reserve; NOTRA_DEMO_POOL_SIZE overrides it. */
+export const DEMO_DEFAULT_POOL_SIZE = 3;
+/**
+ * A pooled sandbox seeded within this window is handed out as is: its data
+ * is at most this much behind the clock, which no relative label shows.
+ * Older ones are shifted to the present first.
+ */
+export const DEMO_POOL_FRESH_MS = 2 * 60 * 60 * 1000;
+/** One pool refill at a time; the lock outlives a stuck one. */
+export const DEMO_POOL_REFILL_LOCK_KEY = "demo:pool-refill";
+export const DEMO_POOL_REFILL_LOCK_SECONDS = 120;
+/** Entry route: claims a ready sandbox and redirects into it. */
+export const DEMO_ENTER_PATH = "/api/demo/enter";
 
 export const DEMO_SANDBOX_CREATE_LIMIT = 5;
 export const DEMO_SANDBOX_CREATE_WINDOW = "1 h";
@@ -32,7 +52,9 @@ export const DEMO_USER_EMAIL_DOMAIN = "fieldnote.example";
 export const DEMO_VISITOR_EMAIL_LOCAL = "you";
 export const DEMO_VISITOR_NAME = "Demo Visitor";
 export const DEMO_COMPANY_NAME = "Fieldnote";
-export const DEMO_COMPANY_WEBSITE = "https://fieldnote.example";
+export const DEMO_COMPANY_DOMAIN = "fieldnote.example";
+export const DEMO_COMPANY_HANDLE = "fieldnote";
+export const DEMO_COMPANY_WEBSITE = `https://${DEMO_COMPANY_DOMAIN}`;
 
 export const DEMO_CLEANUP_BATCH_SIZE = 50;
 

@@ -2,6 +2,7 @@
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import type { SecurityLoadStatus } from "@notra/ui/types/security";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +20,10 @@ function resolveSecurityStatus(
   isPending: boolean,
   isError: boolean
 ): SecurityLoadStatus {
+  // The demo has no WorkOS, so there is nothing to load: show the empty state.
+  if (isDemoModeClient()) {
+    return "ready";
+  }
   if (isPending) {
     return "loading";
   }
@@ -62,7 +67,7 @@ export function AccountSettingsPane() {
       }
       return result.data;
     },
-    enabled: !!user,
+    enabled: !!user && !isDemoModeClient(),
   });
 
   if (!user && isSessionPending) {

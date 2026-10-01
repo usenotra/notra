@@ -86,7 +86,7 @@ who asked for it. Attribute it by role and company, never by full name.`,
 export const DEMO_SEED_PERSONAS: readonly DemoSeedPersona[] = [
   {
     name: "Lena",
-    role: "Head of Product",
+    role: "Product Lead",
     company: "40-person B2B SaaS startup",
     summary:
       "Runs too many status meetings and wants decisions to be findable without chasing people on Slack.",
@@ -131,7 +131,7 @@ export const DEMO_SEED_PERSONAS: readonly DemoSeedPersona[] = [
   },
   {
     name: "Sofia",
-    role: "Agency founder",
+    role: "Agency Founder",
     company: "Content agency with 12 client brands",
     summary:
       "Needs client call notes separated per brand and shareable with clients.",

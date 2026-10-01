@@ -70,6 +70,7 @@ export interface DemoSandboxInfo {
   anonymousId: string;
   organizationId: string;
   expiresAt: string;
+  timeZone: string;
   apiKey: string | null;
   apiBaseUrl: string;
   signupUrl: string;

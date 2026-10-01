@@ -1,7 +1,11 @@
 import type { GeoCheckSource } from "@notra/db/types/geo-checks";
 
 import type { GeoCompetitorSeed } from "../types/geo";
-import type { GeoSampleProfile } from "../types/geo-sample";
+import type {
+  GeoSampleCrawler,
+  GeoSampleProfile,
+  GeoSampleReferral,
+} from "../types/geo-sample";
 import {
   GEO_CLAUDE_CODE_ENGINE_IDS,
   GEO_CODEX_ENGINE_IDS,
@@ -259,10 +263,7 @@ export const GEO_SAMPLE_TRAFFIC_PATHS: readonly string[] = [
   "/pricing",
 ];
 
-export const GEO_SAMPLE_CRAWLERS: readonly {
-  agent: string;
-  category: string;
-}[] = [
+export const GEO_SAMPLE_CRAWLERS: readonly GeoSampleCrawler[] = [
   { agent: "Claude Code", category: "assistant-browse" },
   { agent: "GPTBot", category: "training-crawler" },
   { agent: "OAI-SearchBot", category: "search-index" },
@@ -279,10 +280,7 @@ export const GEO_SAMPLE_CRAWLERS: readonly {
   { agent: "Shap-User", category: "assistant-browse" },
 ];
 
-export const GEO_SAMPLE_REFERRALS: readonly {
-  source: string;
-  referer: string;
-}[] = [
+export const GEO_SAMPLE_REFERRALS: readonly GeoSampleReferral[] = [
   { source: "chatgpt", referer: "https://chatgpt.com/" },
   { source: "perplexity", referer: "https://www.perplexity.ai/" },
   { source: "claude", referer: "https://claude.ai/" },

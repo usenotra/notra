@@ -1,0 +1,60 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+import { headers } from "next/headers";
+import { after, type NextRequest, NextResponse } from "next/server";
+
+import { DEMO_CLEANUP_BATCH_SIZE, DEMO_START_PATH } from "@/constants/demo";
+import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
+import {
+  claimPooledSandbox,
+  cleanupExpiredDemoSandboxes,
+  refillDemoSandboxPool,
+} from "@/lib/demo/sandbox";
+import { getCurrentDemoSandbox, writeDemoSession } from "@/lib/demo/session";
+import { hashDemoClientIp } from "@/utils/demo-ip-hash";
+import { resolveDemoLanding, safeDemoReturnTo } from "@/utils/demo-return-to";
+import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
+
+export const maxDuration = 60;
+
+function topUpPool() {
+  after(async () => {
+    await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
+    await refillDemoSandboxPool();
+  });
+}
+
+/**
+ * Entry point for visitors without a sandbox: hands them a ready one and
+ * redirects straight into it, so the demo opens without a loading screen.
+ * Only an empty pool falls back to the start page, which seeds one.
+ */
+export async function GET(request: NextRequest) {
+  if (!isDemoMode()) {
+    return new Response(null, { status: 404 });
+  }
+  const target = safeDemoReturnTo(request.nextUrl.searchParams.get("returnTo"));
+  if (await getCurrentDemoSandbox()) {
+    return NextResponse.redirect(new URL(target ?? "/", request.url));
+  }
+
+  await assertDedicatedDemoDatabase();
+  const ipHash = hashDemoClientIp(getClientIpFromHeaders(await headers()));
+  const { success } = await ratelimit.demoSandboxCreate.limit(ipHash);
+  const sandbox = success
+    ? await claimPooledSandbox({ timeZone: null, ipHash })
+    : null;
+  topUpPool();
+
+  if (!sandbox?.slug) {
+    const start = new URL(DEMO_START_PATH, request.url);
+    if (target) {
+      start.searchParams.set("returnTo", target);
+    }
+    return NextResponse.redirect(start);
+  }
+
+  await writeDemoSession(sandbox.anonymousId);
+  return NextResponse.redirect(
+    new URL(resolveDemoLanding(target, sandbox.slug), request.url)
+  );
+}

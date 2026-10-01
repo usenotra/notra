@@ -23,9 +23,12 @@ export async function register() {
     registerDemoSocialAnalytics();
   }
 
+  // Tracing exports to The Context Company; deployments without its key
+  // (the public demo) would otherwise fail to start.
   if (
     process.env.NEXT_RUNTIME === "nodejs" &&
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV === "production" &&
+    process.env.TCC_API_KEY
   ) {
     const [{ registerOTelTCC }, { OpenTelemetry }, { registerTelemetry }] =
       await Promise.all([

@@ -4712,7 +4712,7 @@
       "engagementRate": "Engagement-Rate",
       "engagementHint": "{interactions} Interaktionen / {impressions} Impressionen",
       "followersHint": "über {count, plural, one {# verbundenes Konto} other {# verbundene Konten}}",
-      "impressionsHint": "Beiträge, {range}",
+      "impressionsHint": "über alle Beiträge, {range}",
       "interactionsHint": "{posts} Beiträge, {range}"
     },
     "ranges": {
@@ -6446,8 +6446,8 @@
   },
   "demo": {
     "start": {
-      "title": "Dein Demo-Workspace wird vorbereitet…",
-      "description": "Wir füllen einen Workspace mit Beispieldaten für Fieldnote, eine fiktive Firma. Das dauert ein paar Sekunden.",
+      "title": "Demo wird geöffnet…",
+      "description": "Einen Moment.",
       "errorTitle": "Der Demo-Workspace konnte nicht erstellt werden",
       "errorDescription": "Bitte versuch es gleich noch einmal.",
       "retry": "Erneut versuchen"

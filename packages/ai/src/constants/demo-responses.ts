@@ -143,23 +143,25 @@ export const DEMO_FAKE_PARAGRAPHS = {
   ],
 } as const;
 
+// Plain text on purpose: the same draft is used for blog and social posts,
+// and social previews show Markdown literally.
 const DEMO_POST_MARKDOWN = {
-  en: `Most teams don't have a meeting problem. They have a *memory* problem.
+  en: `Most teams don't have a meeting problem. They have a memory problem.
 
 Decisions get made in calls, and a week later nobody can find them. Fieldnote fixes that:
 
-- **Automatic notes** for every meeting on your calendar
-- **Decisions and action items** pulled out and assigned
-- **Smart Search**: ask "why did we move the launch?" and jump to the moment it was decided
+- Automatic notes for every meeting on your calendar
+- Decisions and action items pulled out and assigned
+- Smart Search: ask "why did we move the launch?" and jump to the moment it was decided
 
 Teams using Fieldnote cut their recurring status meetings by 40% in the first quarter.`,
-  de: `Die meisten Teams haben kein Meeting-Problem. Sie haben ein *Gedächtnis*-Problem.
+  de: `Die meisten Teams haben kein Meeting-Problem. Sie haben ein Gedächtnis-Problem.
 
 Entscheidungen fallen in Calls, und eine Woche später findet sie niemand mehr. Fieldnote löst das:
 
-- **Automatische Notizen** für jedes Meeting im Kalender
-- **Entscheidungen und To-dos** werden erkannt und zugewiesen
-- **Smart Search**: Frag „Warum haben wir den Launch verschoben?“ und spring zur Stelle, an der es entschieden wurde
+- Automatische Notizen für jedes Meeting im Kalender
+- Entscheidungen und To-dos werden erkannt und zugewiesen
+- Smart Search: Frag „Warum haben wir den Launch verschoben?“ und spring zur Stelle, an der es entschieden wurde
 
 Teams mit Fieldnote haben ihre wiederkehrenden Status-Meetings im ersten Quartal um 40 % reduziert.`,
 } as const;
@@ -244,6 +246,21 @@ Alles hier läuft auf Beispieldaten für Fieldnote, eine fiktive Firma.`,
 } as const;
 
 /** Stand-in homepage for brand analysis in the demo (no website is fetched). */
+/**
+ * Brand analysis answer for the canned homepage below; keys missing from the
+ * requested schema are dropped, the rest replace generic fake text.
+ */
+export const DEMO_BRAND_ANALYSIS: Readonly<Record<string, unknown>> = {
+  companyDescription:
+    "Fieldnote is an AI meeting notes app for product teams. It records meetings, writes the summary, pulls out decisions and action items, and makes every meeting searchable.",
+  toneProfile: "Conversational",
+  customTone: null,
+  customInstructions: null,
+  audience:
+    "Product managers, engineering leads and founders at remote-first software teams of 10 to 200 people.",
+  language: "English",
+};
+
 export const DEMO_BRAND_WEBSITE_CONTENT = `# Fieldnote: AI meeting notes your team can search
 
 Fieldnote records your meetings, writes the summary and pulls out decisions and action items. A month later, ask "why did we move the launch?" and jump straight to the moment it was decided.

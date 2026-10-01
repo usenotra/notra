@@ -15,7 +15,7 @@ import {
 import { Button } from "@notra/ui/components/ui/button";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { DemoCustomizeDialog } from "@/components/demo/demo-customize-dialog";
@@ -35,6 +35,21 @@ export function DemoBanner() {
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const firstName = sandbox?.personalization?.firstName;
+  const sandboxTimeZone = sandbox?.timeZone;
+
+  // Ready-made sandboxes start in the server's time zone; adopt the
+  // visitor's so "today" and schedule times follow their clock.
+  useEffect(() => {
+    const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!sandboxTimeZone || sandboxTimeZone === browserTimeZone) {
+      return;
+    }
+    void fetch("/api/demo/sandbox/timezone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timeZone: browserTimeZone }),
+    }).catch(() => undefined);
+  }, [sandboxTimeZone]);
 
   const handleReset = async () => {
     setResetting(true);
@@ -55,11 +70,12 @@ export function DemoBanner() {
       >
         <Notra className="size-5" />
       </span>
-      <p className="min-w-0 truncate">
+      {/* Phones keep the actions; the greeting needs the room on wider screens. */}
+      <p className="hidden min-w-0 truncate sm:block">
         {firstName ? t("titleNamed", { name: firstName }) : t("title")}
       </p>
       <button
-        className="decoration-foreground/30 hover:decoration-foreground focus-visible:ring-ring/50 hidden h-7 shrink-0 items-center rounded-md px-1 underline underline-offset-4 transition-colors outline-none focus-visible:ring-3 sm:inline-flex"
+        className="decoration-foreground/30 hover:decoration-foreground focus-visible:ring-ring/50 inline-flex h-7 shrink-0 items-center rounded-md px-1 underline underline-offset-4 transition-colors outline-none focus-visible:ring-3"
         onClick={() => setCustomizeOpen(true)}
         type="button"
       >

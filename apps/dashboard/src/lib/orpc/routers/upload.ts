@@ -10,6 +10,7 @@ import {
   uploadSchema,
   uploadSvgSchema,
 } from "@notra/schemas/dashboard/upload";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getTranslations } from "next-intl/server";
@@ -18,6 +19,7 @@ import {
   COMPANY_LOGO_FETCH_TIMEOUT_MS,
   COMPANY_LOGO_SOURCE_HOSTS,
 } from "@/constants/company-logo";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getChatAttachmentSizeBucket } from "@/lib/analytics/studio-events";
 import { authorizedProcedure } from "@/lib/orpc/base";
@@ -35,10 +37,18 @@ import { badRequest, forbidden, unauthorized } from "../utils/errors";
 
 const TRAILING_SLASH_REGEX = /\/$/;
 
+/** The demo has no object storage, so every upload path is refused upfront. */
+function assertUploadsAvailable() {
+  if (isDemoMode()) {
+    throw forbidden(DEMO_DISABLED_MESSAGE);
+  }
+}
+
 export const uploadRouter = {
   createPresignedUpload: authorizedProcedure
     .input(uploadSchema)
     .handler(async ({ context, input }) => {
+      assertUploadsAvailable();
       return createPresignedUpload({
         fileSize: input.fileSize,
         fileType: input.fileType,
@@ -81,6 +91,7 @@ export const uploadRouter = {
   logoFromUrl: authorizedProcedure
     .input(uploadLogoFromUrlSchema)
     .handler(async ({ context, input }) => {
+      assertUploadsAvailable();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
@@ -160,6 +171,7 @@ export const uploadRouter = {
   uploadSvg: authorizedProcedure
     .input(uploadSvgSchema)
     .handler(async ({ context, input }) => {
+      assertUploadsAvailable();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {

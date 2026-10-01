@@ -1,12 +1,20 @@
 import {
+  DEMO_GITHUB_BRANCHES,
   DEMO_GITHUB_COMMITS,
   DEMO_GITHUB_DISABLED_MESSAGE,
+  DEMO_GITHUB_FILES,
   DEMO_GITHUB_PULLS,
   DEMO_GITHUB_RELEASES,
 } from "@notra/ai/constants/demo-github";
 
 const DAY_MS = 86_400_000;
 const REPO_PATH = /^\/repos\/([^/]+)\/([^/]+)(\/.*)?$/;
+const CONTENTS_PATH = /^\/contents(?:\/(.*))?$/;
+const EDGE_SLASHES = /^\/+|\/+$/g;
+const DEMO_FILE_SIZE_BYTES = 2048;
+const DEFAULT_PAGE_SIZE = 30;
+const SHA_LENGTH = 40;
+const HEX_RADIX = 16;
 
 function ago(days: number): string {
   return new Date(Date.now() - days * DAY_MS).toISOString();
@@ -70,6 +78,94 @@ function releases() {
   }));
 }
 
+/** A stable, fake git object id so entries look like real GitHub ones. */
+function fakeSha(seed: string): string {
+  let hash = 0;
+  let sha = "";
+  while (sha.length < SHA_LENGTH) {
+    for (const char of `${seed}:${sha.length}`) {
+      hash = Math.imul(hash ^ char.charCodeAt(0), 16_777_619) >>> 0;
+    }
+    sha += hash.toString(HEX_RADIX).padStart(8, "0");
+  }
+  return sha.slice(0, SHA_LENGTH);
+}
+
+function branches(owner: string, name: string, url: URL) {
+  const perPage = Number(url.searchParams.get("per_page")) || DEFAULT_PAGE_SIZE;
+  const page = Number(url.searchParams.get("page")) || 1;
+  return DEMO_GITHUB_BRANCHES.slice((page - 1) * perPage, page * perPage).map(
+    (branch, index) => {
+      const sha =
+        index === 0 && page === 1
+          ? (DEMO_GITHUB_COMMITS[0]?.sha ?? fakeSha(branch))
+          : fakeSha(branch);
+      return {
+        name: branch,
+        commit: {
+          sha,
+          url: `https://api.github.com/repos/${owner}/${name}/commits/${sha}`,
+        },
+        protected: branch === DEMO_GITHUB_BRANCHES[0],
+      };
+    }
+  );
+}
+
+function contentEntry(
+  owner: string,
+  name: string,
+  path: string,
+  type: "dir" | "file"
+) {
+  const view = type === "dir" ? "tree" : "blob";
+  return {
+    type,
+    name: path.split("/").at(-1) ?? path,
+    path,
+    sha: fakeSha(path),
+    size: type === "file" ? DEMO_FILE_SIZE_BYTES : 0,
+    url: `https://api.github.com/repos/${owner}/${name}/contents/${path}`,
+    html_url: `https://github.com/${owner}/${name}/${view}/main/${path}`,
+    download_url:
+      type === "file"
+        ? `https://raw.githubusercontent.com/${owner}/${name}/main/${path}`
+        : null,
+  };
+}
+
+/**
+ * `GET /repos/{owner}/{repo}/contents/{path}`: a file answers with its entry,
+ * a folder with its direct children, anything else is a 404.
+ */
+function contents(owner: string, name: string, rawPath: string): Response {
+  const path = decodeURIComponent(rawPath).replace(EDGE_SLASHES, "");
+  if ((DEMO_GITHUB_FILES as readonly string[]).includes(path)) {
+    return json({
+      ...contentEntry(owner, name, path, "file"),
+      content: "",
+      encoding: "base64",
+    });
+  }
+  const prefix = path ? `${path}/` : "";
+  const children = new Map<string, "dir" | "file">();
+  for (const file of DEMO_GITHUB_FILES) {
+    if (!file.startsWith(prefix)) {
+      continue;
+    }
+    const [child = "", ...nested] = file.slice(prefix.length).split("/");
+    children.set(`${prefix}${child}`, nested.length > 0 ? "dir" : "file");
+  }
+  if (children.size === 0) {
+    return json({ message: "Not Found" }, 404);
+  }
+  return json(
+    [...children].map(([childPath, type]) =>
+      contentEntry(owner, name, childPath, type)
+    )
+  );
+}
+
 /**
  * GitHub for the public demo: a fetch that answers the read endpoints the
  * content agents use with a fictional Fieldnote repository and refuses every
@@ -116,6 +212,13 @@ export const demoGitHubFetch: typeof fetch = async (input, init) => {
   }
   if (rest.startsWith("/compare/")) {
     return json({ commits: commits(owner, name), files: [] });
+  }
+  if (rest === "/branches") {
+    return json(branches(owner, name, url));
+  }
+  const contentsMatch = CONTENTS_PATH.exec(rest);
+  if (contentsMatch) {
+    return contents(owner, name, contentsMatch[1] ?? "");
   }
   if (rest.startsWith("/branches/") || rest.startsWith("/git/ref/")) {
     return json({

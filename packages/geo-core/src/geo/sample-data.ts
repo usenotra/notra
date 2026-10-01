@@ -405,72 +405,76 @@ export function buildGeoSampleTrafficEvents(input: {
   const profile = input.profile ?? GEO_SAMPLE_DEFAULT_PROFILE;
 
   for (let daysAgo = profile.days - 1; daysAgo >= 0; daysAgo--) {
-    GEO_SAMPLE_CRAWLERS.forEach((crawler, crawlerIndex) => {
-      const pages = 3 + (hashInt(`${daysAgo}-${crawler.agent}`) % 4);
-      const journeyId = `sample-${crawler.agent}-${daysAgo}`;
-      for (let pageIndex = 0; pageIndex < pages; pageIndex++) {
-        const captured = utcDay(
-          input.now,
-          daysAgo,
-          6 + crawlerIndex,
-          pageIndex * 4
-        );
-        rows.push({
-          organization_id: input.organizationId,
-          project_id: input.projectId,
-          captured_at: toClickHouseDateTime(captured),
-          visitor_type: "crawler",
-          source: crawler.agent,
-          agent: crawler.agent,
-          category: crawler.category,
-          confidence: "verified",
-          path: pick(profile.trafficPaths, `${journeyId}-${pageIndex}`),
-          host: pick(profile.trafficHosts, `${journeyId}-${pageIndex}`),
-          method: "GET",
-          referer: "",
-          ua: `${crawler.agent}/1.0`,
-          country: pick(COUNTRIES, `${journeyId}-country`),
-          language: "en-US",
-          request_id: `${journeyId}-${pageIndex}`,
-          journey_id: journeyId,
-          wants_markdown: pageIndex % 3 === 0,
-        });
+    (profile.crawlers ?? GEO_SAMPLE_CRAWLERS).forEach(
+      (crawler, crawlerIndex) => {
+        const pages = 3 + (hashInt(`${daysAgo}-${crawler.agent}`) % 4);
+        const journeyId = `sample-${crawler.agent}-${daysAgo}`;
+        for (let pageIndex = 0; pageIndex < pages; pageIndex++) {
+          const captured = utcDay(
+            input.now,
+            daysAgo,
+            6 + crawlerIndex,
+            pageIndex * 4
+          );
+          rows.push({
+            organization_id: input.organizationId,
+            project_id: input.projectId,
+            captured_at: toClickHouseDateTime(captured),
+            visitor_type: "crawler",
+            source: crawler.agent,
+            agent: crawler.agent,
+            category: crawler.category,
+            confidence: "verified",
+            path: pick(profile.trafficPaths, `${journeyId}-${pageIndex}`),
+            host: pick(profile.trafficHosts, `${journeyId}-${pageIndex}`),
+            method: "GET",
+            referer: "",
+            ua: `${crawler.agent}/1.0`,
+            country: pick(COUNTRIES, `${journeyId}-country`),
+            language: "en-US",
+            request_id: `${journeyId}-${pageIndex}`,
+            journey_id: journeyId,
+            wants_markdown: pageIndex % 3 === 0,
+          });
+        }
       }
-    });
+    );
 
-    GEO_SAMPLE_REFERRALS.forEach((referral, referralIndex) => {
-      const seed = `${daysAgo}-${referral.source}`;
-      const visits = 1 + (hashInt(seed) % 3);
-      for (let visitIndex = 0; visitIndex < visits; visitIndex++) {
-        const captured = utcDay(
-          input.now,
-          daysAgo,
-          14 + (visitIndex % 5),
-          referralIndex * 7 + visitIndex * 3
-        );
-        const path = pick(profile.trafficPaths, `${seed}-${visitIndex}`);
-        rows.push({
-          organization_id: input.organizationId,
-          project_id: input.projectId,
-          captured_at: toClickHouseDateTime(captured),
-          visitor_type: "ai_referral",
-          source: referral.source,
-          agent: "",
-          category: "assistant-referral",
-          confidence: "reported",
-          path,
-          host: pick(profile.trafficHosts, `${seed}-${visitIndex}`),
-          method: "GET",
-          referer: referral.referer,
-          ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          country: pick(COUNTRIES, `${seed}-country`),
-          language: "en-US",
-          request_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
-          journey_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
-          wants_markdown: false,
-        });
+    (profile.referrals ?? GEO_SAMPLE_REFERRALS).forEach(
+      (referral, referralIndex) => {
+        const seed = `${daysAgo}-${referral.source}`;
+        const visits = 1 + (hashInt(seed) % 3);
+        for (let visitIndex = 0; visitIndex < visits; visitIndex++) {
+          const captured = utcDay(
+            input.now,
+            daysAgo,
+            14 + (visitIndex % 5),
+            referralIndex * 7 + visitIndex * 3
+          );
+          const path = pick(profile.trafficPaths, `${seed}-${visitIndex}`);
+          rows.push({
+            organization_id: input.organizationId,
+            project_id: input.projectId,
+            captured_at: toClickHouseDateTime(captured),
+            visitor_type: "ai_referral",
+            source: referral.source,
+            agent: "",
+            category: "assistant-referral",
+            confidence: "reported",
+            path,
+            host: pick(profile.trafficHosts, `${seed}-${visitIndex}`),
+            method: "GET",
+            referer: referral.referer,
+            ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            country: pick(COUNTRIES, `${seed}-country`),
+            language: "en-US",
+            request_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
+            journey_id: `sample-ref-${daysAgo}-${referral.source}-${visitIndex}`,
+            wants_markdown: false,
+          });
+        }
       }
-    });
+    );
   }
 
   return rows;
@@ -584,7 +588,8 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   }
   const now = input.now ?? new Date();
   const scanFinishedAt = now;
-  const aliases = org?.slug && org.slug !== companyName ? [org.slug] : [];
+  const slugAliases = org?.slug && org.slug !== companyName ? [org.slug] : [];
+  const aliases = profile.aliases ? [...profile.aliases] : slugAliases;
 
   const existingSettings = yield* geoDb("settings lookup failed", () =>
     db.query.geoSettings.findFirst({

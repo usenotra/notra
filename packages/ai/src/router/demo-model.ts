@@ -24,6 +24,16 @@ import type {
   DemoToolArgs,
 } from "@notra/ai/types/demo-model";
 import { fakeFromJsonSchema } from "@notra/ai/utils/demo-json-schema";
+import {
+  demoStructuredOutput,
+  withDemoBrandAnalysis,
+} from "@notra/ai/utils/demo-structured";
+import {
+  calledTools,
+  DEMO_WRITER_TOOLS,
+  demoSlug,
+  demoWriterArticle,
+} from "@notra/ai/utils/demo-writer";
 import { simulateReadableStream } from "ai";
 
 const SHORT_OUTPUT_TOKEN_LIMIT = 200;
@@ -130,6 +140,63 @@ function scenarioText(
 }
 
 /** Decides what the fake model answers for one call. */
+function hashSeed(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index++) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2_147_483_647;
+  }
+  return hash;
+}
+
+/** GEO writer: search once, then save an article that passes the gate. */
+function demoWriterPlan(
+  options: LanguageModelV4CallOptions,
+  tools: LanguageModelV4FunctionTool[],
+  seed: string,
+  german: boolean
+): DemoPlan | undefined {
+  const isWriter = DEMO_WRITER_TOOLS.every((name) =>
+    tools.some((tool) => tool.name === name)
+  );
+  if (!isWriter) {
+    return undefined;
+  }
+  const called = calledTools(options.prompt);
+  const promptText = options.prompt.map(messageText).join("\n");
+  if (!called.has("webSearch")) {
+    const search = tools.find((tool) => tool.name === "webSearch");
+    return search
+      ? {
+          kind: "tool",
+          text: "",
+          toolName: search.name,
+          input: toolArguments(search, seed, german, {
+            query: demoWriterArticle(promptText).title,
+            limit: 5,
+          }),
+        }
+      : undefined;
+  }
+  if (!called.has("createBlogPost")) {
+    const create = tools.find((tool) => tool.name === "createBlogPost");
+    const article = demoWriterArticle(promptText);
+    return create
+      ? {
+          kind: "tool",
+          text: "",
+          toolName: create.name,
+          input: toolArguments(create, seed, german, {
+            title: article.title,
+            markdown: article.markdown,
+            slug: demoSlug(article.title),
+            recommendations: null,
+          }),
+        }
+      : undefined;
+  }
+  return { kind: "text", text: "Saved the article." };
+}
+
 function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
   const userText = lastUserText(options.prompt);
   const german = isGerman(userText);
@@ -137,6 +204,14 @@ function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
 
   if (options.responseFormat?.type === "json") {
     const schema: DemoJsonSchema = options.responseFormat.schema ?? {};
+    const canned = demoStructuredOutput(
+      schema,
+      options.prompt.map(messageText).join("\n"),
+      hashSeed(seed)
+    );
+    if (canned !== undefined) {
+      return { kind: "text", text: JSON.stringify(canned) };
+    }
     const value = fakeFromJsonSchema(
       schema,
       options.responseFormat.name ?? "",
@@ -147,12 +222,17 @@ function planResponse(options: LanguageModelV4CallOptions): DemoPlan {
         depth: 0,
       }
     );
-    return { kind: "text", text: JSON.stringify(value) };
+    return { kind: "text", text: JSON.stringify(withDemoBrandAnalysis(value)) };
   }
 
   const scenario = pickScenario(userText);
   const tools = functionTools(options);
   const toolChoice = options.toolChoice?.type ?? "auto";
+
+  const writer = demoWriterPlan(options, tools, seed, german);
+  if (writer) {
+    return writer;
+  }
 
   if (answeredToolCall(options.prompt)) {
     const followUp = scenario?.followUp ?? scenario?.reply;

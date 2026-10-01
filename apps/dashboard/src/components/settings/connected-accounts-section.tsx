@@ -5,12 +5,14 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { authClient } from "@/lib/auth/client";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
@@ -33,6 +35,10 @@ export function ConnectedAccountsSection({
   const disconnectHint = canUnlink ? null : t("disconnectHint");
 
   function handleLinkAccount(provider: "google" | "github") {
+    if (isDemoModeClient()) {
+      toast.error(DEMO_DISABLED_MESSAGE);
+      return;
+    }
     setLoadingProvider(provider);
     startSocialSignInAction({
       provider,

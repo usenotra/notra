@@ -1,9 +1,14 @@
 import type { DemoConsolePreset } from "@/types/demo";
 
+/** Replaced with a short random suffix each time a preset is loaded. */
+export const DEMO_CONSOLE_UNIQUE_TOKEN = "{unique}";
+export const DEMO_CONSOLE_UNIQUE_LENGTH = 6;
+
 /**
  * Starting points for the in-app API console. `{projectId}` is filled with
- * the sandbox's GEO project. `section` picks the preset that matches the page
- * the visitor is on.
+ * the sandbox's GEO project and `{unique}` with a fresh suffix, so presets
+ * that create named records can run more than once. `section` picks the
+ * preset that matches the page the visitor is on.
  */
 export const DEMO_CONSOLE_PRESETS: readonly DemoConsolePreset[] = [
   {
@@ -66,10 +71,12 @@ export const DEMO_CONSOLE_PRESETS: readonly DemoConsolePreset[] = [
     method: "POST",
     path: "/v1/skills",
     body: {
-      name: "fieldnote-voice",
-      description: "Keep posts in Fieldnote's friendly, concrete voice.",
+      // The seeded workspace already has "fieldnote-voice".
+      name: "launch-checklist-{unique}",
+      description:
+        "Check every launch post covers who, what and how to try it.",
       content:
-        "# Fieldnote voice\n\nShort sentences. One concrete example per claim. No buzzwords.",
+        "# Launch checklist\n\nSay who the feature is for, what changed and how to try it today.",
     },
   },
 ];

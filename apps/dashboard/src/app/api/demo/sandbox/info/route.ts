@@ -29,6 +29,7 @@ export async function GET() {
     anonymousId: sandbox.anonymousId,
     organizationId: sandbox.organizationId,
     expiresAt: sandbox.expiresAt.toISOString(),
+    timeZone: sandbox.timeZone,
     apiKey: sandbox.apiKey,
     apiBaseUrl: DEMO_API_BASE_URL,
     signupUrl: DEMO_SIGNUP_URL,

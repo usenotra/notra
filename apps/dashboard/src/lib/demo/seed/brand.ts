@@ -12,7 +12,10 @@ import {
   DEMO_SEED_BRAND_FONTS,
 } from "@/constants/demo-seed-brand";
 import type { DemoSeedContext } from "@/types/demo";
-import { personalizeDemoText } from "@/utils/demo-personalize";
+import {
+  demoCompanyDomain,
+  personalizeDemoText,
+} from "@/utils/demo-personalize";
 
 export async function seedDemoBrand(context: DemoSeedContext) {
   const brandSettingsId = crypto.randomUUID();
@@ -26,6 +29,7 @@ export async function seedDemoBrand(context: DemoSeedContext) {
     ...DEMO_SEED_BRAND,
     name: context.companyName,
     companyName: context.companyName,
+    websiteUrl: `https://${demoCompanyDomain(context.companyName)}`,
     companyDescription: personalizeDemoText(
       DEMO_SEED_BRAND.companyDescription,
       context.companyName

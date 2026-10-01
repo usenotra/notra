@@ -22,6 +22,7 @@ import type {
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import {
   buildDemoCurl,
+  formatDemoConsoleBody,
   resolveDemoConsolePath,
   sendDemoConsoleRequest,
 } from "@/utils/demo-console";
@@ -60,10 +61,6 @@ async function sendWithLoadingFlag(
   }
 }
 
-function formatBody(body?: Record<string, unknown>) {
-  return body ? JSON.stringify(body, null, 2) : "";
-}
-
 export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
   const t = useTranslations("demo.console");
   const pathname = usePathname();
@@ -73,7 +70,9 @@ export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
     presets[0]?.method ?? "GET"
   );
   const [path, setPath] = useState(presets[0]?.path ?? "/v1/posts");
-  const [body, setBody] = useState(() => formatBody(presets[0]?.body));
+  const [body, setBody] = useState(() =>
+    formatDemoConsoleBody(presets[0]?.body)
+  );
   const [sending, setSending] = useState(false);
   const [response, setResponse] = useState<DemoConsoleResponse | null>(null);
 
@@ -88,7 +87,7 @@ export function DemoApiConsole({ sandbox }: DemoApiConsoleProps) {
     setPresetId(id);
     setMethod(preset.method);
     setPath(preset.path);
-    setBody(formatBody(preset.body));
+    setBody(formatDemoConsoleBody(preset.body));
     setResponse(null);
   };
 

@@ -1,7 +1,10 @@
 import type { AgentReadinessParsedReport } from "../types/agent-readiness";
-import type { GeoSampleProfile } from "../types/geo-sample";
+import type {
+  GeoSampleCrawler,
+  GeoSampleProfile,
+  GeoSampleReferral,
+} from "../types/geo-sample";
 import type { GeoModelTokenUsage } from "../types/token-usage";
-import { GEO_OPENCODE_ENGINE_ID } from "./geo";
 import { GEO_SAMPLE_ENGINES } from "./geo-sample";
 
 /** Mention rate for engines the sample catalog does not list. */
@@ -30,14 +33,75 @@ export const GEO_DEMO_USAGE: GeoModelTokenUsage = {
 };
 
 /** Engines the demo fabricates history for (grounded + one coding agent). */
+// Kept small on purpose: enough to compare engines, few enough to read at a
+// glance (and each sandbox stays light).
 const GEO_DEMO_ENGINE_IDS: readonly string[] = [
   "openai/gpt-5.4-grounded",
-  "openai/gpt-5.4",
   "perplexity-sonar",
   "anthropic/claude-sonnet-4.6-grounded",
   "google/gemini-3-flash-grounded",
-  GEO_OPENCODE_ENGINE_ID,
 ];
+
+/** One or two bots per AI vendor, so traffic tooltips stay short. */
+const GEO_DEMO_CRAWLERS: readonly GeoSampleCrawler[] = [
+  { agent: "GPTBot", category: "training-crawler" },
+  { agent: "OAI-SearchBot", category: "search-index" },
+  { agent: "ClaudeBot", category: "training-crawler" },
+  { agent: "PerplexityBot", category: "search-index" },
+  { agent: "Google-Extended", category: "training-crawler" },
+];
+const GEO_DEMO_REFERRALS: readonly GeoSampleReferral[] = [
+  { source: "chatgpt", referer: "https://chatgpt.com/" },
+  { source: "perplexity", referer: "https://www.perplexity.ai/" },
+  { source: "claude", referer: "https://claude.ai/" },
+  { source: "gemini", referer: "https://gemini.google.com/" },
+];
+/** Tracked prompts, most telling first; the demo uses the first few. */
+const GEO_DEMO_PROMPTS: GeoSampleProfile["prompts"] = [
+  {
+    english: "What is the best AI meeting notes app for remote teams?",
+    german: "Was ist die beste KI-App für Meeting-Notizen in Remote-Teams?",
+  },
+  {
+    english: "What are good Quillboard alternatives for startups?",
+    german: "Was sind gute Quillboard-Alternativen für Startups?",
+  },
+  {
+    english: "Which note-taking tool summarizes Zoom calls automatically?",
+    german: "Welches Notiz-Tool fasst Zoom-Calls automatisch zusammen?",
+  },
+  {
+    english: "How do I build a team knowledge base from meeting notes?",
+    german: "Wie baue ich aus Meeting-Notizen eine Team-Wissensdatenbank?",
+  },
+  {
+    english: "Which AI note apps integrate with Slack and Linear?",
+    german: "Welche KI-Notiz-Apps lassen sich mit Slack und Linear verbinden?",
+  },
+  {
+    english: "Is there a privacy-friendly AI note taker for EU companies?",
+    german:
+      "Gibt es einen datenschutzfreundlichen KI-Notizdienst für EU-Firmen?",
+  },
+  {
+    english: "Notably vs Paperline: which is better for product teams?",
+    german: "Notably oder Paperline: Was eignet sich besser für Produktteams?",
+  },
+  {
+    english: "What's the easiest way to share meeting decisions with my team?",
+    german: "Wie teile ich Meeting-Entscheidungen am einfachsten mit dem Team?",
+  },
+  {
+    english: "Which meeting notes tool has the best search?",
+    german: "Welches Meeting-Notiz-Tool hat die beste Suche?",
+  },
+  {
+    english: "What AI tools help engineering managers run 1:1s?",
+    german: "Welche KI-Tools helfen Engineering-Managern bei 1:1s?",
+  },
+];
+
+const GEO_DEMO_PROMPT_COUNT = 6;
 
 /**
  * GEO sample data for the public demo. Fieldnote and every competitor are
@@ -85,53 +149,7 @@ export const GEO_DEMO_PROFILE: GeoSampleProfile = {
       kind: "indirect",
     },
   ],
-  prompts: [
-    {
-      english: "What is the best AI meeting notes app for remote teams?",
-      german: "Was ist die beste KI-App für Meeting-Notizen in Remote-Teams?",
-    },
-    {
-      english: "What are good Quillboard alternatives for startups?",
-      german: "Was sind gute Quillboard-Alternativen für Startups?",
-    },
-    {
-      english: "Which note-taking tool summarizes Zoom calls automatically?",
-      german: "Welches Notiz-Tool fasst Zoom-Calls automatisch zusammen?",
-    },
-    {
-      english: "How do I build a team knowledge base from meeting notes?",
-      german: "Wie baue ich aus Meeting-Notizen eine Team-Wissensdatenbank?",
-    },
-    {
-      english: "Which AI note apps integrate with Slack and Linear?",
-      german:
-        "Welche KI-Notiz-Apps lassen sich mit Slack und Linear verbinden?",
-    },
-    {
-      english: "Is there a privacy-friendly AI note taker for EU companies?",
-      german:
-        "Gibt es einen datenschutzfreundlichen KI-Notizdienst für EU-Firmen?",
-    },
-    {
-      english: "Notably vs Paperline: which is better for product teams?",
-      german:
-        "Notably oder Paperline: Was eignet sich besser für Produktteams?",
-    },
-    {
-      english:
-        "What's the easiest way to share meeting decisions with my team?",
-      german:
-        "Wie teile ich Meeting-Entscheidungen am einfachsten mit dem Team?",
-    },
-    {
-      english: "Which meeting notes tool has the best search?",
-      german: "Welches Meeting-Notiz-Tool hat die beste Suche?",
-    },
-    {
-      english: "What AI tools help engineering managers run 1:1s?",
-      german: "Welche KI-Tools helfen Engineering-Managern bei 1:1s?",
-    },
-  ],
+  prompts: GEO_DEMO_PROMPTS.slice(0, GEO_DEMO_PROMPT_COUNT),
   sequences: [
     {
       name: "Buyer research",
@@ -228,7 +246,10 @@ export const GEO_DEMO_PROFILE: GeoSampleProfile = {
   engines: GEO_SAMPLE_ENGINES.filter((engine) =>
     GEO_DEMO_ENGINE_IDS.includes(engine.engine)
   ),
+  crawlers: GEO_DEMO_CRAWLERS,
+  referrals: GEO_DEMO_REFERRALS,
   germanChecks: false,
+  aliases: [],
   excerpts: {
     mentioned:
       "{brand} is a strong pick for AI meeting notes and team knowledge, alongside {competitors}.",

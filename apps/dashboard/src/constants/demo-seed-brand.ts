@@ -48,6 +48,6 @@ export const DEMO_SEED_BRAND_COLORS = [
 ] as const;
 
 export const DEMO_SEED_BRAND_FONTS = [
-  { role: "heading", family: "Inter Display", weight: "600" },
+  { role: "heading", family: "Inter Tight", weight: "600" },
   { role: "body", family: "Inter", weight: "400" },
 ] as const;

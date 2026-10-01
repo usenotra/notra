@@ -1,7 +1,10 @@
 import { lookup } from "node:dns/promises";
 import { BlockList } from "node:net";
 
-import { fetchWebpage } from "@notra/ai/utils/context-dev";
+import {
+  fetchWebpage,
+  isContextDevConfigured,
+} from "@notra/ai/utils/context-dev";
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
   canonicalizeShelfUrl,
@@ -86,7 +89,7 @@ function cleanDescription(value: string | undefined): string | null {
 }
 
 function hasContextDevKey(): boolean {
-  return Boolean(process.env.CONTEXT_DEV_API_KEY?.trim());
+  return isContextDevConfigured();
 }
 
 export async function previewGeoShelfUrl(

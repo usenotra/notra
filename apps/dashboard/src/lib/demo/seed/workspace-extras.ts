@@ -16,7 +16,6 @@ import { GEO_DEMO_AGENT_READINESS_REPORT } from "@notra/geo-core/constants/geo-d
 import { normalizeWebsiteUrl } from "@notra/geo-core/utils/geo-website";
 import { createDemoClock } from "@notra/utils/demo-clock";
 
-import { DEMO_COMPANY_WEBSITE } from "@/constants/demo";
 import {
   DEMO_SEED_GITHUB_REPOSITORY,
   DEMO_SEED_PERSONAS,
@@ -26,6 +25,11 @@ import {
   DEMO_SEED_TEAMMATES,
 } from "@/constants/demo-seed-workspace";
 import type { DemoSeedContext } from "@/types/demo";
+import {
+  demoCompanyDomain,
+  demoCompanyHandle,
+  personalizeDemoText,
+} from "@/utils/demo-personalize";
 
 /**
  * Teammates are real user rows so the members page and "created by" labels
@@ -65,11 +69,16 @@ export async function seedDemoTeam(context: DemoSeedContext) {
 
 export async function seedDemoSkills(context: DemoSeedContext) {
   await seedSystemSkills(context.organizationId);
+  const text = (value: string) =>
+    personalizeDemoText(value, context.companyName);
   await db.insert(skills).values(
     DEMO_SEED_SKILLS.map((skill) => ({
       id: crypto.randomUUID(),
       organizationId: context.organizationId,
       ...skill,
+      name: text(skill.name),
+      description: text(skill.description),
+      content: text(skill.content),
       createdAt: context.now,
       updatedAt: context.now,
     }))
@@ -146,32 +155,43 @@ export async function seedDemoGeoExtras(
     })
   );
 
+  const website = `https://${demoCompanyDomain(context.companyName)}`;
   const scannedAt = clock.ago({ days: 3, hours: 2 });
   await db.insert(geoAgentReadinessReports).values({
     id: crypto.randomUUID(),
     organizationId: context.organizationId,
     projectId: context.projectId,
     // Must match how the page resolves the brand website.
-    targetUrl:
-      normalizeWebsiteUrl(DEMO_COMPANY_WEBSITE) ?? DEMO_COMPANY_WEBSITE,
+    targetUrl: normalizeWebsiteUrl(website) ?? website,
     status: "completed",
-    ...GEO_DEMO_AGENT_READINESS_REPORT,
+    ...personalizedReadinessReport(context.companyName),
     scannedAt,
     createdAt: scannedAt,
     updatedAt: scannedAt,
   });
 }
 
-const NON_HANDLE_CHARACTERS = /[^a-z0-9]+/g;
+/** The readiness findings name the brand's own domain and pages. */
+function personalizedReadinessReport(
+  companyName: string
+): typeof GEO_DEMO_AGENT_READINESS_REPORT {
+  return JSON.parse(
+    personalizeDemoText(
+      JSON.stringify(GEO_DEMO_AGENT_READINESS_REPORT),
+      companyName
+    )
+  );
+}
 
 /** The company's own X and LinkedIn accounts plus two tracked rivals. */
 export async function seedDemoSocial(context: DemoSeedContext) {
   const clock = createDemoClock(context.now, context.timeZone);
-  const handle =
-    context.companyName.toLowerCase().replaceAll(NON_HANDLE_CHARACTERS, "") ||
-    "fieldnote";
+  const handle = demoCompanyHandle(context.companyName);
   const rows = DEMO_SEED_SOCIAL_ACCOUNTS.map((account) => {
-    const username = account.username ?? handle;
+    // LinkedIn gets its own handle so legends tell the two accounts apart.
+    const username =
+      account.username ??
+      (account.provider === "linkedin" ? `${handle}-hq` : handle);
     const joinedAt = clock.ago({ days: account.joinedDaysAgo });
     return {
       id: crypto.randomUUID(),

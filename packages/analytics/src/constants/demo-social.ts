@@ -1,5 +1,5 @@
 /** How far back the demo's generated social history reaches. */
-export const DEMO_SOCIAL_HISTORY_DAYS = 180;
+export const DEMO_SOCIAL_HISTORY_DAYS = 90;
 
 /** The demo started publishing through Notra this many days ago. */
 export const DEMO_SOCIAL_NOTRA_ADOPTED_DAYS_AGO = 75;

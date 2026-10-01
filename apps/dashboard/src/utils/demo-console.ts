@@ -1,5 +1,9 @@
 import { DEMO_CONSOLE_HEADER } from "@notra/utils/constants/demo";
 
+import {
+  DEMO_CONSOLE_UNIQUE_LENGTH,
+  DEMO_CONSOLE_UNIQUE_TOKEN,
+} from "@/constants/demo-console";
 import type { DemoConsoleResponse } from "@/types/demo";
 
 interface DemoConsoleRequest {
@@ -15,6 +19,21 @@ export function resolveDemoConsolePath(
   projectId: string | null
 ): string {
   return projectId ? path.replaceAll("{projectId}", projectId) : path;
+}
+
+/** Pretty-prints a preset body and gives `{unique}` a fresh value. */
+export function formatDemoConsoleBody(body?: Record<string, unknown>): string {
+  if (!body) {
+    return "";
+  }
+  const unique = crypto
+    .randomUUID()
+    .replaceAll("-", "")
+    .slice(0, DEMO_CONSOLE_UNIQUE_LENGTH);
+  return JSON.stringify(body, null, 2).replaceAll(
+    DEMO_CONSOLE_UNIQUE_TOKEN,
+    unique
+  );
 }
 
 function prettyBody(text: string): string {
