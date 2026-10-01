@@ -48,6 +48,18 @@ import {
   findCompetitor,
 } from "@/utils/onboarding-competitors";
 
+/**
+ * A scan billing refuses up front is no reason to block onboarding; the
+ * mutation's toast already explains it.
+ */
+function leaveOnPaymentRequired(leave: () => void) {
+  return (error: unknown) => {
+    if (error instanceof ORPCError && error.code === "PAYMENT_REQUIRED") {
+      leave();
+    }
+  };
+}
+
 function CompetitorsPicker({
   organizationId,
   domain,
@@ -121,24 +133,17 @@ function CompetitorsPicker({
       added_all: suggested.length > 0 && remainingSuggestions.length === 0,
       started_scan: !geoLocked,
     });
-    if (geoLocked) {
-      setIsLeaving(true);
-      router.push(nextHref);
-      return;
-    }
     const leave = () => {
       setIsLeaving(true);
       router.push(nextHref);
     };
+    if (geoLocked) {
+      leave();
+      return;
+    }
     startScan.mutate("onboarding", {
       onSuccess: leave,
-      // A scan billing refuses up front is no reason to block onboarding; the
-      // toast already explains it.
-      onError: (error) => {
-        if (error instanceof ORPCError && error.code === "PAYMENT_REQUIRED") {
-          leave();
-        }
-      },
+      onError: leaveOnPaymentRequired(leave),
     });
   };
 

@@ -390,9 +390,23 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
         row.projectId
       );
       if (denial) {
-        yield* releaseGeoScanRun(row.projectId, claim.claimedAt).pipe(
-          geoSkip("scan claim release failed")
+        const released = yield* releaseGeoScanRun(
+          row.projectId,
+          claim.claimedAt
+        ).pipe(
+          Effect.as(true),
+          geoSkip("scan claim release failed", {
+            event: "geo.scan.claim_release_failed",
+            organizationId: row.organizationId,
+            projectId: row.projectId,
+          })
         );
+        // A claim we could not hand back must not be paired with a skipped
+        // slot: keep the slot due, so the sweep that claims it once the ghost
+        // claim has gone stale settles it properly.
+        if (!released) {
+          continue;
+        }
         billingDenied += 1;
         yield* advance(row, leaseUntil);
         yield* geoLogWarn({

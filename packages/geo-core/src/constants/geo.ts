@@ -408,6 +408,12 @@ export const GEO_SCAN_CLAIM_RENEW_AFTER_MS = 30 * 60 * 1000;
 export const GEO_SCAN_SEQUENCE_BATCH_SIZE = 3;
 export const GEO_SEQUENCE_PAIR_TIMEOUT_MS = 7 * 60 * 1000;
 export const GEO_SCAN_DUE_LIMIT_PER_SWEEP = 25;
+/**
+ * Upper bound for the billing precheck before a scan starts. The cron sweep
+ * holds a fresh claim while it waits, so a hanging billing call must not run
+ * into the request limit and strand that claim.
+ */
+export const GEO_SCAN_BILLING_PRECHECK_TIMEOUT_MS = 10_000;
 export const GEO_SCAN_POLL_INTERVAL_MS = 3000;
 export const GEO_START_SCAN_MUTATION_KEY = "geo-start-scan";
 export const GEO_RESCAN_SOURCE_KINDS = ["gap", "prompt"] as const;
