@@ -32,18 +32,18 @@ function openStandaloneDemo() {
 export function LiveDemoEmbed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  // The iframe mounts on the first click; the preview stays on top until the
-  // demo has finished its entry redirects so fullscreen never opens blank.
-  const [mounted, setMounted] = useState(false);
+  // The iframe lazy-loads once the theme is known; the preview stays on top
+  // until the demo has finished its entry redirects so it never shows blank.
+  const [opened, setOpened] = useState(false);
   const [ready, setReady] = useState(false);
   const [stalled, setStalled] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const { resolvedTheme } = useTheme();
   const [initialTheme, setInitialTheme] = useState<string>();
   const [listening, setListening] = useState(false);
-  const src = initialTheme
-    ? `${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`
-    : LIVE_DEMO_EMBED_URL;
+  if (resolvedTheme && !initialTheme) {
+    setInitialTheme(resolvedTheme);
+  }
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -70,7 +70,7 @@ export function LiveDemoEmbed() {
   }, [listening, resolvedTheme]);
 
   useEffect(() => {
-    if (!mounted || ready) {
+    if (!opened || ready) {
       return;
     }
     const timeout = window.setTimeout(
@@ -78,7 +78,7 @@ export function LiveDemoEmbed() {
       LIVE_DEMO_LOAD_TIMEOUT_MS
     );
     return () => window.clearTimeout(timeout);
-  }, [mounted, ready]);
+  }, [opened, ready]);
 
   useEffect(() => {
     const sync = () =>
@@ -100,8 +100,7 @@ export function LiveDemoEmbed() {
       openStandaloneDemo();
       return;
     }
-    setInitialTheme((current) => current ?? resolvedTheme);
-    setMounted(true);
+    setOpened(true);
     try {
       await container.requestFullscreen();
     } catch {
@@ -115,16 +114,17 @@ export function LiveDemoEmbed() {
         className="group border-border bg-background relative size-full overflow-hidden rounded-2xl border lg:rounded-b-none lg:border-b-0 [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
         ref={containerRef}
       >
-        {mounted ? (
+        {initialTheme ? (
           <iframe
             allow="clipboard-write"
             className="size-full"
             inert={!(expanded && ready)}
+            loading="lazy"
             onLoad={() => setReady(true)}
             ref={iframeRef}
             referrerPolicy="strict-origin-when-cross-origin"
             sandbox={LIVE_DEMO_IFRAME_SANDBOX}
-            src={src}
+            src={`${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`}
             title={LIVE_DEMO_IFRAME_TITLE}
           />
         ) : null}
@@ -138,7 +138,7 @@ export function LiveDemoEmbed() {
             src={LIVE_DEMO_PREVIEW_SRC}
           />
         )}
-        {mounted && !ready ? (
+        {opened && !ready ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
             <span
               aria-live="polite"
