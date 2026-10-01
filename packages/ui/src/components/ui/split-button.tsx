@@ -38,7 +38,7 @@ function SplitButton({ className, ...props }: React.ComponentProps<"div">) {
 function SplitButtonTrigger({
   className,
   children,
-  label = "More options",
+  label,
   size = "default",
   variant = "default",
   ...props
@@ -49,7 +49,8 @@ function SplitButtonTrigger({
   }) {
   return (
     <DropdownMenuTrigger
-      aria-label={label}
+      // Custom children name themselves; only the bare chevron needs a fallback.
+      aria-label={label ?? (children ? undefined : "More options")}
       className={className}
       render={<Button size={TRIGGER_SIZES[size]} variant={variant} />}
       {...props}
@@ -57,7 +58,10 @@ function SplitButtonTrigger({
       {children ?? (
         <HugeiconsIcon
           aria-hidden="true"
-          className="transition-transform duration-fast ease-out group-data-popup-open/button:rotate-180"
+          className={cn(
+            "transition-transform duration-fast ease-out group-data-popup-open/button:rotate-180",
+            size === "sm" && "size-3.5"
+          )}
           icon={ArrowDown01Icon}
         />
       )}
