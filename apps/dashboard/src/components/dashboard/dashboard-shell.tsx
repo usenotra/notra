@@ -29,6 +29,7 @@ import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provid
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { useDemoBannerVisible } from "@/lib/hooks/use-demo-banner-visible";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
@@ -233,7 +234,7 @@ export function DashboardShell({
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
   const demo = isDemoModeClient();
-  const showDemoBanner = demo && !demoBannerHidden;
+  const showDemoBanner = useDemoBannerVisible(demoBannerHidden);
   const shellStyle = dashboardShellStyle(showDemoBanner, visible);
   const {
     finishSidebarResize,

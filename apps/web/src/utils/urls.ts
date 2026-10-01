@@ -15,3 +15,5 @@ export const HOMEPAGE_LINK_HEADER = [
   '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
   `<${DOCS_URL}>; rel="service-doc"; type="text/html"`,
 ].join(", ");
+
+export const DEMO_URL = "https://demo.usenotra.com";

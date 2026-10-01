@@ -79,7 +79,7 @@ export function DemoBanner() {
         </Button>
         <Button
           nativeButton={false}
-          render={<a href={DEMO_SIGNUP_URL} rel="noopener" />}
+          render={<a href={DEMO_SIGNUP_URL} rel="noopener" target="_top" />}
           size="sm"
         >
           {t("signup")}

@@ -95,7 +95,7 @@
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
-    "@tanstack/react-start": "1.168.51",
+    "@tanstack/react-start": "1.168.60",
     "tsup": "^8.5.1",
     "typescript": "5.9.2",
     "zod": "^4.6.5"
