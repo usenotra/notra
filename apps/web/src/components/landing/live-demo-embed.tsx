@@ -101,7 +101,7 @@ export function LiveDemoEmbed() {
           />
         )}
         {mounted && !ready ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30">
+          <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
             <span
               aria-live="polite"
               className="bg-foreground text-background rounded-full px-5 py-2.5 text-sm font-medium"
@@ -111,7 +111,7 @@ export function LiveDemoEmbed() {
             </span>
             {stalled ? (
               <button
-                className="bg-background text-foreground cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium"
+                className="bg-background text-foreground pointer-events-auto cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium"
                 onClick={openStalledDemo}
                 type="button"
               >
