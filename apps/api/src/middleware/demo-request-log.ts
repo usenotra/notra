@@ -7,7 +7,7 @@ import { getOrganizationIdFromAuth } from "../types/auth";
 import type { ApiEnv } from "../types/env";
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-const EVENT_STREAM_CONTENT_TYPE = "text/event-stream";
+const STREAMED_CONTENT_TYPES = ["text/event-stream", "application/x-ndjson"];
 
 async function readBody(source: Request | Response): Promise<string | null> {
   try {
@@ -18,11 +18,9 @@ async function readBody(source: Request | Response): Promise<string | null> {
   }
 }
 
-function isEventStream(response: Response): boolean {
-  return (
-    response.headers.get("content-type")?.includes(EVENT_STREAM_CONTENT_TYPE) ??
-    false
-  );
+function isStreamed(response: Response): boolean {
+  const contentType = response.headers.get("content-type") ?? "";
+  return STREAMED_CONTENT_TYPES.some((type) => contentType.includes(type));
 }
 
 /**
@@ -44,8 +42,8 @@ export async function demoRequestLogMiddleware(c: Context<ApiEnv>, next: Next) {
   }
   const path = new URL(c.req.url).pathname;
   // Reading a streamed body would wait for the whole stream and hold the
-  // response back, so event streams are logged without one.
-  const responseBody = isEventStream(c.res) ? null : await readBody(c.res);
+  // response back, so streamed responses (SSE, NDJSON) are logged without one.
+  const responseBody = isStreamed(c.res) ? null : await readBody(c.res);
   // Bun serves this app directly, so finishing the write before responding
   // is the only way to guarantee it; it adds a few milliseconds in the demo.
   await recordDemoRequest({
