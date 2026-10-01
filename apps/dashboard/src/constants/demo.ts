@@ -17,6 +17,14 @@ export const DEMO_THEME_MESSAGE = "notra:demo-theme";
 export const DEMO_READY_MESSAGE = "notra:demo-ready";
 export const DEMO_THEMES = ["light", "dark"] as const;
 export const DEMO_FRAME_ANCESTOR = "https://www.usenotra.com";
+/** Lets a local landing page dev server embed the demo too. */
+export const DEMO_LOCAL_FRAME_ANCESTOR = "http://localhost:*";
+export const DEMO_LOCAL_FRAME_ORIGIN = /^http:\/\/localhost(?::\d+)?$/;
+export const DEMO_EMBED_COOKIE_ATTRIBUTES = {
+  sameSite: "none",
+  secure: true,
+  partitioned: true,
+} as const;
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;

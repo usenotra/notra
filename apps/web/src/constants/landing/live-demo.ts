@@ -24,6 +24,8 @@ export const LIVE_DEMO_IFRAME_SANDBOX = [
 
 export const LIVE_DEMO_PREVIEW_SRC = "/landing/demo-preview.jpg";
 
+export const LIVE_DEMO_PREVIEW_DARK_SRC = "/landing/demo-preview-dark.jpg";
+
 export const LIVE_DEMO_PREVIEW_ALT =
   "Notra GEO overview with visibility by engine and what changed";
 

@@ -6,7 +6,10 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "./src/constants/cookies";
-import { DEMO_FRAME_ANCESTOR } from "./src/constants/demo";
+import {
+  DEMO_FRAME_ANCESTOR,
+  DEMO_LOCAL_FRAME_ANCESTOR,
+} from "./src/constants/demo";
 
 const demoMode = isDemoMode();
 
@@ -184,7 +187,7 @@ const nextConfig: NextConfig = {
               ]),
           {
             key: "Content-Security-Policy",
-            value: `frame-ancestors ${demoMode ? DEMO_FRAME_ANCESTOR : "'none'"}`,
+            value: `frame-ancestors ${demoMode ? `${DEMO_FRAME_ANCESTOR} ${DEMO_LOCAL_FRAME_ANCESTOR}` : "'none'"}`,
           },
           {
             key: "Referrer-Policy",

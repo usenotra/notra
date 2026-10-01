@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import {
   DEMO_FRAME_ANCESTOR,
+  DEMO_LOCAL_FRAME_ORIGIN,
   DEMO_READY_MESSAGE,
   DEMO_THEME_PARAM,
 } from "@/constants/demo";
@@ -33,7 +34,10 @@ export function DemoThemeSync() {
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      if (event.origin !== DEMO_FRAME_ANCESTOR) {
+      if (
+        event.origin !== DEMO_FRAME_ANCESTOR &&
+        !DEMO_LOCAL_FRAME_ORIGIN.test(event.origin)
+      ) {
         return;
       }
       const message = demoThemeMessageSchema.safeParse(event.data);
@@ -43,10 +47,7 @@ export function DemoThemeSync() {
     };
     window.addEventListener("message", onMessage);
     if (window.parent !== window) {
-      window.parent.postMessage(
-        { type: DEMO_READY_MESSAGE },
-        DEMO_FRAME_ANCESTOR
-      );
+      window.parent.postMessage({ type: DEMO_READY_MESSAGE }, "*");
     }
     return () => window.removeEventListener("message", onMessage);
   }, [setTheme]);

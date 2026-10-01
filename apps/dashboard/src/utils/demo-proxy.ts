@@ -17,6 +17,7 @@ import {
   DEMO_SIGNUP_URL,
   DEMO_START_PATH,
 } from "@/constants/demo";
+import { cookieAttributes } from "@/utils/cookie-attributes";
 
 function withNoIndex(response: NextResponse): NextResponse {
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
@@ -42,13 +43,16 @@ function withBannerPreference(
   if (banner === DEMO_BANNER_OFF) {
     response.cookies.set(DEMO_BANNER_COOKIE, DEMO_BANNER_OFF, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      ...cookieAttributes(),
       path: "/",
       maxAge: DEMO_SESSION_COOKIE_MAX_AGE_SECONDS,
     });
   } else if (banner !== null) {
-    response.cookies.delete({ name: DEMO_BANNER_COOKIE, path: "/" });
+    response.cookies.delete({
+      name: DEMO_BANNER_COOKIE,
+      path: "/",
+      ...cookieAttributes(),
+    });
   }
   return response;
 }
