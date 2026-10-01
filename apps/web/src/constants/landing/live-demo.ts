@@ -8,6 +8,8 @@ export const LIVE_DEMO_THEME_PARAM = "theme";
 
 export const LIVE_DEMO_THEME_MESSAGE = "notra:demo-theme";
 
+export const LIVE_DEMO_READY_MESSAGE = "notra:demo-ready";
+
 export const LIVE_DEMO_FALLBACK_URL = DEMO_URL;
 
 export const LIVE_DEMO_IFRAME_SANDBOX = [

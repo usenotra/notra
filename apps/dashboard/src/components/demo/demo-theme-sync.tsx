@@ -4,7 +4,11 @@ import { useTheme } from "next-themes";
 import { useQueryState } from "nuqs";
 import { useEffect } from "react";
 
-import { DEMO_FRAME_ANCESTOR, DEMO_THEME_PARAM } from "@/constants/demo";
+import {
+  DEMO_FRAME_ANCESTOR,
+  DEMO_READY_MESSAGE,
+  DEMO_THEME_PARAM,
+} from "@/constants/demo";
 import { demoThemeParser } from "@/lib/demo/theme-param";
 import { demoThemeMessageSchema } from "@/schemas/demo";
 
@@ -38,6 +42,12 @@ export function DemoThemeSync() {
       }
     };
     window.addEventListener("message", onMessage);
+    if (window.parent !== window) {
+      window.parent.postMessage(
+        { type: DEMO_READY_MESSAGE },
+        DEMO_FRAME_ANCESTOR
+      );
+    }
     return () => window.removeEventListener("message", onMessage);
   }, [setTheme]);
 

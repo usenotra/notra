@@ -18,6 +18,7 @@ import {
   LIVE_DEMO_ORIGIN,
   LIVE_DEMO_PREVIEW_ALT,
   LIVE_DEMO_PREVIEW_SRC,
+  LIVE_DEMO_READY_MESSAGE,
   LIVE_DEMO_STALLED_ACTION,
   LIVE_DEMO_STALLED_LABEL,
   LIVE_DEMO_THEME_MESSAGE,
@@ -39,19 +40,34 @@ export function LiveDemoEmbed() {
   const [expanded, setExpanded] = useState(false);
   const { resolvedTheme } = useTheme();
   const [initialTheme, setInitialTheme] = useState<string>();
+  const [listening, setListening] = useState(false);
   const src = initialTheme
     ? `${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`
     : LIVE_DEMO_EMBED_URL;
 
   useEffect(() => {
-    if (!ready || !resolvedTheme) {
+    const onMessage = (event: MessageEvent) => {
+      if (
+        event.origin === LIVE_DEMO_ORIGIN &&
+        event.source === iframeRef.current?.contentWindow &&
+        event.data?.type === LIVE_DEMO_READY_MESSAGE
+      ) {
+        setListening(true);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  useEffect(() => {
+    if (!listening || !resolvedTheme) {
       return;
     }
     iframeRef.current?.contentWindow?.postMessage(
       { type: LIVE_DEMO_THEME_MESSAGE, theme: resolvedTheme },
       LIVE_DEMO_ORIGIN
     );
-  }, [ready, resolvedTheme]);
+  }, [listening, resolvedTheme]);
 
   useEffect(() => {
     if (!mounted || ready) {
@@ -84,7 +100,7 @@ export function LiveDemoEmbed() {
       openStandaloneDemo();
       return;
     }
-    setInitialTheme(resolvedTheme);
+    setInitialTheme((current) => current ?? resolvedTheme);
     setMounted(true);
     try {
       await container.requestFullscreen();

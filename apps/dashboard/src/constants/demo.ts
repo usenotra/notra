@@ -13,6 +13,8 @@ export const DEMO_BANNER_ON = "on";
  */
 export const DEMO_THEME_PARAM = "theme";
 export const DEMO_THEME_MESSAGE = "notra:demo-theme";
+/** Tells the embedding page the theme listener is up. */
+export const DEMO_READY_MESSAGE = "notra:demo-ready";
 export const DEMO_THEMES = ["light", "dark"] as const;
 export const DEMO_FRAME_ANCESTOR = "https://www.usenotra.com";
 
