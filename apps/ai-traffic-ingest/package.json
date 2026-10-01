@@ -12,7 +12,6 @@
   "dependencies": {
     "@notra/ai": "workspace:*",
     "@notra/geo-core": "workspace:*",
-    "effect": "4.0.0-rc.112",
     "hono": "^4.12.30"
   },
   "devDependencies": {

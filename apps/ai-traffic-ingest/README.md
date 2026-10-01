@@ -47,7 +47,8 @@ at `/`, since the app imports workspace packages. Configure the service with:
 | --- | --- |
 | Builder | Dockerfile |
 | Dockerfile path | `apps/ai-traffic-ingest/Dockerfile` |
-| Healthcheck | `/healthz` |
+| Healthcheck | `/readyz` |
+| Region | US East (Virginia), next to Postgres and Upstash |
 | Healthcheck timeout | 60 seconds |
 | Public target port | 3000 |
 | Restart policy | On failure, maximum 5 retries |
@@ -55,7 +56,10 @@ at `/`, since the app imports workspace packages. Configure the service with:
 
 Set `PORT=3000` to match the public target port, and
 `RAILWAY_DEPLOYMENT_DRAINING_SECONDS=60` so Railway allows in-flight work to
-finish when replacing a deployment.
+finish when replacing a deployment. The healthcheck uses `/readyz` so a deploy
+with missing credentials is never promoted. Every tracked hit reads Postgres and
+Upstash before the SDK's 2 second timeout, so run the service in one region next
+to them rather than in several distant ones.
 
 Watch `/apps/ai-traffic-ingest/**`, `/packages/**`, `/bun.lock`, `/package.json`,
 `/bunfig.toml`, `/patches/**`, and `/.dockerignore`. Deploy from the repository
@@ -86,7 +90,8 @@ Copy these values from the existing dashboard configuration into the service:
 `BEACON_INGEST_SECRET` is supported when `GEO_INGEST_SECRET` is unset.
 `TINYBIRD_URL` remains a supported alias for the Tinybird base URL.
 Optional telemetry variables are `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`,
-`NEXT_PUBLIC_POSTHOG_HOST`, `AXIOM_TOKEN`, `AXIOM_GEO_DATASET`, and `AXIOM_ORG_ID`.
+`NEXT_PUBLIC_POSTHOG_HOST`, `AXIOM_TOKEN`, and `AXIOM_ORG_ID`. Logs go to the
+`notra-geo-scan` dataset by default; set `AXIOM_GEO_DATASET` only to override it.
 Set `PORT=3000` in Railway to match the configured public target port.
 
 Without required configuration, the process starts but rejects ingestion with
@@ -112,3 +117,41 @@ Leave `GEO_INGEST_URL` unset until Railway is ready. The existing dashboard
 endpoint continues using the shared pipeline locally. To roll back, unset the
 variable and redeploy the dashboard and API. Sites explicitly configured with
 the Railway URL must update their endpoint separately.
+
+## Monitoring in Axiom
+
+Every ingest request, on Railway and on the dashboard fallback, emits one
+`geo.ingest` event to the `notra-geo-scan` dataset with `outcome`
+(`ingested`, `dropped`, `rejected`, `failed`), `reason`, `status`,
+`durationMs`, `ingestMs` (Tinybird write), `visitorType`, `source`, `agent`,
+`organizationId`, `projectId`, `runtime` (`railway`, `vercel`, `local`),
+`region` and `weight`. Dropped human traffic is sampled at 5%, so always count
+with `sum(weight)` instead of `count()`.
+
+```kusto
+// Requests per second
+['notra-geo-scan'] | where event == 'geo.ingest'
+| summarize rps = sum(todouble(weight)) / 60 by bin(_time, 1m), tostring(runtime)
+
+// Ingested events per second, by AI source
+['notra-geo-scan'] | where event == 'geo.ingest' and outcome == 'ingested'
+| summarize eps = count() / 60.0 by bin(_time, 1m), tostring(source)
+
+// Totals by outcome and reason
+['notra-geo-scan'] | where event == 'geo.ingest'
+| summarize requests = sum(todouble(weight)) by tostring(outcome), tostring(reason)
+
+// Latency and Tinybird write time
+['notra-geo-scan'] | where event == 'geo.ingest' and outcome == 'ingested'
+| summarize p50 = percentile(durationMs, 50), p95 = percentile(durationMs, 95),
+    p99 = percentile(durationMs, 99), tinybird_p95 = percentile(ingestMs, 95)
+    by bin_auto(_time)
+
+// Error rate and top failure messages
+['notra-geo-scan'] | where event == 'geo.ingest' and outcome == 'failed'
+| summarize failures = count() by tostring(reason), tostring(errorMessage)
+
+// Top organizations by ingested events
+['notra-geo-scan'] | where event == 'geo.ingest' and outcome == 'ingested'
+| summarize events = count() by tostring(organizationId) | top 20 by events
+```

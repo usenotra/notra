@@ -17,8 +17,6 @@ const ratelimitLimit = mock(
   })
 );
 const trackGeoIngestAnalytics = mock(() => Effect.void);
-const geoLogInfo = mock(() => {});
-const flushGeoLog = mock(async () => {});
 const verifyGeoIngestToken = mock((): GeoIngestIdentity => ({
   organizationId: "org_1",
   projectId: "proj_1",
@@ -28,10 +26,6 @@ const resolveJourneyId = mock(() => ({ journeyId: "journey_1", path: "/" }));
 
 mock.module("@notra/analytics/tinybird/client", () => ({
   ingestGeoTrafficEvents,
-}));
-mock.module("@notra/ai/evlog", () => ({
-  geoLog: { info: geoLogInfo, warn: () => {}, error: () => {} },
-  flushGeoLog,
 }));
 mock.module("@notra/geo-core/geo/ingest", () => ({
   verifyGeoIngestToken,
@@ -93,8 +87,6 @@ describe("runGeoIngest ordering", () => {
       loadIngestAllowedHosts,
       ratelimitLimit,
       trackGeoIngestAnalytics,
-      geoLogInfo,
-      flushGeoLog,
     ]) {
       m.mockClear();
     }
@@ -147,7 +139,6 @@ describe("runGeoIngest ordering", () => {
     expect(tasks).toHaveLength(1);
     await tasks[0]?.();
     expect(trackGeoIngestAnalytics).toHaveBeenCalledTimes(1);
-    expect(flushGeoLog).toHaveBeenCalledTimes(1);
   });
 
   test("rejects tracked traffic when the rate-limit transport fails", async () => {

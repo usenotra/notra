@@ -1,11 +1,6 @@
 import { GEO_INGEST_PATH } from "@notra/geo-core/constants/geo";
-import { runGeoIngest } from "@notra/geo-core/ingest/pipeline";
-import {
-  toGeoIngestAcceptedResponse,
-  toGeoIngestErrorResponse,
-} from "@notra/geo-core/ingest/response";
+import { handleGeoIngestRequest } from "@notra/geo-core/ingest/handler";
 import type { GeoIngestDefer } from "@notra/geo-core/types/ingest";
-import { Effect } from "effect";
 import { Hono } from "hono";
 
 import { missingIngestEnvironment } from "./utils/config";
@@ -28,14 +23,7 @@ export function createIngestApp(defer: GeoIngestDefer) {
     if (missingIngestEnvironment().length > 0) {
       return context.json({ error: "Ingest is not configured" }, 503);
     }
-    return Effect.runPromise(
-      runGeoIngest(context.req.raw, defer).pipe(
-        Effect.match({
-          onFailure: toGeoIngestErrorResponse,
-          onSuccess: toGeoIngestAcceptedResponse,
-        })
-      )
-    );
+    return handleGeoIngestRequest(context.req.raw, defer);
   });
   app.all(GEO_INGEST_PATH, (context) => {
     context.header("Allow", "POST");

@@ -1,5 +1,3 @@
-import { flushGeoLog, geoLog } from "@notra/ai/evlog";
-import type { GeoLogEvent } from "@notra/ai/types/evlog";
 import { ingestGeoTrafficEvents } from "@notra/analytics/tinybird/client";
 import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
 import { GEO_INGEST_BEARER_PREFIX } from "@notra/geo-core/constants/geo";
@@ -10,7 +8,7 @@ import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
 import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
 
-import type { GeoIngestDefer } from "../types/ingest";
+import type { GeoIngestDefer, GeoIngestResult } from "../types/ingest";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -26,15 +24,6 @@ import { loadIngestAllowedHosts } from "./hosts";
 import { isGeoIngestIdentityActive } from "./identity";
 import { resolveJourneyId } from "./journey";
 import { geoIngestRatelimit } from "./ratelimit";
-
-// Dropped (human/unknown) traffic outnumbers stored events by an order of
-// magnitude; log a sample so drop reasons stay visible without paying for a
-// log line per page view.
-const DROPPED_LOG_SAMPLE_RATE = 0.05;
-
-function emitIngestLog(fields: Omit<GeoLogEvent, "event">) {
-  geoLog.info({ event: "geo.ingest", ...fields });
-}
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
   request: Request
@@ -153,18 +142,13 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     signals: payload.signals,
   });
   if (!isTrackedGeoVisitorType(classification.visitorType)) {
-    yield* Effect.sync(() => {
-      if (Math.random() < DROPPED_LOG_SAMPLE_RATE) {
-        emitIngestLog({
-          outcome: "dropped",
-          reason: "visitor_type",
-          visitorType: classification.visitorType,
-          organizationId: identity.organizationId,
-          projectId: identity.projectId ?? "",
-        });
-      }
-    });
-    return;
+    return {
+      outcome: "dropped",
+      reason: "visitor_type",
+      organizationId: identity.organizationId,
+      projectId: identity.projectId,
+      visitorType: classification.visitorType,
+    } satisfies GeoIngestResult;
   }
 
   const [active, allowedHosts] = yield* Effect.all(
@@ -187,16 +171,14 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     );
   }
   if (!acceptsIngestHost(url.hostname, allowedHosts)) {
-    yield* Effect.sync(() =>
-      emitIngestLog({
-        outcome: "dropped",
-        reason: "host",
-        host: url.hostname,
-        organizationId: identity.organizationId,
-        projectId: identity.projectId ?? "",
-      })
-    );
-    return;
+    return {
+      outcome: "dropped",
+      reason: "host",
+      organizationId: identity.organizationId,
+      projectId: identity.projectId,
+      visitorType: classification.visitorType,
+      host: url.hostname,
+    } satisfies GeoIngestResult;
   }
 
   const capturedAt = toCapturedDate(payload.timestamp);
@@ -222,16 +204,6 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   const ingestStartedAt = Date.now();
   yield* ingestEvent(event);
   const ingestMs = Date.now() - ingestStartedAt;
-  yield* Effect.sync(() =>
-    emitIngestLog({
-      outcome: "ingested",
-      visitorType: classification.visitorType,
-      source: classification.source,
-      ingestMs,
-      organizationId: identity.organizationId,
-      projectId: identity.projectId ?? "",
-    })
-  );
   // Analytics must not hold the 202 open for the site that sent the event.
   yield* Effect.sync(() =>
     defer(async () => {
@@ -244,7 +216,16 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
           projectId: identity.projectId,
         });
       }
-      await flushGeoLog().catch(() => null);
     })
   );
+
+  return {
+    outcome: "ingested",
+    organizationId: identity.organizationId,
+    projectId: identity.projectId,
+    visitorType: classification.visitorType,
+    source: classification.source,
+    agent: classification.agent,
+    ingestMs,
+  } satisfies GeoIngestResult;
 });

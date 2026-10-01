@@ -59,3 +59,26 @@ export interface GeoJourneyResolution {
   journeyId: string;
   path: string;
 }
+
+export type GeoIngestDropReason = "visitor_type" | "host";
+
+export type GeoIngestResult =
+  | {
+      outcome: "ingested";
+      organizationId: string;
+      projectId: string | null;
+      visitorType: GeoVisitorType;
+      source: string;
+      agent: string;
+      ingestMs: number;
+    }
+  | {
+      outcome: "dropped";
+      reason: GeoIngestDropReason;
+      organizationId: string;
+      projectId: string | null;
+      visitorType: GeoVisitorType;
+      host?: string;
+    };
+
+export type GeoIngestRuntime = "railway" | "vercel" | "local";
