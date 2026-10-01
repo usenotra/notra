@@ -321,7 +321,7 @@ export function LandingPricingSection({
         id="pricing"
       >
         {showHeader ? (
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-4">
             <h2 className="font-display max-w-[59rem] text-center text-[2rem] leading-[1.12] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] sm:text-[2.875rem] sm:leading-13 dark:text-white">
               {PRICING_HEADING}
             </h2>
