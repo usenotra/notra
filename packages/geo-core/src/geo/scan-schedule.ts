@@ -166,11 +166,17 @@ const leaseDueGeoScanTick = Effect.fn("geo.leaseDueScanTick")(function* (
  * row, that sweep owns the schedule and our write must not clobber it. Losing
  * the race is reported, because it means this slot was advanced by someone
  * else and the project may be scanned twice for it.
+ *
+ * With `releaseClaimedAt` the same statement also hands back the scan claim
+ * this sweep took, so a skipped slot and a freed claim land together or not
+ * at all: a claim left behind would block manual scans until it goes stale,
+ * and a slot left behind would be retried.
  */
 const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   row: DueGeoScanRow,
   leaseUntil: Date,
-  coveredAt?: Date
+  coveredAt?: Date,
+  releaseClaimedAt?: Date
 ) {
   // A historical finish only covers slots through that finish, not through
   // this sweep. Leave later unserved slots due, even after a long outage.
@@ -185,11 +191,19 @@ const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   const advanced = yield* geoDb("scan slot advance failed", () =>
     db
       .update(geoSettings)
-      .set({ nextScanAt, scanLeaseUntil: null, scanFirstFailedAt: null })
+      .set({
+        nextScanAt,
+        scanLeaseUntil: null,
+        scanFirstFailedAt: null,
+        ...(releaseClaimedAt ? { scanStartedAt: null } : {}),
+      })
       .where(
         and(
           eq(geoSettings.id, row.id),
-          eq(geoSettings.scanLeaseUntil, leaseUntil)
+          eq(geoSettings.scanLeaseUntil, leaseUntil),
+          releaseClaimedAt
+            ? eq(geoSettings.scanStartedAt, releaseClaimedAt)
+            : undefined
         )
       )
       .returning({ id: geoSettings.id })
@@ -296,12 +310,18 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
     // Advancing is the only write that can silently lose its row (another
     // sweep leased it after our lease expired), so every call goes through
     // this counter instead of assuming the slot moved.
-    const advance = (row: DueGeoScanRow, leaseUntil: Date, coveredAt?: Date) =>
+    const advance = (
+      row: DueGeoScanRow,
+      leaseUntil: Date,
+      coveredAt?: Date,
+      releaseClaimedAt?: Date
+    ) =>
       Effect.gen(function* () {
         const advanced = yield* advanceGeoScanSlot(
           row,
           leaseUntil,
-          coveredAt
+          coveredAt,
+          releaseClaimedAt
         ).pipe(
           geoSkip("scan slot advance failed", {
             event: "geo.scan.slot_advance_failed",
@@ -390,25 +410,26 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
         row.projectId
       );
       if (denial) {
-        const released = yield* releaseGeoScanRun(
-          row.projectId,
+        const advanced = yield* advance(
+          row,
+          leaseUntil,
+          undefined,
           claim.claimedAt
-        ).pipe(
-          Effect.as(true),
-          geoSkip("scan claim release failed", {
-            event: "geo.scan.claim_release_failed",
-            organizationId: row.organizationId,
-            projectId: row.projectId,
-          })
         );
-        // A claim we could not hand back must not be paired with a skipped
-        // slot: keep the slot due, so the sweep that claims it once the ghost
-        // claim has gone stale settles it properly.
-        if (!released) {
+        if (!advanced) {
+          // Nothing moved, so the slot is still due. Hand the claim back on
+          // its own as a best effort, so manual scans are not blocked while
+          // the next sweep retries the slot.
+          yield* releaseGeoScanRun(row.projectId, claim.claimedAt).pipe(
+            geoSkip("scan claim release failed", {
+              event: "geo.scan.claim_release_failed",
+              organizationId: row.organizationId,
+              projectId: row.projectId,
+            })
+          );
           continue;
         }
         billingDenied += 1;
-        yield* advance(row, leaseUntil);
         yield* geoLogWarn({
           event: "geo.scan.skipped",
           reason: "billing",
