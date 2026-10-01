@@ -23,6 +23,9 @@ export interface UiLabels {
   nextSlide: string;
   scrollToEnd: string;
   scrollToStart: string;
+  conversationTurns: string;
+  previousTurn: string;
+  nextTurn: string;
   commandPaletteTitle: string;
   commandPaletteDescription: string;
   chooseOption: string;

@@ -74,6 +74,7 @@ import {
   ChatInputAdvanced,
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
+import { ChatMinimapRail } from "@/components/chat/chat-minimap-rail";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import {
   ChatQuoteProvider,
@@ -146,6 +147,7 @@ import {
   shouldShowChatAuthorAvatars,
   toChatMessageAuthor,
 } from "@/utils/chat-message-author";
+import { buildChatMinimapTurns } from "@/utils/chat-minimap";
 import {
   CHAT_PREFERENCES_STORAGE_KEY,
   DEFAULT_CHAT_PREFERENCES,
@@ -2640,6 +2642,9 @@ function StandaloneChatPageClient({
   const visibleMessages = messages.filter((message) =>
     hasVisibleChatContent(message)
   );
+  const minimapTurns = buildChatMinimapTurns(visibleMessages, (message) =>
+    toDisplayText(getUserMessageText(message))
+  );
 
   return (
     <>
@@ -2898,6 +2903,7 @@ function StandaloneChatPageClient({
                 </MessageScrollerContent>
               </MessageScrollerViewport>
               <MessageScrollerButton />
+              <ChatMinimapRail turns={minimapTurns} />
             </MessageScroller>
           </MessageScrollerProvider>
           <div
