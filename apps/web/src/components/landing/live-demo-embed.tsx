@@ -16,6 +16,8 @@ import {
   LIVE_DEMO_OPEN_LABEL,
   LIVE_DEMO_PREVIEW_ALT,
   LIVE_DEMO_PREVIEW_SRC,
+  LIVE_DEMO_STALLED_ACTION,
+  LIVE_DEMO_STALLED_LABEL,
 } from "@/constants/landing/live-demo";
 
 function openStandaloneDemo() {
@@ -28,6 +30,7 @@ export function LiveDemoEmbed() {
   // demo has finished its entry redirects so fullscreen never opens blank.
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
+  const [stalled, setStalled] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -35,7 +38,7 @@ export function LiveDemoEmbed() {
       return;
     }
     const timeout = window.setTimeout(
-      () => setReady(true),
+      () => setStalled(true),
       LIVE_DEMO_LOAD_TIMEOUT_MS
     );
     return () => window.clearTimeout(timeout);
@@ -47,6 +50,13 @@ export function LiveDemoEmbed() {
     document.addEventListener("fullscreenchange", sync);
     return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
+
+  const openStalledDemo = () => {
+    openStandaloneDemo();
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    }
+  };
 
   const openFullscreen = async () => {
     const container = containerRef.current;
@@ -91,14 +101,23 @@ export function LiveDemoEmbed() {
           />
         )}
         {mounted && !ready ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30">
             <span
               aria-live="polite"
-              className="bg-foreground text-background animate-pulse rounded-full px-5 py-2.5 text-sm font-medium motion-reduce:animate-none"
+              className="bg-foreground text-background rounded-full px-5 py-2.5 text-sm font-medium"
               role="status"
             >
-              {LIVE_DEMO_LOADING_LABEL}
+              {stalled ? LIVE_DEMO_STALLED_LABEL : LIVE_DEMO_LOADING_LABEL}
             </span>
+            {stalled ? (
+              <button
+                className="bg-background text-foreground cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium"
+                onClick={openStalledDemo}
+                type="button"
+              >
+                {LIVE_DEMO_STALLED_ACTION}
+              </button>
+            ) : null}
           </div>
         ) : null}
         {expanded ? (
