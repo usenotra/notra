@@ -2580,6 +2580,9 @@
       }
     },
     "engineFamilySheet": {
+      "missedTitle": "{count, plural, one {# prompt misses you} other {# prompts miss you}}",
+      "foundTitle": "{count, plural, one {# prompt mentions you} other {# prompts mention you}}",
+      "trend": "Visibility over time",
       "descriptionModels": "How visible your brand is in each model",
       "descriptionEngine": "How visible your brand is in this engine",
       "lastChecked": "Last checked {time}",
@@ -2589,10 +2592,6 @@
       "seriesLabel": "Brand visibility · {mode}",
       "answerMode": "Answer mode",
       "brandsHint": "How often each brand shows up in this engine's answers to your prompts",
-      "result": {
-        "miss": "Miss"
-      },
-      "promptsCount": "Prompts ({count, number})",
       "resultHeader": "Result",
       "emptyPrompts": "No prompts scanned yet"
     },
@@ -2616,27 +2615,6 @@
       "empty": "Run a scan to see engine mention rates",
       "emptySeed": "Mention rate by engine",
       "noMatches": "No engines match this filter"
-    },
-    "familyImproveCard": {
-      "closeGaps": "Close these gaps",
-      "insights": {
-        "searchAhead": {
-          "title": "Search finds you. Memory doesn't.",
-          "body": "When {family} looks at the web it mentions you {search}. Without search it's {memory}. Pages that answer the {count, plural, one {# prompt} other {# prompts}} it missed help search keep citing you."
-        },
-        "memoryAhead": {
-          "title": "Remembered, not found.",
-          "body": "{family} already names you without searching ({memory}), but live search only mentions you {search}. Pages that match the {count, plural, one {# prompt} other {# prompts}} it missed close that gap."
-        },
-        "closing": {
-          "title": "{count, plural, one {# prompt still misses you} other {# prompts still miss you}}",
-          "body": "{family} already mentions you often. Closing the remaining misses is the fastest way to raise the rate."
-        },
-        "bothWeak": {
-          "title": "{count, plural, one {# prompt never mentions you} other {# prompts never mention you}}",
-          "body": "Neither search nor memory is recommending you on these questions. Write the pages that answer them."
-        }
-      }
     },
     "gapDetailSheet": {
       "coverage": "Mentioned by {visible} of {total} engines",

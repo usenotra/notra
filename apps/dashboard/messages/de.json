@@ -2580,6 +2580,9 @@
       }
     },
     "engineFamilySheet": {
+      "missedTitle": "{count, plural, one {# Prompt erwähnt dich nicht} other {# Prompts erwähnen dich nicht}}",
+      "foundTitle": "{count, plural, one {# Prompt erwähnt dich} other {# Prompts erwähnen dich}}",
+      "trend": "Sichtbarkeit im Verlauf",
       "descriptionModels": "Wie sichtbar deine Marke in jedem Modell ist",
       "descriptionEngine": "Wie sichtbar deine Marke in dieser KI-Engine ist",
       "lastChecked": "Zuletzt geprüft {time}",
@@ -2589,10 +2592,6 @@
       "seriesLabel": "Markensichtbarkeit · {mode}",
       "answerMode": "Antwortmodus",
       "brandsHint": "Wie oft jede Marke in den Antworten dieser KI-Engine auf deine Prompts auftaucht",
-      "result": {
-        "miss": "Verfehlt"
-      },
-      "promptsCount": "Prompts ({count, number})",
       "resultHeader": "Ergebnis",
       "emptyPrompts": "Noch keine Prompts gescannt"
     },
@@ -2616,27 +2615,6 @@
       "empty": "Starte einen Scan, um die Erwähnungsraten der KI-Engines zu sehen",
       "emptySeed": "Erwähnungsrate nach KI-Engine",
       "noMatches": "Keine KI-Engines entsprechen diesem Filter"
-    },
-    "familyImproveCard": {
-      "closeGaps": "Diese Lücken schließen",
-      "insights": {
-        "searchAhead": {
-          "title": "Die Suche findet dich. Das Gedächtnis nicht.",
-          "body": "Wenn {family} im Web sucht, erwähnt es dich in {search} der Antworten. Ohne Suche sind es {memory}. Seiten, die {count, plural, one {den verpassten Prompt} other {die # verpassten Prompts}} beantworten, helfen der Suche, dich weiter zu zitieren."
-        },
-        "memoryAhead": {
-          "title": "Bekannt, aber nicht gefunden.",
-          "body": "{family} nennt dich schon ohne Suche ({memory}), aber die Live-Suche erwähnt dich nur in {search} der Antworten. Seiten, die zu {count, plural, one {dem verpassten Prompt} other {den # verpassten Prompts}} passen, schließen diese Lücke."
-        },
-        "closing": {
-          "title": "{count, plural, one {# Prompt verpasst dich noch} other {# Prompts verpassen dich noch}}",
-          "body": "{family} erwähnt dich schon oft. Die restlichen Lücken zu schließen ist der schnellste Weg, die Rate zu erhöhen."
-        },
-        "bothWeak": {
-          "title": "{count, plural, one {# Prompt erwähnt dich nie} other {# Prompts erwähnen dich nie}}",
-          "body": "Weder Suche noch Gedächtnis empfehlen dich bei diesen Fragen. Schreib die Seiten, die sie beantworten."
-        }
-      }
     },
     "gapDetailSheet": {
       "coverage": "Erwähnt von {visible} von {total} KI-Engines",
