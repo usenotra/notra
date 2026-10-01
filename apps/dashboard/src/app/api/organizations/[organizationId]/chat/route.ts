@@ -233,37 +233,16 @@ export const POST = withEvlog(async function POST(
     }
     cleanupStreamId = streamId;
 
-    const hydratedMessages = await hydrateSavedChatPosts(
-      organizationId,
-      chatId,
-      messages
-    );
-    messages = preserveConversationSelection(
-      hydratedMessages,
-      existingSession?.messages ?? []
-    );
-
     // Finish all preparation before error cleanup can release the stream lock.
-    const [historyResult, integrationsResult, stoppedResult] =
+    const [hydrationResult, integrationsResult, stoppedResult] =
       await Promise.allSettled([
-        replaceChatHistory(
-          organizationId,
-          chatId,
-          messages,
-          undefined,
-          // The snapshot was read before taking the stream lock. Reject it if
-          // another response finished in between, rather than saving stale history.
-          existingSession
-            ? (existingSession.messages.at(-1)?.id ?? null)
-            : undefined,
-          projectId
-        ),
+        hydrateSavedChatPosts(organizationId, chatId, messages),
         getStandaloneChatIntegrations(organizationId),
         clearLastResponseStopped(organizationId, chatId),
       ]);
 
-    if (historyResult.status === "rejected") {
-      throw historyResult.reason;
+    if (hydrationResult.status === "rejected") {
+      throw hydrationResult.reason;
     }
     if (integrationsResult.status === "rejected") {
       throw integrationsResult.reason;
@@ -272,8 +251,25 @@ export const POST = withEvlog(async function POST(
       throw stoppedResult.reason;
     }
     const validatedIntegrations = integrationsResult.value;
+    messages = preserveConversationSelection(
+      hydrationResult.value,
+      existingSession?.messages ?? []
+    );
 
-    if (!historyResult.value) {
+    // Persist only after preparation succeeds so a failed send leaves no turn.
+    const historySaved = await replaceChatHistory(
+      organizationId,
+      chatId,
+      messages,
+      undefined,
+      // Reject a snapshot made stale before acquiring the stream lock.
+      existingSession
+        ? (existingSession.messages.at(-1)?.id ?? null)
+        : undefined,
+      projectId
+    );
+
+    if (!historySaved) {
       await clearActiveChatStream(organizationId, chatId, streamId);
       const currentSession = await getChatSessionState(organizationId, chatId);
       if (currentSession && currentSession.deletedAt === null) {
