@@ -24,3 +24,5 @@ export const LIVE_DEMO_IFRAME_TITLE = "Notra live demo";
 export const LIVE_DEMO_OPEN_LABEL = "Explore the demo";
 
 export const LIVE_DEMO_CLOSE_LABEL = "Close demo";
+
+export const LIVE_DEMO_LOADING_LABEL = "Opening your demo workspace…";
