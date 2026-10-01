@@ -66,6 +66,9 @@ const SHARED_ARROW_CLASS_NAME =
 const SharedTooltipContext =
   createContext<TooltipPrimitive.Handle<SharedTooltipPayload> | null>(null)
 const SharedTooltipItemContext = createContext<SharedTooltipItem | null>(null)
+// Set by every TooltipProvider, so a standalone Tooltip only adds its own
+// instant provider when no provider (and its delay) sits above it.
+const HasTooltipProviderContext = createContext(false)
 
 function TooltipFrame({
   align = "center",
@@ -145,6 +148,7 @@ function TooltipProvider({
       delay={delay}
       {...props}
     >
+      <HasTooltipProviderContext value>
       <SharedTooltipContext value={glide ? handle : null}>
         {children}
         {glide ? (
@@ -171,12 +175,14 @@ function TooltipProvider({
           </TooltipPrimitive.Root>
         ) : null}
       </SharedTooltipContext>
+      </HasTooltipProviderContext>
     </TooltipPrimitive.Provider>
   )
 }
 
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   const handle = use(SharedTooltipContext)
+  const hasProvider = use(HasTooltipProviderContext)
   const [payload, setPayload] = useState<SharedTooltipPayload>()
   const disabled = props.disabled || !payload
   const item = useMemo(
@@ -192,9 +198,15 @@ function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
     )
   }
 
+  const root = <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+
+  if (hasProvider) {
+    return root
+  }
+
   return (
     <TooltipPrimitive.Provider data-slot="tooltip-provider" delay={0}>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+      {root}
     </TooltipPrimitive.Provider>
   )
 }
