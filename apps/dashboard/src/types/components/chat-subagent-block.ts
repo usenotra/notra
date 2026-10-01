@@ -1,4 +1,5 @@
 import type { SourceCodeIcon } from "@hugeicons/core-free-icons";
+import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ReactNode } from "react";
 
 export interface ChatSubagentConfig {
@@ -34,4 +35,9 @@ export interface ChatSubagentBlockProps {
   children?: ReactNode;
   stepCount?: number;
   defaultOpen?: boolean;
+}
+
+export interface ChatSubagentToolPartProps {
+  part: ToolUIPart | DynamicToolUIPart;
+  isActive: boolean;
 }

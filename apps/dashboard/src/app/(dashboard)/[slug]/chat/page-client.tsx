@@ -65,7 +65,7 @@ import {
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
-import { ChatSubagentBlock } from "@/components/ai/chat-subagent-block";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -163,11 +163,7 @@ import {
   resetNewChatClientState,
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
-import {
-  getChatSubagentErrorText,
-  getChatSubagentSteps,
-  isChatSubagentName,
-} from "@/utils/chat-subagents";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { formatLongDate } from "@/utils/dashboard-greeting";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
@@ -2471,49 +2467,12 @@ function StandaloneChatPageClient({
       }
 
       if (isChatSubagentName(toolName)) {
-        // Preliminary outputs stream the subagent's steps while it still runs.
-        const isPreliminary =
-          toolPart.state === "output-available" &&
-          toolPart.preliminary === true;
-        const subagentOutput =
-          toolPart.state === "output-available" ? toolPart.output : undefined;
-        const subagentSteps = getChatSubagentSteps(subagentOutput);
-        const isSubagentActive = messageId === chatActivity.activeMessageId;
         return (
-          <ChatSubagentBlock
-            agentName={toolName}
-            errorText={
-              toolPart.state === "output-error"
-                ? toolPart.errorText
-                : getChatSubagentErrorText(subagentOutput)
-            }
-            isActive={isSubagentActive}
+          <ChatSubagentToolPart
+            isActive={messageId === chatActivity.activeMessageId}
             key={toolPart.toolCallId}
-            output={isPreliminary ? undefined : subagentOutput}
-            state={isPreliminary ? "input-available" : toolPart.state}
-            stepCount={
-              subagentSteps.length > 0 ? subagentSteps.length : undefined
-            }
-            toolCallId={toolPart.toolCallId}
-          >
-            {subagentSteps.length > 0
-              ? subagentSteps.map((step) => (
-                  <ChatToolBlock
-                    input={step.input}
-                    isActive={isSubagentActive}
-                    key={step.toolCallId}
-                    output={
-                      step.state === "output-error"
-                        ? { error: step.errorText }
-                        : step.output
-                    }
-                    state={step.state}
-                    toolCallId={step.toolCallId}
-                    toolName={step.toolName}
-                  />
-                ))
-              : null}
-          </ChatSubagentBlock>
+            part={toolPart}
+          />
         );
       }
 
