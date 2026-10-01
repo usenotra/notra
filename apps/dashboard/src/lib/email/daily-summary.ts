@@ -30,7 +30,9 @@ import { and, asc, eq, gte, inArray, isNull, lt, or } from "drizzle-orm";
 
 import {
   DAILY_SUMMARY_MAX_ITEMS,
+  DAILY_SUMMARY_LISTED_CHANGE_KINDS,
   DAILY_SUMMARY_PROMPT_MAX_LENGTH,
+  DAILY_SUMMARY_TRIGGER_CHANGE_KINDS,
 } from "@/constants/daily-summary";
 import { sendDailySummaryEmail } from "@/lib/email/send";
 import type { DailySummaryOrganizationResult } from "@/types/email/daily-summary";
@@ -41,7 +43,6 @@ import {
   getPreviousUtcDayWindow,
   groupDailySummaryItems,
   isQuietDailySummary,
-  isUnchangedDailySummary,
   mergeChangesSummaries,
   truncatePrompt,
   utcDateKey,
@@ -254,28 +255,29 @@ async function sendDailySummaryForOrganization({
       }
 
       const projectName = projectNames.get(entry.projectId);
-      return entry.events.map((event) =>
-        toSummaryChangeItem(event, {
-          projectId: entry.projectId,
-          projectName: includeProjectName ? projectName : undefined,
-        })
-      );
+      return entry.events
+        .filter((event) => DAILY_SUMMARY_LISTED_CHANGE_KINDS.has(event.kind))
+        .map((event) =>
+          toSummaryChangeItem(event, {
+            projectId: entry.projectId,
+            projectName: includeProjectName ? projectName : undefined,
+          })
+        );
     })
   );
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
-  const previousDay = aggregateMentionTotals(previousOverview);
-  const changes = mergeChangesSummaries(summaries);
   if (
-    isUnchangedDailySummary({
-      yesterday,
-      previousDay,
-      hasChanges: changeEvents.some((event) => event.kind !== "new_engine"),
-    })
+    !changeEvents.some((event) =>
+      DAILY_SUMMARY_TRIGGER_CHANGE_KINDS.has(event.kind)
+    )
   ) {
     return "quiet";
   }
+
+  const previousDay = aggregateMentionTotals(previousOverview);
+  const changes = mergeChangesSummaries(summaries);
 
   const visibleItems = summaryItems.slice(0, DAILY_SUMMARY_MAX_ITEMS);
   const summary = buildDailySummary({
@@ -331,7 +333,7 @@ function toSummaryChangeItem(
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
   const engineLabel = engineFamilyLabel(family);
-  const detail = formatDailySummaryChangeDetail(event.kind, event.competitors);
+  const detail = formatDailySummaryChangeDetail(event);
 
   return {
     id: `${projectId}:${event.promptId}:${event.engine}`,

@@ -1,15 +1,14 @@
 import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
-import { GEO_CHANGE_KIND_LABELS } from "@notra/geo-core/constants/geo";
 import type {
-  GeoChangeKind,
+  GeoChangeEvent,
   GeoChangesSummary,
 } from "@notra/geo-core/types/geo";
 
+import { DAILY_SUMMARY_MAX_COMPETITOR_NAMES } from "@/constants/daily-summary";
 import type {
   BuildDailySummaryInput,
   BuiltDailySummary,
   DailySummaryMentionTotals,
-  DailySummaryUnchangedInput,
   DailySummaryWindow,
 } from "@/types/email/daily-summary";
 
@@ -62,16 +61,51 @@ export function groupDailySummaryItems(
   return [...grouped.values()];
 }
 
-export function formatDailySummaryChangeDetail(
-  kind: GeoChangeKind,
-  competitors: readonly string[]
-) {
-  const label = GEO_CHANGE_KIND_LABELS[kind];
-  if (kind !== "competitor_cited" || competitors.length === 0) {
-    return label;
-  }
+function formatCompetitorNames(competitors: readonly string[]) {
+  const shown = competitors.slice(0, DAILY_SUMMARY_MAX_COMPETITOR_NAMES);
+  const hidden = competitors.length - shown.length;
+  return hidden > 0 ? `${shown.join(", ")} +${hidden}` : shown.join(", ");
+}
 
-  return `${label}: ${competitors.join(", ")}`;
+function formatRankMove(from: number | null, to: number | null) {
+  return from !== null && to !== null ? ` from #${from} to #${to}` : "";
+}
+
+export function formatDailySummaryChangeDetail(
+  event: Pick<GeoChangeEvent, "kind" | "previous" | "current" | "competitors">
+) {
+  const from = event.previous?.position ?? null;
+  const to = event.current.position;
+
+  switch (event.kind) {
+    case "gained_mention":
+      return to === null ? "Now mentioned" : `Now mentioned at #${to}`;
+    case "lost_mention":
+      return from === null
+        ? "No longer mentioned"
+        : `No longer mentioned (was #${from})`;
+    case "competitor_displaced": {
+      const names = formatCompetitorNames(event.competitors);
+      if (!event.current.mentioned) {
+        return names ? `Replaced by ${names}` : "Replaced by a competitor";
+      }
+      return `Pushed down${formatRankMove(from, to)}${names ? ` by ${names}` : ""}`;
+    }
+    case "position_improved":
+      return `Moved up${formatRankMove(from, to)}`;
+    case "position_dropped":
+      return `Moved down${formatRankMove(from, to)}`;
+    case "citation_added":
+      return "Your site is now cited";
+    case "citation_removed":
+      return "Your site is no longer cited";
+    case "competitor_cited":
+      return `Cites ${formatCompetitorNames(event.competitors)}`;
+    case "new_engine":
+      return "First scan on this engine";
+    default:
+      return "Changed";
+  }
 }
 
 export function aggregateMentionTotals(
@@ -125,52 +159,32 @@ export function isQuietDailySummary({
   return scansCompleted === 0 && yesterdayChecks === 0;
 }
 
-function mentionRateMoved(
-  yesterday: number | null,
-  previousDay: number | null
-) {
-  if (yesterday === null || previousDay === null) {
-    return false;
-  }
-
-  return Math.round((yesterday - previousDay) * 100) !== 0;
-}
-
-export function isUnchangedDailySummary({
-  yesterday,
-  previousDay,
-  hasChanges,
-}: DailySummaryUnchangedInput) {
-  return !hasChanges && !mentionRateMoved(yesterday.rate, previousDay.rate);
+function answersNoun(count: number) {
+  return count === 1 ? "AI answer" : "AI answers";
 }
 
 export function buildDailySummaryHeadline({
   gained,
   lost,
-  mentionRateLabel,
-}: {
-  gained: number;
-  lost: number;
-  mentionRateLabel: string;
-}) {
+  positionDropped,
+}: Pick<GeoChangesSummary, "gained" | "lost" | "positionDropped">) {
   if (gained > 0 && lost > 0) {
-    const gainedNoun = gained === 1 ? "prompt" : "prompts";
-    return `You gained ${gained} ${gainedNoun} but lost ${lost} yesterday.`;
+    return `You showed up in ${gained} new ${answersNoun(gained)} but dropped out of ${lost}.`;
   }
 
   if (gained > 0) {
-    const promptNoun = gained === 1 ? "prompt" : "prompts";
-    return `You gained ${gained} ${promptNoun} yesterday.`;
+    return `You showed up in ${gained} new ${answersNoun(gained)} yesterday.`;
   }
 
   if (lost > 0) {
-    const promptNoun = lost === 1 ? "prompt" : "prompts";
-    return `You lost ${lost} ${promptNoun} yesterday.`;
+    return `You dropped out of ${lost} ${answersNoun(lost)} yesterday.`;
   }
 
-  return mentionRateLabel === "—"
-    ? "Yesterday's scan finished. Your GEO recap is ready."
-    : `Yesterday's visibility: ${mentionRateLabel}.`;
+  if (positionDropped > 0) {
+    return `Competitors pushed you down in ${positionDropped} ${answersNoun(positionDropped)} yesterday.`;
+  }
+
+  return "Your AI visibility changed yesterday.";
 }
 
 export function emptyChangesSummary(): GeoChangesSummary {
@@ -216,11 +230,7 @@ export function buildDailySummary({
   );
   return {
     dateLabel: formatUtcDateLabel(windowStart),
-    headline: buildDailySummaryHeadline({
-      mentionRateLabel,
-      gained: changes.gained,
-      lost: changes.lost,
-    }),
+    headline: buildDailySummaryHeadline(changes),
     mentionRateLabel,
     mentionRateDeltaLabel,
     scansCompleted,
