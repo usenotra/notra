@@ -11,6 +11,14 @@ import { DEMO_FRAME_ANCESTOR } from "./src/constants/demo";
 const demoMode = isDemoMode();
 
 const nextConfig: NextConfig = {
+  // Self-hosted images (the public demo on Railway) ship only the traced
+  // server files; Vercel builds ignore this.
+  ...(process.env.NEXT_OUTPUT_STANDALONE === "1"
+    ? {
+        output: "standalone" as const,
+        outputFileTracingRoot: path.resolve(__dirname, "../.."),
+      }
+    : {}),
   // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
   // previews should not become routes or bundles in a production build.
   pageExtensions: [
