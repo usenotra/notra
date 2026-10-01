@@ -15,14 +15,12 @@ export const baseProcedure = os
       return next();
     }
     const startedAt = performance.now();
+    // Load the logger while the procedure runs; time only the procedure.
+    const logger = import("@/lib/demo/ui-actions");
     const result = await next();
-    const { logDemoUiAction } = await import("@/lib/demo/ui-actions");
-    logDemoUiAction({
-      path,
-      input,
-      output: result.output,
-      durationMs: performance.now() - startedAt,
-    });
+    const durationMs = performance.now() - startedAt;
+    const { logDemoUiAction } = await logger;
+    logDemoUiAction({ path, input, output: result.output, durationMs });
     return result;
   });
 
