@@ -11,6 +11,7 @@ import {
   LIVE_DEMO_FALLBACK_URL,
   LIVE_DEMO_IFRAME_SANDBOX,
   LIVE_DEMO_IFRAME_TITLE,
+  LIVE_DEMO_LOAD_TIMEOUT_MS,
   LIVE_DEMO_LOADING_LABEL,
   LIVE_DEMO_OPEN_LABEL,
   LIVE_DEMO_PREVIEW_ALT,
@@ -28,6 +29,17 @@ export function LiveDemoEmbed() {
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!mounted || ready) {
+      return;
+    }
+    const timeout = window.setTimeout(
+      () => setReady(true),
+      LIVE_DEMO_LOAD_TIMEOUT_MS
+    );
+    return () => window.clearTimeout(timeout);
+  }, [mounted, ready]);
 
   useEffect(() => {
     const sync = () =>

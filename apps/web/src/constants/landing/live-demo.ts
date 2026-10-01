@@ -25,4 +25,7 @@ export const LIVE_DEMO_OPEN_LABEL = "Explore the demo";
 
 export const LIVE_DEMO_CLOSE_LABEL = "Close demo";
 
+/** Reveal the iframe anyway if it never reports `load`, so nothing hangs. */
+export const LIVE_DEMO_LOAD_TIMEOUT_MS = 15_000;
+
 export const LIVE_DEMO_LOADING_LABEL = "Opening your demo workspace…";
