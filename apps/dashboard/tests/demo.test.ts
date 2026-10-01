@@ -8,11 +8,11 @@ import { resolveDemoLanding, safeDemoReturnTo } from "@/utils/demo-return-to";
 
 describe("demo mode switch", () => {
   test("needs the flag and no WorkOS key", () => {
-    expect(isDemoMode("1", undefined)).toBe(true);
+    expect(isDemoMode("1", "")).toBe(true);
     expect(isDemoMode("true", "")).toBe(true);
     expect(isDemoMode("1", "sk_live_123")).toBe(false);
-    expect(isDemoMode(undefined, undefined)).toBe(false);
-    expect(isDemoMode("0", undefined)).toBe(false);
+    expect(isDemoMode(undefined, "")).toBe(false);
+    expect(isDemoMode("0", "")).toBe(false);
   });
 });
 
@@ -85,6 +85,8 @@ describe("demo landing", () => {
   test("rejects open redirects", () => {
     expect(safeDemoReturnTo("//evil.example")).toBeNull();
     expect(safeDemoReturnTo("https://evil.example")).toBeNull();
+    expect(safeDemoReturnTo("/\\evil.example")).toBeNull();
+    expect(safeDemoReturnTo("/\t/evil.example")).toBeNull();
     expect(safeDemoReturnTo("/geo")).toBe("/geo");
   });
 

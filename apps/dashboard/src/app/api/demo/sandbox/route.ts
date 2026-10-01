@@ -11,8 +11,8 @@ import {
 import { writeDemoSession } from "@/lib/demo/session";
 import { demoSandboxCreateInputSchema } from "@/schemas/demo";
 import type { DemoSandboxCreateResponse } from "@/types/demo";
-import { hashDemoClientIp } from "@/utils/demo-ip-hash";
-import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
+import { getDemoClientIp, hashDemoClientIp } from "@/utils/demo-ip-hash";
+import { ratelimit } from "@/utils/ratelimit";
 
 export const maxDuration = 60;
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return new Response(null, { status: 404 });
   }
 
-  const ipHash = hashDemoClientIp(getClientIpFromHeaders(await headers()));
+  const ipHash = hashDemoClientIp(getDemoClientIp(await headers()));
   const { success } = await ratelimit.demoSandboxCreate.limit(ipHash);
   if (!success) {
     return Response.json(
