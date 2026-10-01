@@ -4,11 +4,10 @@ import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateGuidelinesPreview } from "@/components/empty-state-preview";
 import { GUIDELINES_SKELETON_KEYS } from "@/constants/brand-guideline-ui";
@@ -17,11 +16,12 @@ import {
   useRefreshBrandGuidelinesAction,
 } from "@/lib/hooks/use-brand-guidelines";
 import type { GuidelinesPanelProps } from "@/types/brand-identity";
-import { latest } from "@/utils/latest-date";
 
+import { GuidelinesActionButton } from "./guidelines-action-button";
 import { GuidelinesAssetsSection } from "./guidelines-assets-section";
 import { GuidelinesColorsSection } from "./guidelines-colors-section";
 import { GuidelinesScreenshotsSection } from "./guidelines-screenshots-section";
+import { GuidelinesStatusLine } from "./guidelines-status-line";
 import { GuidelinesTokensSection } from "./guidelines-tokens-section";
 import { GuidelinesTypographySection } from "./guidelines-typography-section";
 
@@ -33,8 +33,6 @@ export function GuidelinesPanel({
   const tCommon2 = useTranslations("common");
   const tBrandShared = useTranslations("brand.shared");
   const tCommon = useTranslations("common.actions");
-  const format = useFormatter();
-  const now = useNow();
   const { data, isError, isPending, refetch } = useBrandGuidelines(
     organizationId,
     voiceId
@@ -93,14 +91,13 @@ export function GuidelinesPanel({
     return (
       <EmptyState
         action={
-          <Button disabled={isRefreshBusy} onClick={refresh.refreshGuidelines}>
-            {isRefreshBusy ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon className="size-4" icon={SparklesIcon} />
-            )}
-            {isRefreshBusy ? tCommon2("labels.generating") : t("generate")}
-          </Button>
+          <GuidelinesActionButton
+            busy={isRefreshBusy}
+            busyLabel={tCommon2("labels.generating")}
+            icon={SparklesIcon}
+            label={t("generate")}
+            onClick={refresh.refreshGuidelines}
+          />
         }
         description={t("emptyDescription")}
         preview={<EmptyStateGuidelinesPreview />}
@@ -136,23 +133,10 @@ export function GuidelinesPanel({
 
   return (
     <div className="space-y-6">
-      {isGenerating ? (
-        <p className="text-muted-foreground flex items-center justify-end gap-2 text-xs">
-          <Loader2Icon className="size-3 animate-spin" />
-          {t("updatingGuidelines")}
-        </p>
-      ) : null}
-
-      {guideline.lastGeneratedAt && !isGenerating ? (
-        <p className="text-muted-foreground text-right text-xs">
-          {t("updatedAt", {
-            time: format.relativeTime(
-              new Date(guideline.lastGeneratedAt),
-              latest(now, guideline.lastGeneratedAt)
-            ),
-          })}
-        </p>
-      ) : null}
+      <GuidelinesStatusLine
+        generating={isGenerating}
+        lastGeneratedAt={guideline.lastGeneratedAt}
+      />
 
       {hasData ? (
         <>
@@ -187,19 +171,13 @@ export function GuidelinesPanel({
       {hasData ? null : (
         <EmptyState
           action={
-            <Button
-              disabled={isRefreshBusy}
+            <GuidelinesActionButton
+              busy={isRefreshBusy}
+              busyLabel={tCommon2("labels.refreshing")}
+              icon={Refresh03Icon}
+              label={tBrandShared("refreshGuidelines")}
               onClick={refresh.refreshGuidelines}
-            >
-              {isRefreshBusy ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : (
-                <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
-              )}
-              {isRefreshBusy
-                ? tCommon2("labels.refreshing")
-                : tBrandShared("refreshGuidelines")}
-            </Button>
+            />
           }
           description={t("noAssetsDescription")}
           preview={<EmptyStateGuidelinesPreview />}

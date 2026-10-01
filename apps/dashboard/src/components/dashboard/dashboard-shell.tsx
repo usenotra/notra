@@ -15,7 +15,6 @@ import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useQueryState } from "nuqs";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -25,18 +24,12 @@ import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { DemoBanner } from "@/components/demo/demo-banner";
+import { DashboardDemoChrome } from "@/components/demo/dashboard-demo-chrome";
 import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
-import { DemoTimeZoneSync } from "@/components/demo/demo-time-zone-sync";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import {
-  DEMO_BANNER_HEIGHT,
-  DEMO_BANNER_OFF,
-  DEMO_BANNER_PARAM,
-} from "@/constants/demo";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
-import { demoBannerParser } from "@/lib/demo/banner-param";
+import { useDemoBannerVisible } from "@/lib/hooks/use-demo-banner-visible";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
@@ -48,8 +41,8 @@ import type {
   DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
-  DashboardShellStyle,
 } from "@/types/components/dashboard-shell";
+import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(
@@ -241,19 +234,8 @@ export function DashboardShell({
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
   const demo = isDemoModeClient();
-  const [demoBannerParam] = useQueryState(DEMO_BANNER_PARAM, demoBannerParser);
-  const showDemoBanner =
-    demo &&
-    (demoBannerParam ? demoBannerParam !== DEMO_BANNER_OFF : !demoBannerHidden);
-  const eveBannerHeight = visible ? EVE_BANNER_HEIGHT : "0rem";
-  // Everything below the top banners offsets by this; the demo bar is
-  // there in the public demo unless opened with `?banner=off`.
-  const shellStyle: DashboardShellStyle = showDemoBanner
-    ? {
-        "--eve-banner-height": `calc(${DEMO_BANNER_HEIGHT} + ${eveBannerHeight})`,
-        "--demo-banner-height": DEMO_BANNER_HEIGHT,
-      }
-    : { "--eve-banner-height": eveBannerHeight };
+  const showDemoBanner = useDemoBannerVisible(demoBannerHidden);
+  const shellStyle = dashboardShellStyle(showDemoBanner, visible);
   const {
     finishSidebarResize,
     setSidebarWidth,
@@ -306,8 +288,7 @@ export function DashboardShell({
       data-dashboard-shell
       style={shellStyle}
     >
-      {showDemoBanner ? <DemoBanner /> : null}
-      {demo ? <DemoTimeZoneSync /> : null}
+      {demo ? <DashboardDemoChrome showBanner={showDemoBanner} /> : null}
       <DashboardOnboardingBanner
         available={bannerAvailable}
         dismissing={dismissing}

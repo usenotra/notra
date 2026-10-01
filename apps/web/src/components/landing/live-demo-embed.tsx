@@ -2,7 +2,8 @@
 
 import { ArrowExpand01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useState, type MouseEvent } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 import {
   LIVE_DEMO_CLOSE_LABEL,
@@ -11,45 +12,66 @@ import {
   LIVE_DEMO_IFRAME_SANDBOX,
   LIVE_DEMO_IFRAME_TITLE,
   LIVE_DEMO_OPEN_LABEL,
+  LIVE_DEMO_PREVIEW_ALT,
+  LIVE_DEMO_PREVIEW_SRC,
 } from "@/constants/landing/live-demo";
 
+function openStandaloneDemo() {
+  window.open(LIVE_DEMO_FALLBACK_URL, "_blank", "noopener");
+}
+
 export function LiveDemoEmbed() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const trackFullscreen = (node: HTMLDivElement | null) => {
-    if (!node) {
-      return;
-    }
-    const sync = () => setExpanded(document.fullscreenElement === node);
-    node.addEventListener("fullscreenchange", sync);
-    return () => node.removeEventListener("fullscreenchange", sync);
-  };
+  useEffect(() => {
+    const sync = () =>
+      setExpanded(document.fullscreenElement === containerRef.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
 
-  const openFullscreen = async (event: MouseEvent<HTMLButtonElement>) => {
-    const container = event.currentTarget.parentElement;
+  const openFullscreen = async () => {
+    const container = containerRef.current;
     if (!container?.requestFullscreen) {
-      window.open(LIVE_DEMO_FALLBACK_URL, "_blank", "noopener");
+      openStandaloneDemo();
       return;
     }
-    await container.requestFullscreen();
+    setLoaded(true);
+    try {
+      await container.requestFullscreen();
+    } catch {
+      openStandaloneDemo();
+    }
   };
 
   return (
     <div className="h-[36rem] w-full max-w-[64rem] lg:h-auto lg:flex-1">
       <div
         className="group border-border bg-background relative size-full overflow-hidden rounded-2xl border lg:rounded-b-none lg:border-b-0 [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
-        ref={trackFullscreen}
+        ref={containerRef}
       >
-        <iframe
-          allow="clipboard-write"
-          className="size-full"
-          inert={!expanded}
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          sandbox={LIVE_DEMO_IFRAME_SANDBOX}
-          src={LIVE_DEMO_EMBED_URL}
-          title={LIVE_DEMO_IFRAME_TITLE}
-        />
+        {loaded ? (
+          <iframe
+            allow="clipboard-write"
+            className="size-full"
+            inert={!expanded}
+            referrerPolicy="strict-origin-when-cross-origin"
+            sandbox={LIVE_DEMO_IFRAME_SANDBOX}
+            src={LIVE_DEMO_EMBED_URL}
+            title={LIVE_DEMO_IFRAME_TITLE}
+          />
+        ) : (
+          <Image
+            alt={LIVE_DEMO_PREVIEW_ALT}
+            className="object-cover object-top-left"
+            fill
+            priority
+            sizes="(min-width: 64rem) 64rem, 100vw"
+            src={LIVE_DEMO_PREVIEW_SRC}
+          />
+        )}
         {expanded ? (
           <button
             aria-label={LIVE_DEMO_CLOSE_LABEL}

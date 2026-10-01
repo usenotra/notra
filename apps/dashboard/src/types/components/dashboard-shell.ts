@@ -29,3 +29,7 @@ export interface DashboardShellStyle extends CSSProperties {
 export interface DashboardSidebarStyle extends CSSProperties {
   "--sidebar-width": string;
 }
+
+export interface DashboardDemoChromeProps {
+  showBanner: boolean;
+}

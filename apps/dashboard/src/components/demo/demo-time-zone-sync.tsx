@@ -2,7 +2,10 @@
 
 import { useEffect } from "react";
 
-import { useDemoSandbox } from "@/lib/hooks/use-demo-sandbox";
+import {
+  useDemoSandbox,
+  useSyncDemoTimeZone,
+} from "@/lib/hooks/use-demo-sandbox";
 
 /**
  * Ready-made sandboxes start in the server's time zone; adopt the visitor's
@@ -11,6 +14,7 @@ import { useDemoSandbox } from "@/lib/hooks/use-demo-sandbox";
  */
 export function DemoTimeZoneSync() {
   const { data: sandbox } = useDemoSandbox(true);
+  const { mutate: syncTimeZone } = useSyncDemoTimeZone();
   const sandboxTimeZone = sandbox?.timeZone;
 
   useEffect(() => {
@@ -18,12 +22,8 @@ export function DemoTimeZoneSync() {
     if (!sandboxTimeZone || sandboxTimeZone === browserTimeZone) {
       return;
     }
-    void fetch("/api/demo/sandbox/timezone", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ timeZone: browserTimeZone }),
-    }).catch(() => undefined);
-  }, [sandboxTimeZone]);
+    syncTimeZone(browserTimeZone);
+  }, [sandboxTimeZone, syncTimeZone]);
 
   return null;
 }
