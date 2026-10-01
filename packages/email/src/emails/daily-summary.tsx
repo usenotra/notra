@@ -466,7 +466,7 @@ DailySummaryEmail.PreviewProps = {
       changes: [
         {
           id: "position_dropped",
-          detail: "Pushed down from #1 to #3 by Otter, Rev",
+          detail: "Moved down from #1 to #3 (new: Otter, Rev)",
           tone: "down",
         },
       ],

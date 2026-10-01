@@ -16,9 +16,3 @@ export const DAILY_SUMMARY_LISTED_CHANGE_KINDS: ReadonlySet<GeoChangeKind> =
     "citation_added",
     "citation_removed",
   ]);
-
-// Only a mention appearing or disappearing justifies an email. Rank and owned
-// citation flips are LLM sampling noise on their own, and a day-level mention
-// rate swing without either usually just means prompts were added or removed.
-export const DAILY_SUMMARY_TRIGGER_CHANGE_KINDS: ReadonlySet<GeoChangeKind> =
-  new Set(["gained_mention", "lost_mention", "competitor_displaced"]);

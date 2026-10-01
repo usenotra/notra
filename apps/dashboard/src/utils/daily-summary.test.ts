@@ -4,6 +4,7 @@ import {
   buildDailySummaryHeadline,
   formatDailySummaryChangeDetail,
   groupDailySummaryItems,
+  isDailySummaryTrigger,
   truncatePrompt,
 } from "@/utils/daily-summary";
 
@@ -54,19 +55,16 @@ test("names the competitors behind a displacement", () => {
       current: state(true, 3),
       competitors: ["Rival"],
     })
-  ).toBe("Pushed down from #1 to #3 by Rival");
+  ).toBe("Moved down from #1 to #3 (new: Rival)");
 });
 
 test("headline counts answers, not prompts", () => {
-  expect(
-    buildDailySummaryHeadline({ gained: 2, lost: 1, positionDropped: 0 })
-  ).toBe("You showed up in 2 new AI answers but dropped out of 1.");
-  expect(
-    buildDailySummaryHeadline({ gained: 0, lost: 1, positionDropped: 0 })
-  ).toBe("You dropped out of 1 AI answer yesterday.");
-  expect(
-    buildDailySummaryHeadline({ gained: 0, lost: 0, positionDropped: 2 })
-  ).toBe("Competitors pushed you down in 2 AI answers yesterday.");
+  expect(buildDailySummaryHeadline({ gained: 2, lost: 1 })).toBe(
+    "You showed up in 2 new AI answers but dropped out of 1."
+  );
+  expect(buildDailySummaryHeadline({ gained: 0, lost: 1 })).toBe(
+    "You dropped out of 1 AI answer yesterday."
+  );
 });
 
 test("groups changes for the same prompt and engine", () => {
@@ -137,4 +135,25 @@ test("keeps distinct prompt ids when display titles match", () => {
     "prompt-1:anthropic",
     "prompt-2:anthropic",
   ]);
+});
+
+test("only mentions appearing or disappearing trigger an email", () => {
+  expect(
+    isDailySummaryTrigger({
+      kind: "competitor_displaced",
+      current: state(false, null),
+    })
+  ).toBe(true);
+  expect(
+    isDailySummaryTrigger({
+      kind: "competitor_displaced",
+      current: state(true, 3),
+    })
+  ).toBe(false);
+  expect(
+    isDailySummaryTrigger({ kind: "position_dropped", current: state(true, 4) })
+  ).toBe(false);
+  expect(
+    isDailySummaryTrigger({ kind: "citation_added", current: state(true, 1) })
+  ).toBe(false);
 });

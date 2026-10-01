@@ -89,7 +89,9 @@ export function formatDailySummaryChangeDetail(
       if (!event.current.mentioned) {
         return names ? `Replaced by ${names}` : "Replaced by a competitor";
       }
-      return `Pushed down${formatRankMove(from, to)}${names ? ` by ${names}` : ""}`;
+      // The event only says these competitors are new to the answer, not that
+      // they rank above the brand, so don't name them as the cause.
+      return `Moved down${formatRankMove(from, to)}${names ? ` (new: ${names})` : ""}`;
     }
     case "position_improved":
       return `Moved up${formatRankMove(from, to)}`;
@@ -159,6 +161,19 @@ export function isQuietDailySummary({
   return scansCompleted === 0 && yesterdayChecks === 0;
 }
 
+// Only a mention appearing or disappearing justifies an email. Rank and owned
+// citation flips are LLM sampling noise on their own, and a day-level mention
+// rate swing without either usually just means prompts were added or removed.
+export function isDailySummaryTrigger(
+  event: Pick<GeoChangeEvent, "kind" | "current">
+) {
+  if (event.kind === "competitor_displaced") {
+    return !event.current.mentioned;
+  }
+
+  return event.kind === "gained_mention" || event.kind === "lost_mention";
+}
+
 function answersNoun(count: number) {
   return count === 1 ? "AI answer" : "AI answers";
 }
@@ -166,8 +181,7 @@ function answersNoun(count: number) {
 export function buildDailySummaryHeadline({
   gained,
   lost,
-  positionDropped,
-}: Pick<GeoChangesSummary, "gained" | "lost" | "positionDropped">) {
+}: Pick<GeoChangesSummary, "gained" | "lost">) {
   if (gained > 0 && lost > 0) {
     return `You showed up in ${gained} new ${answersNoun(gained)} but dropped out of ${lost}.`;
   }
@@ -178,10 +192,6 @@ export function buildDailySummaryHeadline({
 
   if (lost > 0) {
     return `You dropped out of ${lost} ${answersNoun(lost)} yesterday.`;
-  }
-
-  if (positionDropped > 0) {
-    return `Competitors pushed you down in ${positionDropped} ${answersNoun(positionDropped)} yesterday.`;
   }
 
   return "Your AI visibility changed yesterday.";
