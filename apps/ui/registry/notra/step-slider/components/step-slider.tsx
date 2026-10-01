@@ -2,7 +2,7 @@
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 import { cn } from "cn";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { nearestStepIndex, stepRatio } from "../lib/step-slider";
 import type { StepSliderProps } from "../types/step-slider";
@@ -12,6 +12,25 @@ const STOP_UNDER_THUMB = 0.01;
 
 /** Center of a stop from the inline start, inset by the thumb radius so the ends line up with the thumb. */
 const stopCenter = (ratio: number) => `calc(1rem + ${ratio} * (100% - 2rem))`;
+
+/** Mask positions of the dot band, from before the fill's start to past its end. */
+const SWEEP_FROM = -60;
+const SWEEP_TO = 160;
+const SWEEP_KEYFRAMES: Keyframe[] = [
+  { maskPosition: `${SWEEP_FROM}% 0` },
+  { maskPosition: `${SWEEP_TO}% 0` },
+];
+const SWEEP_TIMING: KeyframeAnimationOptions = {
+  duration: 900,
+  easing: "ease-out",
+};
+/**
+ * Progress at which the band's leading edge reaches the end of the fill
+ * (mask position 100%). Past it the band only trails out of view.
+ */
+const SWEEP_PAST_FILL = (100 - SWEEP_FROM) / (SWEEP_TO - SWEEP_FROM);
+/** Two bands, so a fresh sweep can start while the last one trails out. */
+const SWEEP_BANDS = [0, 1] as const;
 
 const defaultFormatLabel = (value: number) => value;
 
@@ -44,6 +63,41 @@ export const StepSlider = ({
     lastIndex
   );
   const ratio = lastIndex > 0 ? position / lastIndex : 0;
+
+  const sweepBands = useRef<(HTMLSpanElement | null)[]>([]);
+  const sweeps = useRef<(Animation | undefined)[]>([]);
+  const activeSweep = useRef(0);
+
+  // A band still crossing the fill keeps going, so fast stepping never cuts
+  // it off or restarts it. Its mask is relative to the fill, so it runs
+  // across the new width too. Once it has crossed, the next step sends a
+  // fresh band on the other layer while the old one trails out.
+  useEffect(() => {
+    const active = sweeps.current[activeSweep.current];
+    const isRunning = active?.playState === "running";
+    const progress = active?.effect?.getComputedTiming().progress ?? 1;
+    if (isRunning && progress < SWEEP_PAST_FILL) {
+      return;
+    }
+
+    const next = isRunning ? 1 - activeSweep.current : activeSweep.current;
+    const band = sweepBands.current[next];
+    if (!band?.animate) {
+      return;
+    }
+    sweeps.current[next]?.cancel();
+    sweeps.current[next] = band.animate(SWEEP_KEYFRAMES, SWEEP_TIMING);
+    activeSweep.current = next;
+  }, [current]);
+
+  useEffect(
+    () => () => {
+      for (const sweep of sweeps.current) {
+        sweep?.cancel();
+      }
+    },
+    []
+  );
 
   const majorStepSet = majorSteps ? new Set(majorSteps) : null;
 
@@ -96,11 +150,16 @@ export const StepSlider = ({
               data-slot="step-slider-indicator"
             >
               <span className="absolute inset-0 bg-[radial-gradient(circle,#FFFFFF2E_0.75px,transparent_1.25px)] bg-size-[0.375rem_0.375rem] bg-center" />
-              {/* Remounts on every step so the dots sweep again. */}
-              <span
-                className="animate-step-slider-sweep absolute inset-0 bg-[radial-gradient(circle,#FFFFFFE6_0.9px,transparent_1.4px)] [mask-image:linear-gradient(90deg,transparent,#000_50%,transparent)] bg-size-[0.375rem_0.375rem] bg-center [mask-size:30%_100%] [mask-position:-60%_0] [mask-repeat:no-repeat] motion-reduce:hidden"
-                key={current}
-              />
+              {SWEEP_BANDS.map((band) => (
+                <span
+                  className="absolute inset-0 bg-[radial-gradient(circle,#FFFFFFE6_0.9px,transparent_1.4px)] [mask-image:linear-gradient(90deg,transparent,#000_50%,transparent)] bg-size-[0.375rem_0.375rem] bg-center [mask-size:30%_100%] [mask-position:-60%_0] [mask-repeat:no-repeat] motion-reduce:hidden"
+                  data-slot="step-slider-sweep"
+                  key={band}
+                  ref={(element) => {
+                    sweepBands.current[band] = element;
+                  }}
+                />
+              ))}
             </SliderPrimitive.Indicator>
 
             {steps.map((step, stepIndex) => {

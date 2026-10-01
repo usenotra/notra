@@ -954,21 +954,6 @@
       "title": "Step Slider",
       "description": "A slider that snaps to a fixed set of values, with a dotted fill that sweeps on every step. Built on the Base UI Slider.",
       "dependencies": ["@base-ui/react", "cn"],
-      "cssVars": {
-        "theme": {
-          "animate-step-slider-sweep": "step-slider-sweep 900ms ease-out forwards"
-        }
-      },
-      "css": {
-        "@keyframes step-slider-sweep": {
-          "from": {
-            "mask-position": "-60% 0"
-          },
-          "to": {
-            "mask-position": "160% 0"
-          }
-        }
-      },
       "files": [
         {
           "path": "registry/notra/step-slider/components/step-slider.tsx",

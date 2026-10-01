@@ -100,20 +100,6 @@
   }
 }
 
-@theme inline {
-  --animate-step-slider-sweep: step-slider-sweep 900ms ease-out forwards;
-}
-
-@keyframes step-slider-sweep {
-  from {
-    mask-position: -60% 0;
-  }
-
-  to {
-    mask-position: 160% 0;
-  }
-}
-
 /* perplexity tokens */
 :root {
   --pplx-bg: #fdfbfb;
