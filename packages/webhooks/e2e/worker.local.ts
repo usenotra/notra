@@ -12,7 +12,7 @@ const localWorkerLayer = (bindings: WorkerBindings) =>
   Layer.mergeAll(
     postgresDatabaseLayer,
     Layer.unwrap(
-      Effect.map(Config.redacted("WEBHOOK_ENCRYPTION_KEY"), webCryptoLayer)
+      Effect.map(Config.Redacted("WEBHOOK_ENCRYPTION_KEY"), webCryptoLayer)
     ),
     cloudflareQueuesLayer(bindings),
     cloudflareTransportLayer

@@ -9,10 +9,10 @@ import { neonDatabaseLayer } from "./neon";
 export const workerLayer = (bindings: WorkerBindings) =>
   Layer.mergeAll(
     Layer.unwrap(
-      Effect.map(Config.redacted("DATABASE_URL"), neonDatabaseLayer)
+      Effect.map(Config.Redacted("DATABASE_URL"), neonDatabaseLayer)
     ),
     Layer.unwrap(
-      Effect.map(Config.redacted("WEBHOOK_ENCRYPTION_KEY"), webCryptoLayer)
+      Effect.map(Config.Redacted("WEBHOOK_ENCRYPTION_KEY"), webCryptoLayer)
     ),
     cloudflareQueuesLayer(bindings),
     cloudflareTransportLayer

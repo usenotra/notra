@@ -44,7 +44,7 @@
     "@upstash/redis": "^1.38.4",
     "@usenotra/geo": "npm:@usenotra/geo@^0.5.0",
     "dompurify": "^3.4.12",
-    "effect": "4.0.0-rc.112",
+    "effect": "4.0.0",
     "fumadocs-core": "^16.6.17",
     "fumadocs-mdx": "^14.2.7",
     "marked": "17.0.5",

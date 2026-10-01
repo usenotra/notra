@@ -30,7 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@effect/tsgo": "0.45.0",
+    "@effect/tsgo": "0.47.2",
     "@shadcn/lint": "0.1.0",
     "@types/node": "24.13.2",
     "bun-types": "1.4.0",

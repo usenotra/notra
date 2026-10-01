@@ -21,7 +21,7 @@
     "@notra/tools": "workspace:*",
     "ai": "7.0.105",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-rc.112",
+    "effect": "4.0.0",
     "eve": "0.27.13",
     "pg": "^8.23.0",
     "zod": "^4.6.5"
