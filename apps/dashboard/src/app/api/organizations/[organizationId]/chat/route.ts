@@ -234,12 +234,10 @@ export const POST = withEvlog(async function POST(
     cleanupStreamId = streamId;
 
     // Finish all preparation before error cleanup can release the stream lock.
-    const [hydrationResult, integrationsResult, stoppedResult] =
-      await Promise.allSettled([
-        hydrateSavedChatPosts(organizationId, chatId, messages),
-        getStandaloneChatIntegrations(organizationId),
-        clearLastResponseStopped(organizationId, chatId),
-      ]);
+    const [hydrationResult, integrationsResult] = await Promise.allSettled([
+      hydrateSavedChatPosts(organizationId, chatId, messages),
+      getStandaloneChatIntegrations(organizationId),
+    ]);
 
     if (hydrationResult.status === "rejected") {
       throw hydrationResult.reason;
@@ -247,15 +245,13 @@ export const POST = withEvlog(async function POST(
     if (integrationsResult.status === "rejected") {
       throw integrationsResult.reason;
     }
-    if (stoppedResult.status === "rejected") {
-      throw stoppedResult.reason;
-    }
     const validatedIntegrations = integrationsResult.value;
     messages = preserveConversationSelection(
       hydrationResult.value,
       existingSession?.messages ?? []
     );
 
+    await clearLastResponseStopped(organizationId, chatId);
     // Persist only after preparation succeeds so a failed send leaves no turn.
     const historySaved = await replaceChatHistory(
       organizationId,
