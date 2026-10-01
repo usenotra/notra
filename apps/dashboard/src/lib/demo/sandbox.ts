@@ -273,6 +273,11 @@ export async function claimPooledSandbox(
     // is the slow path, left for a pool that went stale.
     const fresh =
       now.getTime() - pooled.anchorAt.getTime() < DEMO_POOL_FRESH_MS;
+    // The request log references the old id without ON UPDATE CASCADE; a
+    // pooled key is not handed out, but stray rows would block the re-key.
+    await tx
+      .delete(demoRequestLog)
+      .where(eq(demoRequestLog.anonymousId, pooled.anonymousId));
     const [row] = await tx
       .update(demoSandboxes)
       .set({

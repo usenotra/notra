@@ -1,6 +1,6 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { headers } from "next/headers";
-import { after, type NextRequest, NextResponse } from "next/server";
+import { after, type NextRequest } from "next/server";
 
 import { DEMO_CLEANUP_BATCH_SIZE, DEMO_START_PATH } from "@/constants/demo";
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
@@ -15,6 +15,14 @@ import { resolveDemoLanding, safeDemoReturnTo } from "@/utils/demo-return-to";
 import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
 
 export const maxDuration = 60;
+
+/**
+ * Relative redirect: behind a proxy (e.g. Railway) request.url carries the
+ * bind address instead of the public host, so absolute URLs would leak it.
+ */
+function redirectTo(location: string) {
+  return new Response(null, { status: 307, headers: { location } });
+}
 
 function topUpPool() {
   after(async () => {
@@ -34,7 +42,7 @@ export async function GET(request: NextRequest) {
   }
   const target = safeDemoReturnTo(request.nextUrl.searchParams.get("returnTo"));
   if (await getCurrentDemoSandbox()) {
-    return NextResponse.redirect(new URL(target ?? "/", request.url));
+    return redirectTo(target ?? "/");
   }
 
   await assertDedicatedDemoDatabase();
@@ -46,15 +54,10 @@ export async function GET(request: NextRequest) {
   topUpPool();
 
   if (!sandbox?.slug) {
-    const start = new URL(DEMO_START_PATH, request.url);
-    if (target) {
-      start.searchParams.set("returnTo", target);
-    }
-    return NextResponse.redirect(start);
+    const query = target ? `?${new URLSearchParams({ returnTo: target })}` : "";
+    return redirectTo(`${DEMO_START_PATH}${query}`);
   }
 
   await writeDemoSession(sandbox.anonymousId);
-  return NextResponse.redirect(
-    new URL(resolveDemoLanding(target, sandbox.slug), request.url)
-  );
+  return redirectTo(resolveDemoLanding(target, sandbox.slug));
 }
