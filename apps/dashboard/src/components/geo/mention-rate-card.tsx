@@ -175,6 +175,8 @@ export function MentionRateCard({
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   isScanning = false,
   organizationSlug,
+  companyName,
+  aliases,
   competitors,
 }: MentionRateCardProps) {
   const t = useTranslations("geo.mentionRateCard");
@@ -330,8 +332,8 @@ export function MentionRateCard({
           </div>
         )}
         <EngineFamilySheet
-          aliases={settings?.aliases}
-          companyName={settings?.companyName}
+          aliases={settings?.aliases ?? aliases}
+          companyName={settings?.companyName ?? companyName}
           competitors={competitors}
           family={selected}
           onOpenChange={(open) => {

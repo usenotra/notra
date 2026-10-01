@@ -880,27 +880,6 @@ export interface EngineFamilyPromptHit {
   position: number | null;
 }
 
-export type FamilyImproveKind =
-  | "search-ahead"
-  | "memory-ahead"
-  | "both-weak"
-  | "closing";
-
-export interface FamilyImproveInsight {
-  kind: FamilyImproveKind;
-  title: string;
-  body: string;
-}
-
-export type FamilyImproveTranslator = ReturnType<
-  typeof useTranslations<"geo.familyImproveCard.insights">
->;
-
-export interface FamilyImproveCardProps {
-  insight: FamilyImproveInsight;
-  gapsHref?: string;
-}
-
 export interface EngineFamilySheetProps extends EngineFamilyBrandScope {
   family: GeoEngineFamily | null;
   timeseriesPoints?: readonly GeoTimeseriesPoint[];
