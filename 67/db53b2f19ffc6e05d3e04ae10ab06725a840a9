@@ -1,0 +1,25 @@
+packages/ui/src/components/fade-swap.tsx
+  s_f3b8e2b9d1afe4::t_b5977ea669a635 3,5-11,66-68,79-81
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_f3b8e2b9d1afe4::t_fd4d435291486b 64,268,301-314
+  s_f3b8e2b9d1afe4::t_63d6a8a6cd78bf 20
+  s_f3b8e2b9d1afe4::t_b5977ea669a635 30-31
+packages/ui/src/constants/fade-swap.ts
+  s_f3b8e2b9d1afe4::t_b5977ea669a635 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "67db53b2f19ffc6e05d3e04ae10ab06725a840a9",
+  "prompts": {},
+  "sessions": {
+    "s_f3b8e2b9d1afe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f5b1a24-e260-4735-a3f9-7df21f2d14fb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
