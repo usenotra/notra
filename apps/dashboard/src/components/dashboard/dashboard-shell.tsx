@@ -15,6 +15,7 @@ import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,9 +29,14 @@ import { DemoBanner } from "@/components/demo/demo-banner";
 import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
 import { DemoTimeZoneSync } from "@/components/demo/demo-time-zone-sync";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { DEMO_BANNER_HEIGHT } from "@/constants/demo";
+import {
+  DEMO_BANNER_HEIGHT,
+  DEMO_BANNER_OFF,
+  DEMO_BANNER_PARAM,
+} from "@/constants/demo";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { demoBannerParser } from "@/lib/demo/banner-param";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
@@ -235,7 +241,10 @@ export function DashboardShell({
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
   const demo = isDemoModeClient();
-  const showDemoBanner = demo && !demoBannerHidden;
+  const [demoBannerParam] = useQueryState(DEMO_BANNER_PARAM, demoBannerParser);
+  const showDemoBanner =
+    demo &&
+    (demoBannerParam ? demoBannerParam !== DEMO_BANNER_OFF : !demoBannerHidden);
   const eveBannerHeight = visible ? EVE_BANNER_HEIGHT : "0rem";
   // Everything below the top banners offsets by this; the demo bar is
   // there in the public demo unless opened with `?banner=off`.

@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
 
 import { SHOWCASE_COMPANIES } from "./src/utils/showcase";
 import { SOCIAL_LINKS } from "./src/utils/social-links";
-import { APP_URL, SITE_URL } from "./src/utils/urls";
+import { APP_URL, DEMO_URL, SITE_URL } from "./src/utils/urls";
 
 const SHOWCASE_COMPANY_SLUGS = SHOWCASE_COMPANIES.map(
   (company) => company.slug
@@ -143,7 +143,7 @@ const nextConfig: NextConfig = {
             "font-src 'self'",
             "img-src 'self' data: blob: databuddy.cc *.databuddy.cc avatars.githubusercontent.com cdn.contentport.io media.brand.dev *.r2.dev cdn.usenotra.com pbs.twimg.com abs.twimg.com",
             `connect-src 'self' databuddy.cc *.databuddy.cc *.inth.app *.c15t.com *.c15t.dev ${DASHBOARD_SESSION_ORIGIN}`,
-            "frame-src https://challenges.cloudflare.com",
+            `frame-src https://challenges.cloudflare.com ${DEMO_URL}`,
             "frame-ancestors 'none'",
             "object-src 'none'",
             "base-uri 'self'",

@@ -62,7 +62,7 @@ export function DemoMissions({ sandbox, onOpenConsole }: DemoMissionsProps) {
           </p>
           <Button
             nativeButton={false}
-            render={<a href={sandbox.signupUrl} rel="noopener" />}
+            render={<a href={sandbox.signupUrl} rel="noopener" target="_top" />}
           >
             {t("signup")}
           </Button>

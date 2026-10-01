@@ -8,7 +8,3 @@ export interface HeroCycleWord {
 export interface HeroHeadlineProps {
   word: HeroCycleWord;
 }
-
-export interface HeroCollageProps {
-  engine: EngineId;
-}

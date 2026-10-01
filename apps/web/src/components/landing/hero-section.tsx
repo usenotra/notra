@@ -5,9 +5,9 @@ import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { HeroCollage } from "@/components/landing/hero-collage";
 import { HeroDither } from "@/components/landing/hero-dither";
 import { HeroHeadline } from "@/components/landing/hero-headline";
+import { LiveDemoEmbed } from "@/components/landing/live-demo-embed";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
   HERO_BOOK_A_CALL_HREF,
@@ -75,9 +75,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          <div className="mt-9 flex w-full flex-1 flex-col items-center overflow-clip py-3.75 sm:mt-16.25">
-            <div className="flex w-full flex-col items-center px-3">
-              <HeroCollage engine={word.engine} />
+          <div className="mt-9 flex w-full flex-1 flex-col items-center overflow-clip py-3.75 sm:mt-16.25 lg:pb-0">
+            <div className="flex w-full flex-1 flex-col items-center px-3">
+              <LiveDemoEmbed />
             </div>
           </div>
         </div>
