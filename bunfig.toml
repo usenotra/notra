@@ -62,6 +62,7 @@ minimumReleaseAgeExcludes = [
   "@scalar/astro",
   "zod",
   # Effect v4 went stable 2026-10-01; tsgo tracks it with per-platform binaries.
+  # TODO: remove these entries from 2026-10-08 on, once effect@4.0.0 and tsgo@0.47.2 clear the 7-day window.
   "effect",
   "@effect/tsgo",
   "@effect/tsgo-darwin-arm64",
