@@ -6,6 +6,11 @@ const MARKDOWN_SYNTAX_REGEX = /[#*_`>~[\]]+|\(https?:\/\/[^)]*\)/g;
 const WHITESPACE_REGEX = /\s+/g;
 const MAX_DESCRIPTION_LENGTH = 200;
 
+// Earlier messages keep their identity while a reply streams, so only the
+// streaming message is re-parsed on each update.
+const titleCache = new WeakMap<UIMessage, string>();
+const descriptionCache = new WeakMap<UIMessage, string>();
+
 function toPlainText(text: string) {
   return text
     .replace(MARKDOWN_SYNTAX_REGEX, " ")
@@ -13,11 +18,29 @@ function toPlainText(text: string) {
     .trim();
 }
 
-function getAssistantText(message: UIMessage) {
-  return message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
-    .join(" ");
+function getTitle<TMessage extends UIMessage>(
+  message: TMessage,
+  getUserTitle: (message: TMessage) => string
+) {
+  let title = titleCache.get(message);
+  if (title === undefined) {
+    title = toPlainText(getUserTitle(message));
+    titleCache.set(message, title);
+  }
+  return title;
+}
+
+function getDescription(message: UIMessage) {
+  let description = descriptionCache.get(message);
+  if (description === undefined) {
+    const text = message.parts
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join(" ");
+    description = toPlainText(text).slice(0, MAX_DESCRIPTION_LENGTH);
+    descriptionCache.set(message, description);
+  }
+  return description;
 }
 
 // One turn per user message; assistant replies attach to the turn before them.
@@ -32,7 +55,7 @@ export function buildChatMinimapTurns<TMessage extends UIMessage>(
       turns.push({
         id: message.id,
         messageIds: [message.id],
-        title: toPlainText(getUserTitle(message)),
+        title: getTitle(message, getUserTitle),
       });
       continue;
     }
@@ -42,11 +65,7 @@ export function buildChatMinimapTurns<TMessage extends UIMessage>(
       continue;
     }
     turn.messageIds.push(message.id);
-    if (!turn.description) {
-      const description = toPlainText(getAssistantText(message));
-      turn.description =
-        description.slice(0, MAX_DESCRIPTION_LENGTH) || undefined;
-    }
+    turn.description ||= getDescription(message) || undefined;
   }
 
   return turns;

@@ -8,8 +8,10 @@ import {
 } from "@notra/ui/components/ui/chat-minimap";
 import {
   useMessageScroller,
+  useMessageScrollerScrollable,
   useMessageScrollerVisibility,
 } from "@notra/ui/components/ui/message-scroller";
+import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 import type { ChatMinimapRailProps } from "@/types/chat-minimap";
@@ -20,10 +22,8 @@ export function ChatMinimapRail({ className, turns }: ChatMinimapRailProps) {
   const labels = useUiLabels();
   const { scrollToMessage } = useMessageScroller();
   const { visibleMessageIds } = useMessageScrollerVisibility();
-
-  if (turns.length < MIN_TURNS) {
-    return null;
-  }
+  const scrollable = useMessageScrollerScrollable();
+  const listRef = useRef<HTMLDivElement>(null);
 
   const visibleIds = new Set(visibleMessageIds);
   const isTurnVisible = turns.map((turn) =>
@@ -31,6 +31,26 @@ export function ChatMinimapRail({ className, turns }: ChatMinimapRailProps) {
   );
   const firstVisibleIndex = isTurnVisible.indexOf(true);
   const lastIndex = turns.length - 1;
+
+  // Long threads overflow the rail, so keep the active line inside it.
+  useEffect(() => {
+    const list = listRef.current;
+    const item = list?.children[firstVisibleIndex];
+    if (!(list && item instanceof HTMLElement)) {
+      return;
+    }
+    const top = item.offsetTop - list.offsetTop;
+    const bottom = top + item.offsetHeight;
+    if (top < list.scrollTop) {
+      list.scrollTop = top;
+    } else if (bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTop = bottom - list.clientHeight;
+    }
+  }, [firstVisibleIndex]);
+
+  if (turns.length < MIN_TURNS) {
+    return null;
+  }
 
   const scrollToTurn = (index: number) => {
     const turn = turns[Math.min(Math.max(index, 0), lastIndex)];
@@ -49,10 +69,13 @@ export function ChatMinimapRail({ className, turns }: ChatMinimapRailProps) {
     >
       <ChatMinimapNavButton
         direction="previous"
-        disabled={firstVisibleIndex <= 0}
+        disabled={!scrollable.start}
         onClick={() => scrollToTurn(firstVisibleIndex - 1)}
       />
-      <div className="flex max-h-[60vh] scrollbar-none flex-col items-start overflow-y-auto">
+      <div
+        className="relative flex max-h-[60vh] scrollbar-none flex-col items-start overflow-y-auto"
+        ref={listRef}
+      >
         {turns.map((turn, index) => (
           <ChatMinimapItem
             active={isTurnVisible[index]}
@@ -65,7 +88,11 @@ export function ChatMinimapRail({ className, turns }: ChatMinimapRailProps) {
       </div>
       <ChatMinimapNavButton
         direction="next"
-        disabled={firstVisibleIndex === -1 || firstVisibleIndex >= lastIndex}
+        disabled={
+          !scrollable.end ||
+          firstVisibleIndex === -1 ||
+          firstVisibleIndex >= lastIndex
+        }
         onClick={() => scrollToTurn(firstVisibleIndex + 1)}
       />
     </ChatMinimap>
