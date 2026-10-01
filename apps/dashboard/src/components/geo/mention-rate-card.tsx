@@ -17,7 +17,7 @@ import {
 } from "@notra/geo-core/utils/geo-engine-family";
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { FADE_SWAP_TRANSITION, FadeSwap } from "@notra/ui/components/fade-swap";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -27,7 +27,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { motion } from "motion/react";
+import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
+import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -60,6 +61,7 @@ import {
   visibilityOverviewTotals,
   withTrackedMentionEngines,
 } from "@/utils/geo-charts";
+import { loadMotionFeatures } from "@/utils/load-motion-features";
 
 const ROW_STYLE = { height: `${GEO_MENTION_ROW_HEIGHT_REM}rem` } as const;
 const LIST_STYLE = {
@@ -263,6 +265,7 @@ export function MentionRateCard({
     });
   };
   const { ref, atEnd } = useScrollOverflow<HTMLDivElement>(ranked.length);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="relative h-full">
@@ -295,18 +298,20 @@ export function MentionRateCard({
               </p>
               {/* Slides with the number's width instead of jumping under the
                   outgoing value. */}
-              <motion.span
-                className="mb-0.5 inline-flex"
-                layout="position"
-                transition={FADE_SWAP_TRANSITION}
-              >
-                <GeoStatDelta
-                  animated
-                  delta={overviewDelta}
-                  hint={tGeoShared("vsFirstHalfOfThis")}
-                  label={tCommon("labels.visibility")}
-                />
-              </motion.span>
+              <LazyMotion features={loadMotionFeatures} strict>
+                <m.span
+                  className="mb-0.5 inline-flex"
+                  layout={reduceMotion ? false : "position"}
+                  transition={FADE_SWAP_TRANSITION}
+                >
+                  <GeoStatDelta
+                    animated
+                    delta={overviewDelta}
+                    hint={tGeoShared("vsFirstHalfOfThis")}
+                    label={tCommon("labels.visibility")}
+                  />
+                </m.span>
+              </LazyMotion>
             </div>
 
             <div className="flex flex-1 flex-col gap-1">

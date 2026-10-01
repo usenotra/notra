@@ -1,7 +1,14 @@
 "use client";
 
+import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
 import type { FadeSwapProps } from "@notra/ui/types/fade-swap";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  domAnimation,
+  LazyMotion,
+  m,
+  useReducedMotion,
+} from "motion/react";
 import { useState } from "react";
 
 import { cn } from "../lib/utils";
@@ -9,12 +16,6 @@ import { cn } from "../lib/utils";
 const BLUR = "blur(6px)";
 const SHARP = "blur(0px)";
 const OFFSET_EM = 0.5;
-/*
- * A mild standard curve: strong ease-outs land almost everything in the first
- * frames (a snap), long in-outs drag. This sits between the two.
- */
-const SWAP_EASE = [0.4, 0, 0.2, 1] as const;
-export const FADE_SWAP_TRANSITION = { duration: 0.35, ease: SWAP_EASE };
 
 // Direction comes in through `custom` so the outgoing copy, whose props are
 // frozen at removal, still leaves the way the new value is heading.
@@ -62,8 +63,9 @@ export function FadeSwap({
 
   return (
     <span className={cn("relative inline-grid", className)}>
-      <AnimatePresence custom={direction} initial={false} mode="popLayout">
-        <motion.span
+      <LazyMotion features={domAnimation} strict>
+        <AnimatePresence custom={direction} initial={false} mode="popLayout">
+          <m.span
           animate="center"
           className="col-start-1 row-start-1 inline-flex whitespace-nowrap"
           custom={direction}
@@ -74,8 +76,9 @@ export function FadeSwap({
           variants={VARIANTS}
         >
           {children}
-        </motion.span>
-      </AnimatePresence>
+          </m.span>
+        </AnimatePresence>
+      </LazyMotion>
     </span>
   );
 }
