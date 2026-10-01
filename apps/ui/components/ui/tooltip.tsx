@@ -4,9 +4,12 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { cn } from "cn";
 import {
   createContext,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
   use,
   useLayoutEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -17,14 +20,20 @@ type TooltipPlacement = Pick<
 
 type TooltipContentProps = TooltipPrimitive.Popup.Props & TooltipPlacement;
 
+type SharedPopupProps = Omit<
+  TooltipPrimitive.Popup.Props,
+  "children" | "className"
+>;
+
 interface SharedTooltipPayload extends TooltipPlacement {
   children: ReactNode;
   className?: string;
+  popupProps?: SharedPopupProps;
 }
 
 interface SharedTooltipItem {
   payload: SharedTooltipPayload | undefined;
-  setPayload: (payload: SharedTooltipPayload | undefined) => void;
+  setPayload: Dispatch<SetStateAction<SharedTooltipPayload | undefined>>;
 }
 
 const tooltipContentClassName =
@@ -111,6 +120,8 @@ function TooltipProvider({
   delay = 0,
   ...props
 }: TooltipPrimitive.Provider.Props) {
+  // The shared popup only carries labels, so it closes as soon as the pointer
+  // leaves the trigger (disableHoverablePopup on the shared Root).
   const [handle] = useState(() =>
     TooltipPrimitive.createHandle<SharedTooltipPayload>()
   );
@@ -123,17 +134,19 @@ function TooltipProvider({
     >
       <SharedTooltipContext value={handle}>
         {children}
-        <TooltipPrimitive.Root handle={handle}>
+        <TooltipPrimitive.Root disableHoverablePopup handle={handle}>
           {({ payload }) => {
             const {
               children: content,
               className: contentClassName,
+              popupProps,
               ...frameProps
             } = (payload as SharedTooltipPayload | undefined) ?? {};
             return (
               <TooltipFrame
                 contentClassName={contentClassName}
                 shared
+                {...popupProps}
                 {...frameProps}
               >
                 {content}
@@ -149,10 +162,11 @@ function TooltipProvider({
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   const handle = use(SharedTooltipContext);
   const [payload, setPayload] = useState<SharedTooltipPayload>();
+  const item = useMemo(() => ({ payload, setPayload }), [payload]);
 
   if (handle) {
     return (
-      <SharedTooltipItemContext value={{ payload, setPayload }}>
+      <SharedTooltipItemContext value={item}>
         {props.children as ReactNode}
       </SharedTooltipItemContext>
     );
@@ -180,15 +194,49 @@ function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
+const isSamePopupProps = (
+  a: SharedPopupProps | undefined,
+  b: SharedPopupProps | undefined
+) => {
+  const aKeys = Object.keys(a ?? {}) as (keyof SharedPopupProps)[];
+  const bKeys = Object.keys(b ?? {});
+  return (
+    aKeys.length === bKeys.length && aKeys.every((key) => a?.[key] === b?.[key])
+  );
+};
+
+const isSamePayload = (
+  a: SharedTooltipPayload | undefined,
+  b: SharedTooltipPayload
+) =>
+  a !== undefined &&
+  a.align === b.align &&
+  a.alignOffset === b.alignOffset &&
+  a.children === b.children &&
+  a.className === b.className &&
+  a.side === b.side &&
+  a.sideOffset === b.sideOffset &&
+  isSamePopupProps(a.popupProps, b.popupProps);
+
 function SharedTooltipContent({
+  hidden,
   setPayload,
   ...payload
-}: SharedTooltipPayload & { setPayload: SharedTooltipItem["setPayload"] }) {
-  const { align, alignOffset, children, className, side, sideOffset } = payload;
-
+}: SharedTooltipPayload & {
+  hidden?: boolean;
+  setPayload: SharedTooltipItem["setPayload"];
+}) {
   useLayoutEffect(() => {
-    setPayload({ align, alignOffset, children, className, side, sideOffset });
-  }, [align, alignOffset, children, className, setPayload, side, sideOffset]);
+    if (hidden) {
+      setPayload(undefined);
+      return;
+    }
+    // Only store a new payload when something changed, so re-renders of the
+    // item don't loop back into another state update.
+    setPayload((current) =>
+      isSamePayload(current, payload) ? current : payload
+    );
+  });
 
   useLayoutEffect(() => () => setPayload(undefined), [setPayload]);
 
@@ -203,14 +251,18 @@ function TooltipContent({
   const item = use(SharedTooltipItemContext);
 
   if (item) {
+    const { align, alignOffset, hidden, side, sideOffset, ...popupProps } =
+      props;
     return (
       <SharedTooltipContent
-        align={props.align}
-        alignOffset={props.alignOffset}
+        align={align}
+        alignOffset={alignOffset}
         className={typeof className === "string" ? className : undefined}
+        hidden={hidden}
+        popupProps={popupProps}
         setPayload={item.setPayload}
-        side={props.side}
-        sideOffset={props.sideOffset}
+        side={side}
+        sideOffset={sideOffset}
       >
         {children as ReactNode}
       </SharedTooltipContent>
