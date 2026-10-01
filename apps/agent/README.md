@@ -17,7 +17,7 @@ apps/api /v2/agent-chats
   └─ create / send / stream sessions 1:1 against this deployment
 
 eve agent (this package, separate Vercel project)
-  ├─ root: task → gpt-6-sol; chat → eve autoModel: gpt-6-luna / claude-sonnet-5 / claude-opus-5.5
+  ├─ root: task → gpt-6-sol; chat → eve autoModel: gpt-6-luna / claude-sonnet-5.5 / claude-opus-5.5
   ├─ Slack: mentions, DMs, and active thread replies through /eve/v1/slack
   ├─ subagents/content-writer (openai/gpt-6-sol, structured result)
   └─ subagents/image-designer (claude-sonnet-5.5; wraps the @upstash/box sandbox image pipeline)

@@ -1,4 +1,4 @@
-export const ASSISTANT_MODEL_ID = "anthropic/claude-sonnet-5";
+export const ASSISTANT_MODEL_ID = "anthropic/claude-sonnet-5.5";
 export const ASSISTANT_FAST_MODEL_ID = "openai/gpt-6-luna";
 export const ASSISTANT_DEEP_MODEL_ID = "anthropic/claude-opus-5.5";
 export const ASSISTANT_TASK_MODEL_ID = "openai/gpt-6-sol";
