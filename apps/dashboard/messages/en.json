@@ -2581,7 +2581,7 @@
     },
     "engineFamilySheet": {
       "missedTitle": "{count, plural, one {# prompt misses you} other {# prompts miss you}}",
-      "foundTitle": "{count, plural, one {# prompt mentions you} other {# prompts mention you}}",
+      "foundTitle": "{count, plural, one {# prompt shows you} other {# prompts show you}}",
       "trend": "Visibility over time",
       "descriptionModels": "How visible your brand is in each model",
       "descriptionEngine": "How visible your brand is in this engine",

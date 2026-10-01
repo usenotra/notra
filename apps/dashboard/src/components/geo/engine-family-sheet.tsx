@@ -26,7 +26,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
@@ -214,8 +214,13 @@ function TrendLegendItem({
     >
       <span
         aria-hidden="true"
-        className="size-2 rounded-full"
-        style={{ backgroundColor: TREND_MODE_COLORS[mode].light }}
+        className="size-2 rounded-full bg-(--dot-light) dark:bg-(--dot-dark)"
+        style={
+          {
+            "--dot-light": TREND_MODE_COLORS[mode].light,
+            "--dot-dark": TREND_MODE_COLORS[mode].dark,
+          } as CSSProperties
+        }
       />
       {modeLabels[mode]}
       {totals ? (
