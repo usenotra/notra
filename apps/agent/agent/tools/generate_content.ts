@@ -12,6 +12,7 @@ async function generateContentTask(
   { message }: ContentTaskInput,
   ctx: WorkflowToolContext
 ): Promise<ContentTaskResult> {
+  // codeql[js/unknown-directive] Eve requires this directive for durable execution.
   "use workflow";
 
   const result = await ctx.agent("content-writer", { message });

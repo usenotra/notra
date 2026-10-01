@@ -3,8 +3,9 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node", "bun-types/test"]
   },
-  "include": ["agent"],
+  "include": ["agent", "tests"],
   "exclude": ["node_modules", ".eve"]
 }

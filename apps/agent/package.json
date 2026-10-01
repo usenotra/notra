@@ -10,7 +10,8 @@
     "agent:start": "eve start",
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "agent:dev:devtools": "AI_SDK_DEVTOOLS=true dotenv -e ../../.env -- eve dev",
-    "devtools": "bun x @ai-sdk/devtools"
+    "devtools": "bun x @ai-sdk/devtools",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@ai-sdk/devtools": "1.0.22",
