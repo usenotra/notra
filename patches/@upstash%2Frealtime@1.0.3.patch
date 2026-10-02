@@ -1,0 +1,40 @@
+diff --git a/dist/client/provider.cjs b/dist/client/provider.cjs
+index 912034385a67af4da3aa1c1827093d4afec8a860..0fe84fad95a4770c2c54a6bbb3a34cb58698dfb7 100644
+--- a/dist/client/provider.cjs
++++ b/dist/client/provider.cjs
+@@ -46,7 +46,6 @@ function RealtimeProvider({
+       clearTimeout(connectTimeoutRef.current);
+       connectTimeoutRef.current = null;
+     }
+-    reconnectAttemptsRef.current = 0;
+     setStatus("disconnected");
+   };
+   const resetPingTimeout = react.useCallback(() => {
+@@ -129,6 +128,7 @@ function RealtimeProvider({
+       clearTimeout(debounceTimeoutRef.current);
+     }
+     debounceTimeoutRef.current = setTimeout(() => {
++      reconnectAttemptsRef.current = 0;
+       connect();
+       debounceTimeoutRef.current = null;
+     }, 25);
+diff --git a/dist/client/provider.js b/dist/client/provider.js
+index ea38ee9b1ef7510ed3fc731d4eb97bed2767cc06..258a3a54f6c0d94e937b09d61103a779534c3409 100644
+--- a/dist/client/provider.js
++++ b/dist/client/provider.js
+@@ -44,7 +44,6 @@ function RealtimeProvider({
+       clearTimeout(connectTimeoutRef.current);
+       connectTimeoutRef.current = null;
+     }
+-    reconnectAttemptsRef.current = 0;
+     setStatus("disconnected");
+   };
+   const resetPingTimeout = useCallback(() => {
+@@ -127,6 +126,7 @@ function RealtimeProvider({
+       clearTimeout(debounceTimeoutRef.current);
+     }
+     debounceTimeoutRef.current = setTimeout(() => {
++      reconnectAttemptsRef.current = 0;
+       connect();
+       debounceTimeoutRef.current = null;
+     }, 25);

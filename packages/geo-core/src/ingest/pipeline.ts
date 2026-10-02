@@ -24,6 +24,7 @@ import { buildGeoTrafficEvent, toCapturedDate } from "./event";
 import { loadIngestAllowedHosts } from "./hosts";
 import { isGeoIngestIdentityActive } from "./identity";
 import { resolveJourneyId } from "./journey";
+import { announceGeoTrafficEvent } from "./live";
 import { geoIngestRatelimit } from "./ratelimit";
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
@@ -233,9 +234,14 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   const ingestStartedAt = Date.now();
   yield* ingestEvent(event);
   const ingestMs = Date.now() - ingestStartedAt;
-  // Analytics must not hold the 202 open for the site that sent the event.
+  // Analytics and the live update must not hold the 202 open for the site
+  // that sent the event.
   yield* Effect.sync(() =>
     defer(async () => {
+      const announced = announceGeoTrafficEvent(
+        event.organization_id,
+        event.project_id
+      );
       try {
         await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
       } catch (error) {
@@ -245,6 +251,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
           projectId: identity.projectId,
         });
       }
+      await announced;
     })
   );
 

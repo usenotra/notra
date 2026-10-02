@@ -3964,6 +3964,10 @@
       "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
       "connectingProperty": "{property} wird verbunden…",
       "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
+    },
+    "liveIndicator": {
+      "label": "Live",
+      "hint": "Aktualisiert sich automatisch, sobald neue Daten ankommen"
     }
   },
   "integrations": {

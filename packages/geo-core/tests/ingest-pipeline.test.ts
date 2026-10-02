@@ -26,6 +26,7 @@ const verifyGeoIngestToken = mock((): GeoIngestIdentity => ({
   generation: 1,
 }));
 const resolveJourneyId = mock(() => ({ journeyId: "journey_1", path: "/" }));
+const announceGeoTrafficEvent = mock(async () => undefined);
 
 mock.module("@notra/analytics/tinybird/client", () => ({
   ingestGeoTrafficEvents,
@@ -46,6 +47,9 @@ mock.module("../src/ingest/analytics", () => ({
 }));
 mock.module("../src/ingest/journey", () => ({
   resolveJourneyId,
+}));
+mock.module("../src/ingest/live", () => ({
+  announceGeoTrafficEvent,
 }));
 mock.module("../src/ingest/ratelimit", () => ({
   geoIngestRatelimit: { limit: ratelimitLimit },
@@ -90,6 +94,7 @@ describe("runGeoIngest ordering", () => {
       loadIngestAllowedHosts,
       ratelimitLimit,
       trackGeoIngestAnalytics,
+      announceGeoTrafficEvent,
     ]) {
       m.mockClear();
     }
@@ -161,9 +166,11 @@ describe("runGeoIngest ordering", () => {
 
     expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
     expect(trackGeoIngestAnalytics).not.toHaveBeenCalled();
+    expect(announceGeoTrafficEvent).not.toHaveBeenCalled();
     expect(tasks).toHaveLength(1);
     await tasks[0]?.();
     expect(trackGeoIngestAnalytics).toHaveBeenCalledTimes(1);
+    expect(announceGeoTrafficEvent).toHaveBeenCalledWith("org_1", "proj_1");
   });
 
   test("rejects tracked traffic when the rate-limit transport fails", async () => {

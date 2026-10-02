@@ -3964,6 +3964,10 @@
       "resolveCreatedProjectFailed": "Failed to resolve created project",
       "connectingProperty": "Connecting {property}…",
       "connectingPropertyDescription": "Reading your search queries. This can take a minute, keep working in the meantime."
+    },
+    "liveIndicator": {
+      "label": "Live",
+      "hint": "Updates on its own as new data comes in"
     }
   },
   "integrations": {

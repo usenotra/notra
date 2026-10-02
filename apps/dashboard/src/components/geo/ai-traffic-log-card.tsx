@@ -48,7 +48,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     categories: [],
   });
   const [hostQuery] = useGeoTrafficHostQuery();
-  const { data, isPending, isFetching } = useGeoTrafficLog(
+  const { data, isPending, isPlaceholderData } = useGeoTrafficLog(
     organizationId,
     filters,
     {
@@ -68,7 +68,9 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
           log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
-        loading={isPending || isFetching}
+        // Live refetches swap rows in place; only a new filter or host,
+        // which shows the previous result as placeholder, dims the table.
+        loading={isPending || isPlaceholderData}
       />
     );
   }

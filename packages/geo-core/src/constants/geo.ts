@@ -1061,3 +1061,35 @@ export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
 /** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
 export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
 export const GEO_MENTION_EVALUATION_NO_POSITION = "none";
+
+export const GEO_LIVE_CHANNEL_PREFIX = "geo";
+export const GEO_LIVE_WATCH_KEY_PREFIX = "geo:live:watch";
+// Refreshed on every realtime (re)connect, which happens at least every
+// 300 s (Upstash Realtime's Fluid stream limit), so it lapses shortly after
+// the last GEO tab closed.
+export const GEO_LIVE_WATCH_TTL_SECONDS = 330;
+// How long ingest trusts a watch lookup. A tab opened within this window
+// waits at most this long for its first live update; polling covers it.
+export const GEO_LIVE_WATCH_MEMO_MS = 15_000;
+// "Nobody watches" is remembered only briefly: a tab that just opened should
+// not miss the traffic of its first seconds.
+export const GEO_LIVE_UNWATCHED_MEMO_MS = 3000;
+// Scan batches finish every few seconds; viewers refetch at most this often
+// while a scan runs. Start and finish are always announced.
+export const GEO_VISIBILITY_LIVE_PROGRESS_INTERVAL_SECONDS = 10;
+// After the realtime stream gave up (deploy, expired session), try again.
+export const GEO_LIVE_RETRY_AFTER_ERROR_MS = 60_000;
+// Tinybird buffers rows written with wait=false and flushes them within
+// ~2.8 s (p90). Traffic updates are announced once that window has passed,
+// so the refetch they trigger already sees the new rows.
+export const GEO_TRAFFIC_LIVE_SETTLE_MS = 4000;
+// A busy site announces at most this often, so open tabs refetch the traffic
+// pipes every few seconds instead of after every request burst.
+export const GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS = 10_000;
+// With a live connection, polling only covers missed or dropped events.
+export const GEO_LIVE_FALLBACK_INTERVAL_MS = 120_000;
+// A running scan still polls slowly: its last batch can finish between two
+// events while the stream reconnects.
+export const GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS = 15_000;
+// Coalesces bursts (parallel scan batches, several projects) into one refetch.
+export const GEO_LIVE_INVALIDATE_THROTTLE_MS = 2000;

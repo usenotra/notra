@@ -183,6 +183,17 @@ export interface GeoProjectScopeProps {
   children: ReactNode;
 }
 
+export interface GeoLiveContextValue {
+  connected: boolean;
+  /** Live announcements received for the viewed scope so far. */
+  updates: number;
+}
+
+export interface GeoLiveProviderProps {
+  organizationId: string;
+  children: ReactNode;
+}
+
 export interface GeoOverviewPageEmpty {
   status: "empty";
   organizationId: string;

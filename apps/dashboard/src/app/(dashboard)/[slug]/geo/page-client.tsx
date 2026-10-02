@@ -5,6 +5,7 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
+import { GeoLiveIndicator } from "@/components/geo/geo-live-indicator";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupEmpty } from "@/components/geo/geo-setup-empty";
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
@@ -50,6 +51,7 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <GeoLiveIndicator />
               <GeoRangePicker control={page.geoRange} />
               <Button
                 className="w-fit gap-2"

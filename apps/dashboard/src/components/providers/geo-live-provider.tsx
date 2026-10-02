@@ -1,0 +1,126 @@
+"use client";
+
+import type { RealtimeSchema } from "@notra/ai/realtime";
+import {
+  GEO_LIVE_INVALIDATE_THROTTLE_MS,
+  GEO_LIVE_RETRY_AFTER_ERROR_MS,
+} from "@notra/geo-core/constants/geo";
+import { geoLiveChannel } from "@notra/geo-core/utils/geo-live";
+import { useThrottledCallback } from "@tanstack/react-pacer";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRealtime } from "@upstash/realtime/client";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { dashboardOrpc } from "@/lib/orpc/query";
+import type { GeoLiveContextValue, GeoLiveProviderProps } from "@/types/geo";
+import {
+  invalidateGeoTrafficQueries,
+  isGeoLiveEventInScope,
+} from "@/utils/geo-live";
+import { invalidateGeoScanResultQueries } from "@/utils/geo-scan-results";
+
+const GeoLiveContext = createContext<GeoLiveContextValue>({
+  connected: false,
+  updates: 0,
+});
+
+/**
+ * Subscribes the GEO pages to `geo:{orgId}`. Ingest announces new AI traffic
+ * once Tinybird can serve it, and scans announce start, every persisted batch
+ * and completion, so traffic and visibility refetch within seconds. Polling
+ * hooks read `useGeoLive()` and fall back to their short intervals only while
+ * the stream is down.
+ */
+export function GeoLiveProvider({
+  organizationId,
+  children,
+}: GeoLiveProviderProps) {
+  const queryClient = useQueryClient();
+  const { projectId } = useGeoProjectScope();
+  // Counts announcements for the viewed scope; the live indicator keys its
+  // one-shot pulse on it.
+  const [updates, setUpdates] = useState(0);
+  // Dropping the subscription for a moment makes the provider start over
+  // with a fresh retry budget once it gave up.
+  const [resubscribing, setResubscribing] = useState(false);
+  const throttle = {
+    wait: GEO_LIVE_INVALIDATE_THROTTLE_MS,
+    leading: true,
+    trailing: true,
+  };
+  const refreshTraffic = useThrottledCallback(() => {
+    invalidateGeoTrafficQueries(queryClient, {
+      organizationId,
+      projectId,
+    }).catch(() => undefined);
+  }, throttle);
+  const refreshVisibility = useThrottledCallback(() => {
+    const input = { organizationId, projectId };
+    Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.settings.key({ input }),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.personasActivity.key({ input }),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.personaResults.key({ input }),
+      }),
+      invalidateGeoScanResultQueries(queryClient, input),
+    ]).catch(() => undefined);
+  }, throttle);
+
+  const { status } = useRealtime<
+    RealtimeSchema,
+    "geo.traffic" | "geo.visibility"
+  >({
+    channels: [geoLiveChannel(organizationId)],
+    events: ["geo.traffic", "geo.visibility"],
+    enabled: organizationId.length > 0 && !resubscribing,
+    onData: (payload) => {
+      if (payload.event === "geo.traffic") {
+        if (isGeoLiveEventInScope(payload.data.projectIds, projectId)) {
+          setUpdates((count) => count + 1);
+          refreshTraffic();
+        }
+        return;
+      }
+      if (isGeoLiveEventInScope([payload.data.projectId], projectId)) {
+        setUpdates((count) => count + 1);
+        refreshVisibility();
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (status !== "error") {
+      return;
+    }
+    let resume: ReturnType<typeof setTimeout> | undefined;
+    const pause = setTimeout(() => {
+      setResubscribing(true);
+      resume = setTimeout(() => setResubscribing(false), 0);
+    }, GEO_LIVE_RETRY_AFTER_ERROR_MS);
+    return () => {
+      clearTimeout(pause);
+      clearTimeout(resume);
+    };
+  }, [status]);
+
+  const connected = status === "connected";
+  const value = useMemo(() => ({ connected, updates }), [connected, updates]);
+
+  return (
+    <GeoLiveContext.Provider value={value}>{children}</GeoLiveContext.Provider>
+  );
+}
+
+/** True while GEO live updates stream in; polling can back off. */
+export function useGeoLive(): boolean {
+  return useContext(GeoLiveContext).connected;
+}
+
+export function useGeoLiveStatus(): GeoLiveContextValue {
+  return useContext(GeoLiveContext);
+}

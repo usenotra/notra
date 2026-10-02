@@ -232,3 +232,59 @@
   --diffs-token-light-bg: transparent;
   --diffs-token-dark-bg: transparent;
 }
+
+@keyframes geo-live-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes geo-live-ping {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+.geo-live-in {
+  animation: geo-live-in var(--transition-duration-slow) var(--ease-emphasized)
+    both;
+}
+
+.geo-live-ping {
+  animation: geo-live-ping 1s var(--ease-emphasized) both;
+}
+
+@keyframes geo-log-row-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    background-color: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* `backwards`, not `both`: a filled end state would override row hover. */
+.geo-log-row-arrive {
+  animation: geo-log-row-arrive 1.6s var(--ease-emphasized) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .geo-log-row-arrive,
+  .geo-live-in,
+  .geo-live-ping {
+    animation: none;
+  }
+
+  .geo-live-ping {
+    opacity: 0;
+  }
+}

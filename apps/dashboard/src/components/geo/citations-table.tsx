@@ -15,6 +15,7 @@ import {
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
 import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";
@@ -27,7 +28,8 @@ import type { CitationsTableProps } from "@/types/geo";
 import { countryName } from "@/utils/country";
 import {
   citationProviderTooltip,
-  citationRowId,
+  arrivedCitationRowIds,
+  citationRowIds,
   formatCitationProvider,
   formatCitationTimestamp,
 } from "@/utils/geo-citations";
@@ -184,6 +186,25 @@ export function CitationsTable({
   const tGeoShared = useTranslations("geo.shared");
   const trafficLabels = useAiTrafficLabels();
   const locale = useLocale();
+  const rowIds = useMemo(() => citationRowIds(entries), [entries]);
+  // Adjusted during render ("state from previous props") so the render that
+  // shows new rows already marks them.
+  const [knownIds, setKnownIds] = useState<ReadonlySet<string>>(
+    () => new Set(rowIds.values())
+  );
+  const [arrivedIds, setArrivedIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const currentIds = new Set(rowIds.values());
+  if (
+    currentIds.size !== knownIds.size ||
+    [...currentIds].some((id) => !knownIds.has(id))
+  ) {
+    setArrivedIds(arrivedCitationRowIds(knownIds, currentIds));
+    setKnownIds(currentIds);
+  }
+  const rowId = (entry: GeoTrafficLogEntry, index: number) =>
+    rowIds.get(entry) ?? String(index);
   const columns: TableColumn<GeoTrafficLogEntry>[] = [
     {
       key: "capturedAt",
@@ -257,7 +278,10 @@ export function CitationsTable({
       columns={columns}
       data={entries}
       defaultSort={CITATIONS_DEFAULT_SORT}
-      getRowId={citationRowId}
+      getRowClassName={(entry) =>
+        arrivedIds.has(rowId(entry, -1)) ? "geo-log-row-arrive" : undefined
+      }
+      getRowId={rowId}
       height={height}
       loading={loading}
       resizable

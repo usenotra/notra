@@ -4,6 +4,8 @@ import { AGENT_READINESS_POLL_INTERVAL_MS } from "@notra/geo-core/constants/agen
 import {
   GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
   GEO_BRAND_SEARCH_STALE_MS,
+  GEO_LIVE_FALLBACK_INTERVAL_MS,
+  GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS,
   GEO_MODEL_CATALOG_STALE_MS,
   GEO_SCAN_POLL_INTERVAL_MS,
   GEO_START_SCAN_MUTATION_KEY,
@@ -63,6 +65,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
+import { useGeoLive } from "@/components/providers/geo-live-provider";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { geoDbOrgQueryKey, geoDbQueryKey } from "@/lib/db/geo-collections";
@@ -175,7 +178,11 @@ export function useGeoSettings(organizationId: string) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
+  const live = useGeoLive();
   const wasScanningRef = useRef<boolean | null>(null);
+  const scanPollInterval = live
+    ? GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS
+    : GEO_SCAN_POLL_INTERVAL_MS;
 
   const query = useQuery<GeoSettingsResponse>({
     ...dashboardOrpc.geo.settings.queryOptions({
@@ -183,9 +190,7 @@ export function useGeoSettings(organizationId: string) {
     }),
     enabled: !!organizationId,
     refetchInterval: (current) =>
-      current.state.data?.settings?.isScanning
-        ? GEO_SCAN_POLL_INTERVAL_MS
-        : false,
+      current.state.data?.settings?.isScanning ? scanPollInterval : false,
     refetchIntervalInBackground: false,
     meta: { errorMessage: tToast("loadAIVisibilitySettingsFailed") },
   });
@@ -794,16 +799,23 @@ export function useAgentReadinessScan(organizationId: string) {
   });
 }
 
+function useGeoTrafficPollInterval(): number {
+  return useGeoLive()
+    ? GEO_LIVE_FALLBACK_INTERVAL_MS
+    : GEO_TRAFFIC_LIVE_INTERVAL_MS;
+}
+
 export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
+  const trafficPollInterval = useGeoTrafficPollInterval();
   return useQuery<AiTrafficResponse>({
     ...dashboardOrpc.geo.aiTraffic.queryOptions({
       input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
     enabled: !!organizationId,
     placeholderData: useScopedPreviousData<AiTrafficResponse>(projectId),
-    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchInterval: trafficPollInterval,
     refetchIntervalInBackground: false,
     meta: { errorMessage: tToast("loadAITrafficFailed") },
   });
@@ -816,6 +828,7 @@ export function useGeoTrafficLog(
 ) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
+  const trafficPollInterval = useGeoTrafficPollInterval();
   return useQuery<GeoTrafficLogResponse>({
     ...dashboardOrpc.geo.trafficLog.queryOptions({
       input: geoTrafficLogQueryInput(
@@ -826,7 +839,7 @@ export function useGeoTrafficLog(
     }),
     enabled: !!organizationId,
     placeholderData: useScopedPreviousData<GeoTrafficLogResponse>(projectId),
-    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchInterval: trafficPollInterval,
     refetchIntervalInBackground: false,
     meta: { errorMessage: tToast("loadAITrackingLogFailed") },
   });
@@ -839,6 +852,7 @@ export function useGeoTrafficPages(
 ) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
+  const trafficPollInterval = useGeoTrafficPollInterval();
   return useQuery<GeoTrafficPagesResponse>({
     ...dashboardOrpc.geo.trafficPages.queryOptions({
       input: geoTrafficPagesQueryInput(
@@ -849,7 +863,7 @@ export function useGeoTrafficPages(
     }),
     enabled: !!organizationId,
     placeholderData: useScopedPreviousData<GeoTrafficPagesResponse>(projectId),
-    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchInterval: trafficPollInterval,
     refetchIntervalInBackground: false,
     meta: { errorMessage: tToast("loadTopAIPagesFailed") },
   });

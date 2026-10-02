@@ -31,6 +31,7 @@ export function TableBody<T>({
   onRowClick,
   rowKeyboardActivation,
   isRowClickable,
+  getRowClassName,
   onRowPointerEnter,
   renderRowContextMenu,
   renderRowDetail,
@@ -80,6 +81,7 @@ export function TableBody<T>({
         return (
           <Fragment key={entry.id}>
             <TableBodyRow
+              className={getRowClassName?.(entry.row)}
               columns={columns}
               detailId={detailId}
               entry={entry}
