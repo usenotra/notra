@@ -5,6 +5,7 @@ import { DASHBOARD_FUNCTION_RULES } from "./src/constants/framework";
 import { IMAGE_SECURITY_HEADERS } from "./src/constants/framework-image";
 import { getDashboardSecurityHeaders } from "./src/utils/framework-request";
 import { traceWorkflowDependencies } from "./src/utils/framework-workflow-plugin";
+import { getGeoIngestProxyRules } from "./src/utils/geo-ingest-proxy";
 
 const posthogHost =
   process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
@@ -37,6 +38,7 @@ export default defineConfig({
     },
   ],
   routeRules: {
+    ...getGeoIngestProxyRules(),
     "/**": { headers: getDashboardSecurityHeaders() },
     "/api/image": { headers: IMAGE_SECURITY_HEADERS },
     "/ingest/static/**": { proxy: `${posthogAssetsHost}/static/**` },

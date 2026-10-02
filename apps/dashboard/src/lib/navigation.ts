@@ -1,7 +1,4 @@
 import {
-  isNotFound,
-  isRedirect,
-  notFound as routeNotFound,
   redirect as routeRedirect,
   useLocation,
   useParams as useRouteParams,
@@ -67,14 +64,4 @@ export function useRouter() {
 
 export function redirect(href: string): never {
   throw routeRedirect({ href });
-}
-
-export function notFound(): never {
-  throw routeNotFound();
-}
-
-export function unstable_rethrow(error: unknown) {
-  if (isRedirect(error) || isNotFound(error)) {
-    throw error;
-  }
 }
