@@ -3118,6 +3118,12 @@
       "actionAria": "Copy prompt: {prompt}"
     },
     "promptDetailDialog": {
+      "emptyTitle": "No answers yet",
+      "emptyDescription": "This prompt is asked in the next scheduled scan. Run a scan now to see the answers right away.",
+      "emptyPaused": "GEO scans are paused. Turn them on in settings so this prompt gets asked.",
+      "emptyScanningTitle": "Asking AI engines…",
+      "emptyScanningDescription": "Answers show up here as soon as the scan finishes.",
+      "emptyEngines": "Asked in",
       "scanFrom": "Scan from <time>{date}</time>",
       "backToLatest": "Back to latest scan",
       "latestAnswerMode": "Latest {mode} answer from each engine",

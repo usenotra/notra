@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { AiChat02Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_CHAT_SKIN_SURFACE,
@@ -14,6 +14,14 @@ import type {
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { normalizePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import {
   Sheet,
   SheetContent,
@@ -32,6 +40,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/button";
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { LazyGeoPromptAnswerThread } from "@/components/geo/lazy-geo-prompt-answer-thread";
@@ -42,6 +51,7 @@ import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
 import { PromptTranslationsSection } from "@/components/geo/prompt-translations-section";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   GeoScanControlsProvider,
   useGeoScanControls,
@@ -50,7 +60,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
+import { useGeoPromptResultDetail, useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
@@ -71,6 +81,7 @@ import type {
 } from "@/types/geo-prompt-detail";
 import { sharedEngineAnswerMode } from "@/utils/geo-charts";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
+import { formatModelLabel } from "@/utils/geo-model-display";
 import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
@@ -300,26 +311,76 @@ function PromptAnswerBody({
 }
 
 function PromptAnswerEmpty({
+  organizationId,
+  row,
+  onPrepareScan,
   isScanning,
   detailState,
   view,
   onRetry,
 }: PromptAnswerEmptyProps) {
-  const tGeoShared2 = useTranslations("geo.shared");
+  const t = useTranslations("geo.promptDetailDialog");
+  const { data: settingsData } = useGeoSettings(organizationId);
   if (detailState.status === "loading") {
     return <GeoPromptAnswerSkeleton view={view} />;
   }
   if (detailState.status === "error") {
     return <PromptDetailStatus onRetry={onRetry} status={detailState.status} />;
   }
+
+  const settings = settingsData?.settings;
+  const paused = settings?.enabled === false;
+  const engines = paused ? [] : (settings?.engines ?? []);
+  let description = t("emptyDescription");
+  if (isScanning) {
+    description = t("emptyScanningDescription");
+  } else if (paused) {
+    description = t("emptyPaused");
+  }
+
   return (
-    <div className="flex min-h-48 items-center justify-center px-6">
-      <p className="text-muted-foreground text-center text-sm text-pretty">
-        {isScanning
-          ? tGeoShared2("scanningEngines")
-          : tGeoShared2("runAScanToSeeAnswers")}
-      </p>
-    </div>
+    <Empty className="min-h-full">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          {isScanning ? (
+            <StatusSpinner />
+          ) : (
+            <HugeiconsIcon icon={AiChat02Icon} />
+          )}
+        </EmptyMedia>
+        <EmptyTitle>
+          {isScanning ? t("emptyScanningTitle") : t("emptyTitle")}
+        </EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {isScanning || paused ? null : (
+        <EmptyContent className="max-w-lg">
+          <PromptScanButton
+            onPrepare={onPrepareScan}
+            organizationId={organizationId}
+            row={row}
+          />
+          {engines.length > 0 ? (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-muted-foreground text-xs">
+                {t("emptyEngines")}
+              </p>
+              <ul className="flex flex-wrap justify-center gap-1.5">
+                {engines.map((engine) => (
+                  <li
+                    className="bg-muted/60 flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium"
+                    key={engine}
+                  >
+                    <EngineIcon className="size-3.5" engine={engine} />
+                    {formatModelLabel(engine)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </EmptyContent>
+      )}
+    </Empty>
   );
 }
 
@@ -557,6 +618,9 @@ export function PromptAnswerPage({
             <PromptAnswerEmpty
               detailState={detailState}
               isScanning={isScanning}
+              onPrepareScan={onPrepareScan}
+              organizationId={organizationId}
+              row={row}
               onRetry={onRetry}
               view={view}
             />
