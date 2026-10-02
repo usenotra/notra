@@ -1,0 +1,31 @@
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_5c6ad3ce7b5991::t_dbfdecf0aeb611 45,437,444
+apps/dashboard/src/types/table.ts
+  s_5c6ad3ce7b5991::t_ec20dbe71f8f72 84
+apps/dashboard/src/utils/table-viewport.ts
+  s_5c6ad3ce7b5991::t_ec20dbe71f8f72 12,36-44
+apps/dashboard/src/components/geo/prompt-suggestion-sheet.tsx
+  s_5c6ad3ce7b5991::t_dbfdecf0aeb611 24,35,79
+apps/dashboard/src/components/motion/table/index.tsx
+  s_5c6ad3ce7b5991::t_ec20dbe71f8f72 69,174
+apps/dashboard/src/components/motion/table/types.ts
+  s_5c6ad3ce7b5991::t_ec20dbe71f8f72 86-91
+apps/dashboard/src/lib/hooks/use-table-viewport.ts
+  s_5c6ad3ce7b5991::t_ec20dbe71f8f72 13,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "460ecb1d066b5312ea3c4959e59a6ffcd9c2e6f5",
+  "prompts": {},
+  "sessions": {
+    "s_5c6ad3ce7b5991": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3b1b68a-79b6-40a6-9c7a-e1e69505442b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
