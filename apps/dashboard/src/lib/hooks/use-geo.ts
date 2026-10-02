@@ -196,9 +196,12 @@ export function useGeoSettings(organizationId: string) {
     const wasScanning = wasScanningRef.current;
     wasScanningRef.current = isScanning;
     if (wasScanning === true && !isScanning) {
-      invalidateGeoScanResultQueries(queryClient).catch(() => undefined);
+      invalidateGeoScanResultQueries(queryClient, {
+        organizationId,
+        projectId,
+      }).catch(() => undefined);
     }
-  }, [isScanning, queryClient]);
+  }, [isScanning, organizationId, projectId, queryClient]);
 
   return query;
 }
