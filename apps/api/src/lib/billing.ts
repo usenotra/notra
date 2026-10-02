@@ -1,6 +1,6 @@
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { Autumn } from "autumn-js";
-import { Context, Effect, Layer } from "effect";
+import { Cache, Context, Effect, Layer } from "effect";
 
 import { AI_CREDITS_FEATURE_ID } from "../constants/billing";
 import { GeoBillingError, SubscriptionBillingError } from "../errors/billing";
@@ -8,6 +8,7 @@ import type {
   GeoEntitlementCheckInput,
   SubscriptionAccessInput,
 } from "../types/billing";
+import { makeGeoEntitlementCache } from "./geo-entitlement-cache";
 
 export interface BillingOperations {
   readonly checkSubscriptionAccess: (
@@ -29,6 +30,9 @@ export interface BillingMiddlewareOptions {
 
 export function billingLayer(secretKey: string) {
   const autumn = new Autumn({ secretKey });
+  let geoEntitlements:
+    | Cache.Cache<string, boolean, GeoBillingError>
+    | undefined;
 
   return Layer.succeed(
     BillingService,
@@ -70,16 +74,21 @@ export function billingLayer(secretKey: string) {
       checkGeoEntitlement: Effect.fn("Billing.checkGeoEntitlement")(function* (
         input: GeoEntitlementCheckInput
       ) {
-        return yield* Effect.tryPromise({
-          try: async () => {
-            const data = await autumn.check({
-              customerId: input.organizationId,
-              featureId: FEATURES.AI_ANSWERS,
-            });
-            return data.balance != null;
-          },
-          catch: (cause) => new GeoBillingError({ cause }),
-        });
+        geoEntitlements ??= Effect.runSync(
+          makeGeoEntitlementCache((organizationId) =>
+            Effect.tryPromise({
+              try: async () => {
+                const data = await autumn.check({
+                  customerId: organizationId,
+                  featureId: FEATURES.AI_ANSWERS,
+                });
+                return data.balance != null;
+              },
+              catch: (cause) => new GeoBillingError({ cause }),
+            })
+          )
+        );
+        return yield* Cache.get(geoEntitlements, input.organizationId);
       }),
     })
   );

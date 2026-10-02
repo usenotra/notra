@@ -26,7 +26,9 @@ import {
 import {
   GitHubAppConfigurationError,
   GitHubCredentialDecryptionError,
+  GitHubMultiRepositoryUnsupportedError,
   GitHubPersistenceError,
+  GitHubRepositoryAlreadyConnectedError,
   GitHubRequestError,
   GitHubRepositoryCacheError,
   GitHubResponseError,
@@ -657,7 +659,10 @@ export async function createGitHubIntegration(
   );
 
   if (existingRepository) {
-    throw new Error("Repository already connected");
+    throw new GitHubRepositoryAlreadyConnectedError({
+      organizationId,
+      repository: `${owner}/${repo}`,
+    });
   }
 
   let encryptedToken: string | null = null;
@@ -1306,9 +1311,7 @@ export async function getGitHubCloneTokenForOrganization(
 export async function addRepository(
   _params: AddRepositoryParams & { userId: string }
 ) {
-  throw new Error(
-    "GitHub integrations now support exactly one repository. Create a new integration for another repo."
-  );
+  throw new GitHubMultiRepositoryUnsupportedError();
 }
 
 export async function getRepositoryById(repositoryId: string) {

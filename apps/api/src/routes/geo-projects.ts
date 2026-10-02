@@ -2,6 +2,7 @@ import { createRoute } from "@hono/zod-openapi";
 import {
   createGeoProject,
   deleteGeoProject,
+  getGeoProject,
   listGeoProjects,
   updateGeoProject,
 } from "@notra/geo-core/geo/projects";
@@ -156,14 +157,14 @@ geoProjectsRoutes.openapi(getProjectRoute, async (c) => {
   const base = c.get("geo");
   const { projectId } = c.req.valid("param");
   const outcome = await runGeoEffect(
-    "projectsList",
-    listGeoProjects(base.organizationId)
+    "projectGet",
+    getGeoProject(base.organizationId, projectId)
   );
   if (!outcome.ok) {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  const project = outcome.value.projects.find((item) => item.id === projectId);
+  const project = outcome.value;
   if (!project) {
     return c.json({ error: "Project not found" }, 404);
   }

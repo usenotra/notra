@@ -9,8 +9,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoEngineFamily,
-  GeoEngineFamilyTotals,
-  GeoSparklineMode,
   GeoStatDeltaKind,
   GeoTimeseriesPoint,
 } from "@notra/geo-core/types/geo";
@@ -26,7 +24,6 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useLocale, useTranslations } from "next-intl";
-import { type CSSProperties, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
@@ -39,21 +36,16 @@ import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
-import {
-  CHART_PERCENT_SCALE,
-  CHART_PRIMARY_COLOR,
-  CHART_SECONDARY_COLOR,
-} from "@/constants/charts";
+import { CHART_PERCENT_SCALE, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_PROMPT_DETAIL_SURFACES,
   GEO_WRITE_DIALOG_ENTRIES,
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useEngineFamilySheet } from "@/lib/hooks/use-engine-family-sheet";
-import { useGeoSparklineModeLabels } from "@/lib/hooks/use-geo-sparkline-mode-labels";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
-import type { ChartColorPair, ChartConfig } from "@/types/charts";
+import type { ChartConfig } from "@/types/charts";
 import type {
   EngineFamilyBrandRow,
   EngineFamilyBrandScope,
@@ -61,16 +53,11 @@ import type {
   EngineFamilySheetProps,
 } from "@/types/geo";
 import { formatFullDayLabel } from "@/utils/analytics-charts";
+import { geoModeFillClass, seriesColors } from "@/utils/chart-colors";
 import {
-  accountSeriesColorPair,
-  geoModeFillClass,
-  seriesColors,
-} from "@/utils/chart-colors";
-import {
-  buildEngineFamilyModeTrendRows,
+  buildEngineFamilyTrendRows,
   engineFamilyAvgPosition,
   engineFamilyLastCheckedAt,
-  engineFamilyModeTotals,
   engineFamilyStatTrends,
   engineFamilyTotals,
   formatChartPercent,
@@ -79,10 +66,8 @@ import {
 } from "@/utils/geo-charts";
 import { tableHeightFor } from "@/utils/table";
 
-// Matches the visibility activity card: the headline series carries the fill
-// and a heavier stroke, the comparison lines stay thin.
+// Matches the visibility activity card's headline series.
 const FAMILY_TOTAL_STROKE_WIDTH = 2;
-const FAMILY_MODE_STROKE_WIDTH = 1.5;
 const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full cursor-crosshair";
 const FAMILY_SHEET_CONTENT_CLASS =
   "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl";
@@ -179,58 +164,7 @@ function FamilySheetDescription({ family }: { family: GeoEngineFamily }) {
   );
 }
 
-const TREND_MODES: GeoSparklineMode[] = ["all", "search", "memory"];
-
-// "All" is the headline series and gets the primary purple every other
-// visibility chart uses; the two modes are thinner comparison lines.
-const TREND_MODE_COLORS: Record<GeoSparklineMode, ChartColorPair> = {
-  all: CHART_PRIMARY_COLOR,
-  search: accountSeriesColorPair(0),
-  memory: CHART_SECONDARY_COLOR,
-};
-
-function TrendLegendItem({
-  mode,
-  totals,
-  active,
-  onToggle,
-}: {
-  mode: GeoSparklineMode;
-  totals: GeoEngineFamilyTotals | null;
-  active: boolean;
-  onToggle: () => void;
-}) {
-  const modeLabels = useGeoSparklineModeLabels();
-  return (
-    <button
-      aria-pressed={active}
-      className={cn(
-        "inline-flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs transition-opacity",
-        "hover:bg-muted/60 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-        active ? "opacity-100" : "opacity-40"
-      )}
-      onClick={onToggle}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-        className="size-2 rounded-full bg-(--dot-light) dark:bg-(--dot-dark)"
-        style={
-          {
-            "--dot-light": TREND_MODE_COLORS[mode].light,
-            "--dot-dark": TREND_MODE_COLORS[mode].dark,
-          } as CSSProperties
-        }
-      />
-      {modeLabels[mode]}
-      {totals ? (
-        <span className="text-muted-foreground tabular-nums">
-          {formatMentionRate(totals.rate)}
-        </span>
-      ) : null}
-    </button>
-  );
-}
+const TREND_SERIES_KEYS = ["all"];
 
 function FamilyTrend({
   family,
@@ -240,76 +174,23 @@ function FamilyTrend({
   points: readonly GeoTimeseriesPoint[];
 }) {
   const t = useTranslations("geo.engineFamilySheet");
-  const modeLabels = useGeoSparklineModeLabels();
   const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
-  const totalsByMode: Record<GeoSparklineMode, GeoEngineFamilyTotals | null> = {
-    all: engineFamilyTotals(family),
-    search: engineFamilyModeTotals(family, "search"),
-    memory: engineFamilyModeTotals(family, "memory"),
+  const rows = buildEngineFamilyTrendRows(points, family.family, locale);
+  const config: ChartConfig = {
+    all: {
+      label: t("seriesLabel"),
+      colors: seriesColors(CHART_PRIMARY_COLOR),
+    },
   };
-  // A family that only ever answers one way has nothing to compare, so it
-  // keeps the single line instead of three copies of it.
-  const splitModes =
-    totalsByMode.search !== null && totalsByMode.memory !== null;
-  const modeKeys: GeoSparklineMode[] = splitModes ? TREND_MODES : ["all"];
-  const [hiddenModes, setHiddenModes] = useState<ReadonlySet<GeoSparklineMode>>(
-    () => new Set()
-  );
-  const visibleModes = modeKeys.filter((mode) => !hiddenModes.has(mode));
-  const rows = buildEngineFamilyModeTrendRows(points, family.family, locale);
-  const config: ChartConfig = Object.fromEntries(
-    modeKeys.map((mode) => [
-      mode,
-      {
-        label: t("seriesLabel", { mode: modeLabels[mode] }),
-        colors: seriesColors(TREND_MODE_COLORS[mode]),
-      },
-    ])
-  );
   const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
-
-  function toggleMode(mode: GeoSparklineMode) {
-    setHiddenModes((current) => {
-      const next = new Set(current);
-      if (next.delete(mode)) {
-        return next;
-      }
-      // Emptying the chart tells you nothing, so the last line stays.
-      if (modeKeys.length - next.size <= 1) {
-        return current;
-      }
-      next.add(mode);
-      return next;
-    });
-  }
 
   if (rows.length < GEO_SPARKLINE_MIN_POINTS) {
     return null;
   }
 
   return (
-    <InstrumentSection
-      action={
-        splitModes ? (
-          <div
-            aria-label={t("answerMode")}
-            className="-mr-1.5 flex flex-wrap items-center gap-1"
-          >
-            {modeKeys.map((mode) => (
-              <TrendLegendItem
-                active={!hiddenModes.has(mode)}
-                key={mode}
-                mode={mode}
-                onToggle={() => toggleMode(mode)}
-                totals={totalsByMode[mode]}
-              />
-            ))}
-          </div>
-        ) : undefined
-      }
-      eyebrow={t("trend")}
-    >
+    <InstrumentSection eyebrow={t("trend")}>
       <EChartsAreaChart
         animation={false}
         className={FAMILY_CHART_HEIGHT_CLASS}
@@ -321,36 +202,29 @@ function FamilyTrend({
         <EChartsAreaChart.Grid variant="solid" />
         <EChartsAreaChart.XAxis dataKey="day" />
         <EChartsAreaChart.YAxis scale tickFormatter={formatChartPercent} />
-        {visibleModes.map((mode) => (
-          <EChartsAreaChart.Area
-            connectNulls
-            dataKey={mode}
-            enableBufferLine={markIncompleteTail}
-            gapMissing
-            key={mode}
-            strokeVariant="solid"
-            strokeWidth={
-              mode === "all"
-                ? FAMILY_TOTAL_STROKE_WIDTH
-                : FAMILY_MODE_STROKE_WIDTH
-            }
-            variant="gradient"
-          >
-            <EChartsAreaChart.ActiveDot variant="border" />
-          </EChartsAreaChart.Area>
-        ))}
+        <EChartsAreaChart.Area
+          connectNulls
+          dataKey="all"
+          enableBufferLine={markIncompleteTail}
+          gapMissing
+          strokeVariant="solid"
+          strokeWidth={FAMILY_TOTAL_STROKE_WIDTH}
+          variant="gradient"
+        >
+          <EChartsAreaChart.ActiveDot variant="border" />
+        </EChartsAreaChart.Area>
         <EChartsAreaChart.Tooltip
           barMax={CHART_PERCENT_SCALE}
           confine={false}
           emptyLabel={(row) =>
-            tGeoShared(mentionTrendEmptyState(row, visibleModes))
+            tGeoShared(mentionTrendEmptyState(row, TREND_SERIES_KEYS))
           }
           labelFormatter={(day: string) => formatFullDayLabel(day, locale)}
           labelKey="rawDay"
           layout="activity"
           position="fixed"
           roundness="xl"
-          rowKeys={visibleModes}
+          rowKeys={TREND_SERIES_KEYS}
           scrub
           valueFormatter={formatChartPercent}
         />

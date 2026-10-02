@@ -17,7 +17,7 @@ export class GitHubAccessError extends Schema.TaggedError<GitHubAccessError>()(
 
 export class IntegrationUnavailableError extends Schema.TaggedError<IntegrationUnavailableError>()(
   "IntegrationUnavailableError",
-  {}
+  { cause: Schema.optional(Schema.Defect()) }
 ) {}
 
 export class IntegrationCreateFailedError extends Schema.TaggedError<IntegrationCreateFailedError>()(

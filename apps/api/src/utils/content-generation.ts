@@ -5,8 +5,14 @@ import {
   githubIntegrations,
   linearIntegrations,
 } from "@notra/db/schema";
+import { InternalDashboardAdapterError } from "@notra/schemas/api/internal-dashboard";
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { Effect } from "effect";
 
+import {
+  PostDatabaseError,
+  PostGenerationTargetUnavailableError,
+} from "../errors/posts";
 import { isConfirmedWorkflowTriggerRejection } from "./brand-analysis";
 import {
   getInternalWorkflowUrl,
@@ -58,25 +64,28 @@ export async function triggerContentGenerationWorkflow(
   const url = getContentGenerationWorkflowUrl(env);
 
   if (!url) {
-    throw new Error("Content generation workflow URL is not configured");
+    throw new InternalDashboardAdapterError({
+      kind: "configuration",
+      message: "Content generation workflow URL is not configured",
+    });
   }
 
   return await startDashboardWorkflow(url, payload);
 }
 
 /** True when the dashboard explicitly rejected content generation before acceptance. */
-export function isConfirmedContentGenerationRejection(error: unknown) {
-  if (isConfirmedWorkflowTriggerRejection(error)) {
-    return true;
-  }
+export const isConfirmedContentGenerationRejection =
+  isConfirmedWorkflowTriggerRejection;
 
-  return (
-    error instanceof Error &&
-    error.message === "Content generation workflow URL is not configured"
-  );
-}
+const queryPostTargets = <A>(operation: () => Promise<A>) =>
+  Effect.tryPromise({
+    try: operation,
+    catch: (cause) => new PostDatabaseError({ cause }),
+  });
 
-export async function resolveRequestedRepositoryIds(
+export const resolveRequestedRepositoryIds = Effect.fn(
+  "posts.resolveRequestedRepositoryIds"
+)(function* (
   db: DbClient,
   organizationId: string,
   request: {
@@ -92,18 +101,20 @@ export async function resolveRequestedRepositoryIds(
     const uniqueIntegrationIds = Array.from(
       new Set(request.integrations.github)
     );
-    const connectedRepositories = await db
-      .select({
-        id: githubIntegrations.id,
-      })
-      .from(githubIntegrations)
-      .where(
-        and(
-          eq(githubIntegrations.organizationId, organizationId),
-          eq(githubIntegrations.enabled, true),
-          inArray(githubIntegrations.id, uniqueIntegrationIds)
+    const connectedRepositories = yield* queryPostTargets(() =>
+      db
+        .select({
+          id: githubIntegrations.id,
+        })
+        .from(githubIntegrations)
+        .where(
+          and(
+            eq(githubIntegrations.organizationId, organizationId),
+            eq(githubIntegrations.enabled, true),
+            inArray(githubIntegrations.id, uniqueIntegrationIds)
+          )
         )
-      );
+    );
 
     const matchedRepositoryIds = connectedRepositories.map(
       (integration) => integration.id
@@ -115,9 +126,9 @@ export async function resolveRequestedRepositoryIds(
         (integrationId) => !connectedRepositoryIds.has(integrationId)
       );
 
-      throw new Error(
-        `Requested GitHub integrations are not available for this organization: ${missingIntegrationIds.join(", ")}`
-      );
+      return yield* new PostGenerationTargetUnavailableError({
+        message: `Requested GitHub integrations are not available for this organization: ${missingIntegrationIds.join(", ")}`,
+      });
     }
 
     return matchedRepositoryIds;
@@ -127,19 +138,21 @@ export async function resolveRequestedRepositoryIds(
     return undefined;
   }
 
-  const connectedRepositories = await db
-    .select({
-      id: githubIntegrations.id,
-      owner: githubIntegrations.owner,
-      repo: githubIntegrations.repo,
-    })
-    .from(githubIntegrations)
-    .where(
-      and(
-        eq(githubIntegrations.organizationId, organizationId),
-        eq(githubIntegrations.enabled, true)
+  const connectedRepositories = yield* queryPostTargets(() =>
+    db
+      .select({
+        id: githubIntegrations.id,
+        owner: githubIntegrations.owner,
+        repo: githubIntegrations.repo,
+      })
+      .from(githubIntegrations)
+      .where(
+        and(
+          eq(githubIntegrations.organizationId, organizationId),
+          eq(githubIntegrations.enabled, true)
+        )
       )
-    );
+  );
 
   const uniqueRequestedRepositories = Array.from(
     new Map(
@@ -189,17 +202,19 @@ export async function resolveRequestedRepositoryIds(
         !connectedRepoNames.has(`${owner.toLowerCase()}/${repo.toLowerCase()}`)
     );
 
-    throw new Error(
-      `Requested repositories are not connected for this organization: ${missingRepositories
+    return yield* new PostGenerationTargetUnavailableError({
+      message: `Requested repositories are not connected for this organization: ${missingRepositories
         .map(({ owner, repo }) => `${owner}/${repo}`)
-        .join(", ")}`
-    );
+        .join(", ")}`,
+    });
   }
 
   return matchedRepositoryIds;
-}
+});
 
-export async function resolveRequestedLinearIntegrationIds(
+export const resolveRequestedLinearIntegrationIds = Effect.fn(
+  "posts.resolveRequestedLinearIntegrationIds"
+)(function* (
   db: DbClient,
   organizationId: string,
   request: {
@@ -215,18 +230,20 @@ export async function resolveRequestedLinearIntegrationIds(
   }
 
   const uniqueIntegrationIds = Array.from(new Set(requestedIntegrationIds));
-  const connectedIntegrations = await db
-    .select({
-      id: linearIntegrations.id,
-    })
-    .from(linearIntegrations)
-    .where(
-      and(
-        eq(linearIntegrations.organizationId, organizationId),
-        eq(linearIntegrations.enabled, true),
-        inArray(linearIntegrations.id, uniqueIntegrationIds)
+  const connectedIntegrations = yield* queryPostTargets(() =>
+    db
+      .select({
+        id: linearIntegrations.id,
+      })
+      .from(linearIntegrations)
+      .where(
+        and(
+          eq(linearIntegrations.organizationId, organizationId),
+          eq(linearIntegrations.enabled, true),
+          inArray(linearIntegrations.id, uniqueIntegrationIds)
+        )
       )
-    );
+  );
 
   const matchedIntegrationIds = connectedIntegrations.map(
     (integration) => integration.id
@@ -238,60 +255,68 @@ export async function resolveRequestedLinearIntegrationIds(
       (integrationId) => !connectedIntegrationIds.has(integrationId)
     );
 
-    throw new Error(
-      `Requested Linear integrations are not available for this organization: ${missingIntegrationIds.join(", ")}`
-    );
+    return yield* new PostGenerationTargetUnavailableError({
+      message: `Requested Linear integrations are not available for this organization: ${missingIntegrationIds.join(", ")}`,
+    });
   }
 
   return matchedIntegrationIds;
-}
+});
 
-export async function resolveRequestedBrandVoiceId(
+export const resolveRequestedBrandVoiceId = Effect.fn(
+  "posts.resolveRequestedBrandVoiceId"
+)(function* (
   db: DbClient,
   organizationId: string,
   brandVoiceId?: string | null
 ) {
   if (brandVoiceId) {
-    const explicitVoice = await db.query.brandSettings.findFirst({
-      where: and(
-        eq(brandSettings.id, brandVoiceId),
-        eq(brandSettings.organizationId, organizationId)
-      ),
-      columns: {
-        id: true,
-      },
-    });
+    const explicitVoice = yield* queryPostTargets(() =>
+      db.query.brandSettings.findFirst({
+        where: and(
+          eq(brandSettings.id, brandVoiceId),
+          eq(brandSettings.organizationId, organizationId)
+        ),
+        columns: {
+          id: true,
+        },
+      })
+    );
 
     if (!explicitVoice) {
-      throw new Error(
-        "Requested brand voice does not belong to this organization"
-      );
+      return yield* new PostGenerationTargetUnavailableError({
+        message: "Requested brand voice does not belong to this organization",
+      });
     }
 
     return explicitVoice.id;
   }
 
-  const defaultVoice = await db.query.brandSettings.findFirst({
-    where: and(
-      eq(brandSettings.organizationId, organizationId),
-      eq(brandSettings.isDefault, true)
-    ),
-    columns: {
-      id: true,
-    },
-  });
+  const defaultVoice = yield* queryPostTargets(() =>
+    db.query.brandSettings.findFirst({
+      where: and(
+        eq(brandSettings.organizationId, organizationId),
+        eq(brandSettings.isDefault, true)
+      ),
+      columns: {
+        id: true,
+      },
+    })
+  );
 
   if (defaultVoice) {
     return defaultVoice.id;
   }
 
-  const latestVoice = await db.query.brandSettings.findFirst({
-    where: eq(brandSettings.organizationId, organizationId),
-    orderBy: [desc(brandSettings.updatedAt)],
-    columns: {
-      id: true,
-    },
-  });
+  const latestVoice = yield* queryPostTargets(() =>
+    db.query.brandSettings.findFirst({
+      where: eq(brandSettings.organizationId, organizationId),
+      orderBy: [desc(brandSettings.updatedAt)],
+      columns: {
+        id: true,
+      },
+    })
+  );
 
   return latestVoice?.id ?? null;
-}
+});

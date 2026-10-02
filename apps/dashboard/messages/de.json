@@ -2586,11 +2586,7 @@
       "descriptionModels": "Wie sichtbar deine Marke in jedem Modell ist",
       "descriptionEngine": "Wie sichtbar deine Marke in dieser KI-Engine ist",
       "lastChecked": "Zuletzt geprüft {time}",
-      "modes": {
-        "memory": "Ohne Suche"
-      },
-      "seriesLabel": "Markensichtbarkeit · {mode}",
-      "answerMode": "Antwortmodus",
+      "seriesLabel": "Markensichtbarkeit",
       "brandsHint": "Wie oft jede Marke in den Antworten dieser KI-Engine auf deine Prompts auftaucht",
       "resultHeader": "Ergebnis",
       "emptyPrompts": "Noch keine Prompts gescannt"
@@ -3122,7 +3118,6 @@
     "promptDetailDialog": {
       "scanFrom": "Scan vom <time>{date}</time>",
       "backToLatest": "Zurück zum neuesten Scan",
-      "latestAnswerMode": "Neueste {mode}-Antwort jeder KI-Engine",
       "latestAnswer": "Neueste Antwort jeder KI-Engine",
       "answerLanguage": "Antwortsprache",
       "noTags": "Keine Tags",

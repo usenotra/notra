@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  GeoPromptHistoryCheck,
+  GeoPromptResultSummary,
+} from "@notra/geo-core/types/geo";
 import { useState } from "react";
 
 import {
@@ -12,7 +16,29 @@ import {
   latestPromptResults,
   promptHistoryForEngine,
   promptHistoryForScanLanguage,
+  withoutSupersededNoSearchResults,
 } from "@/utils/geo-prompt-history";
+
+// A scan-scoped view shows exactly what that scan answered; the latest view
+// hides legacy no-search answers a search answer replaced.
+function promptAnswerResults({
+  row,
+  visibleChecks,
+  scanId,
+  scanPromptId,
+  initialEngine,
+}: Pick<PromptAnswerSelectionInput, "row" | "scanId" | "initialEngine"> & {
+  visibleChecks: readonly GeoPromptHistoryCheck[];
+  scanPromptId: string;
+}): GeoPromptResultSummary[] {
+  if (scanId) {
+    return latestPromptResults([], visibleChecks, scanPromptId, row.prompt);
+  }
+  return withoutSupersededNoSearchResults(
+    latestPromptResults(row.results, visibleChecks, scanPromptId, row.prompt),
+    initialEngine
+  );
+}
 
 export function usePromptAnswerSelection({
   row,
@@ -30,12 +56,13 @@ export function usePromptAnswerSelection({
   });
   const { languages, selectedLanguage, visibleChecks } =
     promptHistoryForScanLanguage(history.data?.checks ?? [], scanId, language);
-  const results = latestPromptResults(
-    scanId ? [] : row.results,
+  const results = promptAnswerResults({
+    row,
     visibleChecks,
+    scanId,
     scanPromptId,
-    row.prompt
-  );
+    initialEngine,
+  });
   const engines = results.map((result) => result.engine);
   const [engine, setEngine] = useState(initialEngine ?? "");
   const active =

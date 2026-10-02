@@ -22,7 +22,6 @@ import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { cn } from "@/lib/utils";
 import type {
   GeoScanModelMenuProps,
@@ -61,7 +60,6 @@ function ScanModelRow({
   onToggle: () => void;
 }) {
   const t = useTranslations("geo.scanModelMenu");
-  const tGeoShared = useTranslations("geo.shared");
   return (
     <button
       aria-checked={checked}
@@ -75,11 +73,6 @@ function ScanModelRow({
     >
       <EngineIcon className="size-4" engine={option.id} />
       <span className="min-w-0 flex-1 truncate">{option.label}</span>
-      {option.answerMode ? (
-        <span className="text-muted-foreground text-xs">
-          {tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[option.answerMode])}
-        </span>
-      ) : null}
       {option.zdrBlocked ? (
         <span className="text-muted-foreground text-xs">{t("noZdr")}</span>
       ) : null}
