@@ -23,6 +23,24 @@ const SOCIAL_IMAGE_WIDTH = 1200;
 const SOCIAL_IMAGE_HEIGHT = 630;
 
 export const PAGE_SOCIAL_IMAGES = {
+  personas: {
+    url: "/og/personas.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra personas social preview image",
+  },
+  conversations: {
+    url: "/og/conversations.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra conversations social preview image",
+  },
+  aiCrawlerLogs: {
+    url: "/og/ai-crawler-logs.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra AI crawler logs social preview image",
+  },
   features: {
     url: "/og/features.png",
     width: SOCIAL_IMAGE_WIDTH,

@@ -6,6 +6,7 @@ import type {
 } from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
+import { FEATURE_DETAIL_SLUGS } from "@/constants/feature-pages/paths";
 import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
 import {
   buildBlogAuthorMarkdown,
@@ -103,6 +104,7 @@ function markdownFromTitleAndBody(title: string, body: string) {
 const CONTENT_SOURCES = import.meta.glob<string>(
   [
     "/src/content/pages/*.md",
+    "/src/content/pages/features/*.md",
     "/src/content/legal/*.mdx",
     "/src/content/changelog/**/*.mdx",
   ],
@@ -361,6 +363,10 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     ...SHOWCASE_COMPANIES.map((company) => ({
       pattern: `/changelog/${company.slug}`,
       render: () => buildShowcaseCompanyMarkdown(company.slug),
+    })),
+    ...FEATURE_DETAIL_SLUGS.map((slug) => ({
+      pattern: `/features/${slug}`,
+      render: () => readAppMarkdownSource("pages", "features", `${slug}.md`),
     })),
     ...STATIC_MARKDOWN_PAGES.map((page) => ({
       pattern: `/${page}`,
