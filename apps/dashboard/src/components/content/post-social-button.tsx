@@ -1,6 +1,5 @@
 "use client";
 
-import { Confetti } from "@neoconfetti/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -19,6 +18,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { AddReferenceControl } from "@/components/content/add-reference-control";
 import { PostSocialErrorNotice } from "@/components/content/post-social-error-notice";
 import { PostSocialIntentButton } from "@/components/content/post-social-intent-button";

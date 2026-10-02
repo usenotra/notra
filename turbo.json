@@ -120,6 +120,7 @@
     "WEBHOOK_ENCRYPTION_KEY"
   ],
   "envMode": "strict",
+  "globalPassThroughEnv": ["TURBO_TASKS_AVAILABLE_PARALLELISM"],
   "tasks": {
     "transit": {
       "dependsOn": ["^transit"]
