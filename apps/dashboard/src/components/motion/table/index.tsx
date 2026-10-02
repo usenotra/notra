@@ -34,6 +34,7 @@ import {
   pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
+  TABLE_FRAME_INSET,
   tableLoadingOverlay,
   tableMinWidthCss,
 } from "./utils";
@@ -103,7 +104,9 @@ export function Table<T>({
   }));
   const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
     minColumnWidth,
-    extraFixedWidths: selectable ? [CHECKBOX_WIDTH] : [],
+    extraFixedWidths: selectable
+      ? [TABLE_FRAME_INSET, CHECKBOX_WIDTH]
+      : [TABLE_FRAME_INSET],
     extraChromePx: reorderable ? REORDER_HANDLE_PX : 0,
   });
   // Reordering only sees the visible columns, so what a consumer persists has
