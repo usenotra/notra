@@ -24,9 +24,8 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import type { PromptEngineSwitcherProps } from "@/types/geo";
-import { formatEngineFamily, sharedEngineAnswerMode } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { adjacentPromptEngine } from "@/utils/geo-prompt-engines";
 
 const COUNTER_TRANSITION = {
@@ -43,10 +42,7 @@ export function PromptEngineSwitcher({
 }: PromptEngineSwitcherProps) {
   const t = useTranslations("geo.promptEngineSwitcher");
   const engines = results.map((result) => result.engine);
-  const answerMode = sharedEngineAnswerMode(engines);
-  const formatEngineWithMode = useEngineModeLabel();
-  const engineLabel = (engine: string) =>
-    answerMode ? formatEngineFamily(engine) : formatEngineWithMode(engine);
+  const engineLabel = formatEngineFamily;
   const activeIndex = engines.indexOf(active.engine);
   const reduceMotion = useReducedMotion();
   const counterTransition = reduceMotion ? INSTANT : COUNTER_TRANSITION;
@@ -56,9 +52,7 @@ export function PromptEngineSwitcher({
       <div className="flex min-w-0 flex-1 items-center">
         <span className="bg-background inline-flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8rem] font-medium">
           <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
-          <span className="truncate">
-            {formatEngineWithMode(active.engine)}
-          </span>
+          <span className="truncate">{formatEngineFamily(active.engine)}</span>
         </span>
       </div>
     );

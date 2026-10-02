@@ -75,6 +75,7 @@ import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
+import type { GeoScanModelMenuProps } from "@/types/geo-scan-activity";
 
 export interface GeoProjectCreateInput {
   name: string;
@@ -198,8 +199,7 @@ export interface GeoOverviewPageReady {
   isScanning: boolean;
   revealActive: boolean;
   tabs: GeoTabsProps;
-  scanPreflight: ScanPreflightDialogProps;
-  onRunScan: () => void;
+  scanMenu: GeoScanModelMenuProps;
 }
 
 export type GeoOverviewPageModel =
@@ -209,10 +209,6 @@ export type GeoOverviewPageModel =
 
 export interface GeoOverviewLoadedProps {
   page: GeoOverviewPageReady;
-}
-
-export interface GeoScanSpinnerProps {
-  visible: boolean;
 }
 
 export interface GeoStatDeltaLabels {

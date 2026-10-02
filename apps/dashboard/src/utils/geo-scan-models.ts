@@ -1,7 +1,7 @@
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 
 import type { GeoScanModelOption } from "@/types/geo-scan-activity";
-import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 
 interface BuildScanModelOptionsInput {
   tracked: readonly string[];
@@ -28,7 +28,6 @@ export function buildScanModelOptions({
     return {
       id,
       label: model?.label ?? formatEngineFamily(id),
-      answerMode: engineAnswerMode(id),
       tracked: trackedIds.has(id),
       zdrBlocked:
         enforceZdr && model?.zdr === "none" && !approved.has(model.id),
