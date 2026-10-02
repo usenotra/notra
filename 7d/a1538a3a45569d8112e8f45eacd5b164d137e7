@@ -1,0 +1,34 @@
+apps/dashboard/src/components/geo/persona-answer-cost.tsx
+  s_8d304e30a6b3bb::t_2ebc17d99cbb0f 5,7,9-11
+  s_8d304e30a6b3bb::t_6a3097c412c2c5 1-4,8,12-15,17-23
+  s_8d304e30a6b3bb::t_b824ff66b7afd1 6
+  s_8d304e30a6b3bb::t_46dbf60439b6ca 16
+apps/dashboard/messages/de.json
+  s_8d304e30a6b3bb::t_8a5bdb972d6c20 2989,3039,3056
+apps/dashboard/src/types/geo-personas-ui.ts
+  s_8d304e30a6b3bb::t_2ebc17d99cbb0f 133-136
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  s_8d304e30a6b3bb::t_8a5bdb972d6c20 10,36-40,46,119-149,266-285
+apps/dashboard/src/components/geo/persona-table-actions.tsx
+  s_8d304e30a6b3bb::t_8a5bdb972d6c20 13-15,19,166-171
+apps/dashboard/messages/en.json
+  s_8d304e30a6b3bb::t_8a5bdb972d6c20 2989,3039,3056
+apps/dashboard/src/components/geo/personas-table.tsx
+  s_8d304e30a6b3bb::t_8a5bdb972d6c20 5,178-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7da1538a3a45569d8112e8f45eacd5b164d137e7",
+  "prompts": {},
+  "sessions": {
+    "s_8d304e30a6b3bb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "836ebbd3-9d4b-4d72-af76-bde9243d1523",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
