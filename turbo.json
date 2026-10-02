@@ -149,6 +149,7 @@
       "outputs": [".cache/typecheck.tsbuildinfo"]
     },
     "check:migrations": {
+      "cache": false,
       "outputs": []
     },
     "ui#check-types": {

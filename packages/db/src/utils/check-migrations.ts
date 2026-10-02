@@ -3,10 +3,23 @@ import type { MigrationJournal } from "../types/migrations";
 
 export function checkMigrations(
   journal: MigrationJournal,
-  sqlFiles: string[]
+  sqlFiles: string[],
+  previousJournal?: MigrationJournal
 ): void {
   if (!Array.isArray(journal.entries) || journal.entries.length === 0) {
     throw new Error("Migration journal must contain entries");
+  }
+
+  for (const [index, previous] of previousJournal?.entries.entries() ?? []) {
+    const current = journal.entries[index];
+    if (
+      !current ||
+      current.idx !== previous.idx ||
+      current.tag !== previous.tag ||
+      current.when !== previous.when
+    ) {
+      throw new Error(`Historical migration must not change: ${previous.tag}`);
+    }
   }
 
   const tags = new Set<string>();

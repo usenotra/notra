@@ -203,8 +203,11 @@ bun run db:studio
 Commit generated SQL and `packages/db/migrations/meta/_journal.json` together.
 `db:check` rejects orphan SQL, missing files, invalid journal ordering, and new
 prefix collisions. Two historical prefix pairs are grandfathered; do not rename
-applied migrations or change their journal timestamps. CI also replays the full
-journal on an empty Postgres database and runs it again to check rerun safety.
+applied migrations or change their journal timestamps. CI compares the journal
+against the PR base or previous main commit to enforce append-only history. Run
+`bun run db:check --base=origin/main` locally for the same comparison. CI also
+replays the full journal on an empty Postgres database and runs it again to check
+rerun safety.
 
 The obsolete SQL files `0019_add_post_recommendations`, `0036_lovely_wallop`, and
 `0090_user_auth_security` were unjournaled and have been removed. Their active

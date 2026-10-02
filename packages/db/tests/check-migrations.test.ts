@@ -101,3 +101,59 @@ test("grandfathers only the exact historical prefix pairs", () => {
     )
   ).toThrow("Duplicate migration prefix 0009");
 });
+
+test("allows new migrations appended to the historical journal", () => {
+  const previous = { entries: [{ idx: 0, tag: "0000_baseline", when: 1 }] };
+  const journal = {
+    entries: [...previous.entries, { idx: 1, tag: "0001_next", when: 3 }],
+  };
+  expect(() =>
+    checkMigrations(journal, ["0000_baseline.sql", "0001_next.sql"], previous)
+  ).not.toThrow();
+});
+
+test("rejects historical timestamp edits even when timestamps stay ordered", () => {
+  const previous = {
+    entries: [
+      { idx: 0, tag: "0000_baseline", when: 1 },
+      { idx: 1, tag: "0001_next", when: 3 },
+    ],
+  };
+  const entries = previous.entries.map((entry) =>
+    entry.idx === 0 ? { ...entry, when: 2 } : entry
+  );
+  expect(() =>
+    checkMigrations(
+      { entries },
+      ["0000_baseline.sql", "0001_next.sql"],
+      previous
+    )
+  ).toThrow("Historical migration must not change");
+});
+
+test("rejects removal, renaming and insertion of historical migrations", () => {
+  const previous = { entries: [{ idx: 0, tag: "0000_baseline", when: 2 }] };
+  for (const entries of [
+    [{ idx: 0, tag: "0001_next", when: 3 }],
+    [{ idx: 0, tag: "0000_renamed", when: 2 }],
+    [
+      { idx: 0, tag: "0000_inserted", when: 1 },
+      { idx: 1, tag: "0000_baseline", when: 2 },
+    ],
+  ]) {
+    expect(() =>
+      checkMigrations(
+        { entries },
+        entries.map((entry) => `${entry.tag}.sql`),
+        previous
+      )
+    ).toThrow("Historical migration must not change");
+  }
+
+  const longerHistory = {
+    entries: [...previous.entries, { idx: 1, tag: "0001_next", when: 3 }],
+  };
+  expect(() =>
+    checkMigrations(previous, ["0000_baseline.sql"], longerHistory)
+  ).toThrow("Historical migration must not change");
+});

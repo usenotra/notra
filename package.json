@@ -13,7 +13,7 @@
     "test": "turbo run test",
     "knip": "dotenv -- turbo run knip --filter=web --filter=dashboard --filter=api",
     "db:generate": "dotenv -- bunx drizzle-kit generate --config packages/db/drizzle.config.ts",
-    "db:check": "turbo run check:migrations --filter=@notra/db",
+    "db:check": "turbo run check:migrations --filter=@notra/db --",
     "db:migrate": "dotenv -- bunx drizzle-kit migrate --config packages/db/drizzle.config.ts",
     "db:push": "dotenv -- bunx drizzle-kit push --config packages/db/drizzle.config.ts",
     "db:studio": "dotenv -- bunx drizzle-kit studio --config packages/db/drizzle.config.ts",
