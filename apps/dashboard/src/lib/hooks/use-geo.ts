@@ -88,6 +88,10 @@ import {
   geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { toGeoWindowInput } from "@/utils/geo-range";
+import {
+  invalidateGeoScanResultQueries,
+  refreshSettingsAfterScanStart,
+} from "@/utils/geo-scan-results";
 import { formatGscSiteUrl } from "@/utils/gsc-site-url";
 
 import { dashboardOrpc } from "../orpc/query";
@@ -146,71 +150,6 @@ async function invalidatePromptQueries(
       queryKey: geoDbQueryKey("prompts", { organizationId, projectId }),
     }),
   ]);
-}
-
-async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentiment.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentimentEvidence.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentimentAnalysis.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.scanRuns.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.scanRun.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.overview.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.timeseries.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptResultSummaries.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptResultDetail.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.changes.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptHistory.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.competitorShare.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.competitorDetail.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.languageShare.key(),
-    }),
-  ]);
-}
-
-// A quick single-prompt rescan can finish before the settings refetch sees
-// `isScanning`, so the true -> false transition never fires. Refresh the scan
-// results (sentiment included) here when the scan is already done.
-async function refreshSettingsAfterScanStart(
-  queryClient: QueryClient,
-  organizationId: string,
-  projectId: string | undefined
-) {
-  const settingsKey = dashboardOrpc.geo.settings.queryKey({
-    input: { organizationId, projectId },
-  });
-  await queryClient.invalidateQueries({ queryKey: settingsKey });
-  const settings = queryClient.getQueryData<GeoSettingsResponse>(settingsKey);
-  if (!settings?.settings?.isScanning) {
-    await invalidateGeoScanResultQueries(queryClient);
-  }
 }
 
 function geoStartScanMutationKey(
