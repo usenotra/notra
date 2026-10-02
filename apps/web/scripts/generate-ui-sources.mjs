@@ -33,7 +33,7 @@ function resolveSource(base) {
 
 collect(path.join(webRoot, "src"));
 // These entry points may also import shared components outside src/.
-for (const filename of ["mdx-components.tsx", "source.config.ts"]) {
+for (const filename of ["source.config.ts"]) {
   const entry = path.join(webRoot, filename);
   if (existsSync(entry)) {
     pending.push(entry);

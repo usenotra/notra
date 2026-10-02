@@ -1,5 +1,3 @@
-"use client";
-
 import { useFlag } from "@databuddy/sdk/react";
 
 import { LANDING_TESTIMONIALS_FLAG_KEY } from "@/constants/landing/testimonials";

@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata } from "@/types/metadata";
 
+import { RSS_FEED_PATH } from "./constants";
 import { SITE_URL } from "./urls";
 
 const TRAILING_SLASHES_REGEX = /\/+$/;
@@ -105,3 +106,38 @@ export function pageAlternates(url: string): Metadata["alternates"] {
     },
   };
 }
+
+export const TITLE_TEMPLATE = "%s - Notra";
+
+export const ROOT_METADATA: Metadata = {
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: SITE_URL,
+    types: {
+      "text/plain": `${SITE_URL}/llms.txt`,
+      "application/rss+xml": `${SITE_URL}${RSS_FEED_PATH}`,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Notra",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE.url],
+    site: TWITTER_HANDLE,
+    creator: TWITTER_HANDLE,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};

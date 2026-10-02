@@ -1,5 +1,4 @@
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
@@ -48,11 +47,13 @@ export function FeedbackMdUpsell() {
           <CtaButton
             className="w-full min-w-0 px-3 text-lg sm:w-auto sm:px-6"
             nativeButton={false}
-            render={<Link href={FEEDBACK_MD_DOCS_URL} />}
+            render={
+              <a href={FEEDBACK_MD_DOCS_URL}>
+                {FEEDBACK_MD_UPSELL_SECONDARY_LABEL}
+              </a>
+            }
             variant="light"
-          >
-            {FEEDBACK_MD_UPSELL_SECONDARY_LABEL}
-          </CtaButton>
+          />
         </div>
       </div>
     </section>

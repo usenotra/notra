@@ -78,6 +78,8 @@ minimumReleaseAgeExcludes = [
   "@tanstack/history",
   "@tanstack/react-store",
   "@tanstack/store",
+  # apps/web runs on TanStack Start + Vite 8; keep the toolchain on its latest release.
+  "vite",
   # Effect v4 went stable 2026-10-01; tsgo tracks it with per-platform binaries.
   # TODO: remove these entries from 2026-10-08 on, once effect@4.0.0 and tsgo@0.47.2 clear the 7-day window.
   "effect",

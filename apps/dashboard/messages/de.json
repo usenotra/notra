@@ -3116,6 +3116,12 @@
       "actionAria": "Prompt kopieren: {prompt}"
     },
     "promptDetailDialog": {
+      "emptyTitle": "Noch keine Antworten",
+      "emptyDescription": "Dieser Prompt wird beim nächsten geplanten Scan abgefragt. Starte jetzt einen Scan, um die Antworten sofort zu sehen.",
+      "emptyPaused": "GEO-Scans sind pausiert. Aktiviere sie in den Einstellungen, damit dieser Prompt abgefragt wird.",
+      "emptyScanningTitle": "KI-Engines werden abgefragt…",
+      "emptyScanningDescription": "Die Antworten erscheinen hier, sobald der Scan fertig ist.",
+      "emptyEngines": "Wird abgefragt in",
       "scanFrom": "Scan vom <time>{date}</time>",
       "backToLatest": "Zurück zum neuesten Scan",
       "latestAnswer": "Neueste Antwort jeder KI-Engine",
@@ -3889,6 +3895,8 @@
       "loadPromptSuggestionsFailed": "Prompt-Vorschläge konnten nicht geladen werden",
       "generateConversationsFailed": "Unterhaltungen konnten nicht erstellt werden",
       "promptAddedTracking": "Prompt zum Tracking hinzugefügt",
+      "trackedPromptNextScan": "Ergebnisse erscheinen nach dem nächsten Scan.",
+      "viewTrackedPrompt": "Ansehen",
       "addPromptFailed": "Prompt konnte nicht hinzugefügt werden",
       "addPromptsFailed": "Prompts konnten nicht hinzugefügt werden",
       "dismissSuggestionFailed": "Vorschlag konnte nicht verworfen werden",
@@ -6109,6 +6117,14 @@
       "formats": "{count} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
       "items": "Einträge",
+      "actions": {
+        "open": "Öffnen",
+        "openInNewTab": "In neuem Tab öffnen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Link kopiert",
+        "deleteTitle": "Inhalt löschen?",
+        "deleteDescription": "Dadurch werden \"{title}\" und alle {count, plural, one {# Beitrag} other {# Beiträge}} darin dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden."
+      },
       "detail": {
         "metaTitle": "Sammlung",
         "metaDescription": "Sieh dir alle Beiträge einer Inhaltssammlung an.",
@@ -6139,6 +6155,8 @@
       "loadLatestPlanFailed": "Aktueller Plan konnte nicht geladen werden",
       "refreshPlanFailed": "Plan konnte nicht aktualisiert werden",
       "postDeleted": "Beitrag gelöscht",
+      "collectionDeleted": "Inhalt gelöscht",
+      "deleteCollectionFailed": "Inhalt konnte nicht gelöscht werden",
       "deletePostFailed": "Beitrag konnte nicht gelöscht werden",
       "loadContentFailed": "Inhalte konnten nicht geladen werden",
       "loadRecentPostsFailed": "Letzte Beiträge konnten nicht geladen werden",

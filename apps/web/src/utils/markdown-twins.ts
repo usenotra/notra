@@ -1,6 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import type { CollectionEntry } from "@dualmark/converters";
 import type {
   CollectionConfig,
@@ -103,21 +100,23 @@ function markdownFromTitleAndBody(title: string, body: string) {
   return withTrailingNewline([`# ${title}`, "", content].join("\n"));
 }
 
-async function readAppMarkdownSource(...segments: string[]) {
-  const candidatePaths = [
-    path.join(process.cwd(), "src", "content", ...segments),
-    path.join(process.cwd(), "apps", "web", "src", "content", ...segments),
-  ];
+const CONTENT_SOURCES = import.meta.glob<string>(
+  [
+    "/src/content/pages/*.md",
+    "/src/content/legal/*.mdx",
+    "/src/content/changelog/**/*.mdx",
+  ],
+  { query: "?raw", import: "default", eager: true }
+);
 
-  for (const filePath of candidatePaths) {
-    try {
-      return await readFile(filePath, "utf8");
-    } catch {
-      // Try the next candidate path.
-    }
+async function readAppMarkdownSource(...segments: string[]) {
+  const source = CONTENT_SOURCES[`/src/content/${segments.join("/")}`];
+
+  if (source === undefined) {
+    throw new Error(`Unable to load markdown source: ${segments.join("/")}`);
   }
 
-  throw new Error(`Unable to load markdown source: ${segments.join("/")}`);
+  return source;
 }
 
 async function getShowcaseEntryMarkdown(

@@ -83,3 +83,7 @@ export const integrationListResponseSchema = z.object({
 export const integrationDetailResponseSchema = z.object({
   integration: integrationSchema,
 });
+
+export const integrationsSearchSchema = z.object({
+  integration: z.string().optional().catch(undefined),
+});

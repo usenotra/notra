@@ -89,4 +89,6 @@ export const EXAMPLE_HEIGHTS: Record<string, number> = {
   "perplexity/examples/perplexity-thinking": 116,
   "perplexity/examples/perplexity-user-actions": 140,
   "shimmer/examples/shimmer": 148,
+  "sonner/examples/sonner-action": 304,
+  "sonner/examples/sonner-types": 368,
 };

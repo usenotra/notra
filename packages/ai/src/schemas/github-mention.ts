@@ -1,3 +1,4 @@
+import { GITHUB_MENTION_REPOSITORY_READ_LIMITS } from "@notra/ai/constants/github-mention";
 import { CONTENT_PUBLICATION_STATUSES } from "@notra/db/constants/content";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -87,3 +88,84 @@ export const githubMentionDestinationModeSchema = z.enum([
   "new_pull_request",
   "reply_only",
 ]);
+
+export const githubMentionDirectorySchema = z.object({
+  path: z
+    .string()
+    .max(4096)
+    .refine(
+      (path) =>
+        path === "" ||
+        (!path.includes("\\") &&
+          path
+            .split("/")
+            .every(
+              (segment) => segment !== "" && segment !== "." && segment !== ".."
+            )),
+      "Use a repository-relative directory without trailing slashes, or an empty string for the root"
+    )
+    .default("")
+    .describe(
+      "Directory to open, e.g. apps/web/src/content. Empty string lists the repository root. Only immediate children are returned, never a recursive tree."
+    ),
+  entryType: z
+    .enum(["all", "directories", "files"])
+    .default("all")
+    .describe(
+      "Use directories to navigate without listing posts or other files"
+    ),
+  nameContains: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .describe(
+      "Case-insensitive name filter within this directory, not a repository-wide search"
+    ),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe(
+      "Entry offset. Use nextOffset from the previous page with the same path and filters."
+    ),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(GITHUB_MENTION_REPOSITORY_READ_LIMITS.directoryMax)
+    .default(GITHUB_MENTION_REPOSITORY_READ_LIMITS.directoryDefault)
+    .describe("Maximum entries per page; defaults to 30, at most 50"),
+});
+
+export const githubMentionFileReadSchema = z.object({
+  path: z.string().min(1).describe("Repository-relative file path"),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe(
+      "Character offset; use nextOffset to continue reading the same file"
+    ),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(GITHUB_MENTION_REPOSITORY_READ_LIMITS.fileMax)
+    .default(GITHUB_MENTION_REPOSITORY_READ_LIMITS.fileDefault)
+    .describe(
+      "Maximum characters to return; defaults to 6000, at most 16000. Long lines can be read across pages."
+    ),
+});
+
+export const githubMentionMoveSchema = z.strictObject({
+  fromPath: z.string().min(1).describe("Existing content file to move"),
+  toPath: z
+    .string()
+    .min(1)
+    .describe("New repository-relative content path; must not exist"),
+  headline: z.string().trim().min(1).describe("Commit headline"),
+});

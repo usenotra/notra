@@ -1,7 +1,7 @@
 import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
@@ -61,7 +61,7 @@ export function SlackCtaBanner() {
           <CtaButton
             className="text-lg"
             nativeButton={false}
-            render={<Link href={SLACK_CTA_CONTACT_HREF} />}
+            render={<Link to={SLACK_CTA_CONTACT_HREF} />}
             variant="light"
           >
             {SLACK_CTA_SECONDARY_LABEL}

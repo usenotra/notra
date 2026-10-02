@@ -1,5 +1,4 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import type { IntegrationLogoProps } from "@/types/integrations";
 
@@ -34,7 +33,9 @@ export function IntegrationLogo({
   if (light === dark) {
     return (
       <span className={cn(boxClass, className)} style={boxStyle}>
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={alt}
           className={`block h-full w-full ${fit}`}
           height={size}
@@ -47,14 +48,18 @@ export function IntegrationLogo({
 
   return (
     <span className={cn(boxClass, className)} style={boxStyle}>
-      <Image
+      <img
+        decoding="async"
+        loading="lazy"
         alt={alt}
         className={`block h-full w-full ${fit} dark:hidden`}
         height={size}
         src={light}
         width={size}
       />
-      <Image
+      <img
+        decoding="async"
+        loading="lazy"
         alt={alt}
         className={`hidden h-full w-full ${fit} dark:block`}
         height={size}

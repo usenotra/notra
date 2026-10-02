@@ -1,5 +1,3 @@
-"use client";
-
 import { EyeIcon, SourceCodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";

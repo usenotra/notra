@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import { useQueryState } from "nuqs";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
@@ -69,7 +66,9 @@ export function RepoInputForm() {
         {githubLogin ? (
           <span className="inline-flex items-center gap-1.5">
             Connected as
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt=""
               className="size-4 rounded-full"
               height={AVATAR_SIZE_PX}

@@ -20,6 +20,7 @@ import type {
   GeoIngestSnippets,
   GeoScopeInput,
 } from "../types/geo";
+import { resolveGeoIngestOrigin } from "../utils/geo-ingest-url";
 import { geoDb } from "./effect";
 import { resolveGeoScope } from "./projects";
 
@@ -168,14 +169,15 @@ export function verifyGeoIngestToken(token: string): GeoIngestIdentity | null {
   const payload = token.slice(0, separatorIndex);
   const signature = token.slice(separatorIndex + 1);
   const expected = sign(payload, secret);
-  if (signature.length !== expected.length) {
+  const signatureBytes = Buffer.from(signature);
+  const expectedBytes = Buffer.from(expected);
+  // Compare byte lengths: a multi-byte signature with the right character
+  // count would otherwise make timingSafeEqual throw.
+  if (signatureBytes.length !== expectedBytes.length) {
     return null;
   }
 
-  const matches = timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  const matches = timingSafeEqual(signatureBytes, expectedBytes);
   if (!matches) {
     return null;
   }
@@ -203,7 +205,12 @@ export function buildGeoAppUrl(): string {
 }
 
 export function buildGeoIngestUrl(): string {
-  return new URL(GEO_INGEST_PATH, buildGeoAppUrl()).toString();
+  const appUrl = buildGeoAppUrl();
+  const ingestOrigin = resolveGeoIngestOrigin(
+    process.env.GEO_INGEST_URL,
+    appUrl
+  );
+  return new URL(GEO_INGEST_PATH, ingestOrigin ?? appUrl).toString();
 }
 
 function processTokenExpr(): string {
@@ -353,7 +360,7 @@ export function buildGeoSnippets(appUrl: string): GeoIngestSnippets {
  * holder post events), so the read path builds this and never the token.
  */
 export function buildGeoIngestSetupInfo(): GeoIngestSetupInfo {
-  const snippets = buildGeoSnippets(buildGeoAppUrl());
+  const snippets = buildGeoSnippets(new URL(buildGeoIngestUrl()).origin);
   return {
     ingestUrl: buildGeoIngestUrl(),
     snippet: snippets.next,

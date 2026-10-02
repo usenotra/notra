@@ -3116,6 +3116,12 @@
       "actionAria": "Copy prompt: {prompt}"
     },
     "promptDetailDialog": {
+      "emptyTitle": "No answers yet",
+      "emptyDescription": "This prompt is asked in the next scheduled scan. Run a scan now to see the answers right away.",
+      "emptyPaused": "GEO scans are paused. Turn them on in settings so this prompt gets asked.",
+      "emptyScanningTitle": "Asking AI engines…",
+      "emptyScanningDescription": "Answers show up here as soon as the scan finishes.",
+      "emptyEngines": "Asked in",
       "scanFrom": "Scan from <time>{date}</time>",
       "backToLatest": "Back to latest scan",
       "latestAnswer": "Latest answer from each engine",
@@ -3889,6 +3895,8 @@
       "loadPromptSuggestionsFailed": "Failed to load prompt suggestions",
       "generateConversationsFailed": "Failed to generate conversations",
       "promptAddedTracking": "Prompt added to tracking",
+      "trackedPromptNextScan": "Results appear after the next scan.",
+      "viewTrackedPrompt": "View",
       "addPromptFailed": "Failed to add prompt",
       "addPromptsFailed": "Failed to add prompts",
       "dismissSuggestionFailed": "Failed to dismiss suggestion",
@@ -6109,6 +6117,14 @@
       "formats": "{count} formats",
       "emptyPage": "No content on this page",
       "items": "items",
+      "actions": {
+        "open": "Open",
+        "openInNewTab": "Open in new tab",
+        "copyLink": "Copy link",
+        "linkCopied": "Link copied",
+        "deleteTitle": "Delete content?",
+        "deleteDescription": "This permanently deletes \"{title}\" and all {count, plural, one {# post} other {# posts}} in it. This can't be undone."
+      },
       "detail": {
         "metaTitle": "Collection",
         "metaDescription": "View all posts in a content collection.",
@@ -6139,6 +6155,8 @@
       "loadLatestPlanFailed": "Failed to load the latest plan",
       "refreshPlanFailed": "Failed to refresh the plan",
       "postDeleted": "Post deleted",
+      "collectionDeleted": "Content deleted",
+      "deleteCollectionFailed": "Failed to delete content",
       "deletePostFailed": "Failed to delete post",
       "loadContentFailed": "Failed to load content",
       "loadRecentPostsFailed": "Failed to load recent posts",

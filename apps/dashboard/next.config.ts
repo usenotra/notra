@@ -13,6 +13,31 @@ import {
 
 const demoMode = isDemoMode();
 
+// Mirrors resolveGeoIngestOrigin in @notra/geo-core; next.config cannot load
+// workspace TypeScript. A value without a scheme or pointing at the app itself
+// would fail the build or proxy ingest back into this route forever.
+function resolveIngestOrigin(): string | null {
+  const value = process.env.GEO_INGEST_URL?.trim();
+  if (!value) {
+    return null;
+  }
+  const url = URL.parse(value);
+  if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL without http(s) scheme"
+    );
+    return null;
+  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL;
+  if (appUrl && URL.parse(appUrl)?.origin === url.origin) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL that points at the app"
+    );
+    return null;
+  }
+  return url.origin;
+}
+
 const nextConfig: NextConfig = {
   // Self-hosted images (the public demo on Railway) ship only the traced
   // server files; Vercel builds ignore this.
@@ -78,7 +103,6 @@ const nextConfig: NextConfig = {
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",
-    "@usenotra/geo",
   ],
   serverExternalPackages: [
     // Let Next.js remove the guarded import before devtools filesystem tracing.
@@ -91,6 +115,15 @@ const nextConfig: NextConfig = {
   ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
+    const ingestOrigin = resolveIngestOrigin();
+    const beforeFiles = ingestOrigin
+      ? [
+          {
+            source: "/api/geo/ingest",
+            destination: new URL("/api/geo/ingest", ingestOrigin).toString(),
+          },
+        ]
+      : [];
     const posthogHost =
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
     const posthogAssetsHost = posthogHost.replace(
@@ -109,18 +142,22 @@ const nextConfig: NextConfig = {
     ];
 
     if (process.env.NODE_ENV === "production") {
-      return posthogRewrites;
+      return { beforeFiles, afterFiles: posthogRewrites, fallback: [] };
     }
 
     const agentUrl =
       process.env.EVE_ONBOARDING_AGENT_URL ?? "http://127.0.0.1:3100";
-    return [
-      ...posthogRewrites,
-      {
-        source: "/eve/v1/:path*",
-        destination: `${agentUrl}/eve/v1/:path*`,
-      },
-    ];
+    return {
+      beforeFiles,
+      afterFiles: [
+        ...posthogRewrites,
+        {
+          source: "/eve/v1/:path*",
+          destination: `${agentUrl}/eve/v1/:path*`,
+        },
+      ],
+      fallback: [],
+    };
   },
   async redirects() {
     return [

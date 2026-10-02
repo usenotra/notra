@@ -43,6 +43,7 @@
     "QSTASH_URL",
     "CRON_SECRET",
     "GEO_SCAN_ALERT_WEBHOOK_URL",
+    "GEO_INGEST_URL",
     "RESEND_API_KEY",
     "TURNSTILE_SECRET",
     "TURNSTILE_HOSTNAMES",
@@ -134,6 +135,15 @@
         "dist/**",
         ".vercel/**"
       ]
+    },
+    "web#build": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NEXT_PUBLIC_DATABUDDY_WEB_WEBSITE_ID",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+      ],
+      "outputs": [".output/**", ".vercel/output/**", ".source/**"]
     },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],

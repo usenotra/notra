@@ -10,8 +10,12 @@ import { APP_URL } from "@/utils/urls";
 
 const WHITESPACE_REGEX = /\s+/g;
 
+export function getIntegrationSlug(integration: Integration): string {
+  return integration.slug ?? integration.id;
+}
+
 export function getIntegrationHref(integration: Integration): string {
-  return `/integrations/${integration.slug ?? integration.id}`;
+  return `/integrations/${getIntegrationSlug(integration)}`;
 }
 
 export function getIntegrationConnectUrl(integration: Integration): string {

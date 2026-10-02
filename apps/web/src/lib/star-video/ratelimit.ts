@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { Data, Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 type LimiterKind = "lookup" | "render" | "render-global";
 
@@ -45,7 +44,7 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
   return limiters[kind] ?? null;
 }
 
-function getClientIp(request: NextRequest): string {
+function getClientIp(request: Request): string {
   // On Vercel only the platform-set x-vercel-forwarded-for is trustworthy.
   // Off-Vercel we assume a trusted reverse proxy overwrites x-forwarded-for;
   // if the app is exposed without one these headers are client-spoofable.
@@ -63,7 +62,7 @@ function getClientIp(request: NextRequest): string {
   );
 }
 
-function getRateLimitKey(request: NextRequest): string {
+function getRateLimitKey(request: Request): string {
   return createHash("sha256").update(getClientIp(request)).digest("hex");
 }
 
@@ -104,7 +103,7 @@ const enforceLimit = Effect.fn("enforceStarVideoLimit")(function* (
 });
 
 export const enforceStarVideoRateLimit = Effect.fn("enforceStarVideoRateLimit")(
-  function* (request: NextRequest, kind: "lookup" | "render") {
+  function* (request: Request, kind: "lookup" | "render") {
     yield* enforceLimit(kind, getRateLimitKey(request));
   }
 );

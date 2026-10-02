@@ -1,5 +1,5 @@
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
@@ -48,7 +48,7 @@ export function CtaBanner() {
           <CtaButton
             className="w-full max-w-full text-lg sm:w-auto"
             nativeButton={false}
-            render={<Link href={CTA_BANNER_CONTACT_HREF} />}
+            render={<Link to={CTA_BANNER_CONTACT_HREF} />}
             variant="light"
           >
             {CTA_BANNER_SECONDARY_LABEL}

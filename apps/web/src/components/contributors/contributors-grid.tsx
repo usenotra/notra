@@ -1,5 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ContributorsGridProps } from "~types/contributors";
 
 import { formatContributionCount } from "@/utils/github";
@@ -23,13 +22,15 @@ export function ContributorsGrid({ contributors }: ContributorsGridProps) {
           <Link
             aria-label={`${contributor.login}, ${contributionsLabel}`}
             className="group flex w-[8.875rem] flex-col items-center gap-2.5 rounded-[0.8125rem] px-1 py-4 transition-colors hover:bg-[#F3EEFB] dark:hover:bg-white/5"
-            href={contributor.html_url}
+            to={contributor.html_url}
             key={contributor.id}
             rel="noopener noreferrer"
             target="_blank"
             title={`${contributor.login}, ${contributionsLabel}`}
           >
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt={`Avatar of ${contributor.login}`}
               className="duration-normal size-16 rounded-full ring-1 ring-[#ECECEC] transition-transform group-hover:scale-105 dark:ring-white/10"
               height={128}

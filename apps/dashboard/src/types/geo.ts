@@ -61,7 +61,6 @@ import type {
   GeoPromptTranslationLanguagePlan,
   GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
-import type { GeoRequestPayload } from "@usenotra/geo";
 import type { useTranslations } from "next-intl";
 import type {
   ComponentProps,
@@ -428,58 +427,8 @@ export type GeoCompetitorSuggestionsHandlerInput = GeoScopeInput &
 
 export type GeoBrandSearchHandlerInput = GeoScopeInput & GeoBrandSearchInput;
 
-export interface GeoVisitorSignals {
-  clientHints: boolean;
-  fetchMode: string | null;
-  tracing: boolean;
-}
-
-export interface GeoVisitorInput {
-  userAgent: string | undefined;
-  referer: string | undefined;
-  accept: string | undefined;
-  signals?: GeoVisitorSignals;
-}
-
-export interface GeoVisitorClassification {
-  visitorType: GeoVisitorType;
-  source: string;
-  agent: string;
-  category: string;
-  confidence: string;
-}
-
 export interface GeoTrafficLogQueryOptions {
   host?: string;
-}
-
-export interface GeoJourneyInput {
-  url: URL;
-  source: string;
-  ip: string | undefined;
-  capturedAt: Date;
-  visitorType: GeoVisitorType;
-  category: string;
-}
-
-export interface GeoJourneyTuning {
-  bucketSeconds: number;
-  fullIp: boolean;
-}
-
-export interface GeoTrafficEventInput {
-  organizationId: string;
-  projectId: string | null;
-  payload: GeoRequestPayload;
-  url: URL;
-  capturedAt: Date;
-  classification: GeoVisitorClassification;
-  journey: GeoJourneyResolution;
-}
-
-export interface GeoJourneyResolution {
-  journeyId: string;
-  path: string;
 }
 
 export interface GeoJourneyPathNode {
@@ -1400,6 +1349,8 @@ export interface PromptScanButtonProps {
   organizationId: string;
   row: GeoPromptTableRow;
   compact?: boolean;
+  /** Filled primary trigger for the main action of a surface. */
+  primary?: boolean;
   onPrepare?: () => void;
 }
 

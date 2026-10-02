@@ -20,6 +20,7 @@ Notra is a Bun + Turborepo monorepo.
 ```text
 /
 |- apps/
+|  |- ai-traffic-ingest/ # AI traffic collector (Bun, Railway)
 |  |- api/         # Hono API (Cloudflare Worker)
 |  |- dashboard/   # Main Notra product app (Next.js)
 |  |- docs/        # Product docs (Mintlify)
@@ -249,7 +250,7 @@ git commit -m "feat(dashboard): add integration activity filters"
 
 ## Landing Page Copy Sync
 
-If you update landing page copy in `apps/web/src/app/page.tsx`, also update the markdown version in `apps/web/src/app/markdown/route.ts`.
+If you update landing page copy in `apps/web/src/components/landing/landing-page.tsx`, also update the markdown version in `apps/web/src/utils/site-markdown.ts`.
 
 We keep both in sync so the website and markdown endpoint (`/markdown`) say the same thing.
 

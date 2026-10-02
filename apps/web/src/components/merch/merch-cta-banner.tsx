@@ -1,5 +1,5 @@
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 
@@ -30,7 +30,7 @@ export function MerchCtaBanner() {
           <CtaButton
             className="text-lg"
             nativeButton={false}
-            render={<Link href="/contact" />}
+            render={<Link to="/contact" />}
             variant="primary"
           >
             Claim your gift
@@ -38,7 +38,7 @@ export function MerchCtaBanner() {
           <CtaButton
             className="text-lg"
             nativeButton={false}
-            render={<Link href="/contact" />}
+            render={<Link to="/contact" />}
             variant="light"
           >
             Contact us

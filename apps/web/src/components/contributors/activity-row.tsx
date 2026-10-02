@@ -1,6 +1,5 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ActivityRowProps } from "~types/contributors";
 
 import { formatGitHubDate } from "@/utils/github";
@@ -22,11 +21,13 @@ export function ActivityRow({
         "group flex items-start gap-3 px-4.5 py-4 transition-colors hover:bg-[#F8F6FC] dark:hover:bg-white/5",
         !isLast && "border-b border-[#ECECEC] dark:border-white/10"
       )}
-      href={href}
+      to={href}
       rel="noopener noreferrer"
       target="_blank"
     >
-      <Image
+      <img
+        decoding="async"
+        loading="lazy"
         alt={`Avatar of ${authorLogin}`}
         className="mt-0.5 size-6 shrink-0 rounded-full"
         height={48}

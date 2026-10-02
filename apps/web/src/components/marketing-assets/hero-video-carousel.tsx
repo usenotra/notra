@@ -1,5 +1,3 @@
-"use client";
-
 import { CarouselProgress } from "@notra/ui/components/ui/carousel-progress";
 import { cn } from "@notra/ui/lib/utils";
 import { useEffect, useState } from "react";
