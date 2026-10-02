@@ -1,0 +1,35 @@
+apps/ui/components/ui/button-content.tsx
+  s_390de6aad5b710::t_d443582b72575b 14-16,18,21,23-24,26-27,29,32,34-35,37-45,47-91,94-103,105-106,108,110-111,113-157,163,169,174-179
+  s_390de6aad5b710::t_3aa9b524b25fd0 92-93,112
+apps/ui/components/ui/button.tsx
+  s_390de6aad5b710::t_3aa9b524b25fd0 4
+  s_390de6aad5b710::t_d443582b72575b 66,70-72,77-79,81-82,94-98
+  s_390de6aad5b710::t_1b23f021d82ee4 80
+packages/ui/src/components/ui/button.tsx
+  s_390de6aad5b710::t_1b23f021d82ee4 80
+  s_390de6aad5b710::t_d443582b72575b 3,66,70-72,77-79,81-82,94-98
+apps/web/src/styles/ui-sources.css
+  s_390de6aad5b710::t_1d74da83094317 58
+packages/ui/src/components/ui/button-content.tsx
+  s_390de6aad5b710::t_d443582b72575b 15-17,19,22,24-25,27-28,30,33,35-36,38-46,48-103,105-106,108,110-157,163,169,174-179
+apps/dashboard/src/app/design-system/button-states-demo.tsx
+  s_390de6aad5b710::t_3aa9b524b25fd0 6,26-36,38-39,42-43,46-50
+apps/ui/registry/notra/button/examples/button-progress.tsx
+  s_390de6aad5b710::t_3aa9b524b25fd0 4,12,14-22,24-25,28-29,32-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a0359f793b1e54e15c49a27ed21bd8d83a6ca1cd",
+  "prompts": {},
+  "sessions": {
+    "s_390de6aad5b710": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9e0d60a4-74dd-48fd-b8c6-7a7b6fce3d4e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
