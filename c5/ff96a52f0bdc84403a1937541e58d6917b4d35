@@ -1,0 +1,29 @@
+apps/dashboard/src/components/motion/table/index.tsx
+  s_0094dfc79a03ad::t_fec1deefea1bda 232-283,287,289-290,292-297,299-315,318-320
+  s_0094dfc79a03ad::t_b782209ade875b 18,231,321
+apps/dashboard/src/types/table.ts
+  s_0094dfc79a03ad::t_b782209ade875b 37-43
+apps/dashboard/src/components/instrument/instrument-module.tsx
+  s_0094dfc79a03ad::t_c819f35d2e0c1c 66
+apps/dashboard/src/components/motion/table/table-surfaces.tsx
+  s_0094dfc79a03ad::t_b782209ade875b 4,10-28,38-39,44-46,83,110-111
+apps/dashboard/src/constants/instrument.ts
+  s_0094dfc79a03ad::t_c819f35d2e0c1c 6,11
+  s_0094dfc79a03ad::t_fec1deefea1bda 4,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c5ff96a52f0bdc84403a1937541e58d6917b4d35",
+  "prompts": {},
+  "sessions": {
+    "s_0094dfc79a03ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b268984f-e03a-4570-97ff-11c1768d7475",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
