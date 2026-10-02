@@ -5,12 +5,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { cn } from "@notra/ui/lib/utils";
 
 interface TruncateWithTooltipProps {
-  children: string;
+  children: ReactNode;
+  /** Tooltip text when `children` is not plain text. Defaults to `children`. */
+  tooltip?: string;
   className?: string;
   contentClassName?: string;
   side?: "top" | "bottom" | "left" | "right";
@@ -23,6 +25,7 @@ function isOverflowing(element: HTMLElement) {
 
 export function TruncateWithTooltip({
   children,
+  tooltip,
   className,
   contentClassName,
   side = "top",
@@ -45,7 +48,7 @@ export function TruncateWithTooltip({
     const observer = new ResizeObserver(update);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [children]);
+  }, [tooltip ?? children]);
 
   const label = (
     <span className={cn("block w-full min-w-0 truncate", className)} ref={ref}>
@@ -65,7 +68,7 @@ export function TruncateWithTooltip({
         className={cn("max-w-sm text-pretty", contentClassName)}
         side={side}
       >
-        {children}
+        {tooltip ?? children}
       </TooltipContent>
     </Tooltip>
   );

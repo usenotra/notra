@@ -119,18 +119,13 @@ function TimestampCell({ value }: { value: string }) {
 
 function PageCell({ entry }: { entry: GeoTrafficLogEntry }) {
   const location = formatTrafficLocation(entry.host, entry.path);
-  const path = location.slice(entry.host.length);
   return (
-    <span className="flex min-w-0 items-center font-mono text-xs">
+    <TruncateWithTooltip className="font-mono text-xs" tooltip={location}>
       {entry.host ? (
-        <span className="text-muted-foreground max-w-1/2 shrink-0 truncate">
-          {entry.host}
-        </span>
+        <span className="text-muted-foreground">{entry.host}</span>
       ) : null}
-      <span className="min-w-0 flex-1">
-        <TruncateWithTooltip>{path}</TruncateWithTooltip>
-      </span>
-    </span>
+      {location.slice(entry.host.length)}
+    </TruncateWithTooltip>
   );
 }
 
