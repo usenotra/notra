@@ -60,6 +60,9 @@ const nextConfig: NextConfig = {
       "recharts",
     ],
     hideLogsAfterAbort: true,
+    // Vercel drops the ~1 GB Turbopack cache as too large, so writing it
+    // only cost ~9 min per build on a standard machine.
+    turbopackFileSystemCacheForBuild: !process.env.VERCEL,
     instantInsights: {
       validationLevel: "manual-warning",
     },
