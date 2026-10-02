@@ -29,6 +29,7 @@ import {
 } from "../src/deps";
 import { GeoScanError } from "../src/geo/errors";
 import { buildGeoPrompts } from "../src/geo/prompts";
+import type { FinalizeContentBillingInput } from "../src/types/content-billing";
 import type {
   GeoEntitlementServiceShape,
   GeoWorkflowServiceShape,
@@ -1035,6 +1036,68 @@ describe("scan ownership and finalization", () => {
       mentions: 0,
     });
   });
+
+  test.each([
+    { status: "completed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 0, action: "release" },
+    { status: "completed" as const, checks: 0, action: "release" },
+  ])(
+    "a $status scan with $checks checks settles billing with $action",
+    async ({ status, checks, action }) => {
+      const scope = await seedProject(`billing-${status}-${checks}`);
+      const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+      assert.ok(claim);
+      const scanId = await Effect.runPromise(createGeoScanRow(scope));
+      const billedUsage = { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 2 };
+      const finalized: FinalizeContentBillingInput[] = [];
+      await Effect.runPromise(
+        finalizeGeoScanProject(
+          {
+            ...scope,
+            scanId,
+            runId: "run-test",
+            companyName: "Notra",
+            aliases: [],
+            startedAtMs: Date.now(),
+            gate: {
+              allowed: true,
+              mode: "plan_quota",
+              featureId: "ai_answers",
+              reserved: true,
+              lockId: "lock-test",
+              useMarkup: false,
+            },
+          },
+          {
+            checks,
+            mentions: 0,
+            dropped: 0,
+            usage: EMPTY_AGENT_TOKEN_USAGE,
+            billedChecks: checks * 2,
+            billedUsage,
+          },
+          status,
+          claim.claimedAt.toISOString()
+        ).pipe(
+          Effect.provideService(GeoContentBillingService, {
+            gateContentBilling: () => Effect.die("Unexpected billing gate"),
+            finalizeContentBilling: (input) =>
+              Effect.sync(() => {
+                finalized.push(input);
+              }),
+          })
+        )
+      );
+
+      expect(finalized).toHaveLength(1);
+      expect(finalized[0]).toMatchObject(
+        action === "confirm"
+          ? { action, units: checks * 2, usage: billedUsage }
+          : { action }
+      );
+    }
+  );
 
   test("only one claimant and one duplicate delivery can acquire or renew a token", async () => {
     await seedProject("claim");

@@ -179,20 +179,42 @@ describe("GEO scan workflow orchestration", () => {
       },
     ];
     prepare.mockResolvedValue({ status: "planned", plan });
+    const personaUsage = {
+      ...EMPTY_AGENT_TOKEN_USAGE,
+      inputTokens: 10,
+      totalTokens: 10,
+      totalUsd: 0.5,
+    };
+    personaBatch.mockResolvedValue({
+      checks: 2,
+      mentions: 0,
+      dropped: 0,
+      usage: personaUsage,
+      engineUsage: personaUsage,
+      judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
+      billedChecks: 4,
+      billedUsage: {
+        ...personaUsage,
+        inputTokens: 20,
+        totalTokens: 20,
+        totalUsd: 1,
+      },
+    });
 
     await geoScanWorkflow({ organizationId: "org-test" });
 
     expect(personaBatch).toHaveBeenCalledWith(plan.context, plan.personas);
     expect(finalize).toHaveBeenCalledWith(
       plan.context,
-      {
-        checks: 1,
-        mentions: 0,
-        dropped: 0,
-        usage: EMPTY_AGENT_TOKEN_USAGE,
-        engineUsage: EMPTY_AGENT_TOKEN_USAGE,
-        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
-      },
+      expect.objectContaining({
+        checks: 2,
+        billedChecks: 4,
+        engineUsage: expect.objectContaining({ totalUsd: 0.5 }),
+        billedUsage: expect.objectContaining({
+          inputTokens: 20,
+          totalUsd: 1,
+        }),
+      }),
       "completed",
       plan.claimedAt,
       { retried: false }
@@ -362,6 +384,14 @@ describe("GEO scan workflow orchestration", () => {
           totalUsd: 0.25,
         },
         judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
+        billedChecks: plan.tasks.length + plan.sequences.length,
+        billedUsage: {
+          ...EMPTY_AGENT_TOKEN_USAGE,
+          inputTokens: 20,
+          outputTokens: 10,
+          totalTokens: 30,
+          totalUsd: 0.25,
+        },
       },
       "completed",
       plan.claimedAt,
@@ -578,6 +608,8 @@ describe("GEO scan workflow orchestration", () => {
         usage: { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 0 },
         engineUsage: EMPTY_AGENT_TOKEN_USAGE,
         judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
+        billedChecks: 2,
+        billedUsage: EMPTY_AGENT_TOKEN_USAGE,
       },
       "failed",
       plan.claimedAt,
