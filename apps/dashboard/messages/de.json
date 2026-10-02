@@ -2986,6 +2986,7 @@
       "generate": "Persona generieren"
     },
     "personaDetailDialog": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "running": "Läuft…",
       "viewAria": "Ansicht",
       "views": {
@@ -3035,6 +3036,7 @@
       "generating": "Prompts werden generiert…"
     },
     "personaTableActions": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "reactivate": "Persona reaktivieren",
       "restoreLimit": "Du kannst bis zu {max} aktive Personas haben. Archiviere eine, bevor du diese reaktivierst.",
       "waitForAction": "Warte, bis die aktuelle Persona-Aktion abgeschlossen ist.",
@@ -3051,7 +3053,7 @@
       "counts": "({active} aktiv{archived, plural, =0 {} other { · # archiviert}})",
       "memoriesHint": "Hintergrundfakten und Präferenzen, aus denen die festen Prompts dieser Persona generiert werden",
       "maxMessages": "Max. Nachrichten",
-      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten",
+      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten. Jede Antwort zählt als {multiplier} KI-Antworten.",
       "empty": "Noch keine Personas. Generiere ein Set, damit sie während der Scans deine Kategorie recherchieren",
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",

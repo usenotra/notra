@@ -2986,6 +2986,7 @@
       "generate": "Generate persona"
     },
     "personaDetailDialog": {
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "running": "Running…",
       "viewAria": "View",
       "views": {
@@ -3035,6 +3036,7 @@
       "generating": "Generating prompts…"
     },
     "personaTableActions": {
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "reactivate": "Reactivate persona",
       "restoreLimit": "You can have up to {max} active personas. Archive one before reactivating this one.",
       "waitForAction": "Wait for the current persona action to finish.",
@@ -3051,7 +3053,7 @@
       "counts": "({active} active{archived, plural, =0 {} other { · # archived}})",
       "memoriesHint": "Background facts and preferences used to generate this persona's fixed prompts",
       "maxMessages": "Max. messages",
-      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent",
+      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent. Each answer counts as {multiplier} AI answers.",
       "empty": "No personas yet. Generate a set to have them research your category during scans",
       "archiveDescription": "This persona will be removed from future scans. Its scan history is kept.",
       "nounSingular": "persona",
