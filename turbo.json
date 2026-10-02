@@ -117,7 +117,6 @@
     "FEEDBACK_INGEST_SECRET",
     "FEEDBACK_API_URL",
     "NOTRA_GEO_TOKEN",
-    "NOTRA_GEO_ENDPOINT",
     "WEBHOOK_ENCRYPTION_KEY"
   ],
   "envMode": "strict",

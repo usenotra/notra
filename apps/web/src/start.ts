@@ -16,7 +16,7 @@ import { HOMEPAGE_LINK_HEADER, SITE_URL } from "@/utils/urls";
 
 const geoOptions = {
   token: process.env.NOTRA_GEO_TOKEN ?? "",
-  endpoint: process.env.NOTRA_GEO_ENDPOINT || GEO_INGEST_ENDPOINT,
+  endpoint: GEO_INGEST_ENDPOINT,
   tagLinks: { host: new URL(SITE_URL).hostname, html: true },
 };
 const geoTracker = new Tracker(geoOptions);
