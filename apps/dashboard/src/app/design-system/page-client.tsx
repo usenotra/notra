@@ -1134,7 +1134,10 @@ export default function DesignSystemClientPage() {
                 onClick={() =>
                   toast.error("Couldn't change role", {
                     description: "Your plan includes 3 team members.",
-                    action: { label: "View plans", onClick: () => undefined },
+                    action: {
+                      label: "View plans",
+                      onClick: () => toast.success("Opened plans"),
+                    },
                   })
                 }
                 variant="outline"
