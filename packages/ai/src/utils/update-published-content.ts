@@ -131,6 +131,7 @@ export async function updatePublishedContentAndCommit(params: {
         branch: params.branch,
         markdown: params.markdown,
         title: params.title,
+        path: params.path,
       },
       githubAncestryValidator(params),
       params.scheduleRepair
@@ -161,6 +162,8 @@ export async function syncPublishedPostAfterCommit(params: {
     markdown?: string | null;
   } | null;
   files: ReadonlyArray<{ path: string; contents: string }>;
+  /** New path of the linked publication after an atomic move. */
+  movedToPath?: string;
   commitSha: string;
   expectedHeadOid?: string;
   branch: string;
@@ -172,7 +175,8 @@ export async function syncPublishedPostAfterCommit(params: {
   if (!publication || !params.recordPublicationHead) {
     return false;
   }
-  const file = params.files.find((entry) => entry.path === publication.path);
+  const path = params.movedToPath ?? publication.path;
+  const file = params.files.find((entry) => entry.path === path);
   if (!file) {
     return false;
   }
@@ -187,6 +191,7 @@ export async function syncPublishedPostAfterCommit(params: {
       commitSha: params.commitSha,
       branch: params.branch,
       markdown: file.contents,
+      path,
       ...(publication.headSha
         ? {
             imageMapping: {

@@ -34,6 +34,14 @@ export const GITHUB_MENTION_SANDBOX_TIMEOUT_MS = 180_000;
 
 export const GITHUB_MENTION_FILE_CONTENT_MAX_BYTES = 512_000;
 
+export const GITHUB_MENTION_REPOSITORY_READ_LIMITS = {
+  directoryDefault: 30,
+  directoryMax: 50,
+  directoryApiMax: 1000,
+  fileDefault: 6000,
+  fileMax: 16000,
+} as const;
+
 /**
  * Where the sandbox box may talk to: GitHub for the shallow clone, and the AI
  * gateway for the agent running inside it. The box only edits content, so it

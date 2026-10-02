@@ -332,6 +332,7 @@ export async function syncContentPublication(
       .set({
         headSha: repair.commitSha,
         branch: repair.branch,
+        ...(repair.path !== undefined ? { path: repair.path } : {}),
         updatedAt: new Date(),
       })
       .where(eq(contentPublications.id, repair.publicationId));

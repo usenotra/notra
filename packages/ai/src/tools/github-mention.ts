@@ -1,8 +1,14 @@
 import {
   GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE,
   GITHUB_MENTION_FILE_CONTENT_MAX_BYTES,
+  GITHUB_MENTION_REPOSITORY_READ_LIMITS,
   GITHUB_MENTION_SUGGESTION,
 } from "@notra/ai/constants/github-mention";
+import {
+  githubMentionDirectorySchema,
+  githubMentionFileReadSchema,
+  githubMentionMoveSchema,
+} from "@notra/ai/schemas/github-mention";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
 import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
@@ -13,6 +19,7 @@ import type {
 } from "@notra/ai/types/github-mention";
 import { findOpenContentPublicationForPost } from "@notra/ai/utils/content-publication";
 import { reviewGitHubMentionChange } from "@notra/ai/utils/github-mention-change-review";
+import { moveGitHubMentionContent } from "@notra/ai/utils/github-mention-move";
 import { partitionGitHubMentionPaths } from "@notra/ai/utils/github-mention-path-policy";
 import { isGitHubPermissionError } from "@notra/ai/utils/github-mention-permissions";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
@@ -183,30 +190,116 @@ export function buildGitHubMentionTools(params: {
 
   const tools: Record<string, Tool> = {
     ...readTools,
+    listRepositoryDirectory: tool({
+      description:
+        "Browses one directory at a time, with small pages and folders first. Start with path empty for the root, then append a returned directory name to path to open it; parentPath goes back up. Filter entryType=directories to navigate or nameContains to find a filename locally. Use nextOffset with the same path/filters for more entries. Never returns a recursive tree or file contents. Read selected files with getPullRequestFile.",
+      inputSchema: githubMentionDirectorySchema,
+      execute: async ({ path, entryType, nameContains, offset, limit }) => {
+        const ref = state.commitSha ?? context.destination.headSha;
+        if (!ref) {
+          return { error: "No pull request revision is available." };
+        }
+        const { data } = await octokit.request(
+          "GET /repos/{owner}/{repo}/contents/{path}",
+          {
+            owner: context.owner,
+            repo: context.repo,
+            path,
+            ref,
+          }
+        );
+        if (!Array.isArray(data)) {
+          return {
+            error:
+              "This path is not a directory. Use getPullRequestFile to read it.",
+          };
+        }
+        const matching = data
+          .filter(
+            (entry) =>
+              (entryType === "all" ||
+                entry.type ===
+                  (entryType === "directories" ? "dir" : "file")) &&
+              (!nameContains ||
+                entry.name.toLowerCase().includes(nameContains.toLowerCase()))
+          )
+          .sort(
+            (a, b) =>
+              Number(b.type === "dir") - Number(a.type === "dir") ||
+              a.name.localeCompare(b.name, "en")
+          );
+        const entries = matching
+          .slice(offset, offset + limit)
+          .map(({ name, type }) => ({ name, type }));
+        const end = offset + entries.length;
+        return {
+          path,
+          ref,
+          parentPath: path ? path.split("/").slice(0, -1).join("/") : null,
+          entries,
+          totalEntries: matching.length,
+          nextOffset: end < matching.length ? end : null,
+          ...(data.length >=
+          GITHUB_MENTION_REPOSITORY_READ_LIMITS.directoryApiMax
+            ? {
+                warning:
+                  "GitHub's Contents API returns at most 1000 entries. Counts and filters cover only those entries; missing names may still exist. Read a known path directly or inspect a narrower subdirectory.",
+              }
+            : {}),
+        };
+      },
+    }),
+    moveContentFile: tool({
+      description:
+        "Moves a content file atomically on the pull request, preserving its entire contents, and updates its Notra publication path. Read the source, site content loader and neighbouring posts first. This tool cannot replace or shorten content. Make any required frontmatter/link edits separately using the content edit tools. Never overwrites an existing destination; on conflict ask the commenter for a different path without bypassing the conflict through other tools. Use this for moves, not the sandbox or a copy-only commit.",
+      inputSchema: githubMentionMoveSchema,
+      execute: (input) =>
+        inWriteOrder(async () => {
+          const target = await resolveGitHubMentionWriteTarget({
+            octokit,
+            context,
+            state,
+          });
+          const result = await moveGitHubMentionContent({
+            ...input,
+            octokit,
+            context,
+            target,
+            scheduleRepair: params.scheduleRepair,
+            onCommitted: (sha) => {
+              state.committed = true;
+              state.commitSha = sha;
+              state.pullRequestUrl = target.pullRequestUrl;
+            },
+          });
+          if (result.commitSha) {
+            state.proposals = state.proposals.filter(
+              (proposal) => proposal.path !== input.fromPath
+            );
+            await recordWrite(
+              { octokit, context, state },
+              result.commitSha,
+              target
+            );
+          }
+          return { ...result, pullRequestUrl: state.pullRequestUrl };
+        }),
+    }),
     getPullRequestFile: tool({
-      description: "Reads a file from the mention pull request head branch.",
-      inputSchema: z.object({
-        path: z.string().describe("Repository-relative file path"),
-      }),
-      execute: async ({ path }) => {
-        const pullNumber = context.pullRequest?.number;
-        if (!pullNumber) {
+      description:
+        "Reads a bounded character slice of a file at the pull request revision. Use nextOffset to continue; partial=true means this is not the complete file. Read relevant loaders and neighbouring content selectively. Never submit a partial slice as the full replacement contents of a file.",
+      inputSchema: githubMentionFileReadSchema,
+      execute: async ({ path, offset, limit }) => {
+        const ref = state.commitSha ?? context.destination.headSha;
+        if (!ref) {
           return { error: "No pull request is available to read from." };
         }
-        const head = await getPullRequestHead({
-          octokit,
-          owner: context.owner,
-          repo: context.repo,
-          pullNumber,
-        });
         const contents = await getRepositoryFileContents({
           octokit,
           owner: context.owner,
           repo: context.repo,
           path,
-          // After a write the branch that was written is ahead of the pull
-          // request head, also on a follow-up branch.
-          ref: state.commitSha ?? head.headSha,
+          ref,
         });
         if (
           Buffer.byteLength(contents, "utf8") >
@@ -214,7 +307,16 @@ export function buildGitHubMentionTools(params: {
         ) {
           return { error: "File is too large to load into the mention agent." };
         }
-        return { path, contents };
+        const end = Math.min(offset + limit, contents.length);
+        return {
+          path,
+          ref,
+          offset,
+          contents: contents.slice(offset, end),
+          totalCharacters: contents.length,
+          partial: offset > 0 || end < contents.length,
+          nextOffset: end < contents.length ? end : null,
+        };
       },
     }),
     ...(context.destination.mode === "same_pull_request"
@@ -548,7 +650,7 @@ export function buildGitHubMentionTools(params: {
     }),
     runRepoSandbox: tool({
       description:
-        "Runs a repository sandbox on the mention pull request branch when you need a working tree. Only content files are committed; anything else comes back under skipped. Do not use this for questions or single-file content edits.",
+        "Runs a repository sandbox on the mention pull request branch when you need a working tree. Only content edits are committed. Any deletion or unsupported path rejects the entire change; use moveContentFile for relocations. Do not use this for questions or single-file content edits.",
       inputSchema: z.object({
         instruction: z
           .string()
