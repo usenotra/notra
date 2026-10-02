@@ -21,7 +21,7 @@ import type {
 } from "@/types/components/geo";
 import { formatCount, formatOneDecimal, formatPercent } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
-import { tableHeightFor } from "@/utils/table";
+import { contentTableHeightFor, tableHeightFor } from "@/utils/table";
 
 function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
   const t = useTranslations("geo.promptSuggestionSheet");
@@ -75,7 +75,11 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
         defaultSort={{ key: "impressions", direction: "desc" }}
         emptyState={t("noQueryData")}
         getRowId={(query) => query.query}
-        height={tableHeightFor(queries.length)}
+        height={
+          queries.length > 0
+            ? contentTableHeightFor(queries.length)
+            : tableHeightFor(0)
+        }
         rowSizing="content"
       />
     </section>

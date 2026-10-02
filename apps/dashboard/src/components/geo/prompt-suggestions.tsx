@@ -42,7 +42,7 @@ import type { GeoPromptSuggestion } from "@/types/geo";
 import { formatCount, formatOneDecimal } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
 import { isSearchConsoleSynced } from "@/utils/gsc-site-url";
-import { tableHeightFor } from "@/utils/table";
+import { contentTableHeightFor, tableHeightFor } from "@/utils/table";
 
 function SuggestionRowActions({
   accepting,
@@ -52,11 +52,11 @@ function SuggestionRowActions({
   onDismiss,
   suggestion,
 }: SuggestionRowActionsProps) {
-  const tCommon2 = useTranslations("common");
   const tGeoShared = useTranslations("geo.shared");
   return (
     <div className="flex h-full shrink-0 items-center justify-end gap-1">
       <Button
+        aria-busy={accepting}
         disabled={disabled}
         onClick={onAccept}
         size="sm"
@@ -67,7 +67,7 @@ function SuggestionRowActions({
         ) : (
           <HugeiconsIcon icon={PlusSignIcon} size={14} />
         )}
-        {accepting ? tCommon2("labels.adding") : tGeoShared("track")}
+        {tGeoShared("track")}
       </Button>
       <Button
         aria-label={tGeoShared("removePrompt", { prompt: suggestion.prompt })}
@@ -273,15 +273,20 @@ function DismissSuggestionDialog({
 
 function TrackAllButton({ pending, onClick }: TrackAllButtonProps) {
   const t = useTranslations("geo.promptSuggestions");
-  const tCommon = useTranslations("common");
   return (
-    <Button disabled={pending} onClick={onClick} size="sm" variant="outline">
+    <Button
+      aria-busy={pending}
+      disabled={pending}
+      onClick={onClick}
+      size="sm"
+      variant="outline"
+    >
       {pending ? (
         <StatusSpinner />
       ) : (
         <HugeiconsIcon icon={PlusSignIcon} size={14} />
       )}
-      {pending ? tCommon("labels.adding") : t("trackAll")}
+      {t("trackAll")}
     </Button>
   );
 }
@@ -294,7 +299,6 @@ function SuggestionDetailActions({
   onDismiss,
 }: SuggestionDetailActionsProps) {
   const tGeoShared = useTranslations("geo.shared");
-  const tCommon = useTranslations("common");
   const tActions = useTranslations("common.actions");
   return (
     <>
@@ -302,9 +306,9 @@ function SuggestionDetailActions({
         {dismissing ? <StatusSpinner /> : null}
         {tActions("remove")}
       </Button>
-      <Button disabled={disabled} onClick={onAccept}>
+      <Button aria-busy={accepting} disabled={disabled} onClick={onAccept}>
         {accepting ? <StatusSpinner /> : null}
-        {accepting ? tCommon("labels.adding") : tGeoShared("track")}
+        {tGeoShared("track")}
       </Button>
     </>
   );
@@ -433,7 +437,11 @@ export function PromptSuggestions({
           defaultSort={{ key: "impressions", direction: "desc" }}
           emptyState={t("empty")}
           getRowId={(row) => row.id}
-          height={tableHeightFor(Math.max(suggestions.length, loading ? 3 : 1))}
+          height={
+            hasSuggestions
+              ? contentTableHeightFor(suggestions.length)
+              : tableHeightFor(loading ? 3 : 1)
+          }
           loading={loading}
           onRowClick={(row) => setDetailId(row.id)}
           resizable
