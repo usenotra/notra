@@ -1,6 +1,10 @@
 import { LinearClient, parseLinearError } from "@linear/sdk";
-import { LINEAR_ISSUES_WITH_RELATIONS_QUERY } from "@notra/ai/constants/linear";
+import {
+  LINEAR_ISSUE_PREVIEWS_QUERY,
+  LINEAR_ISSUES_WITH_RELATIONS_QUERY,
+} from "@notra/ai/constants/linear";
 import type {
+  LinearIssuePreviewsQueryResult,
   LinearIssuesQueryResult,
   LinearIssuesQueryVariables,
 } from "@notra/ai/types/linear";
@@ -45,4 +49,30 @@ export async function getLinearIssues(
       endCursor: issues.pageInfo.endCursor ?? null,
     },
   };
+}
+
+export async function getLinearIssuePreviews(
+  client: LinearClient,
+  variables: LinearIssuesQueryVariables
+) {
+  const { issues } = await client.client
+    .request<LinearIssuePreviewsQueryResult, LinearIssuesQueryVariables>(
+      LINEAR_ISSUE_PREVIEWS_QUERY,
+      variables
+    )
+    .catch((error) => {
+      throw parseLinearError(error);
+    });
+
+  return issues.nodes.map((issue) => ({
+    id: issue.id,
+    identifier: issue.identifier,
+    title: issue.title,
+    state: issue.state?.name ?? null,
+    assignee: issue.assignee?.name ?? issue.assignee?.displayName ?? null,
+    completedAt: issue.completedAt
+      ? new Date(issue.completedAt).toISOString()
+      : null,
+    url: issue.url,
+  }));
 }

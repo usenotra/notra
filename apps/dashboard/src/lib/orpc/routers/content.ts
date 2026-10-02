@@ -6,7 +6,10 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
-import { createLinearClient, getLinearIssues } from "@notra/ai/utils/linear";
+import {
+  createLinearClient,
+  getLinearIssuePreviews,
+} from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
@@ -1518,26 +1521,16 @@ export const contentRouter = {
                 lte: lookback.end.toISOString(),
               };
 
-              const { issues } = await getLinearIssues(client, {
+              const issues = await getLinearIssuePreviews(client, {
                 filter,
                 first: 50,
                 orderBy: "updatedAt" as never,
               });
 
-              const items = issues.map((issue) => ({
-                id: issue.id,
-                identifier: issue.identifier,
-                title: issue.title,
-                state: issue.state,
-                assignee: issue.assignee,
-                completedAt: issue.completedAt?.toISOString() ?? null,
-                url: issue.url,
-              }));
-
               return {
                 integrationId: integration.id,
                 displayName: integration.displayName,
-                issues: items,
+                issues,
               };
             } catch (error) {
               console.error(

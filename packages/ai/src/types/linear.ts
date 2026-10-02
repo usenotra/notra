@@ -27,3 +27,14 @@ export interface LinearIssuesQueryResult {
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   };
 }
+
+export interface LinearIssuePreviewsQueryResult {
+  issues: {
+    nodes: (Pick<
+      LinearIssuesQueryResult["issues"]["nodes"][number],
+      "id" | "identifier" | "title" | "completedAt" | "url" | "assignee"
+    > & {
+      state: Pick<LinearDocument.WorkflowState, "name"> | null;
+    })[];
+  };
+}
