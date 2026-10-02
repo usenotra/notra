@@ -415,7 +415,7 @@
         "sanitize-html": "^2.17.7",
         "satori": "^0.26.0",
         "satori-html": "^0.3.2",
-        "undici": "^7.16.0",
+        "undici": "^7.29.1",
         "zod": "^4.6.5",
       },
       "devDependencies": {
