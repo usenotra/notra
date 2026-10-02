@@ -87,7 +87,10 @@ export default defineConfig(({ command }) => ({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     nitro({
-      traceDeps: [...SERVER_ONLY_PACKAGES, "react", "react-dom"],
+      traceDeps: ["sharp", "react", "react-dom"],
+      rolldownConfig: {
+        external: ["@remotion/bundler", "@remotion/renderer"],
+      },
       routeRules: {
         "/**": { headers: buildSecurityHeaders(command === "serve") },
       },
