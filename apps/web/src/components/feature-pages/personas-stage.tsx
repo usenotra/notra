@@ -9,10 +9,7 @@ import {
 
 export function PersonasStage() {
   return (
-    <StageShell
-      className="flex flex-col items-center bg-[position:50%_30%] lg:px-16 lg:pt-12 lg:pb-12"
-      image="/features/stage/sunset.jpg"
-    >
+    <StageShell className="flex flex-col items-center lg:px-16 lg:pt-12 lg:pb-12">
       <div className="flex items-center gap-3 rounded-full border border-white/90 bg-white/92 py-3.5 pr-5.5 pl-4">
         <svg
           aria-hidden="true"
@@ -41,7 +38,7 @@ export function PersonasStage() {
         <path
           d="M536 0 C536 40 160 32 160 76"
           fill="none"
-          stroke="#FFFFFFD9"
+          stroke="#1E1E1E59"
           strokeDasharray="3 5"
           strokeLinecap="round"
           strokeWidth="1.5"
@@ -50,7 +47,7 @@ export function PersonasStage() {
         <path
           d="M536 0 L536 76"
           fill="none"
-          stroke="#FFFFFFD9"
+          stroke="#1E1E1E59"
           strokeDasharray="3 5"
           strokeLinecap="round"
           strokeWidth="1.5"
@@ -59,7 +56,7 @@ export function PersonasStage() {
         <path
           d="M536 0 C536 40 912 32 912 76"
           fill="none"
-          stroke="#FFFFFFD9"
+          stroke="#1E1E1E59"
           strokeDasharray="3 5"
           strokeLinecap="round"
           strokeWidth="1.5"
@@ -150,7 +147,7 @@ export function PersonasStage() {
       </ul>
 
       <div className="flex flex-col items-center gap-3 pt-10 sm:flex-row sm:gap-4">
-        <span className="font-sans text-sm/4.5 font-medium text-white">
+        <span className="font-sans text-sm/4.5 font-medium text-[#1E1E1E]/80">
           Asked as each persona on
         </span>
         <ul className="flex flex-wrap items-center justify-center gap-1 rounded-xl bg-white/88 p-1">

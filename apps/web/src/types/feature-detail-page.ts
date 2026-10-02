@@ -107,7 +107,6 @@ export interface FeatureEngineLabel {
 }
 
 export interface FeatureStageShellProps {
-  image: string;
   className?: string;
   children: ReactNode;
 }

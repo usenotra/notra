@@ -12,10 +12,7 @@ import {
 
 export function CrawlerStage() {
   return (
-    <StageShell
-      className="flex flex-col items-center gap-4 bg-[position:50%_40%] lg:p-10"
-      image="/features/stage/dusk.jpg"
-    >
+    <StageShell className="flex flex-col items-center gap-4 lg:p-10">
       <div className="flex w-full flex-col items-center justify-center gap-6 xl:flex-row">
         <div className="h-[29rem] w-full min-w-0 xl:flex-1">
           <LiveTrafficLog />
@@ -63,7 +60,7 @@ export function CrawlerStage() {
           </ul>
         </div>
       </div>
-      <p className="font-sans text-sm/5 font-medium text-white/85">
+      <p className="font-sans text-sm/5 font-medium text-[#1E1E1E]/80">
         {AI_CRAWLER_SAMPLE_NOTE}
       </p>
     </StageShell>

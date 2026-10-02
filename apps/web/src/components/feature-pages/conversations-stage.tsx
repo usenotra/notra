@@ -9,10 +9,7 @@ import {
 
 export function ConversationsStage() {
   return (
-    <StageShell
-      className="flex flex-col items-center justify-center gap-7 bg-[position:50%_40%] lg:flex-row"
-      image="/features/stage/dusk.jpg"
-    >
+    <StageShell className="flex flex-col items-center justify-center gap-7 lg:flex-row">
       <div className="flex w-full max-w-155 flex-col overflow-clip rounded-2xl border border-white/90 bg-white">
         <div className="flex items-center justify-between gap-4 border-b border-[#EFEFEF] px-5 py-4">
           <div className="flex flex-col gap-0.5">

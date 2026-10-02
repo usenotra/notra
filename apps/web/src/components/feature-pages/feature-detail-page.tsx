@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
+import { NumberedStepCard } from "@/components/numbered-step-card";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
   CTA_BANNER_CONTACT_HREF,
@@ -97,19 +98,14 @@ export function FeatureDetailPage({
 
       <section className={cn(SECTION_CLASS, "flex flex-col gap-14")}>
         <h2 className={SECTION_HEADING_CLASS}>{copy.steps.heading}</h2>
-        <ol className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-16">
+        <ol className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {copy.steps.items.map((step, index) => (
-            <li className="flex flex-col gap-3" key={step.title}>
-              <span className="font-mono text-[0.8125rem]/4 font-medium tracking-[0.08em] text-[#8B5CF6]">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h3 className="font-sans text-[1.1875rem]/6 font-semibold tracking-[-0.01em] text-[#1E1E1E] dark:text-white">
-                {step.title}
-              </h3>
-              <p className="font-sans text-[0.9375rem]/6 text-[#6B6B6B] dark:text-white/60">
-                {step.description}
-              </p>
-            </li>
+            <NumberedStepCard
+              body={step.description}
+              key={step.title}
+              number={String(index + 1)}
+              title={step.title}
+            />
           ))}
         </ol>
       </section>
