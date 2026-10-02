@@ -33,6 +33,7 @@ export function TruncateWithTooltip({
 }: TruncateWithTooltipProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const [truncated, setTruncated] = useState(false);
+  const content = tooltip ?? children;
 
   useEffect(() => {
     const element = ref.current;
@@ -48,7 +49,7 @@ export function TruncateWithTooltip({
     const observer = new ResizeObserver(update);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [tooltip ?? children]);
+  }, [content]);
 
   const label = (
     <span className={cn("block w-full min-w-0 truncate", className)} ref={ref}>
@@ -68,7 +69,7 @@ export function TruncateWithTooltip({
         className={cn("max-w-sm text-pretty", contentClassName)}
         side={side}
       >
-        {tooltip ?? children}
+        {content}
       </TooltipContent>
     </Tooltip>
   );
