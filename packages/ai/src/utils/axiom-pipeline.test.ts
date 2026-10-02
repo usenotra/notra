@@ -11,19 +11,16 @@ const MAX_ATTEMPTS = 3;
 let responseStatus = PERMANENT_STATUS;
 let requestCount = 0;
 
-const server = Bun.serve({
-  port: 0,
-  fetch() {
-    requestCount += 1;
-    return new Response('{"message":"rejected"}', { status: responseStatus });
-  },
+const fetchMock = spyOn(globalThis, "fetch").mockImplementation(async () => {
+  requestCount += 1;
+  return new Response('{"message":"rejected"}', { status: responseStatus });
 });
 
 const warn = spyOn(console, "warn").mockImplementation(() => undefined);
 const error = spyOn(console, "error").mockImplementation(() => undefined);
 
 afterAll(() => {
-  server.stop(true);
+  fetchMock.mockRestore();
   warn.mockRestore();
   error.mockRestore();
 });
@@ -36,7 +33,7 @@ beforeEach(() => {
 
 function createTestPipeline() {
   return createAxiomPipeline(
-    { apiKey: "test", baseUrl: server.url.origin, dataset: "test" },
+    { apiKey: "test", baseUrl: "https://axiom.test", dataset: "test" },
     {
       batch: { size: 1, intervalMs: 10 },
       retry: { maxAttempts: MAX_ATTEMPTS, initialDelayMs: 1, maxDelayMs: 1 },
