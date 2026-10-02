@@ -89,6 +89,39 @@ function ScanModelRow({
   );
 }
 
+function DisabledScanModelButton({
+  compact,
+  label,
+  reason,
+  variant,
+}: {
+  compact?: boolean;
+  label: string;
+  reason: string;
+  variant: "default" | "outline";
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            aria-label={label}
+            className="cursor-not-allowed opacity-50"
+            disabled
+            focusableWhenDisabled
+            size={compact ? "icon" : "sm"}
+            variant={compact ? "ghost" : variant}
+          />
+        }
+      >
+        <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
+        {compact ? null : label}
+      </TooltipTrigger>
+      <TooltipContent>{reason}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function ScanModelMenu({
   engines,
   catalog,
@@ -126,6 +159,15 @@ export function ScanModelMenu({
   const [selectedIds, setSelectedIds] = useState(() =>
     defaultScanModelSelection(options)
   );
+  // Every open starts fresh, including one driven by a controlled `open`.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setQuery("");
+      setSelectedIds(defaultScanModelSelection(options));
+    }
+  }
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const variant = primary ? "default" : "outline";
@@ -139,24 +181,12 @@ export function ScanModelMenu({
 
   if (disabled || engines.length === 0) {
     return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={label}
-              className="cursor-not-allowed opacity-50"
-              disabled
-              focusableWhenDisabled
-              size={compact ? "icon" : "sm"}
-              variant={compact ? "ghost" : variant}
-            />
-          }
-        >
-          <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
-          {compact ? null : label}
-        </TooltipTrigger>
-        <TooltipContent>{disabledReason ?? t("disabledReason")}</TooltipContent>
-      </Tooltip>
+      <DisabledScanModelButton
+        compact={compact}
+        label={label}
+        reason={disabledReason ?? t("disabledReason")}
+        variant={variant}
+      />
     );
   }
 
@@ -197,16 +227,7 @@ export function ScanModelMenu({
     ) : null;
 
   return (
-    <Popover
-      onOpenChange={(next) => {
-        if (next) {
-          setQuery("");
-          setSelectedIds(defaultScanModelSelection(options));
-        }
-        setOpen(next);
-      }}
-      open={open}
-    >
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
         render={
           <Button

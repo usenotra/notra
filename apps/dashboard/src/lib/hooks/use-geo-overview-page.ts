@@ -36,7 +36,7 @@ import {
   geoOverviewTabEnabled,
   toGeoOverviewReadyPage,
 } from "@/utils/geo-overview-page";
-import { scanPreflightEnginesToSubmit } from "@/utils/geo-scan-preflight";
+import { scanModelSelectionToSubmit } from "@/utils/geo-scan-models";
 
 function useGeoModulesReveal(ready: boolean): boolean {
   const reduceMotion = useReducedMotion();
@@ -185,8 +185,11 @@ export function useGeoOverviewPage(
   const ready = !isSettingsPending;
   const revealActive = useGeoModulesReveal(ready);
 
+  // Mirrors the menu's own disabled state, which renders no popover.
+  const canOpenScanMenu =
+    Boolean(settings?.enabled) && (settings?.engines.length ?? 0) > 0;
   useHotkey("R", () => setScanMenuOpen(true), {
-    enabled: !isScanning && !scanMenuOpen,
+    enabled: canOpenScanMenu && !isScanning && !scanMenuOpen,
   });
 
   useGeoOverviewViewed({
@@ -252,10 +255,7 @@ export function useGeoOverviewPage(
         void (async () => {
           try {
             await startScan.mutateAsync({
-              engines: scanPreflightEnginesToSubmit(
-                settings.engines,
-                new Set(engines)
-              ),
+              engines: scanModelSelectionToSubmit(settings.engines, engines),
             });
             toast.success(tToast("scanStarted"));
           } catch {
