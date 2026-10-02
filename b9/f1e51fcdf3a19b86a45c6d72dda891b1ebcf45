@@ -1,0 +1,36 @@
+apps/dashboard/src/types/components/geo.ts
+  s_5c6ad3ce7b5991::t_ad5a49665bc17a 14-15
+apps/dashboard/messages/en.json
+  s_5c6ad3ce7b5991::t_ad5a49665bc17a 3895-3896
+apps/dashboard/src/constants/geo-prompts.ts
+  s_5c6ad3ce7b5991::t_ad5a49665bc17a 95-97
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_5c6ad3ce7b5991::t_a1b1e23ea8a9cb 320,332-335
+apps/dashboard/messages/de.json
+  s_5c6ad3ce7b5991::t_ad5a49665bc17a 3895-3896
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_5c6ad3ce7b5991::t_4b293b304e9312 1255-1258,1269,1285-1288
+  s_5c6ad3ce7b5991::t_a1b1e23ea8a9cb 1271-1277
+  s_5c6ad3ce7b5991::t_defd44bbca2b08 1300-1309
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_5c6ad3ce7b5991::t_4b6c93a2d0a9d4 257-261,277-280,286-290,651,654,656
+  s_5c6ad3ce7b5991::t_defd44bbca2b08 65,281-285
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/page-client.tsx
+  s_5c6ad3ce7b5991::t_4b6c93a2d0a9d4 21,45-48,117,303-315
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b9f1e51fcdf3a19b86a45c6d72dda891b1ebcf45",
+  "prompts": {},
+  "sessions": {
+    "s_5c6ad3ce7b5991": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3b1b68a-79b6-40a6-9c7a-e1e69505442b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
