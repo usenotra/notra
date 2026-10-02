@@ -1,0 +1,19 @@
+apps/dashboard/next.config.ts
+  s_2093da4a6ee8ca::t_bcda10135a4f1b 63-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9303a0cf1424c13d8b37ece78b3f8a988fe01f40",
+  "prompts": {},
+  "sessions": {
+    "s_2093da4a6ee8ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b4073dee-4460-427d-b52c-6e252eeec792",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
