@@ -1,0 +1,21 @@
+scripts/github/production-deploy.mjs
+  s_3edfcd8b6e8e68::t_d162b0d643a759 7-21,150-156,159-164,227-236
+CONTRIBUTING.md
+  s_3edfcd8b6e8e68::t_d162b0d643a759 357-363,380-381
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e6f206f5a199b1a22fbf79242c8b4a32fbce7c9b",
+  "prompts": {},
+  "sessions": {
+    "s_3edfcd8b6e8e68": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f68f-8a21-7531-85a3-d0f065ed766b",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
