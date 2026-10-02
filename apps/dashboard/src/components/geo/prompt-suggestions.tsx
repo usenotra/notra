@@ -42,7 +42,7 @@ import type { GeoPromptSuggestion } from "@/types/geo";
 import { formatCount, formatOneDecimal } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
 import { isSearchConsoleSynced } from "@/utils/gsc-site-url";
-import { contentTableHeightFor, tableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 function SuggestionRowActions({
   accepting,
@@ -434,17 +434,14 @@ export function PromptSuggestions({
       />
       {showSuggestionsTable ? (
         <Table
+          autoHeight
           className="rounded-2xl"
           columns={columns}
           data={suggestions}
           defaultSort={{ key: "impressions", direction: "desc" }}
           emptyState={t("empty")}
           getRowId={(row) => row.id}
-          height={
-            hasSuggestions
-              ? contentTableHeightFor(suggestions.length)
-              : tableHeightFor(loading ? 3 : 1)
-          }
+          height={tableHeightFor(loading ? 3 : 1)}
           loading={loading}
           onRowClick={(row) => setDetailId(row.id)}
           resizable

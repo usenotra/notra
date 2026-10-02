@@ -21,7 +21,7 @@ import type {
 } from "@/types/components/geo";
 import { formatCount, formatOneDecimal, formatPercent } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
-import { contentTableHeightFor, tableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
   const t = useTranslations("geo.promptSuggestionSheet");
@@ -32,6 +32,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
     <section className="min-w-0 space-y-2">
       <h3 className="text-sm font-medium">{tGeoShared("searchQueries")}</h3>
       <Table
+        autoHeight
         className="rounded-2xl"
         columns={[
           {
@@ -75,11 +76,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
         defaultSort={{ key: "impressions", direction: "desc" }}
         emptyState={t("noQueryData")}
         getRowId={(query) => query.query}
-        height={
-          queries.length > 0
-            ? contentTableHeightFor(queries.length)
-            : tableHeightFor(0)
-        }
+        height={tableHeightFor(0)}
         rowSizing="content"
       />
     </section>

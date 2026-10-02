@@ -81,6 +81,7 @@ export interface TableViewportLayoutOptions {
   rowSizing: NonNullable<TableProps<unknown>["rowSizing"]>;
   height: number;
   minHeight?: number;
+  autoHeight?: boolean;
   horizontalScrollbarHeight: number;
 }
 
