@@ -6,6 +6,7 @@ import {
 } from "@usenotra/geo";
 
 import {
+  GEO_INGEST_ENDPOINT,
   PROXY_EXCLUDED_PATH_PREFIXES,
   STATIC_PAGE_CACHE_CONTROL,
 } from "@/constants/proxy";
@@ -15,7 +16,7 @@ import { HOMEPAGE_LINK_HEADER, SITE_URL } from "@/utils/urls";
 
 const geoOptions = {
   token: process.env.NOTRA_GEO_TOKEN ?? "",
-  endpoint: process.env.NOTRA_GEO_ENDPOINT,
+  endpoint: process.env.NOTRA_GEO_ENDPOINT || GEO_INGEST_ENDPOINT,
   tagLinks: { host: new URL(SITE_URL).hostname, html: true },
 };
 const geoTracker = new Tracker(geoOptions);
