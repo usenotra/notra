@@ -1104,8 +1104,7 @@
     },
     "accountMenu": {
       "label": "Account menu",
-      "description": "Manage your session before choosing a plan.",
-      "signingOut": "Signing out…"
+      "description": "Manage your session before choosing a plan."
     },
     "competitorSearch": {
       "unavailable": "Search unavailable",
@@ -1613,7 +1612,6 @@
           "amountLabel": "Amount of posts to import:",
           "maxTooltip": "Maximum 20 posts per import",
           "noAccountsDescription": "Connect an X account to import recent posts.",
-          "importing": "Importing…",
           "importedLabel": "Imported",
           "connect": "Connect an X account",
           "connectAnother": "Connect another X account"
@@ -1686,7 +1684,6 @@
     "create": {
       "description": "A skill is a reusable prompt your agents load at runtime.",
       "quickstart": "Quickstart",
-      "importing": "Importing",
       "quickstartHint": "Paste a skills.sh link to import a skill.",
       "quickstartErrors": {
         "unsupportedHost": "Only skills.sh links are supported.",
@@ -2982,7 +2979,6 @@
       "generate": "Generate persona"
     },
     "personaDetailDialog": {
-      "running": "Running…",
       "viewAria": "View",
       "views": {
         "profile": "Profile"
@@ -3027,8 +3023,7 @@
       "title": "Conversation prompts",
       "description": "Every engine receives these exact messages in the same order. They are generated from the persona's profile and memories.",
       "message": "Message {number}",
-      "emptyDescription": "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories.",
-      "generating": "Generating prompts…"
+      "emptyDescription": "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories."
     },
     "personaTableActions": {
       "reactivate": "Reactivate persona",
@@ -3077,7 +3072,6 @@
       "analysisFailed": "Project created, but brand analysis could not start. Retry from Brand Identity.",
       "loadIdentitiesFailed": "Could not load brand identities.",
       "identitySaved": "The brand identity was saved. If you retry, we reuse it and start its analysis once the project exists. You can also manage it in Brand Identity.",
-      "settingUp": "Setting up project",
       "create": "Create project"
     },
     "projectDeleteSection": {
@@ -3565,11 +3559,9 @@
         "help": "Plan creates a brief you review before anything is drafted. Write plans and drafts the article in one step.",
         "pending": {
           "plan": {
-            "label": "Planning…",
             "status": "Planning the brief. You review it before anything is drafted."
           },
           "write": {
-            "label": "Writing…",
             "status": "Planning the brief, then drafting the article. This takes about a minute."
           }
         },
@@ -4065,7 +4057,6 @@
       "displayName": "Display name",
       "displayNamePlaceholder": "e.g. Team meeting notes",
       "apiKeyHelp": "Create a key in the Granola app under Settings, then Connectors, then API keys. <link>View guide</link>",
-      "verifying": "Verifying key",
       "connected": "Granola connected",
       "connectFailed": "Failed to connect Granola",
       "invalidForm": "Invalid form values",
@@ -4176,7 +4167,6 @@
         "refreshFailed": "Unable to refresh repositories. Showing the last loaded data."
       },
       "connectDialog": {
-        "redirecting": "Redirecting…",
         "install": "Install on GitHub",
         "permissions": {
           "readMetadata": "Read repository metadata, branches and releases",
@@ -4641,7 +4631,6 @@
       "title": "Pause Iris?",
       "description": "Pausing stops scheduled runs and cancels pending Slack messages. You can resume at any time.",
       "keepRunning": "Keep running",
-      "pausing": "Pausing",
       "confirm": "Pause Iris"
     },
     "runCard": {
@@ -4652,7 +4641,6 @@
         "retired": "Iris is retired",
         "working": "Iris is working"
       },
-      "starting": "Starting",
       "tabs": {
         "signals": "Recent signals"
       },
@@ -4674,7 +4662,6 @@
     },
     "start": {
       "description": "Iris watches what you ship and does your marketing. It drafts changelogs, blog posts with images and social posts, then asks you on Slack before anything goes live.",
-      "starting": "Starting Iris",
       "start": "Start Iris",
       "beforeYouStart": "Before you start",
       "slackWarning": "Connect a Slack notification channel so Iris can report to you. You can still start now and connect it later. <link>Connect Slack</link>"
@@ -5825,7 +5812,6 @@
       "stepIdentities": {
         "emptyTitle": "No brand identity yet",
         "emptyDescription": "Drop in your website and we'll learn your tone and audience.",
-        "creating": "Creating…",
         "createButton": "Create brand identity",
         "title": "Which brand identity should this use?",
         "description": "Select one or more brand identities, or skip to write for a general audience.",
@@ -6095,7 +6081,6 @@
       "noBrandIdentity": "No brand identity to save this reference to. Create one on the Brand Identity page first.",
       "overLimit": "This post is {count, plural, one {# character} other {# characters}} over the {limit, number} character limit for @{username}. Shorten it to post.",
       "openOn": "Open on {platform}",
-      "posting": "Posting…",
       "postAs": "Post as @{username}",
       "rejectsDuplicates": "{platform} rejects duplicate posts.",
       "readDocs": "Read the {platform} docs",

@@ -240,7 +240,6 @@ export interface GuidelinesStatusLineProps {
 
 export interface GuidelinesActionButtonProps {
   busy: boolean;
-  busyLabel: string;
   icon: IconSvgElement;
   label: string;
   onClick: () => void;

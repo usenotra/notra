@@ -112,20 +112,15 @@ function PersonaDetailHeader({
             <Button
               className="shrink-0"
               disabled={
-                !persona.enabled ||
-                persona.conversationPrompts.length === 0 ||
-                isRunning
+                !persona.enabled || persona.conversationPrompts.length === 0
               }
+              loading={isRunning}
               onClick={onRun}
               size="sm"
               type="button"
             >
-              <HugeiconsIcon
-                className={isRunning ? "animate-spin" : undefined}
-                icon={isRunning ? Loading03Icon : PlayIcon}
-                size={14}
-              />
-              {isRunning ? t("running") : tGeoShared("runScan")}
+              <HugeiconsIcon icon={PlayIcon} size={14} />
+              {tGeoShared("runScan")}
             </Button>
           </div>
           <SheetDescription className="text-muted-foreground text-sm leading-snug">

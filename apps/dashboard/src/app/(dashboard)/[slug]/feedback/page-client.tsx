@@ -25,7 +25,6 @@ import {
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
 import { cn } from "@notra/ui/lib/utils";
-import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -319,14 +318,11 @@ function FeedbackList({
       {hasNextPage ? (
         <div className="flex shrink-0 justify-center">
           <Button
-            disabled={isFetchingNextPage}
+            loading={isFetchingNextPage}
             onClick={onLoadMore}
             size="sm"
             variant="outline"
           >
-            {isFetchingNextPage ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : null}
             {tCommon("actions.loadMore")}
           </Button>
         </div>

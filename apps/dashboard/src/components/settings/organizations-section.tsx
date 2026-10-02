@@ -11,7 +11,6 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -269,19 +268,13 @@ export function OrganizationsSection() {
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
                   {!isActive && (
                     <Button
-                      disabled={isSwitching === org.id}
+                      loading={isSwitching === org.id}
                       onClick={() => switchOrganization(org)}
                       size="sm"
                       variant="outline"
                     >
-                      {isSwitching === org.id ? (
-                        <LoaderCircle className="size-4 animate-spin" />
-                      ) : (
-                        <>
-                          <HugeiconsIcon icon={ViewIcon} size={16} />
-                          {t("view")}
-                        </>
-                      )}
+                      <HugeiconsIcon icon={ViewIcon} size={16} />
+                      {t("view")}
                     </Button>
                   )}
 
@@ -293,18 +286,12 @@ export function OrganizationsSection() {
                       organizationName={org.name}
                       trigger={
                         <Button
-                          disabled={isProcessingOrgAction === org.id}
+                          loading={isProcessingOrgAction === org.id}
                           size="sm"
                           variant="destructive"
                         >
-                          {isProcessingOrgAction === org.id ? (
-                            <LoaderCircle className="size-4 animate-spin" />
-                          ) : (
-                            <>
-                              <HugeiconsIcon icon={Logout02Icon} size={16} />
-                              {actionLabel}
-                            </>
-                          )}
+                          <HugeiconsIcon icon={Logout02Icon} size={16} />
+                          {actionLabel}
                         </Button>
                       }
                     />

@@ -298,15 +298,8 @@ export function OrganizationDetailsCard({
           <Input id="organization-id" value={organization.id} />
         </div>
 
-        <Button disabled={isUpdating} type="submit">
-          {isUpdating ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              {tCommon("saving")}
-            </>
-          ) : (
-            tCommon("saveChanges")
-          )}
+        <Button loading={isUpdating} type="submit">
+          {tCommon("saveChanges")}
         </Button>
       </form>
     </TitleCard>

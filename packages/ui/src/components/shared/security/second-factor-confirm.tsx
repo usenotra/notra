@@ -2,7 +2,6 @@
 
 
 import { DEFAULT_SECOND_FACTOR_CONFIRM_LABELS } from "@notra/ui/constants/security-labels";
-import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 
 import type {
@@ -95,13 +94,11 @@ export function SecondFactorConfirm({
           {l.cancel}
         </Button>
         <Button
-          disabled={isPending || code.trim().length === 0}
+          disabled={code.trim().length === 0}
+          loading={isPending}
           type="submit"
           variant={destructive ? "destructive" : "default"}
         >
-          {isPending && (
-            <Loader2Icon className="animate-spin" />
-          )}
           {confirmLabel}
         </Button>
       </div>
