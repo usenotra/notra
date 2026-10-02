@@ -6112,6 +6112,14 @@
       "formats": "{count} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
       "items": "Einträge",
+      "actions": {
+        "open": "Öffnen",
+        "openInNewTab": "In neuem Tab öffnen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Link kopiert",
+        "deleteTitle": "Inhalt löschen?",
+        "deleteDescription": "Dadurch werden \"{title}\" und alle {count, plural, one {# Beitrag} other {# Beiträge}} darin dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden."
+      },
       "detail": {
         "metaTitle": "Sammlung",
         "metaDescription": "Sieh dir alle Beiträge einer Inhaltssammlung an.",
@@ -6142,6 +6150,8 @@
       "loadLatestPlanFailed": "Aktueller Plan konnte nicht geladen werden",
       "refreshPlanFailed": "Plan konnte nicht aktualisiert werden",
       "postDeleted": "Beitrag gelöscht",
+      "collectionDeleted": "Inhalt gelöscht",
+      "deleteCollectionFailed": "Inhalt konnte nicht gelöscht werden",
       "deletePostFailed": "Beitrag konnte nicht gelöscht werden",
       "loadContentFailed": "Inhalte konnten nicht geladen werden",
       "loadRecentPostsFailed": "Letzte Beiträge konnten nicht geladen werden",
