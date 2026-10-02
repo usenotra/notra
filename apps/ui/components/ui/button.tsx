@@ -1,6 +1,7 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
+import { useId } from "react";
 
 import { ButtonContent } from "@/components/ui/button-content";
 
@@ -62,14 +63,23 @@ function Button({
   progress,
   disabled,
   focusableWhenDisabled,
+  "aria-describedby": ariaDescribedBy,
   children,
   ...props
 }: ButtonProps) {
-  const busy = loading || progress !== undefined;
+  const hasProgress = progress !== undefined;
+  const busy = loading || hasProgress;
+  const progressTextId = useId();
 
   return (
     <ButtonPrimitive
       aria-busy={busy || undefined}
+      // Announces the upload percentage without changing the button's name.
+      aria-describedby={
+        hasProgress
+          ? [ariaDescribedBy, progressTextId].filter(Boolean).join(" ")
+          : ariaDescribedBy
+      }
       className={cn(
         buttonVariants({ variant, size, className }),
         "has-data-[clip]:overflow-hidden",
@@ -81,7 +91,11 @@ function Button({
       focusableWhenDisabled={focusableWhenDisabled ?? busy}
       {...props}
     >
-      <ButtonContent loading={loading} progress={progress}>
+      <ButtonContent
+        loading={loading}
+        progress={progress}
+        progressTextId={progressTextId}
+      >
         {children}
       </ButtonContent>
     </ButtonPrimitive>

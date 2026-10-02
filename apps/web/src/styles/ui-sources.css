@@ -55,6 +55,7 @@
 @source "../../../../packages/ui/src/components/shared/ui-labels-provider.tsx";
 @source "../../../../packages/ui/src/components/ui/avatar.tsx";
 @source "../../../../packages/ui/src/components/ui/badge.tsx";
+@source "../../../../packages/ui/src/components/ui/button-content.tsx";
 @source "../../../../packages/ui/src/components/ui/button-group.tsx";
 @source "../../../../packages/ui/src/components/ui/button.tsx";
 @source "../../../../packages/ui/src/components/ui/card.tsx";

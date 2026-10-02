@@ -3,7 +3,7 @@
 import { FileImportIcon, FileUploadIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const LOADING_DURATION_MS = 2000;
 const UPLOAD_TICK_MS = 280;
@@ -23,24 +23,31 @@ function LoadingButton(
 
 function UploadButton() {
   const [progress, setProgress] = useState<number>();
-  const timer = useRef<ReturnType<typeof setInterval>>(undefined);
+  const uploading = progress !== undefined;
 
-  const upload = () => {
-    setProgress(0);
-    timer.current = setInterval(() => {
-      setProgress((current = 0) => {
-        const next = current + 6 + Math.random() * 14;
-        if (next < 100) {
-          return next;
+  useEffect(() => {
+    if (!uploading) {
+      return;
+    }
+    const timer = setInterval(() => {
+      const step = 6 + Math.random() * 14;
+      setProgress((current) => {
+        if (current === undefined) {
+          return current;
         }
-        clearInterval(timer.current);
-        return undefined;
+        const next = current + step;
+        return next < 100 ? next : undefined;
       });
     }, UPLOAD_TICK_MS);
-  };
+    return () => clearInterval(timer);
+  }, [uploading]);
 
   return (
-    <Button onClick={upload} progress={progress} variant="secondary">
+    <Button
+      onClick={() => setProgress(0)}
+      progress={progress}
+      variant="secondary"
+    >
       <HugeiconsIcon data-icon="inline-start" icon={FileUploadIcon} />
       Upload file
     </Button>
