@@ -1,7 +1,7 @@
 import { appendFile, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const dir = "apps/web/src/content/blog";
+const dir = "apps/web-2/src/content/blog";
 const base = "https://www.usenotra.com/blog/";
 const excluded = /^https:\/\/x\.com\//;
 const linkPattern = /(?:\]\(|href="|src=")([^)"\s]+)/g;

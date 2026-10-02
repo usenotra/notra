@@ -1,0 +1,726 @@
+import {
+  Copy01Icon,
+  Download01Icon,
+  PaintBoardIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
+import { Kbd } from "@notra/ui/components/ui/kbd";
+import { TRANSITION, tween } from "@notra/ui/lib/motion";
+import { cn } from "@notra/ui/lib/utils";
+import { Link, useLocation } from "@tanstack/react-router";
+import {
+  AnimatePresence,
+  domAnimation,
+  LazyMotion,
+  m,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "motion/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { NavbarChevron, NavbarMenuToggle } from "@/components/navbar-glyphs";
+import { NavbarHref } from "@/components/navbar-href";
+import { NavbarMobileMenu } from "@/components/navbar-mobile-menu";
+import { NotraMark, notraMarkSvgString } from "@/components/notra-mark";
+import { SignedOutLandingRedirect } from "@/components/signed-out-landing-redirect";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { TrackedSignupLink } from "@/components/tracked-signup-link";
+import {
+  AUTH_APP_HOTKEY,
+  AUTH_DASHBOARD_URL,
+  AUTH_SIGNIN_HOTKEY,
+  AUTH_SIGNIN_URL,
+} from "@/constants/auth";
+import { NAVBAR_DESKTOP_SIGNUP_SOURCE } from "@/constants/navbar";
+import { useDashboardSession } from "@/lib/auth/use-dashboard-session";
+import { useNavbarAuthHotkeys } from "@/lib/auth/use-navbar-auth-hotkeys";
+import { BRAND_ASSETS } from "@/lib/brand/constants";
+import { getNavbarVariantForPath } from "@/lib/navigation/navbar-variant";
+import { useMobileNavMenu } from "@/lib/navigation/use-mobile-nav-menu";
+import type {
+  NavbarAuthActionsProps,
+  NavbarKbdProps,
+  NavbarProps,
+} from "@/types/navbar";
+import { copySvgAsset } from "@/utils/copy-svg-asset";
+import { copyToClipboard } from "@/utils/copy-to-clipboard";
+import { getNavbarChromePresentation } from "@/utils/navbar-presentation";
+import {
+  MARKETING_NAV,
+  type MarketingNavCard,
+  type MarketingNavGroup,
+  type MarketingNavRailItem,
+} from "@/utils/navigation";
+
+const HOVER_CLOSE_DELAY = 120;
+const CONTENT_SLIDE = 56;
+const CONTENT_BLUR = "blur(0.75rem)";
+const CONTENT_SHARP = "blur(0)";
+const CONTENT_SCALE_OUT = 0.96;
+const CONTENT_ENTER_DELAY = 0.03;
+const PANEL_PERSPECTIVE = 2000;
+const PANEL_SCALE_IN = {
+  opacity: 0,
+  rotateX: -30,
+  scale: 0.9,
+} as const;
+const PANEL_SCALE_OUT = {
+  opacity: 0,
+  rotateX: -10,
+  scale: 0.95,
+} as const;
+const PANEL_SCALE_REST = {
+  opacity: 1,
+  rotateX: 0,
+  scale: 1,
+} as const;
+const ENTER_EXIT_TRANSITION = TRANSITION.enter;
+const MORPH_TRANSITION = tween("fast", "emphasizedInOut");
+const SHELL_TRANSITION = tween("slow", "emphasized");
+const SCROLL_THRESHOLD = 64;
+const MOBILE_SCROLL_THRESHOLD = 16;
+const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
+const ISLAND_CHROME =
+  "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
+const SWAP_TRANSITION = {
+  x: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  scale: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  opacity: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
+  filter: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
+} as const;
+const SWAP_EXIT_TRANSITION = {
+  x: tween("instant", "emphasizedIn"),
+  scale: tween("instant", "emphasizedIn"),
+  opacity: tween("instant"),
+  filter: tween("instant"),
+} as const;
+const contentVariants = {
+  enter: (direction: number) => ({
+    x: direction * CONTENT_SLIDE,
+    opacity: 0,
+    scale: CONTENT_SCALE_OUT,
+    filter: CONTENT_BLUR,
+  }),
+  center: { x: 0, opacity: 1, scale: 1, filter: CONTENT_SHARP },
+  exit: (direction: number) => ({
+    x: direction * -CONTENT_SLIDE,
+    opacity: 0,
+    scale: CONTENT_SCALE_OUT,
+    filter: CONTENT_BLUR,
+    transition: direction === 0 ? { duration: 0 } : SWAP_EXIT_TRANSITION,
+  }),
+};
+
+interface PanelSize {
+  width: number;
+  height: number;
+}
+
+function MegaCard({
+  card,
+  onSelect,
+}: {
+  card: MarketingNavCard;
+  onSelect: () => void;
+}) {
+  return (
+    <NavbarHref
+      className="flex h-52.5 w-52 shrink-0 cursor-pointer flex-col items-stretch justify-between rounded-2xl border border-[#1E1E1E1A] bg-[#C8B2EE40] p-6 shadow-[0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] transition-[background,border-color] hover:bg-[linear-gradient(180deg,#C8B2EE40_0%,#C8B2EE66_100%)] dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10 dark:hover:bg-none"
+      external={card.external}
+      href={card.href}
+      onClick={onSelect}
+      role="menuitem"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center leading-none [&_svg]:block">
+        <HugeiconsIcon
+          className="size-8 text-[#1E1E1E] dark:text-white"
+          icon={card.icon}
+        />
+      </span>
+      <span className="flex flex-col items-start gap-0.75">
+        <span className="h-5 w-full font-sans text-base leading-5 font-semibold whitespace-nowrap text-[#1E1E1E] dark:text-white">
+          {card.label}
+        </span>
+        <span className="min-h-[3.375rem] self-stretch font-sans text-sm leading-[1.125rem] font-semibold text-[#1E1E1EBF] dark:text-neutral-400">
+          {card.description}
+        </span>
+      </span>
+    </NavbarHref>
+  );
+}
+
+function RailItem({
+  item,
+  onSelect,
+}: {
+  item: MarketingNavRailItem;
+  onSelect: () => void;
+}) {
+  return (
+    <NavbarHref
+      className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#C8B2EE26] focus-visible:bg-[#C8B2EE26] focus-visible:outline-none dark:hover:bg-white/6 dark:focus-visible:bg-white/6"
+      external={item.external}
+      href={item.href}
+      onClick={onSelect}
+      role="menuitem"
+    >
+      <HugeiconsIcon
+        className="size-6 shrink-0 text-[#1E1E1E] dark:text-neutral-200"
+        icon={item.icon}
+      />
+      <span className="font-sans text-base leading-[1.5625rem] font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-neutral-200">
+        {item.label}
+      </span>
+    </NavbarHref>
+  );
+}
+
+function MegaPanel({
+  group,
+  onSelect,
+}: {
+  group: MarketingNavGroup;
+  onSelect: () => void;
+}) {
+  return (
+    <div className="flex items-stretch justify-end gap-8">
+      <div className="flex items-stretch gap-4 py-8 pl-8">
+        {group.cards.map((card) => (
+          <MegaCard card={card} key={card.href} onSelect={onSelect} />
+        ))}
+      </div>
+      {group.rail.length > 0 && (
+        <div className="flex flex-col items-start justify-center self-stretch border-l border-[#1E1E1E1A] p-8 dark:border-white/10">
+          <div className="flex flex-col gap-3">
+            {group.rail.map((item) => (
+              <RailItem item={item} key={item.href} onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getSlideDirection(
+  groups: MarketingNavGroup[],
+  activeGroup: string | null,
+  previousGroup: string | null
+) {
+  if (!(activeGroup && previousGroup) || activeGroup === previousGroup) {
+    return 0;
+  }
+
+  const currentIndex = groups.findIndex((group) => group.label === activeGroup);
+  const previousIndex = groups.findIndex(
+    (group) => group.label === previousGroup
+  );
+
+  if (currentIndex === -1 || previousIndex === -1) {
+    return 0;
+  }
+
+  return currentIndex > previousIndex ? 1 : -1;
+}
+
+function getNavbarMotion(reduceMotion: boolean) {
+  return {
+    contentTransition: reduceMotion ? { duration: 0 } : SWAP_TRANSITION,
+    enterExitTransition: reduceMotion ? { duration: 0 } : ENTER_EXIT_TRANSITION,
+    morphTransition: reduceMotion ? { duration: 0 } : MORPH_TRANSITION,
+    shellTransition: reduceMotion ? { duration: 0 } : SHELL_TRANSITION,
+  };
+}
+
+export function Navbar({ variant }: NavbarProps = {}) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const [{ active: activeGroup, previous: previousGroup }, setNavGroup] =
+    useState<{ active: string | null; previous: string | null }>({
+      active: null,
+      previous: null,
+    });
+  const [panelSizes, setPanelSizes] = useState<Map<string, PanelSize>>(
+    new Map()
+  );
+  const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const measureRefs = useRef(new Map<string, HTMLDivElement>());
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setActiveGroup = useCallback((next: string | null) => {
+    setNavGroup((current) => {
+      if (current.active === next) {
+        return current;
+      }
+      return { active: next, previous: current.active };
+    });
+  }, []);
+
+  const groups = useMemo<MarketingNavGroup[]>(
+    () =>
+      MARKETING_NAV.filter(
+        (entry): entry is MarketingNavGroup => entry.type === "group"
+      ),
+    []
+  );
+
+  const { isAuthenticated, isResolved } = useDashboardSession();
+  useNavbarAuthHotkeys({ isAuthenticated, isResolved });
+
+  useEffect(() => {
+    if (pathname === "/" && isResolved && isAuthenticated) {
+      window.location.replace(
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3000/callback"
+          : AUTH_DASHBOARD_URL
+      );
+    }
+  }, [pathname, isResolved, isAuthenticated]);
+
+  const reduceMotion = useReducedMotion();
+  const { scrollY } = useScroll();
+  const [scrolled, setScrolled] = useState(false);
+  const [logoMenuOpen, setLogoMenuOpen] = useState(false);
+
+  const getScrollThreshold = useCallback(
+    () =>
+      window.matchMedia(MOBILE_MEDIA_QUERY).matches
+        ? MOBILE_SCROLL_THRESHOLD
+        : SCROLL_THRESHOLD,
+    []
+  );
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > getScrollThreshold());
+  });
+
+  useEffect(() => {
+    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
+    setScrolled(window.scrollY > getScrollThreshold());
+  }, [getScrollThreshold]);
+
+  const cancelClose = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleClose = useCallback(() => {
+    cancelClose();
+    closeTimerRef.current = setTimeout(() => {
+      setActiveGroup(null);
+    }, HOVER_CLOSE_DELAY);
+  }, [cancelClose, setActiveGroup]);
+
+  const openGroup = useCallback(
+    (label: string) => {
+      cancelClose();
+      setActiveGroup(label);
+    },
+    [cancelClose, setActiveGroup]
+  );
+
+  const closePanel = useCallback(() => setActiveGroup(null), [setActiveGroup]);
+
+  const closeMobileMenu = useMobileNavMenu(isOpen, setIsOpen, menuButtonRef);
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    function handleKey(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActiveGroup(null);
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [setActiveGroup]);
+
+  useEffect(() => {
+    const nodes = measureRefs.current;
+    if (nodes.size === 0) {
+      return;
+    }
+    const observer = new ResizeObserver(() => {
+      const next = new Map<string, PanelSize>();
+      for (const [label, node] of nodes) {
+        const rect = node.getBoundingClientRect();
+        next.set(label, { width: rect.width, height: rect.height });
+      }
+      setPanelSizes(next);
+    });
+    for (const node of nodes.values()) {
+      observer.observe(node);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  const activeGroupData = activeGroup
+    ? groups.find((group) => group.label === activeGroup)
+    : null;
+  const activeSize = activeGroup ? panelSizes.get(activeGroup) : undefined;
+
+  const slideDirection = getSlideDirection(groups, activeGroup, previousGroup);
+  const direction = reduceMotion ? 0 : slideDirection;
+  const {
+    chrome,
+    innerPaddingClass,
+    overlayLayout,
+    positionClass,
+    rowHeightClass,
+    shellAnimate,
+  } = getNavbarChromePresentation(resolvedVariant, scrolled);
+  const {
+    contentTransition,
+    enterExitTransition,
+    morphTransition,
+    shellTransition,
+  } = getNavbarMotion(reduceMotion ?? false);
+  const mutedNavClass =
+    "text-[#1E1E1EA6] hover:text-[#1E1E1E] dark:text-neutral-400 dark:hover:text-white";
+
+  return (
+    <LazyMotion features={domAnimation}>
+      <SignedOutLandingRedirect
+        isAuthenticated={isAuthenticated}
+        isResolved={isResolved}
+      />
+      <m.div
+        animate={shellAnimate}
+        className={`z-50 mx-auto ${positionClass}`}
+        initial={false}
+        transition={shellTransition}
+      >
+        <m.header
+          animate={{ borderRadius: chrome ? "1rem" : "0rem" }}
+          className={`duration-slow relative z-50 transition-[background-color,box-shadow] ease-out ${
+            chrome ? ISLAND_CHROME : "bg-transparent"
+          }`}
+          initial={false}
+          transition={shellTransition}
+        >
+          <div
+            className={`max-lg:duration-slow max-lg:transition-[padding] max-lg:ease-out ${innerPaddingClass}`}
+          >
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: onMouseLeave is a pointer-only convenience to dismiss the hover menu; the menu is fully operable via click, focus, and Escape */}
+            {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: see above */}
+            <div
+              className={`max-lg:duration-slow relative flex items-center justify-between gap-4 max-lg:transition-[height] max-lg:ease-out ${rowHeightClass}`}
+              onMouseLeave={scheduleClose}
+            >
+              <DropdownMenu
+                onOpenChange={(open, details) => {
+                  if (open && details.reason === "trigger-press") {
+                    return;
+                  }
+                  if (!open && details.reason === "trigger-hover") {
+                    return;
+                  }
+                  setLogoMenuOpen(open);
+                }}
+                open={logoMenuOpen}
+              >
+                <DropdownMenuTrigger
+                  nativeButton={false}
+                  render={
+                    <Link
+                      aria-label="Notra home"
+                      className="group flex flex-1 items-center"
+                      to={isAuthenticated ? "/home" : "/"}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        setLogoMenuOpen(true);
+                      }}
+                    />
+                  }
+                >
+                  <span className="duration-fast inline-flex origin-left items-center gap-2 transition-transform ease-out group-active:scale-95">
+                    <span className="flex size-10 items-center justify-center rounded-lg dark:bg-[#F6F3F1] dark:shadow-sm dark:ring-1 dark:inset-shadow-sm dark:shadow-black/40 dark:ring-white/10 dark:inset-shadow-white/8">
+                      <NotraMark className="size-7 shrink-0" />
+                    </span>
+                    <span className="text-lg font-semibold text-neutral-950 dark:text-white">
+                      Notra
+                    </span>
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="w-56"
+                  side="bottom"
+                >
+                  <DropdownMenuItem
+                    onClick={() =>
+                      copyToClipboard(notraMarkSvgString, "Copied logo as SVG")
+                    }
+                  >
+                    <HugeiconsIcon icon={Copy01Icon} />
+                    Copy logo as SVG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      copySvgAsset(
+                        BRAND_ASSETS.wordmark.svg,
+                        "Copied wordmark as SVG"
+                      )
+                    }
+                  >
+                    <HugeiconsIcon icon={Copy01Icon} />
+                    Copy wordmark as SVG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    render={
+                      <a download href={BRAND_ASSETS.zip}>
+                        <HugeiconsIcon icon={Download01Icon} />
+                        Download brand kit
+                      </a>
+                    }
+                  />
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem render={<Link to="/brand" />}>
+                    <HugeiconsIcon icon={PaintBoardIcon} />
+                    Brand Guidelines
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <nav className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex">
+                {MARKETING_NAV.map((entry) => {
+                  if (entry.type === "link") {
+                    return (
+                      <Link
+                        className={`duration-fast font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out ${mutedNavClass}`}
+                        to={entry.href}
+                        key={entry.href}
+                        onFocus={() => setActiveGroup(null)}
+                        onMouseEnter={() => {
+                          cancelClose();
+                          setActiveGroup(null);
+                        }}
+                      >
+                        {entry.label}
+                      </Link>
+                    );
+                  }
+                  const isActive = activeGroup === entry.label;
+                  return (
+                    <button
+                      aria-expanded={isActive}
+                      aria-haspopup="menu"
+                      className={`duration-fast inline-flex cursor-pointer items-center gap-1 font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out aria-expanded:text-[#1E1E1E] dark:aria-expanded:text-white ${mutedNavClass}`}
+                      key={entry.label}
+                      onClick={() =>
+                        setActiveGroup(isActive ? null : entry.label)
+                      }
+                      onFocus={() => openGroup(entry.label)}
+                      onMouseEnter={() => openGroup(entry.label)}
+                      ref={(node) => {
+                        if (node) {
+                          triggerRefs.current.set(entry.label, node);
+                        } else {
+                          triggerRefs.current.delete(entry.label);
+                        }
+                      }}
+                      type="button"
+                    >
+                      {entry.label}
+                      <NavbarChevron
+                        className="duration-normal size-3.5"
+                        flipped={isActive}
+                      />
+                    </button>
+                  );
+                })}
+
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none invisible absolute top-full left-0 -z-10 size-0 overflow-hidden"
+                >
+                  {groups.map((group) => (
+                    <div
+                      className="w-max"
+                      key={group.label}
+                      ref={(node) => {
+                        if (node) {
+                          measureRefs.current.set(group.label, node);
+                        } else {
+                          measureRefs.current.delete(group.label);
+                        }
+                      }}
+                    >
+                      <MegaPanel group={group} onSelect={closePanel} />
+                    </div>
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {activeGroupData && (
+                    <m.div
+                      animate={{ ...PANEL_SCALE_REST, x: "-50%" }}
+                      className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[1.75rem]" : "pt-3"}`}
+                      exit={{ ...PANEL_SCALE_OUT, x: "-50%" }}
+                      initial={{ ...PANEL_SCALE_IN, x: "-50%" }}
+                      key="navbar-dropdown"
+                      style={{
+                        transformPerspective: PANEL_PERSPECTIVE,
+                        transformOrigin: "top center",
+                      }}
+                      transition={enterExitTransition}
+                    >
+                      <m.div
+                        animate={{
+                          width: activeSize?.width,
+                          height: activeSize?.height,
+                        }}
+                        className="relative"
+                        initial={{
+                          width: activeSize?.width,
+                          height: activeSize?.height,
+                        }}
+                        transition={{
+                          width: morphTransition,
+                          height: morphTransition,
+                        }}
+                      >
+                        <div className="relative h-full w-full overflow-hidden rounded-3xl bg-[linear-gradient(180deg,#FFFFFF_0%,#F3F3F3_100%)] shadow-[0_0.125rem_2.0625rem_#1E1E1E1A,0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E0D] dark:bg-neutral-950 dark:bg-none dark:shadow-black/50 dark:ring-white/10">
+                          <AnimatePresence custom={direction} initial={false}>
+                            <m.div
+                              animate="center"
+                              className="absolute top-0 left-0 w-max origin-center"
+                              custom={direction}
+                              exit="exit"
+                              initial="enter"
+                              key={activeGroupData.label}
+                              role="menu"
+                              transition={contentTransition}
+                              variants={contentVariants}
+                            >
+                              <MegaPanel
+                                group={activeGroupData}
+                                onSelect={closePanel}
+                              />
+                            </m.div>
+                          </AnimatePresence>
+                        </div>
+                      </m.div>
+                    </m.div>
+                  )}
+                </AnimatePresence>
+              </nav>
+
+              <div className="flex flex-1 items-center justify-end gap-2 lg:gap-3">
+                <ThemeToggle />
+                <DesktopAuthActions
+                  isAuthenticated={isAuthenticated}
+                  isResolved={isResolved}
+                />
+                <button
+                  aria-controls="mobile-navigation"
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? "Close menu" : "Open menu"}
+                  className="relative inline-flex size-9 items-center justify-center rounded-md text-[#1E1E1E] hover:bg-[#C8B2EE26] lg:hidden dark:text-white dark:hover:bg-white/6"
+                  onClick={() => setIsOpen((prev) => !prev)}
+                  ref={menuButtonRef}
+                  type="button"
+                >
+                  <NavbarMenuToggle isOpen={isOpen} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </m.header>
+
+        <NavbarMobileMenu
+          isAuthenticated={isAuthenticated}
+          isResolved={isResolved}
+          onNavigate={closeMobileMenu}
+          open={isOpen}
+          overlayLayout={overlayLayout}
+        />
+      </m.div>
+    </LazyMotion>
+  );
+}
+
+const SIGNUP_BUTTON_CLASS =
+  "corner-squircle inline-flex h-8 items-center gap-1.5 rounded-[1rem] bg-white ps-2.5 pe-1.5 font-display text-sm leading-[1.14] font-semibold tracking-[-0.015em] text-[#1E1E1E] shadow-[0_0_0_1px_#ececec,0_1px_2px_#28282814] outline-none transition-[opacity,transform,box-shadow] duration-fast ease-out hover:opacity-90 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.96] supports-[corner-shape:round]:rounded-[1.25rem] dark:bg-white";
+
+function DesktopAuthActions({
+  isAuthenticated,
+  isResolved,
+}: NavbarAuthActionsProps) {
+  if (!isResolved) {
+    return <div aria-hidden="true" className="hidden h-8 lg:block" />;
+  }
+
+  if (isAuthenticated) {
+    return (
+      <div className="hidden items-center gap-3 lg:flex">
+        <a
+          aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
+          className={SIGNUP_BUTTON_CLASS}
+          href={AUTH_DASHBOARD_URL}
+        >
+          Dashboard
+          <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hidden items-center gap-3 lg:flex">
+      <a
+        aria-keyshortcuts={AUTH_SIGNIN_HOTKEY.toLowerCase()}
+        className="font-display duration-fast inline-flex items-center gap-1.5 text-base leading-[1.14] tracking-[-0.015em] text-[#1E1E1E] transition-opacity ease-out hover:opacity-70 dark:text-white"
+        href={AUTH_SIGNIN_URL}
+      >
+        Sign In
+        <NavbarKbd>{AUTH_SIGNIN_HOTKEY}</NavbarKbd>
+      </a>
+      <TrackedSignupLink
+        aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
+        className={SIGNUP_BUTTON_CLASS}
+        source={NAVBAR_DESKTOP_SIGNUP_SOURCE}
+      >
+        Sign Up
+        <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
+      </TrackedSignupLink>
+    </div>
+  );
+}
+
+function NavbarKbd({ children, onLight = false }: NavbarKbdProps) {
+  return (
+    <Kbd
+      aria-hidden="true"
+      className={cn(
+        "h-5 min-w-5 rounded-md font-sans text-[0.6875rem] font-medium",
+        onLight
+          ? "bg-[#1E1E1E0F] text-[#1E1E1E99]"
+          : "bg-[#1E1E1E0F] text-[#1E1E1E99] dark:bg-white/10 dark:text-white/50"
+      )}
+    >
+      {children}
+    </Kbd>
+  );
+}

@@ -286,5 +286,12 @@ export default defineConfig({
         "no-restricted-imports": "off",
       },
     },
+    {
+      files: ["apps/web-2/**"],
+      rules: {
+        "nextjs/no-html-link-for-pages": "off",
+        "nextjs/no-head-element": "off",
+      },
+    },
   ],
 });

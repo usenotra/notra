@@ -3,9 +3,9 @@ name: Blog
 on:
   push:
     branches: [main]
-    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
+    paths: ["apps/web-2/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
   pull_request:
-    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
+    paths: ["apps/web-2/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
 
 permissions:
   contents: read

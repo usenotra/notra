@@ -62,8 +62,8 @@ apps/onboarding-agent/**
 !apps/onboarding-agent/package.json
 apps/ui/**
 !apps/ui/package.json
-apps/web/**
-!apps/web/package.json
+apps/web-2/**
+!apps/web-2/package.json
 
 # Packages copied as package.json only (not source)
 packages/email/**

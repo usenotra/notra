@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/remotion/index.ts",
+    "remotion.config.ts",
+    "src/router.tsx",
+    "src/start.ts",
+    "src/routes/**/*.{ts,tsx}"
+  ],
+  "ignoreIssues": {
+    "source.config.ts": ["files", "exports"],
+    "src/schemas/content.ts": ["files", "exports"],
+    "src/constants/content.ts": ["exports"]
+  }
+}

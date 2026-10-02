@@ -135,6 +135,15 @@
         ".vercel/**"
       ]
     },
+    "web#build": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NEXT_PUBLIC_DATABUDDY_WEB_WEBSITE_ID",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+      ],
+      "outputs": [".output/**", ".vercel/output/**", ".source/**"]
+    },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],
       "outputs": [

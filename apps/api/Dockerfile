@@ -16,7 +16,7 @@ COPY apps/dashboard/package.json ./apps/dashboard/package.json
 COPY apps/docs/package.json ./apps/docs/package.json
 COPY apps/onboarding-agent/package.json ./apps/onboarding-agent/package.json
 COPY apps/ui/package.json ./apps/ui/package.json
-COPY apps/web/package.json ./apps/web/package.json
+COPY apps/web-2/package.json ./apps/web-2/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/analytics/package.json ./packages/analytics/package.json
 COPY packages/content-generation/package.json ./packages/content-generation/package.json

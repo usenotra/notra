@@ -50,7 +50,7 @@ Notra is a Bun and Turborepo monorepo, built with TypeScript, Next.js, React, Ho
 | Path | Purpose |
 | --- | --- |
 | `apps/dashboard` | Main product: GEO analytics, content, integrations, and workspace management |
-| `apps/web` | Public website at [www.usenotra.com](https://www.usenotra.com) |
+| `apps/web-2` | Public website at [www.usenotra.com](https://www.usenotra.com) |
 | `apps/api` | Public Hono REST API |
 | `apps/docs` | Product documentation |
 | `apps/agent`, `apps/onboarding-agent` | Content and onboarding agents |
@@ -101,4 +101,4 @@ TypeScript compiler; use Bun 1.4.0 to install the pinned, compatible versions.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and pull request guidelines. Bugs and feature requests belong in [GitHub Issues](https://github.com/usenotra/notra/issues).
 
-When changing landing-page copy, keep the website and its Markdown representation in `apps/web/src/utils/site-markdown.ts` in sync.
+When changing landing-page copy, keep the website and its Markdown representation in `apps/web-2/src/utils/site-markdown.ts` in sync.
