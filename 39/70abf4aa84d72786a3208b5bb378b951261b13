@@ -1,0 +1,21 @@
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_2a52f5734c36e7::t_e441976a77fe75 123,125,127-128
+packages/ui/src/components/shared/truncate-with-tooltip.tsx
+  s_2a52f5734c36e7::t_e441976a77fe75 8,13-15,28,51,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3970abf4aa84d72786a3208b5bb378b951261b13",
+  "prompts": {},
+  "sessions": {
+    "s_2a52f5734c36e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5d9ee769-c8bc-4832-aa81-30a77af163ad",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
