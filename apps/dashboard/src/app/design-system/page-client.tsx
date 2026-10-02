@@ -1110,6 +1110,37 @@ export default function DesignSystemClientPage() {
               >
                 Loading
               </Button>
+              <Button
+                onClick={() =>
+                  toast.warning("Seat limit almost reached", {
+                    description: "9 of 10 seats are in use.",
+                  })
+                }
+                variant="outline"
+              >
+                Warning
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.info("New scan scheduled", {
+                    description: "Runs every Monday at 09:00.",
+                  })
+                }
+                variant="outline"
+              >
+                Info
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.error("Couldn't change role", {
+                    description: "Your plan includes 3 team members.",
+                    action: { label: "View plans", onClick: () => undefined },
+                  })
+                }
+                variant="outline"
+              >
+                With action
+              </Button>
             </CardContent>
           </Card>
         </div>
