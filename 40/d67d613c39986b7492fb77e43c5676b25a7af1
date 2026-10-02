@@ -1,0 +1,26 @@
+apps/dashboard/src/components/geo/prompt-copy-button.tsx
+  s_5c6ad3ce7b5991::t_4aa2981099d1d3 60
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_5c6ad3ce7b5991::t_b62380d8fafdca 357-370,372
+  s_5c6ad3ce7b5991::t_23dbfc154f846f 224
+apps/dashboard/src/types/geo.ts
+  s_5c6ad3ce7b5991::t_23dbfc154f846f 1403-1404
+apps/dashboard/src/components/geo/prompt-scan-button.tsx
+  s_5c6ad3ce7b5991::t_23dbfc154f846f 33,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "40d67d613c39986b7492fb77e43c5676b25a7af1",
+  "prompts": {},
+  "sessions": {
+    "s_5c6ad3ce7b5991": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3b1b68a-79b6-40a6-9c7a-e1e69505442b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
