@@ -7,9 +7,9 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { TableMenu } from "./table-menu";
 

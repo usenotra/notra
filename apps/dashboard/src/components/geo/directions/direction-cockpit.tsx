@@ -3,8 +3,8 @@
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Card, CardContent } from "@notra/ui/components/ui/card";
-import { useFormatter, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EChartsLineChart } from "@/components/evilcharts/charts/echarts-line-chart";

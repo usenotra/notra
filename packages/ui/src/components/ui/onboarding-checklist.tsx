@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@notra/ui/components/framework-provider";
 import { createContext, use, type ComponentProps } from "react";
 
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";

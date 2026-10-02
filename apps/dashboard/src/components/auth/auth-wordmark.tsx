@@ -1,6 +1,6 @@
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import Link from "next/link";
 
+import Link from "@/components/framework/link";
 import type { AuthWordmarkProps } from "@/types/auth/wordmark";
 
 export function AuthWordmark({ href }: AuthWordmarkProps) {

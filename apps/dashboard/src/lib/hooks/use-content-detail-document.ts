@@ -5,9 +5,9 @@ import { isGeoBriefMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markd
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
 import {

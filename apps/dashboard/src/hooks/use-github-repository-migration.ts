@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GitHubIntegration } from "@/types/integrations";

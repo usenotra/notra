@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { Discussion } from "@/components/comments/discussion";

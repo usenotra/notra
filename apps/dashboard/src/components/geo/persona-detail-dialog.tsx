@@ -32,8 +32,8 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";

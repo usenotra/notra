@@ -8,7 +8,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useLocale } from "next-intl";
+import { useLocale } from "use-intl";
 import { useReducedMotion } from "motion/react";
 import {
   Children,

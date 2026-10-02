@@ -1,6 +1,6 @@
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { ONBOARDING_STEP_COUNT } from "@/constants/onboarding";
 import { cn } from "@/lib/utils";
 import type { OnboardingProgressProps } from "@/types/onboarding";

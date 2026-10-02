@@ -13,8 +13,6 @@ import {
   agentProxyFollowUpSchema,
 } from "@notra/schemas/dashboard/agent-proxy";
 import { and, eq } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { AGENT_PROXY_ALLOWED_PATHS } from "@/constants/agent";
 import { createNotraAgentClient, startAgentSession } from "@/lib/agent/client";
@@ -22,8 +20,6 @@ import { isAgentChatEnabled } from "@/lib/agent/flag";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { AgentSurface } from "@/types/agent";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
-
-export const maxDuration = 800;
 
 interface AgentRouteContext {
   params: Promise<{ organizationId: string; eve: string[] }>;
@@ -36,7 +32,7 @@ function resolveAllowedPath(segments: string[]): string | null {
     : null;
 }
 
-function resolveSurface(request: NextRequest): AgentSurface {
+function resolveSurface(request: Request): AgentSurface {
   const requested = request.headers.get("x-agent-surface");
   const match = AGENT_SURFACES.find(
     (surface) => surface === requested && surface !== "task"
@@ -45,9 +41,9 @@ function resolveSurface(request: NextRequest): AgentSurface {
 }
 
 async function resolveContentId(
-  request: NextRequest,
+  request: Request,
   organizationId: string
-): Promise<{ contentId?: string; error?: NextResponse }> {
+): Promise<{ contentId?: string; error?: Response }> {
   const contentId = request.headers.get("x-agent-content-id");
   if (!contentId) {
     return {};
@@ -61,7 +57,7 @@ async function resolveContentId(
   });
   if (!post) {
     return {
-      error: NextResponse.json({ error: "Content not found" }, { status: 404 }),
+      error: Response.json({ error: "Content not found" }, { status: 404 }),
     };
   }
   return { contentId };
@@ -70,7 +66,7 @@ async function resolveContentId(
 async function checkAiCredits(organizationId: string): Promise<{
   useMarkup: boolean;
   chargeAiCredits: boolean;
-  error?: NextResponse;
+  error?: Response;
 }> {
   let billing: Awaited<ReturnType<typeof checkChatBilling>>;
   try {
@@ -79,7 +75,7 @@ async function checkAiCredits(organizationId: string): Promise<{
     return {
       useMarkup: false,
       chargeAiCredits: false,
-      error: NextResponse.json(
+      error: Response.json(
         { error: "Failed to check usage limits", code: "BILLING_ERROR" },
         { status: 500 }
       ),
@@ -89,7 +85,7 @@ async function checkAiCredits(organizationId: string): Promise<{
     return {
       useMarkup: false,
       chargeAiCredits: false,
-      error: NextResponse.json(
+      error: Response.json(
         {
           error: "Usage limit reached",
           code: "USAGE_LIMIT_REACHED",
@@ -105,9 +101,9 @@ async function checkAiCredits(organizationId: string): Promise<{
   };
 }
 
-export async function POST(request: NextRequest, context: AgentRouteContext) {
+export async function POST(request: Request, context: AgentRouteContext) {
   if (!isAgentChatEnabled()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
   const { organizationId, eve } = await context.params;
   const auth = await withOrganizationAuth(request, organizationId);
@@ -116,7 +112,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
   }
   const path = resolveAllowedPath(eve);
   if (!path) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
 
   const [rateLimited, credits] = await Promise.all([
@@ -135,7 +131,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
   if (path === "eve/v1/session") {
     const parsed = agentProxyCreateSessionSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Invalid request body", details: parsed.error.issues },
         { status: 400 }
       );
@@ -160,7 +156,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
         },
         message: parsed.data.message,
       });
-      return NextResponse.json(
+      return Response.json(
         {
           ok: true,
           sessionId: started.eveSessionId,
@@ -169,7 +165,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
       );
     } catch (startError) {
       console.error("[agent-proxy] Session creation failed", startError);
-      return NextResponse.json(
+      return Response.json(
         { error: "Agent session creation failed" },
         { status: 502 }
       );
@@ -178,15 +174,15 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
 
   const eveSessionId = eve[3];
   if (!eveSessionId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
   const mapping = await getAgentSessionMapping(organizationId, eveSessionId);
   if (!mapping || (mapping.userId && mapping.userId !== auth.context.user.id)) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
   const parsed = agentProxyFollowUpSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid request body", details: parsed.error.issues },
       { status: 400 }
     );
@@ -210,7 +206,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
     });
   } catch (error) {
     if (error instanceof AgentSendLockedError) {
-      return NextResponse.json(
+      return Response.json(
         { error: "A message is already being processed for this session" },
         { status: 409 }
       );
@@ -219,9 +215,9 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
   }
 }
 
-export async function GET(request: NextRequest, context: AgentRouteContext) {
+export async function GET(request: Request, context: AgentRouteContext) {
   if (!isAgentChatEnabled()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
   const { organizationId, eve } = await context.params;
   const auth = await withOrganizationAuth(request, organizationId);
@@ -230,7 +226,7 @@ export async function GET(request: NextRequest, context: AgentRouteContext) {
   }
   const path = resolveAllowedPath(eve);
   if (!path?.endsWith("/stream")) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
   const rateLimited = await enforceChatGenerationRatelimit(
     organizationId,
@@ -247,7 +243,7 @@ export async function GET(request: NextRequest, context: AgentRouteContext) {
     !(mapping && eveSessionId) ||
     (mapping.userId && mapping.userId !== auth.context.user.id)
   ) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404 });
   }
 
   const client = await createNotraAgentClient({
@@ -259,6 +255,6 @@ export async function GET(request: NextRequest, context: AgentRouteContext) {
   return await forwardAgentStream({
     fetchUpstream: (upstreamPath, init) => client.fetch(upstreamPath, init),
     eveSessionId,
-    startIndex: request.nextUrl.searchParams.get("startIndex"),
+    startIndex: new URL(request.url).searchParams.get("startIndex"),
   });
 }

@@ -6,9 +6,9 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { IrisPauseDialog } from "@/components/iris/iris-pause-dialog";
 import { IrisRunningState } from "@/components/iris/iris-running-state";

@@ -231,6 +231,14 @@ export default defineConfig({
   },
   overrides: [
     {
+      files: ["apps/dashboard/src/**"],
+      rules: {
+        "nextjs/no-head-element": "off",
+        "nextjs/no-img-element": "off",
+        "nextjs/no-html-link-for-pages": "off",
+      },
+    },
+    {
       // Effect's TaggedError is a curried schema class factory, not an Error constructor.
       files: [
         "apps/api/src/errors/**/*.ts",

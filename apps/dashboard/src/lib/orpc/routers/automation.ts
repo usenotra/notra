@@ -25,12 +25,12 @@ import {
 } from "@notra/schemas/dashboard/integrations";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import { DEFAULT_LOOKBACK_WINDOW } from "@/constants/workflows";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getTranslations } from "@/lib/i18n/server";
 import { baseProcedure } from "@/lib/orpc/base";
 import {
   ManualTriggerRunError,

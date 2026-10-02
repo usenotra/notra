@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/framework/link";
 
 const LINKS = [
   { href: "/design-system#colors", label: "UI kit" },

@@ -14,7 +14,7 @@ mock.module("@notra/db/drizzle", () => ({
     },
   },
 }));
-mock.module("next/navigation", () => ({
+mock.module("@/lib/navigation", () => ({
   redirect: (path: string) => {
     throw new Error(`REDIRECT:${path}`);
   },

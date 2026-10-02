@@ -19,9 +19,9 @@ import {
 import { Dithering } from "@paper-design/shaders-react";
 import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {

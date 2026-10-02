@@ -3,15 +3,15 @@
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DevSampleDataCard } from "@/components/settings/dev-sample-data-card";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { geoDbQueryKey } from "@/lib/db/geo-collections";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { errorMessageOr } from "@/lib/utils";
 import { geoOnboardingPath } from "@/utils/geo-paths";

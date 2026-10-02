@@ -64,6 +64,9 @@ opencode.json
 .output
 apps/onboarding-agent/logs
 .workflow-data
+.hoplite/
+.swc/
+.tanstack/
 .env.staging
 .env*
 !.env.example

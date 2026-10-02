@@ -1,8 +1,8 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
 import { EmptyState } from "@/components/empty-state";

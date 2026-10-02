@@ -1,8 +1,8 @@
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import type { IrisArtifactCardProps } from "@/types/iris";
 import { humanizeIrisContentType } from "@/utils/iris-copy";
 

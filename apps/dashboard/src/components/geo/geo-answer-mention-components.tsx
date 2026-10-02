@@ -10,7 +10,6 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { useTranslations } from "next-intl";
 import {
   Children,
   createElement,
@@ -21,6 +20,7 @@ import {
   use,
   useState,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoAnswerMentionCompetitorCard } from "@/components/geo/geo-answer-mention-card";
 import { GeoAnswerMentionContext } from "@/components/geo/geo-answer-mention-context";

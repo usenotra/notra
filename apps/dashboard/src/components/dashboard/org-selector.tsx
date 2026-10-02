@@ -40,12 +40,10 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { CreditBalanceMenuItem } from "@/components/billing/credit-balance-button";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -55,10 +53,12 @@ import { authClient } from "@/lib/auth/client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname, useRouter } from "@/lib/navigation";
 import { cn, errorMessageOr } from "@/lib/utils";
 import type { OrganizationOptionsListProps } from "@/types/dashboard";
 import { planDisplayName } from "@/utils/billing-plans";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+import dynamic from "@/utils/lazy-component";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { scheduleDemo } from "@/utils/schedule-demo";
 

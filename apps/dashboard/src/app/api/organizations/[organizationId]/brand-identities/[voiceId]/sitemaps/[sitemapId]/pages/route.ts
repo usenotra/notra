@@ -1,6 +1,3 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { getSitemapBrandIdentity } from "@/lib/sitemap/brand-identity";
 import { getStoredSitemapPages } from "@/lib/sitemap/storage";
@@ -30,7 +27,7 @@ function parseLimit(value: string | null) {
   return Number.isFinite(limit) ? limit : undefined;
 }
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { organizationId, voiceId, sitemapId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -40,14 +37,14 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const brandIdentity = await getSitemapBrandIdentity(organizationId, voiceId);
   if (!brandIdentity) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Brand identity not found" },
       { status: 404 }
     );
   }
 
   try {
-    const { searchParams } = request.nextUrl;
+    const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const result = await getStoredSitemapPages(
       organizationId,
@@ -66,12 +63,12 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     );
 
     if (!result) {
-      return NextResponse.json({ error: "Sitemap not found" }, { status: 404 });
+      return Response.json({ error: "Sitemap not found" }, { status: 404 });
     }
 
-    return NextResponse.json(result);
+    return Response.json(result);
   } catch {
-    return NextResponse.json(
+    return Response.json(
       { error: "Sitemap storage is unavailable" },
       { status: 503 }
     );

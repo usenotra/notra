@@ -49,7 +49,6 @@ import {
 } from "@notra/schemas/dashboard/brand-guidelines";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { REFERENCE_LIMIT_REACHED_CODE } from "@/constants/brand";
 import {
@@ -67,6 +66,7 @@ import {
 } from "@/lib/brand-guidelines";
 import { countBrandVoices } from "@/lib/brand-voice-count";
 import { isUniqueConstraintError } from "@/lib/db/errors";
+import { getTranslations } from "@/lib/i18n/server";
 import { baseProcedure } from "@/lib/orpc/base";
 import {
   startBrandAnalysisRun,

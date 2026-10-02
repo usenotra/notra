@@ -4,9 +4,9 @@ import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { isDemoModeClient } from "@notra/utils/demo-mode";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ConnectedAccountRow } from "@/components/settings/connected-account-row";
 import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";

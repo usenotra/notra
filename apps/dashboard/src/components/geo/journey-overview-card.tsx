@@ -8,7 +8,7 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";

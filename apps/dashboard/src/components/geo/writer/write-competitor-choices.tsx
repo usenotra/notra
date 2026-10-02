@@ -1,7 +1,7 @@
 "use client";
 
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import type { WriteCompetitorChoicesProps } from "@/types/components/geo-writer";

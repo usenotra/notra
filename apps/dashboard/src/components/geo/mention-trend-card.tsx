@@ -7,8 +7,8 @@ import {
 import type { MentionTrendRow } from "@notra/geo-core/types/geo";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";

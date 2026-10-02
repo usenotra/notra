@@ -1,5 +1,5 @@
 import type { LogoStackLabels } from "@notra/ui/types/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useLogoStackLabels(): LogoStackLabels {
   const t = useTranslations("ui.logoStack");

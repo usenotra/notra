@@ -16,9 +16,9 @@ import {
 } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { type ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { UsageAlertForm } from "@/components/billing/usage-alert-form";
 import { Button } from "@/components/button";

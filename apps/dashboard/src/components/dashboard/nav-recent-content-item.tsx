@@ -30,13 +30,13 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { NAV_RECENT_TITLE_CLASS, POST_STATUS_DOT_CLASS } from "@/constants/nav";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
+import { useRouter } from "@/lib/navigation";
 import type { NavRecentContentItemProps } from "@/types/components/nav";
 
 import { SidebarNavLink } from "./sidebar-nav-link";

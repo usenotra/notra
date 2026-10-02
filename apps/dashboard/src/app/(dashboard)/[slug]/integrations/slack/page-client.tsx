@@ -34,10 +34,9 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
@@ -48,6 +47,7 @@ import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useSlackConnectionToast } from "@/lib/hooks/use-slack-connection-toast";
+import { usePathname } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SlackIntegrationsPageClientProps } from "@/types/integrations/pages";
 import type {

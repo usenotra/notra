@@ -11,8 +11,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
 import type {

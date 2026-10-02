@@ -1,4 +1,4 @@
-import { autumnHandler } from "autumn-js/next";
+import { autumnHandler } from "autumn-js/fetch";
 
 import { getAuthSession } from "@/lib/auth/server";
 import { resolveBillingOrganizationId } from "@/lib/billing/resolve-billing-organization";
@@ -18,8 +18,8 @@ const developmentHandler = createDevelopmentAutumnHandler(
   }
 );
 
-const handlers: { GET: RouteHandler; POST: RouteHandler } = developmentHandler
-  ? { GET: developmentHandler, POST: developmentHandler }
+const handler: RouteHandler = developmentHandler
+  ? developmentHandler
   : autumnHandler({
       identify: async (request) => {
         const session = await getAuthSession();
@@ -44,4 +44,5 @@ const handlers: { GET: RouteHandler; POST: RouteHandler } = developmentHandler
       },
     });
 
-export const { GET, POST } = handlers;
+export const GET = handler;
+export const POST = handler;

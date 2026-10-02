@@ -1,5 +1,5 @@
 import type { GeoSparklineMode } from "@notra/geo-core/types/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useGeoSparklineModeLabels(): Record<GeoSparklineMode, string> {
   const t = useTranslations("geo.engineFamilySheet.modes");

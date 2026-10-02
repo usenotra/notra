@@ -15,8 +15,8 @@ import {
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { TrafficHero } from "@/components/geo/traffic-hero";

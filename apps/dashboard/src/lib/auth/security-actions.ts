@@ -1,4 +1,48 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const getSecurityOverviewServerFn = createServerFn({ method: "POST" }).handler(
+  () => getSecurityOverviewActionImpl()
+);
+export const getSecurityOverviewAction = () => getSecurityOverviewServerFn();
+
+const startTotpEnrollmentServerFn = createServerFn({ method: "POST" }).handler(
+  () => startTotpEnrollmentActionImpl()
+);
+export const startTotpEnrollmentAction = () => startTotpEnrollmentServerFn();
+
+const discardTotpEnrollmentServerFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: Parameters<typeof discardTotpEnrollmentActionImpl>) => data
+  )
+  .handler(({ data }) => discardTotpEnrollmentActionImpl(...data));
+export const discardTotpEnrollmentAction = (
+  ...data: Parameters<typeof discardTotpEnrollmentActionImpl>
+) => discardTotpEnrollmentServerFn({ data });
+
+const verifyTotpEnrollmentServerFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: Parameters<typeof verifyTotpEnrollmentActionImpl>) => data
+  )
+  .handler(({ data }) => verifyTotpEnrollmentActionImpl(...data));
+export const verifyTotpEnrollmentAction = (
+  ...data: Parameters<typeof verifyTotpEnrollmentActionImpl>
+) => verifyTotpEnrollmentServerFn({ data });
+
+const regenerateBackupCodesServerFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: Parameters<typeof regenerateBackupCodesActionImpl>) => data
+  )
+  .handler(({ data }) => regenerateBackupCodesActionImpl(...data));
+export const regenerateBackupCodesAction = (
+  ...data: Parameters<typeof regenerateBackupCodesActionImpl>
+) => regenerateBackupCodesServerFn({ data });
+
+const removeAuthFactorServerFn = createServerFn({ method: "POST" })
+  .inputValidator((data: Parameters<typeof removeAuthFactorActionImpl>) => data)
+  .handler(({ data }) => removeAuthFactorActionImpl(...data));
+export const removeAuthFactorAction = (
+  ...data: Parameters<typeof removeAuthFactorActionImpl>
+) => removeAuthFactorServerFn({ data });
 
 import { POSTHOG_EVENTS, type PostHogEventName } from "@notra/posthog/events";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
@@ -21,9 +65,8 @@ import type {
 } from "@notra/schemas/types/dashboard/auth";
 import { normalizeBackupCode } from "@notra/schemas/utils/auth";
 import type { Ratelimit } from "@upstash/ratelimit";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { SECURITY_ERROR_CODES, TOTP_FACTOR_TYPE } from "@/constants/security";
 import { ActionFailure } from "@/lib/actions/errors";
@@ -45,6 +88,7 @@ import {
 } from "@/lib/auth/mfa-cookies";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 import { createTotpFactor } from "@/lib/auth/workos-mfa";
+import { getTranslations } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/organizations/guards";
 import type { ActionResult } from "@/types/organizations/actions";
 import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
@@ -228,7 +272,7 @@ const withSecondFactor = <A>(
     );
   });
 
-export async function getSecurityOverviewAction(): Promise<
+async function getSecurityOverviewActionImpl(): Promise<
   ActionResult<SecurityOverview>
 > {
   return runAction(
@@ -252,7 +296,7 @@ export async function getSecurityOverviewAction(): Promise<
   );
 }
 
-export async function startTotpEnrollmentAction(): Promise<
+async function startTotpEnrollmentActionImpl(): Promise<
   ActionResult<StartTotpEnrollmentResult>
 > {
   return runAction(
@@ -281,7 +325,7 @@ export async function startTotpEnrollmentAction(): Promise<
   );
 }
 
-export async function discardTotpEnrollmentAction(
+async function discardTotpEnrollmentActionImpl(
   rawInput: DiscardTotpEnrollmentInput
 ): Promise<ActionResult<{ discarded: boolean }>> {
   return runAction(
@@ -307,7 +351,7 @@ export async function discardTotpEnrollmentAction(
   );
 }
 
-export async function verifyTotpEnrollmentAction(
+async function verifyTotpEnrollmentActionImpl(
   rawInput: VerifyTotpEnrollmentInput
 ): Promise<ActionResult<VerifyTotpEnrollmentResult>> {
   return runAction(
@@ -376,7 +420,7 @@ export async function verifyTotpEnrollmentAction(
   );
 }
 
-export async function regenerateBackupCodesAction(
+async function regenerateBackupCodesActionImpl(
   rawInput: RegenerateBackupCodesInput
 ): Promise<ActionResult<RegenerateBackupCodesResult>> {
   return runAction(
@@ -412,7 +456,7 @@ export async function regenerateBackupCodesAction(
   );
 }
 
-export async function removeAuthFactorAction(
+async function removeAuthFactorActionImpl(
   rawInput: RemoveAuthFactorInput
 ): Promise<ActionResult<{ removed: true }>> {
   return runAction(

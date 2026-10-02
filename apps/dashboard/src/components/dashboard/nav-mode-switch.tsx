@@ -9,8 +9,8 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import type { MouseEvent } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   SIDEBAR_MODE_HOME_LINKS,

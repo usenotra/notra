@@ -1,5 +1,5 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function GitHubIntegrationSkeleton() {
   const t = useTranslations("integrations.github.skeleton");

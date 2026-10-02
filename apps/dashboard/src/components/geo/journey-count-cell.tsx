@@ -1,5 +1,5 @@
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import type { JourneyCountCellProps } from "@/types/geo";

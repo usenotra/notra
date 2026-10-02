@@ -24,9 +24,9 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import type * as React from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";

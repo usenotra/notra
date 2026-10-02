@@ -19,8 +19,8 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GEO_ANSWER_SEARCH_SKIN_CLASS } from "@/constants/geo-answer-search";
 import type { GeoAnswerCitedSearchSkin } from "@/types/geo-answer-search";

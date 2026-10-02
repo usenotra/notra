@@ -17,10 +17,10 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Granola } from "@notra/ui/components/ui/svgs/granola";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type React from "react";
 import { isValidElement, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
 import { Button } from "@/components/button";

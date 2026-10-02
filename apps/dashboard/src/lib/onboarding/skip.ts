@@ -1,10 +1,17 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const skipOnboardingServerFn = createServerFn({ method: "POST" })
+  .inputValidator((data: Parameters<typeof skipOnboardingImpl>) => data)
+  .handler(({ data }) => skipOnboardingImpl(...data));
+export const skipOnboarding = (
+  ...data: Parameters<typeof skipOnboardingImpl>
+) => skipOnboardingServerFn({ data });
 
 import { db } from "@notra/db/drizzle";
 import { organizations } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { redirect } from "@tanstack/react-router";
 import { and, eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
@@ -13,15 +20,15 @@ import { validatedOnboardingProjectId } from "@/lib/onboarding/project";
 import type { OnboardingStep } from "@/types/analytics/events";
 import { withGeoProject } from "@/utils/geo-paths";
 
-export async function skipOnboarding(slug: string, step: OnboardingStep) {
+async function skipOnboardingImpl(slug: string, step: OnboardingStep) {
   const session = await getSession();
   if (!session?.user) {
-    redirect("/login");
+    throw redirect({ href: "/login" });
   }
 
   const { organization, member } = await validateOrganizationAccess(slug);
   if (member?.role !== "owner" && member?.role !== "admin") {
-    redirect(`/${slug}`);
+    throw redirect({ href: `/${slug}` });
   }
 
   const requestHeaders = await readRequestHeaders();
@@ -56,5 +63,5 @@ export async function skipOnboarding(slug: string, step: OnboardingStep) {
     });
   }
 
-  redirect(withGeoProject(`/${organization.slug}`, projectId));
+  throw redirect({ href: withGeoProject(`/${organization.slug}`, projectId) });
 }

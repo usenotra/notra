@@ -2,8 +2,8 @@
 // beui.dev/components/motion/table
 
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { useTableViewport } from "@/lib/hooks/use-table-viewport";
 import { cn } from "@/lib/utils";

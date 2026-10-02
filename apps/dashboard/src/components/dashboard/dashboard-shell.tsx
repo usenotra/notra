@@ -12,11 +12,9 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
 import { DashboardSidebar } from "@/components/dashboard/app-sidebar";
@@ -37,12 +35,14 @@ import {
   useRunOnboardingAgent,
 } from "@/lib/hooks/use-onboarding";
 import { useSidebarWidth } from "@/lib/hooks/use-sidebar-width";
+import { usePathname } from "@/lib/navigation";
 import type {
   DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
 } from "@/types/components/dashboard-shell";
 import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
+import dynamic from "@/utils/lazy-component";
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(

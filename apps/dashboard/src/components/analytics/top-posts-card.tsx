@@ -12,8 +12,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useFormatter, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import {
   InstrumentEmpty,

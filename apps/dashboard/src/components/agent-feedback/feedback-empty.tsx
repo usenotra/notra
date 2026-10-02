@@ -2,7 +2,7 @@
 
 import { AiMagicIcon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackSetup } from "@/components/agent-feedback/feedback-setup";
 import { Button } from "@/components/button";

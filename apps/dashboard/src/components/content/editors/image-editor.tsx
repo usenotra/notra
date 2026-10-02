@@ -1,9 +1,9 @@
 "use client";
 
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { isHttpImageContent } from "@/utils/image-content";
 import { extractMarkdownImageSrc } from "@/utils/markdown-image";
 

@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { WritePromptInputProps } from "@/types/components/geo-writer";
 

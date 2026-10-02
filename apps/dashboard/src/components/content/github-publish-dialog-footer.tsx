@@ -3,10 +3,10 @@
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ResponsiveDialogClose } from "@notra/ui/components/shared/responsive-dialog";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import type { GitHubPublishDialogFooterProps } from "@/types/content/detail";
 
 export function GitHubPublishDialogFooter({

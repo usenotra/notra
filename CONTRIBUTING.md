@@ -8,10 +8,12 @@ Notra is a Bun + Turborepo monorepo.
 
 - Runtime and package manager: **Bun**
 - Monorepo orchestration: **Turbo**
-- Frontend: **Next.js 16**, **React 19**, **Tailwind CSS 4**
+- Dashboard: **TanStack Start**, **Vite**, **Nitro**
+- Public website: **Next.js 16**
+- Shared frontend: **React 19**, **Tailwind CSS 4**
 - API: **Hono** on **Cloudflare Workers**
 - Database: **Postgres (Neon or PlanetScale Postgres recommended)** with **Drizzle ORM / drizzle-kit**
-- Auth: **better-auth**
+- Dashboard auth: **WorkOS AuthKit**
 - Queueing and rate limiting: **Upstash (QStash/Redis)**
 - API Keys: **Unkey**
 
@@ -21,7 +23,7 @@ Notra is a Bun + Turborepo monorepo.
 /
 |- apps/
 |  |- api/         # Hono API (Cloudflare Worker)
-|  |- dashboard/   # Main Notra product app (Next.js)
+|  |- dashboard/   # Main Notra product app (TanStack Start)
 |  |- docs/        # Product docs (Mintlify)
 |  |- web/         # Public marketing site (Next.js)
 |- packages/
@@ -114,6 +116,15 @@ bun dev --filter=web
 bun dev --filter=docs
 ```
 
+The dashboard runs Vite on `127.0.0.1:3000`. Build it with
+`bun run build --filter=dashboard`, then run `bun run start` from
+`apps/dashboard` to serve Nitro's `.output/server/index.mjs`. Run
+`bun run check-types --filter=dashboard` separately: `vite build` does not
+perform the full TypeScript check. See the dashboard's
+[migration testing guide](apps/dashboard/docs/migration-testing.md) for isolated
+browser, data, and production-artifact checks. Existing `NEXT_PUBLIC_*`
+deployment variable names remain supported; they are not framework dependencies.
+
 ## QStash Local Workflows
 
 If you're testing webhooks or workflows with QStash, set `NEXT_PUBLIC_APP_URL` to a public URL. `localhost` will not work for external callbacks.
@@ -140,7 +151,7 @@ winget install --id Cloudflare.cloudflared
 cloudflared tunnel --url http://localhost:3000
 ```
 
-`next dev` binds to `127.0.0.1` so LAN clients cannot reach the process and
+The dashboard's Vite dev server binds to `127.0.0.1` so LAN clients cannot reach the process and
 spoof `Host: localhost`. Leave `DEV_AUTH_ENABLED` unset (or `false`) before
 exposing the app. Local-dev impersonation only works on loopback and requires
 both `DEV_AUTH_ENABLED` and `DEV_AUTH_EMAIL`. A public tunnel must use a live
@@ -158,12 +169,14 @@ https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-
 ## Build performance
 
 The web and dashboard apps enable incremental TypeScript checking in their
-`tsconfig.json` files, overriding the shared base config. Keep this enabled:
-Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
+`tsconfig.json` files, overriding the shared base config. Keep this enabled.
+The dashboard's standalone type check writes to `.cache/typecheck.tsbuildinfo`;
+its Vite build and Nitro output are separate from type checking.
+For the Next.js web app, Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
 Vercel restores on subsequent builds. A cold build still checks the whole project;
 warm builds reuse unchanged checks without disabling type errors.
 
-Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
+For the web app, Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
 `.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
 task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
 the incremental compiler state used when a task needs to run again.
@@ -186,7 +199,7 @@ runner platform, dependencies, configuration, and commit. A matching prefix can
 restore state from an earlier commit; TypeScript still checks changed source and
 its affected dependents. The workflow retains its existing package selection.
 Blume's `ui` app uses its own checker and does not produce this cache file.
-Next.js production builds continue to use their separate `.next/cache` state.
+The web app's Next.js production builds continue to use their separate `.next/cache` state.
 
 ## Database Workflow
 
@@ -398,7 +411,7 @@ because Bun's `mock.module` replacements live for the entire test process.
 Keep infrastructure replacements at the boundary; do not mock the function
 being tested. Reset database/emulator state between scenarios and close servers
 in teardown. Import only `bun-types/test` in TypeScript configuration so Bun's
-global `fetch` extensions do not change the Node/Next application types.
+global `fetch` extensions do not change the application runtime types.
 
 These are not deployed end-to-end tests. PGlite serializes database requests,
 so overlapping-call tests do not reproduce separate Postgres connections.

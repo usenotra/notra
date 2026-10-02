@@ -1,8 +1,8 @@
 import type { createOctokit } from "@notra/ai/utils/octokit";
 import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
-import type { useTranslations } from "next-intl";
 import type React from "react";
+import type { useTranslations } from "use-intl";
 
 import type messages from "../../../messages/en.json";
 import type { GitHubIntegration, GitHubRepository } from "../integrations";

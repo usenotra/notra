@@ -17,9 +17,9 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useLocale, useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";

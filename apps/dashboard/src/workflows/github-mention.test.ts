@@ -53,7 +53,7 @@ if (process.env.NOTRA_MENTION_WORKFLOW_TEST !== "1") {
   mock.module("workflow", () => ({
     getWorkflowMetadata: () => ({ workflowRunId: "run-1" }),
   }));
-  mock.module("next/server", () => ({ after: mock() }));
+  mock.module("@/lib/framework/server", () => ({ after: mock() }));
   mock.module("@notra/ai/utils/github-mention-ingest", () => ({
     ingestGitHubAppMentionWebhook: async () => ({
       httpStatus: 202,

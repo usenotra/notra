@@ -121,6 +121,17 @@
   ],
   "envMode": "strict",
   "tasks": {
+    "dashboard#build": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NITRO_PRESET", "NEXT_PUBLIC_*"],
+      "outputs": [".output/**", ".vercel/output/**", "dist/**"]
+    },
+    "dashboard#dev": {
+      "cache": false,
+      "persistent": true,
+      "env": ["NEXT_PUBLIC_*"]
+    },
     "transit": {
       "dependsOn": ["^transit"]
     },

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@notra/ui/components/ui/card";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { PromptResultsTable } from "@/components/geo/directions/prompt-results-table";

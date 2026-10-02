@@ -11,8 +11,8 @@ import {
   ResponsiveAlertDialogTitle,
   ResponsiveAlertDialogTrigger,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   getOrganizationMembershipActionDescriptionKey,

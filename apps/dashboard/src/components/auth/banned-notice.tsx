@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { authClient } from "@/lib/auth/client";
 

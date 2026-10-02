@@ -36,9 +36,9 @@ import {
   $isRangeSelection,
   type TextNode,
 } from "lexical";
-import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { $createKiboCodeBlockNode } from "../nodes/kibo-code-block-node";
 import {

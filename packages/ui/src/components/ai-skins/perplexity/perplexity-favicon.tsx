@@ -2,7 +2,7 @@
 
 import { cn } from "@notra/ui/lib/utils";
 import { isReservedExampleDomain } from "@notra/utils/google-favicon";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import { useState } from "react";
 
 export function perplexityFaviconSrc(domain: string) {

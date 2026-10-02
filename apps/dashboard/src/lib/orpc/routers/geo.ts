@@ -254,8 +254,6 @@ import {
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
-import { after } from "next/server";
 
 import {
   GEO_COMPETITOR_SOURCES,
@@ -282,6 +280,7 @@ import {
   assertActiveSubscription,
   assertGeoEntitlement,
 } from "@/lib/billing/subscription";
+import { afterResponse as after } from "@/lib/framework/after-response";
 import {
   collectGeoShelfMemberIds,
   findCurrentGeoShelfMemberId,
@@ -292,12 +291,14 @@ import {
 import { previewGeoShelfUrl } from "@/lib/geo-shelf/preview";
 import {
   createGeoShelfSource,
+  scheduleGeoShelfCitationSync,
+  updateGeoShelfSource,
+} from "@/lib/geo-shelf/request-service";
+import {
   isGeoShelfUrlOnShelf,
   listGeoShelfSourcePage,
   loadGeoShelfContext,
   resolveGeoShelfSearch,
-  scheduleGeoShelfCitationSync,
-  updateGeoShelfSource,
 } from "@/lib/geo-shelf/service";
 import { assertGeoAccess } from "@/lib/geo/access";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
@@ -305,6 +306,7 @@ import {
   getPersonaGeneration,
   startPersonaGeneration,
 } from "@/lib/geo/persona-generation";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {

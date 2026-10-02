@@ -1,5 +1,5 @@
 import { exactSentimentExcerpt } from "@notra/geo-core/utils/geo-sentiment";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { AnswerSentimentProps } from "@/types/geo-sentiment";
 

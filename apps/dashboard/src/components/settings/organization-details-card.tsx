@@ -14,14 +14,14 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 import { z } from "zod";
 
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { uploadFile } from "@/lib/upload/client";
 import { errorMessageOr } from "@/lib/utils";
 import type { OrganizationDetailsCardProps } from "@/types/settings/general";

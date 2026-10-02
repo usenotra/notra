@@ -1,10 +1,10 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { GSC_ERROR_CODES } from "@/lib/integrations/google-search-console/oauth-errors";

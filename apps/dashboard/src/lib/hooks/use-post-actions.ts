@@ -2,9 +2,9 @@
 
 import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "../orpc/query";
 

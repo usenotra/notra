@@ -1,7 +1,7 @@
 "use client";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { WEBHOOK_METRICS } from "@/constants/outbound-webhooks";

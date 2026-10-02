@@ -6,9 +6,9 @@ import {
 } from "@notra/schemas/dashboard/api-params";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { deleteAutumnCustomer } from "@/lib/billing/delete-autumn-customer";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   deleteOrganizationFromWorkOS,
   removeMembershipFromWorkOS,

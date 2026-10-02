@@ -9,8 +9,8 @@ import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
 import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
-import { after, type NextRequest } from "next/server";
 
+import { afterResponse as after } from "@/lib/framework/after-response";
 import { trackGeoIngestAnalytics } from "@/lib/geo-ingest/analytics";
 import { classifyVisitor } from "@/lib/geo-ingest/classify-visitor";
 import {
@@ -37,7 +37,7 @@ function emitIngestLog(fields: Omit<GeoLogEvent, "event">) {
 }
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
-  request: NextRequest
+  request: Request
 ) {
   const header = request.headers.get("authorization");
   const token = header?.startsWith(GEO_INGEST_BEARER_PREFIX)
@@ -71,7 +71,7 @@ const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
 });
 
 const readPayload = Effect.fn("geoIngest.readPayload")(function* (
-  request: NextRequest
+  request: Request
 ) {
   const body = yield* Effect.promise(() => request.json().catch(() => null));
   const parsed = geoRequestPayloadSchema.safeParse(body);
@@ -120,7 +120,7 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
 );
 
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
-  request: NextRequest
+  request: Request
 ) {
   const identity = yield* readBearerIdentity(request);
 

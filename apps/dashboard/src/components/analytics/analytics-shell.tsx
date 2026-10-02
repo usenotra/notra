@@ -1,8 +1,8 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { AnalyticsPageSkeleton } from "@/app/(dashboard)/[slug]/analytics/skeleton";
 import { AccountFilter } from "@/components/analytics/account-filter";

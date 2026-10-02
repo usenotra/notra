@@ -9,8 +9,8 @@ import {
 import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { formatDistanceToNowStrict } from "date-fns";
-import { useTranslations } from "next-intl";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";

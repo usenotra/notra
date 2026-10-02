@@ -3,10 +3,10 @@
 import { Robot01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
+import { usePathname } from "@/lib/navigation";
 import type { RightPanelId } from "@/types/components/right-panel";
 import { isContentDetailPathname } from "@/utils/dashboard-paths";
 

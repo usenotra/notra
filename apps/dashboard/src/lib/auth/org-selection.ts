@@ -1,5 +1,5 @@
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { AuthenticationResponse } from "@workos-inc/node";
+import { getWorkOS } from "@workos/authkit-session";
 import { Effect } from "effect";
 
 import { WorkOSAuthError } from "@/lib/auth/errors";

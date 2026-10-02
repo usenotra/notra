@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@notra/ui/components/ui/combobox";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { CompetitorBrandLogo } from "@/components/onboarding/competitor-brand-logo";

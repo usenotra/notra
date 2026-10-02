@@ -4,16 +4,15 @@ import {
   AUTUMN_READ_TIMEOUT_MS,
 } from "@notra/ai/billing/autumn";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
-import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
-import { getTranslations } from "next-intl/server";
 
 import {
   ENTITLEMENT_FEATURES,
   ENTITLEMENT_SURFACES,
 } from "@/constants/analytics-events";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
 
@@ -64,34 +63,6 @@ export async function hasAiCreditsGrant(
   );
 
   return data.balance != null;
-}
-
-/**
- * Non-throwing lookup of the zero data retention entitlement, granted by the
- * ZDR add-on on any plan. Development without billing counts as entitled; a
- * billing outage answers `unknown` so each gate can decide how to fail.
- */
-export async function resolveZdrEntitlement(
-  organizationId: string
-): Promise<GeoZdrEntitlement> {
-  if (allowUnmeteredAiInDevelopment) {
-    return "entitled";
-  }
-  if (!autumn) {
-    return process.env.NODE_ENV === "production" ? "not_entitled" : "entitled";
-  }
-  try {
-    const data = await autumn.check(
-      {
-        customerId: organizationId,
-        featureId: FEATURES.ZDR,
-      },
-      { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
-    );
-    return data.allowed === true ? "entitled" : "not_entitled";
-  } catch {
-    return "unknown";
-  }
 }
 
 export async function resolveAiProductAccess(organizationId: string) {

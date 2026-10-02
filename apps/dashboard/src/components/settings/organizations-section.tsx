@@ -12,10 +12,9 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -25,6 +24,7 @@ import {
 import { OrganizationMembershipActionDialog } from "@/components/settings/organization-membership-action-dialog";
 import { authClient } from "@/lib/auth/client";
 import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
+import { useRouter } from "@/lib/navigation";
 import { getOrganizationMembershipAction } from "@/lib/organizations/membership-action";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { errorMessageOr } from "@/lib/utils";

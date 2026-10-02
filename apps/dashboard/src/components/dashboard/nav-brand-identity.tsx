@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { BRAND_IDENTITY_TAB_LABEL_KEYS } from "@/constants/brand-identity";
 import { useNavBrandIdentity } from "@/lib/hooks/use-nav-brand-identity";

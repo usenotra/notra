@@ -3,8 +3,8 @@
 import { RainbowIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { trackEvent } from "@/lib/analytics/posthog-client";
 

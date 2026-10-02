@@ -6,12 +6,12 @@ import { GEO_WRITE_SITEMAP_SKELETON_KEYS } from "@notra/geo-core/constants/geo";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { useCreateSitemap } from "@/lib/hooks/use-brand-sitemaps";
 import {
   getRegistrableHost,

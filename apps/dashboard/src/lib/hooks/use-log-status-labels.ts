@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { WebhookLogStatus } from "@/types/webhooks/webhooks";
 

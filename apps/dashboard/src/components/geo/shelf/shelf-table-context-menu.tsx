@@ -21,7 +21,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@notra/ui/components/ui/context-menu";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
 import { ShelfTicketMark } from "@/components/geo/shelf/shelf-ticket-badge";

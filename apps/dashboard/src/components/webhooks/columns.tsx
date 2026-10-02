@@ -1,5 +1,5 @@
 "use client";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import type { TableColumn } from "@/components/motion/table";
 import { WebhookStatus } from "@/components/webhooks/status";

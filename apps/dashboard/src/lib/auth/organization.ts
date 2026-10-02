@@ -3,10 +3,9 @@ import { members } from "@notra/db/schema";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
-import { type NextRequest, NextResponse } from "next/server";
 
 import { retryTransientDbError } from "@/lib/db/retry";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import type {
   AuthenticatedUser,
@@ -161,7 +160,7 @@ export async function assertOrganizationAccess({
 }
 
 export async function withOrganizationAuth(
-  request: NextRequest,
+  request: Request,
   organizationId: string
 ): Promise<OrganizationAuth> {
   try {
@@ -178,7 +177,7 @@ export async function withOrganizationAuth(
     if (error instanceof ORPCError) {
       return {
         success: false,
-        response: NextResponse.json(
+        response: Response.json(
           {
             error: error.message,
             ...(error.data ? { details: error.data } : {}),

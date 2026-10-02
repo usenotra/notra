@@ -9,8 +9,8 @@ import {
 import type { GeoIngestPackageManager } from "@notra/geo-core/types/geo";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { CodeSnippet, useCopyCode } from "@/components/geo/code-snippet";

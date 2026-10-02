@@ -5,8 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourneyPageStats } from "@notra/geo-core/types/geo";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
-import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
 import { JourneyStatCard } from "@/components/geo/journey-stat-card";

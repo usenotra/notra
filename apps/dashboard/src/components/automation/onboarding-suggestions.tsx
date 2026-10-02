@@ -15,9 +15,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { SuggestionDetailsSheet } from "@/components/automation/suggestion-details-sheet";
 import { Button } from "@/components/button";

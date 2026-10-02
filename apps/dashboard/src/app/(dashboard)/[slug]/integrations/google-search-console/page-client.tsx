@@ -31,10 +31,8 @@ import {
 } from "@notra/ui/components/ui/table";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -42,6 +40,7 @@ import {
   EmptyStateCardsPreview,
   EmptyStateTablePreview,
 } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { SearchConsolePropertyPicker } from "@/components/geo/search-console-card";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
@@ -63,6 +62,7 @@ import {
   useGscSync,
 } from "@/lib/hooks/use-geo";
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
+import { usePathname } from "@/lib/navigation";
 import type {
   GoogleSearchConsoleAddedSuggestionsProps,
   GoogleSearchConsoleChangePropertyDialogProps,

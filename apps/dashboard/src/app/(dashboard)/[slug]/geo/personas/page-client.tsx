@@ -13,12 +13,12 @@ import {
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";

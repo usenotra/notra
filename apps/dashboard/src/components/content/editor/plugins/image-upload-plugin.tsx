@@ -16,7 +16,6 @@ import {
   type LexicalNode,
   PASTE_COMMAND,
 } from "lexical";
-import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -25,6 +24,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { CONTENT_IMAGE_MIME_EXTENSIONS } from "@/constants/content-image";
 import { CONTENT_MEDIA } from "@/constants/content-media";

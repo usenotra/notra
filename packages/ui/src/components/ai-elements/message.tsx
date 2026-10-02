@@ -52,7 +52,7 @@ import {
 import { TABLE_CHROME_CLASS } from "@notra/ui/constants/table";
 
 import type { FileUIPart, UIMessage } from "ai";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import {
   createContext,

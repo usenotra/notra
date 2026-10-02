@@ -62,13 +62,13 @@ import type {
   GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
 import type { GeoRequestPayload } from "@usenotra/geo";
-import type { useTranslations } from "next-intl";
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
   PointerEventHandler,
   ReactNode,
 } from "react";
+import type { useTranslations } from "use-intl";
 
 import type { Button } from "@/components/button";
 import type { TableColumn } from "@/components/motion/table";

@@ -5,7 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { ShelfTicketBadge } from "@/components/geo/shelf/shelf-ticket-badge";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";

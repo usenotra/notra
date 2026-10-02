@@ -5,7 +5,7 @@ import type {
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 

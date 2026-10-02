@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
 import { startGitHubInstall } from "@/lib/integrations/github/install";

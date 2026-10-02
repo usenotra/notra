@@ -13,11 +13,11 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Composer } from "@/components/composer/composer-shell";
+import Image from "@/components/framework/image";
 import { isImageMimeType } from "@/lib/upload/mime";
 import type {
   ChatComposerAttachButtonProps,

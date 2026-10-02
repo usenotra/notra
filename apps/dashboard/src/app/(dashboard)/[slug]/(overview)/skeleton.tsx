@@ -1,8 +1,8 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { CreateContentButton } from "@/components/content/create-content-button";
 import { PageContainer } from "@/components/layout/container";

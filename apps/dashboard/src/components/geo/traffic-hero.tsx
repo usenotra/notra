@@ -11,11 +11,11 @@ import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { Button } from "@notra/ui/components/ui/button";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
+import Link from "@/components/framework/link";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
 import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "@/constants/charts";

@@ -1,4 +1,4 @@
-import type { useTranslations } from "next-intl";
+import type { useTranslations } from "use-intl";
 
 export type SidebarUpgradeTranslator = ReturnType<
   typeof useTranslations<"nav.upgrade">

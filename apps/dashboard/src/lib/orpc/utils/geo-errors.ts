@@ -1,6 +1,6 @@
 import type { GeoRouterError } from "@notra/geo-core/geo/errors";
-import { getTranslations } from "next-intl/server";
 
+import { getTranslations } from "@/lib/i18n/server";
 import { toUnexpectedError } from "@/lib/orpc/effect";
 import {
   badRequest,

@@ -6,8 +6,8 @@ import type {
   ChartArtifact,
   PieChartArtifact,
 } from "@notra/ai/types/chart-artifact";
-import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";

@@ -10,9 +10,8 @@ import {
 } from "@notra/ui/components/ui/dialog";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { type ComponentType, useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   SettingsHeaderProvider,
@@ -36,6 +35,7 @@ import type {
   SettingsSectionId,
   StandardSettingsSectionId,
 } from "@/types/settings/modal";
+import dynamic from "@/utils/lazy-component";
 import { resolveSettingsSection } from "@/utils/settings-path";
 import {
   filterSettingsNavGroups,

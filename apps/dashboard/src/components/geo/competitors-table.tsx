@@ -4,9 +4,9 @@ import { Delete02Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COMPETITORS_TABLE_ROW_HEIGHT } from "@notra/geo-core/constants/geo";
 import { Input } from "@notra/ui/components/ui/input";
-import { useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";

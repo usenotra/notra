@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import type { getServerSession } from "@/lib/auth/session";
 
 export type AuthSession = Awaited<ReturnType<typeof getServerSession>>;
@@ -40,7 +38,7 @@ export interface OrganizationAuthResult {
 
 export interface OrganizationAuthError {
   success: false;
-  response: NextResponse;
+  response: Response;
 }
 
 export type OrganizationAuth = OrganizationAuthResult | OrganizationAuthError;

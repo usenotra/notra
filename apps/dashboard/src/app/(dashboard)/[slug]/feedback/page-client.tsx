@@ -27,8 +27,8 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackDetailDialog } from "@/components/agent-feedback/feedback-detail-dialog";
 import { AgentFeedbackEmpty } from "@/components/agent-feedback/feedback-empty";

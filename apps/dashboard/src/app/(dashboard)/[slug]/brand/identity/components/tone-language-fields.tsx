@@ -26,7 +26,7 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { LANGUAGE_OPTIONS, TONE_OPTIONS } from "@/constants/brand-identity";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";

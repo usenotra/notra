@@ -1,6 +1,4 @@
-import type { NextRequest } from "next/server";
-
-export async function readJsonRequest(request: NextRequest) {
+export async function readJsonRequest(request: Request) {
   try {
     return { ok: true as const, body: await request.json() };
   } catch {

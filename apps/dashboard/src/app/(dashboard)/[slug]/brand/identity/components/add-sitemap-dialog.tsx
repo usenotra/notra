@@ -13,9 +13,9 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useCreateSitemap } from "@/lib/hooks/use-brand-sitemaps";

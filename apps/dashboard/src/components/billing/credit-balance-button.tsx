@@ -4,7 +4,7 @@ import { Wallet01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DropdownMenuItem } from "@notra/ui/components/ui/dropdown-menu";
 import { cn } from "@notra/ui/lib/utils";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { useCreditBalance } from "@/lib/hooks/use-credit-balance";
 import type { CreditBalanceMenuItemProps } from "@/types/billing/credits";

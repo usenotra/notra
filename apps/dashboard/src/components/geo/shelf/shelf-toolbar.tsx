@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { useGeoShelfTicketFilterLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import type {

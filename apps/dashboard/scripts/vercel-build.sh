@@ -2,6 +2,7 @@
 set -euo pipefail
 cd ../..
 bun run db:check
+export NITRO_PRESET=vercel
 turbo run build --filter=dashboard
 bun apps/dashboard/scripts/prune-build-cache.ts
 if [ "${VERCEL_ENV:-}" = "production" ]; then

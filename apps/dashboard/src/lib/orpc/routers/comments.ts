@@ -8,9 +8,9 @@ import {
   users,
 } from "@notra/db/schema";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { badRequest, notFound } from "@/lib/orpc/utils/errors";
 import { publishCommentChange } from "@/lib/realtime/comments";

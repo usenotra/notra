@@ -1,8 +1,8 @@
 "use client";
 
 import { formatDayLabel, todayIsoDate } from "@notra/geo-core/utils/day-label";
-import { useLocale } from "next-intl";
 import { useMemo } from "react";
+import { useLocale } from "use-intl";
 
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";

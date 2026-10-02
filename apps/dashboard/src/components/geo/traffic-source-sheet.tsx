@@ -21,8 +21,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";

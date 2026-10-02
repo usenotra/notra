@@ -1,17 +1,16 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { withAuth } from "@workos-inc/authkit-nextjs";
+import { isNotFound, isRedirect } from "@tanstack/react-router";
+import { getCookie, getRequestHeaders } from "@tanstack/react-start/server";
+import { getAuthKitContext } from "@workos/authkit-tanstack-react-start";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { cookies, headers } from "next/headers";
-import { unstable_rethrow } from "next/navigation";
-import { connection } from "next/server";
-import { cache } from "react";
 
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
 import { isUserBanned } from "@/lib/auth/banned";
 import { AuthSessionError } from "@/lib/auth/errors";
+import { cacheAuthRequest } from "@/lib/auth/request-cache";
 import { ensureLocalUser } from "@/lib/auth/sync";
 import { loadDemoIdentity } from "@/lib/demo/session";
 import type { AuthIdentityData, AuthSessionData } from "@/types/auth/session";
@@ -23,13 +22,12 @@ import {
 const readLastVisitedOrganizationSlug = Effect.fn(
   "auth.session.readLastVisitedSlug"
 )(function* () {
-  const cookieStore = yield* Effect.tryPromise({
-    try: () => cookies(),
+  const slug = yield* Effect.try({
+    try: () => getCookie(LAST_VISITED_ORGANIZATION_COOKIE),
     catch: (cause) =>
       new AuthSessionError({ message: "Failed to read cookies", cause }),
   });
 
-  const slug = cookieStore.get(LAST_VISITED_ORGANIZATION_COOKIE)?.value;
   return slug?.trim() || null;
 });
 
@@ -143,17 +141,17 @@ const loadLocalDevIdentity = Effect.fn("auth.identity.localDev")(function* () {
   return identity;
 });
 
-export const getAuthIdentity = cache(
+export const getAuthIdentity = cacheAuthRequest(
   async (): Promise<AuthIdentityData | null> => {
-    await connection();
-
     // The public demo has no WorkOS: a signed cookie maps the anonymous
     // visitor to their sandbox user.
     if (isDemoMode()) {
       try {
         return await loadDemoIdentity();
       } catch (error) {
-        unstable_rethrow(error);
+        if (isRedirect(error) || isNotFound(error)) {
+          throw error;
+        }
         console.error("Error reading demo session", error);
         return null;
       }
@@ -162,7 +160,7 @@ export const getAuthIdentity = cache(
     if (isLocalDevAuthEnabled()) {
       let headerList: Headers | null = null;
       try {
-        headerList = await headers();
+        headerList = getRequestHeaders();
       } catch {
         headerList = null;
       }
@@ -182,12 +180,14 @@ export const getAuthIdentity = cache(
       return null;
     }
 
-    let authResult: Awaited<ReturnType<typeof withAuth>>;
+    let authResult: ReturnType<ReturnType<typeof getAuthKitContext>["auth"]>;
 
     try {
-      authResult = await withAuth();
+      authResult = getAuthKitContext().auth();
     } catch (error) {
-      unstable_rethrow(error);
+      if (isRedirect(error) || isNotFound(error)) {
+        throw error;
+      }
       console.error("Error reading AuthKit session", error);
       return null;
     }
@@ -215,7 +215,7 @@ export const getAuthIdentity = cache(
   }
 );
 
-export const getAuthSession = cache(
+export const getAuthSession = cacheAuthRequest(
   async (): Promise<AuthSessionData | null> => {
     const identity = await getAuthIdentity();
     if (!identity) {

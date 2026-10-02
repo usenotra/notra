@@ -2,9 +2,9 @@
 
 import { cn } from "@notra/ui/lib/utils";
 import { MultiFileDiff } from "@pierre/diffs/react";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   CHAT_DOCUMENT_DIFF_OPTIONS,

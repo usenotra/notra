@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyEmpty } from "@/components/geo/journey-empty";

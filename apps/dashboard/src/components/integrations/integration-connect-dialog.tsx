@@ -1,14 +1,14 @@
 "use client";
 
 import { GSC_OAUTH_AUTHORIZE_PATH } from "@notra/geo-core/constants/google-search-console";
-import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { AddGranolaIntegrationDialog } from "@/components/integrations/add-granola-integration-dialog";
 import { AddLinearIntegrationDialog } from "@/components/integrations/add-linear-integration-dialog";
 import { AddSlackIntegrationDialog } from "@/components/integrations/add-slack-integration-dialog";
+import { usePathname } from "@/lib/navigation";
 import type { IntegrationConnectDialogProps } from "@/types/integrations/catalog";
+import dynamic from "@/utils/lazy-component";
 
 const GitHubIntegrationDialog = dynamic(
   () =>

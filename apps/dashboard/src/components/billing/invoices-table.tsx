@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";

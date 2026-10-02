@@ -9,7 +9,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { DiscussionComposer } from "@/components/comments/discussion-composer";
 import { DiscussionList } from "@/components/comments/discussion-list";

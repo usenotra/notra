@@ -69,8 +69,8 @@ mock.module("@/lib/geo-ingest/journey", () => ({
 mock.module("@/utils/ratelimit", () => ({
   ratelimit: { geoIngest: { limit: ratelimitLimit } },
 }));
-mock.module("next/server", () => ({
-  after: () => {},
+mock.module("@/lib/framework/after-response", () => ({
+  afterResponse: () => {},
 }));
 
 const { Effect } = await import("effect");

@@ -27,10 +27,9 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useId, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
@@ -40,6 +39,7 @@ import {
 } from "@/constants/content-formats";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useCreatePost } from "@/lib/hooks/use-create-post";
+import { useRouter } from "@/lib/navigation";
 import type {
   CreatePostDialogProps,
   CreatePostFormValues,

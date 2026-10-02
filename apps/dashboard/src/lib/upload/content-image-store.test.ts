@@ -2,8 +2,6 @@ import { beforeAll, expect, mock, test } from "bun:test";
 
 import sharp from "sharp";
 
-mock.module("server-only", () => ({}));
-
 let saveContentImage: typeof import("./content-image-store").saveContentImage;
 let readContentImage: typeof import("./content-image-store").readContentImage;
 

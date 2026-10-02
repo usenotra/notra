@@ -31,9 +31,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
@@ -54,6 +53,7 @@ import {
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoChanges } from "@/lib/hooks/use-geo";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type {
   GeoChangeCellProps,

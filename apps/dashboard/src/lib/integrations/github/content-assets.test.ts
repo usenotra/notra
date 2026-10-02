@@ -1,7 +1,5 @@
 import { beforeAll, expect, mock, test } from "bun:test";
 
-mock.module("server-only", () => ({}));
-
 let prepareGitHubContentAssets: typeof import("./content-assets").prepareGitHubContentAssets;
 let resolveGitHubImagePathTemplate: typeof import("./content-assets").resolveGitHubImagePathTemplate;
 

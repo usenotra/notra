@@ -1,7 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
@@ -15,6 +14,7 @@ import type {
   GeoGapsLoadedProps,
 } from "@/types/components/geo-gaps";
 import type { GeoPageClientProps } from "@/types/geo";
+import dynamic from "@/utils/lazy-component";
 
 import { GeoGapsSkeleton } from "./skeleton";
 

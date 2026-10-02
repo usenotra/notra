@@ -1,8 +1,6 @@
-import { beforeAll, expect, mock, test } from "bun:test";
+import { beforeAll, expect, test } from "bun:test";
 
 import sharp from "sharp";
-
-mock.module("server-only", () => ({}));
 
 let compressContentImage: typeof import("./compress-content-image").compressContentImage;
 

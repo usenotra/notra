@@ -10,8 +10,8 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import { NextIntlClientProvider } from "next-intl";
 import { renderToStaticMarkup } from "react-dom/server";
+import { IntlProvider } from "use-intl";
 
 import messages from "../messages/en.json";
 
@@ -12,7 +12,7 @@ let configured = true;
 const retrySettings = mock(async () => undefined);
 const retryGaps = mock(async () => undefined);
 
-mock.module("next/navigation", () => ({
+mock.module("@/lib/navigation", () => ({
   useRouter: () => ({ push: mock() }),
   usePathname: () => "/fixture/geo/gaps",
 }));
@@ -72,9 +72,9 @@ const { default: GeoGapsPage } =
 
 function renderPage() {
   return renderToStaticMarkup(
-    <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
+    <IntlProvider locale="en" messages={messages} timeZone="UTC">
       <GeoGapsPage organizationSlug="fixture" />
-    </NextIntlClientProvider>
+    </IntlProvider>
   );
 }
 

@@ -17,14 +17,14 @@ import {
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
 export function OnboardingAccountMenu() {

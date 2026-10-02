@@ -8,7 +8,7 @@ import type {
   VerifyMfaCodeInput,
 } from "@notra/schemas/types/dashboard/auth";
 import { LoginForm as SharedLoginForm } from "@notra/ui/components/shared/auth/login-form";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
 import { LOGIN_ERROR_CODES } from "@/constants/analytics-events";

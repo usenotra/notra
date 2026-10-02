@@ -2,7 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useCollapsibleColumns } from "@/components/motion/table/use-collapsible-columns";

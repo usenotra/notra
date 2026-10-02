@@ -1,4 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import {
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@tanstack/react-start/server";
 
 import { NON_DASHBOARD_PATH } from "@/constants/auth-routes";
 import {
@@ -19,92 +23,63 @@ import {
 } from "@/constants/demo";
 import { cookieAttributes } from "@/utils/cookie-attributes";
 
-function withNoIndex(response: NextResponse): NextResponse {
-  response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  return response;
+function withNoIndex(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(response.body, { status: response.status, headers });
 }
 
-// Straight into a ready sandbox; the entry route falls back to the start
-// page only when none is waiting.
-function redirectToStart(request: NextRequest, returnTo: string | null) {
+function redirectToStart(request: Request, returnTo: string | null) {
   const url = new URL(DEMO_ENTER_PATH, request.url);
   if (returnTo && returnTo !== "/") {
     url.searchParams.set("returnTo", returnTo);
   }
-  return withNoIndex(NextResponse.redirect(url));
+  return withNoIndex(Response.redirect(url, 307));
 }
 
-/** Remembers `?banner=off|on` so the choice survives navigation. */
-function withBannerPreference(
-  request: NextRequest,
-  response: NextResponse
-): NextResponse {
-  const banner = request.nextUrl.searchParams.get(DEMO_BANNER_PARAM);
+export function demoProxy(request: Request): Response | null {
+  const url = new URL(request.url);
+  const banner = url.searchParams.get(DEMO_BANNER_PARAM);
   if (banner === DEMO_BANNER_OFF) {
-    response.cookies.set(DEMO_BANNER_COOKIE, DEMO_BANNER_OFF, {
+    setCookie(DEMO_BANNER_COOKIE, DEMO_BANNER_OFF, {
       httpOnly: true,
       ...cookieAttributes(),
       path: "/",
       maxAge: DEMO_SESSION_COOKIE_MAX_AGE_SECONDS,
     });
   } else if (banner !== null) {
-    response.cookies.delete({
-      name: DEMO_BANNER_COOKIE,
-      path: "/",
-      ...cookieAttributes(),
-    });
+    deleteCookie(DEMO_BANNER_COOKIE, { path: "/", ...cookieAttributes() });
   }
-  return response;
-}
-
-/**
- * Routing for the public demo. There is no login: sign-up links go to the
- * real app, every auth screen leads into a sandbox, and a dashboard request
- * without a sandbox cookie creates one first.
- */
-export function demoProxy(request: NextRequest): NextResponse {
-  return withBannerPreference(request, routeDemoRequest(request));
-}
-
-function routeDemoRequest(request: NextRequest): NextResponse {
-  const { pathname, search } = request.nextUrl;
-
+  const { pathname, search } = url;
   if (pathname === DEMO_START_PATH) {
-    return withNoIndex(NextResponse.next());
+    return null;
   }
   if (DEMO_BLOCKED_PATH.test(pathname)) {
     return withNoIndex(
-      new NextResponse(DEMO_BLOCKED_HTML, {
+      new Response(DEMO_BLOCKED_HTML, {
         status: 403,
         headers: { "Content-Type": "text/html; charset=utf-8" },
       })
     );
   }
   if (DEMO_SIGNUP_PATH.test(pathname)) {
-    return NextResponse.redirect(DEMO_SIGNUP_URL);
+    return Response.redirect(DEMO_SIGNUP_URL, 307);
   }
   if (DEMO_AUTH_PATH.test(pathname)) {
-    return redirectToStart(
-      request,
-      request.nextUrl.searchParams.get("returnTo")
-    );
+    return redirectToStart(request, url.searchParams.get("returnTo"));
   }
   const hiddenPage = DEMO_HIDDEN_PAGE_PATH.exec(pathname);
   if (hiddenPage) {
     return withNoIndex(
-      NextResponse.redirect(new URL(`/${hiddenPage[1]}/geo`, request.url))
+      Response.redirect(new URL(`/${hiddenPage[1]}/geo`, request.url), 307)
     );
   }
   if (DEMO_ONBOARDING_PATH.test(pathname)) {
-    return withNoIndex(NextResponse.redirect(new URL("/", request.url)));
+    return withNoIndex(Response.redirect(new URL("/", request.url), 307));
   }
-
-  const hasSession = Boolean(request.cookies.get(DEMO_SESSION_COOKIE)?.value);
-  const isDashboardPage =
-    pathname === "/" || !NON_DASHBOARD_PATH.test(pathname);
-  if (!hasSession && isDashboardPage) {
+  const hasSession = Boolean(getCookie(DEMO_SESSION_COOKIE));
+  if (!hasSession && (pathname === "/" || !NON_DASHBOARD_PATH.test(pathname))) {
     return redirectToStart(request, `${pathname}${search}`);
   }
-
-  return withNoIndex(NextResponse.next());
+  return null;
 }

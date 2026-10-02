@@ -30,10 +30,9 @@ import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { CreateContentButton } from "@/components/content/create-content-button";
 import { StepActivity } from "@/components/content/create/step-activity";
@@ -45,6 +44,7 @@ import { DEFAULT_DATA_POINTS } from "@/constants/content-preview";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useWizardStepLabels } from "@/lib/hooks/use-wizard-step-labels";
+import { useParams, useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ContentCreateEntry } from "@/types/analytics/studio-events";
 import type {

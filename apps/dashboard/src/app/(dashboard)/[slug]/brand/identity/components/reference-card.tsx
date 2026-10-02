@@ -40,8 +40,8 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Label } from "@notra/ui/components/ui/label";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type {

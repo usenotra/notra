@@ -44,9 +44,6 @@ import {
 } from "ai";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
-import { useLocale, useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import {
   Children,
@@ -61,6 +58,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
@@ -121,6 +119,7 @@ import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
+import { usePathname, useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { isImageMimeType } from "@/lib/upload/mime";
 import { cn } from "@/lib/utils";
@@ -174,6 +173,7 @@ import {
   getReferenceDisplay,
   parseReferenceValue,
 } from "@/utils/integration-reference";
+import dynamic from "@/utils/lazy-component";
 import { getOutputTypePromptLabel } from "@/utils/output-types";
 import { buildPublishedChatMessage } from "@/utils/social-publish";
 
@@ -522,7 +522,7 @@ function StandaloneChatPageClient({
     () => false
   );
 
-  const [generatedChatId, setGeneratedChatId] = useState(() =>
+  const [generatedChatId, setGeneratedChatId] = useState<string>(() =>
     crypto.randomUUID()
   );
   const stableChatId = initialChatId ?? generatedChatId;

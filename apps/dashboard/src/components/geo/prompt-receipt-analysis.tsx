@@ -5,8 +5,8 @@ import type {
   GeoCompetitor,
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
-import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";

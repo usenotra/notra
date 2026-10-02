@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { JourneyPathPill } from "@/components/geo/journey-path-pill";
 import { cn } from "@/lib/utils";

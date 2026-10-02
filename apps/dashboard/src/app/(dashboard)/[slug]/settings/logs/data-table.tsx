@@ -3,7 +3,7 @@
 import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { Table } from "@/components/motion/table";

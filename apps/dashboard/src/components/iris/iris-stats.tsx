@@ -5,7 +5,7 @@ import {
   Satellite02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { CommonTranslator } from "@/types/i18n";
 import type {

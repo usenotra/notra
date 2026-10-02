@@ -5,13 +5,13 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { BatchHandlerPlugin } from "@orpc/server/plugins";
-import { after } from "next/server";
 
 import { DASHBOARD_RPC_SLOW_REQUEST_MS } from "@/constants/request-telemetry";
 import {
   trackServerEvent,
   trackServerException,
 } from "@/lib/analytics/posthog-server";
+import { afterResponse as after } from "@/lib/framework/after-response";
 import { createORPCContext, type ORPCRequestMemo } from "@/lib/orpc/context";
 import { dashboardRouter } from "@/lib/orpc/router";
 import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
@@ -108,7 +108,6 @@ const handle = withEvlog(async (request: Request) => {
 });
 
 export const HEAD = handle;
-// react-doctor-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler -- log.set only enriches request telemetry; it does not mutate application data.
 export const GET = handle;
 export const POST = handle;
 export const PUT = handle;

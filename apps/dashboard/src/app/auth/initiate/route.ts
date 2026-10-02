@@ -1,8 +1,9 @@
-import { getSignInUrl } from "@workos-inc/authkit-nextjs";
-import { redirect } from "next/navigation";
+import { redirect } from "@tanstack/react-router";
+
+import { createAuthSignInUrl } from "@/lib/auth/workos";
 
 export async function GET() {
-  const signInUrl = await getSignInUrl();
+  const signInUrl = await createAuthSignInUrl();
 
-  redirect(signInUrl);
+  throw redirect({ href: signInUrl });
 }

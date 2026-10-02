@@ -6,8 +6,8 @@ import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
-import { useLocale, useTranslations } from "next-intl";
 import { Activity, type ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";

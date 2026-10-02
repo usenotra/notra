@@ -11,10 +11,10 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useQuery } from "@tanstack/react-query";
-import { useFormatter, useTranslations } from "next-intl";
-import Link from "next/link";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { LogEventSummary } from "@/components/logs/log-event-summary";
 import { LogTechnicalDetails } from "@/components/logs/log-technical-details";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";

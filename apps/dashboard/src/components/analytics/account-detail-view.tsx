@@ -13,8 +13,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";

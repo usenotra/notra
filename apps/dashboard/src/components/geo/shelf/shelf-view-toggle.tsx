@@ -10,8 +10,8 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useTranslations } from "next-intl";
 import { startTransition, useId, useOptimistic } from "react";
+import { useTranslations } from "use-intl";
 
 import { GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";

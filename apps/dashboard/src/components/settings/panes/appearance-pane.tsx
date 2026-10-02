@@ -2,8 +2,8 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useTranslations } from "use-intl";
 
 import { ChatSection } from "@/components/settings/chat-section";
 import { LanguageSection } from "@/components/settings/language-section";

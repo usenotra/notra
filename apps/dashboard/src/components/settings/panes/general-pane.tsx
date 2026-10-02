@@ -23,10 +23,9 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
@@ -43,6 +42,7 @@ import {
   useRefreshConnectedAccount,
 } from "@/lib/hooks/use-connected-accounts";
 import { useSocialConnectCallbackToasts } from "@/lib/hooks/use-social-connect-callback-toasts";
+import { useRouter } from "@/lib/navigation";
 import type { OrganizationMembershipAction } from "@/lib/organizations/membership-action";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ConnectedAccountsGroupProps } from "@/types/settings/general";

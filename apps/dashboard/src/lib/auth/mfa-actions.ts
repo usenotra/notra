@@ -1,4 +1,27 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const verifyMfaCodeServerFn = createServerFn({ method: "POST" })
+  .inputValidator((data: Parameters<typeof verifyMfaCodeActionImpl>) => data)
+  .handler(({ data }) => verifyMfaCodeActionImpl(...data));
+export const verifyMfaCodeAction = (
+  ...data: Parameters<typeof verifyMfaCodeActionImpl>
+) => verifyMfaCodeServerFn({ data });
+
+const redeemBackupCodeServerFn = createServerFn({ method: "POST" })
+  .inputValidator((data: Parameters<typeof redeemBackupCodeActionImpl>) => data)
+  .handler(({ data }) => redeemBackupCodeActionImpl(...data));
+export const redeemBackupCodeAction = (
+  ...data: Parameters<typeof redeemBackupCodeActionImpl>
+) => redeemBackupCodeServerFn({ data });
+
+const resumeSocialEnrollmentServerFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: Parameters<typeof resumeSocialEnrollmentActionImpl>) => data
+  )
+  .handler(({ data }) => resumeSocialEnrollmentActionImpl(...data));
+export const resumeSocialEnrollmentAction = (
+  ...data: Parameters<typeof resumeSocialEnrollmentActionImpl>
+) => resumeSocialEnrollmentServerFn({ data });
 
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
@@ -15,7 +38,7 @@ import type {
   ResumeSocialEnrollmentInput,
   VerifyMfaCodeInput,
 } from "@notra/schemas/types/dashboard/auth";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -85,7 +108,7 @@ const attemptAfterSignIn = <T>(run: () => Promise<T>, what: string) =>
     )
   );
 
-export async function verifyMfaCodeAction(
+async function verifyMfaCodeActionImpl(
   rawInput: VerifyMfaCodeInput
 ): Promise<AuthFlowResult> {
   const parsed = verifyMfaCodeInputSchema.safeParse(rawInput);
@@ -154,7 +177,7 @@ export async function verifyMfaCodeAction(
   );
 }
 
-export async function redeemBackupCodeAction(
+async function redeemBackupCodeActionImpl(
   rawInput: RedeemBackupCodeInput
 ): Promise<RedeemBackupCodeResult> {
   const parsed = redeemBackupCodeInputSchema.safeParse(rawInput);
@@ -261,7 +284,7 @@ export async function redeemBackupCodeAction(
   );
 }
 
-export async function resumeSocialEnrollmentAction(
+async function resumeSocialEnrollmentActionImpl(
   rawInput: ResumeSocialEnrollmentInput
 ): Promise<AuthFlowResult> {
   const parsed = resumeSocialEnrollmentInputSchema.safeParse(rawInput);

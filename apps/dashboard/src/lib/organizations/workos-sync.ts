@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
