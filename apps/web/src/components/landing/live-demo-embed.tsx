@@ -130,7 +130,7 @@ export function LiveDemoEmbed() {
           <>
             <img
               decoding="async"
-              loading="lazy"
+              loading="eager"
               alt={LIVE_DEMO_PREVIEW_ALT}
               className="pointer-events-none absolute inset-0 size-full object-cover object-top-left dark:hidden"
               fetchPriority="high"
@@ -138,7 +138,7 @@ export function LiveDemoEmbed() {
             />
             <img
               decoding="async"
-              loading="lazy"
+              loading="eager"
               alt={LIVE_DEMO_PREVIEW_ALT}
               className="pointer-events-none absolute inset-0 hidden size-full object-cover object-top-left dark:block"
               fetchPriority="high"

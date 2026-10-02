@@ -8,7 +8,6 @@ import { LandingPricingSection } from "@/components/landing/pricing-section";
 import { TestimonialsGate } from "@/components/landing/testimonials-gate";
 import { TestimonialsSection } from "@/components/landing/testimonials-section";
 import { FAQ_CONTENT } from "@/constants/landing/faq";
-import type { Metadata } from "@/types/metadata";
 import {
   NOTRA_CONTACT_EMAIL,
   NOTRA_SAME_AS,
@@ -16,14 +15,8 @@ import {
   siteUrl,
 } from "@/utils/agent-metadata";
 import { serializeJsonLd } from "@/utils/jsonld";
-import { SITE_DESCRIPTION, SITE_TITLE, pageAlternates } from "@/utils/metadata";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
-
-export const LANDING_PAGE_METADATA: Metadata = {
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
-  alternates: pageAlternates(SITE_URL),
-};
 
 const softwareJsonLd = {
   "@context": "https://schema.org",

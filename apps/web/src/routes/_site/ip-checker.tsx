@@ -10,6 +10,7 @@ import {
   IP_CHECKER_TITLE,
   IP_CHECKER_URL,
 } from "@/constants/ip-checker";
+import { DYNAMIC_PAGE_CACHE_CONTROL } from "@/constants/proxy";
 import { getIpCheckerData } from "@/lib/ip-checker/functions";
 import { ipCheckerSearchSchema } from "@/schemas/ip-checker";
 import type { Metadata } from "@/types/metadata";
@@ -82,6 +83,9 @@ export const Route = createFileRoute("/_site/ip-checker")({
     return { ...data, initialIp: ip };
   },
   head: () => buildHead(metadata),
+  headers: () => ({
+    "Cache-Control": DYNAMIC_PAGE_CACHE_CONTROL,
+  }),
   component: IpCheckerPage,
 });
 

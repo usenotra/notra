@@ -45,11 +45,9 @@ export function SlackHero() {
             <CtaButton
               className={`${HERO_BUTTON_CLASSNAME} font-semibold [box-shadow:#8B5CF640_0_0_0_0.5rem]`}
               nativeButton={false}
-              render={<a href={SLACK_CONNECT_HREF} />}
+              render={<a href={SLACK_CONNECT_HREF}>{SLACK_CONNECT_LABEL}</a>}
               variant="primary"
-            >
-              {SLACK_CONNECT_LABEL}
-            </CtaButton>
+            />
             <CtaButton
               className={HERO_BUTTON_CLASSNAME}
               nativeButton={false}

@@ -123,12 +123,10 @@ function MarketingAssetsPage() {
         </CtaButton>
         <CtaButton
           nativeButton={false}
-          render={<a href="#generate" />}
+          render={<a href="#generate">{ASSET_HERO.secondaryCta}</a>}
           size="lg"
           variant="light"
-        >
-          {ASSET_HERO.secondaryCta}
-        </CtaButton>
+        />
       </MarketingHeroWash>
 
       <div className="flex w-full flex-col items-center overflow-hidden">

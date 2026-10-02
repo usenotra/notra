@@ -41,3 +41,6 @@ export const PROXY_EXCLUDED_PATH_PREFIXES = [
 
 export const STATIC_PAGE_CACHE_CONTROL =
   "public, max-age=0, s-maxage=31536000, stale-while-revalidate=86400";
+
+export const DYNAMIC_PAGE_CACHE_CONTROL =
+  "private, no-cache, no-store, max-age=0, must-revalidate";

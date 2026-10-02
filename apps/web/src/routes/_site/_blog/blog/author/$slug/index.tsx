@@ -18,10 +18,6 @@ import { SITE_URL } from "@/utils/urls";
 
 export const Route = createFileRoute("/_site/_blog/blog/author/$slug/")({
   loader: ({ params }) => getBlogAuthorPage({ data: { slug: params.slug } }),
-  headers: () => ({
-    "Cache-Control":
-      "public, max-age=0, s-maxage=3000, stale-while-revalidate=86400",
-  }),
   head: ({ loaderData, params }) => {
     const author = loaderData?.author;
     if (!author) {
@@ -63,6 +59,10 @@ export const Route = createFileRoute("/_site/_blog/blog/author/$slug/")({
       },
     });
   },
+  headers: () => ({
+    "Cache-Control":
+      "public, max-age=0, s-maxage=3000, stale-while-revalidate=86400",
+  }),
   component: BlogAuthorPage,
 });
 

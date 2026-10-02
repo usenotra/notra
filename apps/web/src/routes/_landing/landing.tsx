@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  LANDING_PAGE_METADATA,
-  LandingPage,
-} from "@/components/landing/landing-page";
+import { LandingPage } from "@/components/landing/landing-page";
+import { LANDING_PAGE_METADATA } from "@/constants/landing/metadata";
 import { buildHead } from "@/utils/head";
 
 export const Route = createFileRoute("/_landing/landing")({

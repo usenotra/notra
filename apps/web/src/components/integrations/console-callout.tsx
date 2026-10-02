@@ -31,19 +31,15 @@ export function ConsoleCallout() {
             <CtaButton
               className={CTA_BUTTON_CLASSNAME}
               nativeButton={false}
-              render={<a href={INTEGRATIONS_CONSOLE_URL} />}
+              render={<a href={INTEGRATIONS_CONSOLE_URL}>Open the Console</a>}
               variant="primary"
-            >
-              Open the Console
-            </CtaButton>
+            />
             <CtaButton
               className={CTA_BUTTON_CLASSNAME}
               nativeButton={false}
-              render={<a href={INTEGRATIONS_DOCS_URL} />}
+              render={<a href={INTEGRATIONS_DOCS_URL}>Read the docs</a>}
               variant="light"
-            >
-              Read the docs
-            </CtaButton>
+            />
           </div>
         </div>
         <ConsoleFormMock />

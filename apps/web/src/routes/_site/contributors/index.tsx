@@ -54,11 +54,11 @@ const metadata: Metadata = {
 
 export const Route = createFileRoute("/_site/contributors/")({
   loader: () => ({ data: getContributorsData() }),
+  head: () => buildHead(metadata),
   headers: () => ({
     "Cache-Control":
       "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
   }),
-  head: () => buildHead(metadata),
   pendingComponent: ContributorsLoading,
   component: ContributorsPage,
 });
@@ -94,17 +94,13 @@ function ContributorsPage() {
         <CtaButton
           nativeButton={false}
           render={
-            <a
-              href={GITHUB_REPO_URL}
-              rel="noopener noreferrer"
-              target="_blank"
-            />
+            <a href={GITHUB_REPO_URL} rel="noopener noreferrer" target="_blank">
+              <Github className="size-4" />
+              View on GitHub
+            </a>
           }
           variant="light"
-        >
-          <Github className="size-4" />
-          View on GitHub
-        </CtaButton>
+        />
       </MarketingHeroWash>
 
       <Suspense fallback={<ContributorsPageSkeleton />}>

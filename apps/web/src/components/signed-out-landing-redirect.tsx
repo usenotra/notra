@@ -1,24 +1,22 @@
 import { Navigate, useLocation } from "@tanstack/react-router";
 
 import type { DashboardSessionState } from "@/lib/auth/use-dashboard-session";
+import { buildSignedOutLandingHref } from "@/utils/signed-out-landing";
 
 export function SignedOutLandingRedirect({
   isAuthenticated,
   isResolved,
 }: DashboardSessionState) {
-  const pathname = useLocation({ select: (location) => location.pathname });
+  const location = useLocation();
 
   if (
-    typeof window !== "undefined" &&
     isResolved &&
     !isAuthenticated &&
-    (pathname === "/home" || pathname === "/landing")
+    (location.pathname === "/home" || location.pathname === "/landing")
   ) {
-    const destination = new URL(window.location.href);
-    destination.searchParams.delete("mode");
     return (
       <Navigate
-        href={`/${destination.search}${destination.hash}`}
+        href={buildSignedOutLandingHref(location.searchStr, location.hash)}
         replace
         to="/"
       />

@@ -78,11 +78,13 @@ function BrandPage() {
       >
         <CtaButton
           nativeButton={false}
-          render={<a download href={BRAND_ASSETS.zip} />}
+          render={
+            <a download href={BRAND_ASSETS.zip}>
+              Download brand assets
+            </a>
+          }
           variant="primary"
-        >
-          Download brand assets
-        </CtaButton>
+        />
       </MarketingHeroWash>
 
       <div className="flex w-full max-w-5xl flex-col gap-16 px-6 pb-20 md:pb-24">

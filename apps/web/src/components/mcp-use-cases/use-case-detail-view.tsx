@@ -75,13 +75,13 @@ export function McpUseCaseDetailView({
                     href={MCP_USE_CASES_BUILD_YOUR_OWN_URL}
                     rel="noopener"
                     target="_blank"
-                  />
+                  >
+                    Build your own workflow
+                    <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />
+                  </a>
                 }
                 variant="light"
-              >
-                Build your own workflow
-                <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />
-              </CtaButton>
+              />
             </div>
           </div>
         </div>
