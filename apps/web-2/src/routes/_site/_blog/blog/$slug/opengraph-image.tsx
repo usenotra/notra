@@ -5,7 +5,7 @@ import ditherDataUrl from "@/../public/blog/og-dither.png?inline";
 import logoSvg from "@/../public/notra-mark.svg?raw";
 import { getNotraBlogPostBySlug } from "@/utils/blog";
 import { OG_BLOG_TITLE_MAX_LENGTH } from "@/utils/constants";
-import { loadGoogleFont, loadImageAsDataUrl, truncate } from "@/utils/og";
+import { loadInterFont, loadImageAsDataUrl, truncate } from "@/utils/og";
 
 const size = { width: 1200, height: 630 };
 
@@ -18,11 +18,9 @@ async function GET({ params }: { params: { slug: string } }) {
 
   const eyebrow = "BLOG";
   const domain = "usenotra.com";
-  const uiText = `${eyebrow} ${domain} ${author?.name ?? ""} ${author?.role ?? ""}`;
-
   const [sansFont, sansBoldFont, authorImageDataUrl] = await Promise.all([
-    loadGoogleFont("Inter", uiText),
-    loadGoogleFont("Inter:wght@600", `${uiText} ${title}`),
+    loadInterFont(400),
+    loadInterFont(600),
     loadImageAsDataUrl(author?.image ?? null),
   ]);
 

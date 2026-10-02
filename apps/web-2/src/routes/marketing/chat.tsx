@@ -4,7 +4,7 @@ import { ImageResponse } from "@vercel/og";
 import bgDataUrl from "@/../public/marketing/chat-bg.jpg?inline";
 import notraSvg from "@/../public/notra-mark.svg?raw";
 import { marketingChatOgQuerySchema } from "@/schemas/marketing-chat";
-import { loadGoogleFont } from "@/utils/og";
+import { loadInterFont } from "@/utils/og";
 
 const SIZE = { width: 1200, height: 630 };
 const WHITESPACE_REGEX = /\s+/;
@@ -130,16 +130,10 @@ async function GET(request: Request) {
   const greeting = getGreeting(now);
   const headline = firstName ? `${greeting}, ${firstName}` : greeting;
 
-  const fontText = `${dateStr} ${headline} ${SUGGESTIONS.map(
-    (s) => `${s.title} ${s.prompt}`
-  ).join(
-    " "
-  )} Send a message... (type @ to add context) Add context Medium Auto Send N ↵ …`;
-
   const [interRegular, interMedium, interSemibold] = await Promise.all([
-    loadGoogleFont("Inter", fontText),
-    loadGoogleFont("Inter:wght@500", fontText),
-    loadGoogleFont("Inter:wght@600", fontText),
+    loadInterFont(400),
+    loadInterFont(500),
+    loadInterFont(600),
   ]);
 
   const notraDataUrl = `data:image/svg+xml;base64,${Buffer.from(notraSvg).toString("base64")}`;

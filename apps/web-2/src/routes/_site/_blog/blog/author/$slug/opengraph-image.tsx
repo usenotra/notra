@@ -5,7 +5,7 @@ import logoSvg from "@/../public/notra-mark.svg?raw";
 import { getNotraAuthorBySlug } from "@/utils/authors";
 import { OG_BLOG_TITLE_MAX_LENGTH } from "@/utils/constants";
 import {
-  loadGoogleFont,
+  loadInterFont,
   loadImageAsDataUrl,
   splitTitleForDot,
   truncate,
@@ -26,11 +26,9 @@ async function GET({ params }: { params: { slug: string } }) {
 
   const eyebrow = "AUTHOR";
   const domain = "usenotra.com";
-  const uiText = `${eyebrow} ${domain} ${role ?? ""} ${postSummary}`;
-
   const [sansFont, sansBoldFont, authorImageDataUrl] = await Promise.all([
-    loadGoogleFont("Inter", uiText),
-    loadGoogleFont("Inter:wght@600", `${uiText} ${name}`),
+    loadInterFont(400),
+    loadInterFont(600),
     loadImageAsDataUrl(author?.image ?? null),
   ]);
 

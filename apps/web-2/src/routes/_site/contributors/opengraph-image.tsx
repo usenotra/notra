@@ -9,7 +9,7 @@ import {
   OG_MAX_LOGIN_LENGTH,
 } from "@/utils/constants";
 import { fetchContributorsData } from "@/utils/github";
-import { loadGoogleFont, truncate } from "@/utils/og";
+import { loadInterFont, truncate } from "@/utils/og";
 
 const size = { width: 1200, height: 630 };
 
@@ -23,14 +23,9 @@ async function GET() {
       displayLogin: truncate(c.login, OG_MAX_LOGIN_LENGTH),
     }));
 
-  const headingText = "Built by the community.";
-  const uiText = `CONTRIBUTORS commits commit 0123456789… ${contributors
-    .map((c) => c.displayLogin)
-    .join(" ")}`;
-
   const [sansFont, sansBoldFont] = await Promise.all([
-    loadGoogleFont("Inter", uiText),
-    loadGoogleFont("Inter:wght@600", `${uiText} ${headingText}`),
+    loadInterFont(400),
+    loadInterFont(600),
   ]);
 
   const logoDataUrl = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString("base64")}`;
