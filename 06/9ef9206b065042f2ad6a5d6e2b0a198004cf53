@@ -1,0 +1,23 @@
+packages/ui/src/components/ui/sonner.tsx
+  s_eb10f9876cc2e8::t_f31e263966f3e2 31
+  s_eb10f9876cc2e8::t_240e520548eca2 3-9,12,15-21,23,25-30,32-40,47,50,52-53,55,57-58,62,64-74
+  s_eb10f9876cc2e8::t_c3f8c2e1e67628 22,24
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_eb10f9876cc2e8::t_d3eb9b842f1073 1113-1143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "069ef9206b065042f2ad6a5d6e2b0a198004cf53",
+  "prompts": {},
+  "sessions": {
+    "s_eb10f9876cc2e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7d44e8de-12e6-4aa3-94b4-ed50c851c738",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
