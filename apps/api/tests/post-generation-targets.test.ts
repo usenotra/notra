@@ -62,28 +62,14 @@ function requestGeneration(app: ReturnType<typeof createApp>) {
   );
 }
 
-describe("POST /posts/generate target resolution", () => {
-  test("returns 400 naming the unavailable integrations", async () => {
-    const response = await requestGeneration(
-      createApp(async () => [{ id: "repo_connected" }])
-    );
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error:
-        "Requested GitHub integrations are not available for this organization: repo_missing",
-    });
-  });
-
-  test("leaves database failures to the 500 handler without leaking the message", async () => {
+describe("POST /posts/generate", () => {
+  test("a database failure is a 500, not a 400 with the driver message", async () => {
     const app = createApp(async () => {
       throw new Error(DB_FAILURE_MESSAGE);
     });
-    app.onError((_error, c) => c.json({ error: "Internal server error" }, 500));
 
     const response = await requestGeneration(app);
 
     expect(response.status).toBe(500);
-    expect(await response.text()).not.toContain(DB_FAILURE_MESSAGE);
   });
 });

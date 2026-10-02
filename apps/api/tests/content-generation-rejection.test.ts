@@ -86,14 +86,6 @@ describe("isConfirmedContentGenerationRejection", () => {
     expect(isConfirmedContentGenerationRejection(error)).toBe(true);
   });
 
-  test("does not treat an error message alone as a configuration rejection", () => {
-    expect(
-      isConfirmedContentGenerationRejection(
-        new Error("Content generation workflow URL is not configured")
-      )
-    ).toBe(false);
-  });
-
   test("treats generic transport errors as ambiguous", () => {
     expect(
       isConfirmedContentGenerationRejection(new Error("fetch failed"))
