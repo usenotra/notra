@@ -12,7 +12,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Legal Notice";
 const description =
-  "Legal notice and imprint for Notra in accordance with German Telemedia Act (TMG).";
+  "Legal notice and imprint for Notra in accordance with the German Digital Services Act (DDG).";
 const url = `${SITE_URL}/legal`;
 
 const metadata: Metadata = {
@@ -51,7 +51,7 @@ function LegalPage() {
         </h1>
         <p className="mt-4 font-sans text-base leading-7 text-[#1E1E1EBF] dark:text-white/70">
           Company details and imprint information for Notra, provided in
-          accordance with the German Telemedia Act (TMG).
+          accordance with the German Digital Services Act (DDG).
         </p>
       </header>
       <LegalContent />

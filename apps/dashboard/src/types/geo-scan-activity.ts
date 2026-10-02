@@ -8,7 +8,6 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import type { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
-import type { GeoEngineAnswerMode } from "@/types/geo-shared";
 
 export interface GeoScanActivityStatusProps {
   run: GeoScanRunSummary | undefined;
@@ -32,7 +31,6 @@ export interface GeoScanControlsProviderProps {
 export interface GeoScanModelOption {
   id: string;
   label: string;
-  answerMode: GeoEngineAnswerMode | null;
   tracked: boolean;
   zdrBlocked: boolean;
 }

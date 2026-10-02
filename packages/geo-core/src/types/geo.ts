@@ -247,8 +247,6 @@ export interface GeoTimeseriesResponse {
 
 export type GeoSparklineMode = "all" | "search" | "memory";
 
-export type GeoEngineMode = Exclude<GeoSparklineMode, "all">;
-
 export interface MentionRateSparklineOptions {
   family?: string;
   model?: string;
@@ -260,12 +258,10 @@ export interface GeoSparklinePoint {
   value: number;
 }
 
-export interface EngineFamilyModeTrendRow {
+export interface EngineFamilyTrendRow {
   day: string;
   rawDay: string;
   all: number | null;
-  search: number | null;
-  memory: number | null;
   [key: string]: string | number | null;
 }
 
