@@ -40,6 +40,7 @@ export const GITHUB_MENTION_REPOSITORY_READ_LIMITS = {
   directoryApiMax: 1000,
   fileDefault: 6000,
   fileMax: 16000,
+  fileCacheEntries: 4,
 } as const;
 
 /**

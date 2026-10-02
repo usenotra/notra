@@ -187,6 +187,9 @@ export function buildGitHubMentionTools(params: {
   }
 
   const inWriteOrder = createWriteQueue();
+  // Cache only within this agent run. Including the commit keeps reads fresh
+  // after a write, while the entry cap bounds memory when browsing many files.
+  const fileReads = new Map<string, Promise<string>>();
 
   const tools: Record<string, Tool> = {
     ...readTools,
@@ -294,17 +297,38 @@ export function buildGitHubMentionTools(params: {
         if (!ref) {
           return { error: "No pull request is available to read from." };
         }
-        const contents = await getRepositoryFileContents({
-          octokit,
-          owner: context.owner,
-          repo: context.repo,
-          path,
-          ref,
+        const key = JSON.stringify([ref, path]);
+        let read = fileReads.get(key);
+        if (!read) {
+          read = getRepositoryFileContents({
+            octokit,
+            owner: context.owner,
+            repo: context.repo,
+            path,
+            ref,
+          });
+          fileReads.set(key, read);
+          if (
+            fileReads.size >
+            GITHUB_MENTION_REPOSITORY_READ_LIMITS.fileCacheEntries
+          ) {
+            const oldestKey = fileReads.keys().next().value;
+            if (oldestKey !== undefined) {
+              fileReads.delete(oldestKey);
+            }
+          }
+        }
+        const contents = await read.catch((error: unknown) => {
+          if (fileReads.get(key) === read) {
+            fileReads.delete(key);
+          }
+          throw error;
         });
         if (
           Buffer.byteLength(contents, "utf8") >
           GITHUB_MENTION_FILE_CONTENT_MAX_BYTES
         ) {
+          fileReads.delete(key);
           return { error: "File is too large to load into the mention agent." };
         }
         const end = Math.min(offset + limit, contents.length);

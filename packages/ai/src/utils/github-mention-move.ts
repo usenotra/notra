@@ -1,9 +1,11 @@
+import { posix } from "node:path";
+
 import {
   GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE,
   GITHUB_MENTION_FILE_CONTENT_MAX_BYTES,
 } from "@notra/ai/constants/github-mention";
 import type { GitHubMentionMoveParams } from "@notra/ai/types/github-mention-move";
-import { reviewGitHubMentionChange } from "@notra/ai/utils/github-mention-change-review";
+import { findNewActiveContent } from "@notra/ai/utils/github-mention-content-policy";
 import { partitionGitHubMentionPaths } from "@notra/ai/utils/github-mention-path-policy";
 import { commitFilesToPullRequest } from "@notra/ai/utils/github-pr-commit";
 import { syncPublishedPostAfterCommit } from "@notra/ai/utils/update-published-content";
@@ -86,16 +88,22 @@ export async function moveGitHubMentionContent(
     };
   }
   const files = [{ path: toPath, contents }];
-  const review = await reviewGitHubMentionChange({
-    octokit,
-    context,
-    branch: target.expectedHeadOid,
-    files,
+  // These bytes came from the source at the expected commit, not the model.
+  // Existing constructs may move unchanged within the same file format, but
+  // changing formats must not turn previously inert text into executable MDX.
+  const blockedContent = findNewActiveContent({
+    path: toPath,
+    previous:
+      posix.extname(fromPath).toLowerCase() ===
+      posix.extname(toPath).toLowerCase()
+        ? contents
+        : null,
+    next: contents,
   });
-  if (review.blocked.length > 0) {
+  if (blockedContent.length > 0) {
     return {
       error: GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE,
-      blocked: review.blocked,
+      blocked: blockedContent,
     };
   }
   const commitSha = await commitFilesToPullRequest({
