@@ -224,11 +224,18 @@ export async function release({
           if (deploymentSha(status) !== sha) {
             throw new Error(`${project.name}: built a different commit`);
           }
-          const alias = await request(
-            "vercel",
-            `/v4/aliases/${project.productionAlias}`
-          );
-          if (alias.deploymentId === deployment.id) {
+          let alias;
+          try {
+            alias = await request(
+              "vercel",
+              `/v4/aliases/${project.productionAlias}`
+            );
+          } catch (error) {
+            await report(
+              `${project.name}: waiting for production alias (${error.message})`
+            );
+          }
+          if (alias?.deploymentId === deployment.id) {
             await report(`${project.name}: READY https://${status.url}`);
             completed = true;
             break;
