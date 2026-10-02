@@ -243,6 +243,7 @@ export default defineConfig({
         "packages/ai/src/integrations/mcp-oauth-errors.ts",
         "packages/ai/src/schemas/slack.ts",
         "packages/ai/src/schemas/github-operations.ts",
+        "packages/ai/src/schemas/qstash.ts",
         "packages/tools/src/schemas/retry.ts",
         "packages/tools/src/schemas/social.ts",
       ],

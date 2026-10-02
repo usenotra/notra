@@ -35,6 +35,12 @@ export class PostGenerationQueueFailedError extends Schema.TaggedError<PostGener
   { jobId: Schema.optional(Schema.String) }
 ) {}
 
+/** A requested repository, Linear integration or brand voice is not usable by this organization. */
+export class PostGenerationTargetUnavailableError extends Schema.TaggedError<PostGenerationTargetUnavailableError>()(
+  "PostGenerationTargetUnavailableError",
+  { message: Schema.String }
+) {}
+
 export class PostDatabaseError extends Schema.TaggedError<PostDatabaseError>()(
   "PostDatabaseError",
   { cause: Schema.Defect() }
