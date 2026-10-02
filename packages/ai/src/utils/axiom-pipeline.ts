@@ -94,6 +94,11 @@ export function createAxiomPipeline(
       if (!isPermanentAxiomError(error)) {
         throw error;
       }
+      // Batches already in flight can be rejected after the first one.
+      if (disabled) {
+        settle(batch);
+        return;
+      }
       disabled = true;
       console.warn(
         `[evlog/${config.dataset}] Axiom rejected the request, log shipping is off until the next deploy`,
