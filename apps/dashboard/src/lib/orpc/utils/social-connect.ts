@@ -50,20 +50,30 @@ export async function runSocialConnect<A>(
   }
 
   console.error(`${options.logLabel}:`, error);
-  const statusCode = getSocialConnectStatusCode(error.cause);
-
-  if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {
-    const tErrors = await getTranslations("errors.socialAccounts");
-    throw badRequest(tErrors("notAuthorizedToPost"), {
-      code: "reconnect_required",
-    });
-  }
   const tErrors = await getTranslations("errors.socialAccounts");
+  // Duplicate content can surface as raw provider text (unsuccessful
+  // provider results carry no status cause) — map it before the
+  // validation early-return below so it never leaks through verbatim.
   const providerMessage =
     error.cause instanceof Error ? error.cause.message : error.message;
   if (SOCIAL_DUPLICATE_CONTENT_REGEX.test(providerMessage)) {
     throw badRequest(tErrors("duplicateContent"), {
       code: SOCIAL_DUPLICATE_CONTENT_CODE,
+    });
+  }
+  // Own validation failures carry no provider cause — surface the specific
+  // message instead of a generic rejection (e.g. past schedule time,
+  // invalid external id, disallowed media host). Unsuccessful provider
+  // results retain the result as cause, so they fall through to the
+  // duplicate/status mapping below and internals never leak.
+  if (error.cause === null) {
+    throw badRequest(error.message);
+  }
+  const statusCode = getSocialConnectStatusCode(error.cause);
+
+  if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {
+    throw badRequest(tErrors("notAuthorizedToPost"), {
+      code: "reconnect_required",
     });
   }
   if (statusCode === 402) {

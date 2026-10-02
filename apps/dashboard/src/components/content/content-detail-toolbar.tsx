@@ -297,7 +297,9 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
       content.contentType === "twitter_post" ? (
         <PostSocialButton
           content={document.currentMarkdown}
+          contentId={props.contentId}
           from="editor"
+          initialVideo={content.sourceMetadata?.socialVideo ?? null}
           onContentChange={document.setEditedMarkdown}
           organizationId={organizationId}
           platform={

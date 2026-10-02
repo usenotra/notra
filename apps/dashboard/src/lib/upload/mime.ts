@@ -13,6 +13,8 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
   "application/pdf": "pdf",
   "text/plain": "txt",
   "text/markdown": "md",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
 };
 
 export function getFileExtension(fileType: string) {

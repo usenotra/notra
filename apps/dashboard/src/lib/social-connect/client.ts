@@ -21,6 +21,12 @@ export function isSocialConnectConfigured(): boolean {
   return Boolean(getApiKey("twitter") || getApiKey("linkedin"));
 }
 
+export function isSocialConnectPlatformConfigured(
+  platform: SocialConnectPlatform
+): boolean {
+  return Boolean(getApiKey(platform));
+}
+
 export function getSocialConnectClient(
   platform: SocialConnectPlatform
 ): PostForMe {

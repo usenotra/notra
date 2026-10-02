@@ -260,6 +260,7 @@ export async function buildContentUpdateData(
     markdown?: string;
     status?: "draft" | "published";
     title?: string;
+    sourceMetadata?: Record<string, unknown> | null;
   }
 ) {
   const updateData: Record<string, unknown> = { updatedAt: new Date() };
@@ -283,6 +284,15 @@ export async function buildContentUpdateData(
 
   if (input.status !== undefined) {
     updateData.status = input.status;
+  }
+
+  if (input.sourceMetadata !== undefined) {
+    const incoming =
+      input.sourceMetadata && typeof input.sourceMetadata === "object"
+        ? input.sourceMetadata
+        : {};
+    // ponytail: atomic jsonb merge — concurrent single-key patches must not clobber each other.
+    updateData.sourceMetadata = sql`coalesce(${posts.sourceMetadata}, '{}'::jsonb) || ${JSON.stringify(incoming)}::jsonb`;
   }
 
   return updateData;
@@ -779,6 +789,7 @@ export const contentRouter = {
           title: true,
           contentType: true,
           status: true,
+          sourceMetadata: true,
         },
       });
 

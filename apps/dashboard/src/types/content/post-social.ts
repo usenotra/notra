@@ -1,3 +1,4 @@
+import type { SocialVideoAttachment } from "@notra/schemas/dashboard/content";
 import type {
   SocialConnectPlatform,
   SocialPublishSurface,
@@ -20,6 +21,10 @@ export interface PostSocialButtonProps {
   onContentChange?: (value: string) => void;
   onPublished?: (published: PublishedSocialPost) => void;
   from?: SocialPublishSurface;
+  /** Persisted draft id. Enables attachment + schedule persistence. */
+  contentId?: string;
+  /** Video attachment restored from the saved draft. */
+  initialVideo?: SocialVideoAttachment | null;
 }
 
 export interface PublishErrorInfo {

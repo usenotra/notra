@@ -8,8 +8,11 @@ import {
   linkedinSelectionGetInputSchema,
   publishSocialPostInputSchema,
   refreshSocialAccountsInputSchema,
+  scheduledSocialPostInputSchema,
+  scheduledSocialPostsQuerySchema,
   socialAccountsOrganizationInputSchema,
   socialConnectPlatformSchema,
+  updateScheduledSocialPostInputSchema,
 } from "@notra/schemas/dashboard/social-accounts";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -28,6 +31,11 @@ import {
 } from "@/lib/social-connect/linkedin-selection";
 import { publishSocialPost } from "@/lib/social-connect/publish";
 import { refreshConnectedAccounts } from "@/lib/social-connect/refresh";
+import {
+  cancelScheduledSocialPost,
+  listScheduledSocialPosts,
+  updateScheduledSocialPost,
+} from "@/lib/social-connect/scheduled";
 
 import { notFound } from "../utils/errors";
 
@@ -144,6 +152,9 @@ export const socialAccountsRouter = {
           organizationId: input.organizationId,
           accountId: input.accountId,
           content: input.content,
+          mediaUrls: input.mediaUrls,
+          scheduledAt: input.scheduledAt,
+          externalId: input.externalId,
         }),
         { logLabel: "Failed to publish post", reconnectHint: true }
       );
@@ -157,6 +168,8 @@ export const socialAccountsRouter = {
           platform: result.platform,
           from: input.from ?? null,
           account_id: input.accountId,
+          has_video: (input.mediaUrls?.length ?? 0) > 0,
+          scheduled: result.scheduledAt !== null,
         },
       });
 
@@ -165,7 +178,70 @@ export const socialAccountsRouter = {
         platformPostId: result.platformPostId,
         postUrl: result.postUrl,
         username: result.username,
+        scheduledAt: result.scheduledAt,
+        status: result.status,
       };
+    }),
+  scheduledList: authorizedProcedure
+    .input(scheduledSocialPostsQuerySchema)
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      const posts = await runSocialConnect(
+        listScheduledSocialPosts({
+          organizationId: input.organizationId,
+          accountId: input.accountId,
+          externalId: input.externalId,
+        }),
+        { logLabel: "Failed to load scheduled posts", reconnectHint: true }
+      );
+
+      return { posts };
+    }),
+  scheduledUpdate: authorizedProcedure
+    .input(updateScheduledSocialPostInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      return runSocialConnect(
+        updateScheduledSocialPost({
+          organizationId: input.organizationId,
+          accountId: input.accountId,
+          postId: input.postId,
+          externalId: input.externalId,
+          content: input.content,
+          mediaUrls: input.mediaUrls,
+          scheduledAt: input.scheduledAt,
+        }),
+        { logLabel: "Failed to update scheduled post", reconnectHint: true }
+      );
+    }),
+  scheduledCancel: authorizedProcedure
+    .input(scheduledSocialPostInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      return runSocialConnect(
+        cancelScheduledSocialPost({
+          organizationId: input.organizationId,
+          accountId: input.accountId,
+          postId: input.postId,
+          externalId: input.externalId,
+        }),
+        { logLabel: "Failed to cancel scheduled post", reconnectHint: true }
+      );
     }),
   linkedinSelectionGet: authorizedProcedure
     .input(linkedinSelectionGetInputSchema)

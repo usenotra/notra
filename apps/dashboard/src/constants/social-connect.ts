@@ -32,3 +32,10 @@ export const DUPLICATE_POST_DOCS_URLS: Record<SocialConnectPlatform, string> = {
 export const SOCIAL_DUPLICATE_CONTENT_REGEX = /already scheduled|duplicate/i;
 
 export const SOCIAL_DUPLICATE_CONTENT_CODE = "duplicate_content";
+
+/**
+ * Prefix marking PostForMe `external_id`s created by Notra. Mutations
+ * (edit/cancel) only touch posts carrying this marker, so one org cannot
+ * alter another integration's scheduled posts by id.
+ */
+export const SOCIAL_POST_EXTERNAL_ID_PREFIX = "notra:";

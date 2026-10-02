@@ -33,6 +33,10 @@ export const ALLOWED_OPENAI_CHAT_MIME_TYPES = [
 
 export type AllowedChatMimeType = (typeof ALLOWED_CHAT_MIME_TYPES)[number];
 
+export const ALLOWED_VIDEO_MIME_TYPES = ["video/mp4", "video/webm"] as const;
+
+export type AllowedVideoMimeType = (typeof ALLOWED_VIDEO_MIME_TYPES)[number];
+
 export const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
 export const MAX_LOGO_FILE_SIZE = 5 * 1024 * 1024;
 export const MAX_BRAND_ASSET_FILE_SIZE = 5 * 1024 * 1024;
@@ -51,4 +55,6 @@ export const MIME_DISPLAY_LABELS: Record<string, string> = {
   "image/jpeg": "JPEG",
   "image/gif": "GIF",
   "image/webp": "WebP",
+  "video/mp4": "MP4",
+  "video/webm": "WebM",
 };

@@ -4620,7 +4620,10 @@
       "upToDate": "@{username} ist auf dem neuesten Stand",
       "refreshFailed": "Konto konnte nicht aktualisiert werden",
       "posted": "Auf {platform} als @{username} gepostet",
-      "connectPlatformFailed": "{platform}-Konto konnte nicht verbunden werden"
+      "connectPlatformFailed": "{platform}-Konto konnte nicht verbunden werden",
+      "scheduled": "Auf {platform} für @{username} geplant",
+      "scheduleUpdated": "Geplanter Beitrag aktualisiert",
+      "scheduleCancelled": "Geplanter Beitrag abgebrochen"
     }
   },
   "iris": {
@@ -6088,7 +6091,30 @@
       "readDocs": "Zur {platform}-Dokumentation",
       "reconnectPrompt": "Hast du versucht, das Konto neu zu verbinden?",
       "reconnectInSettings": "In den Einstellungen neu verbinden",
-      "addAsReference": "Als Referenz hinzufügen"
+      "addAsReference": "Als Referenz hinzufügen",
+      "attachVideo": "Video anhängen",
+      "attachVideoHint": "MP4 oder WebM, bis zu {maxMb} MB",
+      "uploadingVideo": "Video wird hochgeladen…",
+      "videoTooLarge": "Das Video darf höchstens {maxMb} MB groß sein",
+      "videoUploadFailed": "Video-Upload fehlgeschlagen",
+      "removeVideo": "Video entfernen",
+      "attachmentSaveFailed": "Das Video konnte nicht im Entwurf gespeichert werden",
+      "scheduleSaveFailed": "Der Zeitplan konnte nicht im Entwurf gespeichert werden",
+      "scheduleListFailed": "Die geplanten Beiträge konnten nicht geladen werden",
+      "scheduleAt": "Planen für",
+      "scheduleAction": "Planen",
+      "scheduling": "Wird geplant…",
+      "scheduledTitle": "Geplant",
+      "scheduledTo": "Geplant auf {platform} als @{username}",
+      "scheduledFor": "{date}",
+      "scheduledStatus": "Status: {status}",
+      "updateSchedule": "Änderungen speichern",
+      "savingSchedule": "Wird gespeichert…",
+      "cancelSchedule": "Planung abbrechen",
+      "cancellingSchedule": "Wird abgebrochen…",
+      "extraSchedules": "{count, plural, one {# weiterer geplanter Beitrag} other {# weitere geplante Beiträge}} mit derselben ID",
+      "scheduledVideoRemoved": "Das geplante Video wird beim Speichern entfernt",
+      "keepVideo": "Video behalten"
     },
     "collections": {
       "status": "{status, select, generating {Wird erstellt} published {Veröffentlicht} draft {Entwurf} other {Leer}}",

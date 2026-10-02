@@ -4620,7 +4620,10 @@
       "upToDate": "@{username} is up to date",
       "refreshFailed": "Failed to refresh account",
       "posted": "Posted to {platform} as @{username}",
-      "connectPlatformFailed": "Failed to connect {platform} account"
+      "connectPlatformFailed": "Failed to connect {platform} account",
+      "scheduled": "Scheduled on {platform} for @{username}",
+      "scheduleUpdated": "Scheduled post updated",
+      "scheduleCancelled": "Scheduled post cancelled"
     }
   },
   "iris": {
@@ -6088,7 +6091,30 @@
       "readDocs": "Read the {platform} docs",
       "reconnectPrompt": "Have you tried reconnecting?",
       "reconnectInSettings": "Reconnect in settings",
-      "addAsReference": "Add as reference"
+      "addAsReference": "Add as reference",
+      "attachVideo": "Attach video",
+      "attachVideoHint": "MP4 or WebM, up to {maxMb} MB",
+      "uploadingVideo": "Uploading video…",
+      "videoTooLarge": "Video must be {maxMb} MB or smaller",
+      "videoUploadFailed": "Video upload failed",
+      "removeVideo": "Remove video",
+      "attachmentSaveFailed": "Couldn't save the video to the draft",
+      "scheduleSaveFailed": "Couldn't save the schedule to the draft",
+      "scheduleListFailed": "Couldn't load the scheduled posts",
+      "scheduleAt": "Schedule for",
+      "scheduleAction": "Schedule",
+      "scheduling": "Scheduling…",
+      "scheduledTitle": "Scheduled",
+      "scheduledTo": "Scheduled on {platform} as @{username}",
+      "scheduledFor": "{date}",
+      "scheduledStatus": "Status: {status}",
+      "updateSchedule": "Save changes",
+      "savingSchedule": "Saving…",
+      "cancelSchedule": "Cancel schedule",
+      "cancellingSchedule": "Cancelling…",
+      "extraSchedules": "{count, plural, one {# more scheduled post} other {# more scheduled posts}} with the same id",
+      "scheduledVideoRemoved": "The scheduled video will be removed when you save changes",
+      "keepVideo": "Keep video"
     },
     "collections": {
       "status": "{status, select, generating {Generating} published {Published} draft {Draft} other {Empty}}",
