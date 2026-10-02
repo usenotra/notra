@@ -1,0 +1,19 @@
+apps/dashboard/scripts/turbopack-parallelism.sh
+  s_2093da4a6ee8ca::t_1b51c19309ad13 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8adb0308c260fbc79626eff62b8f3d4acf551046",
+  "prompts": {},
+  "sessions": {
+    "s_2093da4a6ee8ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b4073dee-4460-427d-b52c-6e252eeec792",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
