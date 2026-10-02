@@ -637,7 +637,7 @@ export function PromptAnswerPage({
 }
 
 const PROMPT_ANSWER_SHEET_CLASS =
-  "gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
+  "gap-0 overflow-hidden p-0 outline-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
 
 /**
  * The slide lives on the popup. Keep this node mounted for the whole open
@@ -648,8 +648,16 @@ export function PromptAnswerSheetContent({
 }: {
   children: ReactNode;
 }) {
+  // Focus the panel, not its first control: the prompt copy box would
+  // otherwise open with a focus ring. Tab still reaches it first.
+  const popupRef = useRef<HTMLDivElement>(null);
   return (
-    <SheetContent className={PROMPT_ANSWER_SHEET_CLASS} side="right">
+    <SheetContent
+      className={PROMPT_ANSWER_SHEET_CLASS}
+      initialFocus={popupRef}
+      ref={popupRef}
+      side="right"
+    >
       {children}
     </SheetContent>
   );
