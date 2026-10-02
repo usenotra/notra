@@ -1,0 +1,9 @@
+apps/web/src/start.ts
+  ai_agent 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3ef620bdae876eb2a08da7208475a80e178e2a61",
+  "prompts": {}
+}
