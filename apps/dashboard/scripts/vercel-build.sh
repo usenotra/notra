@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd ../..
+bun run db:check
+turbo run build --filter=dashboard
+bun apps/dashboard/scripts/prune-build-cache.ts
 if [ "${VERCEL_ENV:-}" = "production" ]; then
   # Deployments whose runtime role cannot run DDL (the public demo runs as a
   # data-only role) pass the owner connection separately for migrations.
@@ -9,5 +12,3 @@ if [ "${VERCEL_ENV:-}" = "production" ]; then
     (cd packages/analytics && bun run tinybird:deploy)
   fi
 fi
-turbo run build --filter=dashboard
-bun apps/dashboard/scripts/prune-build-cache.ts

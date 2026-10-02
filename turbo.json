@@ -148,6 +148,9 @@
       "dependsOn": ["transit"],
       "outputs": [".cache/typecheck.tsbuildinfo"]
     },
+    "check:migrations": {
+      "outputs": []
+    },
     "ui#check-types": {
       "dependsOn": ["transit"],
       "outputs": []

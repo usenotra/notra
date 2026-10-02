@@ -16,6 +16,20 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: notra_migrations
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d notra_migrations"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -38,6 +52,16 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Validate migration journal
+        run: bun run db:check
+
+      - name: Replay migrations and verify rerun safety
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/notra_migrations
+        run: |
+          bun run db:migrate
+          bun run db:migrate
 
       - name: Run ultracite check
         run: bun check

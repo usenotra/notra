@@ -194,10 +194,26 @@ Common Drizzle commands from the repo root:
 
 ```bash
 bun run db:generate
+bun run db:check
 bun run db:migrate
 bun run db:push
 bun run db:studio
 ```
+
+Commit generated SQL and `packages/db/migrations/meta/_journal.json` together.
+`db:check` rejects orphan SQL, missing files, invalid journal ordering, and new
+prefix collisions. Two historical prefix pairs are grandfathered; do not rename
+applied migrations or change their journal timestamps. CI also replays the full
+journal on an empty Postgres database and runs it again to check rerun safety.
+
+The obsolete SQL files `0019_add_post_recommendations`, `0036_lovely_wallop`, and
+`0090_user_auth_security` were unjournaled and have been removed. Their active
+schema changes are covered by `0019_medical_peter_parker`, `0000_baseline`, and
+`0100_complete_robin_chapel`. Authenticator factor labels are no longer used.
+
+Dashboard production builds validate migrations, build, and prune the build cache
+before migrating the database. Migrations must remain compatible with the running
+app because Vercel has not yet promoted the new deployment at that point.
 
 Seed helpers:
 
