@@ -2,9 +2,10 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@notra/ui/lib/utils";
+import { ButtonContent } from "@notra/ui/components/ui/button-content";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent font-medium text-sm outline-none transition-all duration-fast ease-out focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.97] data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:active:scale-100 disabled:pointer-events-none has-data-[disabled]:cursor-not-allowed aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button relative inline-flex shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent font-medium text-sm outline-none transition-all duration-fast ease-out focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.97] data-disabled:not-aria-busy:cursor-not-allowed data-disabled:not-aria-busy:opacity-50 data-disabled:active:scale-100 disabled:pointer-events-none has-data-[disabled]:cursor-not-allowed aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -41,19 +42,51 @@ const buttonVariants = cva(
   }
 );
 
+type ButtonProps = ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    /** Swaps the label for bouncing dots while an action runs. */
+    loading?: boolean;
+    /**
+     * Fills the button from the left, from 0 to 100, e.g. while a file
+     * uploads. Set it back to `undefined` when the work is done: the bar fills
+     * up and fades out. For work you can't measure, use `loading`.
+     */
+    progress?: number;
+  };
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
+  progress,
+  disabled,
+  focusableWhenDisabled,
+  children,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
+  const busy = loading || progress !== undefined;
+
   return (
     <ButtonPrimitive
-      className={cn(buttonVariants({ variant, size, className }))}
+      aria-busy={busy || undefined}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        "has-data-[clip]:overflow-hidden",
+        busy && "cursor-progress"
+      )}
+      data-loading={loading ? "" : undefined}
       data-slot="button"
+      disabled={disabled || busy}
+      focusableWhenDisabled={focusableWhenDisabled ?? busy}
       {...props}
-    />
+    >
+      <ButtonContent loading={loading} progress={progress}>
+        {children}
+      </ButtonContent>
+    </ButtonPrimitive>
   );
 }
 
 export { Button, buttonVariants };
+export type { ButtonProps };
