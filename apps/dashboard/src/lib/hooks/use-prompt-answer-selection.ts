@@ -12,6 +12,7 @@ import {
   latestPromptResults,
   promptHistoryForEngine,
   promptHistoryForScanLanguage,
+  withoutSupersededNoSearchResults,
 } from "@/utils/geo-prompt-history";
 
 export function usePromptAnswerSelection({
@@ -30,12 +31,13 @@ export function usePromptAnswerSelection({
   });
   const { languages, selectedLanguage, visibleChecks } =
     promptHistoryForScanLanguage(history.data?.checks ?? [], scanId, language);
-  const results = latestPromptResults(
+  const latest = latestPromptResults(
     scanId ? [] : row.results,
     visibleChecks,
     scanPromptId,
     row.prompt
   );
+  const results = scanId ? latest : withoutSupersededNoSearchResults(latest);
   const engines = results.map((result) => result.engine);
   const [engine, setEngine] = useState(initialEngine ?? "");
   const active =

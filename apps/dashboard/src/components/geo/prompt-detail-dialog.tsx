@@ -48,7 +48,6 @@ import {
 } from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
-import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
@@ -69,7 +68,6 @@ import type {
   PromptAnswerTagsFooterProps,
   PromptDetailOpenedEventProps,
 } from "@/types/geo-prompt-detail";
-import { sharedEngineAnswerMode } from "@/utils/geo-charts";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 import {
   adjacentPromptEngine,
@@ -162,9 +160,6 @@ function PromptAnswerHeader({
   const tGeoShared = useTranslations("geo.shared");
   const intentLabel = useGeoPromptIntentLabel();
   const locale = useLocale();
-  const answerMode = sharedEngineAnswerMode(
-    results.map((result) => result.engine)
-  );
   const latestCheck = active?.lastCheckedAt ?? latestPromptCheckAt(results);
 
   return (
@@ -174,11 +169,7 @@ function PromptAnswerHeader({
           <PromptCopyButton prompt={promptText ?? row.prompt} />
         </SheetTitle>
         <SheetDescription className="sr-only">
-          {answerMode
-            ? t("latestAnswerMode", {
-                mode: tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[answerMode]),
-              })
-            : t("latestAnswer")}
+          {t("latestAnswer")}
         </SheetDescription>
         {latestCheck ? (
           <time
