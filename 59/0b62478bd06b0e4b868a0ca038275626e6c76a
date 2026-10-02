@@ -1,0 +1,40 @@
+apps/dashboard/next.config.ts
+  s_2093da4a6ee8ca::t_dff0392a7166ba 68-70
+  s_2093da4a6ee8ca::t_bc1458fb161072 38-39
+apps/dashboard/src/components/content/post-social-button.tsx
+  s_2093da4a6ee8ca::t_c0e0b79b3de77c 21
+turbo.json
+  s_2093da4a6ee8ca::t_e3020f823c3095 123
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/success/page.tsx
+  s_2093da4a6ee8ca::t_c0e0b79b3de77c 15
+apps/dashboard/src/components/dashboard/dashboard-shell.tsx
+  s_2093da4a6ee8ca::t_9161159c24d2ec 45-55
+apps/dashboard/src/components/billing/credit-topup-modal.tsx
+  s_2093da4a6ee8ca::t_c0e0b79b3de77c 16
+apps/dashboard/src/components/settings/panes/credits-pane.tsx
+  s_2093da4a6ee8ca::t_c0e0b79b3de77c 20
+apps/dashboard/scripts/vercel-build.sh
+  s_2093da4a6ee8ca::t_1bf721a5b932f9 8,10-15,22
+  s_2093da4a6ee8ca::t_478df517610b49 5-7,9,16-20
+  s_2093da4a6ee8ca::t_f9bfd4a28c5951 21
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_2093da4a6ee8ca::t_c0e0b79b3de77c 38
+apps/dashboard/src/components/confetti.tsx
+  s_2093da4a6ee8ca::t_00a7b960ed2160 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "590b62478bd06b0e4b868a0ca038275626e6c76a",
+  "prompts": {},
+  "sessions": {
+    "s_2093da4a6ee8ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b4073dee-4460-427d-b52c-6e252eeec792",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
