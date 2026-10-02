@@ -7,7 +7,7 @@ const areas = [
   "apps/docs",
   "apps/onboarding-agent",
   "apps/ui",
-  "apps/web-2",
+  "apps/web",
   "packages/ai",
   "packages/analytics",
   "packages/content-generation",

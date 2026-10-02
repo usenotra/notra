@@ -288,7 +288,7 @@ export default defineConfig({
       },
     },
     {
-      files: ["apps/web-2/**"],
+      files: ["apps/web/**"],
       rules: {
         "nextjs/no-html-link-for-pages": "off",
         "nextjs/no-head-element": "off",

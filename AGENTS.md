@@ -78,7 +78,7 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
 - `apps/dashboard` — **core product**, `next dev` on **port 3000**; self-contained
   (its own oRPC `/rpc`, Better Auth `/api/auth`, chat). Run with
   `bun run dev --filter=dashboard`. This is the app to exercise end-to-end.
-- `apps/web-2` (TanStack Start, port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
+- `apps/web` (TanStack Start, port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
   defaults to port 3000 so set `PORT` to avoid clashing with the dashboard) — all
   optional for the core flow.
 

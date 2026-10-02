@@ -249,7 +249,7 @@ git commit -m "feat(dashboard): add integration activity filters"
 
 ## Landing Page Copy Sync
 
-If you update landing page copy in `apps/web-2/src/components/landing/landing-page.tsx`, also update the markdown version in `apps/web-2/src/utils/site-markdown.ts`.
+If you update landing page copy in `apps/web/src/components/landing/landing-page.tsx`, also update the markdown version in `apps/web/src/utils/site-markdown.ts`.
 
 We keep both in sync so the website and markdown endpoint (`/markdown`) say the same thing.
 
