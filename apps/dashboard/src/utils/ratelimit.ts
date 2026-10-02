@@ -3,7 +3,7 @@ import { Redis } from "@upstash/redis";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
-import { COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE } from "@/constants/company-logo";
+import { COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE } from "@/constants/company-logo";
 import {
   DEMO_SANDBOX_CREATE_LIMIT,
   DEMO_SANDBOX_CREATE_WINDOW,
@@ -66,7 +66,7 @@ export const ratelimit = {
     redis,
     prefix: "ratelimit:company-logo",
     limiter: Ratelimit.slidingWindow(
-      COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE,
+      COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE,
       "1m"
     ),
   }),
