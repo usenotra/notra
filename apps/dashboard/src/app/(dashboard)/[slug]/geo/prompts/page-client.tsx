@@ -18,6 +18,7 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
@@ -41,7 +42,10 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
-import { GEO_PROMPTS_PAGE_TABS } from "@/constants/geo-prompts";
+import {
+  GEO_PROMPT_DETAIL_QUERY_KEY,
+  GEO_PROMPTS_PAGE_TABS,
+} from "@/constants/geo-prompts";
 import {
   useGeoPromptResults,
   useGeoSettings,
@@ -110,6 +114,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const tCommon = useTranslations("common");
   const tShared = useTranslations("geo.pages.shared");
   const { projectId } = useGeoProjectScope();
+  const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -295,6 +300,19 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   `/${organizationSlug}/geo/prompts?tab=suggestions`,
                   projectId
                 )}
+                onViewTrackedPrompt={(promptId) => {
+                  // A full URL, not query state: the toast that calls this
+                  // can outlive the page.
+                  const query = promptId
+                    ? `?${GEO_PROMPT_DETAIL_QUERY_KEY}=${encodeURIComponent(promptId)}`
+                    : "";
+                  router.push(
+                    withGeoProject(
+                      `/${organizationSlug}/geo/prompts${query}`,
+                      projectId
+                    )
+                  );
+                }}
                 organizationId={organizationId}
               />
             </TabsContent>

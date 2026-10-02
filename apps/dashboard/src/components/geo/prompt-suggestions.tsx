@@ -317,6 +317,7 @@ function SuggestionDetailActions({
 export function PromptSuggestions({
   organizationId,
   callbackPath,
+  onViewTrackedPrompt,
 }: PromptSuggestionsProps) {
   const t = useTranslations("geo.promptSuggestions");
   const tGeoShared = useTranslations("geo.shared");
@@ -328,8 +329,10 @@ export function PromptSuggestions({
     useGscStatus(organizationId);
   useGscConnectionToast();
   const checking = useGscAnalyzing(organizationId);
-  const accept = useGeoSuggestionAccept(organizationId);
-  const acceptAll = useGeoSuggestionsAcceptAll(organizationId);
+  const accept = useGeoSuggestionAccept(organizationId, onViewTrackedPrompt);
+  const acceptAll = useGeoSuggestionsAcceptAll(organizationId, () =>
+    onViewTrackedPrompt()
+  );
   const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
   const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
   const [confirmDismiss, setConfirmDismiss] =

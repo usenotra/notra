@@ -3892,6 +3892,8 @@
       "loadPromptSuggestionsFailed": "Prompt-Vorschläge konnten nicht geladen werden",
       "generateConversationsFailed": "Unterhaltungen konnten nicht erstellt werden",
       "promptAddedTracking": "Prompt zum Tracking hinzugefügt",
+      "trackedPromptNextScan": "Ergebnisse erscheinen nach dem nächsten Scan.",
+      "viewTrackedPrompt": "Ansehen",
       "addPromptFailed": "Prompt konnte nicht hinzugefügt werden",
       "addPromptsFailed": "Prompts konnten nicht hinzugefügt werden",
       "dismissSuggestionFailed": "Vorschlag konnte nicht verworfen werden",

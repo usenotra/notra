@@ -62,6 +62,7 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import {
   GEO_PROMPT_DEFAULT_FILTERS,
+  GEO_PROMPT_DETAIL_QUERY_KEY,
   GEO_PROMPT_FILTER_SELECT_CLASS,
 } from "@/constants/geo-prompts";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
@@ -253,6 +254,11 @@ export function PromptsTable({
     null
   );
   const [detail, setDetail] = useState<GeoPromptTableRow | null>(null);
+  // Deep link from the "View" action on the tracked-prompt toast.
+  const [linkedPromptId, setLinkedPromptId] = useQueryState(
+    GEO_PROMPT_DETAIL_QUERY_KEY,
+    parseAsString
+  );
 
   const filters = useMemo<GeoPromptTableFilters>(
     () => ({ q: search, intent, tag, source }),
@@ -267,6 +273,20 @@ export function PromptsTable({
     () => buildPromptTableRows(prompts, results, filters),
     [prompts, results, filters]
   );
+
+  // Looked up without filters so an active filter can't hide the linked prompt.
+  const linkedRow = useMemo(
+    () =>
+      linkedPromptId
+        ? (buildPromptTableRows(
+            prompts,
+            results,
+            GEO_PROMPT_DEFAULT_FILTERS
+          ).find((row) => row.id === linkedPromptId) ?? null)
+        : null,
+    [linkedPromptId, prompts, results]
+  );
+  const detailRow = detail ?? linkedRow;
 
   const selectedIdSet = new Set(selectedIds);
   const selectedRows = rows.filter((row) => selectedIdSet.has(row.id));
@@ -628,11 +648,12 @@ export function PromptsTable({
         onOpenChange={(openDialog) => {
           if (!openDialog) {
             setDetail(null);
+            void setLinkedPromptId(null);
           }
         }}
-        open={detail !== null}
+        open={detailRow !== null}
         organizationId={organizationId}
-        row={detail}
+        row={detailRow}
         surface={GEO_PROMPT_DETAIL_SURFACES.PROMPTS_TABLE}
       />
     </div>

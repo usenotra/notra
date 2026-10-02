@@ -3892,6 +3892,8 @@
       "loadPromptSuggestionsFailed": "Failed to load prompt suggestions",
       "generateConversationsFailed": "Failed to generate conversations",
       "promptAddedTracking": "Prompt added to tracking",
+      "trackedPromptNextScan": "Results appear after the next scan.",
+      "viewTrackedPrompt": "View",
       "addPromptFailed": "Failed to add prompt",
       "addPromptsFailed": "Failed to add prompts",
       "dismissSuggestionFailed": "Failed to dismiss suggestion",

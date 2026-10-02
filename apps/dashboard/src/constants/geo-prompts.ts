@@ -92,6 +92,9 @@ export const GSC_SETUP_EXAMPLES = [
   { key: "invoicing", impressions: 430 },
 ] as const;
 
+/** Query param that opens a tracked prompt's detail on the prompts tab. */
+export const GEO_PROMPT_DETAIL_QUERY_KEY = "prompt";
+
 export const GEO_PROMPTS_PAGE_TABS = [
   "prompts",
   "conversations",
