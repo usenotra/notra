@@ -86,6 +86,6 @@
     "@types/react": "^19.3.0",
     "@types/sanitize-html": "^2.16.0",
     "emulate": "0.10.0",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

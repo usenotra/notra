@@ -19,7 +19,7 @@ export function createIngestApp(defer: GeoIngestDefer) {
     return context.json({ ready }, ready ? 200 : 503);
   });
 
-  app.post(GEO_INGEST_PATH, (context) => {
+  app.post(GEO_INGEST_PATH, async (context) => {
     if (missingIngestEnvironment().length > 0) {
       return context.json({ error: "Ingest is not configured" }, 503);
     }

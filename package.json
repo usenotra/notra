@@ -45,6 +45,7 @@
     "oxlint": "1.82.0",
     "oxlint-tsgolint": "7.0.2001",
     "turbo": "^2.11.4",
+    "typescript": "7.0.2",
     "ultracite": "7.10.6"
   },
   "overrides": {
