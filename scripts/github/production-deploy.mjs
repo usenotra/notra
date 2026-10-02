@@ -4,9 +4,21 @@ import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 
 const projects = [
-  { name: "notra", directory: "apps/dashboard" },
-  { name: "notra-web", directory: "apps/web" },
-  { name: "notra-ui", directory: "apps/ui" },
+  {
+    name: "notra",
+    directory: "apps/dashboard",
+    productionAlias: "notra-notra.vercel.app",
+  },
+  {
+    name: "notra-web",
+    directory: "apps/web",
+    productionAlias: "notra-web-notra.vercel.app",
+  },
+  {
+    name: "notra-ui",
+    directory: "apps/ui",
+    productionAlias: "notra-ui-notra.vercel.app",
+  },
 ];
 const requiredWorkflows = ["code-quality.yml", "knip.yml"];
 const activeStates = new Set(["QUEUED", "INITIALIZING", "BUILDING"]);
@@ -135,16 +147,21 @@ export async function release({
     if (latest.link?.productionBranch !== "main") {
       throw new Error(`${project.name} production branch must remain main`);
     }
-    const production = latest.targets?.production;
-    let previousSha = deploymentSha(production);
-    if (production && !previousSha && production.id) {
-      const promoted = await request(
-        "vercel",
-        `/v13/deployments/${production.id}`
+    const alias = await request(
+      "vercel",
+      `/v4/aliases/${project.productionAlias}`
+    );
+    if (alias.projectId !== latest.id || !alias.deploymentId) {
+      throw new Error(
+        `${project.name}: production alias must identify this project's live deployment; no builds started`
       );
-      previousSha = deploymentSha(promoted);
     }
-    if (production && !previousSha) {
+    const production = await request(
+      "vercel",
+      `/v13/deployments/${alias.deploymentId}`
+    );
+    const previousSha = deploymentSha(production);
+    if (production.readyState !== "READY" || !previousSha) {
       throw new Error(
         `${project.name}: cannot identify the current production commit; no builds started`
       );
@@ -207,11 +224,16 @@ export async function release({
           if (deploymentSha(status) !== sha) {
             throw new Error(`${project.name}: built a different commit`);
           }
-          await report(`${project.name}: READY https://${status.url}`);
-          completed = true;
-          break;
-        }
-        if (!activeStates.has(status.readyState)) {
+          const alias = await request(
+            "vercel",
+            `/v4/aliases/${project.productionAlias}`
+          );
+          if (alias.deploymentId === deployment.id) {
+            await report(`${project.name}: READY https://${status.url}`);
+            completed = true;
+            break;
+          }
+        } else if (!activeStates.has(status.readyState)) {
           throw new Error(
             `${project.name}: deployment ended ${status.readyState}`
           );

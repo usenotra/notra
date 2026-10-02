@@ -354,10 +354,13 @@ running, cancelled, or failed checks prevent all builds for that release window.
 There is no automatic deployment when CI finishes later; the next scheduled
 window checks again.
 
-Each project is compared with its currently promoted production target. If the
-project response omits its commit SHA, the script fetches that target by deployment
-ID. An existing target whose commit cannot be identified blocks all new builds;
-the latest successful build is never used as a substitute. GitHub must confirm the
+Each project is compared with the deployment serving its stable production alias
+(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`, or
+`notra-ui-notra.vercel.app`). The script resolves that alias to a deployment ID,
+then reads its commit SHA. A missing alias, wrong project, or unidentified live
+commit blocks all new builds. Neither the latest successful build nor
+`targets.production` is used as a substitute: the latter can refer to a skipped
+build that was never published. GitHub must confirm the
 selected commit is ahead of each project's production commit, or already identical.
 An older workflow rerun, diverged history, or a failed history lookup blocks all new
 builds. This prevents
@@ -374,7 +377,8 @@ already-active production build blocks the release before new builds start.
 The API requests use the same checked commit SHA and the `production` target for
 every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
-SHA, and reports failures in the Actions summary. Polling is limited to ten minutes
+SHA and that the production alias points to the new deployment, and reports
+failures in the Actions summary. Polling is limited to ten minutes
 per project, with a 45-minute job limit for all three projects and API overhead.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
