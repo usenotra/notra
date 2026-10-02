@@ -129,7 +129,9 @@ interface ButtonContentProps {
 
 /* The animated inside of `Button`: the label, the loading dots and the
    progress fill. Kept in its own client module so `button.tsx` stays importable
-   from server components that only call `buttonVariants`. */
+   from server components that only call `buttonVariants`. The label is only
+   wrapped while a state is showing, so idle buttons keep their children as
+   direct children and `[&>svg]`-style selectors keep working. */
 function ButtonContent({
   children,
   loading,
@@ -156,21 +158,25 @@ function ButtonContent({
           {`${Math.round(progress)}%`}
         </span>
       )}
-      <span
-        className={cn(
-          "relative inline-flex min-w-0 flex-1 items-center [gap:inherit] [justify-content:inherit] motion-reduce:animate-none",
-          loading && "opacity-0",
-          isSwapping &&
-            (loading
-              ? "animate-button-swap-out"
-              : "animate-button-swap-in [animation-delay:70ms]")
-        )}
-        // Tells the button to clip the swapping layers to its shape.
-        data-clip={showLoader || showProgress ? "" : undefined}
-        data-slot="button-label"
-      >
-        {children}
-      </span>
+      {showLoader || showProgress ? (
+        <span
+          className={cn(
+            "relative inline-flex min-w-0 flex-1 items-center [gap:inherit] [justify-content:inherit] motion-reduce:animate-none",
+            loading && "opacity-0",
+            isSwapping &&
+              (loading
+                ? "animate-button-swap-out"
+                : "animate-button-swap-in [animation-delay:70ms]")
+          )}
+          // Tells the button to clip the swapping layers to its shape.
+          data-clip=""
+          data-slot="button-label"
+        >
+          {children}
+        </span>
+      ) : (
+        children
+      )}
       {showLoader && (
         <ButtonLoader
           entering={isSwapping}
