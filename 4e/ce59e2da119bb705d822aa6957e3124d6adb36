@@ -1,0 +1,131 @@
+apps/dashboard/src/components/geo/persona-table-actions.tsx
+  s_390de6aad5b710::t_84006e81b517b3 13-15,19,166-171
+apps/ui/registry/notra/sonner/examples/sonner-types.tsx
+  s_390de6aad5b710::t_84006e81b517b3 1-58
+packages/geo/tests/tanstack.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 44
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  ai_agent 10,36-40,46,119-145,262-281
+apps/ui/registry/notra/sonner/examples/sonner-action.tsx
+  s_390de6aad5b710::t_84006e81b517b3 1-38
+apps/ui/docs/components/sonner.mdx
+  s_390de6aad5b710::t_84006e81b517b3 1-50
+packages/geo-core/src/geo/conversation-replay.ts
+  s_390de6aad5b710::t_84006e81b517b3 17,57,67-68
+apps/ui/components/ui/sonner.tsx
+  s_390de6aad5b710::t_84006e81b517b3 3,8-10,15-42,47-48,50-55,57,59,61-71
+packages/geo-core/tests/scan-lifecycle.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 32,1040-1100
+packages/ai/src/schemas/content-publication.ts
+  s_390de6aad5b710::t_84006e81b517b3 13
+apps/dashboard/src/types/content/collection.ts
+  s_390de6aad5b710::t_84006e81b517b3 54,60-65
+apps/dashboard/src/components/content/collection-menu-items.tsx
+  s_390de6aad5b710::t_84006e81b517b3 1-111
+apps/ui/src/constants/example-heights.ts
+  s_390de6aad5b710::t_84006e81b517b3 92-93
+packages/ai/src/types/content-publication.ts
+  s_390de6aad5b710::t_84006e81b517b3 48-49
+packages/ai/src/utils/github-mention-sandbox.ts
+  s_390de6aad5b710::t_84006e81b517b3 202,233,235-237
+apps/dashboard/tests/geo-scan-workflow.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 182-202,209-217,387-394,611-612
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_390de6aad5b710::t_84006e81b517b3 169
+apps/web/src/routes/__root.tsx
+  s_390de6aad5b710::t_84006e81b517b3 2
+apps/dashboard/messages/en.json
+  ai_agent 2982,3030,3047,6105-6112,6143-6144
+apps/dashboard/src/components/content/collections-view.tsx
+  s_390de6aad5b710::t_84006e81b517b3 5-14,17-21,26,28-31,39,141,149-211,270-279,295-299,301-343,352,358-383
+packages/ai/src/types/github-mention-move.ts
+  s_390de6aad5b710::t_84006e81b517b3 1-17
+packages/geo/tests/sveltekit.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 41
+packages/geo-core/src/types/geo-conversations.ts
+  s_390de6aad5b710::t_84006e81b517b3 13-14
+packages/geo-core/src/constants/geo-personas.ts
+  s_390de6aad5b710::t_84006e81b517b3 16-20
+apps/ui/registry.json
+  s_390de6aad5b710::t_84006e81b517b3 975-988
+apps/dashboard/src/components/skills/skill-unsaved-changes-toast.tsx
+  s_390de6aad5b710::t_84006e81b517b3 16-23
+packages/geo-core/tests/conversation-replay-billing.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 1-108
+packages/geo-core/tests/persona-scan.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 24-26,508-513
+packages/ai/src/utils/update-published-content.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 119,263
+packages/ai/src/schemas/github-mention.ts
+  s_390de6aad5b710::t_84006e81b517b3 1,91-171
+apps/dashboard/src/workflows/geo-scan.ts
+  s_390de6aad5b710::t_84006e81b517b3 70-71,74-80,335-336
+packages/geo/README.md
+  s_390de6aad5b710::t_84006e81b517b3 63,81,96,125,131-135
+packages/geo-core/src/geo/persona-scan.ts
+  s_390de6aad5b710::t_84006e81b517b3 12,46,328-332,434
+apps/dashboard/src/lib/hooks/use-post-actions.ts
+  s_390de6aad5b710::t_84006e81b517b3 12,69-89,124,127-133
+apps/docs/organization/billing.mdx
+  s_390de6aad5b710::t_84006e81b517b3 56
+apps/ai-traffic-ingest/README.md
+  s_390de6aad5b710::t_84006e81b517b3 116-120,122-136
+packages/ai/src/tools/github-mention.ts
+  s_390de6aad5b710::t_84006e81b517b3 4,7-11,22,190-192,196-290,292-297,300-325,331,334-343,677
+packages/geo/src/constants.ts
+  s_390de6aad5b710::t_84006e81b517b3 3
+packages/geo-core/src/types/geo.ts
+  s_390de6aad5b710::t_84006e81b517b3 699-702,719-720
+apps/ui/src/components/preview-toaster.tsx
+  s_390de6aad5b710::t_84006e81b517b3 34
+packages/geo-core/src/geo/scan.ts
+  s_390de6aad5b710::t_84006e81b517b3 1538-1539,1544-1545,1552
+apps/web/src/utils/site-markdown.ts
+  s_390de6aad5b710::t_84006e81b517b3 288
+packages/geo/tests/astro.test.ts
+  s_390de6aad5b710::t_84006e81b517b3 41,53-67
+packages/ai/src/utils/update-published-content.ts
+  s_390de6aad5b710::t_84006e81b517b3 134,165-166,178-179,194
+packages/geo-core/src/utils/token-usage.ts
+  s_390de6aad5b710::t_84006e81b517b3 118-134
+apps/docs/geo/traffic.mdx
+  s_390de6aad5b710::t_84006e81b517b3 79,89,106,123,139,152,165,187,193
+apps/dashboard/src/components/geo/personas-table.tsx
+  s_390de6aad5b710::t_84006e81b517b3 5,178-182
+apps/ui/docs/components/meta.ts
+  s_390de6aad5b710::t_84006e81b517b3 10
+apps/web/src/styles/ui-sources.css
+  s_390de6aad5b710::t_84006e81b517b3 78
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_390de6aad5b710::t_84006e81b517b3 61,64,1239,1244-1251,1253-1270
+packages/ai/src/utils/github-mention-move.ts
+  s_390de6aad5b710::t_84006e81b517b3 1-145
+apps/dashboard/messages/de.json
+  ai_agent 2982,3030,3047,6105-6112,6143-6144
+packages/ai/src/constants/github-mention.ts
+  s_390de6aad5b710::t_84006e81b517b3 37-45
+apps/dashboard/src/types/geo-personas-ui.ts
+  s_390de6aad5b710::t_84006e81b517b3 133-136
+packages/ai/src/utils/content-publication.ts
+  s_390de6aad5b710::t_84006e81b517b3 335
+apps/dashboard/src/components/geo/persona-answer-cost.tsx
+  s_390de6aad5b710::t_84006e81b517b3 1-23
+packages/ai/src/prompts/github-mention.ts
+  s_390de6aad5b710::t_84006e81b517b3 158,177-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4ece59e2da119bb705d822aa6957e3124d6adb36",
+  "prompts": {},
+  "sessions": {
+    "s_390de6aad5b710": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9e0d60a4-74dd-48fd-b8c6-7a7b6fce3d4e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
