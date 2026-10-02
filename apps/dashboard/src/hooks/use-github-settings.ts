@@ -87,7 +87,7 @@ export function useGitHubSettings(organizationSlug: string) {
     const callbackPath = pathname || `/${organizationSlug}/integrations/github`;
     const result = await startGitHubInstall({ organizationId, callbackPath });
     if (!result.started) {
-      toast.error(t("installFailed"));
+      toast.error(result.message ?? t("installFailed"));
     }
   };
   const migrationMutation = useGitHubRepositoryMigration(

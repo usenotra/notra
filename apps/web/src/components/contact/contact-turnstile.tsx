@@ -1,12 +1,10 @@
-"use client";
-
-import Script from "next/script";
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import {
   CONTACT_TURNSTILE_ACTION,
   TURNSTILE_SITE_KEY,
 } from "@/constants/turnstile";
+import { loadTurnstileScript } from "@/lib/contact/load-turnstile";
 import type { ContactTurnstileProps } from "@/types/turnstile";
 
 export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
@@ -27,6 +25,25 @@ export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
     }),
     [onToken]
   );
+
+  useEffect(() => {
+    let active = true;
+    loadTurnstileScript()
+      .then(() => {
+        if (active) {
+          setReady(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          onToken("");
+          setFailed(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [onToken]);
 
   useEffect(() => {
     const api = window.turnstile;
@@ -59,14 +76,6 @@ export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <Script
-        onError={() => {
-          onToken("");
-          setFailed(true);
-        }}
-        onReady={() => setReady(true)}
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-      />
       <div ref={container} />
       {failed || !TURNSTILE_SITE_KEY ? (
         <p className="text-destructive font-sans text-sm" role="alert">

@@ -6,7 +6,10 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
-import { createLinearClient } from "@notra/ai/utils/linear";
+import {
+  createLinearClient,
+  getLinearIssuePreviews,
+} from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
@@ -55,8 +58,10 @@ import {
   eq,
   gte,
   inArray,
+  isNull,
   lt,
   ne,
+  or,
   sql,
 } from "drizzle-orm";
 import { marked } from "marked";
@@ -100,6 +105,7 @@ import { resolveLookbackRange } from "@/utils/lookback";
 import { ratelimit } from "@/utils/ratelimit";
 
 import {
+  assertNotDemo,
   badRequest,
   conflict,
   internalServerError,
@@ -911,6 +917,8 @@ export const contentRouter = {
         organizationId: input.organizationId,
       });
       await assertActiveSubscription(input.organizationId);
+      // The demo's repository is fictional; GitHub writes need a real one.
+      assertNotDemo();
 
       if (
         process.env.UPSTASH_REDIS_REST_URL &&
@@ -1228,26 +1236,38 @@ export const contentRouter = {
           organizationId: input.organizationId,
         });
 
-        const existingCollection = await db.query.postCollections.findFirst({
-          where: and(
-            eq(postCollections.id, input.collectionId),
-            eq(postCollections.organizationId, input.organizationId)
-          ),
-          columns: { id: true },
-        });
-
-        if (!existingCollection) {
-          throw notFound("Post collection not found");
-        }
-
-        await db
+        const [deletedCollection] = await db
           .delete(postCollections)
           .where(
             and(
               eq(postCollections.id, input.collectionId),
-              eq(postCollections.organizationId, input.organizationId)
+              eq(postCollections.organizationId, input.organizationId),
+              or(
+                isNull(postCollections.expectedPostCount),
+                gte(
+                  postCollections.completedPostCount,
+                  postCollections.expectedPostCount
+                )
+              )
             )
-          );
+          )
+          .returning({ id: postCollections.id });
+
+        if (!deletedCollection) {
+          const existingCollection = await db.query.postCollections.findFirst({
+            where: and(
+              eq(postCollections.id, input.collectionId),
+              eq(postCollections.organizationId, input.organizationId)
+            ),
+            columns: { id: true },
+          });
+
+          if (!existingCollection) {
+            throw notFound("Post collection not found");
+          }
+
+          throw conflict("Cannot delete a collection while it is generating");
+        }
 
         return { success: true };
       }),
@@ -1515,34 +1535,16 @@ export const contentRouter = {
                 lte: lookback.end.toISOString(),
               };
 
-              const issues = await client.issues({
+              const issues = await getLinearIssuePreviews(client, {
                 filter,
                 first: 50,
                 orderBy: "updatedAt" as never,
               });
 
-              const items = await Promise.all(
-                issues.nodes.map(async (issue) => {
-                  const [state, assignee] = await Promise.all([
-                    issue.state,
-                    issue.assignee,
-                  ]);
-                  return {
-                    id: issue.id,
-                    identifier: issue.identifier,
-                    title: issue.title,
-                    state: state?.name ?? null,
-                    assignee: assignee?.name ?? assignee?.displayName ?? null,
-                    completedAt: issue.completedAt?.toISOString() ?? null,
-                    url: issue.url,
-                  };
-                })
-              );
-
               return {
                 integrationId: integration.id,
                 displayName: integration.displayName,
-                issues: items,
+                issues,
               };
             } catch (error) {
               console.error(

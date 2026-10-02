@@ -1,8 +1,17 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import inter400 from "@fontsource/inter/files/inter-latin-400-normal.woff?inline";
+import inter500 from "@fontsource/inter/files/inter-latin-500-normal.woff?inline";
+import inter600 from "@fontsource/inter/files/inter-latin-600-normal.woff?inline";
 
-const GOOGLE_FONT_URL_REGEX =
-  /src: url\((.+)\) format\('(opentype|truetype)'\)/;
+const PUBLIC_AUTHOR_IMAGES = import.meta.glob<string>(
+  "/public/blog/authors/*.{png,jpg,jpeg,webp,avif}",
+  { query: "?inline", import: "default" }
+);
+
+const INTER_FONT_DATA_URLS = {
+  400: inter400,
+  500: inter500,
+  600: inter600,
+} as const;
 
 export function splitTitleForDot(title: string) {
   const words = title.split(" ");
@@ -16,21 +25,9 @@ export function splitTitleForDot(title: string) {
   return { leading, lastWord };
 }
 
-export async function loadGoogleFont(family: string, text: string) {
-  const url = `https://fonts.googleapis.com/css2?family=${family.replace(
-    / /g,
-    "+"
-  )}&text=${encodeURIComponent(text)}`;
-  const css = await (await fetch(url)).text();
-  const fontUrl = css.match(GOOGLE_FONT_URL_REGEX)?.[1];
-  if (!fontUrl) {
-    throw new Error(`Failed to resolve font URL for ${family}`);
-  }
-  const fontResponse = await fetch(fontUrl);
-  if (!fontResponse.ok) {
-    throw new Error(`Failed to fetch font file for ${family}`);
-  }
-  return fontResponse.arrayBuffer();
+export function loadInterFont(weight: keyof typeof INTER_FONT_DATA_URLS) {
+  const [, base64 = ""] = INTER_FONT_DATA_URLS[weight].split(",");
+  return Buffer.from(base64, "base64");
 }
 
 export function truncate(value: string, max: number) {
@@ -44,7 +41,12 @@ export async function loadImageAsDataUrl(url: string | null) {
   try {
     let input: Buffer;
     if (url.startsWith("/")) {
-      input = await readFile(join(process.cwd(), "public", url));
+      const loadPublicImage = PUBLIC_AUTHOR_IMAGES[`/public${url}`];
+      if (!loadPublicImage) {
+        return null;
+      }
+      const dataUrl = await loadPublicImage();
+      input = Buffer.from(dataUrl.slice(dataUrl.indexOf(",") + 1), "base64");
     } else {
       const response = await fetch(url);
       if (!response.ok) {

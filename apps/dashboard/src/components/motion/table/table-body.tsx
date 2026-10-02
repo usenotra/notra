@@ -29,6 +29,7 @@ export function TableBody<T>({
   onToggleRow,
   onCellEdit,
   onRowClick,
+  rowKeyboardActivation,
   isRowClickable,
   onRowPointerEnter,
   renderRowContextMenu,
@@ -95,6 +96,7 @@ export function TableBody<T>({
                   ? onRowClick
                   : undefined
               }
+              rowKeyboardActivation={rowKeyboardActivation}
               onRowPointerEnter={onRowPointerEnter}
               onToggleRow={onToggleRow}
               renderRowContextMenu={renderRowContextMenu}

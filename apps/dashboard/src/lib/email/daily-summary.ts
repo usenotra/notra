@@ -30,6 +30,7 @@ import { and, asc, eq, gte, inArray, isNull, lt, or } from "drizzle-orm";
 
 import {
   DAILY_SUMMARY_MAX_ITEMS,
+  DAILY_SUMMARY_LISTED_CHANGE_KINDS,
   DAILY_SUMMARY_PROMPT_MAX_LENGTH,
 } from "@/constants/daily-summary";
 import { sendDailySummaryEmail } from "@/lib/email/send";
@@ -40,8 +41,8 @@ import {
   formatDailySummaryChangeDetail,
   getPreviousUtcDayWindow,
   groupDailySummaryItems,
+  isDailySummaryTrigger,
   isQuietDailySummary,
-  isUnchangedDailySummary,
   mergeChangesSummaries,
   truncatePrompt,
   utcDateKey,
@@ -246,36 +247,39 @@ async function sendDailySummaryForOrganization({
     projectRows.map((project) => [project.id, project.name])
   );
   const includeProjectName = projectIds.length > 1;
-  const changeEvents = projectChanges.flatMap((entry) => entry?.events ?? []);
-  const summaryItems = groupDailySummaryItems(
-    projectChanges.flatMap((entry) => {
-      if (!entry) {
-        return [];
-      }
+  const changeEvents = projectChanges.flatMap((entry) =>
+    entry
+      ? entry.events.map((event) => ({ projectId: entry.projectId, event }))
+      : []
+  );
+  if (!changeEvents.some(({ event }) => isDailySummaryTrigger(event))) {
+    return "quiet";
+  }
 
-      const projectName = projectNames.get(entry.projectId);
-      return entry.events.map((event) =>
-        toSummaryChangeItem(event, {
-          projectId: entry.projectId,
-          projectName: includeProjectName ? projectName : undefined,
-        })
-      );
-    })
+  // Changes that triggered the email go first so the visible rows always
+  // explain the headline, even when other projects have many rank changes.
+  const listedEvents = changeEvents
+    .filter(({ event }) => DAILY_SUMMARY_LISTED_CHANGE_KINDS.has(event.kind))
+    .toSorted(
+      (left, right) =>
+        Number(isDailySummaryTrigger(right.event)) -
+        Number(isDailySummaryTrigger(left.event))
+    );
+  const summaryItems = groupDailySummaryItems(
+    listedEvents.map(({ projectId, event }) =>
+      toSummaryChangeItem(event, {
+        projectId,
+        projectName: includeProjectName
+          ? projectNames.get(projectId)
+          : undefined,
+      })
+    )
   );
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
   const previousDay = aggregateMentionTotals(previousOverview);
   const changes = mergeChangesSummaries(summaries);
-  if (
-    isUnchangedDailySummary({
-      yesterday,
-      previousDay,
-      hasChanges: changeEvents.some((event) => event.kind !== "new_engine"),
-    })
-  ) {
-    return "quiet";
-  }
 
   const visibleItems = summaryItems.slice(0, DAILY_SUMMARY_MAX_ITEMS);
   const summary = buildDailySummary({
@@ -331,7 +335,7 @@ function toSummaryChangeItem(
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
   const engineLabel = engineFamilyLabel(family);
-  const detail = formatDailySummaryChangeDetail(event.kind, event.competitors);
+  const detail = formatDailySummaryChangeDetail(event);
 
   return {
     id: `${projectId}:${event.promptId}:${event.engine}`,

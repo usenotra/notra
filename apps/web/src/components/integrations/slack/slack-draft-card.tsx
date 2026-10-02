@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import {
   SLACK_DRAFT_ACTION_LABEL,
   SLACK_DRAFT_BODY,
@@ -13,7 +11,9 @@ export function SlackDraftCard() {
     <div className="flex w-full grow basis-0 flex-col overflow-clip rounded-[1.25rem] bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282820_0_0.5rem_1.5rem_-0.5rem] lg:w-auto dark:bg-[#17131F] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
       <div className="flex items-center justify-between px-5 py-3.5 [box-shadow:#F0F0F0_0_-0.0625rem_0_inset] dark:[box-shadow:#FFFFFF14_0_-0.0625rem_0_inset]">
         <div className="flex items-center gap-2">
-          <Image
+          <img
+            decoding="async"
+            loading="lazy"
             alt="Notra logo"
             className="size-4.5 shrink-0"
             height={18}

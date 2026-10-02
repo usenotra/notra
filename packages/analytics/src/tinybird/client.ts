@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { createTimeoutFetch } from "@notra/utils/timeout-fetch";
 import {
   type InferParams,
@@ -48,6 +49,8 @@ import {
   socialPostStats,
   socialPosts,
 } from "./datasources";
+import { queryDemoPipe } from "./demo-geo-traffic";
+import { isDemoSocialPipe, queryDemoSocialPipe } from "./demo-social";
 import {
   geoJourneyDetail,
   geoJourneyPages,
@@ -75,8 +78,16 @@ import {
  */
 const TINYBIRD_REQUEST_TIMEOUT_MS = 10_000;
 
-export function isTinybirdConfigured(): boolean {
+function hasTinybirdToken(): boolean {
   return Boolean(process.env.TINYBIRD_TOKEN);
+}
+
+/**
+ * Whether analytics can be read. The public demo has no Tinybird but answers
+ * every mirrored pipe from generated data; writes stay token-gated.
+ */
+export function isTinybirdConfigured(): boolean {
+  return hasTinybirdToken() || isDemoMode();
 }
 
 function createTinybirdClient(fetch?: typeof globalThis.fetch) {
@@ -121,7 +132,7 @@ let cachedQueryClient: ReturnType<typeof createTinybirdClient> | null = null;
 let cachedMutationClient: ReturnType<typeof createTinybirdClient> | null = null;
 
 function getTinybirdQueryClient() {
-  if (!isTinybirdConfigured()) {
+  if (!hasTinybirdToken()) {
     return null;
   }
   if (!cachedQueryClient) {
@@ -133,7 +144,7 @@ function getTinybirdQueryClient() {
 }
 
 function getTinybirdMutationClient() {
-  if (!isTinybirdConfigured()) {
+  if (!hasTinybirdToken()) {
     return null;
   }
   if (!cachedMutationClient) {
@@ -169,6 +180,12 @@ function cachedPipeQuery<TParams extends Record<string, unknown>, TRow>(
     client: NonNullable<ReturnType<typeof getTinybirdQueryClient>>
   ) => Promise<QueryResult<TRow>>
 ): Promise<QueryResult<TRow> | null> {
+  // The public demo has no Tinybird; its analytics are generated at read time.
+  if (isDemoMode()) {
+    return isDemoSocialPipe(pipe)
+      ? queryDemoSocialPipe<TRow>(pipe, params)
+      : queryDemoPipe<TRow>(pipe, params);
+  }
   const client = getTinybirdQueryClient();
   if (!client) {
     return Promise.resolve(null);
@@ -244,7 +261,12 @@ export function ingestGeoTrafficEvents(
     rows,
     "geo",
     rows.map((row) => row.organization_id),
-    (client, batch) => client.geoTrafficEvents.ingestBatch(batch)
+    // wait=true holds the response until Tinybird's next flush (p90 ~2.8 s,
+    // measured), past the 2 s budget of the SDK that posts these events.
+    // Without it Tinybird still validates synchronously and reports
+    // quarantined rows, but answers in ~20 ms once the rows are buffered.
+    (client, batch) =>
+      client.geoTrafficEvents.ingestBatch(batch, { wait: false })
   );
 }
 

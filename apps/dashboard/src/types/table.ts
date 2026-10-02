@@ -34,6 +34,13 @@ export interface TableHeaderSurfaceProps extends Pick<
   children: ReactNode;
 }
 
+export interface TableFrameProps extends Pick<
+  TableProps<unknown>,
+  "flushTop" | "flushBottom"
+> {
+  children: ReactNode;
+}
+
 export type TableFooterSurfaceProps = Pick<
   TableProps<unknown>,
   "footer" | "flushBottom"
@@ -81,6 +88,7 @@ export interface TableViewportLayoutOptions {
   rowSizing: NonNullable<TableProps<unknown>["rowSizing"]>;
   height: number;
   minHeight?: number;
+  autoHeight?: boolean;
   horizontalScrollbarHeight: number;
 }
 
@@ -105,6 +113,7 @@ export interface UseTableViewportOptions<T> extends Omit<
 export interface TableBodyProps<T> extends Pick<
   TableProps<T>,
   | "onRowClick"
+  | "rowKeyboardActivation"
   | "isRowClickable"
   | "onRowPointerEnter"
   | "onCellEdit"

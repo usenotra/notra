@@ -114,6 +114,10 @@ export function useGitHubRepositoriesDb(
     if (!integration) {
       return;
     }
+    const currentOutputs =
+      integration.repositories.find(
+        (repository) => repository.id === repositoryId
+      )?.outputs ?? [];
     const transaction = collection.update(integration.id, (draft) => {
       const repository = draft.repositories.find(
         (candidate) => candidate.id === repositoryId
@@ -121,20 +125,24 @@ export function useGitHubRepositoriesDb(
       if (!repository) {
         return;
       }
-      const outputs = repository.outputs ?? [];
-      const output = outputs.find(
+      const output = repository.outputs?.find(
         (candidate) => candidate.outputType === outputType
       );
       if (output) {
         output.enabled = enabled;
-      } else {
-        outputs.push({
+        return;
+      }
+      // Assign a plain array: pushing onto the draft's array and assigning it
+      // back makes TanStack DB's change proxy read the new index from the
+      // original object, where it is undefined, and the update throws.
+      repository.outputs = [
+        ...currentOutputs,
+        {
           id: pendingOutputId(repositoryId, outputType),
           outputType,
           enabled,
-        });
-      }
-      repository.outputs = outputs;
+        },
+      ];
     });
     await persist(integration.id, transaction, t("publishingUpdateFailed"));
   };

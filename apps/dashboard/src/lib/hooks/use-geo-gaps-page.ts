@@ -91,6 +91,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
         competitors,
         organizationId,
         hasScanData: gapsQuery.data?.hasScanData ?? false,
+        snapshotReady: gapsQuery.data?.snapshotReady ?? false,
         isScanning,
         onOpenPost: (postId) => {
           router.push(geoContentPath(organizationSlug, postId));
@@ -169,7 +170,6 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             topic: row.query,
           });
         },
-        organizationSlug,
         promptGaps: gapsQuery.data?.promptGaps ?? [],
         searchGaps: gapsQuery.data?.searchGaps ?? [],
         aiSearchGaps: gapsQuery.data?.aiSearchGaps ?? [],

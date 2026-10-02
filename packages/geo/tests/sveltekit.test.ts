@@ -38,7 +38,7 @@ describe("SvelteKit handle", () => {
     expect(resolve).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledTimes(1);
     const [url, init] = send.mock.calls[0] ?? [];
-    expect(url).toBe("https://app.usenotra.com/api/geo/ingest");
+    expect(url).toBe("https://ingest.usenotra.com/api/geo/ingest");
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer test-token"
     );

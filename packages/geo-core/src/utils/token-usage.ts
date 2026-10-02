@@ -115,6 +115,23 @@ export function addAgentTokenUsage(
   };
 }
 
+/** Usage as if every call had run `factor` times, for weighted billing. */
+export function scaleAgentTokenUsage(
+  usage: AgentTokenUsage,
+  factor: number
+): AgentTokenUsage {
+  const normalized = agentTokenUsageFrom(usage);
+  return {
+    inputTokens: normalized.inputTokens * factor,
+    outputTokens: normalized.outputTokens * factor,
+    totalTokens: normalized.totalTokens * factor,
+    cacheReadTokens: normalized.cacheReadTokens * factor,
+    cacheWriteTokens: normalized.cacheWriteTokens * factor,
+    reasoningTokens: (normalized.reasoningTokens ?? 0) * factor,
+    totalUsd: (normalized.totalUsd ?? 0) * factor,
+  };
+}
+
 export function agentTokenUsageFrom(
   usage: GeoTokenUsageInput | undefined
 ): AgentTokenUsage {

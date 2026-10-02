@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import { Fragment, useState } from "react";

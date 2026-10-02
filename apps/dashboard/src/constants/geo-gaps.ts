@@ -5,14 +5,13 @@ import type { GeoGapsTab } from "@/types/components/geo-gaps";
 export const GEO_GAPS_TABS: { value: GeoGapsTab }[] = [
   { value: "prompt" },
   { value: "search" },
-  { value: "ai" },
 ];
 
 export const GEO_GAPS_EMPTY_MESSAGE_KEYS = {
+  preparing: "preparing",
   scanning: "scanning",
   "no-scan": "noScan",
   "no-prompt-gaps": "noPromptGaps",
-  "no-ai-search-gaps": "noAiSearchGaps",
   "no-search-gaps": "noSearchGaps",
   "no-matches": "noMatches",
 } as const;

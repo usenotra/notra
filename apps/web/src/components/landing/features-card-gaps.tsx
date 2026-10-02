@@ -1,5 +1,3 @@
-"use client";
-
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { GapMeter } from "@notra/ui/components/geo/gap-meter";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";

@@ -59,6 +59,46 @@ describe("QStash adapter", () => {
     }
   });
 
+  test("destination problems are classified at the adapter, not by callers", async () => {
+    const create = (
+      env: { QSTASH_TOKEN?: string; WORKFLOW_BASE_URL?: string },
+      body: string
+    ) =>
+      Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* QstashService;
+          return yield* Effect.flip(
+            service.create({ triggerId: "trigger", cron: "0 0 * * *" })
+          );
+        }).pipe(
+          Effect.provide(
+            qstashLayer(env, async () => new Response(body, { status: 400 }))
+          )
+        )
+      );
+
+    const configured = {
+      QSTASH_TOKEN: "test",
+      WORKFLOW_BASE_URL: "http://localhost:3000",
+    };
+    expect(
+      await create(configured, '{"error":"invalid destination url: localhost"}')
+    ).toMatchObject({ kind: "destination", status: 400 });
+    expect(
+      await create(configured, '{"error":"unable to resolve host example"}')
+    ).toMatchObject({ kind: "destination" });
+    expect(await create(configured, '{"error":"invalid cron"}')).toMatchObject({
+      kind: "http",
+      status: 400,
+    });
+    expect(await create({ QSTASH_TOKEN: "test" }, "")).toMatchObject({
+      kind: "destination",
+    });
+    expect(
+      await create({ WORKFLOW_BASE_URL: "https://example.test" }, "")
+    ).toMatchObject({ kind: "configuration" });
+  });
+
   test("configuration failures stop before transport", async () => {
     let calls = 0;
     await expect(

@@ -1,0 +1,22 @@
+{
+  "name": "ai-traffic-ingest",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "NODE_ENV=production bun build src/index.ts --target=bun --outdir=dist",
+    "start": "bun dist/index.js",
+    "check-types": "tsc --noEmit",
+    "test": "bun run build && bun test tests"
+  },
+  "dependencies": {
+    "@notra/ai": "workspace:*",
+    "@notra/geo-core": "workspace:*",
+    "hono": "^4.12.30"
+  },
+  "devDependencies": {
+    "@notra/typescript-config": "workspace:*",
+    "bun-types": "1.4.0",
+    "typescript": "5.9.2"
+  }
+}

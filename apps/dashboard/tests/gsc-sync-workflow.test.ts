@@ -2,6 +2,7 @@ import { beforeEach, expect, mock, test } from "bun:test";
 
 import type { GscSyncResult } from "@notra/geo-core/types/google-search-console";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { FatalError } from "workflow";
@@ -28,6 +29,9 @@ const track = mock(
     undefined
 );
 const appendLog = mock(async (_input: { status: string }) => undefined);
+const refreshGaps = mock(
+  async (_input: { organizationId: string; projectId: string }) => undefined
+);
 
 mock.module("../src/workflows/steps/gsc-sync-steps", () => ({
   listGscSyncProjectsStep: listProjects,
@@ -37,6 +41,9 @@ mock.module("../src/workflows/steps/gsc-sync-steps", () => ({
 mock.module("../src/workflows/steps/content-generation-steps", () => ({
   fetchLogRetention: async () => 30,
   appendAutomationLogBestEffort: appendLog,
+}));
+mock.module("../src/workflows/steps/refresh-geo-content-gaps", () => ({
+  refreshGeoContentGapsStep: refreshGaps,
 }));
 
 const { gscSyncWorkflow } = await import("../src/workflows/gsc-sync");
@@ -72,6 +79,7 @@ beforeEach(() => {
   syncProject.mockReset();
   track.mockClear();
   appendLog.mockClear();
+  refreshGaps.mockClear();
   syncProject.mockResolvedValue({
     status: "completed",
     keywords: 1,
@@ -115,6 +123,32 @@ test("successful project steps aggregate their results", async () => {
     suggestionsAdded: 2,
   });
   expect(appendLog.mock.calls[0]?.[0]).toMatchObject({ status: "success" });
+  expect(refreshGaps.mock.calls.map(([scope]) => scope.projectId)).toEqual([
+    "project-a",
+    "project-b",
+  ]);
+});
+
+test("a failed snapshot refresh leaves a committed Search Console sync successful", async () => {
+  refreshGaps.mockImplementationOnce(async () => {
+    throw new Error("Snapshot unavailable");
+  });
+
+  expect(await gscSyncWorkflow({ organizationId: "org-test" })).toEqual({
+    status: "completed",
+    keywords: 2,
+    suggestionsAdded: 2,
+  });
+  expect(track.mock.calls[0]?.[1]).toMatchObject({ status: "completed" });
+  expect(refreshGaps).toHaveBeenCalledTimes(2);
+  expect(appendLog.mock.calls.map(([entry]) => entry.status)).toEqual([
+    "failed",
+    "success",
+  ]);
+  expect(appendLog.mock.calls[0]?.[0]).toMatchObject({
+    title: "Content gaps could not refresh for project-a",
+    errorMessage: "Snapshot unavailable",
+  });
 });
 
 test("disconnect invalidates cached queries for both projects but not other organizations", async () => {
@@ -157,9 +191,19 @@ test("disconnect invalidates cached queries for both projects but not other orga
   client.setQueryData(otherKey, status);
   renderToString(
     createElement(
-      QueryClientProvider,
-      { client },
-      createElement(DisconnectHook)
+      NextIntlClientProvider,
+      {
+        locale: "en",
+        timeZone: "UTC",
+        messages: {
+          geo: { toasts: { googleSearchConsoleDisconnected: "Disconnected" } },
+        },
+      } as Parameters<typeof NextIntlClientProvider>[0],
+      createElement(
+        QueryClientProvider,
+        { client },
+        createElement(DisconnectHook)
+      )
     )
   );
   await result.current?.mutateAsync();
@@ -194,14 +238,24 @@ test("Search Console analysis mutations and pending state are project-scoped", a
   }
   renderToString(
     createElement(
-      QueryClientProvider,
-      { client },
+      NextIntlClientProvider,
+      {
+        locale: "en",
+        timeZone: "UTC",
+        messages: {
+          geo: { toasts: { searchConsoleSync: { noNewSuggestions: "Done" } } },
+        },
+      } as Parameters<typeof NextIntlClientProvider>[0],
       createElement(
-        GeoProjectProvider,
-        {
-          projectId: "project-a",
-        } as Parameters<typeof GeoProjectProvider>[0],
-        createElement(AnalyzeHook)
+        QueryClientProvider,
+        { client },
+        createElement(
+          GeoProjectProvider,
+          {
+            projectId: "project-a",
+          } as Parameters<typeof GeoProjectProvider>[0],
+          createElement(AnalyzeHook)
+        )
       )
     )
   );

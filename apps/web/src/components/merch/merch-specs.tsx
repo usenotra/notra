@@ -1,5 +1,4 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import { MERCH_SPEC_ROWS } from "@/constants/merch";
 
@@ -19,7 +18,9 @@ export function MerchSpecs() {
 
         <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="overflow-clip rounded-[0.8125rem] bg-[#F1ECFB40] shadow-[0_0.0625rem_0.125rem_#0A0D1408] ring-1 ring-[#ECECEC] dark:bg-white/5 dark:ring-white/10">
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt="Side view of the Notra Classic Hat in stone"
               className="h-full max-h-[35rem] w-full object-cover"
               height={1440}

@@ -59,7 +59,7 @@ const noop = () => undefined;
 
 function BillingPlanCardSkeleton() {
   return (
-    <TitleCard heading={<Skeleton className="h-5 w-24" />}>
+    <TitleCard headingAs="div" heading={<Skeleton className="h-5 w-24" />}>
       <div className="space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-full" />

@@ -8,6 +8,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
+import { ORPCError } from "@orpc/client";
 import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -46,6 +47,18 @@ import {
   createCompetitor,
   findCompetitor,
 } from "@/utils/onboarding-competitors";
+
+/**
+ * A scan billing refuses up front is no reason to block onboarding; the
+ * mutation's toast already explains it.
+ */
+function leaveOnPaymentRequired(leave: () => void) {
+  return (error: unknown) => {
+    if (error instanceof ORPCError && error.code === "PAYMENT_REQUIRED") {
+      leave();
+    }
+  };
+}
 
 function CompetitorsPicker({
   organizationId,
@@ -120,16 +133,17 @@ function CompetitorsPicker({
       added_all: suggested.length > 0 && remainingSuggestions.length === 0,
       started_scan: !geoLocked,
     });
-    if (geoLocked) {
+    const leave = () => {
       setIsLeaving(true);
       router.push(nextHref);
+    };
+    if (geoLocked) {
+      leave();
       return;
     }
     startScan.mutate("onboarding", {
-      onSuccess: () => {
-        setIsLeaving(true);
-        router.push(nextHref);
-      },
+      onSuccess: leave,
+      onError: leaveOnPaymentRequired(leave),
     });
   };
 

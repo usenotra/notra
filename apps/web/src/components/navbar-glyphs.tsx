@@ -1,5 +1,3 @@
-"use client";
-
 import { Cancel01Icon, Menu02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SPRING } from "@notra/ui/lib/motion";

@@ -57,17 +57,10 @@ export function ModalContent({
         </div>
         <Button
           className="h-10 px-6"
-          disabled={isPending}
+          loading={isPending}
           onClick={handleAnalyze}
         >
-          {isPending ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              <span>{t("analyzing")}</span>
-            </>
-          ) : (
-            tCommon("labels.analyze")
-          )}
+          {tCommon("labels.analyze")}
         </Button>
       </div>
       {(inlineError || progress.status === "failed") && (

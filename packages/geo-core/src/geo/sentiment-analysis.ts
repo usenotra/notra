@@ -5,6 +5,7 @@ import {
   toGeoCheckWindow,
   queryGeoSentimentBrand,
 } from "@notra/db/utils/geo-checks";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import {
@@ -98,7 +99,8 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
           process.env.AI_GATEWAY_API_KEY ||
           process.env.OPENROUTER_API_KEY ||
           process.env.VERCEL_OIDC_TOKEN ||
-          process.env.VERCEL === "1"
+          process.env.VERCEL === "1" ||
+          isDemoMode()
         ))
     ) {
       return {

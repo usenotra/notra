@@ -12,7 +12,10 @@ const fetchWebpage = mock(async ({ url }: { url: string }) => ({
 }));
 
 mock.module("node:dns/promises", () => ({ lookup }));
-mock.module("@notra/ai/utils/context-dev", () => ({ fetchWebpage }));
+mock.module("@notra/ai/utils/context-dev", () => ({
+  fetchWebpage,
+  isContextDevConfigured: () => Boolean(process.env.CONTEXT_DEV_API_KEY),
+}));
 
 const { isPublicShelfAddress, previewGeoShelfUrl } = await import("./preview");
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { PencilEdit01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
@@ -7,8 +9,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoEngineFamily,
-  GeoEngineFamilyTotals,
-  GeoSparklineMode,
   GeoStatDeltaKind,
   GeoTimeseriesPoint,
 } from "@notra/geo-core/types/geo";
@@ -24,14 +24,11 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { FamilyImproveCard } from "@/components/geo/family-improve-card";
-import { GeoModeIcon } from "@/components/geo/geo-mode-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
@@ -39,14 +36,13 @@ import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
-import { CHART_MUTED_COLOR, CHART_PERCENT_SCALE } from "@/constants/charts";
+import { CHART_PERCENT_SCALE, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_PROMPT_DETAIL_SURFACES,
   GEO_WRITE_DIALOG_ENTRIES,
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useEngineFamilySheet } from "@/lib/hooks/use-engine-family-sheet";
-import { useGeoSparklineModeLabels } from "@/lib/hooks/use-geo-sparkline-mode-labels";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
@@ -57,16 +53,11 @@ import type {
   EngineFamilySheetProps,
 } from "@/types/geo";
 import { formatFullDayLabel } from "@/utils/analytics-charts";
+import { geoModeFillClass, seriesColors } from "@/utils/chart-colors";
 import {
-  geoModeColor,
-  geoModeFillClass,
-  seriesColors,
-} from "@/utils/chart-colors";
-import {
-  buildEngineFamilyModeTrendRows,
+  buildEngineFamilyTrendRows,
   engineFamilyAvgPosition,
   engineFamilyLastCheckedAt,
-  engineFamilyModeTotals,
   engineFamilyStatTrends,
   engineFamilyTotals,
   formatChartPercent,
@@ -75,58 +66,36 @@ import {
 } from "@/utils/geo-charts";
 import { tableHeightFor } from "@/utils/table";
 
-const FAMILY_TREND_STROKE_WIDTH = 1.5;
-// Matches the visibility activity card: the headline series carries the fill
-// and a heavier stroke, the comparison lines stay thin.
+// Matches the visibility activity card's headline series.
 const FAMILY_TOTAL_STROKE_WIDTH = 2;
 const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full cursor-crosshair";
 const FAMILY_SHEET_CONTENT_CLASS =
   "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl";
 const BRAND_ROW_CLASS =
-  "grid h-9 grid-cols-[1.25rem_minmax(0,1fr)_minmax(4rem,7.5rem)_3rem] items-center gap-3 border-b text-sm last:border-b-0";
+  "grid h-11 grid-cols-[1rem_minmax(0,1fr)_minmax(4rem,7.5rem)_2.75rem] items-center gap-3 border-b text-sm last:border-b-0";
 const RIVAL_BAR_FILL_CLASS = "bg-foreground/25";
-
-function modeSeriesColors(mode: GeoSparklineMode) {
-  if (mode === "search") {
-    return seriesColors(geoModeColor("web"));
-  }
-  if (mode === "memory") {
-    return seriesColors(geoModeColor("raw"));
-  }
-  // Neutral, matching the mode icon: "All" is the baseline the two modes are
-  // read against, and it used to share the search colour because the two never
-  // appeared on the same chart.
-  return seriesColors(CHART_MUTED_COLOR);
-}
 
 function Stat({
   label,
   value,
   delta,
   kind,
-  hero = false,
 }: {
   label: string;
   value: string;
   delta: number | null;
   kind: GeoStatDeltaKind;
-  hero?: boolean;
 }) {
   const tGeoShared2 = useTranslations("geo.shared");
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-2">
       <p className="text-muted-foreground text-xs">{label}</p>
-      <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-        <p
-          className={cn(
-            "leading-none font-semibold tracking-tight tabular-nums",
-            hero ? "text-3xl" : "text-xl"
-          )}
-        >
-          {value}
-        </p>
+      <p className="text-2xl leading-none font-semibold tracking-tight tabular-nums">
+        {value}
+      </p>
+      {/* Fixed height so a stat without a delta keeps the row aligned. */}
+      <div className="flex h-5 items-center">
         <GeoStatDelta
-          className="mb-px"
           delta={delta}
           hint={tGeoShared2("vsFirstHalfOfThis")}
           kind={kind}
@@ -152,10 +121,9 @@ function FamilyStats({
 
   return (
     <div className="@container/stats">
-      <div className="grid grid-cols-1 items-start gap-4 @min-[22rem]/stats:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-x-6 gap-y-4 @min-[22rem]/stats:grid-cols-3">
         <Stat
           delta={trends.ratePts}
-          hero
           kind="rate"
           label={tGeoShared("brandVisibility")}
           value={totals ? formatMentionRate(totals.rate) : "—"}
@@ -196,41 +164,7 @@ function FamilySheetDescription({ family }: { family: GeoEngineFamily }) {
   );
 }
 
-const TREND_MODES: GeoSparklineMode[] = ["all", "search", "memory"];
-
-function ModeToggle({
-  mode,
-  totals,
-  active,
-  onToggle,
-}: {
-  mode: GeoSparklineMode;
-  totals: GeoEngineFamilyTotals | null;
-  active: boolean;
-  onToggle: () => void;
-}) {
-  const modeLabels = useGeoSparklineModeLabels();
-  return (
-    <button
-      aria-pressed={active}
-      className={cn(
-        "inline-flex cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 text-xs transition-opacity",
-        "hover:bg-muted/60 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-        active ? "opacity-100" : "opacity-40"
-      )}
-      onClick={onToggle}
-      type="button"
-    >
-      <GeoModeIcon className="size-3" mode={mode} />
-      {modeLabels[mode]}
-      {totals ? (
-        <span className="text-muted-foreground font-normal tabular-nums">
-          {formatMentionRate(totals.rate)}
-        </span>
-      ) : null}
-    </button>
-  );
-}
+const TREND_SERIES_KEYS = ["all"];
 
 function FamilyTrend({
   family,
@@ -240,80 +174,23 @@ function FamilyTrend({
   points: readonly GeoTimeseriesPoint[];
 }) {
   const t = useTranslations("geo.engineFamilySheet");
-  const modeLabels = useGeoSparklineModeLabels();
   const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
-  const searchTotals = engineFamilyModeTotals(family, "search");
-  const memoryTotals = engineFamilyModeTotals(family, "memory");
-  const allTotals = engineFamilyTotals(family);
-  const splitModes = searchTotals !== null && memoryTotals !== null;
-  const rows = buildEngineFamilyModeTrendRows(points, family.family, locale);
-  // A family that only ever answers one way has nothing to compare, so it
-  // keeps the single line instead of three copies of it.
-  const modeKeys: GeoSparklineMode[] = splitModes ? TREND_MODES : ["all"];
-  const [hiddenModes, setHiddenModes] = useState<ReadonlySet<GeoSparklineMode>>(
-    () => new Set()
-  );
-  const visibleModes = modeKeys.filter((mode) => !hiddenModes.has(mode));
-
-  function toggleMode(mode: GeoSparklineMode) {
-    setHiddenModes((current) => {
-      const next = new Set(current);
-      if (next.has(mode)) {
-        next.delete(mode);
-        return next;
-      }
-      // Emptying the chart tells you nothing, so the last line stays.
-      if (modeKeys.length - next.size <= 1) {
-        return current;
-      }
-      next.add(mode);
-      return next;
-    });
-  }
-  const totalsByMode: Record<GeoSparklineMode, GeoEngineFamilyTotals | null> = {
-    all: allTotals,
-    search: searchTotals,
-    memory: memoryTotals,
+  const rows = buildEngineFamilyTrendRows(points, family.family, locale);
+  const config: ChartConfig = {
+    all: {
+      label: t("seriesLabel"),
+      colors: seriesColors(CHART_PRIMARY_COLOR),
+    },
   };
-  const config: ChartConfig = Object.fromEntries(
-    modeKeys.map((mode) => [
-      mode,
-      {
-        label: t("seriesLabel", { mode: modeLabels[mode] }),
-        colors: modeSeriesColors(mode),
-      },
-    ])
-  );
-  const showTrend = rows.length >= GEO_SPARKLINE_MIN_POINTS;
   const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
 
-  if (!showTrend) {
+  if (rows.length < GEO_SPARKLINE_MIN_POINTS) {
     return null;
   }
 
   return (
-    <InstrumentSection
-      action={
-        splitModes ? (
-          <div
-            aria-label={t("answerMode")}
-            className="flex flex-wrap items-center gap-x-3 gap-y-1"
-          >
-            {modeKeys.map((mode) => (
-              <ModeToggle
-                active={!hiddenModes.has(mode)}
-                key={mode}
-                mode={mode}
-                onToggle={() => toggleMode(mode)}
-                totals={totalsByMode[mode]}
-              />
-            ))}
-          </div>
-        ) : undefined
-      }
-      eyebrow={tGeoShared("brandVisibility")}
-    >
+    <InstrumentSection eyebrow={t("trend")}>
       <EChartsAreaChart
         animation={false}
         className={FAMILY_CHART_HEIGHT_CLASS}
@@ -324,37 +201,30 @@ function FamilyTrend({
       >
         <EChartsAreaChart.Grid variant="solid" />
         <EChartsAreaChart.XAxis dataKey="day" />
-        <EChartsAreaChart.YAxis tickFormatter={formatChartPercent} />
-        {visibleModes.map((mode) => (
-          <EChartsAreaChart.Area
-            connectNulls
-            dataKey={mode}
-            enableBufferLine={markIncompleteTail}
-            gapMissing
-            key={mode}
-            strokeVariant="solid"
-            strokeWidth={
-              mode === "all"
-                ? FAMILY_TOTAL_STROKE_WIDTH
-                : FAMILY_TREND_STROKE_WIDTH
-            }
-            variant={mode === "all" ? "gradient" : "none"}
-          >
-            <EChartsAreaChart.ActiveDot variant="border" />
-          </EChartsAreaChart.Area>
-        ))}
+        <EChartsAreaChart.YAxis scale tickFormatter={formatChartPercent} />
+        <EChartsAreaChart.Area
+          connectNulls
+          dataKey="all"
+          enableBufferLine={markIncompleteTail}
+          gapMissing
+          strokeVariant="solid"
+          strokeWidth={FAMILY_TOTAL_STROKE_WIDTH}
+          variant="gradient"
+        >
+          <EChartsAreaChart.ActiveDot variant="border" />
+        </EChartsAreaChart.Area>
         <EChartsAreaChart.Tooltip
           barMax={CHART_PERCENT_SCALE}
           confine={false}
           emptyLabel={(row) =>
-            tGeoShared(mentionTrendEmptyState(row, visibleModes))
+            tGeoShared(mentionTrendEmptyState(row, TREND_SERIES_KEYS))
           }
           labelFormatter={(day: string) => formatFullDayLabel(day, locale)}
           labelKey="rawDay"
           layout="activity"
           position="fixed"
           roundness="xl"
-          rowKeys={visibleModes}
+          rowKeys={TREND_SERIES_KEYS}
           scrub
           valueFormatter={formatChartPercent}
         />
@@ -378,26 +248,22 @@ function BrandRow({
   const muted = row.mentions === 0;
   return (
     <li className={BRAND_ROW_CLASS}>
-      <span className="text-muted-foreground text-right text-xs tabular-nums">
-        {rank}
-      </span>
+      <span className="text-muted-foreground text-xs tabular-nums">{rank}</span>
       <span className="flex min-w-0 items-center gap-2">
         {row.own ? (
           <ProjectLogo
-            className="size-4 shrink-0 rounded-sm"
+            className="size-5 shrink-0 rounded-sm"
             domain={scope.ownDomain ?? null}
             name={row.name}
           />
         ) : (
           <CompetitorLogo
-            className="size-4 shrink-0"
+            className="size-5 shrink-0"
             competitors={scope.competitors}
             name={row.name}
           />
         )}
-        <span className={cn("truncate", row.own && "font-medium")}>
-          {row.name}
-        </span>
+        <span className="truncate font-medium">{row.name}</span>
         {row.own ? (
           <span className="text-muted-foreground shrink-0 text-xs">
             {tGeoShared("you")}
@@ -445,7 +311,7 @@ function FamilyBrands({
       hint={t("brandsHint")}
       readout={readout}
     >
-      <ol className="rounded-2xl border px-3">
+      <ol>
         {rows.map((row, index) => (
           <BrandRow
             key={row.key}
@@ -476,31 +342,47 @@ function PromptHits({
     if (hit.mentioned && hit.ownedSourceCited) {
       return tGeoShared("mentionedAndCited");
     }
-    if (!hit.mentioned && hit.ownedSourceCited) {
-      return tGeoShared("ownedSourceCited");
-    }
     if (!hit.mentioned) {
-      return t("result.miss");
+      return tGeoShared("ownedSourceCited");
     }
     return hit.position === null ? tGeoShared("mentioned") : `#${hit.position}`;
   };
-  const columns: TableColumn<EngineFamilyPromptHit>[] = [
-    {
-      key: "prompt",
-      header:
-        hits.length > 0
-          ? t("promptsCount", { count: hits.length })
-          : tCommon("labels.prompts"),
-      width: "1fr",
-      minWidth: "8rem",
-      sortable: true,
+  const missed = hits.filter((hit) => !(hit.mentioned || hit.ownedSourceCited));
+  const found = hits.filter((hit) => hit.mentioned || hit.ownedSourceCited);
+  // The count lives in the first column header, so each table carries its
+  // own title and lines up with its rows.
+  const promptColumn = (
+    header: string
+  ): TableColumn<EngineFamilyPromptHit> => ({
+    key: "prompt",
+    header,
+    width: "1fr",
+    minWidth: "8rem",
+    cell: (row) => (
+      <TruncateWithTooltip className="text-sm">
+        {row.prompt}
+      </TruncateWithTooltip>
+    ),
+  });
+  const missedColumns: TableColumn<EngineFamilyPromptHit>[] = [
+    promptColumn(t("missedTitle", { count: missed.length })),
+  ];
+  if (onWrite) {
+    missedColumns.push({
+      key: "write",
+      header: "",
+      width: "6.5rem",
+      align: "right",
       cell: (row) => (
-        <TruncateWithTooltip className="text-sm">
-          {row.prompt}
-        </TruncateWithTooltip>
+        <Button onClick={() => onWrite(row)} size="sm" variant="outline">
+          <HugeiconsIcon data-icon="inline-start" icon={PencilEdit01Icon} />
+          {tCommon("labels.write")}
+        </Button>
       ),
-      sortValue: (row) => row.prompt,
-    },
+    });
+  }
+  const foundColumns: TableColumn<EngineFamilyPromptHit>[] = [
+    promptColumn(t("foundTitle", { count: found.length })),
     {
       key: "result",
       header: t("resultHeader"),
@@ -508,67 +390,55 @@ function PromptHits({
       width: "13rem",
       sortable: true,
       cell: (row) => {
-        const visible = row.mentioned || Boolean(row.ownedSourceCited);
         const label = promptResultLabel(row);
         return (
           <span
-            className={cn(
-              "flex min-w-0 items-center gap-1.5 text-sm tabular-nums",
-              !visible && "text-muted-foreground"
-            )}
+            className="flex min-w-0 items-center gap-1.5 text-sm tabular-nums"
             title={label}
           >
-            <PromptOutcomeIcon mentioned={visible} />
+            <PromptOutcomeIcon mentioned />
             <span className="min-w-0 truncate">{label}</span>
           </span>
         );
       },
+      // Ranked answers first, then unranked mentions, then citation-only.
       sortValue: (row) => {
         if (row.mentioned) {
-          return row.position ?? 0;
+          return row.position ?? Number.MAX_SAFE_INTEGER - 1;
         }
-        return row.ownedSourceCited
-          ? Number.MAX_SAFE_INTEGER - 1
-          : Number.MAX_SAFE_INTEGER;
+        return Number.MAX_SAFE_INTEGER;
       },
     },
   ];
-  if (onWrite) {
-    columns.push({
-      key: "write",
-      header: "",
-      width: "5.5rem",
-      align: "right",
-      cell: (row) =>
-        row.mentioned || row.ownedSourceCited ? null : (
-          <Button
-            className="opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
-            onClick={() => onWrite(row)}
-            size="sm"
-            variant="ghost"
-          >
-            {tCommon("labels.write")}
-          </Button>
-        ),
-    });
-  }
-
-  if (hits.length === 0) {
-    return null;
-  }
 
   return (
-    <Table
-      className="rounded-2xl"
-      columns={columns}
-      data={[...hits]}
-      defaultSort={{ key: "result", direction: "asc" }}
-      emptyState={t("emptyPrompts")}
-      getRowId={(row) => row.promptId}
-      height={tableHeightFor(hits.length)}
-      onRowClick={(row) => onOpen(row.promptId)}
-      rowHeight={TABLE_ROW_HEIGHT}
-    />
+    <>
+      {missed.length > 0 ? (
+        <Table
+          className="rounded-2xl"
+          columns={missedColumns}
+          data={missed}
+          emptyState={t("emptyPrompts")}
+          getRowId={(row) => row.promptId}
+          height={tableHeightFor(missed.length)}
+          onRowClick={(row) => onOpen(row.promptId)}
+          rowHeight={TABLE_ROW_HEIGHT}
+        />
+      ) : null}
+      {found.length > 0 ? (
+        <Table
+          className="rounded-2xl"
+          columns={foundColumns}
+          data={found}
+          defaultSort={{ key: "result", direction: "asc" }}
+          emptyState={t("emptyPrompts")}
+          getRowId={(row) => row.promptId}
+          height={tableHeightFor(found.length)}
+          onRowClick={(row) => onOpen(row.promptId)}
+          rowHeight={TABLE_ROW_HEIGHT}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -597,8 +467,6 @@ function EngineFamilySheetSession({
     promptHits,
     brandScope,
     brandRows,
-    improveInsight,
-    gapsHref,
     writeOpen,
     setWriteOpen,
     writeInitial,
@@ -622,19 +490,18 @@ function EngineFamilySheetSession({
         open={open}
       >
         <SheetContent className={FAMILY_SHEET_CONTENT_CLASS}>
-          <SheetHeader className="bg-muted/50 border-b pr-14">
-            <SheetTitle className="flex items-center gap-2">
+          <SheetHeader className="flex-row items-center gap-3 pr-14">
+            <span className="bg-shell border-shell-border flex size-10 shrink-0 items-center justify-center rounded-xl border">
               <EngineIcon className="size-5" engine={family.family} />
-              {name}
-            </SheetTitle>
-            <FamilySheetDescription family={family} />
+            </span>
+            <div className="min-w-0 space-y-0.5">
+              <SheetTitle>{name}</SheetTitle>
+              <FamilySheetDescription family={family} />
+            </div>
           </SheetHeader>
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
+          <div className="min-h-0 flex-1 space-y-8 overflow-y-auto px-4 pt-2 pb-6">
             <FamilyStats family={family} points={points} />
             <FamilyTrend family={family} points={points} />
-            {improveInsight ? (
-              <FamilyImproveCard gapsHref={gapsHref} insight={improveInsight} />
-            ) : null}
             <FamilyBrands
               answers={promptHits.length}
               rows={brandRows}

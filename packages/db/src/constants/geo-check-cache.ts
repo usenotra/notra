@@ -4,12 +4,14 @@
  * activity).
  *
  * These queries scan a project's whole window on every dashboard render and
- * only change when a scan inserts new checks. Drizzle's auto-invalidation drops
- * every cached aggregate on each write to `geo_mention_checks`, so the TTL only
- * bounds staleness across writers that bypass Drizzle.
+ * tolerate up to five minutes of staleness. Disable table-wide invalidation so
+ * a scan's writes do not evict cached aggregates for every tenant. Drizzle still
+ * hashes the SQL and parameters, keeping tenants, projects and windows separate.
+ * Fresh-data checks, such as sentiment analysis fingerprints, stay uncached.
  */
 const GEO_CHECK_AGGREGATE_TTL_SECONDS = 300;
 
 export const GEO_CHECK_AGGREGATE_CACHE = {
+  autoInvalidate: false,
   config: { ex: GEO_CHECK_AGGREGATE_TTL_SECONDS },
 } as const;

@@ -27,7 +27,6 @@ import { Separator } from "@notra/ui/components/ui/separator";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -483,18 +482,13 @@ function CreateSkillFormDialog({
                 <Button
                   className="h-7 px-2.5"
                   disabled={
-                    !quickstartUrl.trim() ||
-                    !!quickstartError ||
-                    importPending ||
-                    createPending
+                    !quickstartUrl.trim() || !!quickstartError || createPending
                   }
+                  loading={importPending}
                   onClick={onImport}
                   size="sm"
                 >
-                  {importPending ? (
-                    <Loader2Icon className="size-3.5 animate-spin" />
-                  ) : null}
-                  {importPending ? t("importing") : tCommon2("actions.import")}
+                  {tCommon2("actions.import")}
                 </Button>
               </InputGroupAddon>
             </InputGroup>

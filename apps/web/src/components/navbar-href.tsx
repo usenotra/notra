@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import type { NavbarHrefProps } from "@/types/navbar";
 
@@ -26,7 +26,7 @@ export function NavbarHref({
   }
 
   return (
-    <Link className={className} href={href} onClick={onClick} role={role}>
+    <Link className={className} to={href} onClick={onClick} role={role}>
       {children}
     </Link>
   );

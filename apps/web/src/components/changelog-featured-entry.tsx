@@ -1,9 +1,9 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ChangelogFeaturedEntryProps } from "~types/changelog";
 
-import { formatChangelogDate } from "@/utils/changelog";
+import { formatChangelogDate } from "@/utils/format-date";
 
 export function ChangelogFeaturedEntry({
   item,
@@ -12,7 +12,7 @@ export function ChangelogFeaturedEntry({
   return (
     <Link
       className="group block w-full overflow-clip rounded-3xl bg-[#C8B2EE40] ring-1 ring-[#1E1E1E1A] transition-colors hover:ring-[#1E1E1E33] dark:bg-white/[0.03] dark:ring-white/10 dark:hover:ring-white/20"
-      href={item.href}
+      to={item.href}
     >
       <div className="flex flex-col gap-6 px-6 pt-8 pb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-12 sm:px-10 sm:pt-10 sm:pb-10">
         <div className="flex flex-col gap-3 sm:max-w-[36rem]">

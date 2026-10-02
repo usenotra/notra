@@ -43,6 +43,7 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
+  assertNotDemo,
   badRequest,
   internalServerError,
   notFound,
@@ -376,6 +377,8 @@ export const githubRouter = {
           headers: context.headers,
           organizationId: input.organizationId,
         });
+        // The demo never installs the GitHub App; it ships a sample repository.
+        assertNotDemo();
 
         return runOrpcEffect(
           prepareGitHubAppInstall({

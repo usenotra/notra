@@ -110,10 +110,6 @@ export interface IpCheckerToolProps {
   initialResult?: IpCheckResult | null;
 }
 
-export interface IpCheckerPageProps {
-  searchParams: Promise<{ ip?: string | string[] }>;
-}
-
 export interface IpCheckResultCardProps {
   result: IpCheckResult;
 }

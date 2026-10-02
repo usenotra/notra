@@ -12,7 +12,6 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Linkedin } from "@notra/ui/components/ui/svgs/linkedin";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -304,19 +303,11 @@ export function PostSocialButton({
                 render={<Button variant="outline">{tCommon("cancel")}</Button>}
               />
               <Button
-                disabled={
-                  publishMutation.isPending || !draft.trim() || isOverCharLimit
-                }
+                disabled={!draft.trim() || isOverCharLimit}
+                loading={publishMutation.isPending}
                 onClick={handlePublish}
               >
-                {publishMutation.isPending ? (
-                  <>
-                    <Loader2Icon className="size-4 animate-spin" />
-                    {t("posting")}
-                  </>
-                ) : (
-                  t("postAs", { username: selectedAccount.username })
-                )}
+                {t("postAs", { username: selectedAccount.username })}
               </Button>
             </>
           )}

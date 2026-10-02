@@ -1,5 +1,3 @@
-"use client";
-
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 
 import type { DeferredAnswerDemoProps } from "@/types/landing/answer-demo";

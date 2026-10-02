@@ -13,7 +13,6 @@ import {
   IntegrationDatabaseError,
   IntegrationDuplicateError,
   IntegrationNotFoundError,
-  IntegrationUnavailableError,
 } from "../errors/integrations";
 import type { DbClient } from "../types/db";
 import type {
@@ -26,13 +25,11 @@ import type {
   ListIntegrationsProgramSuccess,
 } from "../types/integrations";
 import {
-  encryptGitHubIntegrationToken,
+  encryptGitHubIntegrationSecret,
+  findGitHubIntegrationCreatorUserId,
   findMatchingGitHubIntegration,
   generateGitHubIntegrationId,
   generateGitHubWebhookSecret,
-  getGitHubIntegrationCreatorUserId,
-  getSafeGitHubIntegrationErrorMessage,
-  isGitHubIntegrationUnavailableError,
   validateGitHubRepositoryAccess,
 } from "../utils/github-integrations";
 import { serializeDisabledTriggers } from "../utils/integrations";
@@ -67,28 +64,6 @@ const write = <A>(operation: () => Promise<A>) =>
 
       return new IntegrationCreateError({ cause });
     },
-  });
-
-const mapGitHubAccessError = (cause: unknown) => {
-  if (isGitHubIntegrationUnavailableError(cause)) {
-    return new IntegrationUnavailableError();
-  }
-
-  const safeMessage = getSafeGitHubIntegrationErrorMessage(cause);
-  if (safeMessage) {
-    return new GitHubAccessError({ message: safeMessage });
-  }
-
-  return new IntegrationCreateError({ cause });
-};
-
-const encryptToken = (
-  token: string,
-  runtimeEnv: CreateGitHubIntegrationProgramInput["runtimeEnv"]
-) =>
-  Effect.try({
-    try: () => encryptGitHubIntegrationToken(token, runtimeEnv),
-    catch: (cause) => mapGitHubAccessError(cause),
   });
 
 export const listIntegrations = Effect.fn("integrations.list")(function* ({
@@ -165,21 +140,21 @@ export const createGitHubIntegration = Effect.fn("integrations.createGitHub")(
     const branch = input.body.branch?.trim() || null;
     const token = input.body.token?.trim() || null;
 
-    yield* Effect.tryPromise({
-      try: () => validateGitHubRepositoryAccess({ owner, repo, token }),
-      catch: (cause) => mapGitHubAccessError(cause),
-    });
+    yield* validateGitHubRepositoryAccess({ owner, repo, token });
 
     const integrationId = generateGitHubIntegrationId();
-    const createdByUserId = yield* Effect.tryPromise({
-      try: () =>
-        getGitHubIntegrationCreatorUserId(input.db, input.organizationId),
-      catch: (cause) => mapGitHubAccessError(cause),
-    });
+    const createdByUserId = yield* database(() =>
+      findGitHubIntegrationCreatorUserId(input.db, input.organizationId)
+    );
+    if (!createdByUserId) {
+      return yield* new GitHubAccessError({
+        message: "Organization has no members available to own the integration",
+      });
+    }
     const encryptedToken = token
-      ? yield* encryptToken(token, input.runtimeEnv)
+      ? yield* encryptGitHubIntegrationSecret(token, input.runtimeEnv)
       : null;
-    const encryptedWebhookSecret = yield* encryptToken(
+    const encryptedWebhookSecret = yield* encryptGitHubIntegrationSecret(
       generateGitHubWebhookSecret(),
       input.runtimeEnv
     );

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@notra/ui/lib/utils";
 import { useRef } from "react";
 

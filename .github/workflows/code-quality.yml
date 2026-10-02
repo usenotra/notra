@@ -16,9 +16,25 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: notra_migrations
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d notra_migrations"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -39,6 +55,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Validate migration journal
+        env:
+          MIGRATION_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bun run db:check --base="$MIGRATION_BASE_REF"
+
+      - name: Replay migrations and verify rerun safety
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/notra_migrations
+        run: |
+          bun run db:migrate
+          bun run db:migrate
+
       - name: Run ultracite check
         run: bun check
 
@@ -56,4 +84,4 @@ jobs:
             typecheck-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock', 'package.json', 'apps/*/package.json', 'packages/*/package.json', 'apps/*/tsconfig*.json', 'packages/*/tsconfig*.json', 'packages/typescript-config/*.json') }}-
 
       - name: Typecheck tested packages and UI docs
-        run: bun run check-types --filter=@usenotra/geo --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui
+        run: bun run check-types --filter=@usenotra/geo --filter=@notra/agent --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui

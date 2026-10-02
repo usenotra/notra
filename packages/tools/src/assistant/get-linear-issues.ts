@@ -1,5 +1,5 @@
 import { getLinearToolContextByIntegrationId } from "@notra/ai/integrations/linear";
-import { createLinearClient } from "@notra/ai/utils/linear";
+import { createLinearClient, getLinearIssues } from "@notra/ai/utils/linear";
 import { defineTool } from "eve/tools";
 
 import { getLinearIssuesInputSchema } from "../schemas/assistant-tools";
@@ -38,49 +38,12 @@ export function createGetLinearIssuesTool() {
         filter.completedAt = { null: true };
       }
 
-      const issues = await client.issues({
+      return getLinearIssues(client, {
         filter,
         first: 50,
         after: cursor,
         orderBy: "updatedAt" as never,
       });
-
-      const results = await Promise.all(
-        issues.nodes.map(async (issue) => {
-          const [state, assignee, labels] = await Promise.all([
-            issue.state,
-            issue.assignee,
-            issue.labels(),
-          ]);
-
-          return {
-            id: issue.id,
-            identifier: issue.identifier,
-            title: issue.title,
-            description: issue.description
-              ? issue.description.slice(0, 500)
-              : null,
-            state: state?.name ?? null,
-            stateType: state?.type ?? null,
-            priority: issue.priority,
-            priorityLabel: issue.priorityLabel,
-            assignee: assignee?.name ?? assignee?.displayName ?? null,
-            labels: labels.nodes.map((label) => label.name),
-            createdAt: issue.createdAt,
-            updatedAt: issue.updatedAt,
-            completedAt: issue.completedAt ?? null,
-            url: issue.url,
-          };
-        })
-      );
-
-      return {
-        issues: results,
-        pagination: {
-          hasNextPage: issues.pageInfo.hasNextPage,
-          endCursor: issues.pageInfo.endCursor ?? null,
-        },
-      };
     },
   });
 }

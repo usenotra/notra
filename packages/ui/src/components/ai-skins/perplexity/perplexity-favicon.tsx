@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
+import { isReservedExampleDomain } from "@notra/utils/google-favicon";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -15,7 +16,8 @@ export function PerplexityFavicon({
   domain: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
+  // Reserved `.example` domains (demo data) never have a favicon.
+  const [failed, setFailed] = useState(() => isReservedExampleDomain(domain));
 
   if (failed) {
     return (

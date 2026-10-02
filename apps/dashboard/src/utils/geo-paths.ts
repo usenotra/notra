@@ -1,5 +1,3 @@
-import { GEO_GAPS_NAV_LINK } from "@notra/geo-core/constants/geo";
-
 const GEO_DASHBOARD_PATH_PATTERN = /(?:^|\/)geo(?:\/|\?|$)/;
 
 export function geoDashboardPath(
@@ -21,17 +19,6 @@ export function withGeoProject(path: string, projectId?: string): string {
 
 export function isGeoDashboardPath(path: string): boolean {
   return GEO_DASHBOARD_PATH_PATTERN.test(path);
-}
-
-export function geoGapsEngineHref(
-  organizationSlug: string,
-  family: string,
-  projectId?: string
-): string {
-  return withGeoProject(
-    `/${organizationSlug}${GEO_GAPS_NAV_LINK}?engine=${encodeURIComponent(family)}`,
-    projectId
-  );
 }
 
 export function geoNavHref(

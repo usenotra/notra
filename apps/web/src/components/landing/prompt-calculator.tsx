@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowDown01Icon,
   ArrowLeft02Icon,
@@ -16,8 +14,8 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { StepSlider } from "@notra/ui/components/ui/step-slider";
 import { cn } from "@notra/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { domMax, LazyMotion } from "motion/react";
-import Link from "next/link";
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -809,7 +807,7 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
         source={`pricing_calculator_${plan.id}`}
       />
     ) : (
-      <Link href={plan.cta.href} />
+      <Link to={plan.cta.href} />
     );
 
   function copyLink() {
@@ -950,7 +948,7 @@ export function PromptCalculatorSection() {
         className="flex w-full scroll-mt-24 flex-col items-center gap-13.5 px-6 pb-24"
         id={PROMPT_CALCULATOR_ANCHOR}
       >
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-4">
           <h2 className="font-display max-w-[59rem] text-center text-[2rem] leading-[1.12] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] sm:text-[2.875rem] sm:leading-13 dark:text-white">
             {PROMPT_CALCULATOR_HEADING}
           </h2>

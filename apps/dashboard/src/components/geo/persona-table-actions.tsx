@@ -9,10 +9,14 @@ import {
   ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PERSONA_MAX_COUNT } from "@notra/geo-core/constants/geo-personas";
+import {
+  GEO_PERSONA_BILLING_MULTIPLIER,
+  GEO_PERSONA_MAX_COUNT,
+} from "@notra/geo-core/constants/geo-personas";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
 } from "@notra/ui/components/ui/context-menu";
 import {
   Tooltip,
@@ -159,6 +163,12 @@ export function PersonaTableContextMenu({
       >
         <HugeiconsIcon icon={PlayIcon} />
         {tGeoShared("runScan")}
+        <span className="sr-only">
+          {t("answerCost", { multiplier: GEO_PERSONA_BILLING_MULTIPLIER })}
+        </span>
+        <ContextMenuShortcut aria-hidden="true">
+          {GEO_PERSONA_BILLING_MULTIPLIER}×
+        </ContextMenuShortcut>
       </ContextMenuItem>
       <ContextMenuItem
         disabled={mutationDisabled}

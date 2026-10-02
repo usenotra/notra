@@ -1,5 +1,3 @@
-"use client";
-
 import { GeoPromptAnswerThread } from "@notra/ui/components/geo/geo-prompt-answer-thread";
 import { PromptEngineSwitcher } from "@notra/ui/components/geo/prompt-engine-switcher";
 import { useState } from "react";

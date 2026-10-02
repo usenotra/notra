@@ -890,13 +890,70 @@
       "name": "notra-button",
       "type": "registry:ui",
       "title": "Button",
-      "description": "A Base UI button with Depth primary, secondary, outline and destructive variants and squircle corners.",
+      "description": "A Base UI button with Depth primary, secondary, outline and destructive variants, squircle corners, and loading and progress states.",
       "dependencies": ["@base-ui/react", "class-variance-authority", "cn"],
+      "cssVars": {
+        "theme": {
+          "animate-button-swap-in": "button-swap-in 280ms cubic-bezier(0.23, 1, 0.32, 1) both",
+          "animate-button-swap-out": "button-swap-out 360ms cubic-bezier(0.45, 0, 0.25, 1) both",
+          "animate-button-dot": "button-dot 1s ease-in-out infinite",
+          "animate-button-progress-out": "button-progress-out 600ms ease-out both"
+        }
+      },
+      "css": {
+        "@keyframes button-swap-in": {
+          "from": {
+            "opacity": "0",
+            "transform": "translateY(0.45em)",
+            "filter": "blur(4px)"
+          },
+          "to": {
+            "opacity": "1",
+            "transform": "translateY(0)",
+            "filter": "blur(0)"
+          }
+        },
+        "@keyframes button-swap-out": {
+          "from": {
+            "opacity": "1",
+            "transform": "translateY(0)",
+            "filter": "blur(0)"
+          },
+          "to": {
+            "opacity": "0",
+            "transform": "translateY(-0.45em)",
+            "filter": "blur(4px)"
+          }
+        },
+        "@keyframes button-dot": {
+          "0%, 60%, 100%": {
+            "opacity": "0.45",
+            "transform": "translateY(0)"
+          },
+          "30%": {
+            "opacity": "1",
+            "transform": "translateY(-0.3em)"
+          }
+        },
+        "@keyframes button-progress-out": {
+          "0%, 50%": {
+            "opacity": "1"
+          },
+          "100%": {
+            "opacity": "0"
+          }
+        }
+      },
       "files": [
         {
           "path": "components/ui/button.tsx",
           "type": "registry:ui",
           "target": "components/ui/button.tsx"
+        },
+        {
+          "path": "components/ui/button-content.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/button-content.tsx"
         }
       ]
     },
@@ -911,6 +968,21 @@
           "path": "components/ui/tooltip.tsx",
           "type": "registry:ui",
           "target": "components/ui/tooltip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "notra-sonner",
+      "type": "registry:ui",
+      "title": "Sonner",
+      "description": "A Sonner toaster with the Depth surface of the buttons and tinted status icons.",
+      "dependencies": ["cn", "lucide-react", "next-themes", "sonner"],
+      "registryDependencies": ["https://ui.usenotra.com/r/notra-button.json"],
+      "files": [
+        {
+          "path": "components/ui/sonner.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/sonner.tsx"
         }
       ]
     },
@@ -954,21 +1026,6 @@
       "title": "Step Slider",
       "description": "A slider that snaps to a fixed set of values, with a dotted fill that sweeps on every step. Built on the Base UI Slider.",
       "dependencies": ["@base-ui/react", "cn"],
-      "cssVars": {
-        "theme": {
-          "animate-step-slider-sweep": "step-slider-sweep 900ms ease-out forwards"
-        }
-      },
-      "css": {
-        "@keyframes step-slider-sweep": {
-          "from": {
-            "mask-position": "-60% 0"
-          },
-          "to": {
-            "mask-position": "160% 0"
-          }
-        }
-      },
       "files": [
         {
           "path": "registry/notra/step-slider/components/step-slider.tsx",

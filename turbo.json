@@ -43,6 +43,7 @@
     "QSTASH_URL",
     "CRON_SECRET",
     "GEO_SCAN_ALERT_WEBHOOK_URL",
+    "GEO_INGEST_URL",
     "RESEND_API_KEY",
     "TURNSTILE_SECRET",
     "TURNSTILE_HOSTNAMES",
@@ -75,6 +76,8 @@
     "POST_FOR_ME_API_KEY_LINKEDIN",
     "NOTRA_API_KEY",
     "WORKFLOW_BASE_URL",
+    "NOTRA_DEMO_*",
+    "NEXT_OUTPUT_STANDALONE",
     "LINEAR_CLIENT_ID",
     "LINEAR_CLIENT_SECRET",
     "AXIOM_TOKEN",
@@ -133,6 +136,15 @@
         ".vercel/**"
       ]
     },
+    "web#build": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NEXT_PUBLIC_DATABUDDY_WEB_WEBSITE_ID",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+      ],
+      "outputs": [".output/**", ".vercel/output/**", ".source/**"]
+    },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],
       "outputs": [
@@ -145,6 +157,10 @@
     "check-types": {
       "dependsOn": ["transit"],
       "outputs": [".cache/typecheck.tsbuildinfo"]
+    },
+    "check:migrations": {
+      "cache": false,
+      "outputs": []
     },
     "ui#check-types": {
       "dependsOn": ["transit"],

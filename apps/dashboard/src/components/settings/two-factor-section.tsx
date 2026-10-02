@@ -11,10 +11,12 @@ import type {
   SecurityActionOutcome,
   TwoFactorSettingsLabels,
 } from "@notra/ui/types/security";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { authClient } from "@/lib/auth/client";
 import {
   useBackupCodesPanelLabels,
@@ -49,6 +51,7 @@ export function TwoFactorSection({
 
   const [isStartingEnrollment, setIsStartingEnrollment] = useState(false);
   const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
+  const isDemo = isDemoModeClient();
 
   useEffect(() => {
     return () => {
@@ -62,6 +65,10 @@ export function TwoFactorSection({
   }, []);
 
   async function startEnrollment() {
+    if (isDemo) {
+      toast.error(DEMO_DISABLED_MESSAGE);
+      return;
+    }
     setIsStartingEnrollment(true);
     const result = await authClient.security
       .startTotpEnrollment()
@@ -160,7 +167,9 @@ export function TwoFactorSection({
     title: tSettingsShared("authenticatorApp"),
     enabled: t("settings.enabled"),
     enabledDescription: t("settings.enabledDescription"),
-    disabledDescription: t("settings.disabledDescription"),
+    disabledDescription: isDemo
+      ? DEMO_DISABLED_MESSAGE
+      : t("settings.disabledDescription"),
     setUp: tCommon("labels.setUp"),
     dialogTitle: t("settings.dialogTitle"),
     dialogDescription: t("settings.dialogDescription"),

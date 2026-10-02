@@ -9,6 +9,7 @@ import { Effect } from "effect";
 
 import { GEO_JUDGE_MODEL, GEO_SCAN_CONCURRENCY } from "../constants/geo";
 import {
+  GEO_PERSONA_BILLING_MULTIPLIER,
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_PAIR_TIMEOUT_MS,
 } from "../constants/geo-personas";
@@ -42,6 +43,7 @@ import { geoScanPersonaTasks } from "../utils/geo-scan-plan";
 import {
   addAgentTokenUsage as addTokenUsage,
   EMPTY_AGENT_TOKEN_USAGE as EMPTY_TOKEN_USAGE,
+  scaleAgentTokenUsage,
 } from "../utils/token-usage";
 import { runGeoConversation } from "./conversation";
 import { runGeoConversationReplay } from "./conversation-replay";
@@ -323,6 +325,11 @@ const runGeoScanPersonaBatchBody = Effect.fn("geo.runScanPersonaBatch.body")(
       usage: addTokenUsage(engineUsage, judgeUsage),
       engineUsage,
       judgeUsage,
+      billedChecks: checks * GEO_PERSONA_BILLING_MULTIPLIER,
+      billedUsage: scaleAgentTokenUsage(
+        addTokenUsage(engineUsage, judgeUsage),
+        GEO_PERSONA_BILLING_MULTIPLIER
+      ),
     };
     return result;
   }
@@ -424,6 +431,7 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
       },
       fallbackModelId: groundedEngines[0]?.grounded.model ?? GEO_JUDGE_MODEL,
       properties: { source: "geo_persona_run", persona_id: personaId },
+      billingMultiplier: GEO_PERSONA_BILLING_MULTIPLIER,
       logPrefix: "GeoPersonaRun",
       emptyMessage: "Engines failed to answer this persona. Try again.",
     },

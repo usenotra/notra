@@ -101,6 +101,11 @@ export const REORDER_HANDLE_PX = 24;
 
 /** Info icon plus its gap, so a hint never squeezes the header label. */
 export const HINT_ICON_PX = 18;
+/**
+ * Width the frame takes from the rows: shell border + 2px rim + body border,
+ * on both sides. Add it to any outer width that has to fit a framed table.
+ */
+export const TABLE_FRAME_INSET = "8px";
 /** Default resize/layout floor, used as `Table`'s `minColumnWidth`. */
 export const DEFAULT_MIN_COLUMN_WIDTH = 64;
 /** Extra `ch` so wide glyphs (M, W) are not clipped vs the `0`-width `ch` unit. */

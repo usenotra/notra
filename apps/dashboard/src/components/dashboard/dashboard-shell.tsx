@@ -10,6 +10,7 @@ import {
 import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
@@ -23,9 +24,12 @@ import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
+import { DashboardDemoChrome } from "@/components/demo/dashboard-demo-chrome";
+import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { useDemoBannerVisible } from "@/lib/hooks/use-demo-banner-visible";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
@@ -37,8 +41,8 @@ import type {
   DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
-  DashboardShellStyle,
 } from "@/types/components/dashboard-shell";
+import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(
@@ -202,6 +206,7 @@ function DashboardPageViewport({
 
 export function DashboardShell({
   children,
+  demoBannerHidden,
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
@@ -228,9 +233,9 @@ export function DashboardShell({
   const shouldReduceMotion = useReducedMotion();
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
-  const shellStyle: DashboardShellStyle = {
-    "--eve-banner-height": visible ? EVE_BANNER_HEIGHT : "0rem",
-  };
+  const demo = isDemoModeClient();
+  const showDemoBanner = useDemoBannerVisible(demoBannerHidden);
+  const shellStyle = dashboardShellStyle(showDemoBanner, visible);
   const {
     finishSidebarResize,
     setSidebarWidth,
@@ -277,12 +282,13 @@ export function DashboardShell({
     "--sidebar-width": `${sidebarWidth}px`,
   };
 
-  return (
+  const shell = (
     <div
       className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
       data-dashboard-shell
       style={shellStyle}
     >
+      {demo ? <DashboardDemoChrome showBanner={showDemoBanner} /> : null}
       <DashboardOnboardingBanner
         available={bannerAvailable}
         dismissing={dismissing}
@@ -327,5 +333,11 @@ export function DashboardShell({
         <DashboardAgentSlot />
       </SidebarProvider>
     </div>
+  );
+
+  return demo ? (
+    <DemoPlaygroundProvider>{shell}</DemoPlaygroundProvider>
+  ) : (
+    shell
   );
 }

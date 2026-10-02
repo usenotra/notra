@@ -88,6 +88,10 @@ import {
   geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { toGeoWindowInput } from "@/utils/geo-range";
+import {
+  invalidateGeoScanResultQueries,
+  refreshSettingsAfterScanStart,
+} from "@/utils/geo-scan-results";
 import { formatGscSiteUrl } from "@/utils/gsc-site-url";
 
 import { dashboardOrpc } from "../orpc/query";
@@ -148,71 +152,6 @@ async function invalidatePromptQueries(
   ]);
 }
 
-async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentiment.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentimentEvidence.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.sentimentAnalysis.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.scanRuns.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.scanRun.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.overview.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.timeseries.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptResultSummaries.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptResultDetail.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.changes.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.promptHistory.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.competitorShare.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.competitorDetail.key(),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.languageShare.key(),
-    }),
-  ]);
-}
-
-// A quick single-prompt rescan can finish before the settings refetch sees
-// `isScanning`, so the true -> false transition never fires. Refresh the scan
-// results (sentiment included) here when the scan is already done.
-async function refreshSettingsAfterScanStart(
-  queryClient: QueryClient,
-  organizationId: string,
-  projectId: string | undefined
-) {
-  const settingsKey = dashboardOrpc.geo.settings.queryKey({
-    input: { organizationId, projectId },
-  });
-  await queryClient.invalidateQueries({ queryKey: settingsKey });
-  const settings = queryClient.getQueryData<GeoSettingsResponse>(settingsKey);
-  if (!settings?.settings?.isScanning) {
-    await invalidateGeoScanResultQueries(queryClient);
-  }
-}
-
 function geoStartScanMutationKey(
   organizationId: string,
   projectId: string | undefined
@@ -257,9 +196,12 @@ export function useGeoSettings(organizationId: string) {
     const wasScanning = wasScanningRef.current;
     wasScanningRef.current = isScanning;
     if (wasScanning === true && !isScanning) {
-      invalidateGeoScanResultQueries(queryClient).catch(() => undefined);
+      invalidateGeoScanResultQueries(queryClient, {
+        organizationId,
+        projectId,
+      }).catch(() => undefined);
     }
-  }, [isScanning, queryClient]);
+  }, [isScanning, organizationId, projectId, queryClient]);
 
   return query;
 }
@@ -1310,7 +1252,10 @@ export function useGeoSequencesGenerate(organizationId: string) {
   });
 }
 
-export function useGeoSuggestionAccept(organizationId: string) {
+export function useGeoSuggestionAccept(
+  organizationId: string,
+  onViewPrompt: (promptId: string) => void
+) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateSuggestionQueries(organizationId);
@@ -1321,9 +1266,15 @@ export function useGeoSuggestionAccept(organizationId: string) {
         organizationId,
         projectId,
       }),
-    onSuccess: async () => {
+    onSuccess: async (prompt) => {
       await invalidate();
-      toast.success(tToast("promptAddedTracking"));
+      toast.success(tToast("promptAddedTracking"), {
+        description: tToast("trackedPromptNextScan"),
+        action: {
+          label: tToast("viewTrackedPrompt"),
+          onClick: () => onViewPrompt(prompt.id),
+        },
+      });
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, tToast("addPromptFailed")));
@@ -1331,7 +1282,10 @@ export function useGeoSuggestionAccept(organizationId: string) {
   });
 }
 
-export function useGeoSuggestionsAcceptAll(organizationId: string) {
+export function useGeoSuggestionsAcceptAll(
+  organizationId: string,
+  onViewPrompts: () => void
+) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateSuggestionQueries(organizationId);
@@ -1343,7 +1297,16 @@ export function useGeoSuggestionsAcceptAll(organizationId: string) {
       }),
     onSuccess: async (result) => {
       await invalidate();
-      toast.success(tToast("promptsAddedTracking", { count: result.accepted }));
+      toast.success(
+        tToast("promptsAddedTracking", { count: result.accepted }),
+        {
+          description: tToast("trackedPromptNextScan"),
+          action: {
+            label: tToast("viewTrackedPrompt"),
+            onClick: onViewPrompts,
+          },
+        }
+      );
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, tToast("addPromptsFailed")));

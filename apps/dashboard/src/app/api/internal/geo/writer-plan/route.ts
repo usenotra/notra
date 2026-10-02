@@ -1,4 +1,5 @@
 import { toGeoFailureWire } from "@notra/geo-core/geo/failure-wire";
+import { refreshGeoContentGapsBestEffort } from "@notra/geo-core/geo/gaps";
 import { planGeoContentBrief } from "@notra/geo-core/geo/writer";
 import { geoWriterPlanInputSchema } from "@notra/geo-core/schemas/geo";
 import { Effect } from "effect";
@@ -71,5 +72,6 @@ export async function POST(request: Request) {
     );
   }
 
+  await Effect.runPromise(refreshGeoContentGapsBestEffort(parsed.data));
   return Response.json(outcome.success, { status: 200 });
 }

@@ -43,7 +43,7 @@ export function GitHubIntegrationDialog({
     const result = await startGitHubInstall({ organizationId, callbackPath });
 
     if (!result.started) {
-      toast.error(t("toasts.installFailed"));
+      toast.error(result.message ?? t("toasts.installFailed"));
     }
   };
 

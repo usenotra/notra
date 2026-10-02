@@ -47,7 +47,6 @@ const fetchCrawlerIpList = Effect.fn("fetchCrawlerIpList")(function* (
           accept: "application/json",
           "user-agent": IP_CHECKER_FETCH_USER_AGENT,
         },
-        next: { revalidate: IP_CHECKER_LIST_REVALIDATE_SECONDS },
         signal: AbortSignal.any([
           signal,
           AbortSignal.timeout(IP_CHECKER_FETCH_TIMEOUT_MS),

@@ -1104,8 +1104,7 @@
     },
     "accountMenu": {
       "label": "Account menu",
-      "description": "Manage your session before choosing a plan.",
-      "signingOut": "Signing out…"
+      "description": "Manage your session before choosing a plan."
     },
     "competitorSearch": {
       "unavailable": "Search unavailable",
@@ -1613,7 +1612,6 @@
           "amountLabel": "Amount of posts to import:",
           "maxTooltip": "Maximum 20 posts per import",
           "noAccountsDescription": "Connect an X account to import recent posts.",
-          "importing": "Importing…",
           "importedLabel": "Imported",
           "connect": "Connect an X account",
           "connectAnother": "Connect another X account"
@@ -1686,7 +1684,6 @@
     "create": {
       "description": "A skill is a reusable prompt your agents load at runtime.",
       "quickstart": "Quickstart",
-      "importing": "Importing",
       "quickstartHint": "Paste a skills.sh link to import a skill.",
       "quickstartErrors": {
         "unsupportedHost": "Only skills.sh links are supported.",
@@ -2580,19 +2577,14 @@
       }
     },
     "engineFamilySheet": {
+      "missedTitle": "{count, plural, one {# prompt misses you} other {# prompts miss you}}",
+      "foundTitle": "{count, plural, one {# prompt shows you} other {# prompts show you}}",
+      "trend": "Visibility over time",
       "descriptionModels": "How visible your brand is in each model",
       "descriptionEngine": "How visible your brand is in this engine",
       "lastChecked": "Last checked {time}",
-      "modes": {
-        "memory": "w/o Search"
-      },
-      "seriesLabel": "Brand visibility · {mode}",
-      "answerMode": "Answer mode",
+      "seriesLabel": "Brand visibility",
       "brandsHint": "How often each brand shows up in this engine's answers to your prompts",
-      "result": {
-        "miss": "Miss"
-      },
-      "promptsCount": "Prompts ({count, number})",
       "resultHeader": "Result",
       "emptyPrompts": "No prompts scanned yet"
     },
@@ -2616,27 +2608,6 @@
       "empty": "Run a scan to see engine mention rates",
       "emptySeed": "Mention rate by engine",
       "noMatches": "No engines match this filter"
-    },
-    "familyImproveCard": {
-      "closeGaps": "Close these gaps",
-      "insights": {
-        "searchAhead": {
-          "title": "Search finds you. Memory doesn't.",
-          "body": "When {family} looks at the web it mentions you {search}. Without search it's {memory}. Pages that answer the {count, plural, one {# prompt} other {# prompts}} it missed help search keep citing you."
-        },
-        "memoryAhead": {
-          "title": "Remembered, not found.",
-          "body": "{family} already names you without searching ({memory}), but live search only mentions you {search}. Pages that match the {count, plural, one {# prompt} other {# prompts}} it missed close that gap."
-        },
-        "closing": {
-          "title": "{count, plural, one {# prompt still misses you} other {# prompts still miss you}}",
-          "body": "{family} already mentions you often. Closing the remaining misses is the fastest way to raise the rate."
-        },
-        "bothWeak": {
-          "title": "{count, plural, one {# prompt never mentions you} other {# prompts never mention you}}",
-          "body": "Neither search nor memory is recommending you on these questions. Write the pages that answer them."
-        }
-      }
     },
     "gapDetailSheet": {
       "coverage": "Mentioned by {visible} of {total} engines",
@@ -2666,8 +2637,11 @@
         "mentioned": "Mentions you",
         "searched": "Ran this search"
       },
-      "searchQueriesCount": "{count, plural, one {# search query} other {# search queries}}",
       "empty": {
+        "preparing": {
+          "title": "Preparing content gaps",
+          "description": "Search and scan results are being organized. Check back shortly."
+        },
         "scanning": {
           "title": "Scanning engines",
           "description": "Gaps appear here once the scan finishes."
@@ -2679,14 +2653,9 @@
           "title": "No prompt gaps",
           "description": "Engines already mention you on the questions you track."
         },
-        "noAiSearchGaps": {
-          "title": "No AI search gaps",
-          "description": "None of the searches engines ran in your scans leave you out yet."
-        },
         "noSearchGaps": {
           "title": "No search gaps",
-          "description": "Connect Search Console on Prompts to pull queries you don't cover yet.",
-          "action": "Open Prompts"
+          "description": "Search Console and AI scans have not found any uncovered searches yet."
         },
         "noMatches": {
           "title": "No matching gaps",
@@ -2694,10 +2663,10 @@
         }
       },
       "gapType": "Gap type",
+      "openSearchGap": "Open details for {query}",
       "tabs": {
         "prompt": "Prompt Gaps",
-        "search": "Search Gaps",
-        "ai": "AI Search Gaps"
+        "search": "Search Gaps"
       },
       "filterLabel": "Filter content gaps",
       "filterPlaceholder": "Filter gaps…",
@@ -2709,19 +2678,14 @@
       "columns": {
         "opportunity": "Opportunity",
         "visibleOn": "Visible on",
-        "sourceQuestion": "Source question",
+        "searchQuery": "Search query",
         "action": "Action",
-        "aiSearch": "AI search",
-        "searches": "Searches",
-        "searchedBy": "Searched by"
-      },
-      "hints": {
-        "impressions": "Total Google Search impressions across the queries in this gap.",
-        "recommendation": "Suggested next step based on search demand and overlap with your existing content.",
-        "searches": "Scan answers in which an engine ran this web search."
+        "searches": "AI searches"
       },
       "aiSearched": "AI searched: {queries}",
-      "aiSearchSubtitle": "{more, plural, =0 {From \"{prompt}\"} other {From \"{prompt}\" and # more}}"
+      "aiSearchSubtitle": "{more, plural, =0 {From \"{prompt}\"} other {From \"{prompt}\" and # more}}",
+      "moreActions": "More actions for {query}",
+      "openAiDraft": "Open AI search draft"
     },
     "geoAnswerActions": {
       "copy": "Copy answer",
@@ -3015,7 +2979,7 @@
       "generate": "Generate persona"
     },
     "personaDetailDialog": {
-      "running": "Running…",
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "viewAria": "View",
       "views": {
         "profile": "Profile"
@@ -3060,10 +3024,10 @@
       "title": "Conversation prompts",
       "description": "Every engine receives these exact messages in the same order. They are generated from the persona's profile and memories.",
       "message": "Message {number}",
-      "emptyDescription": "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories.",
-      "generating": "Generating prompts…"
+      "emptyDescription": "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories."
     },
     "personaTableActions": {
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "reactivate": "Reactivate persona",
       "restoreLimit": "You can have up to {max} active personas. Archive one before reactivating this one.",
       "waitForAction": "Wait for the current persona action to finish.",
@@ -3080,7 +3044,7 @@
       "counts": "({active} active{archived, plural, =0 {} other { · # archived}})",
       "memoriesHint": "Background facts and preferences used to generate this persona's fixed prompts",
       "maxMessages": "Max. messages",
-      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent",
+      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent. Each answer counts as {multiplier} AI answers.",
       "empty": "No personas yet. Generate a set to have them research your category during scans",
       "archiveDescription": "This persona will be removed from future scans. Its scan history is kept.",
       "nounSingular": "persona",
@@ -3110,7 +3074,6 @@
       "analysisFailed": "Project created, but brand analysis could not start. Retry from Brand Identity.",
       "loadIdentitiesFailed": "Could not load brand identities.",
       "identitySaved": "The brand identity was saved. If you retry, we reuse it and start its analysis once the project exists. You can also manage it in Brand Identity.",
-      "settingUp": "Setting up project",
       "create": "Create project"
     },
     "projectDeleteSection": {
@@ -3147,9 +3110,14 @@
       "actionAria": "Copy prompt: {prompt}"
     },
     "promptDetailDialog": {
+      "emptyTitle": "No answers yet",
+      "emptyDescription": "This prompt is asked in the next scheduled scan. Run a scan now to see the answers right away.",
+      "emptyPaused": "GEO scans are paused. Turn them on in settings so this prompt gets asked.",
+      "emptyScanningTitle": "Asking AI engines…",
+      "emptyScanningDescription": "Answers show up here as soon as the scan finishes.",
+      "emptyEngines": "Asked in",
       "scanFrom": "Scan from <time>{date}</time>",
       "backToLatest": "Back to latest scan",
-      "latestAnswerMode": "Latest {mode} answer from each engine",
       "latestAnswer": "Latest answer from each engine",
       "answerLanguage": "Answer language",
       "noTags": "No tags",
@@ -3360,8 +3328,13 @@
       }
     },
     "searchGapDetail": {
-      "eyebrow": "Search gap · Source question",
+      "eyebrow": "Search gap",
       "fallbackTitle": "Search gap",
+      "aiEvidence": "AI search evidence",
+      "uncoveredSearches": "{count, plural, one {# answer without your brand or site} other {# answers without your brand or site}}",
+      "searchedBy": "Engines that ran this search",
+      "relatedPrompts": "Questions these engines answered",
+      "mentionedCompetitors": "Competitors mentioned",
       "acrossQueries": "Across this gap's Google Search queries.",
       "draftTitle": "Draft title",
       "noQueryData": "No query-level data available for this gap.",
@@ -3588,11 +3561,9 @@
         "help": "Plan creates a brief you review before anything is drafted. Write plans and drafts the article in one step.",
         "pending": {
           "plan": {
-            "label": "Planning…",
             "status": "Planning the brief. You review it before anything is drafted."
           },
           "write": {
-            "label": "Writing…",
             "status": "Planning the brief, then drafting the article. This takes about a minute."
           }
         },
@@ -3916,6 +3887,8 @@
       "loadPromptSuggestionsFailed": "Failed to load prompt suggestions",
       "generateConversationsFailed": "Failed to generate conversations",
       "promptAddedTracking": "Prompt added to tracking",
+      "trackedPromptNextScan": "Results appear after the next scan.",
+      "viewTrackedPrompt": "View",
       "addPromptFailed": "Failed to add prompt",
       "addPromptsFailed": "Failed to add prompts",
       "dismissSuggestionFailed": "Failed to dismiss suggestion",
@@ -4086,7 +4059,6 @@
       "displayName": "Display name",
       "displayNamePlaceholder": "e.g. Team meeting notes",
       "apiKeyHelp": "Create a key in the Granola app under Settings, then Connectors, then API keys. <link>View guide</link>",
-      "verifying": "Verifying key",
       "connected": "Granola connected",
       "connectFailed": "Failed to connect Granola",
       "invalidForm": "Invalid form values",
@@ -4197,7 +4169,6 @@
         "refreshFailed": "Unable to refresh repositories. Showing the last loaded data."
       },
       "connectDialog": {
-        "redirecting": "Redirecting…",
         "install": "Install on GitHub",
         "permissions": {
           "readMetadata": "Read repository metadata, branches and releases",
@@ -4662,7 +4633,6 @@
       "title": "Pause Iris?",
       "description": "Pausing stops scheduled runs and cancels pending Slack messages. You can resume at any time.",
       "keepRunning": "Keep running",
-      "pausing": "Pausing",
       "confirm": "Pause Iris"
     },
     "runCard": {
@@ -4673,7 +4643,6 @@
         "retired": "Iris is retired",
         "working": "Iris is working"
       },
-      "starting": "Starting",
       "tabs": {
         "signals": "Recent signals"
       },
@@ -4695,7 +4664,6 @@
     },
     "start": {
       "description": "Iris watches what you ship and does your marketing. It drafts changelogs, blog posts with images and social posts, then asks you on Slack before anything goes live.",
-      "starting": "Starting Iris",
       "start": "Start Iris",
       "beforeYouStart": "Before you start",
       "slackWarning": "Connect a Slack notification channel so Iris can report to you. You can still start now and connect it later. <link>Connect Slack</link>"
@@ -4817,7 +4785,7 @@
       "engagementRate": "Engagement rate",
       "engagementHint": "{interactions} interactions / {impressions} impressions",
       "followersHint": "across {count, plural, one {# connected account} other {# connected accounts}}",
-      "impressionsHint": "posts, {range}",
+      "impressionsHint": "across all posts, {range}",
       "interactionsHint": "{posts} posts, {range}"
     },
     "ranges": {
@@ -5846,7 +5814,6 @@
       "stepIdentities": {
         "emptyTitle": "No brand identity yet",
         "emptyDescription": "Drop in your website and we'll learn your tone and audience.",
-        "creating": "Creating…",
         "createButton": "Create brand identity",
         "title": "Which brand identity should this use?",
         "description": "Select one or more brand identities, or skip to write for a general audience.",
@@ -6116,7 +6083,6 @@
       "noBrandIdentity": "No brand identity to save this reference to. Create one on the Brand Identity page first.",
       "overLimit": "This post is {count, plural, one {# character} other {# characters}} over the {limit, number} character limit for @{username}. Shorten it to post.",
       "openOn": "Open on {platform}",
-      "posting": "Posting…",
       "postAs": "Post as @{username}",
       "rejectsDuplicates": "{platform} rejects duplicate posts.",
       "readDocs": "Read the {platform} docs",
@@ -6136,6 +6102,14 @@
       "formats": "{count} formats",
       "emptyPage": "No content on this page",
       "items": "items",
+      "actions": {
+        "open": "Open",
+        "openInNewTab": "Open in new tab",
+        "copyLink": "Copy link",
+        "linkCopied": "Link copied",
+        "deleteTitle": "Delete content?",
+        "deleteDescription": "This permanently deletes \"{title}\" and all {count, plural, one {# post} other {# posts}} in it. This can't be undone."
+      },
       "detail": {
         "metaTitle": "Collection",
         "metaDescription": "View all posts in a content collection.",
@@ -6166,6 +6140,8 @@
       "loadLatestPlanFailed": "Failed to load the latest plan",
       "refreshPlanFailed": "Failed to refresh the plan",
       "postDeleted": "Post deleted",
+      "collectionDeleted": "Content deleted",
+      "deleteCollectionFailed": "Failed to delete content",
       "deletePostFailed": "Failed to delete post",
       "loadContentFailed": "Failed to load content",
       "loadRecentPostsFailed": "Failed to load recent posts",
@@ -6550,6 +6526,131 @@
       "hue": "Hue",
       "opacity": "Opacity",
       "eyeDropper": "Pick a color from the screen"
+    }
+  },
+  "demo": {
+    "start": {
+      "title": "Opening the demo…",
+      "description": "Just a moment.",
+      "errorTitle": "The demo workspace couldn't be created",
+      "errorDescription": "Please try again in a moment.",
+      "retry": "Try again"
+    },
+    "banner": {
+      "title": "Explore the Notra demo.",
+      "titleNamed": "Welcome to the Notra demo, {name}.",
+      "customize": "Customize",
+      "reset": "Reset",
+      "signup": "Create account",
+      "resetTitle": "Reset your demo workspace?",
+      "resetDescription": "Everything you changed is thrown away and the sample data is restored. Your demo ID, API key and customization stay the same.",
+      "cancel": "Cancel",
+      "resetConfirm": "Reset workspace",
+      "resetting": "Resetting…",
+      "resetFailed": "The workspace couldn't be reset. Please try again."
+    },
+    "playground": {
+      "title": "API playground",
+      "description": "Send real requests to the demo API and watch them change this workspace.",
+      "tabs": {
+        "console": "Console",
+        "requests": "Requests",
+        "missions": "Missions"
+      },
+      "toastStatus": "{status}",
+      "toastChanged": "{status} · {label}",
+      "view": "View",
+      "openFeed": "Details",
+      "demoId": "Demo ID {id}",
+      "idCopied": "Demo ID copied"
+    },
+    "console": {
+      "keyLabel": "Your demo API key",
+      "copy": "Copy",
+      "keyCopied": "API key copied",
+      "keyHint": "Works with curl, the Notra CLI and MCP against {url}. It expires with your workspace.",
+      "noKey": "No API key is available for this workspace.",
+      "preset": "Example",
+      "method": "Method",
+      "path": "Path",
+      "body": "Request body (JSON)",
+      "send": "Send request",
+      "sending": "Sending…",
+      "copyCurl": "Copy as curl",
+      "curlCopied": "curl command copied",
+      "seeFeed": "The request also shows up under Requests, and the dashboard updates live.",
+      "presets": {
+        "listPosts": "List recent posts",
+        "createPost": "Create a draft post",
+        "createPrompt": "Track a new GEO prompt",
+        "startScan": "Start a GEO scan",
+        "visibility": "Get AI visibility overview",
+        "traffic": "Get AI traffic overview",
+        "listSchedules": "List schedules",
+        "createSkill": "Create a skill"
+      }
+    },
+    "feed": {
+      "loading": "Loading…",
+      "emptyTitle": "No requests yet",
+      "emptyDescription": "Send a request from the console, use curl, or click around the dashboard. Everything shows up here.",
+      "sources": {
+        "api": "API",
+        "console": "Console",
+        "ui": "UI",
+        "webhook": "Webhook"
+      },
+      "sameViaApi": "Do the same via the API",
+      "copyCurl": "Copy curl",
+      "curlCopied": "curl command copied",
+      "request": "Request",
+      "response": "Response"
+    },
+    "missions": {
+      "progress": "{done} of {total} done",
+      "complete": "Done",
+      "open": "Not done yet",
+      "scan": {
+        "title": "Run a GEO scan",
+        "description": "Click Run scan on the GEO overview and watch new results come in."
+      },
+      "apiPrompt": {
+        "title": "Add a prompt through the API",
+        "description": "Send \"Track a new GEO prompt\" from the console. It appears under GEO › Prompts right away."
+      },
+      "agentPost": {
+        "title": "Write a post, then fetch it via API",
+        "description": "Ask the agent to write a post, then run \"List recent posts\"."
+      },
+      "schedule": {
+        "title": "Automate content",
+        "description": "Create a schedule under Automation or use Run now on one."
+      },
+      "externalClient": {
+        "title": "Call the API from your machine",
+        "description": "Copy a request as curl and run it in your terminal, or connect the CLI or MCP with your demo key."
+      },
+      "finishedTitle": "You've seen it all",
+      "finishedDescription": "Set Notra up for your own brand in a few minutes.",
+      "signup": "Start free",
+      "openConsole": "Open the console"
+    },
+    "customize": {
+      "title": "Customize the Notra demo",
+      "description": "Tell us who you are and the demo is rebuilt around your company: brand, AI visibility, content and team.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "companyName": "Company name",
+      "note": "Takes a few seconds. What you entered only lives in this demo workspace.",
+      "cancel": "Cancel",
+      "submit": "Customize demo",
+      "saving": "Rebuilding…",
+      "failed": "The demo couldn't be customized. Please try again."
+    },
+    "apiCallout": {
+      "title": "Try the API with your demo key",
+      "description": "Send requests from the playground and watch them change this workspace live. curl, the CLI and MCP work too.",
+      "open": "Open API playground"
     }
   }
 }

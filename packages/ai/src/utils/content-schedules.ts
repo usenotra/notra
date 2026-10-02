@@ -5,6 +5,7 @@ import {
   deleteQstashSchedule,
   normalizeCronConfig,
 } from "@notra/ai/qstash/triggers";
+import { QstashScheduleSetupError } from "@notra/ai/schemas/qstash";
 import {
   SCHEDULE_FREQUENCIES,
   SCHEDULE_LOOKBACK_WINDOWS,
@@ -459,13 +460,7 @@ function isLookbackWindow(
 }
 
 function scheduleSetupMessage(error: unknown): string | null {
-  const message = error instanceof Error ? error.message : "";
-  if (
-    message.includes("QSTASH_TOKEN") ||
-    message.includes("App URL not configured") ||
-    message.includes("invalid destination") ||
-    message.includes("unable to resolve host")
-  ) {
+  if (error instanceof QstashScheduleSetupError) {
     return "Schedules cannot be started yet because the scheduler is not configured for this environment.";
   }
   return null;

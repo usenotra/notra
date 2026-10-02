@@ -10,22 +10,24 @@ import type { Context } from "hono";
 
 import type { ApiEnv } from "../types/env";
 import { getOrganizationId } from "./auth";
+import { logError } from "./logging";
 
-export function runWebhookApi<A, E>(
+export function runWebhookApi<A, E extends { readonly _tag: string }>(
   runtime: ManagedRuntime.ManagedRuntime<WebhookDatabase, Config.ConfigError>,
   c: Context<ApiEnv>,
   program: Effect.Effect<A, E, WebhookDatabase>
 ) {
   return runtime.runPromise(
     program.pipe(
+      Effect.catchIf(Schema.is(WebhookNotFound), () =>
+        Effect.succeed(c.json({ error: "Webhook not found" }, 404))
+      ),
+      Effect.catchIf(Schema.is(WebhookValidationError), (error) =>
+        Effect.succeed(c.json({ error: error.message }, 400))
+      ),
       Effect.catch((error) =>
         Effect.sync(() => {
-          if (error instanceof WebhookNotFound) {
-            return c.json({ error: "Webhook not found" }, 404);
-          }
-          if (error instanceof WebhookValidationError) {
-            return c.json({ error: error.message }, 400);
-          }
+          logError(`Webhook request failed (${error._tag})`, error);
           return c.json({ error: "Webhooks unavailable" }, 503);
         })
       )

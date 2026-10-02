@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { cookieAttributes } from "@/utils/cookie-attributes";
+
 export async function readShortLivedCookie(
   name: string
 ): Promise<string | null> {
@@ -17,8 +19,7 @@ export async function storeShortLivedCookie(
     name,
     value,
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    ...cookieAttributes(),
     path: "/",
     maxAge: maxAgeSeconds,
   });
@@ -26,14 +27,18 @@ export async function storeShortLivedCookie(
 
 export async function clearShortLivedCookie(name: string) {
   const cookieStore = await cookies();
-  cookieStore.delete({ name, path: "/" });
+  cookieStore.delete({ name, path: "/", ...cookieAttributes() });
 }
 
 export async function clearShortLivedCookiesWithPrefix(prefix: string) {
   const cookieStore = await cookies();
   for (const cookie of cookieStore.getAll()) {
     if (cookie.name.startsWith(prefix)) {
-      cookieStore.delete({ name: cookie.name, path: "/" });
+      cookieStore.delete({
+        name: cookie.name,
+        path: "/",
+        ...cookieAttributes(),
+      });
     }
   }
 }

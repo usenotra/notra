@@ -1,3 +1,5 @@
+import type { ContributorsContentProps } from "~types/contributors";
+
 import { ActivityCard } from "@/components/contributors/activity-card";
 import { ContributorsGrid } from "@/components/contributors/contributors-grid";
 import { IssueList } from "@/components/contributors/issue-list";
@@ -16,14 +18,9 @@ import {
   PRS_CARD_TITLE,
 } from "@/constants/contributors";
 import { SPONSORS } from "@/lib/sponsors/constants";
-import {
-  fetchContributorsData,
-  formatViewAllLabel,
-  GITHUB_REPO_URL,
-} from "@/utils/github";
+import { formatViewAllLabel, GITHUB_REPO_URL } from "@/utils/github";
 
-export async function ContributorsContent() {
-  const data = await fetchContributorsData();
+export function ContributorsContent({ data }: ContributorsContentProps) {
   return (
     <>
       <section className="flex w-full flex-col items-center gap-13.5 px-6 pt-20 antialiased sm:px-12 lg:px-20 lg:pt-35">

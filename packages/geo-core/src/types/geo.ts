@@ -36,6 +36,11 @@ export interface GeoProjectRow {
   updatedAt: Date;
 }
 
+export type GeoProjectResponseRow = Pick<
+  GeoProjectRow,
+  "id" | "name" | "brandSettingsId" | "createdAt"
+>;
+
 export interface GeoProjectsResponse {
   projects: GeoProject[];
 }
@@ -247,8 +252,6 @@ export interface GeoTimeseriesResponse {
 
 export type GeoSparklineMode = "all" | "search" | "memory";
 
-export type GeoEngineMode = Exclude<GeoSparklineMode, "all">;
-
 export interface MentionRateSparklineOptions {
   family?: string;
   model?: string;
@@ -260,12 +263,10 @@ export interface GeoSparklinePoint {
   value: number;
 }
 
-export interface EngineFamilyModeTrendRow {
+export interface EngineFamilyTrendRow {
   day: string;
   rawDay: string;
   all: number | null;
-  search: number | null;
-  memory: number | null;
   [key: string]: string | number | null;
 }
 
@@ -478,6 +479,8 @@ export interface GeoScanCronSweepResult {
   leaseLost: number;
   /** Rows whose project scan slot is still claimed by a running scan. */
   alreadyRunning: number;
+  /** Slots skipped because the billing gate would deny the scan. */
+  billingDenied: number;
   /** Hand-offs that failed; their row keeps its lease and is retried. */
   failed: number;
   /** Slots another sweep advanced while this one held a stale lease. */
@@ -664,7 +667,7 @@ export interface GeoScanProjectContext {
   domains?: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
-  /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
+  /** Prompt- or engine-scoped scans do not cover a scheduled project scan. Optional for persisted older plans. */
   scoped?: boolean;
 }
 
@@ -693,6 +696,10 @@ export interface GeoScanBatchOutcome {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  /** AI answers this batch bills; defaults to `checks`. */
+  billedChecks?: number;
+  /** Usage this batch bills as AI credits; defaults to `usage`. */
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFailureMetadata {
@@ -709,6 +716,8 @@ export interface GeoScanProjectTotals {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  billedChecks?: number;
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFinishTotals {
@@ -1708,7 +1717,6 @@ export interface GeoGapScore {
 export type GeoAiSearchQueryDbRow = {
   query: string;
   check_ids: string[];
-  mentioned_check_ids: string[];
   covered_check_ids: string[];
   engines: string[];
   prompts: string[];
@@ -1718,7 +1726,6 @@ export type GeoAiSearchQueryDbRow = {
 export interface GeoAiSearchQueryRow {
   query: string;
   checkIds: string[];
-  mentionedCheckIds: string[];
   coveredCheckIds: string[];
   engines: string[];
   prompts: string[];
@@ -1730,7 +1737,6 @@ export interface GeoAiSearchAgg {
   prompts: Set<string>;
   engines: Set<string>;
   checkIds: Set<string>;
-  mentionedCheckIds: Set<string>;
   coveredCheckIds: Set<string>;
   competitors: string[];
 }
@@ -1820,6 +1826,7 @@ export interface GeoContentGapsResponse {
   searchGaps: GeoSearchGapRow[];
   aiSearchGaps: GeoAiSearchGapRow[];
   hasScanData: boolean;
+  snapshotReady: boolean;
 }
 
 export interface GeoWriterStartResponse {

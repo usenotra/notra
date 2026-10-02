@@ -20,6 +20,7 @@ Notra is a Bun + Turborepo monorepo.
 ```text
 /
 |- apps/
+|  |- ai-traffic-ingest/ # AI traffic collector (Bun, Railway)
 |  |- api/         # Hono API (Cloudflare Worker)
 |  |- dashboard/   # Main Notra product app (Next.js)
 |  |- docs/        # Product docs (Mintlify)
@@ -92,6 +93,12 @@ Helpful provider docs:
 ```bash
 bun run db:migrate
 ```
+
+Content Gaps reads a saved snapshot per project. A project without one builds it
+on its first read. Scans, Search Console syncs, and gap mutations refresh it,
+and the dashboard's hourly `/api/cron/geo-content-gaps` job refreshes up to 25
+missing or day-old snapshots per run. Keep `CRON_SECRET` configured in deployed
+environments so rolling 30-day gaps continue to expire without page-load work.
 
 6. Start development:
 
@@ -188,10 +195,29 @@ Common Drizzle commands from the repo root:
 
 ```bash
 bun run db:generate
+bun run db:check
 bun run db:migrate
 bun run db:push
 bun run db:studio
 ```
+
+Commit generated SQL and `packages/db/migrations/meta/_journal.json` together.
+`db:check` rejects orphan SQL, missing files, invalid journal ordering, and new
+prefix collisions. Two historical prefix pairs are grandfathered; do not rename
+applied migrations or change their journal timestamps. CI compares the journal
+against the PR base or previous main commit to enforce append-only history. Run
+`bun run db:check --base=origin/main` locally for the same comparison. CI also
+replays the full journal on an empty Postgres database and runs it again to check
+rerun safety.
+
+The obsolete SQL files `0019_add_post_recommendations`, `0036_lovely_wallop`, and
+`0090_user_auth_security` were unjournaled and have been removed. Their active
+schema changes are covered by `0019_medical_peter_parker`, `0000_baseline`, and
+`0100_complete_robin_chapel`. Authenticator factor labels are no longer used.
+
+Dashboard production builds validate migrations, build, and prune the build cache
+before migrating the database. Migrations must remain compatible with the running
+app because Vercel has not yet promoted the new deployment at that point.
 
 Seed helpers:
 
@@ -224,7 +250,7 @@ git commit -m "feat(dashboard): add integration activity filters"
 
 ## Landing Page Copy Sync
 
-If you update landing page copy in `apps/web/src/app/page.tsx`, also update the markdown version in `apps/web/src/app/markdown/route.ts`.
+If you update landing page copy in `apps/web/src/components/landing/landing-page.tsx`, also update the markdown version in `apps/web/src/utils/site-markdown.ts`.
 
 We keep both in sync so the website and markdown endpoint (`/markdown`) say the same thing.
 

@@ -4,6 +4,7 @@ import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
 export interface DashboardShellProps {
   children: ReactNode;
+  demoBannerHidden: boolean;
   initialOnboardingAgentRun: InitialOnboardingAgentRun;
   initialSidebarOpen: boolean;
   initialSidebarWidth: number;
@@ -22,8 +23,13 @@ export interface DashboardOnboardingBannerProps {
 
 export interface DashboardShellStyle extends CSSProperties {
   "--eve-banner-height": string;
+  "--demo-banner-height"?: string;
 }
 
 export interface DashboardSidebarStyle extends CSSProperties {
   "--sidebar-width": string;
+}
+
+export interface DashboardDemoChromeProps {
+  showBanner: boolean;
 }

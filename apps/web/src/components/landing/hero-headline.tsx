@@ -1,5 +1,3 @@
-"use client";
-
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { tween } from "@notra/ui/lib/motion";
 import Scritto from "@scritto/react";

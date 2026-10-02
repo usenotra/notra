@@ -11,6 +11,7 @@ WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 COPY patches ./patches
 COPY apps/agent/package.json ./apps/agent/package.json
+COPY apps/ai-traffic-ingest/package.json ./apps/ai-traffic-ingest/package.json
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/dashboard/package.json ./apps/dashboard/package.json
 COPY apps/docs/package.json ./apps/docs/package.json

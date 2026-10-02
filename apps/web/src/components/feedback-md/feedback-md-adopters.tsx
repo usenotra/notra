@@ -1,6 +1,6 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import {
   FEEDBACK_MD_ADOPTERS,
@@ -20,7 +20,7 @@ export function FeedbackMdAdopters() {
           <li className="flex w-[13rem] items-center justify-center" key={name}>
             <Link
               className="flex h-12 items-center justify-center text-[#52525B] transition-colors hover:text-[#1E1E1E] dark:text-[#9CA3AF] dark:hover:text-white"
-              href={feedbackUrl}
+              to={feedbackUrl}
               rel="noopener"
               target="_blank"
             >
@@ -31,7 +31,7 @@ export function FeedbackMdAdopters() {
         <li className="flex w-[13rem] items-center justify-center">
           <Link
             className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-lg font-sans text-[0.875rem] text-[#1E1E1E99] transition-colors hover:text-[#1E1E1E] dark:text-white/60 dark:hover:text-white"
-            href={FEEDBACK_MD_ADOPTERS_CTA_HREF}
+            to={FEEDBACK_MD_ADOPTERS_CTA_HREF}
           >
             <svg
               aria-hidden="true"

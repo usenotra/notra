@@ -1,7 +1,9 @@
 import "./tcc";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { flushLogs } from "@notra/ai/evlog";
+import { registerDemoSocialAnalytics } from "@notra/ai/utils/demo-social";
 import { createDb } from "@notra/db/drizzle";
+import { registerGeoDemoTraffic } from "@notra/geo-core/geo/demo-traffic";
 import { shutdownPostHogServer } from "@notra/posthog/server";
 import { publicStatusResponseSchema } from "@notra/schemas/api/status";
 import {
@@ -12,12 +14,16 @@ import {
   LEGACY_API_READ_SCOPE,
   LEGACY_API_WRITE_SCOPE,
 } from "@notra/utils/api-scopes";
+import { DEMO_CONSOLE_HEADER } from "@notra/utils/constants/demo";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { trimTrailingSlash } from "hono/trailing-slash";
 
+import { DEMO_API_URL } from "./constants/demo";
 import { apiAnalyticsMiddleware } from "./middleware/analytics";
 import { authMiddleware } from "./middleware/auth";
+import { demoRequestLogMiddleware } from "./middleware/demo-request-log";
 import {
   geoContextMiddleware,
   geoProjectContextMiddleware,
@@ -60,6 +66,7 @@ import {
   SITE_URL,
 } from "./utils/agent-discovery";
 import { trackApiException } from "./utils/analytics";
+import { assertDedicatedDemoDatabase } from "./utils/demo-database-guard";
 import { assertRequiredEnv } from "./utils/env";
 import {
   isFeedbackApiRequest,
@@ -77,6 +84,17 @@ const FRAMER_PLUGIN_ORIGIN_PATTERN = new RegExp(
 const LOCAL_DEV_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+const IS_DEMO = isDemoMode();
+
+const PRODUCTION_SERVER = {
+  url: "https://api.usenotra.com",
+  description: "Production",
+};
+const DEMO_SERVER = {
+  url: DEMO_API_URL,
+  description: "Public demo with sample data. Get a key at demo.usenotra.com",
+};
 
 const publicStatusRoute = createRoute({
   method: "get",
@@ -108,12 +126,23 @@ function getAllowedOrigin(origin: string | undefined): string | null {
     ...(IS_PRODUCTION ? [] : [LOCAL_DEV_ORIGIN_PATTERN]),
   ];
 
+  // The demo dashboard's API console calls demo-api from the browser.
+  if (IS_DEMO && origin === process.env.NOTRA_DEMO_DASHBOARD_ORIGIN) {
+    return origin;
+  }
+
   return allowedPatterns.some((pattern) => pattern.test(origin))
     ? origin
     : null;
 }
 
 assertRequiredEnv();
+
+if (IS_DEMO) {
+  registerGeoDemoTraffic();
+  registerDemoSocialAnalytics();
+  await assertDedicatedDemoDatabase(process.env.DATABASE_URL ?? "");
+}
 
 export const app = new OpenAPIHono<ApiEnv>({ strict: true });
 
@@ -139,7 +168,12 @@ const securityHeadersMiddleware = async (
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     );
-    c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    c.header(
+      "Access-Control-Allow-Headers",
+      IS_DEMO
+        ? `Content-Type, Authorization, ${DEMO_CONSOLE_HEADER}`
+        : "Content-Type, Authorization"
+    );
   }
 
   if (c.req.method === "OPTIONS") {
@@ -162,6 +196,11 @@ const databaseMiddleware = async (c: Context, next: () => Promise<void>) => {
 
 app.use("/v1/*", databaseMiddleware);
 app.use("/v2/*", databaseMiddleware);
+
+if (IS_DEMO) {
+  app.use("/v1/*", demoRequestLogMiddleware);
+  app.use("/v2/*", demoRequestLogMiddleware);
+}
 
 app.openapi(publicStatusRoute, (c) => {
   return c.json({
@@ -232,8 +271,9 @@ app.use("/v2/*", subscriptionMiddleware());
 // GEO is a paid add-on, so every GEO endpoint — reads included — additionally
 // requires the `ai_answers` plan entitlement. `subscriptionMiddleware` above
 // still applies unchanged.
-app.use("/v1/projects/*", geoEntitlementMiddleware());
-app.use("/v1/geo/ingest/*", geoEntitlementMiddleware());
+const requireGeoEntitlement = geoEntitlementMiddleware();
+app.use("/v1/projects/*", requireGeoEntitlement);
+app.use("/v1/geo/ingest/*", requireGeoEntitlement);
 app.use("/v1/projects/*", geoContextMiddleware());
 app.use("/v1/projects/:projectId/*", geoProjectContextMiddleware());
 app.use("/v1/geo/ingest/*", geoContextMiddleware());
@@ -318,23 +358,26 @@ app.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
     "Send your API key in the Authorization header as Bearer API_KEY.",
 });
 
-app.doc31("/openapi.json", (_c) => ({
-  openapi: "3.1.1",
-  info: {
-    title: "Notra API",
-    version: "1.0.0",
-    description:
-      "OpenAPI schema for Notra content endpoints. Use GET /v1/status for public reachability. Error responses include recovery guidance.",
-  },
-  servers: [
-    {
-      url: "https://api.usenotra.com",
-      description: "Production",
-    },
-  ],
-  security: [{ BearerAuth: [] }],
-  tags: [...API_OPENAPI_TAGS],
-}));
+// Routes and schema configuration are fixed after startup.
+let openApiJson: string | undefined;
+app.get("/openapi.json", (c) => {
+  openApiJson ??= JSON.stringify(
+    app.getOpenAPI31Document({
+      openapi: "3.1.1",
+      info: {
+        title: "Notra API",
+        version: "1.0.0",
+        description:
+          "OpenAPI schema for Notra content endpoints. Use GET /v1/status for public reachability. Error responses include recovery guidance.",
+      },
+      servers: IS_DEMO ? [DEMO_SERVER, PRODUCTION_SERVER] : [PRODUCTION_SERVER],
+      security: [{ BearerAuth: [] }],
+      tags: [...API_OPENAPI_TAGS],
+    })
+  );
+  c.header("Content-Type", "application/json");
+  return c.body(openApiJson);
+});
 
 app.onError((error, c) => {
   if (error instanceof HTTPException) {

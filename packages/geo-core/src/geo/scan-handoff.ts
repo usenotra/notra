@@ -1,14 +1,49 @@
 import { Effect } from "effect";
 
-import { GeoWorkflowService } from "../deps";
+import { GEO_SCAN_BILLING_PRECHECK_TIMEOUT_MS } from "../constants/geo";
+import { GeoEntitlementService, GeoWorkflowService } from "../deps";
 import { isDefiniteGeoScanHandoffRejection } from "../utils/geo-scan";
 import { geoSkip } from "./effect";
-import { GeoScanStartError } from "./errors";
+import { GeoScanError, GeoScanStartError } from "./errors";
 import {
   createGeoScanRow,
   failPendingGeoScanRow,
   releaseGeoScanRun,
 } from "./scan-status";
+
+/**
+ * The billing gate's denial for a scan nobody has claimed yet, or `null` when
+ * the scan may start.
+ *
+ * The workflow reserves billing in its first step, after the trigger already
+ * claimed the slot, inserted a `geo_scans` row and started a run. Without this
+ * check an organization out of credits got a 202 and a scan that failed a
+ * moment later, and every schedule tick left another failed row behind.
+ *
+ * A check that errors or outlasts `GEO_SCAN_BILLING_PRECHECK_TIMEOUT_MS`
+ * returns `null`: the workflow's own gate still decides, so a billing outage
+ * cannot stop scans that would have been allowed.
+ */
+export const findGeoScanBillingDenial = Effect.fn("geo.findScanBillingDenial")(
+  function* (organizationId: string, projectId: string) {
+    const entitlements = yield* GeoEntitlementService;
+    const gate = yield* entitlements.checkScanBilling(organizationId).pipe(
+      Effect.timeoutOrElse({
+        duration: GEO_SCAN_BILLING_PRECHECK_TIMEOUT_MS,
+        orElse: () =>
+          Effect.fail(
+            new GeoScanError({ message: "Scan billing precheck timed out" })
+          ),
+      }),
+      geoSkip("scan billing precheck failed", {
+        event: "geo.scan.billing_precheck_failed",
+        organizationId,
+        projectId,
+      })
+    );
+    return gate && !gate.allowed ? gate : null;
+  }
+);
 
 /**
  * Materializes the `geo_scans` row a *claimed* scan will be known by, hands the

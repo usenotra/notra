@@ -166,6 +166,7 @@ export default function PageClient({
             <CollectionsView
               collections={collections}
               loading={isPlaceholderData}
+              organizationId={organizationId}
               organizationSlug={organizationSlug}
               pagination={pagination}
               view={view}

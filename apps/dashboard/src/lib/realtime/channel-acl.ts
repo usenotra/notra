@@ -1,8 +1,11 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import type { User } from "@/types/auth/organization";
 import type { ParsedChatChannel } from "@/types/realtime/channel";
 
 const CHAT_CHANNEL_PREFIX = "chat";
+const DEMO_CHANNEL_PATTERN = /^demo:([^:*?\s]+)$/;
 const CHAT_CHANNEL_SEGMENT_COUNT = 4;
 const FORBIDDEN_CHANNEL_CHARS = /[*?\s]/;
 
@@ -63,6 +66,11 @@ export async function authorizeRealtimeChannels({
       } catch {
         return jsonResponse(403, { error: "Forbidden channel" });
       }
+    }
+    // Public demo request feed: `demo:{orgId}`, only in demo mode.
+    const demo = isDemoMode() ? DEMO_CHANNEL_PATTERN.exec(channel) : null;
+    if (demo?.[1]) {
+      parsed = { organizationId: demo[1], chatId: "demo", streamId: "demo" };
     }
     if (!parsed) {
       return jsonResponse(403, { error: "Forbidden channel" });

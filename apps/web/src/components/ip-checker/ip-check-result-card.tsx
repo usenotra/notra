@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";

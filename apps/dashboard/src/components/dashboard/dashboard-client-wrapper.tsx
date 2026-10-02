@@ -91,6 +91,8 @@ function DashboardOverlays() {
 
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
+  /** The visitor opened the demo with `?banner=off`. */
+  demoBannerHidden?: boolean;
   initialActiveOrganization?: InitialActiveOrganization | null;
   initialOnboardingAgentRun: InitialOnboardingAgentRun;
   initialSidebarOpen?: boolean;
@@ -100,6 +102,7 @@ interface DashboardClientWrapperProps {
 
 export function DashboardClientWrapper({
   children,
+  demoBannerHidden = false,
   initialActiveOrganization,
   initialOnboardingAgentRun,
   initialSidebarOpen = true,
@@ -116,6 +119,7 @@ export function DashboardClientWrapper({
             <CommandPaletteProvider>
               <RightPanelProvider>
                 <DashboardShell
+                  demoBannerHidden={demoBannerHidden}
                   initialOnboardingAgentRun={initialOnboardingAgentRun}
                   initialSidebarOpen={initialSidebarOpen}
                   initialSidebarWidth={initialSidebarWidth}

@@ -1,9 +1,9 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { ViewTransition } from "react";
 import type { BlogPostAuthorCardProps } from "~types/blog";
 
 import { BlogAuthorAvatar } from "@/components/blog-author-avatar";
-import { getAuthorHref } from "@/utils/authors";
+import { getAuthorHref } from "@/utils/author-href";
 import {
   blogAuthorAvatarTransitionName,
   blogAuthorNameTransitionName,
@@ -24,7 +24,7 @@ export function BlogPostAuthorCard({ authors }: BlogPostAuthorCardProps) {
           <li key={author.id}>
             <Link
               className="group/author hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:outline-primary -mx-2 -my-2 flex w-fit max-w-full items-center gap-3 rounded-xl p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
-              href={getAuthorHref(author.slug)}
+              to={getAuthorHref(author.slug)}
             >
               <ViewTransition
                 name={blogAuthorAvatarTransitionName(author.slug)}

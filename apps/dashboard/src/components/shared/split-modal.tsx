@@ -14,7 +14,7 @@ export function SplitModalContent({
   return (
     <Content
       className={cn(
-        "md:border-border/60 md:bg-card flex min-w-0 flex-col gap-0 overflow-hidden p-0 md:flex-row md:rounded-3xl md:border md:p-0.5 md:ring-0",
+        "md:border-shell-border md:bg-shell flex min-w-0 flex-col gap-0 overflow-hidden p-0 md:flex-row md:rounded-3xl md:border md:p-0.5 md:ring-0",
         className
       )}
       showCloseButton={false}
@@ -30,7 +30,7 @@ export function SplitModalPane({
   return (
     <section
       className={cn(
-        "md:border-border/60 md:bg-background flex min-h-0 min-w-0 flex-1 flex-col md:rounded-[21px] md:border",
+        "md:border-border md:bg-card md:shadow-lift flex min-h-0 min-w-0 flex-1 flex-col md:rounded-[21px] md:border",
         className
       )}
       {...props}

@@ -3,5 +3,6 @@
   "git": {
     "deploymentEnabled": false
   },
+  "framework": "tanstack-start",
   "installCommand": "cd ../.. && bunx bun@1.4.0 install --frozen-lockfile --filter 'web...' --filter turbo"
 }

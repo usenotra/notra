@@ -1,10 +1,12 @@
 import { createRoute } from "@hono/zod-openapi";
+import { refreshGeoContentGapsBestEffort } from "@notra/geo-core/geo/gaps";
 import { loadGeoSettings } from "@notra/geo-core/geo/programs";
 import { projectParamsSchema } from "@notra/schemas/api/geo-params";
 import {
   patchSettingsRequestSchema,
   settingsResponseSchema,
 } from "@notra/schemas/api/geo-settings";
+import { Effect } from "effect";
 
 import {
   GEO_COMMON_ERROR_RESPONSES,
@@ -107,7 +109,14 @@ geoSettingsRoutes.openapi(patchSettingsRoute, async (c) => {
       removedAutoPromptIds: body.removedAutoPromptIds,
       enabled: body.enabled,
       scanIntervalHours: body.scanIntervalHours,
-    })
+    }).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
+    )
   );
   if (!outcome.ok) {
     return geoErrorResponse(c, outcome.failure);

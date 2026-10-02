@@ -18,6 +18,7 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
@@ -41,7 +42,10 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
-import { GEO_PROMPTS_PAGE_TABS } from "@/constants/geo-prompts";
+import {
+  GEO_PROMPT_DETAIL_QUERY_KEY,
+  GEO_PROMPTS_PAGE_TABS,
+} from "@/constants/geo-prompts";
 import {
   useGeoPromptResults,
   useGeoSettings,
@@ -110,6 +114,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const tCommon = useTranslations("common");
   const tShared = useTranslations("geo.pages.shared");
   const { projectId } = useGeoProjectScope();
+  const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -150,7 +155,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   if (!settingsData?.settings) {
     return (
-      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <PageContainer
+        className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6"
+        variant="default"
+      >
         <div className="w-full space-y-6 px-4 lg:px-6">
           <header className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">
@@ -180,7 +188,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       organizationId={organizationId}
       promptCount={prompts.filter((prompt) => prompt.enabled).length}
     >
-      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <PageContainer
+        className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6"
+        variant="default"
+      >
         <div className="w-full space-y-6 px-4 lg:px-6">
           <header className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1">
@@ -289,6 +300,19 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   `/${organizationSlug}/geo/prompts?tab=suggestions`,
                   projectId
                 )}
+                onViewTrackedPrompt={(promptId) => {
+                  // A full URL, not query state: the toast that calls this
+                  // can outlive the page.
+                  const query = promptId
+                    ? `?${GEO_PROMPT_DETAIL_QUERY_KEY}=${encodeURIComponent(promptId)}`
+                    : "";
+                  router.push(
+                    withGeoProject(
+                      `/${organizationSlug}/geo/prompts${query}`,
+                      projectId
+                    )
+                  );
+                }}
                 organizationId={organizationId}
               />
             </TabsContent>
