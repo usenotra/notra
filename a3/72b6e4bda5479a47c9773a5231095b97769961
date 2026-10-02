@@ -1,0 +1,21 @@
+packages/ai/src/utils/axiom-pipeline.ts
+  s_b21acaa7846206::t_9cd97e73285e3c 1-4,13-18,26,82-85,88-102,128-130
+packages/ai/src/constants/evlog.ts
+  s_b21acaa7846206::t_9fd203729260aa 4-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a372b6e4bda5479a47c9773a5231095b97769961",
+  "prompts": {},
+  "sessions": {
+    "s_b21acaa7846206": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fef8404d-db82-45d9-b06f-489fb22b3341",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
