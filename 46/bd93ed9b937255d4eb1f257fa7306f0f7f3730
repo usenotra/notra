@@ -1,0 +1,229 @@
+apps/dashboard/src/lib/workflows/start.ts
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 41
+  s_0ec71ebb2d2a43::t_6fb199d220dc1e 60,128-132
+apps/dashboard/src/types/content/schedule.ts
+  s_0ec71ebb2d2a43::t_489bbdae749e7f 1-23,26-32
+  s_0ec71ebb2d2a43::t_a47d35a335eee1 24-25
+apps/dashboard/src/lib/content/scheduled-publication-sweep.ts
+  s_0ec71ebb2d2a43::t_6fb199d220dc1e 1-5,7-44,59-70,73-75
+  s_0ec71ebb2d2a43::t_f9f89e26cb29d6 6,45-58
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 71-72
+packages/schemas/src/schemas/dashboard/content-calendar.ts
+  s_0ec71ebb2d2a43::t_e2e6f1415fe7cd 2,27
+  s_0ec71ebb2d2a43::t_f9101de9438d9d 1,3-26,28-57,64-155
+  s_0ec71ebb2d2a43::t_ce169eff593007 58-63
+packages/ai/src/utils/content-calendar.ts
+  s_0ec71ebb2d2a43::t_95e72d284386d2 71,92
+  s_0ec71ebb2d2a43::t_dcc755bfa40e36 1-70,72-91,93-160,166-177
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 161-165
+apps/dashboard/src/lib/hooks/use-collections.ts
+  s_0ec71ebb2d2a43::t_14951ede34fc12 21-23,44-47
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_0ec71ebb2d2a43::t_b29ca73232bb94 277-295
+  s_0ec71ebb2d2a43::t_d924f03a8e27ca 1,3-7,9-25,33-140,165-166,176-276,296-447
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 2,8,167-175
+  s_0ec71ebb2d2a43::t_c4daad3798f47c 26-32,141-164
+packages/posthog/src/events.ts
+  s_0ec71ebb2d2a43::t_74e4d9062fb00a 137-139
+apps/dashboard/src/components/content/calendar/content-calendar-item-chip.tsx
+  s_0ec71ebb2d2a43::t_6d45f141d7a6b8 60,78,86,94-95,144,157,168-169
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 16
+  s_0ec71ebb2d2a43::t_58d2fdd8f5f67e 45,77,141
+  s_0ec71ebb2d2a43::t_f20e9a4e8ea666 1-4,12-15,17-23,25-33,44,51-54,56-57,69-76,79-82,100-108,110,112-133,218-219
+  s_0ec71ebb2d2a43::t_b842494cb76c52 5-10,24,34-43,46,49-50,58,62-68,83-85,87-90,109,111,134-140,142-143,145-152,154-156,158-167,170-211,215-217
+  s_0ec71ebb2d2a43::t_0420582dbbb935 91-93,96-99,153
+  s_0ec71ebb2d2a43::t_b56eba550c1669 47-48,55
+  s_0ec71ebb2d2a43::t_8bfa50c0630901 212-214
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 11,59,61
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 786-794
+packages/ai/src/utils/code-mode.test.ts
+  s_0ec71ebb2d2a43::t_52288c68b65a2e 24,38
+packages/email/src/types/scheduled-publication-failed.ts
+  s_0ec71ebb2d2a43::t_21d725639c5d9d 1-9
+apps/dashboard/src/components/content/calendar/content-calendar-view.tsx
+  s_0ec71ebb2d2a43::t_6bdef26cdbd529 9
+  s_0ec71ebb2d2a43::t_4eeddbb0130627 205-217
+  s_0ec71ebb2d2a43::t_14951ede34fc12 5,8,36,43,56,70-94,149,153-154,156-159,161,163-170,174-175,177,179-180,182-184,186
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 7,47,135
+  s_0ec71ebb2d2a43::t_17cf16c42568a7 15,171-173
+  s_0ec71ebb2d2a43::t_dd23454871be53 51-54
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 176,178,192-197
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 20,38,123-124,126-128
+  s_0ec71ebb2d2a43::t_76805c0186f6b6 1-4,6,10-14,16-19,21-35,37,39-42,44-46,48-50,55,57-69,95-122,125,129-134,136-148,150-152,155,160,162,181,185,187-191,198-204,218-223
+apps/dashboard/src/components/content/calendar/content-calendar-day.tsx
+  s_0ec71ebb2d2a43::t_6d45f141d7a6b8 1-65,68-137
+  s_0ec71ebb2d2a43::t_58d2fdd8f5f67e 66-67
+apps/dashboard/src/lib/orpc/routers/content-calendar.ts
+  s_0ec71ebb2d2a43::t_ce169eff593007 163
+  s_0ec71ebb2d2a43::t_e35feb92229bbc 2-162,164-285
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 1
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_0ec71ebb2d2a43::t_a47d35a335eee1 26,186,236-247
+apps/dashboard/src/types/content/calendar.ts
+  s_0ec71ebb2d2a43::t_95e72d284386d2 40
+  s_0ec71ebb2d2a43::t_45d3bb7af97f8c 5,7,46-47,54-61,69-70
+  s_0ec71ebb2d2a43::t_489bbdae749e7f 1-4,6,8-37,41-45,48-53,62-68,71
+  s_0ec71ebb2d2a43::t_40739cc79c1242 38-39
+packages/schemas/src/schemas/api/post-schedules.ts
+  s_0ec71ebb2d2a43::t_e2e6f1415fe7cd 1-122
+apps/dashboard/src/app/api/cron/scheduled-publications/route.ts
+  s_0ec71ebb2d2a43::t_6fb199d220dc1e 1-24
+apps/dashboard/src/workflows/scheduled-publication.ts
+  s_0ec71ebb2d2a43::t_7a26a9e001c0cd 1-38
+packages/db/src/constants/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_a187532bdda912 1-19
+apps/dashboard/messages/en.json
+  s_0ec71ebb2d2a43::t_8bfa50c0630901 6195-6198
+  s_0ec71ebb2d2a43::t_0b6e696bdbdd2c 6377-6379
+  s_0ec71ebb2d2a43::t_e2ca98b0f5f69a 1014-1023,6070,6104-6191
+  s_0ec71ebb2d2a43::t_4eeddbb0130627 6071,6199-6202
+apps/api/src/index.ts
+  s_0ec71ebb2d2a43::t_7dcd7002431e26 47,290
+apps/dashboard/src/components/content/schedule/schedule-destination-status-list.tsx
+  s_0ec71ebb2d2a43::t_a53a40e9f13e46 1-5,7-106
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 6
+apps/dashboard/src/lib/hooks/use-local-date-format.ts
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 1-20
+apps/dashboard/src/lib/hooks/use-content-calendar.ts
+  s_0ec71ebb2d2a43::t_bb352401628657 111-113,117
+  s_0ec71ebb2d2a43::t_49a0d315266cfa 1-10,12-16,18-24,39-68,80-84,87-90,93,120-155,157-163,165-215,220-232
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 216-219
+  s_0ec71ebb2d2a43::t_557840383dadec 69-79
+  s_0ec71ebb2d2a43::t_1ffdf117ccd2b7 11,85-86,91,94-110,114-116,118-119
+  s_0ec71ebb2d2a43::t_ce169eff593007 17,25-38,92,156,164
+packages/ai/src/prompts/standalone-chat.ts
+  s_0ec71ebb2d2a43::t_d9ff0333371074 86
+apps/dashboard/src/constants/content-collections.ts
+  s_0ec71ebb2d2a43::t_489bbdae749e7f 10
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 11-14
+packages/ai/src/constants/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_a29c1144f41ee4 1-12,19-47,49-54
+  s_0ec71ebb2d2a43::t_689949362f6e8b 13-18,48
+packages/ai/src/autonomy/ship.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 200-204
+apps/dashboard/src/components/ai/chat-tool-block.tsx
+  s_0ec71ebb2d2a43::t_0b6e696bdbdd2c 480-488
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_aed8f8b2340142 1-10
+  s_0ec71ebb2d2a43::t_6fb199d220dc1e 11-16
+packages/email/package.json
+  s_0ec71ebb2d2a43::t_21d725639c5d9d 15,22
+apps/dashboard/src/constants/content-calendar.ts
+  s_0ec71ebb2d2a43::t_489bbdae749e7f 1-14,16-19
+  s_0ec71ebb2d2a43::t_ce169eff593007 15
+apps/dashboard/src/lib/workflows/schedule/handlers/image.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 70
+apps/api/src/routes/post-schedules.ts
+  s_0ec71ebb2d2a43::t_9bb689aa863c69 1-203
+packages/ai/src/tools/post-schedules.ts
+  s_0ec71ebb2d2a43::t_52288c68b65a2e 1-91,94-102
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 92-93
+packages/ai/src/types/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_689949362f6e8b 19-24,98-99
+  s_0ec71ebb2d2a43::t_e2bb9e418f0cc6 1-18,25-97,100-131
+packages/db/src/schema.ts
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 33-36
+  s_0ec71ebb2d2a43::t_0ff8fdf47519d7 2235,2301,2310,2312,2314,2318
+  s_0ec71ebb2d2a43::t_cdec3164596caf 58-61,2264-2300,2302-2309,2311,2313,2315-2317,2319-2339,3617,3620-3632
+apps/dashboard/src/lib/orpc/router.ts
+  s_0ec71ebb2d2a43::t_96afb83392e2f5 9,34
+apps/dashboard/src/components/content/schedule/content-schedule-button.tsx
+  s_0ec71ebb2d2a43::t_a47d35a335eee1 33,70-73
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 14,36,62
+  s_0ec71ebb2d2a43::t_0420582dbbb935 21,84,87-91
+  s_0ec71ebb2d2a43::t_e43b9ef93b34e6 1-13,15-19,22-32,34-35,37-61,63-69,74-83,85-86,92-122
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 20
+apps/dashboard/src/lib/email/send.ts
+  s_0ec71ebb2d2a43::t_835e6c04464347 9,23,86-89,91-103
+  s_0ec71ebb2d2a43::t_cfad4f26ca5f2f 90,105
+  s_0ec71ebb2d2a43::t_ce169eff593007 104
+apps/dashboard/src/types/email/send.ts
+  s_0ec71ebb2d2a43::t_835e6c04464347 3,41
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 40
+  s_0ec71ebb2d2a43::t_cfad4f26ca5f2f 42-43
+packages/ai/src/constants/code-mode.ts
+  s_0ec71ebb2d2a43::t_52288c68b65a2e 23
+packages/email/src/emails/scheduled-publication-failed.tsx
+  s_0ec71ebb2d2a43::t_21d725639c5d9d 1-82
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/posts/route.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 145
+packages/ai/src/schemas/post-schedules.ts
+  s_0ec71ebb2d2a43::t_52288c68b65a2e 1-46
+packages/ai/src/utils/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_689949362f6e8b 30,270,279-283,287,293-307,377,530-560,571-573,606
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 171-177,288-291,415-417,440-442
+  s_0ec71ebb2d2a43::t_5f6ffbb20074f6 472-473,483-496,498-501,503,511-512
+  s_0ec71ebb2d2a43::t_d26b5fcd9571b3 1-29,31-170,178-269,271-278,284-286,292,308-376,378-414,418-439,443-471,474-482,497,502,504-510,513-529,561-570,574-605,607-720
+packages/db/src/types/scheduled-publications.ts
+  s_0ec71ebb2d2a43::t_a187532bdda912 1-24
+apps/dashboard/src/workflows/steps/scheduled-publication-steps.ts
+  s_0ec71ebb2d2a43::t_7a26a9e001c0cd 1-75,80-120
+  s_0ec71ebb2d2a43::t_03acaeb5e6086b 76-79
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  s_0ec71ebb2d2a43::t_52288c68b65a2e 45-48,71-76,173-178,183
+apps/dashboard/messages/de.json
+  s_0ec71ebb2d2a43::t_e2ca98b0f5f69a 1014-1023,6070,6104-6191
+  s_0ec71ebb2d2a43::t_8bfa50c0630901 6195-6198
+  s_0ec71ebb2d2a43::t_4eeddbb0130627 6071,6199-6202
+  s_0ec71ebb2d2a43::t_0b6e696bdbdd2c 6377-6379
+apps/dashboard/src/components/content/schedule/schedule-content-dialog.tsx
+  s_0ec71ebb2d2a43::t_72f8a7cad44fdb 1-32,34-35,37-49,51-138,140-148,152-189,203-206,208-239,268-279,281-282,286-289,291-328,330-531,533-544,546-607
+  s_0ec71ebb2d2a43::t_e2ca98b0f5f69a 36,252-255,257-267
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 50,240-251
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 33,139,256,329,532
+  s_0ec71ebb2d2a43::t_0420582dbbb935 191-197
+  s_0ec71ebb2d2a43::t_4f27314eb392b8 198-202,290,545
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 149-151,207
+packages/schemas/src/constants/dashboard/content-calendar.ts
+  s_0ec71ebb2d2a43::t_e18d493c589383 1-4
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_0ec71ebb2d2a43::t_dd23454871be53 3-7,21,43-48,71,73-74,133-135,164-167,169-174,176,206,212
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 11,33-41
+  s_0ec71ebb2d2a43::t_14951ede34fc12 77,94-131,157-160,162,168
+apps/dashboard/vercel.json
+  s_0ec71ebb2d2a43::t_6fb199d220dc1e 12-14
+apps/dashboard/src/lib/email/scheduled-publication.ts
+  s_0ec71ebb2d2a43::t_04243fc259288c 1-12,14-45,49-84,86-128,131-147
+  s_0ec71ebb2d2a43::t_cfad4f26ca5f2f 130
+  s_0ec71ebb2d2a43::t_032ab70af0d66a 13,46-48
+  s_0ec71ebb2d2a43::t_f9f89e26cb29d6 85,129
+apps/api/src/programs/posts.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 356,451-455
+apps/dashboard/src/utils/content-calendar.ts
+  s_0ec71ebb2d2a43::t_45d3bb7af97f8c 31-32
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 107-109
+  s_0ec71ebb2d2a43::t_50e5d8c5cd8129 46-49
+  s_0ec71ebb2d2a43::t_2720084f370a41 1-30,33-45,50-106,110-219
+apps/dashboard/src/components/content/calendar/content-calendar-grid.tsx
+  s_0ec71ebb2d2a43::t_611f1ed0b60fd7 6
+  s_0ec71ebb2d2a43::t_e7ad683e1b489c 1-2,4,8-16,18,21,34,49-52
+  s_0ec71ebb2d2a43::t_fa9d07802d8f37 17
+  s_0ec71ebb2d2a43::t_58d2fdd8f5f67e 19-20,22-33,35-48
+  s_0ec71ebb2d2a43::t_6d45f141d7a6b8 3,5,7
+packages/ai/src/utils/post-service.ts
+  s_0ec71ebb2d2a43::t_63e091493cb3e7 74
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_0ec71ebb2d2a43::t_94abd6a6b3c849 1-30,37-83,85-92,94-96,98-118,120,123-126,128,134-225,229-350,352-367,369-454,461-491,495-568,677-680,682-731
+  s_0ec71ebb2d2a43::t_dd97c25d669559 31-36
+  s_0ec71ebb2d2a43::t_5f6ffbb20074f6 455-460
+  s_0ec71ebb2d2a43::t_6890fb19ed33ff 93,97,119,121-122,127,129-133,226-228,351,368,492-494
+  s_0ec71ebb2d2a43::t_4c69194a9e8101 84,569-676
+  s_0ec71ebb2d2a43::t_4eeddbb0130627 681
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "46bd93ed9b937255d4eb1f257fa7306f0f7f3730",
+  "prompts": {},
+  "sessions": {
+    "s_0ec71ebb2d2a43": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0f850c1d-0bae-4e37-a0da-49ddd69914c9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
