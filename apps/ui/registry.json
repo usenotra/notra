@@ -920,7 +920,7 @@
       "title": "Sonner",
       "description": "A Sonner toaster with the Depth surface of the buttons and tinted status icons.",
       "dependencies": ["cn", "lucide-react", "next-themes", "sonner"],
-      "registryDependencies": ["button"],
+      "registryDependencies": ["https://ui.usenotra.com/r/notra-button.json"],
       "files": [
         {
           "path": "components/ui/sonner.tsx",

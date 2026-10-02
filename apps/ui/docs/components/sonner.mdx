@@ -13,7 +13,7 @@ Toasts get the same surface as the outline button: a vertical gradient, a top hi
 bunx shadcn@latest add @notra/notra-sonner
 ```
 
-This replaces `components/ui/sonner.tsx`. Sonner still does the work underneath, so every `toast()` call keeps working. Mount the toaster once in your root layout:
+This replaces `components/ui/sonner.tsx` and pulls in [Button](/components/button) for the action buttons. Sonner still does the work underneath, so every `toast()` call keeps working. Mount the toaster once in your root layout:
 
 ```tsx
 import { Toaster } from "@/components/ui/sonner";
@@ -38,7 +38,7 @@ Success, warning and info read your `--success`, `--warning` and `--info` tokens
 
 <Component path="sonner/examples/sonner-action" />
 
-Action buttons render with your `buttonVariants` at size `xs`, and cancel buttons use the ghost variant. Install [Button](/components/button) as well to give them the Depth look.
+Action buttons render with [Button](/components/button) at size `xs`, and cancel buttons use the ghost variant. The CLI installs Button along with the toaster, so they get the Depth look too.
 
 ```tsx
 toast("Post moved to trash", {
