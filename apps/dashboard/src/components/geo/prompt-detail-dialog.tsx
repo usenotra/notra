@@ -180,10 +180,28 @@ function PromptAnswerHeader({
 
   return (
     <SheetHeader className="shrink-0 gap-3 border-b p-4">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 pr-8">
-        <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
-          <PromptCopyButton prompt={promptText ?? row.prompt} />
-        </SheetTitle>
+      <div className="flex min-w-0 items-start gap-3 pr-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
+            <PromptCopyButton prompt={promptText ?? row.prompt} />
+          </SheetTitle>
+          {results.length > 0 ? (
+            <dl className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 px-2 text-xs">
+              <div>
+                <dt className="sr-only">{tCommon("labels.intent")}</dt>
+                <dd>{intentLabel(row.intent)}</dd>
+              </div>
+              <div className="flex items-center gap-1 before:content-['·']">
+                <dt>{tGeoShared("bestPosition")}</dt>
+                <dd className="text-foreground font-medium tabular-nums">
+                  {row.bestPosition === null
+                    ? tGeoShared("notRanked")
+                    : `#${row.bestPosition}`}
+                </dd>
+              </div>
+            </dl>
+          ) : null}
+        </div>
         <SheetDescription className="sr-only">
           {answerMode
             ? t("latestAnswerMode", {
@@ -191,15 +209,15 @@ function PromptAnswerHeader({
               })
             : t("latestAnswer")}
         </SheetDescription>
-        {latestCheck ? (
-          <time
-            className="text-muted-foreground shrink-0 text-xs tabular-nums"
-            dateTime={latestCheck}
-          >
-            {formatAiTrafficTimestamp(latestCheck, locale)}
-          </time>
-        ) : null}
-        <div className="ml-auto flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-2">
+          {latestCheck ? (
+            <time
+              className="text-muted-foreground text-xs tabular-nums"
+              dateTime={latestCheck}
+            >
+              {formatAiTrafficTimestamp(latestCheck, locale)}
+            </time>
+          ) : null}
           <PromptScanButton
             onPrepare={onPrepareScan}
             organizationId={organizationId}
@@ -207,22 +225,6 @@ function PromptAnswerHeader({
           />
         </div>
       </div>
-      <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-        <div className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">{tCommon("labels.intent")}</dt>
-          <dd className="font-medium">{intentLabel(row.intent)}</dd>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">
-            {tGeoShared("bestPosition")}
-          </dt>
-          <dd className="font-medium tabular-nums">
-            {row.bestPosition === null
-              ? tGeoShared("notRanked")
-              : `#${row.bestPosition}`}
-          </dd>
-        </div>
-      </dl>
       {results.length > 0 && active ? (
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
           <PromptEngineSwitcher
