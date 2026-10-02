@@ -271,8 +271,9 @@ app.use("/v2/*", subscriptionMiddleware());
 // GEO is a paid add-on, so every GEO endpoint — reads included — additionally
 // requires the `ai_answers` plan entitlement. `subscriptionMiddleware` above
 // still applies unchanged.
-app.use("/v1/projects/*", geoEntitlementMiddleware());
-app.use("/v1/geo/ingest/*", geoEntitlementMiddleware());
+const requireGeoEntitlement = geoEntitlementMiddleware();
+app.use("/v1/projects/*", requireGeoEntitlement);
+app.use("/v1/geo/ingest/*", requireGeoEntitlement);
 app.use("/v1/projects/*", geoContextMiddleware());
 app.use("/v1/projects/:projectId/*", geoProjectContextMiddleware());
 app.use("/v1/geo/ingest/*", geoContextMiddleware());
@@ -357,18 +358,26 @@ app.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
     "Send your API key in the Authorization header as Bearer API_KEY.",
 });
 
-app.doc31("/openapi.json", (_c) => ({
-  openapi: "3.1.1",
-  info: {
-    title: "Notra API",
-    version: "1.0.0",
-    description:
-      "OpenAPI schema for Notra content endpoints. Use GET /v1/status for public reachability. Error responses include recovery guidance.",
-  },
-  servers: IS_DEMO ? [DEMO_SERVER, PRODUCTION_SERVER] : [PRODUCTION_SERVER],
-  security: [{ BearerAuth: [] }],
-  tags: [...API_OPENAPI_TAGS],
-}));
+// Routes and schema configuration are fixed after startup.
+let openApiJson: string | undefined;
+app.get("/openapi.json", (c) => {
+  openApiJson ??= JSON.stringify(
+    app.getOpenAPI31Document({
+      openapi: "3.1.1",
+      info: {
+        title: "Notra API",
+        version: "1.0.0",
+        description:
+          "OpenAPI schema for Notra content endpoints. Use GET /v1/status for public reachability. Error responses include recovery guidance.",
+      },
+      servers: IS_DEMO ? [DEMO_SERVER, PRODUCTION_SERVER] : [PRODUCTION_SERVER],
+      security: [{ BearerAuth: [] }],
+      tags: [...API_OPENAPI_TAGS],
+    })
+  );
+  c.header("Content-Type", "application/json");
+  return c.body(openApiJson);
+});
 
 app.onError((error, c) => {
   if (error instanceof HTTPException) {

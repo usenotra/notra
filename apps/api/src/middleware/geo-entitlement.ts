@@ -29,12 +29,17 @@ export type GeoEntitlementMiddlewareOptions = BillingMiddlewareOptions;
  * `subscriptionMiddleware`, which leaves GET and DELETE open for data
  * portability; that middleware still applies unchanged on top of this one.
  *
- * Outside local development, fails closed: a missing key or an Autumn outage
- * is a 503, never an implicit grant.
+ * Positive checks are reused for at most 30 seconds, including during an outage.
+ * Denials and failures are not cached. Once a grant expires, an Autumn outage
+ * fails closed with 503. Plan revocations can therefore take up to 30 seconds.
+ * Credit consumption and subscription checks are not cached.
  */
 export function geoEntitlementMiddleware(
   options: GeoEntitlementMiddlewareOptions = {}
 ) {
+  let currentSecretKey: string | undefined;
+  let currentLayer: ReturnType<typeof billingLayer> | undefined;
+
   return async (c: Context, next: Next) => {
     const secretKey = c.env.AUTUMN_SECRET_KEY as string | undefined;
     if (!secretKey) {
@@ -58,7 +63,14 @@ export function geoEntitlementMiddleware(
       return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
     }
 
-    const layer = options.billingLayer ?? billingLayer(secretKey);
+    // Keep the client/cache across requests; rotation discards the old grant cache.
+    const layer =
+      options.billingLayer ??
+      (currentLayer && currentSecretKey === secretKey
+        ? currentLayer
+        : billingLayer(secretKey));
+    currentLayer = layer;
+    currentSecretKey = secretKey;
     const entitlement = await Effect.runPromise(
       Effect.result(
         checkGeoEntitlement({ organizationId: orgId, secretKey }).pipe(

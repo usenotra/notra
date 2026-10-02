@@ -26,6 +26,7 @@ import {
 } from "../utils/agent-discovery";
 import { trackApiKeyRejected, trackApiKeyVerified } from "../utils/analytics";
 import { isFeedbackToken, verifyFeedbackToken } from "../utils/feedback-token";
+import { unkeyPermissions } from "../utils/unkey-permissions";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -492,33 +493,14 @@ async function verifyRequestAuth(
 
   try {
     const unkey = new Unkey({ rootKey: c.env.UNKEY_ROOT_KEY });
-    const permissionsToTry = [
+    const permissions = unkeyPermissions(
       options.permissions,
-      ...(options.legacyPermissions ?? []),
-    ].filter(
-      (permission, index, permissions): permission is string =>
-        typeof permission === "string" &&
-        permission.length > 0 &&
-        permissions.indexOf(permission) === index
+      options.legacyPermissions
     );
-    let result = await unkey.keys.verifyKey({
+    const result = await unkey.keys.verifyKey({
       key: apiKey,
-      ...(permissionsToTry[0] ? { permissions: permissionsToTry[0] } : {}),
+      ...(permissions ? { permissions } : {}),
     });
-
-    for (const permission of permissionsToTry.slice(1)) {
-      if (
-        result.data.valid ||
-        result.data.code !== "INSUFFICIENT_PERMISSIONS"
-      ) {
-        break;
-      }
-
-      result = await unkey.keys.verifyKey({
-        key: apiKey,
-        permissions: permission,
-      });
-    }
 
     if (!result.data.valid) {
       const failure =

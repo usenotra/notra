@@ -36,6 +36,11 @@ export interface GeoProjectRow {
   updatedAt: Date;
 }
 
+export type GeoProjectResponseRow = Pick<
+  GeoProjectRow,
+  "id" | "name" | "brandSettingsId" | "createdAt"
+>;
+
 export interface GeoProjectsResponse {
   projects: GeoProject[];
 }
