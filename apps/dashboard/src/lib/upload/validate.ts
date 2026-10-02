@@ -2,8 +2,11 @@ import {
   ALLOWED_CHAT_MIME_TYPES,
   ALLOWED_MIME_TYPES,
   ALLOWED_RASTER_MIME_TYPES,
+  type AllowedChatMimeType,
+  BRAND_GUIDELINE_PDF_MIME_TYPE,
   MAX_AVATAR_FILE_SIZE,
   MAX_BRAND_ASSET_FILE_SIZE,
+  MAX_BRAND_GUIDELINE_PDF_FILE_SIZE,
   MAX_CHAT_FILE_SIZE,
   MAX_CONTENT_FILE_SIZE,
   MAX_LOGO_FILE_SIZE,
@@ -19,28 +22,22 @@ const BYTES_PER_MEGABYTE = 1024 * 1024;
 const maxSizeByType = {
   avatar: MAX_AVATAR_FILE_SIZE,
   brand_asset: MAX_BRAND_ASSET_FILE_SIZE,
+  brand_guideline_pdf: MAX_BRAND_GUIDELINE_PDF_FILE_SIZE,
   logo: MAX_LOGO_FILE_SIZE,
   content: MAX_CONTENT_FILE_SIZE,
   chat: MAX_CHAT_FILE_SIZE,
 };
 
-function isAllowedFileType(type: UploadType, fileType: string): boolean {
-  switch (type) {
-    case "avatar":
-    case "logo":
-      return ALLOWED_RASTER_MIME_TYPES.some(
-        (mimeType) => mimeType === fileType
-      );
-    case "brand_asset":
-    case "content":
-      return (
-        fileType !== SVG_MIME_TYPE &&
-        ALLOWED_MIME_TYPES.some((mimeType) => mimeType === fileType)
-      );
-    case "chat":
-      return ALLOWED_CHAT_MIME_TYPES.some((mimeType) => mimeType === fileType);
-    default:
-      return false;
+function assertAllowedGeneralUploadType(fileType: string, label: string) {
+  if (fileType === SVG_MIME_TYPE) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "SVG uploads must use the dedicated SVG upload endpoint",
+    });
+  }
+  if (!ALLOWED_MIME_TYPES.some((mimeType) => mimeType === fileType)) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: `File type ${fileType} is not allowed for ${label}. Allowed types: ${ALLOWED_MIME_TYPES.join(", ")}`,
+    });
   }
 }
 
@@ -62,10 +59,40 @@ export async function validateUpload({
       }),
     });
   }
-  if (!isAllowedFileType(type, fileType)) {
-    const tErrors = await getTranslations("errors.upload");
-    throw new ORPCError("BAD_REQUEST", {
-      message: tErrors("fileTypeNotAllowed"),
-    });
+  switch (type) {
+    case "avatar":
+    case "logo":
+      if (
+        !ALLOWED_RASTER_MIME_TYPES.includes(
+          fileType as (typeof ALLOWED_RASTER_MIME_TYPES)[number]
+        )
+      ) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: `File type ${fileType} is not allowed for ${type}. Allowed raster types: ${ALLOWED_RASTER_MIME_TYPES.join(", ")}`,
+        });
+      }
+      break;
+    case "brand_asset":
+      assertAllowedGeneralUploadType(fileType, "brand assets");
+      break;
+    case "brand_guideline_pdf":
+      if (fileType !== BRAND_GUIDELINE_PDF_MIME_TYPE) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Brand guideline uploads must be PDF files.",
+        });
+      }
+      break;
+    case "content":
+      assertAllowedGeneralUploadType(fileType, "content");
+      break;
+    case "chat":
+      if (!ALLOWED_CHAT_MIME_TYPES.includes(fileType as AllowedChatMimeType)) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: `File type ${fileType} is not allowed in chat. Allowed types: ${ALLOWED_CHAT_MIME_TYPES.join(", ")}`,
+        });
+      }
+      break;
+    default:
+      throw new ORPCError("BAD_REQUEST", { message: "Invalid upload type." });
   }
 }
