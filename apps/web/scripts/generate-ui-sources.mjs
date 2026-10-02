@@ -22,8 +22,10 @@ const transpilers = {
 const MDX_IMPORT =
   /^(?:import\s*["'][^"'\n]+["']|(?:import|export)\b(?:[^\n]|\n(?!\s*\n))*?\bfrom\s*["'][^"'\n]+["']);?/gm;
 
-const TYPE_IMPORT =
-  /^\s*(?:import|export)\s+type\b[^;]*?\bfrom\s*["']([^"']+)["']/gm;
+// Every static `import … from` / `export … from`, including type-only forms
+// (`import type`, `import { type X }`, `export { type X }`) the scanner drops.
+const STATIC_IMPORT =
+  /^\s*(?:import|export)\b[^;]*?\bfrom\s*["']([^"']+)["']/gm;
 
 function importSpecifiers(filename) {
   const code = readFileSync(filename, "utf8");
@@ -34,13 +36,14 @@ function importSpecifiers(filename) {
       transpilers[".js"].scanImports(statement).map((entry) => entry.path)
     );
   }
-  // The scanner drops type-only imports; keep them so the source list stays the same.
-  const typeImports = [...code.matchAll(TYPE_IMPORT)].map((match) => match[1]);
+  const staticImports = [...code.matchAll(STATIC_IMPORT)].map(
+    (match) => match[1]
+  );
   return [
     ...transpilers[path.extname(filename)]
       .scanImports(code)
       .map((entry) => entry.path),
-    ...typeImports,
+    ...staticImports,
   ];
 }
 
