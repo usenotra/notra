@@ -14,7 +14,7 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useNow, useTranslations } from "next-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";
@@ -23,6 +23,7 @@ import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
 import { useAiTrafficLabels } from "@/lib/hooks/use-ai-traffic-labels";
+import { useIsClient } from "@/lib/hooks/use-is-client";
 import type { CitationsTableProps } from "@/types/geo";
 import { countryName } from "@/utils/country";
 import {
@@ -81,6 +82,55 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
         </dl>
       </TrafficBreakdownCard>
     </HoverCard>
+  );
+}
+
+function TimestampCell({ value }: { value: string }) {
+  const locale = useLocale();
+  const now = useNow({ updateInterval: 60_000 });
+  const isClient = useIsClient();
+  // The viewer's time zone is only known in the browser, so the server
+  // renders a placeholder instead of a UTC time that flips on hydration.
+  const parts = isClient ? formatCitationTimestamp(value, locale, now) : null;
+
+  if (!isClient) {
+    return (
+      <span aria-hidden="true" className="text-muted-foreground">
+        -
+      </span>
+    );
+  }
+  if (!parts) {
+    return <span className="text-muted-foreground text-xs">{value}</span>;
+  }
+  return (
+    <time
+      className="flex items-baseline gap-1.5 text-xs whitespace-nowrap tabular-nums"
+      dateTime={parts.iso}
+      title={parts.full}
+    >
+      {parts.date ? (
+        <span className="text-muted-foreground">{parts.date}</span>
+      ) : null}
+      <span>{parts.time}</span>
+    </time>
+  );
+}
+
+function PageCell({ entry }: { entry: GeoTrafficLogEntry }) {
+  const location = formatTrafficLocation(entry.host, entry.path);
+  const path = location.slice(entry.host.length);
+  return (
+    <span className="flex min-w-0 items-center font-mono text-xs">
+      {entry.host ? (
+        <span className="text-muted-foreground max-w-1/2 shrink-0 truncate">
+          {entry.host}
+        </span>
+      ) : null}
+      <span className="min-w-0 flex-1">
+        <TruncateWithTooltip>{path}</TruncateWithTooltip>
+      </span>
+    </span>
   );
 }
 
@@ -188,19 +238,15 @@ export function CitationsTable({
     {
       key: "capturedAt",
       header: t("columns.when"),
-      width: "10.5rem",
+      width: "8.5rem",
       sortable: true,
       sortValue: (entry) => entry.capturedAt,
-      cell: (entry) => (
-        <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatCitationTimestamp(entry.capturedAt, locale)}
-        </span>
-      ),
+      cell: (entry) => <TimestampCell value={entry.capturedAt} />,
     },
     {
       key: "source",
       header: tGeoShared("provider"),
-      width: "11rem",
+      width: "13rem",
       sortable: true,
       sortValue: (entry) => formatCitationProvider(entry.agent, entry.source),
       cell: (entry) => (
@@ -213,15 +259,7 @@ export function CitationsTable({
       key: "path",
       header: tGeoShared("page"),
       width: "1fr",
-      cell: (entry) => (
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="min-w-0 flex-1">
-            <TruncateWithTooltip className="font-mono text-xs">
-              {formatTrafficLocation(entry.host, entry.path)}
-            </TruncateWithTooltip>
-          </span>
-        </span>
-      ),
+      cell: (entry) => <PageCell entry={entry} />,
     },
     {
       key: "category",
