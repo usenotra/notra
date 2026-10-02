@@ -1,0 +1,24 @@
+apps/dashboard/src/components/motion/table/utils.ts
+  s_0094dfc79a03ad::t_7db76e61255845 104-108
+apps/dashboard/src/components/geo/traffic-sources-group.tsx
+  ai_agent 11
+  s_0094dfc79a03ad::t_7db76e61255845 148-149,152,154-156
+apps/dashboard/src/components/motion/table/index.tsx
+  s_0094dfc79a03ad::t_7db76e61255845 37,107-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "065a8b485354c8d02a7de3a0e4dd74a0cbe803bb",
+  "prompts": {},
+  "sessions": {
+    "s_0094dfc79a03ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b268984f-e03a-4570-97ff-11c1768d7475",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
