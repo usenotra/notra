@@ -1,0 +1,19 @@
+apps/api/src/lib/billing.ts
+  s_8124f80b6d067c::t_f8fbabfc17681a 33-35,77-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9e1634cb777c111a69fdc09661b9e9dbea758485",
+  "prompts": {},
+  "sessions": {
+    "s_8124f80b6d067c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0fbb7-ee69-7310-9d42-cefd4b127f04",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
