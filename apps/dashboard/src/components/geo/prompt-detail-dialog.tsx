@@ -221,6 +221,7 @@ function PromptAnswerHeader({
           <PromptScanButton
             onPrepare={onPrepareScan}
             organizationId={organizationId}
+            primary
             row={row}
           />
         </div>
@@ -314,8 +315,6 @@ function PromptAnswerBody({
 
 function PromptAnswerEmpty({
   organizationId,
-  row,
-  onPrepareScan,
   isScanning,
   detailState,
   view,
@@ -355,33 +354,22 @@ function PromptAnswerEmpty({
         </EmptyTitle>
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
-      {isScanning || paused ? null : (
-        <EmptyContent className="max-w-lg">
-          <PromptScanButton
-            onPrepare={onPrepareScan}
-            organizationId={organizationId}
-            row={row}
-          />
-          {engines.length > 0 ? (
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-muted-foreground text-xs">
-                {t("emptyEngines")}
-              </p>
-              <ul className="flex flex-wrap justify-center gap-1.5">
-                {engines.map((engine) => (
-                  <li
-                    className="bg-muted/60 flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium"
-                    key={engine}
-                  >
-                    <EngineIcon className="size-3.5" engine={engine} />
-                    {formatModelLabel(engine)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+      {engines.length > 0 && !isScanning ? (
+        <EmptyContent className="max-w-lg gap-2">
+          <p className="text-muted-foreground text-xs">{t("emptyEngines")}</p>
+          <ul className="flex flex-wrap justify-center gap-1.5">
+            {engines.map((engine) => (
+              <li
+                className="bg-muted/60 flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium"
+                key={engine}
+              >
+                <EngineIcon className="size-3.5" engine={engine} />
+                {formatModelLabel(engine)}
+              </li>
+            ))}
+          </ul>
         </EmptyContent>
-      )}
+      ) : null}
     </Empty>
   );
 }
@@ -620,9 +608,7 @@ export function PromptAnswerPage({
             <PromptAnswerEmpty
               detailState={detailState}
               isScanning={isScanning}
-              onPrepareScan={onPrepareScan}
               organizationId={organizationId}
-              row={row}
               onRetry={onRetry}
               view={view}
             />
