@@ -1535,19 +1535,21 @@ const finalizeGeoScanProjectBody = Effect.fn("geo.finalizeScanProject.body")(
       geoSkip("scan claim token invalid")
     );
 
-    if (status === "completed") {
+    // A failed scan still bills the answers its drained batches stored.
+    if (totals.checks > 0) {
       yield* billing
         .finalizeContentBilling({
           reservation: context.gate,
           action: "confirm",
-          units: totals.checks,
-          usage: totals.engineUsage ?? totals.usage,
+          units: totals.billedChecks ?? totals.checks,
+          usage: totals.billedUsage ?? totals.usage,
           fallbackModelId: GEO_JUDGE_MODEL,
           properties: {
             source: "geo_scan",
             run_id: context.runId,
             project_id: context.projectId,
             markup_applied: context.gate.useMarkup,
+            status,
           },
           logPrefix: "GeoScan",
         })

@@ -20,7 +20,10 @@ import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { GEO_PERSONA_MAX_COUNT } from "../src/constants/geo-personas";
+import {
+  GEO_PERSONA_BILLING_MULTIPLIER,
+  GEO_PERSONA_MAX_COUNT,
+} from "../src/constants/geo-personas";
 import {
   GeoContentBillingService,
   GeoEntitlementService,
@@ -502,6 +505,12 @@ describe("planned persona snapshots", () => {
         )
       );
       expect(result.checks).toBe(persona.conversationPrompts.length);
+      expect(result.billedChecks).toBe(
+        result.checks * GEO_PERSONA_BILLING_MULTIPLIER
+      );
+      expect(result.billedUsage?.totalTokens).toBe(
+        result.usage.totalTokens * GEO_PERSONA_BILLING_MULTIPLIER
+      );
     }
     const rows = await testDb.select().from(geoMentionChecks);
     expect(rows).toHaveLength(

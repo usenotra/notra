@@ -2979,6 +2979,7 @@
       "generate": "Generate persona"
     },
     "personaDetailDialog": {
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "viewAria": "View",
       "views": {
         "profile": "Profile"
@@ -3026,6 +3027,7 @@
       "emptyDescription": "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories."
     },
     "personaTableActions": {
+      "answerCost": "Each persona answer counts as {multiplier} AI answers",
       "reactivate": "Reactivate persona",
       "restoreLimit": "You can have up to {max} active personas. Archive one before reactivating this one.",
       "waitForAction": "Wait for the current persona action to finish.",
@@ -3042,7 +3044,7 @@
       "counts": "({active} active{archived, plural, =0 {} other { · # archived}})",
       "memoriesHint": "Background facts and preferences used to generate this persona's fixed prompts",
       "maxMessages": "Max. messages",
-      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent",
+      "maxMessagesHint": "Upper limit of messages this persona sends to each AI engine per scan, not messages already sent. Each answer counts as {multiplier} AI answers.",
       "empty": "No personas yet. Generate a set to have them research your category during scans",
       "archiveDescription": "This persona will be removed from future scans. Its scan history is kept.",
       "nounSingular": "persona",
@@ -6100,6 +6102,14 @@
       "formats": "{count} formats",
       "emptyPage": "No content on this page",
       "items": "items",
+      "actions": {
+        "open": "Open",
+        "openInNewTab": "Open in new tab",
+        "copyLink": "Copy link",
+        "linkCopied": "Link copied",
+        "deleteTitle": "Delete content?",
+        "deleteDescription": "This permanently deletes \"{title}\" and all {count, plural, one {# post} other {# posts}} in it. This can't be undone."
+      },
       "detail": {
         "metaTitle": "Collection",
         "metaDescription": "View all posts in a content collection.",
@@ -6130,6 +6140,8 @@
       "loadLatestPlanFailed": "Failed to load the latest plan",
       "refreshPlanFailed": "Failed to refresh the plan",
       "postDeleted": "Post deleted",
+      "collectionDeleted": "Content deleted",
+      "deleteCollectionFailed": "Failed to delete content",
       "deletePostFailed": "Failed to delete post",
       "loadContentFailed": "Failed to load content",
       "loadRecentPostsFailed": "Failed to load recent posts",

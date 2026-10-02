@@ -1,4 +1,5 @@
 import { Databuddy, FlagsProvider } from "@databuddy/sdk/react";
+import { Toaster } from "@notra/ui/components/ui/sonner";
 import {
   createRootRoute,
   HeadContent,
@@ -8,7 +9,6 @@ import {
 import { buildPrefetchScript } from "c15t";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import type { ReactNode } from "react";
-import { Toaster } from "sonner";
 
 import { ConsentManager } from "@/components/consent-manager";
 import NotFound from "@/components/not-found-page";

@@ -2979,6 +2979,7 @@
       "generate": "Persona generieren"
     },
     "personaDetailDialog": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "viewAria": "Ansicht",
       "views": {
         "profile": "Profil"
@@ -3026,6 +3027,7 @@
       "emptyDescription": "Diese Persona ist von neuen Scans ausgeschlossen, bis feste Prompts aus ihrem aktuellen Profil und ihren Erinnerungen generiert wurden."
     },
     "personaTableActions": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "reactivate": "Persona reaktivieren",
       "restoreLimit": "Du kannst bis zu {max} aktive Personas haben. Archiviere eine, bevor du diese reaktivierst.",
       "waitForAction": "Warte, bis die aktuelle Persona-Aktion abgeschlossen ist.",
@@ -3042,7 +3044,7 @@
       "counts": "({active} aktiv{archived, plural, =0 {} other { · # archiviert}})",
       "memoriesHint": "Hintergrundfakten und Präferenzen, aus denen die festen Prompts dieser Persona generiert werden",
       "maxMessages": "Max. Nachrichten",
-      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten",
+      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten. Jede Antwort zählt als {multiplier} KI-Antworten.",
       "empty": "Noch keine Personas. Generiere ein Set, damit sie während der Scans deine Kategorie recherchieren",
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",
@@ -6100,6 +6102,14 @@
       "formats": "{count} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
       "items": "Einträge",
+      "actions": {
+        "open": "Öffnen",
+        "openInNewTab": "In neuem Tab öffnen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Link kopiert",
+        "deleteTitle": "Inhalt löschen?",
+        "deleteDescription": "Dadurch werden \"{title}\" und alle {count, plural, one {# Beitrag} other {# Beiträge}} darin dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden."
+      },
       "detail": {
         "metaTitle": "Sammlung",
         "metaDescription": "Sieh dir alle Beiträge einer Inhaltssammlung an.",
@@ -6130,6 +6140,8 @@
       "loadLatestPlanFailed": "Aktueller Plan konnte nicht geladen werden",
       "refreshPlanFailed": "Plan konnte nicht aktualisiert werden",
       "postDeleted": "Beitrag gelöscht",
+      "collectionDeleted": "Inhalt gelöscht",
+      "deleteCollectionFailed": "Inhalt konnte nicht gelöscht werden",
       "deletePostFailed": "Beitrag konnte nicht gelöscht werden",
       "loadContentFailed": "Inhalte konnten nicht geladen werden",
       "loadRecentPostsFailed": "Letzte Beiträge konnten nicht geladen werden",

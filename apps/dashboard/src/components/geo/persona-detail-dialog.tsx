@@ -7,6 +7,7 @@ import {
   PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_PERSONA_BILLING_MULTIPLIER } from "@notra/geo-core/constants/geo-personas";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
@@ -32,11 +33,17 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
+import { PersonaAnswerCostBadge } from "@/components/geo/persona-answer-cost";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
 import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
 import { PersonaPrompts } from "@/components/geo/persona-prompts";
@@ -109,19 +116,33 @@ function PersonaDetailHeader({
             <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance wrap-anywhere">
               {persona.name}
             </SheetTitle>
-            <Button
-              className="shrink-0"
-              disabled={
-                !persona.enabled || persona.conversationPrompts.length === 0
-              }
-              loading={isRunning}
-              onClick={onRun}
-              size="sm"
-              type="button"
-            >
-              <HugeiconsIcon icon={PlayIcon} size={14} />
-              {tGeoShared("runScan")}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    className="shrink-0"
+                    disabled={
+                      !persona.enabled ||
+                      persona.conversationPrompts.length === 0
+                    }
+                    focusableWhenDisabled
+                    loading={isRunning}
+                    onClick={onRun}
+                    size="sm"
+                    type="button"
+                  />
+                }
+              >
+                <HugeiconsIcon icon={PlayIcon} size={14} />
+                {tGeoShared("runScan")}
+                <PersonaAnswerCostBadge />
+              </TooltipTrigger>
+              <TooltipContent>
+                {t("answerCost", {
+                  multiplier: GEO_PERSONA_BILLING_MULTIPLIER,
+                })}
+              </TooltipContent>
+            </Tooltip>
           </div>
           <SheetDescription className="text-muted-foreground text-sm leading-snug">
             {persona.role} · {persona.company}
@@ -238,10 +259,26 @@ function ConversationEmpty({
       </EmptyHeader>
       {enabled ? (
         <EmptyContent>
-          <Button disabled={!canRun} onClick={onRun} size="sm" type="button">
-            <HugeiconsIcon icon={PlayIcon} size={14} />
-            {tGeoShared("runScan")}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  disabled={!canRun}
+                  focusableWhenDisabled
+                  onClick={onRun}
+                  size="sm"
+                  type="button"
+                />
+              }
+            >
+              <HugeiconsIcon icon={PlayIcon} size={14} />
+              {tGeoShared("runScan")}
+              <PersonaAnswerCostBadge />
+            </TooltipTrigger>
+            <TooltipContent>
+              {t("answerCost", { multiplier: GEO_PERSONA_BILLING_MULTIPLIER })}
+            </TooltipContent>
+          </Tooltip>
         </EmptyContent>
       ) : null}
     </Empty>

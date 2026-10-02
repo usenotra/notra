@@ -67,9 +67,17 @@ function addBatchOutcome(
   totals.dropped += outcome.dropped;
   const engine = outcome.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE;
   const judge = outcome.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  const batchEngineUsage =
+    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage;
   totals.engineUsage = addAgentTokenUsage(
     totals.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE,
-    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage
+    batchEngineUsage
+  );
+  totals.billedChecks =
+    (totals.billedChecks ?? 0) + (outcome.billedChecks ?? outcome.checks);
+  totals.billedUsage = addAgentTokenUsage(
+    totals.billedUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    outcome.billedUsage ?? outcome.usage
   );
   totals.judgeUsage = addAgentTokenUsage(
     totals.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE,
@@ -324,6 +332,8 @@ async function runGeoScanProjectRun(
       usage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
       engineUsage: EMPTY_AGENT_TOKEN_USAGE,
       judgeUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
+      billedChecks: 0,
+      billedUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
     } satisfies GeoScanProjectTotals,
   };
   const { totals } = state;

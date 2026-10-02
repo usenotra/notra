@@ -285,7 +285,7 @@ function buildPromptCalculatorMarkdown() {
     "",
     "Params you leave out fall back to their default, and the page updates the URL as the user changes inputs, so the link always matches what they see.",
     "",
-    "Good to know: the estimate covers the prompts in the project's main language. Each extra language re-runs up to the first 5 prompts, and multi-turn conversations add one answer per turn, so leave headroom when a customer plans to use either. When an organization uses up its monthly AI answers, scheduled scans are skipped until the quota resets. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
+    "Good to know: the estimate covers the prompts in the project's main language. Each extra language re-runs up to the first 5 prompts, multi-turn conversations add one answer per turn, and persona conversations count two answers per turn, so leave headroom when a customer plans to use any of them. When an organization uses up its monthly AI answers, scheduled scans run on its AI credits instead and are skipped only when no credits are left either. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
     "",
     "### Models",
     "",
