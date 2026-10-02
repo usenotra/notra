@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
 import { githubIntegrations } from "@notra/db/schema";
-import { QstashError } from "@notra/schemas/api/qstash";
+import type { QstashError } from "@notra/schemas/api/qstash";
 import {
   createScheduleRequestSchema,
   scheduleOutputConfigSchema,
@@ -174,29 +174,8 @@ export function safeSerializeSchedule(
   }
 }
 
-export function isQstashScheduleError(error: unknown) {
-  if (error instanceof QstashError) {
-    return true;
-  }
-
-  const message = error instanceof Error ? error.message : "Unknown error";
-
-  return (
-    message.includes("invalid destination") ||
-    message.includes("unable to resolve host") ||
-    message.includes("WORKFLOW_BASE_URL is not configured") ||
-    message.includes("QStash returned an unexpected")
-  );
-}
-
-export function mapQstashError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Unknown error";
-
-  if (
-    message.includes("invalid destination") ||
-    message.includes("unable to resolve host") ||
-    message.includes("WORKFLOW_BASE_URL is not configured")
-  ) {
+export function mapQstashError(error: QstashError) {
+  if (error.kind === "destination") {
     return { error: "External URL not configured", status: 400 as const };
   }
 

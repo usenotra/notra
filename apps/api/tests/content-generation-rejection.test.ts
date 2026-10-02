@@ -1,11 +1,15 @@
 import { describe, expect, test } from "bun:test";
 
+import type { ContentGenerationWorkflowPayload } from "@notra/content-generation/schemas";
 import {
   InternalDashboardAdapterError,
   InternalDashboardError,
 } from "@notra/schemas/api/internal-dashboard";
 
-import { isConfirmedContentGenerationRejection } from "../src/utils/content-generation";
+import {
+  isConfirmedContentGenerationRejection,
+  triggerContentGenerationWorkflow,
+} from "../src/utils/content-generation";
 
 describe("isConfirmedContentGenerationRejection", () => {
   test("treats explicit 4xx dashboard rejections as confirmed", () => {
@@ -72,12 +76,22 @@ describe("isConfirmedContentGenerationRejection", () => {
     ).toBe(false);
   });
 
-  test("treats missing workflow URL configuration as confirmed", () => {
+  test("treats missing workflow URL configuration as confirmed", async () => {
+    const error = await triggerContentGenerationWorkflow(
+      {},
+      {} as ContentGenerationWorkflowPayload
+    ).catch((cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(InternalDashboardAdapterError);
+    expect(isConfirmedContentGenerationRejection(error)).toBe(true);
+  });
+
+  test("does not treat an error message alone as a configuration rejection", () => {
     expect(
       isConfirmedContentGenerationRejection(
         new Error("Content generation workflow URL is not configured")
       )
-    ).toBe(true);
+    ).toBe(false);
   });
 
   test("treats generic transport errors as ambiguous", () => {

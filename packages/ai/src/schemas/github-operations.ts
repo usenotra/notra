@@ -90,3 +90,21 @@ export class GitHubResponseError extends Schema.TaggedError<GitHubResponseError>
   "GitHubResponseError",
   { operation: Schema.String, cause: Schema.Defect() }
 ) {}
+
+export class GitHubRepositoryAlreadyConnectedError extends Schema.TaggedError<GitHubRepositoryAlreadyConnectedError>()(
+  "GitHubRepositoryAlreadyConnectedError",
+  { organizationId: Schema.String, repository: Schema.String }
+) {
+  override get message() {
+    return "Repository already connected";
+  }
+}
+
+export class GitHubMultiRepositoryUnsupportedError extends Schema.TaggedError<GitHubMultiRepositoryUnsupportedError>()(
+  "GitHubMultiRepositoryUnsupportedError",
+  {}
+) {
+  override get message() {
+    return "GitHub integrations now support exactly one repository. Create a new integration for another repo.";
+  }
+}

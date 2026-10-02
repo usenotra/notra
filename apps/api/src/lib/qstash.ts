@@ -7,6 +7,7 @@ import { Context, Effect, Layer, Schedule } from "effect";
 
 import {
   QSTASH_DELETE_RETRY_DELAY_MS,
+  QSTASH_DESTINATION_REJECTION_PATTERN,
   QSTASH_REQUEST_TIMEOUT_MS,
 } from "../constants/qstash";
 import type { QstashEnv, QstashOperations } from "../types/qstash";
@@ -40,13 +41,19 @@ export function qstashLayer(env: QstashEnv, request: typeof fetch = fetch) {
     QstashService,
     QstashService.of({
       create: Effect.fn("Qstash.create")(function* (input) {
-        if (!env.QSTASH_TOKEN || !env.WORKFLOW_BASE_URL) {
+        if (!env.QSTASH_TOKEN) {
           return yield* Effect.fail(
             new QstashError({
               kind: "configuration",
-              message: !env.QSTASH_TOKEN
-                ? "QSTASH_TOKEN is not configured"
-                : "WORKFLOW_BASE_URL is not configured",
+              message: "QSTASH_TOKEN is not configured",
+            })
+          );
+        }
+        if (!env.WORKFLOW_BASE_URL) {
+          return yield* Effect.fail(
+            new QstashError({
+              kind: "destination",
+              message: "WORKFLOW_BASE_URL is not configured",
             })
           );
         }
@@ -72,7 +79,9 @@ export function qstashLayer(env: QstashEnv, request: typeof fetch = fetch) {
             if (!response.ok) {
               const body = await response.text().catch(() => "");
               throw new QstashError({
-                kind: "http",
+                kind: QSTASH_DESTINATION_REJECTION_PATTERN.test(body)
+                  ? "destination"
+                  : "http",
                 status: response.status,
                 message:
                   `Failed to create QStash schedule: ${response.status} ${body}`.trim(),
