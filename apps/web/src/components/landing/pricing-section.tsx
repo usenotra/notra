@@ -127,9 +127,102 @@ function TrackedEnginesRow() {
   );
 }
 
-function PricingCard({ plan, billingPeriod }: PricingCardProps) {
+function PricingCardHeader({ plan, billingPeriod }: PricingCardProps) {
   const isFeatured = plan.variant === "featured";
   const showBadge = Boolean(plan.hasAnnualBadge) && billingPeriod === "yearly";
+
+  return (
+    <div
+      className={cn(
+        "m-1.75 flex h-34 flex-col gap-2 rounded-2xl px-4.25 py-8.25",
+        isFeatured
+          ? "border border-white/5 bg-white/10 shadow-[inset_0_0_1.29375rem_#FFFFFF1A]"
+          : "bg-white shadow-[0_0.125rem_0.3125rem_#00000008] dark:bg-white/[0.04]"
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h3
+          className={cn(
+            "font-display text-[1.375rem] leading-7 font-medium tracking-[0.01em]",
+            isFeatured
+              ? "font-semibold text-white"
+              : "text-black dark:text-white"
+          )}
+        >
+          {plan.name}
+        </h3>
+        <AnimatePresence initial={false}>
+          {showBadge ? (
+            <m.span
+              animate={{ y: 0, opacity: 1 }}
+              className={cn(
+                "flex items-center gap-0.75 overflow-clip rounded-full py-1 pr-2 pl-1.25 font-sans text-[0.8125rem] leading-[1.125rem] font-medium outline -outline-offset-1 [backdrop-filter:blur(0.15rem)]",
+                isFeatured
+                  ? "bg-white/20 text-white outline-[#F6F8FA80]"
+                  : "bg-[#8B5CF6BF] text-white outline-[#1E1E1E0D]"
+              )}
+              exit={{ y: "-0.75rem", opacity: 0 }}
+              initial={{ y: "-0.75rem", opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <PricingGiftIcon className="size-4 shrink-0" />
+              {PRICING_ANNUAL_BADGE}
+            </m.span>
+          ) : null}
+        </AnimatePresence>
+      </div>
+      <p
+        className={cn(
+          "font-sans text-[0.9375rem] leading-[1.125rem] font-normal tracking-[-0.015em]",
+          isFeatured ? "text-white/70" : "text-[#6B6B6B] dark:text-white/60"
+        )}
+      >
+        {plan.description}
+      </p>
+    </div>
+  );
+}
+
+function PricingCardPrice({ plan, billingPeriod }: PricingCardProps) {
+  const isFeatured = plan.variant === "featured";
+
+  return (
+    <AnimatePresence initial={false} mode="wait">
+      <m.div
+        animate={{ y: 0, opacity: 1 }}
+        className="flex items-baseline gap-2"
+        exit={{ y: "0.75rem", opacity: 0 }}
+        initial={{ y: "0.75rem", opacity: 0 }}
+        key={plan.price[billingPeriod]}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+      >
+        <span
+          className={cn(
+            "font-display text-[2.625rem] leading-13 font-normal tracking-[-0.01em]",
+            isFeatured ? "text-white" : "text-[#1E1E1E] dark:text-white"
+          )}
+        >
+          {plan.price[billingPeriod]}
+        </span>
+        {plan.priceSuffix ? (
+          <span
+            className={cn(
+              "font-sans text-sm leading-[1.125rem] font-normal tracking-[-0.015em]",
+              isFeatured
+                ? "text-white/70"
+                : "text-[#1E1E1EB3] dark:text-white/60"
+            )}
+          >
+            {plan.priceSuffix[billingPeriod]}
+          </span>
+        ) : null}
+      </m.div>
+    </AnimatePresence>
+  );
+}
+
+function PricingCard({ plan, billingPeriod }: PricingCardProps) {
+  const isFeatured = plan.variant === "featured";
 
   const ctaLink =
     plan.cta.kind === "signup" ? (
@@ -150,88 +243,11 @@ function PricingCard({ plan, billingPeriod }: PricingCardProps) {
       {isFeatured && <PricingProShader />}
 
       <div className="relative z-10 flex h-full flex-col">
-        <div
-          className={cn(
-            "m-1.75 flex h-34 flex-col gap-2 rounded-2xl px-4.25 py-8.25",
-            isFeatured
-              ? "border border-white/5 bg-white/10 shadow-[inset_0_0_1.29375rem_#FFFFFF1A]"
-              : "bg-white shadow-[0_0.125rem_0.3125rem_#00000008] dark:bg-white/[0.04]"
-          )}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <h3
-              className={cn(
-                "font-display text-[1.375rem] leading-7 font-medium tracking-[0.01em]",
-                isFeatured
-                  ? "font-semibold text-white"
-                  : "text-black dark:text-white"
-              )}
-            >
-              {plan.name}
-            </h3>
-            <AnimatePresence initial={false}>
-              {showBadge ? (
-                <m.span
-                  animate={{ y: 0, opacity: 1 }}
-                  className={cn(
-                    "flex items-center gap-0.75 overflow-clip rounded-full py-1 pr-2 pl-1.25 font-sans text-[0.8125rem] leading-[1.125rem] font-medium outline -outline-offset-1 [backdrop-filter:blur(0.15rem)]",
-                    isFeatured
-                      ? "bg-white/20 text-white outline-[#F6F8FA80]"
-                      : "bg-[#8B5CF6BF] text-white outline-[#1E1E1E0D]"
-                  )}
-                  exit={{ y: "-0.75rem", opacity: 0 }}
-                  initial={{ y: "-0.75rem", opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                  <PricingGiftIcon className="size-4 shrink-0" />
-                  {PRICING_ANNUAL_BADGE}
-                </m.span>
-              ) : null}
-            </AnimatePresence>
-          </div>
-          <p
-            className={cn(
-              "font-sans text-[0.9375rem] leading-[1.125rem] font-normal tracking-[-0.015em]",
-              isFeatured ? "text-white/70" : "text-[#6B6B6B] dark:text-white/60"
-            )}
-          >
-            {plan.description}
-          </p>
-        </div>
+        <PricingCardHeader billingPeriod={billingPeriod} plan={plan} />
 
         <div className="flex flex-1 flex-col px-6 pt-4.5">
           <div className="flex flex-col items-start gap-3.25">
-            <AnimatePresence initial={false} mode="wait">
-              <m.div
-                animate={{ y: 0, opacity: 1 }}
-                className="flex items-baseline gap-2"
-                exit={{ y: "0.75rem", opacity: 0 }}
-                initial={{ y: "0.75rem", opacity: 0 }}
-                key={plan.price[billingPeriod]}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-              >
-                <span
-                  className={cn(
-                    "font-display text-[2.625rem] leading-13 font-normal tracking-[-0.01em]",
-                    isFeatured ? "text-white" : "text-[#1E1E1E] dark:text-white"
-                  )}
-                >
-                  {plan.price[billingPeriod]}
-                </span>
-                {plan.priceSuffix ? (
-                  <span
-                    className={cn(
-                      "font-sans text-sm leading-[1.125rem] font-normal tracking-[-0.015em]",
-                      isFeatured
-                        ? "text-white/70"
-                        : "text-[#1E1E1EB3] dark:text-white/60"
-                    )}
-                  >
-                    {plan.priceSuffix[billingPeriod]}
-                  </span>
-                ) : null}
-              </m.div>
-            </AnimatePresence>
+            <PricingCardPrice billingPeriod={billingPeriod} plan={plan} />
 
             <CtaButton
               className="w-full"

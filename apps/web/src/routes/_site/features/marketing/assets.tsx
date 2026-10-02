@@ -9,7 +9,10 @@ import { LoopVideo } from "@/components/marketing-assets/loop-video";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import { ASSET_HERO } from "@/lib/marketing-assets/constants/hero";
-import { ASSET_SHOWCASE_SECTIONS } from "@/lib/marketing-assets/constants/showcase";
+import {
+  ASSET_GENERATE_SECTION_ID,
+  ASSET_SHOWCASE_SECTIONS,
+} from "@/lib/marketing-assets/constants/showcase";
 import {
   getAssetShowcaseDescription,
   getAssetShowcaseTitle,
@@ -123,7 +126,11 @@ function MarketingAssetsPage() {
         </CtaButton>
         <CtaButton
           nativeButton={false}
-          render={<a href="#generate">{ASSET_HERO.secondaryCta}</a>}
+          render={
+            <a href={`#${ASSET_GENERATE_SECTION_ID}`}>
+              {ASSET_HERO.secondaryCta}
+            </a>
+          }
           size="lg"
           variant="light"
         />
@@ -165,7 +172,9 @@ function MarketingAssetsPage() {
                       </p>
                     ))}
                   </div>
-                  {section.id === "generate" ? <PasteReadyLogos /> : null}
+                  {section.id === ASSET_GENERATE_SECTION_ID ? (
+                    <PasteReadyLogos />
+                  ) : null}
                 </div>
                 <div
                   className={section.mediaSide === "left" ? "lg:order-1" : ""}

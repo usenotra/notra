@@ -4,6 +4,10 @@ import { ImageResponse } from "@vercel/og";
 import bgDataUrl from "@/../public/marketing/chat-bg.jpg?inline";
 import notraSvg from "@/../public/notra-mark.svg?raw";
 import { marketingChatOgQuerySchema } from "@/schemas/marketing-chat";
+import type {
+  ChatOgComposerProps,
+  ChatOgHeadlineProps,
+} from "@/types/marketing-chat";
 import { loadInterFont } from "@/utils/og";
 
 const SIZE = { width: 1200, height: 630 };
@@ -113,6 +117,244 @@ function PaperclipIcon() {
   );
 }
 
+function ChatOgHeadline({ dateStr, headline }: ChatOgHeadlineProps) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          color: "rgba(15, 15, 15, 0.55)",
+          fontSize: "12px",
+          lineHeight: "16px",
+        }}
+      >
+        {dateStr}
+      </div>
+      <div
+        style={{
+          color: "#0a0a0a",
+          fontSize: "26px",
+          lineHeight: "34px",
+          fontWeight: 600,
+          letterSpacing: "-0.025em",
+        }}
+      >
+        {headline}
+      </div>
+    </div>
+  );
+}
+
+function ChatOgComposer({ notraDataUrl }: ChatOgComposerProps) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        backgroundColor: "#ffffff",
+        border: "1px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: "14px",
+        boxShadow:
+          "0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03)",
+        padding: "2px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: "13px",
+          backgroundColor: "#ffffff",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            padding: "10px 12px",
+            minHeight: "48px",
+            color: "rgba(15, 15, 15, 0.45)",
+            fontSize: "14px",
+            lineHeight: "24px",
+          }}
+        >
+          Send a message... (type @ to add context)
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "8px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              height: "30px",
+              padding: "0 10px",
+              backgroundColor: "#f5f5f5",
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              borderRadius: "8px",
+              color: "#0a0a0a",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}
+          >
+            <BrainIcon />
+            <span>Medium</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              height: "30px",
+              padding: "0 10px",
+              backgroundColor: "#f5f5f5",
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              borderRadius: "8px",
+              color: "#0a0a0a",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}
+          >
+            {/* biome-ignore lint/performance/noImgElement: next/og JSX requires native img */}
+            <img alt="" height={14} src={notraDataUrl} width={14} />
+            <span>Auto</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              height: "30px",
+              padding: "0 10px",
+              border: "1px dashed rgba(0, 0, 0, 0.18)",
+              borderRadius: "8px",
+              color: "rgba(15, 15, 15, 0.6)",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}
+          >
+            <PlusIcon />
+            <span>Add context</span>
+          </div>
+
+          <div style={{ display: "flex", marginLeft: "auto", gap: "6px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "28px",
+                height: "28px",
+                backgroundColor: "#f5f5f5",
+                border: "1px solid rgba(0, 0, 0, 0.08)",
+                borderRadius: "8px",
+              }}
+            >
+              <PaperclipIcon />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                height: "28px",
+                padding: "0 10px",
+                backgroundColor: "#f5f5f5",
+                border: "1px solid rgba(0, 0, 0, 0.08)",
+                borderRadius: "8px",
+                color: "#0a0a0a",
+                fontSize: "13px",
+              }}
+            >
+              <span>Send</span>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "16px",
+                  minWidth: "16px",
+                  padding: "0 4px",
+                  border: "1px solid rgba(0, 0, 0, 0.1)",
+                  borderRadius: "4px",
+                  backgroundColor: "#ffffff",
+                  color: "rgba(15, 15, 15, 0.55)",
+                  fontSize: "10px",
+                }}
+              >
+                ↵
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatOgSuggestions() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        borderTop: "1px solid rgba(0, 0, 0, 0.1)",
+        borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      {SUGGESTIONS.map((s, i) => (
+        <div
+          key={s.title}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "10px 4px",
+            borderTop: i === 0 ? "none" : "1px solid rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <div
+            style={{
+              color: "rgba(10, 10, 10, 0.92)",
+              fontSize: "15px",
+              lineHeight: "20px",
+              fontWeight: 500,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {s.title}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              color: "rgba(15, 15, 15, 0.55)",
+              fontSize: "13px",
+              lineHeight: "18px",
+            }}
+          >
+            {s.prompt}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 async function GET(request: Request) {
   const rawName = new URL(request.url).searchParams.get("name");
   const parsed = marketingChatOgQuerySchema.safeParse({
@@ -174,233 +416,11 @@ async function GET(request: Request) {
             gap: "16px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                color: "rgba(15, 15, 15, 0.55)",
-                fontSize: "12px",
-                lineHeight: "16px",
-              }}
-            >
-              {dateStr}
-            </div>
-            <div
-              style={{
-                color: "#0a0a0a",
-                fontSize: "26px",
-                lineHeight: "34px",
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-              }}
-            >
-              {headline}
-            </div>
-          </div>
+          <ChatOgHeadline dateStr={dateStr} headline={headline} />
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              backgroundColor: "#ffffff",
-              border: "1px solid rgba(0, 0, 0, 0.08)",
-              borderRadius: "14px",
-              boxShadow:
-                "0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03)",
-              padding: "2px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: "13px",
-                backgroundColor: "#ffffff",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  padding: "10px 12px",
-                  minHeight: "48px",
-                  color: "rgba(15, 15, 15, 0.45)",
-                  fontSize: "14px",
-                  lineHeight: "24px",
-                }}
-              >
-                Send a message... (type @ to add context)
-              </div>
+          <ChatOgComposer notraDataUrl={notraDataUrl} />
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    height: "30px",
-                    padding: "0 10px",
-                    backgroundColor: "#f5f5f5",
-                    border: "1px solid rgba(0, 0, 0, 0.08)",
-                    borderRadius: "8px",
-                    color: "#0a0a0a",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                  }}
-                >
-                  <BrainIcon />
-                  <span>Medium</span>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    height: "30px",
-                    padding: "0 10px",
-                    backgroundColor: "#f5f5f5",
-                    border: "1px solid rgba(0, 0, 0, 0.08)",
-                    borderRadius: "8px",
-                    color: "#0a0a0a",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                  }}
-                >
-                  {/* biome-ignore lint/performance/noImgElement: next/og JSX requires native img */}
-                  <img alt="" height={14} src={notraDataUrl} width={14} />
-                  <span>Auto</span>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    height: "30px",
-                    padding: "0 10px",
-                    border: "1px dashed rgba(0, 0, 0, 0.18)",
-                    borderRadius: "8px",
-                    color: "rgba(15, 15, 15, 0.6)",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                  }}
-                >
-                  <PlusIcon />
-                  <span>Add context</span>
-                </div>
-
-                <div
-                  style={{ display: "flex", marginLeft: "auto", gap: "6px" }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "28px",
-                      height: "28px",
-                      backgroundColor: "#f5f5f5",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <PaperclipIcon />
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      height: "28px",
-                      padding: "0 10px",
-                      backgroundColor: "#f5f5f5",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
-                      borderRadius: "8px",
-                      color: "#0a0a0a",
-                      fontSize: "13px",
-                    }}
-                  >
-                    <span>Send</span>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "16px",
-                        minWidth: "16px",
-                        padding: "0 4px",
-                        border: "1px solid rgba(0, 0, 0, 0.1)",
-                        borderRadius: "4px",
-                        backgroundColor: "#ffffff",
-                        color: "rgba(15, 15, 15, 0.55)",
-                        fontSize: "10px",
-                      }}
-                    >
-                      ↵
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              borderTop: "1px solid rgba(0, 0, 0, 0.1)",
-              borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            {SUGGESTIONS.map((s, i) => (
-              <div
-                key={s.title}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  padding: "10px 4px",
-                  borderTop: i === 0 ? "none" : "1px solid rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <div
-                  style={{
-                    color: "rgba(10, 10, 10, 0.92)",
-                    fontSize: "15px",
-                    lineHeight: "20px",
-                    fontWeight: 500,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {s.title}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    color: "rgba(15, 15, 15, 0.55)",
-                    fontSize: "13px",
-                    lineHeight: "18px",
-                  }}
-                >
-                  {s.prompt}
-                </div>
-              </div>
-            ))}
-          </div>
+          <ChatOgSuggestions />
         </div>
       </div>
     </div>,
