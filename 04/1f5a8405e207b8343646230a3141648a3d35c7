@@ -1,0 +1,47 @@
+apps/dashboard/src/utils/geo-scan-models.ts
+  s_8b79a4a58eb164::t_b4139f13c50ff2 4
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page-client.tsx
+  s_8b79a4a58eb164::t_17afc8c1375654 7,45
+  s_8b79a4a58eb164::t_7281309966583f 10
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_8b79a4a58eb164::t_17afc8c1375654 17,39,182-183,188-189,237-242,246-249,254-259
+  s_8b79a4a58eb164::t_f413902babbce5 107,243-245
+apps/dashboard/src/components/geo/scan-preflight-dialog.tsx
+  s_8b79a4a58eb164::t_7281309966583f 26
+apps/dashboard/src/types/geo.ts
+  s_8b79a4a58eb164::t_17afc8c1375654 78
+  s_8b79a4a58eb164::t_896f9ded380dce 202
+apps/dashboard/src/components/geo/scan-answer-sheet.tsx
+  s_8b79a4a58eb164::t_941e1181a23f5e 94
+  s_8b79a4a58eb164::t_a7dfe36238c979 26
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_8b79a4a58eb164::t_a7dfe36238c979 65,434
+  s_8b79a4a58eb164::t_941e1181a23f5e 82,447
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_8b79a4a58eb164::t_d4b5beac14acf4 28
+  s_8b79a4a58eb164::t_a7dfe36238c979 55
+  s_8b79a4a58eb164::t_941e1181a23f5e 45
+apps/dashboard/src/components/geo/scan-model-menu.tsx
+  s_8b79a4a58eb164::t_896f9ded380dce 102-103,119-124
+apps/dashboard/src/utils/geo-overview-page.ts
+  s_8b79a4a58eb164::t_896f9ded380dce 18,88,130
+  s_8b79a4a58eb164::t_7281309966583f 17
+apps/dashboard/src/types/geo-scan-activity.ts
+  s_8b79a4a58eb164::t_896f9ded380dce 50-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "041f5a8405e207b8343646230a3141648a3d35c7",
+  "prompts": {},
+  "sessions": {
+    "s_8b79a4a58eb164": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e14f105c-c9b9-449e-b4f3-1d71ff16aee8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
