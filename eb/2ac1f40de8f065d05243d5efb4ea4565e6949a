@@ -1,0 +1,105 @@
+apps/dashboard/src/components/integrations/github/connect-github-dialog.tsx
+  s_390de6aad5b710::t_2f87f8dab492a7 74-76
+apps/dashboard/src/components/iris/iris-start-state.tsx
+  s_390de6aad5b710::t_3f61824b58425c 32,36
+apps/dashboard/src/app/connect/linkedin/page.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 193-194
+apps/dashboard/src/components/geo/persona-prompts.tsx
+  s_390de6aad5b710::t_592d864cedca6c 1,67,72-73
+apps/dashboard/src/components/onboarding/account-menu.tsx
+  s_390de6aad5b710::t_3f61824b58425c 127,131-132
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/slack/page-client.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 137,144
+apps/dashboard/src/components/api-keys/tracking-token-card.tsx
+  s_390de6aad5b710::t_1abd07d6d93321 49-50
+apps/dashboard/src/components/geo/conversations-card.tsx
+  s_390de6aad5b710::t_66670fc2a91e03 84,94
+apps/dashboard/src/components/analytics/connect-accounts-buttons.tsx
+  s_390de6aad5b710::t_1abd07d6d93321 34,42
+apps/dashboard/src/components/geo/writer/write-dialog.tsx
+  s_390de6aad5b710::t_1f8ee604ec2184 3,550-551
+apps/dashboard/src/components/content/create/step-brand-identities.tsx
+  s_390de6aad5b710::t_6f12414f280448 131-132,135
+  s_390de6aad5b710::t_7f9a74b0f96b6c 3
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-action-button.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 15-17
+packages/ui/src/components/shared/security/second-factor-confirm.tsx
+  s_390de6aad5b710::t_7eb7ed7d31ea56 97-98
+apps/dashboard/src/components/settings/connected-account-row.tsx
+  s_390de6aad5b710::t_bf174bc51fc76a 40-41,46-47,52,57
+apps/dashboard/src/components/geo/conversation-results-dialog.tsx
+  s_390de6aad5b710::t_66670fc2a91e03 3,54-56
+apps/dashboard/src/app/(dashboard)/[slug]/skills/page-client.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 485,487,491
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/brand-identity-header.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 55-56
+apps/dashboard/src/components/automation/events/event-trigger-dialog-footer.tsx
+  s_390de6aad5b710::t_7f9a74b0f96b6c 1
+  s_390de6aad5b710::t_1abd07d6d93321 59-61
+apps/dashboard/src/components/integrations/manage-store-integration-dialog.tsx
+  s_390de6aad5b710::t_2f87f8dab492a7 388-389,394
+apps/dashboard/src/components/onboarding/competitor-search-content.tsx
+  s_390de6aad5b710::t_3f61824b58425c 34,44-45
+apps/dashboard/src/components/settings/attachments/attachments-section.tsx
+  s_390de6aad5b710::t_bf174bc51fc76a 188,193
+apps/dashboard/src/components/content/post-social-button.tsx
+  s_390de6aad5b710::t_b820024c176434 306-307,310
+apps/dashboard/src/components/geo/project-create-dialog.tsx
+  s_390de6aad5b710::t_1f8ee604ec2184 255-256,259
+apps/dashboard/src/components/geo/writer/write-sitemap-section.tsx
+  s_390de6aad5b710::t_1f8ee604ec2184 164
+apps/dashboard/messages/de.json
+  s_390de6aad5b710::t_c4c0117132429e 1107,3026
+apps/dashboard/src/components/iris/iris-pause-dialog.tsx
+  s_390de6aad5b710::t_2f87f8dab492a7 40-41
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-sitemap-dialog.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 156-157,160
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 321
+apps/dashboard/src/components/settings/attachments/attachment-columns.tsx
+  s_390de6aad5b710::t_bf174bc51fc76a 118,123
+apps/dashboard/src/components/settings/dev-sample-data-card.tsx
+  s_390de6aad5b710::t_bf174bc51fc76a 121-127
+apps/dashboard/src/components/ai/linkedin-preview.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 289,294-298
+apps/dashboard/src/components/content/group/rename-collection-dialog.tsx
+  s_390de6aad5b710::t_6f12414f280448 120-125
+apps/dashboard/messages/en.json
+  s_390de6aad5b710::t_c4c0117132429e 1107,3026
+apps/dashboard/src/components/ai/blog-preview-actions.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 64-65
+apps/dashboard/src/components/iris/iris-running-state.tsx
+  s_390de6aad5b710::t_65e6af8b180e93 81-82,86,89-90,94-97,160,164
+apps/dashboard/src/components/ai/twitter-preview.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 290,295-299
+apps/dashboard/src/components/integrations/add-granola-integration-dialog.tsx
+  s_390de6aad5b710::t_2f87f8dab492a7 198-199
+packages/ui/src/components/shared/auth/totp-enrollment-panel.tsx
+  s_390de6aad5b710::t_7eb7ed7d31ea56 217-218
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-reference-dialog.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 346-347,350,539,544-545
+apps/dashboard/src/components/content/create-post-dialog.tsx
+  s_390de6aad5b710::t_6f12414f280448 299
+packages/ui/src/components/shared/security/two-factor-settings.tsx
+  s_390de6aad5b710::t_7eb7ed7d31ea56 156-157,163,233,238
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  s_390de6aad5b710::t_592d864cedca6c 115,117,122-123
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/modal-content.tsx
+  s_390de6aad5b710::t_1baa4dcf8e08b9 60,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "eb2ac1f40de8f065d05243d5efb4ea4565e6949a",
+  "prompts": {},
+  "sessions": {
+    "s_390de6aad5b710": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9e0d60a4-74dd-48fd-b8c6-7a7b6fce3d4e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
