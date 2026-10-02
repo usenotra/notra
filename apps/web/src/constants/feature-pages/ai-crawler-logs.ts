@@ -69,6 +69,9 @@ export const AI_CRAWLER_REASON_BAR_CLASS: Record<FeatureCrawlerReason, string> =
     Referral: "bg-[#4FAE73]",
   };
 
+export const AI_CRAWLER_SAMPLE_NOTE =
+  "Sample data. Your log shows the bots that visit your own site.";
+
 export const AI_CRAWLER_VISITS_TOTAL = "4,812";
 
 export const AI_CRAWLER_VISITS_CHANGE = "+38% vs last week";

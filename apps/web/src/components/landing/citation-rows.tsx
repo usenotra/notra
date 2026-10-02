@@ -48,7 +48,7 @@ function CitationColGroup() {
       <col className="hidden lg:table-column lg:w-[11.5rem]" />
       <col />
       <col className="hidden lg:table-column" />
-      <col className="w-[9.75rem] lg:w-[11.5rem]" />
+      <col className="hidden w-[9.75rem] sm:table-column lg:w-[11.5rem]" />
     </colgroup>
   );
 }
@@ -74,11 +74,17 @@ function CitationCells({
           <EngineIcon className="size-4.5 shrink-0" engine={row.engine} />
           <span className="truncate">{row.provider}</span>
         </span>
+        <span className="mt-1 flex flex-col items-start gap-2 pl-7 lg:hidden">
+          <CitationPath row={row} />
+          <span className="sm:hidden">
+            <PurposeBadge category={row.purpose} />
+          </span>
+        </span>
       </TableCell>
       <TableCell className="hidden py-3.5 lg:table-cell">
         <CitationPath row={row} />
       </TableCell>
-      <TableCell className="w-[1%] py-3.5 whitespace-nowrap">
+      <TableCell className="hidden w-[1%] py-3.5 whitespace-nowrap sm:table-cell">
         <PurposeBadge category={row.purpose} />
       </TableCell>
     </>
@@ -126,7 +132,7 @@ export function CitationRows({
               <TableHead
                 className={cn(
                   DUAL_TONE_TABLE_HEADER_CELL_CLASS,
-                  "lg:w-[11.5rem]"
+                  "hidden sm:table-cell lg:w-[11.5rem]"
                 )}
               >
                 {headers.purpose}
