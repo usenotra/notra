@@ -1,0 +1,19 @@
+.github/workflows/agent-boot.yml
+  s_b21acaa7846206::t_6d8905ad157a40 1-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a6e422f787421530dc11d4e5521ff8703e7e8610",
+  "prompts": {},
+  "sessions": {
+    "s_b21acaa7846206": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fef8404d-db82-45d9-b06f-489fb22b3341",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
