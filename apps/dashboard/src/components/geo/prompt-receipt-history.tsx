@@ -7,11 +7,11 @@ import {
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
 } from "@notra/geo-core/constants/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
 import { useLocale, useTranslations } from "use-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
@@ -176,8 +176,8 @@ function MoreCompetitors({
 }: PromptHistoryNewCompetitorsCellProps) {
   const t = useTranslations("geo.promptReceiptHistory");
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <HoverCard>
+      <HoverCardTrigger
         aria-label={t("moreAria", {
           count: names.length,
           names: names.join(", "),
@@ -192,17 +192,20 @@ function MoreCompetitors({
         }
       >
         +{names.length}
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs">
-        <ul className="flex flex-col gap-1.5">
+      </HoverCardTrigger>
+      <DetailCardContent
+        aside={`+${names.length}`}
+        title={t("columns.newCompetitors")}
+      >
+        <ul className="flex flex-col">
           {names.map((name) => (
-            <li key={name}>
+            <li className="px-3 py-1.5" key={name}>
               <BrandToken competitors={competitors} name={name} />
             </li>
           ))}
         </ul>
-      </TooltipContent>
-    </Tooltip>
+      </DetailCardContent>
+    </HoverCard>
   );
 }
 

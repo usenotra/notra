@@ -5,10 +5,10 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import { useTranslations } from "use-intl";
 
 import { ShelfTicketBadge } from "@/components/geo/shelf/shelf-ticket-badge";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { GeoShelfTicketAssigneeCardProps } from "@/types/geo-shelf";
 import { getUserAvatarUrl } from "@/utils/avatar";
@@ -23,7 +23,7 @@ export function ShelfTicketAssigneeCard({
   const formatRelative = useFormatRelative();
   const name = member.name || member.email;
   return (
-    <TrafficBreakdownCard
+    <DetailCardContent
       align="end"
       aside={<ShelfTicketBadge status={status} />}
       icon={
@@ -42,6 +42,6 @@ export function ShelfTicketAssigneeCard({
       <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
         {t("ticketOpened", { opened: formatRelative(ticketCreatedAt) })}
       </p>
-    </TrafficBreakdownCard>
+    </DetailCardContent>
   );
 }

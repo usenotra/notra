@@ -3,14 +3,17 @@
 import { Clock01Icon, CpuIcon, FlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ChatModel } from "@notra/ai/types/chat";
+import {
+  DetailCardContent,
+  DetailCardRow,
+} from "@notra/ui/components/ui/detail-card";
+import {
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { OpenaiDark } from "@notra/ui/components/ui/svgs/openaiDark";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
 import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
@@ -90,47 +93,43 @@ function AssistantTokenUsage({
     ? getModelContextWindow(metadata.model)
     : null;
 
+  const tokensLabel = t("tokens", {
+    value: formatCompactTokens(outputTokens, locale),
+  });
+
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <HoverCard>
+      <HoverCardTrigger
         render={
           <div className="flex cursor-default items-center gap-1">
             <HugeiconsIcon className="size-3" icon={CpuIcon} />
-            <span>
-              {t("tokens", {
-                value: formatCompactTokens(outputTokens, locale),
-              })}
-            </span>
+            <span>{tokensLabel}</span>
           </div>
         }
       />
-      <TooltipContent>
-        <div className="flex flex-col gap-0.5 text-xs">
+      <DetailCardContent
+        icon={
+          metadata.model ? <ModelBadgeIcon model={metadata.model} /> : undefined
+        }
+        title={metadata.model ? getModelLabel(metadata.model) : tokensLabel}
+      >
+        <dl className="flex flex-col">
           {typeof metadata.inputTokens === "number" ? (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">
-                {tCommon("labels.input")}
-              </span>
-              <span>{metadata.inputTokens.toLocaleString(locale)}</span>
-            </div>
+            <DetailCardRow label={tCommon("labels.input")}>
+              {metadata.inputTokens.toLocaleString(locale)}
+            </DetailCardRow>
           ) : null}
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">
-              {tCommon("labels.output")}
-            </span>
-            <span>{outputTokens.toLocaleString(locale)}</span>
-          </div>
+          <DetailCardRow label={tCommon("labels.output")}>
+            {outputTokens.toLocaleString(locale)}
+          </DetailCardRow>
           {contextWindow !== null ? (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">
-                {tChatShared("context")}
-              </span>
-              <span>{formatCompactTokens(contextWindow, locale)}</span>
-            </div>
+            <DetailCardRow label={tChatShared("context")}>
+              {formatCompactTokens(contextWindow, locale)}
+            </DetailCardRow>
           ) : null}
-        </div>
-      </TooltipContent>
-    </Tooltip>
+        </dl>
+      </DetailCardContent>
+    </HoverCard>
   );
 }
 

@@ -708,6 +708,44 @@ export async function queryGeoCheckCompetitorShare(
   }));
 }
 
+/**
+ * Mentions per brand key (trimmed, lowercased), counted only for the given
+ * keys. Unlike the share ranking it has no top-N cut, so a tracked brand is
+ * counted even when hundreds of untracked brands are mentioned more often.
+ */
+export async function queryGeoCheckBrandKeyMentions(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined,
+  brandKeys: readonly string[]
+): Promise<GeoCheckCompetitorShareRow[]> {
+  if (brandKeys.length === 0) {
+    return [];
+  }
+  const brandKey = sql<string>`lower(trim(brand))`;
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        brand: brandKey,
+        mentions: sql<number>`count(*)::int`,
+      })
+      .from(geoMentionChecks)
+      .crossJoinLateral(unnestedCompetitorBrand)
+      .where(
+        and(
+          mentionFilters(scope, window),
+          sql`${brandKey} = any(${sql.param([...brandKeys])}::text[])`
+        )
+      )
+      .groupBy(brandKey)
+  );
+
+  return rows.map((row) => ({
+    brand: row.brand,
+    mentions: toNumber(row.mentions),
+  }));
+}
+
 export async function queryGeoCheckCompetitorShareTimeseries(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined

@@ -37,6 +37,7 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
   const ScanFilters = lazy(
     () => import("@/app/design-system/scan-filters/page.dev")
   );
+  const Webhooks = lazy(() => import("@/app/design-system/webhooks/page.dev"));
 
   const preview = createRoute({
     getParentRoute: () => parent,
@@ -107,6 +108,11 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
         parent: preview,
         path: "scan-filters",
         component: () => <ScanFilters />,
+      }),
+      createUiRoute({
+        parent: preview,
+        path: "webhooks",
+        component: () => <Webhooks />,
       }),
       ...(
         [

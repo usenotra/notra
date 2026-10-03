@@ -11,6 +11,7 @@ import {
   GEO_MENTION_ROW_HEIGHT_REM,
   GEO_MENTION_SUMMARY_VISIBLE,
 } from "@notra/geo-core/constants/geo";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   Empty,
   EmptyContent,
@@ -33,7 +34,6 @@ import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useScrollOverflow } from "@/lib/hooks/use-scroll-overflow";
@@ -171,7 +171,7 @@ function ShareOfVoiceRankingRow({
       <HoverCardTrigger render={<button {...buttonProps} />}>
         {content}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           <Button
             aria-label={tTag("trackBrand", { brand: row.brand })}
@@ -200,7 +200,7 @@ function ShareOfVoiceRankingRow({
         <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
           {tGeoShared("discoveredBrandsComeFromScan")}
         </p>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

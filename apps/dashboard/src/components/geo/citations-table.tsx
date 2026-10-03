@@ -10,6 +10,7 @@ import type { GeoTrafficLogEntry } from "@notra/geo-core/types/geo";
 import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -19,7 +20,6 @@ import { useLocale, useTranslations, useNow } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
 import {
@@ -59,7 +59,7 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
         <EngineIcon engine={engine} />
         <span className="truncate">{detail.title}</span>
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           detail.raw ? (
             <span className="block max-w-32 truncate font-mono">
@@ -86,7 +86,7 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
             </dd>
           </div>
         </dl>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }
@@ -178,7 +178,7 @@ function PurposeCell({ entry }: { entry: GeoTrafficLogEntry }) {
         <PurposeBadge category={entry.category} tooltip={false} />
         {entry.wantsMarkdown ? <MarkdownBadge /> : null}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         icon={
           purposeIcon ? (
             <HugeiconsIcon
@@ -216,7 +216,7 @@ function PurposeCell({ entry }: { entry: GeoTrafficLogEntry }) {
             </li>
           ) : null}
         </ul>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

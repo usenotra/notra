@@ -2,12 +2,12 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { BrandTrackingBadge } from "@/components/geo/share-of-voice-brand-tag";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { useGeoCompetitorPromptSummary } from "@/lib/hooks/use-geo";
 import type { GeoAnswerMentionCompetitorCardProps } from "@/types/geo-answer-mentions";
 
@@ -41,7 +41,7 @@ export function GeoAnswerMentionCompetitorCard({
   const summary = data?.summary ?? null;
 
   return (
-    <TrafficBreakdownCard
+    <DetailCardContent
       align="start"
       aside={<BrandTrackingBadge tracked={tracked} />}
       icon={
@@ -117,6 +117,6 @@ export function GeoAnswerMentionCompetitorCard({
           </button>
         </div>
       ) : null}
-    </TrafficBreakdownCard>
+    </DetailCardContent>
   );
 }

@@ -7,13 +7,13 @@ import {
   brandSettings,
   brandSitemapPages,
   brandSitemaps,
-  geoCompetitors,
   geoPersonaMemories,
   geoPersonas,
   geoPrompts,
   geoSettings,
 } from "@notra/db/schema";
 import { toGeoCheckWindow } from "@notra/db/utils/geo-checks";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import {
   queryGeoCheckPersonaActivity,
   queryGeoCheckPersonaResults,
@@ -166,6 +166,7 @@ export const requireGeoPersonaGenerationCapacity = Effect.fn(
 });
 
 const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
+  organizationId: string,
   projectId: string,
   brandSettingsId: string
 ) {
@@ -188,10 +189,7 @@ const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
       })
     ),
     geoDb("competitors lookup failed", () =>
-      db
-        .select({ name: geoCompetitors.name })
-        .from(geoCompetitors)
-        .where(eq(geoCompetitors.projectId, projectId))
+      selectGeoContextCompetitors({ organizationId, projectId })
     ),
     geoDb("prompts lookup failed", () =>
       db
@@ -242,7 +240,7 @@ const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
     websiteUrl: brand?.websiteUrl ?? null,
     companyDescription: brand?.companyDescription ?? null,
     audience: brand?.audience ?? null,
-    competitors: competitors.map((competitor) => competitor.name),
+    competitors: competitors.competitors.map((competitor) => competitor.name),
     pages,
     prompts: prompts.map((row) => row.prompt),
   };
@@ -468,6 +466,7 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
     );
   }
   const context = yield* loadGenerationContext(
+    scope.organizationId,
     scope.projectId,
     scope.brandSettingsId
   );

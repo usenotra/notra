@@ -16,14 +16,42 @@ import { useWebhookColumns } from "@/components/webhooks/columns";
 import {
   WEBHOOK_FILTERS,
   WEBHOOK_PAGE_SIZE,
-  WEBHOOK_REFRESH_INTERVAL_MS,
   WEBHOOK_TABLE_EMPTY_HEIGHT,
   WEBHOOK_TABLE_HEADER_HEIGHT,
   WEBHOOK_TABLE_MAX_HEIGHT,
   WEBHOOK_TABLE_ROW_HEIGHT,
 } from "@/constants/outbound-webhooks";
-import type { WebhookDeliveriesProps } from "@/types/webhooks/outbound";
+import type {
+  WebhookDeliveriesProps,
+  WebhookStatusFilterProps,
+} from "@/types/webhooks/outbound";
 import { isWebhookFilter } from "@/utils/outbound-webhooks";
+
+export function WebhookStatusFilter({
+  filter,
+  onFilter,
+}: WebhookStatusFilterProps) {
+  const t = useTranslations("settings.panes.webhooks");
+  const tStatuses = useTranslations("settings.panes.webhooks.statuses");
+  return (
+    <Select onValueChange={(value) => onFilter(value ?? "all")} value={filter}>
+      <SelectTrigger aria-label={t("filterLabel")} className="w-36">
+        <SelectValue>
+          {(value: string) =>
+            isWebhookFilter(value) ? tStatuses(value) : value
+          }
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {WEBHOOK_FILTERS.map((status) => (
+          <SelectItem key={status} value={status}>
+            {tStatuses(status)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export function WebhookDeliveries({
   rows,
@@ -33,11 +61,9 @@ export function WebhookDeliveries({
   fetching,
   hasMore,
   onSelect,
-  onFilter,
   onPage,
 }: WebhookDeliveriesProps) {
   const t = useTranslations("settings.panes.webhooks");
-  const tStatuses = useTranslations("settings.panes.webhooks.statuses");
   const tActions = useTranslations("common.actions");
   const columns = useWebhookColumns();
   const tableHeight =
@@ -47,29 +73,9 @@ export function WebhookDeliveries({
           WEBHOOK_TABLE_MAX_HEIGHT,
           rows.length * WEBHOOK_TABLE_ROW_HEIGHT + WEBHOOK_TABLE_HEADER_HEIGHT
         );
-  const rangeLabel =
-    rows.length === 0 ? "0" : `${offset + 1}–${offset + rows.length}`;
+  const paginated = offset > 0 || hasMore;
   return (
     <div className="space-y-3">
-      <Select
-        onValueChange={(value) => onFilter(value ?? "all")}
-        value={filter}
-      >
-        <SelectTrigger aria-label={t("filterLabel")} className="w-44">
-          <SelectValue>
-            {(value: string) =>
-              isWebhookFilter(value) ? tStatuses(value) : value
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {WEBHOOK_FILTERS.map((status) => (
-            <SelectItem key={status} value={status}>
-              {tStatuses(status)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
       <Table
         columns={columns}
         data={rows}
@@ -99,14 +105,8 @@ export function WebhookDeliveries({
           </div>
         }
       />
-      <div className="text-muted-foreground flex items-center justify-between text-xs">
-        <span>
-          {t("pageSummary", {
-            range: rangeLabel,
-            seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
-          })}
-        </span>
-        <div className="flex gap-2">
+      {paginated ? (
+        <div className="flex justify-end gap-2">
           <Button
             size="sm"
             variant="ghost"
@@ -124,7 +124,7 @@ export function WebhookDeliveries({
             {tActions("next")}
           </Button>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

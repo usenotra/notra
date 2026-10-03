@@ -1,10 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "use-intl";
 
+import {
+  CompetitorChoicesFooter,
+  CompetitorChoicesSearch,
+} from "@/components/geo/competitor-choices-search";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { Checkbox } from "@/components/motion/checkbox";
+import {
+  GEO_COMPETITOR_CHOICES_MAX_SHOWN,
+  GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD,
+} from "@/constants/geo-competitors";
 import type { GeoShelfPresenceFieldsProps } from "@/types/geo-shelf";
+import { visibleCompetitorChoices } from "@/utils/geo-competitors";
 
 export function ShelfPresenceFields({
   id,
@@ -19,10 +29,21 @@ export function ShelfPresenceFields({
   const tGeoShared = useTranslations("geo.shared");
   const ownLabel = ownBrandName || tGeoShared("youLabel");
   const presentCompetitorIdSet = new Set(presentCompetitorIds);
+  const [query, setQuery] = useState("");
+  const isSearchable =
+    competitors.length > GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD;
+  const { visible, hidden } = visibleCompetitorChoices(
+    competitors,
+    query,
+    GEO_COMPETITOR_CHOICES_MAX_SHOWN
+  );
 
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium">{t("legend")}</legend>
+      {isSearchable ? (
+        <CompetitorChoicesSearch onChange={setQuery} value={query} />
+      ) : null}
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="hover:bg-muted/40 flex items-center gap-2.5 rounded-lg border px-3 py-2">
           <Checkbox
@@ -41,7 +62,7 @@ export function ShelfPresenceFields({
             </span>
           </label>
         </div>
-        {competitors.map((competitor) => {
+        {visible.map((competitor) => {
           const checked = presentCompetitorIdSet.has(competitor.id);
           const checkboxId = `${id}-competitor-${competitor.id}`;
           return (
@@ -82,7 +103,13 @@ export function ShelfPresenceFields({
       </div>
       {competitors.length === 0 ? (
         <p className="text-muted-foreground text-xs">{t("noCompetitors")}</p>
-      ) : null}
+      ) : (
+        <CompetitorChoicesFooter
+          hidden={hidden}
+          query={query}
+          visibleCount={visible.length}
+        />
+      )}
     </fieldset>
   );
 }

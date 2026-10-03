@@ -56,7 +56,12 @@ import type {
 import { existingPageLabel } from "@/utils/geo-gaps";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoContentPath } from "@/utils/geo-write-entry";
-import { recommendedContentSubtype } from "@/utils/geo-writer";
+import {
+  defaultWriterCompetitorIds,
+  recommendedContentSubtype,
+} from "@/utils/geo-writer";
+
+const EMPTY_MENTIONED_COMPETITORS: readonly string[] = [];
 
 import { WriteBrandSelect } from "./write-brand-select";
 import { WriteCompetitorChoices } from "./write-competitor-choices";
@@ -163,7 +168,8 @@ function WriteDialogForm({
   const promptBadgeLabel = existingPageUrl
     ? t("updating", { page: existingPageLabel(existingPageUrl) })
     : baselineLabel;
-  const mentionedCompetitors = initial?.mentionedCompetitors ?? [];
+  const mentionedCompetitors =
+    initial?.mentionedCompetitors ?? EMPTY_MENTIONED_COMPETITORS;
   const {
     brandVoiceId,
     setBrandVoiceId,
@@ -191,12 +197,10 @@ function WriteDialogForm({
     enabled: open,
   });
 
-  useEffect(() => {
-    if (competitorsTouched || competitors.length === 0) {
-      return;
-    }
-    setCompetitorIds(competitors.map((competitor) => competitor.id));
-  }, [competitors, competitorsTouched]);
+  // Until someone picks, the selection follows the loaded competitors.
+  const selectedCompetitorIds = competitorsTouched
+    ? competitorIds
+    : defaultWriterCompetitorIds(competitors, mentionedCompetitors);
 
   const jumpToSection = (id: WriteDialogSectionId) => {
     setActiveSection(id);
@@ -222,7 +226,7 @@ function WriteDialogForm({
         autoApprove: action === "write",
         contentSubtype,
         brandVoiceIds: brandVoiceId ? [brandVoiceId] : [],
-        competitorIds,
+        competitorIds: selectedCompetitorIds,
         sitemapId: effectiveSitemapId ?? undefined,
         sourceKind,
         sourceId,
@@ -412,7 +416,7 @@ function WriteDialogForm({
               setCompetitorsTouched(true);
               setCompetitorIds(ids);
             }}
-            selectedIds={competitorIds}
+            selectedIds={selectedCompetitorIds}
           >
             <WriteSectionHeader
               description={t("competitorsDescription")}

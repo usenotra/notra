@@ -6,6 +6,7 @@ import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -13,7 +14,6 @@ import {
 import { useLocale, useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import type { TrafficPageSourcesCellProps } from "@/types/geo";
 import { trafficVisitShare } from "@/utils/ai-traffic-groups";
 
@@ -66,7 +66,7 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
           ) : null}
         </span>
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={tGeoShared("countPluralOneVisitOther", { count: group.visits })}
         icon={null}
         title={group.path}
@@ -104,7 +104,7 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
             </li>
           ))}
         </ul>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }
