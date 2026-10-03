@@ -1,0 +1,27 @@
+apps/api/src/programs/skills.ts
+  s_69822f2ec3c761::t_a674869918ae2a 1,69-72
+apps/dashboard/src/lib/orpc/routers/skills.ts
+  s_69822f2ec3c761::t_a674869918ae2a 1,108
+packages/ai/src/skills/functions/service.ts
+  s_69822f2ec3c761::t_a674869918ae2a 15,94
+packages/ai/src/skills/functions/current-content.ts
+  s_69822f2ec3c761::t_a674869918ae2a 1-31
+packages/tools/src/skill-editor/get-skill.ts
+  s_69822f2ec3c761::t_a674869918ae2a 1,23-24,36-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a6c712a13c926c57842b03a084d56cd0740d38ba",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
