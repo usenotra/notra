@@ -1,0 +1,53 @@
+---
+title: Table
+description: A responsive table with header, body, footer, caption and selected-row states.
+---
+
+Rows highlight on hover, selected rows use `data-[state=selected]`, and the table scrolls horizontally inside its container on small screens.
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/notra-table
+```
+
+This adds `components/ui/table.tsx`. It only needs your `cn` utility and follows your `--muted`, `--foreground` and `--muted-foreground` tokens.
+
+## Usage
+
+```tsx
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+<Table>
+  <TableCaption>Recent invoices.</TableCaption>
+  <TableHeader>
+    <TableRow>
+      <TableHead>Invoice</TableHead>
+      <TableHead>Status</TableHead>
+      <TableHead>Amount</TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    <TableRow>
+      <TableCell>INV-001</TableCell>
+      <TableCell>Paid</TableCell>
+      <TableCell>$250.00</TableCell>
+    </TableRow>
+  </TableBody>
+  <TableFooter>
+    <TableRow>
+      <TableCell colSpan={2}>Total</TableCell>
+      <TableCell>$250.00</TableCell>
+    </TableRow>
+  </TableFooter>
+</Table>
+```

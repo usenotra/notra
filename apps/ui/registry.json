@@ -987,6 +987,20 @@
       ]
     },
     {
+      "name": "notra-table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "A responsive table with header, body, footer, caption and selected-row states.",
+      "dependencies": ["cn"],
+      "files": [
+        {
+          "path": "components/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/table.tsx"
+        }
+      ]
+    },
+    {
       "name": "shimmer",
       "type": "registry:component",
       "title": "Shimmer",

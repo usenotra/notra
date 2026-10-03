@@ -8,6 +8,7 @@ export default defineMeta({
     "marketing-button",
     "shimmer",
     "sonner",
+    "table",
     "step-slider",
     "tooltip",
     "duotone-tooltip",
