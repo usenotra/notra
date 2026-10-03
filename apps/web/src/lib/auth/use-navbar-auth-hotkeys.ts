@@ -7,7 +7,7 @@ import {
   AUTH_SIGNIN_URL,
 } from "@/constants/auth";
 import { NAVBAR_HOTKEY_SIGNUP_SOURCE } from "@/constants/navbar";
-import type { DashboardSessionState } from "@/lib/auth/use-dashboard-session";
+import type { DashboardSessionState } from "@/types/auth/session";
 import { startSignup } from "@/utils/signup";
 
 export function useNavbarAuthHotkeys({

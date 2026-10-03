@@ -668,43 +668,44 @@ function DesktopAuthActions({
   isAuthenticated,
   isResolved,
 }: NavbarAuthActionsProps) {
-  if (!isResolved) {
-    return <div aria-hidden="true" className="hidden h-8 lg:block" />;
-  }
-
-  if (isAuthenticated) {
-    return (
-      <div className="hidden items-center gap-3 lg:flex">
-        <a
-          aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
-          className={SIGNUP_BUTTON_CLASS}
-          href={AUTH_DASHBOARD_URL}
-        >
-          Dashboard
-          <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
-        </a>
-      </div>
-    );
-  }
-
   return (
-    <div className="hidden items-center gap-3 lg:flex">
-      <a
-        aria-keyshortcuts={AUTH_SIGNIN_HOTKEY.toLowerCase()}
-        className="font-display duration-fast inline-flex items-center gap-1.5 text-base leading-[1.14] tracking-[-0.015em] text-[#1E1E1E] transition-opacity ease-out hover:opacity-70 dark:text-white"
-        href={AUTH_SIGNIN_URL}
-      >
-        Sign In
-        <NavbarKbd>{AUTH_SIGNIN_HOTKEY}</NavbarKbd>
-      </a>
-      <TrackedSignupLink
-        aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
-        className={SIGNUP_BUTTON_CLASS}
-        source={NAVBAR_DESKTOP_SIGNUP_SOURCE}
-      >
-        Sign Up
-        <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
-      </TrackedSignupLink>
+    <div
+      className="hidden h-8 w-44 shrink-0 items-center justify-end lg:flex"
+      data-slot="navbar-auth"
+    >
+      {isResolved && (
+        <div className="animate-in fade-in fill-mode-both duration-normal flex items-center gap-3 ease-out motion-reduce:animate-none">
+          {isAuthenticated ? (
+            <a
+              aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
+              className={SIGNUP_BUTTON_CLASS}
+              href={AUTH_DASHBOARD_URL}
+            >
+              Dashboard
+              <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
+            </a>
+          ) : (
+            <>
+              <a
+                aria-keyshortcuts={AUTH_SIGNIN_HOTKEY.toLowerCase()}
+                className="font-display duration-fast inline-flex items-center gap-1.5 text-base leading-[1.14] tracking-[-0.015em] text-[#1E1E1E] transition-opacity ease-out hover:opacity-70 dark:text-white"
+                href={AUTH_SIGNIN_URL}
+              >
+                Sign In
+                <NavbarKbd>{AUTH_SIGNIN_HOTKEY}</NavbarKbd>
+              </a>
+              <TrackedSignupLink
+                aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
+                className={SIGNUP_BUTTON_CLASS}
+                source={NAVBAR_DESKTOP_SIGNUP_SOURCE}
+              >
+                Sign Up
+                <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
+              </TrackedSignupLink>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
