@@ -1,0 +1,55 @@
+apps/dashboard/src/lib/i18n/server.ts
+  s_7a0c38829ccc1e::t_c7baa853ecf760 7,24,34
+packages/ui/src/lib/framework-image.ts
+  s_7a0c38829ccc1e::t_4d6a5ed47ec6ff 2-58
+  s_7a0c38829ccc1e::t_1999fe17ee69d1 1
+apps/dashboard/src/components/auth/auth-brand-panel.tsx
+  s_7a0c38829ccc1e::t_e16fcf09b9076d 23-31,54
+apps/dashboard/src/routes/-dashboard-loaders.ts
+  s_7a0c38829ccc1e::t_ab259991157a31 81-90
+apps/dashboard/src/components/onboarding/split-layout.tsx
+  s_7a0c38829ccc1e::t_46eb56ab21cbac 1,7
+  s_7a0c38829ccc1e::t_2b3864359b8fcc 2,16
+apps/dashboard/src/lib/orpc/utils/geo-errors.ts
+  s_7a0c38829ccc1e::t_7782103822282d 13,18,24,26,30,34,37,39,41-43,47,50,52,55,57-59,61,63,65,70,73,75,77,83,87,89,91,96,99,104
+apps/dashboard/src/components/framework/image.tsx
+  s_7a0c38829ccc1e::t_e2c2439f019fe7 1-6,9-12,22-23,36,38,40-54,59,62,73-74,76-77,86
+packages/ui/src/components/framework-provider.tsx
+  s_7a0c38829ccc1e::t_1999fe17ee69d1 10,14
+  s_7a0c38829ccc1e::t_99996ded57731c 11-13,33-34,46,51,53,58-60
+apps/dashboard/src/lib/geo-shelf/request-service.ts
+  s_7a0c38829ccc1e::t_c7baa853ecf760 86,91,97,122
+apps/dashboard/src/lib/auth/workos.ts
+  s_7a0c38829ccc1e::t_ab259991157a31 51-57
+apps/dashboard/src/utils/framework-image.server.ts
+  s_7a0c38829ccc1e::t_b83b3d3021a0da 254-256
+apps/dashboard/src/components/onboarding/split-layout-context.ts
+  s_7a0c38829ccc1e::t_46eb56ab21cbac 1-7
+apps/dashboard/src/routes/-onboarding-ui.tsx
+  s_7a0c38829ccc1e::t_46eb56ab21cbac 10-11,17,49,55,62
+apps/dashboard/src/routes/-onboarding-loaders.ts
+  s_7a0c38829ccc1e::t_46eb56ab21cbac 79-91
+  s_7a0c38829ccc1e::t_43c3321a6853ef 33
+apps/dashboard/src/utils/framework-image.ts
+  s_7a0c38829ccc1e::t_e2c2439f019fe7 1-2,81-120
+apps/dashboard/scripts/migration/benchmark.mjs
+  s_7a0c38829ccc1e::t_5394a8730ed27a 111
+packages/ui/src/constants/framework-image.ts
+  s_7a0c38829ccc1e::t_4d6a5ed47ec6ff 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "038fce72c3493b7bab9c66729f2bb40a202c1acb",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
