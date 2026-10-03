@@ -1,0 +1,1 @@
+export const WEBSITE_DNS_TIMEOUT_MS = 5000;

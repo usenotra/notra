@@ -19,6 +19,7 @@ import {
   updateOrganizationInputSchema,
 } from "@notra/schemas/dashboard/organizations/actions";
 import { isDemoMode } from "@notra/utils/demo-mode";
+import { ORPCError } from "@orpc/server";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Invitation } from "@workos-inc/node";
 import { and, count, desc, eq } from "drizzle-orm";
@@ -73,6 +74,7 @@ import type {
   UpdateOrganizationInput,
 } from "@/types/organizations/actions";
 import type { OrganizationTrackingInput } from "@/types/organizations/analytics";
+import { validateOnboardingWebsite } from "@/utils/website-url";
 
 const enforceTeamMembersLimit = Effect.fn(
   "organizations.actions.enforceTeamMembersLimit"
@@ -281,7 +283,7 @@ export async function createOrganizationAction(
         createOrganizationInputSchema,
         rawInput
       );
-      const { slug } = input;
+      const { slug, websiteUrl } = input;
 
       const existing = yield* tryDb(
         () =>
@@ -300,6 +302,20 @@ export async function createOrganizationAction(
             ))("slugTaken"),
           })
         );
+      }
+
+      if (websiteUrl) {
+        yield* Effect.tryPromise({
+          try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
+          catch: (error) =>
+            new ActionFailure({
+              message:
+                error instanceof ORPCError
+                  ? error.message
+                  : "Website domain check failed",
+              cause: error instanceof ORPCError ? undefined : error,
+            }),
+        });
       }
 
       const organizationId = crypto.randomUUID();

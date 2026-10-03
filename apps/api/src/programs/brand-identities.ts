@@ -12,6 +12,7 @@ import {
   projects,
 } from "@notra/db/schema";
 import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
+import { isSameUrl } from "@notra/utils/url";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -53,6 +54,7 @@ import {
   deleteQstashSchedulesForTriggers,
   getTriggersForBrandIdentity,
 } from "../utils/triggers";
+import { validateBrandWebsiteUrl } from "./website-url";
 
 const database = <A>(operation: () => Promise<A>) =>
   Effect.tryPromise({
@@ -234,6 +236,7 @@ export const listBrandIdentities = Effect.fn("brandIdentities.list")(
 
 export const createBrandIdentity = Effect.fn("brandIdentities.create")(
   function* (input: CreateBrandIdentityProgramInput) {
+    yield* validateBrandWebsiteUrl(input.body.websiteUrl);
     const name = input.body.name?.trim() || "Untitled Brand Voice";
     const websiteUrl = input.body.websiteUrl;
     const newBrandIdentityId = crypto.randomUUID();
@@ -359,7 +362,7 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
         eq(brandSettings.id, input.brandIdentityId),
         eq(brandSettings.organizationId, input.organizationId)
       ),
-      columns: { id: true },
+      columns: { id: true, websiteUrl: true },
     })
   );
 
@@ -377,7 +380,11 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
     updateData.name = body.name;
   }
 
-  if (body.websiteUrl !== undefined) {
+  if (
+    body.websiteUrl !== undefined &&
+    !isSameUrl(body.websiteUrl, existingBrandIdentity.websiteUrl)
+  ) {
+    yield* validateBrandWebsiteUrl(body.websiteUrl);
     updateData.websiteUrl = body.websiteUrl;
   }
 
@@ -477,7 +484,7 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
     return yield* new BrandIdentityNotFoundError();
   }
 
-  if (body.websiteUrl !== undefined) {
+  if (updateData.websiteUrl !== undefined) {
     yield* Effect.promise(() =>
       invalidateGeoIngestHostsCacheForBrand(
         input.organizationId,

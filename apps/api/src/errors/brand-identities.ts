@@ -1,5 +1,10 @@
 import { Schema } from "effect";
 
+export class BrandIdentityWebsiteUrlError extends Schema.TaggedError<BrandIdentityWebsiteUrlError>()(
+  "BrandIdentityWebsiteUrlError",
+  { message: Schema.String, temporary: Schema.Boolean }
+) {}
+
 export class BrandIdentityNotFoundError extends Schema.TaggedError<BrandIdentityNotFoundError>()(
   "BrandIdentityNotFoundError",
   {}

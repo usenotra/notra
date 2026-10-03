@@ -992,6 +992,8 @@
       "branchNotFound": "That branch doesn't exist in the repository",
       "granolaKeyRejected": "Granola couldn't verify this API key. Check the key and its scopes, then try again.",
       "publicUrlInvalid": "Enter a public http or https URL",
+      "websiteDomainNotFound": "Website domain not found. Please check the website address.",
+      "websiteDnsUnavailable": "We couldn't check the website domain right now. Please try again.",
       "mcpAuthorizationFailed": "The MCP server authorization failed. Check the URL and try again.",
       "tooManyConnectionAttempts": "Too many connection attempts. Wait a minute and try again.",
       "selectOneRepository": "Please select exactly one repository",

@@ -15,6 +15,7 @@ import type {
   BrandIdentityInUseError,
   BrandIdentityNameDuplicateError,
   BrandIdentityNotFoundError,
+  BrandIdentityWebsiteUrlError,
 } from "../errors/brand-identities";
 import type { DbClient } from "./db";
 
@@ -36,6 +37,7 @@ export type BrandIdentityRow = Pick<
 >;
 
 export type BrandIdentityDomainError =
+  | BrandIdentityWebsiteUrlError
   | BrandIdentityNotFoundError
   | BrandIdentityNameDuplicateError
   | BrandIdentityCreateFailedError

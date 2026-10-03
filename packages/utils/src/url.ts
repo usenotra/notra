@@ -1,6 +1,8 @@
 import type { LookupAddress } from "node:dns";
-import { lookup } from "node:dns/promises";
+import { Resolver } from "node:dns/promises";
 import { isIP } from "node:net";
+
+import { WEBSITE_DNS_TIMEOUT_MS } from "./constants/url";
 
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",
@@ -12,10 +14,24 @@ const BLOCKED_HOSTNAME_SUFFIXES = [".internal", ".local", ".localhost"];
 const HEXTET_REGEX = /^[0-9a-f]{1,4}$/;
 
 export class PublicUrlValidationError extends Error {
-  constructor(message: string) {
+  readonly reason: "invalid" | "not_found" | "temporary";
+
+  constructor(
+    message: string,
+    reason: "invalid" | "not_found" | "temporary" = "invalid"
+  ) {
     super(message);
     this.name = "PublicUrlValidationError";
+    this.reason = reason;
   }
+}
+
+export function isSameUrl(url: string, previousUrl: string | null): boolean {
+  const current = URL.parse(url);
+  const previous = previousUrl ? URL.parse(previousUrl) : null;
+  return (
+    current !== null && previous !== null && current.href === previous.href
+  );
 }
 
 function ipv4ToNumber(ip: string): number | null {
@@ -254,15 +270,38 @@ export async function resolvePublicHttpUrl(
     return [{ address: hostname, family: ipVersion }];
   }
 
+  const resolver = new Resolver({ timeout: WEBSITE_DNS_TIMEOUT_MS, tries: 1 });
+  const timer = setTimeout(() => resolver.cancel(), WEBSITE_DNS_TIMEOUT_MS);
   let addresses: LookupAddress[];
   try {
-    addresses = await lookup(hostname, { all: true, verbatim: false });
-  } catch {
-    throw new PublicUrlValidationError("URL hostname could not be resolved");
-  }
-
-  if (addresses.length === 0) {
-    throw new PublicUrlValidationError("URL hostname could not be resolved");
+    const results = await Promise.allSettled([
+      resolver.resolve4(hostname),
+      resolver.resolve6(hostname),
+    ]);
+    addresses = results.flatMap((result, index) =>
+      result.status === "fulfilled"
+        ? result.value.map((address) => ({
+            address,
+            family: index === 0 ? 4 : 6,
+          }))
+        : []
+    );
+    if (addresses.length === 0) {
+      const temporary = results.some(
+        (result) =>
+          result.status === "rejected" &&
+          result.reason?.code !== "ENOTFOUND" &&
+          result.reason?.code !== "ENODATA"
+      );
+      throw new PublicUrlValidationError(
+        temporary
+          ? "Website domain check is temporarily unavailable. Please try again."
+          : "Website domain could not be resolved. Please check the domain name.",
+        temporary ? "temporary" : "not_found"
+      );
+    }
+  } finally {
+    clearTimeout(timer);
   }
 
   for (const address of addresses) {

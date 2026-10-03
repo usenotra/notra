@@ -35,6 +35,7 @@ import {
 import { demoContextDevResponse } from "./demo-context-dev";
 import { httpErrorKind } from "./http-error-kind";
 import { logOperationalEvent } from "./operational-log";
+import { websiteLogUrl } from "./website-log-url";
 
 const CONTEXT_DEV_API_BASE_URL = "https://api.context.dev/v1";
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
@@ -106,7 +107,12 @@ async function requestContextDev<TResponse>(
   let status: number | undefined;
   let outcome: "success" | "error" = "error";
   let errorName: string | undefined;
+  let errorCode: string | undefined;
+  let errorMessage: string | undefined;
   let errorKind: OperationalLogEvent["errorKind"] = "operation_error";
+  const requestUrl = new URL(path, CONTEXT_DEV_API_BASE_URL);
+  const params = requestUrl.searchParams;
+  const domain = params.get("domain");
   try {
     if (isDemoMode()) {
       outcome = "success";
@@ -139,6 +145,14 @@ async function requestContextDev<TResponse>(
       errorKind = "operation_error";
     }
     errorName = error instanceof Error ? error.name : "UnknownError";
+    if (error instanceof ContextDevApiError) {
+      errorCode = error.code;
+      errorMessage =
+        requestUrl.pathname === "/web/scrape/markdown" ||
+        requestUrl.pathname === "/web/scrape/sitemap"
+          ? mapContextDevError(error).error
+          : `Context.dev request ${requestUrl.pathname} failed with status ${error.status}`;
+    }
     throw error;
   } finally {
     logOperationalEvent({
@@ -151,6 +165,11 @@ async function requestContextDev<TResponse>(
       status,
       outcome,
       errorName,
+      errorCode,
+      errorMessage,
+      websiteUrl: websiteLogUrl(
+        params.get("url") ?? (domain ? `https://${domain}` : undefined)
+      ),
       errorKind: outcome === "error" ? errorKind : undefined,
     });
   }
@@ -164,7 +183,9 @@ function truncateContent(content: string): string {
   return `${content.slice(0, BRAND_ANALYSIS_MAX_CONTENT_LENGTH)}\n\n[Content truncated for brand analysis]`;
 }
 
-function mapContextDevError(error: unknown): ContextDevScrapingResult {
+function mapContextDevError(
+  error: unknown
+): Extract<ContextDevScrapingResult, { success: false }> {
   if (error instanceof ContextDevApiError) {
     if (
       error.code === "INPUT_VALIDATION_ERROR" ||
@@ -172,28 +193,40 @@ function mapContextDevError(error: unknown): ContextDevScrapingResult {
     ) {
       return { success: false, error: "Invalid URL", fatal: true };
     }
-
+    if (error.message.toLowerCase().includes("dns resolution failed")) {
+      return {
+        success: false,
+        error:
+          "Website domain could not be resolved. Please check the domain name.",
+        fatal: true,
+      };
+    }
+    if (
+      error.code === "WEBSITE_NOT_FOUND" ||
+      error.code === "NOT_FOUND" ||
+      error.status === 404
+    ) {
+      return { success: false, error: "Website URL not found", fatal: true };
+    }
     if (
       error.status === 403 ||
-      error.status === 404 ||
       error.status === 415 ||
       error.code === "WEBSITE_ACCESS_ERROR" ||
-      error.code === "UNSUPPORTED_CONTENT" ||
-      error.code === "NOT_FOUND"
+      error.code === "UNSUPPORTED_CONTENT"
     ) {
       return {
         success: false,
         error:
-          error.code === "NOT_FOUND"
-            ? "Website URL not found"
-            : "Unsupported website URL",
+          error.status === 415 || error.code === "UNSUPPORTED_CONTENT"
+            ? "Website content is not supported"
+            : "Website could not be accessed",
         fatal: true,
       };
     }
 
     return {
       success: false,
-      error: error.message || "Failed to scrape website",
+      error: `Website data request failed with status ${error.status}`,
       fatal: false,
     };
   }
@@ -344,13 +377,7 @@ export async function scrapeWebsiteForBrandAnalysis(
 
   try {
     const sitemapResult = await crawlSitemapForBrandAnalysis(websiteUrl).catch(
-      (error) => {
-        console.warn("[Context.dev] Sitemap crawl failed for brand analysis", {
-          error: error instanceof Error ? error.message : "Unknown error",
-          url: websiteUrl,
-        });
-        return null;
-      }
+      () => null
     );
 
     const urls = pickBrandAnalysisUrls(websiteUrl, sitemapResult?.urls ?? []);
