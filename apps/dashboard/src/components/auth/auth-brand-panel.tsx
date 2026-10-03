@@ -20,16 +20,18 @@ const DITHERING_SCALE = 0.74;
 const DITHERING_SIZE = 11;
 const DITHERING_SPEED = 0.5;
 
+let webGLSupport: boolean | undefined;
+
+// Only called once the panel mounts, which happens after the media query
+// effect, so it never runs on the server.
+function canRenderShader() {
+  webGLSupport ??= supportsWebGL(document.createElement("canvas"));
+  return webGLSupport;
+}
+
 export function AuthBrandPanel() {
   const shouldReduceMotion = useReducedMotion();
   const [canMountPanel, setCanMountPanel] = useState(false);
-  const [canAnimate, setCanAnimate] = useState(false);
-
-  useEffect(() => {
-    if (canMountPanel && !shouldReduceMotion) {
-      setCanAnimate(supportsWebGL(document.createElement("canvas")));
-    }
-  }, [canMountPanel, shouldReduceMotion]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(
@@ -49,7 +51,7 @@ export function AuthBrandPanel() {
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(200deg,#a78bfa_0%,#7c3aed_55%,#5b21b6_100%)] p-14">
-      {shouldReduceMotion || !canAnimate ? null : (
+      {shouldReduceMotion || !canRenderShader() ? null : (
         <div className="[container-type:size] pointer-events-none absolute inset-0 overflow-hidden">
           <Dithering
             className="absolute top-full left-0 h-[100cqw] w-[100cqh] origin-top-left rotate-[270deg] opacity-30"

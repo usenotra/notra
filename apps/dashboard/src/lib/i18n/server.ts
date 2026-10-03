@@ -4,6 +4,7 @@ import { createTranslator } from "use-intl/core";
 
 import { getAuthIdentity } from "@/lib/auth/server";
 import { readLocaleCookie } from "@/lib/i18n/locale-cookie";
+import type { DashboardLocale } from "@/types/i18n";
 import { isDashboardLocale, negotiateDashboardLocale } from "@/utils/i18n";
 
 export async function getLocale() {
@@ -20,8 +21,7 @@ export async function getLocale() {
   return negotiateDashboardLocale(getRequestHeader("accept-language") ?? null);
 }
 
-async function getMessages() {
-  const locale = await getLocale();
+async function getMessages(locale: DashboardLocale) {
   return locale === "de"
     ? (await import("../../../messages/de.json")).default
     : (await import("../../../messages/en.json")).default;
@@ -31,6 +31,6 @@ export async function getTranslations<
   Namespace extends NamespaceKeys<Messages, NestedKeyOf<Messages>> = never,
 >(namespace?: Namespace) {
   const locale = await getLocale();
-  const messages: Messages = await getMessages();
+  const messages: Messages = await getMessages(locale);
   return createTranslator<Messages, Namespace>({ locale, messages, namespace });
 }

@@ -108,6 +108,7 @@ if (mode === "build") {
   for (const route of config.routes) {
     const url = new URL(route.path, config.baseUrl).href;
     for (let index = -config.warmup; index < config.samples; index += 1) {
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- samples are timed one at a time
       const timing = await measureHttp(url, config.timeoutMs);
       const accepted = route.statuses.includes(timing.status);
       failed ||= !accepted;

@@ -78,14 +78,16 @@ export const loadDashboardHome = createServerFn({
       ({ resolveAiProductAccess }) => resolveAiProductAccess(organization.id)
     );
     const homePromise = (async () => {
-      const { dehydrateDashboardHomeQueries } =
-        await import("@/utils/dashboard-home-prefetch.server");
-      const projectId = await resolveInitialGeoProjectId(
-        organization.id,
-        slug,
-        geoRequestedProjectId(searchParams)
-      );
-      const t = await getTranslations("home");
+      const [{ dehydrateDashboardHomeQueries }, projectId, t] =
+        await Promise.all([
+          import("@/utils/dashboard-home-prefetch.server"),
+          resolveInitialGeoProjectId(
+            organization.id,
+            slug,
+            geoRequestedProjectId(searchParams)
+          ),
+          getTranslations("home"),
+        ]);
       const period = getGreetingPeriod(new Date());
       const name = user.name?.trim();
       return {

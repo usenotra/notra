@@ -1,7 +1,15 @@
+import { FILL_IMAGE_STYLE } from "@notra/ui/constants/framework-image";
+import {
+  imageLoadingAttributes,
+  resolveImageSource,
+} from "@notra/ui/lib/framework-image";
+import type { FrameworkImageProps } from "@notra/ui/types/framework";
 import { useState } from "react";
 
-import type { ImageProps } from "../../types/framework-image";
-import { getImageWidths, imageOptimizerUrl } from "../../utils/framework-image";
+import {
+  imagePlaceholderUrl,
+  optimizedImageSources,
+} from "../../utils/framework-image";
 
 export default function Image({
   src,
@@ -11,6 +19,8 @@ export default function Image({
   fill,
   priority,
   preload,
+  loading,
+  fetchPriority,
   unoptimized,
   quality = 75,
   placeholder,
@@ -22,48 +32,34 @@ export default function Image({
   onError,
   style,
   sizes,
-  loading,
-  fetchPriority,
   ...props
-}: ImageProps) {
+}: FrameworkImageProps) {
   const [loaded, setLoaded] = useState(false);
-  let image;
-  if (typeof src !== "string") {
-    image = "default" in src ? src.default : src;
-  }
-  const source = typeof src === "string" ? src : (image?.src ?? "");
-  let imageWidth = width ? Number(width) : image?.width;
-  let imageHeight = height ? Number(height) : image?.height;
-  if (image && height && !width) {
-    imageWidth = Math.round((Number(height) * image.width) / image.height);
-  }
-  if (image && width && !height) {
-    imageHeight = Math.round((Number(width) * image.height) / image.width);
-  }
+  const image = resolveImageSource({ src, width, height });
   const direct =
-    unoptimized || source.startsWith("data:") || source.startsWith("blob:");
-  const generate = (target: number) =>
-    loader
-      ? loader({ src: source, width: target, quality: Number(quality) })
-      : imageOptimizerUrl(source, target, Number(quality));
-  const { widths, kind } = getImageWidths(fill ? undefined : imageWidth, sizes);
-  let blur;
-  if (placeholder === "blur") {
-    blur = blurDataURL ?? image?.blurDataURL;
-  } else if (placeholder?.startsWith("data:")) {
-    blur = placeholder;
-  }
+    unoptimized ||
+    image.source.startsWith("data:") ||
+    image.source.startsWith("blob:");
+  const optimized = direct
+    ? undefined
+    : optimizedImageSources({
+        source: image.source,
+        width: fill ? undefined : image.width,
+        sizes,
+        quality: Number(quality),
+        loader,
+      });
+  const blur = loaded
+    ? undefined
+    : imagePlaceholderUrl(placeholder, blurDataURL ?? image.blurDataURL);
 
   return (
     <img
       {...props}
+      {...imageLoadingAttributes({ priority, preload, loading, fetchPriority })}
       alt={alt}
       decoding="async"
-      fetchPriority={
-        fetchPriority ?? (priority || preload ? "high" : undefined)
-      }
-      height={fill ? undefined : imageHeight}
-      loading={loading ?? (priority || preload ? "eager" : "lazy")}
+      height={fill ? undefined : image.height}
       onError={(event) => {
         setLoaded(true);
         onError?.(event);
@@ -74,22 +70,11 @@ export default function Image({
         onLoadingComplete?.(event.currentTarget);
       }}
       sizes={sizes ?? (fill ? "100vw" : undefined)}
-      src={overrideSrc ?? (direct ? source : generate(widths.at(-1) ?? 3840))}
-      srcSet={
-        direct
-          ? undefined
-          : widths
-              .map(
-                (target, index) =>
-                  `${generate(target)} ${kind === "w" ? target : index + 1}${kind}`
-              )
-              .join(", ")
-      }
+      src={overrideSrc ?? optimized?.src ?? image.source}
+      srcSet={optimized?.srcSet}
       style={{
-        ...(fill
-          ? { position: "absolute", height: "100%", width: "100%", inset: 0 }
-          : {}),
-        ...(!loaded && blur
+        ...(fill ? FILL_IMAGE_STYLE : {}),
+        ...(blur
           ? {
               backgroundImage: `url("${blur}")`,
               backgroundSize: "cover",
@@ -98,7 +83,7 @@ export default function Image({
           : {}),
         ...style,
       }}
-      width={fill ? undefined : imageWidth}
+      width={fill ? undefined : image.width}
     />
   );
 }

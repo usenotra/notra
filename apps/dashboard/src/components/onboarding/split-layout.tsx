@@ -1,40 +1,19 @@
-import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { createContext, useContext } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useContext } from "react";
 import { useTranslations } from "use-intl";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
-import {
-  getLastActiveOrganization,
-  validateOrganizationAccess,
-} from "@/lib/auth/actions";
+import { OnboardingSplitLayoutContext } from "@/components/onboarding/split-layout-context";
 import { skipOnboarding } from "@/lib/onboarding/skip";
 import type { OnboardingStepLayoutProps } from "@/types/onboarding";
-import type { OnboardingLayoutContext } from "@/types/onboarding-layout";
-
-const OnboardingContext = createContext<OnboardingLayoutContext | null>(null);
-
-export const OnboardingSplitLayoutProvider = OnboardingContext.Provider;
-
-export const loadOnboardingSplitLayout = createServerFn({
-  method: "GET",
-}).handler(async () => {
-  const organization = await getLastActiveOrganization();
-  const member = organization
-    ? (await validateOrganizationAccess(organization.slug)).member
-    : null;
-  return {
-    organizationSlug: organization?.slug ?? null,
-    canSkip: member?.role === "owner" || member?.role === "admin",
-  };
-});
 
 export function OnboardingSplitLayout({
   children,
   step,
 }: OnboardingStepLayoutProps) {
   const tOnboardingShared = useTranslations("onboarding.shared");
-  const context = useContext(OnboardingContext);
+  const context = useContext(OnboardingSplitLayoutContext);
   const skip = useServerFn(skipOnboarding);
   if (!context) {
     throw new Error("Onboarding layout requires its server-loaded context");

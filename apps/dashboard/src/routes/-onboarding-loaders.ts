@@ -30,6 +30,7 @@ import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
 import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { UiRouteInput } from "@/types/migration-routes";
+import type { OnboardingLayoutContext } from "@/types/onboarding-layout";
 import {
   geoDashboardPath,
   geoOnboardingCompetitorsPath,
@@ -74,6 +75,19 @@ async function onboardingBrandContext(input: UiRouteInput) {
   );
   return { organization, projectId, replay, brand };
 }
+
+export const loadOnboardingLayout = createServerFn({ method: "GET" }).handler(
+  async (): Promise<OnboardingLayoutContext> => {
+    const organization = await getLastActiveOrganization();
+    const member = organization
+      ? (await validateOrganizationAccess(organization.slug)).member
+      : null;
+    return {
+      organizationSlug: organization?.slug ?? null,
+      canSkip: member?.role === "owner" || member?.role === "admin",
+    };
+  }
+);
 
 export const loadOnboardingEntry = createServerFn({ method: "GET" })
   .inputValidator((data: UiRouteInput) => data)

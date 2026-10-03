@@ -7,6 +7,11 @@ import type {
   FrameworkLinkProps,
   FrameworkProviderProps,
 } from "@notra/ui/types/framework";
+import { FILL_IMAGE_STYLE } from "@notra/ui/constants/framework-image";
+import {
+  imageLoadingAttributes,
+  resolveImageSource,
+} from "@notra/ui/lib/framework-image";
 
 function NativeLink({
   prefetch: _prefetch,
@@ -25,6 +30,8 @@ function NativeImage({
   fill,
   priority,
   preload,
+  loading,
+  fetchPriority,
   unoptimized: _unoptimized,
   quality: _quality,
   placeholder: _placeholder,
@@ -33,46 +40,24 @@ function NativeImage({
   overrideSrc,
   onLoadingComplete,
   onLoad,
-  loading,
-  fetchPriority,
   style,
   ...props
 }: FrameworkImageProps) {
-  const image =
-    typeof src === "string" ? undefined : "default" in src ? src.default : src;
-  const source = typeof src === "string" ? src : image?.src;
-  const imageWidth =
-    width ??
-    (image && height
-      ? Math.round((Number(height) * image.width) / image.height)
-      : image?.width);
-  const imageHeight =
-    height ??
-    (image && width
-      ? Math.round((Number(width) * image.height) / image.width)
-      : image?.height);
+  const image = resolveImageSource({ src, width, height });
 
   return (
     <img
       {...props}
+      {...imageLoadingAttributes({ priority, preload, loading, fetchPriority })}
       alt={alt}
-      fetchPriority={
-        fetchPriority ?? (priority || preload ? "high" : undefined)
-      }
-      height={fill ? undefined : imageHeight}
-      loading={loading ?? (priority || preload ? "eager" : "lazy")}
+      height={fill ? undefined : image.height}
       onLoad={(event) => {
         onLoad?.(event);
         onLoadingComplete?.(event.currentTarget);
       }}
-      src={overrideSrc ?? source}
-      style={{
-        ...(fill
-          ? { position: "absolute", width: "100%", height: "100%", inset: 0 }
-          : {}),
-        ...style,
-      }}
-      width={fill ? undefined : imageWidth}
+      src={overrideSrc ?? image.source}
+      style={fill ? { ...FILL_IMAGE_STYLE, ...style } : style}
+      width={fill ? undefined : image.width}
     />
   );
 }

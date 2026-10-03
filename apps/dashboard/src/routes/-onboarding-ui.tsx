@@ -7,16 +7,14 @@ import {
 import { lazy, Suspense } from "react";
 
 import OnboardingLayout from "@/app/onboarding/layout";
-import {
-  loadOnboardingSplitLayout,
-  OnboardingSplitLayout,
-  OnboardingSplitLayoutProvider,
-} from "@/components/onboarding/split-layout";
+import { OnboardingSplitLayout } from "@/components/onboarding/split-layout";
+import { OnboardingSplitLayoutContext } from "@/components/onboarding/split-layout-context";
 import { ONBOARDING_STEPS } from "@/constants/analytics-events";
 
 import {
   loadOnboardingCompetitors,
   loadOnboardingEntry,
+  loadOnboardingLayout,
   loadOnboardingPricing,
   loadOnboardingVisibility,
   loadOnboardingWorkspace,
@@ -48,20 +46,20 @@ export function createOnboardingUiRoutes(parent: AnyRoute) {
   function OnboardingRouteLayout() {
     const context = onboarding.useLoaderData<Router<typeof onboarding>>();
     return (
-      <OnboardingSplitLayoutProvider value={context}>
+      <OnboardingSplitLayoutContext value={context}>
         <OnboardingLayout>
           <Suspense>
             <Outlet />
           </Suspense>
         </OnboardingLayout>
-      </OnboardingSplitLayoutProvider>
+      </OnboardingSplitLayoutContext>
     );
   }
 
   const onboarding = createRoute({
     getParentRoute: () => parent,
     path: "onboarding",
-    loader: () => loadOnboardingSplitLayout(),
+    loader: () => loadOnboardingLayout(),
     component: OnboardingRouteLayout,
   });
   return [

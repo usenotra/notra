@@ -1,3 +1,5 @@
+import type { FrameworkImageProps } from "@notra/ui/types/framework";
+
 import {
   IMAGE_DEVICE_WIDTHS,
   IMAGE_REMOTE_HOSTS,
@@ -75,4 +77,45 @@ export function negotiateImageFormat(accept: string | null) {
     return "avif";
   }
   return webp > 0 ? "webp" : undefined;
+}
+
+/** `src` and `srcSet` through the image optimizer or a custom loader. */
+export function optimizedImageSources({
+  source,
+  width,
+  sizes,
+  quality,
+  loader,
+}: {
+  source: string;
+  width: number | undefined;
+  sizes: string | undefined;
+  quality: number;
+  loader: FrameworkImageProps["loader"];
+}) {
+  const generate = (target: number) =>
+    loader
+      ? loader({ src: source, width: target, quality })
+      : imageOptimizerUrl(source, target, quality);
+  const { widths, kind } = getImageWidths(width, sizes);
+  return {
+    src: generate(widths.at(-1) ?? 3840),
+    srcSet: widths
+      .map(
+        (target, index) =>
+          `${generate(target)} ${kind === "w" ? target : index + 1}${kind}`
+      )
+      .join(", "),
+  };
+}
+
+/** The blurred preview shown until the image loads, if any. */
+export function imagePlaceholderUrl(
+  placeholder: FrameworkImageProps["placeholder"],
+  blurDataURL: string | undefined
+) {
+  if (placeholder === "blur") {
+    return blurDataURL;
+  }
+  return placeholder?.startsWith("data:") ? placeholder : undefined;
 }

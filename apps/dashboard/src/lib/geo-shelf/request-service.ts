@@ -83,19 +83,18 @@ export async function createGeoShelfSource(
   input: GeoShelfCreateInput,
   userId: string
 ): Promise<GeoShelfSource> {
-  const tErrors = await getTranslations("errors.geo");
-  const tCommon = await getTranslations("common");
+  const t = await getTranslations();
   assertGeoShelfOpportunityMembers(
     seed.members,
     input.opportunity,
     null,
-    tErrors("notOrganizationMember")
+    t("errors.geo.notOrganizationMember")
   );
   const nowIso = new Date().toISOString();
   const url = canonicalizeShelfUrl(input.url);
   const key = storeKey(seed);
   if (await isGeoShelfUrlOnShelf(seed, url)) {
-    throw conflict(tCommon("messages.thisPageIsAlreadyOn"));
+    throw conflict(t("common.messages.thisPageIsAlreadyOn"));
   }
   const source = geoShelfSourceSchema.parse({
     id: crypto.randomUUID(),
@@ -120,7 +119,7 @@ export async function createGeoShelfSource(
     return await insertGeoShelfSource(key, source);
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      throw conflict(tCommon("messages.thisPageIsAlreadyOn"));
+      throw conflict(t("common.messages.thisPageIsAlreadyOn"));
     }
     throw error;
   }

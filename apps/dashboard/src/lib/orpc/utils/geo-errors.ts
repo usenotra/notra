@@ -10,99 +10,98 @@ import {
 } from "@/lib/orpc/utils/errors";
 
 export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
-  const tErrors = await getTranslations("errors.geo");
-  const tCommon = await getTranslations("common");
+  const t = await getTranslations();
   switch (failure._tag) {
     case "GeoSuggestionNotFoundError":
       return notFound("Suggestion not found");
     case "GeoPromptDuplicateError":
-      return badRequest(tErrors("promptAlreadyTracked"));
+      return badRequest(t("errors.geo.promptAlreadyTracked"));
     case "GeoPromptNotFoundError":
       return notFound("Prompt not found");
     case "GeoProjectNotFoundError":
       return notFound("Project not found");
     case "GeoProjectCreateFailedError":
-      return badRequest(tCommon("labels.failedToCreateProject"));
+      return badRequest(t("common.labels.failedToCreateProject"));
     case "GeoProjectDeleteBlockedError":
-      return badRequest(tErrors("lastProjectDelete"));
+      return badRequest(t("errors.geo.lastProjectDelete"));
     case "GeoBrandIdentityNotFoundError":
       return notFound("Brand identity not found");
     case "GeoBrandIdentityMissingError":
-      return badRequest(tErrors("createBrandIdentityFirst"));
+      return badRequest(t("errors.geo.createBrandIdentityFirst"));
     case "GeoSequenceNotFoundError":
       return notFound("Conversation not found");
     case "GeoSequenceRunUnavailableError":
-      return badRequest(tErrors("noGroundedEngines"));
+      return badRequest(t("errors.geo.noGroundedEngines"));
     case "GeoSequenceRunError":
       console.error("[GEO] conversation run failed:", failure);
-      return badRequest(tErrors("conversationRunFailed"));
+      return badRequest(t("errors.geo.conversationRunFailed"));
     case "GeoSequenceCreateFailedError":
-      return badRequest(tErrors("createConversationFailed"));
+      return badRequest(t("errors.geo.createConversationFailed"));
     case "GeoSequenceLimitError":
-      return badRequest(tErrors("conversationLimit", { limit: failure.limit }));
+      return badRequest(
+        t("errors.geo.conversationLimit", { limit: failure.limit })
+      );
     case "GeoPersonaNotFoundError":
       return notFound("Persona not found");
     case "GeoPersonaLimitError":
-      return badRequest(tErrors("personaLimit", { limit: failure.limit }));
+      return badRequest(t("errors.geo.personaLimit", { limit: failure.limit }));
     case "GeoPersonaGenerateError":
       console.error("[GEO] persona generation failed:", failure);
-      return badRequest(
-        (await getTranslations("geo.toasts"))("personaGenerationFailed")
-      );
+      return badRequest(t("geo.toasts.personaGenerationFailed"));
     case "GeoPersonaRunUnavailableError":
-      return badRequest(tErrors("noGroundedEngines"));
+      return badRequest(t("errors.geo.noGroundedEngines"));
     case "GeoPersonaRunError":
       console.error("[GEO] persona run failed:", failure);
-      return badRequest(tErrors("personaRunFailed"));
+      return badRequest(t("errors.geo.personaRunFailed"));
     case "GeoCompetitorLimitError":
-      return badRequest(tErrors("competitorLimit", { limit: failure.limit }));
+      return badRequest(
+        t("errors.geo.competitorLimit", { limit: failure.limit })
+      );
     case "GeoSettingsMissingError":
-      return badRequest(tErrors("configureTrackingFirst"));
+      return badRequest(t("errors.geo.configureTrackingFirst"));
     case "GeoSettingsDisabledError":
-      return badRequest(tErrors("enableTrackingFirst"));
+      return badRequest(t("errors.geo.enableTrackingFirst"));
     case "GeoSettingsTrackingError":
-      return badRequest(tErrors("trackingSettingsRejected"));
+      return badRequest(t("errors.geo.trackingSettingsRejected"));
     case "GeoPromptTranslationError":
       switch (failure.reason) {
         case "limit":
           return badRequest(
-            tErrors("translationLimit", { limit: failure.limit ?? 0 })
+            t("errors.geo.translationLimit", { limit: failure.limit ?? 0 })
           );
         case "last":
-          return badRequest(tErrors("translationLast"));
+          return badRequest(t("errors.geo.translationLast"));
         case "unavailable":
-          return badRequest(tErrors("translationDeferred"));
+          return badRequest(t("errors.geo.translationDeferred"));
         default:
-          return badRequest(tErrors("translationUnavailable"));
+          return badRequest(t("errors.geo.translationUnavailable"));
       }
     case "GeoSampleDataDisabledError":
       return notFound();
     case "GeoDiscoveryError":
       console.error("[GEO] website discovery failed:", failure);
-      return badRequest(tErrors("websiteDiscoveryFailed"));
+      return badRequest(t("errors.geo.websiteDiscoveryFailed"));
     case "GeoScanStartError":
       return toUnexpectedError(failure.cause, "Failed to start the scan");
     case "GeoScanAlreadyRunningError":
-      return badRequest(tErrors("scanAlreadyRunning"));
+      return badRequest(t("errors.geo.scanAlreadyRunning"));
     case "GeoScanEnginesEmptyError":
-      return badRequest(tErrors("selectModel"));
+      return badRequest(t("errors.geo.selectModel"));
     case "GeoWriterCreditsExhaustedError":
-      return paymentRequired(
-        (await getTranslations("errors.billing"))("contentLimitReached")
-      );
+      return paymentRequired(t("errors.billing.contentLimitReached"));
     case "GeoContentBriefNotFoundError":
       return notFound("Brief not found");
     case "GeoContentBriefStateError":
       return badRequest(
-        tErrors("briefStateLocked", { status: failure.status })
+        t("errors.geo.briefStateLocked", { status: failure.status })
       );
     case "GeoContentBriefConflictError":
-      return conflict(tErrors("planChanged"), {
+      return conflict(t("errors.geo.planChanged"), {
         updatedAt: failure.updatedAt,
       });
     case "GeoWriterPlanError":
       console.error("[GEO] writer planning failed:", failure);
-      return badRequest(tErrors("writerPlanFailed"));
+      return badRequest(t("errors.geo.writerPlanFailed"));
     case "GeoWriterStartError":
       return toUnexpectedError(failure.cause, "Failed to start the writer");
     default:

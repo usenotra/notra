@@ -48,10 +48,12 @@ export async function signOutAuthSession(options?: SignOutActionOptions) {
 
 export async function saveAuthSession(session: Session) {
   getAuthKitContext();
-  const encrypted = await sessionEncryption.sealData(session, {
-    password: getConfig("cookiePassword"),
-    ttl: 0,
-  });
-  const authkit = await getAuthkit();
+  const [encrypted, authkit] = await Promise.all([
+    sessionEncryption.sealData(session, {
+      password: getConfig("cookiePassword"),
+      ttl: 0,
+    }),
+    getAuthkit(),
+  ]);
   await authkit.saveSession(undefined, encrypted);
 }
