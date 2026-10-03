@@ -1,0 +1,9 @@
+packages/ai/src/agents/background-gen.ts
+  ai_agent 1-4,138-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "968d57789233d18ad4924eb19a90d90363344fc3",
+  "prompts": {}
+}
