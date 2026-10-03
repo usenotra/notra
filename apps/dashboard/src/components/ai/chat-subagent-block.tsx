@@ -92,6 +92,64 @@ function describeResult(
   }
 }
 
+function getSubagentConfig(agentName: string) {
+  if (!isChatSubagentName(agentName)) {
+    return CHAT_SUBAGENT_FALLBACK;
+  }
+  return CHAT_SUBAGENTS[agentName] ?? CHAT_SUBAGENT_FALLBACK;
+}
+
+function SubagentProgress({
+  isStreaming,
+  toolCallId,
+  stepCount,
+}: {
+  isStreaming: boolean;
+  toolCallId: string;
+  stepCount: number | undefined;
+}) {
+  const t = useTranslations("ai.subagent");
+  const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
+  let label: string | null = null;
+  if (isStreaming) {
+    label = formatElapsedSeconds(elapsedSeconds);
+  } else if (stepCount !== undefined) {
+    label = t("steps", { count: stepCount });
+  }
+  return (
+    <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
+      {label}
+    </span>
+  );
+}
+
+function SubagentChevron({ isOpen }: { isOpen: boolean }) {
+  return (
+    <HugeiconsIcon
+      aria-hidden
+      className={cn(
+        "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
+        isOpen ? "rotate-180" : "rotate-0 opacity-0 group-hover:opacity-100"
+      )}
+      icon={ArrowDown01Icon}
+    />
+  );
+}
+
+function SubagentResultLine({ summary }: { summary: string }) {
+  return (
+    <div className="text-muted-foreground flex min-w-0 items-start gap-2 text-sm leading-5">
+      <HugeiconsIcon
+        aria-hidden
+        className="mt-0.75 size-3.5 shrink-0"
+        icon={ArrowMoveDownRightIcon}
+        strokeWidth={1.8}
+      />
+      <span className="min-w-0 text-pretty">{summary}</span>
+    </div>
+  );
+}
+
 /**
  * A delegated subagent run, styled like the chat's activity rows: one muted
  * line with the agent's name and progress, its own tool calls hanging off
@@ -110,13 +168,10 @@ export function ChatSubagentBlock({
 }: ChatSubagentBlockProps) {
   const t = useTranslations("ai.subagent");
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  const config = isChatSubagentName(agentName)
-    ? (CHAT_SUBAGENTS[agentName] ?? CHAT_SUBAGENT_FALLBACK)
-    : CHAT_SUBAGENT_FALLBACK;
+  const config = getSubagentConfig(agentName);
   const isError = state === "output-error" || Boolean(errorText);
   const isPending = state === "input-streaming" || state === "input-available";
   const isStreaming = isActive && isPending;
-  const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
   const result = isPending ? null : getChatSubagentResult(agentName, output);
   const outcome = getOutcome({ isPending, isActive, isError, result });
   const activity = t(`activity.${config.labelKey}`, { state: outcome });
@@ -149,39 +204,17 @@ export function ChatSubagentBlock({
           </span>
           {isStreaming ? <Shimmer as="span">{activity}</Shimmer> : activity}
         </span>
-        <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
-          {isStreaming ? formatElapsedSeconds(elapsedSeconds) : null}
-          {!isStreaming && stepCount !== undefined
-            ? t("steps", { count: stepCount })
-            : null}
-        </span>
-        {hasBody ? (
-          <HugeiconsIcon
-            aria-hidden
-            className={cn(
-              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
-              isOpen
-                ? "rotate-180"
-                : "rotate-0 opacity-0 group-hover:opacity-100"
-            )}
-            icon={ArrowDown01Icon}
-          />
-        ) : null}
+        <SubagentProgress
+          isStreaming={isStreaming}
+          stepCount={stepCount}
+          toolCallId={toolCallId}
+        />
+        {hasBody ? <SubagentChevron isOpen={isOpen} /> : null}
       </CollapsibleTrigger>
       <CollapsibleContent className={ACTIVITY_CONTENT_CLASSNAME}>
         <div className="border-border/70 mt-2 ml-1.5 flex min-w-0 flex-col gap-2 border-l pl-3">
           {children}
-          {summary ? (
-            <div className="text-muted-foreground flex min-w-0 items-start gap-2 text-sm leading-5">
-              <HugeiconsIcon
-                aria-hidden
-                className="mt-0.75 size-3.5 shrink-0"
-                icon={ArrowMoveDownRightIcon}
-                strokeWidth={1.8}
-              />
-              <span className="min-w-0 text-pretty">{summary}</span>
-            </div>
-          ) : null}
+          {summary ? <SubagentResultLine summary={summary} /> : null}
         </div>
       </CollapsibleContent>
     </Collapsible>
