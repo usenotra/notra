@@ -15,39 +15,23 @@ function escapeRegExp(value: string): string {
 }
 
 const MENTION_PATTERN_CACHE_MAX_ENTRIES = 2000;
-// Characters whose Unicode simple case folding (what the "iu" regex uses)
-// differs from toLowerCase(). Folding them keeps the substring prefilter a
-// superset of what the regex matches.
-const CASE_FOLD_EXCEPTIONS: Readonly<Record<string, string>> = {
-  "\u017F": "s",
-  "\u212A": "k",
-  "\u212B": "\u00E5",
-  "\u00B5": "\u03BC",
-  "\u03C2": "\u03C3",
-  "\u03D0": "\u03B2",
-  "\u03D1": "\u03B8",
-  "\u03D5": "\u03C6",
-  "\u03D6": "\u03C0",
-  "\u03F0": "\u03BA",
-  "\u03F1": "\u03C1",
-  "\u03F5": "\u03B5",
-  "\u0345": "\u03B9",
-  "\u1FBE": "\u03B9",
-  "\u1E9B": "\u1E61",
-};
-const CASE_FOLD_EXCEPTION_REGEX = new RegExp(
-  `[${Object.keys(CASE_FOLD_EXCEPTIONS).join("")}]`,
-  "g"
-);
+const ASCII_ONLY_REGEX = /^[\u0020-\u007E]*$/;
+// Under Unicode simple case folding (the "iu" flags) only U+017F (long s) and
+// U+212A (Kelvin sign) fold to ASCII letters. toLowerCase() already maps the
+// Kelvin sign to "k", so mapping long s makes a substring check an exact
+// prefilter for ASCII phrases.
+const LONG_S_REGEX = /\u017F/g;
 
-function foldCase(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(
-      CASE_FOLD_EXCEPTION_REGEX,
-      (char) => CASE_FOLD_EXCEPTIONS[char] ?? char
-    );
+/** True when the "iu" mention regex for `phrase` could match `foldedText`. */
+function mayContainMention(foldedText: string, phrase: string): boolean {
+  if (!ASCII_ONLY_REGEX.test(phrase)) {
+    // Non-ASCII folding has too many special cases to mirror; let the
+    // regex decide.
+    return true;
+  }
+  return foldedText.includes(phrase.toLowerCase());
 }
+
 const mentionPatterns = new Map<string, RegExp>();
 
 function mentionPattern(phrase: string): RegExp {
@@ -120,11 +104,11 @@ export function geoAnswerMentionSpans(
 
   const occupied = new Array<boolean>(text.length).fill(false);
   const spans: GeoAnswerMentionSpan[] = [];
-  // With hundreds of tracked competitors most terms never occur, so a plain
+  // With hundreds of tracked competitors most terms never occur, so a
   // substring check skips the regex for them.
-  const foldedText = foldCase(text);
+  const foldedText = text.toLowerCase().replace(LONG_S_REGEX, "s");
   const byLength = terms
-    .filter((term) => foldedText.includes(foldCase(term.phrase)))
+    .filter((term) => mayContainMention(foldedText, term.phrase))
     .toSorted((left, right) => right.phrase.length - left.phrase.length);
 
   for (const term of byLength) {

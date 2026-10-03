@@ -467,17 +467,32 @@ export function buildCompetitorRows(
     .map((entry) => entry.row);
 }
 
-function matchesCompetitorQuery(competitor: GeoCompetitor, query: string) {
-  return [competitor.name, competitor.domain ?? "", ...competitor.synonyms]
-    .join(" ")
-    .toLowerCase()
-    .includes(query);
+const COMPETITOR_MATCH_EXACT = 0;
+const COMPETITOR_MATCH_PREFIX = 1;
+const COMPETITOR_MATCH_PARTIAL = 2;
+
+/** Lower is better; null when the competitor does not match at all. */
+function competitorMatchRank(
+  competitor: GeoCompetitor,
+  query: string
+): number | null {
+  const names = [competitor.name, ...competitor.synonyms].map((value) =>
+    value.trim().toLowerCase()
+  );
+  if (names.includes(query)) {
+    return COMPETITOR_MATCH_EXACT;
+  }
+  if (names.some((name) => name.startsWith(query))) {
+    return COMPETITOR_MATCH_PREFIX;
+  }
+  const haystack = [...names, competitor.domain?.toLowerCase() ?? ""].join(" ");
+  return haystack.includes(query) ? COMPETITOR_MATCH_PARTIAL : null;
 }
 
 /**
  * What a competitor picker renders: the competitors matching the search
- * query, capped so a project with hundreds of competitors does not render
- * hundreds of cards.
+ * query, exact name matches first, then prefix matches, capped so a project
+ * with hundreds of competitors does not render hundreds of cards.
  */
 export function visibleCompetitorChoices(
   competitors: readonly GeoCompetitor[],
@@ -487,10 +502,14 @@ export function visibleCompetitorChoices(
   const normalizedQuery = query.trim().toLowerCase();
   const matches =
     normalizedQuery.length > 0
-      ? competitors.filter((competitor) =>
-          matchesCompetitorQuery(competitor, normalizedQuery)
-        )
-      : competitors;
+      ? competitors
+          .flatMap((competitor) => {
+            const rank = competitorMatchRank(competitor, normalizedQuery);
+            return rank === null ? [] : [{ competitor, rank }];
+          })
+          .toSorted((left, right) => left.rank - right.rank)
+          .map((entry) => entry.competitor)
+      : [...competitors];
   return {
     visible: matches.slice(0, maxShown),
     hidden: Math.max(0, matches.length - maxShown),

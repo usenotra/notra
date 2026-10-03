@@ -61,9 +61,11 @@ export async function selectGeoContextCompetitors(
     return { competitors: rows.map(toContext), total: rows.length };
   }
 
-  const keysByRow = rows.map((row) =>
-    [row.name, ...(row.synonyms ?? [])].map(brandKey)
-  );
+  // An alias that normalizes to the name (e.g. "ACME" for "Acme") must not
+  // count the same mentions twice.
+  const keysByRow = rows.map((row) => [
+    ...new Set([row.name, ...(row.synonyms ?? [])].map(brandKey)),
+  ]);
   const mentionRows =
     rows.length > limit
       ? await queryGeoCheckBrandKeyMentions(

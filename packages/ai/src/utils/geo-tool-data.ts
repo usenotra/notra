@@ -28,7 +28,17 @@ import {
   toGeoCheckWindow,
 } from "@notra/db/utils/geo-checks";
 import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
-import { and, asc, desc, eq, gte, ilike, inArray, isNull } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  sql,
+} from "drizzle-orm";
 
 const LIKE_SPECIAL_CHARS_REGEX = /[%_\\]/g;
 
@@ -250,6 +260,11 @@ function searchTrackedCompetitors(
   projectId: string,
   search: string
 ) {
+  const normalized = search.toLowerCase();
+  const pattern = escapeLikePattern(normalized);
+  const lowerName = sql`lower(${geoCompetitors.name})`;
+  // Exact names first, then prefixes, so the limit never hides the one
+  // competitor the agent asked for by its full name.
   return db
     .select({
       id: geoCompetitors.id,
@@ -262,10 +277,13 @@ function searchTrackedCompetitors(
       and(
         eq(geoCompetitors.projectId, projectId),
         eq(geoCompetitors.organizationId, organizationId),
-        ilike(geoCompetitors.name, `%${escapeLikePattern(search)}%`)
+        ilike(geoCompetitors.name, `%${pattern}%`)
       )
     )
-    .orderBy(asc(geoCompetitors.name))
+    .orderBy(
+      sql`case when ${lowerName} = ${normalized} then 0 when ${lowerName} like ${`${pattern}%`} then 1 else 2 end`,
+      asc(geoCompetitors.name)
+    )
     .limit(GEO_CONTEXT_COMPETITOR_LIMIT);
 }
 

@@ -29,13 +29,21 @@ describe("geoAnswerMentionSpans", () => {
 
   test("matches case-folded spellings the prefilter could miss", () => {
     expect(
-      geoAnswerMentionSpans("Try \u017Fhop or \u03A3IGMA today", [
-        { phrase: "Shop", kind: "competitor" },
-        { phrase: "\u03C3igma", kind: "competitor" },
-      ])
+      geoAnswerMentionSpans(
+        "Try \u017Fhop or \u0412\u041E\u0414\u041A\u0410 today",
+        [
+          { phrase: "Shop", kind: "competitor" },
+          { phrase: "\u1C80\u043E\u0434\u043A\u0430", kind: "competitor" },
+        ]
+      )
     ).toEqual([
       { start: 4, end: 8, kind: "competitor", phrase: "Shop" },
-      { start: 12, end: 17, kind: "competitor", phrase: "\u03C3igma" },
+      {
+        start: 12,
+        end: 17,
+        kind: "competitor",
+        phrase: "\u1C80\u043E\u0434\u043A\u0430",
+      },
     ]);
   });
 });
