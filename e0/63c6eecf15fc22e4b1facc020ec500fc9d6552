@@ -1,0 +1,85 @@
+packages/email/src/constants/theme.ts
+  s_d0ef1cf38b3100::t_dde1e7b8003008 22-29
+  s_d0ef1cf38b3100::t_5c99891698d8cf 30-32
+packages/email/src/components/button-fallback-link.tsx
+  s_d0ef1cf38b3100::t_dde1e7b8003008 1-15,17-22
+  s_d0ef1cf38b3100::t_a75f1b729cb39b 16
+apps/dashboard/src/lib/email/send.ts
+  s_d0ef1cf38b3100::t_97ba51ef6a069f 36,57,62,83,88,114,140,173-174,179,201
+  s_d0ef1cf38b3100::t_71d34bd62a7588 49,75
+  s_d0ef1cf38b3100::t_f22d41c91de17a 44,70,132,192,224-225
+packages/email/src/components/cta-button.tsx
+  s_d0ef1cf38b3100::t_dde1e7b8003008 17-18
+packages/email/src/utils/brew.ts
+  s_d0ef1cf38b3100::t_cf61705957d727 231,234
+  s_d0ef1cf38b3100::t_759b19d6ba82c6 218-221,232-233,235-238
+packages/email/src/emails/contact.tsx
+  s_d0ef1cf38b3100::t_f8f0fb71eacfd0 17,28
+packages/email/src/types/brew.ts
+  s_d0ef1cf38b3100::t_8aabaa374b4540 28
+packages/email/src/emails/schedule-content-created.tsx
+  s_d0ef1cf38b3100::t_de0a9092e016c3 54-58,82-83,88-90
+  s_d0ef1cf38b3100::t_ccb28f3ccacd75 15,96,104
+  s_d0ef1cf38b3100::t_cdac0d3bfc8f7a 14,107-109,112-113,115-118
+  s_d0ef1cf38b3100::t_2e928de1aa3ac5 19
+  s_d0ef1cf38b3100::t_71d34bd62a7588 18,84-87,111
+packages/email/src/emails/daily-summary.tsx
+  s_d0ef1cf38b3100::t_71d34bd62a7588 19
+  s_d0ef1cf38b3100::t_cdac0d3bfc8f7a 216-219
+  s_d0ef1cf38b3100::t_5c99891698d8cf 35,39,43,156,197,254,318,332
+packages/email/src/constants/brew.ts
+  s_d0ef1cf38b3100::t_759b19d6ba82c6 23-24
+packages/email/src/components/scheduled-content-status.tsx
+  s_d0ef1cf38b3100::t_ccb28f3ccacd75 16,63
+  s_d0ef1cf38b3100::t_cdac0d3bfc8f7a 15,66,68-71
+  s_d0ef1cf38b3100::t_71d34bd62a7588 19
+  s_d0ef1cf38b3100::t_f8f0fb71eacfd0 14,35
+packages/email/src/emails/ai-credits-depleted.tsx
+  s_d0ef1cf38b3100::t_cdac0d3bfc8f7a 13,58
+  s_d0ef1cf38b3100::t_de0a9092e016c3 29-30
+  s_d0ef1cf38b3100::t_ccb28f3ccacd75 14,55
+packages/email/src/utils/preview.ts
+  s_d0ef1cf38b3100::t_f8f0fb71eacfd0 1-10
+apps/dashboard/src/lib/workflows/shared/content-email-digest.ts
+  s_d0ef1cf38b3100::t_9091879beb2b76 174-177,192,226,258,290
+packages/email/src/emails/workflow-paused.tsx
+  s_d0ef1cf38b3100::t_ccb28f3ccacd75 14,74-76
+  s_d0ef1cf38b3100::t_cdac0d3bfc8f7a 13,79,81-84
+  s_d0ef1cf38b3100::t_71d34bd62a7588 17
+  s_d0ef1cf38b3100::t_f8f0fb71eacfd0 23,48
+  s_d0ef1cf38b3100::t_de0a9092e016c3 47,49
+apps/web/src/content/legal/privacy.mdx
+  s_d0ef1cf38b3100::t_c1fd9dc2eed0a5 37-38,51-52,61,76-77,90
+packages/email/src/components/notification-settings-note.tsx
+  s_d0ef1cf38b3100::t_dde1e7b8003008 1-20,25-30
+  s_d0ef1cf38b3100::t_71d34bd62a7588 21-24
+apps/dashboard/src/types/email/send.ts
+  s_d0ef1cf38b3100::t_97ba51ef6a069f 5-12,25,34,43,58,67
+packages/email/src/emails/feedback.tsx
+  s_d0ef1cf38b3100::t_f8f0fb71eacfd0 18,35
+packages/email/src/emails/welcome.tsx
+  s_d0ef1cf38b3100::t_263b6d6826b42c 1-11,14-18,24-71
+packages/email/scripts/brew-test-send.tsx
+  s_d0ef1cf38b3100::t_c2cdfcdd376eaf 34,38,42,46,50
+packages/email/scripts/brew-setup.ts
+  s_d0ef1cf38b3100::t_30850d610130ff 233,241,243-244,246,248,268-276
+  s_d0ef1cf38b3100::t_a79fec838e2eb3 328-335,340-341,343,347-415
+  s_d0ef1cf38b3100::t_8aabaa374b4540 532,554-555,559-560,564
+  s_d0ef1cf38b3100::t_d2ae72efc7cde9 2-4,21,25-30,40,55-59,78,82,89,98,105,142-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e063c6eecf15fc22e4b1facc020ec500fc9d6552",
+  "prompts": {},
+  "sessions": {
+    "s_d0ef1cf38b3100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a72b35a-e666-4a98-a981-1ef6b945f21c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
