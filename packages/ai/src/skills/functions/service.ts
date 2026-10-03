@@ -3,7 +3,6 @@ import { skills } from "@notra/db/schema";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-import { getConversationalBlogPostPrompt } from "../../prompts/blog_post/conversational";
 import { DEFAULT_SKILL_CATALOG_LIMIT, UNSLOP_DESCRIPTION } from "../constants";
 import { ensureUnslopSkill } from "../seed";
 import type {
@@ -13,13 +12,8 @@ import type {
   SkillServiceContext,
 } from "../types";
 import { UNSLOP_CONTENT } from "../unslop-content";
+import { currentSkillContent } from "./current-content";
 import { normalizeSkillSummary } from "./guidance";
-
-/** System skills whose seeded copies follow the code instead of the seed-time text. */
-const REFRESHED_SYSTEM_SKILLS: Readonly<Record<string, () => string>> = {
-  "blog-post": getConversationalBlogPostPrompt,
-  unslop: () => UNSLOP_CONTENT,
-};
 
 const promptableSkillWhere = (organizationId: string) =>
   and(
@@ -94,15 +88,10 @@ export async function loadSkillByName(
       : null;
   }
 
-  // Serve the current text for an untouched seeded copy; keep organization edits.
-  const isUntouchedSeed =
-    row.isSystem && row.updatedAt.getTime() === row.createdAt.getTime();
-  const current = isUntouchedSeed ? REFRESHED_SYSTEM_SKILLS[name] : undefined;
-
   return {
     name: row.name,
     description: row.description,
-    content: current ? current() : row.content.trim(),
+    content: currentSkillContent(row).trim(),
   };
 }
 

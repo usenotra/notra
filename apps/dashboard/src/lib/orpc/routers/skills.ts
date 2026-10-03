@@ -1,3 +1,4 @@
+import { currentSkillContent } from "@notra/ai/skills/functions/current-content";
 import { ensureUnslopSkill } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { skills } from "@notra/db/schema";
@@ -104,7 +105,7 @@ export const skillsRouter = {
         throw notFound("Skill not found");
       }
 
-      return row;
+      return { ...row, content: currentSkillContent(row) };
     }),
 
   create: authorizedProcedure
