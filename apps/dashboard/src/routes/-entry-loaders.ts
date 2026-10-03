@@ -18,6 +18,7 @@ import {
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { isSessionBanned } from "@/lib/auth/banned";
 import { readPendingMfaFlow } from "@/lib/auth/mfa-cookies";
+import { isSameOriginPath } from "@/lib/auth/return-to";
 import { demoThemeParser, serializeDemoTheme } from "@/lib/demo/theme-param";
 import { getTranslations } from "@/lib/i18n/server";
 import { resolveIntegrationConnectDeeplink } from "@/lib/integrations/deeplink-resolution";
@@ -209,12 +210,7 @@ export const loadAuthCallback = createServerFn({ method: "GET" })
       } catch {
         returnTo = searchParams.returnTo;
       }
-      if (
-        typeof returnTo === "string" &&
-        returnTo.startsWith("/") &&
-        !returnTo.startsWith("//") &&
-        !returnTo.includes("\\")
-      ) {
+      if (typeof returnTo === "string" && isSameOriginPath(returnTo)) {
         trackRouted(CALLBACK_DESTINATIONS.RETURN_TO);
         throw redirect({ href: returnTo });
       }

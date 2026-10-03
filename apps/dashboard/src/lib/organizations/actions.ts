@@ -301,7 +301,6 @@ const mapInvitation = (invitation: Invitation): InvitationSummary => ({
   status: invitation.state,
   expiresAt: new Date(invitation.expiresAt),
   createdAt: new Date(invitation.createdAt),
-  acceptInvitationUrl: invitation.acceptInvitationUrl,
 });
 
 const requireWorkOSOrganizationId = Effect.fn(
@@ -952,6 +951,9 @@ async function removeMemberActionImpl(
         session,
         input.organizationId
       );
+      // Before the lookup: a non-member must not learn from the error which
+      // emails belong to the organization.
+      yield* requireMembership(session, organizationId);
 
       const isEmail = input.memberIdOrEmail.includes("@");
 

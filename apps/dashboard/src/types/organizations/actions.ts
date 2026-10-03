@@ -24,7 +24,6 @@ export interface InvitationSummary {
   status: "pending" | "accepted" | "expired" | "revoked";
   expiresAt: Date;
   createdAt: Date;
-  acceptInvitationUrl: string;
 }
 
 export interface MemberWithUser extends MemberRow {

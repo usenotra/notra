@@ -1402,7 +1402,17 @@ export const integrationsRouter = {
           });
         }
 
-        return updated;
+        // Not the row itself: it carries the encrypted access token and
+        // webhook secret, which no client needs.
+        return (
+          updated && {
+            id: updated.id,
+            displayName: updated.displayName,
+            enabled: updated.enabled,
+            linearTeamId: updated.linearTeamId,
+            linearTeamName: updated.linearTeamName,
+          }
+        );
       }),
     delete: baseProcedure
       .input(integrationInputSchema)
