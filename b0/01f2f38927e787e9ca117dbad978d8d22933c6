@@ -1,0 +1,69 @@
+apps/dashboard/src/components/content/editor/nodes/content-image-node.tsx
+  s_69822f2ec3c761::t_7f9993219f5cfd 126-129
+apps/dashboard/src/constants/content-image.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 7-16
+apps/dashboard/tests/convert-heic-route.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-96
+apps/dashboard/src/lib/hooks/use-chat-composer-attachments.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 21,35,150-154,158-162,166,191-192,196-198,330-335
+apps/dashboard/src/utils/prepare-chat-image.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-44
+apps/dashboard/src/components/content/editor/nodes/content-video-node.tsx
+  s_69822f2ec3c761::t_7f9993219f5cfd 116-119
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_69822f2ec3c761::t_7f9993219f5cfd 86,117,1441-1445,1453-1457,1461,1486-1487,1491-1493,2678
+apps/dashboard/src/types/content/heic-image.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-30
+apps/dashboard/src/utils/content-drop-caret.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-19
+apps/dashboard/src/utils/content-drop-caret.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-15
+apps/dashboard/src/utils/content-place-block.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-83
+apps/dashboard/src/utils/heic-coded-pixels.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-61
+apps/dashboard/src/utils/prepare-chat-image.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-27
+apps/dashboard/src/utils/read-bounded-request-body.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-35
+apps/dashboard/package.json
+  s_69822f2ec3c761::t_7f9993219f5cfd 93
+apps/dashboard/src/components/chat-input.tsx
+  s_69822f2ec3c761::t_7f9993219f5cfd 184
+apps/dashboard/src/utils/fixtures/checker-1024.heic.base64
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-29
+apps/dashboard/src/components/content/editor/plugins/image-upload-plugin.tsx
+  s_69822f2ec3c761::t_7f9993219f5cfd 6,32-37,42,66,100,103,160-161,175,180-184,186,191,199-205,213-226,230-277,280-281,283-284,289,296,308-310,313,317,401-406,412
+apps/dashboard/src/types/libheif-js.d.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-8
+apps/dashboard/src/types/content/media.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 7-15
+apps/dashboard/src/utils/compress-content-image-heic.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-172
+apps/dashboard/src/app/api/uploads/convert-heic/route.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-68
+apps/dashboard/src/utils/compress-content-image.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 8,11,40,45-49
+apps/dashboard/src/utils/content-place-block.test.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 1-200
+bun.lock
+  ai_agent 198,4385
+apps/dashboard/src/utils/compress-content-image.ts
+  s_69822f2ec3c761::t_7f9993219f5cfd 2,10,13,18,29-38,54-56,79-131,140-144,149-150,157,165,172,175,178,183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b001f2f38927e787e9ca117dbad978d8d22933c6",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
