@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SITE_URL } from "@/utils/urls";
+import { DOCS_URL, SITE_URL } from "@/utils/urls";
 
 const ROBOTS_TXT = `User-agent: *
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
 
 Sitemap: ${SITE_URL}/sitemap.xml
+Sitemap: ${DOCS_URL}/sitemap.xml
 schemamap: ${SITE_URL}/schema-map.xml
 `;
 

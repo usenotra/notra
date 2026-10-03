@@ -280,7 +280,7 @@ function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
                 <Button
                   onClick={() =>
                     window.open(
-                      "https://docs.usenotra.com/api/getting-started",
+                      "https://www.usenotra.com/docs/api/getting-started",
                       "_blank",
                       "noopener,noreferrer"
                     )
