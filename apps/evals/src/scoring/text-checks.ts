@@ -18,7 +18,7 @@ export const DATE_REGEX =
 const SOURCE_NOUN_REGEX =
   /\b(?:commits?|pull requests?|PRs?|release notes|change ?logs?|source data|sources?|Quell(?:e|en|daten))\b|Änderungsinformationen/i;
 const SOURCE_CLAIM_REGEX =
-  /\b(?:mentions?|mentioned|specif(?:y|ies|ied)|states?|stated|describes?|described|lists?|listed|says?|genannt|erwähnt|angegeben|beschrieben|according to|based on|laut|gemäß)\b/i;
+  /\b(?:mentions?|mentioned|specif(?:y|ies|ied)|states?|stated|describes?|described|lists?|listed|says?|(?<!release )notes|noted|note that|explains?|explained|indicates?|indicated|confirms?|confirmed|genannt|erwähnt|angegeben|beschrieben|according to|based on|laut|gemäß)\b/i;
 const SENTENCE_SPLIT_REGEX = /(?<=[.!?])\s+|\n+/;
 
 // Capitalized month names only, so "Changes you may notice" is not a date.
