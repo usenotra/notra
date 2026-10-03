@@ -6,6 +6,7 @@ import { FeedbackEmail } from "@notra/email/emails/feedback";
 import { ScheduledContentCreatedEmail } from "@notra/email/emails/schedule-content-created";
 import { ScheduledContentFailedEmail } from "@notra/email/emails/schedule-content-failed";
 import { ScheduledContentSkippedEmail } from "@notra/email/emails/schedule-content-skipped";
+import { ScheduledPublicationFailedEmail } from "@notra/email/emails/scheduled-publication-failed";
 import { WelcomeEmail } from "@notra/email/emails/welcome";
 import { WorkflowPausedEmail } from "@notra/email/emails/workflow-paused";
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
@@ -19,6 +20,7 @@ import type {
   SendScheduledContentCreatedEmailProps,
   SendScheduledContentFailedEmailProps,
   SendScheduledContentSkippedEmailProps,
+  SendScheduledPublicationFailedEmailProps,
   SendWorkflowPausedEmailProps,
 } from "@/types/email/send";
 import { sendEmailWithRetry } from "@/utils/email/send-with-retry";
@@ -78,6 +80,29 @@ export async function sendScheduledContentFailedEmail(
       tags: [{ name: "category", value: "schedule-content-failed" }],
     },
     `notra:schedule-content-failed:${recipientEmail}:${scheduleName}:${Date.now()}`
+  );
+}
+
+export async function sendScheduledPublicationFailedEmail(
+  resend: Resend,
+  {
+    recipientEmails,
+    failureKey,
+    ...props
+  }: SendScheduledPublicationFailedEmailProps
+) {
+  return sendEmailWithRetry(
+    resend,
+    {
+      from: EMAIL_CONFIG.from,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to: recipientEmails,
+      subject: `"${props.postTitle}" could not be published`,
+      react: ScheduledPublicationFailedEmail(props),
+      tags: [{ name: "category", value: "scheduled-publication-failed" }],
+    },
+    // One email per failure, however often the step retries.
+    `notra:scheduled-publication-failed:${failureKey}`
   );
 }
 

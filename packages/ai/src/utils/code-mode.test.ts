@@ -24,6 +24,7 @@ process.env.UPSTASH_BOX_API_KEY ??= "test-box-key";
 // has to be added here or to STANDALONE_CODE_MODE_TOOL_NAMES.
 const DIRECT_TOOL_NAMES = [
   "addBrandReference",
+  "cancelPostSchedule",
   "code-researcher",
   "createBlogPost",
   "createChangelog",
@@ -38,6 +39,7 @@ const DIRECT_TOOL_NAMES = [
   "getGeoOverview",
   "getGeoTimeseries",
   "listBrandIdentities",
+  "schedulePost",
   "updatePost",
 ];
 

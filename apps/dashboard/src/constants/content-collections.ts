@@ -7,3 +7,8 @@ export const COLLECTION_GRID_SKELETON_KEYS = Array.from(
 );
 export const COLLECTION_TYPE_STACK_LIMIT = 4;
 export const CONTENT_COLLECTION_VIEWS = ["list", "grid"] as const;
+/** Views of the content page; the calendar sits beside the collection views. */
+export const CONTENT_LIST_VIEWS = [
+  ...CONTENT_COLLECTION_VIEWS,
+  "calendar",
+] as const;

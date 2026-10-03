@@ -142,6 +142,7 @@ export async function POST(
       markdown,
       contentType,
       status,
+      publishedAt: status === "published" ? new Date() : null,
       sourceMetadata: { chatId, ...(toolCallId ? { toolCallId } : {}) },
     });
 

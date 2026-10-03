@@ -1,29 +1,27 @@
 "use client";
 
-import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@notra/ui/components/ui/button";
 import { useTranslations } from "next-intl";
-import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
-import { CollectionsView } from "@/components/content/collections-view";
+import { ContentCalendarSkeleton } from "@/components/content/calendar/content-calendar-skeleton";
+import { ContentCollectionsSection } from "@/components/content/content-collections-section";
+import { ContentViewToggle } from "@/components/content/content-view-toggle";
 import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
-import { EmptyState } from "@/components/empty-state";
-import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
-import {
-  EMPTY_STATE_TABLE_COLUMNS,
-  EMPTY_STATE_TABLE_ROWS,
-} from "@/constants/empty-state";
-import { useCollections } from "@/lib/hooks/use-collections";
-import { cn } from "@/lib/utils";
+import { CONTENT_LIST_VIEWS } from "@/constants/content-collections";
 import type { ContentListPageClientProps } from "@/types/content/collection";
-import type { TablePaginationState } from "@/types/table";
 
-import { CollectionsPageSkeleton } from "./skeleton";
+// Days, "today" and times depend on the browser's time zone, so the
+// calendar renders on the client only.
+const ContentCalendarView = dynamic(
+  () =>
+    import("@/components/content/calendar/content-calendar-view").then(
+      (module) => module.ContentCalendarView
+    ),
+  { ssr: false, loading: () => <ContentCalendarSkeleton /> }
+);
 
 export default function PageClient({
   organizationSlug,
@@ -31,7 +29,6 @@ export default function PageClient({
 }: ContentListPageClientProps) {
   const t = useTranslations("content.list");
   const tCommon2 = useTranslations("common");
-  const tCommon = useTranslations("common.actions");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -40,36 +37,18 @@ export default function PageClient({
       : orgFromList;
   const organizationId = organization?.id ?? "";
 
-  const [rawPage, setPage] = useQueryState(
-    "page",
-    parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
-  );
-  const page = Math.max(1, rawPage);
   const [view, setView] = useQueryState(
     "view",
-    parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")
+    parseAsStringLiteral(CONTENT_LIST_VIEWS).withDefault("list")
   );
-
-  const { data, isPending, isError, isPlaceholderData, refetch } =
-    useCollections(organizationId, page, initialProjectId);
-
-  const collections = useMemo(
-    () => data?.collections ?? [],
-    [data?.collections]
+  const viewToggle = (
+    <ContentViewToggle
+      onViewChange={(next) => {
+        void setView(next);
+      }}
+      view={view}
+    />
   );
-
-  const pageCount = data?.pagination.totalPages ?? 1;
-  const pagination: TablePaginationState = {
-    page,
-    pageCount,
-    pageSize: data?.pagination.pageSize ?? collections.length,
-    totalItems: data?.pagination.totalCount ?? collections.length,
-    pageRowCount: collections.length,
-    setPage: (next) => setPage(Math.min(Math.max(1, next), pageCount)),
-  };
-
-  const isEmpty =
-    !(isPending || isError) && collections.length === 0 && page === 1;
 
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -90,89 +69,21 @@ export default function PageClient({
           />
         </header>
 
-        <div className="space-y-3">
-          <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-medium">{t("allContent")}</h2>
-            <div
-              aria-label={t("viewToggle")}
-              className="bg-muted inline-flex items-center rounded-lg p-0.5"
-              role="group"
-            >
-              {CONTENT_COLLECTION_VIEWS.map((option) => {
-                const selected = view === option;
-
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={cn(
-                      "focus-visible:ring-ring/50 duration-fast inline-flex h-7 items-center gap-1 rounded-md px-2 text-[0.8rem] font-medium transition-colors ease-out focus-visible:ring-2 focus-visible:outline-none",
-                      selected
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    key={option}
-                    onClick={() => {
-                      void setView(option);
-                    }}
-                    type="button"
-                  >
-                    <HugeiconsIcon
-                      aria-hidden="true"
-                      className="size-3.5"
-                      icon={option === "list" ? ListViewIcon : GridViewIcon}
-                    />
-                    {option === "list"
-                      ? tCommon2("labels.list")
-                      : t("viewGrid")}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {isPending ? <CollectionsPageSkeleton view={view} /> : null}
-
-          {isError ? (
-            <EmptyState
-              action={
-                <Button
-                  onClick={() => {
-                    void refetch();
-                  }}
-                  variant="outline"
-                >
-                  {tCommon("tryAgain")}
-                </Button>
-              }
-              description={t("loadFailedDescription")}
-              title={t("loadFailedTitle")}
-            />
-          ) : null}
-
-          {isEmpty ? (
-            <EmptyState
-              description={t("emptyDescription")}
-              preview={
-                <EmptyStateTablePreview
-                  columns={EMPTY_STATE_TABLE_COLUMNS.content}
-                  rows={EMPTY_STATE_TABLE_ROWS}
-                />
-              }
-              title={t("emptyTitle")}
-            />
-          ) : null}
-
-          {!(isPending || isEmpty || isError) ? (
-            <CollectionsView
-              collections={collections}
-              loading={isPlaceholderData}
-              organizationId={organizationId}
-              organizationSlug={organizationSlug}
-              pagination={pagination}
-              view={view}
-            />
-          ) : null}
-        </div>
+        {view === "calendar" ? (
+          <ContentCalendarView
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+            toolbarEnd={viewToggle}
+          />
+        ) : (
+          <ContentCollectionsSection
+            initialProjectId={initialProjectId}
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+            toolbarEnd={viewToggle}
+            view={view}
+          />
+        )}
       </div>
     </PageContainer>
   );

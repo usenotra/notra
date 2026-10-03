@@ -216,6 +216,15 @@
                       "POST /v1/posts/generate",
                       "GET /v1/posts/generate/{jobId}"
                     ]
+                  },
+                  {
+                    "group": "Scheduling",
+                    "expanded": true,
+                    "pages": [
+                      "GET /v1/posts/{postId}/schedule",
+                      "POST /v1/posts/{postId}/schedule",
+                      "DELETE /v1/posts/{postId}/schedule"
+                    ]
                   }
                 ]
               },

@@ -1042,6 +1042,7 @@
       "requestRejected": "Die Plattform hat diese Anfrage abgelehnt. Prüfe das Konto und versuche es erneut.",
       "duplicateContent": "Die Plattform hat diesen Beitrag abgelehnt, weil er einen früheren Beitrag dupliziert.",
       "notAuthorizedToPost": "Dieses Konto darf gerade nicht posten.",
+      "deliveryUnknown": "Der Post ist eventuell schon raus, die Plattform hat ihn aber nicht bestätigt. Prüfe den Account, bevor du es noch einmal versuchst.",
       "serviceUnavailable": "Der Social-Media-Dienst ist vorübergehend nicht verfügbar. Bitte versuch es in ein paar Minuten nochmal."
     },
     "brand": {
@@ -1093,6 +1094,18 @@
         "no-company-domain": "Wir konnten deine Firmenwebsite nicht ermitteln. Füge zuerst eine Website-URL zu deiner Markenidentität hinzu.",
         "website-unreachable": "Wir konnten deine Firmenwebsite nicht erreichen. Prüfe die Website-URL in deiner Markenidentität."
       }
+    },
+    "contentCalendar": {
+      "postNotFound": "Beitrag nicht gefunden",
+      "invalidTime": "Wähle einen Zeitpunkt ab jetzt bis höchstens ein Jahr im Voraus.",
+      "destinationNotSupported": "Dieser Inhaltstyp kann dort nicht veröffentlicht werden.",
+      "repositoryNotFound": "Das ausgewählte GitHub-Repository ist nicht mehr verbunden.",
+      "accountNotFound": "Der ausgewählte Account ist nicht mehr verbunden.",
+      "publishingInProgress": "Dieser Beitrag wird gerade veröffentlicht. Versuch es in einer Minute erneut.",
+      "unconfirmedSocialPost": "Ein Social-Post dieser Planung ist eventuell schon live. Prüfe den Account und versuche ihn erneut oder verwirf ihn, bevor du neu planst.",
+      "socialAlreadyPosted": "Dieser Post ist bei dem Account schon raus. Lege einen neuen Post an, um noch einmal zu posten.",
+      "conflict": "Die Planung hat sich zwischenzeitlich geändert. Lade neu und versuch es erneut.",
+      "nothingScheduled": "Für diesen Beitrag ist nichts geplant."
     }
   },
   "onboarding": {
@@ -6136,7 +6149,8 @@
       "loadFailedTitle": "Inhalte konnten nicht geladen werden",
       "loadFailedDescription": "Versuch, deine Inhalte neu zu laden.",
       "emptyTitle": "Noch keine Inhalte",
-      "emptyDescription": "Wähle Neuer Beitrag, um von Grund auf zu schreiben, oder Inhalte generieren, um deine Quellen zu nutzen."
+      "emptyDescription": "Wähle Neuer Beitrag, um von Grund auf zu schreiben, oder Inhalte generieren, um deine Quellen zu nutzen.",
+      "viewCalendar": "Kalender"
     },
     "toasts": {
       "contentSaved": "Inhalt gespeichert",
@@ -6170,6 +6184,108 @@
         "paperCopied": "Für Paper kopiert. Füge es in deine Paper-Datei ein.",
         "paperCopyFailed": "Kopieren für Paper fehlgeschlagen",
         "downloadFailed": "Bild konnte nicht heruntergeladen werden"
+      }
+    },
+    "calendar": {
+      "previous": "Zurück",
+      "next": "Weiter",
+      "today": "Heute",
+      "more": "+{count} weitere",
+      "loadFailedTitle": "Kalender konnte nicht geladen werden",
+      "loadFailedDescription": "Versuch, den Kalender erneut zu laden.",
+      "chip": {
+        "automation": "{name} läuft um {time}",
+        "entry": "{title}, {state} um {time}"
+      },
+      "states": {
+        "published": "veröffentlicht",
+        "scheduled": "geplant",
+        "publishing": "wird veröffentlicht",
+        "failed": "fehlgeschlagen",
+        "partial": "teilweise fehlgeschlagen"
+      },
+      "toasts": {
+        "loadFailed": "Content-Kalender konnte nicht geladen werden",
+        "scheduleFailed": "Beitrag konnte nicht geplant werden",
+        "unscheduled": "Planung entfernt",
+        "unscheduledPartially": "Planung entfernt. Ein Ziel wird gerade veröffentlicht und läuft noch zu Ende.",
+        "unscheduleFailed": "Planung konnte nicht entfernt werden",
+        "publishingNow": "Wird jetzt veröffentlicht",
+        "publishNowFailed": "Beitrag konnte nicht veröffentlicht werden",
+        "retrying": "Neuer Versuch läuft",
+        "retryFailed": "Erneuter Versuch konnte nicht gestartet werden",
+        "moveIntoPast": "Dieser Zeitpunkt ist schon vorbei. Wähl einen späteren Tag.",
+        "moved": "„{title}“ verschoben auf {date}"
+      },
+      "schedule": {
+        "trigger": "Planen",
+        "publishingTrigger": "Wird veröffentlicht…",
+        "failedTrigger": "Veröffentlichung fehlgeschlagen",
+        "scheduledTrigger": "Geplant · {date}",
+        "saveFirst": "Speichere zuerst deine Änderungen. Geplante Beiträge gehen so raus, wie sie gespeichert sind.",
+        "title": "Beitrag planen",
+        "editTitle": "Planung bearbeiten",
+        "description": "Wähle, wann „{title}“ live geht. Notra veröffentlicht den Beitrag dann automatisch.",
+        "when": "Wann",
+        "date": "Datum",
+        "pickDate": "Datum wählen",
+        "time": "Uhrzeit",
+        "inPast": "Dieser Zeitpunkt ist schon vorbei.",
+        "timeZoneHint": "Zeiten in {timeZone}.",
+        "where": "Wo",
+        "whereHint": "Der Beitrag wird immer in Notra als veröffentlicht markiert. Wähle, wo er außerdem erscheinen soll.",
+        "github": {
+          "label": "Auf GitHub veröffentlichen",
+          "hint": "Öffnet jetzt schon einen Pull Request, damit Zeit für ein Review bleibt.",
+          "merge": "Zum geplanten Zeitpunkt mergen",
+          "mergeHint": "Pflicht-Checks und Branch-Schutz können den Merge verzögern; Notra versucht es etwa eine Stunde lang weiter.",
+          "openOnlyHint": "Zum geplanten Zeitpunkt wird nur der Pull Request aktualisiert. Mergen musst du selbst."
+        },
+        "social": {
+          "label": "Auf {platform} posten",
+          "hint": "Postet den gespeicherten Text mit dem gewählten Account.",
+          "noAccounts": "Noch kein Account verbunden. <link>Verbinde einen</link>, um automatisch zu posten.",
+          "account": "Account",
+          "accountMissing": "Der Account, über den dieser Beitrag geplant wurde, ist nicht mehr verbunden. Wähle einen anderen Account oder schalte dies aus.",
+          "loadFailed": "Deine verbundenen Accounts konnten nicht geladen werden. Versuche es später erneut oder schalte dies aus."
+        },
+        "notraAlways": "Geplante Beiträge werden auch in Notra veröffentlicht, selbst wenn ein anderes Ziel fehlschlägt.",
+        "currentSlot": "Aktuell geplant für {date}.",
+        "unschedule": "Planung aufheben",
+        "dismiss": "Entfernen",
+        "publishNow": "Jetzt veröffentlichen",
+        "saveSchedule": "Planung speichern",
+        "schedule": "Planen",
+        "scheduling": "Wird geplant…",
+        "scheduledToast": "Geplant für {date}",
+        "destinations": {
+          "notra": "Notra",
+          "github": "GitHub",
+          "social": "Social"
+        },
+        "statuses": {
+          "scheduled": "Geplant",
+          "publishing": "Wird veröffentlicht",
+          "published": "Veröffentlicht",
+          "failed": "Fehlgeschlagen",
+          "canceled": "Abgebrochen"
+        },
+        "viewResult": "Ansehen",
+        "outcomeUnknown": "Die Veröffentlichung wurde unterbrochen, nachdem der Post abgeschickt war. Prüf den Account, bevor du es erneut versuchst, damit nichts doppelt gepostet wird.",
+        "failedFallback": "Veröffentlichung fehlgeschlagen.",
+        "retry": "Erneut versuchen",
+        "retryAnyway": "Trotzdem erneut versuchen",
+        "retryPending": "Letzter Versuch fehlgeschlagen ({error}). Notra versucht es automatisch erneut.",
+        "statusTitle": "Veröffentlichungsstatus",
+        "statusDescription": "Wo „{title}“ erschienen ist. Versuch ein fehlgeschlagenes Ziel erneut oder entferne die Planung, um neu zu planen."
+      },
+      "preview": {
+        "when": "{date} · {state}",
+        "dragHint": "Auf einen anderen Tag ziehen, um zu verschieben."
+      },
+      "day": {
+        "open": "Alles am {date} anzeigen",
+        "empty": "Für diesen Tag ist nichts geplant."
       }
     }
   },
@@ -6365,6 +6481,9 @@
         "createInvestorUpdate": "{state, select, running {Entwerfe Investor-Update} done {Investor-Update entworfen} approve {Genehmigen: Investor-Update} other {Fehlgeschlagen: Investor-Update}}",
         "createSchedule": "{state, select, running {Erstelle Zeitplan} done {Zeitplan erstellt} approve {Genehmigen: Zeitplan} other {Fehlgeschlagen: Zeitplan}}",
         "listSchedules": "{state, select, running {Lade Zeitpläne} done {Zeitpläne geladen} approve {Genehmigen: Zeitpläne} other {Fehlgeschlagen: Zeitpläne}}",
+        "schedulePost": "{state, select, running {Beitrag wird geplant} done {Beitrag geplant} approve {Planung bestätigen} other {Planung fehlgeschlagen}}",
+        "cancelPostSchedule": "{state, select, running {Planung wird aufgehoben} done {Planung aufgehoben} approve {Aufheben bestätigen} other {Aufheben fehlgeschlagen}}",
+        "getPostSchedule": "{state, select, running {Planung wird geprüft} done {Planung geprüft} approve {Prüfung bestätigen} other {Prüfung fehlgeschlagen}}",
         "reviseImage": "{state, select, running {Überarbeite Bild} done {Bild überarbeitet} approve {Genehmigen: Bild} other {Fehlgeschlagen: Bild}}",
         "listBrandIdentities": "{state, select, running {Lade Markenidentitäten} done {Markenidentitäten geladen} approve {Genehmigen: Markenidentitäten} other {Fehlgeschlagen: Markenidentitäten}}",
         "getBrandIdentity": "{state, select, running {Lade Markenidentität} done {Markenidentität geladen} approve {Genehmigen: Markenidentität} other {Fehlgeschlagen: Markenidentität}}",

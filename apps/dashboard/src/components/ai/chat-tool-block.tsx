@@ -544,6 +544,15 @@ const TOOL_COPY = {
     suffix: (input) => quotedSuffix(input, ["name"]),
   },
   listSchedules: {},
+  schedulePost: {
+    suffix: (input) => idSuffix(input, ["postId"]),
+  },
+  cancelPostSchedule: {
+    suffix: (input) => idSuffix(input, ["postId"]),
+  },
+  getPostSchedule: {
+    suffix: (input) => idSuffix(input, ["postId"]),
+  },
   reviseImage: {
     subtitle: ({ isStreaming, t }) =>
       isStreaming ? t("imageRevising") : undefined,
