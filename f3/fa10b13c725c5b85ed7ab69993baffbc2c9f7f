@@ -1,0 +1,1049 @@
+apps/sites-builder/src/builtins/Update.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 7,11-14
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 16
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-6,8-10,15,17
+apps/dashboard/src/components/sites/site-meta.tsx
+  s_2e1b04b64a383c::t_70907cb5582921 1-25,34-38
+  s_2e1b04b64a383c::t_012a189dbfecda 26-33
+apps/dashboard/src/components/sites/pages/site-previews-page.tsx
+  s_2e1b04b64a383c::t_48e4296cd857a2 1-6,8-81,127-147,149-168,170-174,183,185-188,190-193,221-237
+  s_2e1b04b64a383c::t_56baa9b1bb987b 7,175-182,184,189
+  s_2e1b04b64a383c::t_e0baf48ae53c9a 148,194,220
+  s_2e1b04b64a383c::t_5e7ba9c292f410 169
+  s_2e1b04b64a383c::t_3559e7923f4420 195-219
+  s_2e1b04b64a383c::t_370c6e158742c5 115
+  s_2e1b04b64a383c::t_bef17fff36db46 82-114,116-126
+packages/sites-compiler/tsconfig.json
+  s_2e1b04b64a383c::t_3e334c60aaab86 1-10
+apps/dashboard/src/components/dashboard/app-sidebar.tsx
+  s_2e1b04b64a383c::t_55d479a225daa6 98-103,145-148,199-205
+  s_2e1b04b64a383c::t_012a189dbfecda 31
+packages/sites-compiler/tests/validate.test.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2,6-7,10-12,16-21,26-27,38,51-62,67-70,93-95,113-122
+  s_2e1b04b64a383c::t_75ab7b32b5d55e 81-84,97
+  s_2e1b04b64a383c::t_f20530b749eac1 1,3-5,8-9,13-15,22-25,28-37,39-50,63-66,71-80,85-92,96,98-112,123-135
+apps/dashboard/src/components/sites/site-publish-dialog.tsx
+  s_2e1b04b64a383c::t_82575ab61207ed 1-2,5-20,22-23,29,31,42-48,51-56,58-104,106-121,139-186,199-204
+  s_2e1b04b64a383c::t_dee07bb251697f 196-198
+  s_2e1b04b64a383c::t_26e769f3e331bc 21,24-28,30,32-41,105,125-136
+  s_2e1b04b64a383c::t_6ac9a8e955d84e 3-4,49-50,57,122-124,137-138,187-195
+apps/sites-builder/fixtures/acme/public/images/cover-editor.svg
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1
+apps/sites/tsconfig.json
+  s_2e1b04b64a383c::t_d5a03abec05f71 1-11
+apps/sites-builder/src/builtins/CodeGroup.astro
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 1
+apps/sites/package.json
+  ai_agent 6
+  s_2e1b04b64a383c::t_d5a03abec05f71 1-5,7-24
+packages/sites-server/src/state.ts
+  s_2e1b04b64a383c::t_a379b1c953c87c 10-11,92,106
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 18,35-38,41-43,56-62,71-73,83-85,107-112,139-147,170-173,175-179,185-192,195-197,201-204
+  s_2e1b04b64a383c::t_2104cc2badc66a 120-128
+  s_2e1b04b64a383c::t_327ee454b3ef82 1-9,12-17,19-34,39-40,44-55,63-70,74-82,86-91,93-105,113-119,129-138,148-169,174,180-184,193-194,198-200,205-214
+apps/sites-builder/src/builtins/Warning.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/sites-builder/src/builtins/CardGroup.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 9
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_2e1b04b64a383c::t_9d463044131912 254-275,277,280-286,333
+  s_2e1b04b64a383c::t_f90517404608c0 35-38
+  s_2e1b04b64a383c::t_2a630e3df70d69 1-34,39-253,276,278-279,287-332,334-375
+apps/sites/wrangler.jsonc
+  ai_agent 12,19-26,28-32
+  s_2e1b04b64a383c::t_d5a03abec05f71 1-11,13-18,27,33
+packages/sites-core/src/utils/hosts.ts
+  s_2e1b04b64a383c::t_2176455bf54427 1-27,33-73,92-96,107-125,130-152
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 28-32,126-129
+  s_2e1b04b64a383c::t_f6c971937a5170 74-91,97-106
+packages/sites-server/src/r2.ts
+  s_2e1b04b64a383c::t_1169478a68c79d 1-8,10-19,24-34,38-43,47,51-53,58-65,69-70,75-117,123,127,134-135,139-143,150-156,163-168,172-174
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 9,20-23,35-37,44-46,48-50,54-57,66-68,71-74,118-122,124-126,128-133,136-138,144-149,157-162,169-171
+apps/sites-builder/fixtures/acme/notra.json
+  s_2e1b04b64a383c::t_f743d04bfa78d1 9-16,18-21,24-48
+  s_2e1b04b64a383c::t_11261641f43632 1-8,17,22-23,49
+packages/db/package.json
+  s_2e1b04b64a383c::t_1897288f293766 24
+packages/sites-server/src/publish.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-4,6-10,20-22,25-29,32-39,41,67-83,101-107
+  s_2e1b04b64a383c::t_93cd8b18cc1b8c 5,11-19,23-24,30-31,40,42-66,84-100,108-109
+packages/sites-server/src/content-types.ts
+  s_2e1b04b64a383c::t_ff1e5bac4ef7fd 1-8,10-32
+  s_2e1b04b64a383c::t_38f032f91eb6cf 9
+apps/sites-builder/compiler/cli.ts
+  s_2e1b04b64a383c::t_b5042036ea7c95 1-6,17-58,62-104,109-114,119,122-144,150,187-193,197-198
+  s_2e1b04b64a383c::t_2e1a3b903928e8 8-9
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 7,10-16,59-61,105-108,115-118,120-121,146-148,151-153,155-164,169-175,194-196
+  s_2e1b04b64a383c::t_70743c4ddd0d83 145,149,178-183
+  s_2e1b04b64a383c::t_c8dbab880dc702 154,165-168,176-177,184-186
+packages/sites-core/src/schemas/site-config.ts
+  s_2e1b04b64a383c::t_f9fc5cf7cde52d 28-49,53,58,63-66,70,81,84-89,91-94,99-103,108-113,119-121
+  s_2e1b04b64a383c::t_5901e1ba86eef8 50-52,54-57,74-79,95-98,104-107,114-118
+  s_2e1b04b64a383c::t_4191249612e168 1-27,59-62,67-69,71-73,80,82-83,90,122-161
+apps/sites-builder/src/builtins/Card.astro
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 19-20,22
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-16,18,24-25
+  s_2e1b04b64a383c::t_0aa80603df2ec0 17,23
+  s_2e1b04b64a383c::t_17c5aca8d7045c 21
+packages/sites-compiler/src/utils/paths.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-84
+apps/sites-builder/src/components/PostCard.astro
+  s_2e1b04b64a383c::t_093f4b70b61279 1,3,5-7,9-10,12-14
+  s_2e1b04b64a383c::t_c504452635606f 2,4,8,11,15-24
+apps/dashboard/src/lib/hooks/use-site-domain-connect.ts
+  s_2e1b04b64a383c::t_313cd6ea22d234 1-25
+apps/dashboard/src/components/sites/editor/site-file-tree.tsx
+  s_2e1b04b64a383c::t_fdcd78601782bb 3,17-22,24,28,57-59,63-79,82-95,98,100-103,105-133,135-136,139-146,148-160,162-165,169-177,179,181-182,185-186,196,200,202-205,225,234-239,241-244,246-279
+  s_2e1b04b64a383c::t_a688a99b52e3d4 36,38,187
+  s_2e1b04b64a383c::t_6319728c74315a 1-2,4-11,23,25-27,29-35,37,39-46,55-56,60-62,80-81,96-97,99,104,137-138,147,166,178,180,183-184,188-195,197-199,201,216-224,226-233,240,245,280-281
+  s_2e1b04b64a383c::t_5c85b82f6f2817 12-16,47-54,134,161
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/layout.tsx
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-18
+apps/sites-builder/src/builtins/Badge.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 1
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_2e1b04b64a383c::t_42c67d925f5b22 12,15,19,21,25-30,35,46-47,103-112,185,199-203,205-209,217-234,238-251,253-278,280-289,293,298-308,315-316,318-319,321-346,348,350-364,380-381,395-397,400-424,428,431,435,439,446,457-464,468-479,483-493,495-528,532-548,552-553,555-582,588-592,594-601,603,605
+  s_2e1b04b64a383c::t_1d67d6217b3b07 39
+  s_2e1b04b64a383c::t_a91f4369d733c0 1-11,13-14,16-18,20,22-24,31-34,36-38,40-45,48-102,113-184,186-198,204,290-292,294-297,317,320,347,349,365-379,382-394,398-399,425-427,429-430,432-434,436-438,440-445,447-456,465-467,480-482,494,549-551,554,583-587,593,602,604,606-608
+  s_2e1b04b64a383c::t_d7292fdd2a0abd 309-313
+  s_2e1b04b64a383c::t_8dfee9f9aa0c90 235-237
+  s_2e1b04b64a383c::t_3ad1f981a82aa9 314
+  s_2e1b04b64a383c::t_d55b3d78835277 529-531
+  s_2e1b04b64a383c::t_ac522c832920b1 210-216,252,279
+apps/dashboard/src/components/sites/site-deployments-table.tsx
+  s_2e1b04b64a383c::t_d55b3d78835277 215-216
+  s_2e1b04b64a383c::t_d7292fdd2a0abd 137-152,154-155
+  s_2e1b04b64a383c::t_cb64d1e43fd5c5 1-66,69-136,153,156-214,217-241
+  s_2e1b04b64a383c::t_45ec1bfb049b8b 67-68
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_2e1b04b64a383c::t_15b2737db457dc 142-163,262,342-345
+  s_2e1b04b64a383c::t_5ca081bb8cc12f 1,9-26,34,41-45,47-49,55-60,62-67,75-79,86,95-96,111-123,128-137,140-141,164,179,214,245-246,250,266-267,271,293-294,298,313-314,318-319,321-323,327,330-332,398-399,425,441,496-498,592-593
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-7,27-32,35-40,50-54,69-74,80-85,101-103,124-127,165-178,180-202,204-213,215-244,247-249,251-253,255,257-261,263-265,268-270,272-292,295-297,299-312,315-317,320,324-326,328-329,333-341,346-397,400-424,426-440,442-467,477-495,499-554,557-591
+  s_2e1b04b64a383c::t_723e9130c0426a 555-556
+  s_2e1b04b64a383c::t_3fc7636dec2420 8,46,61,68,87-94,97-100,104-110,138-139,203,254,256
+packages/sites-core/tests/serving-state.test.ts
+  s_2e1b04b64a383c::t_2104cc2badc66a 79-81
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-8,22-26,29-42,44-50,55-60,62-77,82-97,103-111,113-119,133-137
+  s_2e1b04b64a383c::t_f6c971937a5170 121-131,138-139
+  s_2e1b04b64a383c::t_f20530b749eac1 1,9-21,27-28,43,51-54,61,78,98-102,112,120,140-141
+  s_2e1b04b64a383c::t_a9d655711c2b40 132
+apps/sites-builder/astro.config.mjs
+  s_2e1b04b64a383c::t_fe297662d3b666 62-73
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5,13-15,42-46,55-58
+  s_2e1b04b64a383c::t_7b85d4dee821cc 20-21,78-79
+  s_2e1b04b64a383c::t_7221887b11721c 22-28,32-33
+  ai_agent 29-31,50-53
+  s_2e1b04b64a383c::t_83910fc69e14c3 49
+  s_2e1b04b64a383c::t_562fd7ae6ecf7d 1-4,6-12,16-19,34-41,47-48,54,59-61,74-77,80-85
+apps/sites-builder/src/builtins/Danger.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/docs/docs.json
+  s_2e1b04b64a383c::t_8b048a53e81abe 113-119,122-123
+  s_2e1b04b64a383c::t_c4ce55bb40e3b5 120-121
+apps/dashboard/src/workflows/site-job.ts
+  s_2e1b04b64a383c::t_f76734b14f8bc8 1-7
+apps/sites/src/routing.ts
+  s_2e1b04b64a383c::t_38f032f91eb6cf 74-124
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-4,28-30,33-36,53-56
+  s_2e1b04b64a383c::t_b87fb5a723be9d 5-27,31-32,37-52,57-73
+apps/dashboard/src/lib/hooks/use-now.ts
+  s_2e1b04b64a383c::t_8c8f172263ea74 1-17
+apps/dashboard/src/components/sites/editor/site-editor-status-bar.tsx
+  s_2e1b04b64a383c::t_819751d3ac0105 1-111,115,117-119
+  s_2e1b04b64a383c::t_5ad2f1c0d5eccd 112-114,116
+packages/db/migrations/meta/0108_snapshot.json
+  ai_agent 1-14628
+apps/dashboard/src/app/(dashboard)/[slug]/sites/page-client.tsx
+  s_2e1b04b64a383c::t_dee07bb251697f 48-51
+  s_2e1b04b64a383c::t_6d965aa7f8047c 1-47,52-93
+apps/sites-builder/src/builtins/Note.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/sites-builder/scripts/create-box-snapshot.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 12-20,24,44-46,59-61,64-69,71-73,84-89,91-93,96-98
+  s_2e1b04b64a383c::t_52237371d90824 74,80,83,90,94
+  s_2e1b04b64a383c::t_251103b146e396 1-11,21-23,25-43,47-58,62-63,70,75-79,81-82,95,99-116
+apps/dashboard/src/components/sites/site-layout.tsx
+  s_2e1b04b64a383c::t_012a189dbfecda 72-78
+  s_2e1b04b64a383c::t_49e39feec0c66e 1-71,79-99
+apps/dashboard/package.json
+  s_2e1b04b64a383c::t_7b21afe524709c 62-63
+  s_2e1b04b64a383c::t_e269ff01101295 53-54
+apps/sites-builder/src/components/Header.astro
+  s_2e1b04b64a383c::t_faf451549067a2 1,5,12-13,26,28,32,36,38-42,45-46,48-51,53-54,56-62
+  s_2e1b04b64a383c::t_624307cbfa2263 2,10
+  s_2e1b04b64a383c::t_c8c403849953cc 14,16-24,30,35,44,47,55
+  s_2e1b04b64a383c::t_19772f3cba3214 3-4,6-9,11,25,27,29,31,33-34,37,43,52
+  s_2e1b04b64a383c::t_b3b2dd2cb3dcbe 15
+apps/dashboard/src/utils/site-previews.ts
+  s_2e1b04b64a383c::t_7a58d6e0bcf1fe 2-44,48-49,54-74
+  s_2e1b04b64a383c::t_bef17fff36db46 1,45-47,50-53
+packages/sites-core/src/utils/build-target.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 27-29
+  s_2e1b04b64a383c::t_82f20185bb6e6c 1-26,30-39
+apps/sites/src/index.ts
+  s_2e1b04b64a383c::t_3ef4a7ce3d3246 1-4,10,14-30
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5-9,11-13
+packages/sites-core/tsconfig.json
+  s_2e1b04b64a383c::t_b370a25f74efc7 1-10
+packages/sites-core/src/utils/mounts.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-5,61-64
+  s_2e1b04b64a383c::t_dd7ae1a3f300ae 1,6-60,65-124
+apps/sites-builder/src/pages/feed.xml.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2,4-10,13-17,20-23,28-30,36-38
+  s_2e1b04b64a383c::t_95ba64f6aa5361 1,3,11-12,18-19,24-27,31-35,39
+apps/sites-builder/src/components/PostCover.astro
+  s_2e1b04b64a383c::t_c504452635606f 1-30
+apps/docs/sites/publishing.mdx
+  ai_agent 1-29
+apps/sites-builder/tsconfig.json
+  s_2e1b04b64a383c::t_251103b146e396 9
+  s_2e1b04b64a383c::t_482c56cde08bee 1-8,10-11
+apps/dashboard/src/utils/site-proxy-recipes.ts
+  s_2e1b04b64a383c::t_5a6fb14931fe33 1,3-5
+  s_2e1b04b64a383c::t_48c74bb48cd54f 78-91,165-169
+  s_2e1b04b64a383c::t_9bdb8cc1412536 2,6-77,92-164,170-183
+apps/dashboard/src/components/sites/site-build-logs.tsx
+  s_2e1b04b64a383c::t_18efd62b127a3a 179,185-186,192
+  s_2e1b04b64a383c::t_b9705f6cca9f2f 178,183-184,213-214,216-218,220-225,245-251,265
+  s_2e1b04b64a383c::t_d55b3d78835277 60
+  s_2e1b04b64a383c::t_bdbb8b6933c4b8 46
+  s_2e1b04b64a383c::t_7a569169419cbd 1-5,8-30,32-36,39,41-43,47-59,61-67,84-87,89-91,93-94,97-99,104-106,129,164-168,174-177,180-182,187-191,193-196,199-205,207-212,215,219,226-229,232,234-244,252-255,257-264,266-268,300-304,306-316,318-320,322,325-337,360,409-419,421-424,426-429,433-436
+  s_2e1b04b64a383c::t_300ea0f5995711 142
+  s_2e1b04b64a383c::t_ade1efaaaa4ffd 6-7,31,37-38,40,44-45,68-83,88,92,95-96,100-103,107-126,128,130-141,143-163,169-173,197-198,206,230-231,233,256,269-299,305,317,321,323-324,338-359,361-408,420,425,430-432
+apps/dashboard/src/constants/sites.ts
+  s_2e1b04b64a383c::t_29c537cc414a5a 54-55
+  s_2e1b04b64a383c::t_7990017349d5a1 60-61
+  s_2e1b04b64a383c::t_3415cec3c90214 76
+  s_2e1b04b64a383c::t_48c74bb48cd54f 89
+  s_2e1b04b64a383c::t_72463463c67fd2 53
+  s_2e1b04b64a383c::t_37473ef3f19b0a 17
+  s_2e1b04b64a383c::t_fd07193989c50c 1-3,5,7-8,10-11,13,18,41-50
+  s_2e1b04b64a383c::t_5be1b105133031 4,6,9,12,16,116-125,141-145,148
+  s_2e1b04b64a383c::t_8748db239a7150 107-113
+  s_2e1b04b64a383c::t_276236ae146e81 115,138-140,146-147,149-162
+  s_2e1b04b64a383c::t_0ac6361a6e4fea 95-106,114
+  s_2e1b04b64a383c::t_d7292fdd2a0abd 56
+  s_2e1b04b64a383c::t_81a7c3f5b190f5 126-137
+  s_2e1b04b64a383c::t_903c1cd30b9ef0 14-15,19-30,32-40,51-52,57-59,62-75,77-88,90-94
+  s_2e1b04b64a383c::t_9cc3cecbc8a464 31
+apps/dashboard/src/types/components/nav.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 15
+apps/sites-builder/src/builtins/Steps.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 1
+apps/sites-builder/src/pages/notra-pages.json.ts
+  s_2e1b04b64a383c::t_42b35917b4ad45 1-2,9-15,21-41,48
+  ai_agent 3-8,16-20,42-47
+apps/sites-builder/src/builtins/Check.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/dashboard/src/app/sites/domain-connect/[token]/route.ts
+  s_2e1b04b64a383c::t_c72cbb45132757 1-22,29-88
+  s_2e1b04b64a383c::t_ba77767618e48f 23-28
+apps/docs/sites/domains.mdx
+  s_2e1b04b64a383c::t_3b1ffe81fdcace 12,14
+  s_2e1b04b64a383c::t_4830a30b3bedf4 1-11,13,15-84
+apps/sites-builder/src/pages/404.astro
+  s_2e1b04b64a383c::t_95ba64f6aa5361 1-2,4-5,12-13
+  s_2e1b04b64a383c::t_3cdece4a3479ca 7
+  s_2e1b04b64a383c::t_9527fcece1b767 3,6
+  s_2e1b04b64a383c::t_45b7ca5ee31621 8-11
+apps/dashboard/src/workflows/steps/site-job-step.ts
+  s_2e1b04b64a383c::t_f76734b14f8bc8 1-10
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/domains/page.tsx
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-6,8-13
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+apps/dashboard/src/components/sites/editor/site-editor-problems.tsx
+  s_2e1b04b64a383c::t_eeec121a8c56d9 1-39,41-132
+  s_2e1b04b64a383c::t_7e650f64911436 40
+apps/dashboard/src/types/sites.ts
+  s_2e1b04b64a383c::t_e4b6917794c5af 2-6,8-10,12-35,37-38,47-76,78-79,125-140,145-153,155-157,171-172,175-176,179,185,187-188,193,209-250
+  s_2e1b04b64a383c::t_4ac7035955539b 264-265
+  s_2e1b04b64a383c::t_9cc3cecbc8a464 36
+  s_2e1b04b64a383c::t_dee07bb251697f 80-83
+  s_2e1b04b64a383c::t_7990017349d5a1 266-272
+  s_2e1b04b64a383c::t_42ca2e376e7d1e 275-285,297-299,301-302
+  s_2e1b04b64a383c::t_94839a99113796 84-85
+  s_2e1b04b64a383c::t_fd07193989c50c 39-46
+  s_2e1b04b64a383c::t_276236ae146e81 257-263,273-274,286-296,300,303-305,311-323
+  s_2e1b04b64a383c::t_d55b3d78835277 7
+  s_2e1b04b64a383c::t_a25b337213b53c 86-101
+  s_2e1b04b64a383c::t_7880fab5fcb7c4 1,141-144,251-256,306-310
+  s_2e1b04b64a383c::t_6b8b1ff2abe44e 11,158-170,177-178,189-192,194-208
+  s_2e1b04b64a383c::t_8748db239a7150 180-184,186
+apps/sites-builder/fixtures/acme/changelog/2026-09-28-flow.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-11
+apps/sites-builder/src/pages/[...slug].astro
+  s_2e1b04b64a383c::t_45b7ca5ee31621 58-59
+  s_2e1b04b64a383c::t_9527fcece1b767 45,60-61
+  s_2e1b04b64a383c::t_c504452635606f 13,21,54,57,62
+  s_2e1b04b64a383c::t_95ba64f6aa5361 1-4,7-10,12,14-20,22-26,42-44,46-50,53,55-56,63-65
+  s_2e1b04b64a383c::t_5d3a3db7b15d5c 5-6,27-41,51-52
+  s_2e1b04b64a383c::t_3cdece4a3479ca 11
+apps/dashboard/src/lib/workflows/start.ts
+  s_2e1b04b64a383c::t_f76734b14f8bc8 59,65-67
+  ai_agent 62-64
+apps/dashboard/messages/de.json
+  s_2e1b04b64a383c::t_b9705f6cca9f2f 5362
+  s_2e1b04b64a383c::t_faaacbf56de139 5543
+  s_2e1b04b64a383c::t_70907cb5582921 5202-5206,5243,5292,5403
+  s_2e1b04b64a383c::t_9d3d6c029d9d42 5169
+  s_2e1b04b64a383c::t_4af86eab5e0793 5133-5136
+  s_2e1b04b64a383c::t_ee6847bfcda2db 5441-5481,5484-5502,5504-5542,5551
+  s_2e1b04b64a383c::t_9cc3cecbc8a464 4805,4808-4809
+  s_2e1b04b64a383c::t_08d1f9d5e157e1 2109-2110,4776-4804,4806-4807,4810-4904,4906-5132,5137-5168,5170-5180,5182-5183,5185-5201
+  s_2e1b04b64a383c::t_dab5b77a209b49 5207-5238,5242,5404-5440
+  s_2e1b04b64a383c::t_82a161a1d5089a 5503
+  s_2e1b04b64a383c::t_2a630e3df70d69 5620-5624
+  s_2e1b04b64a383c::t_9523aec3665ced 5552-5570,5572-5576,5578,5589-5603,5605-5614,5618-5619
+  s_2e1b04b64a383c::t_3e66e1ffc0a1ce 5239-5241,5254-5266,5310-5338,5363-5367,5382-5401,5482-5483,5544-5550
+  s_2e1b04b64a383c::t_b5086f99db481f 5571,5577,5579-5588,5604,5615-5617
+apps/dashboard/src/utils/site-editor.ts
+  s_2e1b04b64a383c::t_866fba7b3e1271 42,49-50,52,55,58,64,70,75
+  s_2e1b04b64a383c::t_9bbf14a4ab7258 1-4,7-14,16,18,21-22,25-41,43-48,51,53-54,56-57,59-63,65-69,71-74,76-109
+  s_2e1b04b64a383c::t_9bdb8cc1412536 5,15,17,19-20,23-24,110-183
+packages/sites-server/tests/domain-connect.test.ts
+  s_2e1b04b64a383c::t_ba77767618e48f 92-94,96-98,153-158,172-177,179-181,183-187
+  s_2e1b04b64a383c::t_a1a7357aad93df 1-91,95,99-137,139-152,159-165,167-171,178,182,188-196
+  s_2e1b04b64a383c::t_c5d3aaa8e73879 138
+packages/sites-server/src/errors.ts
+  s_2e1b04b64a383c::t_0eaa149679a2a5 1-8
+apps/dashboard/src/lib/sites/serialize.ts
+  s_2e1b04b64a383c::t_8950ad46ba4fbc 1-3,9-15,19-28,33-39,43-56,61-74,79,81-105,111,115-119,124-130
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 4-8,16-18,29-32,40-42,57-60,75-78,106-110,112-114,120-123
+  s_2e1b04b64a383c::t_15b2737db457dc 80
+apps/dashboard/src/components/sites/site-delete-dialog.tsx
+  s_2e1b04b64a383c::t_2817727628d050 84-87
+  s_2e1b04b64a383c::t_a0cede656fcbd5 1-67,71-83,88-119
+  s_2e1b04b64a383c::t_dee07bb251697f 68-70
+apps/dashboard/src/components/sites/site-domain-add-dialog.tsx
+  s_2e1b04b64a383c::t_478b1980301c1d 109
+  s_2e1b04b64a383c::t_fdbc043266b8f6 121-123
+  s_2e1b04b64a383c::t_01778ca83d8ad1 1-108,111-120,124-165
+  ai_agent 110
+apps/dashboard/next.config.ts
+  s_2e1b04b64a383c::t_89bb3e3a391b2e 115-116
+  s_2e1b04b64a383c::t_e269ff01101295 114,117
+apps/sites-builder/src/content.config.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 3-4,8-9,12-16,31-35
+  s_2e1b04b64a383c::t_eac8b6b806277e 1-2,5-7,10-11,17-30,36-47
+apps/sites-builder/fixtures/acme/snippets/variables.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-2
+apps/sites-builder/.gitignore
+  s_2e1b04b64a383c::t_654f4a3895ba73 1-2
+  s_2e1b04b64a383c::t_b5e529a364d2c1 3
+apps/dashboard/src/constants/dashboard-breadcrumbs.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 19
+apps/sites/src/preview-auth.ts
+  s_2e1b04b64a383c::t_b87fb5a723be9d 1-4,10-27,34-48,54,61-86,92-95,100
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5-9,28-33,49-53,55-60,87-91,96-99
+apps/docs/sites/agents.mdx
+  s_2e1b04b64a383c::t_c4ce55bb40e3b5 1-39
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  s_2e1b04b64a383c::t_bef17fff36db46 3-4,6,8,148-151
+  s_2e1b04b64a383c::t_3ffe49b7b43f0a 186
+  s_2e1b04b64a383c::t_356ea04b93e524 1-2,9,18-20,24,26-27,29-31,33,36-37,39-52,67,71-74,79,82-83,87-89,134-135,137-144,146,161-163,165,167-171,173-176,208-214,216-218
+  s_2e1b04b64a383c::t_f4fe71958d3577 38
+  s_2e1b04b64a383c::t_b28b72f8c18bad 5,7,10-17,21-23,25,28,32,34-35,53-66,68-70,75-78,80-81,84-86,90-133,136,145,147,152-160,164,166,172,177,179-185,187-206,215
+  s_2e1b04b64a383c::t_7070a592328019 178
+  s_2e1b04b64a383c::t_e0baf48ae53c9a 207
+apps/dashboard/src/components/sites/editor/site-editor-conflict-banner.tsx
+  s_2e1b04b64a383c::t_7e650f64911436 1-68
+apps/sites-builder/src/layouts/Base.astro
+  s_2e1b04b64a383c::t_0a276bab0eb96d 4,77
+  s_2e1b04b64a383c::t_4b44bf3b3059fd 24-26
+  s_2e1b04b64a383c::t_19772f3cba3214 3,8,29,31-33,37,45-46,60-62,64-67,71
+  s_2e1b04b64a383c::t_3cdece4a3479ca 73
+  s_2e1b04b64a383c::t_42b35917b4ad45 7,17-20,23,47-48,59
+  s_2e1b04b64a383c::t_e3a73a65c3d4ed 49
+  s_2e1b04b64a383c::t_faf451549067a2 1-2,5-6,9-16,21-22,27-28,30,34-36,38-44,50-58,63,68-70,72,75-76,78-79
+  s_2e1b04b64a383c::t_c8c403849953cc 74
+packages/sites-compiler/package.json
+  ai_agent 6
+  s_2e1b04b64a383c::t_3e334c60aaab86 1-5,7-35
+oxlint.config.ts
+  s_2e1b04b64a383c::t_70743c4ddd0d83 23-24
+apps/dashboard/src/components/sites/site-create-form.tsx
+  s_2e1b04b64a383c::t_f2e48e4dbd27c8 230
+  s_2e1b04b64a383c::t_2b977eb38f03fb 59,194
+  s_2e1b04b64a383c::t_dee07bb251697f 6-9,273,302-305
+  s_2e1b04b64a383c::t_3890e2487b3bb2 1-5,10-58,60-193,195-229,231-272,274-301,306-379
+apps/sites-builder/fixtures/acme/snippets/nested-child.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1
+apps/dashboard/src/constants/site-editor.ts
+  s_2e1b04b64a383c::t_06b2cb19e12eef 1-9,11-14,16-19,23-38,41-53,55-62
+  s_2e1b04b64a383c::t_fa5509e9c9cf2b 10,69-80
+  s_2e1b04b64a383c::t_2103e9261dceaa 15,20-22,54,63-68,81-104,109-136,138-151,158-159,163,165,167-178
+  s_2e1b04b64a383c::t_a688a99b52e3d4 39-40
+  s_2e1b04b64a383c::t_e72b7b6102d376 105-108
+  s_2e1b04b64a383c::t_c14fa2f0972296 137,152-157,160-162,164,166
+apps/dashboard/src/types/components/command-palette.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 31
+apps/dashboard/src/app/(dashboard)/[slug]/sites/page.tsx
+  s_2e1b04b64a383c::t_26165e65bec1d4 1-28
+apps/sites-builder/fixtures/acme/snippets/counter.jsx
+  s_2e1b04b64a383c::t_11261641f43632 1-16
+apps/sites-builder/fixtures/acme/snippets/nested-parent.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-5
+packages/sites-core/src/utils/preview-token.ts
+  s_2e1b04b64a383c::t_6d63f95aec4aa3 1-9,14-15,17-19,21-93,98
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 10-13,94-97
+  s_2e1b04b64a383c::t_a379b1c953c87c 16,20
+packages/sites-server/tsconfig.json
+  s_2e1b04b64a383c::t_4af06db22345b1 1-5,7-10
+  s_2e1b04b64a383c::t_4bbee5c28a428a 6
+packages/sites-server/README.md
+  s_2e1b04b64a383c::t_c5d52cdcc61f56 60-79,90
+  s_2e1b04b64a383c::t_7feb616fa50fea 1-59,80-89,91-101
+packages/sites-core/src/utils/serving-state.ts
+  s_2e1b04b64a383c::t_ddc7403ac31a50 1-17,19-38,43-76,82-93,96,101-103,105-108,121-134,142-154
+  s_2e1b04b64a383c::t_2104cc2badc66a 18,77-81,94-95,97-100,104,113-114
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 39-42,109-112,115-120,135-141
+apps/dashboard/src/components/sites/site-previews-table.tsx
+  s_2e1b04b64a383c::t_39d523f7c8113e 1-46,52-63,95-177,179-222,224-238,242-260,267-298,305-310,312-314,316,321-378,386-403,407-455
+  s_2e1b04b64a383c::t_29c537cc414a5a 47-48,50-51
+  s_2e1b04b64a383c::t_5d4407497d729c 64-94,178,223,299-304,311,315,317-320
+  s_2e1b04b64a383c::t_e0baf48ae53c9a 49,261-266,404-406
+  s_2e1b04b64a383c::t_bef17fff36db46 239-241,379-385
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/skeleton.tsx
+  s_2e1b04b64a383c::t_f1fa422c985a93 1-28
+apps/sites-builder/src/components/Icon.astro
+  s_2e1b04b64a383c::t_9a52e894864f47 1-26
+apps/dashboard/src/components/sites/site-deployment-menu.tsx
+  s_2e1b04b64a383c::t_02f945fb7fd5ae 1-39,41-53,56-85,100-132
+  s_2e1b04b64a383c::t_78d86a4d2af16f 40,54-55,86-99
+apps/dashboard/src/components/sites/site-new-file-dialog.tsx
+  s_2e1b04b64a383c::t_9b6c2282a80463 1-28,30-56,58-76,80-102,108-120,124-131,133-135,139-141,145-149,151-185
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 29
+  s_2e1b04b64a383c::t_dee07bb251697f 77-79,103-107,121-123,136-138,142-144,150
+  s_2e1b04b64a383c::t_f2e48e4dbd27c8 132
+apps/dashboard/src/utils/site-settings.ts
+  s_2e1b04b64a383c::t_5a6fb14931fe33 1-2,13-20
+  s_2e1b04b64a383c::t_9bdb8cc1412536 3-12,21-77
+apps/sites-builder/src/lib/params.ts
+  s_2e1b04b64a383c::t_42b35917b4ad45 103-112
+  s_2e1b04b64a383c::t_a6a4a45549b087 8-24,32-37,51,90,95-101
+  s_2e1b04b64a383c::t_eac8b6b806277e 1-7,38-50,52-83,87-89,91-94,102
+  s_2e1b04b64a383c::t_5901e1ba86eef8 25-31,84-86
+packages/sites-server/src/cloudflare-saas.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 17-22,41-45,48-52,68-71,74-77,81-88,91-94,102-105,110-112,118-121
+  s_2e1b04b64a383c::t_dc0ef90dd14d78 1-16,23-40,46-47,53-67,72-73,78-80,89-90,95-101,106-109,113-117,122-123
+apps/dashboard/src/lib/hooks/use-site-deployments.ts
+  s_2e1b04b64a383c::t_91c05e5b35e502 1-119
+apps/dashboard/src/components/sites/site-domains-table.tsx
+  s_2e1b04b64a383c::t_d55b3d78835277 104-107,322
+  s_2e1b04b64a383c::t_de5867a1d06b43 1-103,108-318,320-321,323-338,345-352,354-456
+  s_2e1b04b64a383c::t_4da86559ea633d 340
+  s_2e1b04b64a383c::t_840e5c6ac64ea8 319,339,341-344,353
+packages/sites-server/src/github.ts
+  s_2e1b04b64a383c::t_a379b1c953c87c 60,83,99
+  s_2e1b04b64a383c::t_0eaa149679a2a5 5,17,79,95
+  s_2e1b04b64a383c::t_2c936d2c6ce408 1-3,6-16,18-23,30,36-40,46,54-59,61-72,76-78,80-82,84-94,96-98,100-111,118,128-131,134-136,143-146,155-156,172-194,216
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 4,24-29,31-35,41-45,47-53,73-75,112-117,119-127,132-133,137-142,147-154,157-171,195-215
+apps/dashboard/src/components/dashboard/nav-site.tsx
+  s_2e1b04b64a383c::t_55d479a225daa6 1-48,51-85
+  s_2e1b04b64a383c::t_012a189dbfecda 49-50
+apps/sites-builder/compiler/collect.ts
+  s_2e1b04b64a383c::t_1fc3f6e9a43dd5 1-2,8-27,31-35,39,43-50,53-122
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 3-7,28-30,36-38,40-42,51-52
+apps/sites-builder/fixtures/acme/blog/2026/launch.mdx
+  s_2e1b04b64a383c::t_624307cbfa2263 26-28
+  s_2e1b04b64a383c::t_f743d04bfa78d1 6
+  s_2e1b04b64a383c::t_11261641f43632 1-5,7-25,29-63
+packages/sites-compiler/src/jsx.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5-184
+apps/dashboard/src/components/sites/site-status-dot.tsx
+  s_2e1b04b64a383c::t_70907cb5582921 1-2,4-5,7-8,10-11,16-19,21-23,26-30,36-44,49,57-62
+  s_2e1b04b64a383c::t_c982a80f11d856 3,6,9,12-15,35,45-48,50-56
+  s_2e1b04b64a383c::t_3ad1f981a82aa9 20,24-25,31-34
+packages/db/migrations/meta/_journal.json
+  ai_agent 760-766
+apps/sites-builder/src/builtins/Step.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 8
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-7,11
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 9-10
+packages/sites-core/src/schemas/deployment.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 39-44,85-87
+  s_2e1b04b64a383c::t_490ff8caaee851 1-38,45-83,88-106
+  s_2e1b04b64a383c::t_2104cc2badc66a 84
+apps/sites-builder/src/components/Footer.astro
+  s_2e1b04b64a383c::t_c8c403849953cc 10,12,15,17,20-21,25
+  s_2e1b04b64a383c::t_faf451549067a2 1,3,5-9,27-28
+  s_2e1b04b64a383c::t_19772f3cba3214 2,4,13-14,16,18-19,22-24,26
+  s_2e1b04b64a383c::t_3cdece4a3479ca 11
+apps/sites/src/handler.ts
+  s_2e1b04b64a383c::t_42419c70d681cb 1,24,36,38-41,44-46,52,54,57-61,63-67,72,77,79-80,85,87-89,92-93,99,101-103,105-106,108-111,119-120,123,126-127,129,131-133,135-137,141-149,156-159,164-165,172-173,195,206,208-209,228
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-9,11-23,47-51,68-71,73-76,81-84,94-98,112-118,138-140,150-154,160-163,184,186-187,194,199-205,212-215,217-220,230-239,241-244
+  s_2e1b04b64a383c::t_159c1e11d9a4c7 10,34-35,37,42-43,53,55-56,62,78,86,90-91,100,104,107,121-122,124-125,128,130,134,155,210-211,216,221-227,229,240,245-250
+  s_2e1b04b64a383c::t_38f032f91eb6cf 25-33,166-171,174-183,185,188-193,196-198,207
+apps/dashboard/vercel.json
+  s_2e1b04b64a383c::t_f76734b14f8bc8 23-29
+apps/sites/tests/handler.test.ts
+  s_2e1b04b64a383c::t_06c48501fa276a 90,169-186,188-198
+  s_2e1b04b64a383c::t_70743c4ddd0d83 115-117
+  s_2e1b04b64a383c::t_e46b4ff18d8b97 17-23,50
+  s_2e1b04b64a383c::t_f57415923197ad 219,245
+  ai_agent 187
+  s_2e1b04b64a383c::t_5d47317ab71f16 1,3,8,10-16,29-34,40-45,51-60,68-74,84-86,103-104,109-114,118-128,131-138,148-155,159-160,164,199-203,215-218,234,238-241,246,254-260,270-271,276-289,293-294,302-305,309-313,336-340,348-352,370-372,376-380,389,394-395
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2,4-7,9,24-28,35-39,46-49,61-67,75-83,87-89,91-102,105-108,129-130,139-147,156-158,161-163,165-168,204-214,220-233,235-237,242-244,247-253,261-269,272-275,290-292,295-301,306-308,314-335,341-347,353-369,373-375,381-388,390-393
+apps/dashboard/src/lib/hooks/use-sites.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 10
+  s_2e1b04b64a383c::t_afbde124aa4e29 1-9,11-69
+apps/dashboard/src/app/(dashboard)/[slug]/sites/loading.tsx
+  s_2e1b04b64a383c::t_26165e65bec1d4 1-5
+apps/sites-builder/src/builtins/YouTube.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-9
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 12
+  s_2e1b04b64a383c::t_0aa80603df2ec0 10-11
+apps/docs/sites/overview.mdx
+  ai_agent 1-37
+apps/dashboard/src/components/sites/site-topbar-title.tsx
+  s_2e1b04b64a383c::t_d6381533fe8117 1-13,16-31,37-40,42-61,64-65,81
+  s_2e1b04b64a383c::t_a5417e148865d0 32,35-36
+  s_2e1b04b64a383c::t_af5c743ced7eaa 33-34,41
+  s_2e1b04b64a383c::t_386b48acc7985a 14,66-77,79-80
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 15
+  s_2e1b04b64a383c::t_d15c5c4fc114be 62-63
+apps/dashboard/src/app/sites/preview-access/route.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 26-41
+apps/sites-builder/src/lib/theme.ts
+  s_2e1b04b64a383c::t_46ef054ea9e921 54-55
+  s_2e1b04b64a383c::t_5901e1ba86eef8 7-8,47-49,73-78,101-104,110-112
+  s_2e1b04b64a383c::t_a6a4a45549b087 1-6,9-46,50-53,56-72,79-100,105-109,113-123
+apps/sites-builder/src/components/ChangelogIndex.astro
+  s_2e1b04b64a383c::t_45b7ca5ee31621 2-3,11-21
+  s_2e1b04b64a383c::t_3cdece4a3479ca 10,22
+  s_2e1b04b64a383c::t_9527fcece1b767 1,4-9
+apps/dashboard/src/components/sites/site-domain-proxy.tsx
+  s_2e1b04b64a383c::t_5c8fb84444c451 70-75
+  s_2e1b04b64a383c::t_fdbc043266b8f6 29
+  s_2e1b04b64a383c::t_872c8197a296bd 1-23,25-28,31-42,44-69,76-100
+  s_2e1b04b64a383c::t_478b1980301c1d 43
+apps/dashboard/src/components/sites/site-repository-layout.tsx
+  s_2e1b04b64a383c::t_2d40db2041db2e 1-32,34-41
+  s_2e1b04b64a383c::t_dee07bb251697f 33
+apps/sites-builder/src/builtins/Tip.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/sites-builder/fixtures/acme/blog/calm-software.mdx
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1-17
+apps/dashboard/src/utils/site-build-log.ts
+  s_2e1b04b64a383c::t_42ca2e376e7d1e 1-5,89-104,145-164,169-213,218-264
+  s_2e1b04b64a383c::t_4ac7035955539b 6-38,40-43,45-88,265
+  s_2e1b04b64a383c::t_d55b3d78835277 214-217
+  s_2e1b04b64a383c::t_90e05b1ad35e3a 108-110
+  s_2e1b04b64a383c::t_300ea0f5995711 105-107,111-144,165-168
+  s_2e1b04b64a383c::t_d61bbcfc2f3432 39,44
+apps/sites-builder/fixtures/acme.target.json
+  s_2e1b04b64a383c::t_11261641f43632 1-9
+packages/sites-server/src/reporting.ts
+  s_2e1b04b64a383c::t_93cd8b18cc1b8c 1-4,6,14-27,32-34,39-42,47-59,63-68,72-77,82-88,93-102,107-109,164-166,172-175,177-190,194-195,200-205
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5,7-13,28-31,35-38,43-46,60-62,69-71,78-81,89-92,103-106,111-114,167-171,191-193,196-199
+  s_2e1b04b64a383c::t_50525bf3714290 110,115-120
+  s_2e1b04b64a383c::t_691a78f22009df 121-163
+  s_2e1b04b64a383c::t_5ca511c164e06f 176
+apps/sites/src/responses.ts
+  s_2e1b04b64a383c::t_b87fb5a723be9d 14-18,24-34,57-58,60,64,66-67,70-74,79-89,91,94-111,115-124,128-138,143-149,165
+  s_2e1b04b64a383c::t_38f032f91eb6cf 35-51,59,61-63,65,90,112-114,153-163
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-13,19-23,52-56,68-69,75-78,92-93,125-127,139-142,150-152,164
+apps/dashboard/src/types/components/page-header.ts
+  s_2e1b04b64a383c::t_370c6e158742c5 5
+packages/db/src/schema.ts
+  s_2e1b04b64a383c::t_a969df9328d664 4110-4113
+  s_2e1b04b64a383c::t_1897288f293766 4055,4067-4084,4091-4099,4103-4109,4114-4143,4147-4162,4172-4187,4191-4204,4206-4225,4231-4249,4257-4305,4310-4327
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-15,72-75,4056-4066,4085-4090,4100-4102,4144-4146,4163-4166,4188-4190,4227-4230,4250-4256,4306-4308,4328-4336
+  s_2e1b04b64a383c::t_7785a11d113cc3 4167-4171
+  s_2e1b04b64a383c::t_d4624eb9977dc8 4205
+apps/dashboard/src/components/sites/editor/site-code-editor.tsx
+  s_2e1b04b64a383c::t_fbe766fa079452 31,89,138-141,143-148,150-152
+  s_2e1b04b64a383c::t_62829108a875a5 127,129-132,135
+  s_2e1b04b64a383c::t_0d7448ab77e536 3-17,19-23,26,29,46-47,49,51-52,54-71,75,77,79-80,82-84,88,90-95,97-98,100-124,133-134,136,142,153,180-186,189-205
+  s_2e1b04b64a383c::t_22e593075fccd1 41-42,125-126
+  s_2e1b04b64a383c::t_1c4cec4b641526 154,158-161,188
+  s_2e1b04b64a383c::t_987047a6226556 1-2,18,24-25,27-28,30,32,48,50,53,72-74,76,78,81,85-87,96,99,137,155-157,169,178-179,206-208
+  s_2e1b04b64a383c::t_9a5db04a3fa859 162-168,170-177,187
+apps/dashboard/src/constants/command-palette.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 22
+packages/sites-server/src/runner.ts
+  s_2e1b04b64a383c::t_5048c7b01bf54e 92-93
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 4-10,24-29,37-39,56-57,68-70,82-91,99-101,104-107,111-116,126-129
+  s_2e1b04b64a383c::t_0656114c645650 2-3,20-22,33,36,40-41,45-47,51-52,54,59-61,65-67,71-74,103,110,122
+  s_2e1b04b64a383c::t_7add09a7bbe8b4 48,50,53
+  s_2e1b04b64a383c::t_0eaa149679a2a5 11-19,108-109,119-121,123-125,131
+  s_2e1b04b64a383c::t_806a2b428fca23 1,23,30-32,34-35,42-44,49,55,58,62-64,75-81,94-98,102,117-118,130,132
+apps/sites-builder/src/components/CodeBlocks.astro
+  s_2e1b04b64a383c::t_0a276bab0eb96d 1-40
+apps/sites-builder/fixtures/acme/blog/live-editing.mdx
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1-25
+packages/sites-server/src/preview-access.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 7,22-25,28-33,35-42
+  s_2e1b04b64a383c::t_2ff5ecca2b7cbe 1-6,8-21,26-27,34,43-47
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/previews/page.tsx
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-6,8-13
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/loading.tsx
+  s_2e1b04b64a383c::t_f1fa422c985a93 1-5
+packages/sites-compiler/src/mdx.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-7,13-113,145-150,156-162,165-173,180-193,208-212,215-219,226-229,239-244,247-261,267-271,274-279,290-295,322-324,339-341,354-358,386-388,396-399,430-433,450-455,465-468,474-477,498-501,505-506,515-519,521-528,531-536,543-548,560-561
+  s_2e1b04b64a383c::t_ab6e33cc59ba09 122-144,151-155,163-164,174-178,196-207,213-214,220-225,230-238,245-246,262-266,272-273,280-289,296-321,329-338,342-353,359-370,373-385,389-395,400-426,437-449,458-464,469-473,478-497,502-503,507-514,520,529-530,537-542,549-559,562-564
+  s_2e1b04b64a383c::t_356ddafe023574 8,372
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_2e1b04b64a383c::t_d825525fe674a0 1-45,49-71,75-90
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 46-48,72-74
+apps/sites-builder/compiler/prepare.ts
+  s_2e1b04b64a383c::t_7b85d4dee821cc 87-88,98-100
+  s_2e1b04b64a383c::t_1f419fdd21b247 47
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 3-13,30-32,60-65,103-104,106-111,117-122
+  s_2e1b04b64a383c::t_65162e989cbe33 1-2,14-29,33-46,48-59,66-86,101-102,105,112-116,123
+  s_2e1b04b64a383c::t_5901e1ba86eef8 89-97
+apps/sites/.gitignore
+  s_2e1b04b64a383c::t_654f4a3895ba73 1-3
+apps/sites-builder/fixtures/acme/public/images/cover-flow.svg
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1
+apps/docs/sites/components.mdx
+  ai_agent 1-76
+apps/sites-builder/src/builtins/Tab.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-7,9-11
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 8
+apps/dashboard/src/lib/sites/orpc-errors.ts
+  s_2e1b04b64a383c::t_8950ad46ba4fbc 1-7,13-29,33-35
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 8-12,30-32
+apps/dashboard/src/app/api/cron/sites/route.ts
+  s_2e1b04b64a383c::t_f76734b14f8bc8 1-9,14-20
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 10-13
+apps/sites-builder/fixtures/acme/public/images/cover-previews.svg
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1-2
+packages/sites-compiler/src/constants/builtins.ts
+  ai_agent 1-51
+apps/sites/src/loaders.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 11,27-34,53-55,63-66,78-81,116-123
+  s_2e1b04b64a383c::t_b87fb5a723be9d 1-10,12-26,35-52,56-62,67-77,82-115,124-132
+apps/sites-builder/src/components/BlogPost.astro
+  s_2e1b04b64a383c::t_552e207edd2c2f 1-2,6-10,16-17
+  s_2e1b04b64a383c::t_c504452635606f 3,5,11,14-15,18-30,32,34,38-48
+  s_2e1b04b64a383c::t_093f4b70b61279 4,13
+  s_2e1b04b64a383c::t_45b7ca5ee31621 12,31,33,35-37
+apps/dashboard/src/components/sites/site-context.tsx
+  s_2e1b04b64a383c::t_49e39feec0c66e 1-24
+packages/sites-compiler/src/validate.ts
+  s_2e1b04b64a383c::t_fb42621c7b09e3 241-242,245,248-251,282
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-36,38-240,243-244,246-247,252-281,283-299
+  s_2e1b04b64a383c::t_1c7afacc5c61a8 37
+packages/db/migrations/0108_sites.sql
+  ai_agent 1-135
+apps/sites-builder/src/builtins/Callout.astro
+  s_2e1b04b64a383c::t_dc675defc24aee 27
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1,5-11,20,22-23,30
+  s_2e1b04b64a383c::t_0aa80603df2ec0 12,14-15,24-25
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 2-4,13,16-19,21,26,28-29
+packages/sites-core/src/schemas/build.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-4,44-50
+  s_2e1b04b64a383c::t_d4624eb9977dc8 5-43,51-60
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/page.tsx
+  s_2e1b04b64a383c::t_f1fa422c985a93 1-28
+packages/db/src/types/sites.ts
+  s_2e1b04b64a383c::t_1897288f293766 1-12
+packages/sites-server/src/box-build.ts
+  s_2e1b04b64a383c::t_012a189dbfecda 112,115,117,133
+  s_2e1b04b64a383c::t_4bbee5c28a428a 23
+  s_2e1b04b64a383c::t_043e68e7441332 1-2,9,11-17,22,24-30,34-40,45-47,53-59,63-65,71-75,79-85,89-90,99-104,139-145,147,151-169,173-175,179,182-183,187-190,200-201,203-205,207,232,239,248-251
+  s_2e1b04b64a383c::t_543c5d4915c573 180-181,184-186,191-192
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 10,31-33,41-44,48-52,60-62,66-70,76-78,86-88,170-172,176-178,208-210,213-215,217-218,224-231,234-238,240-247
+  s_2e1b04b64a383c::t_a379b1c953c87c 146
+  s_2e1b04b64a383c::t_52237371d90824 202,206
+  s_2e1b04b64a383c::t_575d33d7470e30 3-8,18-21,91-98,148,211-212,216,219-223,233
+  s_2e1b04b64a383c::t_bb69817ba26688 105-111,113-114,116,118-132,134-138,149-150,193-199
+apps/sites-builder/src/components/ThemeToggle.astro
+  s_2e1b04b64a383c::t_19772f3cba3214 1-7,11-23
+  s_2e1b04b64a383c::t_c8c403849953cc 8-10
+apps/sites-builder/package.json
+  s_2e1b04b64a383c::t_b35ca97c0096e5 25-28,31-32,38-39
+  s_2e1b04b64a383c::t_251103b146e396 15-16,41
+  ai_agent 9
+  s_2e1b04b64a383c::t_1ff2d4fe20ba85 21
+  s_2e1b04b64a383c::t_2e1a3b903928e8 35
+  s_2e1b04b64a383c::t_e1aec0f6aeb2da 1-8,10-14,17-20,22-24,29-30,33-34,36-37,40,42-46
+packages/sites-core/package.json
+  s_2e1b04b64a383c::t_b370a25f74efc7 1-24
+apps/sites-builder/src/builtins/Tabs.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 5-7,9,25
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1,3-4,10-13,18-24,26,28-36,42-54
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 2,8,14-17,27,37-41
+apps/dashboard/src/lib/hooks/use-site-choice-options.ts
+  s_2e1b04b64a383c::t_3284a12d9af176 1-41
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/page-client.tsx
+  s_2e1b04b64a383c::t_f1fa422c985a93 1-9,11-41
+  s_2e1b04b64a383c::t_dee07bb251697f 10
+apps/sites-builder/src/styles/global.css
+  s_2e1b04b64a383c::t_faf451549067a2 1,3-10,17,40-43,56,199,203,207,225-226,236,241-242,257-258,275,278-279,282-283,319-320,323,345-346,349-350,386-387,389-398,405-414
+  ai_agent 35-37,110-119,124-127,141-157,159-161,163-174,176-178,180-187,189-194,196-198,200-202,204-206,208-210,212-224,269-273,332-336
+  s_2e1b04b64a383c::t_2e501c43109920 2,11-14,16,18-33,38,44-54,57-109,120-123,128-139,158,162,175,179,188,195,211,227-235,237-240,244-254,259,261-268,274,276-277,280,284,286,288,290-294,299-300,303,305,311-316,321-322,324-325,339-342,355-356,368,370,388,399-400
+  s_2e1b04b64a383c::t_a3640f797613a3 15,34,39,55,255-256,260,281,285,287,289,317-318,326,329,331,337,379-380
+  s_2e1b04b64a383c::t_0a276bab0eb96d 327-328,330,338,343-344,347-348,351-354,357-367,369,371-378,381-385
+  s_2e1b04b64a383c::t_ccfdd2e79931bb 415-418
+  s_2e1b04b64a383c::t_3cdece4a3479ca 243,295-298,301-302,304,306-310
+  s_2e1b04b64a383c::t_a6a4a45549b087 401-404
+packages/sites-server/src/activation.ts
+  s_2e1b04b64a383c::t_93cd8b18cc1b8c 2-3,10,16-21,26-48,53-56,61-66,70-78
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1,4-9,11-15,22-25,49-52,57-60,67-69
+apps/dashboard/src/components/sites/sites-table.tsx
+  s_2e1b04b64a383c::t_3ad1f981a82aa9 10,19,93-101,111-113
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 13,114
+  s_2e1b04b64a383c::t_dee07bb251697f 9,53-55,77-79,110,115
+  s_2e1b04b64a383c::t_6a9f8cdb4804cf 1-8,11-12,14-18,20-52,56-76,80-92,102-109,116-154
+packages/sites-server/src/pipeline.ts
+  s_2e1b04b64a383c::t_bb69817ba26688 26-36,141,143
+  s_2e1b04b64a383c::t_5ca511c164e06f 1,3-4,18-19,37,42-47,56-57,63-70,74-75,81-94,99,104-109,114-115,121-123,129-140,142,144-147,154-190,195,200-203,208-216,228-229,235
+  s_2e1b04b64a383c::t_c689073c8676e9 20-25
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2,5-17,38-41,48-55,58-62,71-73,76-80,95-98,100-103,110-113,116-120,124-128,148-153,191-194,196-199,204-207,217-227,230-234
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/editor/page.tsx
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-6,8-13
+apps/dashboard/src/components/sites/pages/site-domains-page.tsx
+  s_2e1b04b64a383c::t_24beb1a9af4e5d 1-2,4-22,24-153,155,157-161,170-171,175-197
+  s_2e1b04b64a383c::t_5e7ba9c292f410 3,23,154,156,162-169,172-174
+apps/sites-builder/src/builtins/Video.astro
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 12
+  s_2e1b04b64a383c::t_0aa80603df2ec0 10-11
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-9
+apps/dashboard/messages/en.json
+  s_2e1b04b64a383c::t_70907cb5582921 5202-5206,5243,5292,5403
+  s_2e1b04b64a383c::t_3e66e1ffc0a1ce 5239-5241,5254-5266,5310-5338,5363-5367,5382-5401,5482-5483,5544-5550
+  s_2e1b04b64a383c::t_dab5b77a209b49 5207-5238,5242,5404-5440
+  s_2e1b04b64a383c::t_b9705f6cca9f2f 5362
+  s_2e1b04b64a383c::t_ee6847bfcda2db 5441-5481,5484-5502,5504-5507,5509-5542,5551
+  s_2e1b04b64a383c::t_82a161a1d5089a 5503
+  s_2e1b04b64a383c::t_08d1f9d5e157e1 2109-2110,4776-4804,4806-4807,4810-4904,4906-5132,5137-5168,5170-5180,5182-5183,5185-5201
+  s_2e1b04b64a383c::t_9cc3cecbc8a464 4805,4808-4809
+  s_2e1b04b64a383c::t_9d3d6c029d9d42 5169
+  s_2e1b04b64a383c::t_4af86eab5e0793 5133-5136
+  s_2e1b04b64a383c::t_b5086f99db481f 5571,5577,5579-5588,5604,5615-5617
+  s_2e1b04b64a383c::t_2a630e3df70d69 5620-5624
+  s_2e1b04b64a383c::t_9523aec3665ced 5552-5570,5572-5576,5578,5589-5603,5605-5614,5618-5619
+  s_2e1b04b64a383c::t_faaacbf56de139 5543
+apps/dashboard/src/lib/hooks/use-site-code-highlighter.ts
+  s_2e1b04b64a383c::t_fa5509e9c9cf2b 1-5,7-29
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/loading.tsx
+  s_2e1b04b64a383c::t_73da77ad742b86 2-5
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1
+packages/sites-core/src/constants/sites.ts
+  s_2e1b04b64a383c::t_5048c7b01bf54e 31-36
+  s_2e1b04b64a383c::t_6e8d5f3ff42d32 90-95,104,106-109,114-124
+  s_2e1b04b64a383c::t_2575ca72041bda 1-30,37-44,48-89,96-103,105,130-162
+  s_2e1b04b64a383c::t_f9fc5cf7cde52d 45-47
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 110-113,125-129
+apps/sites-builder/fixtures/acme/public/images/logo.svg
+  s_2e1b04b64a383c::t_11261641f43632 1
+apps/sites-builder/fixtures/acme/blog/previews.mdx
+  s_2e1b04b64a383c::t_f743d04bfa78d1 1-14
+packages/ai/src/integrations/github.ts
+  s_2e1b04b64a383c::t_ba0c46562fe19f 190-195,201-203
+  ai_agent 196-200
+apps/dashboard/src/components/sites/site-copy-button.tsx
+  s_2e1b04b64a383c::t_fdbc043266b8f6 20-24,53-56
+  s_2e1b04b64a383c::t_478b1980301c1d 69
+  s_2e1b04b64a383c::t_90c4eeb926cdd5 1-19,25-52,57-68,70-88
+apps/sites-builder/src/components/BlogIndex.astro
+  s_2e1b04b64a383c::t_552e207edd2c2f 1,7-8,12-13,16
+  s_2e1b04b64a383c::t_093f4b70b61279 4
+  s_2e1b04b64a383c::t_c504452635606f 2-3,5-6,9-11,14-15,17-67
+apps/sites-builder/fixtures/acme/snippets/install.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-7
+apps/dashboard/src/constants/empty-state.ts
+  s_2e1b04b64a383c::t_eeeedb2988cec4 20
+apps/sites-builder/compiler/agent-files.ts
+  s_2e1b04b64a383c::t_dc98c8d46ba046 4-41,45-79,88-91,96-124,139-143,150-155,162-165,167-169,189-303,402
+  s_2e1b04b64a383c::t_f89f3c1c16cc1a 43,134,156-161,166,170-178,183-188,346
+  s_2e1b04b64a383c::t_acd34d94a93970 370-377
+  s_2e1b04b64a383c::t_4c4f6783539a7d 179-182
+  s_2e1b04b64a383c::t_856e44e70cbf22 1-3,92-95,144-149,304-305,309-345,347,349-355,357-369,378-401
+  s_2e1b04b64a383c::t_17c5aca8d7045c 42,44,80-87,125-133,135-138,306-308,348,356
+apps/dashboard/src/components/sites/editor/site-editor-file-bar.tsx
+  s_2e1b04b64a383c::t_523cf11f2d97a5 182-184,186-191
+  s_2e1b04b64a383c::t_49d384ac386de6 12,218
+  s_2e1b04b64a383c::t_4b11d4be0774f0 1-6,8,10,13-15,24-28,30,32-37,39,41,43-94,96-109,111-123,128-139,142-143,161-163,166-168,170-181,192-199,226,305-308
+  s_2e1b04b64a383c::t_c39391c41026ee 7,9,11,16-23,29,31,38,40,42,110,124-127,140-141,144-160,164-165,169,185,200-217,219-225,227-304
+packages/sites-server/src/domains.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 5-8,10,32-34,37-40,42-47,59-64,71-76,79-82,91-98,105-108,113-115,133-142,156-157,198-200,202-205,208-211,214-217,249-250,252-255,260-264,267-270,276-277,285-291,304-306,313-316,320-325,340-342
+  s_2e1b04b64a383c::t_70743c4ddd0d83 275,278-279,296,300
+  s_2e1b04b64a383c::t_dc0ef90dd14d78 9,11-19,104,109-110,112,116,121-132,143-144,280-284,292-295,334
+  s_2e1b04b64a383c::t_e583ad9b6e665b 1-4,20-31,35-36,41,48-58,65-70,77-78,83-90,99-103,111,117-120,145-155,158-197,201,206-207,212-213,218-248,251,256-259,265-266,271-274,297-299,301-303,307-312,317-319,326-333,335-339,343
+packages/sites-server/src/domain-connect.ts
+  s_2e1b04b64a383c::t_7f6bdc9a131a15 1-271,276-290,294-435
+  s_2e1b04b64a383c::t_ba77767618e48f 272-275,291-293
+apps/sites-builder/compiler/utils/public-assets.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-2,11-15,28-30,33-36,43-46
+  s_2e1b04b64a383c::t_2485bee60f0eb4 3-10,16-27,31-32,37-42,47-51
+packages/sites-server/src/env.ts
+  s_2e1b04b64a383c::t_1169478a68c79d 1-28,32-33,40-52,58-71
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 29-31,34-39,53-57
+apps/dashboard/src/components/sites/sites-unavailable-state.tsx
+  s_2e1b04b64a383c::t_7eea19abc27238 1-20
+packages/sites-compiler/src/types/diagnostics.ts
+  s_2e1b04b64a383c::t_d4624eb9977dc8 1-15
+apps/dashboard/src/utils/site-deployment-steps.ts
+  s_2e1b04b64a383c::t_31d3ff5d23a5dc 1-98
+packages/sites-core/src/types/preview-token.ts
+  s_2e1b04b64a383c::t_6218724dcf962d 1-9
+apps/sites/src/types.ts
+  s_2e1b04b64a383c::t_e5a5cbd4d8a362 1-34
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/page.tsx
+  s_2e1b04b64a383c::t_73da77ad742b86 1-3,5-6,9-10,13
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 4,8,11-12
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+apps/sites-builder/src/pages/sitemap.xml.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2,8-11,14-17,21-24,29-31
+  s_2e1b04b64a383c::t_95ba64f6aa5361 1,3-7,12-13,18-20,25-28,32
+apps/dashboard/src/components/sites/site-domain-dns.tsx
+  s_2e1b04b64a383c::t_4566936a2d2f5f 3,16-18,30-33,40-42,44-70,74,84-89,92,98,100,130,132,137-148
+  s_2e1b04b64a383c::t_82a161a1d5089a 5,101-102
+  s_2e1b04b64a383c::t_220accf73ae290 1-2,4,6-15,19-21,23-29,34-39,43,71-73,75-83,90-91,93-97,99,103-114,120-129,131,133-136,149-151
+  s_2e1b04b64a383c::t_faaacbf56de139 22
+  s_2e1b04b64a383c::t_fdbc043266b8f6 115-119
+apps/sites-builder/src/lib/entries.ts
+  s_2e1b04b64a383c::t_5901e1ba86eef8 2,12-15,20-23,47-51
+  s_2e1b04b64a383c::t_0aa80603df2ec0 46,54
+  s_2e1b04b64a383c::t_eac8b6b806277e 1,3-11,16-19,24-32,35-45,52-53,55-59
+  s_2e1b04b64a383c::t_3bc7922282d05e 33-34
+apps/dashboard/src/lib/hooks/use-breadcrumb-labels.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 29
+apps/sites-builder/src/builtins/Info.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+apps/sites-builder/src/components/PageHeader.astro
+  s_2e1b04b64a383c::t_c8c403849953cc 7
+  s_2e1b04b64a383c::t_3bc7922282d05e 1-6,8-9,13
+  s_2e1b04b64a383c::t_c504452635606f 10-12
+apps/dashboard/src/components/sites/site-page-skeleton.tsx
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-18
+apps/dashboard/src/lib/orpc/router.ts
+  ai_agent 19
+  s_2e1b04b64a383c::t_fc408f1423fab7 40
+apps/dashboard/src/types/site-editor.ts
+  s_2e1b04b64a383c::t_20a77e93836ec6 88-89
+  s_2e1b04b64a383c::t_d402b93bd5b38f 1-6,25,28-44,46-50,55-57,61,65-68,76-85,87,91-97,99-102,107-111,113-138,148
+  s_2e1b04b64a383c::t_26e769f3e331bc 146-147
+  s_2e1b04b64a383c::t_f5f7feae916a49 13-21,23-24,26-27,45,51-54,58-60,62-64,69-75,86,103-106,139-145
+  s_2e1b04b64a383c::t_23aa1ded32ae6e 7-12,22,90,98,112
+apps/sites-builder/src/builtins/Columns.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8
+.env.example
+  s_2e1b04b64a383c::t_0a826e760a298a 230-234
+  s_2e1b04b64a383c::t_14f68c76f93549 214-229
+apps/dashboard/src/utils/site-deployments.ts
+  s_2e1b04b64a383c::t_9bdb8cc1412536 1-4,6-9,12-68
+  s_2e1b04b64a383c::t_d55b3d78835277 5
+  s_2e1b04b64a383c::t_5a6fb14931fe33 10-11
+apps/dashboard/src/components/sites/site-relative-time.tsx
+  s_2e1b04b64a383c::t_0995a9100e56f5 1-10,12-14,17-27,35-37
+  s_2e1b04b64a383c::t_9d3d6c029d9d42 11,15-16,28-34
+apps/dashboard/src/components/sites/site-deployment-properties.tsx
+  s_2e1b04b64a383c::t_6da8aa1878daee 1-105,107-153
+  s_2e1b04b64a383c::t_3ffe49b7b43f0a 106
+apps/docs/sites/repository.mdx
+  s_2e1b04b64a383c::t_747a6b7efaf497 1-99
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/deployments/[deploymentId]/page.tsx
+  s_2e1b04b64a383c::t_1d67d6217b3b07 4,7,11,16-17
+  s_2e1b04b64a383c::t_ca48e46803c7df 1-3,5-6,8-10,12-15,18
+apps/dashboard/src/utils/site-links.ts
+  s_2e1b04b64a383c::t_9bdb8cc1412536 23-53
+  s_2e1b04b64a383c::t_fd07193989c50c 1-22
+  s_2e1b04b64a383c::t_8c8f172263ea74 54-64
+apps/sites-builder/fixtures/acme/blog/draft-idea.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-7
+apps/sites/src/pages.ts
+  s_2e1b04b64a383c::t_e5a5cbd4d8a362 1,7-12,17-26,31-40,45
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-6,13-16,27-30,41-44
+apps/dashboard/src/components/dashboard/header.tsx
+  s_2e1b04b64a383c::t_012a189dbfecda 56
+  s_2e1b04b64a383c::t_386b48acc7985a 40,43,308-310,312-313,330,334,338-339,346,352-360
+  s_2e1b04b64a383c::t_30515310e282bf 340-345,347-351
+  s_2e1b04b64a383c::t_dee07bb251697f 320-323,365-368
+  s_2e1b04b64a383c::t_77b16963737e21 38-39,41-42,236-239,244-246,300-307,311,314-319,324-329,331-333,335-336,361-364,369-371
+apps/sites-builder/src/components/ChangelogEntry.astro
+  s_2e1b04b64a383c::t_45b7ca5ee31621 19-22,24-27,29
+  s_2e1b04b64a383c::t_9527fcece1b767 16
+  s_2e1b04b64a383c::t_5d3a3db7b15d5c 30
+  s_2e1b04b64a383c::t_552e207edd2c2f 1-15,17-18,23,28,31-34
+apps/sites-builder/fixtures/acme/blog/hello-world.md
+  s_2e1b04b64a383c::t_11261641f43632 1-12
+packages/sites-server/src/editor.ts
+  s_2e1b04b64a383c::t_70743c4ddd0d83 37-38,40
+  s_2e1b04b64a383c::t_723e9130c0426a 11,203-211,220-224,229-245,459-465,471
+  s_2e1b04b64a383c::t_3415cec3c90214 22
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 12,14-18,51-52,54-56,61-68,74-76,78-81,85-87,90-108,112-117,127-130,133-136,141-150,154-157,167-170,176-183,225-228,246-252,269-274,289-293,295-303,308-324,336-340,347-352,356-359,363-365,373-381,384-386,388-390,407-413,415-431,436-439,446-457,466-470
+  s_2e1b04b64a383c::t_2e1a3b903928e8 5
+  s_2e1b04b64a383c::t_b5e529a364d2c1 267-268,275
+  s_2e1b04b64a383c::t_3f7ba0f70c238e 276-278
+  s_2e1b04b64a383c::t_a5e18a6d5dbed0 1-4,6-10,13,19-21,23-36,39,41-50,53,57-60,69-73,77,82-84,88-89,109-111,118-126,131-132,137-140,151-153,158-166,171-175,184-202,212-219,253-266,279-288,294,304-307,325-335,341-346,353-355,360-362,366-372,382-383,387,391-406,414,432-435,440-445,458,472-474
+packages/sites-server/tests/tar.test.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 3-9,12,15-19,21-24,28-30,43-45,54-56
+  s_2e1b04b64a383c::t_f20530b749eac1 1-2,10-11,13-14,20,25-27,31-42,46-53,57-59
+apps/dashboard/src/components/sites/site-preview-frame.tsx
+  s_2e1b04b64a383c::t_70907cb5582921 1-3,5-18,20-22,25-69,71-75
+  s_2e1b04b64a383c::t_301481d25a4bd1 4,19,23-24,70
+packages/sites-server/src/webhooks.ts
+  s_2e1b04b64a383c::t_f6c971937a5170 172
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 3-7,9-12,14-15,24-28,30-35,80-82,87-90,98-101,113-115,122-125,142-146,151-154,192-194,197-200,209-214,236-239,247-249,282-293,296-300,308-312,324-328,330-332
+  s_2e1b04b64a383c::t_178cb615c68d0c 1-2,13,23,29,36-78,126-141,147-150,155,157-165,169-171,175-183,187-191,195-196,201-208,215-216,218-227,231-235,240-245,251-252,254-263,265-281,294-295,301-307,313-323,329,333-335
+  s_2e1b04b64a383c::t_b9ed3ade0b14e6 8,97,102-112,116-121,173
+  s_2e1b04b64a383c::t_e8e615dcf31fa2 16-22,79,83-86,91-96,156,166-168,174,184-186,217,228-230,253,264
+  s_2e1b04b64a383c::t_b774204a94ba69 246,250
+apps/dashboard/src/components/sites/site-form-fields.tsx
+  s_2e1b04b64a383c::t_dee07bb251697f 53,64,114
+  s_2e1b04b64a383c::t_c38659fcad4341 1-41,43-52,54-63,65-113,115-120,122-178
+  s_2e1b04b64a383c::t_f2e48e4dbd27c8 42,121
+turbo.json
+  s_2e1b04b64a383c::t_e269ff01101295 6-15,20-21
+  s_2e1b04b64a383c::t_0a826e760a298a 16-19
+apps/dashboard/src/components/sites/editor/site-publish-change.tsx
+  s_2e1b04b64a383c::t_fa5509e9c9cf2b 17,40,57
+  s_2e1b04b64a383c::t_f14b1252fa611e 1-16,18-30,32-39,41-56,58-74,76-82,84-124
+  s_2e1b04b64a383c::t_26e769f3e331bc 31,75
+apps/dashboard/src/components/sites/site-rollback-dialog.tsx
+  s_2e1b04b64a383c::t_6a4e873ca523c6 1-19,21-91
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 20
+bun.lock
+  ai_agent 158-159,167-168,280-328,518,641-695,900,902,904,906,908,910,912,914,916,918,920-922,928,930,936,1754-1763,2124,2130-2131,2632,2634,2636,2638,2640,2642,2644,2646,2648,2650,2652,2654,2656,2658,3166,3250,3490,3692,3700,3780,4824,5050-5052,5532,5570,5900,5938-5942,5950,5954-5955,6064-6065,6090-6091,6124-6125,6202-6203,6208-6209,6226-6229,6240-6241,6358-6361,6364-6365,6368-6369,6434,6436,6440-6442,6444,6446,6448,6480-6481,6566-6567,6616,6618,6630,6646-6651,6658-6659,6740-6741,6762-6763,6806-6807,6884-6885,6924-6925,6956-6957,6988-6989,7016-7017,7052-7053,7120-7123,7140-7141,7158-7159,7162-7163,7188-7189,7192-7193,7506-7507,7708,7710,7712,7714,7716,7718,7720,7722,7724,7726,7728,7730,7732,7734,7736,7738,7940,8034-8041,8050-8071,8454-8455,8566-8591,8828,8830,8832,8834,8836,8838,8840,8842,8844,8846,8848,8850,8852,8854,8856,8858,8860,8896,8898,8900,8902,8904,8906,8908,8910,8912,8914,8916,8918,8920,8922,8924,8926,8928,8930,8932,8934,8936-8972,9054-9129,9276-9413,9452-9503,9519-9526
+apps/sites-builder/src/pages/index.astro
+  s_2e1b04b64a383c::t_5d3a3db7b15d5c 5-14,17
+  s_2e1b04b64a383c::t_95ba64f6aa5361 1-2,4,15-16,19
+  s_2e1b04b64a383c::t_9527fcece1b767 3,18
+apps/dashboard/src/app/api/webhooks/github/app/route.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 29-35,46-50,52-55,62-63
+  s_2e1b04b64a383c::t_b774204a94ba69 2-5,25-26
+  s_2e1b04b64a383c::t_cf11df8e6c5dae 6,9,13-15,19-24,27-28,36-45,51,56-59,79-82
+apps/sites-builder/src/builtins/Frame.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-7,11
+  s_2e1b04b64a383c::t_0aa80603df2ec0 8-10
+apps/dashboard/src/components/sites/editor/site-editor-pane.tsx
+  s_2e1b04b64a383c::t_fa5509e9c9cf2b 16,52,199
+  s_2e1b04b64a383c::t_4cc3d4f045639a 1-2,5-7,9-13,15,17-18,21-24,26-28,30-37,39-51,53-57,70-87,95-98,101-106,108-126,128,130-162,167-194,197-198,200-223,250-252,258-260,262-268,270-273,276-280,282-291
+  s_2e1b04b64a383c::t_a1145c9f2e491b 60,254
+  s_2e1b04b64a383c::t_22e593075fccd1 88-94,99-100,163-166
+  s_2e1b04b64a383c::t_ed66331efe23bd 62-69
+  s_2e1b04b64a383c::t_20a77e93836ec6 107,127
+  s_2e1b04b64a383c::t_df92db4f314dcc 3-4,8,14,19-20,25,29,38,58-59,61,129,195-196,224-249,253,255-257,261,269,274-275,281
+apps/dashboard/src/lib/hooks/use-site-domain-check.ts
+  s_2e1b04b64a383c::t_4d411141d06c4d 1-41
+apps/dashboard/src/app/(dashboard)/[slug]/sites/skeleton.tsx
+  s_2e1b04b64a383c::t_26165e65bec1d4 1-22
+packages/sites-server/domain-connect/usenotra.com.sites.json
+  s_2e1b04b64a383c::t_1d0bccf742fdca 1,29
+  s_2e1b04b64a383c::t_ba77767618e48f 2-28
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/settings/page.tsx
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-6,8-13
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+apps/sites-builder/fixtures/acme/changelog/2026-09-10-fixes.mdx
+  s_2e1b04b64a383c::t_11261641f43632 1-8
+packages/sites-server/src/urls.ts
+  s_2e1b04b64a383c::t_b70c3f074dd4ff 5-7,15,17-19,21-40,46-47,53-54
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-4,8-14,16,20,41-45,48-52
+apps/sites-builder/compiler/build.ts
+  s_2e1b04b64a383c::t_2485bee60f0eb4 27,128,200,208-210
+  s_2e1b04b64a383c::t_4a6ef1e829c7d9 212-214
+  s_2e1b04b64a383c::t_dc98c8d46ba046 25,29-31,130-132,183-186,201-204,206-207,221-229
+  s_2e1b04b64a383c::t_c8dbab880dc702 47,53
+  s_2e1b04b64a383c::t_d4624eb9977dc8 14-18,97,100,129,248-249
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 2-10,13,19-24,26,35-41,54-66,101-102,105-108,111-118,153-162,170-177,187-188,205,215-218,238-245
+  s_2e1b04b64a383c::t_fa0bb2e8581432 1,11-12,28,32-34,42-46,48-52,67-96,98-99,103-104,109-110,119-121,125-127,133-152,163-169,178-182,189-199,211,219-220,230-237,246-247,250
+  s_2e1b04b64a383c::t_46ef054ea9e921 122-124
+packages/sites-server/src/deployments.ts
+  s_2e1b04b64a383c::t_5048c7b01bf54e 9,109-118,123-125
+  s_2e1b04b64a383c::t_5f472322cbf3c2 1-2,8,11-14,17-35,39,102-105,107-108,126,132-134,136-168,173,180-184,186,190-192,197-204,209-214,223-230,235-241
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 10,40-43,69-74,80-83,91-93,119-122,127-131,169-172,187-189,193-196,205-208,215-222,231-234
+  s_2e1b04b64a383c::t_012a189dbfecda 174-179
+  s_2e1b04b64a383c::t_38b77e33f635f8 3-7,15-16,36-38,44-68,75-79,84-90,94-101,106,135,185
+packages/sites-server/src/sites.ts
+  s_2e1b04b64a383c::t_dde3a57e717252 1-8,13-14,21,25,35,42-58,62,67-69,75-78,82-106,111-118,133,137-139,143-147,154-173,178-192,205-212,219-238,244-246,254-256,261-264,270-272,279-298,301,324,328,333-336,342-392,398-400,405-408,418-421,427,433-440,449-451,453-465,469-472,475-476,491,494-497,501-504,506-509
+  s_2e1b04b64a383c::t_d7f60df33cfed6 22,41
+  s_2e1b04b64a383c::t_dc0ef90dd14d78 26,452
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 9-12,15-20,23-24,36-40,59-61,63-66,70-74,79-81,107-110,119-132,134-136,140-142,148-153,174-177,193-204,213-218,239-243,248-253,257-260,265-269,273-278,302-305,307-323,325-327,330-332,337-341,393-397,401-404,409-417,422-426,428-432,441-448,466-468,481-487,498-500
+  s_2e1b04b64a383c::t_51c641255e20b8 27-34,299-300,306,329,473-474,477-480,488-490,492-493,505
+  s_2e1b04b64a383c::t_f6c971937a5170 247
+apps/dashboard/src/components/sites/site-overview-hero.tsx
+  s_2e1b04b64a383c::t_1fbac68ff3a9ec 17,93,105,109,122,126-128,151-167,175-177,182,194,207-212,214-222,224-226,228-237,240-242,244-253,255-263,265-267,269-287,289-290,292
+  s_2e1b04b64a383c::t_bef17fff36db46 168,227
+  s_2e1b04b64a383c::t_7070a592328019 268
+  s_2e1b04b64a383c::t_ae0631e02144ea 1-16,18-36,38-92,94-104,106-108,110-121,123-125,129-150,169-174,178-181,183-188,191-193,195-205,223,238-239,243,254,288,291,293-294
+  s_2e1b04b64a383c::t_d55b3d78835277 189,264
+  s_2e1b04b64a383c::t_d7292fdd2a0abd 190,206
+  s_2e1b04b64a383c::t_3c3d6a46d6f4ad 213
+  s_2e1b04b64a383c::t_2f5f6b56f9936a 37
+packages/sites-server/package.json
+  s_2e1b04b64a383c::t_4bbee5c28a428a 25
+  s_2e1b04b64a383c::t_2e1a3b903928e8 17
+  s_2e1b04b64a383c::t_4af06db22345b1 1-16,18-24,26-29
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/deployments/page.tsx
+  s_2e1b04b64a383c::t_a71efdc4e1b368 7
+  s_2e1b04b64a383c::t_4e0b0f0100f5c0 1-6,8-13
+apps/dashboard/src/components/command-palette/registry.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 28,211-225
+packages/sites-server/scripts/domain-connect-keys.ts
+  s_2e1b04b64a383c::t_dc720fffa1b3ee 1-31,36-64,68-74
+  s_2e1b04b64a383c::t_beedf55b38eb92 32-35
+  s_2e1b04b64a383c::t_ba77767618e48f 65-67
+apps/dashboard/src/lib/sites/dispatch.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 1-4,20-23,31-34
+  s_2e1b04b64a383c::t_dc9f65fef3bb4d 5,35,38
+  s_2e1b04b64a383c::t_f76734b14f8bc8 6-19,24-30,36-37,39
+apps/dashboard/src/components/sites/pages/site-editor-page.tsx
+  s_2e1b04b64a383c::t_137c79d02f16ef 1-15,19-21,23-37,39-40,42,49-79,84,86-107,153-225,227-254,256-261,263-312,314-399,403-439,441-442
+  s_2e1b04b64a383c::t_8899e66db9669d 16-18,22,41,43-48,80-83,85,138-152,226,255,313,440
+  s_2e1b04b64a383c::t_20a77e93836ec6 108-137,262
+apps/dashboard/src/components/sites/sites-page-shell.tsx
+  s_2e1b04b64a383c::t_2bc1f8c5c32fc1 1-14
+packages/sites-compiler/src/utils/estree.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 82-215
+apps/dashboard/src/constants/nav.ts
+  s_2e1b04b64a383c::t_a5e4649cf7e5b2 25,39,108,115,194
+apps/sites-builder/src/lib/icons.ts
+  s_2e1b04b64a383c::t_5901e1ba86eef8 11-12,14-18,20-23,25-26,28-33
+  s_2e1b04b64a383c::t_9a52e894864f47 1-10,13,19,24,27,34-47
+apps/dashboard/src/components/sites/pages/site-deployments-page.tsx
+  s_2e1b04b64a383c::t_fae45a95c24cf6 3,5-12,14-19,21,26,28,37,43-44,49,51-53,68-69,72-75,78-81,98,101-104,106-117,119-121,123-148,156,165-179,181-201,203-216,219,226-229,231,233
+  s_2e1b04b64a383c::t_7070a592328019 122
+  s_2e1b04b64a383c::t_102d4e2a345051 1-2,4,13,20,22-25,27,29-36,38-42,45-48,50,54-67,70-71,76-77,82-97,99-100,105,118,149-155,157-164,180,202,217-218,220-225,230,232,234-237
+apps/dashboard/src/components/sites/editor/site-file-diff.tsx
+  s_2e1b04b64a383c::t_1633af87a55eee 1-58
+packages/sites-server/src/tar.ts
+  s_2e1b04b64a383c::t_a379b1c953c87c 13
+  s_2e1b04b64a383c::t_ff1e5bac4ef7fd 1-5,9-12,14-66,70-99,102-108,112-114,118-123,127-131
+  s_2e1b04b64a383c::t_0eaa149679a2a5 6-8
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 67-69,100-101,109-111,115-117,124-126
+packages/sites-server/src/jobs.ts
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 19-26,34-37,43-46,55-58,71-78,100-101,109-111,125-129,142-145,162-165,167-170
+  s_2e1b04b64a383c::t_0eaa149679a2a5 94-98,115-121,123-124,130-133,135-137
+  s_2e1b04b64a383c::t_5048c7b01bf54e 3-4,12-18,27-33,38-42,47-49
+  s_2e1b04b64a383c::t_dc9f65fef3bb4d 122,134
+  s_2e1b04b64a383c::t_b70c3f074dd4ff 1-2,5-11,50-54,59-70,79-93,99,102-108,112-114,138-141,146-161,166,171-176
+apps/dashboard/src/app/api/cron/sites-cleanup/route.ts
+  s_2e1b04b64a383c::t_5048c7b01bf54e 2,5,34
+  s_2e1b04b64a383c::t_4fc2b2d9e332bb 12-15,28-31,35-43
+  s_2e1b04b64a383c::t_f76734b14f8bc8 1,3-4,6-11,16-27,32-33,44
+apps/sites-builder/src/builtins/Accordion.astro
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-8,11,13,17
+  s_2e1b04b64a383c::t_a0aa4e67e78e74 12,15-16
+  s_2e1b04b64a383c::t_0aa80603df2ec0 9-10,14
+apps/sites-builder/src/builtins/index.ts
+  s_2e1b04b64a383c::t_4414dd8e3100e8 1-22
+apps/sites-builder/src/builtins/AccordionGroup.astro
+  s_2e1b04b64a383c::t_0aa80603df2ec0 1
+apps/dashboard/src/components/sites/site-deployment-timeline.tsx
+  s_2e1b04b64a383c::t_7070a592328019 146-148,150-153,156
+  s_2e1b04b64a383c::t_d7292fdd2a0abd 75,98-102,104-107,109-116,149
+  s_2e1b04b64a383c::t_ad4ae566d672b2 1-74,76-97,103,108,117-145,154-155,157-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f3fa10b13c725c5b85ed7ab69993baffbc2c9f7f",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
