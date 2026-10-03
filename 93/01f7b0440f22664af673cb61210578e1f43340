@@ -1,0 +1,27 @@
+apps/web/src/styles/ui-sources.css
+  ai_agent 160,175
+apps/dashboard/src/styles/globals.css
+  s_7a0c38829ccc1e::t_f19fce271725b1 330
+apps/dashboard/src/components/providers/geo-live-provider.tsx
+  s_7a0c38829ccc1e::t_f19fce271725b1 13,17,24,118-120
+apps/dashboard/vite.config.ts
+  s_7a0c38829ccc1e::t_7900bcda44eb81 10-11
+apps/dashboard/tsconfig.json
+  s_7a0c38829ccc1e::t_7ba610dab9e93d 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9301f7b0440f22664af673cb61210578e1f43340",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
