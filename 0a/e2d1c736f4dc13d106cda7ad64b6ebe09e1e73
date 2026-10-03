@@ -1,0 +1,353 @@
+apps/agent/agent/tools/generate_content.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-2,4-6,16-56,58,64-84,92
+apps/ai-traffic-ingest/tests/fixtures/drain.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 8-11,31-32
+apps/agent/agent/lib/schemas/content-task.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 5-11
+packages/ai/src/utils/code-research-commands.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-765
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1,7,64,210-223
+apps/dashboard/messages/de.json
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3961-3964,6316-6338,6398-6407
+packages/analytics/src/cache/query-cache.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 7,18,59-80,178,210-211,217,219-235
+packages/geo-core/src/ingest/pipeline.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 12-16,31,155-156,240-246,248-249,252-255,265
+apps/dashboard/src/components/geo/journey-count-cell.tsx
+  ai_agent 2,19,25
+apps/dashboard/src/constants/geo-directions.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 301
+packages/analytics/src/utils/geo-flush-interval.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-19
+apps/dashboard/src/utils/chat-tool-icon.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3,6-8
+apps/web/src/utils/urls.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 7
+apps/web/src/content/pages/contact.md
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 19-20
+apps/dashboard/src/constants/chat-subagents.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-29
+packages/ai/src/utils/code-mode.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 19-21,27,49
+apps/agent/agent/subagents/code-researcher/tools/repository_history.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/constants/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/ai/src/prompts/code-researcher.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-22
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page-client.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 5,45
+apps/ai-traffic-ingest/src/http.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3-6,11-14,32
+apps/dashboard/src/app/api/organizations/[organizationId]/agent/[...eve]/route.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 21,119,122,158,202
+apps/dashboard/src/components/motion/table/types.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 115-116
+apps/agent/agent/subagents/code-researcher/instructions.md
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-31
+apps/agent/agent/subagents/code-researcher/tools/read_repository_file.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/lib/design-system/code-research-scenarios.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-1199
+packages/geo-core/src/ingest/batcher.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-366
+packages/ai/src/integrations/github.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 40,200-201,218-221,1728-1732,1738,1744-1745,1782-1786,1800-1803,1849-1851
+packages/ai/src/tools/code-researcher.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-270
+apps/agent/agent/subagents/content-writer/instructions.md
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 13,17-26
+apps/dashboard/src/lib/hooks/use-geo-scan-history.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 4-6,15,34-36,54
+apps/dashboard/src/workflows/steps/geo-scan-steps.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3,40-54,101-108,152,157-158,170,175-176,188,193-194,222-227
+apps/dashboard/src/lib/api-keys/presets.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 12
+packages/analytics/src/tinybird/purge.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 5,145-148
+apps/ai-traffic-ingest/package.json
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 14
+apps/agent/agent/subagents/code-researcher/hooks/usage.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-5
+apps/dashboard/src/components/design-system/design-system-nav.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 10
+packages/ai/src/types/standalone-chat.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 34-35
+packages/tools/src/code-research/open-repository.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-66
+apps/dashboard/src/lib/design-system/code-research-playback.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-199
+apps/dashboard/src/components/motion/table/index.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 81,315
+packages/db/package.json
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 24
+apps/dashboard/src/types/table.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 118
+apps/web/src/lib/feedback-md/markdown.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 32
+packages/db/src/utils/geo-checks.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 49-52,61-82,84-86,394-397,405-432,452-464,466-478,638-642,690-703,716-729,815-827,848-866,909-921,941-965,992-1005
+packages/ai/src/prompts/standalone-chat.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 22,46-49,97
+apps/dashboard/src/components/motion/table/table-body.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 34,84
+packages/analytics/src/tinybird/demo-geo-traffic.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 284-288
+packages/tools/src/code-research/show-repository-change.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-16
+apps/ai-traffic-ingest/src/index.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 2-4,9,23-31,39,89-98
+apps/dashboard/src/app/(dashboard)/[slug]/api-keys/page.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 283
+apps/dashboard/messages/en.json
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3961-3964,6316-6338,6398-6407
+packages/ai/src/types/github-operations.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 144-159
+packages/analytics/src/constants/cache.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 6-21,29-30
+apps/dashboard/src/constants/design-system-code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-134
+apps/dashboard/src/types/design-system/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-152
+apps/dashboard/src/types/components/chat-subagent-block.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-43
+packages/ai/src/utils/tool-error-payload.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 36-57,68-73,76-77,79,81-88,90-92
+apps/dashboard/src/constants/chat-tool-icons.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-42
+packages/db/src/constants/geo-check-cache.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 6-10,18-24
+apps/dashboard/src/types/agent.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 20
+packages/ai/src/utils/code-researcher-steps.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-125
+apps/agent/agent/subagents/code-researcher/tools/get_commits_by_timeframe.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/components/ai/chat-subagent-block.tsx
+  ai_agent 16
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-15,17-222
+apps/agent/agent/channels/eve.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 14,19,50
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 7-8,67,181,183-185,193,802-807,811,818,831,842,855,866
+packages/ai/src/types/orchestration.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 201-203
+apps/web/src/utils/navigation.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 87,121
+apps/dashboard/src/components/ai/chat-tool-block.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 375-405,408-443
+apps/dashboard/src/components/motion/table/table-body-row.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 27,49,83-84
+apps/dashboard/src/styles/globals.css
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 258-366
+apps/agent/agent/subagents/code-researcher/tools/web_fetch.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/ai/src/utils/tool-error-payload.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-72
+packages/ai/src/types/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-89
+apps/dashboard/src/components/content/content-chat-activity-panel.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 47,68,105-115,266,282-302,346,588
+packages/ai/src/types/prompts.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 65
+README.md
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 15,44
+apps/dashboard/src/lib/realtime/channel-acl.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 9,76-79
+apps/dashboard/src/components/geo/ai-traffic-log-card.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 51,71-76
+packages/ai/src/utils/code-research-box.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-200
+apps/dashboard/src/components/providers/geo-live-provider.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-140
+packages/db/src/utils/geo-persona-checks.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 11,133-141,143-157,159-161
+apps/dashboard/src/components/geo/traffic-pages-card.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 17,107,109
+apps/agent/agent/subagents/content-writer/agent.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 12
+packages/ai/src/orchestration/orchestrate-standalone.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1,145-146,200
+apps/dashboard/src/components/design-system/code-research-sandbox-panel.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-262
+apps/agent/agent/subagents/code-researcher/tools/open_repository.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/ai/src/utils/code-research-actions.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-287
+apps/web/src/utils/site-markdown.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 154
+packages/geo-core/src/utils/geo-live.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-26
+apps/dashboard/src/components/geo/ai-traffic-card.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 17,162,182
+apps/dashboard/src/components/geo/geo-live-indicator.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-7,9-50
+  s_7a0c38829ccc1e::t_e7c541748c814f 8
+packages/ai/src/utils/code-research-commands.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-350
+packages/geo-core/src/constants/ingest.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 20-31
+apps/agent/agent/subagents/code-researcher/tools/web_search.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/lib/agent/client.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 6,101-102
+apps/dashboard/src/utils/chat-tool-icon.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 6-7,22-26,29
+packages/ai/src/billing/code-research-billing.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-72
+packages/geo-core/src/constants/geo.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1065-1098
+bun.lock
+  ai_agent 68,476
+apps/ai-traffic-ingest/src/constants/server.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3-7
+apps/agent/agent/subagents/code-researcher/tools/show_repository_change.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/agent/agent/subagents/code-researcher/tools/bash.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/constants/geo-citations.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-5
+packages/tools/src/code-research/list-repository-files.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-16
+apps/dashboard/src/components/geo/engine-rate-table.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 13,61-65,67,154-158,160,162,190-194,196
+apps/dashboard/src/lib/agent/content-task.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 9,45-47,59
+packages/ai/src/schemas/code-research-tools.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-119
+apps/dashboard/src/utils/geo-live.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-35
+apps/web/src/routes/robots[.]txt.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 3,10
+apps/dashboard/src/utils/geo-citations.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 84-136
+apps/web/src/constants/landing/footer.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 76,81
+apps/web/vite.config.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 12,98-108
+packages/tools/src/code-research/search-repository.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-16
+apps/dashboard/src/types/geo.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 187-197,930-934
+packages/geo-core/src/geo/projects.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 4,295-297
+apps/dashboard/src/components/geo/citations-table.tsx
+  ai_agent 17,25-28,36-37,232,239-283,345-351
+apps/agent/agent/subagents/code-researcher/tools/get_pull_requests.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/ai/src/constants/agent.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 16
+apps/dashboard/src/components/design-system/code-research-playground.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-439
+apps/dashboard/src/utils/geo-scan-results.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 11-29
+apps/dashboard/src/app/api/realtime/route.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 2-3,24,29-33
+turbo.json
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 93-94
+apps/agent/agent/subagents/code-researcher/tools/write_file.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/agent/agent/subagents/code-researcher/tools/list_repository_files.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/constants/agent-feedback.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 25
+packages/ai/src/constants/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-130
+.env.example
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 66-67,69-70
+apps/dashboard/src/app/design-system/code-research/page.dev.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-5
+packages/geo-core/src/types/ingest.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 8-18
+packages/tools/src/utils/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-35
+packages/geo-core/src/ingest/handler.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 9-13,72-73,81
+packages/geo-core/src/ingest/live.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-153
+apps/agent/agent/subagents/code-researcher/agent.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-14
+apps/dashboard/src/components/ai/chat-subagent-tool-part.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-60
+apps/dashboard/src/utils/chat-subagents.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-72
+apps/dashboard/src/utils/chat-subagents.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-82
+apps/web/src/constants/contact.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 52,59
+packages/ai/src/utils/code-research-session.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-448
+apps/agent/agent/instructions.md
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 16-18
+apps/agent/agent/subagents/code-researcher/tools/search_repository.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/dashboard/src/components/ai/chat-activity-group.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 137-139
+apps/dashboard/src/workflows/steps/chat-steps.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 45,179,182,272-273
+packages/tools/src/utils/session.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 4,31
+packages/ai/src/schemas/code-research.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-79
+packages/analytics/src/cache/query-cache.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 45-46,124-143
+apps/agent/agent/subagents/code-researcher/tools/read_file.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/db/src/utils/geo-check-cache.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-109
+packages/geo-core/src/geo/sample-data.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 24,536-537
+packages/ai/src/constants/repo-image.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 12-13
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 66,169,2078,2482-2491,2689-2691,2807,2810-2811,2857
+apps/dashboard/src/lib/code-research/flag.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-60
+packages/analytics/src/tinybird/pipes/geo-traffic.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 249-262,287-290,306-315,317
+apps/agent/agent/subagents/code-researcher/tools/ask_question.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+apps/agent/agent/subagents/code-researcher/tools/get_available_integrations.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-3
+packages/ai/src/realtime.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 11-19
+packages/geo-core/src/types/geo-live.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-10
+packages/tools/src/code-research/read-repository-file.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-16
+packages/tools/src/code-research/repository-history.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-16
+apps/dashboard/src/components/design-system/use-code-research-playback.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-113
+packages/geo-core/tests/ingest-pipeline.test.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 156-182
+apps/dashboard/src/constants/chat-tool-labels.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 5-19
+packages/geo-core/src/geo/live.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 1-158
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_7a0c38829ccc1e::t_378902bd16549c 18,137-138,144-152
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/page-client.tsx
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 18,90-93
+apps/dashboard/src/components/geo/journey-stat-card.tsx
+  ai_agent 1,53,58
+apps/web/src/constants/proxy.ts
+  s_7a0c38829ccc1e::t_fc0b9df26e07d9 49-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0ae2d1c736f4dc13d106cda7ad64b6ebe09e1e73",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
