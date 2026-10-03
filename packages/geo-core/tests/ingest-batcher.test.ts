@@ -65,27 +65,52 @@ describe("createGeoEventBatcher", () => {
     expect(geoLogError).toHaveBeenCalledTimes(1);
   });
 
-  test("drops rejected payloads instead of blocking later events", async () => {
+  test("isolates a rejected row instead of dropping its whole chunk", async () => {
     const rejection = Object.assign(new Error("Invalid row"), {
       statusCode: 400,
     });
-    const write = mock(async (rows: GeoTrafficEventRow[]) => {
-      if (rows[0]?.request_id === "bad") {
-        throw rejection;
-      }
-      return STORED;
-    });
+    const written: string[] = [];
     const batcher = createGeoEventBatcher({
       intervalMs: 0,
-      maxRowsPerWrite: 1,
-      write,
+      write: async (rows) => {
+        if (rows.some((row) => row.request_id === "bad")) {
+          throw rejection;
+        }
+        written.push(...rows.map((row) => row.request_id));
+        return STORED;
+      },
     });
-    batcher.enqueue(event("bad"));
-    batcher.enqueue(event("good"));
+    for (const id of ["a", "b", "bad", "c"]) {
+      batcher.enqueue(event(id));
+    }
     await batcher.flush();
 
-    expect(write).toHaveBeenCalledTimes(2);
+    expect(written.toSorted()).toEqual(["a", "b", "c"]);
     expect(batcher.size()).toBe(0);
+  });
+
+  test("keeps every acknowledged row when a retry overfills the buffer", async () => {
+    let fail = true;
+    const batcher = createGeoEventBatcher({
+      intervalMs: 0,
+      maxBufferedEvents: 2,
+      write: async () => {
+        if (fail) {
+          throw new TypeError("fetch failed");
+        }
+        return STORED;
+      },
+    });
+    batcher.enqueue(event("a"));
+    batcher.enqueue(event("b"));
+    const flushing = batcher.flush();
+    batcher.enqueue(event("c"));
+    batcher.enqueue(event("d"));
+    await flushing;
+
+    expect(batcher.size()).toBe(4);
+    expect(batcher.enqueue(event("e"))).toBe(false);
+    fail = false;
   });
 
   test("expedites only the watched organization and reports what was written", async () => {
@@ -107,6 +132,53 @@ describe("createGeoEventBatcher", () => {
     expect(write).toHaveBeenCalledTimes(1);
     expect(written).toEqual([["a1", "a2"]]);
     expect(batcher.size()).toBe(1);
+  });
+
+  test("retries a failed live write without waiting for the window", async () => {
+    let attempts = 0;
+    const batcher = createGeoEventBatcher({
+      intervalMs: 0,
+      liveFlushDelayMs: 0,
+      liveRetryDelayMs: 0,
+      write: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new TypeError("fetch failed");
+        }
+        return STORED;
+      },
+    });
+    batcher.enqueue(event("a", "org_live"));
+    batcher.expedite("org_live");
+    await tick(30);
+
+    expect(attempts).toBe(2);
+    expect(batcher.size()).toBe(0);
+  });
+
+  test("shutdown waits for a live write that is still in flight", async () => {
+    let finish: () => void = () => {};
+    let done = false;
+    const batcher = createGeoEventBatcher({
+      intervalMs: 0,
+      liveFlushDelayMs: 0,
+      write: () =>
+        new Promise((resolve) => {
+          finish = () => {
+            done = true;
+            resolve(STORED);
+          };
+        }),
+    });
+    batcher.enqueue(event("a", "org_live"));
+    batcher.expedite("org_live");
+    await tick();
+    const stopping = batcher.stop();
+    await tick();
+    expect(done).toBe(false);
+    finish();
+    await stopping;
+    expect(done).toBe(true);
   });
 
   test("refuses events once the buffer is full", () => {

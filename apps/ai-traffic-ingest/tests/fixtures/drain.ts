@@ -4,7 +4,6 @@ import type { GeoIngestDefer } from "@notra/geo-core/types/ingest";
 
 mock.module("../../src/utils/config", () => ({
   missingIngestEnvironment: () => [],
-  ingestFlushIntervalMs: () => 0,
 }));
 mock.module("@notra/ai/evlog", () => ({
   flushGeoLog: async () => {},
@@ -29,4 +28,6 @@ mock.module("../../src/http", () => ({
 }));
 
 let started = false;
+// Per-event writes: the fixture has no Tinybird and no buffer to drain.
+process.env.GEO_INGEST_FLUSH_INTERVAL_MS = "0";
 await import("../../src/index");

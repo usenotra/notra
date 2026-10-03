@@ -4,7 +4,6 @@ import { Effect } from "effect";
 import {
   EXTERNAL_CACHE_KEY_PREFIX,
   EXTERNAL_CACHE_TTL_SECONDS,
-  GEO_TRAFFIC_FLUSH_INTERVAL_MS,
   GEO_TRAFFIC_FLUSH_SETTLE_MS,
   GLOBAL_SCOPE_ID,
   INITIAL_CACHE_VERSION,
@@ -16,6 +15,7 @@ import {
   VERSIONED_CACHE_SCOPES,
 } from "../constants/cache";
 import type { AnalyticsCacheScope, CachedQueryOptions } from "../types/cache";
+import { getGeoTrafficFlushIntervalMs } from "../utils/geo-flush-interval";
 import { getAnalyticsRedis } from "./redis";
 
 function versionKey(
@@ -59,13 +59,18 @@ function stableParams(params: Record<string, unknown>): string {
 /**
  * Seconds until the next geo flush window has settled. Entries cached right
  * after a boundary but before the batch is readable expire at the settle
- * point, so the new batch is never hidden for a whole window.
+ * point, so the new batch is never hidden for a whole window. Without
+ * batching, entries keep the plain live TTL.
  */
-export function geoLiveTtlSeconds(now: number = Date.now()): number {
-  const boundary =
-    now - (now % GEO_TRAFFIC_FLUSH_INTERVAL_MS) + GEO_TRAFFIC_FLUSH_SETTLE_MS;
-  const expiresAt =
-    boundary > now ? boundary : boundary + GEO_TRAFFIC_FLUSH_INTERVAL_MS;
+export function geoLiveTtlSeconds(
+  now: number = Date.now(),
+  intervalMs: number = getGeoTrafficFlushIntervalMs()
+): number {
+  if (intervalMs <= 0) {
+    return LIVE_QUERY_CACHE_TTL_SECONDS;
+  }
+  const boundary = now - (now % intervalMs) + GEO_TRAFFIC_FLUSH_SETTLE_MS;
+  const expiresAt = boundary > now ? boundary : boundary + intervalMs;
   return Math.max(1, Math.ceil((expiresAt - now) / 1000));
 }
 
@@ -202,20 +207,32 @@ export function bumpAnalyticsVersions(
 // entry is stamped with the generation at write time and only served while
 // it matches, which makes the bump O(1) and race-free: an in-flight
 // pre-purge fetch writes the old generation and readers reject it after the
-// bump. Errors are swallowed — worst case, entries stay readable until they
-// expire (the next geo flush window, or LIVE_QUERY_CACHE_TTL_SECONDS).
-export function bumpPurgeGeneration(
+// bump.
+export async function advancePurgeGeneration(
   scope: AnalyticsCacheScope,
   organizationId: string | null
 ): Promise<void> {
   const redis = getAnalyticsRedis();
   if (!redis || VERSIONED_CACHE_SCOPES.has(scope)) {
-    return Promise.resolve();
+    return;
   }
-  const program = Effect.tryPromise(() =>
-    redis.incr(purgeGenerationKey(scope, organizationId))
-  ).pipe(Effect.ignore);
-  return Effect.runPromise(program);
+  await redis.incr(purgeGenerationKey(scope, organizationId));
+}
+
+/**
+ * Best-effort `advancePurgeGeneration` for freshness signals: errors are
+ * swallowed, so entries stay readable until they expire. Deletions must use
+ * `advancePurgeGeneration` and fail instead.
+ */
+export function bumpPurgeGeneration(
+  scope: AnalyticsCacheScope,
+  organizationId: string | null
+): Promise<void> {
+  return Effect.runPromise(
+    Effect.tryPromise(() => advancePurgeGeneration(scope, organizationId)).pipe(
+      Effect.ignore
+    )
+  );
 }
 
 export function cachedExternalFetch<TResult>(

@@ -133,6 +133,10 @@ describe("geoLiveTtlSeconds", () => {
     expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 5000)).toBe(15);
   });
 
+  test("falls back to the plain live TTL without batching", () => {
+    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 1), 0)).toBe(30);
+  });
+
   test("entries cached right after settling last the whole window", () => {
     expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 20_000)).toBe(
       (5 * minute) / 1000

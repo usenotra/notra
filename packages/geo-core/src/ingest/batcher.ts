@@ -4,8 +4,10 @@ import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
 
 import {
   GEO_INGEST_FLUSH_MAX_ROWS,
-  GEO_INGEST_LIVE_FLUSH_DELAY_MS,
   GEO_INGEST_FLUSH_TIMEOUT_MS,
+  GEO_INGEST_LIVE_FLUSH_DELAY_MS,
+  GEO_INGEST_LIVE_MAX_RETRIES,
+  GEO_INGEST_LIVE_RETRY_DELAY_MS,
   GEO_INGEST_MAX_BUFFERED_EVENTS,
 } from "../constants/ingest";
 import {
@@ -24,9 +26,16 @@ interface GeoEventBatcherOptions {
   onWritten?: (rows: GeoTrafficEventRow[]) => void;
   now?: () => number;
   liveFlushDelayMs?: number;
+  liveRetryDelayMs?: number;
 }
 
 type GeoFlushTrigger = "window" | "live" | "shutdown";
+
+interface GeoWriteCounts {
+  written: number;
+  quarantined: number;
+  rejected: number;
+}
 
 export interface GeoEventBatcher {
   enqueue: (event: GeoTrafficEventRow) => boolean;
@@ -36,7 +45,7 @@ export interface GeoEventBatcher {
    */
   expedite: (organizationId: string) => void;
   flush: () => Promise<void>;
-  /** Stops the flush timer and writes whatever is still buffered. */
+  /** Stops the timers and writes whatever is still buffered or in flight. */
   stop: () => Promise<void>;
   size: () => number;
 }
@@ -44,7 +53,7 @@ export interface GeoEventBatcher {
 /** A write that may succeed if tried again later. */
 class RetryableWriteError extends Error {}
 
-// Tinybird rejected the payload itself; resending it can never succeed.
+// Tinybird rejected the payload itself; resending it unchanged never works.
 const PERMANENT_STATUS_CODES = new Set([400, 413, 422]);
 
 /**
@@ -99,9 +108,10 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
  * written within about a second, so live views only cost active minutes
  * while they are open.
  *
- * Failed writes go back to the front of the buffer and retry on the next
- * boundary. The buffer is bounded; when full, `enqueue` refuses the event so
- * the caller can write it directly instead of losing it.
+ * Every buffered event was already acknowledged, so none is dropped on a
+ * retryable failure: rows go back to the front of the buffer, which may then
+ * exceed its bound. The bound only makes `enqueue` refuse new events, which
+ * the caller writes directly instead.
  */
 export function createGeoEventBatcher(
   options: GeoEventBatcherOptions
@@ -114,13 +124,16 @@ export function createGeoEventBatcher(
     onWritten,
     now = Date.now,
     liveFlushDelayMs = GEO_INGEST_LIVE_FLUSH_DELAY_MS,
+    liveRetryDelayMs = GEO_INGEST_LIVE_RETRY_DELAY_MS,
   } = options;
 
   let buffer: GeoTrafficEventRow[] = [];
-  let inFlight: Promise<void> | null = null;
+  let windowFlush: Promise<void> | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let stopped = false;
   const liveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  const liveAttempts = new Map<string, number>();
+  const liveWrites = new Set<Promise<boolean>>();
 
   function notifyWritten(rows: GeoTrafficEventRow[]) {
     try {
@@ -130,110 +143,167 @@ export function createGeoEventBatcher(
     }
   }
 
+  /**
+   * Writes one chunk. A rejected payload is split in halves until the rows
+   * Tinybird refuses are isolated, so one bad row (or an oversized chunk)
+   * never takes valid events down with it. Retryable errors propagate.
+   */
+  async function writeChunk(
+    chunk: GeoTrafficEventRow[],
+    context: Record<string, unknown>
+  ): Promise<GeoWriteCounts> {
+    try {
+      const result = await withTimeout(
+        write(chunk),
+        GEO_INGEST_FLUSH_TIMEOUT_MS
+      );
+      if (!result) {
+        throw new RetryableWriteError("Tinybird is not configured");
+      }
+      notifyWritten(chunk);
+      return {
+        written: result.successful_rows,
+        quarantined: result.quarantined_rows,
+        rejected: 0,
+      };
+    } catch (error) {
+      if (isRetryable(error)) {
+        throw error;
+      }
+      if (chunk.length === 1) {
+        geoLog.error({
+          event: "geo.ingest.flush",
+          outcome: "rejected",
+          rows: 1,
+          organizationId: chunk[0]?.organization_id,
+          errorMessage: errorMessage(error),
+          ...context,
+        });
+        return { written: 0, quarantined: 0, rejected: 1 };
+      }
+      const middle = Math.ceil(chunk.length / 2);
+      const left = await writeChunk(chunk.slice(0, middle), context);
+      const right = await writeChunk(chunk.slice(middle), context);
+      return {
+        written: left.written + right.written,
+        quarantined: left.quarantined + right.quarantined,
+        rejected: left.rejected + right.rejected,
+      };
+    }
+  }
+
+  /** Resolves to false when a retryable failure put rows back in the buffer. */
   async function writeAll(
     rows: GeoTrafficEventRow[],
     trigger: GeoFlushTrigger
-  ): Promise<void> {
+  ): Promise<boolean> {
     const startedAt = performance.now();
     const context = {
       trigger,
       runtime: getGeoIngestRuntime(),
       region: getGeoIngestRegion(),
     };
-    let written = 0;
-    let quarantined = 0;
-    let rejected = 0;
+    const totals: GeoWriteCounts = { written: 0, quarantined: 0, rejected: 0 };
     for (let start = 0; start < rows.length; start += maxRowsPerWrite) {
-      const chunk = rows.slice(start, start + maxRowsPerWrite);
       try {
-        const result = await withTimeout(
-          write(chunk),
-          GEO_INGEST_FLUSH_TIMEOUT_MS
+        const counts = await writeChunk(
+          rows.slice(start, start + maxRowsPerWrite),
+          context
         );
-        if (!result) {
-          throw new RetryableWriteError("Tinybird is not configured");
-        }
-        written += result.successful_rows;
-        quarantined += result.quarantined_rows;
-        notifyWritten(chunk);
+        totals.written += counts.written;
+        totals.quarantined += counts.quarantined;
+        totals.rejected += counts.rejected;
       } catch (error) {
-        if (!isRetryable(error)) {
-          rejected += chunk.length;
-          geoLog.error({
-            event: "geo.ingest.flush",
-            outcome: "rejected",
-            rows: chunk.length,
-            errorMessage: errorMessage(error),
-            ...context,
-          });
-          continue;
-        }
         // At-least-once: a timed-out write may still land, so a retry can
-        // duplicate rows; losing them is the worse outcome for analytics.
-        // Rows that arrived during the write sit behind the retried ones,
-        // and overflow drops the oldest events.
-        const retry = [...rows.slice(start), ...buffer];
-        const dropped = Math.max(0, retry.length - maxBufferedEvents);
-        buffer = retry.slice(dropped);
+        // duplicate rows; losing acknowledged ones is the worse outcome.
+        // Rows that arrived during the write sit behind the retried ones.
+        buffer = [...rows.slice(start), ...buffer];
         geoLog.error({
           event: "geo.ingest.flush",
           outcome: "failed",
           rows: rows.length,
-          written,
+          written: totals.written,
           retrying: buffer.length,
-          dropped,
           errorMessage: errorMessage(error),
           durationMs: Math.round(performance.now() - startedAt),
           ...context,
         });
-        return;
+        return false;
       }
     }
     const fields = {
       event: "geo.ingest.flush",
       rows: rows.length,
-      written,
-      quarantined,
-      rejected,
+      ...totals,
       durationMs: Math.round(performance.now() - startedAt),
       ...context,
     } as const;
     // Quarantined or rejected rows failed Tinybird's checks and would fail
     // again, so they are reported instead of retried.
-    if (quarantined > 0 || rejected > 0) {
+    if (totals.quarantined > 0 || totals.rejected > 0) {
       geoLog.error({ ...fields, outcome: "partial" });
     } else {
       geoLog.info({ ...fields, outcome: "written" });
     }
+    return true;
   }
 
   function flush(trigger: GeoFlushTrigger = "window"): Promise<void> {
-    if (inFlight) {
-      return inFlight;
+    if (windowFlush) {
+      return windowFlush;
     }
     if (buffer.length === 0) {
       return Promise.resolve();
     }
     const rows = buffer;
     buffer = [];
-    inFlight = writeAll(rows, trigger).finally(() => {
-      inFlight = null;
-    });
-    return inFlight;
+    windowFlush = writeAll(rows, trigger)
+      .then(() => undefined)
+      .finally(() => {
+        windowFlush = null;
+      });
+    return windowFlush;
   }
 
-  function flushOrganization(organizationId: string): Promise<void> {
-    liveTimers.delete(organizationId);
+  function scheduleLiveFlush(organizationId: string, delayMs: number) {
+    if (stopped || liveTimers.has(organizationId)) {
+      return;
+    }
+    liveTimers.set(
+      organizationId,
+      setTimeout(() => {
+        liveTimers.delete(organizationId);
+        flushOrganization(organizationId);
+      }, delayMs)
+    );
+  }
+
+  function flushOrganization(organizationId: string) {
     const rows: GeoTrafficEventRow[] = [];
     const rest: GeoTrafficEventRow[] = [];
     for (const row of buffer) {
       (row.organization_id === organizationId ? rows : rest).push(row);
     }
     if (rows.length === 0) {
-      return Promise.resolve();
+      liveAttempts.delete(organizationId);
+      return;
     }
     buffer = rest;
-    return writeAll(rows, "live");
+    const writing = writeAll(rows, "live");
+    liveWrites.add(writing);
+    writing
+      .then((written) => {
+        // A transient failure must not leave an open live view waiting for
+        // the next window; retry a few times before falling back to it.
+        const attempts = written ? 0 : (liveAttempts.get(organizationId) ?? 0);
+        if (written || attempts >= GEO_INGEST_LIVE_MAX_RETRIES) {
+          liveAttempts.delete(organizationId);
+          return;
+        }
+        liveAttempts.set(organizationId, attempts + 1);
+        scheduleLiveFlush(organizationId, liveRetryDelayMs);
+      })
+      .finally(() => liveWrites.delete(writing));
   }
 
   function schedule() {
@@ -259,17 +329,7 @@ export function createGeoEventBatcher(
     },
     expedite(organizationId) {
       // One pending write per organization absorbs a burst of requests.
-      if (stopped || liveTimers.has(organizationId)) {
-        return;
-      }
-      liveTimers.set(
-        organizationId,
-        setTimeout(() => {
-          flushOrganization(organizationId).catch((error) => {
-            console.error("[geo-ingest] Live flush failed", error);
-          });
-        }, liveFlushDelayMs)
-      );
+      scheduleLiveFlush(organizationId, liveFlushDelayMs);
     },
     flush: () => flush(),
     async stop() {
@@ -279,7 +339,9 @@ export function createGeoEventBatcher(
         clearTimeout(liveTimer);
       }
       liveTimers.clear();
-      await inFlight;
+      // Live writes hold rows outside the buffer; a failed one puts them
+      // back, so the final flush below covers it.
+      await Promise.all([windowFlush, ...liveWrites]);
       await flush("shutdown");
     },
     size: () => buffer.length,

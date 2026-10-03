@@ -65,6 +65,7 @@
       "name": "ai-traffic-ingest",
       "dependencies": {
         "@notra/ai": "workspace:*",
+        "@notra/analytics": "workspace:*",
         "@notra/geo-core": "workspace:*",
         "hono": "^4.12.30",
       },
