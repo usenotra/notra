@@ -45,6 +45,11 @@ export interface FixtureBrand {
 
 export type ContentDecision = "create" | "skip";
 
+export interface MustMention {
+  readonly fact: string;
+  readonly pattern: RegExp;
+}
+
 export interface ContentScenario {
   id: string;
   title: string;
@@ -65,6 +70,11 @@ export interface ContentScenario {
     keyFacts: string[];
     /** Internal details that should not show up in the post. */
     avoid: string[];
+    /**
+     * Facts every long-form post must state (breaking changes, required
+     * actions), checked by pattern. Tweets are exempt because of their length.
+     */
+    mustMention?: readonly MustMention[];
   };
 }
 
@@ -404,6 +414,12 @@ export const CONTENT_SCENARIOS: readonly ContentScenario[] = [
         "Version 3.0",
       ],
       avoid: [],
+      mustMention: [
+        {
+          fact: "Docker Compose v1 is no longer supported",
+          pattern: /compose (?:v|version )?1\b|compose v2|compose version 2/i,
+        },
+      ],
     },
   },
   {
