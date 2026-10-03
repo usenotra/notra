@@ -13,6 +13,7 @@ import type {
   PostConcurrentModificationError,
   PostGenerationJobNotFoundError,
   PostGenerationQueueFailedError,
+  PostGenerationTargetUnavailableError,
   PostInvalidMarkdownError,
   PostNotFoundError,
   PostSlugDuplicateError,
@@ -43,7 +44,8 @@ export type PostDomainError =
   | PostSlugDuplicateError
   | PostConcurrentModificationError
   | PostGenerationJobNotFoundError
-  | PostGenerationQueueFailedError;
+  | PostGenerationQueueFailedError
+  | PostGenerationTargetUnavailableError;
 
 interface PostProgramInput {
   db: DbClient;

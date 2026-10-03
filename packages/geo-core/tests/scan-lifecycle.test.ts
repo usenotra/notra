@@ -10,6 +10,7 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
+import type { ContentBillingReservation } from "@notra/ai/types/billing";
 import { brandSettings, geoScans, geoSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Exit } from "effect";
@@ -18,12 +19,21 @@ import {
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
   GEO_SCAN_DUE_LIMIT_PER_SWEEP,
   GEO_SCAN_START_LEASE_MS,
+  GEO_SCAN_START_RETRY_WINDOW_MS,
   GEO_SCAN_STALE_MS,
 } from "../src/constants/geo";
-import { GeoContentBillingService, GeoWorkflowService } from "../src/deps";
+import {
+  GeoContentBillingService,
+  GeoEntitlementService,
+  GeoWorkflowService,
+} from "../src/deps";
 import { GeoScanError } from "../src/geo/errors";
 import { buildGeoPrompts } from "../src/geo/prompts";
-import type { GeoWorkflowServiceShape } from "../src/types/deps";
+import type { FinalizeContentBillingInput } from "../src/types/content-billing";
+import type {
+  GeoEntitlementServiceShape,
+  GeoWorkflowServiceShape,
+} from "../src/types/deps";
 import { EMPTY_AGENT_TOKEN_USAGE } from "../src/utils/token-usage";
 import {
   initializeDatabase,
@@ -53,6 +63,15 @@ const {
   withGeoScanRun,
 } = await import("../src/geo/scan-status");
 
+const ALLOWED_GATE: ContentBillingReservation = {
+  allowed: true,
+  mode: "unmetered",
+  featureId: null,
+  reserved: false,
+  lockId: null,
+  useMarkup: false,
+};
+
 const startWorkflow = mock<GeoWorkflowServiceShape["startGeoScanRun"]>(() =>
   Effect.succeed({ runId: "workflow-test" })
 );
@@ -61,10 +80,18 @@ const workflows: GeoWorkflowServiceShape = {
   startGeoWriterRun: () => Effect.die("Unexpected writer workflow"),
   startAgentReadinessRun: () => Effect.die("Unexpected readiness workflow"),
 };
+const checkScanBilling = mock<GeoEntitlementServiceShape["checkScanBilling"]>(
+  () => Effect.succeed(ALLOWED_GATE)
+);
+const entitlements: GeoEntitlementServiceShape = {
+  resolveZdrEntitlement: () => Effect.succeed("unknown"),
+  checkScanBilling,
+};
 const sweep = () =>
   Effect.runPromise(
     runGeoScanCronSweep().pipe(
-      Effect.provideService(GeoWorkflowService, workflows)
+      Effect.provideService(GeoWorkflowService, workflows),
+      Effect.provideService(GeoEntitlementService, entitlements)
     )
   );
 
@@ -89,6 +116,8 @@ beforeEach(async () => {
   startWorkflow.mockImplementation(() =>
     Effect.succeed({ runId: "workflow-test" })
   );
+  checkScanBilling.mockReset();
+  checkScanBilling.mockImplementation(() => Effect.succeed(ALLOWED_GATE));
   cleanupBoxes.mockReset();
   cleanupBoxes.mockImplementation(async () => undefined);
 });
@@ -190,6 +219,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -237,6 +267,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -305,6 +336,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 1,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -572,6 +604,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 1,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -590,15 +623,21 @@ describe("scheduled GEO scans", () => {
       failedStage: "handoff",
       retryable: null,
     });
-    // The slot was already more than an interval overdue, so it is given up
-    // rather than retried, and the row is no longer due.
+    // Even an old slot stays due: a refused hand-off did not run a scan.
     const refused = await settingsFor("refused");
-    expect(refused?.scanLeaseUntil).toBeNull();
-    expect(refused?.nextScanAt?.getTime()).toBeGreaterThan(Date.now());
+    expect(refused?.scanLeaseUntil?.getTime()).toBeGreaterThan(
+      Date.now() + GEO_SCAN_STALE_MS - 60_000
+    );
+    expect(refused?.nextScanAt).toEqual(new Date(0));
     expect((await sweep()).due).toBe(0);
+    await expireGeoScanLease("refused");
+    expect(await sweep()).toMatchObject({ due: 1, started: 1, failed: 0 });
+    expect(
+      (await settingsFor("refused"))?.nextScanAt?.getTime()
+    ).toBeGreaterThan(Date.now());
   });
 
-  test("a persistently refused hand-off backs off to the stale window and finally gives up the slot", async () => {
+  test("a persistently refused hand-off backs off without giving up the slot", async () => {
     const anchor = wholeMinutesAgo(30);
     await seedProject("refusing", { nextScanAt: anchor });
     startWorkflow.mockImplementation(() =>
@@ -625,19 +664,132 @@ describe("scheduled GEO scans", () => {
       await expireGeoScanLease("refusing");
     }
 
-    // Once the slot is a whole interval overdue the sweep stops retrying it
-    // and moves to the next slot on the cadence.
+    // Even after a whole interval, it continues retrying this slot.
     const overdue = new Date(anchor.getTime() - DAY_MS);
     await testDb
       .update(geoSettings)
       .set({ nextScanAt: overdue, scanLeaseUntil: null })
       .where(eq(geoSettings.projectId, "refusing"));
     expect(await sweep()).toMatchObject({ due: 1, started: 0, failed: 1 });
-    const abandoned = await settingsFor("refusing");
-    expect(abandoned?.scanLeaseUntil).toBeNull();
-    expect(abandoned?.nextScanAt).toEqual(nextGeoScanAtAfter(24, overdue));
+    const retrying = await settingsFor("refusing");
+    expect(retrying?.scanLeaseUntil?.getTime()).toBeGreaterThan(Date.now());
+    expect(retrying?.nextScanAt).toEqual(overdue);
     expect((await sweep()).due).toBe(0);
     expect(startWorkflow).toHaveBeenCalledTimes(4);
+    startWorkflow.mockImplementation(() =>
+      Effect.succeed({ runId: "workflow-recovered" })
+    );
+    await expireGeoScanLease("refusing");
+    expect(await sweep()).toMatchObject({ due: 1, started: 1 });
+    expect((await settingsFor("refusing"))?.nextScanAt).toEqual(
+      nextGeoScanAtAfter(24, overdue)
+    );
+  });
+
+  test("gives up a slot after 12 hours of failed starts, but retries the next scheduled slot", async () => {
+    const firstAttemptAt = new Date();
+    const anchor = wholeMinutesAgo(60);
+    await seedProject("exhausted", { nextScanAt: anchor });
+    startWorkflow.mockImplementation(() =>
+      Effect.fail(
+        Object.assign(new Error("503"), { name: "InternalDashboardError" })
+      )
+    );
+    try {
+      expect((await sweep()).failed).toBe(1);
+
+      setSystemTime(
+        new Date(
+          firstAttemptAt.getTime() + GEO_SCAN_START_RETRY_WINDOW_MS - 60_000
+        )
+      );
+      await expireGeoScanLease("exhausted");
+      expect((await sweep()).failed).toBe(1);
+      expect((await settingsFor("exhausted"))?.nextScanAt).toEqual(anchor);
+
+      setSystemTime(
+        new Date(
+          firstAttemptAt.getTime() + GEO_SCAN_START_RETRY_WINDOW_MS + 60_000
+        )
+      );
+      await expireGeoScanLease("exhausted");
+      expect(await sweep()).toMatchObject({ due: 1, started: 0, failed: 1 });
+      const settings = await settingsFor("exhausted");
+      expect(settings?.lastScanAt).toBeNull();
+      expect(settings?.scanLeaseUntil).toBeNull();
+      expect(settings?.nextScanAt).toEqual(nextGeoScanAtAfter(24, anchor));
+      expect(
+        (
+          await testDb.query.geoScans.findMany({
+            where: eq(geoScans.projectId, "exhausted"),
+          })
+        ).some((scan) => scan.errorCode === "scan_retry_exhausted")
+      ).toBe(true);
+      expect((await sweep()).due).toBe(0);
+      startWorkflow.mockImplementation(() =>
+        Effect.succeed({ runId: "workflow-next-slot" })
+      );
+      assert.ok(settings?.nextScanAt);
+      setSystemTime(new Date(settings.nextScanAt.getTime() + 60_000));
+      expect(await sweep()).toMatchObject({ due: 1, started: 1 });
+    } finally {
+      setSystemTime();
+    }
+  });
+
+  test("an unrelated stale scan does not consume a scheduled slot's retry window", async () => {
+    const anchor = wholeMinutesAgo(15 * 60);
+    await seedProject("unrelated-stale", { nextScanAt: anchor });
+    await testDb.insert(geoScans).values({
+      id: "manual-stale",
+      organizationId: "org-test",
+      projectId: "unrelated-stale",
+      startedAt: new Date(anchor.getTime() + 60_000),
+      finishedAt: new Date(anchor.getTime() + GEO_SCAN_STALE_MS),
+      status: "failed",
+      errorCode: "scan_stale",
+    });
+    startWorkflow.mockImplementationOnce(() =>
+      Effect.fail(
+        Object.assign(new Error("503"), { name: "InternalDashboardError" })
+      )
+    );
+
+    expect((await sweep()).failed).toBe(1);
+    const settings = await settingsFor("unrelated-stale");
+    expect(settings?.nextScanAt).toEqual(anchor);
+    expect(settings?.scanFirstFailedAt?.getTime()).toBeGreaterThan(
+      Date.now() - 60_000
+    );
+    expect(settings?.scanLeaseUntil?.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  test("an exhausted slot with only ambiguous starts marks its stale scan", async () => {
+    const anchor = wholeMinutesAgo(60);
+    await seedProject("timed-out-retries", { nextScanAt: anchor });
+    startWorkflow.mockImplementation(() =>
+      Effect.fail(new Error("Request timed out"))
+    );
+    try {
+      expect((await sweep()).failed).toBe(1);
+      setSystemTime(
+        new Date(Date.now() + GEO_SCAN_START_RETRY_WINDOW_MS + 60_000)
+      );
+      await expireGeoScanLease("timed-out-retries");
+      expect((await sweep()).failed).toBe(1);
+      expect((await settingsFor("timed-out-retries"))?.nextScanAt).toEqual(
+        nextGeoScanAtAfter(24, anchor)
+      );
+      expect(
+        (
+          await testDb.query.geoScans.findMany({
+            where: eq(geoScans.projectId, "timed-out-retries"),
+          })
+        ).some((scan) => scan.errorCode === "scan_retry_exhausted")
+      ).toBe(true);
+    } finally {
+      setSystemTime();
+    }
   });
 
   test("an ambiguous timeout holds the claim and running row to prevent duplicate billing", async () => {
@@ -666,6 +818,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 1,
@@ -699,6 +852,61 @@ describe("scheduled GEO scans", () => {
     await seedProject("cleanup-failure");
     cleanupBoxes.mockRejectedValueOnce(new Error("Box service unavailable"));
     expect((await sweep()).started).toBe(1);
+  });
+
+  test("a slot the billing gate denies advances without a claim, row, or workflow", async () => {
+    const anchor = wholeMinutesAgo(10);
+    await seedProject("broke", { nextScanAt: anchor });
+    checkScanBilling.mockImplementation(() =>
+      Effect.succeed({
+        ...ALLOWED_GATE,
+        allowed: false,
+        mode: "ai_credits",
+        reason: "no_entitlement",
+        balanceRemaining: null,
+      })
+    );
+
+    expect(await sweep()).toMatchObject({
+      due: 1,
+      started: 0,
+      billingDenied: 1,
+      failed: 0,
+    });
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(await testDb.select().from(geoScans)).toHaveLength(0);
+    const settings = await settingsFor("broke");
+    expect(settings?.scanStartedAt).toBeNull();
+    expect(settings?.scanLeaseUntil).toBeNull();
+    expect(settings?.nextScanAt?.getTime()).toBe(anchor.getTime() + DAY_MS);
+  });
+
+  test("a running scan keeps the slot even when billing would deny it", async () => {
+    const anchor = wholeMinutesAgo(10);
+    await seedProject("busy-broke", {
+      scanStartedAt: new Date(),
+      nextScanAt: anchor,
+    });
+    checkScanBilling.mockImplementation(() =>
+      Effect.succeed({ ...ALLOWED_GATE, allowed: false, mode: "ai_credits" })
+    );
+
+    expect(await sweep()).toMatchObject({
+      alreadyRunning: 1,
+      billingDenied: 0,
+    });
+    expect(checkScanBilling).not.toHaveBeenCalled();
+    expect((await settingsFor("busy-broke"))?.nextScanAt).toEqual(anchor);
+  });
+
+  test("a failing billing check still starts the scan", async () => {
+    await seedProject("billing-outage");
+    checkScanBilling.mockImplementation(() =>
+      Effect.fail(new Error("Autumn unavailable"))
+    );
+
+    expect(await sweep()).toMatchObject({ started: 1, billingDenied: 0 });
+    expect(startWorkflow).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -828,6 +1036,68 @@ describe("scan ownership and finalization", () => {
       mentions: 0,
     });
   });
+
+  test.each([
+    { status: "completed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 0, action: "release" },
+    { status: "completed" as const, checks: 0, action: "release" },
+  ])(
+    "a $status scan with $checks checks settles billing with $action",
+    async ({ status, checks, action }) => {
+      const scope = await seedProject(`billing-${status}-${checks}`);
+      const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+      assert.ok(claim);
+      const scanId = await Effect.runPromise(createGeoScanRow(scope));
+      const billedUsage = { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 2 };
+      const finalized: FinalizeContentBillingInput[] = [];
+      await Effect.runPromise(
+        finalizeGeoScanProject(
+          {
+            ...scope,
+            scanId,
+            runId: "run-test",
+            companyName: "Notra",
+            aliases: [],
+            startedAtMs: Date.now(),
+            gate: {
+              allowed: true,
+              mode: "plan_quota",
+              featureId: "ai_answers",
+              reserved: true,
+              lockId: "lock-test",
+              useMarkup: false,
+            },
+          },
+          {
+            checks,
+            mentions: 0,
+            dropped: 0,
+            usage: EMPTY_AGENT_TOKEN_USAGE,
+            billedChecks: checks * 2,
+            billedUsage,
+          },
+          status,
+          claim.claimedAt.toISOString()
+        ).pipe(
+          Effect.provideService(GeoContentBillingService, {
+            gateContentBilling: () => Effect.die("Unexpected billing gate"),
+            finalizeContentBilling: (input) =>
+              Effect.sync(() => {
+                finalized.push(input);
+              }),
+          })
+        )
+      );
+
+      expect(finalized).toHaveLength(1);
+      expect(finalized[0]).toMatchObject(
+        action === "confirm"
+          ? { action, units: checks * 2, usage: billedUsage }
+          : { action }
+      );
+    }
+  );
 
   test("only one claimant and one duplicate delivery can acquire or renew a token", async () => {
     await seedProject("claim");

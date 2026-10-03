@@ -57,16 +57,25 @@ export const BRAND_COLORS: BrandColor[] = [
 
 export const BRAND_FONTS: BrandFont[] = [
   {
+    name: "Satoshi",
+    fontClassName: "font-display",
+    role: "Marketing headlines and display titles.",
+    sourceUrl: "https://www.fontshare.com/fonts/satoshi",
+    sourceLabel: "Get Satoshi on Fontshare",
+  },
+  {
     name: "Inter",
     fontClassName: "font-sans",
-    role: "Primary typeface for UI, headings, and body copy.",
-    googleFontsUrl: "https://fonts.google.com/specimen/Inter",
+    role: "Product UI, body copy, and the wordmark.",
+    sourceUrl: "https://fonts.google.com/specimen/Inter",
+    sourceLabel: "Get Inter on Google Fonts",
   },
   {
     name: "Instrument Serif",
     fontClassName: "font-instrument",
-    role: "Display typeface for editorial accents.",
-    googleFontsUrl: "https://fonts.google.com/specimen/Instrument+Serif",
+    role: "Rare editorial accent. Not for page titles.",
+    sourceUrl: "https://fonts.google.com/specimen/Instrument+Serif",
+    sourceLabel: "Get Instrument Serif on Google Fonts",
   },
 ];
 

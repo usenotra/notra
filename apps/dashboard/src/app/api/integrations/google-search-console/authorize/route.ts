@@ -10,6 +10,7 @@ import {
 } from "@notra/geo-core/constants/google-search-console";
 import { gscAuthorizeQuerySchema } from "@notra/geo-core/schemas/google-search-console";
 import type { GscOAuthState } from "@notra/geo-core/types/google-search-console";
+import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -53,7 +54,9 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       if (error instanceof ORPCError) {
         return NextResponse.redirect(
-          `${baseUrl}${callbackPath}?error=${gscOAuthErrorParam(error.status)}`
+          buildCallbackUrl(baseUrl, callbackPath, {
+            error: gscOAuthErrorParam(error.status),
+          })
         );
       }
       throw error;
@@ -62,14 +65,14 @@ export async function GET(request: NextRequest) {
     const { success: withinLimit } = await ratelimit.gscOAuth.limit(userId);
     if (!withinLimit) {
       return NextResponse.redirect(
-        `${baseUrl}${callbackPath}?error=gsc_rate_limited`
+        buildCallbackUrl(baseUrl, callbackPath, { error: "gsc_rate_limited" })
       );
     }
 
     const credentials = getGscOAuthCredentials();
     if (!(credentials && redis)) {
       return NextResponse.redirect(
-        `${baseUrl}${callbackPath}?error=gsc_not_configured`
+        buildCallbackUrl(baseUrl, callbackPath, { error: "gsc_not_configured" })
       );
     }
 

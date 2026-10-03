@@ -175,6 +175,7 @@ const journeySchema = z.object({
   distinctPaths: z.number().int(),
   firstSeenAt: z.string(),
   lastSeenAt: z.string(),
+  entryPath: z.string(),
   samplePaths: z.array(z.string()),
 });
 

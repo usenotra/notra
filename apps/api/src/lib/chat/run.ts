@@ -18,6 +18,7 @@ import {
 import { getStandaloneChatIntegrations } from "@notra/ai/chat/integrations-cache";
 import type { useLogger } from "@notra/ai/evlog";
 import type { ChatBillingCheck } from "@notra/ai/types/billing";
+import { applyChatToolApprovals } from "@notra/ai/utils/apply-chat-tool-approvals";
 import { isRelayChannelSource } from "@notra/ai/utils/chat-surface";
 import type { sendChatMessageRequestSchema } from "@notra/schemas/api/chats";
 import type { UIMessage } from "ai";
@@ -46,6 +47,9 @@ export async function runChatMessage({
   log,
   requestId,
 }: RunChatMessageArgs): Promise<Response> {
+  if (body.approvals && !existingChatId) {
+    return c.json({ error: "Tool approvals require an existing chat" }, 400);
+  }
   let useMarkup = false;
   let chargeAiCredits = false;
   if (autumn && !allowUnmeteredAiInDevelopment) {
@@ -81,6 +85,7 @@ export async function runChatMessage({
 
   const {
     message,
+    approvals,
     model,
     enableThinking,
     thinkingLevel,
@@ -120,10 +125,11 @@ export async function runChatMessage({
   const chatId = resolvedChatId ?? generateChatId();
   const auth = c.get("auth") as { keyId?: string } | undefined;
 
+  const streamId = nanoid();
   const userMessage: UIMessage = {
-    id: nanoid(),
+    id: streamId,
     role: "user",
-    parts: [{ type: "text", text: message }],
+    parts: [{ type: "text", text: message ?? "" }],
   };
 
   const streamAcquired = await setActiveChatStream(
@@ -142,7 +148,21 @@ export async function runChatMessage({
     const existingMessages = isNewChat
       ? []
       : await loadChatHistory(organizationId, chatId);
-    const messages = [...existingMessages, userMessage];
+    let messages: UIMessage[];
+    try {
+      messages = approvals
+        ? applyChatToolApprovals(existingMessages, approvals, streamId)
+        : [...existingMessages, userMessage];
+    } catch (error) {
+      await clearActiveChatStream(organizationId, chatId, streamId);
+      return c.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Invalid tool approvals",
+        },
+        400
+      );
+    }
 
     const validatedIntegrations =
       await getStandaloneChatIntegrations(organizationId);
@@ -156,14 +176,23 @@ export async function runChatMessage({
         organizationId,
         chatId,
         messages,
-        externalChannelIdForInsert
+        externalChannelIdForInsert,
+        approvals ? existingMessages.at(-1)?.id : undefined
       ),
       clearLastResponseStopped(organizationId, chatId),
     ]);
 
     if (!historySaved) {
       await clearActiveChatStream(organizationId, chatId, userMessage.id);
-      return c.json({ error: "Chat not found" }, 404);
+      return approvals
+        ? c.json(
+            {
+              error:
+                "The pending approvals have changed. Reload the chat before responding.",
+            },
+            409
+          )
+        : c.json({ error: "Chat not found" }, 404);
     }
 
     if (existingMessages.length === 0) {

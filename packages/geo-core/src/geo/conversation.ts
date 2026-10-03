@@ -36,6 +36,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
   zdr: GeoZdrMode
 ) {
   const models = yield* GeoModelService;
+  const language = source.language ?? DEFAULT_LANGUAGE;
   const rows: GeoCheckWrite[] = [];
   const messages: ModelMessage[] = [];
   let engineUsage = EMPTY_AGENT_TOKEN_USAGE;
@@ -75,7 +76,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
       const text = yield* requireAnswerText(
         engine.key,
         source.promptId,
-        DEFAULT_LANGUAGE,
+        language,
         answer
       );
       messages.push({ role: "assistant", content: text });
@@ -100,7 +101,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
         mentioned: judged.mentioned,
         ownedSourceCited: hasOwnedSourceCitation(
           context.websiteUrl,
-          [...answer.grounding.sources, ...answer.sources],
+          answer.sources,
           context.domains
         ),
         position: normalizePosition(judged.position),
@@ -115,7 +116,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
           Math.round(performance.now() - turnStartedMs)
         ),
         zdrEnforced: answer.zdrEnforced,
-        language: DEFAULT_LANGUAGE,
+        language,
         sources: answer.sources,
       });
     }

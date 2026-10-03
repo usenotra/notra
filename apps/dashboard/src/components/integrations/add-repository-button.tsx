@@ -2,14 +2,17 @@
 
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type { AddRepositoryButtonProps } from "@/types/integrations";
 
 export function AddRepositoryButton({
   onAdd,
-  label = "Add",
+  label,
 }: AddRepositoryButtonProps) {
+  const tCommon = useTranslations("common");
+
   return (
     <Button
       className="h-6 shrink-0 gap-1 rounded px-2 text-xs"
@@ -18,7 +21,7 @@ export function AddRepositoryButton({
       type="button"
     >
       <HugeiconsIcon className="size-3" icon={Add01Icon} />
-      {label}
+      {label ?? tCommon("actions.add")}
     </Button>
   );
 }

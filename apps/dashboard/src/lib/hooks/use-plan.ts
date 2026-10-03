@@ -9,9 +9,13 @@ import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
  * while loading; check `isLoading` before treating it as a final answer.
  */
 export function useHasZdrEntitlement() {
-  const { check, isLoading } = useBillingCustomer();
+  const { check, data: customer, isLoading } = useBillingCustomer();
   const hasZdr = check({ featureId: FEATURES.ZDR }).allowed === true;
-  return { hasZdr, isLoading };
+  return {
+    hasZdr,
+    isLoading,
+    canUseNonZdr: Boolean(customer) && !isLoading && !hasZdr,
+  };
 }
 
 export function useHasAiCreditsFeature() {
@@ -21,8 +25,15 @@ export function useHasAiCreditsFeature() {
 }
 
 export function useHasGeoFeature() {
-  const { data: customer, isLoading } = useBillingCustomer();
+  const {
+    data: customer,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useBillingCustomer();
   const hasGeo = Boolean(customer?.balances?.[FEATURES.AI_ANSWERS]);
-  const isLocked = !isLoading && !!customer && !hasGeo;
-  return { hasGeo, isLocked, isLoading };
+  const isUnavailable = Boolean(error) || (!isLoading && !customer);
+  const isLocked = !isLoading && !isUnavailable && !!customer && !hasGeo;
+  return { hasGeo, isLocked, isLoading, isUnavailable, isFetching, refetch };
 }

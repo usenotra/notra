@@ -14,6 +14,7 @@ import { gateway } from "../gateway";
 import { withRouterDefaults } from "../provider-options";
 import { uiMessageSchema } from "../schemas/chat";
 import type {
+  ChatSessionState,
   ChatSessionSummary,
   ExternalChannelId,
   ExternalChannelLookupSource,
@@ -147,121 +148,60 @@ async function upsertChatSession(
   contentId?: string,
   projectId?: string | null
 ) {
-  if (mode === "append") {
-    const insertedOrUpdated = await db
-      .insert(chatSessions)
-      .values({
-        id: chatId,
-        organizationId,
-        contentId,
-        projectId: projectId ?? null,
-        title: normalizeChatTitle(getChatTitle(messages) ?? "New chat"),
-        messages: sql`${JSON.stringify(messages)}::jsonb`,
-        externalChannelSource: externalChannelId?.source ?? null,
-        externalChannelId: externalChannelId?.id ?? null,
-      })
-      .onConflictDoUpdate({
-        target: chatSessions.id,
-        set: {
-          messages: sql`${chatSessions.messages} || ${JSON.stringify(messages)}::jsonb`,
-        },
-        setWhere: and(
-          eq(chatSessions.organizationId, organizationId),
-          isNull(chatSessions.deletedAt),
-          isNull(chatSessions.contentId)
-        ),
-      })
-      .returning({ id: chatSessions.id });
-
-    return insertedOrUpdated.length > 0;
+  const serializedMessages = sql`${JSON.stringify(messages)}::jsonb`;
+  let expectedHistory;
+  if (expectedLastMessageId === null) {
+    expectedHistory = sql`jsonb_array_length(${chatSessions.messages}) = 0`;
+  } else if (expectedLastMessageId !== undefined) {
+    expectedHistory = sql`${chatSessions.messages}->-1->>'id' = ${expectedLastMessageId}`;
   }
+  const writableSession = and(
+    eq(chatSessions.organizationId, organizationId),
+    isNull(chatSessions.deletedAt),
+    contentId
+      ? eq(chatSessions.contentId, contentId)
+      : isNull(chatSessions.contentId),
+    expectedHistory
+  );
 
-  const existingRow = await db
-    .select({
-      messages: chatSessions.messages,
-      title: chatSessions.title,
-      deletedAt: chatSessions.deletedAt,
-      contentId: chatSessions.contentId,
-    })
-    .from(chatSessions)
-    .where(
-      and(
-        eq(chatSessions.id, chatId),
-        eq(chatSessions.organizationId, organizationId)
-      )
-    )
-    .limit(1)
-    .then((rows) => rows[0]);
-
-  if (existingRow?.deletedAt !== undefined && existingRow.deletedAt !== null) {
-    return false;
-  }
-
-  if (existingRow && existingRow.contentId !== (contentId ?? null)) {
-    return false;
-  }
-
-  if (!existingRow && expectedLastMessageId) {
-    return false;
-  }
-
-  const title =
-    existingRow?.title ??
-    normalizeChatTitle(getChatTitle(messages) ?? "New chat");
-
-  const finalMessages =
-    mode === "replace" || !existingRow
-      ? messages
-      : [...(existingRow.messages as UIMessage[]), ...messages];
-
-  if (existingRow) {
-    let expectedHistory;
-    if (expectedLastMessageId === null) {
-      expectedHistory = sql`jsonb_array_length(${chatSessions.messages}) = 0`;
-    } else if (expectedLastMessageId !== undefined) {
-      expectedHistory = sql`${chatSessions.messages}->-1->>'id' = ${expectedLastMessageId}`;
-    }
+  // A response may only replace the turn it started from, never create a chat.
+  if (expectedLastMessageId) {
     const updated = await db
       .update(chatSessions)
       .set({
-        messages: finalMessages as unknown as Record<string, unknown>,
-        title,
+        messages: serializedMessages,
       })
-      .where(
-        and(
-          eq(chatSessions.id, chatId),
-          eq(chatSessions.organizationId, organizationId),
-          isNull(chatSessions.deletedAt),
-          contentId
-            ? eq(chatSessions.contentId, contentId)
-            : isNull(chatSessions.contentId),
-          expectedHistory
-        )
-      )
+      .where(and(eq(chatSessions.id, chatId), writableSession))
       .returning({ id: chatSessions.id });
 
-    if (updated.length === 0) {
-      return false;
-    }
-  } else {
-    const inserted = await db
-      .insert(chatSessions)
-      .values({
-        id: chatId,
-        organizationId,
-        contentId,
-        projectId: projectId ?? null,
-        title,
-        messages: messages as unknown as Record<string, unknown>,
-        externalChannelSource: externalChannelId?.source ?? null,
-        externalChannelId: externalChannelId?.id ?? null,
-      })
-      .onConflictDoNothing()
-      .returning({ id: chatSessions.id });
-    return inserted.length > 0;
+    return updated.length > 0;
   }
 
-  return true;
+  const insertedOrUpdated = await db
+    .insert(chatSessions)
+    .values({
+      id: chatId,
+      organizationId,
+      contentId,
+      projectId: projectId ?? null,
+      title: normalizeChatTitle(getChatTitle(messages) ?? "New chat"),
+      messages: serializedMessages,
+      externalChannelSource: externalChannelId?.source ?? null,
+      externalChannelId: externalChannelId?.id ?? null,
+    })
+    .onConflictDoUpdate({
+      target: chatSessions.id,
+      set: {
+        messages:
+          mode === "append"
+            ? sql`${chatSessions.messages} || ${serializedMessages}`
+            : serializedMessages,
+      },
+      setWhere: writableSession,
+    })
+    .returning({ id: chatSessions.id });
+
+  return insertedOrUpdated.length > 0;
 }
 
 export async function saveChatMessage(
@@ -439,6 +379,30 @@ export async function loadChatHistory(
   }
 
   return row.messages as UIMessage[];
+}
+
+export async function getChatSessionState(
+  organizationId: string,
+  chatId: string
+): Promise<ChatSessionState | null> {
+  const [row] = await db
+    .select({
+      projectId: chatSessions.projectId,
+      externalChannelSource: chatSessions.externalChannelSource,
+      deletedAt: chatSessions.deletedAt,
+      messages: chatSessions.messages,
+    })
+    .from(chatSessions)
+    .where(
+      and(
+        eq(chatSessions.id, chatId),
+        eq(chatSessions.organizationId, organizationId),
+        isNull(chatSessions.contentId)
+      )
+    )
+    .limit(1);
+
+  return row ? { ...row, messages: row.messages as UIMessage[] } : null;
 }
 
 export async function loadContentChatHistory(
@@ -1050,9 +1014,12 @@ export async function generateAndSetChatTitle(
       instructions: `Generate a short, descriptive title (max 50 chars) for a chat conversation based on the user's first message. Return ONLY the title text, nothing else. No quotes, no prefix. Be specific and concise.`,
       prompt: userMessage,
       maxOutputTokens: 30,
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: "openai/gpt-5.4-nano",
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["chat-title"] } },
+        {
+          modelId: "openai/gpt-5.4-nano",
+        }
+      ),
       ...buildTelemetryOptions({
         chatId,
         feature: "chat_title",

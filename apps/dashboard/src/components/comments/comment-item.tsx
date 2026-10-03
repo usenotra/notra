@@ -9,6 +9,7 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { CommentActions } from "@/components/comments/comment-actions";
@@ -61,6 +62,8 @@ function CommentContent({
 
 export function CommentItem(props: CommentItemProps) {
   const { comment, comments, busy, onEdit } = props;
+  const t = useTranslations("comments");
+  const tCommon = useTranslations("common");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(comment.body);
   const children = comments.filter(
@@ -112,16 +115,16 @@ export function CommentItem(props: CommentItemProps) {
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-24 text-sm leading-5">
-                <span className="text-foreground text-sm font-medium">
+                <span className="text-foreground min-w-0 text-sm font-medium wrap-anywhere">
                   {comment.name}
                 </span>
                 <CommentTimestamp createdAt={comment.createdAt} />
                 {comment.editedAt ? (
-                  <span className="text-muted-foreground">edited</span>
+                  <span className="text-muted-foreground">{t("edited")}</span>
                 ) : null}
                 {comment.pending ? (
                   <span className="text-muted-foreground" role="status">
-                    Sending…
+                    {tCommon("labels.sending")}
                   </span>
                 ) : null}
               </div>

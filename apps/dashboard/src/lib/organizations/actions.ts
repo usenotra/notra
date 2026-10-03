@@ -2,10 +2,6 @@
 
 import { autumn } from "@notra/ai/billing/autumn";
 import { checkTeamMembersLimit } from "@notra/ai/billing/team-members";
-import {
-  TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
-  TEAM_MEMBER_LIMIT_ERROR_MESSAGE,
-} from "@notra/ai/constants/billing-limits";
 import { seedSystemSkills } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
@@ -22,33 +18,38 @@ import {
   updateMemberRoleInputSchema,
   updateOrganizationInputSchema,
 } from "@notra/schemas/dashboard/organizations/actions";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Invitation } from "@workos-inc/node";
 import { and, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { isValid as isNotDisposableEmail } from "mailchecker";
+import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 
+import { ACTION_ERROR_CODES } from "@/constants/actions";
 import { QUOTA_FEATURES } from "@/constants/analytics-events";
 import {
   LAST_VISITED_ORGANIZATION_COOKIE,
   LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
 } from "@/constants/cookies";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
+import { ActionFailure } from "@/lib/actions/errors";
+import { runAction } from "@/lib/actions/run-action";
+import { validateActionInput } from "@/lib/actions/validate-input";
 import {
   identifyOrganizationGroup,
   trackServerEvent,
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { readWorkOSError } from "@/lib/auth/workos-error";
-import { OrganizationActionError } from "@/lib/organizations/errors";
+import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import {
   requireManagerMembership,
   requireMembership,
   requireSession,
   resolveOrganizationId,
 } from "@/lib/organizations/guards";
-import { runOrganizationAction } from "@/lib/organizations/run-action";
-import { validateActionInput } from "@/lib/organizations/validate-input";
 import {
   ensureWorkOSOrganizationWithMembers,
   removeMembershipFromWorkOS,
@@ -79,23 +80,30 @@ const enforceTeamMembersLimit = Effect.fn(
   const status = yield* Effect.tryPromise({
     try: () => checkTeamMembersLimit(organizationId),
     catch: (cause) =>
-      new OrganizationActionError({
-        message: TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
+      new ActionFailure({
+        message: "Team member limit check failed",
         cause,
       }),
   });
 
   if (status === "check-unavailable") {
     return yield* Effect.fail(
-      new OrganizationActionError({
-        message: TEAM_MEMBER_LIMIT_CHECK_UNAVAILABLE_MESSAGE,
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.teamMemberLimitCheckUnavailable"
+        ),
       })
     );
   }
 
   if (status === "limit-reached") {
     return yield* Effect.fail(
-      new OrganizationActionError({ message: TEAM_MEMBER_LIMIT_ERROR_MESSAGE })
+      new ActionFailure({
+        code: ACTION_ERROR_CODES.TEAM_MEMBER_LIMIT,
+        message: (yield* Effect.promise(() => getTranslations("members")))(
+          "teamMemberLimit"
+        ),
+      })
     );
   }
 });
@@ -103,7 +111,7 @@ const enforceTeamMembersLimit = Effect.fn(
 const tryDb = <T>(run: () => Promise<T>, message: string) =>
   Effect.tryPromise({
     try: run,
-    catch: (cause) => new OrganizationActionError({ message, cause }),
+    catch: (cause) => new ActionFailure({ message, cause }),
   });
 
 const trackOrganizationEvent = Effect.fn(
@@ -169,14 +177,16 @@ const mapMemberRows = (
   });
 
 const tryWorkOS = <T>(run: () => Promise<T>, fallbackMessage: string) =>
-  Effect.tryPromise({
-    try: run,
-    catch: (cause) =>
-      new OrganizationActionError({
-        message: readWorkOSError(cause).message || fallbackMessage,
-        cause,
-      }),
-  });
+  isDemoMode()
+    ? Effect.fail(new ActionFailure({ message: DEMO_DISABLED_MESSAGE }))
+    : Effect.tryPromise({
+        try: run,
+        catch: (cause) =>
+          new ActionFailure({
+            message: readWorkOSError(cause).message || fallbackMessage,
+            cause,
+          }),
+      });
 
 const mapInvitation = (invitation: Invitation): InvitationSummary => ({
   id: invitation.id,
@@ -191,10 +201,15 @@ const mapInvitation = (invitation: Invitation): InvitationSummary => ({
 const requireWorkOSOrganizationId = Effect.fn(
   "organizations.actions.requireWorkOSOrganizationId"
 )(function* (organizationId: string) {
+  if (isDemoMode()) {
+    return yield* Effect.fail(
+      new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+    );
+  }
   return yield* ensureWorkOSOrganizationWithMembers(organizationId).pipe(
     Effect.catch((error) =>
       Effect.fail(
-        new OrganizationActionError({
+        new ActionFailure({
           message: "This organization is not linked to WorkOS yet",
           cause: error,
         })
@@ -215,7 +230,11 @@ const requireInvitationManagement = Effect.fn(
 
   if (!invitation.organizationId) {
     return yield* Effect.fail(
-      new OrganizationActionError({ message: "Invitation not found" })
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.invitationNotFound"
+        ),
+      })
     );
   }
 
@@ -230,7 +249,11 @@ const requireInvitationManagement = Effect.fn(
 
   if (!organization) {
     return yield* Effect.fail(
-      new OrganizationActionError({ message: "Organization not found" })
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.organizationNotFound"
+        ),
+      })
     );
   }
 
@@ -245,8 +268,14 @@ const requireInvitationManagement = Effect.fn(
 export async function createOrganizationAction(
   rawInput: CreateOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
+      // One sandbox workspace per demo visitor.
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
       const input = yield* validateActionInput(
         createOrganizationInputSchema,
@@ -265,8 +294,10 @@ export async function createOrganizationAction(
 
       if (existing) {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "An organization with this slug already exists",
+          new ActionFailure({
+            message: (yield* Effect.promise(() =>
+              getTranslations("errors.actions.organizations")
+            ))("slugTaken"),
           })
         );
       }
@@ -303,8 +334,10 @@ export async function createOrganizationAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "Organization creation returned no row",
+          new ActionFailure({
+            message: (yield* Effect.promise(() =>
+              getTranslations("nav.createOrg")
+            ))("createFailed"),
           })
         );
       }
@@ -320,7 +353,7 @@ export async function createOrganizationAction(
           ).pipe(
             Effect.andThen(
               Effect.fail(
-                new OrganizationActionError({
+                new ActionFailure({
                   message: "Failed to link organization to WorkOS",
                   cause: error,
                 })
@@ -333,7 +366,7 @@ export async function createOrganizationAction(
       yield* Effect.tryPromise({
         try: () => seedSystemSkills(organizationId),
         catch: (cause) =>
-          new OrganizationActionError({
+          new ActionFailure({
             message: "Failed to seed system skills",
             cause,
           }),
@@ -355,7 +388,7 @@ export async function createOrganizationAction(
               metadata: { orgId: organizationId },
             }),
           catch: (cause) =>
-            new OrganizationActionError({
+            new ActionFailure({
               message: "Failed to create billing customer",
               cause,
             }),
@@ -405,7 +438,7 @@ export async function createOrganizationAction(
 export async function updateOrganizationAction(
   rawInput: UpdateOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -444,7 +477,11 @@ export async function updateOrganizationAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -487,7 +524,7 @@ export async function updateOrganizationAction(
 export async function listOrganizationsAction(): Promise<
   ActionResult<OrganizationRow[]>
 > {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
 
@@ -527,7 +564,7 @@ function findOrganizationForSelection(input: SetActiveOrganizationInput) {
 export async function setActiveOrganizationAction(
   rawInput: SetActiveOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -542,7 +579,11 @@ export async function setActiveOrganizationAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -562,15 +603,10 @@ export async function setActiveOrganizationAction(
   );
 }
 
-/**
- * Organization row for a `/[slug]` route, without the member join. Unlike
- * `validateOrganizationAccess` this never redirects, so it is safe to call from
- * a client query.
- */
 export async function getOrganizationSummaryAction(
   rawSlug: string
 ): Promise<ActionResult<OrganizationRow>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const slug = yield* validateActionInput(
@@ -588,7 +624,11 @@ export async function getOrganizationSummaryAction(
 
       if (!organization) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "Organization not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.organizationNotFound"
+            ),
+          })
         );
       }
 
@@ -602,7 +642,7 @@ export async function getOrganizationSummaryAction(
 export async function getFullOrganizationAction(rawInput?: {
   query?: { organizationId?: string; organizationSlug?: string };
 }): Promise<ActionResult<FullOrganization | null>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -673,7 +713,7 @@ export async function getFullOrganizationAction(rawInput?: {
 export async function listMembersAction(
   rawInput?: ListMembersInput
 ): Promise<ActionResult<MembersListResult>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -709,7 +749,7 @@ export async function listMembersAction(
 export async function updateMemberRoleAction(
   rawInput: UpdateMemberRoleInput
 ): Promise<ActionResult<MemberWithUser | null>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -727,7 +767,11 @@ export async function updateMemberRoleAction(
 
       if (!member) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "Member not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.memberNotFound"
+            ),
+          })
         );
       }
 
@@ -738,16 +782,20 @@ export async function updateMemberRoleAction(
 
       if (input.role === "owner" && callerMembership.role !== "owner") {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "Only the organization owner can assign the owner role",
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleOwnerOnly"
+            ),
           })
         );
       }
 
       if (member.role === "owner" && input.role !== "owner") {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "The organization owner role cannot be changed",
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleLocked"
+            ),
           })
         );
       }
@@ -802,7 +850,7 @@ export async function updateMemberRoleAction(
 export async function removeMemberAction(
   rawInput: RemoveMemberInput
 ): Promise<ActionResult<{ removed: boolean }>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -846,7 +894,11 @@ export async function removeMemberAction(
 
       if (!member) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "Member not found" })
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.memberNotFound"
+            ),
+          })
         );
       }
 
@@ -858,8 +910,10 @@ export async function removeMemberAction(
 
       if (member.role === "owner") {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "The organization owner cannot be removed",
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerNotRemovable"
+            ),
           })
         );
       }
@@ -891,7 +945,7 @@ export async function removeMemberAction(
 export async function listInvitationsAction(rawInput?: {
   query?: { organizationId?: string };
 }): Promise<ActionResult<InvitationSummary[]>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(
@@ -903,6 +957,10 @@ export async function listInvitationsAction(rawInput?: {
         input?.query?.organizationId
       );
       yield* requireMembership(session, organizationId);
+      // The public demo has no WorkOS and therefore no pending invitations.
+      if (isDemoMode()) {
+        return [];
+      }
       const workosOrgId = yield* requireWorkOSOrganizationId(organizationId);
 
       const invitations = yield* tryWorkOS(
@@ -922,8 +980,14 @@ export async function listInvitationsAction(rawInput?: {
 export async function inviteMemberAction(
   rawInput: InviteMemberInput
 ): Promise<ActionResult<InvitationSummary>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
+      // Invitations need WorkOS; explain instead of failing on the seat check.
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
       const input = yield* validateActionInput(
         inviteMemberInputSchema,
@@ -940,16 +1004,20 @@ export async function inviteMemberAction(
 
       if (input.role === "owner" && callerMembership.role !== "owner") {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "Only the organization owner can assign the owner role",
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.ownerRoleOwnerOnly"
+            ),
           })
         );
       }
 
       if (!isNotDisposableEmail(input.email)) {
         return yield* Effect.fail(
-          new OrganizationActionError({
-            message: "Disposable email addresses are not allowed",
+          new ActionFailure({
+            message: yield* organizationActionMessage(
+              "actions.organizations.disposableEmail"
+            ),
           })
         );
       }
@@ -957,7 +1025,7 @@ export async function inviteMemberAction(
       yield* enforceTeamMembersLimit(organizationId).pipe(
         Effect.catch((error) =>
           Effect.gen(function* () {
-            if (error.message === TEAM_MEMBER_LIMIT_ERROR_MESSAGE) {
+            if (error.code === ACTION_ERROR_CODES.TEAM_MEMBER_LIMIT) {
               const memberCount =
                 yield* countOrganizationMembers(organizationId);
               yield* trackOrganizationEvent({
@@ -1018,7 +1086,7 @@ export async function inviteMemberAction(
 export async function cancelInvitationAction(
   rawInput: InvitationActionInput
 ): Promise<ActionResult<InvitationSummary>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const input = yield* validateActionInput(
         invitationActionInputSchema,
@@ -1046,7 +1114,7 @@ export async function cancelInvitationAction(
 export async function resendInvitationAction(
   rawInput: InvitationActionInput
 ): Promise<ActionResult<InvitationSummary>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const input = yield* validateActionInput(
         invitationActionInputSchema,

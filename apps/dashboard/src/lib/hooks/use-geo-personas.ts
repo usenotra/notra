@@ -8,6 +8,7 @@ import type {
   GeoPersonasResponse,
 } from "@notra/geo-core/types/geo-personas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -29,13 +30,14 @@ import {
 } from "@/utils/geo-persona-queries";
 
 export function useGeoPersonas(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPersonasResponse>({
     ...dashboardOrpc.geo.personasList.queryOptions({
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load personas" },
+    meta: { errorMessage: tToast("loadPersonasFailed") },
   });
 }
 
@@ -43,6 +45,7 @@ export function useGeoPersonaActivity(
   organizationId: string,
   window: GeoWindowInput = {}
 ) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery({
     ...dashboardOrpc.geo.personasActivity.queryOptions({
@@ -51,11 +54,12 @@ export function useGeoPersonaActivity(
     enabled: Boolean(organizationId),
     refetchInterval: 60_000,
     refetchIntervalInBackground: false,
-    meta: { errorMessage: "Failed to load persona activity" },
+    meta: { errorMessage: tToast("loadPersonaActivityFailed") },
   });
 }
 
 export function useGeoPersonasGenerate(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   const activeJob = useRef<string | null>(null);
@@ -73,7 +77,7 @@ export function useGeoPersonasGenerate(organizationId: string) {
         ? PERSONA_GENERATION_POLL_MS
         : false;
     },
-    meta: { errorMessage: "Failed to check persona generation" },
+    meta: { errorMessage: tToast("checkPersonaGenerationFailed") },
   });
   const job = status.data;
   useEffect(() => {
@@ -91,9 +95,13 @@ export function useGeoPersonasGenerate(organizationId: string) {
     if (job.status === "completed") {
       void invalidatePersonaList(queryClient, organizationId, projectId);
     } else {
-      toast.error(job.error || PERSONA_GENERATION_FAILED_MESSAGE);
+      toast.error(
+        job.error && job.error !== PERSONA_GENERATION_FAILED_MESSAGE
+          ? job.error
+          : tToast("personaGenerationFailed")
+      );
     }
-  }, [job, queryClient, organizationId, projectId]);
+  }, [job, queryClient, organizationId, projectId, tToast]);
 
   const mutation = useMutation<
     PersonaGenerationJob,
@@ -106,12 +114,19 @@ export function useGeoPersonasGenerate(organizationId: string) {
         projectId,
         ...request,
       }),
-    onSuccess: (started) => {
+    onSuccess: (started, request) => {
       queryClient.setQueryData(statusOptions.queryKey, started);
+      // Regenerating one persona shows progress in its own dialog.
+      if (request && "personaId" in request) {
+        return;
+      }
+      toast.info(tToast(request ? "generatingPersona" : "generatingPersonas"), {
+        description: tToast("generatingPersonasDescription"),
+      });
     },
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });
-      toast.error(toErrorMessage(error, "Failed to generate personas"));
+      toast.error(toErrorMessage(error, tToast("generatePersonasFailed")));
     },
   });
   let startedAt = "";
@@ -133,6 +148,7 @@ export function useGeoPersonasGenerate(organizationId: string) {
 }
 
 export function useGeoPersonaUpdate(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   return useMutation<GeoPersona, Error, GeoPersonaUpdateInput>({
@@ -149,12 +165,13 @@ export function useGeoPersonaUpdate(organizationId: string) {
       void invalidatePersonaList(queryClient, organizationId, projectId);
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to update the persona"));
+      toast.error(toErrorMessage(error, tToast("updatePersonaFailed")));
     },
   });
 }
 
 export function useGeoPersonaDelete(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   return useMutation<{ success: boolean }, Error, string>({
@@ -166,15 +183,16 @@ export function useGeoPersonaDelete(organizationId: string) {
       }),
     onSuccess: async () => {
       await invalidatePersonaList(queryClient, organizationId, projectId);
-      toast.success("Persona archived");
+      toast.success(tToast("personaArchived"));
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to archive the persona"));
+      toast.error(toErrorMessage(error, tToast("archivePersonaFailed")));
     },
   });
 }
 
 export function useGeoPersonaRestore(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   return useMutation<GeoPersona, Error, string>({
@@ -186,15 +204,16 @@ export function useGeoPersonaRestore(organizationId: string) {
       }),
     onSuccess: async () => {
       await invalidatePersonaList(queryClient, organizationId, projectId);
-      toast.success("Persona reactivated. Include it in scans when ready.");
+      toast.success(tToast("personaReactivated"));
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to reactivate the persona"));
+      toast.error(toErrorMessage(error, tToast("reactivatePersonaFailed")));
     },
   });
 }
 
 export function useGeoPersonaRun(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   return useMutation({
@@ -214,12 +233,10 @@ export function useGeoPersonaRun(organizationId: string) {
         }),
       ]);
       const engineCount = result.engines.length;
-      toast.success(
-        `Persona scanned across ${engineCount} engine${engineCount === 1 ? "" : "s"}`
-      );
+      toast.success(tToast("personaScanned", { count: engineCount }));
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to run the persona scan"));
+      toast.error(toErrorMessage(error, tToast("runPersonaScanFailed")));
     },
   });
 }
@@ -230,6 +247,7 @@ export function useGeoPersonaResults(
   scanId?: string,
   poll = false
 ) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPersonaResultsResponse>({
     ...dashboardOrpc.geo.personaResults.queryOptions({
@@ -238,6 +256,6 @@ export function useGeoPersonaResults(
     enabled: Boolean(organizationId && personaId),
     refetchInterval:
       poll && personaId && !scanId ? GEO_PERSONA_RESULTS_POLL_MS : false,
-    meta: { errorMessage: "Failed to load persona results" },
+    meta: { errorMessage: tToast("loadPersonaResultsFailed") },
   });
 }

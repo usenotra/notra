@@ -47,6 +47,10 @@ const mockDb = {
       }),
     })),
   })),
+  transaction: mock(
+    (callback: (tx: unknown) => Promise<unknown>): Promise<unknown> =>
+      callback(mockDb)
+  ),
 };
 
 const { commitPatchPost } = await import("../src/programs/posts");

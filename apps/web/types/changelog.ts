@@ -62,6 +62,7 @@ export interface ChangelogRowProps {
   item: ChangelogTimelineItem;
 }
 
-export interface ChangelogEntryPageProps {
-  params: Promise<{ slug: string }>;
+export interface NotraChangelogEntryData {
+  post: NotraChangelogPost;
+  path: string;
 }

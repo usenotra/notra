@@ -1,17 +1,25 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoSettings, projects } from "@notra/db/schema";
 import type { GeoCheckScope } from "@notra/db/types/geo-checks";
+import { bumpGeoCheckGeneration } from "@notra/db/utils/geo-check-cache";
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { GEO_PROJECTS_OLDEST_ORDER } from "../constants/geo-projects";
+import {
+  GEO_PROJECTS_OLDEST_ORDER,
+  GEO_PROJECT_RESPONSE_COLUMNS,
+} from "../constants/geo-projects";
 import type {
   GeoProjectScope,
   GeoProjectsResponse,
   GeoProjectUpdateInput,
   GeoScopeInput,
 } from "../types/geo";
+import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
+import { SUPPORTED_GEO_LANGUAGES } from "../utils/geo-language-rows";
+import { normalizeWebsiteUrl } from "../utils/geo-website";
 import { memoizeGeoRequest } from "../utils/request-memo";
+import { deleteGeoCache } from "./cache";
 import { geoDb } from "./effect";
 import {
   GeoBrandIdentityMissingError,
@@ -32,6 +40,7 @@ export const listGeoProjects = Effect.fn("geo.projectsList")(function* (
     db.query.projects.findMany({
       where: eq(projects.organizationId, organizationId),
       orderBy: GEO_PROJECTS_OLDEST_ORDER,
+      columns: GEO_PROJECT_RESPONSE_COLUMNS,
     })
   );
 
@@ -39,6 +48,22 @@ export const listGeoProjects = Effect.fn("geo.projectsList")(function* (
     projects: rows.map(toGeoProject),
   };
   return response;
+});
+
+export const getGeoProject = Effect.fn("geo.projectGet")(function* (
+  organizationId: string,
+  projectId: string
+) {
+  const row = yield* geoDb("project lookup failed", () =>
+    db.query.projects.findFirst({
+      where: and(
+        eq(projects.organizationId, organizationId),
+        eq(projects.id, projectId)
+      ),
+      columns: GEO_PROJECT_RESPONSE_COLUMNS,
+    })
+  );
+  return row ? toGeoProject(row) : null;
 });
 
 export const requireBrandIdentity = Effect.fn("geo.requireBrandIdentity")(
@@ -183,15 +208,22 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
   organizationId: string,
   projectId: string
 ) {
-  const [existing, projectCount] = yield* Effect.all([
+  const [existingRows, projectCount] = yield* Effect.all([
     geoDb("project lookup failed", () =>
-      db.query.projects.findFirst({
-        columns: { id: true },
-        where: and(
-          eq(projects.id, projectId),
-          eq(projects.organizationId, organizationId)
-        ),
-      })
+      db
+        .select({ websiteUrl: brandSettings.websiteUrl })
+        .from(projects)
+        .innerJoin(
+          brandSettings,
+          eq(projects.brandSettingsId, brandSettings.id)
+        )
+        .where(
+          and(
+            eq(projects.id, projectId),
+            eq(projects.organizationId, organizationId)
+          )
+        )
+        .limit(1)
     ),
     geoDb("projects count failed", () =>
       db
@@ -201,6 +233,7 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
     ),
   ]);
 
+  const existing = existingRows.at(0);
   if (!existing) {
     return yield* Effect.fail(new GeoProjectNotFoundError({ projectId }));
   }
@@ -259,6 +292,24 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
   }
 
   if (outcome === "deleted") {
+    // The project's checks went with it (cascade); org-wide aggregates must
+    // stop counting them now, not when their cache entries expire.
+    yield* Effect.promise(() => bumpGeoCheckGeneration([organizationId]));
+    if (URL.canParse(existing.websiteUrl)) {
+      const onboardingUrl = normalizeWebsiteUrl(existing.websiteUrl);
+      const urls = [existing.websiteUrl];
+      if (onboardingUrl && onboardingUrl !== existing.websiteUrl) {
+        urls.push(onboardingUrl);
+      }
+      // Discovery is cached per prompt language, so drop every variant.
+      yield* deleteGeoCache(
+        ...urls.flatMap((url) =>
+          SUPPORTED_GEO_LANGUAGES.map((language) =>
+            geoDiscoveryCacheKey(organizationId, url, language)
+          )
+        )
+      );
+    }
     yield* Effect.promise(() =>
       invalidateGeoIngestHostsCache(organizationId, projectId)
     );

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import type { WriteBrandOptionProps } from "@/types/components/geo-writer";
 import { getWebsiteDomain } from "@/utils/brand";
@@ -9,6 +11,7 @@ export function WriteBrandOption({
   websiteUrl,
   isDefault,
 }: WriteBrandOptionProps) {
+  const t = useTranslations("geo.writer.writeBrandOption");
   return (
     <span className="flex min-w-0 items-center gap-2">
       <CompetitorLogo
@@ -17,8 +20,7 @@ export function WriteBrandOption({
         name={name}
       />
       <span className="truncate">
-        {name}
-        {isDefault ? " (default)" : ""}
+        {isDefault ? t("projectDefault", { name }) : name}
       </span>
     </span>
   );

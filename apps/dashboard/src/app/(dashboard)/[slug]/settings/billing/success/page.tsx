@@ -2,22 +2,25 @@
 
 import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Confetti } from "@neoconfetti/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { buttonVariants } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { CHECKOUT_SURFACES } from "@/constants/analytics-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { planDisplayName } from "@/utils/billing-plans";
 
 function BillingSuccessPageContent() {
+  const t = useTranslations("settings.billingSuccess");
+  const tSettingsShared = useTranslations("settings.shared");
   const { slug } = useParams<{ slug: string }>();
   const { openCustomerPortal, data: customer } = useBillingCustomer({
     expand: ["subscriptions.plan"],
@@ -27,7 +30,7 @@ function BillingSuccessPageContent() {
     (sub) => !sub.addOn && sub.status === "active"
   );
   const planName =
-    planDisplayName(activeSubscription?.plan?.name) ?? "your new plan";
+    planDisplayName(activeSubscription?.plan?.name) ?? t("fallbackPlan");
   const [now] = useState(() => Date.now());
   const completedRef = useRef(false);
   const activePlanId =
@@ -59,7 +62,7 @@ function BillingSuccessPageContent() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not open billing portal. Please try again."
+          : tSettingsShared("couldNotOpenBillingPortal")
       );
     }
   }
@@ -90,11 +93,10 @@ function BillingSuccessPageContent() {
         <HugeiconsIcon className="text-success size-12" icon={Tick02Icon} />
 
         <h1 className="text-foreground mt-6 text-4xl font-bold tracking-tight">
-          Payment Successful!
+          {t("title")}
         </h1>
         <p className="text-muted-foreground mt-3 text-base leading-relaxed">
-          Thanks for subscribing to {planName}. Your plan is active and all
-          features are ready to use.
+          {t("description", { planName })}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -102,14 +104,14 @@ function BillingSuccessPageContent() {
             className={cn(buttonVariants({ variant: "default", size: "lg" }))}
             href={`/${slug}`}
           >
-            Go to dashboard
+            {tSettingsShared("goToDashboard")}
           </Link>
           <button
             className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
             onClick={handleManageBilling}
             type="button"
           >
-            Manage billing
+            {t("manageBilling")}
           </button>
         </div>
 
@@ -117,7 +119,7 @@ function BillingSuccessPageContent() {
           className="text-muted-foreground hover:text-foreground mt-6 text-sm underline underline-offset-4 transition-colors"
           href={`/${slug}?settings=billing`}
         >
-          View invoices & usage
+          {t("viewInvoices")}
         </Link>
       </div>
     </div>
@@ -125,6 +127,7 @@ function BillingSuccessPageContent() {
 }
 
 export default function BillingSuccessPage() {
+  const t = useTranslations("settings.billingSuccess");
   return (
     <Suspense
       fallback={
@@ -132,7 +135,7 @@ export default function BillingSuccessPage() {
           className="flex flex-1 flex-col items-center justify-center gap-6 px-4"
           role="status"
         >
-          <span className="sr-only">Loading billing confirmation</span>
+          <span className="sr-only">{t("loading")}</span>
           <Skeleton aria-hidden="true" className="size-12 rounded-full" />
           <Skeleton aria-hidden="true" className="h-10 w-full max-w-sm" />
           <Skeleton aria-hidden="true" className="h-12 w-full max-w-md" />

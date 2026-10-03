@@ -8,12 +8,19 @@ const GeoPage = mock(() => <h1>Protected page content</h1>);
 mock.module("@/lib/hooks/use-plan", () => ({
   useHasGeoFeature: geoFeature,
 }));
+mock.module("@/components/providers/organization-provider", () => ({
+  useOrganizationsContext: () => ({
+    activeOrganization: { id: "org-fixture", slug: "fixture" },
+    getOrganization: () => undefined,
+  }),
+}));
 mock.module("next/navigation", () => ({
   usePathname: () => "/fixture/geo/gaps",
   useRouter: () => ({ push: mock() }),
 }));
 mock.module("@/components/billing/geo-upgrade-dialog", () => ({
-  GeoUpgradeDialog: () => <div>Upgrade required</div>,
+  GeoUpgradeDialog: ({ open }: { open: boolean }) =>
+    open ? <div>Upgrade required</div> : null,
 }));
 mock.module("@/components/empty-state-preview", () => ({
   EmptyStateAnalyticsPreview: () => null,
@@ -32,17 +39,17 @@ beforeEach(() => {
 });
 
 describe("GEO billing gate", () => {
-  test("keeps nested GEO page children while billing loads", () => {
+  test("renders a skeleton without mounting page children while billing loads", () => {
     const html = renderToStaticMarkup(
       <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );
 
-    expect(html).toContain("Protected page content");
-    expect(html).not.toContain("How AI engines talk about your brand");
+    expect(html).not.toContain("Protected page content");
+    expect(html).toContain('data-slot="skeleton"');
     expect(html).not.toContain("Upgrade required");
-    expect(GeoPage).toHaveBeenCalled();
+    expect(GeoPage).not.toHaveBeenCalled();
   });
 
   test("renders the page for a confirmed entitled customer", () => {
@@ -66,7 +73,9 @@ describe("GEO billing gate", () => {
       </GeoUpgradeGate>
     );
 
-    expect(html).toContain("Upgrade required");
+    expect(html).toContain("GEO is locked on your current plan");
+    expect(html).toContain("Upgrade");
+    expect(html).not.toContain("Upgrade required");
     expect(html).not.toContain("Protected page content");
     expect(GeoPage).not.toHaveBeenCalled();
   });

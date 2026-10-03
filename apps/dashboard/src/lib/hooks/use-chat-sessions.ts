@@ -16,10 +16,12 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { DEFAULT_CHAT_TITLE } from "@/constants/chat-history";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import {
   excludeArrivedGeneratingIds,
@@ -45,7 +47,7 @@ function createPendingChatSession(chatId: string): ChatSessionSummary {
   const now = new Date().toISOString();
   return {
     chatId,
-    title: "New chat",
+    title: DEFAULT_CHAT_TITLE,
     createdAt: now,
     updatedAt: now,
     pinnedAt: null,
@@ -184,8 +186,6 @@ export function useChatSessions() {
       queryClient.setQueryData(pendingQueryKey, nextPending);
     }
 
-    // The create request awaits title generation, so an arrived chat's title
-    // is final. Clear the skeleton even when the post-create refetch failed.
     const generatingIds = generatingQuery.data ?? [];
     const nextGenerating = excludeArrivedGeneratingIds(
       generatingIds,
@@ -213,6 +213,7 @@ export function useChatSessions() {
 }
 
 export function useChatSessionMutations() {
+  const tToast = useTranslations("chat.toasts");
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
@@ -302,7 +303,7 @@ export function useChatSessionMutations() {
 
       if (!response.ok) {
         queryClient.setQueryData(queryKey, previousSessions);
-        toast.error("Failed to rename chat");
+        toast.error(tToast("renameChatFailed"));
         renameInFlightRef.current.delete(chatId);
         return false;
       }
@@ -316,7 +317,7 @@ export function useChatSessionMutations() {
       return true;
     } catch {
       queryClient.setQueryData(queryKey, previousSessions);
-      toast.error("Failed to rename chat");
+      toast.error(tToast("renameChatFailed"));
       renameInFlightRef.current.delete(chatId);
       return false;
     }
@@ -349,7 +350,7 @@ export function useChatSessionMutations() {
 
       if (!response.ok) {
         queryClient.setQueryData(queryKey, previousSessions);
-        toast.error("Failed to update chat pin");
+        toast.error(tToast("updateChatPinFailed"));
         return false;
       }
 
@@ -361,7 +362,7 @@ export function useChatSessionMutations() {
       return true;
     } catch {
       queryClient.setQueryData(queryKey, previousSessions);
-      toast.error("Failed to update chat pin");
+      toast.error(tToast("updateChatPinFailed"));
       return false;
     }
   }
@@ -377,7 +378,7 @@ export function useChatSessionMutations() {
       });
 
       if (!response.ok) {
-        toast.error("Failed to delete chat");
+        toast.error(tToast("deleteChatFailed"));
         return false;
       }
 
@@ -392,10 +393,10 @@ export function useChatSessionMutations() {
         }),
       ]);
 
-      toast.success("Chat deleted");
+      toast.success(tToast("chatDeleted"));
       return true;
     } catch {
-      toast.error("Failed to delete chat");
+      toast.error(tToast("deleteChatFailed"));
       return false;
     }
   }

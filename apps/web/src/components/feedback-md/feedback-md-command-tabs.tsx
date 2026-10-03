@@ -1,11 +1,8 @@
-"use client";
-
 import { CommandLineIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CommandTabs } from "@notra/ui/components/ui/command-tabs";
 import { ExpandableTabs } from "@notra/ui/components/ui/expandable-tabs";
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 import { useState } from "react";
 
 import { FEEDBACK_MD_CLIENTS } from "@/lib/feedback-md/constants";
@@ -24,7 +21,9 @@ function clientIcon(client: FeedbackMdClient) {
     );
   }
   return (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt={`${client.label} logo`}
       className={cn("size-4 shrink-0", client.invertInDark && "dark:invert")}
       height={16}

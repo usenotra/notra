@@ -8,7 +8,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type { IrisPauseDialogProps } from "@/types/iris";
@@ -19,14 +19,14 @@ export function IrisPauseDialog({
   onOpenChange,
   onConfirm,
 }: IrisPauseDialogProps) {
+  const t = useTranslations("iris.pauseDialog");
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Pause Iris?</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Pausing stops scheduled runs and cancels pending Slack messages. You
-            can resume at any time.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <ResponsiveDialogFooter>
@@ -35,17 +35,10 @@ export function IrisPauseDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Keep running
+            {t("keepRunning")}
           </Button>
-          <Button disabled={isPausing} onClick={onConfirm}>
-            {isPausing ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Pausing
-              </>
-            ) : (
-              "Pause Iris"
-            )}
+          <Button loading={isPausing} onClick={onConfirm}>
+            {t("confirm")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

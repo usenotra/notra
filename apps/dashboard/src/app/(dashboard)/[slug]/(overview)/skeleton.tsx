@@ -1,12 +1,15 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { CreateContentButton } from "@/components/content/create-content-button";
 import { PageContainer } from "@/components/layout/container";
 
 export function HomePageSkeleton() {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const id = useId();
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -16,11 +19,11 @@ export function HomePageSkeleton() {
         </div>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Today&apos;s Content</h2>
+          <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold">{t("todayTitle")}</h2>
               <p className="text-muted-foreground text-sm">
-                Latest items created today
+                {t("todayDescription")}
               </p>
             </div>
             <CreateContentButton />
@@ -37,9 +40,11 @@ export function HomePageSkeleton() {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Content Activity</h2>
+            <h2 className="text-lg font-semibold">
+              {tCommon("labels.contentActivity")}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              Your content creation over the year
+              {t("activityDescription")}
             </p>
           </div>
           <Skeleton className="h-40 w-full max-w-[53rem] rounded-lg" />

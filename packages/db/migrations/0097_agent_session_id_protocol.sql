@@ -1,0 +1,1 @@
+ALTER TABLE "agent_sessions" ALTER COLUMN "continuation_token" DROP NOT NULL;

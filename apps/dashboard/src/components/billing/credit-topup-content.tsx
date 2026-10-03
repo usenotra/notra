@@ -12,7 +12,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { Loader2Icon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,19 +20,17 @@ import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
-
-function formatDollars(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
-}
+import { formatDollars } from "@/utils/format";
 
 interface CreditTopupContentProps {
   onSuccess?: () => void;
 }
 
 export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
+  const t = useTranslations("billing.topup");
+  const tBillingShared = useTranslations("billing.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { activeOrganization } = useOrganizationsContext();
   const {
     attach,
@@ -110,7 +108,7 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
           amount_dollars: amountDollars,
           is_preset: isPreset,
         });
-        toast.success("Credits added successfully");
+        toast.success(t("added"));
         if (onSuccess) {
           onSuccess();
         }
@@ -121,11 +119,7 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
         amount_dollars: amountDollars,
         is_preset: isPreset,
       });
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Could not process top-up. Please try again."
-      );
+      toast.error(err instanceof Error ? err.message : t("failed"));
     }
     setLoading(false);
   }
@@ -136,20 +130,26 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
         <Skeleton className="h-16 rounded-lg" />
       ) : (
         <div className="bg-muted/30 rounded-lg border p-4">
-          <p className="text-muted-foreground text-sm">Current Balance</p>
+          <p className="text-muted-foreground text-sm">
+            {tBillingShared("currentBalance")}
+          </p>
           <p className="text-2xl font-bold tabular-nums">
-            {aiCreditsBalance !== null ? formatDollars(aiCreditsBalance) : "-"}
+            {aiCreditsBalance !== null
+              ? formatDollars(aiCreditsBalance, locale)
+              : "-"}
           </p>
           {aiCreditsIncluded !== null && (
             <p className="text-muted-foreground text-xs">
-              of {formatDollars(aiCreditsIncluded)} included in plan
+              {t("includedInPlan", {
+                amount: formatDollars(aiCreditsIncluded, locale),
+              })}
             </p>
           )}
         </div>
       )}
 
       <div className="space-y-3">
-        <p className="text-sm font-medium">Select amount</p>
+        <p className="text-sm font-medium">{t("selectAmountLabel")}</p>
         <div className="grid grid-cols-4 gap-2">
           {TOPUP_PRESETS.map((amount) => (
             <button
@@ -174,7 +174,9 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
 
         <div className="flex items-center gap-2">
           <div className="bg-border h-px flex-1" />
-          <span className="text-muted-foreground text-xs">or</span>
+          <span className="text-muted-foreground text-xs">
+            {tCommon("labels.or")}
+          </span>
           <div className="bg-border h-px flex-1" />
         </div>
 
@@ -198,7 +200,10 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
               setIsCustom(true);
               setSelected(null);
             }}
-            placeholder={`Custom amount ($${TOPUP_MIN_DOLLARS}–$${TOPUP_MAX_DOLLARS})`}
+            placeholder={t("customPlaceholder", {
+              min: TOPUP_MIN_DOLLARS,
+              max: TOPUP_MAX_DOLLARS,
+            })}
             step={1}
             type="number"
             value={customAmount}
@@ -206,25 +211,27 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
         </div>
         {isCustom && customAmount && !isCustomValid && (
           <p className="text-destructive text-xs">
-            Enter a whole number between ${TOPUP_MIN_DOLLARS} and $
-            {TOPUP_MAX_DOLLARS}
+            {t("customInvalid", {
+              min: TOPUP_MIN_DOLLARS,
+              max: TOPUP_MAX_DOLLARS,
+            })}
           </p>
         )}
       </div>
 
       <Button
         className="w-full"
-        disabled={!activeAmount || loading}
+        disabled={!activeAmount}
+        loading={loading}
         onClick={handleTopup}
       >
-        {loading && <Loader2Icon className="size-4 animate-spin" />}
-        {!loading && activeAmount && `Add $${activeAmount} in credits`}
-        {!(loading || activeAmount) && "Select an amount"}
+        {activeAmount
+          ? t("addAmount", { amount: activeAmount })
+          : t("selectAmount")}
       </Button>
 
       <p className="text-muted-foreground text-center text-xs">
-        A {MARKUP_PERCENT}% platform fee is added to top-ups. Plan-included
-        credits are charged at cost.
+        {t("feeNotice", { percent: MARKUP_PERCENT })}
       </p>
     </div>
   );

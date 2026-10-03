@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { Data, Effect } from "effect";
-import type { NextRequest } from "next/server";
+
+import { getClientIp } from "@/utils/client-ip";
 
 type LimiterKind = "lookup" | "render" | "render-global";
 
@@ -36,7 +37,6 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
 
   limiters[kind] = new Ratelimit({
     redis: new Redis({ url, token }),
-    analytics: true,
     prefix: `ratelimit:web:star-video-${kind}`,
     limiter: Ratelimit.slidingWindow(
       LIMITS[kind].requests,
@@ -46,25 +46,7 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
   return limiters[kind] ?? null;
 }
 
-function getClientIp(request: NextRequest): string {
-  // On Vercel only the platform-set x-vercel-forwarded-for is trustworthy.
-  // Off-Vercel we assume a trusted reverse proxy overwrites x-forwarded-for;
-  // if the app is exposed without one these headers are client-spoofable.
-  if (process.env.VERCEL) {
-    return (
-      request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
-      "unknown"
-    );
-  }
-
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    "unknown"
-  );
-}
-
-function getRateLimitKey(request: NextRequest): string {
+function getRateLimitKey(request: Request): string {
   return createHash("sha256").update(getClientIp(request)).digest("hex");
 }
 
@@ -105,7 +87,7 @@ const enforceLimit = Effect.fn("enforceStarVideoLimit")(function* (
 });
 
 export const enforceStarVideoRateLimit = Effect.fn("enforceStarVideoRateLimit")(
-  function* (request: NextRequest, kind: "lookup" | "render") {
+  function* (request: Request, kind: "lookup" | "render") {
     yield* enforceLimit(kind, getRateLimitKey(request));
   }
 );

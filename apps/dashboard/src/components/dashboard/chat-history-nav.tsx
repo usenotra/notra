@@ -48,18 +48,21 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CHAT_HISTORY_PINNED_LABEL } from "@/constants/chat-history";
 import {
   useChatSessionMutations,
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
 import { cn } from "@/lib/utils";
-import { getChatHistoryGroups } from "@/utils/chat-history-groups";
+import {
+  displayChatTitle,
+  getChatHistoryGroups,
+} from "@/utils/chat-history-groups";
 
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
@@ -70,6 +73,10 @@ function chatIdFromPath(path: string): string | undefined {
 }
 
 export function ChatHistoryNav() {
+  const t = useTranslations("dashboard.chatHistory");
+  const tCommon2 = useTranslations("common");
+  const tChat = useTranslations("dashboard.chatTitle");
+  const tCommon = useTranslations("common.actions");
   const { activeOrganization } = useOrganizationsContext();
   const pathname = usePathname();
   const router = useRouter();
@@ -126,11 +133,7 @@ export function ChatHistoryNav() {
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentChatId =
-    chatIdFromPath(pathname) ??
-    (typeof window === "undefined"
-      ? undefined
-      : chatIdFromPath(window.location.pathname));
+  const currentChatId = chatIdFromPath(pathname);
   const isOnChatRoute = pathSegments[1] === "chat";
   const pinnedSessions = sessions.filter((session) =>
     Boolean(session.pinnedAt)
@@ -152,7 +155,7 @@ export function ChatHistoryNav() {
     const nextTitle = normalizeChatTitle(draftTitle);
 
     if (!nextTitle) {
-      toast.error("Title can't be empty");
+      toast.error(tChat("emptyTitle"));
       setDraftTitle(session.title);
       setEditingChatId(null);
       return;
@@ -273,7 +276,9 @@ export function ChatHistoryNav() {
                         ) : (
                           <SidebarNavLink
                             aria-label={
-                              isGeneratingTitle ? "Generating title" : undefined
+                              isGeneratingTitle
+                                ? tChat("generating")
+                                : undefined
                             }
                             href={sessionHref}
                             onClick={(event) => {
@@ -289,23 +294,35 @@ export function ChatHistoryNav() {
                           >
                             {isGeneratingTitle ? (
                               <Skeleton
-                                aria-label="Generating title"
+                                aria-label={tChat("generating")}
                                 className="h-4 w-28 max-w-full"
                                 role="status"
                               />
                             ) : (
-                              <span className="truncate">{session.title}</span>
+                              <span className="truncate">
+                                {displayChatTitle(
+                                  session.title,
+                                  tCommon2("labels.newChat")
+                                )}
+                              </span>
                             )}
                           </SidebarNavLink>
                         )
                       }
-                      tooltip={isGeneratingTitle ? undefined : session.title}
+                      tooltip={
+                        isGeneratingTitle
+                          ? undefined
+                          : displayChatTitle(
+                              session.title,
+                              tCommon2("labels.newChat")
+                            )
+                      }
                     />
 
                     {!isEditing && (
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          aria-label="Chat options"
+                          aria-label={t("options")}
                           className="text-muted-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-foreground duration-fast absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md opacity-0 outline-hidden transition-opacity ease-out group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 data-popup-open:opacity-100 [&>svg]:size-4 [&>svg]:shrink-0"
                           onClick={(event) => {
                             event.preventDefault();
@@ -326,21 +343,21 @@ export function ChatHistoryNav() {
                             <HugeiconsIcon
                               icon={session.pinnedAt ? PinOffIcon : PinIcon}
                             />
-                            {session.pinnedAt ? "Unpin" : "Pin"}
+                            {session.pinnedAt ? tChat("unpin") : tChat("pin")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={isGeneratingTitle}
                             onClick={() => startEditing(session)}
                           >
                             <HugeiconsIcon icon={PencilEdit02Icon} />
-                            Rename
+                            {tCommon("rename")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => setDeleteCandidate(session)}
                             variant="destructive"
                           >
                             <HugeiconsIcon icon={Delete02Icon} />
-                            Delete
+                            {tCommon("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -354,21 +371,21 @@ export function ChatHistoryNav() {
                       <HugeiconsIcon
                         icon={session.pinnedAt ? PinOffIcon : PinIcon}
                       />
-                      {session.pinnedAt ? "Unpin" : "Pin"}
+                      {session.pinnedAt ? tChat("unpin") : tChat("pin")}
                     </ContextMenuItem>
                     <ContextMenuItem
                       disabled={isGeneratingTitle}
                       onClick={() => startEditing(session)}
                     >
                       <HugeiconsIcon icon={PencilEdit02Icon} />
-                      Rename
+                      {tCommon("rename")}
                     </ContextMenuItem>
                     <ContextMenuItem
                       onClick={() => setDeleteCandidate(session)}
                       variant="destructive"
                     >
                       <HugeiconsIcon icon={Delete02Icon} />
-                      Delete
+                      {tCommon("delete")}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -398,10 +415,10 @@ export function ChatHistoryNav() {
                     replace={isOnChatRoute}
                   >
                     <HugeiconsIcon icon={Add01Icon} />
-                    <SidebarLabel>New chat</SidebarLabel>
+                    <SidebarLabel>{tCommon2("labels.newChat")}</SidebarLabel>
                   </SidebarNavLink>
                 }
-                tooltip="New chat"
+                tooltip={tCommon2("labels.newChat")}
               />
             </SidebarMenuItem>
           </SidebarMenu>
@@ -419,9 +436,14 @@ export function ChatHistoryNav() {
                 key="chat-sessions"
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-                {renderSessions(CHAT_HISTORY_PINNED_LABEL, pinnedSessions)}
+                {renderSessions(t("pinned"), pinnedSessions)}
                 {historyGroups.map((group) =>
-                  renderSessions(group.label, group.sessions)
+                  renderSessions(
+                    group.id === "lastMonth"
+                      ? t("groups.lastMonth")
+                      : tCommon2(`labels.${group.id}`),
+                    group.sessions
+                  )
                 )}
               </motion.div>
             ) : null}
@@ -440,16 +462,17 @@ export function ChatHistoryNav() {
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
             <ResponsiveAlertDialogTitle>
-              Delete chat?
+              {tChat("deleteTitle")}
             </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{deleteCandidate?.title}&quot;.
-              This action cannot be undone.
+            <ResponsiveAlertDialogDescription className="wrap-anywhere">
+              {tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+                title: deleteCandidate?.title ?? "",
+              })}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
             <ResponsiveAlertDialogCancel disabled={Boolean(deletingChatId)}>
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               disabled={Boolean(deletingChatId)}
@@ -459,7 +482,7 @@ export function ChatHistoryNav() {
               }}
               variant="destructive"
             >
-              {deletingChatId ? "Deleting..." : "Delete"}
+              {deletingChatId ? tCommon("deleting") : tCommon("delete")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

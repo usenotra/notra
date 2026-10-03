@@ -179,6 +179,13 @@ export interface GeoCheckCompetitorPromptRow {
   capturedAt: Date;
 }
 
+export interface GeoCheckCompetitorPromptSummaryRow {
+  answers: number;
+  prompts: number;
+  engineIds: string[];
+  ownMentioned: number;
+}
+
 export interface GeoCheckLanguageShareRow {
   language: string;
   checks: number;

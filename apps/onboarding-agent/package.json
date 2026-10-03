@@ -14,24 +14,24 @@
   },
   "dependencies": {
     "@ai-sdk/devtools": "1.0.22",
-    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@notra/ai": "workspace:*",
     "@notra/db": "workspace:*",
     "@notra/posthog": "workspace:*",
     "@notra/tools": "workspace:*",
     "ai": "7.0.105",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-rc.112",
+    "effect": "4.0.0",
     "eve": "0.27.13",
-    "pg": "^8.20.0",
-    "zod": "^4.4.3"
+    "pg": "^8.23.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^24.0.0",
     "dotenv-cli": "^11.0.0",
     "microsandbox": "^0.6.1",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": "24.x"

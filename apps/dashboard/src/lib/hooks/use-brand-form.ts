@@ -3,6 +3,7 @@
 import { normalizePublicWebsiteUrl } from "@notra/geo-core/schemas/url";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -16,8 +17,8 @@ export function useBrandForm({
   voiceId,
   initialData,
   onSavingChange,
-  onSavedAtChange,
 }: BrandFormProps) {
+  const tToast = useTranslations("brand.toasts");
   const updateMutation = useUpdateBrandSettings(organizationId);
   const lastSavedData = useRef<string | null>(null);
   if (lastSavedData.current === null) {
@@ -37,7 +38,6 @@ export function useBrandForm({
         ...(websiteUrl !== undefined && { websiteUrl }),
       });
       lastSavedData.current = JSON.stringify(values);
-      onSavedAtChange?.(new Date());
       onSavingChange?.(false);
     },
     {
@@ -45,7 +45,7 @@ export function useBrandForm({
       onError: (error) => {
         onSavingChange?.(false);
         toast.error(
-          error instanceof Error ? error.message : "Failed to save changes"
+          error instanceof Error ? error.message : tToast("saveChangesFailed")
         );
       },
     }

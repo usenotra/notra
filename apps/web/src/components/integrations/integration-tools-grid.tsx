@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 
 import { DETAIL_VISIBLE_TOOLS } from "@/constants/integrations";

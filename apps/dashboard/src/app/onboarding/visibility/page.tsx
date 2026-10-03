@@ -1,13 +1,17 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
-import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
+import { getGeoOnboardingSnapshot } from "@notra/geo-core/geo/onboarding-status";
+import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoDashboardPath,
@@ -18,9 +22,10 @@ import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { VisibilityForm } from "./visibility-form";
 
-export const metadata: Metadata = {
-  title: "Track your AI visibility",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("onboarding.visibility");
+  return { title: t("metaTitle") };
+}
 
 export default async function OnboardingVisibilityPage({
   searchParams,
@@ -49,10 +54,19 @@ export default async function OnboardingVisibilityPage({
     typeof project === "string" && project ? project : undefined;
   const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
 
-  const [stage, hasPaidHistory] = await Promise.all([
-    getGeoOnboardingStage(organization.id, projectId),
-    hasPaidSubscriptionHistory(organization.id),
-  ]);
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
+
+  const [{ stage, languages: savedLanguages }, hasPaidHistory, requestHeaders] =
+    await Promise.all([
+      getGeoOnboardingSnapshot(organization.id, projectId),
+      hasPaidSubscriptionHistory(organization.id),
+      headers(),
+    ]);
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const dashboardHref = geoDashboardPath(organization.slug, projectId);
   const skipHref =
@@ -63,6 +77,12 @@ export default async function OnboardingVisibilityPage({
   return (
     <VisibilityForm
       companyName={brand.companyName}
+      initialLanguages={
+        savedLanguages?.languages ?? [
+          preferredGeoLanguage(requestHeaders.get("accept-language")),
+        ]
+      }
+      lockedLanguage={savedLanguages?.promptLanguage ?? null}
       inOnboardingFlow={inOnboardingFlow}
       nextHref={geoOnboardingCompetitorsPath(projectId, isDevReplay)}
       organizationId={organization.id}

@@ -1,5 +1,6 @@
 import { createRoute } from "@hono/zod-openapi";
 import { parsePromptsCsv } from "@notra/geo-core/geo/csv-import";
+import { refreshGeoContentGapsBestEffort } from "@notra/geo-core/geo/gaps";
 import {
   createGeoPrompt,
   deleteGeoPrompt,
@@ -21,6 +22,7 @@ import {
   patchPromptRequestSchema,
   promptResponseSchema,
 } from "@notra/schemas/api/geo-prompts";
+import { Effect } from "effect";
 
 import {
   GEO_COMMON_ERROR_RESPONSES,
@@ -177,6 +179,13 @@ geoPromptsRoutes.openapi(createPromptRoute, async (c) => {
       prompt,
       undefined,
       tags ?? []
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {
@@ -200,6 +209,13 @@ geoPromptsRoutes.openapi(patchPromptRoute, async (c) => {
       { organizationId: base.organizationId, projectId },
       promptId,
       { enabled, tags }
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {
@@ -221,6 +237,13 @@ geoPromptsRoutes.openapi(deletePromptRoute, async (c) => {
     deleteGeoPrompt(
       { organizationId: base.organizationId, projectId },
       promptId
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {
@@ -265,7 +288,17 @@ geoPromptsRoutes.openapi(importPromptsRoute, async (c) => {
 
   const outcome = await runGeoEffect(
     "promptsImport",
-    importGeoPrompts({ organizationId: base.organizationId, projectId }, rows)
+    importGeoPrompts(
+      { organizationId: base.organizationId, projectId },
+      rows
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
+    )
   );
   if (!outcome.ok) {
     return geoErrorResponse(c, outcome.failure);

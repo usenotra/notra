@@ -113,6 +113,7 @@ export function buildVercelProviderOptions(
   const { zeroDataRetention: _ignoredZdr, ...existingWithoutZdr } = existing;
   const gatewayOptions: Record<string, unknown> = {
     ...existingWithoutZdr,
+    tags: existing.tags ?? ["other"],
     caching: router.caching ?? existing.caching ?? "auto",
     ...(fallbackModels ? { models: fallbackModels } : {}),
     ...(zeroDataRetention ? { zeroDataRetention: true } : {}),

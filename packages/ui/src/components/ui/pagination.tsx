@@ -2,8 +2,9 @@ import * as React from "react"
 
 import { cn } from "@notra/ui/lib/utils"
 import { Button } from "@notra/ui/components/ui/button"
+import { UiLabel } from "@notra/ui/components/shared/ui-labels-provider"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalCircle01Icon } from "@hugeicons/core-free-icons"
+import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -49,7 +50,11 @@ function PaginationLink({
     <Button
       variant={isActive ? "outline" : "ghost"}
       size={size}
-      className={cn(className)}
+      className={cn(
+        isActive &&
+          "dark:border-foreground/20 dark:bg-background dark:text-foreground dark:hover:bg-background",
+        className
+      )}
       nativeButton={false}
       render={
         <a
@@ -65,7 +70,7 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
-  text = "Previous",
+  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
@@ -76,14 +81,16 @@ function PaginationPrevious({
       {...props}
     >
       <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} data-icon="inline-start" />
-      <span className="hidden sm:block">{text}</span>
+      {text === "" ? null : (
+        <span className="hidden sm:block">{text ?? <UiLabel name="previous" />}</span>
+      )}
     </PaginationLink>
   )
 }
 
 function PaginationNext({
   className,
-  text = "Next",
+  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
@@ -93,7 +100,9 @@ function PaginationNext({
       className={cn("pr-1.5!", className)}
       {...props}
     >
-      <span className="hidden sm:block">{text}</span>
+      {text === "" ? null : (
+        <span className="hidden sm:block">{text ?? <UiLabel name="next" />}</span>
+      )}
       <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} data-icon="inline-end" />
     </PaginationLink>
   )
@@ -113,8 +122,8 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
-      <span className="sr-only">More pages</span>
+      <HugeiconsIcon icon={MoreHorizontalIcon} strokeWidth={2} />
+      <span className="sr-only"><UiLabel name="morePages" /></span>
     </span>
   )
 }

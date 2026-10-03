@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { AccountInfo } from "@/types/organizations/actions";
 
 export interface ProfileSectionUser {
@@ -23,4 +25,15 @@ export interface ConnectedAccountsSectionProps {
   hasGithubLinked: boolean;
   isError: boolean;
   onAccountsChange: () => void;
+}
+
+export interface ConnectedAccountRowProps {
+  canUnlink: boolean;
+  disconnectHint: string | null;
+  icon: ReactNode;
+  linked: boolean;
+  loading: boolean;
+  name: string;
+  onLink: () => void;
+  onUnlink: () => void;
 }

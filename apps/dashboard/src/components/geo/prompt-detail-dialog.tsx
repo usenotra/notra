@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { AiChat02Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_CHAT_SKIN_SURFACE,
-  GEO_PROMPT_HISTORY_ANSWER_LABELS,
   GEO_PROMPT_MAX_TAGS,
 } from "@notra/geo-core/constants/geo";
 import type {
@@ -13,10 +12,16 @@ import type {
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
-import { geoPromptIntentLabel } from "@notra/geo-core/utils/geo-prompt-intent";
 import { normalizePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import {
   Sheet,
   SheetContent,
@@ -24,11 +29,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { tween } from "@notra/ui/lib/motion";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/button";
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { LazyGeoPromptAnswerThread } from "@/components/geo/lazy-geo-prompt-answer-thread";
@@ -38,16 +50,18 @@ import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
+import { PromptTranslationsSection } from "@/components/geo/prompt-translations-section";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   GeoScanControlsProvider,
   useGeoScanControls,
 } from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
-import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
+import { useGeoPromptResultDetail, useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
@@ -64,15 +78,12 @@ import type {
   PromptAnswerTagsFooterProps,
   PromptDetailOpenedEventProps,
 } from "@/types/geo-prompt-detail";
-import { sharedEngineAnswerMode } from "@/utils/geo-charts";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
+import { formatModelLabel } from "@/utils/geo-model-display";
 import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
-
-const INSTANT = { duration: 0 } as const;
-const SLIDE_PX = 18;
 
 function usePromptDetailOpened({
   open,
@@ -100,20 +111,6 @@ function usePromptDetailOpened({
   }, [engine, engineCount, open, promptId, surface]);
 }
 
-function threadVariants(reduceMotion: boolean) {
-  return {
-    enter: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * SLIDE_PX,
-    }),
-    center: { opacity: 1, x: 0 },
-    exit: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * -SLIDE_PX,
-    }),
-  };
-}
-
 function latestPromptCheckAt(
   results: readonly GeoPromptResultSummary[]
 ): string | null {
@@ -133,20 +130,26 @@ function HistoryAnswerBanner({
   check: GeoPromptHistoryCheck;
   onBack: () => void;
 }) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const locale = useLocale();
   return (
     <div className="bg-muted/40 flex shrink-0 items-center justify-between gap-3 border-b px-6 py-2 text-sm">
       <p className="text-muted-foreground">
-        {GEO_PROMPT_HISTORY_ANSWER_LABELS.scanFrom}{" "}
-        <time
-          className="text-foreground tabular-nums"
-          dateTime={check.capturedAt}
-        >
-          {formatAiTrafficTimestamp(check.capturedAt)}
-        </time>
+        {t.rich("scanFrom", {
+          date: formatAiTrafficTimestamp(check.capturedAt, locale),
+          time: (chunks) => (
+            <time
+              className="text-foreground tabular-nums"
+              dateTime={check.capturedAt}
+            >
+              {chunks}
+            </time>
+          ),
+        })}
       </p>
       <Button onClick={onBack} size="sm" type="button" variant="ghost">
         <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-        {GEO_PROMPT_HISTORY_ANSWER_LABELS.backToLatest}
+        {t("backToLatest")}
       </Button>
     </div>
   );
@@ -163,50 +166,57 @@ function PromptAnswerHeader({
   onSelectEngine,
   onSelectView,
 }: PromptAnswerHeaderProps) {
-  const answerMode = sharedEngineAnswerMode(
-    results.map((result) => result.engine)
-  );
+  const t = useTranslations("geo.promptDetailDialog");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const intentLabel = useGeoPromptIntentLabel();
+  const locale = useLocale();
   const latestCheck = active?.lastCheckedAt ?? latestPromptCheckAt(results);
 
   return (
     <SheetHeader className="shrink-0 gap-3 border-b p-4">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 pr-8">
-        <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
-          <PromptCopyButton prompt={promptText ?? row.prompt} />
-        </SheetTitle>
+      <div className="flex min-w-0 items-start gap-3 pr-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
+            <PromptCopyButton prompt={promptText ?? row.prompt} />
+          </SheetTitle>
+          {results.length > 0 ? (
+            <dl className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 px-2 text-xs">
+              <div>
+                <dt className="sr-only">{tCommon("labels.intent")}</dt>
+                <dd>{intentLabel(row.intent)}</dd>
+              </div>
+              <div className="flex items-center gap-1 before:content-['·']">
+                <dt>{tGeoShared("bestPosition")}</dt>
+                <dd className="text-foreground font-medium tabular-nums">
+                  {row.bestPosition === null
+                    ? tGeoShared("notRanked")
+                    : `#${row.bestPosition}`}
+                </dd>
+              </div>
+            </dl>
+          ) : null}
+        </div>
         <SheetDescription className="sr-only">
-          {answerMode
-            ? `Latest ${answerMode} answer from each engine`
-            : "Latest answer from each engine"}
+          {t("latestAnswer")}
         </SheetDescription>
-        {latestCheck ? (
-          <time
-            className="text-muted-foreground shrink-0 text-xs tabular-nums"
-            dateTime={latestCheck}
-          >
-            {formatAiTrafficTimestamp(latestCheck)}
-          </time>
-        ) : null}
-        <div className="ml-auto flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-2">
+          {latestCheck ? (
+            <time
+              className="text-muted-foreground text-xs tabular-nums"
+              dateTime={latestCheck}
+            >
+              {formatAiTrafficTimestamp(latestCheck, locale)}
+            </time>
+          ) : null}
           <PromptScanButton
             onPrepare={onPrepareScan}
             organizationId={organizationId}
+            primary
             row={row}
           />
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <div>
-          <dt className="text-muted-foreground text-xs">Intent</dt>
-          <dd>{geoPromptIntentLabel(row.intent)}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground text-xs">Best position</dt>
-          <dd className="tabular-nums">
-            {row.bestPosition === null ? "Not ranked" : `#${row.bestPosition}`}
-          </dd>
-        </div>
-      </dl>
       {results.length > 0 && active ? (
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
           <PromptEngineSwitcher
@@ -295,26 +305,63 @@ function PromptAnswerBody({
 }
 
 function PromptAnswerEmpty({
+  organizationId,
   isScanning,
   detailState,
   view,
   onRetry,
 }: PromptAnswerEmptyProps) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const { data: settingsData } = useGeoSettings(organizationId);
   if (detailState.status === "loading") {
     return <GeoPromptAnswerSkeleton view={view} />;
   }
   if (detailState.status === "error") {
     return <PromptDetailStatus onRetry={onRetry} status={detailState.status} />;
   }
+
+  const settings = settingsData?.settings;
+  const paused = settings?.enabled === false;
+  const engines = paused ? [] : (settings?.engines ?? []);
+  let description = t("emptyDescription");
+  if (isScanning) {
+    description = t("emptyScanningDescription");
+  } else if (paused) {
+    description = t("emptyPaused");
+  }
+
   return (
-    <div className="flex min-h-48 items-center justify-center px-6">
-      <p className="text-muted-foreground text-center text-sm text-pretty">
-        {geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see how engines answer this"
-        )}
-      </p>
-    </div>
+    <Empty className="min-h-full">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          {isScanning ? (
+            <StatusSpinner />
+          ) : (
+            <HugeiconsIcon icon={AiChat02Icon} />
+          )}
+        </EmptyMedia>
+        <EmptyTitle>
+          {isScanning ? t("emptyScanningTitle") : t("emptyTitle")}
+        </EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {engines.length > 0 && !isScanning ? (
+        <EmptyContent className="max-w-lg gap-2">
+          <p className="text-muted-foreground text-xs">{t("emptyEngines")}</p>
+          <ul className="flex flex-wrap justify-center gap-1.5">
+            {engines.map((engine) => (
+              <li
+                className="bg-muted/60 flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium"
+                key={engine}
+              >
+                <EngineIcon className="size-3.5" engine={engine} />
+                {formatModelLabel(engine)}
+              </li>
+            ))}
+          </ul>
+        </EmptyContent>
+      ) : null}
+    </Empty>
   );
 }
 
@@ -323,10 +370,11 @@ function PromptAnswerLanguageBar({
   selectedLanguage,
   onSelect,
 }: PromptAnswerLanguageBarProps) {
+  const t = useTranslations("geo.promptDetailDialog");
   return (
     <div
       className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-2"
-      aria-label="Answer language"
+      aria-label={t("answerLanguage")}
       role="group"
     >
       {languages.map((item) => (
@@ -350,18 +398,21 @@ function PromptAnswerTagsFooter({
   tags,
   pending,
   onChange,
+  children,
 }: PromptAnswerTagsFooterProps) {
+  const t = useTranslations("geo.promptDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <section
       className="bg-muted/20 shrink-0 space-y-3 border-t px-4 pt-3 pb-4"
       aria-labelledby={`${tagsInputId}-heading`}
     >
       <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
-        Tags
+        {tGeoShared("tags")}
       </h3>
       {row.source === "auto" ? (
         <p className="text-sm break-words">
-          {tags.length > 0 ? tags.join(", ") : "No tags"}
+          {tags.length > 0 ? tags.join(", ") : t("noTags")}
         </p>
       ) : (
         <GeoTagList
@@ -369,19 +420,40 @@ function PromptAnswerTagsFooter({
           id={tagsInputId}
           inline
           inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
-          label={GEO_PROMPT_TAGS_COPY.label}
+          label={tGeoShared("tags")}
           labeled={false}
           max={GEO_PROMPT_MAX_TAGS}
           onChange={onChange}
-          placeholder="Add a tag…"
+          placeholder={t("addTag")}
           values={tags}
         />
       )}
+      {children}
     </section>
   );
 }
 
-function PromptAnswerPage({
+function useSheetArrowKeys(
+  onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sheet = ref.current?.closest<HTMLElement>(
+      "[data-slot=sheet-content]"
+    );
+    if (!sheet) {
+      return;
+    }
+    const listener = (event: KeyboardEvent) => {
+      onKeyDown(event as unknown as ReactKeyboardEvent<HTMLElement>);
+    };
+    sheet.addEventListener("keydown", listener);
+    return () => sheet.removeEventListener("keydown", listener);
+  }, [onKeyDown]);
+  return ref;
+}
+
+export function PromptAnswerPage({
   onPrepareScan,
   row,
   open,
@@ -424,12 +496,9 @@ function PromptAnswerPage({
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
-  const [direction, setDirection] = useState(1);
-  const reduceMotion = useReducedMotion();
   const { competitors } = useGeoCompetitorsDb(organizationId, {
     enabled: open,
   });
-  const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
   const showLanguageBar = Boolean(scanId) && languages.length > 1;
 
   usePromptDetailOpened({
@@ -440,11 +509,10 @@ function PromptAnswerPage({
     promptId: row.id,
   });
 
-  function selectEngine(next: string, nextDirection: number) {
+  function selectEngine(next: string) {
     if (next === engine) {
       return;
     }
-    setDirection(nextDirection);
     setEngine(next);
     setSelectedCheck(null);
   }
@@ -461,7 +529,7 @@ function PromptAnswerPage({
     setView("raw");
   }
 
-  function handleArrowNavigation(event: KeyboardEvent<HTMLElement>) {
+  function handleArrowNavigation(event: ReactKeyboardEvent<HTMLElement>) {
     const delta = promptEngineArrowDelta(event, results.length);
     if (delta === null) {
       return;
@@ -469,17 +537,14 @@ function PromptAnswerPage({
 
     event.preventDefault();
     selectEngine(
-      adjacentPromptEngine(engines, active?.engine ?? engine, delta),
-      delta
+      adjacentPromptEngine(engines, active?.engine ?? engine, delta)
     );
   }
 
+  const frameRef = useSheetArrowKeys(handleArrowNavigation);
+
   return (
-    <SheetContent
-      className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
-      onKeyDown={handleArrowNavigation}
-      side="right"
-    >
+    <div className="contents" ref={frameRef}>
       <PromptAnswerHeader
         promptText={promptText}
         onPrepareScan={onPrepareScan}
@@ -510,42 +575,35 @@ function PromptAnswerPage({
               : undefined
           )}
         >
-          <AnimatePresence custom={direction} initial={false} mode="popLayout">
-            {active ? (
-              <motion.div
-                animate="center"
-                className="flex min-h-full min-w-0 flex-col"
-                custom={direction}
-                exit="exit"
-                initial="enter"
-                key={active.engine}
-                transition={threadTransition}
-                variants={threadVariants(Boolean(reduceMotion))}
-              >
-                <PromptAnswerBody
-                  organizationId={organizationId}
-                  competitors={competitors}
-                  detailState={detailState}
-                  history={engineHistory}
-                  isHistoryLoading={history.isPending}
-                  onBackToLatest={() => setSelectedCheck(null)}
-                  onRetry={onRetry}
-                  onSelectCheck={openHistoryAnswer}
-                  prompt={promptText}
-                  scanPromptId={scanPromptId}
-                  selectedCheck={selectedCheck}
-                  view={view}
-                />
-              </motion.div>
-            ) : (
-              <PromptAnswerEmpty
+          {active ? (
+            <div
+              className="flex min-h-full min-w-0 flex-col"
+              key={active.engine}
+            >
+              <PromptAnswerBody
+                organizationId={organizationId}
+                competitors={competitors}
                 detailState={detailState}
-                isScanning={isScanning}
+                history={engineHistory}
+                isHistoryLoading={history.isPending}
+                onBackToLatest={() => setSelectedCheck(null)}
                 onRetry={onRetry}
+                onSelectCheck={openHistoryAnswer}
+                prompt={promptText}
+                scanPromptId={scanPromptId}
+                selectedCheck={selectedCheck}
                 view={view}
               />
-            )}
-          </AnimatePresence>
+            </div>
+          ) : (
+            <PromptAnswerEmpty
+              detailState={detailState}
+              isScanning={isScanning}
+              organizationId={organizationId}
+              onRetry={onRetry}
+              view={view}
+            />
+          )}
         </div>
         {view === "analysis" ? (
           <PromptAnswerTagsFooter
@@ -556,9 +614,42 @@ function PromptAnswerPage({
             row={row}
             tags={tags}
             tagsInputId={tagsInputId}
-          />
+          >
+            <PromptTranslationsSection
+              open={open}
+              organizationId={organizationId}
+              row={row}
+            />
+          </PromptAnswerTagsFooter>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+const PROMPT_ANSWER_SHEET_CLASS =
+  "gap-0 overflow-hidden p-0 outline-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
+
+/**
+ * The slide lives on the popup. Keep this node mounted for the whole open
+ * session and swap only its children, or loading → ready replays the enter.
+ */
+export function PromptAnswerSheetContent({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // Focus the panel, not its first control: the prompt copy box would
+  // otherwise open with a focus ring. Tab still reaches it first.
+  const popupRef = useRef<HTMLDivElement>(null);
+  return (
+    <SheetContent
+      className={PROMPT_ANSWER_SHEET_CLASS}
+      initialFocus={popupRef}
+      ref={popupRef}
+      side="right"
+    >
+      {children}
     </SheetContent>
   );
 }
@@ -589,18 +680,20 @@ export function PromptDetailDialog({
       }}
       open={open}
     >
-      <PromptAnswerPage
-        onPrepareScan={() => onOpenChange(false)}
-        initialEngine={initialEngine}
-        initialLanguage={initialLanguage}
-        scanId={scanId}
-        isScanning={isScanning}
-        key={`${row.id}-${scanId ?? "latest"}`}
-        open={open}
-        organizationId={resolvedOrganizationId}
-        row={row}
-        surface={surface}
-      />
+      <PromptAnswerSheetContent>
+        <PromptAnswerPage
+          onPrepareScan={() => onOpenChange(false)}
+          initialEngine={initialEngine}
+          initialLanguage={initialLanguage}
+          scanId={scanId}
+          isScanning={isScanning}
+          key={`${row.id}-${scanId ?? "latest"}`}
+          open={open}
+          organizationId={resolvedOrganizationId}
+          row={row}
+          surface={surface}
+        />
+      </PromptAnswerSheetContent>
     </Sheet>
   ) : null;
   return scanControls ? (

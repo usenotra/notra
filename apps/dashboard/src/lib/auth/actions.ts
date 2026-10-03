@@ -43,6 +43,10 @@ const getOrganizationAccess = cache(async (rawSlug: string) => {
   );
 
   if (!organization || organization.members.length === 0) {
+    const fallback = await getLastActiveOrganizationForUser(session.user.id);
+    if (fallback && fallback.slug !== slug) {
+      redirect(`/${fallback.slug}`);
+    }
     notFound();
   }
 

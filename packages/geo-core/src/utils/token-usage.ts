@@ -92,7 +92,11 @@ function usageCostUsd(usage: AgentTokenUsage): number {
   ) {
     return usage.totalUsd;
   }
-  return calculateTokenCostUsd(usage, usage.modelId ?? GEO_JUDGE_MODEL);
+  return calculateTokenCostUsd(
+    usage,
+    usage.route?.model ?? usage.modelId ?? GEO_JUDGE_MODEL,
+    usage.route?.gateway
+  );
 }
 
 export function addAgentTokenUsage(
@@ -108,6 +112,23 @@ export function addAgentTokenUsage(
     cacheWriteTokens: total.cacheWriteTokens + next.cacheWriteTokens,
     reasoningTokens: (total.reasoningTokens ?? 0) + (next.reasoningTokens ?? 0),
     totalUsd: usageCostUsd(total) + usageCostUsd(next),
+  };
+}
+
+/** Usage as if every call had run `factor` times, for weighted billing. */
+export function scaleAgentTokenUsage(
+  usage: AgentTokenUsage,
+  factor: number
+): AgentTokenUsage {
+  const normalized = agentTokenUsageFrom(usage);
+  return {
+    inputTokens: normalized.inputTokens * factor,
+    outputTokens: normalized.outputTokens * factor,
+    totalTokens: normalized.totalTokens * factor,
+    cacheReadTokens: normalized.cacheReadTokens * factor,
+    cacheWriteTokens: normalized.cacheWriteTokens * factor,
+    reasoningTokens: (normalized.reasoningTokens ?? 0) * factor,
+    totalUsd: (normalized.totalUsd ?? 0) * factor,
   };
 }
 

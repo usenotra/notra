@@ -1,14 +1,33 @@
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
 
+import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { resolveGeoEntitlement } from "@/lib/billing/subscription";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { contentRouter } from "@/lib/orpc/routers/content";
 import { geoRouter } from "@/lib/orpc/routers/geo";
+import { prefetchRecentPostsQuery } from "@/utils/content-recents-prefetch.server";
 import {
   geoHydrationInputs,
   geoTrafficHydrationInputs,
 } from "@/utils/geo-hydration";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
+
+async function canPrefetchGeoQueries(organizationId: string, headers: Headers) {
+  await createORPCContext({ headers });
+  // Authorization is mandatory even when the optional billing prefetch fails.
+  await assertOrganizationAccess({ organizationId, headers });
+  try {
+    return (await resolveGeoEntitlement(organizationId, headers)) !== "denied";
+  } catch (error) {
+    console.warn("[geo] Skipping prefetch: entitlement lookup unavailable", {
+      organizationId,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return false;
+  }
+}
 
 /**
  * Starts the GEO overview queries on the server and returns the dehydrated
@@ -21,9 +40,12 @@ export async function dehydrateGeoOverviewQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
-    { geo: geoRouter },
+    { content: contentRouter, geo: geoRouter },
     { context: () => createORPCContext({ headers: requestHeaders }) }
   );
   const queryClient = getGeoServerQueryClient();
@@ -58,6 +80,12 @@ export async function dehydrateGeoOverviewQueries(
       }),
       queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
     });
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.journeyStats.queryOptions({
+        input: input.journeyStats,
+      }),
+      queryFn: () => client.geo.journeyStats(input.journeyStats),
+    });
   }
   if (input.activeTab === "visibility") {
     void queryClient.prefetchQuery({
@@ -83,6 +111,13 @@ export async function dehydrateGeoOverviewQueries(
     });
   }
 
+  prefetchRecentPostsQuery(
+    queryClient,
+    (recentsInput) => client.content.recents(recentsInput),
+    organizationId,
+    projectId
+  );
+
   return dehydrate(queryClient);
 }
 
@@ -97,6 +132,9 @@ export async function dehydrateGeoTrafficQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoTrafficHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { geo: geoRouter },

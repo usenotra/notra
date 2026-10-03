@@ -19,13 +19,90 @@ import {
   TableNode,
   TableRowNode,
 } from "@lexical/table";
-import { $createParagraphNode, $createTextNode } from "lexical";
+import { $createParagraphNode, $createTextNode, $isTextNode } from "lexical";
 
+import {
+  $createContentImageNode,
+  $isContentImageNode,
+  ContentImageNode,
+} from "./nodes/content-image-node";
+import {
+  $createContentVideoNode,
+  $isContentVideoNode,
+  ContentVideoNode,
+} from "./nodes/content-video-node";
 import {
   $createKiboCodeBlockNode,
   $isKiboCodeBlockNode,
   KiboCodeBlockNode,
 } from "./nodes/kibo-code-block-node";
+
+export const CONTENT_IMAGE: ElementTransformer = {
+  dependencies: [ContentImageNode],
+  export: (node) => {
+    if (!$isContentImageNode(node)) {
+      return null;
+    }
+    const alt = node.getAltText().replace(/[[\]]/g, "");
+    return `![${alt}](${node.getSrc()})`;
+  },
+  regExp: /^!\[([^[\]]*)\]\(([^)\s]+)\)\s*$/,
+  replace: (parentNode, children, match) => {
+    const altText = match[1] ?? "";
+    const src = match[2];
+    try {
+      if (!src) {
+        throw new Error("Image URL is missing");
+      }
+      parentNode.replace(
+        $createContentImageNode({
+          altText,
+          src,
+        })
+      );
+    } catch {
+      // Lexical clears the matched line before replace. Put it back when the
+      // URL is not one we can render.
+      const text = children?.[0];
+      const line = match[0];
+      if ($isTextNode(text) && line) {
+        text.setTextContent(line);
+      }
+      return false;
+    }
+  },
+  type: "element",
+};
+
+export const CONTENT_VIDEO: ElementTransformer = {
+  dependencies: [ContentVideoNode],
+  export: (node) => {
+    if (!$isContentVideoNode(node)) {
+      return null;
+    }
+    return `<video controls src="${node.getSrc()}"></video>`;
+  },
+  regExp: /^<video controls src="([^"]+)"><\/video>\s*$/,
+  replace: (parentNode, children, match) => {
+    const src = match[1];
+    try {
+      if (!src) {
+        throw new Error("Video URL is missing");
+      }
+      parentNode.replace($createContentVideoNode({ src }));
+    } catch {
+      // Lexical clears the matched line before replace. Put it back when the
+      // URL is not one we can render.
+      const text = children?.[0];
+      const line = match[0];
+      if ($isTextNode(text) && line) {
+        text.setTextContent(line);
+      }
+      return false;
+    }
+  },
+  type: "element",
+};
 
 export const HORIZONTAL_RULE: ElementTransformer = {
   dependencies: [HorizontalRuleNode],
@@ -260,6 +337,8 @@ const filteredTransformers = TRANSFORMERS.filter((transformer: Transformer) => {
 });
 
 export const EDITOR_TRANSFORMERS = [
+  CONTENT_VIDEO,
+  CONTENT_IMAGE,
   ...filteredTransformers,
   HORIZONTAL_RULE,
   KIBO_CODE_BLOCK,

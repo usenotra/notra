@@ -3,6 +3,7 @@
 import type { TextSelection } from "@notra/ai/types/chat";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 import { ContentPlanView } from "@/components/content/content-plan-view";
 import { ContentEditorSwitch } from "@/components/content/editors";
@@ -16,54 +17,43 @@ interface ContentDetailMainDocumentProps {
   document: ContentDetailDocument;
   organizationId: string;
   onSelectionChange: (selection: TextSelection | null) => void;
+  selectedExcerpt: TextSelection | null;
 }
 
-export function ContentDetailMainDocument({
+function GeoWriterPlanDocument({
   contentId,
-  data,
-  document: contentDocument,
-  organizationId,
-  onSelectionChange,
-}: ContentDetailMainDocumentProps) {
+  document,
+}: Pick<ContentDetailMainDocumentProps, "contentId" | "document">) {
+  const t = useTranslations("content.detail.plan");
+  const tCommon = useTranslations("common.actions");
   const {
     briefStatus,
-    editedMarkdown,
-    editedMarkdownRef,
-    editorKey,
-    editorRef,
     geoWriterBriefQuery,
     geoWriterDraft,
-    handleEditorChange,
     handlePlanBriefChange,
-    hasChanges,
-    hasMarkdownChanges,
     hasPlanConflict,
-    hasSlugChanges,
-    hasTitleChanges,
-    imageExportRef,
-    isGeoWriterPlanMode,
+    isGeoWriterBriefError,
+    isGeoWriterBriefMissing,
     isGeoWriterPlanReviewableNow,
-    originalMarkdown,
     planEditorVersion,
     resolvePlanConflictLoadLatest,
     resolvePlanConflictSaveMine,
-    reviewPreviousMarkdown,
-    setEditedMarkdown,
-    setEditingSlug,
-    setEditingTitle,
     setIsPlanDirty,
-    setOriginalMarkdown,
-    editingSlug,
-    editingTitle,
-    serverSlug,
-    serverTitle,
-    writeFocusNonce,
-  } = contentDocument;
-  const { activeOrganization } = useOrganizationsContext();
-  const content = data.content;
+  } = document;
   const planBrief = geoWriterBriefQuery.data?.brief;
 
-  if (isGeoWriterPlanMode && planBrief) {
+  if (isGeoWriterBriefMissing) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1 py-12 text-center">
+        <p className="font-medium">{t("missingTitle")}</p>
+        <p className="text-muted-foreground text-sm">
+          {t("missingDescription")}
+        </p>
+      </div>
+    );
+  }
+
+  if (planBrief) {
     return (
       <>
         {hasPlanConflict ? (
@@ -72,9 +62,9 @@ export function ContentDetailMainDocument({
             role="alert"
           >
             <div>
-              <p className="text-sm font-medium">This plan changed elsewhere</p>
+              <p className="text-sm font-medium">{t("conflictTitle")}</p>
               <p className="text-muted-foreground text-sm">
-                Your edits are preserved. Choose which version to keep.
+                {t("conflictDescription")}
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
@@ -83,10 +73,10 @@ export function ContentDetailMainDocument({
                 size="sm"
                 variant="outline"
               >
-                Load latest
+                {t("loadLatest")}
               </Button>
               <Button onClick={resolvePlanConflictSaveMine} size="sm">
-                Save my version
+                {t("saveMine")}
               </Button>
             </div>
           </div>
@@ -108,14 +98,90 @@ export function ContentDetailMainDocument({
     );
   }
 
+  if (isGeoWriterBriefError) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <p className="font-medium">{t("loadFailedTitle")}</p>
+          <p className="text-muted-foreground text-sm">
+            {t("loadFailedDescription")}
+          </p>
+        </div>
+        <Button
+          disabled={geoWriterBriefQuery.isFetching}
+          onClick={() => {
+            void geoWriterBriefQuery.refetch();
+          }}
+          size="sm"
+          variant="outline"
+        >
+          {geoWriterBriefQuery.isFetching
+            ? t("tryingAgain")
+            : tCommon("tryAgain")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-3xl space-y-6">
+      <Skeleton className="bg-muted/60 h-4 w-24 rounded-sm" />
+      <Skeleton className="bg-muted/60 h-10 w-3/4 rounded-sm" />
+      <Skeleton className="bg-muted/60 h-16 w-full rounded-sm" />
+      <Skeleton className="bg-muted/60 h-40 w-full rounded-sm" />
+    </div>
+  );
+}
+
+export function ContentDetailMainDocument({
+  contentId,
+  data,
+  document: contentDocument,
+  organizationId,
+  onSelectionChange,
+  selectedExcerpt,
+}: ContentDetailMainDocumentProps) {
+  const {
+    editedMarkdown,
+    editedMarkdownRef,
+    editorKey,
+    editorRef,
+    handleEditorChange,
+    hasChanges,
+    hasMarkdownChanges,
+    hasSlugChanges,
+    hasTitleChanges,
+    imageExportRef,
+    isGeoWriterPlanMode,
+    originalMarkdown,
+    reviewPreviousMarkdown,
+    setEditedMarkdown,
+    setEditingSlug,
+    setEditingTitle,
+    setOriginalMarkdown,
+    editingSlug,
+    editingTitle,
+    serverSlug,
+    serverTitle,
+    writeFocusNonce,
+  } = contentDocument;
+  const t = useTranslations("content.detail");
+  const { activeOrganization } = useOrganizationsContext();
+  const content = data.content;
+
+  if (contentDocument.isGeoArticleLoading) {
+    return (
+      <div className="space-y-6" role="status">
+        <span className="sr-only">{t("loadingArticle")}</span>
+        <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   if (isGeoWriterPlanMode) {
     return (
-      <div className="mx-auto w-full max-w-3xl space-y-6">
-        <Skeleton className="bg-muted/60 h-4 w-24 rounded-sm" />
-        <Skeleton className="bg-muted/60 h-10 w-3/4 rounded-sm" />
-        <Skeleton className="bg-muted/60 h-16 w-full rounded-sm" />
-        <Skeleton className="bg-muted/60 h-40 w-full rounded-sm" />
-      </div>
+      <GeoWriterPlanDocument contentId={contentId} document={contentDocument} />
     );
   }
 
@@ -152,7 +218,7 @@ export function ContentDetailMainDocument({
       editorRef={editorRef}
       imageExportRef={imageExportRef}
       organization={{
-        name: activeOrganization?.name ?? "Your Organization",
+        name: activeOrganization?.name ?? t("yourOrganization"),
         logo: activeOrganization?.logo ?? null,
       }}
       organizationId={organizationId}
@@ -161,6 +227,7 @@ export function ContentDetailMainDocument({
       state={{
         editedMarkdown,
         originalMarkdown,
+        selectedExcerpt,
         editingTitle,
         serverTitle,
         editingSlug,

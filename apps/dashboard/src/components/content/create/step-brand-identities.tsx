@@ -1,15 +1,12 @@
 "use client";
 
-import {
-  Loading03Icon,
-  Tick01Icon,
-  UserGroupIcon,
-} from "@hugeicons/core-free-icons";
+import { Tick01Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import { Label } from "@notra/ui/components/ui/label";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
@@ -43,6 +40,8 @@ function deriveNameFromUrl(websiteUrl: string): string {
 }
 
 function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
+  const t = useTranslations("content.create.stepIdentities");
+  const tCommon = useTranslations("common");
   const [url, setUrl] = useState("");
   const { startPolling } = useBrandAnalysisProgress(organizationId);
   const createMutation = useCreateBrandVoice(organizationId);
@@ -53,7 +52,7 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
   const handleSubmit = async () => {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
-      toast.error("Please enter a website URL");
+      toast.error(tCommon("messages.enterAWebsiteUrl"));
       return;
     }
 
@@ -61,7 +60,7 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
 
     const parseRes = z.url().safeParse(websiteUrl);
     if (!parseRes.success) {
-      toast.error("Please enter a valid website URL");
+      toast.error(tCommon("messages.enterAValidWebsite"));
       return;
     }
 
@@ -74,18 +73,18 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
       analyzeMutation
         .mutateAsync({ url: websiteUrl, voiceId: result.voice.id })
         .then(() => {
-          toast.success("Brand identity created, analysis started");
+          toast.success(
+            tCommon("messages.brandIdentityCreatedAnalysisStarted")
+          );
         })
         .catch(() => {
-          toast.error(
-            "Brand identity created, but failed to start analysis. You can re-analyze from the identity settings."
-          );
+          toast.error(tCommon("messages.brandIdentityCreatedButFailed"));
         });
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to create brand identity"
+          : tCommon("messages.failedToCreateBrandIdentity")
       );
     }
   };
@@ -100,16 +99,16 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
         }}
       >
         <div className="space-y-1">
-          <p className="text-base font-semibold">No brand identity yet</p>
+          <p className="text-base font-semibold">{t("emptyTitle")}</p>
           <p className="text-muted-foreground text-xs">
-            Drop in your website and we'll learn your tone and audience.
+            {t("emptyDescription")}
           </p>
         </div>
         <div className="space-y-2 text-left">
           <Label className="sr-only" htmlFor="identity-url">
-            Website
+            {tCommon("labels.website")}
           </Label>
-          <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors focus-within:ring-2">
+          <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-lg border transition-colors focus-within:ring-2">
             <label
               className="border-border text-muted-foreground border-r px-2.5 py-2 text-sm"
               htmlFor="identity-url"
@@ -118,7 +117,7 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
             </label>
             <input
               autoFocus
-              className="flex-1 bg-transparent px-2.5 py-2 text-sm outline-none"
+              className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm outline-none"
               id="identity-url"
               onChange={(e) => setUrl(sanitizeUrlInput(e.target.value))}
               placeholder="example.com"
@@ -129,20 +128,11 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
         </div>
         <Button
           className="w-full justify-center"
-          disabled={!url.trim() || isSubmitting}
+          disabled={!url.trim()}
+          loading={isSubmitting}
           type="submit"
         >
-          {isSubmitting ? (
-            <>
-              <HugeiconsIcon
-                className="size-3.5 animate-spin"
-                icon={Loading03Icon}
-              />
-              Creating...
-            </>
-          ) : (
-            "Create brand identity"
-          )}
+          {t("createButton")}
         </Button>
       </form>
     </div>
@@ -156,16 +146,13 @@ export function StepBrandIdentities({
   isLoading,
   organizationId,
 }: BrandIdentitiesStepProps) {
+  const t = useTranslations("content.create.stepIdentities");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">
-          Which brand identity should this use?
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Select one or more brand identities, or skip to write for a general
-          audience.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       {isLoading && (
@@ -219,8 +206,8 @@ export function StepBrandIdentities({
                   <p className="truncate text-sm font-medium">{voice.name}</p>
                   <p className="text-muted-foreground truncate text-xs">
                     {voice.isDefault
-                      ? "Default brand identity"
-                      : "Brand identity"}
+                      ? t("defaultIdentity")
+                      : tCommon("labels.brandIdentity")}
                   </p>
                 </div>
               </button>

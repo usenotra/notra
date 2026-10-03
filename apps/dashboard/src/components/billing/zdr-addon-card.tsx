@@ -5,6 +5,7 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useListPlans } from "autumn-js/react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,16 +13,7 @@ import { toast } from "sonner";
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import {
-  PLANS_ANCHOR,
-  ZDR_ADDON_ADD_SUCCESS,
-  ZDR_ADDON_ANCHOR,
-  ZDR_ADDON_DESCRIPTION,
-  ZDR_ADDON_HINT,
-  ZDR_ADDON_REMOVE_SUCCESS,
-  ZDR_ADDON_TITLE,
-  ZDR_ADDON_UNAVAILABLE,
-} from "@/constants/billing";
+import { PLANS_ANCHOR, ZDR_ADDON_ANCHOR } from "@/constants/billing";
 import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
@@ -34,6 +26,10 @@ import {
 } from "@/utils/billing-plans";
 
 export function ZdrAddonCard() {
+  const t = useTranslations("billing.zdrAddon");
+  const tBillingShared = useTranslations("billing.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { activeOrganization } = useOrganizationsContext();
   const {
     data: customer,
@@ -56,7 +52,7 @@ export function ZdrAddonCard() {
   const addonPlan = plans?.find((plan) => plan.id === addonPlanId) ?? null;
   const zdrSubscription = findZdrSubscription(customer?.subscriptions);
   const price = getProductPrice(addonPlan);
-  const priceLabel = formatUsd(price.amount);
+  const priceLabel = formatUsd(price.amount, locale);
   const isLoading = customerLoading || plansLoading || zdrLoading;
 
   async function handleAdd() {
@@ -86,7 +82,7 @@ export function ZdrAddonCard() {
         plan_id: activePlanId ?? null,
         addon_plan_id: addonPlanId,
       });
-      toast.success(ZDR_ADDON_ADD_SUCCESS);
+      toast.success(tCommon("messages.zeroDataRetentionIsNow"));
     } catch (err) {
       trackEvent(POSTHOG_EVENTS.CHECKOUT_FAILED, {
         plan_id: addonPlanId,
@@ -95,7 +91,7 @@ export function ZdrAddonCard() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not add zero data retention. Please try again."
+          : tCommon("messages.couldNotAddZeroData")
       );
     }
     setLoading(false);
@@ -116,13 +112,9 @@ export function ZdrAddonCard() {
         plan_id: activePlanId ?? null,
         addon_plan_id: zdrSubscription.planId,
       });
-      toast.success(ZDR_ADDON_REMOVE_SUCCESS);
+      toast.success(t("removeSuccess"));
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Could not remove zero data retention. Please try again."
-      );
+      toast.error(err instanceof Error ? err.message : t("removeFailed"));
     }
     setLoading(false);
   }
@@ -139,7 +131,7 @@ export function ZdrAddonCard() {
           size="sm"
           variant="outline"
         >
-          {loading ? "Loading..." : "Remove"}
+          {loading ? tCommon("states.loading") : tCommon("actions.remove")}
         </Button>
       );
     }
@@ -154,36 +146,38 @@ export function ZdrAddonCard() {
           size="sm"
           variant="outline"
         >
-          Choose a plan
+          {t("choosePlan")}
         </Button>
       );
     }
     return (
       <Button disabled={loading} onClick={() => setConsentOpen(true)} size="sm">
-        {loading ? "Loading..." : `Add for ${priceLabel}/${price.interval}`}
+        {loading
+          ? tCommon("states.loading")
+          : t("addFor", { price: priceLabel, interval: price.interval })}
       </Button>
     );
   }
 
-  let badge = <Badge variant="outline">Add-on</Badge>;
+  let badge = <Badge variant="outline">{tCommon("labels.addOn")}</Badge>;
   if (hasZdr || zdrSubscription) {
-    badge = <Badge>Active</Badge>;
+    badge = <Badge>{tCommon("states.active")}</Badge>;
   }
 
   return (
     <TitleCard
       action={badge}
       className="scroll-mt-24"
-      heading={ZDR_ADDON_TITLE}
+      heading={tBillingShared("zeroDataRetention")}
       id={ZDR_ADDON_ANCHOR}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="max-w-xl space-y-1">
           <p className="text-muted-foreground text-sm">
             {addonPlanId || hasZdr || isLoading
-              ? ZDR_ADDON_DESCRIPTION
-              : ZDR_ADDON_UNAVAILABLE}
-            <span className="text-muted-foreground/70"> {ZDR_ADDON_HINT}</span>
+              ? t("description")
+              : t("unavailable")}
+            <span className="text-muted-foreground/70"> {t("hint")}</span>
           </p>
         </div>
         {renderAction()}

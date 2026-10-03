@@ -9,6 +9,8 @@ import type {
 import type { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
 import type * as z from "zod";
 
+import type { OnboardingStep } from "@/types/analytics/events";
+
 export type OnboardingWorkspaceInput = z.infer<
   typeof onboardingWorkspaceSchema
 >;
@@ -22,6 +24,7 @@ export interface CompanyLogoResult {
 export type OnboardingProgressHrefs = readonly (string | null)[];
 
 export interface PricingClientProps {
+  canSkipOnboarding: boolean;
   slug: string;
   progressHrefs?: OnboardingProgressHrefs;
 }
@@ -42,8 +45,17 @@ export interface WorkspaceFormProps {
   progressHrefs?: OnboardingProgressHrefs;
 }
 
+export interface WorkspaceSlugCheck {
+  slug: string;
+  status: "checking" | "available" | "unavailable" | "error";
+}
+
 export interface OnboardingSplitLayoutProps {
   children: React.ReactNode;
+}
+
+export interface OnboardingStepLayoutProps extends OnboardingSplitLayoutProps {
+  step: OnboardingStep;
 }
 
 export interface OnboardingProgressProps {
@@ -65,6 +77,10 @@ export interface VisibilityFormProps {
   projectId?: string;
   websiteUrl: string;
   companyName: string | null;
+  /** Saved languages, or the browser's Accept-Language for a new project. */
+  initialLanguages: string[];
+  /** Saved prompt language; it stays first and cannot be removed. */
+  lockedLanguage: string | null;
   nextHref: string;
   skipHref: string;
   inOnboardingFlow: boolean;
@@ -76,6 +92,8 @@ export interface VisibilityReviewProps {
   websiteUrl: string;
   discovery: GeoWebsiteDiscovery | null;
   fallbackCompanyName: string;
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: readonly string[];
   nextHref: string;
   skipHref: string;
 }
@@ -171,6 +189,7 @@ export interface VisibilityBrandDraft {
   aliases: readonly string[];
   audienceType?: GeoAudienceType;
   prompts: readonly GeoDiscoveredPrompt[];
+  languages: readonly string[];
 }
 
 export interface OnboardingGeoPageProps {
@@ -232,3 +251,12 @@ export interface OnboardingEmailPrefsProps {
   onDailySummaryChange: (checked: boolean) => void;
   onMarketingEmailsChange: (checked: boolean) => void;
 }
+
+export type LogoFileValidationError = "invalidType" | "tooLarge";
+
+export type WorkspaceFormField =
+  | "name"
+  | "slug"
+  | "websiteUrl"
+  | "heardAboutNotraSource"
+  | "heardAboutNotraOther";

@@ -8,7 +8,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "next-intl";
 
+import { BRAND_IDENTITY_TAB_LABEL_KEYS } from "@/constants/brand-identity";
 import { useNavBrandIdentity } from "@/lib/hooks/use-nav-brand-identity";
 import type {
   NavBrandIdentityLinkProps,
@@ -20,6 +22,7 @@ import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
 export function NavBrandIdentity({ slug }: NavBrandIdentityProps) {
+  const tCommon = useTranslations("common");
   const model = useNavBrandIdentity(slug);
 
   if (!model) {
@@ -29,7 +32,7 @@ export function NavBrandIdentity({ slug }: NavBrandIdentityProps) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>
-        <SidebarLabel>Brand Identity</SidebarLabel>
+        <SidebarLabel>{tCommon("labels.brandIdentity")}</SidebarLabel>
       </SidebarGroupLabel>
       <SidebarMenu>
         {model.items.map((item) => (
@@ -41,6 +44,8 @@ export function NavBrandIdentity({ slug }: NavBrandIdentityProps) {
 }
 
 function NavBrandIdentityLink({ item }: NavBrandIdentityLinkProps) {
+  const t = useTranslations("common.labels");
+  const label = t(BRAND_IDENTITY_TAB_LABEL_KEYS[item.tab]);
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -48,11 +53,11 @@ function NavBrandIdentityLink({ item }: NavBrandIdentityLinkProps) {
         render={
           <SidebarNavLink href={item.href} replace>
             <HugeiconsIcon icon={item.icon} />
-            <SidebarLabel>{item.label}</SidebarLabel>
+            <SidebarLabel>{label}</SidebarLabel>
             <NavCountBadge count={item.count} />
           </SidebarNavLink>
         }
-        tooltip={item.label}
+        tooltip={label}
       />
     </SidebarMenuItem>
   );

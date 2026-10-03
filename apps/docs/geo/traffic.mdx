@@ -76,7 +76,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
     Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, locally and at your hosting provider. Never hardcode or commit it.
   </Step>
   <Step title="Add the proxy">
-    Pick your framework. These are the snippets the dashboard generates; `endpoint` is the origin the SDK posts to and the SDK appends `/api/geo/ingest`.
+    Pick your framework. These examples use the SDK's default ingestion host. The dashboard and API generate snippets for the configured ingestion origin, which can differ for self-hosted deployments. `endpoint` is the origin the SDK posts to and the SDK appends `/api/geo/ingest`.
 
     <Tabs>
       <Tab title="Next.js">
@@ -86,7 +86,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         const geo = createGeoProxy({
           token: process.env.NOTRA_GEO_TOKEN!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         });
 
         export function proxy(request: Request) {
@@ -103,7 +103,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         const geo = createGeoHandler({
           token: process.env.NOTRA_GEO_TOKEN!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         });
 
         export default defineEventHandler(async (event) => {
@@ -120,7 +120,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         const geo = createMiddleware().server(createGeoMiddleware({
           token: process.env.NOTRA_GEO_TOKEN!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         }));
 
         export const startInstance = createStart(() => ({
@@ -136,7 +136,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         export const onRequest = createGeoMiddleware({
           token: import.meta.env.NOTRA_GEO_TOKEN!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         });
         ```
 
@@ -149,7 +149,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         export const handle = createGeoHandle({
           token: env.NOTRA_GEO_TOKEN!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         });
         ```
 
@@ -162,7 +162,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         const geo = createGeoHandler({
           token: Deno.env.get("NOTRA_GEO_TOKEN")!,
-          endpoint: "https://app.usenotra.com",
+          endpoint: "https://ingest.usenotra.com",
         });
 
         export default (request: Request, context: Context) => {
@@ -184,11 +184,13 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `token` | required | Per organization ingest token |
-| `endpoint` | `https://app.usenotra.com` | Ingest origin; the SDK appends `/api/geo/ingest` |
+| `endpoint` | `https://ingest.usenotra.com` | Ingest origin; the SDK appends `/api/geo/ingest` |
 | `exclude` | `["/api"]` | Paths to skip. Pass `[]` to disable |
 | `sample` | `1` | Fraction of eligible requests to send, 0 to 1 |
 | `onError` | none | Called with anything that goes wrong. The SDK never throws |
 | `fetch` | global `fetch` | Injectable fetch, for tests |
+
+The SDK posts directly to `https://ingest.usenotra.com` when `endpoint` is omitted. It does not automatically retry through the dashboard. To use the dashboard ingestion route, set `endpoint: "https://app.usenotra.com"` and redeploy your site. Self-hosted installations must set `endpoint` to their own ingestion origin.
 
 Only `GET` requests that look like pages are captured. Anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/immutable/`, `/static/`, and any path ending in a common static extension is skipped. `llms.txt` and `llms-full.txt` are always captured. `exclude` entries can be a string prefix, a `RegExp`, or a `(request, url) => boolean` function.
 
@@ -224,7 +226,7 @@ All paths below are prefixed with `/v1/projects/{projectId}` and need `traffic.r
 | --- | --- | --- |
 | `GET /geo/traffic/overview` | `days`, `from`, `to` | `totals` (`crawler`, `aiReferral`), `sources[]` with `source`, `visitorType`, `agent`, `category`, `confidence`, `visits`, `previousVisits`, `markdownVisits`, `paths`, `lastSeenAt`, and daily `points[]` |
 | `GET /geo/traffic/log` | `limit` (1 to 200), `visitorTypes`, `categories`, `host` | `log[]` with `capturedAt`, `visitorType`, `source`, `agent`, `category`, `confidence`, `path`, `host`, `country`, `ua`, `journeyId`, `wantsMarkdown`, plus `total`. No window; bound it with `limit`. `host` keeps the newest matching events for that hostname and its subdomains |
-| `GET /geo/traffic/journeys` | window plus `limit` (1 to 100) | `journeys[]` with `journeyId`, `source`, `visitorType`, `pages`, `distinctPaths`, `firstSeenAt`, `lastSeenAt`, `samplePaths[]` |
+| `GET /geo/traffic/journeys` | window plus `limit` (1 to 100) | `journeys[]` with `journeyId`, `source`, `visitorType`, `pages`, `distinctPaths`, `firstSeenAt`, `lastSeenAt`, `entryPath`, `samplePaths[]` |
 | `GET /geo/traffic/journeys/{journeyId}` | window | `events[]` with `capturedAt`, `path`, `host`, `method`, `referer`, `country`, `agent`, `category` |
 | `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`), `host` | `pages[]` with `host`, `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt`. `host` ranks pages for that hostname and its subdomains before applying `limit` |
 

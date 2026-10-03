@@ -3,8 +3,12 @@ import { members } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { ActionFailure } from "@/lib/actions/errors";
 import { getAuthSession } from "@/lib/auth/server";
-import { OrganizationActionError } from "@/lib/organizations/errors";
+import {
+  noActiveOrganizationMessage,
+  organizationActionMessage,
+} from "@/lib/organizations/action-messages";
 import type { AuthSessionData } from "@/types/auth/session";
 
 const MANAGER_ROLES: readonly string[] = ["owner", "admin"];
@@ -14,7 +18,7 @@ export const requireSession = Effect.fn("organizations.guards.requireSession")(
     const session = yield* Effect.tryPromise({
       try: () => getAuthSession(),
       catch: (cause) =>
-        new OrganizationActionError({
+        new ActionFailure({
           message: "Failed to load session",
           cause,
         }),
@@ -22,7 +26,11 @@ export const requireSession = Effect.fn("organizations.guards.requireSession")(
 
     if (!session) {
       return yield* Effect.fail(
-        new OrganizationActionError({ message: "Unauthorized" })
+        new ActionFailure({
+          message: yield* organizationActionMessage(
+            "actions.organizations.signedOut"
+          ),
+        })
       );
     }
 
@@ -42,7 +50,7 @@ export const requireMembership = Effect.fn(
         ),
       }),
     catch: (cause) =>
-      new OrganizationActionError({
+      new ActionFailure({
         message: "Failed to check membership",
         cause,
       }),
@@ -50,8 +58,8 @@ export const requireMembership = Effect.fn(
 
   if (!membership) {
     return yield* Effect.fail(
-      new OrganizationActionError({
-        message: "You are not a member of this organization",
+      new ActionFailure({
+        message: yield* organizationActionMessage("user.notMember"),
       })
     );
   }
@@ -66,8 +74,10 @@ export const requireManagerMembership = Effect.fn(
 
   if (!MANAGER_ROLES.includes(membership.role)) {
     return yield* Effect.fail(
-      new OrganizationActionError({
-        message: "You do not have permission to manage this organization",
+      new ActionFailure({
+        message: yield* organizationActionMessage(
+          "actions.organizations.noManagePermission"
+        ),
       })
     );
   }
@@ -82,7 +92,7 @@ export const resolveOrganizationId = Effect.fn(
 
   if (!resolved) {
     return yield* Effect.fail(
-      new OrganizationActionError({ message: "No active organization" })
+      new ActionFailure({ message: yield* noActiveOrganizationMessage })
     );
   }
 

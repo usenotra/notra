@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { TableLoadingOverlay } from "@/types/table";
+
 import type { TableColumn, TableRow } from "./types";
 
 export const CHECKBOX_WIDTH = "3rem";
@@ -96,13 +98,24 @@ export const HEADER_PAD_X_PX = 32;
 export const SORT_ICON_PX = 18;
 /** Reorder grip (`w-6`). */
 export const REORDER_HANDLE_PX = 24;
+
+/** Info icon plus its gap, so a hint never squeezes the header label. */
+export const HINT_ICON_PX = 18;
+/**
+ * Width the frame takes from the rows: shell border + 2px rim + body border,
+ * on both sides. Add it to any outer width that has to fit a framed table.
+ */
+export const TABLE_FRAME_INSET = "8px";
 /** Default resize/layout floor, used as `Table`'s `minColumnWidth`. */
 export const DEFAULT_MIN_COLUMN_WIDTH = 64;
 /** Extra `ch` so wide glyphs (M, W) are not clipped vs the `0`-width `ch` unit. */
 const HEADER_CH_BUFFER = 1;
 
 export function headerMinWidth(
-  column: Pick<TableColumn<unknown>, "header" | "sortable" | "minWidth">,
+  column: Pick<
+    TableColumn<unknown>,
+    "header" | "hint" | "sortable" | "minWidth"
+  >,
   minColumnWidth: number,
   extraChromePx = 0
 ): string {
@@ -110,7 +123,10 @@ export function headerMinWidth(
     return column.minWidth;
   }
   const chromePx =
-    HEADER_PAD_X_PX + (column.sortable ? SORT_ICON_PX : 0) + extraChromePx;
+    HEADER_PAD_X_PX +
+    (column.sortable ? SORT_ICON_PX : 0) +
+    (column.hint ? HINT_ICON_PX : 0) +
+    extraChromePx;
   if (typeof column.header === "string" && column.header.length > 0) {
     return `max(${minColumnWidth}px, calc(${column.header.length + HEADER_CH_BUFFER}ch + ${chromePx}px))`;
   }
@@ -119,7 +135,10 @@ export function headerMinWidth(
 
 /** Sum of column floors so `table-layout: fixed` cannot crush titles. */
 export function tableMinWidthCss<T>(
-  columns: readonly Pick<TableColumn<T>, "header" | "sortable" | "minWidth">[],
+  columns: readonly Pick<
+    TableColumn<T>,
+    "header" | "hint" | "sortable" | "minWidth"
+  >[],
   minColumnWidth: number,
   extraFixedWidths: readonly string[] = [],
   extraChromePx = 0
@@ -188,4 +207,53 @@ export function resolveColumnWidths<T>(
     }
     return `calc((${remainder}) * ${fr} / ${totalFr})`;
   });
+}
+
+/**
+ * Folds collapsed columns back into an order that only covers the visible
+ * ones, so a consumer persisting the result does not silently drop what the
+ * narrow layout hid. A hidden key lands right after its left neighbour —
+ * the same slot `useColumnReorder` gives a column that appears at runtime.
+ */
+export function mergeHiddenColumnKeys(
+  allKeys: readonly string[],
+  visibleOrder: readonly string[]
+): string[] {
+  const merged = [...visibleOrder];
+  const present = new Set(merged);
+  for (const [index, key] of allKeys.entries()) {
+    if (present.has(key)) {
+      continue;
+    }
+    let at = 0;
+    if (index > 0) {
+      const neighbor = merged.indexOf(allKeys[index - 1] ?? "");
+      at = neighbor === -1 ? index : neighbor + 1;
+    }
+    merged.splice(at, 0, key);
+    present.add(key);
+  }
+  return merged;
+}
+
+/** Dim existing rows, append skeletons for load-more, or fill an empty table. */
+export function tableLoadingOverlay(
+  loading: boolean,
+  rowCount: number,
+  loadingMoreProp: boolean | undefined,
+  hasEndReached: boolean
+): TableLoadingOverlay {
+  const hasRows = rowCount > 0;
+  const loadingMore = loading && hasRows && (loadingMoreProp ?? hasEndReached);
+  const dimRows = loading && hasRows && !loadingMore;
+  if (dimRows) {
+    return { loadingMore, dimRows, loadingState: "dimmed" };
+  }
+  if (loadingMore) {
+    return { loadingMore, dimRows, loadingState: "more" };
+  }
+  if (loading) {
+    return { loadingMore, dimRows, loadingState: "skeleton" };
+  }
+  return { loadingMore, dimRows, loadingState: undefined };
 }

@@ -8,9 +8,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoChatSkin } from "@notra/geo-core/types/geo";
 import { getReferenceDomain } from "@notra/geo-core/utils/reference-display";
-import { OpencodeSources } from "@notra/ui/components/brainless/opencode/opencode-sources";
-import { PerplexityFavicon } from "@notra/ui/components/brainless/perplexity/perplexity-favicon";
-import { PerplexitySearch } from "@notra/ui/components/brainless/perplexity/perplexity-search";
+import { OpencodeSources } from "@notra/ui/components/ai-skins/opencode/opencode-sources";
+import { PerplexityFavicon } from "@notra/ui/components/ai-skins/perplexity/perplexity-favicon";
+import { PerplexitySearch } from "@notra/ui/components/ai-skins/perplexity/perplexity-search";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,14 +19,11 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import {
-  GEO_ANSWER_SEARCH_SKIN_CLASS,
-  GEO_ANSWER_SEARCHED_THE_WEB,
-} from "@/constants/geo-answer-search";
+import { GEO_ANSWER_SEARCH_SKIN_CLASS } from "@/constants/geo-answer-search";
 import type { GeoAnswerCitedSearchSkin } from "@/types/geo-answer-search";
-import { geoAnswerSearchSourceCountLabel } from "@/utils/geo-answer-search-label";
 import { getSafeReferenceSourceUrl } from "@/utils/reference-source-url";
 
 const EMPTY_QUERIES: readonly string[] = [];
@@ -100,7 +97,9 @@ function CitedSearchPanel({
   sources: readonly PerplexitySearchSource[];
   queries: readonly string[];
 }) {
-  const [open, setOpen] = useState(true);
+  const t = useTranslations("geo.geoAnswerSearch");
+  const tCommon = useTranslations("common");
+  const [open, setOpen] = useState(false);
   const classes = GEO_ANSWER_SEARCH_SKIN_CLASS[skin];
   const hasBody = queries.length > 0 || sources.length > 0;
 
@@ -115,11 +114,13 @@ function CitedSearchPanel({
         />
       </span>
       <span className={cn("min-w-0 flex-1 truncate", classes.title)}>
-        {GEO_ANSWER_SEARCHED_THE_WEB}
+        {t("searchedTheWeb")}
       </span>
       {sources.length > 0 ? (
         <span className="text-muted-foreground shrink-0 text-[12px] leading-none tabular-nums">
-          {geoAnswerSearchSourceCountLabel(sources.length)}
+          {tCommon("messages.countPluralOneSourceOther", {
+            count: sources.length,
+          })}
         </span>
       ) : null}
     </>
@@ -195,14 +196,21 @@ export function GeoAnswerSearch({
   queries?: readonly string[];
   sequential?: boolean;
 }) {
+  const t = useTranslations("geo.geoAnswerSearch");
+  const tActions = useTranslations("geo.geoAnswerActions");
+  const tActivity = useTranslations("ai.activity");
   const reducedMotion = Boolean(useReducedMotion());
 
   if (skin === "perplexity") {
     return (
       <PerplexitySearch
+        labels={{
+          showLess: t("showLess"),
+          more: (count) => tActivity("moreSources", { count }),
+        }}
         queries={queries}
         sources={sources}
-        title="Web search"
+        title={t("webSearch")}
       />
     );
   }
@@ -223,6 +231,11 @@ export function GeoAnswerSearch({
     return (
       <OpencodeSources
         darkSurface={skin !== "opencode"}
+        labels={{
+          citedSources: (count) => t("citedSources", { count }),
+          openSource: (title, domain) =>
+            tActions("openSource", { title, domain }),
+        }}
         queries={queries}
         reducedMotion={reducedMotion}
         sequential={sequential}

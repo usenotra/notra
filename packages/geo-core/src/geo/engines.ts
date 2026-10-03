@@ -48,6 +48,8 @@ export function buildGroundedInvocation(
         model: gateway(engine.model, groundedGateway),
         tools: { google_search: google.tools.googleSearch({}) },
       };
+    case "gateway-perplexity":
+      return { model: gateway(engine.model, groundedGateway), tools: {} };
     case "direct-openai": {
       const provider = createOpenAI({
         apiKey: requireApiKey(GEO_OPENAI_API_KEY_ENV),

@@ -1,10 +1,30 @@
 "use client";
 
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  Loading03Icon,
+  PieChart01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_FAMILY_STAT_TREND_HINT } from "@notra/geo-core/constants/geo";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
-import { useState } from "react";
+import {
+  GEO_MENTION_FADE_HEIGHT_REM,
+  GEO_MENTION_ROW_HEIGHT_REM,
+  GEO_MENTION_SUMMARY_VISIBLE,
+} from "@notra/geo-core/constants/geo";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
+import {
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
+import { useLocale, useTranslations } from "next-intl";
+import { type CSSProperties, useState } from "react";
 
 import { Button } from "@/components/button";
 import { ChartColorScope } from "@/components/charts/chart-color-scope";
@@ -13,21 +33,30 @@ import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { TrackBrandButton } from "@/components/geo/share-of-voice-brand-tag";
-import { ShareOfVoiceBrandsDialog } from "@/components/geo/share-of-voice-brands-dialog";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
+import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
+import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
+import { useScrollOverflow } from "@/lib/hooks/use-scroll-overflow";
 import { cn } from "@/lib/utils";
 import type {
   ShareOfVoiceChartProps,
   ShareOfVoiceRankingRowProps,
 } from "@/types/geo";
+import { softGradientColors } from "@/utils/chart-colors";
 import { formatChartInteger, formatUsageShare } from "@/utils/geo-charts";
 import { findOwnBrandDomain } from "@/utils/geo-competitors";
 import { buildShareOfVoiceChartModel } from "@/utils/geo-share-of-voice";
+
+const RANKING_ROW_STYLE = {
+  height: `${GEO_MENTION_ROW_HEIGHT_REM}rem`,
+} as const;
+const RANKING_LIST_STYLE = {
+  maxHeight: `${GEO_MENTION_SUMMARY_VISIBLE * GEO_MENTION_ROW_HEIGHT_REM + GEO_MENTION_FADE_HEIGHT_REM}rem`,
+  scrollbarWidth: "none",
+} as const;
+const RANKING_FADE_STYLE = {
+  height: `${GEO_MENTION_FADE_HEIGHT_REM}rem`,
+} as const;
 
 function RankingBrandMark({
   row,
@@ -60,80 +89,119 @@ function ShareOfVoiceRankingRow({
   onOpen,
   onPrefetch,
   onTrack,
-}: ShareOfVoiceRankingRowProps) {
-  return (
-    <tr
-      className={cn(
-        "border-border min-h-12 border-b last:border-b-0",
-        row.own && "bg-primary/5",
-        onOpen && "cursor-pointer",
-        onOpen && (row.own ? "hover:bg-primary/10" : "hover:bg-muted/50")
-      )}
-      onClick={
-        onOpen
-          ? (event) => {
-              if (
-                event.target instanceof Element &&
-                event.target.closest("button")
-              ) {
-                return;
-              }
-              onOpen(row);
-            }
-          : undefined
-      }
-      onFocus={onOpen ? () => onPrefetch?.(row) : undefined}
-      onKeyDown={
-        onOpen
-          ? (event) => {
-              if (event.target !== event.currentTarget) {
-                return;
-              }
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen(row);
-              }
-            }
-          : undefined
-      }
-      onPointerEnter={onOpen ? () => onPrefetch?.(row) : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-    >
-      <td className="text-muted-foreground w-9 py-3 pr-2 pl-3 align-middle text-xs tabular-nums">
+  slice,
+}: ShareOfVoiceRankingRowProps & { slice: string }) {
+  const t = useTranslations("geo.shareOfVoiceChart");
+  const tTag = useTranslations("geo.shareOfVoiceBrandTag");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const buttonProps = {
+    className: cn(
+      "border-border grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-1.5 border-b pr-2 text-left transition-colors",
+      row.own ? "bg-primary/5" : undefined,
+      onOpen
+        ? cn(
+            "cursor-pointer",
+            row.own ? "hover:bg-primary/10" : "hover:bg-muted/50"
+          )
+        : "cursor-default"
+    ),
+    disabled: !onOpen,
+    onClick: onOpen ? () => onOpen(row) : undefined,
+    onFocus: onOpen ? () => onPrefetch?.(row) : undefined,
+    onPointerEnter: onOpen ? () => onPrefetch?.(row) : undefined,
+    style: RANKING_ROW_STYLE,
+    type: "button",
+  } as const;
+  const content = (
+    <>
+      <span className="text-muted-foreground flex items-center justify-end gap-1.5 text-xs tabular-nums">
+        <span
+          aria-hidden="true"
+          className="size-2 shrink-0 rounded-full bg-(--legend-color)"
+          style={
+            {
+              "--legend-color": `var(--color-${slice}-0)`,
+            } as CSSProperties
+          }
+        />
         {row.rank ?? "—"}
-      </td>
-      <td className="min-w-0 py-3 pr-3 align-middle">
-        <span className="flex min-w-0 items-center gap-2.5">
-          <RankingBrandMark
-            competitors={competitors}
-            ownDomain={ownDomain}
-            row={row}
-          />
-          <span className="min-w-0 truncate text-sm" title={row.brand}>
-            {row.brand}
+      </span>
+      <span className="flex min-w-0 items-center gap-2 pl-1">
+        <RankingBrandMark
+          competitors={competitors}
+          ownDomain={ownDomain}
+          row={row}
+        />
+        <span
+          className="min-w-0 truncate text-sm font-medium"
+          title={row.brand}
+        >
+          {row.brand}
+        </span>
+        {row.own ? (
+          <span className="bg-primary/10 text-primary inline-flex h-5 shrink-0 items-center rounded-md px-1.5 text-xs font-medium">
+            {tGeoShared("youLabel")}
           </span>
+        ) : null}
+      </span>
+      <span className="flex shrink-0 items-baseline justify-end gap-3 tabular-nums">
+        <span className="text-muted-foreground text-xs">
+          {formatChartInteger(row.mentions, locale)}
+          <span className="sr-only"> {t("mentionsSr")}</span>
         </span>
-      </td>
-      <td className="py-3 pr-3 text-right align-middle text-sm whitespace-nowrap tabular-nums">
-        {formatUsageShare(row.share)}
-      </td>
-      <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @sm:table-cell">
-        {formatChartInteger(row.mentions)}
-        <span className="sr-only"> mentions</span>
-      </td>
-      <td className="w-24 py-2 pr-3 align-middle whitespace-nowrap">
-        <span className="flex h-7 items-center justify-end">
-          {row.own ? (
-            <span className="bg-primary/10 text-primary inline-flex h-6 items-center rounded-md px-2 text-xs font-medium">
-              You
-            </span>
-          ) : null}
-          {!row.own && !row.tracked && onTrack ? (
-            <TrackBrandButton brand={row.brand} onTrack={onTrack} />
-          ) : null}
+        <span
+          className={cn(
+            "w-12 text-right text-sm",
+            row.mentions === 0 && "text-muted-foreground"
+          )}
+        >
+          {formatUsageShare(row.share)}
         </span>
-      </td>
-    </tr>
+      </span>
+    </>
+  );
+
+  if (row.own || row.tracked || !onTrack) {
+    return <button {...buttonProps}>{content}</button>;
+  }
+
+  return (
+    <HoverCard>
+      <HoverCardTrigger render={<button {...buttonProps} />}>
+        {content}
+      </HoverCardTrigger>
+      <TrafficBreakdownCard
+        aside={
+          <Button
+            aria-label={tTag("trackBrand", { brand: row.brand })}
+            onClick={() => onTrack(row.brand)}
+            size="xs"
+            type="button"
+            variant="outline"
+          >
+            <HugeiconsIcon
+              data-icon="inline-start"
+              icon={PlusSignIcon}
+              strokeWidth={2}
+            />
+            {tGeoShared("track")}
+          </Button>
+        }
+        icon={
+          <CompetitorLogo
+            className="size-4 rounded-sm"
+            competitors={competitors}
+            name={row.brand}
+          />
+        }
+        title={row.brand}
+      >
+        <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
+          {tGeoShared("discoveredBrandsComeFromScan")}
+        </p>
+      </TrafficBreakdownCard>
+    </HoverCard>
   );
 }
 
@@ -147,70 +215,101 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
     onSlicePointerEnter,
     organizationId,
   } = props;
-  const [otherOpen, setOtherOpen] = useState(false);
+  const t = useTranslations("geo.shareOfVoiceChart");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [trackBrand, setTrackBrand] = useState<string | null>(null);
   const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
   const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const {
     ranking,
+    allRanked: allBrands,
     own,
     slices,
-    others,
     other,
     config,
     totalMentions,
     brandCount,
-    mentionSparklines,
     shareDelta,
     rankDelta,
-  } = buildShareOfVoiceChartModel(props);
+  } = buildShareOfVoiceChartModel(props, tGeoShared("otherBrands"));
   const summary = own ?? ranking[0];
+  const sliceById = new Map(slices.map((row) => [row.id, row.slice]));
+  // Brands folded into "Other" in the donut share its gray swatch.
+  const otherSlice = other ? (sliceById.get(other.id) ?? "") : "";
+  const donutConfig = Object.fromEntries(
+    Object.entries(config).map(([key, item]) => [
+      key,
+      item.colors ? { ...item, colors: softGradientColors(item.colors) } : item,
+    ])
+  );
+  const { ref: listRef, atEnd } = useScrollOverflow<HTMLDivElement>(
+    allBrands.length
+  );
 
   if (totalMentions === 0) {
     return (
-      <InstrumentEmpty
-        busy={isScanning}
-        className="h-64"
-        message={geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see your share of voice"
-        )}
-        seed="Share of voice"
-      />
+      <>
+        <Empty className="border-border rounded-2xl border py-12 md:py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon
+                className={isScanning ? "motion-safe:animate-spin" : undefined}
+                icon={isScanning ? Loading03Icon : PieChart01Icon}
+              />
+            </EmptyMedia>
+            <EmptyTitle>
+              {isScanning ? t("emptyScanningTitle") : t("emptyTitle")}
+            </EmptyTitle>
+            <EmptyDescription>
+              {isScanning
+                ? tGeoShared("scanningEngines")
+                : t("emptyDescription")}
+            </EmptyDescription>
+          </EmptyHeader>
+          {organizationId && !isScanning ? (
+            <EmptyContent>
+              <Button onClick={() => setTrackBrand("")} size="sm">
+                <HugeiconsIcon icon={PlusSignIcon} size={14} />
+                {tGeoShared("addCompetitor")}
+              </Button>
+            </EmptyContent>
+          ) : null}
+        </Empty>
+        {organizationId ? (
+          <CompetitorEditDialog
+            competitor={null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setTrackBrand(null);
+              }
+            }}
+            open={trackBrand !== null}
+            organizationId={organizationId}
+          />
+        ) : null}
+      </>
     );
   }
 
   return (
     <>
       <div className="@container">
-        <div className="grid items-stretch gap-4 @4xl:grid-cols-2">
+        <div className="grid items-stretch gap-4 @3xl:grid-cols-2">
           <InstrumentModule
             className="@container"
-            eyebrow={
-              companyName ? "Your share of voice" : "Leading share of voice"
-            }
-            hint="Share of recorded brand mentions in the selected period."
+            eyebrow={companyName ? t("yourShare") : t("leadingShare")}
+            hint={t("shareHint")}
+            readout={`${formatChartInteger(totalMentions, locale)} ${t("totalMentions")}`}
             variant="table"
-            bodyClassName="flex flex-col p-5"
+            bodyClassName="flex flex-col items-center justify-center p-5"
           >
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-medium tracking-tight tabular-nums">
-                {formatUsageShare(summary?.share ?? 0)}
-              </span>
-              {own ? (
-                <GeoStatDelta
-                  delta={shareDelta}
-                  hint={GEO_FAMILY_STAT_TREND_HINT}
-                  kind="rate"
-                  label="Share of voice"
-                />
-              ) : null}
-            </div>
-            <div className="relative mx-auto my-2 w-full max-w-72">
+            <div className="relative w-full max-w-80">
               <EChartsPieChart
                 animation={false}
-                className="h-64 w-full"
-                config={config}
+                className="h-72 w-full"
+                config={donutConfig}
                 data={slices.filter((row) => row.mentions > 0)}
                 dataKey="mentions"
                 nameKey="slice"
@@ -229,47 +328,29 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                 />
               </EChartsPieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
-                <span className="text-xl font-medium tabular-nums">
-                  {formatChartInteger(totalMentions)}
+                <span className="text-3xl font-medium tracking-tight tabular-nums">
+                  {formatUsageShare(summary?.share ?? 0)}
                 </span>
-                <span className="text-muted-foreground text-xs">
-                  Total mentions
+                <span className="text-muted-foreground max-w-40 truncate text-xs">
+                  {summary?.brand}
                 </span>
+                {own ? (
+                  <span className="pointer-events-auto mt-1">
+                    <GeoStatDelta
+                      delta={shareDelta}
+                      hint={tGeoShared("vsFirstHalfOfThis")}
+                      kind="rate"
+                      label={tGeoShared("shareOfVoice")}
+                    />
+                  </span>
+                ) : null}
               </div>
             </div>
-            <ChartColorScope className="mt-auto" config={config}>
-              <ul
-                aria-label="Share of voice chart legend"
-                className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-2"
-              >
-                {slices.map((row) => (
-                  <li
-                    className="flex min-w-0 items-center gap-1.5 text-xs"
-                    key={row.slice}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="size-2 shrink-0 rounded-sm"
-                      style={{ backgroundColor: `var(--color-${row.slice}-0)` }}
-                    />
-                    <span
-                      className="text-muted-foreground max-w-32 truncate"
-                      title={row.brand}
-                    >
-                      {row.brand}
-                    </span>
-                    <span className="sr-only">
-                      {formatUsageShare(row.share)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </ChartColorScope>
           </InstrumentModule>
           <InstrumentModule
             className="@container"
-            eyebrow={companyName ? "Your rank" : "Brand ranking"}
-            hint="Rank by total mentions in the selected period. Brands with equal mentions share a rank."
+            eyebrow={companyName ? t("yourRank") : tGeoShared("brandRanking")}
+            hint={t("rankHint")}
             variant="table"
             bodyClassName="flex flex-col p-5"
           >
@@ -281,97 +362,64 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                 {own ? (
                   <GeoStatDelta
                     delta={rankDelta}
-                    hint={GEO_FAMILY_STAT_TREND_HINT}
+                    hint={tGeoShared("vsFirstHalfOfThis")}
                     kind="position"
-                    label="Rank"
+                    label={tCommon("labels.rank")}
                   />
                 ) : null}
               </span>
               {summary?.rank ? (
                 <span className="text-muted-foreground text-xs tabular-nums">
-                  of {formatChartInteger(brandCount)} brands
+                  {t("ofBrands", {
+                    count: formatChartInteger(brandCount, locale),
+                  })}
                 </span>
               ) : null}
             </div>
-            <table
-              aria-label="Brand ranking by share of voice"
-              className="mb-4 w-full border-collapse"
+            <ChartColorScope
+              className="flex flex-1 flex-col gap-1"
+              config={config}
             >
-              <thead>
-                <tr className="text-muted-foreground border-border border-b text-[0.6875rem]">
-                  <th className="w-9 py-0 pr-2 pb-2 pl-3 font-normal">
-                    <span className="sr-only">Rank</span>
-                  </th>
-                  <th className="min-w-0 py-0 pr-3 pb-2 text-left font-normal">
-                    Brand
-                  </th>
-                  <th className="py-0 pr-3 pb-2 text-right font-normal">
-                    Share
-                  </th>
-                  <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
-                    Mentions
-                  </th>
-                  <th className="w-24 py-0 pr-3 pb-2 font-normal">
-                    <span className="sr-only">Tracking</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {ranking.map((row) => (
-                  <ShareOfVoiceRankingRow
-                    competitors={competitors}
-                    key={row.id}
-                    onOpen={onSliceClick}
-                    onPrefetch={onSlicePointerEnter}
-                    onTrack={organizationId ? setTrackBrand : undefined}
-                    ownDomain={ownDomain}
-                    row={row}
-                  />
-                ))}
-              </tbody>
-            </table>
-            {other ? (
-              <div className="mt-auto flex justify-end pt-2">
-                <Button
-                  onClick={() => setOtherOpen(true)}
-                  size="sm"
-                  variant="outline"
-                >
-                  View {others.length} more
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    className="size-3.5"
-                    icon={ArrowRight01Icon}
-                  />
-                </Button>
+              <div className="flex items-center justify-between gap-3 text-sm font-medium">
+                <span>{tCommon("labels.brand")}</span>
+                <span>{tGeoShared("share")}</span>
               </div>
-            ) : null}
+              <div className="relative">
+                <div
+                  aria-label={t("tableLabel")}
+                  className="border-border focus-visible:ring-ring relative overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
+                  ref={listRef}
+                  role="region"
+                  style={RANKING_LIST_STYLE}
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The scroll region must support keyboard scrolling.
+                  tabIndex={0}
+                >
+                  {allBrands.map((row) => (
+                    <ShareOfVoiceRankingRow
+                      competitors={competitors}
+                      key={row.id}
+                      onOpen={onSliceClick}
+                      onPrefetch={onSlicePointerEnter}
+                      onTrack={organizationId ? setTrackBrand : undefined}
+                      ownDomain={ownDomain}
+                      row={row}
+                      slice={sliceById.get(row.id) ?? otherSlice}
+                    />
+                  ))}
+                </div>
+                <div
+                  aria-hidden="true"
+                  className={cn(
+                    "from-card pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t to-transparent transition-opacity duration-200 motion-reduce:transition-none",
+                    atEnd ? "opacity-0" : "opacity-100"
+                  )}
+                  style={RANKING_FADE_STYLE}
+                />
+              </div>
+            </ChartColorScope>
           </InstrumentModule>
         </div>
       </div>
-      {other ? (
-        <ShareOfVoiceBrandsDialog
-          aliases={aliases}
-          companyName={companyName}
-          competitors={competitors}
-          mentionSparklines={mentionSparklines}
-          onBrandClick={onSliceClick}
-          onBrandPointerEnter={onSlicePointerEnter}
-          onOpenChange={setOtherOpen}
-          onTrackBrand={
-            organizationId
-              ? (brand) => {
-                  setOtherOpen(false);
-                  setTrackBrand(brand);
-                }
-              : undefined
-          }
-          open={otherOpen}
-          other={other}
-          others={others}
-          ownDomain={ownDomain}
-        />
-      ) : null}
       {organizationId ? (
         <CompetitorEditDialog
           competitor={null}

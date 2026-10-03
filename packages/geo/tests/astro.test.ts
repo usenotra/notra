@@ -38,7 +38,7 @@ describe("Astro middleware", () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledTimes(1);
     const [url, init] = send.mock.calls[0] ?? [];
-    expect(url).toBe("https://app.usenotra.com/api/geo/ingest");
+    expect(url).toBe("https://ingest.usenotra.com/api/geo/ingest");
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer test-token"
     );
@@ -48,6 +48,23 @@ describe("Astro middleware", () => {
       userAgent: "GPTBot",
       referer: "https://chatgpt.com/",
     });
+  });
+
+  test("uses an explicitly configured endpoint instead of the default", async () => {
+    send.mockResolvedValue(new Response(null, { status: 204 }));
+    const middleware = createGeoMiddleware({
+      token: "test-token",
+      endpoint: "https://custom.example.com/",
+    });
+
+    await middleware(
+      { request: new Request("https://example.com/") },
+      () => new Response("page")
+    );
+
+    expect(send.mock.calls[0]?.[0]).toBe(
+      "https://custom.example.com/api/geo/ingest"
+    );
   });
 
   test("accepts a synchronous next result", async () => {

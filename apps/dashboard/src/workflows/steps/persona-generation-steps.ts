@@ -21,28 +21,53 @@ export async function generatePersonasStep(
   if (!owned) {
     throw new FatalError("Persona generation is no longer active.");
   }
-  const result = await Effect.runPromise(
-    generateGeoPersonas(
-      {
-        organizationId: job.organizationId,
-        projectId: job.projectId,
-      },
-      job.personaId,
-      job.brief,
-      job.promptsOnly
-    ).pipe(Effect.provide(geoCoreDashboardLayer))
-  );
-  await trackServerEventAndFlush({
-    organizationId: job.organizationId,
-    projectId: job.projectId,
-    event: POSTHOG_EVENTS.GEO_PERSONAS_GENERATED,
-    properties: { persona_count: result.personas.length },
-  });
+  try {
+    const result = await Effect.runPromise(
+      generateGeoPersonas(
+        {
+          organizationId: job.organizationId,
+          projectId: job.projectId,
+        },
+        job.personaId,
+        job.brief,
+        job.promptsOnly
+      ).pipe(Effect.provide(geoCoreDashboardLayer))
+    );
+    await trackServerEventAndFlush({
+      organizationId: job.organizationId,
+      projectId: job.projectId,
+      event: POSTHOG_EVENTS.GEO_PERSONAS_GENERATED,
+      properties: { persona_count: result.personas.length },
+    });
+  } catch (error) {
+    const message = creditsExhaustedMessage(error);
+    if (message) {
+      await updatePersonaGenerationJob(job, {
+        status: "failed",
+        error: message,
+      });
+    }
+    throw error;
+  }
 }
 
 // Generation replaces profiles and settles credits; retrying the entire operation
 // after an ambiguous failure could generate and charge twice.
 generatePersonasStep.maxRetries = 0;
+
+export function creditsExhaustedMessage(error: unknown): string | null {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("_tag" in error) ||
+    error._tag !== "GeoWriterCreditsExhaustedError" ||
+    !("message" in error) ||
+    typeof error.message !== "string"
+  ) {
+    return null;
+  }
+  return error.message;
+}
 
 export async function finishPersonaGenerationStep(
   job: PersonaGenerationJob,

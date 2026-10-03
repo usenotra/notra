@@ -9,10 +9,11 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { memberColumns } from "@/components/members/columns";
-import { invitationColumns } from "@/components/members/invitation-columns";
+import { useMemberColumns } from "@/components/members/columns";
+import { useInvitationColumns } from "@/components/members/invitation-columns";
 import { InviteMemberPopover } from "@/components/members/invite-member-popover";
 import { Table } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -22,6 +23,10 @@ import { authClient } from "@/lib/auth/client";
 import { tableHeightFor } from "@/utils/table";
 
 export function MembersSettingsPane() {
+  const t = useTranslations("settings.panes.members");
+  const tCommon = useTranslations("common");
+  const memberColumns = useMemberColumns();
+  const invitationColumns = useInvitationColumns();
   const { activeOrganization: organization } = useOrganizationsContext();
   const [activeTab, setActiveTab] = useState("members");
 
@@ -80,10 +85,10 @@ export function MembersSettingsPane() {
   return (
     <SettingsPane>
       <Tabs onValueChange={setActiveTab} value={activeTab}>
-        <div className="flex items-center justify-between gap-3">
-          <TabsList aria-label="Member lists">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList aria-label={t("listsLabel")}>
             <TabsTrigger value="members">
-              Members
+              {tCommon("labels.members")}
               {members && members.length > 0 ? (
                 <Badge size="sm" variant="secondary">
                   {members.length}
@@ -91,7 +96,7 @@ export function MembersSettingsPane() {
               ) : null}
             </TabsTrigger>
             <TabsTrigger value="pending">
-              Pending
+              {tCommon("labels.pending")}
               {pendingInvitations && pendingInvitations.length > 0 ? (
                 <Badge size="sm" variant="secondary">
                   {pendingInvitations.length}
@@ -106,7 +111,7 @@ export function MembersSettingsPane() {
           <Table
             columns={memberColumns}
             data={members ?? []}
-            emptyState="No members found."
+            emptyState={t("noMembers")}
             getRowId={(member) => member.id}
             height={tableHeightFor(membersLoading ? 3 : (members?.length ?? 0))}
             loading={membersLoading}
@@ -118,7 +123,7 @@ export function MembersSettingsPane() {
           <Table
             columns={invitationColumns}
             data={pendingInvitations ?? []}
-            emptyState="No pending invitations."
+            emptyState={t("noPending")}
             getRowId={(invitation) => invitation.id}
             height={tableHeightFor(
               invitationsLoading ? 3 : (pendingInvitations?.length ?? 0)

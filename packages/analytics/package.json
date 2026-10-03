@@ -16,12 +16,12 @@
   "dependencies": {
     "@notra/utils": "workspace:*",
     "@tinybirdco/sdk": "^0.0.82",
-    "@upstash/redis": "^1.35.8",
-    "effect": "4.0.0-rc.112"
+    "@upstash/redis": "^1.38.4",
+    "effect": "4.0.0"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^24.0.0",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useSyncExternalStore } from "react";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
@@ -19,18 +18,14 @@ import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type {
   OfferingCheckInput,
-  OfferingCompanyHeaderProps,
   OfferingReportProps,
 } from "@/types/offering-check";
 import { buildOfferingQuestion } from "@/utils/offering-check";
 import { readOfferingReportDescription } from "@/utils/offering-report";
 
 import { OfferingChatWindow } from "./offering-chat-window";
-import { OfferingFavicon } from "./offering-favicon";
-import { OfferingVerdictSummary } from "./offering-verdict-summary";
+import { OfferingReportCard } from "./offering-report-card";
 
-const sectionTitleClass =
-  "font-display text-[1.625rem]/8 font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-white";
 const metaClass =
   "font-sans text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70";
 const backLinkClass =
@@ -38,53 +33,6 @@ const backLinkClass =
 
 function subscribeToStoredDescription() {
   return () => {};
-}
-
-function CompanyHeader({ domain, result }: OfferingCompanyHeaderProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3.5">
-        <OfferingFavicon className="size-11 rounded-xl" domain={domain} />
-        <div className="flex min-w-0 flex-col gap-0.5">
-          {result ? (
-            <h2 className={`${sectionTitleClass} truncate`}>
-              {result.companyName}
-            </h2>
-          ) : (
-            <Skeleton className="h-8 w-44" />
-          )}
-          <p className="font-sans text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
-            {domain}, as described by {OFFERING_CHECK_MODEL_LABEL}
-          </p>
-        </div>
-      </div>
-      {result ? (
-        <p className={`${metaClass} max-w-[46rem]`}>
-          {result.companyDescription}
-        </p>
-      ) : (
-        <div className="flex max-w-[46rem] flex-col gap-2">
-          <Skeleton className="h-5 w-full" />
-          <Skeleton className="h-5 w-7/12" />
-        </div>
-      )}
-      {result && result.otherOfferings.length > 0 ? (
-        <ul
-          aria-label={`What else ${OFFERING_CHECK_MODEL_LABEL} says you offer`}
-          className="flex flex-wrap gap-1.5 pt-1"
-        >
-          {result.otherOfferings.map((offering) => (
-            <li
-              className="rounded-full border border-[#1E1E1E14] bg-white px-2.5 py-1 font-sans text-[0.8125rem]/5 text-[#1E1E1E] dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              key={offering}
-            >
-              {offering}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
 }
 
 function OfferingReportContent({ input }: OfferingReportProps) {
@@ -107,7 +55,7 @@ function OfferingReportContent({ input }: OfferingReportProps) {
           }
         />
         <div className="flex w-full max-w-[64rem] px-4 sm:px-6">
-          <Link className={backLinkClass} href={OFFERING_CHECK_FORM_PATH}>
+          <Link className={backLinkClass} to={OFFERING_CHECK_FORM_PATH}>
             Back to the checker
           </Link>
         </div>
@@ -129,7 +77,7 @@ function OfferingReportContent({ input }: OfferingReportProps) {
       <MarketingHeroWash
         subtitle={
           overallBody ??
-          `Searching the web now. You are watching the answer come in.`
+          "Searching the web now. You are watching the answer come in."
         }
         title={
           <>
@@ -139,18 +87,14 @@ function OfferingReportContent({ input }: OfferingReportProps) {
           </>
         }
       />
-      <div className="flex w-full max-w-[72rem] flex-col gap-10 px-4 sm:px-6 md:gap-12">
-        <CompanyHeader domain={input.domain} result={result} />
+      <div className="flex w-full max-w-[64rem] flex-col gap-8 px-4 sm:px-6 md:gap-12">
+        <OfferingReportCard input={input} state={state} />
 
-        <OfferingVerdictSummary result={result} />
-
-        <div className="w-full">
-          <OfferingChatWindow
-            feature={input.feature}
-            question={question}
-            state={state}
-          />
-        </div>
+        <OfferingChatWindow
+          feature={input.feature}
+          question={question}
+          state={state}
+        />
 
         <div className="flex flex-col items-start gap-4 rounded-3xl bg-[#C8B2EE40] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8 dark:bg-[#231d3a]">
           <div className="flex flex-col gap-1">

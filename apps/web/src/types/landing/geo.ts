@@ -19,6 +19,7 @@ export interface ShareRowLogo {
   src: string;
   darkSrc?: string;
   invertOnDark?: boolean;
+  tileOnDark?: boolean;
 }
 
 export interface ShareRow {

@@ -4,43 +4,45 @@ import {
   GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_DOCS_PREFIXES,
   GEO_JOURNEY_HOME_PATHS,
-  GEO_JOURNEY_PATH_KIND_LABELS,
   GEO_JOURNEY_PATH_KINDS,
   GEO_JOURNEY_PATH_LABEL_MAX,
   GEO_JOURNEY_SEARCH_PREFIXES,
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoJourney,
+  GeoJourneyDailyPoint,
+  GeoJourneyPageStats,
+  GeoJourneySourceStats,
   GeoJourneyEvent,
   GeoJourneyPathKind,
 } from "@notra/geo-core/types/geo";
+import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 
 import type {
+  GeoJourneyGroupSelection,
   GeoJourneyKindCount,
   GeoJourneyOverview,
   GeoJourneyPathNode,
   GeoJourneyPathRow,
   GeoJourneySourceRow,
-  GeoJourneyTrail,
   GeoJourneyTreeNode,
+  JourneyGroupSheetStat,
+  JourneyPageKindStat,
 } from "@/types/geo";
 
 const WWW_PREFIX = /^www\./;
 const SEARCH_QUERY = /[?&](?:q|query|s|search)=/i;
-const TRAIL_GAP_PATH = "…";
 
-const clockFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
-export function formatGeoJourneyClock(value: string): string {
+export function formatGeoJourneyClock(value: string, locale: string): string {
   const date = parseClickHouseDateTime(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return clockFormatter.format(date);
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
 }
 
 export function formatGeoRefererSource(referer: string): string {
@@ -96,9 +98,6 @@ export function classifyGeoJourneyPath(path: string): GeoJourneyPathKind {
 }
 
 export function formatGeoJourneyPathLabel(path: string): string {
-  if (path === TRAIL_GAP_PATH) {
-    return TRAIL_GAP_PATH;
-  }
   const kind = classifyGeoJourneyPath(path);
   if (kind === "home") {
     return "home";
@@ -122,50 +121,6 @@ export function toGeoJourneyPathNode(path: string): GeoJourneyPathNode {
     path,
     label: formatGeoJourneyPathLabel(path),
     kind: classifyGeoJourneyPath(path),
-  };
-}
-
-export function isGeoJourneyTrailGap(path: string): boolean {
-  return path === TRAIL_GAP_PATH;
-}
-
-function collapseConsecutivePaths(paths: readonly string[]): string[] {
-  const collapsed: string[] = [];
-  for (const path of paths) {
-    const normalized = normalizeGeoJourneyPath(path);
-    if (collapsed.at(-1) === normalized) {
-      continue;
-    }
-    collapsed.push(normalized);
-  }
-  return collapsed;
-}
-
-export function compactJourneyPaths(
-  paths: readonly string[],
-  limit: number
-): GeoJourneyTrail {
-  const collapsed = collapseConsecutivePaths(paths);
-  if (collapsed.length <= limit) {
-    return {
-      nodes: collapsed.map(toGeoJourneyPathNode),
-      omitted: 0,
-    };
-  }
-  const head = Math.ceil(limit / 2);
-  const tail = Math.max(limit - head, 1);
-  const omitted = collapsed.length - head - tail;
-  return {
-    nodes: [
-      ...collapsed.slice(0, head).map(toGeoJourneyPathNode),
-      {
-        path: TRAIL_GAP_PATH,
-        label: TRAIL_GAP_PATH,
-        kind: "page",
-      },
-      ...collapsed.slice(-tail).map(toGeoJourneyPathNode),
-    ],
-    omitted,
   };
 }
 
@@ -270,28 +225,6 @@ export function buildJourneyOverview(
   };
 }
 
-export function formatJourneyKindSummary(
-  kindCounts: readonly GeoJourneyKindCount[]
-): string {
-  return kindCounts
-    .map(
-      (entry) =>
-        `${entry.paths} ${GEO_JOURNEY_PATH_KIND_LABELS[entry.kind].toLowerCase()}`
-    )
-    .join(" · ");
-}
-
-export function buildJourneyDepthSummary(
-  journeys: readonly GeoJourney[]
-): string {
-  if (journeys.length === 0) {
-    return "";
-  }
-  const overview = buildJourneyOverview(journeys);
-  const share = (value: number) => `${Math.round(value * 100)}%`;
-  return `median ${overview.medianPages} ${overview.medianPages === 1 ? "page" : "pages"} · ${share(overview.deepShare)} crawl ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ · ${share(overview.singleFetchShare)} single-fetch`;
-}
-
 function refererPath(event: GeoJourneyEvent): string | null {
   const referer = event.referer.trim();
   if (!referer) {
@@ -384,18 +317,182 @@ export function countJourneyBranches(roots: readonly GeoJourneyTreeNode[]) {
   return branches;
 }
 
-/** Docs, posts and everything else, counted by unique page. */
-export function journeyPageKindStats(overview: GeoJourneyOverview) {
+/**
+ * Docs, posts and everything else, counted by unique page. `totalPages` is the
+ * window's full page count, so pages the response sampled away land in "Other"
+ * rather than making the breakdown fall short of the card's headline.
+ */
+export function journeyPageKindStats(
+  kindCounts: readonly GeoJourneyKindCount[],
+  totalPages: number
+): JourneyPageKindStat[] {
   const count = (kind: GeoJourneyPathKind) =>
-    overview.kindCounts.find((entry) => entry.kind === kind)?.paths ?? 0;
+    kindCounts.find((entry) => entry.kind === kind)?.paths ?? 0;
   const docs = count("docs");
   const posts = count("blog");
-  const other = overview.paths.length - docs - posts;
-  const label = (value: number) =>
-    `${value.toLocaleString()} ${value === 1 ? "page" : "pages"}`;
+  const other = Math.max(0, totalPages - docs - posts);
   return [
-    { label: GEO_JOURNEY_PATH_KIND_LABELS.docs, value: label(docs) },
-    { label: GEO_JOURNEY_PATH_KIND_LABELS.blog, value: label(posts) },
-    { label: "Other", value: label(other) },
+    { kind: "docs", pages: docs },
+    { kind: "blog", pages: posts },
+    { kind: "other", pages: other },
   ];
+}
+
+export function journeysForGroup(
+  journeys: readonly GeoJourney[],
+  selection: GeoJourneyGroupSelection
+): GeoJourney[] {
+  const matches = journeys.filter((journey) => {
+    if (selection.kind === "source") {
+      return (
+        journey.source === selection.source &&
+        journey.visitorType === selection.visitorType
+      );
+    }
+    return journey.samplePaths.some(
+      (path) => normalizeGeoJourneyPath(path) === selection.path
+    );
+  });
+  return matches.sort(
+    (left, right) => Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt)
+  );
+}
+
+const DAY_MS = 86_400_000;
+
+/** Every day from the first to the last day any source saw a journey, so gaps plot as zero. */
+export function journeyTrendDays(
+  series: readonly { daily: readonly GeoJourneyDailyPoint[] }[]
+): string[] {
+  let first: string | null = null;
+  let last: string | null = null;
+  for (const row of series) {
+    for (const point of row.daily) {
+      if (first === null || point.day < first) {
+        first = point.day;
+      }
+      if (last === null || point.day > last) {
+        last = point.day;
+      }
+    }
+  }
+  if (first === null || last === null) {
+    return [];
+  }
+  const days: string[] = [];
+  for (
+    let time = Date.parse(`${first}T00:00:00Z`);
+    time <= Date.parse(`${last}T00:00:00Z`);
+    time += DAY_MS
+  ) {
+    days.push(new Date(time).toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+export function journeySeries(
+  daily: readonly GeoJourneyDailyPoint[],
+  days: readonly string[]
+): { day: string; value: number }[] {
+  const byDay = new Map(daily.map((point) => [point.day, point.journeys]));
+  return days.map((day) => ({ day, value: byDay.get(day) ?? 0 }));
+}
+
+export function journeyTotals(sources: readonly GeoJourneySourceStats[]) {
+  let journeys = 0;
+  let previousJourneys = 0;
+  let pages = 0;
+  let singleFetch = 0;
+  let deepCrawls = 0;
+  for (const row of sources) {
+    journeys += row.journeys;
+    previousJourneys += row.previousJourneys;
+    pages += row.pages;
+    singleFetch += row.singleFetch;
+    deepCrawls += row.deepCrawls;
+  }
+  return {
+    journeys,
+    previousJourneys,
+    pages,
+    singleFetch,
+    deepCrawls,
+  };
+}
+
+export function journeyAverageDepth(pages: number, journeys: number): number {
+  if (journeys === 0) {
+    return 0;
+  }
+  return Math.round((pages / journeys) * 10) / 10;
+}
+
+export function formatJourneyShare(count: number, total: number): string {
+  return `${Math.round(shareOf(count, total) * 100)}%`;
+}
+
+export function journeyGroupSheetStats(input: {
+  sourceRow: GeoJourneySourceStats | undefined;
+  pageRow: GeoJourneyPageStats | undefined;
+  totalJourneys: number;
+  locale: string;
+}): JourneyGroupSheetStat[] {
+  const row = input.sourceRow ?? input.pageRow;
+  const journeyStat: JourneyGroupSheetStat = {
+    key: "journeys",
+    value: row ? row.journeys.toLocaleString(input.locale) : "—",
+    delta: row ? trafficVisitDelta(row.journeys, row.previousJourneys) : null,
+  };
+  if (input.sourceRow) {
+    return [
+      journeyStat,
+      {
+        key: "avgDepth",
+        depth: journeyAverageDepth(
+          input.sourceRow.pages,
+          input.sourceRow.journeys
+        ),
+      },
+      {
+        key: "deepCrawls",
+        value: formatJourneyShare(
+          input.sourceRow.deepCrawls,
+          input.sourceRow.journeys
+        ),
+      },
+    ];
+  }
+  if (input.pageRow) {
+    return [
+      journeyStat,
+      {
+        key: "entryPage",
+        value: formatJourneyShare(
+          input.pageRow.entries,
+          input.pageRow.journeys
+        ),
+      },
+      {
+        key: "ofAllJourneys",
+        value: formatJourneyShare(input.pageRow.journeys, input.totalJourneys),
+      },
+    ];
+  }
+  return [journeyStat];
+}
+
+export function journeyPageKindCounts(
+  pages: readonly GeoJourneyPageStats[]
+): GeoJourneyKindCount[] {
+  const totals = new Map<GeoJourneyPathKind, number>(
+    GEO_JOURNEY_PATH_KINDS.map((kind) => [kind, 0])
+  );
+  for (const page of pages) {
+    const kind = classifyGeoJourneyPath(page.path);
+    totals.set(kind, (totals.get(kind) ?? 0) + 1);
+  }
+  return GEO_JOURNEY_PATH_KINDS.flatMap((kind) => {
+    const count = totals.get(kind) ?? 0;
+    return count > 0 ? [{ kind, paths: count }] : [];
+  });
 }

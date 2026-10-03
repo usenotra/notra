@@ -63,7 +63,7 @@ export async function extractBrandInfo(
   try {
     const { output } = await generateText({
       model: ai.wrap(
-        gateway("anthropic/claude-sonnet-4.6", {
+        gateway("anthropic/claude-sonnet-5", {
           organizationId: input.organizationId,
         })
       ),
@@ -81,9 +81,12 @@ Extract the following information:
 5. language: The primary language of the website content. Must be one of: ${SUPPORTED_LANGUAGES.join(", ")}`,
       instructions:
         "You are a brand analyst expert. Your job is to analyze website content and extract key brand identity information. Be thorough but concise. Focus on understanding the company's essence, values, and how they communicate.",
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: "anthropic/claude-sonnet-4.6",
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["brand-analysis"] } },
+        {
+          modelId: "anthropic/claude-sonnet-5",
+        }
+      ),
       ...buildTelemetryOptions({
         feature: "brand_analysis",
         jobId: input.jobId,

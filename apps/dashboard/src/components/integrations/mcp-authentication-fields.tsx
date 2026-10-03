@@ -2,11 +2,7 @@
 
 import { MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  MAX_MCP_HEADERS,
-  mcpHeaderNameSchema,
-  mcpHeaderValueSchema,
-} from "@notra/schemas/dashboard/integrations";
+import { MAX_MCP_HEADERS } from "@notra/schemas/dashboard/integrations";
 import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import {
@@ -15,10 +11,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
 import { Button } from "@/components/button";
 import { MCP_AUTH_OPTIONS } from "@/constants/mcp";
 import { getMcpFormErrorMessage } from "@/lib/integrations/mcp";
+import {
+  createMcpHeaderNameSchema,
+  createMcpHeaderValueSchema,
+} from "@/schemas/mcp-server-form";
 import type { McpAuthenticationFieldsProps } from "@/types/integrations/mcp";
 
 export function McpAuthenticationFields({
@@ -28,11 +30,27 @@ export function McpAuthenticationFields({
   lockAuthType = false,
   setHeaderRowIds,
 }: McpAuthenticationFieldsProps) {
+  const t = useTranslations("integrations.mcp.form");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const authOptionLabels: Record<
+    (typeof MCP_AUTH_OPTIONS)[number]["labelKey"],
+    string
+  > = {
+    none: tCommon("states.none"),
+    apiKey: tCommon("labels.apiKey"),
+    oauth: tIntegrationsShared("oauth"),
+  };
+  const mcpHeaderNameSchema = useMemo(() => createMcpHeaderNameSchema(t), [t]);
+  const mcpHeaderValueSchema = useMemo(
+    () => createMcpHeaderValueSchema(t),
+    [t]
+  );
   return (
     <form.Field name="authType">
       {(authTypeField) => (
         <Field>
-          <FieldLabel>Authentication</FieldLabel>
+          <FieldLabel>{tIntegrationsShared("authentication")}</FieldLabel>
           <Tabs
             onValueChange={(value) => {
               if (lockAuthType) {
@@ -48,34 +66,51 @@ export function McpAuthenticationFields({
             }}
             value={authTypeField.state.value}
           >
-            <TabsList className="grid h-9 w-full grid-cols-3">
-              {MCP_AUTH_OPTIONS.map((option) => (
-                <TabsTrigger
-                  disabled={
-                    lockAuthType && option.value !== authTypeField.state.value
-                  }
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {lockAuthType ? (
+              <p className="text-sm">
+                {(() => {
+                  const lockedOption = MCP_AUTH_OPTIONS.find(
+                    (option) => option.value === authTypeField.state.value
+                  );
+                  return lockedOption
+                    ? authOptionLabels[lockedOption.labelKey]
+                    : null;
+                })()}
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {t("setByIntegration")}
+                </span>
+              </p>
+            ) : (
+              <TabsList className="grid h-9 w-full grid-cols-3">
+                {MCP_AUTH_OPTIONS.map((option) => (
+                  <TabsTrigger
+                    disabled={
+                      lockAuthType && option.value !== authTypeField.state.value
+                    }
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {authOptionLabels[option.labelKey]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            )}
             <TabsContent value="none">
               <p className="text-muted-foreground text-sm">
-                Connect to a public MCP server without credentials.
+                {t("noneDescription")}
               </p>
             </TabsContent>
             <TabsContent value="headers">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-muted-foreground text-sm">
-                    Add an API key, bearer token, or custom headers.
+                    {t("headersDescription")}
                   </p>
                   <form.Field mode="array" name="headers">
                     {(headersField) => (
                       <Button
-                        aria-label="Add authentication header"
+                        aria-label={t("addHeader")}
                         disabled={
                           headersField.state.value.length >= MAX_MCP_HEADERS
                         }
@@ -110,7 +145,9 @@ export function McpAuthenticationFields({
                             {(field) => (
                               <Field className="flex-1">
                                 <Input
-                                  aria-label={`Authentication header ${index + 1} name`}
+                                  aria-label={t("headerNameAriaLabel", {
+                                    index: index + 1,
+                                  })}
                                   autoComplete="off"
                                   onBlur={field.handleBlur}
                                   onChange={(event) => {
@@ -123,7 +160,8 @@ export function McpAuthenticationFields({
                                 {field.state.meta.errors[0] ? (
                                   <p className="text-destructive text-sm">
                                     {getMcpFormErrorMessage(
-                                      field.state.meta.errors[0]
+                                      field.state.meta.errors[0],
+                                      tCommon("labels.invalidValue")
                                     )}
                                   </p>
                                 ) : null}
@@ -137,21 +175,24 @@ export function McpAuthenticationFields({
                             {(field) => (
                               <Field className="flex-[1.3]">
                                 <Input
-                                  aria-label={`Authentication header ${index + 1} value`}
+                                  aria-label={t("headerValueAriaLabel", {
+                                    index: index + 1,
+                                  })}
                                   autoComplete="off"
                                   onBlur={field.handleBlur}
                                   onChange={(event) => {
                                     field.handleChange(event.target.value);
                                     invalidateTestResult();
                                   }}
-                                  placeholder="Bearer token"
+                                  placeholder={t("headerValuePlaceholder")}
                                   type="password"
                                   value={field.state.value}
                                 />
                                 {field.state.meta.errors[0] ? (
                                   <p className="text-destructive text-sm">
                                     {getMcpFormErrorMessage(
-                                      field.state.meta.errors[0]
+                                      field.state.meta.errors[0],
+                                      tCommon("labels.invalidValue")
                                     )}
                                   </p>
                                 ) : null}
@@ -159,7 +200,9 @@ export function McpAuthenticationFields({
                             )}
                           </form.Field>
                           <Button
-                            aria-label="Remove authentication header"
+                            aria-label={tIntegrationsShared(
+                              "removeAuthenticationHeader"
+                            )}
                             onClick={() => {
                               headersField.removeValue(index);
                               setHeaderRowIds((ids) =>
@@ -187,11 +230,9 @@ export function McpAuthenticationFields({
             </TabsContent>
             <TabsContent value="oauth">
               <div className="bg-muted/40 rounded-lg border p-3 text-sm">
-                <p className="font-medium">Authorize securely</p>
+                <p className="font-medium">{t("oauthTitle")}</p>
                 <p className="text-muted-foreground mt-1">
-                  You will be redirected to the server to approve access. Notra
-                  stores an encrypted refresh token and renews access
-                  automatically.
+                  {t("oauthDescription")}
                 </p>
               </div>
             </TabsContent>

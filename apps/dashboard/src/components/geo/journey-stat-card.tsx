@@ -1,3 +1,8 @@
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import { useLocale, useTranslations } from "next-intl";
+
+import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { JourneyEmpty } from "@/components/geo/journey-empty";
 import {
   InstrumentEmpty,
   InstrumentModule,
@@ -12,26 +17,51 @@ export function JourneyStatCard({
   eyebrow,
   total,
   caption,
+  delta,
   stats,
   emptyMessage,
+  emptyDescription,
+  emptyMedia,
   emptySeed,
   children,
 }: JourneyStatCardProps) {
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
+  const empty = emptyDescription ? (
+    <JourneyEmpty
+      className="h-full"
+      description={emptyDescription}
+      media={emptyMedia}
+      title={emptyMessage}
+    />
+  ) : (
+    <InstrumentEmpty
+      className="h-full"
+      message={emptyMessage}
+      seed={emptySeed}
+    />
+  );
+
   return (
     <InstrumentModule className="h-full" eyebrow={eyebrow}>
       {total === 0 ? (
-        <InstrumentEmpty
-          className="h-full"
-          message={emptyMessage}
-          seed={emptySeed}
-        />
+        empty
       ) : (
         <div className="flex h-full flex-col gap-5">
-          <div className="flex items-baseline gap-2">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
-              {total.toLocaleString()}
+              <AnimatedNumber locale={locale} value={total} />
             </p>
             <p className="text-muted-foreground text-sm">{caption}</p>
+            {delta === undefined ? null : (
+              <GeoStatDelta
+                animated
+                className="self-center"
+                delta={delta}
+                hint={tGeoShared("vsPreviousPeriodOfThe")}
+                label={eyebrow}
+              />
+            )}
           </div>
           <dl className="grid grid-cols-3 gap-3">
             {stats.map((stat) => (

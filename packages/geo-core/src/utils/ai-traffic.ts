@@ -1,10 +1,13 @@
 import { parseClickHouseDateTime } from "@notra/analytics/utils/datetime";
+import { AI_AGENT_SIGNATURES } from "@usenotra/geo/signatures";
 
 import {
   GEO_SOURCE_LABELS,
+  GEO_AGENT_LABELS,
   GEO_JOURNEY_BROWSE_CATEGORY,
   GEO_JOURNEY_CHIP_LENGTH,
   GEO_JOURNEY_EXPLICIT_PREFIX,
+  GEO_MAX_RANGE_DAYS,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_SPARKLINE_FLAT_THRESHOLD,
   GEO_STAT_DELTA_NEW,
@@ -40,9 +43,46 @@ export function isTrackedGeoVisitorType(value: GeoVisitorType): boolean {
   return !GEO_UNTRACKED_VISITOR_TYPES.includes(value);
 }
 
+/**
+ * Own string members only: sources and agents come from request headers, so a
+ * visitor sending "constructor" would otherwise be labelled with an inherited
+ * `Object` member instead of a string.
+ */
+function lookupLabel(
+  labels: Record<string, string>,
+  key: string,
+  fallback: string
+): string {
+  if (!Object.hasOwn(labels, key)) {
+    return fallback;
+  }
+  const label = labels[key];
+  return typeof label === "string" ? label : fallback;
+}
+
 export function formatGeoSource(source: string): string {
   const trimmed = source.trim();
-  return GEO_SOURCE_LABELS[trimmed.toLowerCase()] ?? trimmed;
+  return lookupLabel(GEO_SOURCE_LABELS, trimmed.toLowerCase(), trimmed);
+}
+
+// Signature names keep the vendor's casing ("GPTBot"), so a lowercased token
+// from older rows or hand-written data can be mapped back to it.
+const SIGNATURE_AGENT_NAMES: Record<string, string> = Object.fromEntries(
+  AI_AGENT_SIGNATURES.map((signature) => [
+    signature.agent.toLowerCase(),
+    signature.agent,
+  ])
+);
+
+/** Bot name as its vendor writes it, e.g. "meta-externalagent" → "Meta-ExternalAgent". */
+export function formatGeoAgent(agent: string): string {
+  const trimmed = agent.trim();
+  const key = trimmed.toLowerCase();
+  return lookupLabel(
+    GEO_AGENT_LABELS,
+    key,
+    lookupLabel(SIGNATURE_AGENT_NAMES, key, trimmed)
+  );
 }
 
 export function isCitedTrafficSource(
@@ -99,19 +139,20 @@ export function toGeoTrafficPreviousTotals(
   );
 }
 
-const timestampFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
-export function formatAiTrafficTimestamp(value: string): string {
+export function formatAiTrafficTimestamp(
+  value: string,
+  locale = "en-US"
+): string {
   const date = parseClickHouseDateTime(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return timestampFormatter.format(date);
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
 const MS_PER_MINUTE = 60_000;
@@ -126,22 +167,6 @@ export function toGeoJourneyKind(journeyId: string): "tagged" | "fingerprint" {
   return journeyId.startsWith(GEO_JOURNEY_EXPLICIT_PREFIX)
     ? "tagged"
     : "fingerprint";
-}
-
-export function formatGeoTrafficFilterLabel(
-  base: string,
-  noun: string,
-  selected: readonly string[],
-  options: readonly { value: string; label: string }[]
-): string {
-  const first = selected[0];
-  if (first === undefined) {
-    return base;
-  }
-  if (selected.length === 1) {
-    return options.find((option) => option.value === first)?.label ?? first;
-  }
-  return `${noun} (${selected.length})`;
 }
 
 export function toggleGeoTrafficFilterValue<T extends string>(
@@ -167,7 +192,9 @@ export function toGeoTrafficLogPurposeFilter(
 
 export function formatGeoJourneySpan(
   firstSeenAt: string,
-  lastSeenAt: string
+  lastSeenAt: string,
+  underAMinuteLabel = "under a minute",
+  locale?: string
 ): string {
   const start = parseClickHouseDateTime(firstSeenAt);
   const end = parseClickHouseDateTime(lastSeenAt);
@@ -180,17 +207,23 @@ export function formatGeoJourneySpan(
     0
   );
   if (minutes < 1) {
-    return "under a minute";
+    return underAMinuteLabel;
   }
+  const unit = (value: number, name: "minute" | "hour" | "day") =>
+    new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: name,
+      unitDisplay: "narrow",
+    }).format(value);
   if (minutes < MINUTES_PER_HOUR) {
-    return `${minutes}m`;
+    return unit(minutes, "minute");
   }
 
   const hours = Math.floor(minutes / MINUTES_PER_HOUR);
   if (hours < HOURS_PER_DAY) {
-    return `${hours}h ${minutes % MINUTES_PER_HOUR}m`;
+    return `${unit(hours, "hour")} ${unit(minutes % MINUTES_PER_HOUR, "minute")}`;
   }
-  return `${Math.floor(hours / HOURS_PER_DAY)}d ${hours % HOURS_PER_DAY}h`;
+  return `${unit(Math.floor(hours / HOURS_PER_DAY), "day")} ${unit(hours % HOURS_PER_DAY, "hour")}`;
 }
 
 export function formatMarkdownShare(markdown: number, visits: number): string {
@@ -211,13 +244,37 @@ export function hasTrafficSourceSeries(
 }
 
 export function trafficSparklineDays(
-  points: readonly GeoTrafficPoint[]
+  points: readonly GeoTrafficPoint[],
+  from?: string,
+  to?: string
 ): string[] {
-  return [...new Set(points.map((point) => trafficDayKey(point.day)))].sort();
+  const observed = [
+    ...new Set(points.map((point) => trafficDayKey(point.day))),
+  ].sort();
+  if (observed.length === 0 || !from || !to) {
+    return observed;
+  }
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) {
+    return observed;
+  }
+  const dayMs = 86_400_000;
+  const span = Math.floor((end - start) / dayMs) + 1;
+  if (span > GEO_MAX_RANGE_DAYS) {
+    return observed;
+  }
+  const days: string[] = [];
+  for (let time = start; time <= end; time += dayMs) {
+    days.push(new Date(time).toISOString().slice(0, 10));
+  }
+  return days;
 }
 
 export function buildTrafficTrendRows(
-  points: readonly GeoTrafficPoint[]
+  points: readonly GeoTrafficPoint[],
+  locale?: string,
+  days?: readonly string[]
 ): GeoTrafficTrendRow[] {
   const byDay = new Map<string, { crawler: number; aiReferral: number }>();
 
@@ -239,14 +296,15 @@ export function buildTrafficTrendRows(
     byDay.set(day, current);
   }
 
-  return [...byDay.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([day, values]) => ({
-      day: formatDayLabel(day),
+  return (days ?? [...byDay.keys()].sort()).map((day) => {
+    const values = byDay.get(day) ?? { crawler: 0, aiReferral: 0 };
+    return {
+      day: formatDayLabel(day, locale),
       rawDay: day,
       [GEO_TRAFFIC_TREND_CRAWLER_KEY]: values.crawler,
       [GEO_TRAFFIC_TREND_REFERRAL_KEY]: values.aiReferral,
-    }));
+    };
+  });
 }
 
 export function isTrafficPagePending({
@@ -289,22 +347,6 @@ export function trafficVisitDelta(
 
 export function isGeoStatDeltaNew(delta: number): boolean {
   return delta === GEO_STAT_DELTA_NEW;
-}
-
-export function isGeoTrafficCitationsOnly(
-  categories: GeoTrafficLogFilters["categories"]
-): boolean {
-  return (
-    categories.length === 1 && categories[0] === GEO_JOURNEY_BROWSE_CATEGORY
-  );
-}
-
-export function toggleGeoTrafficCitationsOnly(
-  categories: GeoTrafficLogFilters["categories"]
-): GeoTrafficLogFilters["categories"] {
-  return isGeoTrafficCitationsOnly(categories)
-    ? []
-    : [GEO_JOURNEY_BROWSE_CATEGORY];
 }
 
 export function formatGeoTrafficRequestCount(total: number): string {

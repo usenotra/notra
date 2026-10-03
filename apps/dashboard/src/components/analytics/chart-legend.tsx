@@ -35,7 +35,7 @@ export function ChartSeriesLegend({
           <button
             aria-pressed={!hidden}
             className={cn(
-              "flex cursor-pointer items-center gap-1.5 font-mono text-[0.6875rem] transition-opacity",
+              "flex max-w-full min-w-0 cursor-pointer items-center gap-1.5 font-mono text-[0.6875rem] transition-opacity",
               hidden
                 ? "opacity-40 hover:opacity-70"
                 : "text-muted-foreground hover:text-foreground"
@@ -46,12 +46,15 @@ export function ChartSeriesLegend({
           >
             <span
               className={cn(
-                "size-2 rounded-[0.0625rem]",
+                "size-2 shrink-0 rounded-[0.0625rem]",
                 hidden && "opacity-50"
               )}
               style={{ backgroundColor: `var(--color-${key}-0)` }}
             />
-            <span className={cn(hidden && "line-through")}>
+            <span
+              className={cn("min-w-0 truncate", hidden && "line-through")}
+              title={typeof entry.label === "string" ? entry.label : key}
+            >
               {entry.label ?? key}
             </span>
           </button>

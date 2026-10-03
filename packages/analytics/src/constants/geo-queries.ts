@@ -94,6 +94,15 @@ export const GEO_CAPTURED_PREVIOUS_CONDITION = `if(
             AND toDate(captured_at) < toDateOrNull({{String(date_from, '')}})
           )`;
 
+export const GEO_CAPTURED_COMPARISON_WINDOW_SQL = `AND ((${GEO_CAPTURED_CURRENT_CONDITION}) OR (${GEO_CAPTURED_PREVIOUS_CONDITION}))`;
+
+/** Journeys count toward the window their first fetch landed in. */
+export const GEO_JOURNEY_FIRST_SEEN_CURRENT_CONDITION =
+  GEO_CAPTURED_CURRENT_CONDITION.replaceAll("captured_at", "first_seen_at");
+
+/** Mirrors GEO_JOURNEY_DEEP_CRAWL_PAGES in geo-core. */
+export const GEO_JOURNEY_DEEP_CRAWL_PAGES_SQL = 10;
+
 export const GEO_PROJECT_SCOPE_SQL = `AND (
             {{String(project_id, '')}} = ''
             OR project_id = {{String(project_id, '')}}

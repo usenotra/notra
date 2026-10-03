@@ -1,0 +1,44 @@
+import { cookies } from "next/headers";
+
+import { cookieAttributes } from "@/utils/cookie-attributes";
+
+export async function readShortLivedCookie(
+  name: string
+): Promise<string | null> {
+  const cookieStore = await cookies();
+  return cookieStore.get(name)?.value || null;
+}
+
+export async function storeShortLivedCookie(
+  name: string,
+  value: string,
+  maxAgeSeconds: number
+) {
+  const cookieStore = await cookies();
+  cookieStore.set({
+    name,
+    value,
+    httpOnly: true,
+    ...cookieAttributes(),
+    path: "/",
+    maxAge: maxAgeSeconds,
+  });
+}
+
+export async function clearShortLivedCookie(name: string) {
+  const cookieStore = await cookies();
+  cookieStore.delete({ name, path: "/", ...cookieAttributes() });
+}
+
+export async function clearShortLivedCookiesWithPrefix(prefix: string) {
+  const cookieStore = await cookies();
+  for (const cookie of cookieStore.getAll()) {
+    if (cookie.name.startsWith(prefix)) {
+      cookieStore.delete({
+        name: cookie.name,
+        path: "/",
+        ...cookieAttributes(),
+      });
+    }
+  }
+}

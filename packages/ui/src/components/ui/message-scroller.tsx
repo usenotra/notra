@@ -2,6 +2,7 @@
 
 import { ArrowDown02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import {
   MessageScroller as MessageScrollerPrimitive,
   useMessageScroller,
@@ -70,10 +71,7 @@ function MessageScrollerItem({
 }: React.ComponentProps<typeof MessageScrollerPrimitive.Item>) {
   return (
     <MessageScrollerPrimitive.Item
-      className={cn(
-        "min-w-0 shrink-0 [contain-intrinsic-size:auto_10rem] [content-visibility:auto]",
-        className
-      )}
+      className={cn("min-w-0 shrink-0", className)}
       data-slot="message-scroller-item"
       scrollAnchor={scrollAnchor}
       {...props}
@@ -88,6 +86,8 @@ function MessageScrollerButton({
   render,
   ...props
 }: React.ComponentProps<typeof MessageScrollerPrimitive.Button>) {
+  const labels = useUiLabels();
+
   return (
     <MessageScrollerPrimitive.Button
       className={cn(
@@ -104,7 +104,7 @@ function MessageScrollerButton({
         <>
           <HugeiconsIcon icon={ArrowDown02Icon} size={16} strokeWidth={2} />
           <span className="sr-only">
-            {direction === "end" ? "Scroll to end" : "Scroll to start"}
+            {direction === "end" ? labels.scrollToEnd : labels.scrollToStart}
           </span>
         </>
       )}

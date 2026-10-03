@@ -4,6 +4,7 @@ import {
   Delete02Icon,
   MinusSignIcon,
   PlusSignIcon,
+  Refresh03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_MCP_HEADERS } from "@notra/schemas/dashboard/integrations";
@@ -30,7 +31,7 @@ import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCcwIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -56,6 +57,8 @@ export function ManageStoreIntegrationDialog({
   open,
   organizationId,
 }: ManageStoreIntegrationDialogProps) {
+  const t = useTranslations("integrations.store.manage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const connection = integration.connection;
   const queryClient = useQueryClient();
   const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
@@ -94,7 +97,7 @@ export function ManageStoreIntegrationDialog({
       }),
     onSuccess: () => {
       invalidate();
-      toast.success("Integration updated");
+      toast.success(t("updated"));
     },
     onError: (error) => toast.error(error.message),
   });
@@ -107,7 +110,7 @@ export function ManageStoreIntegrationDialog({
       }),
     onSuccess: (result) => {
       invalidate();
-      toast.success(`Indexed ${result.indexedToolCount} tools`);
+      toast.success(t("indexed", { count: result.indexedToolCount }));
     },
     onError: (error) => toast.error(error.message),
   });
@@ -128,7 +131,9 @@ export function ManageStoreIntegrationDialog({
       oauthPopup.close();
       setReauthorizing(false);
       toast.error(
-        error instanceof Error ? error.message : "Could not restart OAuth"
+        error instanceof Error
+          ? error.message
+          : tIntegrationsShared("couldNotRestartOauth")
       );
     }
   }
@@ -144,7 +149,7 @@ export function ManageStoreIntegrationDialog({
       setShowDisconnectDialog(false);
       onOpenChange(false);
       onDisconnected();
-      toast.success("Integration disconnected");
+      toast.success(t("disconnected"));
     },
     onError: (error) => toast.error(error.message),
   });
@@ -155,13 +160,13 @@ export function ManageStoreIntegrationDialog({
       const name = row.name.trim();
       const value = row.value.trim();
       if (!(name && value)) {
-        toast.error("Enter a name and value for every header");
+        toast.error(t("headerIncomplete"));
         return;
       }
       headers[name] = value;
     }
     if (Object.keys(headers).length === 0) {
-      toast.error("Add at least one authentication header");
+      toast.error(tIntegrationsShared("addAtLeastOneAuthentication"));
       return;
     }
     updateMutation.mutate({ authType: "headers", headers });
@@ -179,7 +184,7 @@ export function ManageStoreIntegrationDialog({
                   {integration.name}
                 </ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>
-                  Manage this integration's connection and credentials.
+                  {t("description")}
                 </ResponsiveDialogDescription>
               </div>
             </div>
@@ -225,21 +230,36 @@ export function ManageStoreIntegrationDialog({
 }
 
 function ConnectionSummary({ connection }: McpConnectionSummaryProps) {
+  const t = useTranslations("integrations.store.manage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon4 = useTranslations("common");
+  const authLabels = {
+    oauth: tIntegrationsShared("oauth"),
+    apiKey: tCommon4("labels.apiKey"),
+    none: t("auth.none"),
+  };
+  const tCommon = useTranslations("common");
+
   return (
     <div className="divide-y rounded-lg border">
-      <ConnectionDetail label="Status">
+      <ConnectionDetail label={tCommon("labels.status")}>
         <Badge variant={connection.enabled ? "default" : "secondary"}>
-          {connection.enabled ? "Enabled" : "Disabled"}
+          {connection.enabled
+            ? tCommon("states.enabled")
+            : tCommon("states.disabled")}
         </Badge>
       </ConnectionDetail>
-      <ConnectionDetail label="Authentication">
-        {getAuthenticationLabel(connection.authType)}
+      <ConnectionDetail label={tIntegrationsShared("authentication")}>
+        {authLabels[getAuthenticationLabelKey(connection.authType)]}
       </ConnectionDetail>
-      <ConnectionDetail label="Tools">
+      <ConnectionDetail label={t("tools")}>
         {connection.indexedToolCount ?? 0}
       </ConnectionDetail>
-      <ConnectionDetail label="Endpoint">
-        <span className="max-w-64 truncate font-mono text-xs">
+      <ConnectionDetail label={t("endpoint")}>
+        <span
+          className="block max-w-64 truncate font-mono text-xs"
+          title={connection.url}
+        >
           {connection.url}
         </span>
       </ConnectionDetail>
@@ -253,19 +273,23 @@ function CredentialEditor({
   setHeaderRows,
   updating,
 }: McpCredentialEditorProps) {
+  const t = useTranslations("integrations.store.manage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon2 = useTranslations("common");
+
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <div>
-        <h3 className="text-sm font-medium">API credentials</h3>
+        <h3 className="text-sm font-medium">{t("credentialsTitle")}</h3>
         <p className="text-muted-foreground text-xs">
-          Stored values stay hidden. Enter replacements to update them.
+          {t("credentialsDescription")}
         </p>
       </div>
       {headerRows.map((row, index) => (
         <div className="flex items-end gap-2" key={row.id}>
           <Field className="flex-1">
             <FieldLabel htmlFor={`store-header-name-${row.id}`}>
-              Header
+              {t("header")}
             </FieldLabel>
             <Input
               id={`store-header-name-${row.id}`}
@@ -283,7 +307,7 @@ function CredentialEditor({
           </Field>
           <Field className="flex-[1.3]">
             <FieldLabel htmlFor={`store-header-value-${row.id}`}>
-              New value
+              {t("newValue")}
             </FieldLabel>
             <Input
               autoComplete="off"
@@ -302,7 +326,7 @@ function CredentialEditor({
             />
           </Field>
           <Button
-            aria-label="Remove authentication header"
+            aria-label={tIntegrationsShared("removeAuthenticationHeader")}
             onClick={() =>
               setHeaderRows((rows) =>
                 rows.filter((candidate) => candidate.id !== row.id)
@@ -330,10 +354,10 @@ function CredentialEditor({
           variant="outline"
         >
           <HugeiconsIcon icon={PlusSignIcon} />
-          Add header
+          {t("addHeader")}
         </Button>
         <Button disabled={updating} onClick={onUpdate} size="sm" type="button">
-          {updating ? "Updating..." : "Update credentials"}
+          {updating ? tCommon2("labels.updating") : t("updateCredentials")}
         </Button>
       </div>
     </div>
@@ -350,21 +374,25 @@ function ConnectionActions({
   refreshing,
   updating,
 }: McpConnectionActionsProps) {
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   return (
     <ResponsiveDialogFooter className="flex-wrap sm:justify-between">
       <Button onClick={onDisconnect} type="button" variant="destructive">
         <HugeiconsIcon icon={Delete02Icon} />
-        Disconnect
+        {tCommon("actions.disconnect")}
       </Button>
       <div className="flex flex-wrap justify-end gap-2">
         <Button
-          disabled={refreshing || !connection.enabled}
+          disabled={!connection.enabled}
+          loading={refreshing}
           onClick={onRefresh}
           type="button"
           variant="outline"
         >
-          <RefreshCcwIcon className={refreshing ? "animate-spin" : ""} />
-          Refresh tools
+          <HugeiconsIcon icon={Refresh03Icon} />
+          {tIntegrationsShared("refreshTools")}
         </Button>
         {connection.authType === "oauth" ? (
           <Button
@@ -373,7 +401,7 @@ function ConnectionActions({
             type="button"
             variant="outline"
           >
-            Reauthorize
+            {tIntegrationsShared("reauthorize")}
           </Button>
         ) : null}
         <Button
@@ -382,7 +410,9 @@ function ConnectionActions({
           type="button"
           variant="outline"
         >
-          {connection.enabled ? "Disable" : "Enable"}
+          {connection.enabled
+            ? tCommon("actions.disable")
+            : tCommon("actions.enable")}
         </Button>
       </div>
     </ResponsiveDialogFooter>
@@ -396,26 +426,30 @@ function DisconnectDialog({
   onOpenChange,
   open,
 }: McpDisconnectDialogProps) {
+  const t = useTranslations("integrations.store.manage");
+  const tCommon = useTranslations("common");
+
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle>
-            Disconnect {integrationName}?
+            {t("disconnectTitle", { name: integrationName })}
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
-            Its tools will no longer be available to this organization. You can
-            reconnect it later.
+            {t("disconnectDescription")}
           </ResponsiveAlertDialogDescription>
         </ResponsiveAlertDialogHeader>
         <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogCancel>
+            {tCommon("actions.cancel")}
+          </ResponsiveAlertDialogCancel>
           <ResponsiveAlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={disconnecting}
             onClick={onDisconnect}
           >
-            {disconnecting ? "Disconnecting..." : "Disconnect"}
+            {disconnecting ? t("disconnecting") : tCommon("actions.disconnect")}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>
@@ -435,6 +469,7 @@ function ConnectionDetail({ children, label }: McpConnectionDetailProps) {
 function StoreIntegrationDialogLogo({
   integration,
 }: StoreIntegrationDialogLogoProps) {
+  const tCommon3 = useTranslations("common");
   const lightLogo = integration.logoLightUrl ?? integration.logoDarkUrl;
   const darkLogo = integration.logoDarkUrl ?? integration.logoLightUrl;
 
@@ -449,14 +484,14 @@ function StoreIntegrationDialogLogo({
   return (
     <div className="bg-muted size-9 shrink-0 overflow-hidden rounded-lg">
       <Image
-        alt={`${integration.name} logo`}
+        alt={tCommon3("labels.nameLogo", { name: integration.name })}
         className="size-9 object-contain dark:hidden"
         height={36}
         src={lightLogo}
         width={36}
       />
       <Image
-        alt={`${integration.name} logo`}
+        alt={tCommon3("labels.nameLogo", { name: integration.name })}
         className="hidden size-9 object-contain dark:block"
         height={36}
         src={darkLogo}
@@ -466,12 +501,12 @@ function StoreIntegrationDialogLogo({
   );
 }
 
-function getAuthenticationLabel(authType: string) {
+function getAuthenticationLabelKey(authType: string) {
   if (authType === "oauth") {
-    return "OAuth";
+    return "oauth";
   }
   if (authType === "headers") {
-    return "API key";
+    return "apiKey";
   }
-  return "No authentication";
+  return "none";
 }

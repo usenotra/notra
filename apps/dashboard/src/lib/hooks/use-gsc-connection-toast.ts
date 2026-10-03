@@ -1,66 +1,62 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { GSC_ERROR_MESSAGES } from "@/lib/integrations/google-search-console/oauth-errors";
+import { GSC_ERROR_CODES } from "@/lib/integrations/google-search-console/oauth-errors";
 
-const OAUTH_RESULT_PARAMS = ["gscConnected", "error"] as const;
-
-/** Drops only the OAuth result params so page state (filters, tabs) survives. */
-function urlWithoutOAuthParams(
-  pathname: string,
-  searchParams: URLSearchParams
-): string {
-  const next = new URLSearchParams(searchParams);
-  for (const param of OAUTH_RESULT_PARAMS) {
-    next.delete(param);
-  }
-  const query = next.toString();
-  return query ? `${pathname}?${query}` : pathname;
+function isGscErrorCode(
+  value: string
+): value is (typeof GSC_ERROR_CODES)[number] {
+  return GSC_ERROR_CODES.some((code) => code === value);
 }
 
 export function useGscConnectionToast() {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
+  const t = useTranslations("integrations.connectionToasts");
+  const tShared = useTranslations("integrations.shared");
+  const [{ gscConnected, error }, setParams] = useQueryStates(
+    { gscConnected: parseAsBoolean, error: parseAsString },
+    { history: "replace" }
+  );
   const trackedResultRef = useRef<string | null>(null);
-  const connectionSucceeded = searchParams.get("gscConnected") === "true";
+  const connectionSucceeded = gscConnected === true;
 
   useEffect(() => {
-    const connected = searchParams.get("gscConnected");
-    const error = searchParams.get("error");
-    const resultKey = `${connected ?? ""}:${error ?? ""}`;
+    const resultKey = `${gscConnected ?? ""}:${error ?? ""}`;
     const alreadyTracked = trackedResultRef.current === resultKey;
 
-    if (connected === "true") {
+    if (gscConnected) {
       if (!alreadyTracked) {
         trackedResultRef.current = resultKey;
         trackEvent(POSTHOG_EVENTS.GSC_CONNECT_SUCCEEDED);
       }
-      toast.success("Google Search Console connected", {
+      toast.success(t("gscConnected"), {
         id: "gsc-connected",
       });
-    } else if (error && Object.hasOwn(GSC_ERROR_MESSAGES, error)) {
+    } else if (error && isGscErrorCode(error)) {
       if (!alreadyTracked) {
         trackedResultRef.current = resultKey;
         trackEvent(POSTHOG_EVENTS.GSC_CONNECT_FAILED, { error_code: error });
       }
-      toast.error(GSC_ERROR_MESSAGES[error], { id: `gsc-error-${error}` });
+      let message: string;
+      if (error === "gsc_forbidden") {
+        message = tShared("youDoNotHaveAccess");
+      } else if (error === "gsc_not_configured") {
+        message = tShared("googleSearchConsoleIsNot");
+      } else {
+        message = t(`gscErrors.${error}`);
+      }
+      toast.error(message, { id: `gsc-error-${error}` });
     } else {
       return;
     }
 
-    // Not a redirect: strips the one-shot OAuth query params from the current
-    // URL after the toast has been shown.
-    // react-doctor-disable-next-line nextjs-no-client-side-redirect
-    router.replace(urlWithoutOAuthParams(pathname, searchParams), {
-      scroll: false,
-    });
-  }, [searchParams, pathname, router]);
+    void setParams({ gscConnected: null, error: null });
+  }, [gscConnected, error, setParams, t, tShared]);
 
   return connectionSucceeded;
 }

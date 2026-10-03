@@ -2,6 +2,8 @@ import type { InferOutputRow, InferParams } from "@tinybirdco/sdk";
 
 import type {
   geoJourneyDetail,
+  geoJourneyPages,
+  geoJourneySources,
   geoTrafficJourneys,
   geoTrafficLog,
   geoTrafficOverview,
@@ -47,4 +49,6 @@ export type GeoTrafficLogRow = InferOutputRow<typeof geoTrafficLog>;
 export type GeoTrafficLogParams = InferParams<typeof geoTrafficLog>;
 export type GeoTrafficPagesParams = InferParams<typeof geoTrafficPages>;
 export type GeoTrafficJourneysRow = InferOutputRow<typeof geoTrafficJourneys>;
+export type GeoJourneySourcesRow = InferOutputRow<typeof geoJourneySources>;
+export type GeoJourneyPagesRow = InferOutputRow<typeof geoJourneyPages>;
 export type GeoJourneyDetailRow = InferOutputRow<typeof geoJourneyDetail>;

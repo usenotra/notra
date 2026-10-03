@@ -261,6 +261,7 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
     try: (signal) =>
       generateText({
         model: gateway(GEO_PERSONA_GENERATION_MODEL, { organizationId }),
+        providerOptions: { gateway: { tags: ["geo-persona-generation"] } },
         output: Output.object({
           schema:
             target || brief
@@ -484,6 +485,7 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
       executionId: runId,
       outputType: null,
       countTowardQuota: false,
+      allowPlanIncluded: true,
     })
     .pipe(
       Effect.mapError(

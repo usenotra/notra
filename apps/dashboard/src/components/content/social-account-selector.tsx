@@ -61,8 +61,8 @@ export function SocialAccountSelector({
               </AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-col">
-              <span className="flex items-center gap-1 truncate text-xs font-medium">
-                {account.displayName}
+              <span className="flex min-w-0 items-center gap-1 text-xs font-medium">
+                <span className="truncate">{account.displayName}</span>
                 <XVerificationBadge
                   className="size-3.5 shrink-0"
                   verified={account.verified}

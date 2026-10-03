@@ -1,14 +1,18 @@
 <h1>
-  <img src=".github/assets/vercel-oss-badge.svg" alt="Vercel Open Source Program 2026" width="240" height="40" align="right" />
-  <img src="apps/web/src/app/icon0.svg" alt="Notra logo" width="40" height="40" align="left" />
-  &nbsp;Notra
+  <picture>
+    <source media="(max-width: 599px)" srcset=".github/assets/transparent.svg" />
+    <img src=".github/assets/vercel-oss-badge.svg" alt="Vercel Open Source Program 2026" align="right" />
+  </picture>
+  <img src=".github/assets/notra-wordmark.svg" alt="Notra" width="150" height="40" />
+  <picture>
+    <source media="(max-width: 599px)" srcset=".github/assets/vercel-oss-badge.svg" />
+    <img src=".github/assets/transparent.svg" alt="Vercel Open Source Program 2026" />
+  </picture>
 </h1>
 
-**See where your brand shows up in AI answers, who gets recommended instead, and what to write next.**
+**Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.**
 
-Notra is a generative engine optimization (GEO) platform. It runs the questions your buyers ask across AI engines, tracks mentions and citations, and helps you turn missing visibility into content worth publishing.
-
-[Visit www.usenotra.com](https://www.usenotra.com) · [Start for free](https://app.usenotra.com/signup) · [Documentation](https://docs.usenotra.com)
+[Visit www.usenotra.com](https://www.usenotra.com) · [Start for free](https://app.usenotra.com/signup) · [Documentation](https://www.usenotra.com/docs)
 
 <a href="https://www.usenotra.com">
   <picture>
@@ -37,7 +41,7 @@ Use Notra from your own applications and agents:
 - **MCP server:** connect AI clients at [`https://mcp.usenotra.com/mcp`](https://mcp.usenotra.com/mcp).
 - **Traffic SDK:** [`@usenotra/geo`](packages/geo), with Next.js, Nuxt, TanStack Start, Astro, SvelteKit, and Netlify integrations.
 
-See the [product documentation](https://docs.usenotra.com) for setup and authentication.
+See the [product documentation](https://www.usenotra.com/docs) for setup and authentication.
 
 ## Repository
 
@@ -86,6 +90,12 @@ bun run check-types
 bun run test
 bun run build --filter=dashboard
 ```
+
+Effect-aware linting covers `packages/tools/src` and `packages/geo-core/src`. Run `bun run check:effect`
+to check for floating Effects, missing `yield*` in Effect generators, and
+outdated Effect APIs. It also runs before Ultracite in `bun run check`. The
+install hook patches Oxlint for these type-aware rules without changing the
+TypeScript compiler; use Bun 1.4.0 to install the pinned, compatible versions.
 
 ## Contributing
 

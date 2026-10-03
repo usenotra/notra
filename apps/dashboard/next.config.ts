@@ -1,13 +1,67 @@
 import path from "node:path";
 
+import { isDemoMode } from "@notra/utils/demo-mode";
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 
+import { LAST_VISITED_ORGANIZATION_COOKIE } from "./src/constants/cookies";
+import {
+  DEMO_FRAME_ANCESTOR,
+  DEMO_LOCAL_FRAME_ANCESTOR,
+} from "./src/constants/demo";
+
+const demoMode = isDemoMode();
+
+// Mirrors resolveGeoIngestOrigin in @notra/geo-core; next.config cannot load
+// workspace TypeScript. A value without a scheme or pointing at the app itself
+// would fail the build or proxy ingest back into this route forever.
+function resolveIngestOrigin(): string | null {
+  const value = process.env.GEO_INGEST_URL?.trim();
+  if (!value) {
+    return null;
+  }
+  const url = URL.parse(value);
+  if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL without http(s) scheme"
+    );
+    return null;
+  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL;
+  if (appUrl && URL.parse(appUrl)?.origin === url.origin) {
+    console.warn(
+      "[next.config] Ignoring GEO_INGEST_URL that points at the app"
+    );
+    return null;
+  }
+  return url.origin;
+}
+
 const nextConfig: NextConfig = {
+  // Self-hosted images (the public demo on Railway) ship only the traced
+  // server files; Vercel builds ignore this.
+  ...(process.env.NEXT_OUTPUT_STANDALONE === "1"
+    ? {
+        output: "standalone" as const,
+        outputFileTracingRoot: path.resolve(__dirname, "../.."),
+      }
+    : {}),
+  // Only recognize page.dev.tsx/layout.dev.tsx in next dev; design-system
+  // previews should not become routes or bundles in a production build.
+  pageExtensions: [
+    ...(process.env.NODE_ENV === "development" ? ["dev.tsx"] : []),
+    "tsx",
+    "ts",
+    "jsx",
+    "js",
+  ],
   allowedDevOrigins: process.env.APP_URL
     ? [new URL(process.env.APP_URL).hostname]
     : [],
   reactCompiler: true,
+  // Without server source maps there is nothing for prerender workers to map.
+  enablePrerenderSourceMaps: false,
   cacheComponents: true,
   partialPrefetching: true,
   typescript: {
@@ -33,6 +87,12 @@ const nextConfig: NextConfig = {
       "recharts",
     ],
     hideLogsAfterAbort: true,
+    // Vercel drops the ~1 GB Turbopack cache as too large, so writing it
+    // only cost ~9 min per build on a standard machine.
+    turbopackFileSystemCacheForBuild: !process.env.VERCEL,
+    // Server source maps push `next build` past 8 GB, and production error
+    // stacks in the logs point at compiled chunks anyway.
+    serverSourceMaps: false,
     instantInsights: {
       validationLevel: "manual-warning",
     },
@@ -47,19 +107,31 @@ const nextConfig: NextConfig = {
     "@notra/email",
     "@notra/ai",
     "@notra/content-generation",
+    "@notra/webhooks",
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",
-    "@usenotra/geo",
   ],
   serverExternalPackages: [
+    // Let Next.js remove the guarded import before devtools filesystem tracing.
+    ...(process.env.NODE_ENV === "production" ? ["@ai-sdk/devtools"] : []),
     "@resvg/resvg-js",
     "@cursor/sdk",
     "@ai-sdk/code-mode",
     "run",
+    "sharp",
   ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
+    const ingestOrigin = resolveIngestOrigin();
+    const beforeFiles = ingestOrigin
+      ? [
+          {
+            source: "/api/geo/ingest",
+            destination: new URL("/api/geo/ingest", ingestOrigin).toString(),
+          },
+        ]
+      : [];
     const posthogHost =
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
     const posthogAssetsHost = posthogHost.replace(
@@ -78,18 +150,22 @@ const nextConfig: NextConfig = {
     ];
 
     if (process.env.NODE_ENV === "production") {
-      return posthogRewrites;
+      return { beforeFiles, afterFiles: posthogRewrites, fallback: [] };
     }
 
     const agentUrl =
       process.env.EVE_ONBOARDING_AGENT_URL ?? "http://127.0.0.1:3100";
-    return [
-      ...posthogRewrites,
-      {
-        source: "/eve/v1/:path*",
-        destination: `${agentUrl}/eve/v1/:path*`,
-      },
-    ];
+    return {
+      beforeFiles,
+      afterFiles: [
+        ...posthogRewrites,
+        {
+          source: "/eve/v1/:path*",
+          destination: `${agentUrl}/eve/v1/:path*`,
+        },
+      ],
+      fallback: [],
+    };
   },
   async redirects() {
     return [
@@ -104,8 +180,15 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/",
-        destination: "/login",
+        source: "/api-keys",
+        has: [
+          {
+            type: "cookie",
+            key: LAST_VISITED_ORGANIZATION_COOKIE,
+            value: "(?<slug>[a-z0-9-]+)",
+          },
+        ],
+        destination: "/:slug/api-keys",
         permanent: false,
       },
       {
@@ -139,9 +222,17 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
+          ...(demoMode
+            ? []
+            : [
+                {
+                  key: "X-Frame-Options",
+                  value: "DENY",
+                },
+              ]),
           {
-            key: "X-Frame-Options",
-            value: "DENY",
+            key: "Content-Security-Policy",
+            value: `frame-ancestors ${demoMode ? `${DEMO_FRAME_ANCESTOR} ${DEMO_LOCAL_FRAME_ANCESTOR}` : "'none'"}`,
           },
           {
             key: "Referrer-Policy",
@@ -212,4 +303,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    messages: {
+      path: "./messages",
+      format: "json",
+      locales: ["en", "de"],
+      precompile: true,
+    },
+  },
+});
+
+export default withWorkflow(withNextIntl(nextConfig));

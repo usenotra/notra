@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import type { McpUseCaseCardProps } from "@/types/mcp-use-cases";
 import {
@@ -23,7 +23,7 @@ export function McpUseCaseCard({ entry }: McpUseCaseCardProps) {
       <Link
         aria-label={`View ${entry.title}`}
         className="focus-visible:ring-primary absolute inset-0 z-0 cursor-pointer rounded-[1.25rem] outline-none focus-visible:ring-2"
-        href={getMcpUseCaseHref(entry)}
+        to={getMcpUseCaseHref(entry)}
       />
       <div className="pointer-events-none relative z-10 flex h-full flex-col">
         <McpUseCaseStack stack={entry.stack} />

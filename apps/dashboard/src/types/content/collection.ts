@@ -1,6 +1,12 @@
 import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
+import type { useTranslations } from "next-intl";
 
+import type { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
 import type { TablePaginationState } from "@/types/table";
+
+export type CollectionsTranslator = ReturnType<
+  typeof useTranslations<"content.collections">
+>;
 
 export interface CollectionPageProps {
   params: Promise<{
@@ -25,6 +31,8 @@ export interface CollectionDetailPageClientProps {
 
 export interface ContentListPageClientProps {
   organizationSlug: string;
+  /** Project the server prefetch used. Null when the organization has none. */
+  initialProjectId: string | null;
 }
 
 export interface GroupTypeIconProps {
@@ -38,9 +46,25 @@ export interface GroupContentTypesProps {
 
 export type CollectionStatus = "generating" | "published" | "draft" | "empty";
 
-export interface CollectionsTableProps {
+export type ContentCollectionView = (typeof CONTENT_COLLECTION_VIEWS)[number];
+
+export interface CollectionsViewProps {
   collections: PostCollectionSummary[];
   pagination: TablePaginationState;
-  onOpen: (collectionId: string) => void;
-  onHover?: (collectionId: string) => void;
+  organizationId: string;
+  organizationSlug: string;
+  view: ContentCollectionView;
+  loading?: boolean;
 }
+
+export interface CollectionMenuItemsProps {
+  collection: PostCollectionSummary;
+  organizationSlug: string;
+  disabled: boolean;
+  onDelete: (collection: PostCollectionSummary) => void;
+  variant?: "context" | "dropdown";
+}
+
+export type CollectionsSkeletonProps = Partial<
+  Pick<CollectionsViewProps, "view">
+>;

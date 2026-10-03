@@ -1,15 +1,21 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "src/app/design-system/**/page.dev.tsx",
+    "src/app/design-system/layout.dev.tsx",
     "scripts/*.ts",
-    "tests/fixtures/prompt-answer-selection.fixture.ts",
+    "tests/fixtures/*.fixture.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"
   ],
   "paths": {
     "@/*": ["./src/*"]
   },
-  "ignoreDependencies": ["@ai-sdk/code-mode"],
+  "ignoreDependencies": [
+    "@ai-sdk/code-mode",
+    "@ai-sdk/devtools",
+    "tailwindcss"
+  ],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],
@@ -34,7 +40,6 @@
     "src/components/evilcharts/**/*.{ts,tsx}": ["exports", "types"],
     "src/components/motion/**/*.{ts,tsx}": ["exports", "types"],
     "src/lib/ease.ts": ["exports", "types"],
-    "src/lib/geo-ingest/**/*.ts": ["exports", "types"],
     "src/lib/geo-shelf/preview.ts": ["exports"],
     "src/lib/analytics/posthog-lazy.ts": ["exports"],
     "src/lib/content/image-export.ts": ["exports"]

@@ -26,16 +26,16 @@ import {
 } from "@notra/ui/components/ui/select";
 import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useId, useRef } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
 import {
   CREATE_POST_DEFAULT_FORMAT,
   CREATE_POST_FORMAT_ORDER,
-  FORMAT_CARD_META,
 } from "@/constants/content-formats";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useCreatePost } from "@/lib/hooks/use-create-post";
@@ -54,6 +54,8 @@ export function CreatePostDialog({
   organizationId,
   organizationSlug,
 }: CreatePostDialogProps) {
+  const t = useTranslations("content.createPost");
+  const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
   const slugEditedRef = useRef(false);
@@ -79,10 +81,10 @@ export function CreatePostDialog({
         form.reset();
         slugEditedRef.current = false;
         onOpenChange(false);
-        toast.success("Post created");
+        toast.success(t("created"));
         router.push(`/${organizationSlug}/content/${result.contentId}`);
       } catch (error) {
-        toast.error(toErrorMessage(error, "Failed to create post"));
+        toast.error(toErrorMessage(error, t("createFailed")));
       }
     },
   });
@@ -111,9 +113,9 @@ export function CreatePostDialog({
     >
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>New empty post</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Start from a blank page and write it yourself or with the agent.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -127,7 +129,7 @@ export function CreatePostDialog({
           <form.Field name="contentType">
             {(field) => (
               <div className="space-y-1.5">
-                <Label htmlFor={`${id}-type`}>Type</Label>
+                <Label htmlFor={`${id}-type`}>{tCommon("labels.type")}</Label>
                 <Select
                   onValueChange={(value) =>
                     field.handleChange(toManualPostContentType(value ?? ""))
@@ -144,7 +146,9 @@ export function CreatePostDialog({
                           )}
                           outputType={field.state.value}
                         />
-                        {FORMAT_CARD_META[field.state.value].label}
+                        {tCommon(
+                          `labels.${OUTPUT_TYPE_LABEL_KEYS[field.state.value]}`
+                        )}
                       </span>
                     </SelectValue>
                   </SelectTrigger>
@@ -160,7 +164,9 @@ export function CreatePostDialog({
                               )}
                               outputType={format}
                             />
-                            {FORMAT_CARD_META[format].label}
+                            {tCommon(
+                              `labels.${OUTPUT_TYPE_LABEL_KEYS[format]}`
+                            )}
                           </span>
                         </SelectItem>
                       )
@@ -177,11 +183,16 @@ export function CreatePostDialog({
           >
             {(field) => {
               const error = field.state.meta.isTouched
-                ? firstFieldErrorMessage(field.state.meta.errors)
+                ? firstFieldErrorMessage(
+                    field.state.meta.errors,
+                    tCommon("labels.invalidValue")
+                  )
                 : null;
               return (
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-title`}>Name</Label>
+                  <Label htmlFor={`${id}-title`}>
+                    {tCommon("labels.name")}
+                  </Label>
                   <Input
                     aria-describedby={error ? `${id}-title-error` : undefined}
                     aria-invalid={error !== null}
@@ -198,7 +209,7 @@ export function CreatePostDialog({
                         );
                       }
                     }}
-                    placeholder="Ship notes for week 11"
+                    placeholder={t("namePlaceholder")}
                     value={field.state.value}
                   />
                   {error ? (
@@ -220,13 +231,16 @@ export function CreatePostDialog({
               validators={{ onChange: optionalPostSlugSchema }}
             >
               {(field) => {
-                const error = firstFieldErrorMessage(field.state.meta.errors);
+                const error = firstFieldErrorMessage(
+                  field.state.meta.errors,
+                  tCommon("labels.invalidValue")
+                );
                 return (
                   <div className="space-y-1.5">
                     <Label htmlFor={`${id}-slug`}>
-                      Slug{" "}
+                      {tCommon("labels.slug")}{" "}
                       <span className="text-muted-foreground font-normal">
-                        (optional)
+                        {tCommon("labels.optional")}
                       </span>
                     </Label>
                     <Input
@@ -256,8 +270,8 @@ export function CreatePostDialog({
                         id={`${id}-slug-hint`}
                       >
                         {slugPreview
-                          ? `Saved as ${slugPreview}`
-                          : "Inferred from the name. Leave empty to set it later."}
+                          ? t("slugSavedAs", { slug: slugPreview })
+                          : t("slugHint")}
                       </p>
                     )}
                   </div>
@@ -268,7 +282,7 @@ export function CreatePostDialog({
 
           <ResponsiveDialogFooter className="sm:justify-end">
             <Button onClick={closeDialog} type="button" variant="outline">
-              Cancel
+              {tCommon("actions.cancel")}
             </Button>
             <form.Subscribe
               selector={(state) =>
@@ -280,15 +294,12 @@ export function CreatePostDialog({
                   disabled={
                     !canSubmit ||
                     title.trim().length === 0 ||
-                    mutation.isPending ||
                     !isProjectResolved
                   }
+                  loading={mutation.isPending}
                   type="submit"
                 >
-                  {mutation.isPending ? (
-                    <Loader2Icon className="size-4 animate-spin" />
-                  ) : null}
-                  Create post
+                  {t("submit")}
                 </Button>
               )}
             </form.Subscribe>

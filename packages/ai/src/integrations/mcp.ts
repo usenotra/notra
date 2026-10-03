@@ -520,7 +520,7 @@ export async function testMcpServerConnection(input: {
     return {
       success: true,
       status: null,
-      message: `MCP connection successful. Discovered ${toolCount} ${toolCount === 1 ? "tool" : "tools"}.`,
+      message: `Server reachable. Discovered ${toolCount} ${toolCount === 1 ? "tool" : "tools"}. Tool execution and account access have not been tested.`,
       toolCount,
     };
   } catch {

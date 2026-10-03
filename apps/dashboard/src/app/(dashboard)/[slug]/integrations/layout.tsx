@@ -1,3 +1,5 @@
+import { IntegrationsBackLink } from "@/components/integrations/integrations-back-link";
+
 export default function IntegrationsLayout({
   children,
   modal,
@@ -7,6 +9,7 @@ export default function IntegrationsLayout({
 }) {
   return (
     <>
+      <IntegrationsBackLink />
       {children}
       {modal}
     </>

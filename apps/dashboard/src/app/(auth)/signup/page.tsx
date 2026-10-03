@@ -1,6 +1,6 @@
 import { SignupForm } from "@/components/auth/signup-form";
 
-export const instant = true;
+export const instant = false;
 
 export default function SignUp() {
   return (

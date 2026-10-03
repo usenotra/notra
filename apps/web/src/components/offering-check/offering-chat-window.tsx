@@ -3,9 +3,9 @@
 import { AiBrain01Icon, GlobalSearchIcon } from "@hugeicons/core-free-icons";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
-import { ChatgptMessage } from "@notra/ui/components/brainless/chatgpt/chatgpt-message";
-import { ChatgptReasoning } from "@notra/ui/components/brainless/chatgpt/chatgpt-reasoning";
-import { ChatgptThinking } from "@notra/ui/components/brainless/chatgpt/chatgpt-thinking";
+import { ChatgptMessage } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-message";
+import { ChatgptReasoning } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-reasoning";
+import { ChatgptThinking } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-thinking";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { geoAnswerMarkdownFontClass } from "@notra/ui/lib/geo-answer-font";
 import { cn } from "@notra/ui/lib/utils";
@@ -129,56 +129,57 @@ export function OfferingChatWindow({
   const answered = state.seconds !== null;
 
   return (
-    <div className="flex min-w-0 flex-col rounded-2xl shadow-[0_0_0_0.0625rem_#1E1E1E05,0_0.0625rem_0.125rem_#1E1E1E0A,0_0.5rem_1.5rem_-0.5rem_#1E1E1E14,0_1.5rem_3rem_-1.5rem_#8B5CF61F] dark:shadow-none">
-      <div className="border-border bg-muted flex h-16 items-center gap-2.5 rounded-t-2xl border border-b-0 px-5 pb-5">
-        <EngineIcon className="block size-4.5 shrink-0" engine="openai" />
-        <h3 className="text-foreground min-w-0 grow truncate text-[15px] leading-5 font-semibold">
+    <div className="border-border bg-muted flex min-w-0 flex-col rounded-[1.125rem] border p-0.5 shadow-[0_0.0625rem_0.125rem_#1E1E1E0A,0_0.5rem_1.5rem_-0.5rem_#1E1E1E14] dark:shadow-none">
+      <div className="flex h-10 items-center gap-2.5 px-4">
+        <EngineIcon className="block size-4 shrink-0" engine="openai" />
+        <h3 className="text-foreground min-w-0 grow truncate text-sm leading-5 font-medium">
           {OFFERING_MODE_TITLE}
           <span className="text-muted-foreground pl-2 font-normal">
             {OFFERING_CHECK_MODEL_LABEL}
           </span>
         </h3>
       </div>
-
       <div
         aria-busy={!answered}
-        className="border-border bg-background relative z-10 -mt-5 flex min-h-[19rem] flex-col gap-5 overflow-hidden rounded-2xl border px-5 py-5"
+        className="border-border bg-background flex min-h-[19rem] flex-col overflow-hidden rounded-2xl border"
       >
-        <ChatgptMessage
-          className={cn("[&>div]:max-w-[88%]", enterClass)}
-          from="user"
-        >
-          {question}
-        </ChatgptMessage>
+        <div className="flex flex-col gap-5 px-5 py-5">
+          <ChatgptMessage
+            className={cn("[&>div]:max-w-[88%]", enterClass)}
+            from="user"
+          >
+            {question}
+          </ChatgptMessage>
 
-        <ChatgptMessage
-          className={cn(
-            enterClass,
-            live ? "delay-300 motion-reduce:delay-0" : null
-          )}
-          from="assistant"
-          reasoning={
-            <OfferingChatReasoning
-              hasAnswer={answer.length > 0}
-              state={state}
-            />
-          }
-        >
-          {answer.length > 0 ? (
-            <MessageResponse
-              className={cn(
-                ANSWER_MARKDOWN_CLASS,
-                geoAnswerMarkdownFontClass("chatgpt")
-              )}
-              rehypePlugins={[createFeatureHighlightPlugin(feature)]}
-            >
-              {answer}
-            </MessageResponse>
-          ) : null}
-          {state.result ? (
-            <OfferingSources sources={state.result.sources} />
-          ) : null}
-        </ChatgptMessage>
+          <ChatgptMessage
+            className={cn(
+              enterClass,
+              live ? "delay-300 motion-reduce:delay-0" : null
+            )}
+            from="assistant"
+            reasoning={
+              <OfferingChatReasoning
+                hasAnswer={answer.length > 0}
+                state={state}
+              />
+            }
+          >
+            {answer.length > 0 ? (
+              <MessageResponse
+                className={cn(
+                  ANSWER_MARKDOWN_CLASS,
+                  geoAnswerMarkdownFontClass("chatgpt")
+                )}
+                rehypePlugins={[createFeatureHighlightPlugin(feature)]}
+              >
+                {answer}
+              </MessageResponse>
+            ) : null}
+            {state.result ? (
+              <OfferingSources sources={state.result.sources} />
+            ) : null}
+          </ChatgptMessage>
+        </div>
       </div>
     </div>
   );

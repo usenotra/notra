@@ -3,6 +3,7 @@
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
 import type * as React from "react";
 import { cn } from "@notra/ui/lib/utils";
@@ -44,11 +45,14 @@ function DialogContent({
   children,
   keepMounted = false,
   showCloseButton = true,
+  closeLabel,
   ...props
 }: DialogPrimitive.Popup.Props & {
   keepMounted?: boolean;
   showCloseButton?: boolean;
+  closeLabel?: string;
 }) {
+  const labels = useUiLabels();
   return (
     <DialogPortal keepMounted={keepMounted}>
       <DialogOverlay />
@@ -73,7 +77,7 @@ function DialogContent({
             }
           >
             <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{closeLabel ?? labels.close}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>
@@ -94,11 +98,14 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 function DialogFooter({
   className,
   showCloseButton = false,
+  closeLabel,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean;
+  closeLabel?: string;
 }) {
+  const labels = useUiLabels();
   return (
     <div
       className={cn(
@@ -111,7 +118,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close render={<Button variant="outline" />}>
-          Close
+          {closeLabel ?? labels.close}
         </DialogPrimitive.Close>
       )}
     </div>

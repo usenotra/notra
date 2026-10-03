@@ -1,3 +1,5 @@
+import Color from "color";
+
 import {
   ACCOUNT_SERIES_COLORS,
   CHART_MEMORY_FILL_CLASS,
@@ -7,6 +9,10 @@ import {
   CHART_SECONDARY_COLOR,
 } from "@/constants/charts";
 import type { ChartColorPair, ChartSeriesColors } from "@/types/charts";
+
+/** How far toward white the far end of a donut sector fades, per theme. */
+const SOFT_GRADIENT_LIGHT_TINT = 0.45;
+const SOFT_GRADIENT_DARK_TINT = 0.3;
 
 export function seriesColors(pair: ChartColorPair): ChartSeriesColors {
   return { light: [pair.light], dark: [pair.dark] };
@@ -29,4 +35,24 @@ export function accountSeriesColorPair(index: number): ChartColorPair {
 
 export function accountSeriesColors(index: number): ChartSeriesColors {
   return seriesColors(accountSeriesColorPair(index));
+}
+
+/** Base color plus a lighter tint, so a sector reads as a soft gradient. */
+export function softGradientColors(
+  colors: Partial<ChartSeriesColors>
+): ChartSeriesColors {
+  const tint = (hex: string | undefined, amount: number) => {
+    if (!hex) {
+      return [];
+    }
+    try {
+      return [hex, Color(hex).mix(Color("#ffffff"), amount).hex()];
+    } catch {
+      return [hex];
+    }
+  };
+  return {
+    light: tint(colors.light?.[0], SOFT_GRADIENT_LIGHT_TINT),
+    dark: tint(colors.dark?.[0] ?? colors.light?.[0], SOFT_GRADIENT_DARK_TINT),
+  };
 }

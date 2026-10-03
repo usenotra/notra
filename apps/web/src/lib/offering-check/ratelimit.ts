@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 
 import { Data, Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 import {
   OFFERING_CHECK_RATE_LIMITS,
@@ -27,11 +26,11 @@ class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
 
 const GLOBAL_KEY = "global";
 
-function ipHash(request: NextRequest) {
+function ipHash(request: Request) {
   return createHash("sha256").update(getClientIp(request)).digest("hex");
 }
 
-function limitChecks(request: NextRequest, input: OfferingCheckInput) {
+function limitChecks(request: Request, input: OfferingCheckInput) {
   const ipKey = ipHash(request);
   const brandKey = createHash("sha256").update(input.domain).digest("hex");
   const brandFeatureKey = createHash("sha256")
@@ -51,7 +50,7 @@ function limitChecks(request: NextRequest, input: OfferingCheckInput) {
   }));
 }
 
-function preflightLimitChecks(request: NextRequest) {
+function preflightLimitChecks(request: Request) {
   return [
     {
       ...OFFERING_CHECK_RATE_LIMITS.preflightPerIpMinute,
@@ -120,18 +119,18 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
 
 export const peekOfferingCheckRateLimit = Effect.fn(
   "peekOfferingCheckRateLimit"
-)(function* (request: NextRequest, input: OfferingCheckInput) {
+)(function* (request: Request, input: OfferingCheckInput) {
   yield* checkOfferingCheckRateLimit(limitChecks(request, input), false);
 });
 
 export const enforceOfferingCheckRateLimit = Effect.fn(
   "enforceOfferingCheckRateLimit"
-)(function* (request: NextRequest, input: OfferingCheckInput) {
+)(function* (request: Request, input: OfferingCheckInput) {
   yield* checkOfferingCheckRateLimit(limitChecks(request, input), true);
 });
 
 export const enforceOfferingCheckPreflightRateLimit = Effect.fn(
   "enforceOfferingCheckPreflightRateLimit"
-)(function* (request: NextRequest) {
+)(function* (request: Request) {
   yield* checkOfferingCheckRateLimit(preflightLimitChecks(request), true);
 });

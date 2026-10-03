@@ -6,6 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
+import { useTranslations } from "next-intl";
 
 import type { BrandIdentityTabsProps, BrandTab } from "@/types/brand-identity";
 
@@ -19,52 +20,53 @@ export function BrandIdentityTabs({
   addReferenceOpen,
   addSitemapOpen,
   initialData,
+  isSaving,
   onActiveTabChange,
   onAddReferenceOpenChange,
   onAddSitemapOpenChange,
-  onSavedAtChange,
   onSavingChange,
   organizationId,
-  referenceCount,
-  saveStatusText,
-  sitemapCount,
   voiceId,
   voiceWebsiteUrl,
 }: BrandIdentityTabsProps) {
+  const t = useTranslations("brand.identity.tabs");
+  const tCommon = useTranslations("common");
+  const tStates = useTranslations("common.actions");
   return (
     <Tabs
       onValueChange={(value) => onActiveTabChange(value as BrandTab)}
       value={activeTab}
     >
-      <div className="flex items-center justify-between">
-        <TabsList variant="line">
-          <TabsTrigger value="identity">Company Info</TabsTrigger>
-          <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
-          <TabsTrigger value="references">
-            References
-            {referenceCount > 0 && (
-              <span className="text-muted-foreground">({referenceCount})</span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="sitemap">
-            Sitemap
-            {sitemapCount > 0 && (
-              <span className="text-muted-foreground">({sitemapCount})</span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-        {activeTab === "identity" && (
-          <span className="text-muted-foreground text-xs">
-            {saveStatusText}
+      <div className="flex min-w-0 items-center justify-between gap-4">
+        <div className="min-w-0 overflow-x-auto pb-2">
+          <TabsList variant="line">
+            <TabsTrigger value="identity">
+              {tCommon("labels.companyInfo")}
+            </TabsTrigger>
+            <TabsTrigger value="guidelines">{t("guidelines")}</TabsTrigger>
+            <TabsTrigger value="references">
+              {tCommon("labels.references")}
+            </TabsTrigger>
+            <TabsTrigger value="sitemap">
+              {tCommon("labels.sitemap")}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        {activeTab === "identity" && isSaving ? (
+          <span
+            aria-live="polite"
+            className="text-muted-foreground shrink-0 text-xs"
+            role="status"
+          >
+            {tStates("saving")}
           </span>
-        )}
+        ) : null}
       </div>
 
       <TabsContent className="mt-6" value="identity">
         <BrandForm
           initialData={initialData}
           key={voiceId}
-          onSavedAtChange={onSavedAtChange}
           onSavingChange={onSavingChange}
           organizationId={organizationId}
           voiceId={voiceId}

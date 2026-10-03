@@ -47,20 +47,15 @@ The server accepts bearer credentials in the `Authorization` header. Two kinds w
     https://mcp.usenotra.com/.well-known/oauth-protected-resource
     ```
 
-    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes, and the bearer method. The authorization server supports dynamic client registration, the authorization code flow with PKCE, and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
+    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes, and the bearer method. The authorization server supports dynamic client registration, client ID metadata documents, the authorization code flow with PKCE, and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
 
-    An OAuth session acts as you, inside the organization you chose at sign-in, with the scopes granted on the consent screen. The scopes a client can request are:
+    Request these two scopes and nothing else:
 
     ```text
-    offline_access
-    posts.read posts.write
-    brand-identities.read brand-identities.write
-    integrations.read integrations.write
-    schedules.read schedules.write
-    event-triggers.read event-triggers.write
-    chats.read chats.write
-    skills.read skills.write
+    openid offline_access
     ```
+
+    Permissions like `posts.read` or `projects.write` are not OAuth scopes, and asking for them fails with `invalid_scope`. You pick the organization and an access level (Read only, Write only, or Full access) on the consent screen instead. Notra signs that choice into the access token and maps it to the same [permissions](/api/authentication#scopes) API keys use, so the session acts as you, in that organization, with that access level.
 
     <Note>
       Access tokens are short-lived. Clients should include `offline_access` in the requested scope so they receive a refresh token; without it the connection drops when the access token expires and you have to sign in again.
@@ -185,6 +180,10 @@ Tool names are exactly as the server registers them; some clients prefix them wi
 - `delete_post`
 - `generate_post`
 - `get_post_generation_status`
+
+When `update_post` changes the title, slug, or markdown of a blog post or changelog with a linked GitHub pull request, Notra saves the article and updates that PR using the same publishing logic as the dashboard. It does not create a new PR. Status-only changes do not trigger a GitHub update.
+
+If the PR update fails, the tool returns an error stating that the post was saved in Notra. A rate-limited GitHub sync returns 429 with `Retry-After`; wait before retrying the content update. A timeout returns 504 with an unknown sync outcome: the PR update may still finish, so check the PR before retrying. Check the PR after other unconfirmed sync errors as well. A closed or merged PR must be resolved in the dashboard before it can be synced again.
 
 **Brand identities**
 

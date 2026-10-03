@@ -209,9 +209,12 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
           }),
           prompt: params.prompt,
           maxOutputTokens: params.maxOutputTokens,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IRIS_CONTENT_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-content"] } },
+            {
+              modelId: IRIS_CONTENT_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) =>
         new IrisCapabilityError({
@@ -394,11 +397,10 @@ const resolveIrisRepository = Effect.fn("iris.capabilities.resolveRepository")(
     );
     const signalRepositoryId =
       (signalRepository.success
-        ? (signalRepository.data.repositoryId ?? null)
-        : null) ??
-      (rootRepository.success
-        ? (rootRepository.data.repositoryId ?? null)
-        : null);
+        ? signalRepository.data.repositoryId
+        : undefined) ??
+      (rootRepository.success ? rootRepository.data.repositoryId : undefined) ??
+      null;
 
     const candidates: IrisRepositoryTarget[] = [];
     for (const integration of integrations) {
@@ -478,9 +480,12 @@ const reviewIrisImage = Effect.fn("iris.capabilities.reviewImage")(
             },
           ],
           maxOutputTokens: IMAGE_REVIEW_MAX_OUTPUT_TOKENS,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IMAGE_REVIEW_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-image-review"] } },
+            {
+              modelId: IMAGE_REVIEW_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) => cause,
     });

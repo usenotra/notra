@@ -12,6 +12,7 @@ import { Slack } from "@notra/ui/components/ui/svgs/slack";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
 import { cn } from "@notra/ui/lib/utils";
 
+import { MCP_USE_CASE_TOOL_LABELS } from "@/constants/mcp-use-cases";
 import type {
   McpUseCaseStackProps,
   McpUseCaseToolBadgeProps,
@@ -19,22 +20,8 @@ import type {
   McpUseCaseToolId,
 } from "@/types/mcp-use-cases";
 
-const TOOL_LABELS: Record<McpUseCaseToolId, string> = {
-  notra: "Notra",
-  claude: "Claude",
-  chatgpt: "ChatGPT",
-  gemini: "Gemini",
-  perplexity: "Perplexity",
-  "google-search-console": "Google Search Console",
-  slack: "Slack",
-  github: "GitHub",
-  linear: "Linear",
-  linkedin: "LinkedIn",
-  x: "X",
-};
-
 function getMcpUseCaseToolLabel(toolId: McpUseCaseToolId): string {
-  return TOOL_LABELS[toolId];
+  return MCP_USE_CASE_TOOL_LABELS[toolId];
 }
 
 function McpUseCaseToolIcon({ toolId, className }: McpUseCaseToolIconProps) {
@@ -98,7 +85,8 @@ export function McpUseCaseStack({
         <li
           className={cn(
             "flex shrink-0 items-center justify-center bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] dark:bg-white/[0.06] dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem]",
-            STACK_TILE_SIZE[size]
+            STACK_TILE_SIZE[size],
+            toolId === "notra" && "dark:bg-[#F6F3F1]"
           )}
           key={toolId}
           title={getMcpUseCaseToolLabel(toolId)}
@@ -123,7 +111,12 @@ export function McpUseCaseToolBadge({
         className
       )}
     >
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#F4F4F5] p-1 dark:bg-white/[0.08]">
+      <span
+        className={cn(
+          "flex size-6 shrink-0 items-center justify-center rounded-full bg-[#F4F4F5] p-1 dark:bg-white/[0.08]",
+          toolId === "notra" && "dark:bg-[#F6F3F1]"
+        )}
+      >
         <McpUseCaseToolIcon toolId={toolId} />
       </span>
       {label ?? getMcpUseCaseToolLabel(toolId)}

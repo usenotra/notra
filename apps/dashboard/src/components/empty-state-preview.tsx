@@ -98,16 +98,16 @@ export function EmptyStateTablePreview({
 
 function ContentCardGhost() {
   return (
-    <div className="border-border/80 bg-muted/80 flex h-[8.75rem] flex-col rounded-lg border p-2">
-      <div className="px-2 py-1.5">
+    <div className="border-border/80 border-b-border/40 bg-muted/80 flex h-[8.75rem] flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs">
+      <div className="border-border/60 bg-background flex flex-1 flex-col gap-2 rounded-lg border px-3 pt-3 pb-3">
         <GhostBar className="h-4" width="68%" />
+        <div className="flex-1 space-y-2">
+          <GhostBar className="h-2.5 w-full" />
+          <GhostBar className="h-2.5 w-4/5" />
+          <GhostBar className="h-2.5 w-2/5" />
+        </div>
       </div>
-      <div className="bg-background/70 flex-1 space-y-2 rounded-md px-3 py-2.5">
-        <GhostBar className="h-3 w-full" />
-        <GhostBar className="h-3 w-5/6" />
-        <GhostBar className="h-3 w-2/3" />
-      </div>
-      <div className="flex gap-2 px-2 py-2">
+      <div className="flex gap-1.5 px-1 pb-0.5">
         <GhostBar className="h-5 w-12 rounded-full" />
         <GhostBar className="h-5 w-16 rounded-full" />
       </div>

@@ -49,14 +49,14 @@ export const CONTACT_FORM_ASSURANCE =
 
 export const CONTACT_RESOURCE_LINKS: readonly ContactResourceLink[] = [
   {
-    href: "https://docs.usenotra.com",
+    href: "https://www.usenotra.com/docs",
     label: "Documentation",
     description: "Guides, API reference, and setup walkthroughs.",
     icon: "documentation",
     external: true,
   },
   {
-    href: "https://docs.usenotra.com/devtools/mcp",
+    href: "https://www.usenotra.com/docs/devtools/mcp",
     label: "MCP server",
     description: "Connect Notra to your agents and editors.",
     icon: "mcp",

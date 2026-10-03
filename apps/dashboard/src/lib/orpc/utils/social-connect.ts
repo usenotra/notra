@@ -1,6 +1,12 @@
 import { Effect } from "effect";
+import { getTranslations } from "next-intl/server";
 
 import {
+  SOCIAL_DUPLICATE_CONTENT_CODE,
+  SOCIAL_DUPLICATE_CONTENT_REGEX,
+} from "@/constants/social-connect";
+import {
+  assertNotDemo,
   badRequest,
   paymentRequired,
   serviceUnavailable,
@@ -37,26 +43,34 @@ export async function runSocialConnect<A>(
 
   const { error } = result;
   if (error._tag === "SocialConnectConfigError") {
-    throw serviceUnavailable(error.message);
+    // The demo never links real accounts; its seeded ones are read-only.
+    assertNotDemo();
+    const tCommonErrors = await getTranslations("common.errors");
+    throw serviceUnavailable(tCommonErrors("generic"));
   }
 
   console.error(`${options.logLabel}:`, error);
-  const message =
-    error.cause instanceof Error ? error.cause.message : error.message;
   const statusCode = getSocialConnectStatusCode(error.cause);
 
   if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {
-    throw badRequest("This account is not authorized to post right now.", {
+    const tErrors = await getTranslations("errors.socialAccounts");
+    throw badRequest(tErrors("notAuthorizedToPost"), {
       code: "reconnect_required",
     });
   }
+  const tErrors = await getTranslations("errors.socialAccounts");
+  const providerMessage =
+    error.cause instanceof Error ? error.cause.message : error.message;
+  if (SOCIAL_DUPLICATE_CONTENT_REGEX.test(providerMessage)) {
+    throw badRequest(tErrors("duplicateContent"), {
+      code: SOCIAL_DUPLICATE_CONTENT_CODE,
+    });
+  }
   if (statusCode === 402) {
-    throw paymentRequired(message);
+    throw paymentRequired(tErrors("requestRejected"));
   }
   if (statusCode !== null && statusCode >= 400 && statusCode < 500) {
-    throw badRequest(message);
+    throw badRequest(tErrors("requestRejected"));
   }
-  throw serviceUnavailable(
-    "The social platform service is temporarily unavailable. Please try again in a few minutes."
-  );
+  throw serviceUnavailable(tErrors("serviceUnavailable"));
 }

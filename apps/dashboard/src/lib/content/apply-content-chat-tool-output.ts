@@ -228,7 +228,7 @@ export function applyContentChatToolOutputEffect(
           },
         });
       } else {
-        handlers.setReviewPreviousMarkdown(effect.reviewPrevious);
+        handlers.setReviewPreviousMarkdown(null);
         handlers.setWriteFocusNonce((value) => value + 1);
         handlers.setEditorKey((key) => key + 1);
       }

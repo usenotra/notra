@@ -8,6 +8,7 @@ import {
 } from "@notra/ai/constants/router";
 import type { ZdrMode } from "@notra/ai/types/router";
 
+import { summarizeRouteUsage } from "../utils/route-usage";
 import { createOpenRouterAdapter } from "./adapters/openrouter";
 import { createVercelAdapter } from "./adapters/vercel";
 import {
@@ -90,6 +91,33 @@ function metadataOf(result: { providerMetadata?: Record<string, unknown> }) {
     | Record<string, unknown>
     | undefined;
 }
+
+describe("route usage", () => {
+  test("prices the model served by the gateway instead of the requested model", async () => {
+    const summary = await summarizeRouteUsage(
+      [
+        {
+          providerMetadata: {
+            [ROUTER_METADATA_KEY]: {
+              gateway: "vercel",
+              requestedModel: "openai/gpt-5.6-sol",
+              model: "openai/gpt-5.4-mini",
+              reason: "paid",
+            },
+          },
+          usage: {
+            inputTokens: 100_000,
+            outputTokens: 100_000,
+          },
+        },
+      ],
+      "openai/gpt-5.6-sol"
+    );
+
+    assert.equal(summary.route?.model, "openai/gpt-5.4-mini");
+    assert.equal(summary.tokenCostUsd, 0.525);
+  });
+});
 
 describe("resolveRoute", () => {
   test("paid organization → vercel, free organization → openrouter", async () => {
@@ -479,6 +507,7 @@ describe("RoutedLanguageModel", () => {
     await model.doGenerate(
       callOptions({
         openrouter: { provider: { zdr: false } },
+        gateway: { tags: ["geo-scan"] },
         [ROUTER_PROVIDER_OPTIONS_KEY]: {
           caching: "auto",
           fallbackModels: ["anthropic/claude-haiku-4.5"],
@@ -491,6 +520,7 @@ describe("RoutedLanguageModel", () => {
     assert.equal(gatewayOptions.zeroDataRetention, true);
     assert.equal(gatewayOptions.disallowPromptTraining, true);
     assert.equal(gatewayOptions.caching, "auto");
+    assert.deepEqual(gatewayOptions.tags, ["geo-scan"]);
     assert.deepEqual(gatewayOptions.models, ["anthropic/claude-haiku-4.5"]);
   });
 
@@ -505,6 +535,7 @@ describe("RoutedLanguageModel", () => {
       ?.gateway as Record<string, unknown>;
     assert.equal(vercelSent.zeroDataRetention, true);
     assert.equal(vercelSent.disallowPromptTraining, true);
+    assert.deepEqual(vercelSent.tags, ["other"]);
 
     await router.model(MODEL, { organizationId: FREE_ORG }).doGenerate(
       callOptions({

@@ -17,7 +17,7 @@ export type GitHubPublishFailurePolicy =
   | {
       failureKind: "authentication" | "permissions";
       recordFailure: false;
-      recovery: { message: string; data: GitHubPublishRecovery };
+      recovery: { data: GitHubPublishRecovery };
     }
   | {
       failureKind: "rate_limit";

@@ -1,6 +1,5 @@
 const REGIONAL_INDICATOR_OFFSET = 0x1_f1_a5;
 const COUNTRY_CODE_LENGTH = 2;
-const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
 
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
 
@@ -16,13 +15,15 @@ export function countryFlagCodePoints(code: string): string | null {
     .join("-");
 }
 
-export function countryName(code: string): string {
+export function countryName(code: string, locale: string): string {
   const upper = code.trim().toUpperCase();
   if (upper.length !== COUNTRY_CODE_LENGTH) {
     return code;
   }
   try {
-    return countryNames.of(upper) ?? upper;
+    return (
+      new Intl.DisplayNames([locale], { type: "region" }).of(upper) ?? upper
+    );
   } catch {
     return upper;
   }

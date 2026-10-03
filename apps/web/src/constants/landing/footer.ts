@@ -42,6 +42,7 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
         title: "Product",
         links: [
           { label: "Features", href: "/features" },
+          { label: "Marketing Assets", href: "/features/marketing/assets" },
           { label: "Pricing", href: "/pricing" },
           { label: "Changelog", href: "/changelog/notra" },
           { label: "Examples", href: "/changelog" },
@@ -72,12 +73,12 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
         links: [
           {
             label: "Docs",
-            href: "https://docs.usenotra.com",
+            href: "https://www.usenotra.com/docs",
             external: true,
           },
           {
             label: "CLI",
-            href: "https://docs.usenotra.com/devtools/cli",
+            href: "https://www.usenotra.com/docs/devtools/cli",
             external: true,
           },
           {

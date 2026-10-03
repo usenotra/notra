@@ -2,14 +2,17 @@
 
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DEFAULT_AUTH_PASSWORD_FIELD_LABEL } from "@notra/ui/constants/auth-labels";
 import { useState } from "react";
-import type { AuthPasswordFieldProps } from "../../../lib/auth-types";
+import type { AuthPasswordFieldProps } from "../../../types/auth";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
+import { useUiLabels } from "../ui-labels-provider";
 import { AuthFieldError } from "./auth-field-error";
 
 export function AuthPasswordField({
   id,
+  label = DEFAULT_AUTH_PASSWORD_FIELD_LABEL,
   value,
   error,
   disabled,
@@ -19,10 +22,11 @@ export function AuthPasswordField({
   onChange,
 }: AuthPasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const uiLabels = useUiLabels();
 
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={id}>Password</Label>
+      <Label htmlFor={id}>{label}</Label>
       <div className="relative">
         <Input
           aria-describedby={`${id}-error`}
@@ -39,7 +43,9 @@ export function AuthPasswordField({
           value={value}
         />
         <button
-          aria-label={showPassword ? "Hide password" : "Show password"}
+          aria-label={
+            showPassword ? uiLabels.hidePassword : uiLabels.showPassword
+          }
           className="-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-50"
           disabled={disabled}
           onClick={() => setShowPassword(!showPassword)}

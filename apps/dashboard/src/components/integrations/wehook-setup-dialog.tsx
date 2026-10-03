@@ -15,6 +15,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { isValidElement, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -23,22 +24,25 @@ import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { WebhookSetupDialogProps } from "@/types/integrations";
 import type { WebhookConfig } from "@/types/services/integrations";
+import { isNotFoundError } from "@/utils/orpc-errors";
 
 function CopyButton({ value, label }: { value: string; label: string }) {
+  const t = useTranslations("integrations.webhookSetup");
+  const tCommon2 = useTranslations("common");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     if (!navigator.clipboard) {
-      toast.error("Clipboard not supported");
+      toast.error(tCommon2("toasts.clipboardUnsupported"));
       return;
     }
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success(`${label} copied to clipboard`);
+      toast.success(t("copied", { label }));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Failed to copy to clipboard");
+      toast.error(tCommon2("toasts.copyFailed"));
     }
   };
 
@@ -68,6 +72,9 @@ export function WebhookSetupDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: WebhookSetupDialogProps) {
+  const t = useTranslations("integrations.webhookSetup");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const [secretRevealed, setSecretRevealed] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -89,10 +96,7 @@ export function WebhookSetupDialog({
           repositoryId,
         });
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message === "Webhook not configured"
-        ) {
+        if (isNotFoundError(error)) {
           return null;
         }
         throw error;
@@ -149,7 +153,7 @@ export function WebhookSetupDialog({
     triggerElement = (
       <ResponsiveDialogTrigger>
         <Button size="sm" variant="outline">
-          Setup Webhook
+          {t("title")}
         </Button>
       </ResponsiveDialogTrigger>
     );
@@ -161,19 +165,21 @@ export function WebhookSetupDialog({
       <ResponsiveDialogContent className="overflow-hidden sm:max-w-md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="text-2xl">
-            Setup Webhook
+            {t("title")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Add these values in your{" "}
-            <a
-              className="text-primary hover:underline"
-              href={githubWebhooksUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              GitHub Webhook Settings
-            </a>
-            , then confirm once saved.
+            {t.rich("description", {
+              link: (chunks) => (
+                <a
+                  className="text-primary hover:underline"
+                  href={githubWebhooksUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -193,24 +199,33 @@ export function WebhookSetupDialog({
           {!(loadingConfig || isPending) && webhookConfig ? (
             <>
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Payload URL</p>
+                <p className="text-sm font-medium">
+                  {tIntegrationsShared("payloadUrl")}
+                </p>
                 <div className="flex gap-2">
                   <Input
                     className="font-mono text-xs"
                     readOnly
                     value={webhookConfig.webhookUrl}
                   />
-                  <CopyButton label="URL" value={webhookConfig.webhookUrl} />
+                  <CopyButton
+                    label={tCommon("labels.url")}
+                    value={webhookConfig.webhookUrl}
+                  />
                 </div>
               </fieldset>
 
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Content type</p>
+                <p className="text-sm font-medium">
+                  {tCommon("labels.contentType")}
+                </p>
                 <Input className="text-xs" disabled value="application/json" />
               </fieldset>
 
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Secret</p>
+                <p className="text-sm font-medium">
+                  {tIntegrationsShared("secret")}
+                </p>
                 <div className="flex gap-2">
                   <Input
                     className="font-mono text-xs"
@@ -221,7 +236,7 @@ export function WebhookSetupDialog({
                     value={webhookConfig.webhookSecret}
                   />
                   <CopyButton
-                    label="Secret"
+                    label={tIntegrationsShared("secret")}
                     value={webhookConfig.webhookSecret}
                   />
                 </div>
@@ -232,7 +247,7 @@ export function WebhookSetupDialog({
             <div className="space-y-4">
               <div className="border-destructive/50 bg-destructive/10 rounded-md border p-4 text-center">
                 <p className="text-destructive text-sm font-medium">
-                  Failed to load webhook configuration
+                  {t("loadFailed")}
                 </p>
                 {generateMutation.error ? (
                   <p className="text-muted-foreground mt-1 text-xs">
@@ -247,7 +262,7 @@ export function WebhookSetupDialog({
                 type="button"
                 variant="outline"
               >
-                Retry
+                {tCommon("actions.retry")}
               </Button>
             </div>
           ) : null}
@@ -255,14 +270,14 @@ export function WebhookSetupDialog({
 
         <ResponsiveDialogFooter className="gap-2">
           <ResponsiveDialogClose render={<Button variant="outline" />}>
-            Skip for now
+            {t("skip")}
           </ResponsiveDialogClose>
           <Button
             disabled={!webhookConfig}
             onClick={() => setOpen(false)}
             type="button"
           >
-            I've added the webhook
+            {t("confirm")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

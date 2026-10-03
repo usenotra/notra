@@ -19,6 +19,7 @@ export const STANDALONE_CODE_MODE_TOOL_NAMES = [
   "viewPost",
   "getAvailableIntegrations",
   "getAvailableBrandReferences",
+  "listSchedules",
   "listAvailableSkills",
   "getSkillByName",
   "webSearch",

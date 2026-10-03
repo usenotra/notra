@@ -3,6 +3,7 @@ import {
   createQstashSchedule,
   deleteQstashSchedule,
 } from "@notra/ai/qstash/triggers";
+import { QstashScheduleSetupError } from "@notra/ai/schemas/qstash";
 import {
   hashTrigger,
   normalizeTriggerConfig,
@@ -25,6 +26,7 @@ import {
 } from "@notra/schemas/dashboard/integrations";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
+import { getTranslations } from "next-intl/server";
 
 import { DEFAULT_LOOKBACK_WINDOW } from "@/constants/workflows";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -45,7 +47,6 @@ import {
 } from "../utils/errors";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
-const DEFAULT_SCHEDULE_NAME = "Untitled Schedule";
 
 function toEffectiveLookbackWindow(
   lookbackWindow?: LookbackWindow | null
@@ -73,8 +74,7 @@ async function ensureTriggerInOrganization(
 
 async function ensureScheduleTargetsExist(
   organizationId: string,
-  repositoryIds: string[],
-  message: string
+  repositoryIds: string[]
 ) {
   if (repositoryIds.length === 0) {
     return;
@@ -94,23 +94,39 @@ async function ensureScheduleTargetsExist(
   const missingIds = repositoryIds.filter((id) => !existingIds.has(id));
 
   if (missingIds.length > 0) {
-    throw badRequest(message, {
+    const tErrors = await getTranslations("errors.automation");
+    throw badRequest(tErrors("integrationsMissing"), {
       code: "INTEGRATION_NOT_FOUND",
       missingIntegrationIds: missingIds,
     });
   }
 }
 
-function mapQstashError(error: unknown): never {
-  const message = error instanceof Error ? error.message : "Unknown error";
+async function manualRunErrorMessage(code: string): Promise<string> {
+  const tErrors = await getTranslations("errors.automation");
+  switch (code) {
+    case "NO_TARGET_REPOSITORY":
+      return tErrors("noTargetRepository");
+    case "TRIGGER_DISABLED":
+      return tErrors("triggerDisabled");
+    case "UNSUPPORTED_SOURCE_TYPE":
+      return tErrors("manualRunUnsupported");
+    default:
+      return (await getTranslations("errors.server"))("notFound");
+  }
+}
 
+async function mapQstashError(error: unknown): Promise<never> {
   if (
-    message.includes("invalid destination") ||
-    message.includes("unable to resolve host")
+    error instanceof QstashScheduleSetupError &&
+    error.reason === "invalid_destination"
   ) {
-    throw badRequest("External URL not configured", {
-      code: "INVALID_DESTINATION_URL",
-    });
+    throw badRequest(
+      (await getTranslations("errors.automation"))("externalUrlMissing"),
+      {
+        code: "INVALID_DESTINATION_URL",
+      }
+    );
   }
 
   throw error;
@@ -210,7 +226,8 @@ export const automationRouter = {
         await assertActiveSubscription(input.organizationId);
 
         if (input.sourceType !== "github_webhook") {
-          throw badRequest("Only event triggers are supported here");
+          const tErrors = await getTranslations("errors.automation");
+          throw badRequest(tErrors("eventTriggersOnly"));
         }
 
         const normalized = normalizeTriggerConfig({
@@ -244,7 +261,10 @@ export const automationRouter = {
               existing_trigger_id: existing.id,
             },
           });
-          throw conflict("Duplicate trigger", { code: "DUPLICATE_TRIGGER" });
+          const tErrors = await getTranslations("errors.automation");
+          throw conflict(tErrors("duplicateTrigger"), {
+            code: "DUPLICATE_TRIGGER",
+          });
         }
 
         const [trigger] = await db
@@ -293,7 +313,8 @@ export const automationRouter = {
         await assertActiveSubscription(input.organizationId);
 
         if (input.sourceType !== "github_webhook") {
-          throw badRequest("Only event triggers are supported here");
+          const tErrors = await getTranslations("errors.automation");
+          throw badRequest(tErrors("eventTriggersOnly"));
         }
 
         const existing = await ensureTriggerInOrganization(
@@ -334,7 +355,10 @@ export const automationRouter = {
               existing_trigger_id: duplicate.id,
             },
           });
-          throw conflict("Duplicate trigger", { code: "DUPLICATE_TRIGGER" });
+          const tErrors = await getTranslations("errors.automation");
+          throw conflict(tErrors("duplicateTrigger"), {
+            code: "DUPLICATE_TRIGGER",
+          });
         }
 
         const previousQstashScheduleId = existing.qstashScheduleId;
@@ -547,6 +571,7 @@ export const automationRouter = {
           outputType: input.outputType,
           lookbackWindow: input.lookbackWindow,
           instructions: input.outputConfig?.instructions,
+          brandVoiceId: input.outputConfig?.brandVoiceId,
         });
 
         const existing = await db.query.contentTriggers.findFirst({
@@ -571,14 +596,16 @@ export const automationRouter = {
               existing_trigger_id: existing.id,
             },
           });
-          throw conflict("Duplicate trigger", { code: "DUPLICATE_TRIGGER" });
+          const tErrors = await getTranslations("errors.automation");
+          throw conflict(tErrors("duplicateTrigger"), {
+            code: "DUPLICATE_TRIGGER",
+          });
         }
 
         if (input.enabled === true) {
           await ensureScheduleTargetsExist(
             input.organizationId,
-            normalized.targets.repositoryIds,
-            "Cannot create enabled schedule: one or more integrations not found"
+            normalized.targets.repositoryIds
           );
         }
 
@@ -586,7 +613,9 @@ export const automationRouter = {
         const cronExpression = buildCronExpression(input.sourceConfig.cron);
         let qstashScheduleId: string | null = null;
         const persistedLookbackWindow = input.lookbackWindow;
-        const persistedName = input.name.trim() || DEFAULT_SCHEDULE_NAME;
+        const persistedName =
+          input.name.trim() ||
+          (await getTranslations("automation.schedules.page"))("untitled");
 
         if (cronExpression) {
           try {
@@ -595,7 +624,7 @@ export const automationRouter = {
               cron: cronExpression,
             });
           } catch (error) {
-            mapQstashError(error);
+            await mapQstashError(error);
           }
         }
 
@@ -695,6 +724,7 @@ export const automationRouter = {
           outputType: input.outputType,
           lookbackWindow: input.lookbackWindow,
           instructions: input.outputConfig?.instructions,
+          brandVoiceId: input.outputConfig?.brandVoiceId,
         });
 
         const duplicate = await db.query.contentTriggers.findFirst({
@@ -721,7 +751,10 @@ export const automationRouter = {
               existing_trigger_id: duplicate.id,
             },
           });
-          throw conflict("Duplicate trigger", { code: "DUPLICATE_TRIGGER" });
+          const tErrors = await getTranslations("errors.automation");
+          throw conflict(tErrors("duplicateTrigger"), {
+            code: "DUPLICATE_TRIGGER",
+          });
         }
 
         const existing = await db.query.contentTriggers.findFirst({
@@ -738,8 +771,7 @@ export const automationRouter = {
         if (input.enabled === true) {
           await ensureScheduleTargetsExist(
             input.organizationId,
-            normalized.targets.repositoryIds,
-            "Cannot enable schedule: one or more integrations have been deleted"
+            normalized.targets.repositoryIds
           );
         }
 
@@ -748,7 +780,9 @@ export const automationRouter = {
         let qstashScheduleId: string | null = null;
         const persistedLookbackWindow = input.lookbackWindow;
         const persistedName =
-          input.name.trim() || existing.name || DEFAULT_SCHEDULE_NAME;
+          input.name.trim() ||
+          existing.name ||
+          (await getTranslations("automation.schedules.page"))("untitled");
 
         if (cronExpression) {
           try {
@@ -758,7 +792,7 @@ export const automationRouter = {
               scheduleId: existingScheduleId ?? undefined,
             });
           } catch (error) {
-            mapQstashError(error);
+            await mapQstashError(error);
           }
         }
 
@@ -924,7 +958,9 @@ export const automationRouter = {
           };
         } catch (error) {
           if (error instanceof ManualTriggerRunError) {
-            throw badRequest(error.message, { code: error.code });
+            throw badRequest(await manualRunErrorMessage(error.code), {
+              code: error.code,
+            });
           }
 
           throw internalServerError("Failed to trigger schedule", error);

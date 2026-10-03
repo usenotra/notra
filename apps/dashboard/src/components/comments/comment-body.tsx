@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
-import { PerplexityFavicon } from "@notra/ui/components/brainless/perplexity/perplexity-favicon";
+import { PerplexityFavicon } from "@notra/ui/components/ai-skins/perplexity/perplexity-favicon";
 import type { ComponentProps } from "react";
 
 import type { CommentBodyProps } from "@/types/comments";

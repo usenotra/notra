@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import type { MouseEvent } from "react";
 
 import {
@@ -19,6 +20,7 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import type { NavModeSwitchProps, SidebarMode } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
+import { canPrefetchSidebarModeHome } from "@/utils/nav";
 
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
@@ -28,7 +30,9 @@ export function NavModeSwitch({
   slug,
   projectId,
   onModeChange,
+  onPrefetchMode,
 }: NavModeSwitchProps) {
+  const t = useTranslations("nav.modes");
   const handleModeSelect = (
     next: SidebarMode,
     event: MouseEvent<HTMLAnchorElement>
@@ -41,6 +45,12 @@ export function NavModeSwitch({
       });
     }
     onModeChange(next);
+  };
+
+  const prefetchInactive = (next: SidebarMode) => {
+    if (next !== mode) {
+      onPrefetchMode?.(next);
+    }
   };
 
   return (
@@ -56,16 +66,19 @@ export function NavModeSwitch({
           />
           {SIDEBAR_MODES.map((option) => {
             const isActive = option.id === mode;
+            const prefetchHome = canPrefetchSidebarModeHome(option.id);
             return (
               <SidebarNavLink
                 aria-current={isActive ? "page" : undefined}
-                title={`${option.label} · ${option.description}`}
+                title={`${option.label} · ${t(option.descriptionKey)}`}
                 className={cn(
                   "duration-fast relative z-10 flex h-7 items-center justify-center gap-1.5 rounded-md text-xs transition-colors",
                   isActive
                     ? "text-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground"
                 )}
+                disablePrefetch={!prefetchHome}
+                eagerPrefetch={!isActive && prefetchHome}
                 href={geoNavHref(
                   slug,
                   SIDEBAR_MODE_HOME_LINKS[option.id],
@@ -73,6 +86,8 @@ export function NavModeSwitch({
                 )}
                 key={option.id}
                 onClick={(event) => handleModeSelect(option.id, event)}
+                onFocus={() => prefetchInactive(option.id)}
+                onMouseEnter={() => prefetchInactive(option.id)}
               >
                 <HugeiconsIcon className="size-3.5" icon={option.icon} />
                 {option.label}
@@ -88,18 +103,24 @@ export function NavModeSwitch({
               isActive={option.id === mode}
               render={
                 <SidebarNavLink
+                  disablePrefetch={!canPrefetchSidebarModeHome(option.id)}
+                  eagerPrefetch={
+                    option.id !== mode && canPrefetchSidebarModeHome(option.id)
+                  }
                   href={geoNavHref(
                     slug,
                     SIDEBAR_MODE_HOME_LINKS[option.id],
                     projectId
                   )}
                   onClick={(event) => handleModeSelect(option.id, event)}
+                  onFocus={() => prefetchInactive(option.id)}
+                  onMouseEnter={() => prefetchInactive(option.id)}
                 >
                   <HugeiconsIcon icon={option.icon} />
                   <SidebarLabel>{option.label}</SidebarLabel>
                 </SidebarNavLink>
               }
-              tooltip={`${option.label} · ${option.description}`}
+              tooltip={`${option.label} · ${t(option.descriptionKey)}`}
             />
           </SidebarMenuItem>
         ))}

@@ -1,5 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 export type OfferingVerdict = "knows" | "vague" | "confused" | "unknown";
 
@@ -60,6 +60,7 @@ export interface OfferingVerdictOverviewCopy {
 export interface OfferingVerdictCopy {
   label: string;
   className: string;
+  textClassName: string;
 }
 
 export type OfferingCheckSample = OfferingCheckInput;
@@ -73,13 +74,6 @@ export type OfferingReportStatus =
 
 export interface OfferingCheckFormProps {
   samples: readonly OfferingCheckSample[];
-}
-
-export interface OfferingReportPageProps {
-  searchParams: Promise<{
-    domain?: string | string[];
-    feature?: string | string[];
-  }>;
 }
 
 export interface OfferingReportProps {
@@ -138,8 +132,21 @@ export interface OfferingTraceStepProps {
   children: ReactNode;
 }
 
-export interface OfferingVerdictSummaryProps {
-  result: OfferingCheckResult | null;
+export interface OfferingVerdictRowProps {
+  verdict: OfferingVerdict | null;
+  summary: string | null;
+  activity: string | null;
+}
+
+export interface OfferingReportCardProps {
+  input: OfferingCheckInput;
+  state: OfferingLiveState;
+}
+
+export interface OfferingReportStatProps {
+  label: string;
+  value: ReactNode;
+  pending?: boolean;
 }
 
 export interface OfferingSourceSiteProps {
@@ -150,12 +157,14 @@ export interface OfferingSourcesProps {
   sources: readonly OfferingSourceDomain[];
 }
 
-export interface OfferingCompanyHeaderProps {
-  domain: string;
-  result: OfferingCheckResult | null;
-}
-
 export interface OfferingFaviconProps {
   domain: string;
   className?: string;
+}
+
+export interface OfferingSentenceFieldProps extends ComponentProps<"input"> {
+  id: string;
+  label: string;
+  invalid: boolean;
+  leading?: ReactNode;
 }

@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
 import type * as React from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -135,7 +136,7 @@ function TweetContent({
 
   return (
     <div
-      className="text-[0.9375rem] leading-snug whitespace-pre-wrap"
+      className="text-[0.9375rem] leading-snug wrap-anywhere whitespace-pre-wrap"
       ref={contentRef}
     >
       {formatTweetContent(content)}
@@ -144,6 +145,7 @@ function TweetContent({
 }
 
 function CharacterCounter({ count, limit }: { count: number; limit: number }) {
+  const t = useTranslations("content.socialPost");
   const remaining = limit - count;
   const isOver = remaining < 0;
   const warningThreshold = Math.max(
@@ -166,7 +168,7 @@ function CharacterCounter({ count, limit }: { count: number; limit: number }) {
         </span>
       )}
       <svg
-        aria-label={`${count} of ${limit} characters used`}
+        aria-label={t("charactersUsed", { count, limit })}
         className="-rotate-90"
         height={TWEET_COUNTER_RING_SIZE}
         role="img"
@@ -206,6 +208,7 @@ function TwitterPostIdentity({
   timestamp,
   menuItems,
 }: TwitterPostIdentityProps) {
+  const t = useTranslations("content.socialPost");
   const hasAccountSelector =
     accountSelector !== undefined && accountSelector.accounts.length > 1;
   const identity = (
@@ -256,7 +259,7 @@ function TwitterPostIdentity({
       {menuItems && menuItems.length > 0 ? (
         <DropdownMenu>
           <DropdownMenuTrigger
-            aria-label="Post actions"
+            aria-label={t("postActions")}
             className="text-muted-foreground hover:bg-accent ml-auto flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full"
           >
             <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
@@ -276,7 +279,7 @@ function TwitterPostIdentity({
         </DropdownMenu>
       ) : (
         <Button
-          aria-label="Post actions"
+          aria-label={t("postActions")}
           className="text-muted-foreground ml-auto"
           size="icon-sm"
           variant="ghost"
@@ -299,6 +302,7 @@ function TwitterPost({
   className,
   ...props
 }: TwitterPostProps) {
+  const t = useTranslations("content.socialPost");
   const isEditable = Boolean(onContentChange);
   const hasSquareAvatar = isSquareTwitterAvatar(author.verifiedType);
   const [localValue, setLocalValue] = useState(() => content ?? "");
@@ -354,7 +358,7 @@ function TwitterPost({
                   <div
                     aria-hidden
                     ref={highlightRef}
-                    className="pointer-events-none absolute inset-0 min-w-0 overflow-hidden [scrollbar-gutter:stable]"
+                    className="pointer-events-none absolute inset-0 min-w-0 [scrollbar-gutter:stable] overflow-hidden"
                     style={TWEET_EDITOR_TEXT_STYLE}
                   >
                     {formatTweetContent(localValue)}
@@ -365,13 +369,13 @@ function TwitterPost({
                     onScroll={(event) => {
                       syncHighlightScroll(event.currentTarget);
                     }}
-                    className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-80 min-h-[4rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
+                    className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-80 min-h-[4rem] min-w-0 resize-none [scrollbar-gutter:stable] overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
                     onChange={(e) => {
                       const value = e.target.value;
                       setLocalValue(value);
                       onContentChange?.(value);
                     }}
-                    placeholder="What is happening?!"
+                    placeholder={t("twitterPlaceholder")}
                     spellCheck={false}
                     style={TWEET_EDITOR_OVERLAY_STYLE}
                     value={localValue}

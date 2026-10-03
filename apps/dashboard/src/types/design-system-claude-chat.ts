@@ -1,9 +1,9 @@
-import type { ClaudeChatMessageRole } from "@notra/ui/components/brainless/claude-chat/claude-chat-message";
+import type { ClaudeChatMessageRole } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-message";
 import type {
   ClaudeChatSearchGroup,
   ClaudeChatSearchStep,
-} from "@notra/ui/components/brainless/claude-chat/claude-chat-search";
-import type { ClaudeChatSourcePill } from "@notra/ui/components/brainless/claude-chat/claude-chat-sources";
+} from "@notra/ui/components/ai-skins/claude-chat/claude-chat-search";
+import type { ClaudeChatSourcePill } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-sources";
 
 export interface ClaudeChatStorySearch {
   verb: string;

@@ -1,0 +1,36 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "notra-webhooks-local",
+  "main": "worker.local.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "vars": {
+    "DATABASE_URL": "postgresql://postgres:postgres@127.0.0.1:5433/notra_webhooks",
+    "WEBHOOK_ENCRYPTION_KEY": "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+  },
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
+  "queues": {
+    "producers": [
+      { "binding": "EVENT_QUEUE", "queue": "notra-webhook-events" },
+      { "binding": "DELIVERY_QUEUE", "queue": "notra-webhook-deliveries" },
+    ],
+    "consumers": [
+      {
+        "queue": "notra-webhook-events",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+        "max_concurrency": 25,
+      },
+      {
+        "queue": "notra-webhook-deliveries",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+        "max_concurrency": 25,
+      },
+    ],
+  },
+}

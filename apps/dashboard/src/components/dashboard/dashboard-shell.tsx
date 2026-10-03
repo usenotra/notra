@@ -10,9 +10,12 @@ import {
 import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
@@ -24,6 +27,7 @@ import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { useDemoBannerVisible } from "@/lib/hooks/use-demo-banner-visible";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
@@ -35,8 +39,20 @@ import type {
   DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
-  DashboardShellStyle,
 } from "@/types/components/dashboard-shell";
+import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
+
+// Demo-only UI: loaded on demand so production bundles don't carry it.
+const DashboardDemoChrome = dynamic(() =>
+  import("@/components/demo/dashboard-demo-chrome").then(
+    (module) => module.DashboardDemoChrome
+  )
+);
+const DemoPlaygroundProvider = dynamic(() =>
+  import("@/components/demo/demo-playground-provider").then(
+    (module) => module.DemoPlaygroundProvider
+  )
+);
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(
@@ -58,15 +74,12 @@ function DashboardAgentPanelSkeleton() {
 }
 
 function DashboardAgentHostLoading() {
+  const t = useTranslations("dashboard.agent");
   const { active, closePanel, expanded } = useRightPanel();
   const isDesktop = useDesktopBreakpoint();
 
   if (isDesktop) {
-    return (
-      <RightPanel id="agent">
-        <DashboardAgentPanelSkeleton />
-      </RightPanel>
-    );
+    return <DashboardAgentPanelSkeleton />;
   }
 
   return (
@@ -92,9 +105,9 @@ function DashboardAgentHostLoading() {
         showCloseButton={false}
       >
         <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t("loadingTitle")}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Loading the dashboard agent.
+            {t("loadingDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <DashboardAgentPanelSkeleton />
@@ -103,16 +116,39 @@ function DashboardAgentHostLoading() {
   );
 }
 
-const DashboardAgentHost = dynamic(
-  () =>
-    import("@/components/dashboard/dashboard-agent-panel").then(
-      (module) => module.DashboardAgentHost
-    ),
-  {
-    loading: DashboardAgentHostLoading,
-    ssr: false,
+function loadDashboardAgentHost() {
+  return import("@/components/dashboard/dashboard-agent-panel").then(
+    (module) => module.DashboardAgentHost
+  );
+}
+
+const DashboardAgentHost = dynamic(loadDashboardAgentHost, {
+  loading: DashboardAgentHostLoading,
+  ssr: false,
+});
+
+function DashboardAgentSlot() {
+  const { hasOpened } = useRightPanel();
+  const [slotReady, setSlotReady] = useState(false);
+
+  useLayoutEffect(() => {
+    setSlotReady(true);
+  }, []);
+
+  // The slot has to exist before the first open. A panel that mounts already
+  // open has no previous width, so the CSS width transition never runs.
+  // Keep the host under this slot at every width. Moving it between the dock
+  // and the mobile dialog remounts the chat and drops the in-flight thread.
+  if (!slotReady) {
+    return null;
   }
-);
+
+  return (
+    <RightPanel id="agent">
+      {hasOpened.agent ? <DashboardAgentHost /> : null}
+    </RightPanel>
+  );
+}
 
 function DashboardOnboardingBanner({
   available,
@@ -156,12 +192,36 @@ function DashboardOnboardingBanner({
   );
 }
 
+function DashboardPageViewport({
+  children,
+}: Pick<DashboardShellProps, "children">) {
+  const pathname = usePathname();
+  const [, , section, contentId] = pathname.split("/");
+  const pageOwnsScroll =
+    section === "chat" || (section === "content" && Boolean(contentId));
+
+  return (
+    <div
+      className={cn(
+        "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain pointer-fine:overscroll-none",
+        pageOwnsScroll
+          ? "overflow-hidden"
+          : "scrollbar-stable scrollbar-thin overflow-x-hidden overflow-y-auto"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function DashboardShell({
   children,
+  demoBannerHidden,
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
+  const t = useTranslations("dashboard.onboardingBanner");
   const { activeOrganization } = useOrganizationsContext();
   const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
@@ -183,9 +243,9 @@ export function DashboardShell({
   const shouldReduceMotion = useReducedMotion();
   const starting =
     runAgent.isPending && runAgent.variables?.organizationId === organizationId;
-  const shellStyle: DashboardShellStyle = {
-    "--eve-banner-height": visible ? EVE_BANNER_HEIGHT : "0rem",
-  };
+  const demo = isDemoModeClient();
+  const showDemoBanner = useDemoBannerVisible(demoBannerHidden);
+  const shellStyle = dashboardShellStyle(showDemoBanner, visible);
   const {
     finishSidebarResize,
     setSidebarWidth,
@@ -205,10 +265,7 @@ export function DashboardShell({
     runAgent.mutate(
       { organizationId },
       {
-        onError: (error) =>
-          toast.error(
-            error.message || "Couldn't start the setup agent. Try again later."
-          ),
+        onError: (error) => toast.error(error.message || t("startFailed")),
       }
     );
   };
@@ -235,11 +292,13 @@ export function DashboardShell({
     "--sidebar-width": `${sidebarWidth}px`,
   };
 
-  return (
+  const shell = (
     <div
       className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
+      data-dashboard-shell
       style={shellStyle}
     >
+      {demo ? <DashboardDemoChrome showBanner={showDemoBanner} /> : null}
       <DashboardOnboardingBanner
         available={bannerAvailable}
         dismissing={dismissing}
@@ -276,13 +335,19 @@ export function DashboardShell({
         >
           <SiteHeader />
           <RestoreSidebarHome />
-          <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
+          <DashboardPageViewport>
             <SubscriptionGate>{children}</SubscriptionGate>
-          </div>
+          </DashboardPageViewport>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
-        <DashboardAgentHost />
+        <DashboardAgentSlot />
       </SidebarProvider>
     </div>
+  );
+
+  return demo ? (
+    <DemoPlaygroundProvider>{shell}</DemoPlaygroundProvider>
+  ) : (
+    shell
   );
 }

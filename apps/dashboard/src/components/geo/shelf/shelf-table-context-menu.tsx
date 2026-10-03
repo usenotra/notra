@@ -21,13 +21,14 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import { useTranslations } from "next-intl";
 
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
 import { ShelfTicketMark } from "@/components/geo/shelf/shelf-ticket-badge";
 import {
-  GEO_SHELF_OPPORTUNITY_STATUS_LABELS,
-  GEO_SHELF_PLACEMENT_LABELS,
-} from "@/constants/geo-shelf";
+  useGeoShelfStatusLabels,
+  useGeoShelfPlacementLabels,
+} from "@/lib/hooks/use-geo-shelf-labels";
 import type {
   GeoShelfOpportunityStatus,
   GeoShelfPlacementStatus,
@@ -55,6 +56,12 @@ export function ShelfTableContextMenu({
   onUpdateOpportunity,
   onSetPlacementStatus,
 }: GeoShelfTableContextMenuProps) {
+  const t = useTranslations("geo.shelf.shelfTableContextMenu");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const tLabels = useTranslations("geo.shelf.labels");
+  const placementLabels = useGeoShelfPlacementLabels();
+  const statusLabels = useGeoShelfStatusLabels();
   const ticketStatus = row.opportunity?.status;
   const placementStatus = row.ownPlacement?.status ?? "unknown";
   const canOpenPage = isAllowedShelfUrl(row.url);
@@ -66,7 +73,7 @@ export function ShelfTableContextMenu({
     <>
       <ContextMenuItem onClick={() => onOpenDetails(row)}>
         <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
-        Open details
+        {tGeoShared("openDetails")}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={!canOpenPage}
@@ -75,13 +82,13 @@ export function ShelfTableContextMenu({
         }}
       >
         <HugeiconsIcon icon={ArrowUpRight01Icon} strokeWidth={2} />
-        Open page
+        {t("openPage")}
       </ContextMenuItem>
       <ContextMenuItem
-        onClick={() => copyTextToClipboard(row.url, "Copied URL")}
+        onClick={() => copyTextToClipboard(row.url, t("copiedUrl"))}
       >
         <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
-        Copy URL
+        {tCommon("labels.copyUrl")}
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuSub>
@@ -90,11 +97,9 @@ export function ShelfTableContextMenu({
           disabled={disabled}
           openOnHover
         >
-          Ticket
+          {tLabels("ticket")}
           <span className="text-muted-foreground ml-auto">
-            {ticketStatus
-              ? GEO_SHELF_OPPORTUNITY_STATUS_LABELS[ticketStatus]
-              : "No ticket"}
+            {ticketStatus ? statusLabels[ticketStatus] : tLabels("noTicket")}
           </span>
         </ContextMenuSubTrigger>
         <ContextMenuSubContent>
@@ -128,9 +133,9 @@ export function ShelfTableContextMenu({
             disabled={disabled}
             openOnHover
           >
-            You
+            {tGeoShared("youLabel")}
             <span className="text-muted-foreground ml-auto">
-              {GEO_SHELF_PLACEMENT_LABELS[placementStatus]}
+              {placementLabels[placementStatus]}
             </span>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
@@ -166,7 +171,7 @@ export function ShelfTableContextMenu({
             }
           >
             <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} />
-            Assign to me
+            {tLabels("assignToMe")}
           </ContextMenuItem>
         </>
       ) : null}

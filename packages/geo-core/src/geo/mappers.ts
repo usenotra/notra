@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type { GeoTrafficLogRow } from "@notra/analytics/types/tinybird-endpoints";
 
 import type {
@@ -5,7 +6,7 @@ import type {
   GeoCompetitorRow,
   GeoModelCatalog,
   GeoProject,
-  GeoProjectRow,
+  GeoProjectResponseRow,
   GeoPromptRow,
   GeoPromptSequence,
   GeoPromptSequenceRow,
@@ -27,7 +28,7 @@ import {
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import { isGeoScanRunning } from "../utils/geo-scan";
 
-export function toGeoProject(row: GeoProjectRow): GeoProject {
+export function toGeoProject(row: GeoProjectResponseRow): GeoProject {
   return {
     id: row.id,
     name: row.name,
@@ -52,6 +53,7 @@ export function toGeoSettings(
     conversionPaths: row.conversionPaths,
     domains: row.domains,
     languages: trackedGeoLanguages(row.languages ?? []),
+    promptLanguage: row.promptLanguage ?? DEFAULT_LANGUAGE,
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,
     nonZdrApprovedEngines: remapRetiredGeoEngineIds(row.nonZdrApprovedEngines),

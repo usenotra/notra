@@ -7,6 +7,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@notra/ui/components/ui/alert-dialog";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubWebhookRotationDialogProps } from "@/types/integrations/github";
@@ -17,24 +18,29 @@ export function GitHubWebhookRotationDialog({
   onConfirm,
   isPending,
 }: GitHubWebhookRotationDialogProps) {
+  const t = useTranslations("integrations.github.rotationDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Regenerate webhook secret?</AlertDialogTitle>
-          <AlertDialogDescription>
-            The current secret will stop working immediately. Webhook deliveries
-            will fail until you copy the new secret into GitHub.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("description")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {tCommon("actions.cancel")}
+          </AlertDialogCancel>
           <Button
             variant="destructive"
             disabled={isPending}
             onClick={onConfirm}
           >
-            {isPending ? "Regenerating…" : "Regenerate secret"}
+            {isPending
+              ? tCommon("labels.regenerating")
+              : tIntegrationsShared("regenerateSecret")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,9 +1,7 @@
-"use client";
-
 import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Link } from "@tanstack/react-router";
 import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
-import Link from "next/link";
 import { Fragment, useEffect, useRef, useState } from "react";
 
 import type { McpUseCasePromptBlockProps } from "@/types/mcp-use-cases";
@@ -100,7 +98,7 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
         </span>
         <Link
           className="focus-visible:ring-primary rounded-full outline-none focus-visible:ring-2"
-          href="/mcp"
+          to="/mcp"
         >
           <McpUseCaseToolBadge
             className="transition-colors hover:bg-[#FAFAFA] dark:hover:bg-white/[0.1]"

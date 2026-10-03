@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 import { useState } from "react";
 
 import { OFFERING_CHECK_FAVICON_SIZE } from "@/constants/offering-check";
@@ -25,11 +24,13 @@ export function OfferingFavicon({ domain, className }: OfferingFaviconProps) {
   }
 
   return (
-    <Image
+    <img
       alt=""
       aria-hidden
       className={cn("size-5 shrink-0 rounded-md", className)}
+      decoding="async"
       height={OFFERING_CHECK_FAVICON_SIZE}
+      loading="lazy"
       onError={() => setFailed(true)}
       src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${OFFERING_CHECK_FAVICON_SIZE}`}
       width={OFFERING_CHECK_FAVICON_SIZE}

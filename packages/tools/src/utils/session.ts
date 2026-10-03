@@ -1,7 +1,7 @@
 import type { SessionContext } from "eve/context";
 
 export function getSessionAttribute(
-  ctx: SessionContext,
+  ctx: Pick<SessionContext, "session">,
   name: string
 ): string | null {
   const value =
@@ -28,7 +28,7 @@ export function requireSessionAttribute(
 }
 
 export function getBooleanSessionAttribute(
-  ctx: SessionContext,
+  ctx: Pick<SessionContext, "session">,
   name: string
 ): boolean {
   return getSessionAttribute(ctx, name) === "true";

@@ -6,6 +6,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { runAgentTask } from "@/lib/agent/client";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import type { ContentGenerationResult } from "@/lib/workflows/schedule/types";
 import type { AgentContentTaskOptions } from "@/types/agent-content-task";
 
@@ -23,7 +24,7 @@ function buildTaskMessage(options: AgentContentTaskOptions): string {
     .join("\n");
 
   return [
-    "Delegate this task to the content-writer subagent in a single call, then report its structured result via final_output without changing it.",
+    "Call generate_content exactly once with the complete task below. It waits for the content-writer's final result. Then report that structured result via final_output without changing it. Do not call the background content-writer subagent directly or respond with a progress acknowledgement.",
     "",
     `Task for content-writer: produce one ${options.contentLabel} (contentType: ${options.contentType}).`,
     "",
@@ -41,6 +42,9 @@ export async function generateContentViaAgentTask(
   options: AgentContentTaskOptions
 ): Promise<ContentGenerationResult> {
   try {
+    const codeResearch = await isCodeResearchEnabledForOrganization(
+      options.organizationId
+    );
     const { output } = await runAgentTask({
       scope: {
         organizationId: options.organizationId,
@@ -52,6 +56,7 @@ export async function generateContentViaAgentTask(
         chargeAiCredits: options.chargeAiCredits,
         brandAgentType: options.brandAgentType,
         sourceMetadata: options.sourceMetadata,
+        codeResearch,
         generationConfig: {
           selectionFilters: options.selectionFilters,
           commitWindow: options.commitWindow,

@@ -3,6 +3,7 @@
   "ui": "tui",
   "globalDependencies": [".npmrc", "bunfig.toml", "scripts/prepare-effect.sh"],
   "globalEnv": [
+    "WEBHOOK_ENCRYPTION_KEY",
     "AI_GATEWAY_API_KEY",
     "NOTRA_JEV_CLASSIFIERS",
     "APP_URL",
@@ -26,6 +27,7 @@
     "GITHUB_APP_ID",
     "GITHUB_APP_PRIVATE_KEY",
     "GITHUB_APP_SLUG",
+    "GITHUB_APP_WEBHOOK_SECRET",
     "GITHUB_TOKEN",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
@@ -40,6 +42,8 @@
     "QSTASH_TOKEN",
     "QSTASH_URL",
     "CRON_SECRET",
+    "GEO_SCAN_ALERT_WEBHOOK_URL",
+    "GEO_INGEST_URL",
     "RESEND_API_KEY",
     "TURNSTILE_SECRET",
     "TURNSTILE_HOSTNAMES",
@@ -72,6 +76,8 @@
     "POST_FOR_ME_API_KEY_LINKEDIN",
     "NOTRA_API_KEY",
     "WORKFLOW_BASE_URL",
+    "NOTRA_DEMO_*",
+    "NEXT_OUTPUT_STANDALONE",
     "LINEAR_CLIENT_ID",
     "LINEAR_CLIENT_SECRET",
     "AXIOM_TOKEN",
@@ -84,10 +90,12 @@
     "FEEDBACK_EMAIL_TO",
     "OSS_PROGRAM_EMAIL_TO",
     "UPSTASH_BOX_API_KEY",
+    "UPSTASH_BOX_BASE_URL",
+    "NOTRA_CODE_RESEARCH",
     "VERCEL",
     "VERCEL_ENV",
     "SLACK_BOT_TOKEN",
-    "SLACK_FOUNDER_MEMBER_ID",
+    "SLACK_SUPPORT_MEMBER_IDS",
     "SLACK_AGENT_BOT_TOKEN",
     "SLACK_AGENT_CLIENT_ID",
     "SLACK_AGENT_CLIENT_SECRET",
@@ -111,10 +119,10 @@
     "FEEDBACK_INGEST_SECRET",
     "FEEDBACK_API_URL",
     "NOTRA_GEO_TOKEN",
-    "NOTRA_GEO_ENDPOINT",
     "WEBHOOK_ENCRYPTION_KEY"
   ],
   "envMode": "strict",
+  "globalPassThroughEnv": ["TURBO_TASKS_AVAILABLE_PARALLELISM"],
   "tasks": {
     "transit": {
       "dependsOn": ["^transit"]
@@ -130,6 +138,15 @@
         ".vercel/**"
       ]
     },
+    "web#build": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NEXT_PUBLIC_DATABUDDY_WEB_WEBSITE_ID",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+      ],
+      "outputs": [".output/**", ".vercel/output/**", ".source/**"]
+    },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],
       "outputs": [
@@ -142,6 +159,10 @@
     "check-types": {
       "dependsOn": ["transit"],
       "outputs": [".cache/typecheck.tsbuildinfo"]
+    },
+    "check:migrations": {
+      "cache": false,
+      "outputs": []
     },
     "ui#check-types": {
       "dependsOn": ["transit"],

@@ -19,6 +19,7 @@ interface ContentData {
 interface EditorState {
   editedMarkdown: string | null;
   originalMarkdown: string;
+  selectedExcerpt: TextSelection | null;
   editingTitle: string | null;
   serverTitle: string;
   editingSlug: string | null;

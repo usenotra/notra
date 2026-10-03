@@ -3,6 +3,7 @@
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { toast } from "sonner";
 
@@ -24,13 +25,13 @@ import { GitHubDirectoryPicker } from "./github-directory-picker";
 import { GitHubPublishingPathFields } from "./github-publishing-path-fields";
 
 function GitHubContentPublishingSettings({
-  contentLabel,
   contentType,
   organizationId,
-  pluralLabel,
   repository: selectedRepository,
   disabled = false,
 }: GitHubContentPublishingSettingsProps) {
+  const t = useTranslations("integrations.github");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const repositoriesDb = useGitHubRepositoriesDb(organizationId);
   const folderTriggerId = useId();
@@ -92,7 +93,9 @@ function GitHubContentPublishingSettings({
       });
     },
     onError: (error) => {
-      toast.error(error.message || `Failed to save ${contentLabel} folder`);
+      toast.error(
+        error.message || t("publishing.saveFolderFailed", { type: contentType })
+      );
     },
   });
   const pathMutation = useMutation({
@@ -115,7 +118,9 @@ function GitHubContentPublishingSettings({
       await settleDirectoryConfig(result);
     },
     onError: (error) => {
-      toast.error(error.message || `Failed to save ${contentLabel} paths`);
+      toast.error(
+        error.message || t("publishing.savePathsFailed", { type: contentType })
+      );
     },
   });
   return (
@@ -123,8 +128,10 @@ function GitHubContentPublishingSettings({
       <div className="flex items-center gap-2">
         <Switch
           id={publishingSwitchId}
-          nativeButton
-          aria-label={`Publish ${pluralLabel} to ${selectedRepository.owner}/${selectedRepository.repo}`}
+          aria-label={t("publishing.publishAriaLabel", {
+            type: contentType,
+            repository: `${selectedRepository.owner}/${selectedRepository.repo}`,
+          })}
           checked={publishingEnabled}
           disabled={disabled}
           onCheckedChange={(enabled) => {
@@ -141,7 +148,7 @@ function GitHubContentPublishingSettings({
           className="cursor-pointer text-xs font-medium"
           htmlFor={publishingSwitchId}
         >
-          {contentLabel}
+          {t("contentTypes.label", { type: contentType })}
         </Label>
       </div>
 
@@ -152,7 +159,7 @@ function GitHubContentPublishingSettings({
             role="alert"
           >
             <p className="text-destructive text-sm">
-              Unable to load the {contentLabel} folder.
+              {t("publishing.loadFolderFailed", { type: contentType })}
             </p>
             <Button
               onClick={() => directoryQuery.refetch()}
@@ -160,12 +167,12 @@ function GitHubContentPublishingSettings({
               type="button"
               variant="ghost"
             >
-              Retry
+              {tCommon("actions.retry")}
             </Button>
           </div>
         ) : (
           <GitHubDirectoryPicker
-            contentLabel={contentLabel}
+            contentType={contentType}
             directory={directory}
             disabled={disabled || directoryQuery.isLoading}
             isSaving={directoryMutation.isPending}
@@ -185,7 +192,7 @@ function GitHubContentPublishingSettings({
       </div>
 
       <GitHubPublishingPathFields
-        contentLabel={contentLabel}
+        contentType={contentType}
         contentPath={directoryQuery.data?.contentPath ?? null}
         directory={directory}
         disabled={
@@ -211,18 +218,8 @@ function GitHubContentPublishingSettings({
 export function GitHubPublishingSettings(props: GitHubPublishingSettingsProps) {
   return (
     <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      <GitHubContentPublishingSettings
-        {...props}
-        contentLabel="Changelog"
-        contentType="changelog"
-        pluralLabel="changelogs"
-      />
-      <GitHubContentPublishingSettings
-        {...props}
-        contentLabel="Blog post"
-        contentType="blog_post"
-        pluralLabel="blog posts"
-      />
+      <GitHubContentPublishingSettings {...props} contentType="changelog" />
+      <GitHubContentPublishingSettings {...props} contentType="blog_post" />
     </div>
   );
 }

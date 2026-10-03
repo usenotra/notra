@@ -7,6 +7,7 @@ import { checkChatBilling } from "@notra/ai/billing/chat-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import {
   listContentChatSessions,
+  loadContentChatHistory,
   replaceContentChatHistory,
 } from "@notra/ai/chat/history";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
@@ -19,6 +20,10 @@ import {
   getLinearToolContextByIntegrationId,
 } from "@notra/ai/integrations/linear";
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
+import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
+import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
+import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
@@ -33,6 +38,7 @@ import { NextResponse } from "next/server";
 
 import { AI_CREDITS_SOURCE_CONTENT_CHAT } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { countMessageFileParts } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
@@ -150,7 +156,7 @@ export const POST = withEvlog(async function POST(
 
     const {
       chatId,
-      messages,
+      messages: inputMessages,
       currentMarkdown,
       contentType,
       documentMode,
@@ -170,6 +176,10 @@ export const POST = withEvlog(async function POST(
       return NextResponse.json({ error: "Content not found" }, { status: 404 });
     }
 
+    const messages = preserveConversationSelection(
+      inputMessages,
+      (await loadContentChatHistory(organizationId, contentId, chatId)) ?? []
+    );
     const historySaved = await replaceContentChatHistory(
       organizationId,
       contentId,
@@ -191,10 +201,14 @@ export const POST = withEvlog(async function POST(
         content_type: contentType ?? null,
         has_selection: Boolean(selection),
         context_count: context?.length ?? 0,
+        attachment_count: countMessageFileParts(messages.at(-1)),
       },
     });
 
     const autumnClient = autumn;
+    const streamStartedAt = Date.now();
+    let firstChunkAt: number | null = null;
+    const usageSnapshot: ChatUsageSnapshot = {};
     const imageDefaults =
       contentType === "image"
         ? await getImageDefaults({ organizationId, contentId }).catch(
@@ -213,6 +227,7 @@ export const POST = withEvlog(async function POST(
     const { stream, routingDecision } = await orchestrateChat(
       {
         organizationId,
+        chatId,
         messages,
         currentMarkdown,
         contentType,
@@ -223,6 +238,7 @@ export const POST = withEvlog(async function POST(
         selection,
         context,
         maxSteps: 50,
+        abortSignal: request.signal,
         log,
         timezone,
         useMarkup,
@@ -244,7 +260,20 @@ export const POST = withEvlog(async function POST(
         },
         resolveContext: getGitHubToolRepositoryContextByIntegrationId,
         resolveLinearContext: getLinearToolContextByIntegrationId,
+        onFirstChunk() {
+          if (firstChunkAt === null) {
+            firstChunkAt = Date.now();
+          }
+        },
         async onUsage(usage, modelId, routeUsage) {
+          usageSnapshot.inputTokens = usage.inputTokens ?? 0;
+          usageSnapshot.outputTokens = usage.outputTokens ?? 0;
+          usageSnapshot.totalTokens = usage.totalTokens ?? 0;
+          usageSnapshot.cacheReadTokens =
+            usage.inputTokenDetails?.cacheReadTokens ?? 0;
+          usageSnapshot.cacheWriteTokens =
+            usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+
           if (
             !autumnClient ||
             allowUnmeteredAiInDevelopment ||
@@ -318,12 +347,42 @@ export const POST = withEvlog(async function POST(
       decision: routingDecision,
     });
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: true,
+      messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
+        if (part.type === "start") {
+          return {
+            authorUserId: auth.context.user.id,
+            model: routingDecision.model,
+            thinkingLevel: routingDecision.thinkingLevel,
+            createdAt: streamStartedAt,
+          };
+        }
+
+        if (part.type === "finish") {
+          return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
+            streamStartedAt,
+            firstChunkAt,
+            finishedAt: Date.now(),
+            partUsage: part.totalUsage,
+            usageSnapshot,
+            model: routingDecision.model,
+            thinkingLevel: routingDecision.thinkingLevel,
+          });
+        }
+
+        return activityTimings ? { activityTimings } : undefined;
+      },
       onEnd: async ({ messages: responseMessages }) => {
+        if (request.signal.aborted) {
+          return;
+        }
         const saved = await replaceContentChatHistory(
           organizationId,
           contentId,

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowDown01Icon,
   Copy01Icon,
@@ -15,7 +13,7 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import type {
   BlogCopyArticleItemProps,
@@ -123,7 +121,7 @@ export function BlogCopyArticle({
 
           <DropdownMenuItem
             className="px-2 py-2"
-            render={<Link href={markdownUrl} />}
+            render={<Link to={markdownUrl} />}
           >
             <CopyArticleMenuItemContent
               description="View this article as plain text"

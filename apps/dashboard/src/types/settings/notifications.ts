@@ -18,9 +18,14 @@ export interface NotificationToggleConfig {
   icon: IconSvgElement;
 }
 
+export type NotificationToggleDefinition = Omit<
+  NotificationToggleConfig,
+  "label" | "description"
+>;
+
 export interface NotificationToggleGroup {
-  heading: string;
-  toggles: NotificationToggleConfig[];
+  id: "content" | "geo" | "marketing";
+  toggles: NotificationToggleDefinition[];
 }
 
 export interface NotificationToggleRowProps {

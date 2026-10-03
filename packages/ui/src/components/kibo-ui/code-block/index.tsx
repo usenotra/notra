@@ -1,5 +1,7 @@
 "use client";
 
+import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Select,
@@ -9,7 +11,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { useControllableState } from "@notra/ui/hooks/use-controllable-state";
-import { CheckIcon, CopyIcon } from "lucide-react";
+
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { IconType } from "react-icons";
@@ -176,7 +178,7 @@ const lineNumberClassNames = cn(
   "[&_.line]:before:text-right",
   "[&_.line]:before:text-muted-foreground/50",
   "[&_.line]:before:font-mono",
-  "[&_.line]:before:select-none"
+  "[&_.line]:before:select-none",
 );
 
 const darkModeClassNames = cn(
@@ -188,7 +190,7 @@ const darkModeClassNames = cn(
   "dark:[&_.shiki_span]:!text-[var(--shiki-dark)]",
   "dark:[&_.shiki_span]:![font-style:var(--shiki-dark-font-style)]",
   "dark:[&_.shiki_span]:![font-weight:var(--shiki-dark-font-weight)]",
-  "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]"
+  "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]",
 );
 
 const lineHighlightClassNames = cn(
@@ -199,7 +201,7 @@ const lineHighlightClassNames = cn(
   "[&_.line.highlighted]:after:top-0",
   "[&_.line.highlighted]:after:bottom-0",
   "[&_.line.highlighted]:after:w-0.5",
-  "dark:[&_.line.highlighted]:!bg-blue-500/10"
+  "dark:[&_.line.highlighted]:!bg-blue-500/10",
 );
 
 const lineDiffClassNames = cn(
@@ -213,17 +215,17 @@ const lineDiffClassNames = cn(
   "[&_.line.diff.remove]:bg-rose-50",
   "[&_.line.diff.remove]:after:bg-rose-500",
   "dark:[&_.line.diff.add]:!bg-emerald-500/10",
-  "dark:[&_.line.diff.remove]:!bg-rose-500/10"
+  "dark:[&_.line.diff.remove]:!bg-rose-500/10",
 );
 
 const lineFocusedClassNames = cn(
   "[&_code:has(.focused)_.line]:blur-[2px]",
-  "[&_code:has(.focused)_.line.focused]:blur-none"
+  "[&_code:has(.focused)_.line.focused]:blur-none",
 );
 
 const wordHighlightClassNames = cn(
   "[&_.highlighted-word]:bg-blue-50",
-  "dark:[&_.highlighted-word]:!bg-blue-500/10"
+  "dark:[&_.highlighted-word]:!bg-blue-500/10",
 );
 
 const codeBlockClassName = cn(
@@ -237,13 +239,13 @@ const codeBlockClassName = cn(
   "[&_code]:bg-transparent",
   "[&_.line]:px-4",
   "[&_.line]:w-full",
-  "[&_.line]:relative"
+  "[&_.line]:relative",
 );
 
 const highlight = (
   html: string,
   language?: BundledLanguage,
-  themes?: CodeOptionsMultipleThemes["themes"]
+  themes?: CodeOptionsMultipleThemes["themes"],
 ) =>
   Promise.all([import("shiki"), import("@shikijs/transformers")]).then(
     ([{ codeToHtml }, transformers]) =>
@@ -256,11 +258,13 @@ const highlight = (
         transformers: [
           transformers.transformerNotationDiff({ matchAlgorithm: "v3" }),
           transformers.transformerNotationHighlight({ matchAlgorithm: "v3" }),
-          transformers.transformerNotationWordHighlight({ matchAlgorithm: "v3" }),
+          transformers.transformerNotationWordHighlight({
+            matchAlgorithm: "v3",
+          }),
           transformers.transformerNotationFocus({ matchAlgorithm: "v3" }),
           transformers.transformerNotationErrorLevel({ matchAlgorithm: "v3" }),
         ],
-      })
+      }),
   );
 
 interface CodeBlockData {
@@ -321,7 +325,7 @@ export const CodeBlockHeader = ({
   <div
     className={cn(
       "flex flex-row items-center border-b bg-secondary p-1",
-      className
+      className,
     )}
     {...props}
   />
@@ -366,7 +370,7 @@ export const CodeBlockFilename = ({
   const { value: activeValue } = useContext(CodeBlockContext);
   const defaultIcon = Object.entries(filenameIconMap).find(([pattern]) => {
     const regex = new RegExp(
-      `^${pattern.replace(/\\/g, "\\\\").replace(/\./g, "\\.").replace(/\*/g, ".*")}$`
+      `^${pattern.replace(/\\/g, "\\\\").replace(/\./g, "\\.").replace(/\*/g, ".*")}$`,
     );
     return regex.test(children as string);
   })?.[1];
@@ -410,7 +414,7 @@ export const CodeBlockSelectTrigger = ({
   <SelectTrigger
     className={cn(
       "w-fit border-none text-muted-foreground text-xs shadow-none",
-      className
+      className,
     )}
     {...props}
   />
@@ -484,8 +488,6 @@ export const CodeBlockCopyButton = ({
     }, onError);
   };
 
-  const Icon = isCopied ? CheckIcon : CopyIcon;
-
   return (
     <Button
       className={cn("shrink-0", className)}
@@ -494,7 +496,11 @@ export const CodeBlockCopyButton = ({
       variant="ghost"
       {...props}
     >
-      <Icon className="text-muted-foreground" size={14} />
+      <HugeiconsIcon
+        className="text-muted-foreground"
+        icon={isCopied ? Tick02Icon : Copy01Icon}
+        size={14}
+      />
     </Button>
   );
 };
@@ -560,7 +566,7 @@ export const CodeBlockItem = ({
         wordHighlightClassNames,
         darkModeClassNames,
         lineNumbers && lineNumberClassNames,
-        className
+        className,
       )}
       {...props}
     >

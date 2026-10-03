@@ -1,6 +1,12 @@
-import { googleFaviconUrl } from "@notra/utils/google-favicon";
+import {
+  googleFaviconUrl,
+  isReservedExampleDomain,
+} from "@notra/utils/google-favicon";
 
-import { GEO_AVATAR_FALLBACK_BASE } from "../constants/geo";
+import {
+  GEO_AVATAR_FALLBACK_BASE,
+  GEO_NOTRA_LOGO_PATH,
+} from "../constants/geo";
 
 export function competitorLogoSources(
   domain: string | null,
@@ -22,6 +28,9 @@ export function projectLogoSources(
   seed: string,
   logo: string | null
 ): string[] {
-  const fallback = `${GEO_AVATAR_FALLBACK_BASE}?seed=${encodeURIComponent(seed)}`;
+  // Fictional demo brands have no favicon; show Notra's logo instead.
+  const fallback = isReservedExampleDomain(domain)
+    ? GEO_NOTRA_LOGO_PATH
+    : `${GEO_AVATAR_FALLBACK_BASE}?seed=${encodeURIComponent(seed)}`;
   return [...competitorLogoSources(domain, logo), fallback];
 }

@@ -52,6 +52,13 @@ export interface GeoEntitlementServiceShape {
   readonly resolveZdrEntitlement: (
     organizationId: string
   ) => Effect.Effect<GeoZdrEntitlement>;
+  /**
+   * The scan billing gate's verdict without reserving anything, so a trigger
+   * can refuse a scan the workflow would only deny later.
+   */
+  readonly checkScanBilling: (
+    organizationId: string
+  ) => Effect.Effect<ContentBillingReservation, unknown>;
 }
 
 /**

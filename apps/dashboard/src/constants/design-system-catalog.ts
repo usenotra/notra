@@ -14,6 +14,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "icons",
+    label: "Icons",
+    href: "/design-system/icons",
+    level: "section",
+  },
+  {
     id: "buttons",
     label: "Buttons & Badges",
     href: "/design-system#buttons",
@@ -50,6 +56,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "chat-queue",
+    label: "Chat Queue",
+    href: "/design-system#chat-queue",
+    level: "section",
+  },
+  {
     id: "identity",
     label: "Identity & Layout",
     href: "/design-system#identity",
@@ -77,6 +89,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     id: "braille-loader",
     label: "Braille Loader",
     href: "/design-system#braille-loader",
+    level: "section",
+  },
+  {
+    id: "auth-mfa",
+    label: "Auth · Two-factor",
+    href: "/design-system/auth-flow",
     level: "section",
   },
   {
@@ -309,11 +327,6 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
   },
 ];
 
-/*
- * The displayed section number is the entry's position in the list, so it is
- * derived here rather than stored on every entry. Inserting a section no longer
- * means renumbering every one that follows it.
- */
 export const DESIGN_SYSTEM_CATALOG_BY_ID = Object.fromEntries(
   DESIGN_SYSTEM_CATALOG.map((item, index) => [
     item.id,

@@ -34,6 +34,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { AddSlackIntegrationDialog } from "@/components/integrations/add-slack-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useSlackConnectionToast } from "@/lib/hooks/use-slack-connection-toast";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -89,6 +91,7 @@ function useRefreshSlackChannels(
   organizationId: string,
   integrationId: string
 ) {
+  const t = useTranslations("integrations.slackPage");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
@@ -104,10 +107,10 @@ function useRefreshSlackChannels(
         }),
         data
       );
-      toast.success("Channel list refreshed");
+      toast.success(t("channelsRefreshed"));
     },
     onError: () => {
-      toast.error("Failed to refresh channels");
+      toast.error(t("channelsRefreshFailed"));
     },
   });
 }
@@ -119,6 +122,7 @@ function RefreshChannelsButton({
   organizationId: string;
   integrationId: string;
 }) {
+  const t = useTranslations("integrations.slackPage");
   const refreshMutation = useRefreshSlackChannels(
     organizationId,
     integrationId
@@ -128,23 +132,18 @@ function RefreshChannelsButton({
       <TooltipTrigger
         render={
           <Button
-            aria-label="Refresh channel list"
+            aria-label={t("refreshAriaLabel")}
             className="text-muted-foreground hover:text-foreground aria-expanded:bg-transparent"
-            disabled={refreshMutation.isPending}
+            loading={refreshMutation.isPending}
             onClick={() => refreshMutation.mutate()}
             size="icon-sm"
             variant="ghost"
           />
         }
       >
-        <HugeiconsIcon
-          className={
-            refreshMutation.isPending ? "size-3.5 animate-spin" : "size-3.5"
-          }
-          icon={ArrowReloadHorizontalIcon}
-        />
+        <HugeiconsIcon className="size-3.5" icon={ArrowReloadHorizontalIcon} />
       </TooltipTrigger>
-      <TooltipContent>Refresh channels from Slack</TooltipContent>
+      <TooltipContent>{t("refreshTooltip")}</TooltipContent>
     </Tooltip>
   );
 }
@@ -154,6 +153,8 @@ function SlackNotificationChannelPicker({
   organizationId,
   onUpdate,
 }: SlackNotificationChannelPickerProps) {
+  const t = useTranslations("integrations.slackPage");
+  const tCommon2 = useTranslations("common");
   const queryClient = useQueryClient();
   const { data: channelData, isLoading } = useSlackChannels(
     organizationId,
@@ -175,12 +176,12 @@ function SlackNotificationChannelPicker({
         }),
       });
       toast.success(
-        channelId ? "Notifications channel updated" : "Notifications turned off"
+        channelId ? t("notificationsUpdated") : t("notificationsOff")
       );
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update the notifications channel");
+      toast.error(t("notificationsUpdateFailed"));
     },
   });
 
@@ -194,7 +195,7 @@ function SlackNotificationChannelPicker({
   );
   const selectedLabel = integration.notificationChannelId
     ? `#${selectedChannel?.name ?? integration.notificationChannelId}`
-    : "Off";
+    : tCommon2("labels.off");
 
   return (
     <div className="flex items-center gap-1.5">
@@ -208,7 +209,9 @@ function SlackNotificationChannelPicker({
           <SelectValue>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={NO_NOTIFICATION_CHANNEL}>Off</SelectItem>
+          <SelectItem value={NO_NOTIFICATION_CHANNEL}>
+            {tCommon2("labels.off")}
+          </SelectItem>
           {channels.map((channel) => (
             <SelectItem key={channel.id} value={channel.id}>
               #{channel.name}
@@ -229,6 +232,8 @@ function SlackChannelAccessEditor({
   organizationId,
   onUpdate,
 }: SlackChannelAccessEditorProps) {
+  const t = useTranslations("integrations.slackPage");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const restrictedInitially = integration.allowedChannelIds !== null;
   const [isRestricted, setIsRestricted] = useState(restrictedInitially);
@@ -256,11 +261,11 @@ function SlackChannelAccessEditor({
           input: { organizationId },
         }),
       });
-      toast.success("Channel access updated");
+      toast.success(t("accessUpdated"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update channel access");
+      toast.error(t("accessUpdateFailed"));
     },
   });
 
@@ -315,16 +320,16 @@ function SlackChannelAccessEditor({
   return (
     <div>
       <SettingRow
-        description="Everyone in your workspace can use the agent. People outside your workspace, including Slack Connect guests, cannot and never will. Optionally limit the agent to specific channels."
-        title="Channel access"
+        description={t("channelAccessDescription")}
+        title={t("channelAccessTitle")}
       >
         <div className="border-border flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5">
           <div className="min-w-0">
-            <p className="text-sm">Limit to specific channels</p>
+            <p className="text-sm">{t("limitChannels")}</p>
             <p className="text-muted-foreground text-xs">
               {isRestricted
-                ? `${selectedChannelIds.size} channel${selectedChannelIds.size === 1 ? "" : "s"} selected`
-                : "The agent responds anywhere it is mentioned"}
+                ? t("channelsSelected", { count: selectedChannelIds.size })
+                : t("respondsAnywhere")}
             </p>
           </div>
           <Switch
@@ -343,7 +348,7 @@ function SlackChannelAccessEditor({
                   render={
                     <label className="border-input hover:border-ring has-checked:border-primary has-checked:bg-primary flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-sm border transition-colors">
                       <input
-                        aria-label="Select all channels"
+                        aria-label={t("selectAll")}
                         checked={allFilteredSelected}
                         className="sr-only"
                         onChange={toggleAllFiltered}
@@ -361,9 +366,7 @@ function SlackChannelAccessEditor({
                   )}
                 </TooltipTrigger>
                 <TooltipContent>
-                  {allFilteredSelected
-                    ? "Deselect all channels"
-                    : "Select all channels"}
+                  {allFilteredSelected ? t("deselectAll") : t("selectAll")}
                 </TooltipContent>
               </Tooltip>
               <HugeiconsIcon
@@ -373,7 +376,7 @@ function SlackChannelAccessEditor({
               <Input
                 className="rounded-none border-0 pl-1 shadow-none focus-visible:ring-0"
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search channels..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
               />
               <RefreshChannelsButton
@@ -391,7 +394,7 @@ function SlackChannelAccessEditor({
               )}
               {!isLoading && filteredChannels.length === 0 && (
                 <p className="text-muted-foreground p-3 text-sm">
-                  No channels match.
+                  {t("noChannels")}
                 </p>
               )}
               {filteredChannels.map((channel) => (
@@ -405,7 +408,9 @@ function SlackChannelAccessEditor({
                     <span className="truncate text-sm">#{channel.name}</span>
                     {channel.memberCount !== null && (
                       <span className="text-muted-foreground shrink-0 text-xs">
-                        {channel.memberCount} members
+                        {tCommon("messages.countPluralOneMemberOther", {
+                          count: channel.memberCount,
+                        })}
                       </span>
                     )}
                   </span>
@@ -432,7 +437,9 @@ function SlackChannelAccessEditor({
                 }
                 size="sm"
               >
-                {saveMutation.isPending ? "Saving..." : "Save changes"}
+                {saveMutation.isPending
+                  ? tCommon("actions.saving")
+                  : tCommon("actions.saveChanges")}
               </Button>
             </div>
           )}
@@ -447,6 +454,11 @@ function SlackIntegrationCard({
   organizationId,
   onUpdate,
 }: SlackIntegrationCardProps) {
+  const t = useTranslations("integrations.slackPage");
+  const tCard = useTranslations("integrations.card");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -463,11 +475,11 @@ function SlackIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(enabled ? tCard("enabledToast") : tCard("disabledToast"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to update integration");
+      toast.error(tCard("updateFailed"));
     },
   });
 
@@ -483,15 +495,17 @@ function SlackIntegrationCard({
           input: { organizationId },
         }),
       });
-      toast.success("Integration deleted");
+      toast.success(tCard("deleted"));
       onUpdate?.();
     },
     onError: () => {
-      toast.error("Failed to delete integration");
+      toast.error(tCard("deleteFailed"));
     },
   });
 
-  const connectedOn = new Date(integration.createdAt).toLocaleDateString();
+  const connectedOn = new Date(integration.createdAt).toLocaleDateString(
+    locale
+  );
 
   return (
     <>
@@ -505,14 +519,19 @@ function SlackIntegrationCard({
               <p className="truncate font-medium">{integration.displayName}</p>
               <p className="text-muted-foreground truncate text-sm">
                 {integration.createdByUser
-                  ? `Connected by ${integration.createdByUser.name} on ${connectedOn}`
-                  : `Connected on ${connectedOn}`}
+                  ? t("connectedBy", {
+                      name: integration.createdByUser.name,
+                      date: connectedOn,
+                    })
+                  : t("connectedOn", { date: connectedOn })}
               </p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Badge variant={integration.enabled ? "default" : "secondary"}>
-              {integration.enabled ? "Active" : "Paused"}
+              {integration.enabled
+                ? tCommon("states.active")
+                : tCommon("labels.paused")}
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -525,7 +544,7 @@ function SlackIntegrationCard({
                     variant="ghost"
                   >
                     <svg
-                      aria-label="More options"
+                      aria-label={tIntegrationsShared("moreOptions")}
                       fill="none"
                       stroke="currentColor"
                       strokeLinecap="round"
@@ -534,7 +553,7 @@ function SlackIntegrationCard({
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <title>More options</title>
+                      <title>{tIntegrationsShared("moreOptions")}</title>
                       <circle cx="12" cy="12" r="1" />
                       <circle cx="12" cy="5" r="1" />
                       <circle cx="12" cy="19" r="1" />
@@ -547,14 +566,16 @@ function SlackIntegrationCard({
                   className="cursor-pointer"
                   onClick={() => toggleMutation.mutate(!integration.enabled)}
                 >
-                  {integration.enabled ? "Pause" : "Resume"}
+                  {integration.enabled
+                    ? tCommon("labels.pause")
+                    : tCommon("labels.resume")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => setIsDeleteDialogOpen(true)}
                   variant="destructive"
                 >
-                  Disconnect
+                  {tCommon("actions.disconnect")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -567,8 +588,8 @@ function SlackIntegrationCard({
             organizationId={organizationId}
           />
           <SettingRow
-            description="The agent posts activity updates here, like new drafts and completed work."
-            title="Notifications channel"
+            description={t("notificationsDescription")}
+            title={t("notificationsTitle")}
           >
             <SlackNotificationChannelPicker
               integration={integration}
@@ -597,6 +618,8 @@ function SlackIntegrationCard({
 export default function PageClient({
   organizationSlug,
 }: SlackIntegrationsPageClientProps) {
+  const t = useTranslations("integrations.slackPage");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const pathname = usePathname();
@@ -625,21 +648,16 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Slack Integration
-            </h1>
-            <p className="text-muted-foreground">
-              Chat with your Notra agent in Slack and control where it responds
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tIntegrationsShared("slackIntegration")}
+        >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Add to Slack
+            {tIntegrationsShared("addToSlack")}
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
-        </div>
+        </PageHeading>
 
         <div>
           {showLoading ? <SlackIntegrationsPageSkeleton /> : null}
@@ -652,14 +670,14 @@ export default function PageClient({
                   size="sm"
                   variant="outline"
                 >
-                  Add to Slack
+                  {tIntegrationsShared("addToSlack")}
                 </Button>
               }
-              description="Install the Notra agent in your Slack workspace to chat and approve content from Slack threads."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateCardsPreview count={2} variant="integration" />
               }
-              title="No workspace connected"
+              title={t("emptyTitle")}
             />
           ) : null}
 

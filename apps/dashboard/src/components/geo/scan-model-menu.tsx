@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -58,6 +59,7 @@ function ScanModelRow({
   checked: boolean;
   onToggle: () => void;
 }) {
+  const t = useTranslations("geo.scanModelMenu");
   return (
     <button
       aria-checked={checked}
@@ -66,22 +68,13 @@ function ScanModelRow({
       disabled={option.zdrBlocked}
       onClick={onToggle}
       role="checkbox"
-      title={
-        option.zdrBlocked
-          ? "No zero-data-retention host. Approve it in GEO settings to scan it."
-          : undefined
-      }
+      title={option.zdrBlocked ? t("zdrBlockedTitle") : undefined}
       type="button"
     >
       <EngineIcon className="size-4" engine={option.id} />
       <span className="min-w-0 flex-1 truncate">{option.label}</span>
-      {option.answerMode ? (
-        <span className="text-muted-foreground text-xs">
-          {option.answerMode}
-        </span>
-      ) : null}
       {option.zdrBlocked ? (
-        <span className="text-muted-foreground text-xs">No ZDR</span>
+        <span className="text-muted-foreground text-xs">{t("noZdr")}</span>
       ) : null}
       <HugeiconsIcon
         aria-hidden="true"
@@ -96,6 +89,39 @@ function ScanModelRow({
   );
 }
 
+function DisabledScanModelButton({
+  compact,
+  label,
+  reason,
+  variant,
+}: {
+  compact?: boolean;
+  label: string;
+  reason: string;
+  variant: "default" | "outline";
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            aria-label={label}
+            className="cursor-not-allowed opacity-50"
+            disabled
+            focusableWhenDisabled
+            size={compact ? "icon" : "sm"}
+            variant={compact ? "ghost" : variant}
+          />
+        }
+      >
+        <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
+        {compact ? null : label}
+      </TooltipTrigger>
+      <TooltipContent>{reason}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function ScanModelMenu({
   engines,
   catalog,
@@ -105,9 +131,14 @@ export function ScanModelMenu({
   disabledReason,
   compact,
   primary,
-  label = "Run scan",
+  label: labelProp,
+  open: openProp,
+  onOpenChange,
   onContinue,
 }: GeoScanModelMenuProps) {
+  const t = useTranslations("geo.scanModelMenu");
+  const tGeoShared = useTranslations("geo.shared");
+  const label = labelProp ?? tGeoShared("runScan");
   const options = useMemo(
     () =>
       buildScanModelOptions({
@@ -118,11 +149,25 @@ export function ScanModelMenu({
       }),
     [engines, catalog, enforceZdr, nonZdrApprovedEngines]
   );
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState(() =>
     defaultScanModelSelection(options)
   );
+  // Every open starts fresh, including one driven by a controlled `open`.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setQuery("");
+      setSelectedIds(defaultScanModelSelection(options));
+    }
+  }
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const variant = primary ? "default" : "outline";
@@ -136,27 +181,12 @@ export function ScanModelMenu({
 
   if (disabled || engines.length === 0) {
     return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={label}
-              className="cursor-not-allowed opacity-50"
-              disabled
-              focusableWhenDisabled
-              size={compact ? "icon" : "sm"}
-              variant={compact ? "ghost" : variant}
-            />
-          }
-        >
-          <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
-          {compact ? null : label}
-        </TooltipTrigger>
-        <TooltipContent>
-          {disabledReason ??
-            "Add a tracked model in GEO settings to run a scan."}
-        </TooltipContent>
-      </Tooltip>
+      <DisabledScanModelButton
+        compact={compact}
+        label={label}
+        reason={disabledReason ?? t("disabledReason")}
+        variant={variant}
+      />
     );
   }
 
@@ -197,16 +227,7 @@ export function ScanModelMenu({
     ) : null;
 
   return (
-    <Popover
-      onOpenChange={(next) => {
-        if (next) {
-          setQuery("");
-          setSelectedIds(defaultScanModelSelection(options));
-        }
-        setOpen(next);
-      }}
-      open={open}
-    >
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
         render={
           <Button
@@ -244,7 +265,7 @@ export function ScanModelMenu({
               icon={Search01Icon}
             />
             <input
-              aria-label="Search models"
+              aria-label={t("searchModels")}
               className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -253,7 +274,7 @@ export function ScanModelMenu({
                   focusSiblingRow(listRef.current, 1);
                 }
               }}
-              placeholder="Search models"
+              placeholder={t("searchModels")}
               ref={searchRef}
               type="search"
               value={query}
@@ -266,13 +287,13 @@ export function ScanModelMenu({
           ref={listRef}
         >
           {visible.length === 0 ? (
-            <p className="text-muted-foreground px-2 py-6 text-center text-sm">
-              No models match “{query.trim()}”
+            <p className="text-muted-foreground px-2 py-6 text-center text-sm wrap-anywhere">
+              {t("noMatch", { query: query.trim() })}
             </p>
           ) : (
             <>
-              {renderGroup("Tracked", trackedVisible)}
-              {renderGroup("Other models", otherVisible)}
+              {renderGroup(tGeoShared("tracked"), trackedVisible)}
+              {renderGroup(t("otherModels"), otherVisible)}
             </>
           )}
         </div>
@@ -287,8 +308,7 @@ export function ScanModelMenu({
             size="sm"
             type="button"
           >
-            Continue with {selected.length}{" "}
-            {selected.length === 1 ? "model" : "models"}
+            {t("continueWith", { count: selected.length })}
           </Button>
         </div>
       </PopoverContent>

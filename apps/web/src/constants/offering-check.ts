@@ -7,7 +7,7 @@ import type {
 } from "@/types/offering-check";
 import { SITE_URL } from "@/utils/urls";
 
-const OFFERING_CHECK_PATH = "/offering";
+const OFFERING_CHECK_PATH = "/offering" as const;
 
 export const OFFERING_CHECK_URL = `${SITE_URL}${OFFERING_CHECK_PATH}`;
 
@@ -126,21 +126,25 @@ export const OFFERING_VERDICT_COPY: Record<
 > = {
   knows: {
     label: "Knows it",
+    textClassName: "text-[#1C6B3F] dark:text-[#86EFAC]",
     className:
       "bg-[#DFF5E8] text-[#1C6B3F] dark:bg-[#22C55E2E] dark:text-[#86EFAC]",
   },
   vague: {
     label: "Vague",
+    textClassName: "text-[#8A5A00] dark:text-[#F5C76A]",
     className:
       "bg-[#FDF1DC] text-[#8A5A00] dark:bg-[#F5A62333] dark:text-[#F5C76A]",
   },
   confused: {
     label: "Mixes it up",
+    textClassName: "text-[#8A5A00] dark:text-[#F5C76A]",
     className:
       "bg-[#FDF1DC] text-[#8A5A00] dark:bg-[#F5A62333] dark:text-[#F5C76A]",
   },
   unknown: {
     label: "Does not know it",
+    textClassName: "text-[#9B1C1C] dark:text-[#FCA5A5]",
     className:
       "bg-[#FCE4E4] text-[#9B1C1C] dark:bg-[#EF444433] dark:text-[#FCA5A5]",
   },
@@ -192,3 +196,9 @@ export const OFFERING_SEARCH_SKIPPED_HINT =
 export const OFFERING_CHECK_SIGNUP_SOURCE = "offering-check";
 
 export const OFFERING_CHECK_FAVICON_SIZE = 64;
+
+export const OFFERING_LINK_COPIED_MS = 1800;
+
+export const OFFERING_SAMPLE_TYPE_MS = 28;
+
+export const OFFERING_FAVICON_SETTLE_MS = 350;

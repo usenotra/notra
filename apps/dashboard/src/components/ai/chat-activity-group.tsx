@@ -1,0 +1,325 @@
+"use client";
+
+import {
+  ArrowDown01Icon,
+  GlobalIcon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@notra/ui/components/ui/collapsible";
+import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+
+import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
+import {
+  ACTIVITY_AUTO_CLOSE_DELAY_MS,
+  ACTIVITY_CONTENT_CLASSNAME,
+  ACTIVITY_STEP_MIN_VISIBLE_MS,
+  ACTIVITY_STEP_SETTLE_MS,
+  VISIBLE_SEARCH_SOURCE_COUNT,
+} from "@/constants/chat-activity";
+import { useSettledValue } from "@/lib/hooks/use-settled-value";
+import type {
+  ChatActivityGroupProps,
+  ChatSearchStackProps,
+} from "@/types/components/chat-activity-group";
+import {
+  getSearchQuery,
+  getSearchSources,
+  isPublicSearchDomain,
+  uniqueSearchSources,
+} from "@/utils/chat-search-activity";
+import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
+
+const NESTED_ROW_CLASSNAME =
+  "text-muted-foreground flex min-w-0 items-center gap-2 text-sm leading-5";
+
+function useWorkedDurationSeconds(
+  isStreaming: boolean,
+  durationMs: number | undefined,
+  liveSeconds: number | undefined
+): number | null {
+  const fromMetadata =
+    durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
+  const startedAtRef = useRef<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isStreaming) {
+      if (startedAtRef.current === null) {
+        startedAtRef.current = Date.now();
+      }
+      setElapsedSeconds(0);
+      const interval = window.setInterval(() => {
+        setElapsedSeconds(
+          Math.floor((Date.now() - (startedAtRef.current ?? Date.now())) / 1000)
+        );
+      }, 1000);
+      return () => window.clearInterval(interval);
+    }
+
+    if (startedAtRef.current !== null) {
+      setElapsedSeconds(
+        Math.max(1, Math.ceil((Date.now() - startedAtRef.current) / 1000))
+      );
+      startedAtRef.current = null;
+    }
+  }, [isStreaming]);
+
+  return isStreaming
+    ? (liveSeconds ?? elapsedSeconds ?? 0)
+    : (fromMetadata ?? elapsedSeconds);
+}
+
+export function ChatActivityGroup({
+  children,
+  durationMs,
+  elapsedSeconds,
+  forceOpen = false,
+  groupId,
+  hasDetails,
+  isLoading,
+  isStreaming,
+  step,
+}: ChatActivityGroupProps) {
+  const t = useTranslations("ai.activity");
+  const tLabels = useTranslations("common.labels");
+  const measuredSeconds = useWorkedDurationSeconds(
+    isStreaming,
+    durationMs,
+    elapsedSeconds
+  );
+  const durationSeconds = measuredSeconds ?? elapsedSeconds ?? null;
+  const settledStep = useSettledValue(step, {
+    settleMs: ACTIVITY_STEP_SETTLE_MS,
+    minVisibleMs: ACTIVITY_STEP_MIN_VISIBLE_MS,
+  });
+  // Approval prompts need an immediate answer, and leaving one must not keep
+  // the stale "waiting" label, so both transitions skip the settle delay.
+  const displayedStep =
+    step === "waitingForApproval" || settledStep === "waitingForApproval"
+      ? step
+      : settledStep;
+  const [isOpen, setIsOpen] = useState(forceOpen);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  if (forceOpen && !isOpen) {
+    setIsOpen(true);
+  }
+
+  useEffect(() => {
+    if (isLoading || forceOpen || hasInteracted) {
+      return;
+    }
+    const closeTimer = window.setTimeout(() => {
+      setIsOpen(false);
+    }, ACTIVITY_AUTO_CLOSE_DELAY_MS);
+    return () => window.clearTimeout(closeTimer);
+  }, [forceOpen, hasInteracted, isLoading]);
+
+  const workedLabel =
+    durationSeconds && durationSeconds > 0
+      ? t("workedFor", { duration: formatElapsedSeconds(durationSeconds) })
+      : t("worked");
+  const stepLabel =
+    displayedStep === "thinking"
+      ? tLabels("thinkingLabel")
+      : t(`steps.${displayedStep}`);
+  const label = isStreaming ? stepLabel : workedLabel;
+  const active = isStreaming && step !== "waitingForApproval";
+
+  // While streaming the group starts closed so the layout stays still, but it
+  // is still a trigger: people want to peek at what is happening right now.
+  if (!hasDetails) {
+    return (
+      <div data-activity-group={groupId}>
+        <ChatActivityStatus
+          active={active}
+          label={label}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <Collapsible
+      data-activity-group={groupId}
+      onOpenChange={(open) => {
+        setHasInteracted(true);
+        setIsOpen(open);
+      }}
+      open={isOpen}
+    >
+      <CollapsibleTrigger className="text-muted-foreground hover:text-foreground group flex w-full min-w-0 items-center gap-1 text-sm transition-colors">
+        <ChatActivityStatus
+          active={active}
+          label={label}
+          seconds={measuredSeconds ?? elapsedSeconds ?? 0}
+        >
+          <HugeiconsIcon
+            aria-hidden
+            className={cn(
+              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
+              isOpen ? "rotate-180" : "rotate-0"
+            )}
+            icon={ArrowDown01Icon}
+          />
+        </ChatActivityStatus>
+      </CollapsibleTrigger>
+      <CollapsibleContent className={ACTIVITY_CONTENT_CLASSNAME}>
+        <div className="border-border/70 mt-2 ml-1.5 flex min-w-0 flex-col gap-2 border-l pl-3">
+          {children}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function SearchFavicon({ domain }: { domain?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (!isPublicSearchDomain(domain) || failed) {
+    return (
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={GlobalIcon}
+        strokeWidth={1.8}
+      />
+    );
+  }
+
+  return (
+    <Image
+      alt=""
+      className="bg-muted size-3.5 shrink-0 rounded-full"
+      height={14}
+      onError={() => setFailed(true)}
+      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
+      unoptimized
+      width={14}
+    />
+  );
+}
+
+export function ChatSearchStack({ items }: ChatSearchStackProps) {
+  const t = useTranslations("ai.activity");
+  const [showAllSources, setShowAllSources] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const isStreaming = items.some(
+    (item) =>
+      item.state === "input-streaming" || item.state === "input-available"
+  );
+  const label = isStreaming
+    ? t("searchStackRunning", { count: items.length })
+    : t("searchStackDone", { count: items.length });
+  const queries = items.map((item) => getSearchQuery(item.input));
+  const uniqueSources = uniqueSearchSources(
+    items.flatMap((item) => getSearchSources(item.output))
+  );
+  const visibleSources = showAllSources
+    ? uniqueSources
+    : uniqueSources.slice(0, VISIBLE_SEARCH_SOURCE_COUNT);
+  const hiddenSourceCount = uniqueSources.length - visibleSources.length;
+
+  return (
+    <Collapsible onOpenChange={setIsOpen} open={isOpen}>
+      <CollapsibleTrigger className="text-muted-foreground hover:text-foreground group flex w-full min-w-0 items-center gap-2 text-sm transition-colors">
+        <HugeiconsIcon
+          className="size-3.5 shrink-0"
+          icon={Search01Icon}
+          strokeWidth={1.8}
+        />
+        <span className="min-w-0 truncate leading-5">{label}</span>
+        <HugeiconsIcon
+          aria-hidden
+          className={cn(
+            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
+            isOpen ? "rotate-180" : "rotate-0"
+          )}
+          icon={ArrowDown01Icon}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className={ACTIVITY_CONTENT_CLASSNAME}>
+        <div className="border-border/70 mt-1 ml-1.5 flex flex-col gap-1 border-l pl-3">
+          {items.map((item, index) => {
+            const query = queries[index];
+            return (
+              <div className={NESTED_ROW_CLASSNAME} key={item.toolCallId}>
+                <HugeiconsIcon
+                  className="size-3.5 shrink-0"
+                  icon={GlobalIcon}
+                  strokeWidth={1.8}
+                />
+                <span className="min-w-0 truncate">
+                  {query
+                    ? t("searchRowQuery", {
+                        query,
+                        state:
+                          item.state === "input-streaming" ||
+                          item.state === "input-available"
+                            ? "running"
+                            : "done",
+                      })
+                    : t("searchRow", {
+                        state: isStreaming ? "running" : "done",
+                      })}
+                </span>
+              </div>
+            );
+          })}
+          {visibleSources.map((source) => {
+            const content = (
+              <>
+                <SearchFavicon domain={source.domain} />
+                <span className="text-foreground min-w-0 truncate">
+                  {source.title}
+                </span>
+                {source.domain ? (
+                  <span className="text-muted-foreground/70 max-w-[45%] shrink-0 truncate">
+                    {source.domain}
+                  </span>
+                ) : null}
+              </>
+            );
+            if (!source.url) {
+              return (
+                <div className={NESTED_ROW_CLASSNAME} key={source.title}>
+                  {content}
+                </div>
+              );
+            }
+            return (
+              <a
+                className={cn(
+                  NESTED_ROW_CLASSNAME,
+                  "hover:text-foreground transition-colors"
+                )}
+                href={source.url}
+                key={source.url}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {content}
+              </a>
+            );
+          })}
+          {hiddenSourceCount > 0 ? (
+            <button
+              className="text-muted-foreground hover:text-foreground w-fit text-left text-sm transition-colors"
+              onClick={() => setShowAllSources(true)}
+              type="button"
+            >
+              {t("moreSources", { count: hiddenSourceCount })}
+            </button>
+          ) : null}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}

@@ -99,7 +99,11 @@ export async function buildLlmsText() {
       "/features.md",
       "Product capabilities and publishing workflows"
     ),
-    formatLink("Pricing", "/pricing.md", "Plans and feature comparison"),
+    formatLink(
+      "Pricing",
+      "/pricing.md",
+      "Plans, feature comparison and a step-by-step guide for estimating AI answers and linking a prefilled calculator"
+    ),
     formatLink("Blog", "/blog.md", "Index of Notra blog posts"),
     formatLink(
       "Changelog",

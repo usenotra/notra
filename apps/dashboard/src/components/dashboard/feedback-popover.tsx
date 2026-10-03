@@ -4,6 +4,7 @@ import { SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +24,8 @@ export function FeedbackForm({
   onSubmitted,
   autoFocus = true,
 }: FeedbackFormProps) {
+  const t = useTranslations("dashboard.feedback");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const { activeOrganization } = useOrganizationsContext();
 
@@ -49,7 +52,7 @@ export function FeedbackForm({
         pageUrl: getFeedbackPageUrl(pathname),
       });
 
-      toast.success("Thanks for the feedback!");
+      toast.success(t("thanks"));
       setMessage("");
       setSentiment(null);
       if (onSubmitted) {
@@ -57,7 +60,7 @@ export function FeedbackForm({
       }
     } catch (error) {
       const errMessage =
-        error instanceof Error ? error.message : "Failed to send feedback";
+        error instanceof Error ? error.message : t("sendFailed");
       setIsSubmitting(false);
       toast.error(errMessage);
       return;
@@ -78,14 +81,14 @@ export function FeedbackForm({
     <>
       <div className="p-2.5 pb-0">
         <Textarea
-          aria-label="Your feedback"
+          aria-label={t("label")}
           autoFocus={autoFocus}
           className="min-h-28 resize-none"
           disabled={isSubmitting}
           maxLength={FEEDBACK_MAX_MESSAGE_LENGTH}
           onChange={(event) => setMessage(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Your feedback..."
+          placeholder={t("placeholder")}
           value={message}
         />
       </div>
@@ -96,7 +99,7 @@ export function FeedbackForm({
             const isActive = sentiment === option.value;
             return (
               <button
-                aria-label={option.label}
+                aria-label={t(`sentiments.${option.value}`)}
                 aria-pressed={isActive}
                 className={cn(
                   "hover:bg-muted focus-visible:ring-ring/50 flex size-7 cursor-pointer items-center justify-center rounded-md text-base leading-none transition-colors outline-none focus-visible:ring-[3px]",
@@ -126,10 +129,10 @@ export function FeedbackForm({
           type="button"
         >
           {isSubmitting ? (
-            "Sending..."
+            tCommon("labels.sending")
           ) : (
             <>
-              Send
+              {tCommon("labels.send")}
               <HugeiconsIcon
                 className="-translate-y-px"
                 icon={SentIcon}

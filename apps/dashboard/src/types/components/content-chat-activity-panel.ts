@@ -22,8 +22,28 @@ export interface ContentChatActivityPanelProps {
 
 export interface ContentChatActivityMessageProps {
   message: UIMessage;
-  status: ChatStatus;
+  isLoading: boolean;
+  elapsedSeconds?: number;
   organizationSlug?: string;
   onApproveTool?: (approvalId: string) => void;
   onDenyTool?: (approvalId: string) => void;
 }
+
+export type ContentChatActivityHeaderProps = Pick<
+  ContentChatActivityPanelProps,
+  | "title"
+  | "sessions"
+  | "activeChatId"
+  | "isHistoryLoading"
+  | "status"
+  | "onNewChat"
+  | "onSelectChat"
+  | "onClose"
+  | "onOpenChat"
+  | "showHistory"
+>;
+
+export type ContentChatHistoryItemsProps = Pick<
+  ContentChatActivityPanelProps,
+  "sessions" | "activeChatId" | "isHistoryLoading" | "status" | "onSelectChat"
+>;

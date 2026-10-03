@@ -31,6 +31,8 @@ export interface StandaloneChatInput {
   timezone?: string;
   telemetryMetadata?: TccMetadata;
   useMarkup?: boolean;
+  chargeAiCredits?: boolean;
+  codeResearch?: boolean;
   surface?: ChatSurface;
 }
 

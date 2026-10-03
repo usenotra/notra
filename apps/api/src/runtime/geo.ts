@@ -102,6 +102,11 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
         status: 400,
         error: "No engine is available for this project's retention policy",
       };
+    case "GeoSequenceLimitError":
+      return {
+        status: 400,
+        error: `You can have up to ${failure.limit} conversations. Remove one before adding another.`,
+      };
     case "GeoWriterCreditsExhaustedError":
       return {
         status: 402,
@@ -114,6 +119,7 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
       };
     case "GeoDiscoveryError":
     case "GeoSequenceRunError":
+    case "GeoSettingsTrackingError":
     case "GeoWriterPlanError":
       return { status: 400, error: failure.message ?? "Invalid request" };
     case "GeoSampleDataDisabledError":

@@ -13,6 +13,7 @@ import {
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -25,6 +26,9 @@ export function GeoProjectDeleteSection({
   replacementProjectId,
   onDeleted,
 }: GeoProjectDeleteSectionProps) {
+  const t = useTranslations("geo.projectDeleteSection");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
   const [open, setOpen] = useState(false);
   const { deleteProject, isDeleting } = useGeoProjectsDb(organizationId);
   const isLastProject = replacementProjectId === undefined;
@@ -47,23 +51,22 @@ export function GeoProjectDeleteSection({
     <TitleCard
       as="section"
       className="border-destructive/50 bg-destructive/5"
-      heading="Delete project"
+      heading={tGeoShared("deleteProject")}
       headingAs="h2"
     >
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p className="text-muted-foreground text-sm text-pretty">
-          {isLastProject
-            ? "This is your only project. Create another project before deleting it."
-            : "Permanently delete this project and all of its tracking data."}
+          {isLastProject ? t("onlyProject") : t("description")}
         </p>
         <Button
+          className="self-end"
           disabled={isLastProject}
           onClick={() => setOpen(true)}
           type="button"
           variant="destructive"
         >
           <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-          Delete project
+          {tGeoShared("deleteProject")}
         </Button>
       </div>
 
@@ -77,17 +80,16 @@ export function GeoProjectDeleteSection({
       >
         <ResponsiveAlertDialogContent>
           <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete “{project.name}”?
+            <ResponsiveAlertDialogTitle className="wrap-anywhere">
+              {t("confirmTitle", { name: project.name })}
             </ResponsiveAlertDialogTitle>
             <ResponsiveAlertDialogDescription>
-              This permanently deletes its settings, prompts, competitors,
-              scans, and reports. This action cannot be undone.
+              {t("confirmDescription")}
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
             <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
+              {tCommon("cancel")}
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
               disabled={isDeleting}
@@ -97,7 +99,7 @@ export function GeoProjectDeleteSection({
               }}
               variant="destructive"
             >
-              {isDeleting ? "Deleting..." : "Delete project"}
+              {isDeleting ? tCommon("deleting") : tGeoShared("deleteProject")}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

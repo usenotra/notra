@@ -3,7 +3,6 @@ import { Cal } from "@notra/ui/components/ui/svgs/cal";
 import { Databuddy } from "@notra/ui/components/ui/svgs/databuddy";
 import { Langfuse } from "@notra/ui/components/ui/svgs/langfuse";
 import { Neon } from "@notra/ui/components/ui/svgs/neon";
-import Image from "next/image";
 import type { ReactNode } from "react";
 
 export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
@@ -12,7 +11,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
   databuddy: <Databuddy className="size-5 rounded" />,
   langfuse: <Langfuse className="size-5" />,
   autumn: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Autumn"
       className="h-5 w-auto rounded"
       height={85}
@@ -22,7 +23,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
   ),
   neon: <Neon className="size-5 rounded" />,
   openclaw: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="OpenClaw"
       className="h-5 w-auto rounded"
       height={85}
@@ -31,7 +34,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   unkey: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Unkey"
       className="h-5 w-auto rounded"
       height={85}
@@ -40,7 +45,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   pangolin: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Pangolin"
       className="h-5 w-auto rounded"
       height={85}
@@ -49,7 +56,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   onyx: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Onyx"
       className="h-5 w-auto rounded"
       height={85}
@@ -58,7 +67,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   "nao-labs": (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="nao Labs"
       className="h-5 w-auto rounded"
       height={85}
@@ -67,7 +78,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   superagent: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Superagent"
       className="h-5 w-auto rounded"
       height={85}
@@ -76,7 +89,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   emdash: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Emdash"
       className="h-5 w-auto rounded"
       height={85}
@@ -85,7 +100,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   "unsloth-ai": (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Unsloth AI"
       className="h-5 w-auto rounded"
       height={85}
@@ -94,7 +111,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   corsair: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Corsair"
       className="h-5 w-auto rounded"
       height={85}
@@ -103,7 +122,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   "confident-ai": (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Confident AI"
       className="h-5 w-auto rounded"
       height={85}
@@ -112,7 +133,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   char: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Char"
       className="h-5 w-auto rounded"
       height={85}
@@ -121,7 +144,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   airweave: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Airweave"
       className="h-5 w-auto rounded"
       height={85}
@@ -130,7 +155,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   "assistant-ui": (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="assistant-ui"
       className="h-5 w-auto rounded"
       height={85}
@@ -139,7 +166,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   cmux: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="cmux"
       className="h-5 w-auto rounded"
       height={85}
@@ -148,7 +177,9 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
     />
   ),
   sim: (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt="Sim"
       className="h-5 w-auto rounded"
       height={85}

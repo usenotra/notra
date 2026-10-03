@@ -1,4 +1,4 @@
-import type { PerplexitySearchSource } from "@notra/ui/components/brainless/perplexity/perplexity-search";
+import type { PerplexitySearchSource } from "@notra/ui/components/ai-skins/perplexity/perplexity-search";
 
 const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
 const BARE_URL = /\bhttps?:\/\/[^\s)]+/g;

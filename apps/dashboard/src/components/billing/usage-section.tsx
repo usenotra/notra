@@ -13,8 +13,9 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useAggregateEvents } from "autumn-js/react";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -27,9 +28,11 @@ import {
   USAGE_ANSWERS_ACCENT,
   USAGE_FEATURE_SKELETON_KEYS,
   USAGE_METRIC_SKELETON_KEYS,
+  USAGE_PULL_REQUEST_CREDITS_ACCENT,
 } from "@/constants/billing";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useUsageFeatureName } from "@/lib/hooks/use-usage-feature-name";
 import type {
   FeatureData,
   UsageLimitedFeatureRowProps,
@@ -37,14 +40,10 @@ import type {
   UsageSectionBodyProps,
 } from "@/types/hooks/billing";
 import {
-  aiAnswersFooter,
-  aiAnswersHint,
-  aiAnswersValue,
   creditsValue,
   featuresFromBalances,
   isRetentionFeature,
   limitedUsageFeatures,
-  remainingCountLabel,
   unlimitedUsageFeatures,
   usageBreakdownPoints,
   usageRetentionDays,
@@ -73,9 +72,14 @@ function RemainingBar({
   label: string;
   remaining: number;
 }) {
+  const t = useTranslations("billing.usage");
+  const locale = useLocale();
   return (
     <div
-      aria-label={`${label}: ${formatPercent(remaining)}% remaining`}
+      aria-label={t("remainingAria", {
+        label,
+        percent: formatPercent(remaining, locale),
+      })}
       aria-valuemax={100}
       aria-valuemin={0}
       aria-valuenow={Math.round(remaining)}
@@ -84,10 +88,10 @@ function RemainingBar({
     >
       <div
         className={cn(
-          "duration-slower h-full rounded-full transition-[width]",
+          "duration-slower transition-width h-full w-(--remaining) rounded-full",
           remainingBarColor(remaining)
         )}
-        style={{ width: `${remaining}%` }}
+        style={{ "--remaining": `${remaining}%` } as CSSProperties}
       />
     </div>
   );
@@ -131,7 +135,10 @@ function BalanceCard({
     >
       <div className="space-y-3">
         <div className="space-y-1">
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p
+            className="min-w-0 truncate text-3xl font-bold tracking-tight tabular-nums"
+            title={value}
+          >
             {value}
           </p>
           {hint ? (
@@ -154,9 +161,13 @@ function UsageSectionSkeleton() {
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {USAGE_METRIC_SKELETON_KEYS.map((key) => (
-            <TitleCard heading={<Skeleton className="h-5 w-32" />} key={key}>
+            <TitleCard
+              headingAs="div"
+              heading={<Skeleton className="h-5 w-32" />}
+              key={key}
+            >
               <Skeleton className="h-8 w-28" />
             </TitleCard>
           ))}
@@ -182,6 +193,9 @@ function UsageSectionSkeleton() {
 }
 
 function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
+  const t = useTranslations("billing.usage");
+  const locale = useLocale();
+  const featureName = useUsageFeatureName()(feature);
   const remaining = remainingPercent(feature.balance, feature.included);
   const used =
     feature.included !== null && feature.balance !== null
@@ -193,10 +207,15 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="truncate text-sm font-medium">{feature.name}</p>
+            <p
+              className="min-w-0 truncate text-sm font-medium"
+              title={featureName}
+            >
+              {featureName}
+            </p>
             <Tooltip>
               <TooltipTrigger
-                aria-label={`About ${feature.name}`}
+                aria-label={t("about", { name: featureName })}
                 className="text-muted-foreground inline-flex size-6 items-center justify-center"
               >
                 <HugeiconsIcon
@@ -206,50 +225,63 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
               </TooltipTrigger>
               <TooltipContent>
                 {used !== null
-                  ? `${formatCount(used)} used of ${formatCount(feature.included ?? 0)} this cycle.`
-                  : `${formatCount(feature.included ?? 0)} included this cycle.`}
+                  ? t("usedOfCycle", {
+                      used: formatCount(used, locale),
+                      included: formatCount(feature.included ?? 0, locale),
+                    })
+                  : t("includedCycle", {
+                      included: formatCount(feature.included ?? 0, locale),
+                    })}
               </TooltipContent>
             </Tooltip>
           </div>
           <p className="text-muted-foreground mt-1 text-sm tabular-nums">
-            {remainingCountLabel(feature)}
+            {feature.balance !== null
+              ? t("remainingOf", {
+                  balance: formatCount(feature.balance, locale),
+                  included: formatCount(feature.included ?? 0, locale),
+                })
+              : t("remainingOfUnknown", {
+                  included: formatCount(feature.included ?? 0, locale),
+                })}
           </p>
         </div>
       </div>
       {remaining !== null ? (
-        <RemainingBar label={feature.name} remaining={remaining} />
+        <RemainingBar label={featureName} remaining={remaining} />
       ) : null}
     </div>
   );
 }
 
 function UsageRetentionRow({ retentionDays }: { retentionDays: number }) {
+  const t = useTranslations("billing.usage");
   return (
     <div className="flex items-center justify-between gap-4 p-4">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">Log retention</p>
+        <p className="truncate text-sm font-medium">{t("logRetention")}</p>
         <p className="text-muted-foreground mt-1 text-sm">
-          Logs are kept for {retentionDays} days.
+          {t("logRetentionDescription", { days: retentionDays })}
         </p>
       </div>
       <div className="border-border bg-muted shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium">
-        {retentionDays} days
+        {t("days", { days: retentionDays })}
       </div>
     </div>
   );
 }
 
 function UsageUnlimitedFeatureRow({ feature }: { feature: FeatureData }) {
+  const t = useTranslations("billing.usage");
+  const featureName = useUsageFeatureName()(feature);
   return (
     <div className="flex items-center justify-between gap-4 p-4">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{feature.name}</p>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Included in your plan without a usage cap.
-        </p>
+        <p className="truncate text-sm font-medium">{featureName}</p>
+        <p className="text-muted-foreground mt-1 text-sm">{t("noCap")}</p>
       </div>
       <div className="border-border bg-muted shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium">
-        Unlimited
+        {t("unlimited")}
       </div>
     </div>
   );
@@ -292,6 +324,9 @@ export function UsageSection() {
   const aiCreditsFeature = features.find(
     (feature) => feature.id === FEATURES.AI_CREDITS
   );
+  const pullRequestCreditsFeature = features.find(
+    (feature) => feature.id === FEATURES.PULL_REQUEST_CREDITS
+  );
 
   return (
     <>
@@ -312,6 +347,7 @@ export function UsageSection() {
           setTopupOpen(true);
         }}
         onRangeChange={setRange}
+        pullRequestCreditsFeature={pullRequestCreditsFeature}
         range={range}
         retentionDays={usageRetentionDays(features)}
         unlimitedFeatures={unlimitedUsageFeatures(features)}
@@ -339,30 +375,91 @@ function UsageBalanceSection({
   aiAnswersRemaining,
   aiCreditsFeature,
   onOpenTopup,
+  pullRequestCreditsFeature,
 }: Pick<
   UsageSectionBodyProps,
-  "aiAnswersFeature" | "aiAnswersRemaining" | "aiCreditsFeature" | "onOpenTopup"
+  | "aiAnswersFeature"
+  | "aiAnswersRemaining"
+  | "aiCreditsFeature"
+  | "onOpenTopup"
+  | "pullRequestCreditsFeature"
 >) {
-  if (!aiAnswersFeature && !aiCreditsFeature) {
+  const t = useTranslations("billing.usage");
+  const tCommon = useTranslations("common");
+  const tBillingShared = useTranslations("billing.shared");
+  const locale = useLocale();
+  const format = useFormatter();
+  const formatResetDate = (timestamp: number) =>
+    format.dateTime(new Date(timestamp), {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  const aiAnswersFooter = (feature: FeatureData, remaining: number | null) => {
+    if (feature.unlimited) {
+      return t("noCap");
+    }
+    if (remaining === null) {
+      return feature.nextResetAt === null
+        ? undefined
+        : t("resets", { date: formatResetDate(feature.nextResetAt) });
+    }
+    if (feature.nextResetAt === null) {
+      return t("remainingPercent", {
+        percent: formatPercent(remaining, locale),
+      });
+    }
+    return t("remainingPercentResets", {
+      percent: formatPercent(remaining, locale),
+      date: formatResetDate(feature.nextResetAt),
+    });
+  };
+  const aiAnswersValue = (feature: FeatureData) => {
+    if (feature.unlimited) {
+      return t("unlimited");
+    }
+    return feature.balance !== null
+      ? formatCount(feature.balance, locale)
+      : "-";
+  };
+  const aiAnswersHint = (feature: FeatureData) =>
+    feature.unlimited || feature.included === null
+      ? undefined
+      : t("ofThisCycle", { included: formatCount(feature.included, locale) });
+  const cardCount = [
+    aiAnswersFeature,
+    aiCreditsFeature,
+    pullRequestCreditsFeature,
+  ].filter(Boolean).length;
+  if (cardCount === 0) {
     return null;
   }
 
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">Balance</h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("balanceTitle")}
+        </h2>
         <p className="text-muted-foreground max-w-prose text-sm text-pretty">
-          How much of each plan limit you have left this cycle.
+          {t("balanceDescription")}
         </p>
       </div>
-      <div className="grid items-stretch gap-4 sm:grid-cols-2">
+      <div
+        className={cn(
+          "grid items-stretch gap-4 sm:grid-cols-2",
+          cardCount > 2 && "lg:grid-cols-3"
+        )}
+      >
         {aiAnswersFeature ? (
           <BalanceCard
             accentColor={USAGE_ANSWERS_ACCENT}
             footer={aiAnswersFooter(aiAnswersFeature, aiAnswersRemaining)}
             hint={aiAnswersHint(aiAnswersFeature)}
             remaining={aiAnswersFeature.unlimited ? null : aiAnswersRemaining}
-            title="AI Answers remaining"
+            title={t("aiAnswersRemaining")}
             value={aiAnswersValue(aiAnswersFeature)}
           />
         ) : null}
@@ -371,7 +468,7 @@ function UsageBalanceSection({
             accentColor="#8b5cf6"
             action={
               <Button
-                aria-label="Top up credits"
+                aria-label={tCommon("labels.topUpCredits")}
                 onClick={onOpenTopup}
                 size="icon-sm"
                 variant="outline"
@@ -379,9 +476,17 @@ function UsageBalanceSection({
                 <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
               </Button>
             }
-            footer="Credits extend usage beyond your plan limits."
-            title="Credits remaining"
-            value={creditsValue(aiCreditsFeature)}
+            footer={t("creditsFooter")}
+            title={t("creditsRemaining")}
+            value={creditsValue(aiCreditsFeature, locale)}
+          />
+        ) : null}
+        {pullRequestCreditsFeature ? (
+          <BalanceCard
+            accentColor={USAGE_PULL_REQUEST_CREDITS_ACCENT}
+            footer={t("pullRequestFooter")}
+            title={tBillingShared("pullRequestCredits")}
+            value={creditsValue(pullRequestCreditsFeature, locale)}
           />
         ) : null}
       </div>
@@ -403,6 +508,7 @@ function UsageFeatureLimitsSection({
   | "retentionDays"
   | "unlimitedFeatures"
 >) {
+  const t = useTranslations("billing.usage");
   if (
     limitedFeatures.length === 0 &&
     !hasRetentionFeature &&
@@ -414,11 +520,11 @@ function UsageFeatureLimitsSection({
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">Feature limits</h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("featureLimits")}
+        </h2>
         <p className="text-muted-foreground max-w-prose text-sm text-pretty">
-          {aiAnswersFeature
-            ? "Other remaining quotas on your plan."
-            : "Remaining quotas on your plan."}
+          {aiAnswersFeature ? t("otherQuotas") : t("quotas")}
         </p>
       </div>
       <div className="divide-y rounded-xl border">
@@ -447,6 +553,7 @@ function UsageSectionBody({
   limitedFeatures,
   onOpenTopup,
   onRangeChange,
+  pullRequestCreditsFeature,
   range,
   retentionDays,
   unlimitedFeatures,
@@ -458,6 +565,7 @@ function UsageSectionBody({
         aiAnswersRemaining={aiAnswersRemaining}
         aiCreditsFeature={aiCreditsFeature}
         onOpenTopup={onOpenTopup}
+        pullRequestCreditsFeature={pullRequestCreditsFeature}
       />
       {hasAiAnswers ? (
         <UsageBreakdownChart

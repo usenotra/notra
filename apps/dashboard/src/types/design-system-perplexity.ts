@@ -1,4 +1,4 @@
-import type { PerplexityMessageRole } from "@notra/ui/components/brainless/perplexity/perplexity-message";
+import type { PerplexityMessageRole } from "@notra/ui/components/ai-skins/perplexity/perplexity-message";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 
 export interface PerplexityStoryCitation {

@@ -27,11 +27,14 @@ type BrandReferenceRecord = Awaited<
   ReturnType<typeof db.query.brandReferences.findMany>
 >[number];
 
-async function resolveSettingsId(config: BrandReferencesConfig) {
-  if (config.voiceId) {
+async function resolveSettingsId(
+  config: BrandReferencesConfig,
+  voiceId = config.voiceId
+) {
+  if (voiceId) {
     const voice = await db.query.brandSettings.findFirst({
       where: and(
-        eq(brandSettings.id, config.voiceId),
+        eq(brandSettings.id, voiceId),
         eq(brandSettings.organizationId, config.organizationId)
       ),
       columns: { id: true },
@@ -51,8 +54,11 @@ async function resolveSettingsId(config: BrandReferencesConfig) {
   return defaultVoice?.id;
 }
 
-async function getFilteredReferences(config: BrandReferencesConfig) {
-  const settingsId = await resolveSettingsId(config);
+async function getFilteredReferences(
+  config: BrandReferencesConfig,
+  voiceId?: string
+) {
+  const settingsId = await resolveSettingsId(config, voiceId ?? config.voiceId);
 
   if (!settingsId) {
     return { settingsId: null, references: [] };
@@ -92,12 +98,20 @@ export function createGetBrandReferencesTool(
         whenToUse:
           "ALWAYS call this tool at the very start before writing any content. These references are the source of truth for how the brand sounds and writes.",
         usageNotes:
-          "Returns an array of references with type (twitter_post or custom), content, and optional notes. Study the tone, vocabulary, sentence structure, and patterns across all references to match the brand voice accurately.",
+          "Returns an array of references with type (twitter_post or custom), content, and optional notes. Study the tone, vocabulary, sentence structure, and patterns across all references to match the brand voice accurately. Pass brandIdentityId from listBrandIdentities when writing for a non-default brand.",
       }),
-      inputSchema: z.object({}),
-      execute: async () => {
+      inputSchema: z.object({
+        brandIdentityId: z
+          .string()
+          .min(1)
+          .optional()
+          .describe(
+            "Pass an id from listBrandIdentities or getBrandIdentity. Omit to use the default brand."
+          ),
+      }),
+      execute: async ({ brandIdentityId }) => {
         const { settingsId, references: filtered } =
-          await getFilteredReferences(config);
+          await getFilteredReferences(config, brandIdentityId);
 
         if (!settingsId) {
           return { references: [], count: 0 };
@@ -115,8 +129,10 @@ export function createGetBrandReferencesTool(
     }),
     {
       ttl: 5 * 60 * 1000,
-      keyGenerator: () =>
-        `get_brand_references:org=${config.organizationId}:voice=${config.voiceId ?? "default"}:agent=${config.agentType ?? "all"}`,
+      keyGenerator: (params) => {
+        const { brandIdentityId } = params as { brandIdentityId?: string };
+        return `get_brand_references:org=${config.organizationId}:voice=${brandIdentityId ?? config.voiceId ?? "default"}:agent=${config.agentType ?? "all"}`;
+      },
     }
   );
 }
@@ -140,14 +156,24 @@ export function createSearchBrandReferencesTool(
         whenNotToUse:
           "Do not use this for factual product or GitHub data. Use GitHub tools for facts. Use getBrandReferences only when you need the full unranked set as fallback.",
         usageNotes:
-          "Pass a concise query describing the tweet angle or voice signal you need. The tool uses Supermemory for ranking and falls back to recent references if semantic search is unavailable.",
+          "Pass a concise query describing the tweet angle or voice signal you need. The tool uses Supermemory for ranking and falls back to recent references if semantic search is unavailable. Pass brandIdentityId from listBrandIdentities when writing for a non-default brand.",
       }),
       inputSchema: z.object({
         query: z.string().min(1),
         limit: z.number().int().min(1).max(10).optional().default(5),
+        brandIdentityId: z
+          .string()
+          .min(1)
+          .optional()
+          .describe(
+            "Pass an id from listBrandIdentities or getBrandIdentity. Omit to use the default brand."
+          ),
       }),
-      execute: async ({ query, limit }) => {
-        const { settingsId, references } = await getFilteredReferences(config);
+      execute: async ({ query, limit, brandIdentityId }) => {
+        const { settingsId, references } = await getFilteredReferences(
+          config,
+          brandIdentityId
+        );
 
         if (!settingsId || references.length === 0) {
           return { references: [], count: 0, source: "empty" };
@@ -208,8 +234,12 @@ export function createSearchBrandReferencesTool(
     {
       ttl: 5 * 60 * 1000,
       keyGenerator: (params) => {
-        const { query, limit } = params as { query: string; limit: number };
-        return `search_brand_references:org=${config.organizationId}:voice=${config.voiceId ?? "default"}:agent=${config.agentType ?? "all"}:limit=${limit}:query=${query}`;
+        const { query, limit, brandIdentityId } = params as {
+          query: string;
+          limit: number;
+          brandIdentityId?: string;
+        };
+        return `search_brand_references:org=${config.organizationId}:voice=${brandIdentityId ?? config.voiceId ?? "default"}:agent=${config.agentType ?? "all"}:limit=${limit}:query=${query}`;
       },
     }
   );

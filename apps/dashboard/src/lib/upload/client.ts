@@ -5,6 +5,7 @@ import {
 } from "@notra/schemas/constants/dashboard/upload";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { ContentMediaKind } from "@/types/content/media";
 import type {
   DeleteChatUploadProps,
   UploadFileProps,
@@ -79,6 +80,37 @@ export async function uploadFile({
   }
 
   return { url: publicUrl, key };
+}
+
+export async function uploadContentMedia(
+  file: File,
+  kind: ContentMediaKind,
+  fallback: string
+) {
+  const body = new FormData();
+  body.set("file", file);
+  body.set("kind", kind);
+  const response = await fetch("/api/uploads/content-image", {
+    body,
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(fallback);
+  }
+  const payload: unknown = await response.json().catch(() => null);
+  if (
+    !(
+      payload &&
+      typeof payload === "object" &&
+      "url" in payload &&
+      typeof payload.url === "string" &&
+      "key" in payload &&
+      typeof payload.key === "string"
+    )
+  ) {
+    throw new Error(fallback);
+  }
+  return { key: payload.key, url: payload.url };
 }
 
 export async function deleteChatUpload({

@@ -1,5 +1,40 @@
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 
+export function markQueuedMessageSteering<
+  T extends { id: string; steering?: boolean },
+>(queue: T[], id: string): T[] {
+  return queue.map((item) =>
+    item.id === id ? { ...item, steering: true } : item
+  );
+}
+
+export function takeQueuedMessage<T extends { id: string }>(
+  queue: T[],
+  id: string
+): { message: T; remaining: T[] } | null {
+  const message = queue.find((item) => item.id === id);
+  if (!message) {
+    return null;
+  }
+
+  return {
+    message,
+    remaining: queue.filter((item) => item.id !== id),
+  };
+}
+
+export function shouldDrainQueueAfterError({
+  hasPendingSteer,
+  hasSteerInFlight,
+  isUsageLimit,
+}: {
+  hasPendingSteer: boolean;
+  hasSteerInFlight: boolean;
+  isUsageLimit: boolean;
+}): boolean {
+  return !hasPendingSteer && !hasSteerInFlight && !isUsageLimit;
+}
+
 export function parseQueuedMessages(value: unknown): QueuedMessage[] {
   if (!Array.isArray(value)) {
     return [];

@@ -1,3 +1,4 @@
+import type { IconSvgElement } from "@hugeicons/react";
 import type { SupportedLanguage } from "@notra/ai/constants/languages";
 import type { ToneProfile } from "@notra/ai/schemas/tone";
 import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
@@ -24,8 +25,6 @@ export interface BrandIdentityUiState {
   addSitemapOpen: boolean;
   deleteTargetVoiceId: string | null;
   isSaving: boolean;
-  lastSavedAtMs: number | null;
-  relativeTimeNow: number;
   storedVoiceId: string | null;
   url: string;
 }
@@ -36,8 +35,6 @@ export type BrandIdentityUiAction =
   | { type: "set-add-sitemap-open"; open: boolean }
   | { type: "set-delete-target-voice-id"; voiceId: string | null }
   | { type: "set-is-saving"; isSaving: boolean }
-  | { type: "set-last-saved-at-ms"; savedAtMs: number | null }
-  | { type: "set-relative-time-now"; now: number }
   | { type: "set-stored-voice-id"; voiceId: string | null }
   | { type: "set-url"; url: string };
 
@@ -122,12 +119,9 @@ export interface BrandIdentityTabsProps {
   onActiveTabChange: (tab: BrandTab) => void;
   onAddReferenceOpenChange: (open: boolean) => void;
   onAddSitemapOpenChange: (open: boolean) => void;
-  onSavedAtChange: (savedAt: Date) => void;
   onSavingChange: (isSaving: boolean) => void;
+  isSaving: boolean;
   organizationId: string;
-  referenceCount: number;
-  saveStatusText: string;
-  sitemapCount: number;
   voiceId: string;
   voiceWebsiteUrl: string | null;
 }
@@ -151,11 +145,9 @@ export interface BrandIdentityWorkspaceProps {
   isLoadingAffected: boolean;
   organizationId: string;
   progressError?: string;
-  referenceCount: number;
   selectedVoice: BrandSettings;
   setDefaultPending: boolean;
   setActiveTab: (tab: BrandTab) => void;
-  sitemapCount: number;
   startPolling: () => void;
   uiState: BrandIdentityUiState;
   voices: BrandSettings[];
@@ -222,7 +214,6 @@ export interface BrandFormProps {
   voiceId: string;
   initialData: BrandFormInitialData;
   onSavingChange?: (isSaving: boolean) => void;
-  onSavedAtChange?: (savedAt: Date) => void;
 }
 
 export type BrandFormApi = ReturnType<typeof useBrandForm>;
@@ -241,3 +232,15 @@ export interface AudienceFieldProps {
 }
 
 export type StepIconState = "pending" | "active" | "completed";
+
+export interface GuidelinesStatusLineProps {
+  generating: boolean;
+  lastGeneratedAt: string | null;
+}
+
+export interface GuidelinesActionButtonProps {
+  busy: boolean;
+  icon: IconSvgElement;
+  label: string;
+  onClick: () => void;
+}

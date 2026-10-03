@@ -1,5 +1,4 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import { MERCH_GALLERY_IMAGES, MERCH_PHOTO_CREDIT } from "@/constants/merch";
 
@@ -16,11 +15,12 @@ export function MerchGallery() {
               )}
               key={image.src}
             >
-              <Image
+              <img
+                decoding="async"
+                loading="lazy"
                 alt={image.alt}
                 className="aspect-3/4 w-full object-cover sm:aspect-4/5"
                 height={1440}
-                sizes="(max-width: 40rem) calc(100vw - 3rem), min(33vw, 26rem)"
                 src={image.src}
                 width={1080}
               />

@@ -1,23 +1,34 @@
 import { Input } from "@notra/ui/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@notra/ui/components/ui/input-group";
 import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "next-intl";
 
 import type { CompanyProfileFieldsProps } from "@/types/brand-identity";
 
 export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
+  const t = useTranslations("brand.identity.form");
+  const tCommon = useTranslations("common");
   return (
-    <TitleCard heading="Company Profile">
+    <TitleCard heading={t("companyProfileHeading")}>
       <div className="space-y-6">
         <form.Field name="companyName">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Company name</Label>
+              <Label htmlFor={field.name}>
+                {tCommon("labels.companyName")}
+              </Label>
               <Input
                 id={field.name}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Your company name"
+                placeholder={t("companyNamePlaceholder")}
                 value={field.state.value}
               />
             </div>
@@ -27,17 +38,12 @@ export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
         <form.Field name="websiteUrl">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Website</Label>
-              <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors">
-                <label
-                  className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"
-                  htmlFor={field.name}
-                >
-                  https://
-                </label>
-                <input
-                  aria-label="Website"
-                  className="flex-1 bg-transparent px-2.5 py-1.5 text-sm outline-none"
+              <Label htmlFor={field.name}>{tCommon("labels.website")}</Label>
+              <InputGroup>
+                <InputGroupAddon>
+                  <InputGroupText>https://</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
                   id={field.name}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -45,7 +51,7 @@ export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
                   type="text"
                   value={field.state.value}
                 />
-              </div>
+              </InputGroup>
             </div>
           )}
         </form.Field>
@@ -53,13 +59,15 @@ export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
         <form.Field name="companyDescription">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Description</Label>
+              <Label htmlFor={field.name}>
+                {tCommon("labels.description")}
+              </Label>
               <Textarea
                 className="min-h-30"
                 id={field.name}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="A short overview of your company"
+                placeholder={t("descriptionPlaceholder")}
                 value={field.state.value}
               />
             </div>

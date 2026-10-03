@@ -1,5 +1,4 @@
-import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
-
+import { CONTENT_WRITER_MODEL_ID } from "../../../lib/constants/models";
 import { createUsageHook } from "../../../lib/hooks/usage";
 
-export default createUsageHook(AGENT_DEFAULT_MODEL);
+export default createUsageHook(CONTENT_WRITER_MODEL_ID);

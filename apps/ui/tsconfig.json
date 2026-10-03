@@ -7,5 +7,10 @@
     ".blume/src/pages",
     ".blume/src/generated",
     ".blume/cache"
-  ]
+  ],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
 }

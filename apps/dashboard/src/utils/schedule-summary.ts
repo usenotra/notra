@@ -4,32 +4,7 @@ import {
   toUtcDateString,
 } from "@notra/ai/utils/schedule-interval";
 
-import { DAY_NAMES_LONG } from "@/constants/schedule";
 import type { ScheduleCron } from "@/types/automation/schedule";
-import { padTimeUnit } from "@/utils/schedule-form";
-
-function formatTime(hour: number, minute: number): string {
-  const period = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-  return `${displayHour}:${padTimeUnit(minute)} ${period}`;
-}
-
-export function formatScheduleSummary(value: ScheduleCron): string {
-  const time = formatTime(value.hour, value.minute);
-  if (value.frequency === "weekly") {
-    const day = DAY_NAMES_LONG[value.dayOfWeek ?? 1];
-    return `Every ${day} at ${time}`;
-  }
-  if (value.frequency === "monthly") {
-    const day = value.dayOfMonth ?? 1;
-    return `Monthly on day ${day} at ${time}`;
-  }
-  if (value.frequency === "custom") {
-    const days = value.intervalDays ?? CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS;
-    return `Every ${days} days at ${time}`;
-  }
-  return `Every day at ${time}`;
-}
 
 export function computeNextRun(
   value: ScheduleCron,
@@ -89,37 +64,6 @@ export function computeNextRun(
     next.setUTCMonth(next.getUTCMonth() + 1);
   }
   return next;
-}
-
-export function formatNextRunRelative(
-  nextRun: Date,
-  now: Date = new Date()
-): string {
-  const diffMs = nextRun.getTime() - now.getTime();
-  const diffMinutes = Math.floor(diffMs / 60_000);
-
-  if (diffMinutes < 1) {
-    return "any moment";
-  }
-  if (diffMinutes < 60) {
-    return `in ${diffMinutes}m`;
-  }
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `in ${diffHours}h`;
-  }
-  const diffDays = Math.floor(diffHours / 24);
-  return `in ${diffDays}d`;
-}
-
-export function formatNextRunDate(nextRun: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(nextRun);
 }
 
 export function getLocalTimezone(): string {

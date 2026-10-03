@@ -2,7 +2,7 @@ import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { MDXComponents } from "mdx/types";
 
-import { getMDXComponents } from "@/../mdx-components";
+import { getMDXComponents } from "@/mdx-components";
 
 export function getBlogMDXComponents(): MDXComponents {
   return getMDXComponents({

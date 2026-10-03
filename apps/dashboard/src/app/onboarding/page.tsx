@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoOnboardingCompetitorsPath,
@@ -35,6 +36,13 @@ export default async function OnboardingPage({
   if (!organization) {
     redirect(geoOnboardingWorkspacePath(projectId, isDevReplay));
   }
+
+  await redirectIfOnboardingDismissed(
+    organization.id,
+    organization.slug,
+    projectId,
+    isDevReplay
+  );
 
   const brand = await db.query.brandSettings.findFirst({
     where: eq(brandSettings.organizationId, organization.id),

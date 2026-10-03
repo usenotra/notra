@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const linkClass =
   "font-medium text-primary underline underline-offset-2 hover:text-primary-hover";
 
@@ -11,17 +9,17 @@ export function ContactDeveloperNote() {
       </p>
       <p className="font-sans text-[0.8125rem]/4.75 text-[#1E1E1EA6] dark:text-white/60">
         Start with the{" "}
-        <Link className={linkClass} href="/auth.md">
+        <a className={linkClass} href="/auth.md">
           agent authentication guide
-        </Link>
+        </a>
         , the{" "}
-        <Link className={linkClass} href="/.well-known/api-catalog">
+        <a className={linkClass} href="/.well-known/api-catalog">
           API catalog
-        </Link>
+        </a>
         , and the scoped{" "}
-        <Link className={linkClass} href="/developers/llms.txt">
+        <a className={linkClass} href="/developers/llms.txt">
           developer llms.txt
-        </Link>
+        </a>
         .
       </p>
     </div>

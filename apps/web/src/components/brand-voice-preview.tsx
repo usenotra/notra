@@ -1,5 +1,3 @@
-"use client";
-
 import { Label } from "@notra/ui/components/ui/label";
 import {
   Select,

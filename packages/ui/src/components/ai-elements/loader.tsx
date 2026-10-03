@@ -1,5 +1,6 @@
-import type { HTMLAttributes } from "react";
 import { Loader2Icon } from "lucide-react";
+import type { HTMLAttributes } from "react";
+
 import { cn } from "@notra/ui/lib/utils";
 
 export type LoaderProps = HTMLAttributes<HTMLDivElement> & {

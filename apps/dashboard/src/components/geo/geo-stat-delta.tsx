@@ -8,11 +8,13 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoStatDeltaTone } from "@notra/geo-core/types/geo";
 import { isGeoStatDeltaNew } from "@notra/geo-core/utils/ai-traffic";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import type { GeoStatDeltaProps } from "@/types/geo";
@@ -69,20 +71,27 @@ export function GeoStatDelta({
   delta,
   kind = "mentions",
   variant = "pill",
+  animated = false,
   label,
   hint,
   className,
 }: GeoStatDeltaProps) {
+  const locale = useLocale();
+  const tCommon = useTranslations("common");
+  const tUnits = useTranslations("common.units");
   if (delta === null) {
     return null;
   }
 
   const tone = geoStatDeltaTone(delta, kind);
-  const formatted = formatGeoStatDelta(delta, kind);
+  const formatted = formatGeoStatDelta(delta, kind, locale, {
+    new: tCommon("labels.new"),
+    points: (value) => tUnits("points", { value }),
+  });
   const isNew = isGeoStatDeltaNew(delta);
   const displayedValue =
     variant === "plain" ? formatted.replace(/^[+-]/, "") : formatted;
-  const content =
+  const staticContent =
     variant === "plain" ? (
       <span
         className={cn(
@@ -100,6 +109,15 @@ export function GeoStatDelta({
         {formatted}
       </span>
     );
+  // The whole pill swaps, background included, so tone changes never blend
+  // green into red mid-transition.
+  const content = animated ? (
+    <FadeSwap swapKey={`${tone}:${formatted}`} value={delta}>
+      {staticContent}
+    </FadeSwap>
+  ) : (
+    staticContent
+  );
 
   if (!hint) {
     return content;

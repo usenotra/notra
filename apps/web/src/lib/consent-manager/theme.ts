@@ -1,4 +1,4 @@
-import type { Theme } from "@c15t/nextjs";
+import type { Theme } from "@c15t/react";
 
 const smoothingSlot = {
   style: {

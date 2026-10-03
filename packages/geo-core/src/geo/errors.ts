@@ -162,6 +162,12 @@ export class GeoSequenceCreateFailedError extends Data.TaggedError(
   "GeoSequenceCreateFailedError"
 )<Record<string, never>> {}
 
+export class GeoSequenceLimitError extends Data.TaggedError(
+  "GeoSequenceLimitError"
+)<{
+  readonly limit: number;
+}> {}
+
 export class GeoSequenceRunUnavailableError extends Data.TaggedError(
   "GeoSequenceRunUnavailableError"
 )<Record<string, never>> {}
@@ -249,6 +255,19 @@ export class GeoWriterStartError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
+export class GeoPromptTranslationError extends Data.TaggedError(
+  "GeoPromptTranslationError"
+)<{
+  /**
+   * limit: the language already scans its maximum; last: a language keeps at
+   * least one prompt; not_picked: the prompt is not scanned in that language;
+   * language: the language is not a translated language of this project;
+   * unavailable: translating can't be billed right now.
+   */
+  readonly reason: "limit" | "last" | "not_picked" | "language" | "unavailable";
+  readonly limit?: number;
+}> {}
+
 export type GeoRouterError =
   | GeoSuggestionNotFoundError
   | GeoBrandIdentityMissingError
@@ -269,11 +288,13 @@ export type GeoRouterError =
   | GeoProjectNotFoundError
   | GeoPromptDuplicateError
   | GeoPromptNotFoundError
+  | GeoPromptTranslationError
   | GeoSampleDataDisabledError
   | GeoScanAlreadyRunningError
   | GeoScanEnginesEmptyError
   | GeoScanStartError
   | GeoSequenceCreateFailedError
+  | GeoSequenceLimitError
   | GeoSequenceNotFoundError
   | GeoSequenceRunError
   | GeoSequenceRunUnavailableError

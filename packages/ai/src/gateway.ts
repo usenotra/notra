@@ -7,6 +7,7 @@ import { log } from "@notra/ai/evlog";
 import { createOpenRouterAdapter } from "@notra/ai/router/adapters/openrouter";
 import { createVercelAdapter } from "@notra/ai/router/adapters/vercel";
 import { createModelRouter } from "@notra/ai/router/create-router";
+import { createDemoModelRouter } from "@notra/ai/router/demo-router";
 import type {
   GatewayArgs,
   GatewayModelOptions,
@@ -22,6 +23,7 @@ import type {
   RouterLogFields,
   RouterLogger,
 } from "@notra/ai/types/router";
+import { isDemoMode } from "@notra/utils/demo-mode";
 
 const APP_URL = "https://www.usenotra.com";
 const APP_TITLE = "Notra";
@@ -73,6 +75,10 @@ function buildAdapters(): Partial<Record<GatewayId, GatewayAdapter>> {
 }
 
 function createRouter(): ModelRouter {
+  // The public demo has no provider keys; answer every call in-process.
+  if (isDemoMode()) {
+    return createDemoModelRouter();
+  }
   return createModelRouter({
     adapters: buildAdapters(),
     resolvePlan: resolveOrganizationPlan,

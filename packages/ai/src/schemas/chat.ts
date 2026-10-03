@@ -7,16 +7,31 @@ import { standaloneChatContextSchema } from "./standalone-chat";
 
 export const chatModelSchema = z.enum([
   "auto",
+  "anthropic/claude-opus-5.5",
   "anthropic/claude-opus-5",
   "anthropic/claude-opus-4.8",
   "anthropic/claude-sonnet-5",
   "anthropic/claude-sonnet-4.6",
   "anthropic/claude-haiku-4.5",
-  "openai/gpt-5.4",
+  "openai/gpt-6-sol",
+  "openai/gpt-6-luna",
+  "openai/gpt-5.6-sol",
   "openai/gpt-5.5",
+  "openai/gpt-5.4",
 ]);
 
 export const thinkingLevelSchema = z.enum(["off", "low", "medium", "high"]);
+
+export const conversationSelectionSchema = z.object({
+  model: chatModelSchema.exclude(["auto"]).or(z.literal("openai/gpt-5.4-mini")),
+  thinkingLevel: thinkingLevelSchema.optional(),
+});
+
+export const chatToolApprovalResponseSchema = z.object({
+  id: z.string().min(1).max(500),
+  approved: z.boolean(),
+  reason: z.string().max(2000).optional(),
+});
 
 export const chatIdSchema = z.uuid();
 
@@ -56,7 +71,7 @@ export const slackRelayMetadataSchema = z.object({
 export const chatMessageMetadataSchema = z.object({
   chatId: z.string().min(1).optional(),
   authorUserId: z.string().min(1).max(200).optional(),
-  model: chatModelSchema.optional(),
+  model: z.string().min(1).optional(),
   requestedModel: chatModelSchema.optional(),
   thinkingLevel: thinkingLevelSchema.optional(),
   requestedThinkingLevel: thinkingLevelSchema.optional(),
@@ -65,6 +80,15 @@ export const chatMessageMetadataSchema = z.object({
   totalTokens: z.number().int().nonnegative().optional(),
   ttftMs: z.number().nonnegative().optional(),
   generationDurationMs: z.number().nonnegative().optional(),
+  activityTimings: z
+    .record(
+      z.string(),
+      z.object({
+        startedAt: z.number().nonnegative(),
+        finishedAt: z.number().nonnegative().optional(),
+      })
+    )
+    .optional(),
   tokensPerSecond: z.number().nonnegative().optional(),
   createdAt: z.number().int().nonnegative().optional(),
   externalChannelId: externalChannelIdSchema.optional(),
@@ -72,14 +96,30 @@ export const chatMessageMetadataSchema = z.object({
 
 export const UI_MESSAGES_MAX = 200;
 
+export function isTrustedChatFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 const uiMessagePartSchema = z
   .looseObject({
     type: z.string().min(1).max(100),
     text: z.string().max(100_000).optional(),
+    url: z.string().max(2000).optional(),
   })
   .refine((part) => part.type !== "text" || typeof part.text === "string", {
     message: "Text parts must include a text string",
-  });
+  })
+  .refine(
+    (part) =>
+      part.type !== "file" ||
+      (typeof part.url === "string" && isTrustedChatFileUrl(part.url)),
+    { message: "File parts must include an http(s) URL" }
+  );
 
 export const uiMessageSchema = z.object({
   id: z.string().min(1).max(200),
@@ -125,6 +165,7 @@ export const updateChatSessionSchema = z
 
 export const chatWorkflowPayloadSchema = z.object({
   requestId: z.string().min(1),
+  streamId: z.string().min(1).optional(),
   organizationId: z.string().min(1),
   chatId: z.string().min(1),
   userId: z.string().min(1),

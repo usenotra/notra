@@ -8,6 +8,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import { contentRouter } from "@/lib/orpc/routers/content";
 import { geoRouter } from "@/lib/orpc/routers/geo";
 import type { OrganizationMembership } from "@/types/auth/organization";
+import { prefetchRecentPostsQuery } from "@/utils/content-recents-prefetch.server";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
 
 /**
@@ -90,5 +91,12 @@ export async function dehydrateDashboardHomeQueries(
       client.content.activeGenerations.list(organizationInput)
     ),
   });
+  prefetchRecentPostsQuery(
+    queryClient,
+    (input) =>
+      timedPrefetch("content.recents", () => client.content.recents(input))(),
+    organizationId,
+    projectId
+  );
   return dehydrate(queryClient);
 }

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  addMcpServerFormFieldsSchema,
-  MCP_URL_PROTOCOL_REGEX,
-} from "@notra/schemas/dashboard/integrations";
+import { MCP_URL_PROTOCOL_REGEX } from "@notra/schemas/dashboard/integrations";
 import {
   Field,
   FieldDescription,
@@ -11,8 +8,11 @@ import {
 } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
-import { getMcpFormErrorMessage } from "@/lib/integrations/mcp";
+import { buildMcpUrl, getMcpFormErrorMessage } from "@/lib/integrations/mcp";
+import { createMcpServerFormFieldsSchema } from "@/schemas/mcp-server-form";
 import type { McpServerDetailsFieldsProps } from "@/types/integrations/mcp";
 
 export function McpServerDetailsFields({
@@ -20,6 +20,35 @@ export function McpServerDetailsFields({
   invalidateTestResult,
   readOnly = false,
 }: McpServerDetailsFieldsProps) {
+  const t = useTranslations("integrations.mcp.form");
+  const tCommon = useTranslations("common");
+  const addMcpServerFormFieldsSchema = useMemo(
+    () => createMcpServerFormFieldsSchema(t, tCommon),
+    [t, tCommon]
+  );
+
+  if (readOnly) {
+    return (
+      <form.Subscribe selector={(state) => state.values}>
+        {(values) => (
+          <div className="space-y-2">
+            <Field>
+              <FieldLabel>{t("serverUrl")}</FieldLabel>
+              <p className="text-muted-foreground text-sm break-all">
+                {buildMcpUrl(values.url)}
+              </p>
+            </Field>
+            {values.description ? (
+              <p className="text-muted-foreground text-sm">
+                {values.description}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </form.Subscribe>
+    );
+  }
+
   return (
     <>
       <form.Field
@@ -33,7 +62,8 @@ export function McpServerDetailsFields({
         {(field) => (
           <Field>
             <FieldLabel htmlFor="mcp-name">
-              Name <span className="text-destructive -ml-1">*</span>
+              {tCommon("labels.name")}{" "}
+              <span className="text-destructive -ml-1">*</span>
             </FieldLabel>
             <Input
               autoComplete="off"
@@ -41,12 +71,15 @@ export function McpServerDetailsFields({
               id="mcp-name"
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
-              placeholder="My Custom Server"
+              placeholder={t("namePlaceholder")}
               value={field.state.value}
             />
             {field.state.meta.errors[0] ? (
               <p className="text-destructive text-sm">
-                {getMcpFormErrorMessage(field.state.meta.errors[0])}
+                {getMcpFormErrorMessage(
+                  field.state.meta.errors[0],
+                  tCommon("labels.invalidValue")
+                )}
               </p>
             ) : null}
           </Field>
@@ -64,10 +97,10 @@ export function McpServerDetailsFields({
         {(field) => (
           <Field>
             <FieldLabel htmlFor="mcp-url">
-              Server URL <span className="text-destructive -ml-1">*</span>
+              {t("serverUrl")} <span className="text-destructive -ml-1">*</span>
             </FieldLabel>
             <div
-              className={`focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-border"}`}
+              className={`focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-lg border transition-colors ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-border"}`}
             >
               <label
                 className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"
@@ -93,12 +126,13 @@ export function McpServerDetailsFields({
             </div>
             {field.state.meta.errors[0] ? (
               <p className="text-destructive text-sm">
-                {getMcpFormErrorMessage(field.state.meta.errors[0])}
+                {getMcpFormErrorMessage(
+                  field.state.meta.errors[0],
+                  tCommon("labels.invalidValue")
+                )}
               </p>
             ) : (
-              <FieldDescription>
-                The HTTPS endpoint where your MCP server is reachable.
-              </FieldDescription>
+              <FieldDescription>{t("urlDescription")}</FieldDescription>
             )}
           </Field>
         )}
@@ -112,22 +146,23 @@ export function McpServerDetailsFields({
       >
         {(field) => (
           <Field>
-            <FieldLabel htmlFor="mcp-description">
-              Use case description
-            </FieldLabel>
+            <FieldLabel htmlFor="mcp-description">{t("useCase")}</FieldLabel>
             <Textarea
               className="max-h-[10rem] overflow-y-auto"
               disabled={readOnly}
               id="mcp-description"
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
-              placeholder="What tools or context should Notra use this server for?"
+              placeholder={t("useCasePlaceholder")}
               rows={3}
               value={field.state.value}
             />
             {field.state.meta.errors[0] ? (
               <p className="text-destructive text-sm">
-                {getMcpFormErrorMessage(field.state.meta.errors[0])}
+                {getMcpFormErrorMessage(
+                  field.state.meta.errors[0],
+                  tCommon("labels.invalidValue")
+                )}
               </p>
             ) : null}
           </Field>

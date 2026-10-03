@@ -1,21 +1,33 @@
+/*
+ * OpenCode TUI palette. OpenCode renders in its dark theme in both light and
+ * dark mode, like the terminal it lives in.
+ */
 :root {
-  --opencode-tui-background: #fdfdfd;
-  --opencode-tui-surface: #f6f6f6;
-  --opencode-tui-foreground: #1d1d1d;
-  --opencode-tui-muted: #929292;
-  --opencode-tui-subtle: #dedede;
-  --opencode-tui-purple: #8256d6;
-  --opencode-tui-orange: #e48600;
-  --opencode-tui-green: #00a861;
+  --opencode-tui-background: #090909;
+  --opencode-tui-panel: #191919;
+  --opencode-tui-sidebar: #121212;
+  --opencode-tui-foreground: #e9e9e9;
+  --opencode-tui-muted: #737373;
+  --opencode-tui-subtle: #262626;
+  --opencode-tui-blue: #3b91f9;
+  --opencode-tui-orange: #fd9718;
+  --opencode-tui-green: #4fd47b;
+  --opencode-tui-logo-open: #737373;
+  --opencode-tui-logo-code: #e9e9e9;
+  --opencode-tui-logo-fill: #2a2a2a;
 }
 
-.dark {
-  --opencode-tui-background: #0a0a0a;
-  --opencode-tui-surface: #141414;
-  --opencode-tui-foreground: #eeeeee;
-  --opencode-tui-muted: #a0a0a0;
-  --opencode-tui-subtle: #484848;
-  --opencode-tui-purple: #9d7cd8;
-  --opencode-tui-orange: #fab283;
-  --opencode-tui-green: #7fd88f;
+@theme inline {
+  --color-opencode-tui-background: var(--opencode-tui-background);
+  --color-opencode-tui-panel: var(--opencode-tui-panel);
+  --color-opencode-tui-sidebar: var(--opencode-tui-sidebar);
+  --color-opencode-tui-foreground: var(--opencode-tui-foreground);
+  --color-opencode-tui-muted: var(--opencode-tui-muted);
+  --color-opencode-tui-subtle: var(--opencode-tui-subtle);
+  --color-opencode-tui-blue: var(--opencode-tui-blue);
+  --color-opencode-tui-orange: var(--opencode-tui-orange);
+  --color-opencode-tui-green: var(--opencode-tui-green);
+  --color-opencode-tui-logo-open: var(--opencode-tui-logo-open);
+  --color-opencode-tui-logo-code: var(--opencode-tui-logo-code);
+  --color-opencode-tui-logo-fill: var(--opencode-tui-logo-fill);
 }

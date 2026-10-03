@@ -13,7 +13,7 @@ export function DesignSystemWriteDialogDemo() {
   return (
     <section className="scroll-mt-10 space-y-6" id="write-dialog">
       <DesignSystemSectionHeader
-        description="GEO writer dialog with the floating duotone panels and collapsible section nav."
+        description="GEO writer dialog in the settings modal layout with a section nav."
         id="write-dialog"
         title="Write dialog"
       />

@@ -7,6 +7,8 @@ import {
   buildJourneyOverview,
   buildJourneyPathTree,
   countJourneyBranches,
+  journeySeries,
+  journeyTrendDays,
 } from "@/utils/geo-journey";
 
 function event(path: string, referer = ""): GeoJourneyEvent {
@@ -80,9 +82,30 @@ describe("buildJourneyOverview", () => {
         distinctPaths: 2,
         firstSeenAt: "2026-09-16 10:00:00",
         lastSeenAt: "2026-09-16 10:01:00",
+        entryPath: "/",
         samplePaths: ["/", "/pricing", "/"],
       },
     ]);
     expect(overview.paths.find((row) => row.path === "/")?.journeys).toBe(1);
+  });
+});
+
+describe("journey trends", () => {
+  test("fills every day between the first and last journey", () => {
+    const days = journeyTrendDays([
+      { daily: [{ day: "2026-09-01", journeys: 2 }] },
+      { daily: [{ day: "2026-09-04", journeys: 1 }] },
+    ]);
+    expect(days).toEqual([
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+    ]);
+    expect(
+      journeySeries([{ day: "2026-09-04", journeys: 1 }], days).map(
+        (point) => point.value
+      )
+    ).toEqual([0, 0, 0, 1]);
   });
 });

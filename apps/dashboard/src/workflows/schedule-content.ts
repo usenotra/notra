@@ -493,7 +493,7 @@ export async function scheduleContentWorkflow(payload: {
       action: "confirm",
       units: createdPosts.length,
       usage: contentResult.usage,
-      fallbackModelId: "anthropic/claude-sonnet-4.6",
+      fallbackModelId: "anthropic/claude-sonnet-5",
       properties: buildCreditProperties(
         gate,
         trigger.outputType,

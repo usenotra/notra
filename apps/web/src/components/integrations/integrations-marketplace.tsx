@@ -1,5 +1,3 @@
-"use client";
-
 import { parseAsString, useQueryState } from "nuqs";
 
 import { ALL_CATEGORY_ID } from "@/constants/integrations";

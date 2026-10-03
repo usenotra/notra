@@ -21,7 +21,7 @@ export function TrafficBreakdownCard({
       onPointerLeave={onPointerLeave}
       side="bottom"
     >
-      <div className="border-border bg-muted rounded-t-2xl border border-b-0 pb-5">
+      <div className="border-shell-border bg-shell rounded-t-2xl border border-b-0 pb-5">
         <div className="flex items-center justify-between gap-3 px-3 py-2">
           <span className="text-foreground flex min-w-0 items-center gap-2 text-sm font-semibold">
             {icon}

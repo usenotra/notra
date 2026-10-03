@@ -1,3 +1,9 @@
+import type { useTranslations } from "next-intl";
+
+export type SidebarUpgradeTranslator = ReturnType<
+  typeof useTranslations<"nav.upgrade">
+>;
+
 export interface SidebarUpgradeCopyInput {
   hasNoPlan: boolean;
   isLoading: boolean;

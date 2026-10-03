@@ -1,13 +1,14 @@
 import { HydrationBoundary } from "@tanstack/react-query";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { StudioUpgradeGate } from "@/components/dashboard/studio-upgrade-gate";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveAiProductAccess } from "@/lib/billing/subscription";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
-import { getGreeting } from "@/utils/dashboard-greeting";
+import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
 import { dehydrateDashboardHomeQueries } from "@/utils/dashboard-home-prefetch.server";
 import { geoRequestedProjectId } from "@/utils/geo-hydration";
 
@@ -35,16 +36,19 @@ async function DashboardHomePage({
   const [{ organization, user, member, billing }, requestHeaders, search] =
     await Promise.all([accessPromise, requestHeadersPromise, searchParams]);
   if (!billing.hasAccess) {
-    redirect(`/${slug}/feedback`);
+    return <StudioUpgradeGate slug={slug} />;
   }
   const projectId = await resolveInitialGeoProjectId(
     organization.id,
     slug,
     geoRequestedProjectId(search)
   );
-  const greeting = getGreeting(new Date());
+  const t = await getTranslations("home");
+  const period = getGreetingPeriod(new Date());
   const userName = user.name?.trim();
-  const greetingText = userName ? `${greeting}, ${userName}!` : `${greeting}!`;
+  const greetingText = userName
+    ? t("greetingWithName", { period, name: userName })
+    : t("greeting", { period });
 
   return (
     <HydrationBoundary

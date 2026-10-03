@@ -5,7 +5,8 @@ import { cn } from "@notra/ui/lib/utils";
 interface TitleCardProps extends Omit<React.ComponentProps<"div">, "title"> {
   heading: React.ReactNode;
   as?: "div" | "section";
-  headingAs?: "p" | "h2";
+  /** `div` for block content such as a loading skeleton. */
+  headingAs?: "p" | "h2" | "div";
   icon?: React.ReactNode;
   action?: React.ReactNode;
   footer?: React.ReactNode;

@@ -1,3 +1,4 @@
+import { recordBrandAnalysisOutcome } from "@notra/webhooks/runtime/brand-analysis";
 import type { Redis } from "@upstash/redis";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -123,6 +124,10 @@ export async function updateBrandAnalysisJob(
     })
   );
   await redis.expire(getJobKey(jobId), JOB_TTL_SECONDS);
+
+  if (nextJob.status === "completed" || nextJob.status === "failed") {
+    await recordBrandAnalysisOutcome(nextJob);
+  }
 
   return nextJob;
 }

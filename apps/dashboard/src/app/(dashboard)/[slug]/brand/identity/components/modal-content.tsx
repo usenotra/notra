@@ -1,4 +1,5 @@
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
 import type { ModalContentProps } from "@/types/brand-identity";
@@ -15,6 +16,8 @@ export function ModalContent({
   isPending,
   inlineError,
 }: ModalContentProps) {
+  const t = useTranslations("brand.identity.analyze");
+  const tCommon = useTranslations("common");
   if (isPendingSettings) {
     return (
       <div className="flex justify-center py-4">
@@ -37,7 +40,7 @@ export function ModalContent({
             https://
           </span>
           <input
-            aria-label="Website URL"
+            aria-label={t("websiteUrl")}
             className="placeholder:text-muted-foreground h-10 flex-1 bg-transparent px-3 text-sm outline-none"
             disabled={isPending}
             id="brand-url-input"
@@ -54,22 +57,15 @@ export function ModalContent({
         </div>
         <Button
           className="h-10 px-6"
-          disabled={isPending}
+          loading={isPending}
           onClick={handleAnalyze}
         >
-          {isPending ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              <span>Analyzing</span>
-            </>
-          ) : (
-            "Analyze"
-          )}
+          {tCommon("labels.analyze")}
         </Button>
       </div>
       {(inlineError || progress.status === "failed") && (
         <p className="text-destructive text-center text-sm">
-          {inlineError ?? "Try again with a different URL"}
+          {inlineError ?? t("tryDifferentUrl")}
         </p>
       )}
     </div>

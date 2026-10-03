@@ -42,9 +42,9 @@ export function AuthBrandPanel() {
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(200deg,#a78bfa_0%,#7c3aed_55%,#5b21b6_100%)] p-14">
       {shouldReduceMotion ? null : (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="[container-type:size] pointer-events-none absolute inset-0 overflow-hidden">
           <Dithering
-            className="absolute top-[56.875rem] left-[calc(100%-38.75rem)] h-[49.0625rem] w-[56.625rem] origin-top-left rotate-[270deg] opacity-30"
+            className="absolute top-full left-0 h-[100cqw] w-[100cqh] origin-top-left rotate-[270deg] opacity-30"
             colorBack="#00000000"
             colorFront="#ffffff3d"
             scale={DITHERING_SCALE}

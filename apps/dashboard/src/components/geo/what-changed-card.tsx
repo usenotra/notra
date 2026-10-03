@@ -7,34 +7,31 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_CHANGE_KIND_LABELS,
   GEO_CHANGE_KIND_ORDER,
-  GEO_CHANGES_COLUMN_LABELS,
+  GEO_CHANGES_COMPETITOR_STACK_LIMIT,
   GEO_CHANGES_EMPTY_DETAIL,
-  GEO_CHANGES_EMPTY_NEEDS_SCANS,
-  GEO_CHANGES_EMPTY_NO_CHANGES,
-  GEO_CHANGES_ITEM_LABEL,
   GEO_CHANGES_LABEL,
-  GEO_CHANGES_PAGE_KEY,
   GEO_CHANGES_SKELETON_ROWS,
   GEO_CHANGES_SUMMARY_GROUPS,
-  GEO_CHANGES_SUMMARY_HINTS,
-  GEO_CHANGES_SUMMARY_LABELS,
   GEO_EMPTY_COMPETITORS,
   GEO_EMPTY_PROMPT_RESULTS,
-  GEO_GAPS_COMPETITOR_DETAIL,
 } from "@notra/geo-core/constants/geo";
 import { findCompetitor } from "@notra/geo-core/geo/domain";
-import type { GeoChangeEvent, GeoCompetitor } from "@notra/geo-core/types/geo";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
+import type {
+  GeoChangeEvent,
+  GeoChangesSummary,
+  GeoChangesSummaryGroupKey,
+  GeoCompetitor,
+} from "@notra/geo-core/types/geo";
+import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -42,7 +39,6 @@ import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -57,11 +53,12 @@ import {
 } from "@/constants/geo-change-icons";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoChanges } from "@/lib/hooks/use-geo";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
+import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
 import { cn } from "@/lib/utils";
 import type {
   GeoChangeCellProps,
   GeoChangeCompetitorsCellProps,
+  GeoChangeStateLabel,
   GeoChangeSummaryGroupProps,
   GeoChangeSummaryStatProps,
   GeoChangesSummaryRowProps,
@@ -71,11 +68,11 @@ import {
   describeGeoChangeDetail,
   geoChangeEngineLabel,
   geoChangePositionSortValue,
-  geoChangesSubline,
+  isSameGeoChangeState,
 } from "@/utils/geo-changes";
 import { withGeoProject } from "@/utils/geo-paths";
 import { promptTableRowForId } from "@/utils/geo-prompts";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const STAT_ICON_SIZE = 10;
 const STAT_ICON_STROKE = 2.5;
@@ -99,6 +96,7 @@ function SummaryStat({
   hint,
   value,
 }: GeoChangeSummaryStatProps) {
+  const locale = useLocale();
   const isZero = value === 0;
   return (
     <Tooltip>
@@ -121,7 +119,7 @@ function SummaryStat({
           strokeWidth={STAT_ICON_STROKE}
         />
         <span className="sr-only">{label} </span>
-        {value.toLocaleString()}
+        {value.toLocaleString(locale)}
       </TooltipTrigger>
       <TooltipContent className="max-w-56 text-pretty">
         <span className="font-medium">{label}</span>
@@ -132,21 +130,37 @@ function SummaryStat({
 }
 
 function SummaryGroup({ group, summary }: GeoChangeSummaryGroupProps) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("common.labels");
+  const groupLabels: Record<GeoChangesSummaryGroupKey, string> = {
+    mentions: tGeoShared("mentionsLabel"),
+    position: tLabels("position"),
+    citations: tGeoShared("citations"),
+  };
+  const summaryLabels: Record<keyof GeoChangesSummary, string> = {
+    gained: t("summaryLabels.gained"),
+    lost: tGeoShared("lost"),
+    positionImproved: tGeoShared("positionUp"),
+    positionDropped: tGeoShared("positionDown"),
+    citationsAdded: t("summaryLabels.citationsAdded"),
+    citationsRemoved: t("summaryLabels.citationsRemoved"),
+  };
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-muted-foreground mr-0.5 text-xs">
-        {group.label}
+        {groupLabels[group.key]}
       </span>
       <SummaryStat
         direction="up"
-        hint={GEO_CHANGES_SUMMARY_HINTS[group.up]}
-        label={GEO_CHANGES_SUMMARY_LABELS[group.up]}
+        hint={t(`summaryHints.${group.up}`)}
+        label={summaryLabels[group.up]}
         value={summary[group.up]}
       />
       <SummaryStat
         direction="down"
-        hint={GEO_CHANGES_SUMMARY_HINTS[group.down]}
-        label={GEO_CHANGES_SUMMARY_LABELS[group.down]}
+        hint={t(`summaryHints.${group.down}`)}
+        label={summaryLabels[group.down]}
         value={summary[group.down]}
       />
     </div>
@@ -169,6 +183,17 @@ function SummaryToolbar({ summary }: GeoChangesSummaryRowProps) {
 }
 
 function ChangeCell({ event }: GeoChangeCellProps) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoSharedKinds = useTranslations("geo.shared");
+  const changeKindLabel = (kind: GeoChangeEvent["kind"]) => {
+    if (kind === "position_improved") {
+      return tGeoSharedKinds("positionUp");
+    }
+    if (kind === "position_dropped") {
+      return tGeoSharedKinds("positionDown");
+    }
+    return t(`kinds.${kind}`);
+  };
   return (
     <span className="flex min-w-0 items-center gap-2">
       <span
@@ -183,7 +208,7 @@ function ChangeCell({ event }: GeoChangeCellProps) {
         />
       </span>
       <span className="truncate font-medium">
-        {GEO_CHANGE_KIND_LABELS[event.kind]}
+        {changeKindLabel(event.kind)}
       </span>
     </span>
   );
@@ -201,27 +226,42 @@ function EngineCell({ event }: GeoChangeCellProps) {
 }
 
 function PositionCell({ event }: GeoChangeCellProps) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("common.labels");
   const detail = describeGeoChangeDetail(event);
-  const isUnchanged = detail.before === detail.after;
+  const isUnchanged = isSameGeoChangeState(detail.before, detail.after);
+  const stateLabel = (state: GeoChangeStateLabel) => {
+    if (state.key === "position") {
+      return t("states.position", { position: state.position });
+    }
+    if (state.key === "notCited") {
+      return t("states.notCited");
+    }
+    if (state.key === "new") {
+      return tLabels("new");
+    }
+    return tGeoShared(state.key);
+  };
 
   if (isUnchanged) {
     return (
       <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-        {detail.after}
+        {stateLabel(detail.after)}
       </span>
     );
   }
 
   return (
     <span className="flex items-center gap-1.5 whitespace-nowrap tabular-nums">
-      <span className="text-muted-foreground">{detail.before}</span>
+      <span className="text-muted-foreground">{stateLabel(detail.before)}</span>
       <HugeiconsIcon
         aria-hidden="true"
         className="text-muted-foreground/60 shrink-0"
         icon={ArrowRight01Icon}
         size={POSITION_ARROW_SIZE}
       />
-      <span>{detail.after}</span>
+      <span>{stateLabel(detail.after)}</span>
     </span>
   );
 }
@@ -230,14 +270,16 @@ function CompetitorLogosCell({
   event,
   competitors,
 }: GeoChangeCompetitorsCellProps) {
+  const logoStackLabels = useLogoStackLabels();
+  const tGeoShared2 = useTranslations("geo.shared");
   const items = event.competitors.map((name) => {
     const competitor = findCompetitor(competitors, name);
     return {
       key: name,
       label: name,
       detail: competitor
-        ? GEO_GAPS_COMPETITOR_DETAIL.tracked
-        : GEO_GAPS_COMPETITOR_DETAIL.discovered,
+        ? tGeoShared2("trackedCompetitor")
+        : tGeoShared2("discoveredInAnswersNotTracked"),
       renderIcon: (className: string) => (
         <CompetitorLogo
           className={className}
@@ -247,7 +289,18 @@ function CompetitorLogosCell({
       ),
     };
   });
-  return <LogoStack items={items} />;
+  /*
+   * One named brand beats four anonymous logos: the column is narrow, and the
+   * row already says what happened, so the only open question is "to whom".
+   */
+  return (
+    <LogoStack
+      labels={logoStackLabels}
+      items={items}
+      limit={GEO_CHANGES_COMPETITOR_STACK_LIMIT}
+      showLabel
+    />
+  );
 }
 
 function DetailCell({ event, competitors }: GeoChangeCompetitorsCellProps) {
@@ -262,12 +315,13 @@ function DetailCell({ event, competitors }: GeoChangeCompetitorsCellProps) {
 }
 
 function changeColumnsFor(
-  competitors: readonly GeoCompetitor[]
+  competitors: readonly GeoCompetitor[],
+  labels: Record<"change" | "engine" | "prompt" | "position" | "detail", string>
 ): TableColumn<GeoChangeEvent>[] {
   return [
     {
       key: "change",
-      header: GEO_CHANGES_COLUMN_LABELS.change,
+      header: labels.change,
       width: "14rem",
       sortable: true,
       cell: (row) => <ChangeCell event={row} />,
@@ -275,7 +329,8 @@ function changeColumnsFor(
     },
     {
       key: "engine",
-      header: GEO_CHANGES_COLUMN_LABELS.engine,
+      collapsePriority: 1,
+      header: labels.engine,
       width: "8.5rem",
       sortable: true,
       cell: (row) => <EngineCell event={row} />,
@@ -283,7 +338,7 @@ function changeColumnsFor(
     },
     {
       key: "prompt",
-      header: GEO_CHANGES_COLUMN_LABELS.prompt,
+      header: labels.prompt,
       width: "1.4fr",
       sortable: true,
       cell: (row) => (
@@ -294,7 +349,8 @@ function changeColumnsFor(
     },
     {
       key: "position",
-      header: GEO_CHANGES_COLUMN_LABELS.position,
+      collapsePriority: 2,
+      header: labels.position,
       width: "14rem",
       sortable: true,
       cell: (row) => <PositionCell event={row} />,
@@ -302,7 +358,8 @@ function changeColumnsFor(
     },
     {
       key: "detail",
-      header: GEO_CHANGES_COLUMN_LABELS.detail,
+      collapsePriority: 3,
+      header: labels.detail,
       width: "1fr",
       cell: (row) => <DetailCell competitors={competitors} event={row} />,
     },
@@ -320,9 +377,13 @@ export function WhatChangedCard({
   competitors = GEO_EMPTY_COMPETITORS,
   isScanning = false,
 }: WhatChangedCardProps) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { projectId } = useGeoProjectScope();
   const router = useRouter();
-  const { data, isPending } = useGeoChanges(organizationId);
+  const { data, isPending, isFetching } = useGeoChanges(organizationId);
   const [detail, setDetail] = useState<{
     promptId: string;
     engine: string;
@@ -332,12 +393,22 @@ export function WhatChangedCard({
     : null;
 
   const events = data?.events ?? [];
-  const columns = changeColumnsFor(competitors);
-  const pagination = useTablePagination({
-    key: GEO_CHANGES_PAGE_KEY,
-    totalItems: events.length,
-    isReady: !isPending,
+  const columns = changeColumnsFor(competitors, {
+    change: t("columns.change"),
+    engine: tGeoShared("engine"),
+    prompt: tGeoShared("prompt"),
+    position: tCommon("labels.position"),
+    detail: tCommon("labels.competitors"),
   });
+  const finishedAt = data?.currentScan?.finishedAt;
+  let subline = t("subline");
+  if (isScanning) {
+    subline = tGeoShared("scanInProgress");
+  } else if (finishedAt) {
+    subline = t("sublineWithTime", {
+      time: formatAiTrafficTimestamp(finishedAt, locale),
+    });
+  }
 
   function openEvent(event: GeoChangeEvent) {
     if (promptTableRowForId(event.promptId, promptResults)) {
@@ -352,17 +423,30 @@ export function WhatChangedCard({
     );
   }
 
-  let body = <GeoTableSkeleton rows={GEO_CHANGES_SKELETON_ROWS} />;
+  let body = (
+    <Table
+      className="rounded-2xl"
+      columns={columns}
+      data={events}
+      defaultSort={CHANGES_DEFAULT_SORT}
+      getRowId={changeRowId}
+      height={tableHeightFor(
+        events.length === 0 ? GEO_CHANGES_SKELETON_ROWS : events.length
+      )}
+      loading={isPending || isFetching}
+      onRowClick={openEvent}
+      resizable
+      rowHeight={TABLE_ROW_HEIGHT}
+      toolbar={data ? <SummaryToolbar summary={data.summary} /> : undefined}
+    />
+  );
   if (!isPending && data) {
     if (!data.previousScan) {
       body = (
         <InstrumentEmpty
           busy={isScanning}
           className="h-40"
-          message={geoScanEmptyMessage(
-            isScanning,
-            GEO_CHANGES_EMPTY_NEEDS_SCANS
-          )}
+          message={isScanning ? tGeoShared("scanningEngines") : t("needsScans")}
           preview={
             <div className="px-6 pt-2">
               <EmptyStateTablePreview
@@ -379,10 +463,7 @@ export function WhatChangedCard({
         <InstrumentEmpty
           busy={isScanning}
           className="h-40"
-          message={geoScanEmptyMessage(
-            isScanning,
-            GEO_CHANGES_EMPTY_NO_CHANGES
-          )}
+          message={isScanning ? tGeoShared("scanningEngines") : t("noChanges")}
           preview={
             <div className="px-6 pt-2">
               <EmptyStateTablePreview
@@ -394,41 +475,14 @@ export function WhatChangedCard({
           seed={GEO_CHANGES_LABEL}
         />
       );
-    } else {
-      body = (
-        <Table
-          className="rounded-2xl"
-          columns={columns}
-          data={events}
-          defaultSort={CHANGES_DEFAULT_SORT}
-          footer={
-            <TablePagination
-              {...pagination}
-              itemLabel={GEO_CHANGES_ITEM_LABEL}
-            />
-          }
-          getRowId={changeRowId}
-          height={paginatedTableHeightFor(pagination.pageRowCount)}
-          onRowClick={openEvent}
-          onSortChange={() => pagination.setPage(1)}
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          resizable
-          rowHeight={TABLE_ROW_HEIGHT}
-          toolbar={<SummaryToolbar summary={data.summary} />}
-        />
-      );
     }
   }
 
   return (
     <>
       <InstrumentSection
-        description={geoChangesSubline(
-          data?.currentScan?.finishedAt,
-          isScanning
-        )}
-        eyebrow={GEO_CHANGES_LABEL}
+        description={subline}
+        eyebrow={tGeoShared("whatChanged")}
       >
         {body}
       </InstrumentSection>

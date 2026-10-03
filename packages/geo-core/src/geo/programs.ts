@@ -1,6 +1,9 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,
+  queryGeoJourneyPages,
+  queryGeoJourneySources,
   queryGeoTrafficJourneys,
   queryGeoTrafficLog,
   queryGeoTrafficOverview,
@@ -17,6 +20,7 @@ import {
 } from "@notra/db/schema";
 import {
   queryGeoCheckCompetitorPrompts,
+  queryGeoCheckCompetitorPromptSummary,
   queryGeoCheckCompetitorShare,
   queryGeoCheckCompetitorShareTimeseries,
   queryGeoCheckCompetitorShareTrends,
@@ -36,6 +40,7 @@ import { Effect } from "effect";
 import {
   AI_TRAFFIC_DEFAULT_DAYS,
   AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT,
+  GEO_JOURNEY_PAGES_LIMIT,
   AI_TRAFFIC_DEFAULT_LOG_LIMIT,
   AI_TRAFFIC_DEFAULT_PAGES_LIMIT,
   AI_TRAFFIC_PAGES_FETCH_LIMIT,
@@ -83,6 +88,8 @@ import type {
   GeoTimeseriesResponse,
   GeoTrackedPrompt,
   GeoTrackedPromptsResponse,
+  GeoJourneyDailyPoint,
+  GeoJourneyStatsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogResponse,
   GeoTrafficPagesResponse,
@@ -105,8 +112,12 @@ import {
   normalizeConversionPaths,
   sumConversionVisits,
 } from "../utils/geo-conversion-paths";
+import { engineFamilyOf } from "../utils/geo-engine-family";
 import { scopeGeoScanEngines } from "../utils/geo-engines";
-import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import {
+  trackedGeoLanguages,
+  withPromptLanguage,
+} from "../utils/geo-language-rows";
 import {
   geoDefaultEngines,
   getGeoModelCatalogEntry,
@@ -120,7 +131,7 @@ import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
 import { competitorKey } from "./domain";
-import { geoDb, geoQuery } from "./effect";
+import { geoDb, geoQuery, geoSkip } from "./effect";
 import {
   GeoCompetitorLimitError,
   GeoPromptDuplicateError,
@@ -130,6 +141,7 @@ import {
   GeoSettingsDisabledError,
   GeoSettingsMissingError,
   GeoSettingsTrackingError,
+  GeoWriterCreditsExhaustedError,
 } from "./errors";
 import { geoHiddenSourceParams } from "./hidden-sources";
 import { invalidateGeoIngestHostsCache } from "./ingest";
@@ -151,6 +163,10 @@ import {
 } from "./projects";
 import { promptKey } from "./prompt-key";
 import {
+  deleteGeoPromptTranslations,
+  pickNewGeoPrompts,
+} from "./prompt-translations";
+import {
   applyAutoPromptChange,
   buildGeoPrompts,
   customPromptScanId,
@@ -158,7 +174,10 @@ import {
   isGeoAutoPromptId,
   toAutoTrackedPrompts,
 } from "./prompts";
-import { startClaimedGeoScanRun } from "./scan-handoff";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
 import { rearmedGeoScanAt } from "./scan-schedule";
 import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
@@ -668,6 +687,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         nextScanAt: true,
         lastScanAt: true,
         scanIntervalHours: true,
+        promptLanguage: true,
       },
       where: eq(geoSettings.projectId, projectId),
     })
@@ -684,6 +704,18 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const domains = normalizeProjectDomains(
     input.domains ?? existingSettings?.domains ?? []
   );
+  // Stored prompts are written in the prompt language, so it is fixed once set
+  // and always stays tracked; otherwise scans would only run translations.
+  const promptLanguage =
+    existingSettings?.promptLanguage ?? input.promptLanguage ?? null;
+  const languages = withPromptLanguage(input.languages, promptLanguage);
+  if (!languages) {
+    return yield* Effect.fail(
+      new GeoSettingsTrackingError({
+        message: `${promptLanguage} is the prompt language and stays tracked, so choose at most ${GEO_MAX_LANGUAGES - 1} other languages`,
+      })
+    );
+  }
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
       unavailableStaticEngines.size > 0 && unavailableStaticEngines.has(engine)
@@ -722,7 +754,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   // A re-armed or cleared schedule must not stay leased by the sweep that was
   // mid-tick, or the new stamp would be ignored until the lease expires. An
   // untouched schedule keeps whatever lease that sweep holds.
-  const clearedLease = keepNextScanAt ? {} : { scanLeaseUntil: null };
+  const clearedLease = keepNextScanAt
+    ? {}
+    : { scanLeaseUntil: null, scanFirstFailedAt: null };
 
   yield* geoDb("settings upsert failed", () =>
     db
@@ -736,7 +770,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         competitors: [],
         conversionPaths,
         domains,
-        languages: input.languages,
+        languages,
+        promptLanguage,
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
@@ -754,7 +789,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           aliases: input.aliases,
           conversionPaths,
           domains,
-          languages: input.languages,
+          languages,
+          promptLanguage,
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
@@ -1048,13 +1084,36 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
 );
 
 export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
-  function* (input: GeoScopeInput, brand: string, window: GeoWindowInput) {
+  function* (
+    input: GeoScopeInput,
+    brand: string,
+    window: GeoWindowInput,
+    summaryOnly = false
+  ) {
     const scope = yield* resolveGeoScope(input);
     const resolvedWindow =
       toGeoCheckWindow(window) ??
       toGeoCheckWindow({ days: GEO_COMPETITOR_DETAIL_DAYS });
 
     const checkScope = geoCheckScope(scope);
+    if (summaryOnly) {
+      const summary = yield* geoDb("competitor summary query failed", () =>
+        queryGeoCheckCompetitorPromptSummary(checkScope, brand, resolvedWindow)
+      );
+      const response: GeoCompetitorDetailResponse = {
+        configured: true,
+        points: [],
+        prompts: [],
+        summary: {
+          answers: summary.answers,
+          prompts: summary.prompts,
+          engines: new Set(summary.engineIds.map(engineFamilyOf)).size,
+          ownMentioned: summary.ownMentioned,
+        },
+      };
+      return response;
+    }
+
     const [timeseries, prompts] = yield* Effect.all(
       [
         geoDb("competitor timeseries query failed", () =>
@@ -1235,12 +1294,85 @@ export const loadGeoTrafficJourneys = Effect.fn("geo.trafficJourneys")(
         distinctPaths: Number(row.distinct_paths),
         firstSeenAt: row.first_seen_at,
         lastSeenAt: row.last_seen_at,
+        // `sample_paths` is a set with no ordering guarantee, so it is only a
+        // fallback for pipe versions deployed before `entry_path` existed.
+        entryPath: row.entry_path ?? row.sample_paths[0] ?? "",
         samplePaths: row.sample_paths,
       })),
     };
     return response;
   }
 );
+
+function toJourneyDailyPoints(
+  days: readonly string[],
+  counts: readonly (number | string)[]
+): GeoJourneyDailyPoint[] {
+  return days.map((day, index) => ({
+    day,
+    journeys: Number(counts[index] ?? 0),
+  }));
+}
+
+/** `maxIf` over no rows yields the epoch; treat it as "not seen". */
+function journeyLastSeen(value: string): string | null {
+  return value.startsWith(JOURNEY_EPOCH_PREFIX) ? null : value;
+}
+
+const JOURNEY_EPOCH_PREFIX = "1970-01-01";
+
+export const loadGeoJourneyStats = Effect.fn("geo.journeyStats")(function* (
+  input: GeoScopeInput,
+  window: GeoWindowInput
+) {
+  const scope = yield* resolveGeoScope(input);
+  const params = {
+    ...geoScopeParams(scope),
+    ...geoHiddenSourceParams(),
+    ...geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS),
+  };
+  const [sources, pages] = yield* Effect.all(
+    [
+      geoQuery("journey sources query failed", () =>
+        queryGeoJourneySources(params)
+      ),
+      geoQuery("journey pages query failed", () =>
+        queryGeoJourneyPages({ ...params, limit: GEO_JOURNEY_PAGES_LIMIT })
+      ),
+    ],
+    { concurrency: "unbounded" }
+  );
+  const pageRows = pages?.data ?? [];
+
+  const response: GeoJourneyStatsResponse = {
+    configured: isTinybirdConfigured(),
+    sources: (sources?.data ?? []).map((row) => ({
+      source: row.source,
+      visitorType: toGeoVisitorType(row.visitor_type),
+      journeys: Number(row.journeys),
+      previousJourneys: Number(row.previous_journeys),
+      pages: Number(row.pages),
+      singleFetch: Number(row.single_fetch),
+      deepCrawls: Number(row.deep_crawls),
+      lastSeenAt: journeyLastSeen(row.last_seen_at),
+      daily: toJourneyDailyPoints(row.days, row.daily_journeys),
+    })),
+    // Rows with no journeys in the window only ride along to carry the totals.
+    pages: pageRows
+      .filter((row) => Number(row.journeys) > 0)
+      .map((row) => ({
+        path: row.path,
+        journeys: Number(row.journeys),
+        previousJourneys: Number(row.previous_journeys),
+        entries: Number(row.entries),
+        lastSeenAt: journeyLastSeen(row.last_seen_at),
+        daily: toJourneyDailyPoints(row.days, row.daily_journeys),
+      })),
+    totalPages: Number(pageRows[0]?.total_paths ?? 0),
+    previousTotalPages: Number(pageRows[0]?.previous_total_paths ?? 0),
+  };
+  return response;
+});
 
 export const loadGeoJourneyDetail = Effect.fn("geo.journeyDetail")(function* (
   input: GeoScopeInput,
@@ -1436,6 +1568,9 @@ export const createGeoPrompt = Effect.fn("geo.promptsCreate")(function* (
     return yield* Effect.fail(new GeoPromptDuplicateError({ prompt }));
   }
 
+  yield* pickNewGeoPrompts(input, [customPromptScanId(row.id)]).pipe(
+    geoSkip("prompt translation pick failed")
+  );
   return toTrackedPrompt(row);
 });
 
@@ -1512,6 +1647,10 @@ export const importGeoPrompts = Effect.fn("geo.promptsImport")(function* (
   rows: readonly GeoPromptImportRow[]
 ) {
   const inserted = yield* insertGeoPrompts(input, rows);
+  yield* pickNewGeoPrompts(
+    input,
+    inserted.map((row) => customPromptScanId(row.id))
+  ).pipe(geoSkip("prompt translation pick failed"));
 
   const result: GeoImportResult = {
     imported: inserted.length,
@@ -1559,6 +1698,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
         columns: {
           companyName: true,
           aliases: true,
+          promptLanguage: true,
           pausedAutoPromptIds: true,
           removedAutoPromptIds: true,
         },
@@ -1586,6 +1726,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
       {
         companyName: settingsRow.companyName,
         aliases: settingsRow.aliases,
+        promptLanguage: settingsRow.promptLanguage ?? undefined,
       },
       brand
         ? {
@@ -1667,6 +1808,10 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
   );
 
   if (rows.at(0)) {
+    yield* deleteGeoPromptTranslations(
+      scope.projectId,
+      customPromptScanId(promptId)
+    );
     return { success: true };
   }
   if (!isGeoAutoPromptId(promptId)) {
@@ -1679,6 +1824,7 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
     promptId,
     "remove"
   );
+  yield* deleteGeoPromptTranslations(scope.projectId, promptId);
   return { success: true };
 });
 
@@ -1815,6 +1961,20 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     if (scopeGeoScanEngines(catalog, tracked, engines).length === 0) {
       return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
     }
+  }
+
+  // Refuse before claiming, so an organization out of credits gets a 402 now
+  // instead of a scan id whose run fails at its billing gate.
+  const denial = yield* findGeoScanBillingDenial(
+    scope.organizationId,
+    projectId
+  );
+  if (denial) {
+    return yield* Effect.fail(
+      new GeoWriterCreditsExhaustedError({
+        message: describeContentBillingDenial(denial),
+      })
+    );
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings

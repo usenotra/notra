@@ -57,6 +57,8 @@ export function toVisibilityBrandInput(
       return trimmed ? [trimmed] : [];
     }),
     audienceType: input.audienceType,
+    languages: [...input.languages],
+    promptLanguage: input.languages.at(0),
     prompts: uniqueVisibilityPrompts(
       input.prompts,
       buildBrandTerms({

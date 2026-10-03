@@ -9,6 +9,7 @@ import {
   geoAnswerMarkdownFontClass,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
@@ -29,6 +30,7 @@ import {
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
+import { GEO_ANSWER_CODE_BLOCK_CLASS } from "@/constants/geo-answer-code-block";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
@@ -51,16 +53,6 @@ const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   h6: GeoAnswerMentionHeading6,
   blockquote: GeoAnswerMentionBlockquote,
 };
-
-function emptyAnswerCopy(mentioned: boolean, ownedSourceCited = false): string {
-  if (mentioned) {
-    return "Mentioned, but no answer was captured.";
-  }
-  if (ownedSourceCited) {
-    return "An owned source was cited, but no answer was captured.";
-  }
-  return "This engine did not mention you.";
-}
 
 function displayAnswer(result: { answer: string; excerpt: string }): string {
   return result.answer.trim() || result.excerpt.trim();
@@ -93,7 +85,11 @@ export function AnswerMarkdown({
 }) {
   return (
     <MessageResponse
-      className={cn(ANSWER_MARKDOWN_CLASS, geoAnswerMarkdownFontClass(skin))}
+      className={cn(
+        ANSWER_MARKDOWN_CLASS,
+        GEO_ANSWER_CODE_BLOCK_CLASS,
+        geoAnswerMarkdownFontClass(skin)
+      )}
       components={GEO_ANSWER_MENTION_COMPONENTS}
       mode={mode}
     >
@@ -115,13 +111,20 @@ function AssistantBody({
   mode?: "static" | "streaming";
   skin: GeoChatSkin;
 }) {
+  const t = useTranslations("geo.geoPromptAnswerThread");
   if (answer.length > 0) {
     return <AnswerMarkdown mode={mode} skin={skin} text={answer} />;
+  }
+  let emptyCopy = t("notMentioned");
+  if (mentioned) {
+    emptyCopy = t("mentionedNoAnswer");
+  } else if (ownedSourceCited) {
+    emptyCopy = t("citedNoAnswer");
   }
 
   return (
     <p className={cn("text-muted-foreground", geoAnswerEmptyClassName(skin))}>
-      {emptyAnswerCopy(mentioned, ownedSourceCited)}
+      {emptyCopy}
     </p>
   );
 }

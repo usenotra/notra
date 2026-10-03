@@ -1,4 +1,5 @@
 export type ClaudeChatModelId =
+  | "opus-5.5"
   | "opus-5"
   | "fable-5"
   | "sonnet-5"

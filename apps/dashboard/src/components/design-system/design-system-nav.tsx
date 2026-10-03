@@ -4,6 +4,10 @@ import Link from "next/link";
 
 const LINKS = [
   { href: "/design-system#colors", label: "UI kit" },
+  { href: "/design-system/icons", label: "Icons" },
+  { href: "/design-system#auth-mfa", label: "Auth" },
+  { href: "/design-system/auth-flow", label: "Auth flow" },
+  { href: "/design-system/code-research", label: "Code research" },
   { href: "/design-system#chatgpt-thread", label: "ChatGPT chat" },
   { href: "/design-system#claude-chat-thread", label: "Claude chat" },
   { href: "/design-system#gemini-thread", label: "Gemini chat" },
@@ -12,6 +16,7 @@ const LINKS = [
   { href: "/design-system#codex-session", label: "Codex TUI" },
   { href: "/design-system#opencode-session", label: "OpenCode TUI" },
   { href: "/design-system/geo-traffic", label: "GEO traffic" },
+  { href: "/design-system/scan-filters", label: "Scans table" },
 ] as const;
 
 export function DesignSystemNav() {

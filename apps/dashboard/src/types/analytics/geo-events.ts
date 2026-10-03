@@ -1,9 +1,5 @@
-import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
 import type { AgentReadinessWorkflowPayload } from "@notra/geo-core/types/agent-readiness";
-import type {
-  GeoIngestIdentity,
-  GeoSuggestionKeyword,
-} from "@notra/geo-core/types/geo";
+import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type { PostHogEventName } from "@notra/posthog/events";
 import type { PostHogProperties } from "@notra/posthog/types/posthog";
 import type { GEO_SCAN_TRIGGERS } from "@notra/schemas/constants/dashboard/geo-analytics";
@@ -156,9 +152,4 @@ export interface AgentReadinessScanTrackInput {
   status: "completed" | "failed" | "invalid_payload";
   reason?: string;
   durationMs: number;
-}
-
-export interface GeoIngestAnalyticsInput {
-  identity: GeoIngestIdentity;
-  event: GeoTrafficEventRow;
 }

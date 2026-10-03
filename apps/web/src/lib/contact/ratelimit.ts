@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { Data, Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 import { CONTACT_RATE_LIMITS } from "@/constants/contact";
 import { getClientIp } from "@/utils/client-ip";
@@ -54,7 +53,6 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
 
   limiters[kind] = new Ratelimit({
     redis: new Redis({ url, token }),
-    analytics: true,
     prefix,
     limiter: Ratelimit.slidingWindow(config.requests, config.window),
   });
@@ -62,7 +60,7 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
   return limiters[kind] ?? null;
 }
 
-function getIpRateLimitKey(request: NextRequest): string {
+function getIpRateLimitKey(request: Request): string {
   return createHash("sha256").update(getClientIp(request)).digest("hex");
 }
 
@@ -169,14 +167,14 @@ const enforceLimit = Effect.fn("enforceContactMessageLimit")(function* (
 
 export const enforceContactVerificationRateLimit = Effect.fn(
   "enforceContactVerificationRateLimit"
-)(function* (request: NextRequest) {
+)(function* (request: Request) {
   yield* enforceLimit("verificationIpMinute", getIpRateLimitKey(request));
   yield* enforceLimit("verificationGlobalMinute", "global");
 });
 
 export const enforceContactMessageRateLimit = Effect.fn(
   "enforceContactMessageRateLimit"
-)(function* (request: NextRequest, email: string) {
+)(function* (request: Request, email: string) {
   const ipKey = getIpRateLimitKey(request);
   const hourlyResult = yield* enforceLimit("ipHourly", ipKey);
   const dailyResult = yield* enforceLimit("ipDaily", ipKey);

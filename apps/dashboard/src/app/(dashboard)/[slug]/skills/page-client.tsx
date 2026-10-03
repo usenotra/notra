@@ -6,7 +6,6 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createSkillSchema } from "@notra/schemas/dashboard/skills";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -28,7 +27,7 @@ import { Separator } from "@notra/ui/components/ui/separator";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -36,23 +35,36 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { SkillsTable } from "@/components/skills/skills-table";
+import { PageHeading } from "@/components/layout/page-heading";
+import { SkillCard } from "@/components/skills/skill-card";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
+import { SKILL_SORT_KEYS } from "@/constants/skills";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
-import type { SkillSortState } from "@/types/skills/page";
-import { filterSkills, sortSkills } from "@/utils/skills";
+import { cn } from "@/lib/utils";
+import { createSkillFormSchema } from "@/schemas/skill-form";
+import type {
+  SkillListItem,
+  SkillSortKey,
+  SkillSortState,
+  SkillsPageClientProps,
+} from "@/types/skills/page";
+import {
+  filterSkills,
+  skillQuickstartError,
+  sortSkills,
+  toggleSkillSort,
+} from "@/utils/skills";
 
 import { SkillsPageSkeleton } from "./skeleton";
 
-interface PageClientProps {
-  slug: string;
-}
-
-export default function PageClient({ slug }: PageClientProps) {
-  const { activeOrganization } = useOrganizationsContext();
-  const organizationId = activeOrganization?.id;
+export default function PageClient({
+  slug,
+  organizationId,
+}: SkillsPageClientProps) {
+  const t = useTranslations("skills");
+  const tCommon2 = useTranslations("common");
+  const tValidation = useTranslations("skills.validation");
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickstartUrl, setQuickstartUrl] = useState("");
@@ -70,27 +82,18 @@ export default function PageClient({ slug }: PageClientProps) {
     content: "",
   });
 
-  const quickstartError = (() => {
-    if (!quickstartUrl.trim()) {
-      return null;
-    }
-    try {
-      const parsed = new URL(quickstartUrl.trim());
-      if (parsed.host !== "skills.sh") {
-        return "Only skills.sh links are supported.";
-      }
-      return null;
-    } catch {
-      return "Enter a valid skills.sh URL.";
-    }
-  })();
+  const quickstartError = skillQuickstartError(quickstartUrl);
 
-  const { data: skills = [], isPending } = useQuery({
-    ...dashboardOrpc.skills.list.queryOptions({
-      input: { organizationId: organizationId ?? "" },
-    }),
-    enabled: !!organizationId,
-  });
+  const {
+    data: skills = [],
+    isPending,
+    isError,
+    refetch,
+  } = useQuery(
+    dashboardOrpc.skills.list.queryOptions({
+      input: { organizationId },
+    })
+  );
 
   const importMutation = useMutation({
     mutationFn: () =>
@@ -103,7 +106,7 @@ export default function PageClient({ slug }: PageClientProps) {
         description: f.description || data.description,
         content: f.content || data.content,
       }));
-      toast.success("Skill imported from skills.sh");
+      toast.success(t("toasts.imported"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -113,15 +116,17 @@ export default function PageClient({ slug }: PageClientProps) {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
-      const parsed = createSkillSchema.safeParse({
+      const parsed = createSkillFormSchema(tValidation, tCommon2).safeParse({
         name: form.name,
         description: form.description,
         content: form.content,
       });
       if (!parsed.success) {
-        throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
+        throw new Error(
+          parsed.error.issues[0]?.message ?? tValidation("invalidInput")
+        );
       }
       return dashboardOrpc.skills.create.call({
         organizationId,
@@ -134,10 +139,10 @@ export default function PageClient({ slug }: PageClientProps) {
       setQuickstartUrl("");
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.skills.list.queryKey({
-          input: { organizationId: organizationId ?? "" },
+          input: { organizationId },
         }),
       });
-      toast.success("Skill created");
+      toast.success(t("toasts.created"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -161,226 +166,419 @@ export default function PageClient({ slug }: PageClientProps) {
     }));
   };
 
-  const isLoadingSkills = !!organizationId && isPending;
   const visibleSkills = sortSkills(filterSkills(skills, search), sort);
   const searchActive = search.trim().length > 0;
 
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Skills</h1>
-            <p className="text-muted-foreground">
-              Reusable instructions your agents load when generating content.
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon2("labels.skills")}
+        >
           <Button className="w-fit gap-2" onClick={() => setDialogOpen(true)}>
             <span className="inline-flex items-center gap-1.5">
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              Create Skill
+              {t("createSkill")}
             </span>
             <Kbd className="hidden sm:inline-flex">C</Kbd>
           </Button>
-        </div>
+        </PageHeading>
 
-        {isLoadingSkills && <SkillsPageSkeleton />}
-        {!isLoadingSkills && skills.length === 0 && (
-          <EmptyState
-            action={
-              <Button onClick={() => setDialogOpen(true)} variant="outline">
-                <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-                Create Skill
-              </Button>
-            }
-            description="Add a skill to capture writing knowledge the AI can reuse."
-            preview={
-              <EmptyStateCardsPreview
-                columns={3}
-                count={EMPTY_STATE_CARD_COUNT.skill}
-                variant="skill"
-              />
-            }
-            title="No skills yet"
-          />
-        )}
-        {!isLoadingSkills && skills.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-medium">
-                Installed skills{" "}
-                <span className="text-muted-foreground tabular-nums">
-                  (
-                  {searchActive
-                    ? `${visibleSkills.length} of ${skills.length}`
-                    : skills.length}
-                  )
-                </span>
-              </p>
-              <InputGroup className="h-9 sm:max-w-72">
-                <InputGroupAddon>
-                  <HugeiconsIcon
-                    className="text-muted-foreground size-4"
-                    icon={Search01Icon}
-                  />
-                </InputGroupAddon>
-                <InputGroupInput
-                  aria-label="Search skills"
-                  autoComplete="off"
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name or description"
-                  value={search}
-                />
-              </InputGroup>
-            </div>
-            <SkillsTable
-              onSortChange={setSort}
-              searchActive={searchActive}
-              skills={visibleSkills}
-              slug={slug}
-              sort={sort}
-            />
-          </div>
-        )}
+        <SkillsPageBody
+          isError={isError}
+          isPending={isPending}
+          onCreate={() => setDialogOpen(true)}
+          onRetry={() => {
+            refetch().catch(() => undefined);
+          }}
+          onSearchChange={setSearch}
+          onSortChange={setSort}
+          search={search}
+          searchActive={searchActive}
+          skills={skills}
+          slug={slug}
+          sort={sort}
+          visibleSkills={visibleSkills}
+        />
       </div>
 
-      <ResponsiveDialog onOpenChange={setDialogOpen} open={dialogOpen}>
-        <ResponsiveDialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-[32rem]">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Create skill</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              A skill is a reusable prompt your agents load at runtime.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="-mx-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-2">
-            <Field>
-              <FieldLabel>Quickstart</FieldLabel>
-              <InputGroup className="h-9">
-                <InputGroupAddon>
-                  <HugeiconsIcon
-                    className="text-muted-foreground size-4"
-                    icon={Link04Icon}
-                  />
-                </InputGroupAddon>
-                <InputGroupInput
-                  aria-invalid={quickstartError ? true : undefined}
-                  disabled={
-                    createMutation.isPending || importMutation.isPending
-                  }
-                  onChange={(e) => setQuickstartUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !quickstartError &&
-                      quickstartUrl.trim() &&
-                      !importMutation.isPending
-                    ) {
-                      e.preventDefault();
-                      importMutation.mutate();
-                    }
-                  }}
-                  placeholder="https://skills.sh/..."
-                  value={quickstartUrl}
-                />
-                <InputGroupAddon align="inline-end" className="pr-1">
-                  <Button
-                    className="h-7 px-2.5"
-                    disabled={
-                      !quickstartUrl.trim() ||
-                      !!quickstartError ||
-                      importMutation.isPending ||
-                      createMutation.isPending
-                    }
-                    onClick={() => importMutation.mutate()}
-                    size="sm"
-                  >
-                    {importMutation.isPending ? (
-                      <Loader2Icon className="size-3.5 animate-spin" />
-                    ) : null}
-                    {importMutation.isPending ? "Importing" : "Import"}
-                  </Button>
-                </InputGroupAddon>
-              </InputGroup>
-              <p
-                className={
-                  quickstartError
-                    ? "text-destructive text-xs"
-                    : "text-muted-foreground text-xs"
-                }
-              >
-                {quickstartError ?? "Paste a skills.sh link to import a skill."}
-              </p>
-            </Field>
-            <div className="flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-muted-foreground text-xs tracking-wider uppercase">
-                or create manually
-              </span>
-              <Separator className="flex-1" />
-            </div>
-            <Field>
-              <FieldLabel>
-                Name<span className="text-destructive -ml-1">*</span>
-              </FieldLabel>
-              <Input
-                disabled={createMutation.isPending}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                onPaste={handlePasteFrontmatter}
-                placeholder="my-skill"
-                value={form.name}
-              />
-              <p className="text-muted-foreground text-xs">
-                Lowercase letters, digits, and hyphens. Or paste a full skill
-                (frontmatter + body) here to auto-fill all fields.
-              </p>
-            </Field>
-            <Field>
-              <FieldLabel>
-                Description<span className="text-destructive -ml-1">*</span>
-              </FieldLabel>
-              <Textarea
-                className="max-h-[5rem] min-h-[4rem] overflow-y-auto"
-                disabled={createMutation.isPending}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
-                }
-                onPaste={handlePasteFrontmatter}
-                placeholder="What this skill does and when to use it."
-                value={form.description}
-              />
-            </Field>
-            <Field>
-              <FieldLabel>
-                Content<span className="text-destructive -ml-1">*</span>
-              </FieldLabel>
-              <Textarea
-                className="max-h-[14rem] min-h-[10rem] overflow-y-auto font-mono text-sm"
-                disabled={createMutation.isPending}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, content: e.target.value }))
-                }
-                onPaste={handlePasteFrontmatter}
-                placeholder="# My skill\n\nYou are..."
-                value={form.content}
-              />
-            </Field>
-          </div>
-          <ResponsiveDialogFooter>
-            <ResponsiveDialogClose
-              disabled={createMutation.isPending}
-              render={<Button variant="outline">Cancel</Button>}
-            />
-            <Button
-              disabled={createMutation.isPending}
-              onClick={() => createMutation.mutate()}
-            >
-              {createMutation.isPending ? "Creating…" : "Create skill"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
+      <CreateSkillFormDialog
+        createPending={createMutation.isPending}
+        form={form}
+        importPending={importMutation.isPending}
+        onFormChange={setForm}
+        onImport={() => importMutation.mutate()}
+        onOpenChange={setDialogOpen}
+        onPasteFrontmatter={handlePasteFrontmatter}
+        onQuickstartUrlChange={setQuickstartUrl}
+        onSubmit={() => createMutation.mutate()}
+        open={dialogOpen}
+        quickstartError={quickstartError}
+        quickstartUrl={quickstartUrl}
+      />
     </PageContainer>
+  );
+}
+
+function SkillsPageBody({
+  isError,
+  isPending,
+  onCreate,
+  onRetry,
+  onSearchChange,
+  onSortChange,
+  search,
+  searchActive,
+  skills,
+  slug,
+  sort,
+  visibleSkills,
+}: {
+  isError: boolean;
+  isPending: boolean;
+  onCreate: () => void;
+  onRetry: () => void;
+  onSearchChange: (value: string) => void;
+  onSortChange: (sort: SkillSortState) => void;
+  search: string;
+  searchActive: boolean;
+  skills: SkillListItem[];
+  slug: string;
+  sort: SkillSortState;
+  visibleSkills: SkillListItem[];
+}) {
+  const t = useTranslations("skills");
+  const tCommon = useTranslations("common");
+  if (isPending) {
+    return <SkillsPageSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <p className="text-muted-foreground text-sm">
+          {tCommon("errors.generic")}
+        </p>
+        <Button onClick={onRetry} variant="outline">
+          {tCommon("actions.retry")}
+        </Button>
+      </div>
+    );
+  }
+
+  if (skills.length === 0) {
+    return (
+      <EmptyState
+        action={
+          <Button onClick={onCreate} variant="outline">
+            <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+            {t("createSkill")}
+          </Button>
+        }
+        description={t("empty.description")}
+        preview={
+          <EmptyStateCardsPreview
+            columns={3}
+            count={EMPTY_STATE_CARD_COUNT.skill}
+            variant="skill"
+          />
+        }
+        title={tCommon("labels.noSkillsYet")}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium">
+          {t("installed")}{" "}
+          <span className="text-muted-foreground tabular-nums">
+            {searchActive
+              ? t("countFiltered", {
+                  visible: visibleSkills.length,
+                  total: skills.length,
+                })
+              : t("count", { total: skills.length })}
+          </span>
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <SkillSortControl onSortChange={onSortChange} sort={sort} />
+          <InputGroup className="h-9 sm:max-w-72">
+            <InputGroupAddon>
+              <HugeiconsIcon
+                className="text-muted-foreground size-4"
+                icon={Search01Icon}
+              />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label={t("search.label")}
+              autoComplete="off"
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={t("search.placeholder")}
+              value={search}
+            />
+          </InputGroup>
+        </div>
+      </div>
+      {visibleSkills.length === 0 ? (
+        <p className="text-muted-foreground text-sm">
+          {t("table.noSearchResults")}
+        </p>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {visibleSkills.map((skill) => (
+            <li className="min-w-0" key={skill.id}>
+              <SkillCard skill={skill} slug={slug} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SkillSortControl({
+  sort,
+  onSortChange,
+}: {
+  sort: SkillSortState;
+  onSortChange: (sort: SkillSortState) => void;
+}) {
+  const t = useTranslations("skills.sort");
+  const tCommon = useTranslations("common");
+  const labels: Record<SkillSortKey, string> = {
+    name: tCommon("labels.name"),
+    type: tCommon("labels.type"),
+    updatedAt: tCommon("labels.updated"),
+  };
+
+  return (
+    <div
+      aria-label={t("label")}
+      className="bg-muted inline-flex w-fit items-center rounded-lg p-0.5"
+      role="group"
+    >
+      {SKILL_SORT_KEYS.map((key) => {
+        const selected = sort.key === key;
+        const label = labels[key];
+        return (
+          <button
+            aria-label={
+              selected
+                ? t("selected", {
+                    field: label,
+                    direction:
+                      sort.direction === "asc"
+                        ? t("ascending")
+                        : t("descending"),
+                  })
+                : label
+            }
+            aria-pressed={selected}
+            className={cn(
+              "focus-visible:ring-ring/50 duration-fast inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors ease-out focus-visible:ring-2 focus-visible:outline-none",
+              selected
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            key={key}
+            onClick={() => onSortChange(toggleSkillSort(sort, key))}
+            type="button"
+          >
+            {label}
+            {selected ? (
+              <span aria-hidden="true">
+                {sort.direction === "asc" ? "↑" : "↓"}
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CreateSkillFormDialog({
+  createPending,
+  form,
+  importPending,
+  onFormChange,
+  onImport,
+  onOpenChange,
+  onPasteFrontmatter,
+  onQuickstartUrlChange,
+  onSubmit,
+  open,
+  quickstartError,
+  quickstartUrl,
+}: {
+  createPending: boolean;
+  form: { name: string; description: string; content: string };
+  importPending: boolean;
+  onFormChange: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      description: string;
+      content: string;
+    }>
+  >;
+  onImport: () => void;
+  onOpenChange: (open: boolean) => void;
+  onPasteFrontmatter: (
+    e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  onQuickstartUrlChange: (value: string) => void;
+  onSubmit: () => void;
+  open: boolean;
+  quickstartError: ReturnType<typeof skillQuickstartError>;
+  quickstartUrl: string;
+}) {
+  const t = useTranslations("skills.create");
+  const tSkillsShared = useTranslations("skills.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  return (
+    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
+      <ResponsiveDialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-[32rem]">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
+            {tSkillsShared("createSkill")}
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {t("description")}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <div className="-mx-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-2">
+          <Field>
+            <FieldLabel>{t("quickstart")}</FieldLabel>
+            <InputGroup className="h-9">
+              <InputGroupAddon>
+                <HugeiconsIcon
+                  className="text-muted-foreground size-4"
+                  icon={Link04Icon}
+                />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-invalid={quickstartError ? true : undefined}
+                disabled={createPending || importPending}
+                onChange={(e) => onQuickstartUrlChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !quickstartError &&
+                    quickstartUrl.trim() &&
+                    !importPending
+                  ) {
+                    e.preventDefault();
+                    onImport();
+                  }
+                }}
+                placeholder="https://skills.sh/..."
+                value={quickstartUrl}
+              />
+              <InputGroupAddon align="inline-end" className="pr-1">
+                <Button
+                  className="h-7 px-2.5"
+                  disabled={
+                    !quickstartUrl.trim() || !!quickstartError || createPending
+                  }
+                  loading={importPending}
+                  onClick={onImport}
+                  size="sm"
+                >
+                  {tCommon2("actions.import")}
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
+            <p
+              className={
+                quickstartError
+                  ? "text-destructive text-xs"
+                  : "text-muted-foreground text-xs"
+              }
+            >
+              {quickstartError
+                ? t(`quickstartErrors.${quickstartError}`)
+                : t("quickstartHint")}
+            </p>
+          </Field>
+          <div className="flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-muted-foreground text-xs tracking-wider uppercase">
+              {t("orManually")}
+            </span>
+            <Separator className="flex-1" />
+          </div>
+          <Field>
+            <FieldLabel>
+              {tCommon2("labels.name")}
+              <span className="text-destructive -ml-1">*</span>
+            </FieldLabel>
+            <Input
+              disabled={createPending}
+              onChange={(e) =>
+                onFormChange((current) => ({
+                  ...current,
+                  name: e.target.value,
+                }))
+              }
+              onPaste={onPasteFrontmatter}
+              placeholder="my-skill"
+              value={form.name}
+            />
+            <p className="text-muted-foreground text-xs">{t("nameHint")}</p>
+          </Field>
+          <Field>
+            <FieldLabel>
+              {tCommon2("labels.description")}
+              <span className="text-destructive -ml-1">*</span>
+            </FieldLabel>
+            <Textarea
+              className="max-h-[5rem] min-h-[4rem] overflow-y-auto"
+              disabled={createPending}
+              onChange={(e) =>
+                onFormChange((current) => ({
+                  ...current,
+                  description: e.target.value,
+                }))
+              }
+              onPaste={onPasteFrontmatter}
+              placeholder={t("descriptionPlaceholder")}
+              value={form.description}
+            />
+          </Field>
+          <Field>
+            <FieldLabel>
+              {tCommon2("labels.contentSingular")}
+              <span className="text-destructive -ml-1">*</span>
+            </FieldLabel>
+            <Textarea
+              className="max-h-[14rem] min-h-[10rem] overflow-y-auto font-mono text-sm"
+              disabled={createPending}
+              onChange={(e) =>
+                onFormChange((current) => ({
+                  ...current,
+                  content: e.target.value,
+                }))
+              }
+              onPaste={onPasteFrontmatter}
+              placeholder={t("contentPlaceholder")}
+              value={form.content}
+            />
+          </Field>
+        </div>
+        <ResponsiveDialogFooter>
+          <ResponsiveDialogClose
+            disabled={createPending}
+            render={<Button variant="outline">{tCommon("cancel")}</Button>}
+          />
+          <Button disabled={createPending} onClick={onSubmit}>
+            {createPending ? tCommon("creating") : tSkillsShared("createSkill")}
+          </Button>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

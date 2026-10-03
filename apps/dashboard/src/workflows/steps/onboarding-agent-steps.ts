@@ -1,4 +1,3 @@
-import { grantSignupCredits } from "@/lib/billing/grant-signup-credits";
 import {
   getOnboardingAgentState,
   releaseOnboardingAgentReservation,
@@ -12,14 +11,6 @@ export async function sendOnboardingSlackInviteStep(input: {
 }): Promise<{ invited: boolean }> {
   "use step";
   return await sendOnboardingSlackInvite(input);
-}
-
-export async function grantSignupCreditsStep(input: {
-  email: string;
-  organizationId: string;
-}): Promise<{ granted: boolean }> {
-  "use step";
-  return await grantSignupCredits(input);
 }
 
 export async function startOnboardingAgentSessionStep(input: {

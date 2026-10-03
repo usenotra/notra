@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -12,6 +13,12 @@ const logSyncFailure = (context: Record<string, unknown>) =>
       Effect.annotateLogs({ ...context, error: error.message })
     )
   );
+
+// The public demo has no WorkOS; memberships only live in the database.
+const skipInDemo = <A, E, R>(
+  effect: Effect.Effect<A, E, R>
+): Effect.Effect<A | void, E, R> =>
+  Effect.suspend(() => (isDemoMode() ? Effect.void : effect));
 
 const ensureWorkOSOrganization = Effect.fn(
   "organizations.sync.ensureWorkOSOrganization"
@@ -83,7 +90,7 @@ export const syncOrganizationNameToWorkOS = Effect.fn(
           cause,
         }),
     });
-  }).pipe(logSyncFailure({ organizationId }));
+  }).pipe(logSyncFailure({ organizationId }), skipInDemo);
 });
 
 export const ensureWorkOSOrganizationWithMembers = Effect.fn(
@@ -209,7 +216,7 @@ export const updateMembershipRoleInWorkOS = Effect.fn(
         message: "Failed to update WorkOS membership role",
         cause,
       }),
-  }).pipe(logSyncFailure({ organizationId, userId }));
+  }).pipe(logSyncFailure({ organizationId, userId }), skipInDemo);
 });
 
 export const deleteOrganizationFromWorkOS = Effect.fn(
@@ -226,7 +233,7 @@ export const deleteOrganizationFromWorkOS = Effect.fn(
         message: "Failed to delete WorkOS organization",
         cause,
       }),
-  }).pipe(logSyncFailure({ workosOrgId }));
+  }).pipe(logSyncFailure({ workosOrgId }), skipInDemo);
 });
 
 export const removeMembershipFromWorkOS = Effect.fn(
@@ -266,5 +273,5 @@ export const removeMembershipFromWorkOS = Effect.fn(
         message: "Failed to remove WorkOS membership",
         cause,
       }),
-  }).pipe(logSyncFailure({ organizationId, userId }));
+  }).pipe(logSyncFailure({ organizationId, userId }), skipInDemo);
 });

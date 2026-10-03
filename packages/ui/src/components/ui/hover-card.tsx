@@ -2,15 +2,28 @@
 
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
 
+import {
+  HOVER_CARD_CLOSE_DELAY_MS,
+  HOVER_CARD_DELAY_MS,
+} from "@notra/ui/constants/hover-card";
 import { cn } from "@notra/ui/lib/utils";
 
 function HoverCard({ ...props }: PreviewCardPrimitive.Root.Props) {
   return <PreviewCardPrimitive.Root data-slot="hover-card" {...props} />;
 }
 
-function HoverCardTrigger({ ...props }: PreviewCardPrimitive.Trigger.Props) {
+function HoverCardTrigger({
+  closeDelay = HOVER_CARD_CLOSE_DELAY_MS,
+  delay = HOVER_CARD_DELAY_MS,
+  ...props
+}: PreviewCardPrimitive.Trigger.Props) {
   return (
-    <PreviewCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />
+    <PreviewCardPrimitive.Trigger
+      closeDelay={closeDelay}
+      data-slot="hover-card-trigger"
+      delay={delay}
+      {...props}
+    />
   );
 }
 

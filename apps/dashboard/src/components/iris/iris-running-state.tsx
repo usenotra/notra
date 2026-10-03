@@ -9,7 +9,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { Button } from "@/components/button";
@@ -40,17 +40,20 @@ export function IrisRunningState({
   onPause,
   onResume,
 }: IrisRunningStateProps) {
+  const t = useTranslations("iris.running");
+  const tIrisShared = useTranslations("iris.shared");
+  const tCommon = useTranslations("common");
   const skeletonId = useId();
   const isRevoked = mandate.status === "revoked";
   const isPaused = mandate.status !== "active";
   const statusLabel = (() => {
     if (isRevoked) {
-      return "Iris is retired";
+      return t("status.retired");
     }
     if (isPaused) {
-      return "Iris is paused";
+      return tIrisShared("irisIsPaused");
     }
-    return isBusy ? "Iris is working" : "Iris is on duty";
+    return isBusy ? t("status.working") : tIrisShared("irisIsOnDuty");
   })();
 
   return (
@@ -75,33 +78,24 @@ export function IrisRunningState({
         </div>
         <div className="flex items-center gap-2">
           <Button
-            disabled={isRunNowPending || isBusy || isPaused}
+            disabled={isBusy || isPaused}
+            loading={isRunNowPending}
             onClick={onRunNow}
             variant="outline"
           >
-            {isRunNowPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Starting
-              </>
-            ) : (
-              "Run now"
-            )}
+            {tCommon("labels.runNow")}
           </Button>
           <Button
-            disabled={isStatusPending || isRevoked}
+            disabled={isRevoked}
+            loading={isStatusPending}
             onClick={isPaused ? onResume : onPause}
             variant={isPaused ? "default" : "outline"}
           >
-            {isStatusPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon
-                className="size-4"
-                icon={isPaused ? PlayIcon : PauseIcon}
-              />
-            )}
-            {isPaused ? "Resume" : "Pause"}
+            <HugeiconsIcon
+              className="size-4"
+              icon={isPaused ? PlayIcon : PauseIcon}
+            />
+            {isPaused ? tCommon("labels.resume") : tCommon("labels.pause")}
           </Button>
         </div>
       </div>
@@ -114,8 +108,10 @@ export function IrisRunningState({
 
       <Tabs defaultValue="activity">
         <TabsList variant="line">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="signals">Recent signals</TabsTrigger>
+          <TabsTrigger value="activity">
+            {tCommon("labels.activity")}
+          </TabsTrigger>
+          <TabsTrigger value="signals">{t("tabs.signals")}</TabsTrigger>
         </TabsList>
 
         <TabsContent className="mt-4 space-y-3" value="activity">
@@ -132,21 +128,21 @@ export function IrisRunningState({
 
           {!runsState.isPending && runsState.isError && runs.length === 0 ? (
             <EmptyState
-              description="The activity feed could not be loaded. Refresh the page to try again."
-              title="Activity is unavailable"
+              description={t("activityUnavailable.description")}
+              title={t("activityUnavailable.title")}
             />
           ) : null}
 
           {!(runsState.isPending || runsState.isError) && runs.length === 0 ? (
             <EmptyState
-              description="Iris is watching your sources. The first report shows up here as soon as something is worth announcing."
+              description={t("noRuns.description")}
               preview={
                 <EmptyStateCardsPreview
                   count={EMPTY_STATE_CARD_COUNT.run}
                   variant="run"
                 />
               }
-              title="No runs yet"
+              title={t("noRuns.title")}
             />
           ) : null}
 
@@ -161,18 +157,11 @@ export function IrisRunningState({
           {runsState.hasMore ? (
             <div className="flex justify-center pt-1">
               <Button
-                disabled={runsState.isLoadingMore}
+                loading={runsState.isLoadingMore}
                 onClick={onLoadMoreRuns}
                 variant="outline"
               >
-                {runsState.isLoadingMore ? (
-                  <>
-                    <Loader2Icon className="size-4 animate-spin" />
-                    Loading
-                  </>
-                ) : (
-                  "Load more"
-                )}
+                {tCommon("actions.loadMore")}
               </Button>
             </div>
           ) : null}
@@ -191,8 +180,8 @@ export function IrisRunningState({
           ) : null}
           {!signalsState.isPending && signalsState.isError ? (
             <EmptyState
-              description="Recent signals could not be loaded. Refresh the page to try again."
-              title="Signals are unavailable"
+              description={t("signalsUnavailable.description")}
+              title={t("signalsUnavailable.title")}
             />
           ) : null}
           {signalsState.isPending || signalsState.isError ? null : (

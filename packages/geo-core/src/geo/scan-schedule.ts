@@ -1,19 +1,28 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { deleteStaleGeoOpenCodeBoxes } from "@notra/ai/utils/geo-opencode-box";
 import { db } from "@notra/db/drizzle";
-import { geoSettings } from "@notra/db/schema";
-import { and, asc, desc, eq, isNull, lte, or } from "drizzle-orm";
+import { geoScans, geoSettings } from "@notra/db/schema";
+import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
   GEO_SCAN_DUE_LIMIT_PER_SWEEP,
   GEO_SCAN_START_LEASE_MS,
+  GEO_SCAN_START_RETRY_WINDOW_MS,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
 import type { DueGeoScanRow, GeoScanCronSweepResult } from "../types/geo";
 import { describeGeoError, geoLogInfo, geoLogWarn } from "../utils/geo-log";
 import { geoDb, geoSkip } from "./effect";
-import { startClaimedGeoScanRun } from "./scan-handoff";
-import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
+import {
+  claimGeoScanRun,
+  releaseGeoScanRun,
+  sweepStaleGeoScanRows,
+} from "./scan-status";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_MINUTE = 60 * 1000;
@@ -157,11 +166,17 @@ const leaseDueGeoScanTick = Effect.fn("geo.leaseDueScanTick")(function* (
  * row, that sweep owns the schedule and our write must not clobber it. Losing
  * the race is reported, because it means this slot was advanced by someone
  * else and the project may be scanned twice for it.
+ *
+ * With `releaseClaimedAt` the same statement also hands back the scan claim
+ * this sweep took, so a skipped slot and a freed claim land together or not
+ * at all: a claim left behind would block manual scans until it goes stale,
+ * and a slot left behind would be retried.
  */
 const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   row: DueGeoScanRow,
   leaseUntil: Date,
-  coveredAt?: Date
+  coveredAt?: Date,
+  releaseClaimedAt?: Date
 ) {
   // A historical finish only covers slots through that finish, not through
   // this sweep. Leave later unserved slots due, even after a long outage.
@@ -176,11 +191,19 @@ const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   const advanced = yield* geoDb("scan slot advance failed", () =>
     db
       .update(geoSettings)
-      .set({ nextScanAt, scanLeaseUntil: null })
+      .set({
+        nextScanAt,
+        scanLeaseUntil: null,
+        scanFirstFailedAt: null,
+        ...(releaseClaimedAt ? { scanStartedAt: null } : {}),
+      })
       .where(
         and(
           eq(geoSettings.id, row.id),
-          eq(geoSettings.scanLeaseUntil, leaseUntil)
+          eq(geoSettings.scanLeaseUntil, leaseUntil),
+          releaseClaimedAt
+            ? eq(geoSettings.scanStartedAt, releaseClaimedAt)
+            : undefined
         )
       )
       .returning({ id: geoSettings.id })
@@ -195,9 +218,8 @@ const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
  * A hand-off the dashboard definitely refuses (a bad deploy, a route that 500s
  * for this project) releases the scan claim, so nothing throttles the retry:
  * on the 15-minute lease alone the project would burn 96 failed `geo_scans`
- * rows a day. Backing off to `GEO_SCAN_STALE_MS` bounds one slot to about
- * `interval / GEO_SCAN_STALE_MS` attempts (12 for a daily scan), and the slot
- * is given up entirely once it is a whole interval overdue.
+ * rows a day. Backing off to `GEO_SCAN_STALE_MS` limits retries to about
+ * 12 per day until the first failed start is 12 hours old.
  */
 const backOffGeoScanLease = Effect.fn("geo.backOffScanLease")(function* (
   row: DueGeoScanRow,
@@ -227,9 +249,11 @@ const backOffGeoScanLease = Effect.fn("geo.backOffScanLease")(function* (
  *
  * - the project's scan slot is already claimed (a manual scan is in flight, or
  *   a ghost claim from an ambiguous hand-off still has to go stale),
- * - the hand-off failed (the lease then backs off to `GEO_SCAN_STALE_MS`, and
- *   the slot is abandoned once it is a whole interval overdue),
+ * - the hand-off failed (the lease then backs off to `GEO_SCAN_STALE_MS`
+ *   until the 12-hour retry window is exhausted),
  * - the process died mid-sweep.
+ *
+ * A row the billing gate would deny is advanced without starting anything.
  *
  * A slot that an attempt finishing after it became due already covered (that
  * manual scan, or an ambiguous hand-off that did start after all) is advanced
@@ -256,6 +280,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
           projectId: true,
           scanIntervalHours: true,
           nextScanAt: true,
+          scanFirstFailedAt: true,
           lastScanAt: true,
         },
         where: and(
@@ -278,18 +303,25 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
     let covered = 0;
     let leaseLost = 0;
     let alreadyRunning = 0;
+    let billingDenied = 0;
     let failed = 0;
     let advanceLost = 0;
 
     // Advancing is the only write that can silently lose its row (another
     // sweep leased it after our lease expired), so every call goes through
     // this counter instead of assuming the slot moved.
-    const advance = (row: DueGeoScanRow, leaseUntil: Date, coveredAt?: Date) =>
+    const advance = (
+      row: DueGeoScanRow,
+      leaseUntil: Date,
+      coveredAt?: Date,
+      releaseClaimedAt?: Date
+    ) =>
       Effect.gen(function* () {
         const advanced = yield* advanceGeoScanSlot(
           row,
           leaseUntil,
-          coveredAt
+          coveredAt,
+          releaseClaimedAt
         ).pipe(
           geoSkip("scan slot advance failed", {
             event: "geo.scan.slot_advance_failed",
@@ -368,6 +400,46 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
         continue;
       }
 
+      // Checked only once this sweep owns the slot, so a scan that is still
+      // running keeps the slot on the already-running path above. A denied
+      // slot hands the claim back and moves on before a `geo_scans` row and a
+      // workflow run exist only to fail at the billing gate: retrying would
+      // deny it again.
+      const denial = yield* findGeoScanBillingDenial(
+        row.organizationId,
+        row.projectId
+      );
+      if (denial) {
+        const advanced = yield* advance(
+          row,
+          leaseUntil,
+          undefined,
+          claim.claimedAt
+        );
+        if (!advanced) {
+          // Nothing moved, so the slot is still due. Hand the claim back on
+          // its own as a best effort, so manual scans are not blocked while
+          // the next sweep retries the slot.
+          yield* releaseGeoScanRun(row.projectId, claim.claimedAt).pipe(
+            geoSkip("scan claim release failed", {
+              event: "geo.scan.claim_release_failed",
+              organizationId: row.organizationId,
+              projectId: row.projectId,
+            })
+          );
+          continue;
+        }
+        billingDenied += 1;
+        yield* geoLogWarn({
+          event: "geo.scan.skipped",
+          reason: "billing",
+          organizationId: row.organizationId,
+          projectId: row.projectId,
+          detail: describeContentBillingDenial(denial),
+        });
+        continue;
+      }
+
       const startResult = yield* startClaimedGeoScanRun(
         row.organizationId,
         row.projectId,
@@ -391,22 +463,90 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       }
 
       failed += 1;
-      const overdueBy = now.getTime() - anchor.getTime();
-      if (overdueBy >= geoScanIntervalMs(row.scanIntervalHours)) {
-        // The slot is a whole interval behind: retrying it forever only piles
-        // up failed scan rows, and the next slot is the one worth scanning.
-        yield* advance(row, leaseUntil);
-        yield* geoLogWarn({
-          event: "geo.scan.slot_abandoned",
-          organizationId: row.organizationId,
-          projectId: row.projectId,
-          anchor: anchor.toISOString(),
-        });
+      // Only this scheduled slot's failures count. A manual stale scan or a
+      // late first cron tick cannot exhaust its 12-hour retry window.
+      const firstFailureAt = row.scanFirstFailedAt ?? claim.claimedAt;
+      if (!row.scanFirstFailedAt) {
+        yield* geoDb("scan first failure stamp failed", () =>
+          db
+            .update(geoSettings)
+            .set({ scanFirstFailedAt: firstFailureAt })
+            .where(
+              and(
+                eq(geoSettings.id, row.id),
+                eq(geoSettings.scanLeaseUntil, leaseUntil),
+                isNull(geoSettings.scanFirstFailedAt)
+              )
+            )
+        );
+      }
+      if (
+        Date.now() - firstFailureAt.getTime() >=
+        GEO_SCAN_START_RETRY_WINDOW_MS
+      ) {
+        const advanced = yield* advance(row, leaseUntil);
+        if (advanced) {
+          const failedRow = yield* geoDb("scan failed row lookup failed", () =>
+            db.query.geoScans.findFirst({
+              columns: { id: true },
+              where: and(
+                eq(geoScans.projectId, row.projectId),
+                or(
+                  eq(geoScans.errorCode, "scan_handoff_failed"),
+                  eq(geoScans.errorCode, "scan_stale")
+                ),
+                gte(geoScans.startedAt, firstFailureAt),
+                eq(geoScans.status, "failed")
+              ),
+              orderBy: [desc(geoScans.startedAt)],
+            })
+          );
+          // Keep the exhausted slot visible to the monitoring cron. A one-off
+          // Slack request here would be lost if Slack rejects it after the
+          // schedule has already advanced.
+          if (failedRow) {
+            yield* geoDb("scan retry exhaustion stamp failed", () =>
+              db
+                .update(geoScans)
+                .set({
+                  errorCode: "scan_retry_exhausted",
+                  errorMessage:
+                    "Scheduled scan could not start within 12 hours.",
+                  retryable: false,
+                })
+                .where(
+                  and(
+                    eq(geoScans.id, failedRow.id),
+                    eq(geoScans.status, "failed")
+                  )
+                )
+            ).pipe(
+              geoSkip("scan retry exhaustion stamp failed", {
+                event: "geo.scan.stamp_failed",
+                organizationId: row.organizationId,
+                projectId: row.projectId,
+              })
+            );
+          }
+          yield* geoLogWarn({
+            event: "geo.scan.slot_abandoned",
+            organizationId: row.organizationId,
+            projectId: row.projectId,
+            anchor: anchor.toISOString(),
+            firstFailureAt: firstFailureAt.toISOString(),
+          });
+        }
         continue;
       }
       yield* backOffGeoScanLease(row, leaseUntil).pipe(
         geoSkip("scan lease back-off failed")
       );
+      yield* geoLogWarn({
+        event: "geo.scan.retry_scheduled",
+        organizationId: row.organizationId,
+        projectId: row.projectId,
+        anchor: anchor.toISOString(),
+      });
     }
 
     const result: GeoScanCronSweepResult = {
@@ -415,6 +555,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       covered,
       leaseLost,
       alreadyRunning,
+      billingDenied,
       failed,
       advanceLost,
       staleScansFailed,

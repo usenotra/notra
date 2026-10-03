@@ -21,21 +21,27 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, m, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
-import { AVAILABLE_MODELS, ModelIcon } from "@/components/chat/chat-input";
+import { ModelIcon } from "@/components/chat/chat-input";
+import { AVAILABLE_MODELS } from "@/constants/chat-models";
+import { useChatModelLabels } from "@/lib/hooks/use-chat-model-labels";
+import type { ChatModelOption } from "@/types/components/chat-input";
 import type {
   UserMessageEditorProps,
   UserMessageTextBubbleProps,
 } from "@/types/components/chat-page";
 
 interface UserMessageActionsProps {
+  availableModels?: readonly ChatModelOption[];
   messageText: string;
   canInteract: boolean;
   onEdit: () => void;
@@ -49,6 +55,7 @@ interface UserMessageActionsProps {
 }
 
 export function UserMessageActions({
+  availableModels = AVAILABLE_MODELS,
   messageText,
   canInteract,
   onEdit,
@@ -60,6 +67,10 @@ export function UserMessageActions({
   isEditing,
   className,
 }: UserMessageActionsProps) {
+  const t = useTranslations("chat.userMessageActions");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const modelLabels = useChatModelLabels();
   const [copied, setCopied] = useState(false);
   const [retryOpen, setRetryOpen] = useState(false);
 
@@ -81,10 +92,10 @@ export function UserMessageActions({
   return (
     <div
       className={cn(
-        "text-muted-foreground duration-normal mt-0.5 ml-auto flex items-center gap-1 transition-[opacity,height,margin,padding] ease-out",
+        "text-muted-foreground duration-fast absolute top-full right-0 flex items-center gap-1 pt-1 transition-opacity",
         isEditing
-          ? "pointer-events-none mt-0 h-0 overflow-hidden opacity-0"
-          : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[force-visible=true]:opacity-100",
+          ? "pointer-events-none invisible opacity-0"
+          : "pointer-events-none opacity-0 group-hover/message:pointer-events-auto group-hover/message:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 data-[force-visible=true]:pointer-events-auto data-[force-visible=true]:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100",
         className
       )}
       data-force-visible={retryOpen || undefined}
@@ -92,7 +103,7 @@ export function UserMessageActions({
       {hasBranches && (
         <div className="flex items-center text-xs tabular-nums">
           <Button
-            aria-label="Previous version"
+            aria-label={t("previousVersion")}
             className="size-5"
             disabled={!canInteract}
             onClick={onPreviousBranch}
@@ -106,7 +117,7 @@ export function UserMessageActions({
             {(branchIndex ?? 0) + 1}/{branchTotal}
           </span>
           <Button
-            aria-label="Next version"
+            aria-label={t("nextVersion")}
             className="size-5"
             disabled={!canInteract}
             onClick={onNextBranch}
@@ -119,98 +130,107 @@ export function UserMessageActions({
         </div>
       )}
 
-      <div className="flex items-center gap-1">
-        <DropdownMenu onOpenChange={setRetryOpen} open={retryOpen}>
-          <Tooltip>
+      <TooltipProvider>
+        <div className="flex items-center gap-1">
+          <DropdownMenu onOpenChange={setRetryOpen} open={retryOpen}>
+            <Tooltip disableHoverablePopup>
+              <TooltipTrigger
+                render={
+                  <DropdownMenuTrigger
+                    disabled={!canInteract}
+                    render={
+                      <Button
+                        aria-label={tCommon("retry")}
+                        className="size-5"
+                        size="icon-sm"
+                        type="button"
+                        variant="ghost"
+                      />
+                    }
+                  />
+                }
+              >
+                <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+              </TooltipTrigger>
+              <TooltipContent>{tCommon("retry")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuItem onClick={() => onRetry()}>
+                <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+                <span className="text-sm">{t("retryWithSame")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>
+                  {tCommon2("labels.model")}
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              {availableModels.map((m) => (
+                <DropdownMenuItem key={m.id} onClick={() => onRetry(m.id)}>
+                  <ModelIcon
+                    className="size-4 shrink-0"
+                    provider={m.provider}
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm">{m.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {modelLabels.description(m)}
+                    </span>
+                    <span className="text-muted-foreground/70 text-[0.625rem]">
+                      {modelLabels.pricing(m)}
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Tooltip disableHoverablePopup>
             <TooltipTrigger
               render={
-                <DropdownMenuTrigger
+                <Button
+                  aria-label={t("editMessage")}
+                  className="size-5"
                   disabled={!canInteract}
-                  render={
-                    <Button
-                      aria-label="Retry"
-                      className="size-5"
-                      size="icon-sm"
-                      type="button"
-                      variant="ghost"
-                    />
-                  }
+                  onClick={onEdit}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
                 />
               }
             >
-              <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
+              <HugeiconsIcon icon={Edit02Icon} size={12} />
             </TooltipTrigger>
-            <TooltipContent>Retry</TooltipContent>
+            <TooltipContent>{tCommon("edit")}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuItem onClick={() => onRetry()}>
-              <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={12} />
-              <span className="text-sm">Retry with same</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Model</DropdownMenuLabel>
-            </DropdownMenuGroup>
-            {AVAILABLE_MODELS.map((m) => (
-              <DropdownMenuItem key={m.id} onClick={() => onRetry(m.id)}>
-                <ModelIcon className="size-4 shrink-0" provider={m.provider} />
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-sm">{m.label}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {m.description}
-                  </span>
-                  <span className="text-muted-foreground/70 text-[0.625rem]">
-                    {m.pricing}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
 
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label="Edit message"
-                className="size-5"
-                disabled={!canInteract}
-                onClick={onEdit}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
+          <Tooltip disableHoverablePopup>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={t("copyMessage")}
+                  className={cn(
+                    "size-5",
+                    copied && "text-success hover:text-success"
+                  )}
+                  onClick={handleCopy}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                />
+              }
+            >
+              <HugeiconsIcon
+                icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
+                size={12}
               />
-            }
-          >
-            <HugeiconsIcon icon={Edit02Icon} size={12} />
-          </TooltipTrigger>
-          <TooltipContent>Edit</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label="Copy message"
-                className={cn(
-                  "size-5",
-                  copied && "text-success hover:text-success"
-                )}
-                onClick={handleCopy}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              />
-            }
-          >
-            <HugeiconsIcon
-              icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
-              size={12}
-            />
-          </TooltipTrigger>
-          <TooltipContent>{copied ? "Copied" : "Copy"}</TooltipContent>
-        </Tooltip>
-      </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {copied ? tCommon("copied") : tCommon("copy")}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }
@@ -226,6 +246,9 @@ function UserMessageEditor({
   onCancel,
   onSubmit,
 }: UserMessageEditorProps) {
+  const t = useTranslations("chat.userMessageActions");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const [value, setValue] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const reduceMotion = useReducedMotion();
@@ -279,7 +302,7 @@ function UserMessageEditor({
             onCancel();
           }
         }}
-        placeholder="Edit your message..."
+        placeholder={t("editPlaceholder")}
         ref={textareaRef}
         rows={1}
         value={value}
@@ -291,7 +314,7 @@ function UserMessageEditor({
         transition={USER_MESSAGE_FADE_TRANSITION}
       >
         <Button onClick={onCancel} size="sm" type="button" variant="ghost">
-          Cancel
+          {tCommon("cancel")}
         </Button>
         <Button
           disabled={trimmedValue.length === 0 || isUnchanged}
@@ -299,7 +322,7 @@ function UserMessageEditor({
           size="sm"
           type="button"
         >
-          Send
+          {tCommon2("labels.send")}
         </Button>
       </m.div>
     </div>

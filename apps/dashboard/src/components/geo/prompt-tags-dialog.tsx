@@ -11,11 +11,11 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 
 import { Button } from "@/components/button";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
-import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import type { PromptTagsDialogProps, PromptTagsFormProps } from "@/types/geo";
 
 function PromptTagsForm({
@@ -24,6 +24,8 @@ function PromptTagsForm({
   suggestions,
   onSubmit,
 }: PromptTagsFormProps) {
+  const t = useTranslations("geo.promptTagsDialog");
+  const tGeoShared = useTranslations("geo.shared");
   const inputId = useId();
   const [tags, setTags] = useState<string[]>(initialTags);
   const selectedTags = new Set(tags);
@@ -42,17 +44,15 @@ function PromptTagsForm({
     >
       <GeoTagList
         id={inputId}
-        label={GEO_PROMPT_TAGS_COPY.label}
+        label={tGeoShared("tags")}
         max={GEO_PROMPT_MAX_TAGS}
         onChange={(values) => setTags(normalizePromptTags(values))}
-        placeholder={GEO_PROMPT_TAGS_COPY.placeholder}
+        placeholder={t("placeholder")}
         values={tags}
       />
       {available.length > 0 ? (
         <div className="space-y-1.5">
-          <p className="text-muted-foreground text-xs">
-            {GEO_PROMPT_TAGS_COPY.suggestions}
-          </p>
+          <p className="text-muted-foreground text-xs">{t("suggestions")}</p>
           <div className="flex flex-wrap gap-1.5">
             {available.map((tag) => (
               <Badge
@@ -82,6 +82,7 @@ export function PromptTagsDialog({
   suggestions,
   onConfirm,
 }: PromptTagsDialogProps) {
+  const tCommon = useTranslations("common.actions");
   const formId = useId();
 
   return (
@@ -111,7 +112,7 @@ export function PromptTagsDialog({
             type="button"
             variant="outline"
           >
-            {GEO_PROMPT_TAGS_COPY.cancel}
+            {tCommon("cancel")}
           </Button>
           <Button form={formId} type="submit">
             {confirmLabel}

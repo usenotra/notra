@@ -1,12 +1,12 @@
 "use client";
 
-import { Add01Icon, RefreshIcon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
-import { BRAND_TAB_HEADERS } from "@/constants/brand-identity";
+import { BRAND_IDENTITY_TAB_LABEL_KEYS } from "@/constants/brand-identity";
 import type {
   BrandIdentityHeaderProps,
   BrandTab,
@@ -20,42 +20,41 @@ export function BrandIdentityHeader({
   onRefreshGuidelines,
   isRefreshingGuidelines,
 }: BrandIdentityHeaderProps) {
+  const t = useTranslations("brand.identity.header");
+  const tBrandShared = useTranslations("brand.shared");
+  const tLabels = useTranslations("common.labels");
   const actionByTab: Partial<
     Record<BrandTab, { label: string; onClick: () => void }>
   > = {
     identity: {
-      label: "Create Identity",
+      label: tBrandShared("createIdentity"),
       onClick: onAddIdentity,
     },
     references: {
-      label: "Add Reference",
+      label: tBrandShared("addReference"),
       onClick: onAddReference,
     },
     sitemap: {
-      label: "Add Sitemap",
+      label: tBrandShared("addSitemap"),
       onClick: onAddSitemap,
     },
   };
   const action = actionByTab[activeTab];
 
   return (
-    <div className="flex items-start justify-between">
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {BRAND_TAB_HEADERS[activeTab].title}
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {tLabels(BRAND_IDENTITY_TAB_LABEL_KEYS[activeTab])}
         </h1>
-        <p className="text-muted-foreground text-sm">
-          {BRAND_TAB_HEADERS[activeTab].description}
+        <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
+          {t(`tabs.${activeTab}.description`)}
         </p>
       </div>
       {activeTab === "guidelines" ? (
-        <Button disabled={isRefreshingGuidelines} onClick={onRefreshGuidelines}>
-          {isRefreshingGuidelines ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : (
-            <HugeiconsIcon className="size-4" icon={RefreshIcon} />
-          )}
-          Refresh Guidelines
+        <Button loading={isRefreshingGuidelines} onClick={onRefreshGuidelines}>
+          <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
+          {tBrandShared("refreshGuidelines")}
         </Button>
       ) : null}
       {action ? (
@@ -65,6 +64,6 @@ export function BrandIdentityHeader({
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
         </Button>
       ) : null}
-    </div>
+    </header>
   );
 }

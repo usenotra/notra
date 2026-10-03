@@ -16,7 +16,7 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,8 @@ import { authClient } from "@/lib/auth/client";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
 export function OnboardingAccountMenu() {
+  const t = useTranslations("onboarding.accountMenu");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const signOut = authClient.useSignOut();
@@ -42,13 +44,13 @@ export function OnboardingAccountMenu() {
       await signOut({
         fetchOptions: {
           onSuccess: () => {
-            toast.success("Signed out successfully");
+            toast.success(tCommon("labels.signedOutSuccessfully"));
             router.push("/login");
           },
         },
       });
     } catch {
-      toast.error("Failed to sign out");
+      toast.error(tCommon("labels.failedToSignOut"));
       setIsSigningOut(false);
     }
   }
@@ -72,7 +74,7 @@ export function OnboardingAccountMenu() {
         <ResponsiveDialogTrigger
           render={
             <Button
-              aria-label="Account menu"
+              aria-label={t("label")}
               className="size-9 rounded-full p-0"
               variant="ghost"
             >
@@ -91,9 +93,11 @@ export function OnboardingAccountMenu() {
         />
         <ResponsiveDialogContent className="max-w-sm">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Account</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              {tCommon("labels.account")}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Manage your session before choosing a plan.
+              {t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
@@ -120,16 +124,12 @@ export function OnboardingAccountMenu() {
             <div className="flex flex-col gap-2">
               <Button
                 className="w-full justify-start"
-                disabled={isSigningOut}
+                loading={isSigningOut}
                 onClick={handleSignOut}
                 variant="outline"
               >
-                {isSigningOut ? (
-                  <Loader2Icon className="size-4 animate-spin" />
-                ) : (
-                  <HugeiconsIcon icon={Logout01Icon} size={16} />
-                )}
-                {isSigningOut ? "Signing out..." : "Log out"}
+                <HugeiconsIcon icon={Logout01Icon} size={16} />
+                {tCommon("labels.logOut")}
               </Button>
               <Button
                 className="w-full justify-start"
@@ -137,7 +137,7 @@ export function OnboardingAccountMenu() {
                 variant="outline"
               >
                 <HugeiconsIcon icon={Delete02Icon} size={16} />
-                Delete account
+                {tCommon("labels.deleteAccount")}
               </Button>
             </div>
           </div>

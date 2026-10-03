@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
+import { NextIntlClientProvider } from "next-intl";
 import { renderToStaticMarkup } from "react-dom/server";
+
+import messages from "../messages/en.json";
 
 let settingsFails = false;
 let gapsFails = false;
@@ -67,6 +70,14 @@ mock.module("@/components/geo/writer/write-dialog", () => ({
 const { default: GeoGapsPage } =
   await import("../src/app/(dashboard)/[slug]/geo/gaps/page-client");
 
+function renderPage() {
+  return renderToStaticMarkup(
+    <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
+      <GeoGapsPage organizationSlug="fixture" />
+    </NextIntlClientProvider>
+  );
+}
+
 beforeEach(() => {
   settingsFails = false;
   gapsFails = false;
@@ -76,9 +87,7 @@ beforeEach(() => {
 
 describe("Content Gaps load failures", () => {
   test("does not mount the writer before a write action", () => {
-    const html = renderToStaticMarkup(
-      <GeoGapsPage organizationSlug="fixture" />
-    );
+    const html = renderPage();
 
     expect(html).toContain("Loaded gaps table");
     expect(html).not.toContain("Writer dialog mounted");
@@ -87,9 +96,7 @@ describe("Content Gaps load failures", () => {
   test("preserves setup when settings confirm that no brand is configured", () => {
     configured = false;
     gapsFails = true;
-    const html = renderToStaticMarkup(
-      <GeoGapsPage organizationSlug="fixture" />
-    );
+    const html = renderPage();
 
     expect(html).toContain("Set up your brand");
     expect(html).not.toContain('role="alert"');
@@ -97,9 +104,7 @@ describe("Content Gaps load failures", () => {
 
   test("shows a retryable error rather than setup when settings fail", () => {
     settingsFails = true;
-    const html = renderToStaticMarkup(
-      <GeoGapsPage organizationSlug="fixture" />
-    );
+    const html = renderPage();
 
     expect(html).toContain('role="alert"');
     expect(html).toContain("Retry");
@@ -108,9 +113,7 @@ describe("Content Gaps load failures", () => {
 
   test("shows a retryable error rather than an empty table when gaps fail", () => {
     gapsFails = true;
-    const html = renderToStaticMarkup(
-      <GeoGapsPage organizationSlug="fixture" />
-    );
+    const html = renderPage();
 
     expect(html).toContain('role="alert"');
     expect(html).toContain("Retry");
@@ -120,9 +123,7 @@ describe("Content Gaps load failures", () => {
   test("keeps previously loaded gaps visible after a background refresh fails", () => {
     gapsFails = true;
     cachedGaps = true;
-    const html = renderToStaticMarkup(
-      <GeoGapsPage organizationSlug="fixture" />
-    );
+    const html = renderPage();
 
     expect(html).toContain("Loaded gaps table");
     expect(html).not.toContain('role="alert"');

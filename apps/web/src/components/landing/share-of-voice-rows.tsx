@@ -8,7 +8,6 @@ import {
   TableRow,
 } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import { FEATURES_TABLE_OPTIONAL_COL } from "@/constants/landing/features";
 import type { ShareRow, ShareRowLogo } from "@/types/landing/geo";
@@ -19,20 +18,26 @@ const SHARE_COL = "w-[8.25rem]";
 const MENTIONS_COL = "w-[4.75rem]";
 const LOGO_SIZE_PX = 40;
 const LOGO_CLASS = "size-5 shrink-0 rounded-sm object-contain";
+const LOGO_TILE_CLASS =
+  "-m-0.5 flex size-6 shrink-0 items-center justify-center rounded-md dark:bg-[#F6F3F1]";
 
 function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
   const alt = `${brand} logo`;
   if (logo.darkSrc) {
     return (
       <>
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={alt}
           className={cn(LOGO_CLASS, "dark:hidden")}
           height={LOGO_SIZE_PX}
           src={logo.src}
           width={LOGO_SIZE_PX}
         />
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={alt}
           className={cn(LOGO_CLASS, "hidden dark:block")}
           height={LOGO_SIZE_PX}
@@ -42,8 +47,10 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
       </>
     );
   }
-  return (
-    <Image
+  const image = (
+    <img
+      decoding="async"
+      loading="lazy"
       alt={alt}
       className={cn(LOGO_CLASS, logo.invertOnDark && "dark:invert")}
       height={LOGO_SIZE_PX}
@@ -51,6 +58,10 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
       width={LOGO_SIZE_PX}
     />
   );
+  if (logo.tileOnDark) {
+    return <span className={LOGO_TILE_CLASS}>{image}</span>;
+  }
+  return image;
 }
 
 export function ShareOfVoiceRows({

@@ -4,7 +4,9 @@ import {
 } from "@/constants/offering-check";
 import type {
   OfferingChatPhase,
+  OfferingCheckResult,
   OfferingCheckInput,
+  OfferingLiveState,
   OfferingMarkdownNode,
   OfferingSourceDomain,
 } from "@/types/offering-check";
@@ -203,4 +205,31 @@ export function createFeatureHighlightPlugin(feature: string) {
       highlightFeatureText(tree, pattern);
     }
   };
+}
+
+export function getOfferingActivityLabel(
+  state: OfferingLiveState
+): string | null {
+  if (state.result) {
+    return null;
+  }
+  if (state.seconds !== null) {
+    return "Grading the answer";
+  }
+  if (state.answer.length > 0) {
+    return "Writing the answer";
+  }
+  if (state.domains.length > 0) {
+    const sites = state.domains.length === 1 ? "site" : "sites";
+    return `Searching the web · ${state.domains.length} ${sites}`;
+  }
+  return state.queries.length > 0 ? "Searching the web" : "Thinking";
+}
+
+export function describeOwnSiteUse(result: OfferingCheckResult): string {
+  const own = result.sources.find((source) => source.own);
+  if (!own) {
+    return "Not opened";
+  }
+  return own.cited ? "Cited" : "Read, not cited";
 }

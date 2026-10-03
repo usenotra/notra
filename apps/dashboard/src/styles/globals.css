@@ -20,6 +20,19 @@
   html,
   body {
     scrollbar-gutter: stable;
+    /* The dashboard is a fixed-height app shell; overlays and portals must
+       never make the document itself scroll sideways under the fixed sidebar. */
+    overflow-x: clip;
+  }
+
+  /* No macOS rubber-band on the fixed app shell. Scoped to shell routes so
+     scrollable pages (onboarding, auth) keep it, and gated to fine pointers
+     so touch devices keep pull-to-refresh. */
+  @media (pointer: fine) {
+    html:has([data-dashboard-shell]),
+    html:has([data-dashboard-shell]) body {
+      overscroll-behavior: none;
+    }
   }
 }
 
@@ -45,101 +58,107 @@
     );
   }
 
-  /* Container variants using container queries */
-  .page-container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container {
-      max-width: 48rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container {
-      max-width: 80rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container {
-      max-width: 96rem;
-    }
-  }
-
-  /* Relaxed variant - balanced for readability */
-  .page-container-relaxed {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container-relaxed {
-      max-width: 44rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container-relaxed {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container-relaxed {
-      max-width: 68rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-relaxed {
-      max-width: 76rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-relaxed {
-      max-width: 80rem;
-    }
-  }
-
-  /* Compact variant - focused for forms/settings */
+  /*
+   * Container variants. Widths are continuous functions of the container
+   * (cqw) instead of stepped breakpoints: a stepped max-width snaps when the
+   * sidebar or right panel animates the container across a breakpoint, and the
+   * centered content then drifts until the animation ends.
+   */
+  .page-container,
+  .page-container-relaxed,
   .page-container-compact {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
-  @container (min-width: 40rem) {
-    .page-container-compact {
-      max-width: 40rem;
-    }
+
+  .page-container {
+    max-width: 96rem;
   }
-  @container (min-width: 48rem) {
-    .page-container-compact {
-      max-width: 48rem;
-    }
+
+  /* Relaxed variant - balanced for readability */
+  .page-container-relaxed {
+    max-width: min(calc(40rem + 41.667cqw), 80rem);
   }
-  @container (min-width: 64rem) {
-    .page-container-compact {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-compact {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-compact {
-      max-width: 72rem;
-    }
+
+  /* Compact variant - focused for forms/settings */
+  .page-container-compact {
+    max-width: min(calc(24rem + 50cqw), 72rem);
   }
 }
 
 @keyframes logs-table-content-fade {
   from {
     opacity: 0.72;
+  }
+}
+
+@keyframes sentiment-analysis-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+
+@keyframes sentiment-scan-wave {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sentiment-scan-fill {
+  0% {
+    transform: scaleX(0.12);
+  }
+  65%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sentiment-scan-bar {
+    transform-origin: bottom;
+    animation: sentiment-scan-wave 2s ease-in-out infinite backwards;
+    animation-delay: calc(var(--scan-index) * 110ms);
+  }
+
+  .sentiment-scan-fill {
+    transform-origin: left;
+    animation: sentiment-scan-fill 2.6s cubic-bezier(0.23, 1, 0.32, 1) infinite
+      backwards;
+    animation-delay: calc(var(--scan-index) * 320ms);
+  }
+
+  .sentiment-analysis-progress {
+    animation: sentiment-analysis-progress 24s cubic-bezier(0.23, 1, 0.32, 1)
+      forwards;
+  }
+
+  .sentiment-results-table[data-ready="true"] tbody tr {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .sentiment-state-copy {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @starting-style {
+    .sentiment-results-table[data-ready="true"] tbody tr {
+      opacity: 0.55;
+    }
+
+    .sentiment-state-copy {
+      opacity: 0.55;
+    }
   }
 }
 
@@ -170,22 +189,6 @@
   animation: chat-input-slide-down 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes chat-messages-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.chat-messages-fade-in {
-  animation: chat-messages-fade-in 360ms ease-out both;
-  animation-delay: 120ms;
-}
-
 @keyframes chat-branch-fade-in {
   from {
     opacity: 0;
@@ -199,4 +202,142 @@
 
 .chat-branch-fade-in {
   animation: chat-branch-fade-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-input-slide-down,
+  .chat-branch-fade-in {
+    animation: none;
+  }
+}
+
+/* Pierre diffs inherit these into Shadow DOM. */
+.chat-document-diff {
+  --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-sans);
+  --diffs-font-size: 0.75rem;
+  --diffs-line-height: 1.25rem;
+  --diffs-light-bg: var(--background);
+  --diffs-dark-bg: var(--background);
+  --diffs-light: var(--foreground);
+  --diffs-dark: var(--foreground);
+  --diffs-added-light: var(--success);
+  --diffs-added-dark: var(--success);
+  --diffs-deleted-light: var(--destructive);
+  --diffs-deleted-dark: var(--destructive);
+  --diffs-modified-light: var(--info);
+  --diffs-modified-dark: var(--info);
+  --diffs-fg-number-override: var(--muted-foreground);
+  --diffs-bg-separator-override: var(--muted);
+  --diffs-token-light-bg: transparent;
+  --diffs-token-dark-bg: transparent;
+}
+
+@keyframes geo-live-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes geo-live-ping {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+.geo-live-in {
+  animation: geo-live-in var(--transition-duration-slow) var(--ease-emphasized)
+    both;
+}
+
+.geo-live-ping {
+  animation: geo-live-ping 1s var(--ease-emphasized) both;
+}
+
+/*
+ * A request that just arrived in the live log: the row opens to its height so
+ * the rows below glide down instead of jumping, its content fades in out of a
+ * blur, and a light tint marks it for a moment before fading back.
+ * `backwards`, not `both`: a filled end state would override row hover.
+ */
+@keyframes geo-log-row-open {
+  from {
+    height: 0;
+  }
+}
+
+@keyframes geo-log-row-content {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes geo-log-row-glow {
+  from {
+    background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+  }
+  40% {
+    background-color: color-mix(in oklab, var(--primary) 6%, transparent);
+  }
+}
+
+/* Symmetric curve: an emphasized ease finishes the push-down in ~60 ms. */
+.geo-log-row-arrive {
+  animation:
+    geo-log-row-open 520ms var(--ease-emphasized-in-out) backwards,
+    geo-log-row-glow 2.4s ease-out backwards;
+  animation-delay: var(--geo-log-arrive-delay, 0ms);
+}
+
+/* Cells open in step with the row; the text unblurs once there is room. */
+.geo-log-row-arrive > td > div {
+  animation:
+    geo-log-row-open 520ms var(--ease-emphasized-in-out) backwards,
+    geo-log-row-content var(--transition-duration-slower) var(--ease-emphasized)
+      backwards;
+  animation-delay:
+    var(--geo-log-arrive-delay, 0ms),
+    calc(var(--geo-log-arrive-delay, 0ms) + 160ms);
+}
+
+/* A burst of requests opens top to bottom instead of all at once. */
+.geo-log-arrive-1 {
+  --geo-log-arrive-delay: 70ms;
+}
+
+.geo-log-arrive-2 {
+  --geo-log-arrive-delay: 140ms;
+}
+
+.geo-log-arrive-3 {
+  --geo-log-arrive-delay: 210ms;
+}
+
+.geo-log-arrive-4 {
+  --geo-log-arrive-delay: 280ms;
+}
+
+.geo-log-arrive-5 {
+  --geo-log-arrive-delay: 350ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .geo-log-row-arrive,
+  .geo-log-row-arrive > td > div,
+  .geo-live-in,
+  .geo-live-ping {
+    animation: none;
+  }
+
+  .geo-live-ping {
+    opacity: 0;
+  }
 }

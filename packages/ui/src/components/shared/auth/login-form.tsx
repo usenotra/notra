@@ -1,15 +1,18 @@
 "use client";
 
+
+import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
+
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
+import { useAuthFlow } from "../../../hooks/use-auth-flow";
 import type {
   AuthMethod,
   LoginFormProps,
-  PendingVerification,
   SocialProvider,
-} from "../../../lib/auth-types";
+} from "../../../types/auth";
 import {
   getLastUsedLoginMethod,
   setLastUsedLoginMethod,
@@ -23,10 +26,8 @@ import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { AuthOrDivider } from "./auth-or-divider";
 import { AuthPasswordField } from "./auth-password-field";
+import { AuthPendingStep } from "./auth-pending-step";
 import { AuthSocialButtons } from "./auth-social-buttons";
-import { EmailVerificationForm } from "./email-verification-form";
-
-const LOGIN_ERROR_FALLBACK = "Failed to sign in. Please try again.";
 
 const noop = () => {
   return;
@@ -34,139 +35,171 @@ const noop = () => {
 const subscribeToNothing = () => noop;
 const returnNull = () => null;
 
+const validateFilledField = (
+  validate: (value: string) => string | undefined,
+  value: string,
+) => (value.length > 0 ? validate(value) : undefined);
+
 export function LoginForm({
-  title = "Welcome back",
-  description = "Log in to pick up where your team left off.",
+  title,
+  description,
   onSuccess,
   returnTo,
   showSignupLink = true,
   showForgotPasswordLink = true,
   initialError,
-  initialPendingVerification,
+  initialPending,
   callbackPath,
   validators,
   signInWithPassword,
   verifyEmailCode,
+  verifyMfaCode,
+  redeemBackupCode,
   startSocialSignIn,
+  labels,
 }: LoginFormProps) {
+  const l = { ...DEFAULT_LOGIN_FORM_LABELS, ...labels };
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(
-    initialError ?? null
+    initialError ?? null,
   );
-  const [pendingVerification, setPendingVerification] =
-    useState<PendingVerification | null>(initialPendingVerification ?? null);
   const authInFlightRef = useRef(false);
+  const flow = useAuthFlow({ initialPending, onSuccess });
   const lastMethod = useSyncExternalStore(
     subscribeToNothing,
     getLastUsedLoginMethod,
-    returnNull
+    returnNull,
   );
   const isAuthLoading = authMethod !== null;
-
   const callbackURL = returnTo ?? callbackPath;
 
-  function handleSocialLogin(provider: SocialProvider) {
+  function releaseAuth() {
+    authInFlightRef.current = false;
+    setAuthMethod(null);
+  }
+
+  function startRedirectSignIn(
+    method: AuthMethod,
+    start: () => Promise<void>,
+    fallbackError: string,
+  ) {
     if (authInFlightRef.current) {
       return;
     }
-
     setFormError(null);
     authInFlightRef.current = true;
-    setAuthMethod(provider);
-    setLastUsedLoginMethod(provider);
-    startSocialSignIn({ provider, returnTo: callbackURL }).catch((error) => {
+    setAuthMethod(method);
+    setLastUsedLoginMethod(method);
+    start().catch((error) => {
       if (isNextRedirectError(error)) {
         return;
       }
-      authInFlightRef.current = false;
-      setAuthMethod(null);
-      setFormError("Social sign-in failed. Please try again.");
+      releaseAuth();
+      setFormError(fallbackError);
     });
   }
 
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      if (authInFlightRef.current) {
-        return;
-      }
-
-      if (validators.email(value.email) || validators.password(value.password)) {
-        return;
-      }
-
-      setFormError(null);
-      authInFlightRef.current = true;
-      setAuthMethod("email");
-      try {
-        const result = await signInWithPassword({
-          email: value.email,
-          password: value.password,
-          returnTo: callbackURL,
-        });
-
-        if (result.status === "error") {
-          setFormError(result.message || LOGIN_ERROR_FALLBACK);
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          return;
-        }
-
-        if (result.status === "verification-required") {
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          setPendingVerification({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            email: result.email,
-          });
-          return;
-        }
-
+  async function submitPassword(email: string, password: string) {
+    if (authInFlightRef.current) {
+      return;
+    }
+    setFormError(null);
+    authInFlightRef.current = true;
+    setAuthMethod("email");
+    try {
+      const result = await signInWithPassword({
+        email,
+        password,
+        returnTo: callbackURL,
+      });
+      if (result.status === "success") {
         setLastUsedLoginMethod("email");
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      } catch (error) {
-        console.error("Email login error:", error);
-        setFormError(LOGIN_ERROR_FALLBACK);
-        authInFlightRef.current = false;
-        setAuthMethod(null);
       }
+      if (!flow.applyResult(result)) {
+        setFormError(
+          result.status === "error"
+            ? result.message || l.loginErrorFallback
+            : l.loginErrorFallback,
+        );
+      }
+      if (result.status !== "success") {
+        releaseAuth();
+      }
+    } catch (error) {
+      console.error("Email login error:", error);
+      setFormError(l.loginErrorFallback);
+      releaseAuth();
+    }
+  }
+
+  const form = useForm({
+    defaultValues: { email: "", password: "" },
+    onSubmit: async ({ value }) => {
+      if (
+        validators.email(value.email) ||
+        validators.password(value.password)
+      ) {
+        return;
+      }
+      await submitPassword(value.email, value.password);
     },
   });
 
-  if (pendingVerification) {
+  function resetToSignIn() {
+    flow.reset();
+    setFormError(null);
+  }
+
+  async function handleRecovered(recoveredEmail: string) {
+    flow.reset();
+    const { email, password } = form.state.values;
+    if (email && password) {
+      await submitPassword(email, password);
+      return;
+    }
+    setFormError(l.backupCodeRecovered(recoveredEmail));
+  }
+
+  if (flow.pending) {
     return (
-      <EmailVerificationForm
-        email={pendingVerification.email}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={
-          pendingVerification.pendingAuthenticationToken
-        }
+      <AuthPendingStep
+        labels={l.pendingStep}
+        onBack={resetToSignIn}
+        onFinish={flow.finish}
+        onRecovered={handleRecovered}
+        onResult={flow.applyResult}
+        redeemBackupCode={redeemBackupCode}
         returnTo={callbackURL}
+        step={flow.pending}
         verifyEmailCode={verifyEmailCode}
+        verifyMfaCode={verifyMfaCode}
       />
     );
   }
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <AuthFormHeader description={description} title={title} />
+      <AuthFormHeader
+        description={description ?? l.description}
+        title={title ?? l.title}
+      />
 
       <div className="grid gap-4">
         <AuthSocialButtons
           authMethod={authMethod}
           disabled={isAuthLoading}
           lastMethod={lastMethod}
-          onSelect={handleSocialLogin}
+          lastUsedLabel={l.lastUsed}
+          onSelect={(provider: SocialProvider) =>
+            startRedirectSignIn(
+              provider,
+              () => startSocialSignIn({ provider, returnTo: callbackURL }),
+              l.socialErrorFallback,
+            )
+          }
         />
 
-        <AuthOrDivider />
+        <AuthOrDivider label={l.or} />
 
         <form
           aria-busy={isAuthLoading}
@@ -182,7 +215,8 @@ export function LoginForm({
             <form.Field
               name="email"
               validators={{
-                onBlur: ({ value }) => validators.email(value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.email, value),
                 onSubmit: ({ value }) => validators.email(value),
               }}
             >
@@ -191,10 +225,10 @@ export function LoginForm({
                   disabled={isAuthLoading}
                   error={field.state.meta.errors[0]}
                   id={field.name}
-                  label="Email"
+                  label={l.emailLabel}
                   onBlur={field.handleBlur}
                   onChange={field.handleChange}
-                  placeholder="jane@company.com"
+                  placeholder={l.emailPlaceholder}
                   value={field.state.value}
                 />
               )}
@@ -202,7 +236,8 @@ export function LoginForm({
             <form.Field
               name="password"
               validators={{
-                onBlur: ({ value }) => validators.password(value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.password, value),
                 onSubmit: ({ value }) => validators.password(value),
               }}
             >
@@ -212,9 +247,10 @@ export function LoginForm({
                   disabled={isAuthLoading}
                   error={field.state.meta.errors[0]}
                   id={field.name}
+                  label={l.passwordLabel}
                   onBlur={field.handleBlur}
                   onChange={field.handleChange}
-                  placeholder="Your password"
+                  placeholder={l.passwordPlaceholder}
                   value={field.state.value}
                 />
               )}
@@ -225,11 +261,8 @@ export function LoginForm({
 
           <div className="relative mt-4 pt-2">
             {lastMethod === "email" && (
-              <Badge
-                className="-right-2 absolute top-0 z-10"
-                variant="default"
-              >
-                Last Used
+              <Badge className="-right-2 absolute top-0 z-10" variant="default">
+                {l.lastUsed}
               </Badge>
             )}
             <CtaButton
@@ -240,10 +273,10 @@ export function LoginForm({
               {authMethod === "email" ? (
                 <>
                   <Loader2Icon className="size-4 animate-spin" />
-                  Signing in...
+                  {l.submitting}
                 </>
               ) : (
-                "Log in"
+                l.submit
               )}
             </CtaButton>
           </div>
@@ -254,24 +287,24 @@ export function LoginForm({
         <div className="flex flex-col gap-4 px-8 text-center text-muted-foreground text-xs">
           {showForgotPasswordLink && (
             <p>
-              Forgot your password?{" "}
+              {l.forgotPassword}{" "}
               <Link
                 className="underline underline-offset-4 hover:text-primary"
                 href="/forgot-password"
               >
-                Reset Your Password
+                {l.resetPassword}
               </Link>
             </p>
           )}
           {showForgotPasswordLink && showSignupLink && <Separator />}
           {showSignupLink && (
             <p>
-              Don&apos;t have an account?{" "}
+              {l.noAccount}{" "}
               <Link
                 className="underline underline-offset-4 hover:text-primary"
                 href="/signup"
               >
-                Register
+                {l.register}
               </Link>
             </p>
           )}

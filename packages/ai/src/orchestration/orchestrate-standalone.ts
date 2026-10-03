@@ -1,3 +1,4 @@
+import { CODE_RESEARCHER_TOOL_NAME } from "@notra/ai/constants/code-research";
 import { getEnabledMcpServerCount } from "@notra/ai/integrations/mcp-tool-index";
 import { createModel } from "@notra/ai/model";
 import { getStandaloneChatPrompt } from "@notra/ai/prompts/standalone-chat";
@@ -6,7 +7,6 @@ import { STANDALONE_SKILL_CATALOG_LIMIT } from "@notra/ai/skills/constants";
 import { listSkillSummaries } from "@notra/ai/skills/functions/service";
 import { createLazyMcpRuntime } from "@notra/ai/tools/mcp-lazy";
 import type {
-  AutoThinkingLevel,
   IntegrationFetchers,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
@@ -20,8 +20,10 @@ import type {
 import { loadChatWorkspace } from "@notra/ai/utils/chat-workspace";
 import { withStandaloneCodeMode } from "@notra/ai/utils/code-mode";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
+import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { getToolApprovalSecret } from "@notra/ai/utils/tool-approval-secret";
 import { withToolErrorPayloads } from "@notra/ai/utils/tool-error-payload";
 import {
   convertToModelMessages,
@@ -49,7 +51,7 @@ import {
 import { getThinkingProviderOptions } from "./thinking";
 
 const NOTRA_TOOLING_DESCRIPTION =
-  "Read-only Notra data tools (GitHub, Linear, Granola, posts, integrations, brand references, skills, web search, webpage fetch, GEO projects, prompt results, and project context) run inside code_mode. Content, brand identity, GEO chart, and approval tools are called directly. Context.dev tools require API configuration when called.";
+  "Read-only Notra data tools (GitHub, Linear, Granola, posts, integrations, brand references, skills, schedules, web search, webpage fetch, GEO projects, prompt results, and project context) run inside code_mode. Content, brand identity, GEO chart, schedule creation, and approval tools are called directly. Context.dev tools require API configuration when called.";
 
 export async function orchestrateStandaloneChat(
   input: StandaloneChatInput,
@@ -75,61 +77,60 @@ export async function orchestrateStandaloneChat(
   } = input;
 
   const log = deps?.log ?? inputLog;
+  const approvalSecret = chatId
+    ? getToolApprovalSecret(organizationId, chatId)
+    : undefined;
 
-  const validatedIntegrations =
-    deps?.preValidatedIntegrations ??
-    (await validateStandaloneIntegrations(
-      organizationId,
-      context,
-      deps?.integrationFetchers
-    ));
+  const [validatedIntegrations, mcpServerCount, skillSummaries, workspace] =
+    await Promise.all([
+      deps?.preValidatedIntegrations ??
+        validateStandaloneIntegrations(
+          organizationId,
+          context,
+          deps?.integrationFetchers
+        ),
+      getEnabledMcpServerCount(organizationId),
+      getStandaloneSkillSummaries(organizationId),
+      loadChatWorkspace({ organizationId, projectId }),
+    ]);
 
   const hasGitHub = hasEnabledGitHubIntegration(validatedIntegrations);
   const hasLinear = hasEnabledLinearIntegration(validatedIntegrations);
-  const hasMcp = (await getEnabledMcpServerCount(organizationId)) > 0;
+  const hasMcp = mcpServerCount > 0;
   const mcpContext = context.filter((item) => item.type === "mcp-server");
 
   const lastUserMessage = getLastUserMessage(messages);
   const hasNonTextPartsOnLatestTurn = lastUserMessageHasNonTextParts(messages);
-  const isAuto = requestedModel === undefined || requestedModel === "auto";
 
-  let selectedModel: string;
-  let autoThinkingLevel: AutoThinkingLevel | undefined;
-  let decisionReasoning: string;
-  let decisionComplexity: "simple" | "complex" = "complex";
-
-  if (isAuto) {
-    const decision = await routeMessage(
-      lastUserMessage,
-      hasGitHub || hasLinear || hasMcp,
-      log,
-      hasNonTextPartsOnLatestTurn,
-      telemetryMetadata
-    );
-    const auto = selectAutoModel(decision);
-    selectedModel = auto.model;
-    autoThinkingLevel = auto.thinkingLevel;
-    decisionComplexity = decision.complexity;
-    decisionReasoning = decision.requiresTools
-      ? `auto → ${auto.model}: ${decision.reasoning}`
-      : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`;
-  } else {
-    selectedModel = requestedModel;
-    decisionReasoning = "User selected model explicitly";
-  }
-
-  const routingDecision = {
-    model: selectedModel,
-    complexity: decisionComplexity,
-    requiresTools: true,
-    reasoning: decisionReasoning,
-    thinkingLevel: autoThinkingLevel,
-  };
+  const routingDecision = await resolveConversationRoute(
+    messages,
+    requestedModel,
+    async () => {
+      const decision = await routeMessage(
+        lastUserMessage,
+        hasGitHub || hasLinear || hasMcp,
+        log,
+        hasNonTextPartsOnLatestTurn,
+        telemetryMetadata
+      );
+      const auto = selectAutoModel(decision);
+      return {
+        model: auto.model,
+        thinkingLevel: auto.thinkingLevel,
+        complexity: decision.complexity,
+        requiresTools: true,
+        reasoning: decision.requiresTools
+          ? `auto → ${auto.model}: ${decision.reasoning}`
+          : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`,
+      };
+    }
+  );
+  const autoThinkingLevel = routingDecision.thinkingLevel;
 
   const modelWithMemory = createModel(
     organizationId,
     routingDecision.model,
-    {},
+    { supermemory: { customId: chatId } },
     log
   );
 
@@ -141,6 +142,8 @@ export async function orchestrateStandaloneChat(
       chatId,
       userId,
       useMarkup,
+      chargeAiCredits: input.chargeAiCredits,
+      codeResearch: input.codeResearch,
       validatedIntegrations,
       postResult,
     },
@@ -187,10 +190,6 @@ export async function orchestrateStandaloneChat(
   const linearContext = hasLinearToolsActive
     ? getLinearContextFromIntegrations(validatedIntegrations)
     : [];
-  const [skillSummaries, workspace] = await Promise.all([
-    getStandaloneSkillSummaries(organizationId),
-    loadChatWorkspace({ organizationId, projectId }),
-  ]);
   const systemPrompt = getStandaloneChatPrompt({
     skillSummaries,
     repoContext,
@@ -198,6 +197,7 @@ export async function orchestrateStandaloneChat(
     mcpContext,
     toolDescriptions: descriptions,
     hasGitHubEnabled: hasGitHubToolsActive,
+    hasCodeResearch: CODE_RESEARCHER_TOOL_NAME in baseToolSet.tools,
     hasLinearEnabled: hasLinearToolsActive,
     hasMcpEnabled: hasMcp,
     timezone,
@@ -209,11 +209,14 @@ export async function orchestrateStandaloneChat(
     enableThinking && (autoThinkingLevel ? autoThinkingLevel !== "off" : true);
 
   const providerOptions = withRouterDefaults(
-    getThinkingProviderOptions(
-      routingDecision.model,
-      effectiveEnableThinking,
-      effectiveThinkingLevel
-    ),
+    {
+      ...getThinkingProviderOptions(
+        routingDecision.model,
+        effectiveEnableThinking,
+        effectiveThinkingLevel
+      ),
+      gateway: { tags: ["standalone-chat"] },
+    },
     { modelId: routingDecision.model }
   );
 
@@ -259,6 +262,7 @@ export async function orchestrateStandaloneChat(
       lazyMcpRuntime?.requiresApproval(toolCall.toolName)
         ? "user-approval"
         : undefined,
+    experimental_toolApprovalSecret: approvalSecret,
     stopWhen: isStepCount(maxSteps),
     experimental_transform: smoothStream(),
     // Without this, a tool call whose inputs fail schema validation throws an
@@ -284,6 +288,9 @@ export async function orchestrateStandaloneChat(
       try {
         const { output: repairedInput } = await generateText({
           model: modelWithMemory,
+          providerOptions: {
+            gateway: { tags: ["standalone-chat-tool-repair"] },
+          },
           output: Output.object({ schema: brokenTool.inputSchema }),
           prompt: [
             `The assistant called the tool "${toolCall.toolName}" with inputs that failed validation:`,

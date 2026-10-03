@@ -1,5 +1,3 @@
-"use client";
-
 import { useHotkey } from "@tanstack/react-hotkeys";
 
 import {

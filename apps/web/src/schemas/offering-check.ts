@@ -109,3 +109,8 @@ export const offeringStreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("result"), result: offeringCheckResultSchema }),
   z.object({ type: z.literal("error") }),
 ]);
+
+export const offeringReportSearchSchema = z.object({
+  domain: z.string().optional().catch(undefined),
+  feature: z.string().optional().catch(undefined),
+});

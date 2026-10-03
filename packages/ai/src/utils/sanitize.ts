@@ -29,6 +29,7 @@ export function sanitizeMarkdownHtml(html: string): string {
       "th",
       "td",
       "img",
+      "video",
       "div",
       "span",
       "sup",
@@ -37,12 +38,16 @@ export function sanitizeMarkdownHtml(html: string): string {
     allowedAttributes: {
       a: ["href", "title", "target", "rel"],
       img: ["src", "alt", "title", "width", "height"],
+      video: ["src", "controls"],
       code: ["class"],
       pre: ["class"],
       td: ["align"],
       th: ["align"],
     },
     allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+      video: ["http", "https"],
+    },
     transformTags: {
       a: (tagName, attribs) => {
         if (attribs.target === "_blank") {

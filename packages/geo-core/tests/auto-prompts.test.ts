@@ -114,6 +114,19 @@ describe("shouldSkipUnmatchedGapScan", () => {
 });
 
 describe("buildGeoPrompts", () => {
+  test("skips the English templates when prompts are written in another language", () => {
+    const brand = {
+      companyDescription: "AI content and GEO platform for marketing teams.",
+      audience: null,
+    };
+    expect(
+      buildGeoPrompts({ ...SETTINGS, promptLanguage: "German" }, brand)
+    ).toEqual([]);
+    expect(
+      buildGeoPrompts({ ...SETTINGS, promptLanguage: "English" }, brand).length
+    ).toBeGreaterThan(0);
+  });
+
   test("derives the category from what a company builds, not how it describes itself", () => {
     const prompts = buildGeoPrompts(SETTINGS, {
       companyDescription:

@@ -8,7 +8,9 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
+import { ORPCError } from "@orpc/client";
 import { Loader2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -46,11 +48,26 @@ import {
   findCompetitor,
 } from "@/utils/onboarding-competitors";
 
+/**
+ * A scan billing refuses up front is no reason to block onboarding; the
+ * mutation's toast already explains it.
+ */
+function leaveOnPaymentRequired(leave: () => void) {
+  return (error: unknown) => {
+    if (error instanceof ORPCError && error.code === "PAYMENT_REQUIRED") {
+      leave();
+    }
+  };
+}
+
 function CompetitorsPicker({
   organizationId,
   domain,
   nextHref,
 }: CompetitorsPickerProps) {
+  const t = useTranslations("onboarding.competitors");
+  const tOnboardingShared = useTranslations("onboarding.shared");
+  const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
   const suggestions = useGeoCompetitorSuggestions(organizationId, domain);
@@ -58,7 +75,9 @@ function CompetitorsPicker({
     useGeoCompetitorsDb(organizationId);
   const startScan = useGeoStartScan(organizationId);
   const { isLocked: geoLocked } = useHasGeoFeature();
-  const submitLabel = geoLocked ? "Continue" : "Start tracking";
+  const submitLabel = geoLocked
+    ? tCommon("actions.continue")
+    : t("startTracking");
   const [isLeaving, setIsLeaving] = useState(false);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   const busy = startScan.isPending || isLeaving;
@@ -114,16 +133,17 @@ function CompetitorsPicker({
       added_all: suggested.length > 0 && remainingSuggestions.length === 0,
       started_scan: !geoLocked,
     });
-    if (geoLocked) {
+    const leave = () => {
       setIsLeaving(true);
       router.push(nextHref);
+    };
+    if (geoLocked) {
+      leave();
       return;
     }
     startScan.mutate("onboarding", {
-      onSuccess: () => {
-        setIsLeaving(true);
-        router.push(nextHref);
-      },
+      onSuccess: leave,
+      onError: leaveOnPaymentRequired(leave),
     });
   };
 
@@ -137,7 +157,7 @@ function CompetitorsPicker({
       }}
     >
       <div className="grid gap-2">
-        <Label htmlFor={`${id}-search`}>Add a brand</Label>
+        <Label htmlFor={`${id}-search`}>{t("addBrand")}</Label>
         <CompetitorSearch
           disabled={busy || atLimit}
           onAdd={(result) => add(result.name, result.domain)}
@@ -150,10 +170,15 @@ function CompetitorsPicker({
       {competitors.length > 0 ? (
         <div className="grid gap-2">
           <p className="text-sm font-medium">
-            Your competitors{" "}
-            <span className="text-muted-foreground text-xs font-normal">
-              ({competitors.length} of {GEO_MAX_COMPETITORS})
-            </span>
+            {t.rich("yourCompetitors", {
+              count: competitors.length,
+              max: GEO_MAX_COMPETITORS,
+              muted: (chunks) => (
+                <span className="text-muted-foreground text-xs font-normal">
+                  {chunks}
+                </span>
+              ),
+            })}
           </p>
           <ul className="flex flex-wrap gap-1.5">
             {competitors.map((entry) => (
@@ -169,7 +194,9 @@ function CompetitorsPicker({
                 />
                 <span className="max-w-40 truncate">{entry.name}</span>
                 <button
-                  aria-label={`Remove ${entry.name}`}
+                  aria-label={tCommon("labels.removeName", {
+                    name: entry.name,
+                  })}
                   className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed"
                   disabled={busy}
                   onClick={() => remove(entry)}
@@ -187,7 +214,7 @@ function CompetitorsPicker({
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
             <p className="truncate text-sm font-medium">
-              Suggested for {domain}
+              {t("suggestedFor", { domain })}
             </p>
             {remainingSuggestions.length > 1 ? (
               <Button
@@ -198,21 +225,20 @@ function CompetitorsPicker({
                 type="button"
                 variant="ghost"
               >
-                Add all
+                {t("addAll")}
               </Button>
             ) : null}
           </div>
           {suggestions.data?.field ? (
             <p className="text-muted-foreground -mt-1 text-xs">
-              Other companies in {suggestions.data.field}
+              {t("otherCompaniesIn", { field: suggestions.data.field })}
             </p>
           ) : null}
           {suggestions.isPending ? <CompetitorSuggestionsSkeleton /> : null}
           {suggestions.isError ? (
             <div className="flex items-center justify-between gap-3">
-              <p className="text-muted-foreground text-xs">
-                Could not pull suggestions for {domain}. You can add a brand
-                above or try again.
+              <p className="text-muted-foreground min-w-0 text-xs wrap-anywhere">
+                {t("suggestionsFailed", { domain })}
               </p>
               <Button
                 className="h-auto shrink-0 px-0"
@@ -224,13 +250,15 @@ function CompetitorsPicker({
                 type="button"
                 variant="ghost"
               >
-                {suggestions.isFetching ? "Trying again" : "Try again"}
+                {suggestions.isFetching
+                  ? t("tryingAgain")
+                  : tCommon("actions.tryAgain")}
               </Button>
             </div>
           ) : null}
           {suggestions.isSuccess && suggested.length === 0 ? (
-            <p className="text-muted-foreground text-xs">
-              Nothing obvious for {domain}. Search above instead.
+            <p className="text-muted-foreground text-xs wrap-anywhere">
+              {t("noSuggestions", { domain })}
             </p>
           ) : null}
           {suggested.length > 0 ? (
@@ -268,7 +296,7 @@ function CompetitorsPicker({
               type="button"
               variant="ghost"
             >
-              Show {hiddenSuggestionCount} more
+              {t("showMore", { count: hiddenSuggestionCount })}
             </Button>
           ) : null}
         </div>
@@ -278,7 +306,7 @@ function CompetitorsPicker({
         {busy ? (
           <>
             <Loader2Icon className="size-4 animate-spin" />
-            {geoLocked ? "Saving" : "Running your first scan"}
+            {geoLocked ? tOnboardingShared("saving") : t("runningFirstScan")}
           </>
         ) : (
           submitLabel
@@ -297,6 +325,7 @@ export function CompetitorsForm({
   inOnboardingFlow,
   progressHrefs,
 }: CompetitorsFormProps) {
+  const t = useTranslations("onboarding.competitors");
   return (
     <GeoProjectProvider projectId={projectId}>
       <div className="flex w-full flex-col gap-5">
@@ -312,8 +341,12 @@ export function CompetitorsForm({
         </div>
 
         <AuthFormHeader
-          description={`When AI recommends someone instead of ${companyName || "you"}, who is it? Pick the brands you want to be measured against.`}
-          title="Who do you lose deals to?"
+          description={
+            companyName
+              ? t("description", { companyName })
+              : t("descriptionFallback")
+          }
+          title={t("title")}
         />
 
         <CompetitorsPicker

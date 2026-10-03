@@ -5,16 +5,15 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
-  GEO_ENGINE_PERFORMANCE_HINT,
-  GEO_FAMILY_STAT_TREND_HINT,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoEngineFamily } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Input } from "@notra/ui/components/ui/input";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -38,6 +37,7 @@ import {
   engineFamilyTotals,
   formatMentionRate,
   groupEngineFamilies,
+  keepTrackedFamilies,
   mentionRateSparkline,
 } from "@/utils/geo-charts";
 import { tableHeightFor } from "@/utils/table";
@@ -45,24 +45,33 @@ import { tableHeightFor } from "@/utils/table";
 const NOT_SCANNED_RATE = -1;
 
 function RateCell({ family }: { family: GeoEngineFamily }) {
+  const tGeoShared = useTranslations("geo.shared");
   const totals = engineFamilyTotals(family);
   if (!totals) {
-    return <span className="text-muted-foreground text-xs">Not scanned</span>;
+    return (
+      <span className="text-muted-foreground text-xs">
+        {tGeoShared("notScanned")}
+      </span>
+    );
   }
 
   return (
     <span className="flex items-center gap-2">
       <GeoBar className="w-24 shrink-0" value={totals.rate} />
-      <span className="text-sm tabular-nums">
+      <FadeSwap
+        className="text-sm tabular-nums"
+        swapKey={formatMentionRate(totals.rate)}
+        value={totals.rate}
+      >
         {formatMentionRate(totals.rate)}
-      </span>
+      </FadeSwap>
     </span>
   );
 }
 
-function lastCheckedOf(family: GeoEngineFamily): string {
+function lastCheckedOf(family: GeoEngineFamily, locale: string): string {
   const value = engineFamilyLastCheckedAt(family);
-  return value ? formatAiTrafficTimestamp(value) : "-";
+  return value ? formatAiTrafficTimestamp(value, locale) : "-";
 }
 
 function avgPositionOf(family: GeoEngineFamily): string {
@@ -72,6 +81,7 @@ function avgPositionOf(family: GeoEngineFamily): string {
 
 export function EngineRateTable({
   engines,
+  trackedEngines,
   timeseriesPoints = GEO_EMPTY_TIMESERIES,
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   isScanning = false,
@@ -80,9 +90,20 @@ export function EngineRateTable({
   aliases,
   competitors,
 }: EngineRateTableProps) {
-  const families = useMemo(() => groupEngineFamilies(engines), [engines]);
+  /*
+   * Engines the workspace stopped scanning keep their old rows, so an
+   * untracked engine sits here frozen at 0 visible / 0% and reads as a bad
+   * result rather than an absent one. Only show what is still being scanned.
+   */
+  const families = useMemo(
+    () => keepTrackedFamilies(groupEngineFamilies(engines), trackedEngines),
+    [engines, trackedEngines]
+  );
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
   const [query, setQuery] = useState("");
+  const t = useTranslations("geo.engineRateTable");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -100,8 +121,8 @@ export function EngineRateTable({
         key: "family",
         header:
           filtered.length > 0
-            ? `Engine (${filtered.length.toLocaleString()})`
-            : "Engine",
+            ? t("columns.engineCount", { count: filtered.length })
+            : tGeoShared("engine"),
         width: "1fr",
         sortable: true,
         cell: (row) => (
@@ -114,7 +135,8 @@ export function EngineRateTable({
       },
       {
         key: "mentions",
-        header: "Visible",
+        header: t("columns.visible"),
+        hint: t("hints.visible"),
         width: "10rem",
         sortable: true,
         cell: (row) => {
@@ -122,18 +144,27 @@ export function EngineRateTable({
           const trends = engineFamilyStatTrends(timeseriesPoints, row.family);
           if (!totals) {
             return (
-              <span className="text-muted-foreground text-xs">Not scanned</span>
+              <span className="text-muted-foreground text-xs">
+                {tGeoShared("notScanned")}
+              </span>
             );
           }
           return (
             <span className="flex items-center gap-2">
-              <span className="text-sm tabular-nums">
-                {totals.visible.toLocaleString()}
-              </span>
+              <FadeSwap
+                className="text-sm tabular-nums"
+                swapKey={String(totals.visible)}
+                value={totals.visible}
+              >
+                {totals.visible.toLocaleString(locale)}
+              </FadeSwap>
               <GeoStatDelta
+                animated
                 delta={trends.visibilityDelta}
-                hint={GEO_FAMILY_STAT_TREND_HINT}
-                label={`${engineFamilyLabel(row.family)} visibility`}
+                hint={tGeoShared("vsFirstHalfOfThis")}
+                label={t("visibilityLabel", {
+                  engine: engineFamilyLabel(row.family),
+                })}
               />
             </span>
           );
@@ -142,19 +173,27 @@ export function EngineRateTable({
       },
       {
         key: "citations",
-        header: "Citations",
+        collapsePriority: 3,
+        header: tGeoShared("citations"),
+        hint: t("hints.citations"),
         width: "8rem",
         sortable: true,
         cell: (row) => {
           if (!engineFamilyTotals(row)) {
             return (
-              <span className="text-muted-foreground text-xs">Not scanned</span>
+              <span className="text-muted-foreground text-xs">
+                {tGeoShared("notScanned")}
+              </span>
             );
           }
           return (
-            <span className="text-sm tabular-nums">
-              {engineFamilyCitationTotal(row).toLocaleString()}
-            </span>
+            <FadeSwap
+              className="text-sm tabular-nums"
+              swapKey={String(engineFamilyCitationTotal(row))}
+              value={engineFamilyCitationTotal(row)}
+            >
+              {engineFamilyCitationTotal(row).toLocaleString(locale)}
+            </FadeSwap>
           );
         },
         sortValue: (row) =>
@@ -162,7 +201,8 @@ export function EngineRateTable({
       },
       {
         key: "rate",
-        header: "Brand visibility",
+        header: tGeoShared("brandVisibility"),
+        hint: t("hints.rate"),
         width: "1.4fr",
         sortable: true,
         cell: (row) => <RateCell family={row} />,
@@ -170,7 +210,9 @@ export function EngineRateTable({
       },
       {
         key: "avgPosition",
-        header: "Avg position",
+        collapsePriority: 2,
+        header: tGeoShared("avgPosition"),
+        hint: t("hints.avgPosition"),
         width: "8.5rem",
         sortable: true,
         cell: (row) => (
@@ -181,17 +223,19 @@ export function EngineRateTable({
       },
       {
         key: "lastChecked",
-        header: "Last checked",
+        collapsePriority: 4,
+        header: t("columns.lastChecked"),
         width: "9.375rem",
         cell: (row) => (
           <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-            {lastCheckedOf(row)}
+            {lastCheckedOf(row, locale)}
           </span>
         ),
       },
       {
         key: "trend",
-        header: "Trend",
+        collapsePriority: 1,
+        header: tGeoShared("trendLabel"),
         width: "5.5rem",
         cell: (row) => {
           const points = mentionRateSparkline(timeseriesPoints, {
@@ -204,10 +248,12 @@ export function EngineRateTable({
         },
       },
     ],
-    [filtered.length, timeseriesPoints]
+    [filtered.length, locale, t, timeseriesPoints]
   );
 
-  const emptyReadout = isScanning ? "scanning now" : "no scans yet";
+  const emptyReadout = isScanning
+    ? t("readoutScanning")
+    : tGeoShared("noScansYet");
   const readout = families.length > 0 ? undefined : emptyReadout;
 
   return (
@@ -221,28 +267,25 @@ export function EngineRateTable({
               size={14}
             />
             <Input
-              aria-label="Filter engines"
+              aria-label={t("filterLabel")}
               className="h-7 pr-2.5 pl-8 text-xs"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter by engine..."
+              placeholder={t("filterPlaceholder")}
               value={query}
             />
           </div>
         ) : undefined
       }
       className="h-full"
-      eyebrow="Engines"
-      hint={GEO_ENGINE_PERFORMANCE_HINT}
+      eyebrow={tGeoShared("engines")}
+      hint={t("hint")}
       readout={readout}
     >
       {families.length === 0 ? (
         <InstrumentEmpty
           busy={isScanning}
           className="h-40"
-          message={geoScanEmptyMessage(
-            isScanning,
-            "Run a scan to see engine mention rates"
-          )}
+          message={isScanning ? tGeoShared("scanningEngines") : t("empty")}
           preview={
             <div className="px-6 pt-2">
               <EmptyStateTablePreview
@@ -251,7 +294,7 @@ export function EngineRateTable({
               />
             </div>
           }
-          seed="Mention rate by engine"
+          seed={t("emptySeed")}
         />
       ) : (
         <div className="flex flex-col gap-2">
@@ -260,7 +303,7 @@ export function EngineRateTable({
             columns={columns}
             data={filtered}
             defaultSort={{ key: "mentions", direction: "desc" }}
-            emptyState="No engines match this filter"
+            emptyState={t("noMatches")}
             getRowId={(row) => row.family}
             height={tableHeightFor(filtered.length)}
             onRowClick={setSelected}

@@ -2,7 +2,7 @@
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion } from "motion/react";
+import { domMax, LazyMotion, m } from "motion/react";
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 
 import { SPRING } from "@notra/ui/lib/motion";
@@ -46,9 +46,14 @@ const tabsListVariants = cva(
 function TabsList({
   className,
   variant = "default",
+  indicator = true,
   children,
   ...props
-}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
+}: TabsPrimitive.List.Props &
+  VariantProps<typeof tabsListVariants> & {
+    /** Render the built-in sliding indicator. Turn off to supply your own. */
+    indicator?: boolean;
+  }) {
   const layoutId = useId();
 
   return (
@@ -60,7 +65,7 @@ function TabsList({
         {...props}
       >
         {children}
-        {variant === "default" ? (
+        {variant === "default" && indicator ? (
           <TabsPrimitive.Indicator className="pointer-events-none absolute top-0 left-0 z-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) translate-y-(--active-tab-top) rounded-md bg-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[width,height,translate] duration-slow ease-emphasized dark:bg-foreground/10" />
         ) : null}
       </TabsPrimitive.List>
@@ -101,8 +106,6 @@ function TabsTrigger({
         "text-muted-foreground/75 hover:text-muted-foreground relative z-1 inline-flex h-full flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2.5 text-sm font-medium outline-2 outline-transparent transition-colors duration-normal ease-in-out focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
         "data-active:text-foreground dark:data-active:border-transparent dark:data-active:text-foreground",
-        !layoutId &&
-          "after:bg-foreground after:absolute after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
         className
       )}
       data-slot="tabs-trigger"
@@ -111,11 +114,13 @@ function TabsTrigger({
     >
       {children}
       {layoutId && isSelected && (
-        <motion.span
-          className="absolute inset-x-0 bottom-[-5px] h-0.5 bg-foreground group-data-[orientation=vertical]/tabs:inset-x-auto group-data-[orientation=vertical]/tabs:inset-y-0 group-data-[orientation=vertical]/tabs:-right-1 group-data-[orientation=vertical]/tabs:w-0.5"
-          layoutId={layoutId}
-          transition={SPRING.indicator}
-        />
+        <LazyMotion features={domMax} strict>
+          <m.span
+            className="absolute inset-x-0 bottom-[-5px] h-0.5 bg-foreground group-data-[orientation=vertical]/tabs:inset-x-auto group-data-[orientation=vertical]/tabs:inset-y-0 group-data-[orientation=vertical]/tabs:-right-1 group-data-[orientation=vertical]/tabs:w-0.5"
+            layoutId={layoutId}
+            transition={SPRING.indicator}
+          />
+        </LazyMotion>
       )}
     </TabsPrimitive.Tab>
   );

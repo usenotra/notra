@@ -68,7 +68,10 @@ export function resolveGroundedEngines(
     if (!model) {
       return [];
     }
-    const direct = resolveGroundedEngineByKey(`${modelId}-direct-grounded`);
+    const direct =
+      model.provider === "perplexity"
+        ? null
+        : resolveGroundedEngineByKey(`${modelId}-direct-grounded`);
     const engine =
       direct ??
       (model.gateways.includes("vercel")

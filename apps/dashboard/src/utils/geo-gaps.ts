@@ -1,22 +1,20 @@
 import {
   GEO_GAPS_ENGINE_FILTER_ALL,
   GEO_GAPS_METER_STEPS,
-  GEO_GAPS_WRITE_LABELS,
-  GEO_SEARCH_GAP_ACTION_ORDER,
-  GEO_SEARCH_GAP_WRITE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type {
+  GeoAiSearchGapRow,
   GeoContentGapsResponse,
   GeoGapBriefRef,
   GeoGapWriteAction,
   GeoPromptGapRow,
-  GeoSearchGapAction,
   GeoSearchGapRow,
 } from "@notra/geo-core/types/geo";
 import {
   engineFamilyLabel,
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { aiSearchGroupKey } from "@notra/geo-core/utils/geo-gaps";
 
 import type {
   GeoGapLift,
@@ -24,9 +22,64 @@ import type {
   GeoGapsEmptyKind,
   GeoGapsMeterTone,
   GeoGapsTab,
+  GeoUnifiedSearchGap,
 } from "@/types/components/geo-gaps";
 
 import { bestFuzzyScore, fuzzyMatches } from "./fuzzy";
+
+export function unifySearchGaps(
+  searchGaps: readonly GeoSearchGapRow[],
+  aiSearchGaps: readonly GeoAiSearchGapRow[]
+): GeoUnifiedSearchGap[] {
+  const remainingAi = [...aiSearchGaps];
+  const consoleRows: GeoUnifiedSearchGap[] = searchGaps.map((row) => {
+    const queries = new Set(
+      [row.prompt, ...row.queries.map((keyword) => keyword.query)]
+        .map(aiSearchGroupKey)
+        .filter(Boolean)
+    );
+    const index = remainingAi.findIndex((candidate) =>
+      [candidate.query, ...candidate.variants].some((query) => {
+        const key = aiSearchGroupKey(query);
+        return key.length > 0 && queries.has(key);
+      })
+    );
+    const [ai = null] = index < 0 ? [] : remainingAi.splice(index, 1);
+    return { kind: "console", row, ai };
+  });
+  return [
+    ...consoleRows,
+    ...remainingAi.map((row) => ({ kind: "ai" as const, row })),
+  ];
+}
+
+export function primarySearchQuery(row: GeoSearchGapRow): string {
+  return (
+    row.queries.reduce(
+      (best, keyword) =>
+        keyword.impressions > (best?.impressions ?? -1) ? keyword : best,
+      row.queries[0]
+    )?.query ?? row.prompt
+  );
+}
+
+export function searchGapDemandRank(gap: GeoUnifiedSearchGap): number {
+  const impressions = gap.kind === "console" ? (gap.row.impressions ?? 0) : 0;
+  const searches =
+    gap.kind === "console" ? (gap.ai?.searches ?? 0) : gap.row.searches;
+  // ponytail: simple ranking heuristic; calibrate weights once demand-to-draft data exists.
+  return Math.log1p(impressions) + 2 * Math.log1p(searches);
+}
+
+/** AI draft to surface next to Console actions when only the AI match has a brief. */
+export function searchGapAiDraft(
+  gap: GeoUnifiedSearchGap
+): GeoAiSearchGapRow | null {
+  if (gap.kind !== "console" || gap.row.brief || !gap.ai?.brief) {
+    return null;
+  }
+  return gap.ai;
+}
 
 export function withoutPromptGap(
   response: GeoContentGapsResponse,
@@ -54,6 +107,23 @@ export function withRestoredPromptGap(
   };
 }
 
+export function maxGapOpportunity(
+  rows: readonly { opportunity: number }[]
+): number {
+  return Math.max(0, ...rows.map((row) => row.opportunity));
+}
+
+export function gapOpportunityLevel(
+  opportunity: number,
+  maxOpportunity: number
+): number {
+  return gapMeterLevel(maxOpportunity <= 0 ? 0 : opportunity / maxOpportunity);
+}
+
+export function isGeoGapsTab(value: unknown): value is GeoGapsTab {
+  return value === "prompt" || value === "search";
+}
+
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
 export function gapMeterLevel(
   intensity: number,
@@ -65,26 +135,13 @@ export function gapMeterLevel(
   return Math.max(1, Math.min(steps, Math.round(intensity * steps)));
 }
 
-export function gapOpportunityDetail(row: GeoPromptGapRow): string {
-  const missing = gapMissingEngineFamilies(row.engines).length;
-  const visible = gapMissingEngineFamilies(row.mentionedEngines).length;
-  const total = missing + visible;
-  const competitorCount =
-    row.competitors.length + row.discoveredCompetitors.length;
-  const competitorPart =
-    competitorCount === 0
-      ? "no other brands recommended"
-      : `${competitorCount} ${competitorCount === 1 ? "brand" : "brands"} recommended instead`;
-  return `Not visible on ${missing} of ${total} ${total === 1 ? "engine" : "engines"} · ${competitorPart}`;
-}
-
 export function gapVisibleOnLabel(
   mentionedEngines: readonly string[],
   missingEngines: readonly string[]
 ): string {
   const visible = gapMissingEngineFamilies(mentionedEngines).length;
   const total = visible + gapMissingEngineFamilies(missingEngines).length;
-  return `${visible} of ${total}`;
+  return `${visible}/${total}`;
 }
 
 export function gapMeterTone(level: number): GeoGapsMeterTone {
@@ -136,10 +193,6 @@ export function gapWriteAction(
   return "write";
 }
 
-export function gapWriteLabel(action: GeoGapWriteAction): string {
-  return GEO_GAPS_WRITE_LABELS[action];
-}
-
 export function gapCanRescan(brief: GeoGapBriefRef | null): boolean {
   return brief?.status === "completed" && brief.postId !== null;
 }
@@ -170,14 +223,6 @@ export function gapLiftTone(delta: number): GeoGapLiftTone {
   return "flat";
 }
 
-export function searchGapWriteLabel(action: GeoSearchGapAction): string {
-  return GEO_SEARCH_GAP_WRITE_LABELS[action];
-}
-
-export function searchGapActionOrder(action: GeoSearchGapAction): number {
-  return GEO_SEARCH_GAP_ACTION_ORDER[action];
-}
-
 export function existingPageLabel(url: string): string {
   try {
     const parsed = new URL(url);
@@ -191,16 +236,21 @@ export function existingPageLabel(url: string): string {
 export function geoGapsEmptyKind({
   tab,
   hasScanData,
+  snapshotReady = true,
   isScanning,
   hasSourceRows = false,
   hasMatches = true,
 }: {
   tab: GeoGapsTab;
   hasScanData: boolean;
+  snapshotReady?: boolean;
   isScanning: boolean;
   hasSourceRows?: boolean;
   hasMatches?: boolean;
 }): GeoGapsEmptyKind {
+  if (!snapshotReady) {
+    return "preparing";
+  }
   if (hasSourceRows && !hasMatches) {
     return "no-matches";
   }
@@ -220,28 +270,30 @@ function gapSearchValues(row: {
   prompt: string;
   title: string | null;
   brief: GeoGapBriefRef | null;
+  searchQueries?: string[];
 }): string[] {
-  return [row.prompt, row.title ?? "", row.brief?.workingTitle ?? ""];
+  return [
+    row.prompt,
+    row.title ?? "",
+    row.brief?.workingTitle ?? "",
+    ...(row.searchQueries ?? []),
+  ];
 }
 
-function filterGapsByQuery<
-  T extends {
-    prompt: string;
-    title: string | null;
-    brief: GeoGapBriefRef | null;
-  },
->(rows: readonly T[], query: string): T[] {
+function filterGapsByQuery<T>(
+  rows: readonly T[],
+  query: string,
+  values: (row: T) => string[]
+): T[] {
   const trimmed = query.trim();
-  const matched = rows.filter((row) =>
-    fuzzyMatches(gapSearchValues(row), trimmed)
-  );
+  const matched = rows.filter((row) => fuzzyMatches(values(row), trimmed));
   if (trimmed.length === 0) {
     return matched;
   }
   return matched
     .map((row) => ({
       row,
-      score: bestFuzzyScore(gapSearchValues(row), trimmed),
+      score: bestFuzzyScore(values(row), trimmed),
     }))
     .sort((left, right) => right.score - left.score)
     .map((entry) => entry.row);
@@ -258,14 +310,30 @@ export function filterPromptGaps(
       : rows.filter((row) =>
           gapMissingEngineFamilies(row.engines).includes(engineFamily)
         );
-  return filterGapsByQuery(byEngine, query);
+  return filterGapsByQuery(byEngine, query, gapSearchValues);
 }
 
-export function filterSearchGaps(
-  rows: readonly GeoSearchGapRow[],
+function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
+  return [
+    row.query,
+    ...row.variants,
+    ...row.prompts,
+    row.brief?.workingTitle ?? "",
+  ];
+}
+
+export function filterUnifiedSearchGaps(
+  rows: readonly GeoUnifiedSearchGap[],
   query: string
-): GeoSearchGapRow[] {
-  return filterGapsByQuery(rows, query);
+): GeoUnifiedSearchGap[] {
+  return filterGapsByQuery(rows, query, (gap) =>
+    gap.kind === "console"
+      ? [
+          ...gapSearchValues(gap.row),
+          ...(gap.ai ? aiSearchGapSearchValues(gap.ai) : []),
+        ]
+      : aiSearchGapSearchValues(gap.row)
+  );
 }
 
 export function uniqueGapEngineFamilies(

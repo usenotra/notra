@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import Loading from "../loading";
 import PageClient from "./page-client";
 
-export const metadata: Metadata = {
-  title: "MCP Servers",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tIntegrationsShared = await getTranslations("integrations.shared");
+  return { title: tIntegrationsShared("mcpServers") };
+}
 
 async function Page({
   params,

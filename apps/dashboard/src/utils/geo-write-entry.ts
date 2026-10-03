@@ -6,6 +6,8 @@ import type {
   GeoGapsWriteEntry,
   WriteDialogInitialState,
 } from "@/types/components/geo-writer";
+import { normalizeGeoProjectId } from "@/utils/geo-hydration";
+import { isNotFoundError } from "@/utils/orpc-errors";
 
 /**
  * GEO write entry helpers.
@@ -62,10 +64,35 @@ export function parseGeoWriterDraft(sourceMetadata: unknown): {
   }
   return {
     briefId: parsed.data.briefId,
-    projectId: parsed.data.projectId,
+    projectId: normalizeGeoProjectId(parsed.data.projectId),
   };
 }
 
 export function isGeoWriterPlanReviewable(status: string | undefined): boolean {
   return status === "draft" || status === "failed";
+}
+
+export function getGeoWriterDocumentState(
+  hasDraft: boolean,
+  briefError: unknown,
+  briefStatus: string | undefined,
+  isPostStillPlan: boolean
+) {
+  const hasBriefError = briefError !== null && briefError !== undefined;
+  const isBriefMissing = hasBriefError && isNotFoundError(briefError);
+  const isBriefError = hasBriefError && !isBriefMissing;
+  const isPlanReviewable = isGeoWriterPlanReviewable(briefStatus);
+  return {
+    isBriefError,
+    isBriefMissing,
+    isChatLocked:
+      hasDraft &&
+      !isBriefMissing &&
+      !isPlanReviewable &&
+      briefStatus !== "completed",
+    isPlanMode:
+      hasDraft &&
+      (isPostStillPlan || (!isBriefMissing && briefStatus !== "completed")),
+    isPlanReviewable,
+  };
 }

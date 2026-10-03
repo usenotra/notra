@@ -23,6 +23,8 @@ export interface GeoProject {
   name: string;
   brandSettingsId: string;
   createdAt: string;
+  /** Only sent when creating a project; never returned. */
+  languages?: string[];
 }
 
 export interface GeoProjectRow {
@@ -33,6 +35,11 @@ export interface GeoProjectRow {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type GeoProjectResponseRow = Pick<
+  GeoProjectRow,
+  "id" | "name" | "brandSettingsId" | "createdAt"
+>;
 
 export interface GeoProjectsResponse {
   projects: GeoProject[];
@@ -70,6 +77,8 @@ export interface GeoSettings {
   conversionPaths: string[];
   domains: string[];
   languages: string[];
+  /** Language the stored prompts and conversations are written in. */
+  promptLanguage: string;
   engines: string[];
   /** ZDR add-on: request zero data retention from every model host. */
   enforceZdr: boolean;
@@ -103,6 +112,7 @@ export interface GeoSettingsRow {
   conversionPaths: string[];
   domains: string[];
   languages: string[] | null;
+  promptLanguage?: string | null;
   engines: string[] | null;
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
@@ -145,7 +155,7 @@ export interface GeoTimeseriesPoint {
   avgPosition?: number | null;
 }
 
-export type GeoStatDeltaKind = "rate" | "mentions" | "position";
+export type GeoStatDeltaKind = "rate" | "mentions" | "position" | "score";
 
 export type GeoStatDeltaTone = "up" | "down" | "flat";
 
@@ -242,8 +252,6 @@ export interface GeoTimeseriesResponse {
 
 export type GeoSparklineMode = "all" | "search" | "memory";
 
-export type GeoEngineMode = Exclude<GeoSparklineMode, "all">;
-
 export interface MentionRateSparklineOptions {
   family?: string;
   model?: string;
@@ -255,12 +263,10 @@ export interface GeoSparklinePoint {
   value: number;
 }
 
-export interface EngineFamilyModeTrendRow {
+export interface EngineFamilyTrendRow {
   day: string;
   rawDay: string;
   all: number | null;
-  search: number | null;
-  memory: number | null;
   [key: string]: string | number | null;
 }
 
@@ -434,6 +440,8 @@ export interface GeoSettingsUpsertInput {
   conversionPaths?: string[];
   domains?: string[];
   languages: string[];
+  /** Only written when set, so a settings save never relabels stored prompts. */
+  promptLanguage?: string;
   engines: string[];
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
@@ -458,6 +466,7 @@ export interface DueGeoScanRow {
   projectId: string;
   scanIntervalHours: number;
   nextScanAt: Date | null;
+  scanFirstFailedAt: Date | null;
   lastScanAt: Date | null;
 }
 
@@ -470,6 +479,8 @@ export interface GeoScanCronSweepResult {
   leaseLost: number;
   /** Rows whose project scan slot is still claimed by a running scan. */
   alreadyRunning: number;
+  /** Slots skipped because the billing gate would deny the scan. */
+  billingDenied: number;
   /** Hand-offs that failed; their row keeps its lease and is retried. */
   failed: number;
   /** Slots another sweep advanced while this one held a stale lease. */
@@ -627,6 +638,8 @@ export interface GeoScanPlannedTask {
 export interface GeoScanPlannedSequence {
   sequenceId: string;
   steps: string[];
+  /** Missing on plans serialized before prompt languages existed; means English. */
+  language?: string;
   engine: string;
   groundedKey: string | null;
   zdr: GeoZdrMode;
@@ -654,7 +667,7 @@ export interface GeoScanProjectContext {
   domains?: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
-  /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
+  /** Prompt- or engine-scoped scans do not cover a scheduled project scan. Optional for persisted older plans. */
   scoped?: boolean;
 }
 
@@ -683,6 +696,10 @@ export interface GeoScanBatchOutcome {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  /** AI answers this batch bills; defaults to `checks`. */
+  billedChecks?: number;
+  /** Usage this batch bills as AI credits; defaults to `usage`. */
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFailureMetadata {
@@ -699,6 +716,8 @@ export interface GeoScanProjectTotals {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  billedChecks?: number;
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFinishTotals {
@@ -783,6 +802,7 @@ export interface GeoCheckContext {
 export interface GeoSequenceDefinition {
   id: string;
   steps: string[];
+  language: string;
 }
 
 export interface GeoBrandContext {
@@ -813,6 +833,7 @@ export type GeoGroundedProvider =
   | "gateway-openai"
   | "gateway-anthropic"
   | "gateway-google"
+  | "gateway-perplexity"
   | "direct-openai"
   | "direct-anthropic"
   | "direct-perplexity";
@@ -859,6 +880,27 @@ export interface GeoWebsiteDiscovery {
   audienceType: GeoAudienceType;
   competitors: GeoCompetitorSeed[];
   prompts: GeoDiscoveredPrompt[];
+  conversations: GeoGeneratedConversation[];
+}
+
+export interface GeoGeneratedConversation {
+  name: string;
+  steps: string[];
+}
+
+export interface GeoConversationGenerationContext {
+  companyName: string;
+  companyDescription: string | null;
+  audience: string | null;
+  language: string | null;
+  competitors: string[];
+  prompts: string[];
+  existingNames: string[];
+  count: number;
+}
+
+export interface GeoSequencesGenerateResponse {
+  sequences: GeoPromptSequence[];
 }
 
 export interface GeoGenerateFromWebsiteResult {
@@ -866,6 +908,7 @@ export interface GeoGenerateFromWebsiteResult {
   aliases: string[];
   competitors: string[];
   promptsAdded: number;
+  conversationsAdded: number;
 }
 
 export interface GeoDiscoverWebsiteResult {
@@ -875,6 +918,18 @@ export interface GeoDiscoverWebsiteResult {
 
 export type GeoOnboardingStage = "brand" | "competitors" | "complete";
 
+export interface GeoOnboardingSnapshot {
+  stage: GeoOnboardingStage;
+  languages: GeoOnboardingLanguages | null;
+}
+
+export interface GeoOnboardingLanguages {
+  /** Fixed once set; null for projects created before prompt languages. */
+  promptLanguage: string | null;
+  /** Tracked languages, prompt language first. */
+  languages: string[];
+}
+
 export interface GeoOnboardingBrandInput {
   organizationId: string;
   projectId?: string;
@@ -882,6 +937,7 @@ export interface GeoOnboardingBrandInput {
   aliases: string[];
   prompts: GeoDiscoveredPrompt[];
   languages?: string[];
+  promptLanguage?: string;
   audienceType?: GeoAudienceType;
   engines?: string[];
   enforceZdr?: boolean;
@@ -1009,12 +1065,10 @@ export type GeoTrafficLogPurposeFilter =
 
 export interface GeoTrafficLogVisitorOption {
   value: GeoTrafficLogVisitorFilter;
-  label: string;
 }
 
 export interface GeoTrafficLogPurposeOption {
   value: GeoTrafficLogPurposeFilter;
-  label: string;
 }
 
 export interface GeoTrafficLogFilters {
@@ -1038,12 +1092,52 @@ export interface GeoJourney {
   distinctPaths: number;
   firstSeenAt: string;
   lastSeenAt: string;
+  /** First page fetched in the journey; `samplePaths` has no ordering. */
+  entryPath: string;
   samplePaths: string[];
 }
 
 export interface GeoTrafficJourneysResponse {
   configured: boolean;
   journeys: GeoJourney[];
+}
+
+export interface GeoJourneyDailyPoint {
+  day: string;
+  journeys: number;
+}
+
+/** Exact journey counts for one source; journeys count toward the window they started in. */
+export interface GeoJourneySourceStats {
+  source: string;
+  visitorType: GeoVisitorType;
+  journeys: number;
+  previousJourneys: number;
+  pages: number;
+  singleFetch: number;
+  deepCrawls: number;
+  lastSeenAt: string | null;
+  /** Days with at least one journey in the current window, oldest first. */
+  daily: GeoJourneyDailyPoint[];
+}
+
+export interface GeoJourneyPageStats {
+  path: string;
+  journeys: number;
+  previousJourneys: number;
+  /** Journeys whose first fetch was this page. */
+  entries: number;
+  lastSeenAt: string | null;
+  daily: GeoJourneyDailyPoint[];
+}
+
+export interface GeoJourneyStatsResponse {
+  configured: boolean;
+  sources: GeoJourneySourceStats[];
+  pages: GeoJourneyPageStats[];
+  /** Distinct pages in the window; can exceed `pages.length`. */
+  totalPages: number;
+  previousTotalPages: number;
 }
 
 export interface GeoJourneyEvent {
@@ -1317,6 +1411,7 @@ export type GeoModelProviderId =
   | "spacexai"
   | "deepseek"
   | "mistral"
+  | "perplexity"
   | "cursor"
   | "opencode"
   | "claude-code"
@@ -1375,12 +1470,14 @@ export interface GeoResolvedModelCatalog extends GeoModelCatalog {
   models: (GeoModelCatalogEntry & { supportsGroundedChecks: boolean })[];
 }
 
-export type GeoScanSizeSeverity = "ok" | "warn" | "danger";
-
 export interface GeoScanSizeInput {
   promptCount: number;
   engines: readonly string[];
   languages: readonly string[];
+  /** Language the stored prompts are written in. Defaults to English. */
+  promptLanguage?: string;
+  /** Prompts picked per translated language; unknown ones assume the limit. */
+  translatedPromptCounts?: Readonly<Record<string, number>>;
   trackWithoutSearch?: boolean;
   catalog: GeoResolvedModelCatalog;
   sequences: readonly Pick<
@@ -1505,20 +1602,21 @@ export interface GeoCompetitorPromptRow {
   position: number | null;
 }
 
+/** Rows are the latest answer per prompt and engine that named the competitor. */
 export interface GeoCompetitorPromptSummary {
-  mentioned: number;
-  total: number;
-  bestPosition: number | null;
+  answers: number;
+  prompts: number;
   engines: number;
+  /** Answers that also mentioned your own brand. */
+  ownMentioned: number;
 }
 
 export interface GeoCompetitorDetailResponse {
   configured: boolean;
   points: GeoCompetitorTimeseriesPoint[];
   prompts: GeoCompetitorPromptRow[];
+  summary?: GeoCompetitorPromptSummary;
 }
-
-export type GeoCompetitorTypeFilter = "all" | GeoCompetitorKind;
 
 export interface GeoSuggestionKeyword {
   query: string;
@@ -1533,7 +1631,8 @@ export type GeoWriterSourceKind =
   | "manual"
   | "gap"
   | "prompt"
-  | "search_console";
+  | "search_console"
+  | "ai_search";
 
 export interface GeoWriterPlanInput {
   topic: string;
@@ -1608,6 +1707,40 @@ export interface GeoGapOpportunityInput {
   engineCoverage: number;
 }
 
+export interface GeoGapScore {
+  competitors: string[];
+  discoveredCompetitors: string[];
+  ownMentionRate: number;
+  opportunity: number;
+}
+
+export type GeoAiSearchQueryDbRow = {
+  query: string;
+  check_ids: string[];
+  covered_check_ids: string[];
+  engines: string[];
+  prompts: string[];
+  competitors: string[][];
+};
+
+export interface GeoAiSearchQueryRow {
+  query: string;
+  checkIds: string[];
+  coveredCheckIds: string[];
+  engines: string[];
+  prompts: string[];
+  competitors: string[][];
+}
+
+export interface GeoAiSearchAgg {
+  variants: Map<string, number>;
+  prompts: Set<string>;
+  engines: Set<string>;
+  checkIds: Set<string>;
+  coveredCheckIds: Set<string>;
+  competitors: string[];
+}
+
 export interface GeoPromptGapRow {
   id: string;
   prompt: string;
@@ -1616,6 +1749,7 @@ export interface GeoPromptGapRow {
   mentionedEngines: string[];
   competitors: string[];
   discoveredCompetitors: string[];
+  searchQueries: string[];
   ownMentionRate: number;
   engineCoverage: number;
   opportunity: number;
@@ -1673,10 +1807,26 @@ export interface GeoSearchGapRecommendation {
   targets: GeoContentCollisionMatch[];
 }
 
+export interface GeoAiSearchGapRow {
+  id: string;
+  query: string;
+  variants: string[];
+  prompts: string[];
+  engines: string[];
+  searches: number;
+  ownMentionRate: number;
+  competitors: string[];
+  discoveredCompetitors: string[];
+  opportunity: number;
+  brief: GeoGapBriefRef | null;
+}
+
 export interface GeoContentGapsResponse {
   promptGaps: GeoPromptGapRow[];
   searchGaps: GeoSearchGapRow[];
+  aiSearchGaps: GeoAiSearchGapRow[];
   hasScanData: boolean;
+  snapshotReady: boolean;
 }
 
 export interface GeoWriterStartResponse {
@@ -1767,7 +1917,6 @@ export type GeoChangesSummaryGroupKey = "mentions" | "position" | "citations";
 
 export interface GeoChangesSummaryGroup {
   key: GeoChangesSummaryGroupKey;
-  label: string;
   up: keyof GeoChangesSummary;
   down: keyof GeoChangesSummary;
 }
@@ -1782,4 +1931,69 @@ export interface GeoChangesResponse {
   currentScan: GeoChangeScan | null;
   summary: GeoChangesSummary;
   events: GeoChangeEvent[];
+}
+
+/** Stored state of one prompt in one translated language. */
+export interface GeoPromptTranslationRecord {
+  promptId: string;
+  language: string;
+  text: string | null;
+  sourceText: string | null;
+  edited: boolean;
+}
+
+export interface GeoPromptTranslationEntry {
+  promptId: string;
+  /** Current prompt text in the prompt language. */
+  sourceText: string;
+  /** Stored translation; null until translated. */
+  text: string | null;
+  edited: boolean;
+  /** Missing, or made from an older version of the prompt. */
+  needsTranslation: boolean;
+}
+
+export interface GeoPromptTranslationLanguagePlan {
+  language: string;
+  /** No prompt was picked yet, so these are the default picks. */
+  defaulted: boolean;
+  /** Prompts scanned in this language, in prompt order. */
+  entries: GeoPromptTranslationEntry[];
+}
+
+export interface GeoPromptTranslationsResponse {
+  promptLanguage: string;
+  /** Most prompts scanned per translated language. */
+  limit: number;
+  languages: GeoPromptTranslationLanguagePlan[];
+}
+
+export interface GeoPromptTranslationSelectInput extends GeoScopeInput {
+  promptId: string;
+  language: string;
+  selected: boolean;
+}
+
+export interface GeoPromptTranslationTarget extends GeoScopeInput {
+  promptId: string;
+  language: string;
+}
+
+export interface GeoPromptTranslationUpdateInput extends GeoPromptTranslationTarget {
+  text: string;
+}
+
+/** What website discovery writes for a project in one transaction. */
+export interface GeoWebsiteGenerationWrite {
+  organizationId: string;
+  projectId: string;
+  companyName: string;
+  aliases: string[];
+  entries: readonly GeoPromptInsert[];
+  conversations: readonly GeoGeneratedConversation[];
+  discoveredCompetitors: readonly GeoCompetitorSeed[];
+  /** Null keeps following the default engine set. */
+  seedEngines: string[] | null;
+  /** Null for projects created before prompt languages; first = prompt language. */
+  seedLanguages: readonly string[] | null;
 }

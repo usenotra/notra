@@ -1,4 +1,3 @@
-import "./utils/infrastructure";
 import {
   afterAll,
   beforeAll,
@@ -14,7 +13,10 @@ import { geoMentionChecks, geoScanEvents, geoScans } from "@notra/db/schema";
 import { queryGeoCheckOverview } from "@notra/db/utils/geo-checks";
 import { Effect } from "effect";
 
-import { GEO_SEQUENCE_MAX_TURNS } from "../src/constants/geo";
+import {
+  GEO_OPENCODE_ENGINE_ID,
+  GEO_SEQUENCE_MAX_TURNS,
+} from "../src/constants/geo";
 import { GeoModelService, GeoFeatureFlagService } from "../src/deps";
 import { GeoScanError } from "../src/geo/errors";
 import type { GeoScanPlannedSequence } from "../src/types/geo";
@@ -31,6 +33,10 @@ import {
   seedProject,
   testDb,
 } from "./utils/database";
+import {
+  mockAskGeoOpenCode,
+  mockAskGeoOpenCodeConversation,
+} from "./utils/infrastructure";
 const { runGeoScanTaskBatch, runGeoScanSequenceBatch } =
   await import("../src/geo/scan");
 const { loadGeoScanRun } = await import("../src/geo/scan-history");
@@ -114,7 +120,16 @@ describe("model service in real scan batches", () => {
               ).toBe(true);
               return {
                 text: calls === 1 ? "Selected is a good choice." : "",
-                grounding: { queries: [], sources: [] },
+                grounding: {
+                  queries: [],
+                  sources: [
+                    {
+                      title: "Search hit",
+                      url: "https://example.com/search-result",
+                      domain: "example.com",
+                    },
+                  ],
+                },
                 sources: [],
                 finishReason: "stop",
                 zdrEnforced: false,
@@ -142,6 +157,9 @@ describe("model service in real scan batches", () => {
     );
     expect(finished?.total).toBe(1);
     expect(finished?.results[0]?.turn).toBe(1);
+    expect(
+      (await testDb.select().from(geoMentionChecks))[0]?.ownedSourceCited
+    ).toBe(false);
     expect(finished?.pendingTotal).toBe(plan.totalChecks - 1);
     expect(finished?.pending.every((task) => task.status === "failed")).toBe(
       true
@@ -330,7 +348,9 @@ describe("model service in real scan batches", () => {
                   },
                 ],
               },
-              sources: [],
+              sources: [
+                { title: "Email guide", url: "https://docs.example.com/email" },
+              ],
               finishReason: "stop",
               zdrEnforced: null,
             }),
@@ -350,6 +370,180 @@ describe("model service in real scan batches", () => {
     expect(overview?.citations).toBe(1);
     expect(overview?.visibility).toBe(1);
     expect(overview?.visibilityRate).toBe(1);
+  });
+
+  test("a search result alone does not count as an owned citation", async () => {
+    const scope = await seedProject("search-result");
+    await testDb.insert(geoScans).values({ id: "scan-test", ...scope });
+    await Effect.runPromise(
+      runGeoScanTaskBatch(
+        {
+          ...scope,
+          scanId: "scan-test",
+          runId: "test-run",
+          companyName: "Email SDK",
+          aliases: [],
+          websiteUrl: "https://example.com",
+          gate: testBillingGate,
+          startedAtMs: Date.now(),
+        },
+        [
+          {
+            engine: "openai/gpt-4o-mini",
+            groundedKey: null,
+            prompt: {
+              id: "custom-search",
+              text: "Which tools should I choose?",
+            },
+            language: "English",
+            zdr: "none",
+          },
+        ]
+      ).pipe(
+        Effect.provideService(GeoModelService, {
+          ...fakeModels,
+          answer: () =>
+            Effect.succeed({
+              text: "Other tools are a better fit.",
+              grounding: {
+                queries: ["email tools"],
+                sources: [
+                  {
+                    title: "Email guide",
+                    url: "https://docs.example.com/email",
+                    domain: "docs.example.com",
+                  },
+                ],
+              },
+              sources: [],
+              finishReason: "stop",
+              zdrEnforced: null,
+            }),
+        }),
+        Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
+      )
+    );
+    const [row] = await testDb.select().from(geoMentionChecks);
+    expect(row?.mentioned).toBe(false);
+    expect(row?.ownedSourceCited).toBe(false);
+    const [overview] = await queryGeoCheckOverview(scope, undefined);
+    expect(overview?.citations).toBe(0);
+  });
+
+  test("OpenCode search results do not count as citations in prompts or sequences", async () => {
+    const boxKey = process.env.UPSTASH_BOX_API_KEY;
+    const modelKey = process.env.OPENROUTER_API_KEY;
+    process.env.UPSTASH_BOX_API_KEY = "test-box-key";
+    process.env.OPENROUTER_API_KEY = "test-model-key";
+    try {
+      const scope = await seedProject("opencode-search");
+      await testDb.insert(geoScans).values({ id: "scan-test", ...scope });
+      const result = {
+        text: "Other tools are a better fit.",
+        sources: [],
+        groundingSources: [
+          { url: "https://docs.example.com/email", title: null },
+        ],
+        toolCalls: [],
+        usage: {
+          modelId: "test-model",
+          totalUsd: 0,
+          computeMs: 0,
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          inputTokenDetails: {
+            noCacheTokens: 0,
+            cacheReadTokens: 0,
+            cacheWriteTokens: undefined,
+          },
+          outputTokenDetails: { textTokens: 0, reasoningTokens: undefined },
+        },
+      };
+      mockAskGeoOpenCode.mockImplementationOnce(async () => result);
+      mockAskGeoOpenCodeConversation.mockImplementationOnce(async () => [
+        result,
+      ]);
+      const context = {
+        ...scope,
+        scanId: "scan-test",
+        runId: "test-run",
+        companyName: "Email SDK",
+        aliases: [],
+        websiteUrl: "https://example.com",
+        gate: testBillingGate,
+        startedAtMs: Date.now(),
+      };
+      await Effect.runPromise(
+        runGeoScanTaskBatch(context, [
+          {
+            engine: GEO_OPENCODE_ENGINE_ID,
+            groundedKey: null,
+            prompt: { id: "custom-search", text: "Which tools?" },
+            language: "English",
+            zdr: "none",
+          },
+        ]).pipe(
+          Effect.provideService(GeoModelService, fakeModels),
+          Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
+        )
+      );
+      await Effect.runPromise(
+        runGeoScanSequenceBatch(context, [
+          {
+            sequenceId: "search-sequence",
+            engine: GEO_OPENCODE_ENGINE_ID,
+            groundedKey: null,
+            zdr: "none",
+            steps: ["Which tools?"],
+          },
+        ]).pipe(
+          Effect.provideService(GeoModelService, fakeModels),
+          Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
+        )
+      );
+      const rows = await testDb.select().from(geoMentionChecks);
+      expect(rows).toHaveLength(2);
+      expect(rows.every((row) => !row.ownedSourceCited)).toBe(true);
+      expect(
+        rows.map((row) => ({
+          promptId: row.promptId,
+          sources: row.grounding.sources,
+        }))
+      ).toEqual([
+        {
+          promptId: "custom-search",
+          sources: [
+            {
+              title: "docs.example.com",
+              url: "https://docs.example.com/email",
+              domain: "docs.example.com",
+            },
+          ],
+        },
+        {
+          promptId: "sequence-search-sequence",
+          sources: [
+            {
+              title: "docs.example.com",
+              url: "https://docs.example.com/email",
+              domain: "docs.example.com",
+            },
+          ],
+        },
+      ]);
+    } finally {
+      if (boxKey === undefined) {
+        delete process.env.UPSTASH_BOX_API_KEY;
+      } else {
+        process.env.UPSTASH_BOX_API_KEY = boxKey;
+      }
+      if (modelKey === undefined) {
+        delete process.env.OPENROUTER_API_KEY;
+      } else {
+        process.env.OPENROUTER_API_KEY = modelKey;
+      }
+    }
   });
 
   test("typed provider refusal drops the check without a domain retry", async () => {

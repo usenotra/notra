@@ -2,6 +2,7 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Card,
   CardAction,
@@ -15,8 +16,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { INSTRUMENT_SURFACE_CLASSES } from "@/constants/instrument";
 import { cn } from "@/lib/utils";
 import type {
   InstrumentEmptyProps,
@@ -24,10 +27,11 @@ import type {
 } from "@/types/instrument";
 
 function EyebrowHint({ hint }: { hint: ReactNode }) {
+  const t = useTranslations("geo.instrument.instrumentModule");
   return (
     <Tooltip>
       <TooltipTrigger
-        aria-label="More info"
+        aria-label={t("moreInfo")}
         className="text-muted-foreground hover:text-foreground inline-flex cursor-help"
       >
         <HugeiconsIcon icon={InformationCircleIcon} size={14} />
@@ -36,6 +40,61 @@ function EyebrowHint({ hint }: { hint: ReactNode }) {
         <div className="max-w-64 text-xs">{hint}</div>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+function DualtoneModule({
+  eyebrow,
+  description,
+  hint,
+  readout,
+  action,
+  children,
+  className,
+  bodyClassName,
+  variant,
+  bareBody = false,
+}: InstrumentModuleProps & { variant: "panel" | "table" }) {
+  const tableHeader = variant === "table";
+  const surface = INSTRUMENT_SURFACE_CLASSES[bareBody ? "bare" : variant];
+
+  return (
+    <Card
+      className={cn(
+        "min-w-0 flex-1 overflow-visible rounded-2xl bg-transparent p-0 ring-0",
+        (tableHeader || !bareBody) && "gap-0",
+        !bareBody && "border-shell-border bg-shell border p-0.5",
+        className
+      )}
+    >
+      <CardHeader className={surface.header}>
+        <CardTitle className={tableHeader ? "text-sm" : undefined}>
+          <span className="inline-flex items-center gap-1.5">
+            {eyebrow}
+            {hint ? <EyebrowHint hint={hint} /> : null}
+          </span>
+        </CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+        {(readout || action) && (
+          <CardAction
+            className={cn(
+              "flex min-w-0 items-center gap-2",
+              tableHeader && "row-span-1 self-center"
+            )}
+          >
+            {readout && (
+              <span className="text-muted-foreground truncate text-xs tabular-nums">
+                {readout}
+              </span>
+            )}
+            {action}
+          </CardAction>
+        )}
+      </CardHeader>
+      <CardContent className={cn(surface.content, bodyClassName)}>
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -52,65 +111,27 @@ export function InstrumentModule({
   bareBody = false,
 }: InstrumentModuleProps) {
   if (variant !== "flat") {
-    const tableHeader = variant === "table";
-    let headerClassName =
-      "border-border bg-muted min-h-24 content-start rounded-t-2xl border border-b-0 pt-4 pb-9";
-    let contentClassName =
-      "border-border bg-card relative -mt-9 flex flex-1 flex-col rounded-2xl border p-6";
-
-    if (bareBody) {
-      headerClassName = "px-1";
-      contentClassName = "flex flex-1 flex-col p-0";
-    } else if (tableHeader) {
-      headerClassName =
-        "border-border bg-muted h-[4.25rem] content-center items-center rounded-t-2xl border border-b-0 pb-5";
-      contentClassName =
-        "border-border bg-card relative -mt-5 flex flex-1 flex-col rounded-2xl border p-4";
-    }
-
     return (
-      <Card
-        className={cn(
-          "min-w-0 flex-1 overflow-visible rounded-2xl bg-transparent p-0 ring-0",
-          tableHeader && "gap-0",
-          className
-        )}
+      <DualtoneModule
+        action={action}
+        bareBody={bareBody}
+        bodyClassName={bodyClassName}
+        className={className}
+        description={description}
+        eyebrow={eyebrow}
+        hint={hint}
+        readout={readout}
+        variant={variant}
       >
-        <CardHeader className={headerClassName}>
-          <CardTitle className={tableHeader ? "text-sm capitalize" : undefined}>
-            <span className="inline-flex items-center gap-1.5">
-              {eyebrow}
-              {hint ? <EyebrowHint hint={hint} /> : null}
-            </span>
-          </CardTitle>
-          {description && <CardDescription>{description}</CardDescription>}
-          {(readout || action) && (
-            <CardAction
-              className={cn(
-                "flex min-w-0 items-center gap-2",
-                tableHeader && "row-span-1 self-center"
-              )}
-            >
-              {readout && (
-                <span className="text-muted-foreground truncate text-xs tabular-nums">
-                  {readout}
-                </span>
-              )}
-              {action}
-            </CardAction>
-          )}
-        </CardHeader>
-        <CardContent className={cn(contentClassName, bodyClassName)}>
-          {children}
-        </CardContent>
-      </Card>
+        {children}
+      </DualtoneModule>
     );
   }
 
   return (
     <Card className={cn("min-w-0 flex-1", className)}>
       <CardHeader className="items-center">
-        <CardTitle className="text-sm capitalize">
+        <CardTitle className="text-sm">
           <span className="inline-flex items-center gap-1.5">
             {eyebrow}
             {hint ? <EyebrowHint hint={hint} /> : null}
@@ -119,7 +140,7 @@ export function InstrumentModule({
         {(readout || action) && (
           <CardAction className="flex min-w-0 items-center gap-2 self-center">
             {readout && (
-              <span className="text-muted-foreground truncate text-xs capitalize tabular-nums">
+              <span className="text-muted-foreground truncate text-xs tabular-nums first-letter:uppercase">
                 {readout}
               </span>
             )}
@@ -145,11 +166,18 @@ export function InstrumentSection({
   bodyClassName,
 }: InstrumentModuleProps) {
   return (
-    <section className={cn("flex min-w-0 flex-col gap-3", className)}>
+    <section
+      className={cn(
+        "@container/instrument flex min-w-0 flex-col gap-3",
+        className
+      )}
+    >
       <div
         className={cn(
-          "flex min-w-0 justify-between gap-2",
-          description ? "items-start" : "items-center"
+          "flex min-w-0 flex-col gap-2 @min-[32rem]/instrument:flex-row @min-[32rem]/instrument:justify-between",
+          description
+            ? "@min-[32rem]/instrument:items-start"
+            : "@min-[32rem]/instrument:items-center"
         )}
       >
         <div
@@ -162,7 +190,7 @@ export function InstrumentSection({
         >
           <h2
             className={cn(
-              "text-foreground flex items-center gap-1.5 text-sm font-medium capitalize",
+              "text-foreground flex items-center gap-1.5 text-sm font-medium",
               !description && (readout || action) && "leading-none"
             )}
           >
@@ -174,9 +202,9 @@ export function InstrumentSection({
           ) : null}
         </div>
         {(readout || action) && (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 @min-[32rem]/instrument:w-auto @min-[32rem]/instrument:justify-end">
             {readout && (
-              <span className="text-muted-foreground truncate text-xs capitalize tabular-nums">
+              <span className="text-muted-foreground truncate text-xs tabular-nums first-letter:uppercase">
                 {readout}
               </span>
             )}
@@ -250,7 +278,9 @@ export function InstrumentEmpty({
               </svg>
             </span>
           ) : null}
-          <p className="text-muted-foreground text-sm capitalize">{message}</p>
+          <p className="text-muted-foreground text-sm first-letter:uppercase">
+            {busy && message ? <Shimmer as="span">{message}</Shimmer> : message}
+          </p>
         </div>
       ) : null}
       {action && !busy ? <div className="relative z-10">{action}</div> : null}

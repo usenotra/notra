@@ -20,12 +20,24 @@ mock.module("@notra/geo-core/geo/scan-schedule", () => ({
   runGeoScanCronSweep: sweep,
 }));
 const flushGeoLog = mock(async () => undefined);
+const log = { info: mock(), warn: mock(), error: mock() };
 // The whole evlog surface is stubbed, not just `flushGeoLog`: a partial module
 // mock is process-wide and would break every other suite importing it.
 mock.module("@notra/ai/evlog", () => ({
-  flushGeoLog,
-  geoLog: { info: mock(), warn: mock(), error: mock() },
+  log,
+  geoLog: log,
   geoLogDrainEnabled: true,
+  flushGeoLog,
+  flushLogs: async () => undefined,
+  useLogger: () => ({
+    getContext: () => ({}),
+    set: () => undefined,
+  }),
+  withEvlog: (handler: unknown) => handler,
+  createError: (message: unknown) => new Error(String(message)),
+  setLogFlushScheduler: () => undefined,
+  register: () => undefined,
+  onRequestError: () => undefined,
 }));
 mock.module("@/lib/geo/configure", () => ({
   geoCoreDashboardLayer: Layer.empty,

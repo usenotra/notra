@@ -1,5 +1,7 @@
 import { toast } from "sonner";
 
+import { commonToastMessage } from "@/utils/toast-message";
+
 const CAL_NAMESPACE = "15min";
 const CAL_TRIGGER_SELECTOR = `[data-cal-namespace="${CAL_NAMESPACE}"]`;
 
@@ -22,7 +24,7 @@ export async function scheduleDemo(): Promise<void> {
     await calEmbedPromise;
   } catch {
     calEmbedPromise = null;
-    toast.error("Failed to open booking. Please try again.");
+    toast.error(commonToastMessage("bookingOpenFailed"));
     return;
   }
 

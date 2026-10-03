@@ -1,6 +1,4 @@
-import type { NextRequest } from "next/server";
-
-export function isSameOriginRequest(request: NextRequest): boolean {
+export function isSameOriginRequest(request: Request): boolean {
   const origin = request.headers.get("origin");
   const host =
     (process.env.VERCEL && request.headers.get("x-forwarded-host")) ||
@@ -8,7 +6,7 @@ export function isSameOriginRequest(request: NextRequest): boolean {
   const protocol =
     (process.env.VERCEL &&
       request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim()) ||
-    request.nextUrl.protocol.replace(":", "");
+    new URL(request.url).protocol.replace(":", "");
   if (!(origin && host)) {
     return false;
   }

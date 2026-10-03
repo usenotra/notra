@@ -4,6 +4,7 @@ import { Wallet01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DropdownMenuItem } from "@notra/ui/components/ui/dropdown-menu";
 import { cn } from "@notra/ui/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
 
 import { useCreditBalance } from "@/lib/hooks/use-credit-balance";
 import type { CreditBalanceMenuItemProps } from "@/types/billing/credits";
@@ -13,6 +14,8 @@ export function CreditBalanceMenuItem({
   className,
   onOpenTopup,
 }: CreditBalanceMenuItemProps) {
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { isLoading, hasActiveSubscription, balance } = useCreditBalance();
 
   if (isLoading || !hasActiveSubscription) {
@@ -25,10 +28,10 @@ export function CreditBalanceMenuItem({
       onClick={onOpenTopup}
     >
       <HugeiconsIcon icon={Wallet01Icon} />
-      Credits
+      {tCommon("labels.credits")}
       {balance !== null ? (
         <span className="text-muted-foreground ml-auto tabular-nums">
-          {formatDollars(balance)}
+          {formatDollars(balance, locale)}
         </span>
       ) : null}
     </DropdownMenuItem>

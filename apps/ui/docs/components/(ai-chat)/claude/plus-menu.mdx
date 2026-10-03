@@ -1,0 +1,20 @@
+---
+title: Plus Menu
+description: The claude.ai + menu for files, skills, connectors, design systems, plugins and Research.
+---
+
+<Component path="claude/examples/claude-plus-menu" />
+
+```bash
+bunx shadcn@latest add @notra/claude-plus-menu
+```
+
+`ClaudePlusMenu` is a shadcn `DropdownMenu` behind a ghost `+` `Button`. It has Add files or photos with a `⌘ U` shortcut in `Kbd`s, then Skills, Connectors and Design system as submenus, Add plugins, and Research.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `onSelect` | | Called with the picked item: `add-files`, `add-plugins`, `research`, or `skill:<name>`, `connector:<name>` and `design-system:<name>` from the submenus. |
+
+The submenu entries live in `constants/claude.ts`.
+
+<include>./_used-in.mdx</include>

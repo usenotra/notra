@@ -1,7 +1,9 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { authkit, handleAuthkitProxy } from "@workos-inc/authkit-nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { NON_DASHBOARD_PATH } from "@/constants/auth-routes";
+import { demoProxy } from "@/utils/demo-proxy";
 import {
   evaluateLocalDevAuth,
   isLocalDevAuthEnabled,
@@ -25,6 +27,18 @@ function localDevProxy(request: NextRequest) {
 }
 
 export default async function proxy(request: NextRequest) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    /^\/design-system(?:\/|$)/.test(request.nextUrl.pathname)
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  // The public demo has no WorkOS; visitors get an anonymous sandbox.
+  if (isDemoMode()) {
+    return demoProxy(request);
+  }
+
   // Local impersonation has no WorkOS session and still requires loopback.
   if (isLocalDevAuthEnabled()) {
     return localDevProxy(request);
@@ -45,8 +59,10 @@ export default async function proxy(request: NextRequest) {
 // Machine-to-machine routes authenticate themselves (signatures, CRON_SECRET,
 // bearer tokens) and never read the AuthKit session, so running the proxy there
 // only adds an invocation per webhook, ingest event, cron and workflow callback.
+// `demo/*.png` are the public demo's static images, which the image optimizer
+// fetches without a session.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|badges(?:/|$)|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt|api/webhooks/|api/geo/ingest(?:/|$)|api/cron/|api/healthcheck(?:/|$)|api/workflows/|api/internal/|\\.well-known/workflow/|ingest/).*)",
+    "/((?!_next/static|_next/image|badges(?:/|$)|demo/[^/]+\\.png$|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt|design\\.md(?:/|$)|api/webhooks/|api/geo/ingest(?:/|$)|api/cron/|api/healthcheck(?:/|$)|api/workflows/|api/internal/|\\.well-known/workflow/|ingest/).*)",
   ],
 };

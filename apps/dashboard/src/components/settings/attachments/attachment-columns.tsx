@@ -8,7 +8,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/button";
 import type { TableColumn } from "@/components/motion/table";
@@ -24,27 +23,32 @@ import type {
 import { formatRelativeDate } from "@/utils/content-preview";
 import { formatBytes } from "@/utils/format";
 
-function fileKindLabel(mediaType: string): string {
-  if (isPdfMimeType(mediaType)) {
-    return "PDF";
-  }
-  if (isTextMimeType(mediaType)) {
-    return MIME_DISPLAY_LABELS[mediaType] ?? "Text";
-  }
-  if (isImageMimeType(mediaType)) {
-    return MIME_DISPLAY_LABELS[mediaType] ?? "Image";
-  }
-  return MIME_DISPLAY_LABELS[mediaType] ?? "File";
-}
-
 export function createAttachmentColumns({
   pendingKey,
   onDelete,
+  t,
+  tSettingsShared,
+  tCommon,
+  deleteLabel,
+  dateLocale,
 }: AttachmentTableColumnOptions): TableColumn<AttachmentRow>[] {
+  function fileKindLabel(mediaType: string): string {
+    if (isPdfMimeType(mediaType)) {
+      return "PDF";
+    }
+    if (isTextMimeType(mediaType)) {
+      return MIME_DISPLAY_LABELS[mediaType] ?? tSettingsShared("text");
+    }
+    if (isImageMimeType(mediaType)) {
+      return MIME_DISPLAY_LABELS[mediaType] ?? tCommon("labels.image");
+    }
+    return MIME_DISPLAY_LABELS[mediaType] ?? tSettingsShared("file");
+  }
+
   return [
     {
       key: "filename",
-      header: "File",
+      header: tSettingsShared("file"),
       width: "1fr",
       minWidth: "12rem",
       sortable: true,
@@ -54,13 +58,15 @@ export function createAttachmentColumns({
           <span className="bg-muted text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-md">
             <HugeiconsIcon className="size-3.5" icon={File02Icon} />
           </span>
-          <span className="truncate font-medium">{row.filename}</span>
+          <span className="truncate font-medium" title={row.filename}>
+            {row.filename}
+          </span>
         </span>
       ),
     },
     {
       key: "mediaType",
-      header: "Type",
+      header: tCommon("labels.type"),
       width: "7rem",
       sortable: true,
       sortValue: (row) => fileKindLabel(row.mediaType),
@@ -72,25 +78,25 @@ export function createAttachmentColumns({
     },
     {
       key: "size",
-      header: "Size",
+      header: tCommon("labels.size"),
       width: "6.5rem",
       sortable: true,
       sortValue: (row) => row.size,
       cell: (row) => (
         <span className="text-muted-foreground tabular-nums">
-          {formatBytes(row.size)}
+          {formatBytes(row.size, dateLocale.code)}
         </span>
       ),
     },
     {
       key: "createdAt",
-      header: "Uploaded",
+      header: t("columns.uploaded"),
       width: "8rem",
       sortable: true,
       sortValue: (row) => row.createdAt.getTime(),
       cell: (row) => (
         <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-          {formatRelativeDate(row.createdAt.toISOString())}
+          {formatRelativeDate(row.createdAt.toISOString(), dateLocale)}
         </span>
       ),
     },
@@ -107,22 +113,18 @@ export function createAttachmentColumns({
             <TooltipTrigger
               render={
                 <Button
-                  aria-label={`Delete ${row.filename}`}
+                  aria-label={t("deleteFile", { filename: row.filename })}
                   className="text-muted-foreground hover:text-destructive"
-                  disabled={pending}
+                  loading={pending}
                   onClick={() => onDelete(row.key)}
                   size="icon-sm"
                   variant="ghost"
                 >
-                  {pending ? (
-                    <LoaderCircle className="size-3.5 animate-spin" />
-                  ) : (
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
-                  )}
+                  <HugeiconsIcon icon={Delete02Icon} size={14} />
                 </Button>
               }
             />
-            <TooltipContent>Delete</TooltipContent>
+            <TooltipContent>{deleteLabel}</TooltipContent>
           </Tooltip>
         );
       },
