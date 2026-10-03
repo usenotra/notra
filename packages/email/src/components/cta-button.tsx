@@ -14,7 +14,8 @@ export const EmailCtaButton = ({
   <ReactEmailButton
     {...props}
     style={{
-      backgroundColor: EMAIL_THEME.primary,
+      // Outlook drops the gradient; the fallback still has to pass contrast.
+      backgroundColor: EMAIL_THEME.primaryAccessible,
       backgroundImage: `linear-gradient(180deg, ${EMAIL_THEME.ctaFrom} 0%, ${EMAIL_THEME.ctaTo} 100%)`,
       borderRadius: "9999px",
       boxShadow: `0 0 0 8px ${EMAIL_THEME.ctaGlow}, 0 1px 2px #28282814, 0 0 0 1px #1E1E1E40`,

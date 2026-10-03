@@ -31,23 +31,23 @@ const SAMPLES: Record<BrewEmailCategory, [string, ReactElement]> = {
     AiCreditsDepletedEmail({} as never),
   ],
   "workflow-paused": [
-    "Your Notra workflow was paused",
+    "Weekly Product Updates was paused",
     WorkflowPausedEmail({} as never),
   ],
   "schedule-content-created": [
-    "Your Weekly Product Updates schedule created new content",
+    "New content from Weekly Product Updates",
     ScheduledContentCreatedEmail({} as never),
   ],
   "schedule-content-failed": [
-    "Your Weekly Product Updates schedule failed to generate content",
+    "Weekly Product Updates couldn't generate content",
     ScheduledContentFailedEmail({} as never),
   ],
   "schedule-content-skipped": [
-    "Your Weekly Product Updates schedule skipped content generation",
+    "Weekly Product Updates skipped a run",
     ScheduledContentSkippedEmail({} as never),
   ],
   "daily-summary": [
-    DailySummaryEmail.PreviewProps.headline,
+    `GEO recap for ${DailySummaryEmail.PreviewProps.organizationName}, ${DailySummaryEmail.PreviewProps.dateLabel}`,
     DailySummaryEmail(DailySummaryEmail.PreviewProps),
   ],
 };

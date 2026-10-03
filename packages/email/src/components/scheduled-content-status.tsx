@@ -4,7 +4,6 @@ import {
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Section,
   Tailwind,
@@ -12,10 +11,12 @@ import {
 } from "react-email";
 
 import type { ScheduledContentStatusTemplateProps } from "../types/scheduled-content-status";
-import { EMAIL_CONFIG } from "../utils/config";
-import { EmailButton } from "./button";
+import { toPreviewText } from "../utils/preview";
+import { EmailButtonFallbackLink } from "./button-fallback-link";
+import { EmailCtaButton } from "./cta-button";
 import { EmailFooter } from "./footer";
 import { EmailLogo } from "./logo";
+import { EmailNotificationSettingsNote } from "./notification-settings-note";
 
 export const ScheduledContentStatusEmail = ({
   organizationName,
@@ -31,7 +32,7 @@ export const ScheduledContentStatusEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your scheduled content generation {statusLabel}</Preview>
+      <Preview>{toPreviewText(`${scheduleName}: ${reason}`)}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
           <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
@@ -59,25 +60,15 @@ export const ScheduledContentStatusEmail = ({
             </Section>
 
             <Section className="my-8 text-center">
-              <EmailButton href={settingsLink}>View Schedule</EmailButton>
+              <EmailCtaButton href={settingsLink}>View Schedule</EmailCtaButton>
             </Section>
 
-            <Text className="text-[14px] leading-[24px] text-black">
-              If the button does not work, copy and paste this URL into your
-              browser: <Link href={settingsLink}>{settingsLink}</Link>
-            </Text>
+            <EmailButtonFallbackLink href={settingsLink} />
 
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] tracking-wide text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
-              </Text>
-            </Section>
+            <EmailNotificationSettingsNote
+              organizationName={organizationName}
+              organizationSlug={organizationSlug}
+            />
 
             <EmailFooter />
           </Container>

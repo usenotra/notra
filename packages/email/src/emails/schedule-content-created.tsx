@@ -11,11 +11,13 @@ import {
   Text,
 } from "react-email";
 
-import { EmailButton } from "../components/button";
+import { EmailButtonFallbackLink } from "../components/button-fallback-link";
+import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
+import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
+import { EMAIL_THEME } from "../constants/theme";
 import type { ScheduledContentCreatedEmailProps } from "../types/schedule-content-created";
-import { EMAIL_CONFIG } from "../utils/config";
 
 const CONTENT_TYPE_MAP: Record<string, string> = {
   changelog: "Changelog",
@@ -49,7 +51,11 @@ export const ScheduledContentCreatedEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your scheduled content is ready in Notra</Preview>
+      <Preview>
+        {contentCount === 1 && primaryContent
+          ? `${primaryContent.title}, ready to review in ${organizationName}`
+          : `${contentCount} new ${contentLabel} drafts are ready to review in ${organizationName}`}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
           <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
@@ -73,13 +79,21 @@ export const ScheduledContentCreatedEmail = ({
                   className="mt-2 mb-0 text-[14px] leading-[22px] text-black"
                   key={item.contentLink}
                 >
-                  <Link href={item.contentLink}>{item.title}</Link>
+                  <Link
+                    href={item.contentLink}
+                    style={{
+                      color: EMAIL_THEME.link,
+                      textDecoration: "underline",
+                    }}
+                  >
+                    {item.title}
+                  </Link>
                 </Text>
               ))}
             </Section>
 
             <Section className="my-8 text-center">
-              <EmailButton
+              <EmailCtaButton
                 href={
                   contentCount === 1
                     ? (primaryContent?.contentLink ?? contentOverviewLink)
@@ -87,36 +101,21 @@ export const ScheduledContentCreatedEmail = ({
                 }
               >
                 {contentCount === 1 ? "Review Content" : "Review All Content"}
-              </EmailButton>
+              </EmailCtaButton>
             </Section>
 
-            <Text className="text-[14px] leading-[24px] text-black">
-              If the button does not work, copy and paste this URL into your
-              browser:{" "}
-              <Link
-                href={
-                  contentCount === 1
-                    ? (primaryContent?.contentLink ?? contentOverviewLink)
-                    : contentOverviewLink
-                }
-              >
-                {contentCount === 1
+            <EmailButtonFallbackLink
+              href={
+                contentCount === 1
                   ? (primaryContent?.contentLink ?? contentOverviewLink)
-                  : contentOverviewLink}
-              </Link>
-            </Text>
+                  : contentOverviewLink
+              }
+            />
 
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] tracking-wide text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
-              </Text>
-            </Section>
+            <EmailNotificationSettingsNote
+              organizationName={organizationName}
+              organizationSlug={organizationSlug}
+            />
 
             <EmailFooter />
           </Container>

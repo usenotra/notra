@@ -20,7 +20,8 @@ export const BREW_IDEMPOTENCY_HASH_LENGTH = 48;
 export const BREW_MAX_RETRIES = 3;
 export const BREW_RETRY_BASE_DELAY_MS = 1000;
 export const BREW_RETRY_JITTER_MS = 1000;
-export const BREW_RETRY_MAX_DELAY_MS = 30_000;
+/** Brew rate limits are per 60 s window, so a full `Retry-After` fits. */
+export const BREW_RETRY_MAX_DELAY_MS = 60_000;
 
 /** Brew caps contact upserts at 1000 rows per request. */
 export const BREW_CONTACTS_BATCH_SIZE = 1000;

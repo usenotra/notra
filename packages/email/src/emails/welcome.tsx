@@ -1,44 +1,74 @@
-import { Body, Head, Html, Link, Preview, Text } from "react-email";
+import {
+  Body,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Tailwind,
+  Text,
+} from "react-email";
 
 import { EmailFooter } from "../components/footer";
+import { EmailLogo } from "../components/logo";
+import { EMAIL_THEME } from "../constants/theme";
+
+const PARAGRAPH = "mt-0 mb-4 text-[15px] leading-[24px] text-[#171717]";
+const LINK_STYLE = { color: EMAIL_THEME.link, textDecoration: "underline" };
 
 export const WelcomeEmail = () => {
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Notra - A quick note from the founder</Preview>
-      <Body>
-        <Text>
-          Hey I'm Dominik, the founder of Notra. I wanted to personally welcome
-          you and say thanks for signing up.
-        </Text>
+      <Preview>A quick note from Dominik, the founder of Notra</Preview>
+      <Tailwind>
+        <Body className="mx-auto my-auto bg-white px-2 font-sans">
+          <Container className="mx-auto my-[40px] max-w-[520px] rounded p-[20px]">
+            <EmailLogo />
 
-        <Text>
-          We built Notra because we were shipping faster than ever but didn't
-          have enough time to come up with tweets, changelogs and LinkedIn
-          posts.
-        </Text>
+            <Heading className="my-6 text-center text-2xl font-medium text-black">
+              Welcome to Notra
+            </Heading>
 
-        <Text>
-          If you have any questions, feedback, or just want to chat reply to
-          this email. We read every single one of them.
-        </Text>
+            <Text className={PARAGRAPH}>
+              Hey, I'm Dominik, the founder of Notra. I wanted to personally
+              welcome you and say thanks for signing up.
+            </Text>
 
-        <Text>
-          You can also{" "}
-          <Link href="https://usenotra.com/founder-chat">schedule a chat</Link>{" "}
-          with us or join our{" "}
-          <Link href="https://usenotra.com/discord">Discord Community</Link>!
-        </Text>
+            <Text className={PARAGRAPH}>
+              We built Notra because we were shipping faster than ever but
+              didn't have enough time to come up with tweets, changelogs and
+              LinkedIn posts.
+            </Text>
 
-        <Text>
-          Cheers,
-          <br />
-          Dominik & The Notra Team
-        </Text>
+            <Text className={PARAGRAPH}>
+              If you have any questions, feedback, or just want to chat, reply
+              to this email. We read every single one.
+            </Text>
 
-        <EmailFooter />
-      </Body>
+            <Text className={PARAGRAPH}>
+              You can also{" "}
+              <Link href="https://usenotra.com/founder-chat" style={LINK_STYLE}>
+                book a chat with me
+              </Link>{" "}
+              or join our{" "}
+              <Link href="https://usenotra.com/discord" style={LINK_STYLE}>
+                Discord community
+              </Link>
+              .
+            </Text>
+
+            <Text className={PARAGRAPH}>
+              Cheers,
+              <br />
+              Dominik & the Notra team
+            </Text>
+
+            <EmailFooter />
+          </Container>
+        </Body>
+      </Tailwind>
     </Html>
   );
 };
