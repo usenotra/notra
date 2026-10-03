@@ -20,6 +20,39 @@ const projects = [
     productionAlias: "notra-ui-notra.vercel.app",
   },
 ];
+// Railway services follow the Vercel release instead of auto-deploying every
+// push to main, so the demo and the ingest never run ahead of production.
+const railwayServices = [
+  {
+    name: "demo-dashboard",
+    directory: "apps/dashboard",
+    projectId: "48abcb3c-19e1-4c81-a7d3-e2c697c86832",
+    environmentId: "2c9756ae-90db-4606-b420-470fd23151a3",
+    serviceId: "9cb261a4-7d94-446f-8523-84a4b75cbb3d",
+  },
+  {
+    name: "demo-api",
+    directory: "apps/api",
+    projectId: "48abcb3c-19e1-4c81-a7d3-e2c697c86832",
+    environmentId: "2c9756ae-90db-4606-b420-470fd23151a3",
+    serviceId: "17ba5ec0-ec2e-412d-aa2c-61b23f37b40a",
+  },
+  {
+    name: "ai-traffic-ingest",
+    directory: "apps/ai-traffic-ingest",
+    projectId: "557ca18d-9de8-40ad-9fca-cf3d165f3c44",
+    environmentId: "276f8b24-ccd7-4bf3-a6b6-1dbe9f7fe5c6",
+    serviceId: "2d259982-cccc-488d-b2ba-77b12fd3e854",
+  },
+];
+const railwayActiveStates = [
+  "WAITING",
+  "QUEUED",
+  "INITIALIZING",
+  "BUILDING",
+  "DEPLOYING",
+];
+const railwayLiveStates = ["SUCCESS", "SLEEPING"];
 const requiredWorkflows = ["code-quality.yml", "knip.yml"];
 const activeStates = new Set(["QUEUED", "INITIALIZING", "BUILDING"]);
 
@@ -63,6 +96,7 @@ export async function release({
     "GH_TOKEN",
     "VERCEL_TOKEN",
     "VERCEL_TEAM_ID",
+    "RAILWAY_TOKEN",
     "GITHUB_SHA",
     "GITHUB_REPOSITORY_ID",
   ]) {
@@ -113,6 +147,62 @@ export async function release({
       throw new Error(`${provider} ${url.pathname}: HTTP ${response.status}`);
     }
     return response.json();
+  };
+  const railway = async (query, variables) => {
+    const response = await fetchImpl(
+      "https://backboard.railway.com/graphql/v2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RAILWAY_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query, variables }),
+        signal: AbortSignal.timeout(30_000),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`railway: HTTP ${response.status}`);
+    }
+    const result = await response.json();
+    if (result.errors?.length) {
+      throw new Error(
+        `railway: ${result.errors.map((error) => error.message).join(", ")}`
+      );
+    }
+    return result.data;
+  };
+  const latestRailwayDeployment = async (service, states) => {
+    const data = await railway(
+      `query ($input: DeploymentListInput!) {
+        deployments(input: $input, first: 1) {
+          edges { node { id status meta } }
+        }
+      }`,
+      {
+        input: {
+          projectId: service.projectId,
+          environmentId: service.environmentId,
+          serviceId: service.serviceId,
+          status: { in: states },
+        },
+      }
+    );
+    return data.deployments.edges[0]?.node;
+  };
+  const assertAheadOf = async (name, previousSha) => {
+    if (previousSha === sha) {
+      return;
+    }
+    const comparison = await request(
+      "github",
+      `/repos/${env.GITHUB_REPOSITORY}/compare/${previousSha}...${sha}`
+    );
+    if (comparison.status !== "ahead") {
+      throw new Error(
+        `${name}: release commit is not ahead of production (${comparison.status}); no builds started`
+      );
+    }
   };
 
   // Require the latest push run for this exact SHA, including any rerun.
@@ -166,19 +256,28 @@ export async function release({
         `${project.name}: cannot identify the current production commit; no builds started`
       );
     }
-    if (previousSha && previousSha !== sha) {
-      const comparison = await request(
-        "github",
-        `/repos/${env.GITHUB_REPOSITORY}/compare/${previousSha}...${sha}`
-      );
-      if (comparison.status !== "ahead") {
-        throw new Error(
-          `${project.name}: release commit is not ahead of production (${comparison.status}); no builds started`
-        );
-      }
-    }
+    await assertAheadOf(project.name, previousSha);
     const changed = buildChanged(project.directory, previousSha, sha);
     plans.push({ ...project, changed });
+  }
+
+  const railwayPlans = [];
+  for (const service of railwayServices) {
+    if (await latestRailwayDeployment(service, railwayActiveStates)) {
+      throw new Error(
+        `${service.name} already has an active Railway deployment`
+      );
+    }
+    const live = await latestRailwayDeployment(service, railwayLiveStates);
+    const previousSha = live?.meta?.commitHash;
+    if (!previousSha) {
+      throw new Error(
+        `${service.name}: cannot identify the current Railway commit; no builds started`
+      );
+    }
+    await assertAheadOf(service.name, previousSha);
+    const changed = buildChanged(service.directory, previousSha, sha);
+    railwayPlans.push({ ...service, changed });
   }
 
   const failures = [];
@@ -258,6 +357,89 @@ export async function release({
     } catch (error) {
       failures.push(error.message);
       await report(error.message);
+    }
+  }
+  if (failures.length > 0) {
+    // Keep Railway on the previous commit while production did not move.
+    await report("Railway: skipped, a Vercel production deployment failed");
+    throw new Error(failures.join("\n"));
+  }
+
+  const started = [];
+  for (const service of railwayPlans) {
+    if (!service.changed) {
+      await report(
+        `${service.name}: skipped, no build changes since production`
+      );
+      continue;
+    }
+    if (env.DRY_RUN === "true") {
+      await report(`${service.name}: would deploy ${sha}`);
+      continue;
+    }
+    try {
+      const data = await railway(
+        `mutation ($serviceId: String!, $environmentId: String!, $commitSha: String!) {
+          serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId, commitSha: $commitSha)
+        }`,
+        {
+          serviceId: service.serviceId,
+          environmentId: service.environmentId,
+          commitSha: sha,
+        }
+      );
+      const deploymentId = data.serviceInstanceDeployV2;
+      if (!deploymentId) {
+        throw new Error(`${service.name}: deployment creation returned no ID`);
+      }
+      await report(
+        `${service.name}: started Railway deployment ${deploymentId}`
+      );
+      started.push({ ...service, deploymentId });
+    } catch (error) {
+      failures.push(error.message);
+      await report(error.message);
+    }
+  }
+
+  // Railway builds run in parallel; Docker builds take longer than Vercel's.
+  const deadline = Date.now() + 20 * 60_000;
+  let pending = started;
+  while (pending.length > 0) {
+    const stillPending = [];
+    for (const service of pending) {
+      try {
+        const { deployment } = await railway(
+          `query ($id: String!) { deployment(id: $id) { status meta } }`,
+          { id: service.deploymentId }
+        );
+        if (railwayLiveStates.includes(deployment.status)) {
+          if (deployment.meta?.commitHash !== sha) {
+            throw new Error(`${service.name}: built a different commit`);
+          }
+          await report(`${service.name}: ${deployment.status}`);
+        } else if (deployment.status === "SKIPPED") {
+          // The service's watch patterns ignored every changed file.
+          await report(`${service.name}: skipped by Railway watch patterns`);
+        } else if (!railwayActiveStates.includes(deployment.status)) {
+          throw new Error(
+            `${service.name}: deployment ended ${deployment.status}`
+          );
+        } else if (Date.now() >= deadline) {
+          throw new Error(
+            `${service.name}: deployment did not finish in 20 minutes`
+          );
+        } else {
+          stillPending.push(service);
+        }
+      } catch (error) {
+        failures.push(error.message);
+        await report(error.message);
+      }
+    }
+    pending = stillPending;
+    if (pending.length > 0) {
+      await sleep(Math.min(15_000, Math.max(0, deadline - Date.now())));
     }
   }
   if (failures.length > 0) {
