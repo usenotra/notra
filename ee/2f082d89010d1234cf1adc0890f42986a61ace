@@ -1,0 +1,103 @@
+apps/dashboard/nitro.config.ts
+  ai_agent 29-35
+apps/dashboard/src/workflows/steps/sync-geo-shelf-citations.ts
+  ai_agent 1
+apps/dashboard/vite.config.ts
+  ai_agent 28-39,83-87,89-91
+apps/dashboard/src/workflows/steps/agent-readiness-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/runtime.ts
+  ai_agent 1-18
+apps/dashboard/src/workflows/github-mention.test.ts
+  ai_agent 31
+apps/dashboard/src/workflows/steps/brand-guidelines-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/content-generation-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/iris-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/content-email-digest-step.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/on-demand-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/on-demand-generation-step.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/geo-sentiment-steps.ts
+  ai_agent 1
+apps/dashboard/src/utils/compress-content-image.ts
+  ai_agent 2,36-39,45,83-84
+apps/dashboard/knip.json
+  s_7a0c38829ccc1e::t_6899d21c2d9342 5
+apps/dashboard/src/workflows/steps/gsc-sync-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/social-analytics-steps.ts
+  ai_agent 1
+apps/dashboard/package.json
+  s_7a0c38829ccc1e::t_6899d21c2d9342 81
+apps/dashboard/src/workflows/steps/workflow-lifecycle-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/start-geo-sentiment.ts
+  ai_agent 1
+apps/dashboard/src/lib/i18n/server.ts
+  s_7a0c38829ccc1e::t_6899d21c2d9342 23
+apps/dashboard/src/workflows/steps/persona-generation-steps.ts
+  ai_agent 1
+bun.lock
+  ai_agent 184
+apps/dashboard/src/routes/api.image.ts
+  ai_agent 5-13
+apps/dashboard/src/workflows/steps/brand-analysis-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/content-publication-sync-repair-step.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/onboarding-agent-steps.ts
+  ai_agent 1
+apps/dashboard/src/lib/workflows/shared/content-email-digest.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/geo-writer-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/refresh-geo-content-gaps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/github-mention-step.ts
+  ai_agent 1
+apps/dashboard/src/routes/-geo-ui.tsx
+  ai_agent 12-16
+apps/dashboard/src/client.tsx
+  ai_agent 1-23
+apps/dashboard/src/routes/__root.tsx
+  ai_agent 9,15-16,27-32,52-61,72-73
+apps/dashboard/src/routes/-ui-route.tsx
+  ai_agent 4,22-23,28
+apps/dashboard/src/workflows/steps/event-generation-step.ts
+  ai_agent 1
+apps/dashboard/src/routes/-analytics-ui.tsx
+  ai_agent 14-17
+apps/dashboard/src/workflows/steps/geo-scan-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/schedule-generation-step.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/chat-steps.ts
+  ai_agent 1
+apps/dashboard/src/workflows/steps/content-publication-reconciliation-step.ts
+  ai_agent 1
+packages/ai/src/billing/autumn.ts
+  ai_agent 1,14-49,51
+apps/dashboard/src/lib/i18n/catalog.ts
+  s_7a0c38829ccc1e::t_6899d21c2d9342 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ee2f082d89010d1234cf1adc0890f42986a61ace",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
