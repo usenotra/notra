@@ -1,0 +1,65 @@
+packages/ai/src/agents/twitter.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 2,14
+packages/ai/src/types/agents.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 112-121
+packages/ai/src/constants/content-agents.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 1-30
+apps/evals/src/utils/picker.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 2-7,10-17,48,86-87
+apps/evals/src/suites/content-unslop.ts
+  ai_agent 1,3,22,149,169-170,186
+apps/evals/src/ui/screens/results/errors.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 1-64
+apps/evals/src/scoring/content-post.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 1-2,4,83,139,141
+apps/evals/src/suites/content-agent.ts
+  ai_agent 1,3,22,36,108-109,114,153-154,159
+apps/evals/src/ui/screens/results/overview.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 1-264
+apps/evals/src/harness/content-harness.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 6,26,35,37,43-44,46,97-106,221-231,242,248,267,276,303,328,345,431,435-438,441-442,445-453,457,464,467-472,475-478,482-502,517,523,617-620,622-630,632-638
+apps/evals/src/models/gateway.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 17,49,72-73,90-109,137,140-142,151
+apps/evals/src/constants/picker.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 1-16
+apps/evals/src/ui/screens/results/fields.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 1-128
+apps/evals/src/ui/screens/results.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 4-6,8-11
+packages/ai/src/agents/changelog.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 2,14
+apps/evals/src/suites/content-demo.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 1-2,19,53
+apps/evals/src/ui/screens/picker.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 4,9
+apps/evals/src/utils/stats.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 20
+packages/ai/src/agents/blog-post.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 2,14
+packages/ai/src/agents/linkedin.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 2,14
+apps/evals/src/types/picker.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 1-60
+apps/evals/src/store/picker-settings.ts
+  s_69822f2ec3c761::t_998aaf817eb16c 5-6
+apps/evals/src/ui/app.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 11
+apps/evals/src/ui/screens/results/cases.tsx
+  s_69822f2ec3c761::t_998aaf817eb16c 1-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2a5dc15da77dca9eb45037bfcdc80694ad0c30a7",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
