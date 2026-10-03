@@ -15,14 +15,19 @@ function sleep(ms: number): Promise<void> {
 }
 
 function windowDelay(organizationId: string, minDelayMs: number): number {
+  const now = Date.now();
+  // Forget organizations whose throttle window is over, so a long-running
+  // ingest process only remembers the ones that published recently.
+  for (const [id, publishedAt] of lastPublishedAt) {
+    if (publishedAt + GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS <= now) {
+      lastPublishedAt.delete(id);
+    }
+  }
   const previous = lastPublishedAt.get(organizationId);
   const throttleMs =
     previous === undefined
       ? 0
-      : previous + GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS - Date.now();
-  if (previous !== undefined && throttleMs <= 0) {
-    lastPublishedAt.delete(organizationId);
-  }
+      : previous + GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS - now;
   return Math.max(minDelayMs, throttleMs);
 }
 

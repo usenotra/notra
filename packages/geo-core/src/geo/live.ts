@@ -52,6 +52,12 @@ async function isGeoLiveWatched(organizationId: string): Promise<boolean> {
   if (memo && memo.expiresAt > now) {
     return memo.watched;
   }
+  // Drop expired lookups so the memo only holds recently active orgs.
+  for (const [id, entry] of watchMemo) {
+    if (entry.expiresAt <= now) {
+      watchMemo.delete(id);
+    }
+  }
   let watched = true;
   if (redis) {
     try {

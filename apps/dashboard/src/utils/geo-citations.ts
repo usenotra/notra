@@ -82,10 +82,11 @@ export function citationProviderTooltip(
 }
 
 /**
- * Stable ids for log rows. The log has no event id, so identical requests
- * (same second, source and page) are told apart by their order counted from
- * the oldest row: a request arriving on top never shifts the ids below it,
- * which keeps rows mounted and lets only the new ones animate in.
+ * Stable ids for log rows. The log has no event id, so the id is built from
+ * every field of the row. Rows that still match are identical requests; they
+ * are told apart by their order counted from the oldest row: a request
+ * arriving on top never shifts the ids below it, which keeps rows mounted
+ * and lets only the new ones animate in.
  */
 export function citationRowIds(
   entries: readonly GeoTrafficLogEntry[]
@@ -93,7 +94,20 @@ export function citationRowIds(
   const ids = new Map<GeoTrafficLogEntry, string>();
   const seen = new Map<string, number>();
   for (const entry of [...entries].reverse()) {
-    const base = `${entry.capturedAt}-${entry.source}-${entry.host}-${entry.path}-${entry.journeyId}`;
+    const base = [
+      entry.capturedAt,
+      entry.visitorType,
+      entry.source,
+      entry.agent,
+      entry.category,
+      entry.confidence,
+      entry.host,
+      entry.path,
+      entry.country,
+      entry.ua,
+      entry.journeyId,
+      entry.wantsMarkdown,
+    ].join("-");
     const occurrence = seen.get(base) ?? 0;
     seen.set(base, occurrence + 1);
     ids.set(entry, `${base}-${occurrence}`);
