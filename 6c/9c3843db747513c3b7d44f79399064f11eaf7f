@@ -1,0 +1,52 @@
+apps/dashboard/src/utils/framework-image.server.ts
+  s_a49d383906c1a5::t_33425232873791 110
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_a49d383906c1a5::t_811bda03daaf58 105-106,154,157-163,165-169,171
+  s_a49d383906c1a5::t_6935c5a99e9360 103-104,155-156,170,172
+apps/dashboard/nitro.config.ts
+  s_a49d383906c1a5::t_625291ed276b64 19-23
+apps/dashboard/vite.config.ts
+  s_a49d383906c1a5::t_c190bfff35ad7a 6,67
+  s_a49d383906c1a5::t_399d941ac9dfd2 24-42
+  s_a49d383906c1a5::t_1bf5eeb637d698 3,64-66
+apps/dashboard/package.json
+  s_a49d383906c1a5::t_c190bfff35ad7a 134,142
+apps/dashboard/src/components/route-error.tsx
+  s_a49d383906c1a5::t_811bda03daaf58 23
+  s_a49d383906c1a5::t_33425232873791 1-22,24-30
+apps/dashboard/src/routes/-ui-route.tsx
+  s_a49d383906c1a5::t_28410e40dd530a 2,5,14
+  s_a49d383906c1a5::t_6935c5a99e9360 3,13,15-35,81,83-89,93,97,101
+apps/dashboard/src/router.tsx
+  s_a49d383906c1a5::t_68b90dbd368d2b 3
+  s_a49d383906c1a5::t_33425232873791 4,21
+apps/dashboard/src/routes/-analytics-ui.tsx
+  s_a49d383906c1a5::t_33425232873791 41-42
+apps/dashboard/src/start.ts
+  s_a49d383906c1a5::t_ec751e28da798e 4,13
+apps/dashboard/src/utils/framework-image.test.ts
+  s_a49d383906c1a5::t_02ee838a0d2059 89
+apps/dashboard/src/routes/-geo-ui.tsx
+  s_a49d383906c1a5::t_33425232873791 114-115
+bun.lock
+  ai_agent 223,231,2093,2095,2097,2099,2101,2103,2105,2107,2109,2111,2113,2115,2117,2121-2123,2125,5047,6125-6126,6699-6700,6797,8053-8084
+apps/dashboard/src/middleware/function-errors.ts
+  s_a49d383906c1a5::t_bf3bdc3dfa2b60 17,19-22
+  s_a49d383906c1a5::t_ec751e28da798e 1-16,18,23-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6c9c3843db747513c3b7d44f79399064f11eaf7f",
+  "prompts": {},
+  "sessions": {
+    "s_a49d383906c1a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "457d1e24-c199-43b1-b75b-bdcd80ae0d21",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
