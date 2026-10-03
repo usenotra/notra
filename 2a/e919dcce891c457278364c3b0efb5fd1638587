@@ -1,0 +1,22 @@
+packages/ai/src/schemas/post.ts
+  s_69822f2ec3c761::t_e2c68b08eb8db3 6-10
+  s_69822f2ec3c761::t_f96e3f13e8512f 11
+packages/ai/src/tools/post.ts
+  s_69822f2ec3c761::t_e2c68b08eb8db3 3,43-51,57-60,194,197
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2ae919dcce891c457278364c3b0efb5fd1638587",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
