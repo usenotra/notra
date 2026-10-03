@@ -1,0 +1,117 @@
+import "server-only";
+import { db } from "@notra/db/drizzle";
+import {
+  members,
+  organizationNotificationSettings,
+  users,
+} from "@notra/db/schema";
+import type { BrewContactInput } from "@notra/email/types/brew";
+import { isBrewConfigured, upsertBrewContacts } from "@notra/email/utils/brew";
+import { and, type AnyColumn, eq, inArray, sql } from "drizzle-orm";
+
+import { BREW_CONTACTS_LOGGED_ERROR_LIMIT } from "@/constants/email/brew-contacts";
+
+const WHITESPACE_REGEX = /\s+/;
+
+/**
+ * True when any organization the user owns has the flag on. Only owners get
+ * these emails, and a missing settings row falls back the way the senders do.
+ */
+function ownedOrganizationsWith(column: AnyColumn, missingRowDefault: boolean) {
+  return sql<boolean>`coalesce(bool_or(${members.role} = 'owner' and coalesce(${column}, ${sql.raw(String(missingRowDefault))})), false)`;
+}
+
+function splitName(name: string, email: string) {
+  // Users without a real name have their email (or its local part) as name.
+  if (name === email || name === email.split("@")[0]) {
+    return {};
+  }
+
+  const [firstName, ...rest] = name.trim().split(WHITESPACE_REGEX);
+  return { firstName, lastName: rest.join(" ") };
+}
+
+async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
+  const rows = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      createdAt: users.createdAt,
+      // No sender reads this flag; without a saved choice it stays off
+      // because marketing email is opt-in only (Terms of Service).
+      marketingEmails: ownedOrganizationsWith(
+        organizationNotificationSettings.marketingEmails,
+        false
+      ),
+      dailySummaryEmails: ownedOrganizationsWith(
+        organizationNotificationSettings.dailySummary,
+        true
+      ),
+      contentCreatedEmails: ownedOrganizationsWith(
+        organizationNotificationSettings.scheduledContentCreation,
+        false
+      ),
+      contentFailedEmails: ownedOrganizationsWith(
+        organizationNotificationSettings.scheduledContentFailed,
+        false
+      ),
+      contentSkippedEmails: ownedOrganizationsWith(
+        organizationNotificationSettings.scheduledContentSkipped,
+        false
+      ),
+    })
+    .from(users)
+    .leftJoin(members, eq(members.userId, users.id))
+    .leftJoin(
+      organizationNotificationSettings,
+      eq(
+        organizationNotificationSettings.organizationId,
+        members.organizationId
+      )
+    )
+    .where(userIds ? inArray(users.id, userIds) : undefined)
+    .groupBy(users.id);
+
+  return rows.map(({ id, email, name, createdAt, ...preferences }) => ({
+    email,
+    ...splitName(name, email),
+    customFields: {
+      notraUserId: id,
+      signedUpAt: createdAt.toISOString(),
+      ...preferences,
+    },
+  }));
+}
+
+/** Upserts the given users, or every user when called without ids. */
+export async function syncBrewContacts(userIds?: string[]) {
+  if (!isBrewConfigured() || userIds?.length === 0) {
+    return { synced: 0, failed: 0 };
+  }
+
+  const contacts = await loadContacts(userIds);
+  const { failed, errors } = await upsertBrewContacts(contacts);
+
+  if (errors.length > 0) {
+    console.error("[BrewContacts] Upsert failed", {
+      failed,
+      errors: errors.slice(0, BREW_CONTACTS_LOGGED_ERROR_LIMIT),
+    });
+  }
+
+  return { synced: contacts.length - failed, failed };
+}
+
+export async function syncBrewContactsForOrganizationOwners(
+  organizationId: string
+) {
+  const owners = await db
+    .select({ userId: members.userId })
+    .from(members)
+    .where(
+      and(eq(members.organizationId, organizationId), eq(members.role, "owner"))
+    );
+
+  return syncBrewContacts(owners.map((owner) => owner.userId));
+}

@@ -14,7 +14,6 @@ import {
 } from "@notra/db/utils/geo-checks";
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { engineEmailLogoSrc } from "@notra/email/utils/engine-logo";
-import { getResend } from "@notra/email/utils/resend";
 import { toGeoCompetitor } from "@notra/geo-core/geo/mappers";
 import type { GeoChangeEvent, GeoChangeKind } from "@notra/geo-core/types/geo";
 import {
@@ -66,7 +65,6 @@ export async function runDailySummaryCron(
     new Date(start.getTime() - 24 * 60 * 60 * 1000)
   );
   const appUrl = EMAIL_CONFIG.getAppUrl();
-  const resend = getResend();
 
   const result: DailySummaryCronResult = {
     windowStart: start.toISOString(),
@@ -76,10 +74,6 @@ export async function runDailySummaryCron(
     skippedQuiet: 0,
     failed: 0,
   };
-
-  if (!resend) {
-    throw new Error("Resend API key not configured");
-  }
 
   const optedInSettings = await db
     .select({ organizationId: organizations.id })
@@ -107,7 +101,6 @@ export async function runDailySummaryCron(
         dateKey,
         previousDateKey,
         appUrl,
-        resend,
       });
 
       if (sent === "quiet") {
@@ -135,7 +128,6 @@ async function sendDailySummaryForOrganization({
   dateKey,
   previousDateKey,
   appUrl,
-  resend,
 }: {
   organizationId: string;
   start: Date;
@@ -143,7 +135,6 @@ async function sendDailySummaryForOrganization({
   dateKey: string;
   previousDateKey: string;
   appUrl: string;
-  resend: NonNullable<ReturnType<typeof getResend>>;
 }): Promise<DailySummaryOrganizationResult> {
   const [
     org,
@@ -294,9 +285,9 @@ async function sendDailySummaryForOrganization({
 
   let sent = 0;
   let failed = false;
-  // Send sequentially so recipient retries do not create concurrent Resend bursts.
+  // Send sequentially so recipient retries do not create concurrent Brew bursts.
   for (const recipientEmail of ownerEmails) {
-    const result = await sendDailySummaryEmail(resend, {
+    const result = await sendDailySummaryEmail({
       recipientEmail,
       organizationName: org.name,
       organizationSlug: org.slug,

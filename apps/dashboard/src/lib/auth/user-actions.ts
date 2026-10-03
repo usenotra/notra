@@ -2,6 +2,7 @@
 
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
+import { deleteBrewContact } from "@notra/email/utils/brew";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   signOutOptionsSchema,
@@ -22,11 +23,13 @@ import {
 import { ActionFailure } from "@/lib/actions/errors";
 import { runAction } from "@/lib/actions/run-action";
 import { validateActionInput } from "@/lib/actions/validate-input";
+import { runAfterResponse } from "@/lib/after-response";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { clearSignedCookie } from "@/lib/auth/signed-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { syncBrewContacts } from "@/lib/email/brew-contacts";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
@@ -111,6 +114,14 @@ export async function updateUserAction(
       if (input.locale !== undefined) {
         const locale = input.locale;
         yield* Effect.promise(() => writeLocaleCookie(locale));
+      }
+
+      if (input.name !== undefined) {
+        yield* Effect.sync(() =>
+          runAfterResponse("[BrewContacts] Sync failed", () =>
+            syncBrewContacts([updated.id])
+          )
+        );
       }
 
       if (input.name !== undefined && updated.workosUserId) {
@@ -201,6 +212,11 @@ export async function deleteUserAction(): Promise<
       yield* tryAction(
         () => db.delete(users).where(eq(users.id, session.user.id)),
         "Failed to delete user"
+      );
+      yield* Effect.sync(() =>
+        runAfterResponse("[BrewContacts] Delete failed", () =>
+          deleteBrewContact(session.user.email)
+        )
       );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");

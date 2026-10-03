@@ -4,6 +4,7 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Tailwind,
@@ -47,7 +48,11 @@ export const ContactMessageEmail = ({
                 From
               </Text>
               <Text className="mt-1 mb-0 text-[14px] leading-[22px] text-black">
-                {name} &lt;{email}&gt;
+                {name} &lt;
+                <Link className="text-black underline" href={`mailto:${email}`}>
+                  {email}
+                </Link>
+                &gt;
               </Text>
             </Section>
 

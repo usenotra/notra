@@ -4,6 +4,7 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Tailwind,
@@ -54,7 +55,14 @@ export const FeedbackEmail = ({
                 From
               </Text>
               <Text className="mt-1 mb-0 text-[14px] leading-[22px] text-black">
-                {userName} &lt;{userEmail}&gt;
+                {userName} &lt;
+                <Link
+                  className="text-black underline"
+                  href={`mailto:${userEmail}`}
+                >
+                  {userEmail}
+                </Link>
+                &gt;
               </Text>
             </Section>
 
