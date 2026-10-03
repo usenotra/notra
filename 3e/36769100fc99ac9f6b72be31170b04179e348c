@@ -1,0 +1,208 @@
+apps/evals/package.json
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-25
+apps/evals/src/models/pricing.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-80
+apps/dashboard/src/utils/prepare-chat-image.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-44
+packages/ai/src/skills/unslop-content.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 31
+apps/evals/src/runner/run-eval.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-243
+apps/evals/src/suites/registry.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-20
+apps/dashboard/src/utils/content-drop-caret.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-15
+apps/evals/src/ui/screens/home.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-406
+packages/ai/src/skills/seed.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 6
+apps/dashboard/src/utils/content-drop-caret.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-19
+apps/evals/src/suites/feedback-classifier.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-279
+apps/evals/src/ui/screens/results/errors.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-64
+packages/ai/src/prompts/collection-title.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-16
+packages/ai/src/types/agents.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 112-121
+apps/evals/src/harness/content-harness.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-647
+apps/evals/src/constants/paths.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-11
+apps/evals/src/suites/content-agent.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-176
+apps/evals/src/ui/screens/history.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-138
+packages/ai/src/constants/content-agents.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-30
+packages/tools/src/skill-editor/get-skill.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1,23-24,36-41
+apps/dashboard/package.json
+  s_7a0c38829ccc1e::t_26fc0db886396b 102
+apps/evals/src/constants/picker.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-16
+apps/dashboard/src/routeTree.gen.ts
+  s_7a0c38829ccc1e::t_02eb9c7e0abe0d 36,210-214,534,610,687,765,841,917,994,1198-1204,1730
+apps/evals/src/scoring/jev-judge.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-86
+apps/dashboard/src/utils/compress-content-image-heic.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-75,77-172
+  s_7a0c38829ccc1e::t_6915a3c6c51207 76
+apps/evals/src/store/runs.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-65
+apps/evals/src/ui/screens/results/overview.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-264
+apps/dashboard/src/components/chat-input.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 184
+apps/evals/README.md
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-35
+packages/ai/src/agents/linkedin.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 2,14
+apps/evals/src/constants/contenders.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-75
+packages/ai/src/skills/functions/service.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 15,94
+apps/dashboard/src/types/libheif-js.d.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-8
+apps/evals/src/runner/demo.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-180
+apps/evals/src/suites/chat-router.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-245
+apps/evals/src/ui/app.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-249
+apps/evals/src/fixtures/content-scenarios.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-602
+packages/ai/src/agents/twitter.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 2,14
+packages/ai/src/agents/blog-post.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 2,14
+packages/ai/src/tools/post.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 3,43-51,57-60,194,197
+apps/evals/src/headless.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-191
+apps/evals/src/ui/screens/results.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-186
+apps/evals/src/store/picker-settings.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-26
+apps/dashboard/src/types/content/media.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 7-15
+apps/evals/src/suites/content-unslop.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-277
+apps/evals/src/suites/content-demo.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-74
+apps/evals/.gitignore
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-2
+apps/dashboard/src/constants/agent-content.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1,10,14
+apps/evals/src/ui/screens/results/fields.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-128
+apps/dashboard/src/utils/content-place-block.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-200
+apps/evals/src/models/gateway.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-225
+packages/ai/src/schemas/post.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 6-13
+apps/evals/src/constants/gateway.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-7
+apps/evals/src/ui/screens/run.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-287
+apps/dashboard/src/components/content/editor/nodes/content-video-node.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 116-119
+apps/dashboard/src/constants/framework.ts
+  s_7a0c38829ccc1e::t_5b22b3380b59de 11
+package.json
+  s_7a0c38829ccc1e::t_26fc0db886396b 22
+apps/evals/src/scoring/content-post.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-195
+apps/evals/src/types/eval.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-171
+apps/evals/src/utils/env.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-29
+apps/dashboard/src/constants/content-image.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 7-16
+packages/ai/src/skills/functions/current-content.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-31
+apps/dashboard/src/lib/hooks/use-chat-composer-attachments.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 21,35,150-154,158-162,166,191-192,196-198,330-335
+apps/evals/src/ui/screens/results/cases.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-194
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 86,117,1441-1445,1453-1457,1461,1486-1487,1491-1493,2678
+apps/api/src/programs/skills.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1,69-72
+apps/evals/src/utils/charts.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-143
+apps/dashboard/src/types/content/heic-image.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-30
+apps/dashboard/src/lib/orpc/routers/skills.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1,108
+packages/ai/src/jobs/collection-title.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 8,10,104
+apps/dashboard/tests/convert-heic-route.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-96
+packages/ai/src/agents/changelog.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 2,14
+apps/evals/tsconfig.json
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-15
+apps/dashboard/src/utils/fixtures/checker-1024.heic.base64
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-29
+apps/dashboard/src/utils/heic-coded-pixels.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-61
+apps/dashboard/src/components/content/editor/plugins/image-upload-plugin.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 6,32-37,42,66,100,103,160-161,175,180-184,186,191,199-205,213-226,230-277,280-281,283-284,289,296,308-310,313,317,401-406,412
+apps/dashboard/src/components/content/editor/nodes/content-image-node.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 126-129
+apps/dashboard/src/utils/prepare-chat-image.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-27
+apps/dashboard/src/utils/compress-content-image.test.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 6,9,38,43-47
+apps/dashboard/src/utils/read-bounded-request-body.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-35
+apps/evals/src/utils/picker.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-263
+apps/evals/src/ui/screens/picker.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-536
+apps/evals/src/index.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-103
+apps/evals/src/scoring/text-checks.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-64
+apps/evals/src/types/picker.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-63
+apps/evals/src/ui/components.tsx
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-90
+apps/dashboard/src/routes/api.uploads.convert-heic.ts
+  s_7a0c38829ccc1e::t_5b22b3380b59de 1-14
+packages/ai/src/prompts/content-dispatcher.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-33
+apps/evals/src/utils/stats.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-151
+packages/ai/src/agents/background-gen.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 4,76
+packages/ai/src/skills/system-skills.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-54
+apps/evals/src/constants/theme.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-56
+apps/evals/src/suites/collection-title.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-265
+apps/dashboard/src/utils/content-place-block.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-83
+apps/dashboard/src/app/api/uploads/convert-heic/route.ts
+  s_7a0c38829ccc1e::t_26fc0db886396b 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3e36769100fc99ac9f6b72be31170b04179e348c",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
