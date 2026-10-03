@@ -1,0 +1,1891 @@
+apps/dashboard/src/components/skills/skill-unsaved-changes-toast.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16-23
+apps/dashboard/src/components/chat/user-message-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 24,133-188,191-193,195-198,202,204,207-225,227-233
+apps/dashboard/src/components/analytics/connect-accounts-buttons.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,11-14,32,34,42,46,66
+apps/ui/src/components/previews/gemini-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/dashboard/src/types/design-system-chatgpt.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4
+apps/ui/docs/components/(coding-agents)/opencode/activity.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-32
+apps/agent/agent/lib/constants/models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,4,6,35
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,16-23,31-32,38,40,43,47,52-54,60,65,69-76,82,397,399,407-408,410-412,414-417,426,429-436,447,458-466,468,470-496,499-502,504-559,562-563,566,588-590,601-609,617-643,647,649,651,653
+apps/ui/registry/notra/perplexity/examples/perplexity-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-154
+apps/ui/registry/notra/marketing-button/examples/marketing-button-primary.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/web/knip.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-9,13
+apps/dashboard/src/components/settings/two-factor-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14,19,54,68-71,170-172
+apps/ui/registry/notra/chatgpt/components/chatgpt-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-50
+apps/dashboard/src/components/composer/composer-shell.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 38,46-47,59-60
+apps/dashboard/next.config.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,8-40,42-49,63-64,90-95,110,126-134,153,158-168,182-193,225-232,234-235
+apps/dashboard/src/lib/demo/seed/geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/utils/query-keys.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 74-78
+apps/ui/components/ui/card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-102
+apps/ui/docs/components/(ai-search)/ai-overview/highlight.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/ui/registry/notra/claude/constants/claude-tool-calls.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-46
+apps/ui/registry/notra/perplexity/types/perplexity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-203
+apps/dashboard/src/app/design-system/geo-demo/page.dev.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,37,39
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-reference-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 346-347,350,539,544-545
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/success/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15
+apps/dashboard/src/lib/demo/seed/content.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-78
+apps/dashboard/src/components/content/collection-menu-items.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-111
+apps/ui/src/components/install-command.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-150
+apps/ui/registry/notra/opencode/components/opencode-scroll-area.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/ui/registry/notra/gemini/examples/gemini-source-chip.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/ui/components/ui/textarea.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/dashboard/src/lib/auth/social-actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,29-35
+apps/ui/docs/components/(ai-chat)/gemini/thinking.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/docs/components/(ai-chat)/perplexity/search.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/ui/registry/notra/perplexity/examples/perplexity-citation.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-45
+apps/ui/registry/notra/chatgpt/types/chatgpt.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-196
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,12-15,103,123-127,168
+apps/dashboard/src/utils/gsc-site-url.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2,94-101
+apps/ui/registry/notra/claude-code/components/claude-code-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-51
+apps/dashboard/src/lib/hooks/use-geo-db.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 241
+apps/dashboard/src/components/ai/linkedin-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 289,294-298
+apps/dashboard/src/components/settings/attachments/attachments-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 188,193
+apps/ui/registry/notra/button/examples/button-progress.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 28,45,55
+apps/dashboard/src/components/settings/organization-details-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 301-302
+apps/ui/registry/notra/opencode/examples/opencode-window.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/web/src/components/changelog-row.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,4,16
+apps/dashboard/src/constants/databuddy.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/gemini/examples/gemini-sparkle.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/web/src/components/contact/contact-resources.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,147
+apps/dashboard/src/components/content/create-post-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 299
+apps/dashboard/tests/gsc-sync-workflow.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,32-34,45-47,82,126-151,194-206,241-248,250-258
+apps/ui/docs/components/(ai-search)/ai-overview/header.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/ui/docs/components/(ai-chat)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/src/components/geo/geo-settings-form.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,37,172,464,468,471-473,478
+apps/dashboard/src/components/confetti.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/lib/demo/seed/workspace.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/ui/registry/notra/claude/components/claude-usage-ring.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-85
+apps/ui/registry/notra/claude-code/components/claude-code-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-41
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 181-183,197,241,553-555,576,589-625,1117-1149
+apps/dashboard/src/app/onboarding/competitors/competitors-form.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,51-62,136,139-141,145-146
+apps/ui/components/ui/dropdown-menu.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-271
+apps/dashboard/src/components/geo/sentiment-engine-list.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-42
+apps/dashboard/src/components/webhooks/delivery-summary.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-38
+apps/dashboard/src/utils/geo-scan-models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,60-73
+apps/dashboard/src/lib/geo/content-gaps-refresh.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-55
+apps/ui/registry/notra/claude/examples/claude-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/ui/registry/notra/perplexity/components/perplexity-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-164
+apps/dashboard/src/types/content/collection.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 54,60-65
+.github/workflows/code-quality.yml
+  s_03280d3e9db7b8::t_2a9f6478b566fb 19-32,36-37,58-69,87
+apps/dashboard/src/types/design-system-perplexity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/dashboard/src/components/comments/discussion.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-11,17,70-73,91-95,128-138,147
+apps/dashboard/src/utils/dashboard-shell-style.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/ui/docs/components/(ai-chat)/chatgpt/source-chip.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/docs/api/webhooks/overview.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,32,187,189
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-9,12-18,20-22,35-36,45-48,52,55,57-63,72-110,117,134-142,145-148,158-161,191-194,206-207,215-322,325
+apps/web/.gitignore
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16-20,44
+apps/ui/registry/notra/chatgpt/components/chatgpt-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-444
+apps/api/src/middleware/auth.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 29,496,498,500,502
+apps/dashboard/src/lib/orpc/utils/errors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,4-5,27-31
+apps/web/src/components/feature-pages/engine-icon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-34
+apps/dashboard/src/lib/analytics/programs.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 23,66-69
+apps/ui/registry/notra/claude/components/claude-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-403
+apps/web/src/components/contributors/activity-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17
+apps/dashboard/src/components/demo/demo-time-zone-sync.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/ui/registry/notra/opencode/examples/opencode-logo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-35
+apps/ui/registry/notra/chatgpt/examples/chatgpt-thread.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/src/components/previews/chat-minimap-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/dashboard/src/utils/geo-prompt-history.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-6,114-131
+apps/dashboard/src/app/api/geo/ingest/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,4-5
+apps/api/src/lib/geo-entitlement-cache.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/app/(dashboard)/[slug]/layout.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 8,41-42,54
+apps/ui/registry/notra/claude/components/claude-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-237
+apps/dashboard/Dockerfile.dockerignore
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/dashboard/src/components/geo/competitor-share-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 39-49
+apps/dashboard/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 55,84,87,99,138
+apps/ui/src/components/site-footer.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-3,9,14-15
+apps/api/src/routes/geo-settings.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2,9,48,112-119
+apps/web/src/components/contact/contact-turnstile.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,29-46
+apps/dashboard/src/components/geo/persona-table-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13-15,19,24,81-124,166-171
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/skeleton.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,47-49,52
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 81,85,87,194-197
+apps/dashboard/src/lib/orpc/routers/github.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46,380-381
+apps/ui/registry/notra/claude/components/claude-plus-menu.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-171
+apps/dashboard/src/components/motion/table/table-body.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 32,99
+apps/dashboard/src/constants/demo-billing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-57
+apps/ui/registry/notra/perplexity/components/perplexity-rewrite-panel.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-192
+apps/dashboard/src/constants/demo-console.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-94
+apps/dashboard/src/components/webhooks/payload.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/components/geo/geo-answer-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11-13
+apps/dashboard/src/components/geo/personas-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,178-182
+apps/docs/api/authentication.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 113
+apps/ui/registry/notra/gemini/constants/gemini.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/ui/registry/notra/perplexity/components/perplexity-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-480
+apps/ui/registry/notra/claude/components/claude-spinner.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-119
+.vscode/extensions.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-3
+apps/dashboard/src/components/settings/login-details-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 71,74
+apps/ui/docs/components/(ai-chat)/perplexity/citation.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,26,88-131,236,239,244,257
+apps/dashboard/src/utils/daily-summary.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,7,64-73,75,77-109,164-168,170-171,174,177-178,184,186,190,194,197,243
+apps/ui/src/components/previews/marketing-button-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/ui/registry/notra/claude/hooks/use-claude-search-sequence.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-66
+apps/dashboard/src/constants/outbound-webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-54
+apps/ui/registry/notra/gemini/components/gemini-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-202
+apps/api/src/lib/qstash.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,10,22-35,37-39,44,48-56,82-84
+apps/ui/docs/components/(ai-chat)/perplexity/model-selector.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-32
+apps/ui/registry/notra/chatgpt/components/chatgpt-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-88
+apps/ui/docs/components/(coding-agents)/opencode/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+apps/ui/registry/notra/gemini/examples/gemini-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/dashboard/src/utils/geo-gaps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,25,30-83,124,239,246,251-253,266,325-336
+apps/agent/agent/instructions.md
+  s_03280d3e9db7b8::t_cfad45807623b0 16-17
+apps/dashboard/src/constants/geo-gaps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11
+apps/web/src/components/feature-pages/crawler-pages-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-87
+apps/ui/components/ui/item.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-202
+apps/ui/registry/notra/claude-code/components/claude-code-logo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-54
+apps/dashboard/src/lib/hooks/use-geo-gaps-page.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 94
+apps/dashboard/src/lib/demo/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/dashboard/src/components/integrations/github/connect-github-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 74-76
+apps/dashboard/src/utils/geo-share-of-voice.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 169-171,228,240-246
+apps/ui/docs/components/(ai-chat)/chatgpt/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/claude-code/examples/claude-code-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/schemas/demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-44
+apps/dashboard/src/lib/demo/api-key.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-64
+apps/ui/docs/components/(ai-chat)/gemini/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/shimmer/components/shimmer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-34
+apps/dashboard/src/lib/orpc/router.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,27
+apps/dashboard/src/app/onboarding/visibility/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,8,64-69,80-85
+apps/dashboard/src/components/api-keys/tracking-token-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 49-50
+apps/dashboard/src/lib/organizations/workos-sync.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,17-22,93,219,236,276
+apps/dashboard/src/components/demo/demo-customize-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-138
+apps/dashboard/src/components/content/collections-view.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-14,17-21,26,28-31,39,141,149-211,270-279,295-299,301-343,352,358-383
+apps/ui/registry/notra/codex/components/codex-terminal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-45
+apps/dashboard/src/utils/demo-proxy.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-110
+apps/ui/components/ui/sonner.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,8-10,15-42,47-48,50-55,57,59,61-71
+apps/ui/registry/notra/chat-minimap/constants/chat-minimap.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/dashboard/src/lib/hooks/use-prompt-answer-selection.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-6,19,22-42,59-60,62,64-65
+apps/ui/docs/components/(ai-chat)/claude/search.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-57
+apps/ui/docs/components/(ai-chat)/claude/plus-menu.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46,75,726,811-814
+apps/ui/registry/notra/codex/components/codex-reasoning.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/skeleton.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 20-23,32-38,40-43
+apps/ui/docs/components/(ai-chat)/gemini/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/types/analytics/geo-events.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2
+apps/ui/registry/notra/chatgpt/components/chatgpt-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/ui/components/ui/kbd.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/components/settings/panes/account-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,23-26,70
+apps/api/src/runtime/geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 122
+apps/dashboard/src/lib/hooks/use-post-actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 12,69-89,124,127-133
+apps/ui/registry/notra/step-slider/types/step-slider.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-48
+apps/web/src/components/blog-post-author-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,6,27
+apps/dashboard/src/types/geo-prompt-detail.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 8,75,79
+apps/dashboard/src/lib/demo/banner-param.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/src/types/app-entry-page.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-3
+apps/dashboard/tests/geo-gaps-page.test.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,6-7,73-80,90,99,107,116,126
+apps/ui/docs/components/(ai-chat)/claude/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/ui/registry/notra/chatgpt/components/chatgpt-reasoning.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-95
+apps/ui/registry/notra/opencode/examples/opencode-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/ui/registry/notra/opencode/types/opencode.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-217
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,17-24,43,53-54,62,82,178-199,201,203-211,215,308,314-315,322-332,334-364,401,431,602,617-623,631,642-644,646-651
+apps/dashboard/src/lib/orpc/routers/api-keys.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,10,15,19,35,77-93,255-257,349
+apps/dashboard/src/types/billing/demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4
+apps/ui/registry/notra/step-slider/examples/step-slider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/lib/orpc/utils/geo-errors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 65-77
+apps/ui/docs/components/(coding-agents)/claude-code/status.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/ui/docs/components/step-slider.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-37
+apps/ui/docs/components/(coding-agents)/claude-code/thinking.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/src/lib/analytics/flag.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,12-15
+apps/ui/registry/notra/claude/examples/claude-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/ui/registry/notra/chatgpt/constants/chatgpt-story.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-133
+apps/ui/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 30-31
+apps/dashboard/src/lib/demo/ui-actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-77
+apps/dashboard/src/components/geo/sentiment-breakdown.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-145
+apps/dashboard/src/lib/geo-shelf/citation-query.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14,25,66,111
+apps/ui/registry/notra/perplexity/components/perplexity-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/dashboard/src/utils/chat-minimap.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-72
+apps/ui/docs/components/(ai-chat)/perplexity/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/components/webhooks/details-sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-112
+apps/agent/agent/lib/utils/model.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,14,71,88,93-110
+apps/dashboard/src/components/settings/dev-sample-data-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 121-127
+apps/dashboard/src/components/dashboard/content-activity-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15,67-70,72-118
+apps/dashboard/src/lib/hooks/use-table-viewport.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13,38
+apps/ui/docs/components/(coding-agents)/claude-code/terminal.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+.dockerignore
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,56
+apps/dashboard/src/utils/agent-feedback-client.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4,15-34
+apps/ui/registry/notra/opencode/constants/opencode-demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-267
+apps/ui/registry/notra/claude-code/constants/claude-code-session.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-143
+apps/ui/docs/components/(ai-chat)/perplexity/favicon.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/api/src/constants/billing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-6
+apps/dashboard/src/utils/geo-charts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 8,489,493-497,766-767,794-797
+apps/ui/docs/components/(coding-agents)/opencode/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/components/geo/prompt-copy-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 60
+apps/ui/registry/notra/gemini/components/gemini-action-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-46
+apps/dashboard/src/utils/demo-limits.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/app/api/demo/sandbox/customize/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/utils/chart-colors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,13-16,39-57
+apps/ui/registry/notra/opencode/hooks/use-opencode-reduced-motion.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/components/shared/split-modal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,33
+apps/ui/docs/blocks/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,6
+apps/dashboard/src/components/demo/demo-request-feed.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-173
+apps/ai-traffic-ingest/tests/server.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-93
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/sitemap-pages-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 22,37,341,346-348
+apps/ui/registry/notra/perplexity/examples/perplexity-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/styles/globals.css
+  s_03280d3e9db7b8::t_2a9f6478b566fb 27-36,105-126,128-140
+apps/ui/registry/notra/perplexity/components/perplexity-icons.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-155
+apps/ui/docs/components/(ai-chat)/claude/actions.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/api/src/middleware/geo-entitlement.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,32-35,40-42,46,66-73
+apps/ui/registry/notra/gemini/lib/gemini-model.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/ui/docs/components/(ai-chat)/perplexity/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/dashboard/src/components/settings/profile-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 187,191
+apps/dashboard/tests/geo-gaps-tabs.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-132
+apps/dashboard/src/constants/agent-feedback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 130-144
+apps/ui/registry/notra/chat-minimap/examples/chat-minimap-long.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/src/components/iris/iris-running-state.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 81-82,86,89-90,94-97,160,164
+apps/ui/registry/notra/gemini/examples/gemini-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/types/components/dashboard-shell.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,26,32-34
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,15,17-21,28,50-55,145-149,219-223
+apps/dashboard/src/utils/demo-console.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-93
+apps/ui/registry/notra/perplexity/examples/perplexity-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+apps/dashboard/src/lib/demo/seed/brand.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-73
+apps/dashboard/src/workflows/gsc-sync.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 18,52-70
+apps/ui/registry/notra/tooltip/examples/tooltip-sides.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-28
+apps/web/src/components/feature-pages/feature-detail-page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-122
+apps/ui/src/components/previews/opencode-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/app/design-system/opencode/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-9,30,39-64,72,77-98,102,104-108,112,116,120,128,133-140,142-146,148-150,152,160,164-170,173-191,197,201-214,220,226-227,230,234
+apps/dashboard/src/lib/orpc/routers/upload.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 34-39,47,90,170
+apps/dashboard/src/lib/sitemap/context-dev.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17-19,21,86
+apps/api/src/utils/schedules.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,177-178
+apps/dashboard/src/types/components/geo-gaps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 28-32,43,48-56,81,94,115-118
+apps/ui/docs/blocks/(coding-agents)/claude-code.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-54
+apps/dashboard/src/components/settings/panes/general-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 201,204,318-319,333-335,395,402-405,414,425-426
+apps/dashboard/src/components/geo/competitors-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,8,15,17,38,77-83,94,96,98,101,108,113-137,143-145,147-161,166,170-183,189-221,228-232,237-240,287
+apps/dashboard/src/constants/geo-prompts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 45-47,87-106
+apps/ui/docs/components/(ai-chat)/gemini/thoughts.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/registry/notra/opencode/components/opencode-activity.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-111
+apps/dashboard/src/components/geo/brand-sentiment-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,6,9,20-24,29-38
+apps/docs/geo/content-gaps-and-writer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 31,46
+apps/ui/docs/components/(ai-chat)/claude/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/dashboard/src/lib/content/image-export.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 109-115,120,123-124,163-164,218
+apps/ui/docs/components/(coding-agents)/codex/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/lib/demo/sandbox.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-729
+apps/ui/registry/notra/codex/components/codex-explored.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-91
+apps/ui/registry/notra/opencode/hooks/use-opencode-chat.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-166
+apps/dashboard/src/constants/design-system-opencode.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,9-13,15-20,25-46,52-54,57-59,62-64,69-70,75,77
+apps/dashboard/src/components/chat/chat-minimap-rail.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-100
+apps/ui/registry/notra/claude/hooks/use-claude-reduced-motion.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/dashboard/src/components/geo/prompt-translations-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-265
+apps/ui/src/components/previews/duotone-tooltip-preview.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/ui/registry/notra/marketing-button/examples/marketing-button-secondary.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/ui/src/components/previews/tooltip-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-55
+apps/dashboard/scripts/turbopack-parallelism.sh
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/dashboard/src/lib/orpc/routers/integrations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 69-73,121,368,375,828,905,1088,1099-1101,1107,1213,1215,1222-1227
+apps/ui/docs/components/(ai-search)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/ui/registry/notra/opencode/examples/opencode-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-34
+apps/ui/docs/components/(ai-chat)/perplexity/sources-summary.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/app/design-system/codex/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-13,15,33,36,38,43-64,72,76,79-82,84,86-90,97,101,108,112,114,120,122,124-134,140,144,147-151
+apps/dashboard/src/utils/table-viewport.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 12,36-44
+apps/ui/src/components/previews/button-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/ui/docs/components/(coding-agents)/codex/working.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/dashboard/src/components/webhooks/deliveries.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-130
+apps/ui/docs/components/(coding-agents)/codex/explored.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/registry/notra/claude/components/claude-icons.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/ui/registry/notra/claude/components/claude-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-56
+apps/ui/docs/components/(ai-chat)/claude/spinner.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/registry/notra/chatgpt/components/chatgpt-activity.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-225
+apps/dashboard/src/components/demo/demo-start.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-74
+apps/ui/docs/components/(coding-agents)/opencode/sidebar.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/ui/components/ui/hover-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 35
+apps/dashboard/src/components/geo/sentiment-distribution-bar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/ui/registry/notra/claude/examples/claude-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+apps/dashboard/src/components/motion/table/table-body-row.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 36,57,95,124
+apps/ui/registry/notra/chatgpt/hooks/use-chatgpt-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-167
+apps/ui/registry/notra/claude-code/components/claude-code-header.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-60
+apps/dashboard/src/components/webhooks/create-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-165
+apps/dashboard/src/instrumentation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,16-27,30-31
+apps/ui/registry/notra/codex/examples/codex-working.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/ui/registry/notra/claude/hooks/use-claude-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-171
+apps/api/src/middleware/demo-request-log.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-61
+apps/ui/docs/components/(coding-agents)/codex/exec.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/ui/registry/notra/chat-minimap/types/chat-minimap.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-43
+apps/dashboard/src/constants/instrument.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,6,9,11
+apps/dashboard/src/utils/providers.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 107
+apps/dashboard/src/types/components/composer.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7-8
+apps/dashboard/src/types/chat-minimap.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/dashboard/src/app/api/demo/sandbox/reset/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/dashboard/src/components/agent-feedback/feedback-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 141,169
+apps/dashboard/src/components/geo/engine-family-sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,39,56,58,69,75,91,93-97,124,167,179-184,188,193,204-215,220,227,251,255,261,266,314,346,350-375,377-380,382-385,396,399,404,407,409,415-441,493-494,496-500,502
+apps/dashboard/src/components/geo/scan-answer-sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 26,94
+apps/dashboard/src/app/onboarding/workspace/actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,204-209
+apps/api/src/utils/demo-database-guard.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/lib/chat/standalone-chat-transport.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 106-110
+apps/dashboard/src/app/api/cron/monitoring/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2,18-23,43
+apps/ui/registry/notra/shimmer/examples/shimmer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-10
+apps/ui/docs/components/(ai-chat)/chatgpt/actions.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ai-traffic-ingest/tests/utils/service.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/lib/webhooks/outbound-runtime.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-36
+apps/ui/docs/components/(coding-agents)/codex/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/web/src/components/contact/contact-form.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,293
+apps/web/src/components/blog-post-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,10,31,46
+apps/dashboard/src/types/integrations/github.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 109
+apps/ui/registry/notra/claude/examples/claude-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/dashboard/src/types/geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 61-62,77,82-83,201,222-223,301-303,306-308,311-335,340-341,1071,1212-1215,1298-1299,1308,1332-1333,1348-1349,1374-1375,1383-1384,1392-1393,1785-1817
+apps/ui/registry/notra/opencode/examples/opencode-sidebar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/slack/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 137,144
+apps/ui/registry/notra/shimmer/types/shimmer.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/src/components/content/create-content-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 158-159,163-164
+apps/ui/src/components/example-heights.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/ui/docs/components/marketing-button.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9,21,23-31
+.agents/skills/effect/references/CONFIG.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16-18,31
+apps/ui/registry/notra/codex/examples/codex-exec.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ui/docs/components/duotone-tooltip.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/ui/pages/index.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-6,28-29
+apps/dashboard/src/components/ai/blog-preview-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 64-65
+apps/api/src/lib/billing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,11,33-35,77-91
+apps/dashboard/src/components/geo/persona-activity-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 29,66-71,173
+apps/ui/docs/components/(ai-chat)/perplexity/model-icon.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/lib/auth/short-lived-cookie.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,22,30,37-41
+apps/dashboard/src/lib/webhooks/outbound-access.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-28
+apps/ui/registry/notra/opencode/examples/opencode-sources.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/registry/notra/gemini/components/gemini-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-125
+apps/ui/registry/notra/claude/lib/claude-models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/dashboard/src/components/content/create/step-brand-identities.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,131-132,135
+apps/ui/registry/notra/perplexity/examples/perplexity-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/ui/registry/notra/codex/components/codex-exec.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-90
+apps/ui/registry/notra/gemini/components/gemini-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-34
+apps/ui/registry/notra/gemini/examples/gemini-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/ui/src/types/landing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15,25,29-37
+apps/api/tests/post-generation-targets.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-75
+apps/web/src/components/dithering-canvas.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,4,6-9,11-20
+apps/docs/organization/billing.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 56
+apps/ui/registry/notra/gemini/components/gemini-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-53
+apps/dashboard/src/app/api/demo/requests/[requestId]/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/ui/registry/notra/claude/examples/claude-tool-calls.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 169
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-panel.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,20,24,93-98,134-137,172-175,177
+apps/dashboard/src/components/motion/table/index.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 18,37,71,79,107-109,178,234-286,290,292-293,295-300,302-318,321-324
+apps/dashboard/src/components/motion/table/utils.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 104-108
+apps/web/public/features/personas/priya.svg
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/ui/registry/notra/chatgpt/components/chatgpt-source-chip.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-86
+apps/api/src/lib/internal-dashboard.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 103
+apps/dashboard/src/app/api/internal/geo/writer-plan/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2,75
+apps/dashboard/src/lib/sitemap/storage.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,182-192
+apps/api/README.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14-30
+apps/ui/docs/components/(ai-chat)/claude/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/dashboard/src/components/settings/connected-accounts-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,11-12,34-37,84,100-120
+apps/ui/registry/notra/codex/components/codex-markdown.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-109
+apps/dashboard/src/components/geo/share-of-voice-chart.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-7,9-25,27,36-37,39,45,50-60,92-93,95,98-127,129-144,146-151,153-159,161-204,227,238-249,253-292,304,306,308,311-312,331-332,334-335,337-346,379-381,383-395,397-417,419
+apps/web/public/features/personas/maya.svg
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-sitemap-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 156-157,160
+apps/web/src/components/contributors/contributors-content.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,21,23
+apps/dashboard/src/utils/geo-personas.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 69-82
+apps/dashboard/src/lib/realtime/channel-acl.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,8,70-73
+apps/dashboard/src/app/api/demo/sandbox/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-39
+apps/dashboard/src/components/geo/gaps-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-5,29-34,55,92,98,108-111,178-241,264-274,341,357-358,378-417,627,802,849-854,856-862,869-941,1063,1066-1071,1073-1110,1116-1129,1135-1163,1167-1169,1171-1186,1191,1193-1195,1201,1205,1215,1264,1266-1267,1269-1271,1288,1326-1328,1335
+apps/ui/docs/components/(ai-chat)/perplexity/actions.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/api/src/index.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,6,17-18,23,26,56,69,88-98,129-133,141-146,171-176,200-204,274-276,330,361-380
+apps/dashboard/src/app/(dashboard)/[slug]/skills/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 485,487,491
+apps/ui/registry/notra/perplexity/components/perplexity-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-134
+apps/dashboard/messages/de.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,14-15,43-45,64-65,74,171-244,667-672,698-717,888-891,1107,1178-1179,2072,2409,2468-2469,2499-2504,2580-2582,2586,2641-2644,2658,2666,2669,2681,2683,2686-2688,2765-2778,2784-2785,2861,2982,2990,2992-2994,3027,3030,3047,3066-3067,3070,3113-3118,3225-3229,3245-3249,3312-3328,3331,3333-3337,3349,3355-3379,3406-3411,3429-3431,3771-3772,3815-3819,3858-3860,3890-3891,3917-3919,3958-3960,4788,6105-6112,6143-6144,6238,6511-6513,6534-6536,6562-6685
+apps/ui/src/constants/landing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18,23-29,34,38-39,44-63,65,78-142
+apps/ui/registry/notra/perplexity/components/perplexity-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-54
+apps/ui/registry/notra/claude/examples/claude-spinner.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/ui/theme.css
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8,31-56,153-228
+apps/ui/registry/notra/perplexity/examples/perplexity-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/docs/components/button.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,6,13,16,23-48
+apps/ui/components/ui/button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-6,9,14,17-18,22-23,46-57,62-67,69-73,76-88,90-91,93-101,106
+apps/ui/registry/notra/chatgpt/components/chatgpt-icons.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/dashboard/src/app/onboarding/visibility/visibility-form.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,19,35,52,107,115,224-225,233,241-247,356-376,383-384
+apps/ui/registry/notra/perplexity/examples/perplexity-user-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/src/utils/geo-scan-results.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-57
+apps/api/src/routes/geo-briefs.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-5,22,279-291
+apps/dashboard/src/utils/cookie-attributes.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/dashboard/src/components/geo/traffic-sources-group.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,148-149,152,154-156
+apps/ui/docs/components/(coding-agents)/claude-code/tool-call.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/components/webhooks/status.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-10
+apps/ui/registry/notra/opencode/components/opencode-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-55
+apps/web/src/components/contributors/activity-row.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2,24,28-30
+apps/ui/docs/components/(coding-agents)/opencode/window.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/api/src/utils/env.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,14-19
+apps/dashboard/src/components/motion/table/types.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 86-91,111-112
+apps/ui/docs/components/(coding-agents)/codex/terminal.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/registry/notra/opencode/examples/opencode-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-193
+apps/dashboard/src/components/webhooks/attempt-list.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/ui/components/ui/table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-115
+apps/dashboard/src/components/settings/attachments/attachment-columns.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 118,123
+apps/dashboard/src/types/geo-sentiment.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 96-126
+apps/dashboard/src/components/billing/usage-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 166-170
+apps/ui/registry/notra/claude/components/claude-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-166
+apps/dashboard/src/app/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,4,6-8,15-17,27-40
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-status-line.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/ui/registry/notra/sonner/examples/sonner-types.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-58
+apps/dashboard/src/components/dashboard/dashboard-shell.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13,30,43-55,206,219,246-248,295,298,301,347-351
+apps/web/src/components/feature-pages/crawler-stage.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-68
+apps/ui/docs/components/(ai-chat)/gemini/model-selector.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/ui/registry/notra/claude/examples/claude-sources.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/app/api/demo/sandbox/info/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/components/billing/credit-topup-modal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16
+apps/dashboard/src/utils/geo-competitors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 421,450-452
+apps/dashboard/src/utils/onboarding-brand.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 60-61
+apps/ui/registry/notra/codex/types/codex.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-185
+apps/ui/docs/components/(coding-agents)/codex/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/api/src/middleware/subscription.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,31
+apps/api/src/constants/qstash.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-5
+apps/web/src/components/changelog-featured-entry.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,6,15
+apps/dashboard/src/components/geo/project-create-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,19,35-42,58,82,115,199-210,255-256,259
+apps/ui/components/ui/progress.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-82
+apps/web/src/components/contributors/sponsors.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,20
+apps/dashboard/src/app/design-system/chatgpt/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-10
+apps/ui/registry/notra/chatgpt/examples/chatgpt-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/dashboard/src/components/ai/chat-activity-status.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 30-35,58
+apps/ui/registry/notra/chatgpt/examples/chatgpt-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/ui/components/ui/input.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/docs/components/(ai-chat)/chatgpt/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/constants/organization-routes.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4
+apps/web/src/components/feature-pages/conversations-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-78
+apps/ui/registry/notra/claude-code/hooks/use-claude-code-chat.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-202
+apps/dashboard/src/lib/auth/actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46-49
+apps/ui/docs/components/(coding-agents)/codex/header.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/docs/components/(coding-agents)/opencode/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/opencode/examples/opencode-turn-footer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/api/src/tcc.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/dashboard/tests/fixtures/company-logo-rate-limit.fixture.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-152
+apps/dashboard/src/lib/orpc/utils/social-connect.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9,46-47
+apps/api/Dockerfile
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14,35,53
+apps/dashboard/src/app/(dashboard)/[slug]/geo/personas/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,7-14,105-110,243-251,257-258
+apps/ui/docs/components/(coding-agents)/claude-code/todo-list.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/web/scripts/generate-ui-sources.mjs
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13-49,71,87
+apps/ui/registry/notra/chatgpt/examples/chatgpt-reasoning.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/dashboard/src/components/onboarding/account-menu.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 127,131-132
+apps/dashboard/src/components/geo/persona-prompts.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,16-22,25,28,33-56,67,72-73
+apps/dashboard/src/components/demo/demo-api-callout.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/utils/persona-activity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9-10,72-73,79-81,84-102,116,126,163-176,224-245
+apps/ui/registry/notra/chatgpt/constants/chatgpt-models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-41
+apps/ui/registry/notra/perplexity/hooks/use-perplexity-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-201
+apps/dashboard/src/components/content/post-social-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 20,306-307,310
+apps/dashboard/src/lib/geo-shelf/preview.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15-18
+apps/ui/registry/notra/perplexity/hooks/use-perplexity-search-sequence.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-94
+apps/dashboard/src/types/design-system-opencode.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4,8-9,14-21,24-27,29,33-34,36
+apps/ui/registry/notra/perplexity/hooks/use-perplexity-reduced-motion.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/components/ai/twitter-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 290,295-299
+apps/api/tests/content-generation-rejection.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,9-12,79-86
+apps/api/src/errors/posts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 38-43
+apps/api/src/errors/integrations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 20
+apps/dashboard/src/components/settings/panes/webhooks-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-197
+apps/dashboard/src/lib/db/geo-collections.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 184
+apps/ui/docs/components/(ai-chat)/chatgpt/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/app/design-system/claude/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-7,9-22,44-45,49-50,63,100-102,104-107,114-129,131,133,138,142-145,150,154-155,157-159,168-170,175,179-180,182,191,193-202,204-216,227-231,237,244,250,254,260
+apps/api/src/routes/geo-competitors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,26,197-203,256-262,314-320
+apps/ui/docs/components/sonner.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-50
+apps/dashboard/src/constants/geo-personas.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11-14
+apps/ui/registry/notra/gemini/constants/gemini-models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-37
+apps/ui/blume.config.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9
+apps/ui/docs/components/(ai-search)/ai-overview/skeleton.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/web/src/components/contributors/contributors-grid.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,25,31-33
+apps/ui/registry/notra/claude/lib/claude-search.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-68
+apps/ui/registry/notra/gemini/examples/gemini-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-122
+apps/agent/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 31,45
+apps/ui/registry/notra/codex/lib/codex-shell.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/ui/registry/notra/perplexity/components/perplexity-user-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-108
+apps/dashboard/src/components/geo/prompt-suggestion-sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 35,79
+apps/dashboard/src/components/geo/geo-skin-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-9,50,55
+apps/dashboard/src/components/agent-feedback/feedback-agent-icon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 26-29,110,120
+apps/onboarding-agent/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 24,34
+apps/ui/registry/notra/gemini/components/gemini-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-39
+apps/ui/docs/blocks/(ai-search)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-3
+apps/dashboard/src/components/geo/search-console-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-7,25-32,41,43,50,65-66,69,74,166-169,252,256-266,272-274,277,283-295,347-490,512-524,538-548,551-553
+apps/dashboard/src/components/dashboard/app-sidebar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 23,129-132
+apps/ui/docs/components/(coding-agents)/claude-code/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/chatgpt/constants/chatgpt.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-51
+apps/dashboard/src/components/geo/scan-activity-status.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 37,46-56,58-59,63
+apps/dashboard/src/types/design-system-codex.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4,11-17,21,23-38
+apps/ui/registry/notra/claude/examples/claude-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/dashboard/src/lib/demo/billing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-237
+apps/dashboard/src/components/geo/sentiment-themes.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 12,47-49,96-98
+apps/ui/docs/components/(ai-chat)/claude/sources.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/ui/docs/components/(ai-search)/ai-overview/citation.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-47
+apps/ui/registry/notra/claude/examples/claude-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/ui/registry/notra/perplexity/examples/perplexity-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,10,45
+apps/ui/src/constants/sidebar-memory.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/ui/registry/notra/gemini/components/gemini-story-text.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-66
+apps/ui/src/constants/example-heights.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-94
+apps/dashboard/src/utils/onboarding-brand.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 33,43,47-56
+apps/ui/registry/notra/codex/examples/codex-reasoning.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/dashboard/src/constants/daily-summary.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,5-18
+apps/dashboard/src/components/settings/language-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 27-28
+apps/ui/docs/components/(coding-agents)/codex/reasoning.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/ui/registry/notra/claude-code/examples/claude-code-terminal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/app/design-system/gemini/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-8
+apps/dashboard/src/types/demo-seed.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-69
+apps/dashboard/src/lib/orpc/routers/automation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,121-122
+apps/ui/components/ui/slider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-53
+apps/dashboard/src/workflows/steps/social-analytics-steps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13,48-49
+apps/dashboard/src/constants/settings.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 12,36,77,79-82,143-172
+apps/ai-traffic-ingest/README.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-174
+apps/dashboard/src/lib/hooks/use-geo-scan-history.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-8,10,16-19,22,29-30,42,46,52-74
+apps/dashboard/src/constants/geo-content-gaps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4
+apps/ui/docs/components/(coding-agents)/codex/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/ai-traffic-ingest/tests/fixtures/drain.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-28
+apps/ai-traffic-ingest/tsconfig.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-10
+apps/dashboard/src/utils/demo-invalidation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-38
+apps/ui/registry/notra/button/examples/button-loading.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/ui/registry/notra/codex/components/codex-header.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-37
+apps/api/src/runtime/webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4
+apps/dashboard/src/utils/demo-entity-href.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/dashboard/src/workflows/steps/refresh-geo-content-gaps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/web/src/components/contributors/view-all-link.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,8
+apps/ai-traffic-ingest/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+apps/ui/registry/notra/opencode/components/opencode-sidebar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-141
+apps/dashboard/src/types/geo-scan-activity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,50-52,58-81,83-90
+apps/dashboard/src/utils/demo-return-to.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-52
+apps/ui/registry/notra/claude-code/examples/claude-code-todo-list.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/ui/registry/notra/chatgpt/examples/chatgpt-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/ui/registry/notra/perplexity/examples/perplexity-rewrite-panel.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/ui/registry/notra/google-ai-overview/components/ai-overview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 43
+apps/ui/registry/notra/claude-code/constants/claude-code.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-144
+apps/ui/src/components/previews/codex-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/components/settings/chat-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17
+apps/dashboard/src/utils/geo-sentiment.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-6,8-12,14-15,112-146
+apps/api/src/programs/schedules.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 143-146,206,209,291-294,379-382,714,716
+apps/dashboard/src/components/dashboard/chat-history-nav.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 136
+apps/dashboard/src/types/demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-108
+apps/dashboard/src/types/design-system-claude.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-6,22,26-39,44,46-50,52,57-58
+apps/dashboard/src/components/design-system/use-perplexity-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7
+apps/api/src/utils/unkey-permissions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/ui/components/ui/empty.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-100
+apps/ui/docs/components/(ai-chat)/gemini/sparkle.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/docs/components/(coding-agents)/claude-code/header.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/app/api/cron/geo-content-gaps/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/dashboard/src/lib/hooks/use-geo-prompt-translations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-75
+apps/ui/registry/notra/codex/examples/codex-header.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/dashboard/src/lib/hooks/use-settings-nav-labels.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14,69-72
+apps/dashboard/src/lib/integrations/github/install.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,116-130
+apps/ui/registry/notra/claude/constants/claude-models.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-74
+apps/dashboard/src/app/connect/linkedin/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 193-194
+apps/ui/docs/components/(coding-agents)/opencode/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/dashboard/src/app/api/cron/geo-scan/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,29-33
+apps/dashboard/src/components/webhooks/columns.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-80
+apps/ui/registry/notra/chat-minimap/examples/chat-minimap-left.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/dashboard/src/components/ai/chat-activity-group.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 23-24,27,99-108,131-133
+apps/ai-traffic-ingest/.env.example
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/ui/registry/notra/perplexity/components/perplexity-favicon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-26
+apps/dashboard/src/components/geo/share-of-voice-cell.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/dashboard/src/components/onboarding/competitor-search-content.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 34,44-45
+apps/ui/registry/notra/chatgpt/components/chatgpt-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-149
+apps/ui/docs/components/(coding-agents)/claude-code/prompt.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-28
+apps/ui/registry/notra/perplexity/components/perplexity-citation.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-172
+apps/dashboard/src/lib/orpc/base.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,8-25
+apps/ui/registry/notra/gemini/hooks/use-gemini-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-188
+apps/ui/registry/notra/claude-code/examples/claude-code-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-161
+apps/ui/registry/notra/opencode/components/opencode-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-144
+apps/dashboard/src/components/geo/scan-preflight-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 26,119,140
+apps/ui/registry/notra/chatgpt/examples/chatgpt-source-chip.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,10,12-20,36-40,46,53,61,119-145,223-228,230-248,250-256,258-284,292,294-295,315-322,347-348,353-357,397,413-418,420-423
+apps/dashboard/src/utils/daily-summary.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,7,11-63,65-66,76,84-88,99-104,119,125-127,139-158
+apps/dashboard/src/hooks/use-github-settings.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 90
+apps/ui/registry/notra/claude-code/types/claude-code.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-267
+apps/api/tests/api-services.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 62-101
+apps/agent/README.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14,20,23,30-31,34-39,51-52
+apps/ui/docs/components/(ai-chat)/chatgpt/reasoning.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/ui/src/components/landing-sections.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-72
+apps/ui/registry/notra/claude/components/claude-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-62
+apps/ui/registry/notra/chatgpt/examples/chatgpt-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-246
+apps/dashboard/src/components/geo/search-gap-detail.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,21-25,27-287,300-303,319,324-327
+apps/ui/registry/notra/opencode/components/opencode-turn-footer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-47
+apps/ui/registry/notra/codex/examples/codex-markdown.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-31
+apps/dashboard/src/components/demo/dashboard-demo-chrome.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/docs/components/(ai-chat)/chatgpt/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/ui/registry/notra/chatgpt/examples/chatgpt-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/dashboard/src/components/integrations/add-granola-integration-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 198-199
+apps/ui/registry/notra/claude/examples/claude-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-187
+apps/dashboard/src/constants/geo-competitors.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15-21,34,37,72-74,88-90,103-106,108,110-111,116,130,178,182,191-195,198,300-307,321,334-360
+apps/dashboard/src/constants/demo-seed-content.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-226
+apps/ui/docs/blocks/(ai-chat)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/ui/docs/components/(ai-chat)/chatgpt/thread.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/api/src/constants/demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2
+apps/ui/src/styles/blocks.css
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-782
+apps/api/src/routes/geo-projects.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,160-161,167
+apps/dashboard/src/types/onboarding.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 80-83,95-96,192
+apps/dashboard/src/utils/chat-search-activity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 99-101
+apps/dashboard/src/lib/hooks/use-demo-banner-visible.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/registry/notra/chat-minimap/lib/chat-minimap.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-6
+apps/web/public/icon0.svg
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/dashboard/src/lib/geo/flag.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,44-45
+apps/api/src/utils/posts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 101-104
+apps/dashboard/src/components/geo/competitor-edit-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 21,30,42,44-51
+apps/ui/components/ui/button-content.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-191
+apps/ui/vercel.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-5
+apps/dashboard/src/lib/geo-shelf/fixtures.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 206
+apps/ui/registry/notra/claude/types/claude.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-222
+apps/ui/registry/notra/perplexity/examples/perplexity-thinking.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 63,91-95,112-116,140,145-147,150,199-202,204,619-620,624,700,704-708,735,739-743,1103-1104,1113-1125,1128-1133,1136-1139,1255-1258,1269,1271-1277,1285-1288,1300-1309
+apps/ui/docs/components/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6-18
+apps/dashboard/src/constants/chat-activity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-5
+apps/dashboard/src/components/dashboard/dashboard-client-wrapper.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,22-24,26-31,34-36,38-43,45-48,50-69,75,94-95,105,122
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9-12,51-52,61,64,108,803-811,813-845,920-921,1239,1244-1251,1253-1270,1538,1547
+apps/web/public/features/personas/daniel.svg
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/ui/registry/notra/claude-code/examples/claude-code-header.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-11
+apps/api/src/routes/geo-scans.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 40
+apps/dashboard/src/app/api/cron/daily-summary/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,19-23
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,35,45,70-71,76,79-84,118-120,128-135,137-150,159-164,169-170
+apps/ui/registry/notra/claude-code/examples/claude-code-tool-call.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-56
+apps/dashboard/src/components/agent-feedback/feedback-detail-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-8,10,21,34,36-37,42-43,46,48-54,56-106,108-250,259,270-271,301-318,320-336,338-353,355-357
+apps/ui/registry/notra/opencode/components/opencode-progress.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-81
+apps/dashboard/src/lib/orpc/routers/geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 41,109-115,169,174-176,311,434,439-444,928-931,1021-1024,1047-1050,1065-1068,1257-1259,1275-1278,1295-1298,1314,1317-1331,1336-1338,1343-1346,1682-1683,1749,1752-1757,1843-1846,1901-1904,1938-1941,1963,1969-1973,1981-1982,1991-1992,2166-2169,2311-2325,2364-2367,2412-2415,2447-2448
+apps/ui/docs/components/(coding-agents)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/src/lib/hooks/use-github-repositories-db.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 117-120,128,133-140,144-145
+apps/dashboard/src/components/demo/demo-playground-provider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-88
+apps/web/src/components/blog-copy-article.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16,124
+apps/ui/docs/components/(coding-agents)/claude-code/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/registry/notra/gemini/components/gemini-thoughts.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-102
+apps/dashboard/src/components/automation/schedules/create-schedule-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 750-754
+apps/ui/registry/notra/perplexity/examples/perplexity-model-icon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/ui/docs/components/(ai-chat)/claude/model-selector.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/web/src/components/contributors/notra-ai-callout.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46,54
+apps/ui/registry/notra/opencode/hooks/use-opencode-sources-sequence.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-57
+apps/ui/registry/notra/perplexity/components/perplexity-sources-summary.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-64
+apps/dashboard/src/constants/geo-sentiment.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 39-76
+apps/ui/registry/notra/chatgpt/components/chatgpt-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/ui/docs/introduction.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 10-15,19,25-44
+apps/ui/registry/notra/claude/constants/claude-demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-84
+apps/docs/docs.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 166-170
+apps/ui/registry/notra/codex/components/codex-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/ui/src/components/previews/shimmer-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-10
+apps/ui/registry/notra/claude-code/examples/claude-code-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/ui/registry/notra/opencode/components/opencode-logo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-59
+apps/dashboard/src/components/demo/demo-banner.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-127
+apps/dashboard/src/components/settings/organizations-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 168-169,172,198,217,271,276-277,289,293-294
+apps/dashboard/src/lib/hooks/use-settled-value.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+.env.example
+  s_03280d3e9db7b8::t_2a9f6478b566fb 83,161-165,174-180,190-213
+apps/ui/registry/notra/chatgpt/examples/chatgpt-search.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/lib/agent-feedback/programs.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 31-48,74-88
+apps/dashboard/src/utils/demo-ip-hash.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-34
+apps/ui/docs/components/(coding-agents)/opencode/sources.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-31
+apps/ui/registry/notra/step-slider/lib/step-slider.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/app/(dashboard)/[slug]/api-keys/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 97,1066
+apps/dashboard/src/app/auth/demo/page.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33
+apps/dashboard/src/constants/design-system-claude.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-5,13,21,33-35,38-39,42,45-53,55-57,59,61,63-77,80,89-90,96-97,102-104
+apps/ui/registry/notra/perplexity/examples/perplexity-sources-summary.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/Dockerfile
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-53
+apps/ui/docs/blocks/(ai-chat)/perplexity.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-44
+apps/web/README.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,3,6,9,11-13
+apps/dashboard/src/types/components/geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 14-15,55,58-59,62,65-66,86-96
+apps/dashboard/src/components/automation/events/event-trigger-dialog-footer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,59-61
+apps/dashboard/src/app/design-system/geo-gaps/page.dev.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 116
+apps/dashboard/src/app/design-system/perplexity/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-10
+apps/api/src/routes/geo-prompts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,25,182-188,212-218,240-246,291-301
+.gitattributes
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-5
+apps/dashboard/src/lib/agent/content-task.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 27
+apps/dashboard/src/utils/demo-personalize.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-74
+apps/ui/src/styles/examples.css
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-33,123-137
+apps/ui/docs/components/(ai-chat)/perplexity/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/src/components/sidebar-memory.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-81
+apps/ui/components/ui/sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-134
+apps/dashboard/src/lib/email/daily-summary.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 33,44,250-257,259-276,338
+apps/dashboard/src/utils/easing.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-4
+apps/dashboard/src/utils/geo-citations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 13-35,38,40-60
+apps/ui/docs/components/(ai-chat)/chatgpt/thinking.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/ui/docs/components/(coding-agents)/opencode/logo.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/registry/notra/codex/constants/codex-demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-151
+apps/ui/registry/notra/chat-minimap/components/chat-minimap.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-192
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-action-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/constants/demo-ui-actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-60
+apps/dashboard/src/lib/hooks/use-geo-personas.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 117,119-125
+apps/ui/registry/notra/claude/constants/claude.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-76
+apps/dashboard/src/utils/geo-overview-page.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17-18,88,130
+apps/dashboard/src/workflows/steps/geo-writer-steps.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15,18,176-181,227-231
+apps/ui/src/components/preview-toaster.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 34
+apps/ui/components/ui/scroll-area.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-54
+apps/ui/docs/blocks/(coding-agents)/codex.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-41
+apps/dashboard/src/utils/latest-date.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/ui/docs/components/(ai-chat)/perplexity/thinking.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/lib/demo/rebase.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-115
+apps/dashboard/src/proxy.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,6,37-41,62-63,66
+apps/agent/agent/lib/types/content-task.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/components/integrations/manage-store-integration-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 388-389,394
+apps/ui/docs/components/(ai-chat)/claude/thinking.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/registry/notra/chatgpt/examples/chatgpt-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/api/src/programs/posts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17-18,505-514,516-546
+apps/ui/registry/notra/perplexity/components/perplexity-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-228
+apps/ai-traffic-ingest/Dockerfile
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-48
+apps/ui/registry/notra/codex/constants/codex.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-55
+apps/dashboard/src/app/api/demo/requests/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-31
+apps/dashboard/src/components/geo/sentiment-themes-empty.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 37,42,49
+apps/ui/registry.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,12,116,218,320,546,652,830-888,893,895-946,952-1073,1076-10317
+apps/dashboard/src/lib/hooks/use-nav-visibility.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,9-15,22-23
+apps/dashboard/src/utils/agent-feedback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 9,11,32-62
+apps/ui/registry/notra/opencode/components/opencode-sources.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-176
+apps/dashboard/src/lib/hooks/use-delayed-appearance.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+apps/ui/registry/notra/step-slider/components/step-slider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-242
+apps/dashboard/src/lib/demo/missions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-86
+apps/api/src/routes/posts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 25,250,643-645,647-663,666-667
+apps/dashboard/src/components/geo/competitor-edit-form.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,10,31,71-75,78,80-92,291,298,358-373,375,386-415,498-508
+apps/dashboard/src/components/geo/prompt-badges.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 29
+apps/dashboard/src/components/iris/iris-pause-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 40-41
+apps/dashboard/src/lib/social-connect/publish.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,5,41-96,100-102
+apps/ui/components/ui/toggle.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-44
+apps/web/public/features/personas/ana.svg
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/ui/components/ui/toggle-group.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-94
+apps/ui/docs/components/(coding-agents)/codex/markdown.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/ui/registry/notra/gemini/examples/gemini-actions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/registry/notra/opencode/constants/opencode.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-115
+apps/ui/docs/components/(ai-chat)/perplexity/rewrite-panel.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ui/docs/components/(ai-chat)/chatgpt/search.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/dashboard/tests/company-logo-rate-limit.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/ui/docs/components/(coding-agents)/opencode/turn-footer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-21
+apps/dashboard/src/components/command-palette/registry.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 39,65,363-378
+apps/dashboard/src/components/iris/iris-start-state.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 32,36
+apps/dashboard/src/types/geo-personas-ui.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 115-121,133-135
+apps/dashboard/src/components/geo/persona-answer-cost.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/api/src/constants/webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/components/geo/prompt-add-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,58,65,271-285
+apps/dashboard/src/utils/development-autumn.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,5-9,26-35,39,42,53,68,124-144,151-156,168,177,206-207,224-225
+apps/api/src/utils/brand-analysis.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 71-74
+apps/dashboard/src/components/settings/settings-modal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 56-68,153-159,174,218-219
+apps/ui/registry/notra/claude/components/claude-sources.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-35
+apps/dashboard/messages/en.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,14-15,43-45,64-65,74,171-244,667-672,698-717,888-891,1107,1178-1179,2072,2409,2468-2469,2499-2504,2580-2582,2586,2641-2644,2658,2666,2669,2681,2683,2686-2688,2765-2778,2784-2785,2861,2982,2990,2992-2994,3027,3030,3047,3066-3067,3070,3113-3118,3225-3229,3245-3249,3312-3328,3331,3333-3337,3349,3355-3379,3406-3411,3429-3431,3771-3772,3815-3819,3858-3860,3890-3891,3917-3919,3958-3960,4788,6105-6112,6143-6144,6238,6511-6513,6534-6536,6562-6685
+apps/web/src/components/blog-pagination-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,24
+apps/ui/docs/components/(ai-chat)/gemini/composer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/dashboard/src/components/design-system/use-claude-chat-playback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3
+apps/ui/docs/components/tooltip.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,6,8-43
+apps/ai-traffic-ingest/src/http.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/web/src/components/feature-pages/conversations-stage.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-157
+apps/ui/registry/notra/gemini/constants/gemini-story.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-67
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/modal-content.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 60,63
+apps/dashboard/src/utils/sidebar-navigation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ai-traffic-ingest/src/constants/server.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/components/geo/writer/write-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,550-551
+apps/ui/registry/notra/codex/examples/codex-message.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/components/instrument/instrument-module.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,66,282
+apps/ui/registry/notra/tooltip/examples/tooltip-toolbar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-66
+apps/dashboard/src/components/settings/panes/appearance-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 8-10,115-117
+apps/dashboard/src/types/settings/account.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,29-38
+.vscode/settings.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 27-28
+apps/ui/registry/notra/opencode/hooks/use-opencode-frame.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-30
+.github/workflows/production-deploy.yml
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 37,39,44,59,70,274-316,320,330,332-335,341,360,410-418,424,426-427,429,437,444,455-461
+apps/ui/registry/notra/opencode/components/opencode-window.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/docs/blocks/(coding-agents)/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-8
+apps/dashboard/tests/geo-gaps-ignore-cache.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 29-35
+apps/ui/registry/notra/perplexity/constants/perplexity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-99
+apps/dashboard/src/app/design-system/button-states-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-85
+apps/dashboard/src/lib/orpc/routers/outbound-webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-120
+apps/dashboard/src/app/api/command-palette/navigate/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 26,29,263,265-266,269
+apps/ui/docs/blocks/(ai-search)/google-ai-overview.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-51
+apps/api/tests/posts-patch.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 50-53
+apps/ui/docs/components/(ai-chat)/chatgpt/model-selector.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ui/registry/notra/codex/components/codex-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-166
+apps/ui/registry/notra/perplexity/examples/perplexity-favicon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/dashboard/src/types/geo-scan-size.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6-7
+apps/dashboard/src/types/components/command-palette.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,56-57
+apps/dashboard/src/components/geo/conversations-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6-7,15-29,37-38,51-54,57-58,69,74-75,84,89,94-95,111,114-115,124-125,128-131,133-135,137-164,169-172,197-198,201,203-210,221-222,256,261-301,303-304,306-340
+apps/ui/registry/notra/codex/components/codex-working.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-78
+apps/docs/api/webhooks/outbound.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-92
+apps/ui/registry/notra/claude-code/components/claude-code-todo-list.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-64
+apps/dashboard/tests/table-row-click.client.test.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-121
+apps/ui/docs/components/(ai-chat)/gemini/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-23
+apps/ui/registry/notra/codex/examples/codex-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-28
+apps/dashboard/src/lib/orpc/routers/onboarding.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 52,58-61
+apps/dashboard/src/constants/demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-149
+apps/api/src/utils/github-integrations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11-16,20-21,25-33,43,55,78-100
+apps/dashboard/src/lib/i18n/ui-labels.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 33-35
+apps/dashboard/tests/geo-scan-workflow.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 37-40,52-54,106,113,182-202,209-217,222-225,387-394,611-612
+apps/web/src/components/blog-author-avatar.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 22-24,30-37
+apps/dashboard/src/components/billing/credit-topup-content.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 224-225,228-230
+apps/dashboard/src/components/demo/demo-missions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-77
+apps/ui/src/components/previews/claude-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/ui/docs/components/(ai-chat)/perplexity/user-actions.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/docs/components/(ai-chat)/gemini/actions.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-29
+apps/dashboard/src/lib/generations/tracking.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 21-23
+apps/dashboard/src/constants/demo-missions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/dashboard/src/lib/organizations/actions.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 21,36,180-189,204-208,273-278,960-963,985-990
+apps/ui/registry/notra/claude-code/components/claude-code-status.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-133
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/brand-identity-header.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 55-56
+apps/ui/registry/notra/codex/examples/codex-explored.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/dashboard/src/components/demo/demo-api-console.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-241
+apps/ui/docs/components/(ai-chat)/claude/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/ui/docs/components/(ai-chat)/gemini/source-chip.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/utils/geo-prompt-filters.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/ui/docs/components/(ai-search)/ai-overview/content.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-14
+apps/api/src/utils/webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-47
+apps/dashboard/src/components/geo/writer/write-sitemap-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 164
+apps/dashboard/src/utils/demo-sandbox-request.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/docs/geo/traffic.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 79,89,106,123,139,152,165,187,193
+apps/ui/components/ui/popover.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-89
+apps/ui/docs/components/(ai-chat)/perplexity/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/ui/src/components/previews/chatgpt-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/dashboard/src/app/api/demo/sandbox/timezone/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/dashboard/src/components/geo/sentiment-breakdown-placeholder.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-161
+apps/dashboard/src/components/providers/geo-scan-controls-provider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 86
+apps/dashboard/src/lib/iris/wake-schedule.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 2-5,39-41,43-44,68,110
+apps/dashboard/src/utils/outbound-webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-6
+apps/ui/registry/notra/claude-code/examples/claude-code-status.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/registry/notra/claude-code/lib/claude-code-inline.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-37
+apps/dashboard/src/components/automation/onboarding-suggestions.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 144,157
+apps/dashboard/src/components/motion/table/table-surfaces.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,10-28,38-39,44-46,83,110-111
+apps/ui/components/ui/spinner.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/registry/notra/google-ai-overview/components/ai-overview-citation.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,138,140-149,152
+apps/dashboard/src/lib/geo/configure.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-2,15-18,82-93,143-144
+apps/ui/docs/blocks/(ai-chat)/chatgpt.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-50
+apps/dashboard/src/components/webhooks/overview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-84
+apps/dashboard/src/lib/hooks/use-geo-writer.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16,31-34
+apps/dashboard/src/lib/demo/session.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-56
+apps/ui/docs/blocks/(ai-chat)/claude.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-39
+AGENTS.md
+  s_03280d3e9db7b8::t_2a9f6478b566fb 81
+apps/dashboard/src/constants/company-logo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-6
+apps/ui/registry/notra/perplexity/components/perplexity-model-icon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-52
+apps/ui/registry/notra/gemini/examples/gemini-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-20
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,9,12,31-38,50,65,79,127,204-205,213,221,257-261,277-290,325-361,363,449-475,566,651,654,656
+apps/ui/registry/notra/chatgpt/components/chatgpt-favicon.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-25
+apps/ui/registry/notra/gemini/components/gemini-sparkle.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-147
+apps/ui/docs/components/chat-minimap.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-65
+apps/dashboard/src/components/settings/panes/credits-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 20
+apps/dashboard/src/lib/iris/flag.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,43-46
+apps/api/src/lib/geo/configure.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,13-16,94-105,140-141
+apps/dashboard/vercel.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-5,18-20
+apps/dashboard/scripts/vercel-build.sh
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-8,10-12
+apps/ui/docs/components/shimmer.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-40
+apps/dashboard/src/components/geo/sliding-tab-indicator.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-113
+apps/ui/registry/notra/gemini/hooks/use-gemini-reduced-motion.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+apps/dashboard/src/lib/hooks/use-persona-conversation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 25,40-42
+apps/ui/registry/notra/chatgpt/examples/chatgpt-activity.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-18
+.github/workflows/agent-boot.yml
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-70
+apps/ui/registry/notra/claude-code/components/claude-code-prompt.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-144
+apps/ui/registry/notra/claude/components/claude-model-selector.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-187
+apps/api/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 23,34,49
+apps/dashboard/src/types/webhooks/outbound.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-83
+apps/ui/components/ui/tooltip.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-285
+apps/dashboard/src/components/comments/comment-body.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4
+apps/dashboard/src/types/agent-feedback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46-58,98,117-118,179-180,182
+apps/ui/registry/notra/chat-minimap/examples/chat-minimap.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-58
+apps/ui/registry/notra/claude/lib/claude-text.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-22
+apps/ui/registry/notra/perplexity/constants/perplexity-demo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-184
+apps/web/src/components/consent-manager/provider.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7
+apps/ui/components/ui/input-group.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-163
+apps/ui/docs/components/(coding-agents)/claude-code/message.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-19
+apps/ui/src/components/landing-hero.astro
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-58
+apps/ui/src/components/previews/claude-code-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-16
+apps/ui/registry/notra/chat-minimap/hooks/use-chat-minimap-scroll-spy.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-78
+apps/dashboard/src/components/geo/scan-model-menu.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 92-124,135-136,152-157,162-170,184-189,230
+apps/ai-traffic-ingest/src/utils/config.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-13
+apps/dashboard/src/components/providers/databuddy-analytics.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4,6-9,15-17
+apps/dashboard/src/lib/demo/database-guard.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-24
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,19,22,58,60,63-64,66-69,71-75,77-80,83-84
+apps/ui/docs/components/(ai-search)/ai-overview/meta.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-7
+apps/ui/registry/notra/claude/components/claude-source-link.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-62
+apps/ui/registry/notra/claude-code/components/claude-code-terminal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-56
+apps/dashboard/src/components/geo/conversation-results-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,54-56
+apps/ui/registry/notra/claude-code/components/claude-code-tool-call.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-149
+apps/ui/registry/notra/chatgpt/components/chatgpt-action-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-46
+apps/ui/registry/notra/codex/hooks/use-codex-chat.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-161
+apps/ui/docs/components/(ai-chat)/chatgpt/activity.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-42
+apps/ui/docs/blocks/(ai-chat)/gemini.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-42
+apps/dashboard/src/constants/design-system-codex.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7-20,22-33,35-37,40-42,45-47,50-67,73-74,76,80,86
+apps/dashboard/src/lib/analytics/tracked-accounts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-3,15-36,44-45
+apps/dashboard/src/components/geo/geo-stat-delta.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 11,74,94,112-120
+apps/web/src/components/blog-mdx-components.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5
+apps/ai-traffic-ingest/tests/drain.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-36
+apps/dashboard/src/components/comments/discussion-composer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6,22,27-30,38
+apps/dashboard/src/workflows/geo-scan.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 47,70-71,74-80,193-213,335-336
+apps/dashboard/src/types/settings/modal.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 15,28-33
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 17,39,107,182-183,188-192,240-252,257-259
+apps/dashboard/src/types/brand-identity.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,235-246
+apps/ui/registry/notra/claude-code/examples/claude-code-prompt.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-83
+apps/dashboard/src/lib/hooks/use-demo-sandbox.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-123
+apps/ui/registry/notra/codex/examples/codex-demo.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-164
+apps/web/src/components/contact/contact-developer-note.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 12,14,16,18,20,22
+apps/dashboard/src/components/geo/geo-language-picker.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,27,46-47,84,86,105-125
+apps/api/src/utils/content-generation.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 8,10,12-15,67-70,77-78,80-84,86-88,104-115,117,129-131,141-153,155,205-206,208-209,213,215-217,233-244,246,258-260,264,266-268,274-284,287-289,295-305,311-319,322
+apps/ui/docs/blocks/(coding-agents)/opencode.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-39
+apps/dashboard/src/app/api/demo/enter/route.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-58
+apps/dashboard/src/utils/ratelimit.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 6-10,69,179-185
+apps/dashboard/src/app/design-system/claude-chat/page-client.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5-10
+apps/dashboard/src/components/settings/connected-account-row.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-62
+apps/ui/docs/trademarks.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 7,9-11
+apps/dashboard/src/constants/demo-seed-brand.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-49
+apps/web/package.json
+  s_03280d3e9db7b8::t_2a9f6478b566fb 5,7-10,16-17,20,26,28-30,48-49,54-55,57,75,79-80,85,89,91-92
+apps/ai-traffic-ingest/src/index.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-85
+apps/dashboard/src/lib/content/image-export.test.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 92,124,129,149-150,241
+apps/ui/docs/components/(ai-search)/ai-overview/_used-in.mdx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-5
+apps/ui/registry/notra/perplexity/components/perplexity-answer.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-136
+apps/dashboard/src/lib/demo/seed/workspace-extras.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-223
+apps/dashboard/src/components/integrations/github/github-integration-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 46
+apps/api/src/programs/integrations.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 28-29,143,146-153,155,157
+apps/dashboard/src/components/demo/demo-playground-sheet.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-110
+apps/dashboard/src/components/geo/persona-profile-editor.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 22-31,82-86,124,126-127,138,140-145,156-160,175,177-182,189,195,197,206,213,215,221,247,292
+apps/dashboard/src/components/demo/demo-playground-context.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-17
+apps/dashboard/src/components/geo/prompt-scan-button.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 33,55
+apps/dashboard/src/components/settings/privacy-section.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16
+apps/dashboard/src/lib/demo/theme-param.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/dashboard/src/types/comments.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 76-80,106-107
+apps/dashboard/src/components/demo/demo-theme-sync.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-56
+apps/ui/registry/notra/sonner/examples/sonner-action.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-38
+apps/ui/registry/notra/claude/examples/claude-plus-menu.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-9
+apps/ui/registry/notra/gemini/types/gemini.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-125
+apps/ui/registry/notra/codex/examples/codex-terminal.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/dashboard/src/components/command-palette/command-palette.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 52,77,785,861-864
+apps/dashboard/src/components/settings/panes/dev-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 71-72,76
+apps/dashboard/src/components/settings/panes/billing-pane.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 62
+apps/dashboard/src/lib/hooks/use-geo-scan-estimate.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3-4,9,12-33,39,43-44,47,51,62-65
+apps/ui/registry/notra/gemini/examples/gemini-thoughts.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-12
+apps/api/src/routes/agent-chats.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 18,35-38,50-55,316-318
+apps/ui/src/components/previews/perplexity-preview.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-15
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 20,30-31,64,114,119-120,123,125,185-186,268,292-297,299-314,358-359
+apps/api/src/types/posts.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 16,47-48
+apps/api/src/routes/webhooks.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-261
+apps/dashboard/src/constants/design-system-geo.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,9,87-159
+apps/dashboard/src/types/design-system-claude-chat.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1,5-6
+apps/dashboard/src/types/design-system-gemini.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1
+apps/dashboard/src/constants/demo-seed-workspace.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-195
+apps/dashboard/src/types/table.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 37-43,91,116
+apps/dashboard/src/components/content/group/rename-collection-dialog.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 120-125
+apps/ui/registry/notra/gemini/lib/gemini-text.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-35
+apps/ui/registry/notra/chatgpt/components/chatgpt-thread.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-123
+apps/ui/registry/notra/opencode/examples/opencode-activity.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-27
+apps/dashboard/src/lib/auth/server.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 3,16,150-160
+apps/ui/registry/notra/gemini/components/gemini-source-chip.tsx
+  s_03280d3e9db7b8::t_2a9f6478b566fb 1-71
+apps/dashboard/src/lib/geo-shelf/preview.ts
+  s_03280d3e9db7b8::t_2a9f6478b566fb 4-7,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "71c3fc439b9c5969cd2c5d26abd12cf45fd388da",
+  "prompts": {},
+  "sessions": {
+    "s_03280d3e9db7b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5805dac5-66fe-437c-b3b2-708dc0622f2d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
