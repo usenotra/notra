@@ -418,9 +418,6 @@ export async function release({
             throw new Error(`${service.name}: built a different commit`);
           }
           await report(`${service.name}: ${deployment.status}`);
-        } else if (deployment.status === "SKIPPED") {
-          // The service's watch patterns ignored every changed file.
-          await report(`${service.name}: skipped by Railway watch patterns`);
         } else if (!railwayActiveStates.includes(deployment.status)) {
           throw new Error(
             `${service.name}: deployment ended ${deployment.status}`
