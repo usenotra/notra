@@ -4,7 +4,14 @@ import type { ContentScenario } from "../fixtures/content-scenarios";
 import type { HarnessOutput } from "../harness/content-harness";
 import type { CaseScore, FieldScore, ScoreContext } from "../types/eval";
 import { judgeWithJev } from "./jev-judge";
-import { countDashes, germanShare, plainLength, slopHits } from "./text-checks";
+import {
+  countDashes,
+  germanShare,
+  metaHits,
+  plainLength,
+  slopHits,
+  titleProblem,
+} from "./text-checks";
 
 const TWEET_MAX_CHARS = 280;
 // The SDK turns rejected calls into tool-error parts carrying only the error
@@ -116,6 +123,9 @@ export async function scoreContentOutput(
       "length",
       "slop",
       "language",
+      "title",
+      "no-meta",
+      "must-mention",
       "grounded",
       "coverage",
       "avoids-internal",
@@ -163,6 +173,35 @@ export async function scoreContentOutput(
     fields.push(field("language", germanShare(post.markdown) < 0.4 ? 1 : 0));
   }
 
+  const badTitle = titleProblem(post.title);
+  fields.push(
+    field("title", badTitle ? 0 : 1, { actual: post.title, note: badTitle })
+  );
+
+  const meta = metaHits(judgedText);
+  fields.push(
+    field("no-meta", meta.length ? 0 : 1, {
+      note: meta.length ? meta.join(", ") : undefined,
+    })
+  );
+
+  const required =
+    contentType.contentType === "twitter_post"
+      ? []
+      : (scenario.expected.mustMention ?? []);
+  const missing = required.filter((item) => !item.pattern.test(judgedText));
+  fields.push(
+    field(
+      "must-mention",
+      required.length ? 1 - missing.length / required.length : 1,
+      {
+        note: missing.length
+          ? `missing: ${missing.map((item) => item.fact).join("; ")}`
+          : undefined,
+      }
+    )
+  );
+
   const verdict = await judgeWithJev({
     feature: "content-post-judge",
     state: {
@@ -189,6 +228,9 @@ export async function scoreContentOutput(
     output.decision === "create" &&
     dashes === 0 &&
     lengthOk &&
+    !badTitle &&
+    meta.length === 0 &&
+    missing.length === 0 &&
     (verdict.values.grounded ?? 0) >= 0.5 &&
     (verdict.values.coverage ?? 0) >= 0.66;
   return { score, pass, fields, judgeCostUsd: verdict.costUsd };

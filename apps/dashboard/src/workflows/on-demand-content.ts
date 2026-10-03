@@ -1,4 +1,5 @@
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 import { contentGenerationWorkflowPayloadSchema } from "@notra/content-generation/schemas";
 import { flattenError } from "zod";
 
@@ -325,7 +326,7 @@ export async function onDemandContentWorkflow(
         action: "confirm",
         units: createdPosts.length,
         usage: contentResult.usage,
-        fallbackModelId: "anthropic/claude-sonnet-5",
+        fallbackModelId: CONTENT_AGENT_MODEL,
         properties: {
           source: "manual",
           output_type: contentType,

@@ -1,5 +1,5 @@
 import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
-import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 import type { ContentAgentProfile } from "@notra/ai/types/agents";
 
 import {
@@ -159,11 +159,11 @@ export const contentUnslopSuite: EvalSuite<
       expected: { facts: item.facts },
     } satisfies EvalCase<UnslopInput, UnslopExpected>;
   }),
-  productionModel: AGENT_DEFAULT_MODEL,
+  productionModel: CONTENT_AGENT_MODEL,
   defaultContenders: [
+    CONTENT_AGENT_MODEL,
     "anthropic/claude-sonnet-5",
     "openai/gpt-6-sol",
-    "openai/gpt-6-luna",
   ],
   timeoutMs: 120_000,
   run: (input, ctx) =>
