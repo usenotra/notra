@@ -75,12 +75,16 @@ import { Route as SiteIntegrationsIndexRouteImport } from './routes/_site/integr
 import { Route as SiteIntegrationsIdRouteImport } from './routes/_site/integrations/$id'
 import { Route as SiteIntegrationsSlackRouteImport } from './routes/_site/integrations/slack'
 import { Route as SiteMcpIndexRouteImport } from './routes/_site/mcp/index'
+import { Route as SiteOfferingIndexRouteImport } from './routes/_site/offering/index'
+import { Route as SiteOfferingReportRouteImport } from './routes/_site/offering/report'
 import { Route as AgentAuthAuthorizeRouteImport } from './routes/agent/auth/authorize'
 import { Route as AgentAuthClaimRouteImport } from './routes/agent/auth/claim'
 import { Route as AgentAuthRegisterRouteImport } from './routes/agent/auth/register'
 import { Route as AgentAuthRevokeRouteImport } from './routes/agent/auth/revoke'
 import { Route as AgentAuthTokenRouteImport } from './routes/agent/auth/token'
 import { Route as ApiC15tSplatRouteImport } from './routes/api/c15t/$'
+import { Route as ApiOfferingCheckIndexRouteImport } from './routes/api/offering-check/index'
+import { Route as ApiOfferingCheckPreflightRouteImport } from './routes/api/offering-check/preflight'
 import { Route as ApiStarVideoRenderRouteImport } from './routes/api/star-video/render'
 import { Route as ApiStarVideoRepoRouteImport } from './routes/api/star-video/repo'
 import { Route as SiteBlogBlogIndexRouteImport } from './routes/_site/_blog/blog/index'
@@ -434,6 +438,16 @@ const SiteMcpIndexRoute = SiteMcpIndexRouteImport.update({
   path: '/mcp/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteOfferingIndexRoute = SiteOfferingIndexRouteImport.update({
+  id: '/offering/',
+  path: '/offering/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteOfferingReportRoute = SiteOfferingReportRouteImport.update({
+  id: '/offering/report',
+  path: '/offering/report',
+  getParentRoute: () => SiteRoute,
+} as any)
 const AgentAuthAuthorizeRoute = AgentAuthAuthorizeRouteImport.update({
   id: '/agent/auth/authorize',
   path: '/agent/auth/authorize',
@@ -464,6 +478,17 @@ const ApiC15tSplatRoute = ApiC15tSplatRouteImport.update({
   path: '/api/c15t/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOfferingCheckIndexRoute = ApiOfferingCheckIndexRouteImport.update({
+  id: '/api/offering-check/',
+  path: '/api/offering-check/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOfferingCheckPreflightRoute =
+  ApiOfferingCheckPreflightRouteImport.update({
+    id: '/api/offering-check/preflight',
+    path: '/api/offering-check/preflight',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiStarVideoRenderRoute = ApiStarVideoRenderRouteImport.update({
   id: '/api/star-video/render',
   path: '/api/star-video/render',
@@ -618,12 +643,14 @@ export interface FileRoutesByFullPath {
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
   '/agent/auth/register': typeof AgentAuthRegisterRoute
   '/agent/auth/revoke': typeof AgentAuthRevokeRoute
   '/agent/auth/token': typeof AgentAuthTokenRoute
   '/api/c15t/$': typeof ApiC15tSplatRoute
+  '/api/offering-check/preflight': typeof ApiOfferingCheckPreflightRoute
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp/': typeof DotwellKnownMcpIndexRoute
@@ -631,6 +658,8 @@ export interface FileRoutesByFullPath {
   '/features/': typeof SiteFeaturesIndexRoute
   '/integrations/': typeof SiteIntegrationsIndexRoute
   '/mcp/': typeof SiteMcpIndexRoute
+  '/offering/': typeof SiteOfferingIndexRoute
+  '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
   '/api/star-video/github/authorize': typeof ApiStarVideoGithubAuthorizeRoute
@@ -704,12 +733,14 @@ export interface FileRoutesByTo {
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
   '/agent/auth/register': typeof AgentAuthRegisterRoute
   '/agent/auth/revoke': typeof AgentAuthRevokeRoute
   '/agent/auth/token': typeof AgentAuthTokenRoute
   '/api/c15t/$': typeof ApiC15tSplatRoute
+  '/api/offering-check/preflight': typeof ApiOfferingCheckPreflightRoute
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp': typeof DotwellKnownMcpIndexRoute
@@ -717,6 +748,8 @@ export interface FileRoutesByTo {
   '/features': typeof SiteFeaturesIndexRoute
   '/integrations': typeof SiteIntegrationsIndexRoute
   '/mcp': typeof SiteMcpIndexRoute
+  '/offering': typeof SiteOfferingIndexRoute
+  '/api/offering-check': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
   '/api/star-video/github/authorize': typeof ApiStarVideoGithubAuthorizeRoute
@@ -796,12 +829,14 @@ export interface FileRoutesById {
   '/_site/features/personas': typeof SiteFeaturesPersonasRoute
   '/_site/integrations/$id': typeof SiteIntegrationsIdRoute
   '/_site/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/_site/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
   '/agent/auth/register': typeof AgentAuthRegisterRoute
   '/agent/auth/revoke': typeof AgentAuthRevokeRoute
   '/agent/auth/token': typeof AgentAuthTokenRoute
   '/api/c15t/$': typeof ApiC15tSplatRoute
+  '/api/offering-check/preflight': typeof ApiOfferingCheckPreflightRoute
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp/': typeof DotwellKnownMcpIndexRoute
@@ -809,6 +844,8 @@ export interface FileRoutesById {
   '/_site/features/': typeof SiteFeaturesIndexRoute
   '/_site/integrations/': typeof SiteIntegrationsIndexRoute
   '/_site/mcp/': typeof SiteMcpIndexRoute
+  '/_site/offering/': typeof SiteOfferingIndexRoute
+  '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/_site/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/_site/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
   '/api/star-video/github/authorize': typeof ApiStarVideoGithubAuthorizeRoute
@@ -884,12 +921,14 @@ export interface FileRouteTypes {
     | '/features/personas'
     | '/integrations/$id'
     | '/integrations/slack'
+    | '/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
     | '/agent/auth/register'
     | '/agent/auth/revoke'
     | '/agent/auth/token'
     | '/api/c15t/$'
+    | '/api/offering-check/preflight'
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp/'
@@ -897,6 +936,8 @@ export interface FileRouteTypes {
     | '/features/'
     | '/integrations/'
     | '/mcp/'
+    | '/offering/'
+    | '/api/offering-check/'
     | '/features/marketing/assets'
     | '/mcp/use-cases/$slug'
     | '/api/star-video/github/authorize'
@@ -970,12 +1011,14 @@ export interface FileRouteTypes {
     | '/features/personas'
     | '/integrations/$id'
     | '/integrations/slack'
+    | '/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
     | '/agent/auth/register'
     | '/agent/auth/revoke'
     | '/agent/auth/token'
     | '/api/c15t/$'
+    | '/api/offering-check/preflight'
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp'
@@ -983,6 +1026,8 @@ export interface FileRouteTypes {
     | '/features'
     | '/integrations'
     | '/mcp'
+    | '/offering'
+    | '/api/offering-check'
     | '/features/marketing/assets'
     | '/mcp/use-cases/$slug'
     | '/api/star-video/github/authorize'
@@ -1061,12 +1106,14 @@ export interface FileRouteTypes {
     | '/_site/features/personas'
     | '/_site/integrations/$id'
     | '/_site/integrations/slack'
+    | '/_site/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
     | '/agent/auth/register'
     | '/agent/auth/revoke'
     | '/agent/auth/token'
     | '/api/c15t/$'
+    | '/api/offering-check/preflight'
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp/'
@@ -1074,6 +1121,8 @@ export interface FileRouteTypes {
     | '/_site/features/'
     | '/_site/integrations/'
     | '/_site/mcp/'
+    | '/_site/offering/'
+    | '/api/offering-check/'
     | '/_site/features/marketing/assets'
     | '/_site/mcp/use-cases/$slug'
     | '/api/star-video/github/authorize'
@@ -1131,9 +1180,11 @@ export interface RootRouteChildren {
   AgentAuthRevokeRoute: typeof AgentAuthRevokeRoute
   AgentAuthTokenRoute: typeof AgentAuthTokenRoute
   ApiC15tSplatRoute: typeof ApiC15tSplatRoute
+  ApiOfferingCheckPreflightRoute: typeof ApiOfferingCheckPreflightRoute
   ApiStarVideoRenderRoute: typeof ApiStarVideoRenderRoute
   ApiStarVideoRepoRoute: typeof ApiStarVideoRepoRoute
   DotwellKnownMcpIndexRoute: typeof DotwellKnownMcpIndexRoute
+  ApiOfferingCheckIndexRoute: typeof ApiOfferingCheckIndexRoute
   ApiStarVideoGithubAuthorizeRoute: typeof ApiStarVideoGithubAuthorizeRoute
   ApiStarVideoGithubCallbackRoute: typeof ApiStarVideoGithubCallbackRoute
 }
@@ -1602,6 +1653,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteMcpIndexRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/offering/': {
+      id: '/_site/offering/'
+      path: '/offering'
+      fullPath: '/offering/'
+      preLoaderRoute: typeof SiteOfferingIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/offering/report': {
+      id: '/_site/offering/report'
+      path: '/offering/report'
+      fullPath: '/offering/report'
+      preLoaderRoute: typeof SiteOfferingReportRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/agent/auth/authorize': {
       id: '/agent/auth/authorize'
       path: '/agent/auth/authorize'
@@ -1642,6 +1707,20 @@ declare module '@tanstack/react-router' {
       path: '/api/c15t/$'
       fullPath: '/api/c15t/$'
       preLoaderRoute: typeof ApiC15tSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/offering-check/': {
+      id: '/api/offering-check/'
+      path: '/api/offering-check'
+      fullPath: '/api/offering-check/'
+      preLoaderRoute: typeof ApiOfferingCheckIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/offering-check/preflight': {
+      id: '/api/offering-check/preflight'
+      path: '/api/offering-check/preflight'
+      fullPath: '/api/offering-check/preflight'
+      preLoaderRoute: typeof ApiOfferingCheckPreflightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/star-video/render': {
@@ -1861,10 +1940,12 @@ interface SiteRouteChildren {
   SiteFeaturesPersonasRoute: typeof SiteFeaturesPersonasRoute
   SiteIntegrationsIdRoute: typeof SiteIntegrationsIdRoute
   SiteIntegrationsSlackRoute: typeof SiteIntegrationsSlackRoute
+  SiteOfferingReportRoute: typeof SiteOfferingReportRoute
   SiteContributorsIndexRoute: typeof SiteContributorsIndexRoute
   SiteFeaturesIndexRoute: typeof SiteFeaturesIndexRoute
   SiteIntegrationsIndexRoute: typeof SiteIntegrationsIndexRoute
   SiteMcpIndexRoute: typeof SiteMcpIndexRoute
+  SiteOfferingIndexRoute: typeof SiteOfferingIndexRoute
   SiteFeaturesMarketingAssetsRoute: typeof SiteFeaturesMarketingAssetsRoute
   SiteMcpUseCasesSlugRoute: typeof SiteMcpUseCasesSlugRoute
   SiteMcpUseCasesIndexRoute: typeof SiteMcpUseCasesIndexRoute
@@ -1893,10 +1974,12 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteFeaturesPersonasRoute: SiteFeaturesPersonasRoute,
   SiteIntegrationsIdRoute: SiteIntegrationsIdRoute,
   SiteIntegrationsSlackRoute: SiteIntegrationsSlackRoute,
+  SiteOfferingReportRoute: SiteOfferingReportRoute,
   SiteContributorsIndexRoute: SiteContributorsIndexRoute,
   SiteFeaturesIndexRoute: SiteFeaturesIndexRoute,
   SiteIntegrationsIndexRoute: SiteIntegrationsIndexRoute,
   SiteMcpIndexRoute: SiteMcpIndexRoute,
+  SiteOfferingIndexRoute: SiteOfferingIndexRoute,
   SiteFeaturesMarketingAssetsRoute: SiteFeaturesMarketingAssetsRoute,
   SiteMcpUseCasesSlugRoute: SiteMcpUseCasesSlugRoute,
   SiteMcpUseCasesIndexRoute: SiteMcpUseCasesIndexRoute,
@@ -1946,9 +2029,11 @@ const rootRouteChildren: RootRouteChildren = {
   AgentAuthRevokeRoute: AgentAuthRevokeRoute,
   AgentAuthTokenRoute: AgentAuthTokenRoute,
   ApiC15tSplatRoute: ApiC15tSplatRoute,
+  ApiOfferingCheckPreflightRoute: ApiOfferingCheckPreflightRoute,
   ApiStarVideoRenderRoute: ApiStarVideoRenderRoute,
   ApiStarVideoRepoRoute: ApiStarVideoRepoRoute,
   DotwellKnownMcpIndexRoute: DotwellKnownMcpIndexRoute,
+  ApiOfferingCheckIndexRoute: ApiOfferingCheckIndexRoute,
   ApiStarVideoGithubAuthorizeRoute: ApiStarVideoGithubAuthorizeRoute,
   ApiStarVideoGithubCallbackRoute: ApiStarVideoGithubCallbackRoute,
 }

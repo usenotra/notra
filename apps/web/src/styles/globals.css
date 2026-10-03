@@ -8,6 +8,7 @@
 @import "../../../../packages/ui/src/styles/motion.css";
 @import "../../../../packages/ui/src/styles/skeleton-shimmer.css";
 @import "../../../../packages/ui/src/styles/status.css";
+@import "../../../../packages/ui/src/styles/text-shimmer.css";
 
 @source "../../../../node_modules/streamdown/dist";
 
