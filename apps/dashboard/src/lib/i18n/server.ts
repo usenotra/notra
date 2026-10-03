@@ -20,7 +20,7 @@ export async function getLocale() {
   return negotiateDashboardLocale(getRequestHeader("accept-language") ?? null);
 }
 
-export async function getMessages() {
+async function getMessages() {
   const locale = await getLocale();
   return locale === "de"
     ? (await import("../../../messages/de.json")).default

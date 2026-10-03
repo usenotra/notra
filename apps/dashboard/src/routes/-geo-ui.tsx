@@ -2,7 +2,6 @@ import { HydrationBoundary } from "@tanstack/react-query";
 import { type AnyRoute, redirect } from "@tanstack/react-router";
 import { lazy } from "react";
 
-import { CompetitorDetailView } from "@/components/geo/competitor-detail-view";
 import { PageContainer } from "@/components/layout/container";
 import { geoSettingsPath } from "@/utils/settings-path";
 
@@ -10,6 +9,11 @@ import { loadGeoPage } from "./-dashboard-loaders";
 import { createUiRoute } from "./-ui-route";
 
 const Overview = lazy(() => import("@/app/(dashboard)/[slug]/geo/page-client"));
+const CompetitorDetailView = lazy(() =>
+  import("@/components/geo/competitor-detail-view").then((module) => ({
+    default: module.CompetitorDetailView,
+  }))
+);
 const Traffic = lazy(
   () => import("@/app/(dashboard)/[slug]/geo/traffic/page-client")
 );

@@ -6,25 +6,30 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { use } from "react";
 import { IntlProvider } from "use-intl";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/geist-mono";
 
 import { NotFoundContent } from "@/components/not-found-content";
-import { getLocale, getMessages } from "@/lib/i18n/server";
+import { catalogUrl, getCatalog, loadCatalog } from "@/lib/i18n/catalog";
+import { getLocale } from "@/lib/i18n/server";
 import { Providers } from "@/utils/providers";
 
 import styles from "@/styles/globals.css?url";
 
 const loadLocale = createServerFn({ method: "GET" }).handler(async () => ({
   locale: await getLocale(),
-  messages: await getMessages(),
 }));
 
 export const Route = createRootRoute({
   validateSearch: (search: Record<string, unknown>) => search,
-  loader: () => loadLocale(),
-  head: () => ({
+  loader: async () => {
+    const { locale } = await loadLocale();
+    await loadCatalog(locale);
+    return { locale };
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -44,6 +49,16 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: styles },
+      ...(loaderData
+        ? [
+            {
+              rel: "preload",
+              href: catalogUrl(loaderData.locale),
+              as: "fetch",
+              crossOrigin: "anonymous" as const,
+            },
+          ]
+        : []),
       { rel: "icon", href: "/favicon.ico" },
       { rel: "icon", href: "/icon0.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-icon.png" },
@@ -54,7 +69,8 @@ export const Route = createRootRoute({
 });
 
 function Root() {
-  const { locale, messages } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
+  const messages = getCatalog(locale) ?? use(loadCatalog(locale));
   return (
     <html className="dark:scheme-dark" lang={locale} suppressHydrationWarning>
       <head>

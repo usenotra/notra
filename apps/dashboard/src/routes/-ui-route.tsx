@@ -1,7 +1,7 @@
 import { createRoute, type Router } from "@tanstack/react-router";
-import type { AbstractIntlMessages } from "use-intl";
 import { createTranslator } from "use-intl/core";
 
+import { getCatalog } from "@/lib/i18n/catalog";
 import type { DashboardLocale } from "@/types/i18n";
 import type {
   UiRouteFactoryOptions,
@@ -12,7 +12,6 @@ import type {
 
 interface RootLoaderData {
   locale: DashboardLocale;
-  messages: AbstractIntlMessages;
 }
 
 /**
@@ -20,12 +19,13 @@ interface RootLoaderData {
  * navigation never needs a server round trip just to translate its title.
  */
 function translateTitle(title: UiRouteTitle, root: RootLoaderData | undefined) {
-  if (!(title.namespace && title.key && root)) {
+  const messages = root && getCatalog(root.locale);
+  if (!(title.namespace && title.key && root && messages)) {
     return { title: title.title, description: undefined as string | undefined };
   }
   const t = createTranslator({
     locale: root.locale,
-    messages: root.messages,
+    messages,
     namespace: title.namespace as never,
   }) as unknown as (key: string) => string;
   return {

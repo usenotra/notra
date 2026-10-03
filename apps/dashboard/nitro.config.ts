@@ -26,7 +26,13 @@ export default defineConfig({
     runtime: "nodejs24.x",
     externalPackages: ["@resvg/resvg-js", "@cursor/sdk"],
   } satisfies ModuleOptions,
-  traceDeps: ["@resvg/resvg-js", "@cursor/sdk*"],
+  traceDeps: [
+    "@resvg/resvg-js",
+    "@cursor/sdk*",
+    "autumn-js",
+    "react",
+    "react-dom",
+  ],
   traceOpts: {
     hooks: {
       traceStart(files) {

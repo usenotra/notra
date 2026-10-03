@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import {
   ingestSocialAccountStats,
   ingestSocialAccounts,

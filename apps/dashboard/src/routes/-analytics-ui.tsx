@@ -1,7 +1,6 @@
 import type { AnyRoute } from "@tanstack/react-router";
 import { lazy } from "react";
 
-import { AccountDetailView } from "@/components/analytics/account-detail-view";
 import { PageContainer } from "@/components/layout/container";
 
 import { createUiRoute } from "./-ui-route";
@@ -11,6 +10,11 @@ const Overview = lazy(
 );
 const Leaderboard = lazy(
   () => import("@/app/(dashboard)/[slug]/analytics/leaderboard/page-client")
+);
+const AccountDetailView = lazy(() =>
+  import("@/components/analytics/account-detail-view").then((module) => ({
+    default: module.AccountDetailView,
+  }))
 );
 const Loading = lazy(
   () => import("@/app/(dashboard)/[slug]/analytics/loading")

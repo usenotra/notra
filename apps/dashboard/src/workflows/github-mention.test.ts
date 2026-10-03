@@ -28,6 +28,7 @@ if (process.env.NOTRA_MENTION_WORKFLOW_TEST !== "1") {
   const writeLog = mock(async () => undefined);
   const startRun = mock(async () => ({ runId: "run-1" }));
 
+  mock.module("@/workflows/runtime", () => ({}));
   mock.module("@notra/ai/evlog", () => ({
     withEvlog: (handler: unknown) => handler,
     flushLogs: async () => undefined,

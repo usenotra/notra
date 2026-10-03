@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { flushGeoLog } from "@notra/ai/evlog";
 import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
 import {

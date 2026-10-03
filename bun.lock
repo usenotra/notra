@@ -181,6 +181,7 @@
         "@upstash/ratelimit": "^2.1.0",
         "@upstash/realtime": "^1.0.3",
         "@upstash/redis": "^1.38.4",
+        "@vercel/functions": "^3.7.2",
         "@vercel/oidc": "^3.8.0",
         "@vercel/otel": "^2.1.2",
         "@workos-inc/node": "^10.13.0",

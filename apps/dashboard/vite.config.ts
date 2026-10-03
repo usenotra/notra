@@ -25,6 +25,18 @@ export default defineConfig(({ mode }) => {
       client: {
         build: {
           rolldownOptions: {
+            output: {
+              // Every page loads the entry's static module graph anyway; as
+              // ~170 tiny shared chunks it cost one request each. Grouping it
+              // needs strict execution order, or modules in the merged chunks
+              // initialize before their dependencies.
+              strictExecutionOrder: true,
+              codeSplitting: {
+                groups: [
+                  { name: "initial", tags: ["$initial"], maxSize: 150_000 },
+                ],
+              },
+            },
             // Parity with Next's production `removeConsole` (errors and
             // warnings stay): the browser bundle drops debug logging. Server
             // logs are untouched.
@@ -68,7 +80,15 @@ export default defineConfig(({ mode }) => {
       nitro(),
     ],
     ssr: {
+      // autumn-js stays external so Node loads its light React entry and its
+      // heavy SDK entry separately; bundled, both share one chunk and every
+      // cold start paid for the SDK's schemas (see @notra/ai/billing/autumn).
+      // React is external too (as in apps/web), so the bundle and external
+      // packages share one React instance.
       external: [
+        "autumn-js",
+        "react",
+        "react-dom",
         "@resvg/resvg-js",
         "@cursor/sdk",
         "@ai-sdk/code-mode",

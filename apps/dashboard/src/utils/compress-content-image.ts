@@ -1,5 +1,5 @@
 import "@tanstack/react-start/server-only";
-import sharp from "sharp";
+import type { Metadata } from "sharp";
 
 import {
   CONTENT_IMAGE_FALLBACK_MAX_EDGE,
@@ -33,11 +33,16 @@ function mimeFromFormat(
   return FORMAT_MIME[format as keyof typeof FORMAT_MIME] ?? null;
 }
 
+// sharp is a native module; loading it on first use keeps it out of every
+// server cold start (this module reaches the shared oRPC router).
+const loadSharp = () => import("sharp").then((module) => module.default);
+
 async function encode(
   bytes: Uint8Array,
   mimeType: ContentImageMimeType,
   maxEdge: number | null
 ) {
+  const sharp = await loadSharp();
   let image = sharp(bytes, { limitInputPixels: PIXEL_LIMIT }).rotate();
   if (maxEdge) {
     image = image.resize({
@@ -75,9 +80,8 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
     throw new Error(contentImageTooLargeMessage("image/jpeg"));
   }
 
-  let metadata: Awaited<
-    ReturnType<ReturnType<typeof sharp>["metadata"]>
-  > | null = null;
+  const sharp = await loadSharp();
+  let metadata: Metadata | null = null;
   try {
     metadata = await sharp(bytes, {
       limitInputPixels: PIXEL_LIMIT,
