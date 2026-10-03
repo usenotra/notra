@@ -6,5 +6,3 @@
 export const GEO_CONTEXT_COMPETITOR_LIMIT = 25;
 /** Mentions from this many trailing days rank competitors by relevance. */
 export const GEO_CONTEXT_COMPETITOR_LOOKBACK_DAYS = 30;
-/** Distinct mentioned brands read when ranking tracked competitors. */
-export const GEO_CONTEXT_COMPETITOR_SHARE_ROWS = 500;

@@ -11,10 +11,16 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
+import {
+  CompetitorChoicesFooter,
+  CompetitorChoicesSearch,
+} from "@/components/geo/competitor-choices-search";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
 import { Table, type TableColumn } from "@/components/motion/table";
+import { GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD } from "@/constants/geo-competitors";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
@@ -41,9 +47,19 @@ export function ShelfPlacementsTable({
   const t = useTranslations("geo.shelf.shelfPlacementsTable");
   const tCommon = useTranslations("common");
   const tGeoShared = useTranslations("geo.shared");
+  const [query, setQuery] = useState("");
+  const isSearchable =
+    competitors.length > GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD;
+  const normalizedQuery = query.trim().toLowerCase();
+  const competitorPlacements = withUncheckedCompetitors(
+    row.competitorPlacements,
+    competitors
+  ).filter((placement) =>
+    placement.brandName.toLowerCase().includes(normalizedQuery)
+  );
   const placements = [
     ...(row.ownPlacement ? [row.ownPlacement] : []),
-    ...withUncheckedCompetitors(row.competitorPlacements, competitors),
+    ...competitorPlacements,
   ];
 
   const columns: TableColumn<GeoShelfPlacement>[] = [
@@ -144,7 +160,7 @@ export function ShelfPlacementsTable({
     },
   ];
 
-  return (
+  const table = (
     <Table
       columns={columns}
       data={placements}
@@ -152,5 +168,19 @@ export function ShelfPlacementsTable({
       height={tableHeightFor(placements.length)}
       rowHeight={TABLE_ROW_HEIGHT}
     />
+  );
+  if (!isSearchable) {
+    return table;
+  }
+  return (
+    <div className="space-y-2">
+      <CompetitorChoicesSearch onChange={setQuery} value={query} />
+      {table}
+      <CompetitorChoicesFooter
+        hidden={0}
+        query={query}
+        visibleCount={competitorPlacements.length}
+      />
+    </div>
   );
 }

@@ -150,6 +150,8 @@ export interface GeoCsvImportDialogProps<TRow> {
 }
 
 export interface GeoCsvImportCapacity<TRow> {
+  /** False until the tracked list has loaded; the split is unknown before. */
+  isReady: boolean;
   limit: number;
   existingKeys: ReadonlySet<string>;
   keyOf: (row: TRow) => string;

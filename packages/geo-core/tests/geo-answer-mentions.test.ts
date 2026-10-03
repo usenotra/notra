@@ -26,4 +26,16 @@ describe("geoAnswerMentionSpans", () => {
       ])
     ).toEqual([]);
   });
+
+  test("matches case-folded spellings the prefilter could miss", () => {
+    expect(
+      geoAnswerMentionSpans("Try \u017Fhop or \u03A3IGMA today", [
+        { phrase: "Shop", kind: "competitor" },
+        { phrase: "\u03C3igma", kind: "competitor" },
+      ])
+    ).toEqual([
+      { start: 4, end: 8, kind: "competitor", phrase: "Shop" },
+      { start: 12, end: 17, kind: "competitor", phrase: "\u03C3igma" },
+    ]);
+  });
 });

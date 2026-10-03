@@ -3,7 +3,6 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import {
   GEO_CONTEXT_COMPETITOR_LIMIT,
   GEO_CONTEXT_COMPETITOR_LOOKBACK_DAYS,
-  GEO_CONTEXT_COMPETITOR_SHARE_ROWS,
 } from "../constants/geo-context-competitors";
 import { db } from "../drizzle";
 import { geoCompetitors } from "../schema";
@@ -11,7 +10,7 @@ import type {
   GeoContextCompetitorOptions,
   GeoContextCompetitorSelection,
 } from "../types/geo-context-competitors";
-import { queryGeoCheckCompetitorShare } from "./geo-checks";
+import { queryGeoCheckBrandKeyMentions } from "./geo-checks";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -62,26 +61,27 @@ export async function selectGeoContextCompetitors(
     return { competitors: rows.map(toContext), total: rows.length };
   }
 
-  const shareRows =
+  const keysByRow = rows.map((row) =>
+    [row.name, ...(row.synonyms ?? [])].map(brandKey)
+  );
+  const mentionRows =
     rows.length > limit
-      ? await queryGeoCheckCompetitorShare(
+      ? await queryGeoCheckBrandKeyMentions(
           scope,
           {
             from: new Date(
               Date.now() - GEO_CONTEXT_COMPETITOR_LOOKBACK_DAYS * DAY_MS
             ),
           },
-          GEO_CONTEXT_COMPETITOR_SHARE_ROWS
+          [...new Set(keysByRow.flat())]
         )
       : [];
-  const mentionsByKey = new Map<string, number>();
-  for (const row of shareRows) {
-    const key = brandKey(row.brand);
-    mentionsByKey.set(key, (mentionsByKey.get(key) ?? 0) + row.mentions);
-  }
+  const mentionsByKey = new Map(
+    mentionRows.map((row) => [row.brand, row.mentions])
+  );
 
   const ranked = rows.map((row, order) => {
-    const keys = [row.name, ...(row.synonyms ?? [])].map(brandKey);
+    const keys = keysByRow[order] ?? [];
     return {
       row,
       order,

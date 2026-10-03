@@ -335,6 +335,18 @@ export function applyShelfPlacementStatus(
   const isStored = source.placements.some(
     (placement) => placement.competitorId === competitorId
   );
+  // Mirrors the server: a cleared competitor is dropped, not stored.
+  if (competitorId !== null && status === "unknown") {
+    return isStored
+      ? {
+          ...source,
+          placements: source.placements.filter(
+            (placement) => placement.competitorId !== competitorId
+          ),
+          updatedAt: nowIso,
+        }
+      : source;
+  }
   // Competitors nobody has checked yet are not stored on the source.
   if (!isStored) {
     if (!brand) {

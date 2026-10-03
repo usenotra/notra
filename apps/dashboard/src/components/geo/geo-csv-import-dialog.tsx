@@ -130,7 +130,8 @@ function GeoCsvImportDialog<TRow>({
   const rows = plan.rows;
   const issues = selection?.result.issues ?? [];
   const duplicates = selection?.result.duplicates ?? 0;
-  const canImport = rows.length > 0 && !isPending;
+  const canImport =
+    rows.length > 0 && !isPending && (capacity?.isReady ?? true);
 
   const close = () => {
     setSelection(null);
@@ -347,10 +348,11 @@ export function CompetitorsCsvImportDialog({
   organizationId,
 }: GeoImportDialogProps) {
   const importCompetitors = useGeoImportCompetitors(organizationId);
-  const { competitors } = useGeoCompetitorsDb(organizationId, {
+  const { competitors, isLoading } = useGeoCompetitorsDb(organizationId, {
     enabled: open,
   });
   const capacity: GeoCsvImportCapacity<GeoCompetitorImportRow> = {
+    isReady: !isLoading,
     limit: GEO_MAX_COMPETITORS,
     existingKeys: new Set(
       competitors.map((competitor) => competitorKey(competitor.name))

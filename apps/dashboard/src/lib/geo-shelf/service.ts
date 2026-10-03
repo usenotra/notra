@@ -496,12 +496,13 @@ function mergePlacements(
     if (previous?.status === write.status) {
       continue;
     }
-    // Unstored competitors already read as "unknown".
-    if (
-      !previous &&
-      write.competitorId !== null &&
-      write.status === "unknown"
-    ) {
+    // A competitor without a stored placement reads as "unknown", so
+    // clearing one drops it instead of storing "unknown".
+    if (write.competitorId !== null && write.status === "unknown") {
+      if (previous) {
+        next.splice(index, 1);
+        changed = true;
+      }
       continue;
     }
     const brand =
