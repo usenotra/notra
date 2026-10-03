@@ -1,0 +1,43 @@
+apps/dashboard/src/constants/agent-content.ts
+  s_69822f2ec3c761::t_9d11a7f7c0c435 1,10,14
+apps/evals/src/store/runs.ts
+  s_69822f2ec3c761::t_8ec24928c635dd 33-47
+apps/evals/src/harness/content-harness.ts
+  s_69822f2ec3c761::t_30e3b49da131f8 471,474-477
+  s_69822f2ec3c761::t_9e146e7e81fc06 62-63
+  s_69822f2ec3c761::t_42e15f3c5e0858 392,396
+apps/evals/src/suites/content-agent.ts
+  s_69822f2ec3c761::t_771105826b807c 62-66
+apps/evals/src/suites/collection-title.ts
+  s_69822f2ec3c761::t_3f5b5f2ad6b924 31-32,34
+apps/evals/src/ui/app.tsx
+  s_69822f2ec3c761::t_f07234914ec801 157-158
+  s_69822f2ec3c761::t_3e20631f47e70b 125-135,138
+  s_69822f2ec3c761::t_f911bd5356ddc2 85-86,111
+  s_69822f2ec3c761::t_b2a6c2266ac689 8
+  s_69822f2ec3c761::t_1b7a5aeca1d9cd 143
+apps/evals/src/suites/content-demo.ts
+  s_69822f2ec3c761::t_6038144a9f703d 71
+apps/evals/src/scoring/content-post.ts
+  s_69822f2ec3c761::t_4209ceb9de6daa 10-11,13
+apps/evals/src/index.tsx
+  s_69822f2ec3c761::t_b7d1090c353de3 61-66,69
+apps/evals/src/models/pricing.ts
+  s_69822f2ec3c761::t_3fc417d12baa19 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9ab5506daaaa70060ad59712bbf67c2ccae63b0e",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
