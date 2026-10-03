@@ -1,5 +1,6 @@
 import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type {
+  GeoCsvIssue,
   GeoCsvParseResult,
   GeoImportKind,
 } from "@notra/geo-core/types/geo-import";
@@ -162,6 +163,19 @@ export interface GeoCsvImportPlan<TRow> {
   added: number;
   updated: number;
   overLimit: number;
+}
+
+export interface CsvImportPlanRowsProps<TRow> {
+  capacity: GeoCsvImportCapacity<TRow> | undefined;
+  plan: GeoCsvImportPlan<TRow>;
+  readyCount: number;
+}
+
+export interface CsvImportSummaryProps<
+  TRow,
+> extends CsvImportPlanRowsProps<TRow> {
+  duplicates: number;
+  issues: GeoCsvIssue[];
 }
 
 export interface CompetitorChoicesSearchProps {

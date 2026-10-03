@@ -197,14 +197,10 @@ function WriteDialogForm({
     enabled: open,
   });
 
-  useEffect(() => {
-    if (competitorsTouched || competitors.length === 0) {
-      return;
-    }
-    setCompetitorIds(
-      defaultWriterCompetitorIds(competitors, mentionedCompetitors)
-    );
-  }, [competitors, competitorsTouched, mentionedCompetitors]);
+  // Until someone picks, the selection follows the loaded competitors.
+  const selectedCompetitorIds = competitorsTouched
+    ? competitorIds
+    : defaultWriterCompetitorIds(competitors, mentionedCompetitors);
 
   const jumpToSection = (id: WriteDialogSectionId) => {
     setActiveSection(id);
@@ -230,7 +226,7 @@ function WriteDialogForm({
         autoApprove: action === "write",
         contentSubtype,
         brandVoiceIds: brandVoiceId ? [brandVoiceId] : [],
-        competitorIds,
+        competitorIds: selectedCompetitorIds,
         sitemapId: effectiveSitemapId ?? undefined,
         sourceKind,
         sourceId,
@@ -420,7 +416,7 @@ function WriteDialogForm({
               setCompetitorsTouched(true);
               setCompetitorIds(ids);
             }}
-            selectedIds={competitorIds}
+            selectedIds={selectedCompetitorIds}
           >
             <WriteSectionHeader
               description={t("competitorsDescription")}

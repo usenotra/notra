@@ -50,6 +50,8 @@ import {
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
+  CsvImportPlanRowsProps,
+  CsvImportSummaryProps,
   GeoCsvImportCapacity,
   GeoCsvImportDialogProps,
   GeoImportDialogProps,
@@ -101,6 +103,74 @@ function CsvSummaryRow({
         {label}
       </span>
       <span className="font-medium tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function CsvImportPlanRows<TRow>({
+  capacity,
+  plan,
+  readyCount,
+}: CsvImportPlanRowsProps<TRow>) {
+  const t = useTranslations("geo.geoCsvImportDialog");
+  if (!capacity) {
+    return <CsvSummaryRow label={t("ready")} value={readyCount} />;
+  }
+  return (
+    <>
+      <CsvSummaryRow label={t("newRows")} value={plan.added} />
+      {plan.updated > 0 ? (
+        <CsvSummaryRow label={t("updatedRows")} value={plan.updated} />
+      ) : null}
+      {plan.overLimit > 0 ? (
+        <div className="space-y-1 pb-3">
+          <CsvSummaryRow
+            label={t("overLimit", { limit: capacity.limit })}
+            tone="warning"
+            value={plan.overLimit}
+          />
+          <p className="text-muted-foreground px-3 text-xs text-pretty">
+            {t("overLimitHint", {
+              current: capacity.existingKeys.size,
+              limit: capacity.limit,
+            })}
+          </p>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function CsvImportSummary<TRow>({
+  capacity,
+  plan,
+  readyCount,
+  duplicates,
+  issues,
+}: CsvImportSummaryProps<TRow>) {
+  const t = useTranslations("geo.geoCsvImportDialog");
+  return (
+    <div className="divide-y rounded-lg border text-sm">
+      <CsvImportPlanRows
+        capacity={capacity}
+        plan={plan}
+        readyCount={readyCount}
+      />
+      {duplicates > 0 ? (
+        <CsvSummaryRow label={t("duplicates")} value={duplicates} />
+      ) : null}
+      {issues.length > 0 ? (
+        <div className="space-y-2 pb-3">
+          <CsvSummaryRow
+            label={t("problems")}
+            tone="warning"
+            value={issues.length}
+          />
+          <div className="px-3">
+            <CsvIssueList issues={issues} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -244,51 +314,13 @@ function GeoCsvImportDialog<TRow>({
             )}
           </Dropzone>
           {selection ? (
-            <div className="divide-y rounded-lg border text-sm">
-              {capacity ? (
-                <>
-                  <CsvSummaryRow label={t("newRows")} value={plan.added} />
-                  {plan.updated > 0 ? (
-                    <CsvSummaryRow
-                      label={t("updatedRows")}
-                      value={plan.updated}
-                    />
-                  ) : null}
-                  {plan.overLimit > 0 ? (
-                    <div className="space-y-1 pb-3">
-                      <CsvSummaryRow
-                        label={t("overLimit", { limit: capacity.limit })}
-                        tone="warning"
-                        value={plan.overLimit}
-                      />
-                      <p className="text-muted-foreground px-3 text-xs text-pretty">
-                        {t("overLimitHint", {
-                          current: capacity.existingKeys.size,
-                          limit: capacity.limit,
-                        })}
-                      </p>
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <CsvSummaryRow label={t("ready")} value={rows.length} />
-              )}
-              {duplicates > 0 ? (
-                <CsvSummaryRow label={t("duplicates")} value={duplicates} />
-              ) : null}
-              {issues.length > 0 ? (
-                <div className="space-y-2 pb-3">
-                  <CsvSummaryRow
-                    label={t("problems")}
-                    tone="warning"
-                    value={issues.length}
-                  />
-                  <div className="px-3">
-                    <CsvIssueList issues={issues} />
-                  </div>
-                </div>
-              ) : null}
-            </div>
+            <CsvImportSummary
+              capacity={capacity}
+              duplicates={duplicates}
+              issues={issues}
+              plan={plan}
+              readyCount={rows.length}
+            />
           ) : null}
           <div className="flex justify-end">
             <Button
