@@ -17,7 +17,6 @@ import {
   getLastUsedLoginMethod,
   setLastUsedLoginMethod,
 } from "../../../lib/last-login-method";
-import { isNextRedirectError } from "../../../lib/redirect-error";
 import { Badge } from "../../ui/badge";
 import { Separator } from "../../ui/separator";
 import { CtaButton } from "../cta-button";
@@ -90,10 +89,8 @@ export function LoginForm({
     authInFlightRef.current = true;
     setAuthMethod(method);
     setLastUsedLoginMethod(method);
-    start().catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
+    // A successful start navigates away and never settles.
+    start().catch(() => {
       releaseAuth();
       setFormError(fallbackError);
     });

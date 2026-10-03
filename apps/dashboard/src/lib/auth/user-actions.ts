@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
+import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
+
 const signOutServerFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     if (!Array.isArray(data)) {
@@ -9,7 +11,7 @@ const signOutServerFn = createServerFn({ method: "POST" })
   })
   .handler(({ data }) => signOutActionImpl(...data));
 export const signOutAction = (...data: Parameters<typeof signOutActionImpl>) =>
-  signOutServerFn({ data });
+  followServerRedirect(signOutServerFn({ data }));
 
 const updateUserServerFn = createServerFn({ method: "POST" })
   .validator((data: Parameters<typeof updateUserActionImpl>) => data)

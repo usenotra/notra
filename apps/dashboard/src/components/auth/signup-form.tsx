@@ -31,7 +31,6 @@ import {
   signUpWithPasswordAction,
   verifyEmailCodeAction,
 } from "@/lib/auth/password-actions";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { useAuthPendingStepLabels } from "@/lib/i18n/use-auth-labels";
 import { errorMessageOr } from "@/lib/utils";
@@ -140,10 +139,7 @@ export function SignupForm({
     startSocialSignInAction({
       provider,
       returnTo: buildCallbackUrl(provider),
-    }).catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
+    }).catch(() => {
       authInFlightRef.current = false;
       setAuthMethod(null);
       setFormError(t("socialFailed"));

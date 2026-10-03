@@ -1,11 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
+import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
+
 const startSocialSignInServerFn = createServerFn({ method: "POST" })
   .validator((data: Parameters<typeof startSocialSignInActionImpl>) => data)
   .handler(({ data }) => startSocialSignInActionImpl(...data));
 export const startSocialSignInAction = (
   ...data: Parameters<typeof startSocialSignInActionImpl>
-) => startSocialSignInServerFn({ data });
+) => followServerRedirect(startSocialSignInServerFn({ data }));
 
 import { startSocialSignInInputSchema } from "@notra/schemas/dashboard/auth/social";
 import type { StartSocialSignInInput } from "@notra/schemas/types/dashboard/auth";

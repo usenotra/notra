@@ -3,7 +3,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { resetPostHogIdentity } from "@/lib/analytics/posthog-client";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import {
   discardTotpEnrollmentAction,
   getSecurityOverviewAction,
@@ -95,13 +94,7 @@ function useSignOut() {
   const invalidateSession = useSessionInvalidation();
 
   return async (options?: SignOutOptions) => {
-    try {
-      await signOutAction();
-    } catch (error) {
-      if (!isNextRedirectError(error)) {
-        throw error;
-      }
-    }
+    await signOutAction();
     invalidateSession();
     resetPostHogIdentity();
     options?.fetchOptions?.onSuccess?.();

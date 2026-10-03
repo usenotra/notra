@@ -11,7 +11,6 @@ import { useTranslations } from "use-intl";
 import { ConnectedAccountRow } from "@/components/settings/connected-account-row";
 import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { authClient } from "@/lib/auth/client";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { errorMessageOr } from "@/lib/utils";
 import type { ConnectedAccountsSectionProps } from "@/types/settings/account";
@@ -39,10 +38,7 @@ export function ConnectedAccountsSection({
     startSocialSignInAction({
       provider,
       returnTo: window.location.pathname,
-    }).catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
+    }).catch(() => {
       setLoadingProvider(null);
       toast.error(t("connectFailed"));
     });
