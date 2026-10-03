@@ -69,9 +69,9 @@ export function citationRowIds(
 }
 
 /**
- * Rows of `next` that `previous` did not have. A fresh result set (filters,
- * host or project changed) shares no rows with the old one and counts as no
- * arrivals, so only genuinely new requests animate.
+ * Rows of `next` that `previous` did not have. A result that shares no rows
+ * with the previous one (first load, another project) counts as no arrivals,
+ * so only genuinely new requests animate.
  */
 export function arrivedCitationRowIds(
   previous: ReadonlySet<string>,

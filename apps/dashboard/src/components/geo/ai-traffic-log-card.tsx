@@ -68,6 +68,9 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
           log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
+        liveKey={
+          isPlaceholderData ? undefined : JSON.stringify([filters, hostQuery])
+        }
         // Live refetches swap rows in place; only a new filter or host,
         // which shows the previous result as placeholder, dims the table.
         loading={isPending || isPlaceholderData}

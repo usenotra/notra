@@ -704,7 +704,6 @@
   ],
   "patchedDependencies": {
     "evlog@2.28.1": "patches/evlog@2.28.1.patch",
-    "@upstash/realtime@1.0.3": "patches/@upstash%2Frealtime@1.0.3.patch",
   },
   "overrides": {
     "brace-expansion@1": {

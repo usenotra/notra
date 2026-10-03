@@ -931,6 +931,11 @@ export interface AiTrafficLogCardProps {
 export interface CitationsTableProps {
   entries: GeoTrafficLogEntry[];
   height: number;
+  /**
+   * The query the entries answer; rows only animate in while it stays the
+   * same. Undefined while the entries are another query's placeholder.
+   */
+  liveKey?: string;
   loading?: boolean;
 }
 

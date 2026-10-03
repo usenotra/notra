@@ -1077,8 +1077,10 @@ export const GEO_LIVE_UNWATCHED_MEMO_MS = 3000;
 // Scan batches finish every few seconds; viewers refetch at most this often
 // while a scan runs. Start and finish are always announced.
 export const GEO_VISIBILITY_LIVE_PROGRESS_INTERVAL_SECONDS = 10;
-// After the realtime stream gave up (deploy, expired session), try again.
-export const GEO_LIVE_RETRY_AFTER_ERROR_MS = 60_000;
+// Consecutive realtime connects that never opened (expired session, outage)
+// before the GEO pages stop retrying for a while and rely on polling.
+export const GEO_LIVE_MAX_FAILED_CONNECTS = 3;
+export const GEO_LIVE_PAUSE_AFTER_FAILURES_MS = 60_000;
 // Tinybird buffers rows written with wait=false and flushes them within
 // ~2.8 s (p90). Traffic updates are announced once that window has passed,
 // so the refetch they trigger already sees the new rows.

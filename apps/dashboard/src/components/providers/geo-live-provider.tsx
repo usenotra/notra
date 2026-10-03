@@ -3,7 +3,8 @@
 import type { RealtimeSchema } from "@notra/ai/realtime";
 import {
   GEO_LIVE_INVALIDATE_THROTTLE_MS,
-  GEO_LIVE_RETRY_AFTER_ERROR_MS,
+  GEO_LIVE_MAX_FAILED_CONNECTS,
+  GEO_LIVE_PAUSE_AFTER_FAILURES_MS,
 } from "@notra/geo-core/constants/geo";
 import { geoLiveChannel } from "@notra/geo-core/utils/geo-live";
 import { useThrottledCallback } from "@tanstack/react-pacer";
@@ -41,9 +42,13 @@ export function GeoLiveProvider({
   // Counts announcements for the viewed scope; the live indicator keys its
   // one-shot pulse on it.
   const [updates, setUpdates] = useState(0);
-  // Dropping the subscription for a moment makes the provider start over
-  // with a fresh retry budget once it gave up.
-  const [resubscribing, setResubscribing] = useState(false);
+  // @upstash/realtime 1.x resets its retry counter inside every reconnect, so
+  // `maxReconnectAttempts` never trips and a failing /api/realtime (expired
+  // session, outage) is retried every second for as long as the tab is open.
+  // Count connects that never opened and step back for a while instead:
+  // dropping the last subscription is the one thing that stops its loop.
+  const [failedConnects, setFailedConnects] = useState(0);
+  const paused = failedConnects >= GEO_LIVE_MAX_FAILED_CONNECTS;
   const throttle = {
     wait: GEO_LIVE_INVALIDATE_THROTTLE_MS,
     leading: true,
@@ -77,7 +82,7 @@ export function GeoLiveProvider({
   >({
     channels: [geoLiveChannel(organizationId)],
     events: ["geo.traffic", "geo.visibility"],
-    enabled: organizationId.length > 0 && !resubscribing,
+    enabled: organizationId.length > 0 && !paused,
     onData: (payload) => {
       if (payload.event === "geo.traffic") {
         if (isGeoLiveEventInScope(payload.data.projectIds, projectId)) {
@@ -93,20 +98,29 @@ export function GeoLiveProvider({
     },
   });
 
+  // Adjusted during render ("state from previous props"): every attempt is a
+  // connecting → disconnected/error transition, a success resets the count.
+  const [previousStatus, setPreviousStatus] = useState(status);
+  if (status !== previousStatus) {
+    setPreviousStatus(status);
+    if (status === "connected") {
+      setFailedConnects(0);
+    } else if (previousStatus === "connecting" && status !== "connecting") {
+      setFailedConnects((count) => count + 1);
+    }
+  }
+
   useEffect(() => {
-    if (status !== "error") {
+    if (!paused) {
       return;
     }
-    let resume: ReturnType<typeof setTimeout> | undefined;
-    const pause = setTimeout(() => {
-      setResubscribing(true);
-      resume = setTimeout(() => setResubscribing(false), 0);
-    }, GEO_LIVE_RETRY_AFTER_ERROR_MS);
-    return () => {
-      clearTimeout(pause);
-      clearTimeout(resume);
-    };
-  }, [status]);
+    // Polling keeps the page current meanwhile (the stream counts as down).
+    const resume = setTimeout(
+      () => setFailedConnects(0),
+      GEO_LIVE_PAUSE_AFTER_FAILURES_MS
+    );
+    return () => clearTimeout(resume);
+  }, [paused]);
 
   const connected = status === "connected";
   const value = useMemo(() => ({ connected, updates }), [connected, updates]);

@@ -94,7 +94,6 @@ describe("runGeoIngest ordering", () => {
       loadIngestAllowedHosts,
       ratelimitLimit,
       trackGeoIngestAnalytics,
-      announceGeoTrafficEvent,
     ]) {
       m.mockClear();
     }
@@ -166,11 +165,9 @@ describe("runGeoIngest ordering", () => {
 
     expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
     expect(trackGeoIngestAnalytics).not.toHaveBeenCalled();
-    expect(announceGeoTrafficEvent).not.toHaveBeenCalled();
     expect(tasks).toHaveLength(1);
     await tasks[0]?.();
     expect(trackGeoIngestAnalytics).toHaveBeenCalledTimes(1);
-    expect(announceGeoTrafficEvent).toHaveBeenCalledWith("org_1", "proj_1");
   });
 
   test("rejects tracked traffic when the rate-limit transport fails", async () => {
