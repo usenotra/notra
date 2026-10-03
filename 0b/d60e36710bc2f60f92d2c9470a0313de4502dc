@@ -1,0 +1,19 @@
+packages/geo-core/src/ingest/batcher.ts
+  s_2b733ea900a0e0::t_dcf740d63bce07 40-51,161-162,167,181,185,196,199,201-204,206-210,226,228-233,235-237,242,244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0bd60e36710bc2f60f92d2c9470a0313de4502dc",
+  "prompts": {},
+  "sessions": {
+    "s_2b733ea900a0e0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4b1de44-52d3-4767-a02d-b87f5b012d78",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
