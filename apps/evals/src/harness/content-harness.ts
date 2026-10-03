@@ -3,7 +3,7 @@
  * with the real prompts and the real tool definitions. Only the tools' `execute`
  * functions are swapped for fixture data, so no DB, GitHub or Redis is touched.
  */
-import { createGateway } from "@ai-sdk/gateway";
+import type { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import { buildContentDispatcherInstructions } from "@notra/ai/prompts/content-dispatcher";
 import { getUserPrompt } from "@notra/ai/prompts/user";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
@@ -23,68 +23,27 @@ import {
   createViewPostTool,
 } from "@notra/ai/tools/post";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
+import type { ContentAgentProfile } from "@notra/ai/types/agents";
 import type {
   PostToolsConfig,
   PostToolsResult,
 } from "@notra/ai/types/post-tools";
 import type { BaseTonePromptInput } from "@notra/ai/types/prompts";
 import {
-  generateText,
   isStepCount,
   type ModelMessage,
+  type StopCondition,
   type Tool,
+  type ToolSet,
   ToolLoopAgent,
 } from "ai";
 
 import { PROD_GATEWAY_CACHING } from "../constants/gateway";
 import type { ContentScenario } from "../fixtures/content-scenarios";
-import type { TokenUsage } from "../types/eval";
+import { getGateway, runCost, toUsage } from "../models/gateway";
+import type { CallResult } from "../types/eval";
 
-export type ContentTypeId =
-  | "changelog"
-  | "blog_post"
-  | "linkedin_post"
-  | "twitter_post";
-
-export interface ContentTypeConfig {
-  readonly id: ContentTypeId;
-  readonly skillName: string;
-  readonly contentLabel: string;
-  readonly brandAgentType: string;
-  readonly includeSearchBrandReferencesTool: boolean;
-}
-
-/** Mirrors packages/ai/src/agents/{changelog,blog-post,linkedin,twitter}.ts */
-export const CONTENT_TYPES: Record<ContentTypeId, ContentTypeConfig> = {
-  changelog: {
-    id: "changelog",
-    skillName: "changelog",
-    contentLabel: "changelog",
-    brandAgentType: "changelog",
-    includeSearchBrandReferencesTool: false,
-  },
-  blog_post: {
-    id: "blog_post",
-    skillName: "blog-post",
-    contentLabel: "blog post",
-    brandAgentType: "blog_post",
-    includeSearchBrandReferencesTool: false,
-  },
-  linkedin_post: {
-    id: "linkedin_post",
-    skillName: "linkedin",
-    contentLabel: "LinkedIn post",
-    brandAgentType: "linkedin",
-    includeSearchBrandReferencesTool: false,
-  },
-  twitter_post: {
-    id: "twitter_post",
-    skillName: "twitter",
-    contentLabel: "tweet",
-    brandAgentType: "twitter",
-    includeSearchBrandReferencesTool: true,
-  },
-};
+export type ContentTypeId = keyof typeof CONTENT_AGENT_PROFILES;
 
 export interface HarnessPost {
   title: string;
@@ -133,6 +92,16 @@ export function buildPromptInput(
 
 function skillCatalog() {
   return buildSystemSkills().sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** listAvailableSkills output. */
+function skillList() {
+  const skills = skillCatalog().map((skill) => ({
+    name: skill.name,
+    description: skill.description,
+    isSystem: true,
+  }));
+  return { skills, total: skills.length };
 }
 
 function skillPayload(name: string) {
@@ -249,8 +218,17 @@ const fixtureData = {
   },
 };
 
-function withExecute(base: Tool, execute: (input: any) => unknown): Tool {
-  return { ...base, execute: async (input: unknown) => execute(input) } as Tool;
+/** Keeps the real tool definition (schema, description) and swaps `execute`. */
+function withExecute<INPUT>(
+  base: Tool,
+  execute: (input: INPUT) => unknown
+): Tool {
+  return { ...base, execute: async (input: INPUT) => execute(input) } as Tool;
+}
+
+/** Fixture posts are stored in order; `post_3` is index 2. */
+function postIndex(postId: string): number {
+  return Number(postId.replace("post_", "")) - 1;
 }
 
 interface HarnessState {
@@ -261,13 +239,13 @@ interface HarnessState {
 /** Real tool definitions from @notra/ai with fixture-backed execute functions. */
 export function buildHarnessTools(
   scenario: ContentScenario,
-  contentType: ContentTypeConfig,
+  contentType: ContentAgentProfile,
   state: HarnessState
 ): Record<string, Tool> {
   const config: PostToolsConfig = {
     organizationId: EVAL_ORG_ID,
     collectionId: EVAL_COLLECTION_ID,
-    contentType: contentType.id,
+    contentType: contentType.contentType,
   };
   const github = buildGitHubDataTools({
     organizationId: EVAL_ORG_ID,
@@ -286,7 +264,7 @@ export function buildHarnessTools(
       createGetBrandReferencesTool({
         organizationId: EVAL_ORG_ID,
         agentType: contentType.brandAgentType,
-      } as never),
+      }),
       () => fixtureData.brandReferences(scenario)
     ),
   };
@@ -295,7 +273,7 @@ export function buildHarnessTools(
       createSearchBrandReferencesTool({
         organizationId: EVAL_ORG_ID,
         agentType: contentType.brandAgentType,
-      } as never),
+      }),
       () => fixtureData.brandReferences(scenario)
     );
   }
@@ -322,14 +300,7 @@ export function buildHarnessTools(
 
   tools.listAvailableSkills = withExecute(
     listAvailableSkills({ organizationId: EVAL_ORG_ID }),
-    () => {
-      const skills = skillCatalog().map((skill) => ({
-        name: skill.name,
-        description: skill.description,
-        isSystem: true,
-      }));
-      return { skills, total: skills.length };
-    }
+    skillList
   );
   tools.getSkillByName = withExecute(
     getSkillByName({ organizationId: EVAL_ORG_ID }),
@@ -354,7 +325,7 @@ export function buildHarnessTools(
   tools.updatePost = withExecute(
     createUpdatePostTool(config, state.result),
     (input: { postId: string } & Partial<HarnessPost>) => {
-      const index = Number(input.postId.replace("post_", "")) - 1;
+      const index = postIndex(input.postId);
       const existing = state.posts[index];
       if (!existing) {
         return { postId: input.postId, status: "not_found" };
@@ -371,7 +342,7 @@ export function buildHarnessTools(
   tools.viewPost = withExecute(
     createViewPostTool(config),
     (input: { postId: string }) => {
-      const post = state.posts[Number(input.postId.replace("post_", "")) - 1];
+      const post = state.posts[postIndex(input.postId)];
       return post
         ? { postId: input.postId, ...post }
         : { error: "Post not found" };
@@ -392,26 +363,6 @@ export function buildHarnessTools(
     }
   );
   return tools;
-}
-
-let gatewayInstance: ReturnType<typeof createGateway> | undefined;
-function model(modelId: string) {
-  gatewayInstance ??= createGateway({
-    apiKey: process.env.AI_GATEWAY_API_KEY?.trim(),
-  });
-  return gatewayInstance(modelId);
-}
-
-function sumUsage(usage: {
-  inputTokens?: number;
-  outputTokens?: number;
-  inputTokenDetails?: { cacheReadTokens?: number };
-}): TokenUsage {
-  return {
-    inputTokens: usage.inputTokens ?? 0,
-    outputTokens: usage.outputTokens ?? 0,
-    cachedInputTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
-  };
 }
 
 interface StepLike {
@@ -477,60 +428,76 @@ export function transcriptFor(output: HarnessOutput): string {
 export interface RunAgentParams {
   modelId: string;
   scenario: ContentScenario;
-  contentType: ContentTypeConfig;
+  contentType: ContentAgentProfile;
   abortSignal: AbortSignal;
 }
 
-export interface AgentRun {
-  output: HarnessOutput;
-  usage: TokenUsage;
-  providerMetadata: unknown;
+interface LoopParams extends RunAgentParams {
+  messages: ModelMessage[];
+  stopWhen: (state: HarnessState) => StopCondition<ToolSet>[];
+  tag: string;
 }
 
-/** Full agent loop, same settings as runBackgroundGen. */
-export async function runContentAgent(
-  params: RunAgentParams
-): Promise<AgentRun> {
+/** The runBackgroundGen agent: same instructions, tools and provider options. */
+async function runLoop(params: LoopParams): Promise<CallResult<HarnessOutput>> {
   const state: HarnessState = { result: {}, posts: [] };
   const agent = new ToolLoopAgent({
-    model: model(params.modelId),
+    model: getGateway()(params.modelId),
+    instructions: buildContentDispatcherInstructions({
+      contentLabel: params.contentType.contentLabel,
+      contentType: params.contentType.contentType,
+      primarySkillName: params.contentType.skillName,
+    }),
+    tools: buildHarnessTools(params.scenario, params.contentType, state),
+    stopWhen: params.stopWhen(state),
+    maxRetries: 0,
     providerOptions: {
       anthropic: { thinking: { type: "adaptive" } },
       gateway: {
-        tags: ["eval-content-generation"],
+        tags: [params.tag],
         disallowPromptTraining: true,
         caching: PROD_GATEWAY_CACHING,
       },
     },
-    tools: buildHarnessTools(params.scenario, params.contentType, state),
-    instructions: buildContentDispatcherInstructions({
-      contentLabel: params.contentType.contentLabel,
-      contentType: params.contentType.id,
-      primarySkillName: params.contentType.skillName,
-    }),
-    stopWhen: isStepCount(50),
-    maxRetries: 0,
   });
   const result = await agent.generate({
-    prompt: getUserPrompt(
-      params.contentType.contentLabel,
-      buildPromptInput(params.scenario)
-    ),
+    messages: params.messages,
     abortSignal: params.abortSignal,
   });
-  const toolCalls = result.steps.flatMap((step) =>
-    step.toolCalls.map((call) => call.toolName)
+  const usage = toUsage(result.totalUsage);
+  const output = toOutput(
+    state,
+    result.steps.flatMap((step) => step.toolCalls.map((call) => call.toolName)),
+    result.steps.length,
+    collectToolErrors(result.steps)
   );
   return {
-    output: toOutput(
-      state,
-      toolCalls,
-      result.steps.length,
-      collectToolErrors(result.steps)
-    ),
-    usage: sumUsage(result.totalUsage),
-    providerMetadata: result.providerMetadata,
+    output,
+    usage,
+    costUsd: await runCost(params.modelId, usage, result.steps),
+    transcript: transcriptFor(output),
   };
+}
+
+function userPrompt(params: RunAgentParams): string {
+  return getUserPrompt(
+    params.contentType.contentLabel,
+    buildPromptInput(params.scenario)
+  );
+}
+
+const MAX_AGENT_STEPS = 50;
+
+/** Full agent loop from the user prompt, like runBackgroundGen. */
+export function runContentAgent(
+  params: RunAgentParams
+): Promise<CallResult<HarnessOutput>> {
+  return runLoop({
+    ...params,
+    messages: [{ role: "user", content: userPrompt(params) }],
+    stopWhen: () => [isStepCount(MAX_AGENT_STEPS)],
+    tag: "eval-content-generation",
+  });
 }
 
 interface ReplayedCall {
@@ -547,18 +514,13 @@ interface ReplayedCall {
  */
 export function gatheringCalls(
   scenario: ContentScenario,
-  contentType: ContentTypeConfig
+  contentType: ContentAgentProfile
 ): ReplayedCall[] {
-  const skills = skillCatalog().map((skill) => ({
-    name: skill.name,
-    description: skill.description,
-    isSystem: true,
-  }));
   const calls: ReplayedCall[] = [
     {
       toolName: "listAvailableSkills",
       input: { limit: 20, offset: 0 },
-      output: { skills, total: skills.length },
+      output: skillList(),
     },
     {
       toolName: "getSkillByName",
@@ -641,8 +603,6 @@ export function replayMessages(
 export interface DraftParams extends RunAgentParams {
   /** Extra messages appended after the replayed gathering calls. */
   followUp?: ModelMessage[];
-  /** Restrict the tool set (default: every harness tool). */
-  finishTools?: readonly string[];
 }
 
 const MAX_DRAFT_STEPS = 12;
@@ -654,68 +614,27 @@ function hasFinished(state: HarnessState): boolean {
 }
 
 /**
- * Draft stage only: same system prompt and tools, gathering already replayed,
- * so every model writes from identical context.
+ * Draft stage only: the gathering calls are replayed, so every model writes
+ * from identical context. The loop may still load a supporting skill or retry
+ * a rejected call (e.g. a skip reason over 300 chars) and stops as soon as one
+ * createPost/skip/fail lands.
  */
-export async function runDraftStage(params: DraftParams): Promise<AgentRun> {
-  const state: HarnessState = { result: {}, posts: [] };
-  const allTools = buildHarnessTools(
-    params.scenario,
-    params.contentType,
-    state
-  );
-  const tools = params.finishTools
-    ? Object.fromEntries(
-        Object.entries(allTools).filter(([name]) =>
-          params.finishTools?.includes(name)
-        )
-      )
-    : allTools;
-  const messages = [
-    ...replayMessages(
-      getUserPrompt(
-        params.contentType.contentLabel,
-        buildPromptInput(params.scenario)
+export function runDraftStage(
+  params: DraftParams
+): Promise<CallResult<HarnessOutput>> {
+  return runLoop({
+    ...params,
+    messages: [
+      ...replayMessages(
+        userPrompt(params),
+        gatheringCalls(params.scenario, params.contentType)
       ),
-      gatheringCalls(params.scenario, params.contentType)
-    ),
-    ...(params.followUp ?? []),
-  ];
-  const result = await generateText({
-    model: model(params.modelId),
-    instructions: buildContentDispatcherInstructions({
-      contentLabel: params.contentType.contentLabel,
-      contentType: params.contentType.id,
-      primarySkillName: params.contentType.skillName,
-    }),
-    messages,
-    tools,
-    // The loop continues from the replayed state: the model may still load a
-    // supporting skill or retry a rejected call (e.g. a skip reason over 300
-    // chars). Stop as soon as one createPost/skip/fail lands.
-    stopWhen: [isStepCount(MAX_DRAFT_STEPS), () => hasFinished(state)],
-    maxRetries: 0,
-    abortSignal: params.abortSignal,
-    providerOptions: {
-      anthropic: { thinking: { type: "adaptive" } },
-      gateway: {
-        tags: ["eval-content-draft"],
-        disallowPromptTraining: true,
-        caching: PROD_GATEWAY_CACHING,
-      },
-    },
+      ...(params.followUp ?? []),
+    ],
+    stopWhen: (state) => [
+      isStepCount(MAX_DRAFT_STEPS),
+      () => hasFinished(state),
+    ],
+    tag: "eval-content-draft",
   });
-  const toolCalls = result.steps.flatMap((step) =>
-    step.toolCalls.map((call) => call.toolName)
-  );
-  return {
-    output: toOutput(
-      state,
-      toolCalls,
-      result.steps.length,
-      collectToolErrors(result.steps)
-    ),
-    usage: sumUsage(result.totalUsage),
-    providerMetadata: result.providerMetadata,
-  };
 }

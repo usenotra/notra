@@ -1,18 +1,17 @@
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
+import type { ContentAgentProfile } from "@notra/ai/types/agents";
 
 import {
   findScenario,
   type ContentScenario,
 } from "../fixtures/content-scenarios";
 import {
-  CONTENT_TYPES,
-  type ContentTypeConfig,
   type ContentTypeId,
   type HarnessOutput,
   runDraftStage,
   transcriptFor,
 } from "../harness/content-harness";
-import { estimateCost } from "../models/gateway";
 import { sourceDataFor } from "../scoring/content-post";
 import { judgeWithJev } from "../scoring/jev-judge";
 import { countDashes, slopHits } from "../scoring/text-checks";
@@ -20,7 +19,7 @@ import type { EvalCase, EvalSuite, FieldScore } from "../types/eval";
 
 interface UnslopInput {
   scenario: ContentScenario;
-  contentType: ContentTypeConfig;
+  contentType: ContentAgentProfile;
   draftTitle: string;
   draft: string;
 }
@@ -147,7 +146,7 @@ export const contentUnslopSuite: EvalSuite<
     "The final editing pass on its own. The model gets the replayed gathering (with the unslop skill loaded) plus a sloppy draft and must save the cleaned post via createPost. Scores slop removed, dashes, every fact kept (Jev, one question per fact) and grounding against draft + sources.",
   cases: DRAFTS.map((item) => {
     const scenario = findScenario(item.scenarioId);
-    const contentType = CONTENT_TYPES[item.type];
+    const contentType = CONTENT_AGENT_PROFILES[item.type];
     return {
       id: `${item.scenarioId}:${item.type}`,
       title: `${scenario.title} (${contentType.contentLabel})`,
@@ -167,8 +166,8 @@ export const contentUnslopSuite: EvalSuite<
     "openai/gpt-6-luna",
   ],
   timeoutMs: 120_000,
-  async run(input, ctx) {
-    const run = await runDraftStage({
+  run: (input, ctx) =>
+    runDraftStage({
       modelId: ctx.contender.modelId,
       scenario: input.scenario,
       contentType: input.contentType,
@@ -184,14 +183,7 @@ export const contentUnslopSuite: EvalSuite<
             "Apply the unslop skill's full instructions to this draft as the final editing pass (post, title and recommendations) while preserving facts and brand voice, then save it with createPost.",
         },
       ],
-    });
-    return {
-      output: run.output,
-      usage: run.usage,
-      costUsd: await estimateCost(ctx.contender.modelId, run.usage),
-      transcript: transcriptFor(run.output),
-    };
-  },
+    }),
   async score(output, testCase, ctx) {
     const post = output.post;
     if (!post) {

@@ -2,7 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { CACHE_DIR } from "../constants/paths";
-import { createPickerSettings, type PickerSettings } from "../utils/picker";
+import type { PickerSettings } from "../types/picker";
+import { createPickerSettings } from "../utils/picker";
 
 const SETTINGS_FILE = join(CACHE_DIR, "picker.json");
 

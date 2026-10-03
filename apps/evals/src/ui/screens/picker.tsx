@@ -1,18 +1,16 @@
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
 
+import { MAX_ERROR_RATE, MIN_CASES } from "../../constants/picker";
 import { scoreColor, seriesColor, theme } from "../../constants/theme";
 import type { ModelPrice } from "../../models/pricing";
 import { savePickerSettings } from "../../store/picker-settings";
 import type { AnySuite, EvalRun } from "../../types/eval";
+import type { PickerSettings, SuitePick } from "../../types/picker";
 import { pad, padStart, scatterGrid, truncate } from "../../utils/charts";
 import {
-  MAX_ERROR_RATE,
-  MIN_CASES,
-  type PickerSettings,
   formatPerThousand,
   pickForSuite,
-  type SuitePick,
   verificationModels,
 } from "../../utils/picker";
 import { formatMs, formatPct } from "../../utils/stats";

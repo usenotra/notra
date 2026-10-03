@@ -1,8 +1,7 @@
+import type { ContentAgentProfile } from "@notra/ai/types/agents";
+
 import type { ContentScenario } from "../fixtures/content-scenarios";
-import type {
-  ContentTypeConfig,
-  HarnessOutput,
-} from "../harness/content-harness";
+import type { HarnessOutput } from "../harness/content-harness";
 import type { CaseScore, FieldScore, ScoreContext } from "../types/eval";
 import { judgeWithJev } from "./jev-judge";
 import { countDashes, germanShare, plainLength, slopHits } from "./text-checks";
@@ -81,7 +80,7 @@ export interface PostScore extends CaseScore {
 export async function scoreContentOutput(
   output: HarnessOutput,
   scenario: ContentScenario,
-  contentType: ContentTypeConfig,
+  contentType: ContentAgentProfile,
   ctx: ScoreContext
 ): Promise<PostScore> {
   const expected = scenario.expected.decision;
@@ -137,9 +136,9 @@ export async function scoreContentOutput(
 
   const length = plainLength(post.markdown);
   let lengthOk = length > 0;
-  if (contentType.id === "twitter_post") {
+  if (contentType.contentType === "twitter_post") {
     lengthOk = length <= TWEET_MAX_CHARS;
-  } else if (contentType.id === "linkedin_post") {
+  } else if (contentType.contentType === "linkedin_post") {
     lengthOk = length <= LINKEDIN_MAX_CHARS;
   }
   fields.push(field("length", lengthOk ? 1 : 0, { note: `${length} chars` }));

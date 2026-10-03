@@ -1,4 +1,5 @@
 import { runBackgroundGen } from "@notra/ai/agents/background-gen";
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import type {
   BlogPostAgentOptions,
   BlogPostAgentResult,
@@ -10,10 +11,7 @@ export async function generateBlogPost(
   return runBackgroundGen({
     organizationId: options.organizationId,
     collectionId: options.collectionId,
-    skillName: "blog-post",
-    contentType: "blog_post",
-    brandAgentType: "blog",
-    contentLabel: "blog post",
+    ...CONTENT_AGENT_PROFILES.blog_post,
     voiceId: options.voiceId,
     repositories: options.repositories,
     linearIntegrations: options.linearIntegrations,

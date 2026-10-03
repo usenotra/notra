@@ -14,7 +14,7 @@ import { priceFor } from "./pricing";
 
 let gatewayInstance: ReturnType<typeof createGateway> | undefined;
 
-function getGateway(): ReturnType<typeof createGateway> {
+export function getGateway(): ReturnType<typeof createGateway> {
   const apiKey = process.env.AI_GATEWAY_API_KEY?.trim();
   if (!apiKey) {
     throw new Error(
@@ -46,7 +46,7 @@ interface UsageLike {
   inputTokenDetails?: { cacheReadTokens?: number | undefined } | undefined;
 }
 
-function toUsage(usage: UsageLike | undefined): TokenUsage {
+export function toUsage(usage: UsageLike | undefined): TokenUsage {
   return {
     inputTokens: usage?.inputTokens ?? 0,
     outputTokens: usage?.outputTokens ?? 0,
@@ -69,8 +69,8 @@ function readGatewayCost(metadata: unknown): number | undefined {
   return undefined;
 }
 
-/** List-price estimate; used for multi-step agent runs. */
-export async function estimateCost(
+/** List-price estimate for calls without a gateway-reported cost. */
+async function estimateCost(
   modelId: string,
   usage: TokenUsage
 ): Promise<number> {
@@ -85,6 +85,26 @@ export async function estimateCost(
     usage.cachedInputTokens * price.input * 0.1 +
     usage.outputTokens * price.output
   );
+}
+
+/**
+ * Agent loops: the gateway reports cost per step, so sum the steps. Falls back
+ * to the list-price estimate if any step lacks a reported cost.
+ */
+export async function runCost(
+  modelId: string,
+  usage: TokenUsage,
+  steps: readonly { providerMetadata?: unknown }[]
+): Promise<number> {
+  let total = 0;
+  for (const step of steps) {
+    const cost = readGatewayCost(step.providerMetadata);
+    if (cost === undefined) {
+      return estimateCost(modelId, usage);
+    }
+    total += cost;
+  }
+  return total;
 }
 
 async function costFor(
@@ -114,9 +134,12 @@ export interface ObjectCallParams<SCHEMA extends z.ZodType> {
 export async function callObject<SCHEMA extends z.ZodType>(
   params: ObjectCallParams<SCHEMA>
 ): Promise<CallResult<z.infer<SCHEMA>>> {
-  const base = {
+  const result = await generateText({
     model: getGateway()(params.modelId),
     system: params.system,
+    messages: params.messages ?? [
+      { role: "user", content: params.prompt ?? "" },
+    ],
     output: Output.object({ schema: params.schema }),
     abortSignal: params.abortSignal,
     temperature: params.temperature,
@@ -125,48 +148,11 @@ export async function callObject<SCHEMA extends z.ZodType>(
       ...gatewayProviderOptions(params.feature),
       ...params.providerOptions,
     },
-  };
-  const result = params.messages
-    ? await generateText({ ...base, messages: params.messages })
-    : await generateText({ ...base, prompt: params.prompt ?? "" });
+  });
 
   const usage = toUsage(result.totalUsage);
   return {
     output: result.output as z.infer<SCHEMA>,
-    usage,
-    costUsd: await costFor(params.modelId, usage, result.providerMetadata),
-    transcript: result.text,
-  };
-}
-
-export interface TextCallParams {
-  modelId: string;
-  feature: string;
-  system?: string;
-  prompt: string;
-  abortSignal: AbortSignal;
-  temperature?: number;
-  providerOptions?: Record<string, Record<string, unknown>>;
-}
-
-export async function callText(
-  params: TextCallParams
-): Promise<CallResult<string>> {
-  const result = await generateText({
-    model: getGateway()(params.modelId),
-    system: params.system,
-    prompt: params.prompt,
-    abortSignal: params.abortSignal,
-    temperature: params.temperature,
-    maxRetries: 0,
-    providerOptions: {
-      ...gatewayProviderOptions(params.feature),
-      ...params.providerOptions,
-    },
-  });
-  const usage = toUsage(result.totalUsage);
-  return {
-    output: result.text,
     usage,
     costUsd: await costFor(params.modelId, usage, result.providerMetadata),
     transcript: result.text,
