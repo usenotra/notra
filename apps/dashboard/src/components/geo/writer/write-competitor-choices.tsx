@@ -2,8 +2,8 @@
 
 import { GEO_COMPETITOR_CONTEXT_LIMIT } from "@notra/geo-core/constants/geo";
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   CompetitorChoicesFooter,

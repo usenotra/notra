@@ -23,8 +23,8 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useGeoScanIntervalNoun } from "@/lib/hooks/use-geo-scan-interval-noun";
 import type {

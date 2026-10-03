@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { getBrandFaviconUrl } from "@/utils/brand";

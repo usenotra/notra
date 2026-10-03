@@ -7,8 +7,8 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
-import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Table } from "@/components/motion/table";

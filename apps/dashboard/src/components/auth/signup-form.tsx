@@ -15,13 +15,13 @@ import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
 import type { AuthMethod, SocialProvider } from "@notra/ui/types/auth";
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useQueryStates } from "nuqs";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
+import Link from "@/components/framework/link";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   redeemBackupCodeAction,

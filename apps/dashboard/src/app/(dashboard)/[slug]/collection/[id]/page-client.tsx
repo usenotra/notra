@@ -4,9 +4,8 @@ import { ArrowLeft02Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Button } from "@notra/ui/components/ui/button";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ContentCard } from "@/components/content/content-card";
 import { ContentSkeletonCard } from "@/components/content/content-skeleton-card";
@@ -14,6 +13,7 @@ import { GroupContentTypes } from "@/components/content/group/group-content-type
 import { RenameCollectionDialog } from "@/components/content/group/rename-collection-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
 import { trackEvent } from "@/lib/analytics/posthog-client";

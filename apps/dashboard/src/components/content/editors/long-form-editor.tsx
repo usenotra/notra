@@ -1,8 +1,8 @@
 "use client";
 
 import { supportsPostSlug } from "@notra/ai/schemas/post";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ContentDetailSourceMetadata } from "@/components/content/content-detail-source-metadata";
 import { ContentEditorMediaInsert } from "@/components/content/editor/content-editor-media-insert";

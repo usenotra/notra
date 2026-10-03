@@ -1,7 +1,6 @@
-import { getTranslations } from "next-intl/server";
-
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { forbidden } from "@/lib/orpc/utils/errors";
 

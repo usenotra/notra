@@ -1,8 +1,8 @@
 import { db } from "@notra/db/drizzle";
 import { organizations, socialConnections, users } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { User } from "@workos-inc/node";
+import { getWorkOS } from "@workos/authkit-session";
 import { and, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 import { isFreeEmail } from "free-email-domains-list";

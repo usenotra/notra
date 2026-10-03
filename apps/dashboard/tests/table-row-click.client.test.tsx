@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { Window } from "happy-dom";
-import { NextIntlClientProvider } from "next-intl";
+import { IntlProvider } from "use-intl";
 
 if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
   test("table row pointer and keyboard actions", () => {
@@ -45,7 +45,7 @@ if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
 
     await act(async () => {
       root.render(
-        <NextIntlClientProvider
+        <IntlProvider
           locale="en"
           messages={{ shared: { table: { selectRow: "Select row {row}" } } }}
         >
@@ -88,7 +88,7 @@ if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
               />
             </tbody>
           </table>
-        </NextIntlClientProvider>
+        </IntlProvider>
       );
     });
 

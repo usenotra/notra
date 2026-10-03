@@ -1,8 +1,8 @@
 "use client";
 
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
-import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Table, type TableColumn } from "@/components/motion/table";

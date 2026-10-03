@@ -5,8 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { ContentDataPointSettings } from "@notra/schemas/dashboard/content";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { cn } from "@notra/ui/lib/utils";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import type { RepositoryPreview } from "@/types/content/preview";
 import {

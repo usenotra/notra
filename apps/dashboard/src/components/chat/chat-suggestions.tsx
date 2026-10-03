@@ -12,8 +12,8 @@ import {
   useIsPresent,
   useReducedMotion,
 } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   CHAT_SUGGESTION_ROTATE_MS,

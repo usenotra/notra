@@ -1,7 +1,6 @@
 import { POSTHOG_EVENTS, type PostHogEventName } from "@notra/posthog/events";
 import type { PostHogProperties } from "@notra/posthog/types/posthog";
 import type { AuthFlowResult } from "@notra/schemas/types/dashboard/auth";
-import { saveSession } from "@workos-inc/authkit-nextjs";
 import type { AuthenticationResponse } from "@workos-inc/node";
 import { Effect } from "effect";
 
@@ -17,6 +16,7 @@ import { UserSyncError, WorkOSAuthError } from "@/lib/auth/errors";
 import { resolveMfaFlow } from "@/lib/auth/mfa";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
+import { saveAuthSession } from "@/lib/auth/workos";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 
 const VERIFICATION_REQUIRED_CODE = "email_verification_required";
@@ -53,16 +53,12 @@ export const completeAuthentication = Effect.fn("auth.completeSession")(
   ) {
     yield* Effect.tryPromise({
       try: () =>
-        saveSession(
-          {
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            user: response.user,
-            impersonator: response.impersonator,
-            authenticationMethod: response.authenticationMethod,
-          },
-          process.env.APP_URL ?? "http://localhost:3000"
-        ),
+        saveAuthSession({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          user: response.user,
+          impersonator: response.impersonator,
+        }),
       catch: (cause) =>
         new UserSyncError({ message: "Failed to persist session", cause }),
     });

@@ -8,7 +8,7 @@ import {
 import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { CompanyProfileFieldsProps } from "@/types/brand-identity";
 

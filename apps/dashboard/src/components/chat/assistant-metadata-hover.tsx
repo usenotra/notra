@@ -14,8 +14,8 @@ import {
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { OpenaiDark } from "@notra/ui/components/ui/svgs/openaiDark";
-import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
 import type {

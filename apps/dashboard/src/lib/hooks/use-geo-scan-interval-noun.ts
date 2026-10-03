@@ -1,5 +1,5 @@
 import { GEO_SCAN_HOURS_PER_DAY } from "@notra/geo-core/constants/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { geoScanIntervalMessageKey } from "@/utils/geo-scan-interval-key";
 

@@ -1,6 +1,6 @@
 import type { useCustomer, useListPlans } from "autumn-js/react";
-import type { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import type { useTranslations } from "use-intl";
 
 import type { ProductFeature } from "@/types/hooks/billing";
 

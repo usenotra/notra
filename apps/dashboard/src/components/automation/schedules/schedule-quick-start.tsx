@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectedCards } from "@notra/ui/components/shared/connected-cards";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { SCHEDULE_PRESETS } from "@/constants/schedule-presets";
 import type { ScheduleQuickStartProps } from "@/types/automation/schedule";

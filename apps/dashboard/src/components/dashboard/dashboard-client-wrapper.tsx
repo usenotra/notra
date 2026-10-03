@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Suspense, useEffect, useState } from "react";
 
 import {
@@ -18,6 +17,7 @@ import {
 } from "@/components/providers/organization-provider";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
+import dynamic from "@/utils/lazy-component";
 
 const loadCommandPalette = () =>
   import("@/components/command-palette/command-palette").then(

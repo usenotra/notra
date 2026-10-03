@@ -20,15 +20,14 @@ import {
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
 import { formatDistanceToNowStrict } from "date-fns";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   CollectionActionsMenu,
   CollectionMenuItems,
 } from "@/components/content/collection-menu-items";
+import Link from "@/components/framework/link";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
 import {
@@ -39,6 +38,7 @@ import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,

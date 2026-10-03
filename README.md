@@ -45,11 +45,11 @@ See the [product documentation](https://www.usenotra.com/docs) for setup and aut
 
 ## Repository
 
-Notra is a Bun and Turborepo monorepo, built with TypeScript, Next.js, React, Hono, PostgreSQL, and Drizzle ORM.
+Notra is a Bun and Turborepo monorepo, built with TypeScript, React, Hono, PostgreSQL, and Drizzle ORM. The dashboard uses TanStack Start, Vite, and Nitro; the public website uses Next.js.
 
 | Path | Purpose |
 | --- | --- |
-| `apps/dashboard` | Main product: GEO analytics, content, integrations, and workspace management |
+| `apps/dashboard` | TanStack Start product app: GEO analytics, content, integrations, and workspace management |
 | `apps/web` | Public website at [www.usenotra.com](https://www.usenotra.com) |
 | `apps/api` | Public Hono REST API |
 | `apps/docs` | Product documentation |
@@ -81,6 +81,8 @@ bun run dev --filter=dashboard
 # Public website, http://localhost:3001
 bun run dev --filter=web
 ```
+
+The dashboard's Vite development server binds to `127.0.0.1:3000`. Production builds use Nitro; run `bun run start` from `apps/dashboard` to serve the `.output` artifact. See the [migration testing guide](apps/dashboard/docs/migration-testing.md) for isolated verification. Existing `NEXT_PUBLIC_*` deployment variable names are retained for compatibility and do not imply a Next.js dashboard runtime.
 
 Useful checks from the repository root:
 

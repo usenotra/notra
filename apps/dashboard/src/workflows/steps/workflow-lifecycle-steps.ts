@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 
 import { trackServerEventAndFlush } from "@/lib/analytics/posthog-server";

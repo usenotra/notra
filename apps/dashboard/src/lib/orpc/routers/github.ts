@@ -28,7 +28,6 @@ import {
   saveGitHubAppRepositoriesInputSchema,
 } from "@notra/schemas/dashboard/github";
 import { Data, Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import {
   GITHUB_INSTALL_STATE_TTL_SECONDS,
@@ -40,6 +39,7 @@ import {
 } from "@/constants/integration-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {

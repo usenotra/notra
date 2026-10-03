@@ -16,7 +16,10 @@ node_modules
 .agents
 .cursor
 .repos
+.hoplite
 .output
+**/.output
+**/.cache
 .workflow-data
 .openlogs
 **/.workflow-data

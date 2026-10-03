@@ -18,7 +18,7 @@ if (process.env.NOTRA_ORGANIZATION_PROVIDER_TEST !== "1") {
     expect(result.status, result.stderr.toString()).toBe(0);
   }, 20_000);
 } else {
-  mock.module("next/navigation", () => ({
+  mock.module("@/lib/navigation", () => ({
     notFound: mock(),
     redirect: mock(),
     unstable_rethrow: mock(),

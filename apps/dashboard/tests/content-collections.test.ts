@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { postCollectionSummarySchema } from "@notra/schemas/dashboard/content";
-import { createTranslator } from "next-intl";
+import { createTranslator } from "use-intl";
 
 import {
   collectionHref,

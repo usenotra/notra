@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><style>
+    #light-icon {
+      display: inline;
+    }
+    #dark-icon {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #light-icon {
+        display: none;
+      }
+      #dark-icon {
+        display: inline;
+      }
+    }
+  </style><g id="light-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath1142)"><rect width="1000" height="1000" fill="#f6f3f1"></rect><g transform="matrix(1,0,0,1,0,0)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1000" height="1000" fill="#F6F3F1"></rect>
+<path d="M629.661 546.667C620.127 579.083 411.652 626.117 334.11 609.591L297.881 601.964L334.11 542.854L385.593 464.676L440.889 384.591L629.661 289.252L688.771 272.091L702.118 285.438H709.745C723.093 312.133 712.704 396.032 700.211 432.26C681.144 487.557 606.779 504.718 566.737 518.066C563.689 519.082 639.194 514.252 629.661 546.667Z" fill="#C8B2EE" stroke="#1E1E1E" stroke-width="26.25" stroke-linecap="round"></path>
+<path d="M725 272.083C602.966 268.905 342.119 355.6 275 727.804" stroke="#1E1E1E" stroke-width="56.25" stroke-linecap="round"></path>
+</svg></svg></g></g><defs><clipPath id="SvgjsClipPath1142"><rect width="1000" height="1000" x="0" y="0" rx="350" ry="350"></rect></clipPath></defs></svg></g><g id="dark-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath1143)"><rect width="1000" height="1000" fill="#f6f3f1"></rect><g transform="matrix(1,0,0,1,0,0)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1000" height="1000" fill="#F6F3F1"></rect>
+<path d="M629.661 546.667C620.127 579.083 411.652 626.117 334.11 609.591L297.881 601.964L334.11 542.854L385.593 464.676L440.889 384.591L629.661 289.252L688.771 272.091L702.118 285.438H709.745C723.093 312.133 712.704 396.032 700.211 432.26C681.144 487.557 606.779 504.718 566.737 518.066C563.689 519.082 639.194 514.252 629.661 546.667Z" fill="#C8B2EE" stroke="#1E1E1E" stroke-width="26.25" stroke-linecap="round"></path>
+<path d="M725 272.083C602.966 268.905 342.119 355.6 275 727.804" stroke="#1E1E1E" stroke-width="56.25" stroke-linecap="round"></path>
+</svg></svg></g></g><defs><clipPath id="SvgjsClipPath1143"><rect width="1000" height="1000" x="0" y="0" rx="350" ry="350"></rect></clipPath></defs></svg></g></svg>

@@ -1,9 +1,9 @@
 import { extractDemoAffected } from "@notra/ai/utils/demo-affected";
 import { recordDemoRequest } from "@notra/ai/utils/demo-request-log";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { after } from "next/server";
 
 import { DEMO_UI_ACTIONS } from "@/constants/demo-ui-actions";
+import { afterResponse as after } from "@/lib/framework/after-response";
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 

@@ -26,12 +26,12 @@ import {
 } from "@notra/ui/components/ui/avatar";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import type React from "react";
 import { isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { McpAuthenticationFields } from "@/components/integrations/mcp-authentication-fields";
 import { McpConnectionTestStatus } from "@/components/integrations/mcp-connection-test-status";
 import { McpDialogFooter } from "@/components/integrations/mcp-dialog-footer";

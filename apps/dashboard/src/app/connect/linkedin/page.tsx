@@ -10,18 +10,18 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
 import {
   useCompleteLinkedInSelection,
   useLinkedInSelection,
 } from "@/lib/hooks/use-linkedin-selection";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { SelectionShellProps } from "@/types/components/linkedin-connect";
 

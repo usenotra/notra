@@ -6,7 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { BrandIdentityTabsProps, BrandTab } from "@/types/brand-identity";
 

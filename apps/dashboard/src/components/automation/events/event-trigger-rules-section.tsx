@@ -1,5 +1,5 @@
 import { useStore } from "@tanstack/react-form";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { BrandIdentityRadioGroup } from "@/components/brand-identity-radio-group";
 import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";

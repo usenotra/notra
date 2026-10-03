@@ -2,10 +2,10 @@
 
 import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import {
   SOCIAL_CONNECT_ERROR_CODES,

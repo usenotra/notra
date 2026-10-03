@@ -2,13 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import {
-  Agent,
-  JsonlLocalAgentStore,
-  type Run,
-  type RunResult,
-  type SDKAgent,
-} from "@cursor/sdk";
+import type { Run, RunResult, SDKAgent } from "@cursor/sdk";
 import { requireApiKey } from "@notra/utils/require-api-key";
 import { Effect } from "effect";
 
@@ -73,6 +67,9 @@ export function askCursorEngine(promptText: string) {
       throw new Error("Cursor run aborted before agent creation");
     }
 
+    // Loaded per run: importing the SDK costs ~0.7 s of startup CPU, which
+    // every server cold start paid although only Cursor scans use it.
+    const { Agent, JsonlLocalAgentStore } = await import("@cursor/sdk");
     agentPromise = Agent.create({
       apiKey,
       model: { id: GEO_CURSOR_MODEL_ID },

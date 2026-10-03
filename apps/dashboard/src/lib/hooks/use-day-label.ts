@@ -1,4 +1,4 @@
-import { useFormatter } from "next-intl";
+import { useFormatter } from "use-intl";
 
 export function useDayLabel() {
   const format = useFormatter();

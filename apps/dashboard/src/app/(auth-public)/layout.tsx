@@ -1,8 +1,6 @@
 import { AuthLegalNotice } from "@/components/auth/auth-legal-notice";
 import { PixelBlastBackground } from "@/components/auth/pixel-blast-background";
 
-export const instant = true;
-
 export default function AuthPublicLayout({
   children,
 }: {

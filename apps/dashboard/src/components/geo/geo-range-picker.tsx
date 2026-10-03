@@ -15,9 +15,9 @@ import {
 } from "@notra/ui/components/ui/popover";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Calendar } from "@/components/calendar";
 import { GEO_RANGE_PRESET_LABEL_KEYS } from "@/constants/geo-analytics";

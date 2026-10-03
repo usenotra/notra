@@ -4,8 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useFormatter, useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {

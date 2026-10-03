@@ -5,7 +5,7 @@ import {
 } from "@notra/ui/components/ui/hover-card";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 const LINEAR_PREFIX = /^linear:/;
 

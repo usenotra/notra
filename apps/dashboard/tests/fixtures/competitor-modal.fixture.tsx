@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const back = mock();
 const root = mock((_props: ComponentProps<typeof Sheet>) => null);
-mock.module("next/navigation", () => ({ useRouter: () => ({ back }) }));
+mock.module("@/lib/navigation", () => ({ useRouter: () => ({ back }) }));
 mock.module("@notra/ui/components/ui/sheet", () => ({
   Sheet: root,
   SheetContent: () => null,

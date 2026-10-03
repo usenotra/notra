@@ -28,8 +28,8 @@ import {
 } from "@notra/ui/components/ui/select";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
-import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ShelfPresenceFields } from "@/components/geo/shelf/shelf-presence-fields";

@@ -1,6 +1,4 @@
 import { deleteSitemapSchema } from "@notra/schemas/dashboard/sitemap";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { deleteStoredSitemap } from "@/lib/sitemap/storage";
@@ -13,7 +11,7 @@ interface RouteContext {
   }>;
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
   const { organizationId, voiceId, sitemapId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -28,7 +26,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
   });
 
   if (!parseResult.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid sitemap", details: parseResult.error.issues },
       { status: 400 }
     );
@@ -42,12 +40,12 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     });
 
     if (!deleted) {
-      return NextResponse.json({ error: "Sitemap not found" }, { status: 404 });
+      return Response.json({ error: "Sitemap not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true });
+    return Response.json({ ok: true });
   } catch {
-    return NextResponse.json(
+    return Response.json(
       { error: "Sitemap storage is unavailable" },
       { status: 503 }
     );

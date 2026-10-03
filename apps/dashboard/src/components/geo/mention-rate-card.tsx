@@ -30,9 +30,9 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";

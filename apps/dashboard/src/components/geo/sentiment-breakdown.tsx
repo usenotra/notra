@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";

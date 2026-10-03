@@ -13,13 +13,13 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
+import dynamic from "@/utils/lazy-component";
 import { isNavigation } from "@/utils/sidebar-navigation";
 
 import {

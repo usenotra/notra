@@ -10,8 +10,8 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Table } from "@/components/motion/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";

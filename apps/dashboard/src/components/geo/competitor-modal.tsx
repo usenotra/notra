@@ -7,10 +7,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import { useRouter } from "@/lib/navigation";
 import type { CompetitorSheetProps } from "@/types/geo";
 
 const COMPETITOR_SHEET_CONTENT_CLASS =

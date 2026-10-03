@@ -6,7 +6,6 @@ import {
   MAX_CHAT_FILE_SIZE,
   MIME_DISPLAY_LABELS,
 } from "@notra/schemas/constants/dashboard/upload";
-import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type DragEvent,
@@ -17,6 +16,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { dragEventHasFiles } from "@/lib/upload/chat";

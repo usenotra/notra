@@ -13,10 +13,10 @@ import {
 } from "@notra/schemas/dashboard/skills";
 import { and, asc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
 

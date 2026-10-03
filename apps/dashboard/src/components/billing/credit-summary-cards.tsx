@@ -4,7 +4,7 @@ import { FEATURES } from "@notra/ai/billing/features";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { cn } from "@notra/ui/lib/utils";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import type { CreditSummaryCardsProps } from "@/types/billing/credits";
 import { formatDollars, usageBarColor } from "@/utils/format";

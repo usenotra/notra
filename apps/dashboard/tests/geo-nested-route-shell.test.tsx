@@ -1,19 +1,23 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
 import GeoCompetitorDetailLoading from "../src/app/(dashboard)/[slug]/geo/competitors/[competitor]/loading";
 import { GeoCompetitorsSkeleton } from "../src/app/(dashboard)/[slug]/geo/competitors/skeleton";
-import GeoDefault from "../src/app/(dashboard)/[slug]/geo/default";
 import GeoGapsLoading from "../src/app/(dashboard)/[slug]/geo/gaps/loading";
 
 const OVERVIEW_SKELETON_COPY = "How AI engines talk about your brand";
 
 describe("GEO nested route shells", () => {
-  test("parallel-route default does not render the overview skeleton", () => {
-    const html = renderToStaticMarkup(<GeoDefault />);
-    expect(html).toBe("");
-    expect(html).not.toContain(OVERVIEW_SKELETON_COPY);
+  test("native gaps route selects its own pending component", () => {
+    const source = readFileSync(
+      new URL("../src/routes/-geo-ui.tsx", import.meta.url),
+      "utf8"
+    );
+    expect(source).toMatch(
+      /path: "gaps",[\s\S]*?pendingComponent: GapsLoading/
+    );
   });
 
   test("content gaps loading shell is the gaps skeleton, not GEO overview", () => {

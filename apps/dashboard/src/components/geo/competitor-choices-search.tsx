@@ -3,7 +3,7 @@
 import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type {
   CompetitorChoicesFooterProps,

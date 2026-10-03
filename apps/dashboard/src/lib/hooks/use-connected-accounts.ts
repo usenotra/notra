@@ -5,8 +5,8 @@ import type {
   SocialPublishSurface,
 } from "@notra/schemas/dashboard/social-accounts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { SOCIAL_PLATFORM_LABELS } from "@/constants/social-connect";
 import type { ConnectedAccount } from "@/types/hooks/connected-accounts";

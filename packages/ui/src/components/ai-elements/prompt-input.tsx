@@ -40,7 +40,7 @@ import type { ChatStatus, FileUIPart } from "ai";
 
 import { nanoid } from "nanoid";
 import { Loader2Icon } from "lucide-react";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import {
   type ChangeEvent,
   type ChangeEventHandler,

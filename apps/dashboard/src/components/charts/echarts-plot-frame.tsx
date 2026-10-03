@@ -3,8 +3,8 @@
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { tween } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
+import { useTranslations } from "use-intl";
 
 import { ChartDownloadButton } from "@/components/charts/chart-download-button";
 import {

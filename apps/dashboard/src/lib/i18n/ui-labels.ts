@@ -1,5 +1,5 @@
 import type { UiLabels } from "@notra/ui/types/ui-labels";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 export function useUiLabelsTranslations(): UiLabels {
   const t = useTranslations("ui");

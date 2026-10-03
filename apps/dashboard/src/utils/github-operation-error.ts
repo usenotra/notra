@@ -2,8 +2,8 @@ import type {
   GitHubRepositorySelectionError,
   GitHubPublishTokenError,
 } from "@notra/ai/types/github-operations";
-import { getTranslations } from "next-intl/server";
 
+import { getTranslations } from "@/lib/i18n/server";
 import {
   badRequest,
   conflict,

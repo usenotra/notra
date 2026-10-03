@@ -16,13 +16,13 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { motion } from "motion/react";
-import { useTranslations } from "next-intl";
 import {
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
   useEffect,
 } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Checkbox } from "@/components/motion/checkbox";
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";

@@ -2,11 +2,15 @@ import {
   defaultShouldDehydrateQuery,
   QueryClient,
 } from "@tanstack/react-query";
-import { cache } from "react";
+import { getRequest } from "@tanstack/react-start/server";
 
-export const getGeoServerQueryClient = cache(
-  () =>
-    new QueryClient({
+const requestQueryClients = new WeakMap<Request, QueryClient>();
+
+export function getGeoServerQueryClient() {
+  const request = getRequest();
+  let queryClient = requestQueryClients.get(request);
+  if (!queryClient) {
+    queryClient = new QueryClient({
       defaultOptions: {
         queries: { staleTime: 60_000, retry: false },
         dehydrate: {
@@ -15,5 +19,8 @@ export const getGeoServerQueryClient = cache(
             query.state.status === "pending",
         },
       },
-    })
-);
+    });
+    requestQueryClients.set(request, queryClient);
+  }
+  return queryClient;
+}

@@ -22,8 +22,6 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
-import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -33,6 +31,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import ChatInput from "@/components/chat-input";
 import { ChatQuoteProvider } from "@/components/chat/chat-quote";
@@ -45,6 +44,7 @@ import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
+import { usePathname, useRouter } from "@/lib/navigation";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
@@ -68,7 +68,9 @@ function DashboardAgentChat({
   const open = active === "agent";
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
-  const [activeChatId, setActiveChatId] = useState(() => crypto.randomUUID());
+  const [activeChatId, setActiveChatId] = useState<string>(() =>
+    crypto.randomUUID()
+  );
   const [isHydratingHistory, setIsHydratingHistory] = useState(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);

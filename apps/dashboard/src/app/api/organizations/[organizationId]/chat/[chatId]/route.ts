@@ -10,8 +10,6 @@ import {
 } from "@notra/ai/chat/history";
 import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
 import { updateChatSessionSchema } from "@notra/ai/schemas/chat";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import {
@@ -23,7 +21,7 @@ interface RouteContext {
   params: Promise<{ organizationId: string; chatId: string }>;
 }
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -32,7 +30,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 
   if (await isChatDeleted(organizationId, chatId)) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
   const [messages, lastResponseStopped, activeStreamId, chatSession] =
@@ -51,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
   }
 
-  return NextResponse.json({
+  return Response.json({
     chatId,
     messages: await hydrateSavedChatPosts(organizationId, chatId, messages),
     lastResponseStopped,
@@ -61,7 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   });
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+export async function PATCH(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -73,7 +71,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const parseResult = updateChatSessionSchema.safeParse(body);
 
   if (!parseResult.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid request body", details: parseResult.error.issues },
       { status: 400 }
     );
@@ -89,13 +87,13 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         );
 
   if (!session) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ session });
+  return Response.json({ session });
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -106,8 +104,8 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
   const deleted = await deleteChatSession(organizationId, chatId);
 
   if (!deleted) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ ok: true });
 }

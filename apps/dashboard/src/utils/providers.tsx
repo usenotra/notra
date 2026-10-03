@@ -1,5 +1,6 @@
 "use client";
 
+import { FrameworkProvider } from "@notra/ui/components/framework-provider";
 import { UiLabelsProvider } from "@notra/ui/components/shared/ui-labels-provider";
 import { Toaster } from "@notra/ui/components/ui/sonner";
 import { TooltipProvider } from "@notra/ui/components/ui/tooltip";
@@ -8,18 +9,20 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
 import { ThemeProvider } from "next-themes";
-import dynamic from "next/dynamic";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import { PostHogIdentity } from "@/components/providers/posthog-identity";
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useUiLabelsTranslations } from "@/lib/i18n/ui-labels";
 import { configureZodLocale } from "@/lib/i18n/zod";
+import dynamic from "@/utils/lazy-component";
 
 const DatabuddyAnalytics = dynamic(() =>
   import("@/components/providers/databuddy-analytics").then(
@@ -96,30 +99,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const isClient = useIsClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Suspense fallback={null}>
-        {isClient && ReactQueryDevtools ? (
-          <ReactQueryDevtools initialIsOpen={false} />
-        ) : null}
-      </Suspense>
-      <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
-        <UiLabelsProvider labels={uiLabels}>
-          <TooltipProvider delay={500} glide={false}>
-            <NuqsAdapter>
-              {children}
-              {POSTHOG_PROJECT_TOKEN ? (
-                <Suspense fallback={null}>
-                  <PostHogIdentity />
-                </Suspense>
-              ) : null}
-            </NuqsAdapter>
-            <Toaster position="bottom-right" />
-            <Suspense fallback={null}>
-              {isClient ? <DatabuddyAnalytics /> : null}
-            </Suspense>
-          </TooltipProvider>
-        </UiLabelsProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <FrameworkProvider Image={Image} Link={Link}>
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={null}>
+          {isClient && ReactQueryDevtools ? (
+            <ReactQueryDevtools initialIsOpen={false} />
+          ) : null}
+        </Suspense>
+        <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
+          <UiLabelsProvider labels={uiLabels}>
+            <TooltipProvider delay={500} glide={false}>
+              <NuqsAdapter>
+                {children}
+                {POSTHOG_PROJECT_TOKEN ? (
+                  <Suspense fallback={null}>
+                    <PostHogIdentity />
+                  </Suspense>
+                ) : null}
+              </NuqsAdapter>
+              <Toaster position="bottom-right" />
+              <Suspense fallback={null}>
+                {isClient ? <DatabuddyAnalytics /> : null}
+              </Suspense>
+            </TooltipProvider>
+          </UiLabelsProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </FrameworkProvider>
   );
 }

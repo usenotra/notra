@@ -10,8 +10,8 @@ import {
   identifyServerGroup,
   setServerPersonProperties,
 } from "@notra/posthog/server";
-import { after } from "next/server";
 
+import { afterResponse as after } from "@/lib/framework/after-response";
 import type {
   IdentifyOrganizationGroupInput,
   IdentifyProjectGroupInput,
@@ -35,8 +35,6 @@ function scheduleCapture(capture: () => void): void {
   try {
     after(deliver);
   } catch {
-    // CLI/background callers have no Next lifetime to extend. Delivery is
-    // best effort there; neither a capture throw nor a rejection escapes.
     void deliver();
   }
 }

@@ -8,8 +8,8 @@ import type {
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { tween } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";

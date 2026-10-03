@@ -1,5 +1,5 @@
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useBriefStatusLabels(): Record<GeoContentBriefStatus, string> {
   const tLabels = useTranslations("common.labels");

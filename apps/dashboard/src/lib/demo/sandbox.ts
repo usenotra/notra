@@ -27,7 +27,6 @@ import {
   type SQL,
   TransactionRollbackError,
 } from "drizzle-orm";
-import { after } from "next/server";
 
 import {
   DEMO_ANONYMOUS_ID_LENGTH,
@@ -54,6 +53,7 @@ import {
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
 import { rebaseDemoSandbox, shouldRebaseDemoSandbox } from "@/lib/demo/rebase";
 import { seedDemoWorkspace } from "@/lib/demo/seed/workspace";
+import { afterResponse as after } from "@/lib/framework/after-response";
 import type {
   CreateDemoSandboxInput,
   DemoOrganizationInput,

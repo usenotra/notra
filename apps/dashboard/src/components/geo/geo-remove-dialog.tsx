@@ -10,7 +10,7 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { GeoRemoveDialogProps } from "@/types/geo";
 

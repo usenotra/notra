@@ -8,7 +8,7 @@ import {
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ChartSparkline } from "@/components/charts/chart-sparkline";
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";

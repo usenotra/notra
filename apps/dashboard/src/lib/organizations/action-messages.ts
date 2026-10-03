@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
+import { getTranslations } from "@/lib/i18n/server";
 import type { OrganizationActionMessageKey } from "@/types/organizations/action-messages";
 
 export const organizationActionMessage = (key: OrganizationActionMessageKey) =>

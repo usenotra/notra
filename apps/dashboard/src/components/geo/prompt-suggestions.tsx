@@ -12,8 +12,8 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useLocale, useTranslations } from "next-intl";
 import { type RefObject, useRef, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptSuggestionSheet } from "@/components/geo/prompt-suggestion-sheet";

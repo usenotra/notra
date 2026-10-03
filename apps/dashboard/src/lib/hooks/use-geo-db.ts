@@ -19,9 +19,9 @@ import {
   useDbClient,
   useLiveQuery,
 } from "@tanstack/react-db";
-import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {

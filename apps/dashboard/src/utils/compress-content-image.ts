@@ -1,6 +1,5 @@
-import "server-only";
-import libheif from "libheif-js/wasm-bundle";
-import sharp from "sharp";
+import "@tanstack/react-start/server-only";
+import type { Metadata } from "sharp";
 
 import {
   CONTENT_IMAGE_FALLBACK_MAX_EDGE,
@@ -46,11 +45,18 @@ function mimeFromFormat(
   return FORMAT_MIME[format as keyof typeof FORMAT_MIME] ?? null;
 }
 
+// sharp (native) and libheif (WASM) load on first use; this module reaches the
+// shared oRPC router, so static imports would cost every server cold start.
+const loadSharp = () => import("sharp").then((module) => module.default);
+const loadLibheif = () =>
+  import("libheif-js/wasm-bundle").then((module) => module.default);
+
 async function encode(
   bytes: Uint8Array,
   mimeType: ContentImageMimeType,
   maxEdge: number | null
 ) {
+  const sharp = await loadSharp();
   let image = sharp(bytes, {
     limitInputPixels: MAX_CONTENT_IMAGE_PIXELS,
   }).rotate();
@@ -79,6 +85,7 @@ async function encode(
 // Decode the primary image, including grids, using an Embind pointer and a squared-width pixel cap before releasing native state.
 async function decodeContentHeic(bytes: Uint8Array): Promise<Buffer> {
   validateHeicCodedPixels(bytes);
+  const [libheif, sharp] = await Promise.all([loadLibheif(), loadSharp()]);
   const context = libheif.heif_context_alloc();
   if (!context) {
     throw new Error("Could not open HEIC image");
@@ -142,9 +149,8 @@ export async function compressContentImage(bytes: Uint8Array): Promise<{
     source = await decodeContentHeic(bytes);
   }
 
-  let metadata: Awaited<
-    ReturnType<ReturnType<typeof sharp>["metadata"]>
-  > | null = null;
+  const sharp = await loadSharp();
+  let metadata: Metadata | null = null;
   try {
     metadata = await sharp(source, {
       limitInputPixels: MAX_CONTENT_IMAGE_PIXELS,

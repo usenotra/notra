@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { generateGeoPersonas } from "@notra/geo-core/geo/personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Effect } from "effect";

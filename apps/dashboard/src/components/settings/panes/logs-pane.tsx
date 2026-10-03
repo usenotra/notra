@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import {
   parseAsInteger,
   parseAsString,
@@ -9,6 +8,7 @@ import {
   useQueryState,
 } from "nuqs";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useLogColumns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
 import { DataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";

@@ -36,10 +36,10 @@ function timedPrefetch<T>(query: string, run: () => Promise<T>) {
 }
 
 /**
- * Starts the data needed above the fold on the dashboard home page while the
- * server is already rendering it. Pending queries are dehydrated, so the shell
- * can stream immediately and the browser reuses the work instead of starting a
- * projects request followed by a second content request.
+ * Loads the dashboard home data on the server. The route streams, so the
+ * shell never waits for it; the home body is awaited so it is part of the
+ * server HTML, while the projects and recents queries are dehydrated pending
+ * and the browser reuses them instead of starting its own requests.
  */
 export async function dehydrateDashboardHomeQueries(
   organizationId: string,
@@ -77,20 +77,24 @@ export async function dehydrateDashboardHomeQueries(
       async () => (await client.geo.projectsList(organizationInput)).projects
     ),
   });
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.content.home.get.queryOptions({ input: homeInput }),
-    queryFn: timedPrefetch("content.home.get", () =>
-      client.content.home.get(homeInput)
-    ),
-  });
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.content.activeGenerations.list.queryOptions({
-      input: organizationInput,
+  // The home body is awaited (the route streams, so the shell does not wait)
+  // and renders in the server HTML; sidebar data below stays pending.
+  const homeBody = Promise.all([
+    queryClient.prefetchQuery({
+      ...dashboardOrpc.content.home.get.queryOptions({ input: homeInput }),
+      queryFn: timedPrefetch("content.home.get", () =>
+        client.content.home.get(homeInput)
+      ),
     }),
-    queryFn: timedPrefetch("content.activeGenerations.list", () =>
-      client.content.activeGenerations.list(organizationInput)
-    ),
-  });
+    queryClient.prefetchQuery({
+      ...dashboardOrpc.content.activeGenerations.list.queryOptions({
+        input: organizationInput,
+      }),
+      queryFn: timedPrefetch("content.activeGenerations.list", () =>
+        client.content.activeGenerations.list(organizationInput)
+      ),
+    }),
+  ]);
   prefetchRecentPostsQuery(
     queryClient,
     (input) =>
@@ -98,5 +102,6 @@ export async function dehydrateDashboardHomeQueries(
     organizationId,
     projectId
   );
+  await homeBody;
   return dehydrate(queryClient);
 }

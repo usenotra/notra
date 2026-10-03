@@ -1,4 +1,44 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const signOutServerFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => {
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid action arguments");
+    }
+    return data as Parameters<typeof signOutActionImpl>;
+  })
+  .handler(({ data }) => signOutActionImpl(...data));
+export const signOutAction = (...data: Parameters<typeof signOutActionImpl>) =>
+  signOutServerFn({ data });
+
+const updateUserServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof updateUserActionImpl>) => data)
+  .handler(({ data }) => updateUserActionImpl(...data));
+export const updateUserAction = (
+  ...data: Parameters<typeof updateUserActionImpl>
+) => updateUserServerFn({ data });
+
+const deleteUserServerFn = createServerFn({ method: "POST" }).handler(() =>
+  deleteUserActionImpl()
+);
+export const deleteUserAction = () => deleteUserServerFn();
+
+const requestPasswordResetServerFn = createServerFn({ method: "POST" }).handler(
+  () => requestPasswordResetActionImpl()
+);
+export const requestPasswordResetAction = () => requestPasswordResetServerFn();
+
+const listAccountsServerFn = createServerFn({ method: "POST" }).handler(() =>
+  listAccountsActionImpl()
+);
+export const listAccountsAction = () => listAccountsServerFn();
+
+const unlinkAccountServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof unlinkAccountActionImpl>) => data)
+  .handler(({ data }) => unlinkAccountActionImpl(...data));
+export const unlinkAccountAction = (
+  ...data: Parameters<typeof unlinkAccountActionImpl>
+) => unlinkAccountServerFn({ data });
 
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
@@ -9,10 +49,11 @@ import {
   updateUserInputSchema,
 } from "@notra/schemas/dashboard/auth/user-actions";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { getWorkOS, signOut, withAuth } from "@workos-inc/authkit-nextjs";
+import { redirect } from "@tanstack/react-router";
+import { getWorkOS } from "@workos/authkit-session";
+import { getAuthKitContext } from "@workos/authkit-tanstack-react-start";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { redirect } from "next/navigation";
 
 import {
   DEMO_DISABLED_MESSAGE,
@@ -26,6 +67,7 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { clearSignedCookie } from "@/lib/auth/signed-cookie";
+import { signOutAuthSession } from "@/lib/auth/workos";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
@@ -44,19 +86,19 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
     catch: (cause) => new ActionFailure({ message, cause }),
   });
 
-export async function signOutAction(options?: SignOutActionOptions) {
+async function signOutActionImpl(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
   await clearLocaleCookie();
   // Leaving the public demo drops the sandbox cookie; the sandbox itself
   // expires on its own.
   if (isDemoMode()) {
     await clearSignedCookie(DEMO_SESSION_COOKIE);
-    redirect(DEMO_EXIT_URL);
+    throw redirect({ href: DEMO_EXIT_URL });
   }
-  await signOut(parsed.success ? parsed.data : undefined);
+  await signOutAuthSession(parsed.success ? parsed.data : undefined);
 }
 
-export async function updateUserAction(
+async function updateUserActionImpl(
   rawInput: UpdateUserInput
 ): Promise<ActionResult<SessionUser>> {
   return runAction(
@@ -137,7 +179,7 @@ export async function updateUserAction(
   );
 }
 
-export async function deleteUserAction(): Promise<
+async function deleteUserActionImpl(): Promise<
   ActionResult<{ deleted: boolean }>
 > {
   return runAction(
@@ -149,14 +191,17 @@ export async function deleteUserAction(): Promise<
       }
       const session = yield* requireSession();
 
-      const { sessionId } = yield* tryAction(
-        () => withAuth(),
+      const auth = yield* tryAction(
+        async () => getAuthKitContext().auth(),
         "Failed to read auth session"
       );
 
-      if (sessionId) {
+      if (auth.user && auth.sessionId) {
         yield* tryAction(
-          () => getWorkOS().userManagement.revokeSession({ sessionId }),
+          () =>
+            getWorkOS().userManagement.revokeSession({
+              sessionId: auth.sessionId,
+            }),
           "Failed to revoke WorkOS session"
         ).pipe(
           Effect.catch((error) =>
@@ -211,7 +256,7 @@ export async function deleteUserAction(): Promise<
   );
 }
 
-export async function requestPasswordResetAction(): Promise<
+async function requestPasswordResetActionImpl(): Promise<
   ActionResult<{ sent: boolean }>
 > {
   return runAction(
@@ -236,9 +281,7 @@ export async function requestPasswordResetAction(): Promise<
   );
 }
 
-export async function listAccountsAction(): Promise<
-  ActionResult<AccountInfo[]>
-> {
+async function listAccountsActionImpl(): Promise<ActionResult<AccountInfo[]>> {
   return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
@@ -262,7 +305,7 @@ export async function listAccountsAction(): Promise<
   );
 }
 
-export async function unlinkAccountAction(
+async function unlinkAccountActionImpl(
   rawInput: UnlinkAccountInput
 ): Promise<ActionResult<{ removed: boolean }>> {
   return runAction(

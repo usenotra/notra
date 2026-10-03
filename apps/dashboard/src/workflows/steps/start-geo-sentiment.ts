@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { start } from "workflow/api";
 

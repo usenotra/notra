@@ -4,14 +4,14 @@ import { SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { FEEDBACK_MAX_MESSAGE_LENGTH } from "@/constants/feedback";
+import { usePathname } from "@/lib/navigation";
 import { dashboardOrpcClient } from "@/lib/orpc/client";
 import type {
   FeedbackFormProps,

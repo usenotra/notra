@@ -1,47 +1,58 @@
-import { describe, expect, test } from "bun:test";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
-import type { ProxyMatcher } from "next/dist/build/analysis/get-page-static-info";
+import { dashboardAuthMiddleware } from "../src/middleware/auth";
 
-const MATCHER_LITERAL_PATTERN = /matcher:\s*\[\s*("(?:[^"\\]|\\.)*")/;
+const originalEnvironment = { ...process.env };
 
-// Not part of Next's public types, but it is the function the build uses to
-// compile `config.matcher`, so the test sees exactly what production sees.
-const { getMiddlewareMatchers } = createRequire(import.meta.url)(
-  "next/dist/build/analysis/get-page-static-info"
-) as {
-  getMiddlewareMatchers: (
-    matcher: string[],
-    nextConfig: { basePath: string }
-  ) => ProxyMatcher[];
-};
+beforeEach(() => {
+  Reflect.set(process.env, "NODE_ENV", "development");
+  process.env.DEV_AUTH_ENABLED = "true";
+  delete process.env.DEV_AUTH_EMAIL;
+  delete process.env.WORKOS_API_KEY;
+  delete process.env.NOTRA_DEMO_MODE;
+});
 
-/**
- * Next only honors a literal matcher, so the literal is read from source.
- * Importing proxy.ts would instantiate AuthKit and needs WorkOS credentials.
- */
-async function loadProxyMatcher(): Promise<RegExp> {
-  const source = await readFile(
-    new URL("../src/proxy.ts", import.meta.url),
-    "utf8"
-  );
-  const literal = source.match(MATCHER_LITERAL_PATTERN)?.[1];
-  if (!literal) {
-    throw new Error("Could not find the matcher literal in src/proxy.ts");
+afterEach(() => {
+  for (const name of [
+    "NODE_ENV",
+    "DEV_AUTH_ENABLED",
+    "DEV_AUTH_EMAIL",
+    "WORKOS_API_KEY",
+    "NOTRA_DEMO_MODE",
+  ]) {
+    const value = originalEnvironment[name];
+    if (value === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = value;
+    }
   }
-  const [compiled] = getMiddlewareMatchers([JSON.parse(literal)], {
-    basePath: "",
+});
+
+async function requestThroughMiddleware(pathname: string) {
+  const handler = dashboardAuthMiddleware.options.server;
+  if (!handler) {
+    throw new Error("Missing dashboard authentication middleware");
+  }
+  const request = new Request(`http://localhost:3000${pathname}`, {
+    headers: { host: "localhost:3000" },
   });
-  if (!compiled) {
-    throw new Error("Next did not compile the proxy matcher");
-  }
-  return new RegExp(compiled.regexp);
+  const result = await handler({
+    request,
+    pathname,
+    handlerType: "router",
+    context: undefined,
+    next: async () => ({
+      request,
+      pathname,
+      context: undefined,
+      response: new Response("downstream", { status: 202 }),
+    }),
+  } as Parameters<typeof handler>[0]);
+  return result instanceof Response ? result : result.response;
 }
 
-const matcher = await loadProxyMatcher();
-
-describe("proxy matcher", () => {
+describe("native authentication middleware route boundaries", () => {
   test.each([
     "/api/webhooks/github/org/integration/repository",
     "/api/webhooks/workos",
@@ -56,12 +67,19 @@ describe("proxy matcher", () => {
     "/.well-known/workflow/v1/flow",
     "/ingest/i/v0/e/",
     "/ingest/static/array.js",
-    "/_next/static/chunks/main.js",
+    "/assets/dashboard.js",
+    "/assets/dashboard.css",
+    "/api/image",
     "/favicon.ico",
     "/design.md",
-  ])("skips AuthKit for machine and static route %s", (path) => {
-    expect(matcher.test(path)).toBe(false);
-  });
+  ])(
+    "bypasses session authentication for machine or static route %s",
+    async (path) => {
+      const response = await requestThroughMiddleware(path);
+      expect(response.status).toBe(202);
+      expect(await response.text()).toBe("downstream");
+    }
+  );
 
   test.each([
     "/",
@@ -73,7 +91,6 @@ describe("proxy matcher", () => {
     "/api/session",
     "/api/autumn/check",
     "/.well-known/oauth-authorization-server",
-    // Look-alikes of excluded families must keep the proxy.
     "/api/webhooksx",
     "/api/geo/ingestion",
     "/api/geo/ingest-preview",
@@ -85,7 +102,15 @@ describe("proxy matcher", () => {
     "/ingestion-settings",
     "/design.md-team",
     "/design.mdx",
-  ])("runs AuthKit for session route %s", (path) => {
-    expect(matcher.test(path)).toBe(true);
-  });
+    "/assets-team",
+    "/api/images",
+    "/api/image-preview",
+  ])(
+    "retains authentication for session route or excluded-family look-alike %s",
+    async (path) => {
+      const response = await requestThroughMiddleware(path);
+      expect(response.status).toBe(403);
+      expect(await response.text()).toContain("DEV_AUTH_EMAIL");
+    }
+  );
 });

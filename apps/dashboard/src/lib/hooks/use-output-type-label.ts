@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { AUTOMATION_OUTPUT_TYPES } from "@/constants/automation-output-types";
 

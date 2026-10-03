@@ -1,9 +1,13 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Dashboard
 
-# This is NOT the Next.js you know
+This application uses TanStack Start, Vite, and Nitro. Route registration lives in
+`src/routes` and `src/router.tsx`; `src/app` contains retained feature components
+and request handlers imported by those routes, not filesystem route registration.
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+Use `@/lib/navigation`, `@/components/framework/link`,
+`@/components/framework/image`, and `@/utils/lazy-component` directly. Localization
+uses `use-intl` in components and `@/lib/i18n/server` on the server.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+Run `bun run test`, `bun run check-types`, and `bun run build` from this directory.
+See `docs/migration-testing.md` for isolated browser and data checks. Do not use
+production credentials or customer data for verification.

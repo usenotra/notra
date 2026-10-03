@@ -13,8 +13,8 @@ import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Input } from "@notra/ui/components/ui/input";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";

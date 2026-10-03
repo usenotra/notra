@@ -7,7 +7,7 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { PurposeBadge } from "@/components/geo/purpose-badge";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";

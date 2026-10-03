@@ -12,11 +12,11 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
+import Image from "@/components/framework/image";
 import {
   ACTIVITY_AUTO_CLOSE_DELAY_MS,
   ACTIVITY_CONTENT_CLASSNAME,

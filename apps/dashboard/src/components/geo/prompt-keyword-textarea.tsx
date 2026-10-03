@@ -12,7 +12,6 @@ import {
   HOVER_CARD_DELAY_MS,
 } from "@notra/ui/constants/hover-card";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
-import { useLocale, useTranslations } from "next-intl";
 import {
   forwardRef,
   useEffect,
@@ -22,6 +21,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { PromptKeywordTextareaProps } from "@/types/geo";

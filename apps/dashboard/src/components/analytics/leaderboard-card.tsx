@@ -14,10 +14,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { PlatformTabs } from "@/components/analytics/platform-tabs";
 import { ProviderIcon } from "@/components/analytics/provider-icon";
@@ -41,6 +40,7 @@ import {
   useLeaderboardRange,
   useUntrackAccount,
 } from "@/lib/hooks/use-social-analytics";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { LeaderboardCardProps, LeaderboardEntry } from "@/types/analytics";
 import {

@@ -13,7 +13,9 @@ const findFirst =
 mock.module("@notra/db/drizzle", () => ({
   db: { query: { projects: { findFirst } } },
 }));
-mock.module("next/headers", () => ({ cookies: async () => ({}) }));
+mock.module("@/utils/server-cookies", () => ({
+  readServerCookies: () => ({}),
+}));
 mock.module("@/utils/cookies", () => ({
   getLastVisitedProject: () => "cookie-project",
 }));

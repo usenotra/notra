@@ -6,7 +6,7 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { ShelfTicketBadge } from "@/components/geo/shelf/shelf-ticket-badge";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";

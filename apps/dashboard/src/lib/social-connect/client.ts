@@ -1,4 +1,4 @@
-import "server-only";
+import "@tanstack/react-start/server-only";
 import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 import PostForMe from "post-for-me";
 

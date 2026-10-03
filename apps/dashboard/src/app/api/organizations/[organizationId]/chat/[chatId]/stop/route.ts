@@ -9,8 +9,6 @@ import {
 import { realtime } from "@notra/ai/realtime";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
@@ -20,7 +18,7 @@ interface RouteContext {
   params: Promise<{ organizationId: string; chatId: string }>;
 }
 
-export async function POST(request: NextRequest, { params }: RouteContext) {
+export async function POST(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -30,7 +28,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   const chatIdParse = chatIdSchema.safeParse(chatId);
   if (!chatIdParse.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid chat ID", details: chatIdParse.error.issues },
       { status: 400 }
     );
@@ -44,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       0,
       Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
     );
-    return NextResponse.json(
+    return Response.json(
       { error: "Rate limit exceeded" },
       {
         status: 429,
@@ -56,7 +54,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const safeChatId = chatIdParse.data;
   const session = await getChatSession(organizationId, safeChatId);
   if (!session) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
   const [, activeStreamId] = await Promise.all([
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   });
 
   if (!activeStreamId) {
-    return NextResponse.json({ ok: true, aborted: false });
+    return Response.json({ ok: true, aborted: false });
   }
 
   await setChatAbortFlag(organizationId, safeChatId, activeStreamId);
@@ -106,5 +104,5 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   await clearActiveChatStream(organizationId, safeChatId, activeStreamId);
 
-  return NextResponse.json({ ok: true, aborted: true });
+  return Response.json({ ok: true, aborted: true });
 }

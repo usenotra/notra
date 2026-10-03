@@ -31,8 +31,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptKeywordTextarea } from "@/components/geo/prompt-keyword-textarea";

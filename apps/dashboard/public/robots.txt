@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /rpc/
+Disallow: /.well-known/
+Disallow: /_serverFn/
+Disallow: /assets/

@@ -16,8 +16,8 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@notra/ui/components/ui/combobox";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Twemoji } from "@/components/geo/twemoji";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";

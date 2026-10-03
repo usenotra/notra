@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { cn } from "@notra/ui/lib/utils";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { DAY_MS } from "@/constants/analytics-weekdays";
 import {

@@ -31,7 +31,7 @@ if (process.env.NOTRA_GEO_UPGRADE_CLIENT_TEST !== "1") {
 
   let organization = { id: "org-fixture", slug: "fixture" };
   const push = mock();
-  mock.module("next/navigation", () => ({
+  mock.module("@/lib/navigation", () => ({
     usePathname: () => `/${organization.slug}/geo/gaps`,
     useRouter: () => ({ push }),
   }));

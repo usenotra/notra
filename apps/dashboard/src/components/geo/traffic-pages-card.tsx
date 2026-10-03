@@ -24,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useLocale, useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";

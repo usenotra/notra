@@ -17,10 +17,9 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -56,6 +55,7 @@ import {
 import { useGeoPromptsDb, useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { usePrefetchGeoLatestScanRun } from "@/lib/hooks/use-geo-scan-history";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { PromptsPageTabCountProps } from "@/types/geo";
 import { formatCount } from "@/utils/format";

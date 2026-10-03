@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { WebhookStatus } from "@/components/webhooks/status";
 import type { WebhookDeliverySummaryProps } from "@/types/webhooks/outbound";

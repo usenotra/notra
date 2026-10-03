@@ -19,9 +19,9 @@ import {
 } from "@notra/ui/components/ui/pagination";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
-import { useFormatter, useNow, useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useFormatter, useNow, useTranslations } from "use-intl";
 
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";

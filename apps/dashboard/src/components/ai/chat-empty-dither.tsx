@@ -3,7 +3,6 @@
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -18,6 +17,7 @@ import {
   CHAT_EMPTY_DITHER_TYPE,
 } from "@/constants/chat-empty-dither";
 import type { ChatEmptyDitherProps } from "@/types/components/chat-empty-dither";
+import dynamic from "@/utils/lazy-component";
 
 const Dithering = dynamic(
   () =>

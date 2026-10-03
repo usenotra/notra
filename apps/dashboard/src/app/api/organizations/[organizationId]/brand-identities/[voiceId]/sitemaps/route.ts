@@ -1,7 +1,5 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { createSitemapSchema } from "@notra/schemas/dashboard/sitemap";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
@@ -14,7 +12,7 @@ interface RouteContext {
   params: Promise<{ organizationId: string; voiceId: string }>;
 }
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { organizationId, voiceId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -24,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const brandIdentity = await getSitemapBrandIdentity(organizationId, voiceId);
   if (!brandIdentity) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Brand identity not found" },
       { status: 404 }
     );
@@ -32,16 +30,16 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   try {
     const sitemaps = await listStoredSitemaps(organizationId, voiceId);
-    return NextResponse.json({ sitemaps });
+    return Response.json({ sitemaps });
   } catch {
-    return NextResponse.json(
+    return Response.json(
       { error: "Sitemap storage is unavailable" },
       { status: 503 }
     );
   }
 }
 
-export async function POST(request: NextRequest, { params }: RouteContext) {
+export async function POST(request: Request, { params }: RouteContext) {
   const { organizationId, voiceId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -51,10 +49,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   const json = await readJsonRequest(request);
   if (!json.ok) {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 }
-    );
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   const parseResult = createSitemapSchema.safeParse({
@@ -64,7 +59,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   });
 
   if (!parseResult.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid request body", details: parseResult.error.issues },
       { status: 400 }
     );
@@ -72,7 +67,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   const brandIdentity = await getSitemapBrandIdentity(organizationId, voiceId);
   if (!brandIdentity) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Brand identity not found" },
       { status: 404 }
     );
@@ -102,11 +97,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       },
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return Response.json(result, { status: 201 });
   } catch {
-    return NextResponse.json(
-      { error: "Failed to crawl sitemap" },
-      { status: 502 }
-    );
+    return Response.json({ error: "Failed to crawl sitemap" }, { status: 502 });
   }
 }

@@ -5,7 +5,7 @@ import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
 
 import { Loader2Icon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@notra/ui/components/framework-provider";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useAuthFlow } from "../../../hooks/use-auth-flow";
 import type {

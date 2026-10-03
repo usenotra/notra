@@ -1,6 +1,5 @@
-import { getTranslations } from "next-intl/server";
-
 import type { AnalyticsRouterError } from "@/lib/analytics/errors";
+import { getTranslations } from "@/lib/i18n/server";
 import { toUnexpectedError } from "@/lib/orpc/effect";
 import { badRequest, notFound } from "@/lib/orpc/utils/errors";
 

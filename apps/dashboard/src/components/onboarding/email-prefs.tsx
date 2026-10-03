@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Checkbox } from "@/components/motion/checkbox";
 import { ONBOARDING_EMAIL_PREFS } from "@/constants/onboarding";

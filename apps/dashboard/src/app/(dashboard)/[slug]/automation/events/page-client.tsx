@@ -12,9 +12,9 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { BrandVoiceCell } from "@/components/automation/brand-voice-cell";
 import { EventsPageSkeleton } from "@/components/automation/events-skeleton";

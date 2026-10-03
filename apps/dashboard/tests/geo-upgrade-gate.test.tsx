@@ -14,7 +14,7 @@ mock.module("@/components/providers/organization-provider", () => ({
     getOrganization: () => undefined,
   }),
 }));
-mock.module("next/navigation", () => ({
+mock.module("@/lib/navigation", () => ({
   usePathname: () => "/fixture/geo/gaps",
   useRouter: () => ({ push: mock() }),
 }));

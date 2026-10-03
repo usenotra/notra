@@ -1,6 +1,3 @@
-import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-
 import {
   LAST_VISITED_ORGANIZATION_COOKIE,
   LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
@@ -10,9 +7,8 @@ import {
   SIDEBAR_MODE_COOKIE_MAX_AGE,
 } from "@/constants/cookies";
 import type { SidebarMode } from "@/types/components/nav";
+import type { CookieJar } from "@/types/cookies";
 import { isSidebarMode } from "@/utils/nav";
-
-type CookieJar = RequestCookies | ReadonlyRequestCookies;
 
 function parseLastVisitedProject(
   value: string | undefined,

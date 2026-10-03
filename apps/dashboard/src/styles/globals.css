@@ -10,6 +10,29 @@
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  --font-inter: "Inter Variable", "Inter Fallback", Arial, sans-serif;
+  --font-geist-mono: "Geist Mono Variable", "Geist Mono Fallback", monospace;
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+  size-adjust: 107.12%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback";
+  src: local("Arial");
+  ascent-override: 74.67%;
+  descent-override: 21.92%;
+  line-gap-override: 0%;
+  size-adjust: 134.59%;
+}
+
 /*
  * `text-geo-*` and `bg-geo-*\/10` used to be hand-written here. The
  * `--color-geo-*` theme entries in @notra/ui/status.css generate both, so the

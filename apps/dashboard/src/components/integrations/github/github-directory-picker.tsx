@@ -30,8 +30,8 @@ import {
 } from "@notra/ui/components/ui/radio-group";
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { type FormEvent, type ReactNode, useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";

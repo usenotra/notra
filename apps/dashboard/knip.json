@@ -1,10 +1,20 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "src/start.ts",
+    "src/client.tsx",
+    "src/router.tsx",
+    "src/routes/**/*.{ts,tsx}",
+    "src/app/**/route.ts",
     "src/app/design-system/**/page.dev.tsx",
-    "src/app/design-system/layout.dev.tsx",
     "scripts/*.ts",
+    "scripts/migration/*.mjs",
+    "scripts/migration/utils/*.d.mts",
     "tests/fixtures/*.fixture.{ts,tsx}",
+    "tests/fixtures/workflow-runtime/vite.config.ts",
+    "tests/fixtures/workflow-runtime/src/probe.ts",
+    "tests/migration/*.mjs",
+    "tests/migration/{constants,utils}/*.d.mts",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"
   ],
@@ -14,9 +24,12 @@
   "ignoreDependencies": [
     "@ai-sdk/code-mode",
     "@ai-sdk/devtools",
+    "@cursor/sdk",
+    "@resvg/resvg-js",
     "tailwindcss"
   ],
   "ignoreIssues": {
+    "src/utils/framework-workflow-plugin.test.ts": ["unlisted"],
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],
     "src/components/content/content-card.tsx": ["exports"],

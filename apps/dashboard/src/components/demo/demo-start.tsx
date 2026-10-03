@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import type { DemoSandboxCreateResponse } from "@/types/demo";
 import { resolveDemoLanding } from "@/utils/demo-return-to";

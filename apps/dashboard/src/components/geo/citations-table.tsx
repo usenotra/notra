@@ -15,8 +15,8 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { useLocale, useNow, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations, useNow } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";

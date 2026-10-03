@@ -11,8 +11,8 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useAutumnClient } from "autumn-js/react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";

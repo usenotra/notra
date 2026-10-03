@@ -3,10 +3,10 @@ import { organizationNotificationSettings } from "@notra/db/schema";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import { updateNotificationSettingsInputSchema } from "@notra/schemas/dashboard/notification-settings";
 import { eq } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 
 import { forbidden } from "../utils/errors";

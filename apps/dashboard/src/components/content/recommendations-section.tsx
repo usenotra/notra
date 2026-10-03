@@ -7,7 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { markdownToElements } from "@/utils/inline-markdown";
 

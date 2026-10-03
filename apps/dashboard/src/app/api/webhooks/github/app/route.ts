@@ -1,11 +1,11 @@
 import { withEvlog } from "@notra/ai/evlog";
 import { ingestGitHubAppMentionWebhook } from "@notra/ai/utils/github-mention-ingest";
-import { after, type NextRequest } from "next/server";
 
+import { afterResponse as after } from "@/lib/framework/after-response";
 import { writeMentionWebhookLog } from "@/lib/webhooks/github-mention-log";
 import { startGitHubMentionRun } from "@/lib/workflows/start";
 
-export const POST = withEvlog(async (request: NextRequest) => {
+export const POST = withEvlog(async (request: Request) => {
   const rawBody = await request.text();
   const deliveryId = request.headers.get("x-github-delivery");
   const result = await ingestGitHubAppMentionWebhook({

@@ -5,7 +5,7 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Checkbox } from "@/components/motion/checkbox";
 import { cn } from "@/lib/utils";

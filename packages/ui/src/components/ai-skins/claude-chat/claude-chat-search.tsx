@@ -17,7 +17,7 @@ import {
 import { ClaudeChatSpinner } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-spinner";
 import { cn } from "@notra/ui/lib/utils";
 import { isReservedExampleDomain } from "@notra/utils/google-favicon";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 

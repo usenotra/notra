@@ -58,9 +58,6 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
-import Link from "next/link";
 import {
   type Dispatch,
   type KeyboardEvent,
@@ -77,9 +74,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import { Composer } from "@/components/composer/composer-shell";
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";

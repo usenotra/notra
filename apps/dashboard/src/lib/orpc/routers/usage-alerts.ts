@@ -3,9 +3,9 @@ import {
   autumn,
 } from "@notra/ai/billing/autumn";
 import { updateUsageAlertsInputSchema } from "@notra/schemas/dashboard/usage-alerts";
-import { getTranslations } from "next-intl/server";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { forbidden, serviceUnavailable } from "@/lib/orpc/utils/errors";
 import { setDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";

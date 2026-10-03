@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {

@@ -1,7 +1,6 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { socialConnectCallbackQuerySchema } from "@notra/schemas/dashboard/social-accounts";
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
 
 import {
   INTEGRATION_AUTH_KINDS,
@@ -9,6 +8,7 @@ import {
 } from "@/constants/integration-analytics";
 import { SOCIAL_CONNECTED_PARAMS } from "@/constants/social-connect";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { redirectResponse } from "@/lib/auth/http";
 import { getServerSession } from "@/lib/auth/session";
 import {
   trackIntegrationConnected,
@@ -30,7 +30,7 @@ function readAccountIds(searchParams: URLSearchParams): string[] {
   return accountIds;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   const { searchParams } = new URL(request.url);
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!parsed.success) {
-    return NextResponse.redirect(`${baseUrl}/?error=invalid_callback`);
+    return redirectResponse(`${baseUrl}/?error=invalid_callback`);
   }
 
   const failed =
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         errorCode: parsed.data.error || "connection_failed",
       });
     }
-    return NextResponse.redirect(`${baseUrl}/?error=connection_failed`);
+    return redirectResponse(`${baseUrl}/?error=connection_failed`);
   }
 
   const { user } = await getServerSession({ headers: request.headers });
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
           errorCode: result.code,
         });
       }
-      return NextResponse.redirect(
+      return redirectResponse(
         `${baseUrl}/?error=${encodeURIComponent(result.code)}`
       );
     }
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     if (result.selectionToken) {
       const selectionUrl = new URL("/connect/linkedin", baseUrl);
       selectionUrl.searchParams.set("token", result.selectionToken);
-      return NextResponse.redirect(selectionUrl.toString());
+      return redirectResponse(selectionUrl.toString());
     }
 
     trackIntegrationConnected({
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
     const separator = callbackPath.includes("?") ? "&" : "?";
     const connectedParam = SOCIAL_CONNECTED_PARAMS[result.platform];
 
-    return NextResponse.redirect(
+    return redirectResponse(
       `${baseUrl}${callbackPath}${separator}${connectedParam}=true`
     );
   } catch (error) {
@@ -139,6 +139,6 @@ export async function GET(request: NextRequest) {
         errorCode: "callback_failed",
       });
     }
-    return NextResponse.redirect(`${baseUrl}/?error=callback_failed`);
+    return redirectResponse(`${baseUrl}/?error=callback_failed`);
   }
 }

@@ -22,7 +22,6 @@ import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { nanoid } from "nanoid";
-import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -31,6 +30,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { ContentDetailChatComposerProps } from "@/components/content/content-detail-chat-shell";

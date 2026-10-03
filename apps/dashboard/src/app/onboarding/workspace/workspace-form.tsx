@@ -19,9 +19,9 @@ import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { OnboardingEmailPrefs } from "@/components/onboarding/email-prefs";
 import { OrgLogoField } from "@/components/onboarding/org-logo-field";

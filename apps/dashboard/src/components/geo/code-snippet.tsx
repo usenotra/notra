@@ -3,10 +3,10 @@
 import { Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COPY_FEEDBACK_MS } from "@notra/geo-core/constants/geo";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { highlight } from "sugar-high";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";

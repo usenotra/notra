@@ -4,7 +4,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { NAV_GEO_LINKS, NAV_GEO_VISIBILITY_LINKS } from "@/constants/nav";
 import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";

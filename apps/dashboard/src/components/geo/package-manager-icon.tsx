@@ -1,5 +1,4 @@
-import Image from "next/image";
-
+import Image from "@/components/framework/image";
 import type { GeoPackageManagerIconProps } from "@/types/geo";
 
 export function GeoPackageManagerIcon({ manager }: GeoPackageManagerIconProps) {

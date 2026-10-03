@@ -40,8 +40,8 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Google } from "@notra/ui/components/ui/svgs/google";
-import { useLocale, useTranslations } from "next-intl";
 import { type MouseEvent, type ReactNode, useId, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ProjectLogo } from "@/components/geo/project-logo";

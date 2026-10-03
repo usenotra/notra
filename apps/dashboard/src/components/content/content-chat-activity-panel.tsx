@@ -38,8 +38,8 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { getToolName, isToolUIPart } from "ai";
-import { useTranslations } from "next-intl";
 import { Fragment, type ReactNode, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";

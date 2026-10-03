@@ -5,7 +5,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 import type { BrandIdentityWorkspaceProps } from "@/types/brand-identity";

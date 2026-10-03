@@ -4,10 +4,9 @@ import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { useListPlans } from "autumn-js/react";
-import { useFormatter, useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
 import { Button } from "@/components/button";
@@ -18,6 +17,7 @@ import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useOnboardingStatus } from "@/lib/hooks/use-onboarding";
+import { usePathname } from "@/lib/navigation";
 import {
   getProductPrice,
   groupBillingPlans,

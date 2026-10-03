@@ -6,9 +6,9 @@ import {
 } from "@notra/schemas/dashboard/integrations";
 import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
-import { useTranslations } from "next-intl";
 import { type FormEvent, useId } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubPublishingPathFieldsProps } from "@/types/integrations/github";

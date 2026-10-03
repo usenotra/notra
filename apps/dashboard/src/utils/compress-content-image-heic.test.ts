@@ -73,7 +73,7 @@ const limit = mock((pointer: number, maximumWidth: number) => {
   }
 });
 
-mock.module("server-only", () => ({}));
+mock.module("@tanstack/react-start/server-only", () => ({}));
 mock.module("libheif-js/wasm-bundle", () => ({
   default: {
     heif_context_alloc: alloc,

@@ -3,7 +3,6 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import type { ContextItem } from "@notra/ai/types/chat";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import {
   type ClipboardEvent,
   type KeyboardEvent,
@@ -15,6 +14,7 @@ import {
   useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useTranslations } from "use-intl";
 
 import { useChatQuote } from "@/components/chat/chat-quote";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";

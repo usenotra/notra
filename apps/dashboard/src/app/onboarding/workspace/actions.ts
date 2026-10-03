@@ -1,4 +1,47 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const isWorkspaceSlugAvailableServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof isWorkspaceSlugAvailableImpl>) => data)
+  .handler(({ data }) => isWorkspaceSlugAvailableImpl(...data));
+export const isWorkspaceSlugAvailable = (
+  ...data: Parameters<typeof isWorkspaceSlugAvailableImpl>
+) => isWorkspaceSlugAvailableServerFn({ data });
+
+const triggerOnboardingBrandAnalysisServerFn = createServerFn({
+  method: "POST",
+})
+  .validator(
+    (data: Parameters<typeof triggerOnboardingBrandAnalysisImpl>) => data
+  )
+  .handler(({ data }) => triggerOnboardingBrandAnalysisImpl(...data));
+export const triggerOnboardingBrandAnalysis = (
+  ...data: Parameters<typeof triggerOnboardingBrandAnalysisImpl>
+) => triggerOnboardingBrandAnalysisServerFn({ data });
+
+const triggerOnboardingAgentSetupServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof triggerOnboardingAgentSetupImpl>) => data)
+  .handler(({ data }) => triggerOnboardingAgentSetupImpl(...data));
+export const triggerOnboardingAgentSetup = (
+  ...data: Parameters<typeof triggerOnboardingAgentSetupImpl>
+) => triggerOnboardingAgentSetupServerFn({ data });
+
+const saveOnboardingAttributionServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof saveOnboardingAttributionImpl>) => data)
+  .handler(({ data }) => saveOnboardingAttributionImpl(...data));
+export const saveOnboardingAttribution = (
+  ...data: Parameters<typeof saveOnboardingAttributionImpl>
+) => saveOnboardingAttributionServerFn({ data });
+
+const saveOnboardingNotificationSettingsServerFn = createServerFn({
+  method: "POST",
+})
+  .validator(
+    (data: Parameters<typeof saveOnboardingNotificationSettingsImpl>) => data
+  )
+  .handler(({ data }) => saveOnboardingNotificationSettingsImpl(...data));
+export const saveOnboardingNotificationSettings = (
+  ...data: Parameters<typeof saveOnboardingNotificationSettingsImpl>
+) => saveOnboardingNotificationSettingsServerFn({ data });
 
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
@@ -18,11 +61,9 @@ import {
   onboardingWorkspaceFormFieldsSchema,
 } from "@notra/schemas/dashboard/onboarding/workspace";
 import { ORPCError } from "@orpc/server";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
-import { headers } from "next/headers";
-import { after } from "next/server";
 import { z } from "zod";
 
 import { ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS } from "@/constants/analytics-events";
@@ -36,6 +77,8 @@ import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getAuthSession } from "@/lib/auth/server";
 import { queueBrandAnalysisForOnboarding } from "@/lib/brand-analysis";
+import { afterResponse as after } from "@/lib/framework/after-response";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   ensureDefaultBrandIdentity,
   launchReservedOnboardingAgent,
@@ -61,7 +104,7 @@ import { ratelimit } from "@/utils/ratelimit";
 
 const ANALYSIS_LOCK_TTL_SECONDS = 60;
 
-export async function isWorkspaceSlugAvailable(slug: string): Promise<boolean> {
+async function isWorkspaceSlugAvailableImpl(slug: string): Promise<boolean> {
   const session = await getAuthSession();
   if (!session?.user) {
     throw new Error("Unauthorized");
@@ -144,7 +187,7 @@ async function runOnboardingAgentSetup({
   );
 }
 
-export async function triggerOnboardingBrandAnalysis(
+async function triggerOnboardingBrandAnalysisImpl(
   rawInput: OnboardingBrandAnalysisInput
 ) {
   const input = onboardingBrandAnalysisSchema.parse(rawInput);
@@ -243,7 +286,7 @@ export async function triggerOnboardingBrandAnalysis(
   return { success: true };
 }
 
-export async function triggerOnboardingAgentSetup(
+async function triggerOnboardingAgentSetupImpl(
   rawInput: TriggerOnboardingAgentSetupInput
 ): Promise<TriggerOnboardingAgentSetupResult> {
   const input = triggerOnboardingAgentSetupSchema.parse(rawInput);
@@ -318,7 +361,7 @@ const saveOnboardingAttributionSchema = z
   })
   .and(onboardingWorkspaceAttributionSchema);
 
-export async function saveOnboardingAttribution(
+async function saveOnboardingAttributionImpl(
   rawInput: SaveOnboardingAttributionInput
 ): Promise<SaveOnboardingAttributionResult> {
   const parsed = saveOnboardingAttributionSchema.safeParse(rawInput);
@@ -336,7 +379,7 @@ export async function saveOnboardingAttribution(
 
   try {
     const access = await assertOrganizationAccess({
-      headers: await headers(),
+      headers: getRequestHeaders(),
       organizationId: parsed.data.organizationId,
     });
     membershipRole = access.membership.role;
@@ -399,7 +442,7 @@ const saveOnboardingNotificationSettingsSchema = z
   })
   .and(onboardingNotificationPrefsSchema);
 
-export async function saveOnboardingNotificationSettings(
+async function saveOnboardingNotificationSettingsImpl(
   rawInput: SaveOnboardingNotificationSettingsInput
 ): Promise<SaveOnboardingNotificationSettingsResult> {
   const parsed = saveOnboardingNotificationSettingsSchema.safeParse(rawInput);
@@ -416,7 +459,7 @@ export async function saveOnboardingNotificationSettings(
 
   try {
     const access = await assertOrganizationAccess({
-      headers: await headers(),
+      headers: getRequestHeaders(),
       organizationId: parsed.data.organizationId,
     });
     membershipRole = access.membership.role;

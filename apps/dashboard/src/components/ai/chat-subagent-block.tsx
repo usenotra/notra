@@ -12,8 +12,8 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { ACTIVITY_CONTENT_CLASSNAME } from "@/constants/chat-activity";
 import {

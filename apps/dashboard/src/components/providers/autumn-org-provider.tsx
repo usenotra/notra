@@ -1,11 +1,11 @@
 "use client";
 
 import { AutumnProvider } from "autumn-js/react";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { AUTUMN_ORGANIZATION_HEADER } from "@/constants/billing";
 import { authClient } from "@/lib/auth/client";
+import { usePathname } from "@/lib/navigation";
 import type { AutumnOrgProviderProps } from "@/types/components/providers";
 import { getOrganizationSlugFromPathname } from "@/utils/organization-pathname";
 

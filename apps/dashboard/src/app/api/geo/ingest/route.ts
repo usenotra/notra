@@ -1,6 +1,7 @@
 import { handleGeoIngestRequest } from "@notra/geo-core/ingest/handler";
-import { after } from "next/server";
+
+import { afterResponse } from "@/lib/framework/after-response";
 
 export function POST(request: Request): Promise<Response> {
-  return handleGeoIngestRequest(request, after);
+  return handleGeoIngestRequest(request, afterResponse);
 }

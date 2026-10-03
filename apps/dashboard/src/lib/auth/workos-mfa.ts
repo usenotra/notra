@@ -1,5 +1,5 @@
 import type { TotpEnrollment } from "@notra/schemas/types/dashboard/auth";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 
 import { TOTP_FACTOR_TYPE, TOTP_ISSUER } from "@/constants/security";
 
