@@ -1,9 +1,12 @@
+import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
+
 import {
   GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS,
   GEO_TRAFFIC_LIVE_SETTLE_MS,
 } from "../constants/geo";
-import { publishGeoTrafficChange } from "../geo/live";
+import { hasGeoLiveViewers, publishGeoTrafficChange } from "../geo/live";
 import type { GeoTrafficSettleBatch } from "../types/geo-live";
+import type { GeoIngestBuffer } from "../types/ingest";
 
 const batches = new Map<string, GeoTrafficSettleBatch>();
 const lastPublishedAt = new Map<string, number>();
@@ -111,4 +114,40 @@ export function announceGeoTrafficEvent(
     Date.now(),
     GEO_TRAFFIC_LIVE_SETTLE_MS
   ).done;
+}
+
+/**
+ * Announces rows the write buffer just stored, one window per organization.
+ * Organizations nobody watches are skipped inside the publish.
+ */
+export function announceGeoTrafficRows(rows: GeoTrafficEventRow[]): void {
+  const projectsByOrganization = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const projects =
+      projectsByOrganization.get(row.organization_id) ?? new Set<string>();
+    projects.add(row.project_id);
+    projectsByOrganization.set(row.organization_id, projects);
+  }
+  for (const [organizationId, projectIds] of projectsByOrganization) {
+    scheduleWindow(
+      organizationId,
+      projectIds,
+      Date.now(),
+      GEO_TRAFFIC_LIVE_SETTLE_MS
+    );
+  }
+}
+
+/**
+ * Buffered events reach Tinybird at the next window, too late for an open
+ * live view. While someone watches, the organization's events are written
+ * right away; the buffer announces them once stored. Never rejects.
+ */
+export async function expediteForLiveViewers(
+  buffer: GeoIngestBuffer,
+  organizationId: string
+): Promise<void> {
+  if (await hasGeoLiveViewers(organizationId)) {
+    buffer.expedite(organizationId);
+  }
 }

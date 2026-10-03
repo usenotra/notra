@@ -10,8 +10,8 @@ import { Effect } from "effect";
 
 import { GEO_INGEST_TINYBIRD_TIMEOUT_MS } from "../constants/ingest";
 import type {
+  GeoIngestBuffer,
   GeoIngestDefer,
-  GeoIngestEnqueue,
   GeoIngestResult,
 } from "../types/ingest";
 import { trackGeoIngestAnalytics } from "./analytics";
@@ -28,7 +28,7 @@ import { buildGeoTrafficEvent, toCapturedDate } from "./event";
 import { loadIngestAllowedHosts } from "./hosts";
 import { isGeoIngestIdentityActive } from "./identity";
 import { resolveJourneyId } from "./journey";
-import { announceGeoTrafficEvent } from "./live";
+import { announceGeoTrafficEvent, expediteForLiveViewers } from "./live";
 import { geoIngestRatelimit } from "./ratelimit";
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
@@ -153,7 +153,7 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   request: Request,
   defer: GeoIngestDefer,
-  enqueue?: GeoIngestEnqueue
+  buffer?: GeoIngestBuffer
 ) {
   const identity = yield* readBearerIdentity(request);
 
@@ -238,9 +238,10 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   yield* enforceRateLimit(identity.organizationId);
   const ingestStartedAt = Date.now();
   // A buffered event is acknowledged before it reaches Tinybird; the batcher
-  // retries failed writes. Without a buffer (or when it is full) the 202
-  // still waits for the write.
-  if (!enqueue?.(event)) {
+  // retries failed writes and announces rows once written. Without a buffer
+  // (or when it is full) the 202 still waits for the write.
+  const buffered = buffer?.enqueue(event) ?? false;
+  if (!buffered) {
     yield* ingestEvent(event);
   }
   const ingestMs = Date.now() - ingestStartedAt;
@@ -248,10 +249,10 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   // that sent the event.
   yield* Effect.sync(() =>
     defer(async () => {
-      const announced = announceGeoTrafficEvent(
-        event.organization_id,
-        event.project_id
-      );
+      const announced =
+        buffered && buffer
+          ? expediteForLiveViewers(buffer, event.organization_id)
+          : announceGeoTrafficEvent(event.organization_id, event.project_id);
       try {
         await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
       } catch (error) {

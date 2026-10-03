@@ -156,14 +156,13 @@ describe("runGeoIngest ordering", () => {
   test("hands tracked traffic to the buffer instead of writing it", async () => {
     const buffered: unknown[] = [];
     const outcome = await Effect.runPromise(
-      runGeoIngest(
-        ingestRequest(),
-        () => {},
-        (event) => {
+      runGeoIngest(ingestRequest(), () => {}, {
+        enqueue: (event) => {
           buffered.push(event);
           return true;
-        }
-      )
+        },
+        expedite: () => {},
+      })
     );
 
     expect(outcome.outcome).toBe("ingested");
@@ -173,11 +172,10 @@ describe("runGeoIngest ordering", () => {
 
   test("writes directly when the buffer refuses the event", async () => {
     await Effect.runPromise(
-      runGeoIngest(
-        ingestRequest(),
-        () => {},
-        () => false
-      )
+      runGeoIngest(ingestRequest(), () => {}, {
+        enqueue: () => false,
+        expedite: () => {},
+      })
     );
     expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
   });

@@ -6,10 +6,11 @@ export const LIVE_QUERY_CACHE_TTL_SECONDS = 30;
 
 /**
  * The geo ingest service writes traffic to Tinybird in batches on these
- * wall-clock boundaries (:00, :05, …). Geo query results only change at a
- * boundary, so live entries are kept until the next one: dashboard polling
- * then reaches Tinybird once per window, in the minute the batch landed,
- * instead of keeping it active every minute.
+ * wall-clock boundaries (:00, :05, …), so live entries are kept until the
+ * next one: polling reaches Tinybird once per window, in the minute the batch
+ * landed, instead of keeping it active every minute. Organizations with an
+ * open live view are written early, and that announcement bumps their purge
+ * generation, so they never wait for the window.
  */
 export const GEO_TRAFFIC_FLUSH_INTERVAL_MS = 5 * 60 * 1000;
 // Time for a flush (write timeout plus Tinybird's buffer) to become readable

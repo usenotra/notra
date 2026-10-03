@@ -29,3 +29,6 @@ export const GEO_INGEST_FLUSH_INTERVAL_MS = GEO_TRAFFIC_FLUSH_INTERVAL_MS;
 export const GEO_INGEST_FLUSH_MAX_ROWS = 1000;
 export const GEO_INGEST_MAX_BUFFERED_EVENTS = 50_000;
 export const GEO_INGEST_FLUSH_TIMEOUT_MS = 10_000;
+// Organizations with an open live view are written after this delay, so a
+// burst of requests becomes one write.
+export const GEO_INGEST_LIVE_FLUSH_DELAY_MS = 1000;

@@ -1,5 +1,6 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 import { createGeoEventBatcher } from "@notra/geo-core/ingest/batcher";
+import { announceGeoTrafficRows } from "@notra/geo-core/ingest/live";
 
 import {
   INGEST_DEFAULT_PORT,
@@ -24,20 +25,20 @@ if (missing.length > 0) {
 const flushIntervalMs = ingestFlushIntervalMs();
 const batcher =
   flushIntervalMs > 0
-    ? createGeoEventBatcher({ intervalMs: flushIntervalMs })
+    ? createGeoEventBatcher({
+        intervalMs: flushIntervalMs,
+        onWritten: announceGeoTrafficRows,
+      })
     : null;
 
-const app = createIngestApp(
-  (task) => {
-    const promise = task()
-      .catch((error) => {
-        console.error("[geo-ingest] Background task failed", error);
-      })
-      .finally(() => pending.delete(promise));
-    pending.add(promise);
-  },
-  batcher ? (event) => batcher.enqueue(event) : undefined
-);
+const app = createIngestApp((task) => {
+  const promise = task()
+    .catch((error) => {
+      console.error("[geo-ingest] Background task failed", error);
+    })
+    .finally(() => pending.delete(promise));
+  pending.add(promise);
+}, batcher ?? undefined);
 
 const server = Bun.serve({
   hostname: "0.0.0.0",

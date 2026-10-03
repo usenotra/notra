@@ -14,8 +14,15 @@ const { createGeoEventBatcher } = await import("../src/ingest/batcher");
 
 const STORED = { successful_rows: 1, quarantined_rows: 0 };
 
-function event(id: string): GeoTrafficEventRow {
-  return { request_id: id } as GeoTrafficEventRow;
+function event(id: string, organizationId = "org_1"): GeoTrafficEventRow {
+  return {
+    request_id: id,
+    organization_id: organizationId,
+  } as GeoTrafficEventRow;
+}
+
+function tick(ms = 10) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 describe("createGeoEventBatcher", () => {
@@ -81,6 +88,27 @@ describe("createGeoEventBatcher", () => {
     expect(batcher.size()).toBe(0);
   });
 
+  test("expedites only the watched organization and reports what was written", async () => {
+    const written: string[][] = [];
+    const write = mock(async (_rows: GeoTrafficEventRow[]) => STORED);
+    const batcher = createGeoEventBatcher({
+      intervalMs: 0,
+      liveFlushDelayMs: 0,
+      write,
+      onWritten: (rows) => written.push(rows.map((row) => row.request_id)),
+    });
+    batcher.enqueue(event("a1", "org_live"));
+    batcher.enqueue(event("b1", "org_other"));
+    batcher.enqueue(event("a2", "org_live"));
+    batcher.expedite("org_live");
+    batcher.expedite("org_live");
+    await tick();
+
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(written).toEqual([["a1", "a2"]]);
+    expect(batcher.size()).toBe(1);
+  });
+
   test("refuses events once the buffer is full", () => {
     const batcher = createGeoEventBatcher({
       intervalMs: 0,
@@ -99,7 +127,7 @@ describe("createGeoEventBatcher", () => {
       write,
     });
     batcher.enqueue(event("a"));
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await tick(30);
     expect(write).toHaveBeenCalledTimes(1);
     await batcher.stop();
   });

@@ -1,8 +1,8 @@
 import { GEO_INGEST_PATH } from "@notra/geo-core/constants/geo";
 import { handleGeoIngestRequest } from "@notra/geo-core/ingest/handler";
 import type {
+  GeoIngestBuffer,
   GeoIngestDefer,
-  GeoIngestEnqueue,
 } from "@notra/geo-core/types/ingest";
 import { Hono } from "hono";
 
@@ -10,7 +10,7 @@ import { missingIngestEnvironment } from "./utils/config";
 
 export function createIngestApp(
   defer: GeoIngestDefer,
-  enqueue?: GeoIngestEnqueue
+  buffer?: GeoIngestBuffer
 ) {
   const app = new Hono();
 
@@ -29,7 +29,7 @@ export function createIngestApp(
     if (missingIngestEnvironment().length > 0) {
       return context.json({ error: "Ingest is not configured" }, 503);
     }
-    return handleGeoIngestRequest(context.req.raw, defer, enqueue);
+    return handleGeoIngestRequest(context.req.raw, defer, buffer);
   });
   app.all(GEO_INGEST_PATH, (context) => {
     context.header("Allow", "POST");

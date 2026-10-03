@@ -74,6 +74,13 @@ async function isGeoLiveWatched(organizationId: string): Promise<boolean> {
   return watched;
 }
 
+/** Whether live updates for the organization would reach anyone. */
+export async function hasGeoLiveViewers(
+  organizationId: string
+): Promise<boolean> {
+  return Boolean(realtime) && (await isGeoLiveWatched(organizationId));
+}
+
 /**
  * Announces new AI traffic rows to open GEO tabs. The org's cached traffic
  * queries are purged first, so the refetch this triggers reads Tinybird
@@ -85,7 +92,7 @@ export async function publishGeoTrafficChange(
 ): Promise<void> {
   // Without a viewer the cached traffic queries expire on their own TTL, as
   // before live updates existed; skipping saves the purge and the publish.
-  if (!(realtime && (await isGeoLiveWatched(organizationId)))) {
+  if (!(realtime && (await hasGeoLiveViewers(organizationId)))) {
     return;
   }
   await bumpPurgeGeneration("geo", organizationId);
