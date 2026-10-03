@@ -3,8 +3,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import {
-  $createParagraphNode,
-  $getNodeByKey,
+  $createRangeSelectionFromDom,
   $getRoot,
   $getSelection,
   $isRangeSelection,
@@ -30,11 +29,17 @@ import { CONTENT_IMAGE_MIME_EXTENSIONS } from "@/constants/content-image";
 import { CONTENT_MEDIA } from "@/constants/content-media";
 import { CONTENT_VIDEO_MIME_EXTENSIONS } from "@/constants/content-video";
 import { uploadContentMedia } from "@/lib/upload/client";
-import type { ContentMediaKind, UploadTranslator } from "@/types/content/media";
+import type {
+  ContentDropPoint,
+  ContentMediaKind,
+  UploadTranslator,
+} from "@/types/content/media";
+import { contentDropCaret } from "@/utils/content-drop-caret";
 import {
   contentImageMaxBytes,
   guessContentImageMime,
 } from "@/utils/content-image-size";
+import { placeContentBlock } from "@/utils/content-place-block";
 
 import { $createContentImageNode } from "../nodes/content-image-node";
 import { $createContentVideoNode } from "../nodes/content-video-node";
@@ -58,7 +63,7 @@ const EDITOR_MEDIA: Record<
   }
 > = {
   image: {
-    accept: Object.keys(CONTENT_IMAGE_MIME_EXTENSIONS).join(","),
+    accept: `${Object.keys(CONTENT_IMAGE_MIME_EXTENSIONS).join(",")},image/heic,.heic`,
     command: OPEN_CONTENT_IMAGE_UPLOAD_COMMAND,
     createNode: (file, url) =>
       $createContentImageNode({
@@ -92,8 +97,10 @@ function isVideoFile(file: File) {
   );
 }
 
+// Include Apple photos in the editor's existing image upload path even when browsers omit their MIME type.
 function isImageFile(file: File) {
   return (
+    /\.heic$/i.test(file.name) ||
     file.type === "" ||
     file.type in CONTENT_IMAGE_MIME_EXTENSIONS ||
     file.type.startsWith("image/")
@@ -111,32 +118,6 @@ function mediaFiles(list: FileList | null | undefined) {
 
 function kindForFile(file: File) {
   return CONTENT_MEDIA_KINDS.find((kind) => EDITOR_MEDIA[kind].matches(file));
-}
-
-function placeBlock(
-  editor: LexicalEditor,
-  afterKey: string | null,
-  create: () => LexicalNode
-) {
-  let insertedKey = afterKey;
-  editor.update(
-    () => {
-      const block = create();
-      const anchor = insertedKey ? $getNodeByKey(insertedKey) : null;
-      const top = anchor?.getTopLevelElement() ?? anchor;
-      if (top?.getParent()) {
-        top.insertAfter(block);
-      } else {
-        $getRoot().append(block);
-      }
-      const paragraph = $createParagraphNode();
-      block.insertAfter(paragraph);
-      paragraph.select();
-      insertedKey = paragraph.getKey();
-    },
-    { discrete: true }
-  );
-  return insertedKey;
 }
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
@@ -176,7 +157,8 @@ async function insertUploadedFiles(
   editor: LexicalEditor,
   jobs: { file: File; kind: ContentMediaKind }[],
   afterKey: string | null,
-  failedMessage: string
+  failedMessage: string,
+  dropPoint?: ContentDropPoint
 ) {
   const uploaded = await Promise.all(
     jobs.map(async ({ file, kind }) => {
@@ -190,17 +172,23 @@ async function insertUploadedFiles(
     })
   );
   let key = afterKey;
+  let nextDropPoint = dropPoint;
   for (const item of uploaded) {
     if (!item) {
       continue;
     }
-    key = placeBlock(editor, key, () =>
-      EDITOR_MEDIA[item.kind].createNode(item.file, item.url)
+    key = placeContentBlock(
+      editor,
+      key,
+      () => EDITOR_MEDIA[item.kind].createNode(item.file, item.url),
+      nextDropPoint
     );
+    nextDropPoint = undefined;
   }
   return key;
 }
 
+// Keep media insertion bound to the editor's own selection and drop target when an agent is also open.
 export function ImageUploadPlugin() {
   const t = useTranslations("content.editor.upload");
   const tCommon = useTranslations("common");
@@ -208,7 +196,13 @@ export function ImageUploadPlugin() {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const anchorKeyRef = useRef<string | null>(null);
   const uploadingRef = useRef(false);
-  const pendingRef = useRef<{ files: File[]; afterKey: string | null }[]>([]);
+  const pendingRef = useRef<
+    {
+      files: File[];
+      afterKey: string | null;
+      dropPoint?: ContentDropPoint;
+    }[]
+  >([]);
   const [editable, setEditable] = useState(() => editor.isEditable());
 
   useEffect(() => editor.registerEditableListener(setEditable), [editor]);
@@ -216,28 +210,90 @@ export function ImageUploadPlugin() {
   const rememberSelection = useCallback(() => {
     editor.getEditorState().read(() => {
       const selection = $getSelection();
-      anchorKeyRef.current = $isRangeSelection(selection)
-        ? selection.anchor.getNode().getKey()
-        : null;
+      if ($isRangeSelection(selection)) {
+        anchorKeyRef.current = selection.anchor.getNode().getKey();
+      }
     });
   }, [editor]);
 
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          anchorKeyRef.current = selection.anchor.getNode().getKey();
+        }
+      });
+    });
+  }, [editor]);
+
+  // Resolve the blog insertion block from the drop point instead of a stale selection.
+  const rememberDropPosition = useCallback(
+    (event: DragEvent) => {
+      const root = editor.getRootElement();
+      const caret = contentDropCaret(document, event.clientX, event.clientY);
+      if (!root || !caret || !root.contains(caret.node)) {
+        return null;
+      }
+      let point: ContentDropPoint | null = null;
+      editor.getEditorState().read(
+        () => {
+          const selection = $createRangeSelectionFromDom(
+            {
+              anchorNode: caret.node,
+              anchorOffset: caret.offset,
+              focusNode: caret.node,
+              focusOffset: caret.offset,
+            } as Selection,
+            editor
+          );
+          if (selection) {
+            const rootNode = $getRoot();
+            const node = selection.anchor.getNode();
+            const top = node.getTopLevelElement() ?? node;
+            const fallbackIndex =
+              node === rootNode
+                ? selection.anchor.offset
+                : top.getIndexWithinParent() +
+                  (selection.anchor.offset === 0 ? 0 : 1);
+            point = {
+              key: selection.anchor.key,
+              offset: selection.anchor.offset,
+              type: selection.anchor.type,
+              beforeKey:
+                rootNode.getChildAtIndex(fallbackIndex)?.getKey() ?? null,
+              afterKey:
+                rootNode.getChildAtIndex(fallbackIndex - 1)?.getKey() ?? null,
+              fallbackIndex,
+            };
+          }
+        },
+        { editor }
+      );
+      return point;
+    },
+    [editor]
+  );
+
   const insertUploaded = (
     files: File[],
-    afterKey: string | null = anchorKeyRef.current
+    afterKey?: string | null,
+    dropPoint?: ContentDropPoint
   ) => {
+    const insertionKey =
+      afterKey === undefined ? anchorKeyRef.current : afterKey;
     if (files.length === 0 || !editor.isEditable()) {
       return;
     }
     if (uploadingRef.current) {
-      pendingRef.current.push({ files, afterKey });
+      pendingRef.current.push({ files, afterKey: insertionKey, dropPoint });
       return;
     }
     const jobs = queuedMedia(files, t);
     const startNext = () => {
       const next = pendingRef.current.shift();
       if (next) {
-        insertUploaded(next.files, next.afterKey);
+        insertUploaded(next.files, next.afterKey, next.dropPoint);
       }
     };
     if (jobs.length === 0) {
@@ -249,15 +305,16 @@ export function ImageUploadPlugin() {
     void insertUploadedFiles(
       editor,
       jobs,
-      afterKey,
-      tCommon("labels.uploadFailed")
+      insertionKey,
+      tCommon("labels.uploadFailed"),
+      dropPoint
     )
       .then((lastKey) => {
-        if (lastKey === afterKey) {
+        if (lastKey === insertionKey) {
           return;
         }
         for (const batch of pendingRef.current) {
-          if (batch.afterKey === afterKey) {
+          if (batch.afterKey === insertionKey) {
             batch.afterKey = lastKey;
           }
         }
@@ -341,14 +398,18 @@ export function ImageUploadPlugin() {
           if (!editor.isEditable()) {
             return true;
           }
-          rememberSelection();
-          insertFromDom(files);
+          const dropPoint = rememberDropPosition(event);
+          insertFromDom(
+            files,
+            dropPoint ? null : anchorKeyRef.current,
+            dropPoint ?? undefined
+          );
           return true;
         },
         COMMAND_PRIORITY_HIGH
       )
     );
-  }, [editor, rememberSelection]);
+  }, [editor, rememberDropPosition, rememberSelection]);
 
   if (!editable) {
     return null;
