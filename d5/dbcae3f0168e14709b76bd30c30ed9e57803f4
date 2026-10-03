@@ -1,0 +1,19 @@
+apps/evals/src/scoring/text-checks.ts
+  s_69822f2ec3c761::t_a93f8541aa47d6 54-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d5dbcae3f0168e14709b76bd30c30ed9e57803f4",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
