@@ -14,6 +14,7 @@ import {
   sparklineTrend,
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -158,7 +159,7 @@ export function AiTrafficCard({
                 />
               ) : null}
               <span className="text-sm tabular-nums">
-                {row.visits.toLocaleString(locale)}
+                <AnimatedNumber locale={locale} value={row.visits} />
               </span>
             </span>
           );
@@ -178,7 +179,7 @@ export function AiTrafficCard({
           align: "right",
           cell: (row) => (
             <span className="text-sm tabular-nums">
-              {row.paths.toLocaleString(locale)}
+              <AnimatedNumber locale={locale} value={row.paths} />
             </span>
           ),
         },

@@ -16,8 +16,8 @@ A real human writes back. No ticket numbers.
 
 ## Resources
 
-- [Documentation](https://docs.usenotra.com/): Guides, API reference, and setup walkthroughs.
-- [MCP server](https://docs.usenotra.com/devtools/mcp): Connect Notra to your agents and editors.
+- [Documentation](https://www.usenotra.com/docs): Guides, API reference, and setup walkthroughs.
+- [MCP server](https://www.usenotra.com/docs/devtools/mcp): Connect Notra to your agents and editors.
 - [OSS program](https://www.usenotra.com/oss-program): Free Notra Pro for open source maintainers.
 - [Pricing](https://www.usenotra.com/pricing): Plans and limits for every team size.
 

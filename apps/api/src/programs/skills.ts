@@ -1,3 +1,4 @@
+import { currentSkillContent } from "@notra/ai/skills/functions/current-content";
 import { skills } from "@notra/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { DateTime, Effect } from "effect";
@@ -65,7 +66,10 @@ export const getSkill = Effect.fn("skills.get")(function* ({
       ),
     })
   );
-  return skill ?? (yield* new SkillNotFoundError());
+  if (!skill) {
+    return yield* new SkillNotFoundError();
+  }
+  return { ...skill, content: currentSkillContent(skill) };
 });
 
 export const createSkill = Effect.fn("skills.create")(function* ({

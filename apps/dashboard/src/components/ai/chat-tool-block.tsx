@@ -372,8 +372,75 @@ function geoDaysSuffix(
   return days === undefined ? undefined : t("suffix.lastDays", { days });
 }
 
+function getRecordString(value: unknown, key: string): string | undefined {
+  const field = asRecord(value)?.[key];
+  return typeof field === "string" && field ? field : undefined;
+}
+
+function repositoryTargetSuffix(input: unknown, output: unknown) {
+  const repository = getRecordString(output, "repository");
+  const checkedOut = getRecordString(output, "checkedOut");
+  if (repository && checkedOut) {
+    return `${repository} · ${checkedOut}`;
+  }
+  const pullRequest = getNumericValue(input, "pullRequestNumber");
+  if (pullRequest !== undefined) {
+    return `#${pullRequest}`;
+  }
+  return getRecordString(input, "branch") ?? repository;
+}
+
+function repositoryPathSuffix(input: unknown) {
+  return getRecordString(input, "path") ?? getRecordString(input, "glob");
+}
+
+function repositoryQuerySuffix(input: unknown) {
+  const query = getRecordString(input, "query");
+  return query ? `"${shortPreview(query)}"` : undefined;
+}
+
+function repositoryChangeSuffix(input: unknown) {
+  return getRecordString(input, "ref")?.slice(0, 8);
+}
+
 const TOOL_COPY = {
   code_mode: {},
+  "code-researcher": {},
+  "content-writer": {},
+  open_repository: {
+    suffix: (input, output) => repositoryTargetSuffix(input, output),
+  },
+  list_repository_files: {
+    suffix: (input) => repositoryPathSuffix(input),
+  },
+  search_repository: {
+    suffix: (input) => repositoryQuerySuffix(input),
+  },
+  read_repository_file: {
+    suffix: (input) => repositoryPathSuffix(input),
+  },
+  repository_history: {
+    suffix: (input) => repositoryPathSuffix(input),
+  },
+  show_repository_change: {
+    suffix: (input) => repositoryChangeSuffix(input),
+  },
+  create_post: {
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
+  get_pull_requests: {
+    suffix: (input) => {
+      const pullNumber = getNumericValue(input, "pull_number");
+      return pullNumber === undefined ? undefined : `#${pullNumber}`;
+    },
+  },
+  get_commits_by_timeframe: {},
+  get_available_integrations: {},
+  list_available_skills: {},
+  get_skill_by_name: {
+    suffix: (input) => quotedSuffix(input, ["name"]),
+  },
+  get_brand_references: {},
   searchNotraTools: {
     suffix: toolSearchSuffix,
   },

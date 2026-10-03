@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "mint",
   "name": "Notra Documentation",
   "description": "Documentation for Notra: track your brand across AI answer engines and turn your team's work into content.",
   "colors": {
@@ -8,17 +8,9 @@
     "light": "#8b5cf6",
     "dark": "#8b5cf6"
   },
-  "background": {
-    "decoration": "windows"
-  },
   "styling": {
     "eyebrows": "breadcrumbs",
-    "codeblocks": {
-      "theme": {
-        "light": "github-light",
-        "dark": "github-dark"
-      }
-    }
+    "codeblocks": "system"
   },
   "favicon": "/favicon.svg",
   "redirects": [
@@ -66,19 +58,31 @@
     }
   },
   "contextual": {
-    "options": ["copy", "assistant", "mcp", "chatgpt", "claude", "perplexity"]
+    "options": [
+      "copy",
+      "view",
+      "assistant",
+      "mcp",
+      "chatgpt",
+      "claude",
+      "cursor"
+    ],
+    "display": "header"
   },
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
+        "tab": "Guides",
+        "icon": "book",
         "groups": [
           {
             "group": "Get Started",
+            "icon": "rocket",
             "pages": ["overview", "quickstart"]
           },
           {
             "group": "Core Concepts",
+            "icon": "lightbulb",
             "pages": [
               "concepts/how-it-works",
               "concepts/content-pipeline",
@@ -87,6 +91,7 @@
           },
           {
             "group": "GEO",
+            "icon": "chart-line",
             "pages": [
               "geo/overview",
               "geo/prompts-and-competitors",
@@ -96,7 +101,26 @@
             ]
           },
           {
+            "group": "Content Types",
+            "icon": "pen-nib",
+            "pages": [
+              "content/changelogs",
+              "content/blog-posts",
+              "content/social-media"
+            ]
+          },
+          {
+            "group": "Automation",
+            "icon": "bolt",
+            "pages": [
+              "automation/overview",
+              "automation/event-based",
+              "automation/scheduled"
+            ]
+          },
+          {
             "group": "Integrations",
+            "icon": "plug",
             "pages": [
               "integrations/overview",
               "integrations/github",
@@ -110,32 +134,24 @@
             ]
           },
           {
-            "group": "Developer Tools",
-            "pages": ["devtools/cli", "devtools/mcp", "devtools/raycast"]
-          },
-          {
-            "group": "Automation",
-            "pages": [
-              "automation/overview",
-              "automation/event-based",
-              "automation/scheduled"
-            ]
-          },
-          {
-            "group": "Content Types",
-            "pages": [
-              "content/changelogs",
-              "content/blog-posts",
-              "content/social-media"
-            ]
-          },
-          {
             "group": "Organization",
+            "icon": "users-gear",
             "pages": [
               "organization/workspace-setup",
               "organization/team-management",
               "organization/billing"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer Tools",
+        "icon": "terminal",
+        "groups": [
+          {
+            "group": "Developer Tools",
+            "icon": "terminal",
+            "pages": ["devtools/cli", "devtools/mcp", "devtools/raycast"]
           }
         ]
       },
@@ -148,7 +164,8 @@
               "api/getting-started",
               "api/authentication",
               "api/rate-limits"
-            ]
+            ],
+            "icon": "rocket"
           },
           {
             "group": "Guides",
@@ -159,7 +176,8 @@
               "api/pagination",
               "api/types",
               "api/agent-feedback"
-            ]
+            ],
+            "icon": "book-open"
           },
           {
             "group": "Webhooks",
@@ -167,7 +185,8 @@
               "api/webhooks/overview",
               "api/webhooks/events",
               "api/webhooks/outbound"
-            ]
+            ],
+            "icon": "webhook"
           },
           {
             "group": "Endpoints",
@@ -409,35 +428,93 @@
                   "GET /v2/agent-chats"
                 ]
               }
-            ]
+            ],
+            "icon": "server"
           }
-        ]
+        ],
+        "icon": "code"
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Discord Community",
-          "href": "https://www.usenotra.com/discord",
-          "icon": "discord"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "logo/notra-wordmark.svg",
     "dark": "logo/notra-wordmark-dark.svg"
   },
   "navbar": {
+    "links": [
+      {
+        "label": "Discord",
+        "href": "https://www.usenotra.com/discord"
+      },
+      {
+        "type": "github",
+        "href": "https://github.com/usenotra/notra"
+      }
+    ],
     "primary": {
-      "type": "github",
-      "href": "https://github.com/usenotra/notra"
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://app.usenotra.com"
     }
   },
   "footer": {
     "socials": {
       "x": "https://x.com/usenotra",
-      "github": "https://github.com/usenotra"
-    }
+      "github": "https://github.com/usenotra",
+      "discord": "https://www.usenotra.com/discord"
+    },
+    "links": [
+      {
+        "header": "Resources",
+        "items": [
+          {
+            "label": "Website",
+            "href": "https://www.usenotra.com"
+          },
+          {
+            "label": "Changelog",
+            "href": "https://www.usenotra.com/changelog"
+          },
+          {
+            "label": "Blog",
+            "href": "https://www.usenotra.com/blog"
+          }
+        ]
+      },
+      {
+        "header": "Developers",
+        "items": [
+          {
+            "label": "API Reference",
+            "href": "/api/getting-started"
+          },
+          {
+            "label": "OpenAPI Spec",
+            "href": "https://api.usenotra.com/openapi.json"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/usenotra/notra"
+          }
+        ]
+      },
+      {
+        "header": "Support",
+        "items": [
+          {
+            "label": "Quickstart",
+            "href": "/quickstart"
+          },
+          {
+            "label": "Rate Limits",
+            "href": "/api/rate-limits"
+          },
+          {
+            "label": "Discord",
+            "href": "https://www.usenotra.com/discord"
+          }
+        ]
+      }
+    ]
   }
 }

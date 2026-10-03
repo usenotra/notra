@@ -151,7 +151,7 @@ export function buildFeaturesMarkdown() {
       "- OAuth 2.1 through oauth.usenotra.com or scoped API keys.",
       "- MCP server at https://mcp.usenotra.com/mcp.",
       "- @usenotra/geo on npm for traffic capture, agent classification and link tagging.",
-      "- Docs at https://docs.usenotra.com.",
+      "- Docs at https://www.usenotra.com/docs.",
     ]),
     markdownSection("Studio", [
       "The content automation that Notra started with is still here. Connect GitHub, Linear and Slack, and Notra drafts changelogs, launch posts and social updates in your brand voice, on a schedule or when something ships.",

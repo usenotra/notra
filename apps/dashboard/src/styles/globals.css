@@ -232,3 +232,112 @@
   --diffs-token-light-bg: transparent;
   --diffs-token-dark-bg: transparent;
 }
+
+@keyframes geo-live-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes geo-live-ping {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+.geo-live-in {
+  animation: geo-live-in var(--transition-duration-slow) var(--ease-emphasized)
+    both;
+}
+
+.geo-live-ping {
+  animation: geo-live-ping 1s var(--ease-emphasized) both;
+}
+
+/*
+ * A request that just arrived in the live log: the row opens to its height so
+ * the rows below glide down instead of jumping, its content fades in out of a
+ * blur, and a light tint marks it for a moment before fading back.
+ * `backwards`, not `both`: a filled end state would override row hover.
+ */
+@keyframes geo-log-row-open {
+  from {
+    height: 0;
+  }
+}
+
+@keyframes geo-log-row-content {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes geo-log-row-glow {
+  from {
+    background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+  }
+  40% {
+    background-color: color-mix(in oklab, var(--primary) 6%, transparent);
+  }
+}
+
+/* Symmetric curve: an emphasized ease finishes the push-down in ~60 ms. */
+.geo-log-row-arrive {
+  animation:
+    geo-log-row-open 520ms var(--ease-emphasized-in-out) backwards,
+    geo-log-row-glow 2.4s ease-out backwards;
+  animation-delay: var(--geo-log-arrive-delay, 0ms);
+}
+
+/* Cells open in step with the row; the text unblurs once there is room. */
+.geo-log-row-arrive > td > div {
+  animation:
+    geo-log-row-open 520ms var(--ease-emphasized-in-out) backwards,
+    geo-log-row-content var(--transition-duration-slower) var(--ease-emphasized)
+      backwards;
+  animation-delay:
+    var(--geo-log-arrive-delay, 0ms),
+    calc(var(--geo-log-arrive-delay, 0ms) + 160ms);
+}
+
+/* A burst of requests opens top to bottom instead of all at once. */
+.geo-log-arrive-1 {
+  --geo-log-arrive-delay: 70ms;
+}
+
+.geo-log-arrive-2 {
+  --geo-log-arrive-delay: 140ms;
+}
+
+.geo-log-arrive-3 {
+  --geo-log-arrive-delay: 210ms;
+}
+
+.geo-log-arrive-4 {
+  --geo-log-arrive-delay: 280ms;
+}
+
+.geo-log-arrive-5 {
+  --geo-log-arrive-delay: 350ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .geo-log-row-arrive,
+  .geo-log-row-arrive > td > div,
+  .geo-live-in,
+  .geo-live-ping {
+    animation: none;
+  }
+
+  .geo-live-ping {
+    opacity: 0;
+  }
+}

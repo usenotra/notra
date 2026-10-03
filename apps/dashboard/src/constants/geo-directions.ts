@@ -298,7 +298,7 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
     lastSeenAt: "2026-08-04T07:48:00Z",
   },
   {
-    host: "docs.usenotra.com",
+    host: "www.usenotra.com",
     path: "/docs/sdk",
     source: "claude",
     visitorType: "ai_referral",
