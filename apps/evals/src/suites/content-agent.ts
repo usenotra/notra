@@ -1,4 +1,4 @@
-import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 
 import {
   CONTENT_SCENARIOS,
@@ -102,7 +102,7 @@ export const contentAgentSuite: EvalSuite<
   description:
     "The whole background content agent: real dispatcher prompt, real skills and tool definitions, fixture GitHub data. Scores the create/skip decision, tool use (sources, primary skill, unslop), hard output rules and a Jev judge for grounding, coverage and voice. Slowest and most expensive suite.",
   cases: buildCases(["changelog", "twitter_post"]),
-  productionModel: AGENT_DEFAULT_MODEL,
+  productionModel: CONTENT_AGENT_MODEL,
   defaultContenders: ["anthropic/claude-sonnet-5", "openai/gpt-6-sol"],
   labelFields: ["decision"],
   timeoutMs: 240_000,
@@ -150,7 +150,7 @@ export const contentDraftSuite: EvalSuite<
   description:
     "The writing step in isolation. Every model starts from the identical replayed gathering (skill catalog, primary skill, brand references, commits, PRs, release, unslop) and continues the real agent loop until createPost, skip or fail. Compares writers and the skip decision without gathering noise.",
   cases: buildCases(ALL_TYPES),
-  productionModel: AGENT_DEFAULT_MODEL,
+  productionModel: CONTENT_AGENT_MODEL,
   defaultContenders: [
     "anthropic/claude-sonnet-5",
     "openai/gpt-6-sol",

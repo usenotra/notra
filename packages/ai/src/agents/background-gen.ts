@@ -1,4 +1,4 @@
-import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import { buildContentDispatcherInstructions } from "@notra/ai/prompts/content-dispatcher";
@@ -79,9 +79,9 @@ export async function runBackgroundGen(
     primarySkillName: skillName,
   });
 
-  await assertRouteHasCredits({ organizationId, modelId: AGENT_DEFAULT_MODEL });
+  await assertRouteHasCredits({ organizationId, modelId: CONTENT_AGENT_MODEL });
 
-  const model = createModel(organizationId, AGENT_DEFAULT_MODEL, {}, log);
+  const model = createModel(organizationId, CONTENT_AGENT_MODEL, {}, log);
 
   const prompt = getUserPrompt(contentLabel, promptInput);
 
@@ -132,7 +132,7 @@ export async function runBackgroundGen(
         },
         gateway: { tags: ["content-generation"] },
       },
-      { modelId: AGENT_DEFAULT_MODEL }
+      { modelId: CONTENT_AGENT_MODEL }
     ),
     tools: {
       ...brandReferenceTools,
