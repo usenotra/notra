@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import { DEFAULT_TOTP_ENROLLMENT_PANEL_LABELS } from "@notra/ui/constants/auth-labels";
 
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import type {
@@ -215,12 +214,10 @@ export function TotpEnrollmentPanel({
         <StepActions>
           {secondaryButton}
           <Button
-            disabled={isPending || code.length !== TOTP_CODE_LENGTH}
+            disabled={code.length !== TOTP_CODE_LENGTH}
+            loading={isPending}
             type="submit"
           >
-            {isPending && (
-              <Loader2Icon className="animate-spin" />
-            )}
             {submitLabel ?? l.submit}
           </Button>
         </StepActions>

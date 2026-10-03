@@ -3,6 +3,7 @@ import {
   createQstashSchedule,
   deleteQstashSchedule,
 } from "@notra/ai/qstash/triggers";
+import { QstashScheduleSetupError } from "@notra/ai/schemas/qstash";
 import {
   hashTrigger,
   normalizeTriggerConfig,
@@ -116,11 +117,9 @@ async function manualRunErrorMessage(code: string): Promise<string> {
 }
 
 async function mapQstashError(error: unknown): Promise<never> {
-  const message = error instanceof Error ? error.message : "Unknown error";
-
   if (
-    message.includes("invalid destination") ||
-    message.includes("unable to resolve host")
+    error instanceof QstashScheduleSetupError &&
+    error.reason === "invalid_destination"
   ) {
     throw badRequest(
       (await getTranslations("errors.automation"))("externalUrlMissing"),

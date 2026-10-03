@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_WRITE_SITEMAP_SKELETON_KEYS } from "@notra/geo-core/constants/geo";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Loader2Icon } from "lucide-react";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -162,14 +161,12 @@ export function WriteSitemapSection({
           />
           <Button
             disabled={!canAdd}
+            loading={createSitemap.isPending}
             onClick={() => {
               handleAdd().catch(() => undefined);
             }}
             variant="outline"
           >
-            {createSitemap.isPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : null}
             {sitemaps.length > 0 ? t("addAnother") : t("addSitemap")}
           </Button>
         </div>

@@ -10,6 +10,7 @@ export const publicationSyncRepairSchema = z.object({
   branch: z.string().min(1),
   markdown: z.string(),
   title: z.string().optional(),
+  path: z.string().min(1).optional(),
   imageMapping: z
     .object({
       owner: z.string().min(1),

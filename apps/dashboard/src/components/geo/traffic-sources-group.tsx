@@ -8,6 +8,7 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { useCollapsibleColumns } from "@/components/motion/table/use-collapsible-columns";
 import {
   DEFAULT_MIN_COLUMN_WIDTH,
+  TABLE_FRAME_INSET,
   tableMinWidthCss,
 } from "@/components/motion/table/utils";
 import {
@@ -144,10 +145,15 @@ export function TrafficSourcesStack({
 }: TrafficSourcesStackProps) {
   const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
   // Collapse once for the whole stack so every band keeps the same columns.
+  // Bands are framed, so reserve the rim or an expanded band scrolls on its
+  // own while the collapsed bars next to it do not.
   const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
     minColumnWidth: DEFAULT_MIN_COLUMN_WIDTH,
+    extraFixedWidths: [TABLE_FRAME_INSET],
   });
-  const minWidth = tableMinWidthCss(visibleColumns, DEFAULT_MIN_COLUMN_WIDTH);
+  const minWidth = tableMinWidthCss(visibleColumns, DEFAULT_MIN_COLUMN_WIDTH, [
+    TABLE_FRAME_INSET,
+  ]);
 
   return (
     <div className="isolate min-w-0 overflow-x-auto" ref={containerRef}>

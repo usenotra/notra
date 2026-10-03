@@ -1,6 +1,6 @@
 import type { GeoExcludeRule, GeoPathRule } from "./types";
 
-export const DEFAULT_ENDPOINT = "https://app.usenotra.com";
+export const DEFAULT_ENDPOINT = "https://ingest.usenotra.com";
 
 export const INGEST_PATH = "/api/geo/ingest";
 

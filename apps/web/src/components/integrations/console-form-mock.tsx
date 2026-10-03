@@ -1,5 +1,3 @@
-"use client";
-
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import { useState } from "react";
 

@@ -51,9 +51,18 @@ export type ContentCollectionView = (typeof CONTENT_COLLECTION_VIEWS)[number];
 export interface CollectionsViewProps {
   collections: PostCollectionSummary[];
   pagination: TablePaginationState;
+  organizationId: string;
   organizationSlug: string;
   view: ContentCollectionView;
   loading?: boolean;
+}
+
+export interface CollectionMenuItemsProps {
+  collection: PostCollectionSummary;
+  organizationSlug: string;
+  disabled: boolean;
+  onDelete: (collection: PostCollectionSummary) => void;
+  variant?: "context" | "dropdown";
 }
 
 export type CollectionsSkeletonProps = Partial<

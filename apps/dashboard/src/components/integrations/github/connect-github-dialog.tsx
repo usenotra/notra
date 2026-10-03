@@ -1,7 +1,5 @@
 "use client";
 
-import { Loading03Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -73,16 +71,9 @@ export function ConnectGitHubDialog({
           >
             {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
-          <Button className="gap-2" disabled={isConnecting} onClick={onConnect}>
-            {isConnecting ? (
-              <HugeiconsIcon
-                className="size-4 animate-spin"
-                icon={Loading03Icon}
-              />
-            ) : (
-              <Github className="size-4" />
-            )}
-            {isConnecting ? t("redirecting") : t("install")}
+          <Button className="gap-2" loading={isConnecting} onClick={onConnect}>
+            <Github className="size-4" />
+            {t("install")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

@@ -14,7 +14,6 @@ import {
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
@@ -25,7 +24,6 @@ import type { DevSampleDataCardProps } from "@/types/settings/general";
 
 export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
   const t = useTranslations("settings.devSampleData");
-  const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const queryClient = useQueryClient();
   const reset = useMutation({
@@ -120,15 +118,13 @@ export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
               </ResponsiveAlertDialogFooter>
             </ResponsiveAlertDialogContent>
           </ResponsiveAlertDialog>
-          <Button disabled={isPending} onClick={() => reset.mutate()} size="sm">
-            {reset.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {tCommon2("labels.resetting")}
-              </>
-            ) : (
-              t("reset")
-            )}
+          <Button
+            disabled={clear.isPending}
+            loading={reset.isPending}
+            onClick={() => reset.mutate()}
+            size="sm"
+          >
+            {t("reset")}
           </Button>
         </div>
       </div>

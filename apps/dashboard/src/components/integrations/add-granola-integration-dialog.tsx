@@ -16,7 +16,6 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Granola } from "@notra/ui/components/ui/svgs/granola";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import type React from "react";
 import { isValidElement, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -196,15 +195,8 @@ export function AddGranolaIntegrationDialog({
           >
             {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
-          <Button disabled={createMutation.isPending} onClick={handleSubmit}>
-            {createMutation.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {t("verifying")}
-              </>
-            ) : (
-              tIntegrationsShared("addIntegration")
-            )}
+          <Button loading={createMutation.isPending} onClick={handleSubmit}>
+            {tIntegrationsShared("addIntegration")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

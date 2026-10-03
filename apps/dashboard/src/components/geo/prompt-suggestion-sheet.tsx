@@ -32,6 +32,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
     <section className="min-w-0 space-y-2">
       <h3 className="text-sm font-medium">{tGeoShared("searchQueries")}</h3>
       <Table
+        autoHeight
         className="rounded-2xl"
         columns={[
           {
@@ -75,7 +76,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
         defaultSort={{ key: "impressions", direction: "desc" }}
         emptyState={t("noQueryData")}
         getRowId={(query) => query.query}
-        height={tableHeightFor(queries.length)}
+        height={tableHeightFor(0)}
         rowSizing="content"
       />
     </section>

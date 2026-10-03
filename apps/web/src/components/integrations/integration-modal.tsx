@@ -1,5 +1,3 @@
-"use client";
-
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -9,7 +7,7 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@tanstack/react-router";
 
 import { QUICK_VIEW_VISIBLE_TOOLS } from "@/constants/integrations";
 import {
@@ -30,7 +28,7 @@ export function IntegrationModal({ integration }: IntegrationModalProps) {
     <ResponsiveDialog
       onOpenChange={(open) => {
         if (!open) {
-          router.back();
+          router.history.back();
         }
       }}
       open

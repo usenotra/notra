@@ -43,6 +43,10 @@ const getOrganizationAccess = cacheAuthRequest(async (rawSlug: string) => {
   );
 
   if (!organization || organization.members.length === 0) {
+    const fallback = await getLastActiveOrganizationForUser(session.user.id);
+    if (fallback && fallback.slug !== slug) {
+      throw redirect({ href: `/${fallback.slug}` });
+    }
     throw notFound();
   }
 

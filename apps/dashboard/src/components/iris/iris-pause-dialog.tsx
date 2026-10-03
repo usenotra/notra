@@ -8,7 +8,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -38,15 +37,8 @@ export function IrisPauseDialog({
           >
             {t("keepRunning")}
           </Button>
-          <Button disabled={isPausing} onClick={onConfirm}>
-            {isPausing ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {t("pausing")}
-              </>
-            ) : (
-              t("confirm")
-            )}
+          <Button loading={isPausing} onClick={onConfirm}>
+            {t("confirm")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

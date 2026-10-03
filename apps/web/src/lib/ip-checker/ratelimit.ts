@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { Data, Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 import { IP_CHECKER_RATE_LIMIT } from "@/constants/ip-checker";
 
@@ -41,7 +40,7 @@ function getLimiter(): Ratelimit | null {
   return limiter;
 }
 
-function getClientIp(request: NextRequest): string {
+function getClientIp(request: Request): string {
   const vercelForwardedFor = request.headers
     .get("x-vercel-forwarded-for")
     ?.split(",")[0]
@@ -60,7 +59,7 @@ function getClientIp(request: NextRequest): string {
 }
 
 export const enforceIpCheckRateLimit = Effect.fn("enforceIpCheckRateLimit")(
-  function* (request: NextRequest) {
+  function* (request: Request) {
     const ratelimit = getLimiter();
     if (!ratelimit) {
       if (process.env.NODE_ENV === "production") {

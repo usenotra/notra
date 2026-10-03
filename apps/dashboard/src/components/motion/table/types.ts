@@ -83,6 +83,12 @@ interface TableBaseProps<T> {
   height?: number;
   /** Floor for the table body when there are fewer rows than `height` allows. */
   minHeight?: number;
+  /**
+   * Content-sized rows only: grow with the rows instead of capping at
+   * `height`, so the body never scrolls on its own. `height` still sizes the
+   * empty and loading states.
+   */
+  autoHeight?: boolean;
   /** Rows rendered above/below the viewport. */
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loading03Icon, PlayIcon } from "@hugeicons/core-free-icons";
+import { PlayIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
@@ -50,15 +50,10 @@ function RunConversationButton({
   isRunning: boolean;
   label: string;
 }) {
-  const tGeoShared = useTranslations("geo.shared");
   return (
-    <Button disabled={isRunning} onClick={onRun} size="sm">
-      <HugeiconsIcon
-        className={isRunning ? "animate-spin" : undefined}
-        icon={isRunning ? Loading03Icon : PlayIcon}
-        size={14}
-      />
-      {isRunning ? tGeoShared("playingAgainstTheEngines") : label}
+    <Button loading={isRunning} onClick={onRun} size="sm">
+      <HugeiconsIcon icon={PlayIcon} size={14} />
+      {label}
     </Button>
   );
 }

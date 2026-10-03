@@ -1,4 +1,3 @@
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -62,14 +61,8 @@ export function BlogPreviewActions({
           {tLabels("discard")}
         </Button>
       ) : null}
-      <Button
-        className="ml-auto"
-        disabled={isSaving}
-        onClick={onSave}
-        size="sm"
-      >
-        {isSaving ? <Loader2Icon className="size-4 animate-spin" /> : null}
-        {isSaving ? t("savingDraft") : t("saveAsDraft")}
+      <Button className="ml-auto" loading={isSaving} onClick={onSave} size="sm">
+        {t("saveAsDraft")}
       </Button>
     </div>
   );

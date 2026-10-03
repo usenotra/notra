@@ -1,6 +1,6 @@
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { McpUseCaseStack } from "@/components/mcp-use-cases/use-case-tool-icon";
 import { MCP_USE_CASES, MCP_USE_CASES_PATH } from "@/constants/mcp-use-cases";
@@ -25,7 +25,7 @@ export function McpUseCasesCallout() {
       </div>
       <Link
         className="cta-gradient-primary-flat flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-5.5 py-2.75 font-sans text-[0.875rem] leading-[1.29] font-semibold text-white"
-        href={MCP_USE_CASES_PATH}
+        to={MCP_USE_CASES_PATH}
       >
         Browse use cases
         <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />

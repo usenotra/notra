@@ -20,7 +20,6 @@ import type {
   EngineFamilyPromptHit,
   EngineFamilySheetProps,
 } from "@/types/geo";
-import { engineFamilyModeTotals } from "@/utils/geo-charts";
 import {
   engineFamilyBrandRows,
   findOwnBrandDomain,

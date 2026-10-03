@@ -385,15 +385,13 @@ function ConnectionActions({
       </Button>
       <div className="flex flex-wrap justify-end gap-2">
         <Button
-          disabled={refreshing || !connection.enabled}
+          disabled={!connection.enabled}
+          loading={refreshing}
           onClick={onRefresh}
           type="button"
           variant="outline"
         >
-          <HugeiconsIcon
-            className={refreshing ? "animate-spin" : ""}
-            icon={Refresh03Icon}
-          />
+          <HugeiconsIcon icon={Refresh03Icon} />
           {tIntegrationsShared("refreshTools")}
         </Button>
         {connection.authType === "oauth" ? (

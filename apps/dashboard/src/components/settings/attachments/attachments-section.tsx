@@ -29,7 +29,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -186,16 +185,12 @@ export function AttachmentsSection() {
 
         {hasSelection ? (
           <Button
-            disabled={deleteManyMutation.isPending}
+            loading={deleteManyMutation.isPending}
             onClick={() => setConfirmKeys(selectedKeys)}
             size="sm"
             variant="destructive"
           >
-            {deleteManyMutation.isPending ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon icon={Delete02Icon} size={16} />
-            )}
+            <HugeiconsIcon icon={Delete02Icon} size={16} />
             {t("deleteSelected", { count: selectedKeys.length })}
           </Button>
         ) : null}

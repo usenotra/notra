@@ -2,7 +2,6 @@
 
 import { Add01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Confetti } from "@neoconfetti/react";
 import { FEATURES } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
@@ -15,6 +14,7 @@ import { CreditActivity } from "@/components/billing/credit-activity";
 import { CreditSummaryCards } from "@/components/billing/credit-summary-cards";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
 import { Button } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import Link from "@/components/framework/link";
 import { NotFoundContent } from "@/components/not-found-content";
 import { SettingsPane } from "@/components/settings/settings-pane";

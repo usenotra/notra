@@ -59,3 +59,10 @@ export const crawlerIpListPayloadSchema = z.object({
     })
   ),
 });
+
+export const ipCheckerSearchSchema = z.object({
+  ip: z
+    .union([z.string(), z.number().transform(String)])
+    .optional()
+    .catch(undefined),
+});

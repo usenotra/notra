@@ -58,8 +58,10 @@ import {
   eq,
   gte,
   inArray,
+  isNull,
   lt,
   ne,
+  or,
   sql,
 } from "drizzle-orm";
 import { marked } from "marked";
@@ -1234,26 +1236,38 @@ export const contentRouter = {
           organizationId: input.organizationId,
         });
 
-        const existingCollection = await db.query.postCollections.findFirst({
-          where: and(
-            eq(postCollections.id, input.collectionId),
-            eq(postCollections.organizationId, input.organizationId)
-          ),
-          columns: { id: true },
-        });
-
-        if (!existingCollection) {
-          throw notFound("Post collection not found");
-        }
-
-        await db
+        const [deletedCollection] = await db
           .delete(postCollections)
           .where(
             and(
               eq(postCollections.id, input.collectionId),
-              eq(postCollections.organizationId, input.organizationId)
+              eq(postCollections.organizationId, input.organizationId),
+              or(
+                isNull(postCollections.expectedPostCount),
+                gte(
+                  postCollections.completedPostCount,
+                  postCollections.expectedPostCount
+                )
+              )
             )
-          );
+          )
+          .returning({ id: postCollections.id });
+
+        if (!deletedCollection) {
+          const existingCollection = await db.query.postCollections.findFirst({
+            where: and(
+              eq(postCollections.id, input.collectionId),
+              eq(postCollections.organizationId, input.organizationId)
+            ),
+            columns: { id: true },
+          });
+
+          if (!existingCollection) {
+            throw notFound("Post collection not found");
+          }
+
+          throw conflict("Cannot delete a collection while it is generating");
+        }
 
         return { success: true };
       }),

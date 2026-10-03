@@ -238,6 +238,7 @@ import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
 
+import { DesignSystemButtonStatesDemo } from "./button-states-demo";
 import { DesignSystemWriteDialogDemo } from "./write-dialog-demo";
 
 const colorGroups = [
@@ -549,7 +550,9 @@ export default function DesignSystemClientPage() {
         <Card>
           <CardHeader>
             <CardTitle>Buttons</CardTitle>
-            <CardDescription>Variants and sizing options.</CardDescription>
+            <CardDescription>
+              Variants, sizing, and loading and progress states.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap gap-3">
@@ -570,6 +573,7 @@ export default function DesignSystemClientPage() {
               <Button size="icon-sm">◎</Button>
               <Button size="icon-lg">◎</Button>
             </div>
+            <DesignSystemButtonStatesDemo />
             <div className="flex flex-wrap items-center gap-4">
               <ButtonGroup>
                 <Button variant="outline">Left</Button>
@@ -1109,6 +1113,40 @@ export default function DesignSystemClientPage() {
                 variant="outline"
               >
                 Loading
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.warning("Seat limit almost reached", {
+                    description: "9 of 10 seats are in use.",
+                  })
+                }
+                variant="outline"
+              >
+                Warning
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.info("New scan scheduled", {
+                    description: "Runs every Monday at 09:00.",
+                  })
+                }
+                variant="outline"
+              >
+                Info
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.error("Couldn't change role", {
+                    description: "Your plan includes 3 team members.",
+                    action: {
+                      label: "View plans",
+                      onClick: () => toast.success("Opened plans"),
+                    },
+                  })
+                }
+                variant="outline"
+              >
+                With action
               </Button>
             </CardContent>
           </Card>

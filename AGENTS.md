@@ -81,7 +81,7 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   Production builds use Nitro; `bun run start` in `apps/dashboard` serves
   `.output/server/index.mjs`. Run type checking separately from `vite build`.
   Existing `NEXT_PUBLIC_*` deployment variable names remain intentionally.
-- `apps/web` (port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
+- `apps/web` (TanStack Start, port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
   defaults to port 3000 so set `PORT` to avoid clashing with the dashboard) — all
   optional for the core flow.
 

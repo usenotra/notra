@@ -4,7 +4,6 @@ import {
   Add01Icon,
   AlertCircleIcon,
   InformationCircleIcon,
-  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
@@ -748,25 +747,11 @@ export function CreateScheduleDialog({
                   >
                     {tCommon("actions.cancel")}
                   </Button>
-                  <Button disabled={mutation.isPending} type="submit">
-                    {mutation.isPending ? (
-                      <>
-                        <HugeiconsIcon
-                          className="size-4 animate-spin"
-                          icon={Loading03Icon}
-                        />
-                        {isEditMode
-                          ? tCommon("actions.saving")
-                          : tCommon("labels.adding")}
-                      </>
-                    ) : (
-                      <>
-                        <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                        {isEditMode
-                          ? tCommon("actions.saveChanges")
-                          : t("dialog.add")}
-                      </>
-                    )}
+                  <Button loading={mutation.isPending} type="submit">
+                    <HugeiconsIcon className="size-4" icon={Add01Icon} />
+                    {isEditMode
+                      ? tCommon("actions.saveChanges")
+                      : t("dialog.add")}
                   </Button>
                 </div>
               </div>

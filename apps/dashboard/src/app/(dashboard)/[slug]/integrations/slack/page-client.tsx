@@ -134,19 +134,14 @@ function RefreshChannelsButton({
           <Button
             aria-label={t("refreshAriaLabel")}
             className="text-muted-foreground hover:text-foreground aria-expanded:bg-transparent"
-            disabled={refreshMutation.isPending}
+            loading={refreshMutation.isPending}
             onClick={() => refreshMutation.mutate()}
             size="icon-sm"
             variant="ghost"
           />
         }
       >
-        <HugeiconsIcon
-          className={
-            refreshMutation.isPending ? "size-3.5 animate-spin" : "size-3.5"
-          }
-          icon={ArrowReloadHorizontalIcon}
-        />
+        <HugeiconsIcon className="size-3.5" icon={ArrowReloadHorizontalIcon} />
       </TooltipTrigger>
       <TooltipContent>{t("refreshTooltip")}</TooltipContent>
     </Tooltip>

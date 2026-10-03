@@ -9,7 +9,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { Loader2Icon } from "lucide-react";
 import { useId } from "react";
 import { useTranslations } from "use-intl";
 
@@ -79,32 +78,23 @@ export function IrisRunningState({
         </div>
         <div className="flex items-center gap-2">
           <Button
-            disabled={isRunNowPending || isBusy || isPaused}
+            disabled={isBusy || isPaused}
+            loading={isRunNowPending}
             onClick={onRunNow}
             variant="outline"
           >
-            {isRunNowPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {t("starting")}
-              </>
-            ) : (
-              tCommon("labels.runNow")
-            )}
+            {tCommon("labels.runNow")}
           </Button>
           <Button
-            disabled={isStatusPending || isRevoked}
+            disabled={isRevoked}
+            loading={isStatusPending}
             onClick={isPaused ? onResume : onPause}
             variant={isPaused ? "default" : "outline"}
           >
-            {isStatusPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon
-                className="size-4"
-                icon={isPaused ? PlayIcon : PauseIcon}
-              />
-            )}
+            <HugeiconsIcon
+              className="size-4"
+              icon={isPaused ? PlayIcon : PauseIcon}
+            />
             {isPaused ? tCommon("labels.resume") : tCommon("labels.pause")}
           </Button>
         </div>
@@ -167,18 +157,11 @@ export function IrisRunningState({
           {runsState.hasMore ? (
             <div className="flex justify-center pt-1">
               <Button
-                disabled={runsState.isLoadingMore}
+                loading={runsState.isLoadingMore}
                 onClick={onLoadMoreRuns}
                 variant="outline"
               >
-                {runsState.isLoadingMore ? (
-                  <>
-                    <Loader2Icon className="size-4 animate-spin" />
-                    {tCommon("states.loading")}
-                  </>
-                ) : (
-                  tCommon("actions.loadMore")
-                )}
+                {tCommon("actions.loadMore")}
               </Button>
             </div>
           ) : null}

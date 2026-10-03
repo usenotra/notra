@@ -16,7 +16,6 @@ export default defineAgent({
       "@upstash/redis",
       "marked",
       "pg",
-      "sanitize-html",
       "satori",
       "satori-html",
     ],

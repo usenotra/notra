@@ -22,8 +22,6 @@ import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { DashboardDemoChrome } from "@/components/demo/dashboard-demo-chrome";
-import { DemoPlaygroundProvider } from "@/components/demo/demo-playground-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
@@ -43,6 +41,18 @@ import type {
 } from "@/types/components/dashboard-shell";
 import { dashboardShellStyle } from "@/utils/dashboard-shell-style";
 import dynamic from "@/utils/lazy-component";
+
+// Demo-only UI: loaded on demand so production bundles don't carry it.
+const DashboardDemoChrome = dynamic(() =>
+  import("@/components/demo/dashboard-demo-chrome").then(
+    (module) => module.DashboardDemoChrome
+  )
+);
+const DemoPlaygroundProvider = dynamic(() =>
+  import("@/components/demo/demo-playground-provider").then(
+    (module) => module.DemoPlaygroundProvider
+  )
+);
 
 const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(

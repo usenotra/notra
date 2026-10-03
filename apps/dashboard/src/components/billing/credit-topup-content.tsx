@@ -12,7 +12,6 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "use-intl";
@@ -222,12 +221,13 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
 
       <Button
         className="w-full"
-        disabled={!activeAmount || loading}
+        disabled={!activeAmount}
+        loading={loading}
         onClick={handleTopup}
       >
-        {loading && <Loader2Icon className="size-4 animate-spin" />}
-        {!loading && activeAmount && t("addAmount", { amount: activeAmount })}
-        {!(loading || activeAmount) && t("selectAmount")}
+        {activeAmount
+          ? t("addAmount", { amount: activeAmount })
+          : t("selectAmount")}
       </Button>
 
       <p className="text-muted-foreground text-center text-xs">

@@ -1,9 +1,9 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import {
   buildAuthorCategoryLine,
   buildFeaturedMeta,
-  getIntegrationHref,
+  getIntegrationSlug,
 } from "@/lib/integrations/helpers";
 import type { FeaturedIntegrationCardProps } from "@/types/integrations";
 
@@ -24,7 +24,15 @@ export function FeaturedIntegrationCard({
       <Link
         aria-label={`View ${integration.name} details`}
         className="focus-visible:ring-primary absolute inset-0 z-0 cursor-pointer rounded-3xl outline-none focus-visible:ring-2"
-        href={getIntegrationHref(integration)}
+        mask={{
+          to: "/integrations/$id",
+          params: { id: getIntegrationSlug(integration) },
+        }}
+        search={(prev) => ({
+          ...prev,
+          integration: getIntegrationSlug(integration),
+        })}
+        to="/integrations"
       />
       <div className="pointer-events-none relative z-10 flex flex-col">
         <IntegrationBanner

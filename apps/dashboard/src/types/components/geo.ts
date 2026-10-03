@@ -11,6 +11,8 @@ import type { GeoPromptSuggestion } from "@/types/geo";
 export interface PromptSuggestionsProps {
   organizationId: string;
   callbackPath: string;
+  /** Opens the prompts tab, focused on one prompt when an id is given. */
+  onViewTrackedPrompt: (promptId?: string) => void;
 }
 
 export interface SuggestionRowActionsProps {

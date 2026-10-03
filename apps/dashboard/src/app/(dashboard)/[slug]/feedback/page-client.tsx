@@ -1,6 +1,5 @@
 "use client";
 
-import { Confetti } from "@neoconfetti/react";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
 import {
   ResponsiveAlertDialog,
@@ -25,7 +24,6 @@ import {
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
 import { cn } from "@notra/ui/lib/utils";
-import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
@@ -36,6 +34,7 @@ import { AgentFeedbackSetupDialog } from "@/components/agent-feedback/feedback-s
 import { AgentFeedbackStatusIcon } from "@/components/agent-feedback/feedback-status-icon";
 import { AgentFeedbackTable } from "@/components/agent-feedback/feedback-table";
 import { Button } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -319,14 +318,11 @@ function FeedbackList({
       {hasNextPage ? (
         <div className="flex shrink-0 justify-center">
           <Button
-            disabled={isFetchingNextPage}
+            loading={isFetchingNextPage}
             onClick={onLoadMore}
             size="sm"
             variant="outline"
           >
-            {isFetchingNextPage ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : null}
             {tCommon("actions.loadMore")}
           </Button>
         </div>

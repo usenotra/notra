@@ -261,7 +261,12 @@ export function ingestGeoTrafficEvents(
     rows,
     "geo",
     rows.map((row) => row.organization_id),
-    (client, batch) => client.geoTrafficEvents.ingestBatch(batch)
+    // wait=true holds the response until Tinybird's next flush (p90 ~2.8 s,
+    // measured), past the 2 s budget of the SDK that posts these events.
+    // Without it Tinybird still validates synchronously and reports
+    // quarantined rows, but answers in ~20 ms once the rows are buffered.
+    (client, batch) =>
+      client.geoTrafficEvents.ingestBatch(batch, { wait: false })
   );
 }
 

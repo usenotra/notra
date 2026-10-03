@@ -1,7 +1,7 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ChangelogRowProps } from "~types/changelog";
 
-import { formatChangelogDate } from "@/utils/changelog";
+import { formatChangelogDate } from "@/utils/format-date";
 
 export function ChangelogRow({ item }: ChangelogRowProps) {
   return (
@@ -13,7 +13,7 @@ export function ChangelogRow({ item }: ChangelogRowProps) {
       </div>
       <Link
         className="group flex grow flex-col justify-center gap-2 rounded-[1.25rem] bg-white px-6 py-6 ring-1 ring-[#ECECEC] transition-colors hover:ring-[#1E1E1E1A] sm:px-7 dark:bg-white/[0.03] dark:ring-white/10 dark:hover:ring-white/20"
-        href={item.href}
+        to={item.href}
       >
         <h3 className="font-display group-hover:text-primary text-xl leading-[1.3] font-semibold tracking-[-0.015em] text-[#1E1E1E] transition-colors dark:text-white">
           {item.title}

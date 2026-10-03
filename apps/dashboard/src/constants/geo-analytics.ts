@@ -72,12 +72,6 @@ export const TRAFFIC_LOG_FILTER_KINDS = {
   PURPOSE: "purpose",
 } as const;
 
-export const GEO_INGEST_FIRST_HIT_KEY_PREFIX = "geo:ingest-first-hit:v1";
-
-export const GEO_INGEST_RECEIVED_SAMPLE_RATE = 0.01;
-
-export const GEO_INGEST_RECEIVED_SAMPLE_DENOMINATOR = 100;
-
 export const GEO_SCAN_FAILURE_REASONS = {
   RETRY_NO_SUCCESSFUL_CHECKS: "retry_no_successful_checks",
   UNKNOWN: "unknown",

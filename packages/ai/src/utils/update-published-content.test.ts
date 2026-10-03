@@ -116,6 +116,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
         branch: "content",
         markdown: "# Updated",
         title: undefined,
+        path: "docs/page.md",
       },
     ]);
   });
@@ -259,6 +260,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
         commitSha: "next",
         branch: "content",
         markdown: "![B](https://cdn/b.png)\n![New](https://cdn/new.png)",
+        path: "page.md",
       },
       expect.any(Function)
     );

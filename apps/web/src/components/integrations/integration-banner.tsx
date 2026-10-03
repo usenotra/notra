@@ -1,5 +1,4 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import type { IntegrationBannerProps } from "@/types/integrations";
 
@@ -13,12 +12,12 @@ export function IntegrationBanner({
   if (integration.bannerUrl) {
     return (
       <div className={cn("relative overflow-hidden", className)}>
-        <Image
+        <img
           alt={`${integration.name} banner`}
-          className="object-cover"
-          fill
-          priority={priority}
-          sizes="(max-width: 48rem) 100vw, 40rem"
+          className="absolute inset-0 size-full object-cover"
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          loading={priority ? "eager" : "lazy"}
           src={integration.bannerUrl}
         />
       </div>

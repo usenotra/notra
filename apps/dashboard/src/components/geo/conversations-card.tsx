@@ -3,7 +3,6 @@
 import {
   AiMagicIcon,
   Delete02Icon,
-  Loading03Icon,
   MessageMultiple01Icon,
   MoreHorizontalIcon,
   PencilEdit02Icon,
@@ -82,6 +81,7 @@ function ConversationRowActions({
             <Button
               aria-label={t("runNamed", { name: sequence.name })}
               disabled={isRunPending}
+              loading={isRunning}
               onClick={(event) => {
                 event.stopPropagation();
                 onRun();
@@ -91,11 +91,7 @@ function ConversationRowActions({
             />
           }
         >
-          <HugeiconsIcon
-            className={isRunning ? "animate-spin" : undefined}
-            icon={isRunning ? Loading03Icon : PlayIcon}
-            size={14}
-          />
+          <HugeiconsIcon icon={PlayIcon} size={14} />
           {t("run")}
         </TooltipTrigger>
         <TooltipContent>

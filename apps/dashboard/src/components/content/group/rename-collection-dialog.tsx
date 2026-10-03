@@ -11,7 +11,6 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -118,15 +117,12 @@ export function RenameCollectionDialog({
           >
             {tCommon("cancel")}
           </Button>
-          <Button disabled={!canSubmit} onClick={handleSubmit}>
-            {rename.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {tCommon("saving")}
-              </>
-            ) : (
-              tCommon("save")
-            )}
+          <Button
+            disabled={!canSubmit}
+            loading={rename.isPending}
+            onClick={handleSubmit}
+          >
+            {tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

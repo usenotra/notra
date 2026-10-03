@@ -13,18 +13,14 @@ export function SkillUnsavedChangesToast({
   const tCommon = useTranslations("common");
 
   return (
-    <div className="border-border bg-background rounded-[14px] border p-0.5 shadow-sm">
-      <div className="bg-background flex items-center gap-3 rounded-lg px-4 py-3">
-        <span className="text-muted-foreground text-sm">
-          {t("unsavedChanges")}
-        </span>
-        <Button onClick={onDiscard} size="sm" variant="ghost">
-          {tCommon("labels.discard")}
-        </Button>
-        <Button onClick={onSave} size="sm">
-          {tCommon("actions.save")}
-        </Button>
-      </div>
+    <div className="flex w-full items-center gap-2 pl-1">
+      <span className="flex-1 text-sm font-medium">{t("unsavedChanges")}</span>
+      <Button onClick={onDiscard} size="sm" variant="ghost">
+        {tCommon("labels.discard")}
+      </Button>
+      <Button onClick={onSave} size="sm">
+        {tCommon("actions.save")}
+      </Button>
     </div>
   );
 }

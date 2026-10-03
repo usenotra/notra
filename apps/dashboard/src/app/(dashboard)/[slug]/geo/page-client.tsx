@@ -1,21 +1,13 @@
 "use client";
 
-import { Kbd } from "@notra/ui/components/ui/kbd";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupEmpty } from "@/components/geo/geo-setup-empty";
-import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
+import { ScanModelMenu } from "@/components/geo/scan-model-menu";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoOverviewPage } from "@/lib/hooks/use-geo-overview-page";
-import { cn } from "@/lib/utils";
-import type {
-  GeoOverviewLoadedProps,
-  GeoPageClientProps,
-  GeoScanSpinnerProps,
-} from "@/types/geo";
+import type { GeoOverviewLoadedProps, GeoPageClientProps } from "@/types/geo";
 
 import { GeoTabs } from "./components/geo-tabs";
 import { GeoPageSkeleton } from "./skeleton";
@@ -42,7 +34,6 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 
 function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
   const t = useTranslations("geo.pages.overview");
-  const tGeoShared = useTranslations("geo.shared");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -51,18 +42,7 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <GeoRangePicker control={page.geoRange} />
-              <Button
-                className="w-fit gap-2"
-                disabled={page.isScanning}
-                onClick={page.onRunScan}
-                size="sm"
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <GeoScanSpinner visible={page.isScanning} />
-                  {tGeoShared("runScan")}
-                </span>
-                <Kbd className="hidden sm:inline-flex">R</Kbd>
-              </Button>
+              <ScanModelMenu {...page.scanMenu} />
             </div>
           </div>
           <p className="text-muted-foreground">
@@ -72,15 +52,6 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
 
         <GeoTabs {...page.tabs} />
       </div>
-      <ScanPreflightDialog {...page.scanPreflight} />
     </PageContainer>
   );
-}
-
-function GeoScanSpinner({ visible }: GeoScanSpinnerProps) {
-  if (!visible) {
-    return null;
-  }
-
-  return <Loader2Icon className="size-4 animate-spin" />;
 }

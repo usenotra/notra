@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import { useState } from "react";
 import type { BlogAuthorAvatarProps } from "~types/blog";
 
@@ -22,15 +19,22 @@ export function BlogAuthorAvatar({
       style={{ width: size, height: size, fontSize: size >= 80 ? 24 : 12 }}
     >
       {image && failedImage !== image ? (
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={name}
-          blurDataURL={placeholder?.blurDataURL}
           className="size-full object-cover"
           height={size}
           onError={() => setFailedImage(image)}
-          placeholder={placeholder ? "blur" : "empty"}
-          sizes={`${size}px`}
           src={image}
+          style={
+            placeholder
+              ? {
+                  backgroundImage: `url("${placeholder.blurDataURL}")`,
+                  backgroundSize: "cover",
+                }
+              : undefined
+          }
           width={size}
         />
       ) : (

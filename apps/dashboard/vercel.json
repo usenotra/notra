@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "git": {
+    "deploymentEnabled": false
+  },
   "installCommand": "cd ../.. && bunx bun@1.4.0 install --frozen-lockfile --filter 'dashboard...' --filter turbo",
   "buildCommand": "bash scripts/vercel-build.sh",
   "regions": ["iad1"],

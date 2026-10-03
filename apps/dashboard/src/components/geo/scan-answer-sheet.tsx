@@ -19,11 +19,11 @@ import {
 } from "@/components/geo/prompt-detail-dialog";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { GEO_PROMPT_DEFAULT_FILTERS } from "@/constants/geo-prompts";
-import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoScanAnswerProps } from "@/types/geo-scan-activity";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import { buildPromptTableRows } from "@/utils/geo-prompts";
 
@@ -35,7 +35,6 @@ export function ScanAnswerSheet({
   initialLanguage,
 }: GeoScanAnswerProps) {
   const t = useTranslations("geo.scanAnswerSheet");
-  const formatEngineWithMode = useEngineModeLabel();
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const open = checkIdProp !== null;
   const [checkId, releaseCheckId] = useRetainedValue(checkIdProp);
@@ -92,7 +91,7 @@ export function ScanAnswerSheet({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="flex items-center gap-2 text-sm">
                     <EngineIcon className="size-4" engine={result.engine} />
-                    {formatEngineWithMode(result.engine)}
+                    {formatEngineFamily(result.engine)}
                   </span>
                   <PromptReceiptViewSwitch onChange={setView} view={view} />
                 </div>

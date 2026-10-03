@@ -1,9 +1,6 @@
-"use client";
-
 import { ArrowExpand01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -131,20 +128,20 @@ export function LiveDemoEmbed() {
         ) : null}
         {ready ? null : (
           <>
-            <Image
+            <img
+              decoding="async"
+              loading="eager"
               alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none object-cover object-top-left dark:hidden"
+              className="pointer-events-none absolute inset-0 size-full object-cover object-top-left dark:hidden"
               fetchPriority="high"
-              fill
-              sizes="(min-width: 64rem) 64rem, 100vw"
               src={LIVE_DEMO_PREVIEW_SRC}
             />
-            <Image
+            <img
+              decoding="async"
+              loading="eager"
               alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none hidden object-cover object-top-left dark:block"
+              className="pointer-events-none absolute inset-0 hidden size-full object-cover object-top-left dark:block"
               fetchPriority="high"
-              fill
-              sizes="(min-width: 64rem) 64rem, 100vw"
               src={LIVE_DEMO_PREVIEW_DARK_SRC}
             />
           </>

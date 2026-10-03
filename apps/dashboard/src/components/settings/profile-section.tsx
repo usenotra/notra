@@ -184,15 +184,11 @@ export function ProfileSection({
                   />
                   <Button
                     className="shrink-0"
-                    disabled={isUpdating}
+                    loading={isUpdating}
                     size="default"
                     type="submit"
                   >
-                    {isUpdating ? (
-                      <Loader2Icon className="size-4 animate-spin" />
-                    ) : (
-                      tCommon("save")
-                    )}
+                    {tCommon("save")}
                   </Button>
                 </div>
               </div>

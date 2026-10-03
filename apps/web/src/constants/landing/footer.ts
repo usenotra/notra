@@ -42,6 +42,7 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
         title: "Product",
         links: [
           { label: "Features", href: "/features" },
+          { label: "Marketing Assets", href: "/features/marketing/assets" },
           { label: "Pricing", href: "/pricing" },
           { label: "Changelog", href: "/changelog/notra" },
           { label: "Examples", href: "/changelog" },

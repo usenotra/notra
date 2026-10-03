@@ -4,7 +4,6 @@ import {
   AlertCircleIcon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  Loading03Icon,
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -156,24 +155,13 @@ function CreateContentDialogFooter({
         </div>
         {step === "identities" ? (
           <Button
-            disabled={isPending || !isProjectResolved}
+            disabled={!isProjectResolved}
+            loading={isPending}
             onClick={onCreate}
             type="button"
           >
-            {isPending ? (
-              <>
-                <HugeiconsIcon
-                  className="size-4 animate-spin"
-                  icon={Loading03Icon}
-                />
-                {t("generating")}
-              </>
-            ) : (
-              <>
-                {identityButtonLabel}
-                <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
-              </>
-            )}
+            {identityButtonLabel}
+            <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
           </Button>
         ) : (
           <Button disabled={isPending} onClick={onNext} type="button">

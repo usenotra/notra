@@ -23,7 +23,6 @@ function SearchRetryNotice({
   searchFetching,
 }: SearchRetryNoticeProps) {
   const t = useTranslations("onboarding.competitorSearch");
-  const tCommon = useTranslations("common");
   return (
     <div
       aria-live="polite"
@@ -32,7 +31,7 @@ function SearchRetryNotice({
       <span className="text-muted-foreground text-xs">{t("unavailable")}</span>
       <Button
         className="h-7 shrink-0 px-2 text-xs"
-        disabled={searchFetching}
+        loading={searchFetching}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -42,11 +41,8 @@ function SearchRetryNotice({
         type="button"
         variant="ghost"
       >
-        <HugeiconsIcon
-          className={searchFetching ? "size-3 animate-spin" : "size-3"}
-          icon={Refresh03Icon}
-        />
-        {searchFetching ? tCommon("labels.retrying") : t("retry")}
+        <HugeiconsIcon className="size-3" icon={Refresh03Icon} />
+        {t("retry")}
       </Button>
     </div>
   );

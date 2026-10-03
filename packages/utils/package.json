@@ -28,6 +28,6 @@
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

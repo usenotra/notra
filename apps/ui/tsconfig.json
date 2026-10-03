@@ -9,7 +9,6 @@
     ".blume/cache"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     }

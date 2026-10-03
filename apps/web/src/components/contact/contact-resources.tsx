@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { CONTACT_RESOURCE_LINKS } from "@/constants/contact";
 import type { ContactResourceIconId } from "@/types/contact";
@@ -144,7 +144,7 @@ export function ContactResources() {
       {CONTACT_RESOURCE_LINKS.map((resource) => (
         <Link
           className="flex items-center gap-3.5 rounded-[0.875rem] px-4 py-3.5 transition-colors hover:bg-[#F7F4FD] dark:hover:bg-white/[0.04]"
-          href={resource.href}
+          to={resource.href}
           key={resource.href}
           rel={resource.external ? "noopener noreferrer" : undefined}
           target={resource.external ? "_blank" : undefined}

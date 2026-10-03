@@ -66,6 +66,11 @@ import {
   updateSlackIntegration,
 } from "@notra/ai/integrations/slack-workspace";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
+import {
+  GitHubInstallationMissingError,
+  GitHubMultiRepositoryUnsupportedError,
+  GitHubRepositoryAlreadyConnectedError,
+} from "@notra/ai/schemas/github-operations";
 import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import {
   createOctokit,
@@ -360,20 +365,14 @@ async function getAffectedSchedulesForIntegration(
 }
 
 async function toKnownIntegrationError(error: unknown): Promise<Error> {
-  if (
-    error instanceof Error &&
-    error.message === "Repository already connected"
-  ) {
+  if (error instanceof GitHubRepositoryAlreadyConnectedError) {
     const tCommon = await getTranslations("common");
     return conflict(tCommon("labels.repositoryAlreadyConnected"), {
       code: REPOSITORY_ALREADY_CONNECTED_CODE,
     });
   }
 
-  if (
-    error instanceof Error &&
-    error.message.includes("exactly one repository")
-  ) {
+  if (error instanceof GitHubMultiRepositoryUnsupportedError) {
     const tErrors = await getTranslations("errors.integrations");
     return badRequest(tErrors("selectOneRepository"));
   }
@@ -826,8 +825,7 @@ export const integrationsRouter = {
             if (
               hasGitHubStatus(error, 401) ||
               hasGitHubStatus(error, 404) ||
-              (error instanceof Error &&
-                error.message === "GitHub App installation not found")
+              error instanceof GitHubInstallationMissingError
             ) {
               const tErrors = await getTranslations("errors.integrations");
               throw forbidden(tErrors("githubAuthFailed"));
@@ -904,8 +902,7 @@ export const integrationsRouter = {
             if (
               hasGitHubStatus(error, 401) ||
               hasGitHubStatus(error, 404) ||
-              (error instanceof Error &&
-                error.message === "GitHub App installation not found")
+              error instanceof GitHubInstallationMissingError
             ) {
               const tErrors = await getTranslations("errors.integrations");
               throw forbidden(tErrors("githubAuthFailed"));
@@ -1088,8 +1085,7 @@ export const integrationsRouter = {
             if (
               hasGitHubStatus(error, 401) ||
               hasGitHubStatus(error, 404) ||
-              (error instanceof Error &&
-                error.message === "GitHub App installation not found")
+              error instanceof GitHubInstallationMissingError
             ) {
               const tErrors = await getTranslations("errors.integrations");
               throw forbidden(tErrors("githubAuthFailed"));
@@ -1214,27 +1210,21 @@ export const integrationsRouter = {
             input.repositoryId
           );
 
+          let config: Awaited<ReturnType<typeof getWebhookConfigForRepository>>;
           try {
-            const config = await getWebhookConfigForRepository(
+            config = await getWebhookConfigForRepository(
               input.repositoryId,
               auth.user.id
             );
-
-            if (!config) {
-              throw notFound("Webhook not configured");
-            }
-
-            return config;
           } catch (error) {
-            if (
-              error instanceof Error &&
-              error.message === "Webhook not configured"
-            ) {
-              throw notFound("Webhook not configured");
-            }
-
             throw await toKnownIntegrationError(error);
           }
+
+          if (!config) {
+            throw notFound("Webhook not configured");
+          }
+
+          return config;
         }),
       generateSecret: baseProcedure
         .input(repositoryInputSchema)

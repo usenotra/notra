@@ -76,6 +76,7 @@ export interface PromptAnswerTagsFooterProps {
 }
 
 export interface PromptAnswerEmptyProps {
+  organizationId: string;
   isScanning: boolean;
   detailState: GeoPromptDetailState;
   view: GeoPromptReceiptView;

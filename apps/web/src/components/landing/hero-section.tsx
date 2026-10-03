@@ -1,8 +1,6 @@
-"use client";
-
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
+import { Link } from "@tanstack/react-router";
 import { useReducedMotion } from "motion/react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { HeroDither } from "@/components/landing/hero-dither";
@@ -67,7 +65,7 @@ export function HeroSection() {
               <CtaButton
                 className={CTA_BUTTON_CLASSNAME}
                 nativeButton={false}
-                render={<Link href={HERO_BOOK_A_CALL_HREF} />}
+                render={<Link to={HERO_BOOK_A_CALL_HREF} />}
                 variant="light"
               >
                 Book a Call

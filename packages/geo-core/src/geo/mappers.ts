@@ -6,7 +6,7 @@ import type {
   GeoCompetitorRow,
   GeoModelCatalog,
   GeoProject,
-  GeoProjectRow,
+  GeoProjectResponseRow,
   GeoPromptRow,
   GeoPromptSequence,
   GeoPromptSequenceRow,
@@ -28,7 +28,7 @@ import {
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import { isGeoScanRunning } from "../utils/geo-scan";
 
-export function toGeoProject(row: GeoProjectRow): GeoProject {
+export function toGeoProject(row: GeoProjectResponseRow): GeoProject {
   return {
     id: row.id,
     name: row.name,

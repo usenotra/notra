@@ -1,24 +1,26 @@
-"use client";
-
-import { redirect, usePathname } from "next/navigation";
+import { Navigate, useLocation } from "@tanstack/react-router";
 
 import type { DashboardSessionState } from "@/lib/auth/use-dashboard-session";
+import { buildSignedOutLandingHref } from "@/utils/signed-out-landing";
 
 export function SignedOutLandingRedirect({
   isAuthenticated,
   isResolved,
 }: DashboardSessionState) {
-  const pathname = usePathname();
+  const location = useLocation();
 
   if (
-    typeof window !== "undefined" &&
     isResolved &&
     !isAuthenticated &&
-    (pathname === "/home" || pathname === "/landing")
+    (location.pathname === "/home" || location.pathname === "/landing")
   ) {
-    const destination = new URL(window.location.href);
-    destination.searchParams.delete("mode");
-    redirect(`/${destination.search}${destination.hash}`);
+    return (
+      <Navigate
+        href={buildSignedOutLandingHref(location.searchStr, location.hash)}
+        replace
+        to="/"
+      />
+    );
   }
 
   return null;

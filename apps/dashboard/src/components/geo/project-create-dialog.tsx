@@ -11,7 +11,6 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -253,13 +252,11 @@ export function GeoProjectCreateDialog({
               {tCommon("cancel")}
             </Button>
             <Button
-              disabled={isSubmitting || !brandQuery.isSuccess}
+              disabled={!brandQuery.isSuccess}
+              loading={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : null}
-              {isSubmitting ? t("settingUp") : t("create")}
+              {t("create")}
             </Button>
           </ResponsiveDialogFooter>
         </form>

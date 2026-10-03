@@ -40,7 +40,6 @@ import { ScanAnswerSheet } from "@/components/geo/scan-answer-sheet";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useEngineModeLabel } from "@/lib/hooks/use-engine-mode-label";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
 import type {
@@ -63,6 +62,7 @@ import type {
 } from "@/types/geo-scan-activity";
 import type { GeoSharedTranslator } from "@/types/geo-shared";
 import type { CommonTranslator } from "@/types/i18n";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { scanRunDetailView } from "@/utils/geo-scan-activity";
 
 const ALL_MODELS = "";
@@ -76,11 +76,10 @@ const INITIAL_SCAN_RUN_STATE: GeoScanRunDetailState = {
 };
 
 function ModelCell({ engine }: GeoScanModelCellProps) {
-  const formatEngineWithMode = useEngineModeLabel();
   return (
     <span className="flex min-w-0 items-center gap-2">
       <EngineIcon className="size-3.5 shrink-0" engine={engine} />
-      <TruncateWithTooltip>{formatEngineWithMode(engine)}</TruncateWithTooltip>
+      <TruncateWithTooltip>{formatEngineFamily(engine)}</TruncateWithTooltip>
     </span>
   );
 }
@@ -388,7 +387,6 @@ export function ScanRunFilters({
   const t = useTranslations("geo.scanRunDetail");
   const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
-  const formatEngineWithMode = useEngineModeLabel();
   const showViews = pendingCount > 0;
   const showEngines = engines.length > 1;
   const pendingLabel = running ? tGeoShared("inProgress") : t("missing");
@@ -433,9 +431,7 @@ export function ScanRunFilters({
               ) : (
                 <>
                   <EngineIcon className="size-3.5" engine={engine} />
-                  <span className="truncate">
-                    {formatEngineWithMode(engine)}
-                  </span>
+                  <span className="truncate">{formatEngineFamily(engine)}</span>
                 </>
               )}
             </SelectValue>
@@ -448,7 +444,7 @@ export function ScanRunFilters({
               <SelectItem key={item} value={item}>
                 <span className="flex items-center gap-2">
                   <EngineIcon className="size-3.5" engine={item} />
-                  {formatEngineWithMode(item)}
+                  {formatEngineFamily(item)}
                 </span>
               </SelectItem>
             ))}

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowDown01Icon,
   ArrowLeft02Icon,
@@ -16,8 +14,8 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { StepSlider } from "@notra/ui/components/ui/step-slider";
 import { cn } from "@notra/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { domMax, LazyMotion } from "motion/react";
-import Link from "next/link";
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -809,7 +807,7 @@ function EstimateCard({ value, onChange }: PromptCalculatorPanelProps) {
         source={`pricing_calculator_${plan.id}`}
       />
     ) : (
-      <Link href={plan.cta.href} />
+      <Link to={plan.cta.href} />
     );
 
   function copyLink() {

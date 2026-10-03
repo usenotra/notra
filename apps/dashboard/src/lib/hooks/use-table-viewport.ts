@@ -10,6 +10,7 @@ export function useTableViewport<T>({
   rowSizing,
   height,
   minHeight,
+  autoHeight,
   overscan,
   loading,
   onEndReached,
@@ -34,6 +35,7 @@ export function useTableViewport<T>({
     rowSizing,
     height,
     minHeight,
+    autoHeight,
     horizontalScrollbarHeight,
   });
   const virtualItems = virtualizer.getVirtualItems();

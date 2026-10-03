@@ -61,7 +61,6 @@ import type {
   GeoPromptTranslationLanguagePlan,
   GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
-import type { GeoRequestPayload } from "@usenotra/geo";
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
@@ -75,6 +74,7 @@ import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
+import type { GeoScanModelMenuProps } from "@/types/geo-scan-activity";
 
 export interface GeoProjectCreateInput {
   name: string;
@@ -198,8 +198,7 @@ export interface GeoOverviewPageReady {
   isScanning: boolean;
   revealActive: boolean;
   tabs: GeoTabsProps;
-  scanPreflight: ScanPreflightDialogProps;
-  onRunScan: () => void;
+  scanMenu: GeoScanModelMenuProps;
 }
 
 export type GeoOverviewPageModel =
@@ -209,10 +208,6 @@ export type GeoOverviewPageModel =
 
 export interface GeoOverviewLoadedProps {
   page: GeoOverviewPageReady;
-}
-
-export interface GeoScanSpinnerProps {
-  visible: boolean;
 }
 
 export interface GeoStatDeltaLabels {
@@ -428,58 +423,8 @@ export type GeoCompetitorSuggestionsHandlerInput = GeoScopeInput &
 
 export type GeoBrandSearchHandlerInput = GeoScopeInput & GeoBrandSearchInput;
 
-export interface GeoVisitorSignals {
-  clientHints: boolean;
-  fetchMode: string | null;
-  tracing: boolean;
-}
-
-export interface GeoVisitorInput {
-  userAgent: string | undefined;
-  referer: string | undefined;
-  accept: string | undefined;
-  signals?: GeoVisitorSignals;
-}
-
-export interface GeoVisitorClassification {
-  visitorType: GeoVisitorType;
-  source: string;
-  agent: string;
-  category: string;
-  confidence: string;
-}
-
 export interface GeoTrafficLogQueryOptions {
   host?: string;
-}
-
-export interface GeoJourneyInput {
-  url: URL;
-  source: string;
-  ip: string | undefined;
-  capturedAt: Date;
-  visitorType: GeoVisitorType;
-  category: string;
-}
-
-export interface GeoJourneyTuning {
-  bucketSeconds: number;
-  fullIp: boolean;
-}
-
-export interface GeoTrafficEventInput {
-  organizationId: string;
-  projectId: string | null;
-  payload: GeoRequestPayload;
-  url: URL;
-  capturedAt: Date;
-  classification: GeoVisitorClassification;
-  journey: GeoJourneyResolution;
-}
-
-export interface GeoJourneyResolution {
-  journeyId: string;
-  path: string;
 }
 
 export interface GeoJourneyPathNode {
@@ -1400,6 +1345,8 @@ export interface PromptScanButtonProps {
   organizationId: string;
   row: GeoPromptTableRow;
   compact?: boolean;
+  /** Filled primary trigger for the main action of a surface. */
+  primary?: boolean;
   onPrepare?: () => void;
 }
 

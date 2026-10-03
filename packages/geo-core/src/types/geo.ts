@@ -36,6 +36,11 @@ export interface GeoProjectRow {
   updatedAt: Date;
 }
 
+export type GeoProjectResponseRow = Pick<
+  GeoProjectRow,
+  "id" | "name" | "brandSettingsId" | "createdAt"
+>;
+
 export interface GeoProjectsResponse {
   projects: GeoProject[];
 }
@@ -247,8 +252,6 @@ export interface GeoTimeseriesResponse {
 
 export type GeoSparklineMode = "all" | "search" | "memory";
 
-export type GeoEngineMode = Exclude<GeoSparklineMode, "all">;
-
 export interface MentionRateSparklineOptions {
   family?: string;
   model?: string;
@@ -260,12 +263,10 @@ export interface GeoSparklinePoint {
   value: number;
 }
 
-export interface EngineFamilyModeTrendRow {
+export interface EngineFamilyTrendRow {
   day: string;
   rawDay: string;
   all: number | null;
-  search: number | null;
-  memory: number | null;
   [key: string]: string | number | null;
 }
 
@@ -695,6 +696,10 @@ export interface GeoScanBatchOutcome {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  /** AI answers this batch bills; defaults to `checks`. */
+  billedChecks?: number;
+  /** Usage this batch bills as AI credits; defaults to `usage`. */
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFailureMetadata {
@@ -711,6 +716,8 @@ export interface GeoScanProjectTotals {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  billedChecks?: number;
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFinishTotals {

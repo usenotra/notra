@@ -2,7 +2,6 @@
 
 import { CreditCardIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Confetti } from "@neoconfetti/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -14,6 +13,7 @@ import { useTranslations } from "use-intl";
 
 import { CreditTopupContent } from "@/components/billing/credit-topup-content";
 import { Button } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 
 interface CreditTopupModalProps {
   open: boolean;

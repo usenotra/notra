@@ -1,6 +1,5 @@
 import { Alert02Icon, RainbowIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -30,18 +29,11 @@ export function IrisStartState({
         <div className="flex justify-center pt-1">
           <Button
             className="px-6"
-            disabled={isStarting}
+            loading={isStarting}
             onClick={onStart}
             size="lg"
           >
-            {isStarting ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {t("start.starting")}
-              </>
-            ) : (
-              t("start.start")
-            )}
+            {t("start.start")}
           </Button>
         </div>
       </div>

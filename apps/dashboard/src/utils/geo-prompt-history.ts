@@ -2,6 +2,8 @@ import type {
   GeoPromptHistoryCheck,
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
+import { engineModelOf } from "@notra/geo-core/utils/geo-engine-family";
+import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 
 import type { PromptHistoryChange, PromptHistoryEntry } from "@/types/geo";
 
@@ -107,6 +109,26 @@ export function latestPromptResults(
     }
   }
   return [...latest.values()];
+}
+
+// Scans only run with web search now. Older no-search answers stay readable
+// for models that never got a search answer, but don't sit next to one. An
+// answer the user explicitly opened stays so the dialog shows what they clicked.
+export function withoutSupersededNoSearchResults(
+  results: readonly GeoPromptResultSummary[],
+  keepEngine?: string | null
+): GeoPromptResultSummary[] {
+  const searchedModels = new Set(
+    results
+      .filter((result) => isGroundedEngine(result.engine))
+      .map((result) => engineModelOf(result.engine))
+  );
+  return results.filter(
+    (result) =>
+      result.engine === keepEngine ||
+      isGroundedEngine(result.engine) ||
+      !searchedModels.has(engineModelOf(result.engine))
+  );
 }
 
 export function promptSentimentKey(

@@ -199,6 +199,7 @@ export async function runGitHubMentionSandbox(params: {
         "Apply the requested change in the working tree. Do not run git commit, git push, or any other command that needs credentials; your edits are collected and committed for you.",
         "Keep the change as small as the request allows. Follow the conventions of neighbouring files.",
         "Only content is committed: Markdown, MDX, text, and the JSON, YAML, TOML, or CSV data next to it. Changes to code, scripts, dot files, or build configuration are discarded, so do not make them.",
+        "Do not delete or move files. Any deletion rejects the entire sandbox change. The mention agent must use moveContentFile for relocations.",
         publicationPath
           ? `The content Notra published in this pull request is ${publicationPath}.`
           : "",
@@ -229,10 +230,11 @@ export async function runGitHubMentionSandbox(params: {
       },
     });
     const changes = await listChangedSandboxFiles(box, baseSha);
-    if (publicationPath && changes.deleted.includes(publicationPath)) {
+    for (const path of changes.deleted) {
       changes.skipped.push({
-        path: publicationPath,
-        reason: "Deleting a linked publication is not supported",
+        path,
+        reason:
+          "Sandbox deletions are not supported. Use moveContentFile to relocate content without losing its contents or publication mapping.",
       });
     }
     const reads = await Promise.all(

@@ -130,3 +130,7 @@ export interface PersonaAddDialogProps {
   onSubmit: (brief: string) => Promise<boolean>;
   isPending: boolean;
 }
+
+export interface PersonaAnswerCostBadgeProps {
+  className?: string;
+}
