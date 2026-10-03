@@ -173,6 +173,9 @@
         "period": "Letzte 30 Tage",
         "refresh": "Webhook-Aktivität aktualisieren",
         "addEndpoint": "Endpunkt hinzufügen",
+        "rightNow": "Gerade",
+        "sending": "Wird gesendet",
+        "idle": "Nichts offen",
         "views": "Webhook-Ansichten",
         "deliveries": "Zustellungen",
         "endpoints": "Endpunkte",
@@ -196,9 +199,10 @@
           "cancelled": "Abgebrochen"
         },
         "columns": {
-          "event": "Event und Ziel",
+          "event": "Event",
+          "destination": "Ziel",
           "response": "Antwort",
-          "attempts": "Versuche"
+          "attemptCount": "{count, plural, one {# Versuch} other {# Versuche}}"
         },
         "filterLabel": "Zustellungen nach Status filtern",
         "empty": {
@@ -207,7 +211,6 @@
           "filteredTitle": "Keine Zustellungen mit diesem Status",
           "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen."
         },
-        "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
         "endpointsEmpty": {
           "title": "Verbinde deinen ersten Endpunkt",
           "description": "Wähl aus, welche Events an deinen Workflow gehen."

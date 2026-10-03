@@ -10,10 +10,12 @@ import type {
 
 export const WEBHOOK_PAGE_SIZE = PAGE_SIZE;
 export const WEBHOOK_REFRESH_INTERVAL_MS = 10_000;
-export const WEBHOOK_TABLE_ROW_HEIGHT = 60;
+export const WEBHOOK_TABLE_ROW_HEIGHT = 40;
 export const WEBHOOK_TABLE_HEADER_HEIGHT = 42;
-export const WEBHOOK_TABLE_MAX_HEIGHT = 440;
-export const WEBHOOK_TABLE_EMPTY_HEIGHT = 230;
+export const WEBHOOK_TABLE_MAX_HEIGHT = 480;
+export const WEBHOOK_TABLE_EMPTY_HEIGHT = 270;
+export const WEBHOOK_SPARKLINE_EMPTY_PX = 2;
+export const WEBHOOK_SPARKLINE_MIN_PERCENT = 12;
 
 export const WEBHOOK_FILTERS = [
   "all",
@@ -47,8 +49,20 @@ export const WEBHOOK_STATUS_VARIANTS: Record<
 };
 
 export const WEBHOOK_METRICS: readonly WebhookMetric[] = [
-  { key: "total", tone: "" },
-  { key: "succeeded", tone: "text-success" },
-  { key: "active", tone: "text-warning" },
-  { key: "failed", tone: "text-destructive" },
+  {
+    key: "total",
+    hint: "period",
+    trace: { series: "total", className: "bg-foreground/35" },
+  },
+  {
+    key: "succeeded",
+    hint: "share",
+    trace: { series: "succeeded", className: "bg-success/70" },
+  },
+  {
+    key: "failed",
+    hint: "share",
+    trace: { series: "failed", className: "bg-destructive/80" },
+  },
+  { key: "active", hint: "now", trace: null },
 ];

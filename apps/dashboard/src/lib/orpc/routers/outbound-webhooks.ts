@@ -10,6 +10,7 @@ import {
   listEndpoints,
 } from "@notra/webhooks/programs/endpoints";
 import {
+  deliveryActivity,
   getDelivery,
   listAttempts,
   listDeliveries,
@@ -35,15 +36,16 @@ export const outboundWebhooksRouter = {
               ...context,
               organizationId: input.organizationId,
             });
-          const [endpoints, deliveries, stats] = yield* Effect.all(
+          const [endpoints, deliveries, stats, activity] = yield* Effect.all(
             [
               listEndpoints(organizationId),
               listDeliveries(organizationId, input.offset, input.status),
               deliveryStats(organizationId),
+              deliveryActivity(organizationId),
             ],
-            { concurrency: 3 }
+            { concurrency: 4 }
           );
-          return { endpoints, deliveries, stats, canManage };
+          return { endpoints, deliveries, stats, activity, canManage };
         })
       )
     ),

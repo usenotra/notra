@@ -173,6 +173,9 @@
         "period": "Last 30 days",
         "refresh": "Refresh webhook activity",
         "addEndpoint": "Add endpoint",
+        "rightNow": "Right now",
+        "sending": "Sending",
+        "idle": "Idle",
         "views": "Webhook views",
         "deliveries": "Deliveries",
         "endpoints": "Endpoints",
@@ -196,9 +199,10 @@
           "cancelled": "Cancelled"
         },
         "columns": {
-          "event": "Event and destination",
+          "event": "Event",
+          "destination": "Destination",
           "response": "Response",
-          "attempts": "Attempts"
+          "attemptCount": "{count, plural, one {# attempt} other {# attempts}}"
         },
         "filterLabel": "Filter deliveries by status",
         "empty": {
@@ -207,7 +211,6 @@
           "filteredTitle": "No deliveries with this status",
           "filteredDescription": "Pick another filter to see more of your history."
         },
-        "pageSummary": "{range} deliveries, refreshes every {seconds}s",
         "endpointsEmpty": {
           "title": "Connect your first endpoint",
           "description": "Pick which events go to your workflow."

@@ -326,7 +326,7 @@ export interface TabIndicatorBox {
   height: number;
 }
 
-export interface PromptsPageTabIconProps {
+export interface SlideInTabIconProps {
   children: ReactNode;
   pinned?: boolean;
 }
