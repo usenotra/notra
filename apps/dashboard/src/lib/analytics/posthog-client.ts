@@ -59,6 +59,13 @@ export async function flushTrackEvent(
   }
 }
 
+export function trackClientException(
+  error: unknown,
+  properties?: PostHogProperties
+): void {
+  void withPostHog((posthog) => posthog.captureException(error, properties));
+}
+
 /** Clears persisted user and group attribution after a successful sign-out. */
 export function resetPostHogIdentity(): void {
   void withPostHog(clearPostHogIdentity).catch(() => undefined);
