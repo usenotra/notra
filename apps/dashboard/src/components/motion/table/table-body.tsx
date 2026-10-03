@@ -29,7 +29,9 @@ export function TableBody<T>({
   onToggleRow,
   onCellEdit,
   onRowClick,
+  rowKeyboardActivation,
   isRowClickable,
+  getRowClassName,
   onRowPointerEnter,
   renderRowContextMenu,
   renderRowDetail,
@@ -79,6 +81,7 @@ export function TableBody<T>({
         return (
           <Fragment key={entry.id}>
             <TableBodyRow
+              className={getRowClassName?.(entry.row)}
               columns={columns}
               detailId={detailId}
               entry={entry}
@@ -95,6 +98,7 @@ export function TableBody<T>({
                   ? onRowClick
                   : undefined
               }
+              rowKeyboardActivation={rowKeyboardActivation}
               onRowPointerEnter={onRowPointerEnter}
               onToggleRow={onToggleRow}
               renderRowContextMenu={renderRowContextMenu}

@@ -14,9 +14,11 @@ import {
   normalizeSitemapUrl,
 } from "./sitemap-url";
 
-function encodeSitemapId(url: string) {
+// Scoped to the brand identity: the id is the primary key, so a URL-only id
+// let another workspace adding the same sitemap take over this row.
+function encodeSitemapId(brandSettingsId: string, url: string) {
   const encodedUrl = Buffer.from(url, "utf8").toString("base64url");
-  return `${CONTEXT_DEV_SITEMAP_ID_PREFIX}:${encodedUrl}`;
+  return `${CONTEXT_DEV_SITEMAP_ID_PREFIX}:${brandSettingsId}:${encodedUrl}`;
 }
 
 function getPathFromUrl(url: string) {
@@ -81,7 +83,7 @@ export async function getContextDevSitemap(input: {
   });
 
   const now = new Date().toISOString();
-  const sitemapId = encodeSitemapId(normalizedUrl);
+  const sitemapId = encodeSitemapId(input.brandSettingsId, normalizedUrl);
   const urls = getUniqueUrls(response.urls);
   const pages = urls.map((url) => toSitemapPage(sitemapId, url));
   const failedPages = getFailedPageCount({

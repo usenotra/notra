@@ -35,6 +35,7 @@ function ComposerFrame({
   children,
   nudge,
   connectedTop = false,
+  flat = false,
   className,
 }: ComposerFrameProps) {
   const hasNudge = Boolean(nudge);
@@ -42,7 +43,8 @@ function ComposerFrame({
   return (
     <div
       className={cn(
-        "w-full min-w-0 rounded-2xl p-1",
+        "w-full min-w-0 p-1",
+        flat ? "rounded-xl" : "rounded-2xl",
         COMPOSER_FRAME_TRANSITION,
         hasNudge ? "bg-muted" : "bg-transparent",
         connectedTop ? "rounded-t-none" : null,
@@ -54,6 +56,8 @@ function ComposerFrame({
         className={cn(
           COMPOSER_INNER_FRAME,
           hasNudge ? "rounded-xl" : "rounded-2xl",
+          flat && (hasNudge ? "rounded-lg" : "rounded-xl"),
+          flat && "shadow-none",
           connectedTop && !hasNudge ? "rounded-t-none border-t-0" : null
         )}
       >

@@ -1,0 +1,14 @@
+---
+title: Window
+description: The OpenCode terminal surface.
+---
+
+<Component path="opencode/examples/opencode-window" />
+
+```bash
+bunx shadcn@latest add @notra/opencode-window
+```
+
+`OpencodeWindow` is a shadcn `Card` that paints the TUI background, sets the monospace font and a 13px type size with a 20px line. The other components space themselves in terminal cells, `ch` across and `lh` down, so put them inside a window or anything with the same font. It has no padding, so a session can split into a transcript and a sidebar. It accepts every `Card` prop.
+
+<include>./_used-in.mdx</include>

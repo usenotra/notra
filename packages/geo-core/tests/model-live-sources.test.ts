@@ -70,7 +70,10 @@ const model = new MockLanguageModelV4({
   },
 });
 
+// Bun keeps module mocks across test files, so keep the real exports other files import.
+const actualGateway = await import("@notra/ai/gateway");
 mock.module("@notra/ai/gateway", () => ({
+  ...actualGateway,
   gateway: () => model,
   getRouteMetadata: (metadata: Record<string, Record<string, unknown>>) => {
     const gateway = metadata?.test?.gateway;

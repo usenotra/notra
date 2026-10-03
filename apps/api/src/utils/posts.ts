@@ -98,6 +98,10 @@ export function respondToPostFailure(c: Context, failure: PostDomainError) {
     return c.json({ error: "Generation job not found" }, 404);
   }
 
+  if (failure._tag === "PostGenerationTargetUnavailableError") {
+    return c.json({ error: failure.message }, 400);
+  }
+
   if (failure._tag === "PostGenerationQueueFailedError") {
     return c.json(
       {

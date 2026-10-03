@@ -3,7 +3,11 @@ import { Redis } from "@upstash/redis";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
-import { COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE } from "@/constants/company-logo";
+import { COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE } from "@/constants/company-logo";
+import {
+  DEMO_SANDBOX_CREATE_LIMIT,
+  DEMO_SANDBOX_CREATE_WINDOW,
+} from "@/constants/demo";
 
 const redis = Redis.fromEnv();
 
@@ -62,7 +66,7 @@ export const ratelimit = {
     redis,
     prefix: "ratelimit:company-logo",
     limiter: Ratelimit.slidingWindow(
-      COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE,
+      COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE,
       "1m"
     ),
   }),
@@ -90,11 +94,6 @@ export const ratelimit = {
     redis,
     prefix: "ratelimit:chat-relay",
     limiter: Ratelimit.slidingWindow(20, "1m"),
-  }),
-  geoIngest: new Ratelimit({
-    redis,
-    prefix: "ratelimit:geo-ingest",
-    limiter: Ratelimit.slidingWindow(1000, "1m"),
   }),
   slackOAuth: new Ratelimit({
     redis,
@@ -176,6 +175,14 @@ export const ratelimit = {
     analytics: true,
     prefix: "ratelimit:auth-mfa-verify",
     limiter: Ratelimit.slidingWindow(5, "1m"),
+  }),
+  demoSandboxCreate: new Ratelimit({
+    redis,
+    prefix: "ratelimit:demo-sandbox-create",
+    limiter: Ratelimit.slidingWindow(
+      DEMO_SANDBOX_CREATE_LIMIT,
+      DEMO_SANDBOX_CREATE_WINDOW
+    ),
   }),
   backupCode: new Ratelimit({
     redis,

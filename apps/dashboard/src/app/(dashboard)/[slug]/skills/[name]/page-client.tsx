@@ -7,9 +7,7 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SkillDeleteDialog } from "@/components/skills/skill-delete-dialog";
 import { SkillDetailHeader } from "@/components/skills/skill-detail-header";
 import { SkillEditorForm } from "@/components/skills/skill-editor-form";
@@ -21,13 +19,14 @@ import type { SkillDetailPageClientProps } from "@/types/skills/page";
 
 import { SkillEditorSkeleton } from "../skeleton";
 
-export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
+export default function PageClient({
+  slug,
+  name,
+  organizationId,
+}: SkillDetailPageClientProps) {
   const t = useTranslations("skills");
   const tCommon2 = useTranslations("common");
   const tValidation = useTranslations("skills.validation");
-  const tCommon = useTranslations("common.actions");
-  const { activeOrganization } = useOrganizationsContext();
-  const organizationId = activeOrganization?.id;
   const queryClient = useQueryClient();
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -49,14 +48,13 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const handleSaveRef = useRef<(() => void) | null>(null);
   const handleDiscardRef = useRef<(() => void) | null>(null);
 
-  const { data: skill, isPending } = useQuery({
-    ...dashboardOrpc.skills.getByName.queryOptions({
-      input: { organizationId: organizationId ?? "", name },
-    }),
-    enabled: !!organizationId,
-  });
+  const { data: skill, isPending } = useQuery(
+    dashboardOrpc.skills.getByName.queryOptions({
+      input: { organizationId, name },
+    })
+  );
 
-  if (skill && !original) {
+  if (skill?.name === name && original?.name !== skill.name) {
     setOriginal({
       name: skill.name,
       description: skill.description,
@@ -76,12 +74,12 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const invalidate = () => {
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.skills.list.queryKey({
-        input: { organizationId: organizationId ?? "" },
+        input: { organizationId },
       }),
     });
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.skills.getByName.queryKey({
-        input: { organizationId: organizationId ?? "", name },
+        input: { organizationId, name },
       }),
     });
   };
@@ -203,9 +201,9 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
           slug={slug}
         />
 
-        {organizationId && isPending ? <SkillEditorSkeleton /> : null}
+        {isPending ? <SkillEditorSkeleton /> : null}
 
-        {!(organizationId && isPending) && skill ? (
+        {!isPending && skill ? (
           <SkillEditorForm
             content={content}
             description={description}

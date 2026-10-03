@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { publishGeoVisibilityChange } from "@notra/geo-core/geo/live";
 import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
 import {
   finalizeGeoScanProject,
@@ -33,6 +34,21 @@ function parseClaimedAt(claimedAt?: string): Date | undefined {
   }
   const parsed = new Date(claimedAt);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function publishBatchProgress(
+  context: GeoScanProjectContext,
+  outcome: GeoScanBatchOutcome
+): Promise<void> {
+  if (outcome.checks === 0) {
+    return Promise.resolve();
+  }
+  return publishGeoVisibilityChange({
+    organizationId: context.organizationId,
+    projectId: context.projectId,
+    scanId: context.scanId,
+    status: "progress",
+  });
 }
 
 async function flushObservability(): Promise<void> {
@@ -81,6 +97,14 @@ export async function prepareGeoScanProjectStep(
         retried: options.retried,
       }).pipe(Effect.provide(geoCoreDashboardLayer))
     );
+    if (result.status === "planned") {
+      await publishGeoVisibilityChange({
+        organizationId,
+        projectId,
+        scanId: result.plan.context.scanId,
+        status: "started",
+      });
+    }
     if (result.status === "skipped") {
       await trackGeoScanStepResult({
         organizationId,
@@ -124,11 +148,13 @@ export async function runGeoScanTaskBatchStep(
 ): Promise<GeoScanBatchOutcome> {
   "use step";
   try {
-    return await Effect.runPromise(
+    const outcome = await Effect.runPromise(
       runGeoScanTaskBatch(context, tasks).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );
+    await publishBatchProgress(context, outcome);
+    return outcome;
   } finally {
     await flushObservability();
   }
@@ -140,11 +166,13 @@ export async function runGeoScanSequenceBatchStep(
 ): Promise<GeoScanBatchOutcome> {
   "use step";
   try {
-    return await Effect.runPromise(
+    const outcome = await Effect.runPromise(
       runGeoScanSequenceBatch(context, sequences).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );
+    await publishBatchProgress(context, outcome);
+    return outcome;
   } finally {
     await flushObservability();
   }
@@ -156,11 +184,13 @@ export async function runGeoScanPersonaBatchStep(
 ): Promise<GeoScanBatchOutcome> {
   "use step";
   try {
-    return await Effect.runPromise(
+    const outcome = await Effect.runPromise(
       runGeoScanPersonaBatch(context, personas).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );
+    await publishBatchProgress(context, outcome);
+    return outcome;
   } finally {
     await flushObservability();
   }
@@ -188,6 +218,12 @@ export async function finalizeGeoScanProjectStep(
         options.failure
       ).pipe(Effect.provide(geoCoreDashboardLayer))
     );
+    await publishGeoVisibilityChange({
+      organizationId: context.organizationId,
+      projectId: context.projectId,
+      scanId: context.scanId,
+      status: "finished",
+    });
     const durationMs = Date.now() - context.startedAtMs;
     if (status === "completed") {
       await trackGeoScanStepResult({

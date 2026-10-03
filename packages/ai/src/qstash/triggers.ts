@@ -1,6 +1,12 @@
-import { Client as QStashClient } from "@upstash/qstash";
+import { isDemoMode } from "@notra/utils/demo-mode";
+import {
+  Client as QStashClient,
+  QstashError as QStashSdkError,
+} from "@upstash/qstash";
 
+import { QSTASH_DESTINATION_REJECTION_PATTERN } from "../constants/qstash";
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "../constants/schedule-interval";
+import { QstashScheduleSetupError } from "../schemas/qstash";
 import type { CreateQstashRouteScheduleProps } from "../types/qstash";
 import { toUtcDateString } from "../utils/schedule-interval";
 import {
@@ -30,9 +36,31 @@ export interface TriggerCronConfig {
 function getQstashToken() {
   const token = process.env.QSTASH_TOKEN;
   if (!token) {
-    throw new Error("QSTASH_TOKEN is not configured");
+    throw new QstashScheduleSetupError({ reason: "missing_token" });
   }
   return token;
+}
+
+function getScheduleAppUrl() {
+  const appUrl = getConfiguredAppUrl();
+  if (!appUrl) {
+    throw new QstashScheduleSetupError({ reason: "missing_app_url" });
+  }
+  return appUrl;
+}
+
+/** Classify the SDK's text-only rejection once, where the raw body lives. */
+function toScheduleCreateError(error: unknown) {
+  if (
+    error instanceof QStashSdkError &&
+    QSTASH_DESTINATION_REJECTION_PATTERN.test(error.message)
+  ) {
+    return new QstashScheduleSetupError({
+      reason: "invalid_destination",
+      cause: error,
+    });
+  }
+  return error;
 }
 
 export function getAppUrl() {
@@ -116,20 +144,28 @@ export async function createQstashSchedule({
   cron,
   scheduleId,
 }: CreateQstashScheduleProps) {
+  // The public demo saves schedules but never registers real callbacks.
+  if (isDemoMode()) {
+    return scheduleId ?? `demo-schedule-${triggerId}`;
+  }
   const client = getQStashClient();
-  const appUrl = getAppUrl();
+  const appUrl = getScheduleAppUrl();
 
   const destination = `${appUrl}/api/workflows/schedule`;
 
-  const result = await client.schedules.create({
-    ...(scheduleId && { scheduleId }),
-    destination,
-    cron,
-    body: JSON.stringify({ triggerId }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const result = await client.schedules
+    .create({
+      ...(scheduleId && { scheduleId }),
+      destination,
+      cron,
+      body: JSON.stringify({ triggerId }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .catch((error: unknown) => {
+      throw toScheduleCreateError(error);
+    });
 
   const resolvedScheduleId = result.scheduleId ?? scheduleId;
 
@@ -146,18 +182,25 @@ export async function createQstashRouteSchedule({
   body,
   scheduleId,
 }: CreateQstashRouteScheduleProps) {
+  if (isDemoMode()) {
+    return scheduleId ?? `demo-schedule-${crypto.randomUUID()}`;
+  }
   const client = getQStashClient();
-  const appUrl = getAppUrl();
+  const appUrl = getScheduleAppUrl();
 
-  const result = await client.schedules.create({
-    ...(scheduleId && { scheduleId }),
-    destination: `${appUrl}${path}`,
-    cron,
-    body: JSON.stringify(body),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const result = await client.schedules
+    .create({
+      ...(scheduleId && { scheduleId }),
+      destination: `${appUrl}${path}`,
+      cron,
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .catch((error: unknown) => {
+      throw toScheduleCreateError(error);
+    });
 
   const resolvedScheduleId = result.scheduleId ?? scheduleId;
 
@@ -169,6 +212,9 @@ export async function createQstashRouteSchedule({
 }
 
 export async function deleteQstashSchedule(scheduleId: string) {
+  if (isDemoMode()) {
+    return;
+  }
   const client = getQStashClient();
   await client.schedules.delete(scheduleId);
 }

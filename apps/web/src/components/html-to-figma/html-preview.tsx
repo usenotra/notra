@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef, useState } from "react";
 
 import { toSafeHtml } from "@/lib/html-to-figma/sanitize";

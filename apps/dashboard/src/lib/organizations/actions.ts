@@ -18,6 +18,7 @@ import {
   updateMemberRoleInputSchema,
   updateOrganizationInputSchema,
 } from "@notra/schemas/dashboard/organizations/actions";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Invitation } from "@workos-inc/node";
 import { and, count, desc, eq } from "drizzle-orm";
@@ -32,6 +33,7 @@ import {
   LAST_VISITED_ORGANIZATION_COOKIE,
   LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
 } from "@/constants/cookies";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { ActionFailure } from "@/lib/actions/errors";
 import { runAction } from "@/lib/actions/run-action";
 import { validateActionInput } from "@/lib/actions/validate-input";
@@ -175,14 +177,16 @@ const mapMemberRows = (
   });
 
 const tryWorkOS = <T>(run: () => Promise<T>, fallbackMessage: string) =>
-  Effect.tryPromise({
-    try: run,
-    catch: (cause) =>
-      new ActionFailure({
-        message: readWorkOSError(cause).message || fallbackMessage,
-        cause,
-      }),
-  });
+  isDemoMode()
+    ? Effect.fail(new ActionFailure({ message: DEMO_DISABLED_MESSAGE }))
+    : Effect.tryPromise({
+        try: run,
+        catch: (cause) =>
+          new ActionFailure({
+            message: readWorkOSError(cause).message || fallbackMessage,
+            cause,
+          }),
+      });
 
 const mapInvitation = (invitation: Invitation): InvitationSummary => ({
   id: invitation.id,
@@ -197,6 +201,11 @@ const mapInvitation = (invitation: Invitation): InvitationSummary => ({
 const requireWorkOSOrganizationId = Effect.fn(
   "organizations.actions.requireWorkOSOrganizationId"
 )(function* (organizationId: string) {
+  if (isDemoMode()) {
+    return yield* Effect.fail(
+      new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+    );
+  }
   return yield* ensureWorkOSOrganizationWithMembers(organizationId).pipe(
     Effect.catch((error) =>
       Effect.fail(
@@ -261,6 +270,12 @@ export async function createOrganizationAction(
 ): Promise<ActionResult<OrganizationRow>> {
   return runAction(
     Effect.gen(function* () {
+      // One sandbox workspace per demo visitor.
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
       const input = yield* validateActionInput(
         createOrganizationInputSchema,
@@ -942,6 +957,10 @@ export async function listInvitationsAction(rawInput?: {
         input?.query?.organizationId
       );
       yield* requireMembership(session, organizationId);
+      // The public demo has no WorkOS and therefore no pending invitations.
+      if (isDemoMode()) {
+        return [];
+      }
       const workosOrgId = yield* requireWorkOSOrganizationId(organizationId);
 
       const invitations = yield* tryWorkOS(
@@ -963,6 +982,12 @@ export async function inviteMemberAction(
 ): Promise<ActionResult<InvitationSummary>> {
   return runAction(
     Effect.gen(function* () {
+      // Invitations need WorkOS; explain instead of failing on the seat check.
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
       const input = yield* validateActionInput(
         inviteMemberInputSchema,

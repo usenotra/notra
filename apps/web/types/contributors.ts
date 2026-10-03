@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-import type { GitHubIssue, GitHubPR, GitHubUser } from "./github";
+import type {
+  ContributorsData,
+  GitHubIssue,
+  GitHubPR,
+  GitHubUser,
+} from "./github";
 
 export interface ContributorsSectionHeaderProps {
   title: string;
@@ -46,4 +51,8 @@ export interface ViewAllLinkProps {
 
 export interface NotraAiCalloutProps {
   prCount: number;
+}
+
+export interface ContributorsContentProps {
+  data: ContributorsData;
 }

@@ -1,14 +1,20 @@
 "use client";
 
 import { Databuddy } from "@databuddy/sdk/react";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 
+import {
+  DATABUDDY_DASHBOARD_WEBSITE_ID,
+  DATABUDDY_DEMO_DASHBOARD_WEBSITE_ID,
+} from "@/constants/databuddy";
 import {
   DATABUDDY_DASHBOARD_MASK_PATTERNS,
   normalizeDatabuddyEventPath,
 } from "@/utils/databuddy";
 
-const databuddyClientId =
-  process.env.NEXT_PUBLIC_DATABUDDY_DASHBOARD_WEBSITE_ID;
+const databuddyClientId = isDemoModeClient()
+  ? DATABUDDY_DEMO_DASHBOARD_WEBSITE_ID
+  : DATABUDDY_DASHBOARD_WEBSITE_ID;
 
 export function DatabuddyAnalytics() {
   if (!databuddyClientId) {

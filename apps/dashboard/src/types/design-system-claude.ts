@@ -1,13 +1,12 @@
 import type {
-  ClaudeEffort,
-  ClaudeMode,
-} from "@notra/ui/components/brainless/claude/claude-prompt";
-import type { ClaudeTodo } from "@notra/ui/components/brainless/claude/claude-todo-list";
-import type { ClaudeToolCallStatus } from "@notra/ui/components/brainless/claude/claude-tool-call";
+  ClaudeCodeEffort,
+  ClaudeCodeMode,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-prompt";
+import type { ClaudeCodeTodo } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
+import type { ClaudeCodeToolCallStatus } from "@notra/ui/components/ai-skins/claude-code/claude-code-tool-call";
 
 export interface ClaudeStoryHeader {
   version: string;
-  user: string;
   model: string;
   org: string;
   cwd: string;
@@ -20,23 +19,41 @@ export interface ClaudeStoryToolCall {
   tool: string;
   arg?: string;
   result: string;
-  status?: ClaudeToolCallStatus;
+  status?: ClaudeCodeToolCallStatus;
   detail?: string;
+}
+
+export interface ClaudeStoryTurnSummary {
+  verb: string;
+  duration: string;
+  doneAt: string;
+}
+
+export interface ClaudeStorySpinner {
+  verb: string;
+  elapsed: string;
+  tokens: number;
+  details: string[];
+  tip: string;
 }
 
 export interface ClaudeStorySession {
   title: string;
   header: ClaudeStoryHeader;
   userMessage: string;
+  commands: ClaudeStoryToolCall[];
   assistantMessage: string;
-  todos: ClaudeTodo[];
-  toolCalls: ClaudeStoryToolCall[];
-  resultMessage: string;
+  summary: ClaudeStoryTurnSummary;
+  followUpMessage: string;
+  todos: ClaudeCodeTodo[];
+  pendingToolCall: ClaudeStoryToolCall;
+  spinner: ClaudeStorySpinner;
   promptPlaceholder: string;
+  pullRequestNumber: number;
 }
 
 export interface ClaudeStoryPromptVariant {
   id: string;
-  mode: ClaudeMode;
-  effort: ClaudeEffort | false;
+  mode: ClaudeCodeMode;
+  effort: ClaudeCodeEffort | false;
 }

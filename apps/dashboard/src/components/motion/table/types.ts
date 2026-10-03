@@ -83,6 +83,12 @@ interface TableBaseProps<T> {
   height?: number;
   /** Floor for the table body when there are fewer rows than `height` allows. */
   minHeight?: number;
+  /**
+   * Content-sized rows only: grow with the rows instead of capping at
+   * `height`, so the body never scrolls on its own. `height` still sizes the
+   * empty and loading states.
+   */
+  autoHeight?: boolean;
   /** Rows rendered above/below the viewport. */
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */
@@ -102,8 +108,12 @@ interface TableBaseProps<T> {
   skeletonRows?: number;
   /** Called when a row is clicked or activated with Enter/Space. */
   onRowClick?: (row: T) => void;
+  /** Set false when a native control inside the row provides its keyboard action. */
+  rowKeyboardActivation?: boolean;
   /** Only matching rows receive click handlers, keyboard activation, and pointer styling. */
   isRowClickable?: (row: T) => boolean;
+  /** Extra classes for a row, e.g. to animate rows that just arrived. */
+  getRowClassName?: (row: T) => string | undefined;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */

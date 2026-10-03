@@ -1,3 +1,4 @@
+import { GITHUB_CONTENT_POST_TRAILER } from "@notra/ai/constants/github";
 import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import type {
   PublicationAncestryValidator,
@@ -7,6 +8,8 @@ import type {
 } from "@notra/ai/types/content-publication";
 import type { GitHubMentionOctokit } from "@notra/ai/types/github-mention";
 import { syncContentPublication } from "@notra/ai/utils/content-publication";
+import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
+import { isGitHubContentExport } from "@notra/ai/utils/github-content-export";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
 import {
   commitFilesToPullRequest,
@@ -72,20 +75,6 @@ export async function preparePublicationSyncRepair(
   };
 }
 
-function githubAncestryValidator(params: {
-  octokit: GitHubMentionOctokit;
-  owner: string;
-  repo: string;
-}): PublicationAncestryValidator {
-  return async (base, head) => {
-    const { data } = await params.octokit.request(
-      "GET /repos/{owner}/{repo}/compare/{basehead}",
-      { owner: params.owner, repo: params.repo, basehead: `${base}...${head}` }
-    );
-    return data.status === "ahead" || data.status === "identical";
-  };
-}
-
 export async function updatePublishedContentAndCommit(params: {
   octokit: GitHubMentionOctokit;
   organizationId: string;
@@ -142,6 +131,7 @@ export async function updatePublishedContentAndCommit(params: {
         branch: params.branch,
         markdown: params.markdown,
         title: params.title,
+        path: params.path,
       },
       githubAncestryValidator(params),
       params.scheduleRepair
@@ -172,6 +162,8 @@ export async function syncPublishedPostAfterCommit(params: {
     markdown?: string | null;
   } | null;
   files: ReadonlyArray<{ path: string; contents: string }>;
+  /** New path of the linked publication after an atomic move. */
+  movedToPath?: string;
   commitSha: string;
   expectedHeadOid?: string;
   branch: string;
@@ -183,7 +175,8 @@ export async function syncPublishedPostAfterCommit(params: {
   if (!publication || !params.recordPublicationHead) {
     return false;
   }
-  const file = params.files.find((entry) => entry.path === publication.path);
+  const path = params.movedToPath ?? publication.path;
+  const file = params.files.find((entry) => entry.path === path);
   if (!file) {
     return false;
   }
@@ -198,6 +191,7 @@ export async function syncPublishedPostAfterCommit(params: {
       commitSha: params.commitSha,
       branch: params.branch,
       markdown: file.contents,
+      path,
       ...(publication.headSha
         ? {
             imageMapping: {
@@ -270,6 +264,48 @@ export async function syncPublishedPostFromPullRequestHead(params: {
     Buffer.byteLength(contents, "utf8") > GITHUB_MENTION_FILE_CONTENT_MAX_BYTES
   ) {
     return false;
+  }
+  const { data: commit } = await params.octokit.request(
+    "GET /repos/{owner}/{repo}/commits/{ref}",
+    {
+      owner: params.publication.owner,
+      repo: params.publication.repo,
+      ref: params.commitSha,
+    }
+  );
+  // Publishing exports a saved Notra snapshot. Its webhook must never import
+  // that snapshot over an edit saved while the GitHub request was in flight.
+  // The publisher's durable reconciliation records this head instead.
+  const message = commit.commit?.message ?? "";
+  const postMarker = `${GITHUB_CONTENT_POST_TRAILER}${params.organizationId}/${params.publication.postId}`;
+  const marker = message
+    .split(/\r?\n/)
+    .find((line) => line === postMarker || line.startsWith(`${postMarker} `));
+  if (marker) {
+    const parentSha =
+      commit.parents?.length === 1 ? commit.parents[0]?.sha : undefined;
+    if (
+      parentSha &&
+      isGitHubContentExport(marker, {
+        organizationId: params.organizationId,
+        postId: params.publication.postId,
+        owner: params.publication.owner,
+        repo: params.publication.repo,
+        path: params.publication.path,
+        parentSha,
+        markdown: contents,
+      })
+    ) {
+      return { status: "superseded" as const };
+    }
+    // Legacy exports and exports signed before key rotation cannot safely be
+    // distinguished from forged markers. Do not import or acknowledge them;
+    // retry once durable reconciliation has recorded the publication head.
+    return {
+      status: "failed" as const,
+      error:
+        "Cannot verify the Notra export marker. The post was not changed. Publication reconciliation must confirm this commit before synchronization can complete.",
+    };
   }
   return syncPublishedPostAfterCommit({
     octokit: params.octokit,

@@ -8,16 +8,24 @@ import {
   unlinkAccountInputSchema,
   updateUserInputSchema,
 } from "@notra/schemas/dashboard/auth/user-actions";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS, signOut, withAuth } from "@workos-inc/authkit-nextjs";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { redirect } from "next/navigation";
 
+import {
+  DEMO_DISABLED_MESSAGE,
+  DEMO_EXIT_URL,
+  DEMO_SESSION_COOKIE,
+} from "@/constants/demo";
 import { ActionFailure } from "@/lib/actions/errors";
 import { runAction } from "@/lib/actions/run-action";
 import { validateActionInput } from "@/lib/actions/validate-input";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
+import { clearSignedCookie } from "@/lib/auth/signed-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
@@ -39,6 +47,12 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
 export async function signOutAction(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
   await clearLocaleCookie();
+  // Leaving the public demo drops the sandbox cookie; the sandbox itself
+  // expires on its own.
+  if (isDemoMode()) {
+    await clearSignedCookie(DEMO_SESSION_COOKIE);
+    redirect(DEMO_EXIT_URL);
+  }
   await signOut(parsed.success ? parsed.data : undefined);
 }
 
@@ -128,6 +142,11 @@ export async function deleteUserAction(): Promise<
 > {
   return runAction(
     Effect.gen(function* () {
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
 
       const { sessionId } = yield* tryAction(
@@ -197,6 +216,11 @@ export async function requestPasswordResetAction(): Promise<
 > {
   return runAction(
     Effect.gen(function* () {
+      if (isDemoMode()) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: DEMO_DISABLED_MESSAGE })
+        );
+      }
       const session = yield* requireSession();
 
       yield* tryAction(

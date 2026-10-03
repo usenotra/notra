@@ -1,17 +1,13 @@
 "use client";
 
 import {
-  GEO_SPARKLINE_MIN_POINTS,
   GEO_TRAFFIC_FUNNEL_STAGES,
   GEO_TRAFFIC_OTHER_GROUP,
   GEO_TRAFFIC_TREND_CRAWLER_KEY,
   GEO_TRAFFIC_TREND_REFERRAL_KEY,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficFunnelStageKey } from "@notra/geo-core/types/geo";
-import {
-  trafficSparklineDays,
-  trafficVisitDelta,
-} from "@notra/geo-core/utils/ai-traffic";
+import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { Button } from "@notra/ui/components/ui/button";
@@ -74,7 +70,7 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
   const tGeoShared = useTranslations("geo.shared");
   return (
     <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
-      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight text-pretty @sm/hero:text-base @sm/hero:leading-6">
+      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight text-pretty">
         {metric.label}
       </p>
       {metric.value === null ? (
@@ -107,7 +103,6 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
             value={metric.value}
           />
           <GeoStatDelta
-            className="rounded-md px-2 py-1.5 text-xs leading-4 [&>span]:hidden"
             delta={metric.delta}
             hint={tGeoShared("vsPreviousPeriodOfThe")}
             label={metric.label}
@@ -142,8 +137,9 @@ export function TrafficHero({
     () => new Set()
   );
   const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
-  const showTrend = rows.length >= GEO_SPARKLINE_MIN_POINTS;
-  const days = trafficSparklineDays(points);
+  const showTrend = rows.length > 0;
+  const singleDay = rows.length === 1;
+  const days = rows.map((row) => row.rawDay);
 
   const metrics: TrafficTrendMetric[] = GEO_TRAFFIC_FUNNEL_STAGES.map(
     (stage) => ({
@@ -271,6 +267,10 @@ export function TrafficHero({
               variant="gradient"
               visible={anyVisible}
             >
+              {singleDay &&
+              (chartRows[0]?.[GEO_TRAFFIC_TREND_CRAWLER_KEY] ?? 0) > 0 ? (
+                <EChartsAreaChart.Dot variant="border" />
+              ) : null}
               <EChartsAreaChart.ActiveDot variant="border" />
             </EChartsAreaChart.Area>
             <EChartsAreaChart.Area
@@ -281,6 +281,10 @@ export function TrafficHero({
               variant="gradient"
               visible={anyVisible}
             >
+              {singleDay &&
+              (chartRows[0]?.[GEO_TRAFFIC_TREND_REFERRAL_KEY] ?? 0) > 0 ? (
+                <EChartsAreaChart.Dot variant="border" />
+              ) : null}
               <EChartsAreaChart.ActiveDot variant="border" />
             </EChartsAreaChart.Area>
             <EChartsAreaChart.Tooltip
@@ -292,7 +296,7 @@ export function TrafficHero({
               position="fixed"
               rowGroups={tooltipGroups}
               roundness="xl"
-              scrub
+              scrub={!singleDay}
               valueFormatter={(value: number) =>
                 formatChartInteger(value, locale)
               }

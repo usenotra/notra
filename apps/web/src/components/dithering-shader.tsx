@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@notra/ui/lib/utils";
 import { Dithering } from "@paper-design/shaders-react";
 import { useSyncExternalStore } from "react";

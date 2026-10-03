@@ -3,7 +3,6 @@
 import { Add01Icon, ArrowReloadHorizontalIcon, Delete02Icon, SmartPhone01Icon, SquareLockPasswordIcon, TwoFactorAccessIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DEFAULT_TWO_FACTOR_SETTINGS_LABELS } from "@notra/ui/constants/security-labels";
-import { Loader2Icon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import type {
@@ -154,17 +153,14 @@ function FactorList({
                 </div>
               </div>
               <Button
-                disabled={isRemoving || isConfirming}
+                disabled={isConfirming}
+                loading={isRemoving}
                 onClick={() => setConfirmingFactorId(factor.id)}
                 size="sm"
                 type="button"
                 variant="outline"
               >
-                {isRemoving ? (
-                  <Loader2Icon className="animate-spin" data-icon="inline-start" />
-                ) : (
-                  <HugeiconsIcon data-icon="inline-start" icon={Delete02Icon} />
-                )}
+                <HugeiconsIcon data-icon="inline-start" icon={Delete02Icon} />
                 {labels.remove}
               </Button>
             </div>
@@ -234,17 +230,12 @@ export function TwoFactorSettings({
 
   const action = isEnabled ? null : (
     <Button
-      className="rounded-xl"
-      disabled={isStartingEnrollment}
+      loading={isStartingEnrollment}
       onClick={onStartEnrollment}
       size="sm"
       type="button"
     >
-      {isStartingEnrollment ? (
-        <Loader2Icon className="animate-spin" data-icon="inline-start" />
-      ) : (
-        <HugeiconsIcon data-icon="inline-start" icon={Add01Icon} />
-      )}
+      <HugeiconsIcon data-icon="inline-start" icon={Add01Icon} />
       {l.setUp}
     </Button>
   );

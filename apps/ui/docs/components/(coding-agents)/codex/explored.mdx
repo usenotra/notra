@@ -1,0 +1,20 @@
+---
+title: Explored
+description: The grouped read, search and list calls Codex runs while it looks around.
+---
+
+<Component path="codex/examples/codex-explored" />
+
+```bash
+bunx shadcn@latest add @notra/codex-explored
+```
+
+`CodexExplored` groups file lookups under a bold `Explored` line. Each item starts with a blue verb, and searches can name a scope, as in `Search changelog|release in CHANGELOG.md`. Set `active` while calls are still running to show `Exploring` with a pulsing bullet. Extra calls in `details` stay folded behind `+ Show details`, a shadcn `Collapsible` trigger.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `items` | | `{ id, verb, target, scope? }` items. `verb` is `Read`, `Search` or `List`. |
+| `details` | `[]` | Items revealed by `+ Show details`. |
+| `active` | `false` | Shows `Exploring` instead of `Explored`. |
+
+<include>./_used-in.mdx</include>

@@ -12,7 +12,6 @@ import {
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -47,14 +46,12 @@ export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
           <p className="text-muted-foreground text-sm">{t("description")}</p>
         </div>
         <Button
-          disabled={isPending || rotate.isPending}
+          disabled={isPending}
+          loading={rotate.isPending}
           onClick={() => setConfirmOpen(true)}
           size="sm"
           variant="outline"
         >
-          {rotate.isPending ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : null}
           {t("rotate")}
         </Button>
       </div>

@@ -1,4 +1,6 @@
 import { realtime } from "@notra/ai/realtime";
+import { markGeoLiveWatched } from "@notra/geo-core/geo/live";
+import { geoLiveChannelOrganizations } from "@notra/geo-core/utils/geo-live";
 import { handle } from "@upstash/realtime";
 
 import { getServerSession } from "@/lib/auth/session";
@@ -19,11 +21,16 @@ const handler = realtime
           });
         }
 
-        return authorizeRealtimeChannels({
+        const denied = await authorizeRealtimeChannels({
           headers: request.headers,
           channels,
           user,
         });
+        if (!denied) {
+          // Ingest only publishes traffic updates while someone watches.
+          await markGeoLiveWatched(geoLiveChannelOrganizations(channels));
+        }
+        return denied;
       },
     })
   : null;

@@ -190,12 +190,10 @@ function LinkedInConnectContent() {
           {tCommon("actions.cancel")}
         </Link>
         <Button
-          disabled={completeMutation.isPending || selectedIds.length === 0}
+          disabled={selectedIds.length === 0}
+          loading={completeMutation.isPending}
           onClick={handleConnect}
         >
-          {completeMutation.isPending && (
-            <Loader2Icon className="size-4 animate-spin" />
-          )}
           {t("connectProfiles", { count: selectedIds.length })}
         </Button>
       </div>

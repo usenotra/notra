@@ -9,7 +9,7 @@ import type {
 
 import { blog } from "@/../.source/server";
 import { BLOG_AUTHORS } from "@/constants/blog-authors";
-import { getAuthorHref } from "@/utils/authors";
+import { getAuthorHref } from "@/utils/author-href";
 import { BLOG_INDEX_PATH } from "@/utils/constants";
 import { normalizeContentEntry } from "@/utils/content";
 
@@ -35,15 +35,6 @@ export async function getNotraBlogPostBySlug(slug: string) {
 
 function getBlogPostHref(slug: string) {
   return `${BLOG_INDEX_PATH}/${slug}`;
-}
-
-export function formatBlogDate(date: string) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
 }
 
 function toBlogCardAuthor(

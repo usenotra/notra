@@ -26,7 +26,6 @@ import {
 } from "@notra/ui/components/ui/select";
 import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useId, useRef } from "react";
@@ -295,14 +294,11 @@ export function CreatePostDialog({
                   disabled={
                     !canSubmit ||
                     title.trim().length === 0 ||
-                    mutation.isPending ||
                     !isProjectResolved
                   }
+                  loading={mutation.isPending}
                   type="submit"
                 >
-                  {mutation.isPending ? (
-                    <Loader2Icon className="size-4 animate-spin" />
-                  ) : null}
                   {t("submit")}
                 </Button>
               )}

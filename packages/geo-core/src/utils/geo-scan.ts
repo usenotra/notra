@@ -10,8 +10,6 @@ import {
   GEO_SCAN_INTERVAL_FALLBACK_NOUN,
   GEO_SCAN_INTERVAL_LABEL_PREFIX,
   GEO_SCAN_INTERVAL_OPTIONS,
-  GEO_SCAN_SIZE_DANGER_THRESHOLD,
-  GEO_SCAN_SIZE_WARN_THRESHOLD,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
 import { GeoScanError } from "../geo/errors";
@@ -19,7 +17,6 @@ import type {
   GeoEngineAttemptSummary,
   GeoScanFailureMetadata,
   GeoScanSizeInput,
-  GeoScanSizeSeverity,
 } from "../types/geo";
 import { isGeoBoxCodingAgent } from "./geo-coding-agents";
 import { isGeoNativeSearchEngine } from "./geo-engines";
@@ -274,22 +271,29 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
     isGeoNativeSearchEngine(input.catalog, engine)
   ).length;
   const passes = nativeSearchCount + groundedCount;
-  const scanEnglish = input.languages.includes(DEFAULT_LANGUAGE);
-  const extraLanguages = input.languages
-    .filter((language) => language !== DEFAULT_LANGUAGE)
-    .slice(0, GEO_MAX_LANGUAGES).length;
-  const englishChecks = scanEnglish ? input.promptCount * passes : 0;
-  const localizedChecks =
-    extraLanguages *
-    Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) *
-    passes;
+  const sourceLanguage = input.promptLanguage ?? DEFAULT_LANGUAGE;
+  const scanSourceLanguage = input.languages.includes(sourceLanguage);
+  const defaultTranslated = Math.min(
+    input.promptCount,
+    GEO_LANGUAGE_MAX_PROMPTS
+  );
+  const translatedPrompts = input.languages
+    .filter((language) => language !== sourceLanguage)
+    .slice(0, GEO_MAX_LANGUAGES)
+    .reduce(
+      (total, language) =>
+        total + (input.translatedPromptCounts?.[language] ?? defaultTranslated),
+      0
+    );
+  const sourceChecks = scanSourceLanguage ? input.promptCount * passes : 0;
+  const localizedChecks = translatedPrompts * passes;
   const sequenceEngines =
     groundedCount +
     engines.filter(
       (engine) =>
         engine === GEO_OPENCODE_ENGINE_ID || isGeoBoxCodingAgent(engine)
     ).length;
-  const sequenceTurns = scanEnglish
+  const sequenceTurns = scanSourceLanguage
     ? input.sequences
         .filter((sequence) => sequence.enabled)
         .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
@@ -300,15 +304,5 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
           0
         )
     : 0;
-  return englishChecks + localizedChecks + sequenceTurns * sequenceEngines;
-}
-
-export function geoScanSizeSeverity(total: number): GeoScanSizeSeverity {
-  if (total >= GEO_SCAN_SIZE_DANGER_THRESHOLD) {
-    return "danger";
-  }
-  if (total >= GEO_SCAN_SIZE_WARN_THRESHOLD) {
-    return "warn";
-  }
-  return "ok";
+  return sourceChecks + localizedChecks + sequenceTurns * sequenceEngines;
 }

@@ -39,6 +39,11 @@ export function createDb(databaseUrl: string): NodePgDatabase<typeof schema> {
   // Fluid compute suspends idle instances; this closes idle clients first so a
   // resumed instance does not hand out connections the server already dropped.
   attachDatabasePool(client.$client);
+  // pg emits "error" when the server drops an idle client. Without a listener
+  // that is an uncaught exception and kills long-running processes.
+  client.$client.on("error", (error) => {
+    console.error("[db] Idle client error", error);
+  });
   dbByUrl.set(databaseUrl, client);
   return client;
 }

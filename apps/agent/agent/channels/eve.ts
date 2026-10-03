@@ -11,10 +11,12 @@ import {
   AGENT_SOURCE_METADATA_HEADER,
   AGENT_SURFACE_HEADER,
   AGENT_CHARGE_AI_CREDITS_HEADER,
+  AGENT_CODE_RESEARCH_HEADER,
   AGENT_USE_MARKUP_HEADER,
   AGENT_USER_HEADER,
   AGENT_VOICE_HEADER,
 } from "@notra/ai/constants/agent";
+import { CODE_RESEARCH_SESSION_ATTRIBUTE } from "@notra/ai/constants/code-research";
 import {
   type AuthFn,
   extractBearerToken,
@@ -45,6 +47,7 @@ const ATTRIBUTE_HEADERS: readonly [string, string][] = [
   [AGENT_BRAND_AGENT_TYPE_HEADER, "brandAgentType"],
   [AGENT_SOURCE_METADATA_HEADER, "sourceMetadata"],
   [AGENT_GENERATION_CONFIG_HEADER, "generationConfig"],
+  [AGENT_CODE_RESEARCH_HEADER, CODE_RESEARCH_SESSION_ATTRIBUTE],
 ];
 
 function getDashboardEnvironment(): VercelSubjectEnvironment {

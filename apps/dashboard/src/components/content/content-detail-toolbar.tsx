@@ -1,21 +1,18 @@
 "use client";
 
-import {
-  ArrowDown01Icon,
-  Download01Icon,
-  SentIcon,
-  TextIcon,
-} from "@hugeicons/core-free-icons";
+import { Download01Icon, SentIcon, TextIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import {
+  SplitButton,
+  SplitButtonTrigger,
+} from "@notra/ui/components/ui/split-button";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useTranslations } from "next-intl";
 
@@ -74,7 +71,6 @@ function ContentDetailImageActions({
 
     copyImageAsPaper(
       document.imageExportRef.current,
-      document.title,
       imageExportHtml,
       imageExportHtmlUrl
     );
@@ -104,7 +100,7 @@ function ContentDetailImageActions({
         <HugeiconsIcon className="size-4" icon={Download01Icon} />
         {tCommon2("labels.downloadImage")}
       </Button>
-      <ButtonGroup
+      <SplitButton
         onFocusCapture={() =>
           preloadImageExportCopy(document.imageExportTarget)
         }
@@ -124,12 +120,11 @@ function ContentDetailImageActions({
           })}
         </Button>
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button size="icon-sm" variant="outline" />}
-          >
-            <span className="sr-only">{t("selectExportTarget")}</span>
-            <HugeiconsIcon className="size-4" icon={ArrowDown01Icon} />
-          </DropdownMenuTrigger>
+          <SplitButtonTrigger
+            label={t("selectExportTarget")}
+            size="sm"
+            variant="outline"
+          />
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuRadioGroup
               onValueChange={handleImageExportTargetSelect}
@@ -170,7 +165,7 @@ function ContentDetailImageActions({
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      </ButtonGroup>
+      </SplitButton>
     </>
   );
 }

@@ -50,6 +50,7 @@ import {
   isAnnualPlanId,
   isPlanInGroup,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -58,7 +59,7 @@ const noop = () => undefined;
 
 function BillingPlanCardSkeleton() {
   return (
-    <TitleCard heading={<Skeleton className="h-5 w-24" />}>
+    <TitleCard headingAs="div" heading={<Skeleton className="h-5 w-24" />}>
       <div className="space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-full" />
@@ -336,6 +337,9 @@ export function BillingSettingsPane() {
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={
+          plan.id === activePlanId ? undefined : planRenewalTerms(plan)
+        }
       />
     );
   }

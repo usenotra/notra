@@ -51,19 +51,15 @@ export function geoScanSequenceTasks(
   sequence: GeoScanPlannedSequence
 ): GeoScanPlannedAnswer[] {
   const promptId = `sequence-${sequence.sequenceId}`;
+  const language = sequence.language ?? DEFAULT_LANGUAGE;
   return sequence.steps
     .slice(0, GEO_SEQUENCE_MAX_TURNS)
     .map((prompt, index) => ({
-      key: geoScanAnswerKey(
-        promptId,
-        sequence.engine,
-        DEFAULT_LANGUAGE,
-        index + 1
-      ),
+      key: geoScanAnswerKey(promptId, sequence.engine, language, index + 1),
       promptId,
       prompt,
       engine: sequence.engine,
-      language: DEFAULT_LANGUAGE,
+      language,
       sequenceId: sequence.sequenceId,
       turn: index + 1,
     }));

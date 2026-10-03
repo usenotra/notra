@@ -33,6 +33,7 @@ import {
   getProductPrice,
   groupBillingPlans,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -148,7 +149,9 @@ export function PricingClient({
     } else if (featured) {
       action = <Badge>{tCommon("labels.mostPopular")}</Badge>;
     }
-    let label = hasTrial ? t("startFreeTrial") : t("getStarted");
+    let label = hasTrial
+      ? t("startFreeTrial")
+      : t("selectPlan", { plan: group.name });
     if (loading === plan.id) {
       label = tCommon("states.loading");
     }
@@ -176,6 +179,7 @@ export function PricingClient({
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={planRenewalTerms(plan)}
       />
     );
   }
@@ -210,7 +214,7 @@ export function PricingClient({
             </TabsTrigger>
             <TabsTrigger className="flex items-center gap-1.5" value="yearly">
               {tCommon("labels.yearly")}
-              <span className="bg-success/10 text-success rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+              <span className="bg-success/10 text-success rounded-full px-1.5 py-0.5 text-xs font-medium">
                 {tCommon("labels.savePercent", { percent: 20 })}
               </span>
             </TabsTrigger>

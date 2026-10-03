@@ -53,13 +53,19 @@ function SettingsPaneFallback() {
   );
 }
 
-const AccountSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/account-pane").then((mod) => ({
-      default: mod.AccountSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
+const loadAccountSettingsPane = () =>
+  import("@/components/settings/panes/account-pane").then((mod) => ({
+    default: mod.AccountSettingsPane,
+  }));
+
+/** Warms the pane settings opens on by default so it renders without a skeleton. */
+export function preloadDefaultSettingsPane() {
+  return loadAccountSettingsPane();
+}
+
+const AccountSettingsPane = dynamic(loadAccountSettingsPane, {
+  loading: SettingsPaneFallback,
+});
 const AppearanceSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/appearance-pane").then((mod) => ({
@@ -144,6 +150,13 @@ const UsageSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const WebhooksSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/webhooks-pane").then((mod) => ({
+      default: mod.WebhooksSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 
 const STANDARD_SETTINGS_PANES = {
   account: AccountSettingsPane,
@@ -158,6 +171,7 @@ const STANDARD_SETTINGS_PANES = {
   notifications: NotificationsSettingsPane,
   usage: UsageSettingsPane,
   "usage-alerts": UsageAlertsSettingsPane,
+  webhooks: WebhooksSettingsPane,
 } satisfies Record<StandardSettingsSectionId, ComponentType>;
 
 const GEO_SETTINGS_PANE_SECTIONS = {
@@ -201,8 +215,8 @@ export function SettingsModal() {
           "flex! max-w-none sm:max-w-none",
           "top-0 right-0 bottom-0 left-0 h-auto w-auto translate-none rounded-none",
           "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2",
-          "transition-shadow data-nested-dialog-open:shadow-[0_0_0_100vmax_rgb(0_0_0/0.4)]",
-          "after:pointer-events-none after:absolute after:inset-0 after:bg-black/0 after:transition-colors data-nested-dialog-open:after:bg-black/40"
+          // brightness-60 matches the black/40 page dim and, unlike an overlay, also covers the border
+          "transition-[box-shadow,filter] data-nested-dialog-open:shadow-[0_0_0_100vmax_rgb(0_0_0/0.4)] data-nested-dialog-open:brightness-60"
         )}
       >
         {isOpen ? (

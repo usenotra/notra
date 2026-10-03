@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 
 import { MCP_VISIBLE_TOOL_COUNT } from "@/constants/mcp";

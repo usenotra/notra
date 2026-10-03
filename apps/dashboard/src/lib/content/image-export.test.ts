@@ -89,7 +89,7 @@ test("preload with window warms the kiwi chunk without copying", async () => {
       expect(await preloadImageExportCopy("paper")).toBe(true);
       expect(paperImports).toBe(1);
 
-      await copyImageAsPaper(exportElement, "Card");
+      await copyImageAsPaper(exportElement);
       expect(copyAsPaper).toHaveBeenCalledTimes(1);
       expect(paperImports).toBe(1);
 
@@ -121,12 +121,12 @@ test("preload with window swallows a failed paper import and click retries", asy
       expect(copyAsPaper).not.toHaveBeenCalled();
       expect(paperImports).toBe(1);
 
-      await copyImageAsPaper(exportElement, "Card");
+      await copyImageAsPaper(exportElement);
       expect(copyAsPaper).toHaveBeenCalledTimes(1);
       expect(toast.error).not.toHaveBeenCalled();
       expect(paperImports).toBe(2);
 
-      await copyImageAsPaper(exportElement, "Card");
+      await copyImageAsPaper(exportElement);
       expect(copyAsPaper).toHaveBeenCalledTimes(2);
       expect(paperImports).toBe(2);
     });
@@ -146,11 +146,8 @@ test("Paper and Figma copy call separate kiwi functions", async () => {
     expect(await preloadImageExportCopy("figma")).toBe(true);
     expect(loadFallbackFont).toHaveBeenCalledTimes(1);
 
-    await copyImageAsPaper(exportElement, "Card");
-    expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
-      label: "Card",
-      name: "Card",
-    });
+    await copyImageAsPaper(exportElement);
+    expect(copyAsPaper).toHaveBeenCalledWith(exportElement);
     expect(copyAsFigma).not.toHaveBeenCalled();
 
     await copyImageAsFigma(exportElement, "Card");
@@ -241,7 +238,7 @@ test("cold copy awaits the kiwi import then pastes", async () => {
     expect(isImageExportCopyReady("paper")).toBe(false);
     expect(isImageExportCopyReady("figma")).toBe(false);
 
-    await copyImageAsPaper(exportElement, "Card");
+    await copyImageAsPaper(exportElement);
     expect(copyAsPaper).toHaveBeenCalledTimes(1);
     expect(toast.error).not.toHaveBeenCalled();
 

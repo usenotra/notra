@@ -13,7 +13,7 @@ export function PrivacySection() {
     useHidePersonalData();
 
   return (
-    <TitleCard className="lg:col-span-2" heading={t("heading")}>
+    <TitleCard heading={t("heading")}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <Label

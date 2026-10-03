@@ -178,6 +178,10 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
+  SplitButton,
+  SplitButtonTrigger,
+} from "@notra/ui/components/ui/split-button";
+import {
   Stepper,
   StepperContent,
   StepperDescription,
@@ -190,6 +194,7 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@notra/ui/components/ui/stepper";
+import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Table,
@@ -233,6 +238,7 @@ import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
 
+import { DesignSystemButtonStatesDemo } from "./button-states-demo";
 import { DesignSystemWriteDialogDemo } from "./write-dialog-demo";
 
 const colorGroups = [
@@ -544,7 +550,9 @@ export default function DesignSystemClientPage() {
         <Card>
           <CardHeader>
             <CardTitle>Buttons</CardTitle>
-            <CardDescription>Variants and sizing options.</CardDescription>
+            <CardDescription>
+              Variants, sizing, and loading and progress states.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap gap-3">
@@ -565,6 +573,7 @@ export default function DesignSystemClientPage() {
               <Button size="icon-sm">◎</Button>
               <Button size="icon-lg">◎</Button>
             </div>
+            <DesignSystemButtonStatesDemo />
             <div className="flex flex-wrap items-center gap-4">
               <ButtonGroup>
                 <Button variant="outline">Left</Button>
@@ -576,6 +585,43 @@ export default function DesignSystemClientPage() {
                 <ButtonGroupSeparator />
                 <Button variant="outline">Recent</Button>
               </ButtonGroup>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <SplitButton>
+                <Button>
+                  <XTwitter />
+                  Connect X
+                </Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger label="More connect options" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Connect another account</DropdownMenuItem>
+                    <DropdownMenuItem>Manage permissions</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
+              <SplitButton>
+                <Button variant="secondary">Publish</Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger variant="secondary" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Schedule</DropdownMenuItem>
+                    <DropdownMenuItem>Save as draft</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
+              <SplitButton>
+                <Button size="sm" variant="outline">
+                  Export
+                </Button>
+                <DropdownMenu>
+                  <SplitButtonTrigger size="sm" variant="outline" />
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem>Markdown</DropdownMenuItem>
+                    <DropdownMenuItem>HTML</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SplitButton>
             </div>
           </CardContent>
         </Card>
@@ -1068,6 +1114,40 @@ export default function DesignSystemClientPage() {
               >
                 Loading
               </Button>
+              <Button
+                onClick={() =>
+                  toast.warning("Seat limit almost reached", {
+                    description: "9 of 10 seats are in use.",
+                  })
+                }
+                variant="outline"
+              >
+                Warning
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.info("New scan scheduled", {
+                    description: "Runs every Monday at 09:00.",
+                  })
+                }
+                variant="outline"
+              >
+                Info
+              </Button>
+              <Button
+                onClick={() =>
+                  toast.error("Couldn't change role", {
+                    description: "Your plan includes 3 team members.",
+                    action: {
+                      label: "View plans",
+                      onClick: () => toast.success("Opened plans"),
+                    },
+                  })
+                }
+                variant="outline"
+              >
+                With action
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -1492,7 +1572,7 @@ export default function DesignSystemClientPage() {
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-4">
               <Avatar>
-                <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=AJ" />
+                <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=AJ" />
                 <AvatarFallback>AJ</AvatarFallback>
                 <AvatarBadge />
               </Avatar>
@@ -1501,11 +1581,11 @@ export default function DesignSystemClientPage() {
               </Avatar>
               <AvatarGroup>
                 <Avatar>
-                  <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=SA" />
+                  <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=SA" />
                   <AvatarFallback>SA</AvatarFallback>
                 </Avatar>
                 <Avatar>
-                  <AvatarImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=KM" />
+                  <AvatarImage src="https://api.dicebear.com/9.x/micah/svg?seed=KM" />
                   <AvatarFallback>KM</AvatarFallback>
                 </Avatar>
                 <AvatarGroupCount>+3</AvatarGroupCount>
@@ -1622,7 +1702,7 @@ export default function DesignSystemClientPage() {
           <LinkedInPost
             author={{
               name: "Avery Lane",
-              avatar: "https://api.dicebear.com/9.x/avataaars/svg?seed=Avery",
+              avatar: "https://api.dicebear.com/9.x/micah/svg?seed=Avery",
               headline: "77,350 followers",
             }}
             comments={42}

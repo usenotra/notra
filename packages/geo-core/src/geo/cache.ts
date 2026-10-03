@@ -32,10 +32,10 @@ export const writeGeoCache = Effect.fn("geo.cache.write")(function* (
 });
 
 export const deleteGeoCache = Effect.fn("geo.cache.delete")(function* (
-  key: string
+  ...keys: string[]
 ) {
   const client = redis;
-  if (client) {
-    yield* Effect.promise(() => client.del(key).catch(() => null));
+  if (client && keys.length > 0) {
+    yield* Effect.promise(() => client.del(...keys).catch(() => null));
   }
 });

@@ -194,7 +194,7 @@ function getRatelimitKey(c: Context, scope: RatelimitScope): string {
   return getClientIp(c);
 }
 
-function setRatelimitHeaders(
+export function setRatelimitHeaders(
   c: Context,
   result: { limit: number; remaining: number; reset: number }
 ) {

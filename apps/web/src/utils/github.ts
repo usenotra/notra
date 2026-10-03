@@ -16,10 +16,6 @@ export const GITHUB_REPO_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO
 const NOTRA_AI_BOT_AUTHOR = "app/notra-ai";
 const NOTRA_AI_BOT_ID = -1;
 
-const GITHUB_CACHE_TAG = "github-contributors";
-
-const REVALIDATE_SECONDS = 3600;
-
 const EMPTY_DATA: ContributorsData = {
   repo: null,
   contributors: [],
@@ -51,10 +47,6 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, {
       headers: buildHeaders(),
-      next: {
-        revalidate: REVALIDATE_SECONDS,
-        tags: [GITHUB_CACHE_TAG],
-      },
     });
     if (!res.ok) {
       return null;

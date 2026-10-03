@@ -14,6 +14,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/button";
 import type { SkillDetailHeaderProps } from "@/types/skills/page";
+import { skillDisplayName } from "@/utils/skills";
 
 export function SkillDetailHeader({
   slug,
@@ -26,6 +27,9 @@ export function SkillDetailHeader({
   const t = useTranslations("skills");
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
+  const label = skillDisplayName(name);
+  const machineName =
+    label.toLowerCase().split(" ").join("-") === name ? null : name;
   return (
     <div className="space-y-4">
       <Link
@@ -38,12 +42,19 @@ export function SkillDetailHeader({
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex max-w-full min-w-0 items-center gap-2.5">
-          <h1
-            className="truncate font-mono text-2xl font-bold tracking-tight"
-            title={name}
-          >
-            {name}
-          </h1>
+          <div className="min-w-0">
+            <h1
+              className="truncate text-2xl font-semibold tracking-tight"
+              title={label}
+            >
+              {label}
+            </h1>
+            {machineName ? (
+              <p className="text-muted-foreground truncate font-mono text-xs">
+                {machineName}
+              </p>
+            ) : null}
+          </div>
           {isSystem ? (
             <TooltipProvider>
               <Tooltip>

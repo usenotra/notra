@@ -31,7 +31,12 @@ import {
 } from "@/lib/upload/server";
 import { validateUpload } from "@/lib/upload/validate";
 
-import { badRequest, forbidden, unauthorized } from "../utils/errors";
+import {
+  assertNotDemo,
+  badRequest,
+  forbidden,
+  unauthorized,
+} from "../utils/errors";
 
 const TRAILING_SLASH_REGEX = /\/$/;
 
@@ -39,6 +44,7 @@ export const uploadRouter = {
   createPresignedUpload: authorizedProcedure
     .input(uploadSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       return createPresignedUpload({
         fileSize: input.fileSize,
         fileType: input.fileType,
@@ -81,6 +87,7 @@ export const uploadRouter = {
   logoFromUrl: authorizedProcedure
     .input(uploadLogoFromUrlSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
@@ -160,6 +167,7 @@ export const uploadRouter = {
   uploadSvg: authorizedProcedure
     .input(uploadSvgSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {

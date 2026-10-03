@@ -1,9 +1,9 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { StudioUpgradeGate } from "@/components/dashboard/studio-upgrade-gate";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveAiProductAccess } from "@/lib/billing/subscription";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
@@ -36,7 +36,7 @@ async function DashboardHomePage({
   const [{ organization, user, member, billing }, requestHeaders, search] =
     await Promise.all([accessPromise, requestHeadersPromise, searchParams]);
   if (!billing.hasAccess) {
-    redirect(`/${slug}/feedback`);
+    return <StudioUpgradeGate slug={slug} />;
   }
   const projectId = await resolveInitialGeoProjectId(
     organization.id,

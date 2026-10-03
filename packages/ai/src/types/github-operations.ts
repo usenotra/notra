@@ -141,3 +141,19 @@ export interface GitHubCredentialDependencies {
     integrationId: string
   ) => Effect.Effect<string, GitHubCredentialDecryptionError>;
 }
+
+/** Narrows a minted installation token below the app's full permissions. */
+export interface GitHubInstallationTokenScope {
+  repositories?: string[];
+  permissions?: Partial<
+    Record<
+      | "contents"
+      | "metadata"
+      | "pull_requests"
+      | "issues"
+      | "checks"
+      | "statuses",
+      "read" | "write"
+    >
+  >;
+}

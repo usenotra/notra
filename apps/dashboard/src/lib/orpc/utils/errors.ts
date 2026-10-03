@@ -1,4 +1,7 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { ORPCError } from "@orpc/server";
+
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 
 export function badRequest(message: string, data?: unknown) {
   return new ORPCError("BAD_REQUEST", {
@@ -19,6 +22,13 @@ export function forbidden(message = "Forbidden", data?: unknown) {
     message,
     data,
   });
+}
+
+/** Blocks actions the public demo can't offer (real uploads, keys, accounts). */
+export function assertNotDemo() {
+  if (isDemoMode()) {
+    throw forbidden(DEMO_DISABLED_MESSAGE);
+  }
 }
 
 export function notFound(message = "Not Found") {

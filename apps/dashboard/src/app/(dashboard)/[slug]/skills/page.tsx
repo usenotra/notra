@@ -38,7 +38,7 @@ async function PageContent({ params }: PageProps) {
         member && { userId: user.id, id: member.id, role: member.role }
       )}
     >
-      <PageClient slug={slug} />
+      <PageClient organizationId={organization.id} slug={slug} />
     </HydrationBoundary>
   );
 }

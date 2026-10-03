@@ -41,6 +41,7 @@ export const saveGeoOnboardingBrand = Effect.fn("geo.onboardingBrand")(
       aliases: input.aliases,
       competitors: [],
       languages: trackedGeoLanguages(input.languages ?? []),
+      promptLanguage: input.promptLanguage,
       engines: resolveTrackedEngines(
         catalog,
         input.engines ?? geoEnginesForAudience(catalog, input.audienceType)
@@ -140,13 +141,18 @@ export const suggestGeoCompetitors = Effect.fn("geo.competitorSuggestions")(
 
 export async function warmGeoOnboardingCache(
   organizationId: string,
-  websiteUrl: string
+  websiteUrl: string,
+  language?: string
 ): Promise<void> {
   const url = normalizeWebsiteUrl(websiteUrl);
   const domain = normalizeCompetitorDomain(websiteUrl);
   const tasks: Promise<unknown>[] = [];
   if (url) {
-    tasks.push(Effect.runPromise(discoverGeoWebsite(organizationId, url)));
+    tasks.push(
+      Effect.runPromise(
+        discoverGeoWebsite(organizationId, url, false, language)
+      )
+    );
   }
   if (domain) {
     tasks.push(

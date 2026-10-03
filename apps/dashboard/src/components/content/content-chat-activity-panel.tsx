@@ -34,6 +34,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { getToolName, isToolUIPart } from "ai";
@@ -43,6 +44,7 @@ import { Fragment, type ReactNode, useState } from "react";
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatEmptyDither } from "@/components/ai/chat-empty-dither";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { isMcpToolName } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -63,6 +65,7 @@ import type {
 import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import { displayChatTitle } from "@/utils/chat-history-groups";
 import { getChatFilePartFields } from "@/utils/chat-message-parts";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
   getContentChatAttachments,
@@ -96,6 +99,17 @@ function ContentChatActivityFeed({
         <MessageScrollerButton />
       </MessageScroller>
     </MessageScrollerProvider>
+  );
+}
+
+// Subagents get their own row with nested steps instead of hiding inside the
+// collapsed activity group.
+function isAgentPanelStandaloneTool(
+  part: Parameters<typeof isContentEditorStandaloneTool>[0]
+): boolean {
+  return (
+    isContentEditorStandaloneTool(part) ||
+    (isToolUIPart(part) && isChatSubagentName(getToolName(part)))
   );
 }
 
@@ -249,7 +263,7 @@ function ContentChatActivityMessage({
                 durationMs={assistantMetadata?.generationDurationMs}
                 elapsedSeconds={elapsedSeconds}
                 isLoading={isLoading}
-                isStandaloneTool={isContentEditorStandaloneTool}
+                isStandaloneTool={isAgentPanelStandaloneTool}
                 messageId={message.id}
                 parts={message.parts}
                 renderStandalone={(part, index) => {
@@ -265,17 +279,27 @@ function ContentChatActivityMessage({
                     </MessageResponse>
                   );
                 }}
-                renderTool={(part) =>
-                  isToolUIPart(part)
-                    ? renderContentChatToolPart({
-                        part,
-                        isActive: isLoading,
-                        organizationSlug,
-                        onApproveTool,
-                        onDenyTool,
-                      })
-                    : null
-                }
+                renderTool={(part) => {
+                  if (!isToolUIPart(part)) {
+                    return null;
+                  }
+                  if (isChatSubagentName(getToolName(part))) {
+                    return (
+                      <ChatSubagentToolPart
+                        isActive={isLoading}
+                        key={part.toolCallId}
+                        part={part}
+                      />
+                    );
+                  }
+                  return renderContentChatToolPart({
+                    part,
+                    isActive: isLoading,
+                    organizationSlug,
+                    onApproveTool,
+                    onDenyTool,
+                  });
+                }}
               />
             ) : (
               <>
@@ -319,7 +343,7 @@ function ContentChatActivityMessage({
             )}
           </MessageContent>
         ) : null}
-        {message.role === "assistant" ? (
+        {message.role === "assistant" && !isLoading ? (
           <AssistantMetadataHover compact metadata={assistantMetadata} />
         ) : null}
       </Message>
@@ -408,135 +432,137 @@ function ContentChatActivityHeader({
   const isAgentBusy = status === "streaming" || status === "submitted";
   return (
     <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
-      <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
+      <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-5">
         <span className="truncate">{title}</span>
       </h2>
-      <div className="-mr-1.5 flex h-full items-center gap-0.5">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                disabled={isAgentBusy}
-                onClick={onNewChat}
-                size="icon-sm"
-                variant="ghost"
-              />
-            }
-          >
-            <span className="sr-only">{t("startNewChat")}</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={PlusSignIcon}
-              strokeWidth={1.8}
-            />
-          </TooltipTrigger>
-          <TooltipContent>{tCommon("labels.newChat")}</TooltipContent>
-        </Tooltip>
-        {showHistory ? (
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <DropdownMenuTrigger
-                    className="inline-flex"
-                    disabled={isAgentBusy}
-                    render={<Button size="icon-sm" variant="ghost" />}
-                  />
-                }
-              >
-                <span className="sr-only">{t("openHistory")}</span>
-                <HugeiconsIcon
-                  className="size-4"
-                  icon={Clock01Icon}
-                  strokeWidth={1.8}
+      <TooltipProvider>
+        <div className="-mr-1.5 flex h-full items-center gap-0.5">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  disabled={isAgentBusy}
+                  onClick={onNewChat}
+                  size="icon-sm"
+                  variant="ghost"
                 />
-              </TooltipTrigger>
-              <TooltipContent>{t("history")}</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent
-              align="end"
-              className="max-h-72 w-52"
-              sideOffset={6}
+              }
             >
-              <ContentChatHistoryItems
-                sessions={sessions}
-                activeChatId={activeChatId}
-                isHistoryLoading={isHistoryLoading}
-                status={status}
-                onSelectChat={onSelectChat}
+              <span className="sr-only">{t("startNewChat")}</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={PlusSignIcon}
+                strokeWidth={1.8}
               />
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="gap-2"
-                disabled={isAgentBusy}
-                onClick={onNewChat}
+            </TooltipTrigger>
+            <TooltipContent>{tCommon("labels.newChat")}</TooltipContent>
+          </Tooltip>
+          {showHistory ? (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DropdownMenuTrigger
+                      className="inline-flex"
+                      disabled={isAgentBusy}
+                      render={<Button size="icon-sm" variant="ghost" />}
+                    />
+                  }
+                >
+                  <span className="sr-only">{t("openHistory")}</span>
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={Clock01Icon}
+                    strokeWidth={1.8}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{t("history")}</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent
+                align="end"
+                className="max-h-72 w-52"
+                sideOffset={6}
               >
-                <HugeiconsIcon
-                  className="size-4 shrink-0"
-                  icon={PlusSignIcon}
-                  strokeWidth={1.8}
+                <ContentChatHistoryItems
+                  sessions={sessions}
+                  activeChatId={activeChatId}
+                  isHistoryLoading={isHistoryLoading}
+                  status={status}
+                  onSelectChat={onSelectChat}
                 />
-                <span>{tCommon("labels.newChat")}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-pressed={opensInChat ? undefined : expanded}
-                className="cursor-pointer"
-                onClick={onOpenChat ?? toggleExpanded}
-                size="icon-sm"
-                variant="ghost"
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="gap-2"
+                  disabled={isAgentBusy}
+                  onClick={onNewChat}
+                >
+                  <HugeiconsIcon
+                    className="size-4 shrink-0"
+                    icon={PlusSignIcon}
+                    strokeWidth={1.8}
+                  />
+                  <span>{tCommon("labels.newChat")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-pressed={opensInChat ? undefined : expanded}
+                  className="cursor-pointer"
+                  onClick={onOpenChat ?? toggleExpanded}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            >
+              <span className="sr-only">
+                {opensInChat
+                  ? t("openInChat")
+                  : expanded
+                    ? t("exitFullscreenTitle", { title })
+                    : t("openFullscreenTitle", { title })}
+              </span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={
+                  opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+                }
+                strokeWidth={1.8}
               />
-            }
-          >
-            <span className="sr-only">
+            </TooltipTrigger>
+            <TooltipContent>
               {opensInChat
                 ? t("openInChat")
                 : expanded
-                  ? t("exitFullscreenTitle", { title })
-                  : t("openFullscreenTitle", { title })}
-            </span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={
-                opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+                  ? t("exitFullscreen")
+                  : t("expandAgent")}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="cursor-pointer"
+                  onClick={onClose}
+                  size="icon-sm"
+                  variant="ghost"
+                />
               }
-              strokeWidth={1.8}
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            {opensInChat
-              ? t("openInChat")
-              : expanded
-                ? t("exitFullscreen")
-                : t("expandAgent")}
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                className="cursor-pointer"
-                onClick={onClose}
-                size="icon-sm"
-                variant="ghost"
+            >
+              <span className="sr-only">{t("closeTitle", { title })}</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={Cancel01Icon}
+                strokeWidth={1.8}
               />
-            }
-          >
-            <span className="sr-only">{t("closeTitle", { title })}</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={Cancel01Icon}
-              strokeWidth={1.8}
-            />
-          </TooltipTrigger>
-          <TooltipContent>{t("closeTitle", { title })}</TooltipContent>
-        </Tooltip>
-      </div>
+            </TooltipTrigger>
+            <TooltipContent>{t("closeTitle", { title })}</TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </header>
   );
 }
@@ -559,7 +585,7 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
     lastMessage?.role === "assistant" ? lastMessage.id : undefined
   );
   const { showThinkingIndicator } = getChatActivity(messages, isAgentBusy, {
-    isStandaloneTool: isContentEditorStandaloneTool,
+    isStandaloneTool: isAgentPanelStandaloneTool,
     includeFileParts: false,
   });
   const visibleMessages = messages.filter((message) =>

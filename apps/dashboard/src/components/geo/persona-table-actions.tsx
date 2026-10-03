@@ -9,14 +9,19 @@ import {
   ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PERSONA_MAX_COUNT } from "@notra/geo-core/constants/geo-personas";
+import {
+  GEO_PERSONA_BILLING_MULTIPLIER,
+  GEO_PERSONA_MAX_COUNT,
+} from "@notra/geo-core/constants/geo-personas";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
 } from "@notra/ui/components/ui/context-menu";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useTranslations } from "next-intl";
@@ -73,48 +78,50 @@ export function PersonaTableRowActions({
   }
 
   return (
-    <div className="flex items-center justify-end gap-1">
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={t("regenerateAria", { name: persona.name })}
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onRegenerate(persona.id);
-              }}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <HugeiconsIcon icon={Refresh03Icon} size={16} />
-            </Button>
-          }
-        />
-        <TooltipContent>{t("regenerate")}</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={t("archiveAria", { name: persona.name })}
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete(persona);
-              }}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <HugeiconsIcon icon={Archive02Icon} size={16} />
-            </Button>
-          }
-        />
-        <TooltipContent>{tGeoShared("archivePersona")}</TooltipContent>
-      </Tooltip>
-    </div>
+    <TooltipProvider>
+      <div className="flex items-center justify-end gap-1">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("regenerateAria", { name: persona.name })}
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRegenerate(persona.id);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <HugeiconsIcon icon={Refresh03Icon} size={16} />
+              </Button>
+            }
+          />
+          <TooltipContent>{t("regenerate")}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("archiveAria", { name: persona.name })}
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(persona);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <HugeiconsIcon icon={Archive02Icon} size={16} />
+              </Button>
+            }
+          />
+          <TooltipContent>{tGeoShared("archivePersona")}</TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -156,6 +163,12 @@ export function PersonaTableContextMenu({
       >
         <HugeiconsIcon icon={PlayIcon} />
         {tGeoShared("runScan")}
+        <span className="sr-only">
+          {t("answerCost", { multiplier: GEO_PERSONA_BILLING_MULTIPLIER })}
+        </span>
+        <ContextMenuShortcut aria-hidden="true">
+          {GEO_PERSONA_BILLING_MULTIPLIER}×
+        </ContextMenuShortcut>
       </ContextMenuItem>
       <ContextMenuItem
         disabled={mutationDisabled}

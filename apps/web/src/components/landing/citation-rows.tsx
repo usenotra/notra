@@ -1,5 +1,3 @@
-"use client";
-
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { PurposeBadge } from "@notra/ui/components/geo/purpose-badge";
 import { ScrollArea, ScrollBar } from "@notra/ui/components/ui/scroll-area";
@@ -12,16 +10,16 @@ import {
 } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
 
+import {
+  DUAL_TONE_TABLE_BODY,
+  DUAL_TONE_TABLE_CLASS,
+  DUAL_TONE_TABLE_HEADER,
+  DUAL_TONE_TABLE_HEADER_CELL_CLASS,
+  DUAL_TONE_TABLE_ROOT,
+} from "@/constants/landing/dual-tone-table";
 import { formatCapturedAt } from "@/lib/landing/live-traffic";
 import type { CitationRowsProps, LiveCitationRow } from "@/types/landing/geo";
 
-const HEADER_CLASS = "h-11 text-muted-foreground text-sm";
-const TABLE_CLASS =
-  "w-full table-fixed caption-bottom border-separate border-spacing-0 text-sm";
-const DUAL_TONE_HEADER =
-  "border-border bg-muted overflow-hidden rounded-t-2xl border border-b-0 pb-5";
-const DUAL_TONE_BODY =
-  "border-border bg-background relative z-10 -mt-5 min-h-0 flex-1 overflow-hidden rounded-2xl border";
 const ROW_ENTER_CLASS =
   "animate-in fade-in slide-in-from-top-2 fill-mode-both duration-normal ease-emphasized motion-reduce:animate-none";
 
@@ -50,7 +48,7 @@ function CitationColGroup() {
       <col className="hidden lg:table-column lg:w-[11.5rem]" />
       <col />
       <col className="hidden lg:table-column" />
-      <col className="w-[9.75rem] lg:w-[11.5rem]" />
+      <col className="hidden w-[9.75rem] sm:table-column lg:w-[11.5rem]" />
     </colgroup>
   );
 }
@@ -76,11 +74,17 @@ function CitationCells({
           <EngineIcon className="size-4.5 shrink-0" engine={row.engine} />
           <span className="truncate">{row.provider}</span>
         </span>
+        <span className="mt-1 flex flex-col items-start gap-2 pl-7 lg:hidden">
+          <CitationPath row={row} />
+          <span className="sm:hidden">
+            <PurposeBadge category={row.purpose} />
+          </span>
+        </span>
       </TableCell>
       <TableCell className="hidden py-3.5 lg:table-cell">
         <CitationPath row={row} />
       </TableCell>
-      <TableCell className="w-[1%] py-3.5 whitespace-nowrap">
+      <TableCell className="hidden w-[1%] py-3.5 whitespace-nowrap sm:table-cell">
         <PurposeBadge category={row.purpose} />
       </TableCell>
     </>
@@ -97,37 +101,49 @@ export function CitationRows({
 }: CitationRowsProps) {
   return (
     <div
-      className="text-foreground flex h-full min-h-0 flex-col [--muted-foreground:#595959] dark:[--muted-foreground:#b8b8be]"
+      className={DUAL_TONE_TABLE_ROOT}
       role="region"
       aria-label="Recent AI crawlers"
     >
-      <div className={DUAL_TONE_HEADER}>
-        <table className={TABLE_CLASS}>
+      <div className={DUAL_TONE_TABLE_HEADER}>
+        <table className={DUAL_TONE_TABLE_CLASS}>
           <CitationColGroup />
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
               <TableHead
                 className={cn(
-                  HEADER_CLASS,
+                  DUAL_TONE_TABLE_HEADER_CELL_CLASS,
                   "hidden lg:table-cell lg:w-[11.5rem]"
                 )}
               >
                 {headers.when}
               </TableHead>
-              <TableHead className={HEADER_CLASS}>{headers.provider}</TableHead>
-              <TableHead className={cn(HEADER_CLASS, "hidden lg:table-cell")}>
+              <TableHead className={DUAL_TONE_TABLE_HEADER_CELL_CLASS}>
+                {headers.provider}
+              </TableHead>
+              <TableHead
+                className={cn(
+                  DUAL_TONE_TABLE_HEADER_CELL_CLASS,
+                  "hidden lg:table-cell"
+                )}
+              >
                 {headers.path}
               </TableHead>
-              <TableHead className={cn(HEADER_CLASS, "lg:w-[11.5rem]")}>
+              <TableHead
+                className={cn(
+                  DUAL_TONE_TABLE_HEADER_CELL_CLASS,
+                  "hidden sm:table-cell lg:w-[11.5rem]"
+                )}
+              >
                 {headers.purpose}
               </TableHead>
             </TableRow>
           </TableHeader>
         </table>
       </div>
-      <div className={DUAL_TONE_BODY}>
+      <div className={DUAL_TONE_TABLE_BODY}>
         <ScrollArea className="h-full">
-          <table className={TABLE_CLASS}>
+          <table className={DUAL_TONE_TABLE_CLASS}>
             <CitationColGroup />
             <TableBody>
               {rows.map((row) => (

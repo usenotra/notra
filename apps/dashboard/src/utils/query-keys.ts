@@ -71,6 +71,11 @@ export const QUERY_KEYS = {
   ONBOARDING: {
     status: (organizationId: string) => ["onboarding", organizationId] as const,
   },
+  DEMO: {
+    sandbox: ["demo", "sandbox"] as const,
+    requests: ["demo", "requests"] as const,
+    request: (requestId: string) => ["demo", "requests", requestId] as const,
+  },
   API_KEYS: {
     base: ["api-keys"] as const,
     list: (organizationId: string) => ["api-keys", organizationId] as const,

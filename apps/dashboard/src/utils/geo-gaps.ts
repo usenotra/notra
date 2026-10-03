@@ -1,7 +1,6 @@
 import {
   GEO_GAPS_ENGINE_FILTER_ALL,
   GEO_GAPS_METER_STEPS,
-  GEO_SEARCH_GAP_ACTION_ORDER,
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoAiSearchGapRow,
@@ -9,13 +8,13 @@ import type {
   GeoGapBriefRef,
   GeoGapWriteAction,
   GeoPromptGapRow,
-  GeoSearchGapAction,
   GeoSearchGapRow,
 } from "@notra/geo-core/types/geo";
 import {
   engineFamilyLabel,
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { aiSearchGroupKey } from "@notra/geo-core/utils/geo-gaps";
 
 import type {
   GeoGapLift,
@@ -23,9 +22,64 @@ import type {
   GeoGapsEmptyKind,
   GeoGapsMeterTone,
   GeoGapsTab,
+  GeoUnifiedSearchGap,
 } from "@/types/components/geo-gaps";
 
 import { bestFuzzyScore, fuzzyMatches } from "./fuzzy";
+
+export function unifySearchGaps(
+  searchGaps: readonly GeoSearchGapRow[],
+  aiSearchGaps: readonly GeoAiSearchGapRow[]
+): GeoUnifiedSearchGap[] {
+  const remainingAi = [...aiSearchGaps];
+  const consoleRows: GeoUnifiedSearchGap[] = searchGaps.map((row) => {
+    const queries = new Set(
+      [row.prompt, ...row.queries.map((keyword) => keyword.query)]
+        .map(aiSearchGroupKey)
+        .filter(Boolean)
+    );
+    const index = remainingAi.findIndex((candidate) =>
+      [candidate.query, ...candidate.variants].some((query) => {
+        const key = aiSearchGroupKey(query);
+        return key.length > 0 && queries.has(key);
+      })
+    );
+    const [ai = null] = index < 0 ? [] : remainingAi.splice(index, 1);
+    return { kind: "console", row, ai };
+  });
+  return [
+    ...consoleRows,
+    ...remainingAi.map((row) => ({ kind: "ai" as const, row })),
+  ];
+}
+
+export function primarySearchQuery(row: GeoSearchGapRow): string {
+  return (
+    row.queries.reduce(
+      (best, keyword) =>
+        keyword.impressions > (best?.impressions ?? -1) ? keyword : best,
+      row.queries[0]
+    )?.query ?? row.prompt
+  );
+}
+
+export function searchGapDemandRank(gap: GeoUnifiedSearchGap): number {
+  const impressions = gap.kind === "console" ? (gap.row.impressions ?? 0) : 0;
+  const searches =
+    gap.kind === "console" ? (gap.ai?.searches ?? 0) : gap.row.searches;
+  // ponytail: simple ranking heuristic; calibrate weights once demand-to-draft data exists.
+  return Math.log1p(impressions) + 2 * Math.log1p(searches);
+}
+
+/** AI draft to surface next to Console actions when only the AI match has a brief. */
+export function searchGapAiDraft(
+  gap: GeoUnifiedSearchGap
+): GeoAiSearchGapRow | null {
+  if (gap.kind !== "console" || gap.row.brief || !gap.ai?.brief) {
+    return null;
+  }
+  return gap.ai;
+}
 
 export function withoutPromptGap(
   response: GeoContentGapsResponse,
@@ -67,7 +121,7 @@ export function gapOpportunityLevel(
 }
 
 export function isGeoGapsTab(value: unknown): value is GeoGapsTab {
-  return value === "prompt" || value === "search" || value === "ai";
+  return value === "prompt" || value === "search";
 }
 
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
@@ -169,10 +223,6 @@ export function gapLiftTone(delta: number): GeoGapLiftTone {
   return "flat";
 }
 
-export function searchGapActionOrder(action: GeoSearchGapAction): number {
-  return GEO_SEARCH_GAP_ACTION_ORDER[action];
-}
-
 export function existingPageLabel(url: string): string {
   try {
     const parsed = new URL(url);
@@ -186,16 +236,21 @@ export function existingPageLabel(url: string): string {
 export function geoGapsEmptyKind({
   tab,
   hasScanData,
+  snapshotReady = true,
   isScanning,
   hasSourceRows = false,
   hasMatches = true,
 }: {
   tab: GeoGapsTab;
   hasScanData: boolean;
+  snapshotReady?: boolean;
   isScanning: boolean;
   hasSourceRows?: boolean;
   hasMatches?: boolean;
 }): GeoGapsEmptyKind {
+  if (!snapshotReady) {
+    return "preparing";
+  }
   if (hasSourceRows && !hasMatches) {
     return "no-matches";
   }
@@ -208,7 +263,7 @@ export function geoGapsEmptyKind({
   if (!hasScanData) {
     return "no-scan";
   }
-  return tab === "ai" ? "no-ai-search-gaps" : "no-prompt-gaps";
+  return "no-prompt-gaps";
 }
 
 function gapSearchValues(row: {
@@ -258,20 +313,6 @@ export function filterPromptGaps(
   return filterGapsByQuery(byEngine, query, gapSearchValues);
 }
 
-export function filterSearchGaps(
-  rows: readonly GeoSearchGapRow[],
-  query: string
-): GeoSearchGapRow[] {
-  return filterGapsByQuery(rows, query, gapSearchValues);
-}
-
-export function filterAiSearchGaps(
-  rows: readonly GeoAiSearchGapRow[],
-  query: string
-): GeoAiSearchGapRow[] {
-  return filterGapsByQuery(rows, query, aiSearchGapSearchValues);
-}
-
 function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
   return [
     row.query,
@@ -279,6 +320,20 @@ function aiSearchGapSearchValues(row: GeoAiSearchGapRow): string[] {
     ...row.prompts,
     row.brief?.workingTitle ?? "",
   ];
+}
+
+export function filterUnifiedSearchGaps(
+  rows: readonly GeoUnifiedSearchGap[],
+  query: string
+): GeoUnifiedSearchGap[] {
+  return filterGapsByQuery(rows, query, (gap) =>
+    gap.kind === "console"
+      ? [
+          ...gapSearchValues(gap.row),
+          ...(gap.ai ? aiSearchGapSearchValues(gap.ai) : []),
+        ]
+      : aiSearchGapSearchValues(gap.row)
+  );
 }
 
 export function uniqueGapEngineFamilies(

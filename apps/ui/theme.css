@@ -1,3 +1,11 @@
+/* Blume inlines this file into .blume/src/generated/ and only rebases @source,
+   so the import path is relative to that folder. */
+@import "../../../src/styles/blocks.css";
+
+html {
+  scrollbar-gutter: stable;
+}
+
 :root {
   --notra-content-width: 72rem;
   --notra-content-gutter: 1.5rem;
@@ -20,6 +28,32 @@
   }
 }
 
+/* Notra dashboard palette (packages/ui/src/styles/globals.css), mapped onto
+   Blume's tokens so the docs site matches the product in both themes. */
+:root {
+  --notra-primary: oklch(0.6056 0.2189 292.7172);
+  --notra-card: hsl(0 0% 100%);
+  --blume-background: hsl(0 0% 100%);
+  --blume-foreground: hsl(0 0% 9%);
+  --blume-muted: hsl(0 0% 96.1%);
+  --blume-muted-foreground: hsl(0 0% 45.1%);
+  --blume-border: hsl(0 0% 89.8%);
+  --blume-accent: var(--notra-primary);
+  --blume-accent-foreground: oklch(0.997 0 0);
+}
+
+:root[data-theme="dark"] {
+  --notra-card: hsl(240 6% 10%);
+  --blume-background: hsl(233 7% 8%);
+  --blume-foreground: hsl(0 0% 98%);
+  --blume-muted: hsl(0 0% 14.9%);
+  --blume-muted-foreground: hsl(0 0% 63.9%);
+  --blume-border: hsl(0 1% 17%);
+  --blume-accent: var(--notra-primary);
+  --blume-accent-foreground: oklch(0.985 0 0);
+  --blume-code-background: hsl(240 6% 10%);
+}
+
 @utility dot-grid {
   background-image: radial-gradient(
     circle,
@@ -30,17 +64,166 @@
   background-size: 1.5rem 1.5rem;
 }
 
-[data-blume-header] > a > span[aria-hidden="true"] {
-  box-sizing: content-box;
-  padding: 0.3125rem;
-  border-radius: 0.4375rem;
+@font-face {
+  font-family: "Google Sans Flex";
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("/fonts/google-sans-flex-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
 }
 
-[data-theme="dark"] [data-blume-header] > a > span[aria-hidden="true"] {
-  background-color: #f6f3f1;
+:root {
+  --aio-bg: #ffffff;
+  --aio-fg: #0a0a0a;
+  --aio-label: #1f1f1f;
+  --aio-heading: #001d35;
+  --aio-muted: #56595e;
+  --aio-link: #1a0dab;
+  --aio-mark: #d3e3fd;
+  --aio-mark-fg: #001d35;
+  --aio-chip: #e9ebf0;
+  --aio-chip-hover: #e1e3e8;
+  --aio-border: #d2d2d2;
+  --aio-sparkle: #3179ed;
+  --aio-button-border: #a3c9ff;
+  --aio-button-fg: #001d35;
+  --aio-button-icon: #0b57d0;
+  --aio-focus: #336ef3;
+  --aio-hover: #f3f5f6;
+  --aio-popover: #f7f8fa;
+  --aio-popover-fg: #1f1f1f;
+  --aio-popover-muted: #636363;
+  --aio-action: #545d7e;
+}
+
+.dark,
+[data-theme="dark"] {
+  --aio-bg: #22242a;
+  --aio-fg: #e6e8f0;
+  --aio-label: #e8e8e8;
+  --aio-heading: #eef0ff;
+  --aio-muted: #adafb8;
+  --aio-link: #99c3ff;
+  --aio-mark: #203da0;
+  --aio-mark-fg: #eef0ff;
+  --aio-chip: #363840;
+  --aio-chip-hover: #50525b;
+  --aio-border: #444746;
+  --aio-sparkle: #7aacff;
+  --aio-button-border: #515a7b;
+  --aio-button-fg: #eef0ff;
+  --aio-button-icon: #a8c7fa;
+  --aio-focus: #336ef3;
+  --aio-hover: #36383f;
+  --aio-popover: #2c2e34;
+  --aio-popover-fg: #e8e8e8;
+  --aio-popover-muted: #9e9e9e;
+  --aio-action: #9e9e9e;
+}
+
+@theme inline {
+  --color-aio-bg: var(--aio-bg);
+  --color-aio-fg: var(--aio-fg);
+  --color-aio-label: var(--aio-label);
+  --color-aio-heading: var(--aio-heading);
+  --color-aio-muted: var(--aio-muted);
+  --color-aio-link: var(--aio-link);
+  --color-aio-mark: var(--aio-mark);
+  --color-aio-mark-fg: var(--aio-mark-fg);
+  --color-aio-chip: var(--aio-chip);
+  --color-aio-chip-hover: var(--aio-chip-hover);
+  --color-aio-border: var(--aio-border);
+  --color-aio-sparkle: var(--aio-sparkle);
+  --color-aio-button-border: var(--aio-button-border);
+  --color-aio-button-fg: var(--aio-button-fg);
+  --color-aio-button-icon: var(--aio-button-icon);
+  --color-aio-focus: var(--aio-focus);
+  --color-aio-hover: var(--aio-hover);
+  --color-aio-popover: var(--aio-popover);
+  --color-aio-popover-fg: var(--aio-popover-fg);
+  --color-aio-popover-muted: var(--aio-popover-muted);
+  --color-aio-action: var(--aio-action);
+  --font-aio: "Google Sans", "Google Sans Flex", Roboto, Arial, sans-serif;
+}
+
+@theme inline {
+  --color-marketing-light-foreground: #1e1e1e;
+  --tracking-marketing: -0.015em;
+}
+
+@property --marketing-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklab(100% 0 0);
+}
+
+@property --marketing-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklab(100% 0 0);
+}
+
+@utility marketing-gradient-primary {
+  --marketing-gradient-from: oklab(69.9% 0.067 -0.16);
+  --marketing-gradient-to: oklab(52.6% 0.113 -0.27);
+  background-image: linear-gradient(
+    180deg,
+    var(--marketing-gradient-from) 0%,
+    var(--marketing-gradient-to) 100%
+  );
   box-shadow:
-    inset 0 0.125rem 0.25rem rgb(255 255 255 / 0.08),
-    0 0 0 0.0625rem rgb(255 255 255 / 0.1),
-    0 0.0625rem 0.1875rem 0 rgb(0 0 0 / 0.4),
-    0 0.0625rem 0.125rem -0.0625rem rgb(0 0 0 / 0.4);
+    #8b5cf640 0 0 0 0.5rem,
+    #28282814 0 0.0625rem 0.125rem,
+    #1e1e1e40 0 0 0 0.0625rem;
+  transition:
+    --marketing-gradient-from 200ms ease-out,
+    --marketing-gradient-to 200ms ease-out;
+
+  &:hover {
+    --marketing-gradient-to: oklab(33.9% 0.073 -0.174);
+  }
+
+  &:active {
+    --marketing-gradient-from: oklab(52.6% 0.113 -0.27);
+    --marketing-gradient-to: oklab(24.8% 0.053 -0.127);
+  }
+}
+
+@utility marketing-gradient-light {
+  --marketing-gradient-from: oklab(100% 0 0);
+  --marketing-gradient-to: oklab(95.5% 0 0);
+  background-image: linear-gradient(
+    180deg,
+    var(--marketing-gradient-from) 0%,
+    var(--marketing-gradient-to) 100%
+  );
+  box-shadow:
+    #ececec 0 0 0 0.0625rem,
+    #28282814 0 0.0625rem 0.125rem;
+  transition:
+    --marketing-gradient-from 200ms ease-out,
+    --marketing-gradient-to 200ms ease-out;
+
+  &:hover {
+    --marketing-gradient-to: oklab(89% 0 0);
+  }
+
+  &:active {
+    --marketing-gradient-from: oklab(95.5% 0 0);
+    --marketing-gradient-to: oklab(85% 0 0);
+  }
+}
+
+nav > ul > li > details > .blume-nav-summary {
+  color: var(--blume-foreground);
+  font-weight: 500;
+}
+
+li + li:has(> .blume-nav-heading) {
+  margin-top: 0.75rem;
 }

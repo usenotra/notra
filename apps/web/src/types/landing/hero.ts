@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { EngineId } from "@/types/landing/geo";
 
 export interface HeroCycleWord {
@@ -9,6 +11,9 @@ export interface HeroHeadlineProps {
   word: HeroCycleWord;
 }
 
-export interface HeroCollageProps {
-  engine: EngineId;
+export interface CycleMarkProps {
+  markKey: string;
+  animated: boolean;
+  className?: string;
+  children: ReactNode;
 }

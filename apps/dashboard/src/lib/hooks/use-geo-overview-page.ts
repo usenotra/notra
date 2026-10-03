@@ -14,6 +14,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoCompetitorShare,
   useGeoLanguageShare,
+  useGeoModelCatalog,
   useGeoOverview,
   useGeoPromptResults,
   useGeoSettings,
@@ -35,6 +36,7 @@ import {
   geoOverviewTabEnabled,
   toGeoOverviewReadyPage,
 } from "@/utils/geo-overview-page";
+import { scanModelSelectionToSubmit } from "@/utils/geo-scan-models";
 
 function useGeoModulesReveal(ready: boolean): boolean {
   const reduceMotion = useReducedMotion();
@@ -102,6 +104,7 @@ export function useGeoOverviewPage(
   organizationSlug: string
 ): GeoOverviewPageModel {
   const tToast = useTranslations("geo.toasts");
+  const tScanButton = useTranslations("geo.promptScanButton");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
     organizationSlug,
@@ -176,13 +179,17 @@ export function useGeoOverviewPage(
   } = useGeoJourneyStats(organizationId, geoRange.query, journeysEnabled);
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
-  const [preflightOpen, setPreflightOpen] = useState(false);
+  const { data: catalog } = useGeoModelCatalog(organizationId);
+  const [scanMenuOpen, setScanMenuOpen] = useState(false);
   const settings = settingsData?.settings ?? null;
   const ready = !isSettingsPending;
   const revealActive = useGeoModulesReveal(ready);
 
-  useHotkey("R", () => setPreflightOpen(true), {
-    enabled: !isScanning && !preflightOpen,
+  // Mirrors the menu's own disabled state, which renders no popover.
+  const canOpenScanMenu =
+    Boolean(settings?.enabled) && (settings?.engines.length ?? 0) > 0;
+  useHotkey("R", () => setScanMenuOpen(true), {
+    enabled: canOpenScanMenu && !isScanning && !scanMenuOpen,
   });
 
   useGeoOverviewViewed({
@@ -230,27 +237,32 @@ export function useGeoOverviewPage(
     }),
     isScanning,
     revealActive,
-    scanPreflight: {
-      open: preflightOpen,
-      onOpenChange: setPreflightOpen,
-      onConfirm: (engines) => {
+    scanMenu: {
+      engines: settings.engines,
+      catalog: catalog?.models,
+      enforceZdr: settings.enforceZdr,
+      nonZdrApprovedEngines: settings.nonZdrApprovedEngines,
+      disabled: isScanning || !settings.enabled,
+      disabledReason: isScanning
+        ? tScanButton("scanInProgress")
+        : tScanButton("scanningDisabled"),
+      primary: true,
+      open: scanMenuOpen,
+      onOpenChange: setScanMenuOpen,
+      onContinue: (engines) => {
         // Await the promise instead of passing onSuccess to mutate: observer
         // callbacks never run if this page unmounts first, the promise does.
         void (async () => {
           try {
-            await startScan.mutateAsync(engines ? { engines } : undefined);
+            await startScan.mutateAsync({
+              engines: scanModelSelectionToSubmit(settings.engines, engines),
+            });
             toast.success(tToast("scanStarted"));
           } catch {
             // The mutation reports the error itself.
           }
         })();
-        setPreflightOpen(false);
       },
-      isPending: startScan.isPending,
-      promptCount: countEnabledGeoPrompts(
-        isPromptsLoading ? undefined : prompts
-      ),
-      lastScanAt: settings.lastScanAt,
     },
   });
 }

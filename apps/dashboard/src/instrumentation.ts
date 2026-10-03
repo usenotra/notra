@@ -1,3 +1,4 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { defineNodeInstrumentation } from "evlog/next/instrumentation";
 
 const evlogInstrumentation = defineNodeInstrumentation(async () => {
@@ -12,9 +13,22 @@ const evlogInstrumentation = defineNodeInstrumentation(async () => {
 export async function register() {
   await evlogInstrumentation.register();
 
+  if (process.env.NEXT_RUNTIME === "nodejs" && isDemoMode()) {
+    const [{ registerGeoDemoTraffic }, { registerDemoSocialAnalytics }] =
+      await Promise.all([
+        import("@notra/geo-core/geo/demo-traffic"),
+        import("@notra/ai/utils/demo-social"),
+      ]);
+    registerGeoDemoTraffic();
+    registerDemoSocialAnalytics();
+  }
+
+  // Tracing exports to The Context Company; deployments without its key
+  // (the public demo) would otherwise fail to start.
   if (
     process.env.NEXT_RUNTIME === "nodejs" &&
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV === "production" &&
+    process.env.TCC_API_KEY
   ) {
     const [{ registerOTelTCC }, { OpenTelemetry }, { registerTelemetry }] =
       await Promise.all([

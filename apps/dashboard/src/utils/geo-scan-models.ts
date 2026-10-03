@@ -1,7 +1,7 @@
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 
 import type { GeoScanModelOption } from "@/types/geo-scan-activity";
-import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 
 interface BuildScanModelOptionsInput {
   tracked: readonly string[];
@@ -28,7 +28,6 @@ export function buildScanModelOptions({
     return {
       id,
       label: model?.label ?? formatEngineFamily(id),
-      answerMode: engineAnswerMode(id),
       tracked: trackedIds.has(id),
       zdrBlocked:
         enforceZdr && model?.zdr === "none" && !approved.has(model.id),
@@ -56,6 +55,22 @@ export function filterScanModelOptions(
       option.label.toLowerCase().includes(needle) ||
       option.id.toLowerCase().includes(needle)
   );
+}
+
+/**
+ * Engines to send for a menu selection. `undefined` when it is exactly the
+ * tracked set, so the run stays a regular full scan. Untracked catalog
+ * models are kept, unlike the tracked-only preflight dialog.
+ */
+export function scanModelSelectionToSubmit(
+  tracked: readonly string[],
+  selected: readonly string[]
+): string[] | undefined {
+  const trackedIds = new Set(tracked);
+  const isTrackedSet =
+    selected.length === trackedIds.size &&
+    selected.every((id) => trackedIds.has(id));
+  return isTrackedSet ? undefined : [...selected];
 }
 
 export function defaultScanModelSelection(

@@ -414,7 +414,10 @@ export const updateGeoContentBrief = Effect.fn("geo.writer.briefUpdate")(
                 eq(geoContentBriefs.id, input.briefId),
                 eq(
                   sql<Date>`date_trunc('milliseconds', ${geoContentBriefs.updatedAt})`,
-                  new Date(input.expectedUpdatedAt)
+                  // The column has no timezone. Cast the ISO string in SQL so the
+                  // UTC wall-clock value is compared as-is; binding a JS Date would
+                  // let node-postgres shift it by the Node process timezone.
+                  sql`${input.expectedUpdatedAt}::timestamp`
                 ),
                 inArray(geoContentBriefs.status, [...REVISABLE_BRIEF_STATUSES])
               )

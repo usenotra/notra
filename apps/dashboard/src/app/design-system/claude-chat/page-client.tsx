@@ -2,12 +2,12 @@
 
 import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ClaudeChatActions } from "@notra/ui/components/brainless/claude-chat/claude-chat-actions";
-import { ClaudeChatComposer } from "@notra/ui/components/brainless/claude-chat/claude-chat-composer";
-import { ClaudeChatMessage } from "@notra/ui/components/brainless/claude-chat/claude-chat-message";
-import { ClaudeChatSearch } from "@notra/ui/components/brainless/claude-chat/claude-chat-search";
-import { ClaudeChatSources } from "@notra/ui/components/brainless/claude-chat/claude-chat-sources";
-import { ClaudeChatThinking } from "@notra/ui/components/brainless/claude-chat/claude-chat-thinking";
+import { ClaudeChatActions } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-actions";
+import { ClaudeChatComposer } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-composer";
+import { ClaudeChatMessage } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-message";
+import { ClaudeChatSearch } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-search";
+import { ClaudeChatSources } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-sources";
+import { ClaudeChatThinking } from "@notra/ui/components/ai-skins/claude-chat/claude-chat-thinking";
 import {
   MessageScroller,
   MessageScrollerButton,

@@ -10,6 +10,7 @@ import {
   connectedSocialAccounts,
   trackedSocialAccounts,
 } from "@notra/db/schema";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { eq } from "drizzle-orm";
 
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
@@ -44,7 +45,8 @@ export async function listSyncableAccounts(
   organizationId?: string
 ): Promise<SyncableSocialAccount[]> {
   "use step";
-  if (!isTinybirdConfigured()) {
+  // Demo accounts are fictional and their stats are generated at read time.
+  if (!isTinybirdConfigured() || isDemoMode()) {
     return [];
   }
   const [accounts, tracked] = await Promise.all([

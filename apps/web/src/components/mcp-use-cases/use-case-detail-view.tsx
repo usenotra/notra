@@ -1,7 +1,7 @@
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { HeroDither } from "@/components/landing/hero-dither";
 import {
@@ -62,7 +62,7 @@ export function McpUseCaseDetailView({
               <CtaButton
                 className="w-full sm:w-auto"
                 nativeButton={false}
-                render={<Link href="/mcp" />}
+                render={<Link to="/mcp" />}
                 variant="primary"
               >
                 Connect Notra MCP
@@ -71,17 +71,17 @@ export function McpUseCaseDetailView({
                 className="w-full sm:w-auto"
                 nativeButton={false}
                 render={
-                  <Link
+                  <a
                     href={MCP_USE_CASES_BUILD_YOUR_OWN_URL}
                     rel="noopener"
                     target="_blank"
-                  />
+                  >
+                    Build your own workflow
+                    <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />
+                  </a>
                 }
                 variant="light"
-              >
-                Build your own workflow
-                <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />
-              </CtaButton>
+              />
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export function McpUseCaseDetailView({
               </h2>
               <Link
                 className="text-primary flex shrink-0 cursor-pointer items-center gap-1 font-sans text-[0.9375rem] leading-[1.25] font-medium"
-                href={MCP_USE_CASES_PATH}
+                to={MCP_USE_CASES_PATH}
               >
                 View all
                 <HugeiconsIcon className="size-4" icon={ArrowRight02Icon} />

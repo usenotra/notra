@@ -1,3 +1,5 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import type {
   AiTrafficResponse,
   EngineIconKey,
@@ -408,6 +410,12 @@ export const GEO_SCAN_CLAIM_RENEW_AFTER_MS = 30 * 60 * 1000;
 export const GEO_SCAN_SEQUENCE_BATCH_SIZE = 3;
 export const GEO_SEQUENCE_PAIR_TIMEOUT_MS = 7 * 60 * 1000;
 export const GEO_SCAN_DUE_LIMIT_PER_SWEEP = 25;
+/**
+ * Upper bound for the billing precheck before a scan starts. The cron sweep
+ * holds a fresh claim while it waits, so a hanging billing call must not run
+ * into the request limit and strand that claim.
+ */
+export const GEO_SCAN_BILLING_PRECHECK_TIMEOUT_MS = 10_000;
 export const GEO_SCAN_POLL_INTERVAL_MS = 3000;
 export const GEO_START_SCAN_MUTATION_KEY = "geo-start-scan";
 export const GEO_RESCAN_SOURCE_KINDS = ["gap", "prompt"] as const;
@@ -543,13 +551,6 @@ export const AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT = 25;
 
 export const OWN_BRAND_ROW_ID = "own-brand";
 
-export const COMPETITOR_TYPE_FILTER_VALUES = [
-  "all",
-  "direct",
-  "indirect",
-] as const;
-
-export const COMPETITORS_TABLE_HEIGHT = 420;
 export const COMPETITOR_PROMPTS_TABLE_HEIGHT = 288;
 export const COMPETITOR_PROMPTS_PAGE_TABLE_HEIGHT = 620;
 export const COMPETITORS_TABLE_ROW_HEIGHT = 52;
@@ -667,6 +668,7 @@ export const GEO_AGENT_LABELS: Record<string, string> = {
   "cohere-ai": "Cohere-AI",
   "cohere-training-data-crawler": "Cohere Training Crawler",
   "kagi-fetcher": "Kagi-Fetcher",
+  "google-extended": "Google-Extended",
   omgili: "Omgili",
 };
 
@@ -882,16 +884,6 @@ export const GEO_MENTION_FADE_HEIGHT_REM = 2;
  * never add up. Spell that out: side by side the numbers read as rival totals.
  */
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
-export const GEO_SCAN_SIZE_WARN_THRESHOLD = 150;
-export const GEO_SCAN_SIZE_DANGER_THRESHOLD = 300;
-export const GEO_SCAN_SIZE_WARN =
-  "Large scan. It takes longer and costs more. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_DANGER =
-  "Very large scan. It will likely take a long time. Use fewer engines, prompts, or languages.";
-export const GEO_SCAN_SIZE_MESSAGES = {
-  warn: GEO_SCAN_SIZE_WARN,
-  danger: GEO_SCAN_SIZE_DANGER,
-};
 export const GEO_RANGE_PRESETS = [
   { value: "today" },
   { value: "yesterday" },
@@ -912,6 +904,7 @@ export const GEO_RANGE_PRESET_DAYS = {
   "90d": 89,
 } as const;
 export const GEO_DEFAULT_QUERY_DAYS = 30;
+export const GEO_MAX_RANGE_DAYS = 366;
 export const GEO_FILTER_TRIGGER_CLASS =
   "corner-squircle flex h-7 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring";
 /** Search vs memory gap that names a specific bottleneck. */
@@ -976,9 +969,9 @@ export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
   chatgpt: "bg-background",
   gemini: "bg-white dark:bg-[#1f1f1f]",
   perplexity: "bg-white dark:bg-[#111]",
-  opencode: "bg-[var(--opencode-tui-background,#fdfdfd)]",
-  "claude-code": "bg-[#1a1a1a]",
-  codex: "bg-[#1a1a1a]",
+  opencode: "bg-[var(--opencode-tui-background,#090909)]",
+  "claude-code": "bg-[#0f0f0f]",
+  codex: "bg-[#0f0f0f]",
 };
 
 export const GEO_TAB_BREADCRUMB_LABELS = {
@@ -986,6 +979,9 @@ export const GEO_TAB_BREADCRUMB_LABELS = {
   "brand-sentiment": "Brand sentiment",
   journeys: "Journeys",
 } satisfies Record<GeoTab, string>;
+
+/** Served by the dashboard app; stands in for fictional `.example` brands. */
+export const GEO_NOTRA_LOGO_PATH = "/icon0.svg";
 
 export const GEO_AVATAR_FALLBACK_BASE =
   "https://api.dicebear.com/9.x/glass/svg";
@@ -996,8 +992,13 @@ export const GEO_COMPETITOR_DETAIL_MIN_POINTS = 2;
 export const GEO_COMPETITOR_DETAIL_SERIES_KEY = "mentions";
 export const GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS = "h-56";
 
-/** Dev-only: enables seeding GEO sample data from the settings page. */
-export const GEO_SAMPLE_DATA_ENABLED = process.env.NODE_ENV === "development";
+/**
+ * Enables GEO sample data (settings seeding, shelf fixtures) in local
+ * development and in the public demo, where every workspace is sample data.
+ * The demo still refuses the seed/clear RPCs so visitors can't wipe it.
+ */
+export const GEO_SAMPLE_DATA_ENABLED =
+  process.env.NODE_ENV === "development" || isDemoMode();
 
 export const GEO_CHANGES_LIMIT = 40;
 export const GEO_CHANGES_LABEL = "What changed";
@@ -1061,3 +1062,37 @@ export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
 /** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
 export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
 export const GEO_MENTION_EVALUATION_NO_POSITION = "none";
+
+export const GEO_LIVE_CHANNEL_PREFIX = "geo";
+export const GEO_LIVE_WATCH_KEY_PREFIX = "geo:live:watch";
+// Refreshed on every realtime (re)connect, which happens at least every
+// 300 s (Upstash Realtime's Fluid stream limit), so it lapses shortly after
+// the last GEO tab closed.
+export const GEO_LIVE_WATCH_TTL_SECONDS = 330;
+// How long ingest trusts a watch lookup. A tab opened within this window
+// waits at most this long for its first live update; polling covers it.
+export const GEO_LIVE_WATCH_MEMO_MS = 15_000;
+// "Nobody watches" is remembered only briefly: a tab that just opened should
+// not miss the traffic of its first seconds.
+export const GEO_LIVE_UNWATCHED_MEMO_MS = 3000;
+// Scan batches finish every few seconds; viewers refetch at most this often
+// while a scan runs. Start and finish are always announced.
+export const GEO_VISIBILITY_LIVE_PROGRESS_INTERVAL_SECONDS = 10;
+// Consecutive realtime connects that never opened (expired session, outage)
+// before the GEO pages stop retrying for a while and rely on polling.
+export const GEO_LIVE_MAX_FAILED_CONNECTS = 3;
+export const GEO_LIVE_PAUSE_AFTER_FAILURES_MS = 60_000;
+// Tinybird buffers rows written with wait=false and flushes them within
+// ~2.8 s (p90). Traffic updates are announced once that window has passed,
+// so the refetch they trigger already sees the new rows.
+export const GEO_TRAFFIC_LIVE_SETTLE_MS = 4000;
+// A busy site announces at most this often, so open tabs refetch the traffic
+// pipes every few seconds instead of after every request burst.
+export const GEO_TRAFFIC_LIVE_MIN_INTERVAL_MS = 10_000;
+// With a live connection, polling only covers missed or dropped events.
+export const GEO_LIVE_FALLBACK_INTERVAL_MS = 120_000;
+// A running scan still polls slowly: its last batch can finish between two
+// events while the stream reconnects.
+export const GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS = 15_000;
+// Coalesces bursts (parallel scan batches, several projects) into one refetch.
+export const GEO_LIVE_INVALIDATE_THROTTLE_MS = 2000;

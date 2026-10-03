@@ -1,4 +1,5 @@
 export const RGB_RE = /rgba?\(([^)]+)\)/;
+export const RGB_ALPHA_SLASH_RE = /\s*\/\s*/;
 export const HEX_RE = /^#([0-9a-f]{3,8})$/i;
 export const LAYER_WORD_SPLIT_RE = /[-_\s]+/;
 export const WHITESPACE_RE = /\s+/;

@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import {
   GEO_CONVERSION_PATHS_PLACEHOLDER,
   GEO_MAX_ALIASES,
@@ -33,8 +34,8 @@ import { GeoProjectBrandSection } from "@/components/geo/project-brand-section";
 import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
-import { cn } from "@/lib/utils";
 import type {
   GeoBrandSectionProps,
   GeoLanguagesSectionProps,
@@ -106,7 +107,7 @@ export function GeoSettingsForm({
     settings,
   });
 
-  const { scanSize, warningSeverity } = useGeoScanEstimate({
+  const { scanSize } = useGeoScanEstimate({
     organizationId,
     promptCount,
     engines,
@@ -116,15 +117,8 @@ export function GeoSettingsForm({
     scanSize === null
       ? null
       : {
-          className: cn("text-xs tabular-nums", {
-            "text-muted-foreground": warningSeverity === null,
-            "text-warning": warningSeverity === "warn",
-            "text-destructive": warningSeverity === "danger",
-          }),
-          text: t("scanSize", {
-            count: scanSize,
-            severity: warningSeverity ?? "none",
-          }),
+          className: "text-muted-foreground text-xs tabular-nums",
+          text: t("scanSize", { count: scanSize }),
         };
 
   const showBrand = section === undefined || section === "brand";
@@ -175,6 +169,7 @@ export function GeoSettingsForm({
           <GeoLanguagesSection
             languages={languages}
             onLanguagesChange={setLanguages}
+            promptLanguage={settings?.promptLanguage}
           />
         ) : null}
         {showModels ? (
@@ -466,16 +461,21 @@ function GeoBrandSection({
 function GeoLanguagesSection({
   languages,
   onLanguagesChange,
+  promptLanguage,
 }: GeoLanguagesSectionProps) {
   const t = useTranslations("geo.geoSettingsForm");
   const tCommon = useTranslations("common");
+  const languageLabel = useLanguageLabel();
   return (
     <SettingsSection
-      description={t("languages.description")}
+      description={t("languages.description", {
+        language: languageLabel(promptLanguage ?? DEFAULT_LANGUAGE),
+      })}
       title={tCommon("labels.languages")}
     >
       <GeoLanguagePicker
         labeled={false}
+        lockedLanguage={promptLanguage}
         onChange={onLanguagesChange}
         selected={languages}
       />

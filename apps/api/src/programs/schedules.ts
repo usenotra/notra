@@ -37,7 +37,6 @@ import {
   ensureScheduleTargetsExist,
   filterSchedulesByRepositoryIds,
   hashSchedule,
-  isQstashScheduleError,
   mapQstashError,
   normalizeSchedule,
   safeSerializeSchedule,
@@ -141,7 +140,10 @@ async function ensureEnabledScheduleQstash(
 
     if (restoredId !== current.qstashScheduleId) {
       await deleteQstashScheduleWithRetry(env, restoredId);
-      throw new Error("QStash returned an unexpected restoration ID");
+      throw new QstashError({
+        kind: "decode",
+        message: "QStash returned an unexpected restoration ID",
+      });
     }
   });
 }
@@ -201,12 +203,10 @@ function scheduleQstashFailureMessage(
 }
 
 function scheduleQstashFailure(
-  error: unknown,
+  error: QstashError,
   operation: "create" | "update" | "delete"
 ): ScheduleQstashError {
-  const mapped = mapQstashError(
-    error instanceof QstashError ? new Error(error.message) : error
-  );
+  const mapped = mapQstashError(error);
 
   return new ScheduleQstashError({
     message: scheduleQstashFailureMessage(mapped, operation),
@@ -288,7 +288,10 @@ async function executePatchSchedule({
         });
         affectedQstashIds.add(returnedId);
         if (returnedId !== qstashScheduleId) {
-          throw new Error("QStash returned an unexpected schedule ID");
+          throw new QstashError({
+            kind: "decode",
+            message: "QStash returned an unexpected schedule ID",
+          });
         }
       } else if (existing.qstashScheduleId) {
         affectedQstashIds.add(existing.qstashScheduleId);
@@ -373,7 +376,10 @@ async function executePatchSchedule({
             });
             if (restoredId !== currentQstashId) {
               await deleteQstashScheduleWithRetry(env, restoredId);
-              throw new Error("QStash returned an unexpected restoration ID");
+              throw new QstashError({
+                kind: "decode",
+                message: "QStash returned an unexpected restoration ID",
+              });
             }
           }
 
@@ -705,14 +711,9 @@ export const patchSchedule = Effect.fn("schedules.patch")(function* ({
         return cause;
       }
 
-      if (isQstashScheduleError(cause)) {
+      if (cause instanceof QstashError) {
         logError("Failed to update schedule", cause);
-        const mapped = mapQstashError(cause);
-        return new ScheduleQstashError({
-          message:
-            mapped.status === 400 ? mapped.error : "Failed to update schedule",
-          status: mapped.status,
-        });
+        return scheduleQstashFailure(cause, "update");
       }
 
       return new ScheduleDatabaseError({ cause });

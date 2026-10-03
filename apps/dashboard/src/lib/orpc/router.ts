@@ -14,6 +14,7 @@ import { irisRouter } from "./routers/iris";
 import { logsRouter } from "./routers/logs";
 import { notificationsRouter } from "./routers/notifications";
 import { onboardingRouter } from "./routers/onboarding";
+import { outboundWebhooksRouter } from "./routers/outbound-webhooks";
 import { searchRouter } from "./routers/search";
 import { skillsRouter } from "./routers/skills";
 import { socialAccountsRouter } from "./routers/social-accounts";
@@ -23,6 +24,7 @@ import { userRouter } from "./routers/user";
 
 export const dashboardRouter = {
   comments: commentsRouter,
+  outboundWebhooks: outboundWebhooksRouter,
   agentFeedback: agentFeedbackRouter,
   analytics: analyticsRouter,
   apiKeys: apiKeysRouter,

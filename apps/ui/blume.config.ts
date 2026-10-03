@@ -3,6 +3,12 @@ import { script } from "blume/analytics";
 import { filesystem } from "blume/sources";
 
 export default defineConfig({
+  agents: {
+    llmsTxt: {
+      details:
+        "Notra UI is a shadcn registry. Install any component or block with `bunx shadcn@latest add @notra/<name>`, for example `bunx shadcn@latest add @notra/google-ai-overview`. The CLI installs missing shadcn dependencies automatically.",
+    },
+  },
   deployment: {
     site: "https://ui.usenotra.com",
   },
@@ -25,6 +31,10 @@ export default defineConfig({
     sources: [filesystem({ root: "docs" })],
   },
   description: "Notra UI package showcase, powered by Blume.",
+  examples: {
+    css: "src/styles/examples.css",
+    source: "registry/notra/**/examples/*",
+  },
   feedback: false,
   github: {
     dir: "apps/ui",
@@ -34,18 +44,19 @@ export default defineConfig({
   logo: {
     image: {
       alt: "Notra logo",
-      dark: "/logo.svg",
-      light: "/logo.svg",
+      dark: "/logo-dark.svg",
+      light: "/logo-light.svg",
     },
     text: "Notra UI",
   },
   navigation: {
     sidebar: { display: "group" },
+    tabs: [{ href: "/introduction", label: "Docs", path: "/" }],
   },
   seo: {
     og: {
       enabled: true,
-      logo: "public/logo.svg",
+      logo: "public/logo-dark.svg",
       palette: {
         accent: "#8b5cf6",
         background: "#0a0a0a",

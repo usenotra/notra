@@ -214,14 +214,17 @@ export async function reserveContentBilling(
   });
 }
 
+/** The gate's verdict without a lock: nothing is reserved or charged. */
 export async function checkContentBilling(input: {
   organizationId: string;
   outputType: string | null;
+  quotaFeatureId?: ReserveContentBillingInput["quotaFeatureId"];
 }): Promise<ContentBillingReservation> {
   return reserveContentBilling({
     organizationId: input.organizationId,
     outputType: input.outputType,
     countTowardQuota: false,
+    ...(input.quotaFeatureId ? { quotaFeatureId: input.quotaFeatureId } : {}),
   });
 }
 

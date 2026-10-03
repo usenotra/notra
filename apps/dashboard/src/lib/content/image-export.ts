@@ -106,17 +106,22 @@ export function preloadImageExportCopy(
 }
 
 function createExportElement(html: string): HTMLDivElement {
+  const host = document.createElement("div");
+  host.style.all = "initial";
+  host.style.position = "fixed";
+  host.style.left = "-10000px";
+  host.style.top = "0";
+  host.style.pointerEvents = "none";
+
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
   container.style.width = "1200px";
   container.style.height = "630px";
   container.style.overflow = "hidden";
-  container.style.pointerEvents = "none";
+  container.style.display = "block";
 
   container.replaceChildren(sanitizeExportHtml(html));
-  document.body.appendChild(container);
+  host.attachShadow({ mode: "open" }).appendChild(container);
+  document.body.appendChild(host);
 
   return container;
 }
@@ -155,7 +160,8 @@ async function withExportElement(
   try {
     await copy(exportElement);
   } finally {
-    exportElement.remove();
+    const root = exportElement.getRootNode();
+    (root instanceof ShadowRoot ? root.host : exportElement).remove();
   }
   return true;
 }
@@ -194,7 +200,6 @@ export async function copyImageAsFigma(
 
 export async function copyImageAsPaper(
   element: HTMLElement | null,
-  label?: string,
   html?: string | null,
   htmlUrl?: string | null
 ): Promise<void> {
@@ -210,7 +215,7 @@ export async function copyImageAsPaper(
       html,
       htmlUrl,
       async (exportElement) => {
-        await copyAsPaper(exportElement, { label, name: label });
+        await copyAsPaper(exportElement);
       }
     );
     if (!copied) {

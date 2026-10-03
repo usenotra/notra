@@ -19,7 +19,7 @@ import {
 } from "@notra/ui/components/ui/pagination";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 
@@ -34,6 +34,7 @@ import type {
   SitemapPageCategory,
   SitemapPagesTableProps,
 } from "@/types/hooks/brand-sitemaps";
+import { latest } from "@/utils/latest-date";
 
 import {
   PAGE_FILTER_TABS,
@@ -337,11 +338,14 @@ function PageLinksCell({ page }: { page: SitemapPage }) {
 function PageCrawledCell({ page }: { page: SitemapPage }) {
   const t = useTranslations("brand.sitemap.pages");
   const format = useFormatter();
+  const now = useNow({ updateInterval: 60_000 });
   const crawledAt = page.crawledAt ? new Date(page.crawledAt) : null;
   const isValid = crawledAt !== null && !Number.isNaN(crawledAt.getTime());
   return (
     <span className="text-muted-foreground text-sm">
-      {isValid ? format.relativeTime(crawledAt) : t("neverCrawled")}
+      {isValid
+        ? format.relativeTime(crawledAt, latest(now, crawledAt))
+        : t("neverCrawled")}
     </span>
   );
 }

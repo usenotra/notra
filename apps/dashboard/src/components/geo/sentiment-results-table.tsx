@@ -78,12 +78,13 @@ export function SentimentResultsTable({
         width: "1fr",
         minWidth: "8rem",
         sortable: true,
+        sortValue: (row) => row.theme,
         cell: (row) => (
           <span className="flex min-w-0 items-center gap-2 text-sm">
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate font-medium">{row.title}</span>
+              <span className="truncate font-medium">{row.theme}</span>
               <span className="text-muted-foreground truncate text-xs">
-                {row.theme}
+                {row.title}
               </span>
               {isMobile ? (
                 <SentimentPolarityPill polarity={row.polarity} />
@@ -190,8 +191,10 @@ export function SentimentResultsTable({
           className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
         >
           <SheetHeader className="border-b p-5 pr-12">
-            <SheetTitle className="wrap-anywhere">{selected?.title}</SheetTitle>
-            <SheetDescription>{t("sheetDescription")}</SheetDescription>
+            <SheetTitle className="wrap-anywhere">{selected?.theme}</SheetTitle>
+            <SheetDescription className="wrap-anywhere">
+              {selected?.title}
+            </SheetDescription>
           </SheetHeader>
           <ul className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             {selected?.evidence.map((evidence) => (

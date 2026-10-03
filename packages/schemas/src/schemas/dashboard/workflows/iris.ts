@@ -3,7 +3,6 @@ import "zod/compile";
 import * as z from "zod";
 
 export const irisTriggerSchema = z.enum(["signal", "wake", "manual", "repair"]);
-export type IrisTrigger = z.infer<typeof irisTriggerSchema>;
 
 export const irisWorkflowPayloadSchema = z.object({
   organizationId: z.string().trim().min(1),
@@ -16,4 +15,3 @@ export const irisWakeDeliverySchema = z.object({
   organizationId: z.string().trim().min(1),
   trigger: z.literal("wake").default("wake"),
 });
-export type IrisWakeDelivery = z.infer<typeof irisWakeDeliverySchema>;

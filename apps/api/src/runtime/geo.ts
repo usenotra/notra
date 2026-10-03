@@ -119,6 +119,7 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
       };
     case "GeoDiscoveryError":
     case "GeoSequenceRunError":
+    case "GeoSettingsTrackingError":
     case "GeoWriterPlanError":
       return { status: 400, error: failure.message ?? "Invalid request" };
     case "GeoSampleDataDisabledError":

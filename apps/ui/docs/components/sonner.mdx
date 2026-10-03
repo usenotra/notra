@@ -1,0 +1,50 @@
+---
+title: Sonner
+description: A Sonner toaster with the Depth surface of the buttons and tinted status icons.
+---
+
+Toasts get the same surface as the outline button: a vertical gradient, a top highlight, a soft drop shadow and squircle corners. Each status icon sits in a small chip tinted with its colour.
+
+<Component path="sonner/examples/sonner-types" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/notra-sonner
+```
+
+This replaces `components/ui/sonner.tsx` and pulls in [Button](/components/button) for the action buttons. Sonner still does the work underneath, so every `toast()` call keeps working. Mount the toaster once in your root layout:
+
+```tsx
+import { Toaster } from "@/components/ui/sonner";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        {children}
+        <Toaster position="bottom-right" />
+      </body>
+    </html>
+  );
+}
+```
+
+## Status colours
+
+Success, warning and info read your `--success`, `--warning` and `--info` tokens. If your theme doesn't define them, the toaster falls back to Notra's colours. Errors use `--destructive`.
+
+## Actions
+
+<Component path="sonner/examples/sonner-action" />
+
+Action buttons render with [Button](/components/button) at size `xs`, and cancel buttons use the ghost variant. The CLI installs Button along with the toaster, so they get the Depth look too.
+
+```tsx
+toast("Post moved to trash", {
+  action: {
+    label: "Undo",
+    onClick: () => restorePost(),
+  },
+});
+```

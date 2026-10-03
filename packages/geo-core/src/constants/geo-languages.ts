@@ -1,0 +1,37 @@
+import type { SupportedLanguage } from "@notra/ai/constants/languages";
+
+/** ISO 639-1 codes (as sent by browsers) mapped to tracked GEO languages. */
+export const GEO_LOCALE_LANGUAGES: Readonly<Record<string, SupportedLanguage>> =
+  {
+    ar: "Arabic",
+    cs: "Czech",
+    da: "Danish",
+    de: "German",
+    el: "Greek",
+    en: "English",
+    es: "Spanish",
+    fi: "Finnish",
+    fr: "French",
+    he: "Hebrew",
+    hi: "Hindi",
+    hu: "Hungarian",
+    id: "Indonesian",
+    it: "Italian",
+    iw: "Hebrew",
+    ja: "Japanese",
+    ko: "Korean",
+    nb: "Norwegian",
+    nl: "Dutch",
+    nn: "Norwegian",
+    no: "Norwegian",
+    pl: "Polish",
+    pt: "Portuguese",
+    ro: "Romanian",
+    ru: "Russian",
+    sv: "Swedish",
+    th: "Thai",
+    tr: "Turkish",
+    uk: "Ukrainian",
+    vi: "Vietnamese",
+    zh: "Chinese",
+  };

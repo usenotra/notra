@@ -4,6 +4,7 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
 import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
+import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
@@ -12,7 +13,10 @@ import {
 } from "@notra/schemas/dashboard/brand-analysis";
 import { onboardingNotificationPrefsSchema } from "@notra/schemas/dashboard/notification-settings";
 import { triggerOnboardingAgentSetupSchema } from "@notra/schemas/dashboard/onboarding-agent";
-import { onboardingWorkspaceAttributionSchema } from "@notra/schemas/dashboard/onboarding/workspace";
+import {
+  onboardingWorkspaceAttributionSchema,
+  onboardingWorkspaceFormFieldsSchema,
+} from "@notra/schemas/dashboard/onboarding/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
@@ -56,6 +60,23 @@ import type {
 import { ratelimit } from "@/utils/ratelimit";
 
 const ANALYSIS_LOCK_TTL_SECONDS = 60;
+
+export async function isWorkspaceSlugAvailable(slug: string): Promise<boolean> {
+  const session = await getAuthSession();
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!onboardingWorkspaceFormFieldsSchema.shape.slug.safeParse(slug).success) {
+    return false;
+  }
+
+  const existing = await db.query.organizations.findFirst({
+    columns: { id: true },
+    where: eq(organizations.slug, slug),
+  });
+  return !existing;
+}
 
 async function tryAcquireBrandAnalysisLock(organizationId: string) {
   if (!redis) {
@@ -180,7 +201,12 @@ export async function triggerOnboardingBrandAnalysis(
     throw new Error("Onboarding brand analysis has already been requested.");
   }
 
-  after(() => warmGeoOnboardingCache(input.organizationId, input.websiteUrl));
+  // The visibility step prefills its language from the browser, so warm the
+  // same variant.
+  const language = preferredGeoLanguage(requestHeaders?.get("accept-language"));
+  after(() =>
+    warmGeoOnboardingCache(input.organizationId, input.websiteUrl, language)
+  );
 
   try {
     await queueBrandAnalysisForOnboarding({

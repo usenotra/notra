@@ -27,7 +27,6 @@ import { Separator } from "@notra/ui/components/ui/separator";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -37,27 +36,35 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { SkillsTable } from "@/components/skills/skills-table";
+import { SkillCard } from "@/components/skills/skill-card";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
+import { SKILL_SORT_KEYS } from "@/constants/skills";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
+import { cn } from "@/lib/utils";
 import { createSkillFormSchema } from "@/schemas/skill-form";
-import type { SkillListItem, SkillSortState } from "@/types/skills/page";
-import { filterSkills, skillQuickstartError, sortSkills } from "@/utils/skills";
+import type {
+  SkillListItem,
+  SkillSortKey,
+  SkillSortState,
+  SkillsPageClientProps,
+} from "@/types/skills/page";
+import {
+  filterSkills,
+  skillQuickstartError,
+  sortSkills,
+  toggleSkillSort,
+} from "@/utils/skills";
 
 import { SkillsPageSkeleton } from "./skeleton";
 
-interface PageClientProps {
-  slug: string;
-}
-
-export default function PageClient({ slug }: PageClientProps) {
+export default function PageClient({
+  slug,
+  organizationId,
+}: SkillsPageClientProps) {
   const t = useTranslations("skills");
   const tCommon2 = useTranslations("common");
   const tValidation = useTranslations("skills.validation");
-  const { activeOrganization } = useOrganizationsContext();
-  const organizationId = activeOrganization?.id;
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickstartUrl, setQuickstartUrl] = useState("");
@@ -77,12 +84,16 @@ export default function PageClient({ slug }: PageClientProps) {
 
   const quickstartError = skillQuickstartError(quickstartUrl);
 
-  const { data: skills = [], isPending } = useQuery({
-    ...dashboardOrpc.skills.list.queryOptions({
-      input: { organizationId: organizationId ?? "" },
-    }),
-    enabled: !!organizationId,
-  });
+  const {
+    data: skills = [],
+    isPending,
+    isError,
+    refetch,
+  } = useQuery(
+    dashboardOrpc.skills.list.queryOptions({
+      input: { organizationId },
+    })
+  );
 
   const importMutation = useMutation({
     mutationFn: () =>
@@ -128,7 +139,7 @@ export default function PageClient({ slug }: PageClientProps) {
       setQuickstartUrl("");
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.skills.list.queryKey({
-          input: { organizationId: organizationId ?? "" },
+          input: { organizationId },
         }),
       });
       toast.success(t("toasts.created"));
@@ -155,7 +166,6 @@ export default function PageClient({ slug }: PageClientProps) {
     }));
   };
 
-  const isLoadingSkills = !!organizationId && isPending;
   const visibleSkills = sortSkills(filterSkills(skills, search), sort);
   const searchActive = search.trim().length > 0;
 
@@ -176,8 +186,12 @@ export default function PageClient({ slug }: PageClientProps) {
         </PageHeading>
 
         <SkillsPageBody
-          isLoadingSkills={isLoadingSkills}
+          isError={isError}
+          isPending={isPending}
           onCreate={() => setDialogOpen(true)}
+          onRetry={() => {
+            refetch().catch(() => undefined);
+          }}
           onSearchChange={setSearch}
           onSortChange={setSort}
           search={search}
@@ -208,8 +222,10 @@ export default function PageClient({ slug }: PageClientProps) {
 }
 
 function SkillsPageBody({
-  isLoadingSkills,
+  isError,
+  isPending,
   onCreate,
+  onRetry,
   onSearchChange,
   onSortChange,
   search,
@@ -219,8 +235,10 @@ function SkillsPageBody({
   sort,
   visibleSkills,
 }: {
-  isLoadingSkills: boolean;
+  isError: boolean;
+  isPending: boolean;
   onCreate: () => void;
+  onRetry: () => void;
   onSearchChange: (value: string) => void;
   onSortChange: (sort: SkillSortState) => void;
   search: string;
@@ -231,9 +249,22 @@ function SkillsPageBody({
   visibleSkills: SkillListItem[];
 }) {
   const t = useTranslations("skills");
-  const tCommon2 = useTranslations("common");
-  if (isLoadingSkills) {
+  const tCommon = useTranslations("common");
+  if (isPending) {
     return <SkillsPageSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <p className="text-muted-foreground text-sm">
+          {tCommon("errors.generic")}
+        </p>
+        <Button onClick={onRetry} variant="outline">
+          {tCommon("actions.retry")}
+        </Button>
+      </div>
+    );
   }
 
   if (skills.length === 0) {
@@ -253,7 +284,7 @@ function SkillsPageBody({
             variant="skill"
           />
         }
-        title={tCommon2("labels.noSkillsYet")}
+        title={tCommon("labels.noSkillsYet")}
       />
     );
   }
@@ -272,29 +303,99 @@ function SkillsPageBody({
               : t("count", { total: skills.length })}
           </span>
         </p>
-        <InputGroup className="h-9 sm:max-w-72">
-          <InputGroupAddon>
-            <HugeiconsIcon
-              className="text-muted-foreground size-4"
-              icon={Search01Icon}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <SkillSortControl onSortChange={onSortChange} sort={sort} />
+          <InputGroup className="h-9 sm:max-w-72">
+            <InputGroupAddon>
+              <HugeiconsIcon
+                className="text-muted-foreground size-4"
+                icon={Search01Icon}
+              />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label={t("search.label")}
+              autoComplete="off"
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={t("search.placeholder")}
+              value={search}
             />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label={t("search.label")}
-            autoComplete="off"
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t("search.placeholder")}
-            value={search}
-          />
-        </InputGroup>
+          </InputGroup>
+        </div>
       </div>
-      <SkillsTable
-        onSortChange={onSortChange}
-        searchActive={searchActive}
-        skills={visibleSkills}
-        slug={slug}
-        sort={sort}
-      />
+      {visibleSkills.length === 0 ? (
+        <p className="text-muted-foreground text-sm">
+          {t("table.noSearchResults")}
+        </p>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {visibleSkills.map((skill) => (
+            <li className="min-w-0" key={skill.id}>
+              <SkillCard skill={skill} slug={slug} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SkillSortControl({
+  sort,
+  onSortChange,
+}: {
+  sort: SkillSortState;
+  onSortChange: (sort: SkillSortState) => void;
+}) {
+  const t = useTranslations("skills.sort");
+  const tCommon = useTranslations("common");
+  const labels: Record<SkillSortKey, string> = {
+    name: tCommon("labels.name"),
+    type: tCommon("labels.type"),
+    updatedAt: tCommon("labels.updated"),
+  };
+
+  return (
+    <div
+      aria-label={t("label")}
+      className="bg-muted inline-flex w-fit items-center rounded-lg p-0.5"
+      role="group"
+    >
+      {SKILL_SORT_KEYS.map((key) => {
+        const selected = sort.key === key;
+        const label = labels[key];
+        return (
+          <button
+            aria-label={
+              selected
+                ? t("selected", {
+                    field: label,
+                    direction:
+                      sort.direction === "asc"
+                        ? t("ascending")
+                        : t("descending"),
+                  })
+                : label
+            }
+            aria-pressed={selected}
+            className={cn(
+              "focus-visible:ring-ring/50 duration-fast inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors ease-out focus-visible:ring-2 focus-visible:outline-none",
+              selected
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            key={key}
+            onClick={() => onSortChange(toggleSkillSort(sort, key))}
+            type="button"
+          >
+            {label}
+            {selected ? (
+              <span aria-hidden="true">
+                {sort.direction === "asc" ? "↑" : "↓"}
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -381,18 +482,13 @@ function CreateSkillFormDialog({
                 <Button
                   className="h-7 px-2.5"
                   disabled={
-                    !quickstartUrl.trim() ||
-                    !!quickstartError ||
-                    importPending ||
-                    createPending
+                    !quickstartUrl.trim() || !!quickstartError || createPending
                   }
+                  loading={importPending}
                   onClick={onImport}
                   size="sm"
                 >
-                  {importPending ? (
-                    <Loader2Icon className="size-3.5 animate-spin" />
-                  ) : null}
-                  {importPending ? t("importing") : tCommon2("actions.import")}
+                  {tCommon2("actions.import")}
                 </Button>
               </InputGroupAddon>
             </InputGroup>

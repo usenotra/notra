@@ -4,6 +4,7 @@ import {
   brandSitemapPages,
   brandSitemaps,
   geoCompetitors,
+  geoContentGapSnapshots,
   geoContentBriefs,
   geoMentionChecks,
   geoPromptSuggestions,
@@ -195,6 +196,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
             engine: geoMentionChecks.engine,
             prompt: geoMentionChecks.prompt,
             mentioned: geoMentionChecks.mentioned,
+            ownedSourceCited: geoMentionChecks.ownedSourceCited,
             competitors: geoMentionChecks.competitors,
             grounding: geoMentionChecks.grounding,
           }
@@ -275,22 +277,20 @@ const loadAiSearchQueries = Effect.fn("geo.gaps.aiSearchQueries")(function* (
       select
         mode() within group (order by query) as query,
         array_agg(distinct check_id) as check_ids,
-        coalesce(array_agg(distinct check_id) filter (where mentioned), '{}') as mentioned_check_ids,
         coalesce(array_agg(distinct check_id) filter (where mentioned or owned_source_cited), '{}') as covered_check_ids,
-        array_agg(distinct engine) as engines,
-        array_agg(distinct prompt) as prompts,
-        coalesce(jsonb_agg(distinct to_jsonb(competitors)) filter (where not mentioned), '[]'::jsonb) as competitors
+        coalesce(array_agg(distinct engine) filter (where not mentioned and not owned_source_cited), '{}') as engines,
+        coalesce(array_agg(distinct prompt) filter (where not mentioned and not owned_source_cited), '{}') as prompts,
+        coalesce(jsonb_agg(distinct to_jsonb(competitors)) filter (where not mentioned and not owned_source_cited), '[]'::jsonb) as competitors
       from searched
       where query <> ''
       group by lower(query)
-      order by count(distinct check_id) desc
+      order by count(distinct check_id) filter (where not mentioned and not owned_source_cited) desc
       limit ${GEO_AI_SEARCH_GAP_MAX_QUERIES}
     `)
   );
   return result.rows.map((row: GeoAiSearchQueryDbRow): GeoAiSearchQueryRow => ({
     query: row.query,
     checkIds: row.check_ids,
-    mentionedCheckIds: row.mentioned_check_ids,
     coveredCheckIds: row.covered_check_ids,
     engines: row.engines,
     prompts: row.prompts,
@@ -303,6 +303,7 @@ function aggregateMentionChecks(
     promptId: string;
     prompt: string;
     mentioned: boolean;
+    ownedSourceCited: boolean;
     engine: string;
     competitors: string[];
     grounding: { queries: string[] };
@@ -320,13 +321,15 @@ function aggregateMentionChecks(
       searchQueriesByEngine: [] as string[][],
     };
     entry.total += 1;
-    entry.searchQueriesByEngine.push(check.grounding.queries);
     if (check.mentioned) {
       entry.mentioned += 1;
       entry.mentionedEngines.push(check.engine);
     } else {
       entry.missing.push(check.engine);
       entry.competitors.push(...check.competitors);
+      if (!check.ownedSourceCited) {
+        entry.searchQueriesByEngine.push(check.grounding.queries);
+      }
     }
     byPrompt.set(check.promptId, entry);
   }
@@ -352,18 +355,18 @@ function aggregateAiSearches(
       prompts: new Set<string>(),
       engines: new Set<string>(),
       checkIds: new Set<string>(),
-      mentionedCheckIds: new Set<string>(),
       coveredCheckIds: new Set<string>(),
       competitors: [] as string[],
     };
     entry.variants.set(
       row.query,
-      (entry.variants.get(row.query) ?? 0) + row.checkIds.length
+      (entry.variants.get(row.query) ?? 0) +
+        row.checkIds.length -
+        row.coveredCheckIds.length
     );
     addAll(entry.prompts, row.prompts);
     addAll(entry.engines, row.engines);
     addAll(entry.checkIds, row.checkIds);
-    addAll(entry.mentionedCheckIds, row.mentionedCheckIds);
     addAll(entry.coveredCheckIds, row.coveredCheckIds);
     entry.competitors.push(...row.competitors.flat());
     byKey.set(key, entry);
@@ -380,18 +383,24 @@ function addAll<T>(target: Set<T>, values: readonly T[]): void {
 function toAiSearchGapRows(
   byKey: Map<string, GeoAiSearchAgg>,
   trackedAliases: Map<string, string>,
+  searchConsoleKeys: ReadonlySet<string>,
   briefFor: (key: string) => GapBriefRow | undefined
 ): GeoAiSearchGapRow[] {
   const rows: GeoAiSearchGapRow[] = [];
   for (const [key, entry] of byKey) {
-    const searches = entry.checkIds.size;
+    const totalSearches = entry.checkIds.size;
+    const searches = totalSearches - entry.coveredCheckIds.size;
+    // Console queries match on the same year-free key AI searches group by.
+    const corroboratedBySearchConsole = searchConsoleKeys.has(key);
     if (
-      searches < GEO_AI_SEARCH_GAP_MIN_SEARCHES ||
-      !isMissingMajority(searches - entry.coveredCheckIds.size, searches)
+      searches <
+        (corroboratedBySearchConsole ? 1 : GEO_AI_SEARCH_GAP_MIN_SEARCHES) ||
+      !isMissingMajority(searches, totalSearches)
     ) {
       continue;
     }
     const [query = key, ...variants] = [...entry.variants.entries()]
+      .filter(([, uncovered]) => uncovered > 0)
       .sort((left, right) => right[1] - left[1])
       .map(([variant]) => variant);
     const id = aiSearchGapId(key, entry.variants.keys());
@@ -405,8 +414,8 @@ function toAiSearchGapRows(
       ...scoreGap(
         {
           competitors: entry.competitors,
-          mentioned: entry.mentionedCheckIds.size,
-          total: searches,
+          mentioned: entry.coveredCheckIds.size,
+          total: totalSearches,
         },
         trackedAliases
       ),
@@ -606,7 +615,7 @@ function searchGapRecommendation(
   });
 }
 
-export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
+const computeGeoContentGaps = Effect.fn("geo.gaps.compute")(function* (
   input: GeoScopeInput
 ) {
   const scope = yield* requireGeoProject(input);
@@ -787,6 +796,15 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
   const aiSearchGaps = toAiSearchGapRows(
     aggregateAiSearches(aiSearchChecks, brandTerms),
     trackedAliases,
+    new Set(
+      pending
+        .flatMap((suggestion) => [
+          suggestion.prompt,
+          ...(suggestion.sourceKeywords ?? []).map((keyword) => keyword.query),
+        ])
+        .map(aiSearchGroupKey)
+        .filter(Boolean)
+    ),
     (key) => briefBySource.get(sourceKey("ai_search", key))
   );
 
@@ -795,8 +813,84 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     searchGaps,
     aiSearchGaps,
     hasScanData: checks.length > 0,
+    snapshotReady: true,
   };
   return response;
+});
+
+export const loadGeoContentGaps = Effect.fn("geo.gaps.load")(function* (
+  input: GeoScopeInput
+) {
+  const scope = yield* requireGeoProject(input);
+  const [stored] = yield* geoDb("content gaps snapshot lookup failed", () =>
+    db
+      .select({ snapshot: geoContentGapSnapshots.snapshot })
+      .from(geoContentGapSnapshots)
+      .where(eq(geoContentGapSnapshots.projectId, scope.projectId))
+      .limit(1)
+  );
+  if (stored?.snapshot) {
+    return {
+      ...(stored.snapshot as GeoContentGapsResponse),
+      snapshotReady: true,
+    };
+  }
+  // Projects without a snapshot (new, or from before snapshots existed) build it
+  // once on first read; later reads only load it. A failed build shows the
+  // preparing state and the hourly cron retries.
+  return yield* refreshGeoContentGaps(scope).pipe(
+    Effect.catchCause((cause) =>
+      Effect.sync((): GeoContentGapsResponse => {
+        console.error("[GEO] Could not build content gaps snapshot:", cause);
+        return {
+          promptGaps: [],
+          searchGaps: [],
+          aiSearchGaps: [],
+          hasScanData: false,
+          snapshotReady: false,
+        };
+      })
+    )
+  );
+});
+
+export const refreshGeoContentGaps = Effect.fn("geo.gaps.refresh")(function* (
+  input: GeoScopeInput
+) {
+  const scope = yield* requireGeoProject(input);
+  const startedAt = new Date();
+  const snapshot = yield* computeGeoContentGaps({
+    organizationId: scope.organizationId,
+    projectId: scope.projectId,
+  });
+  yield* geoDb("content gaps snapshot update failed", () =>
+    db
+      .insert(geoContentGapSnapshots)
+      .values({
+        organizationId: scope.organizationId,
+        projectId: scope.projectId,
+        snapshot,
+        updatedAt: startedAt,
+      })
+      .onConflictDoUpdate({
+        target: geoContentGapSnapshots.projectId,
+        set: { snapshot, updatedAt: startedAt },
+        setWhere: sql`${geoContentGapSnapshots.updatedAt} <= ${startedAt}`,
+      })
+  );
+  return snapshot;
+});
+
+export const refreshGeoContentGapsBestEffort = Effect.fn(
+  "geo.gaps.refreshBestEffort"
+)(function* (input: GeoScopeInput) {
+  yield* refreshGeoContentGaps(input).pipe(
+    Effect.catchCause((cause) =>
+      Effect.sync(() => {
+        console.error("[GEO] Could not refresh content gaps:", cause);
+      })
+    )
+  );
 });
 
 export const setGeoPromptGapIgnored = Effect.fn("geo.gaps.ignore")(function* (

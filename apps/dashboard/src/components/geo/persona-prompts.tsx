@@ -1,4 +1,4 @@
-import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 
@@ -13,23 +13,47 @@ export function PersonaPrompts({
 }: PersonaPromptsProps) {
   const t = useTranslations("geo.personaPrompts");
   const tGeoShared = useTranslations("geo.shared");
+  // Two turns can share the same text, so number repeats to keep keys unique.
+  const occurrences = new Map<string, number>();
+  const items = prompts.map((prompt) => {
+    const occurrence = (occurrences.get(prompt) ?? 0) + 1;
+    occurrences.set(prompt, occurrence);
+    return { prompt, key: `${occurrence}:${prompt}` };
+  });
   return (
     <div className="h-full overflow-y-auto px-6 py-6">
-      <div className="mx-auto max-w-2xl space-y-5">
+      <div className="space-y-6">
         <div className="space-y-1">
           <h3 className="text-base font-semibold">{t("title")}</h3>
-          <p className="text-muted-foreground text-sm leading-6">
+          <p className="text-muted-foreground text-sm text-pretty">
             {t("description")}
           </p>
         </div>
         {prompts.length > 0 ? (
-          <ol className="space-y-3">
-            {prompts.map((prompt, index) => (
-              <li className="rounded-xl border p-4" key={`${index}:${prompt}`}>
-                <p className="text-muted-foreground mb-2 text-xs font-medium tabular-nums">
-                  {t("message", { number: index + 1 })}
-                </p>
-                <p className="text-sm leading-6 wrap-anywhere">{prompt}</p>
+          <ol>
+            {items.map(({ prompt, key }, index) => (
+              <li
+                className="group/turn relative flex gap-4 pb-6 last:pb-0"
+                key={key}
+              >
+                <span
+                  aria-hidden="true"
+                  className="bg-border absolute top-11 bottom-2 left-3.5 w-px group-last/turn:hidden"
+                />
+                <span
+                  aria-hidden="true"
+                  className="bg-muted text-muted-foreground relative mt-2 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium tabular-nums"
+                >
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="sr-only">
+                    {t("message", { number: index + 1 })}
+                  </span>
+                  <p className="bg-muted/40 rounded-lg rounded-tl-sm px-3.5 py-2.5 text-sm leading-6 text-pretty wrap-anywhere">
+                    {prompt}
+                  </p>
+                </div>
               </li>
             ))}
           </ol>
@@ -40,16 +64,13 @@ export function PersonaPrompts({
             </p>
             <Button
               disabled={disabled}
+              loading={isGenerating}
               onClick={onGenerate}
               size="sm"
               type="button"
             >
-              <HugeiconsIcon
-                className={isGenerating ? "animate-spin" : undefined}
-                icon={isGenerating ? Loading03Icon : SparklesIcon}
-                size={14}
-              />
-              {isGenerating ? t("generating") : tGeoShared("generatePrompts")}
+              <HugeiconsIcon icon={SparklesIcon} size={14} />
+              {tGeoShared("generatePrompts")}
             </Button>
           </div>
         )}

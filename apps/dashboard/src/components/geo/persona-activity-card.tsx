@@ -26,6 +26,7 @@ import { formatOneDecimal } from "@/utils/format";
 import {
   buildPersonaActivityRows,
   buildPersonaActivitySeries,
+  personaActivityAxisMax,
   personaMentionRate,
   personaForecastKey,
 } from "@/utils/persona-activity";
@@ -62,6 +63,12 @@ export function PersonaActivityCard({
     }
   }
   const rows = data ? buildPersonaActivityRows(data, series) : [];
+  const visibleKeys = series.flatMap((item) =>
+    hiddenPersonaIds.has(item.personaId)
+      ? []
+      : [item.dataKey, personaForecastKey(item.personaId, item.snapshotVersion)]
+  );
+  const axisMax = personaActivityAxisMax(rows, visibleKeys);
   const hasForecast = series.some(
     (item) =>
       item.isCurrent &&
@@ -163,7 +170,7 @@ export function PersonaActivityCard({
             />
             <EChartsAreaChart.YAxis
               min={0}
-              max={100}
+              max={axisMax}
               hideDots
               tickFormatter={(value) => `${value}%`}
             />

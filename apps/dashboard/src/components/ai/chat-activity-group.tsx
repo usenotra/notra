@@ -20,8 +20,11 @@ import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import {
   ACTIVITY_AUTO_CLOSE_DELAY_MS,
   ACTIVITY_CONTENT_CLASSNAME,
+  ACTIVITY_STEP_MIN_VISIBLE_MS,
+  ACTIVITY_STEP_SETTLE_MS,
   VISIBLE_SEARCH_SOURCE_COUNT,
 } from "@/constants/chat-activity";
+import { useSettledValue } from "@/lib/hooks/use-settled-value";
 import type {
   ChatActivityGroupProps,
   ChatSearchStackProps,
@@ -93,6 +96,16 @@ export function ChatActivityGroup({
     elapsedSeconds
   );
   const durationSeconds = measuredSeconds ?? elapsedSeconds ?? null;
+  const settledStep = useSettledValue(step, {
+    settleMs: ACTIVITY_STEP_SETTLE_MS,
+    minVisibleMs: ACTIVITY_STEP_MIN_VISIBLE_MS,
+  });
+  // Approval prompts need an immediate answer, and leaving one must not keep
+  // the stale "waiting" label, so both transitions skip the settle delay.
+  const displayedStep =
+    step === "waitingForApproval" || settledStep === "waitingForApproval"
+      ? step
+      : settledStep;
   const [isOpen, setIsOpen] = useState(forceOpen);
   const [hasInteracted, setHasInteracted] = useState(false);
 
@@ -115,11 +128,15 @@ export function ChatActivityGroup({
       ? t("workedFor", { duration: formatElapsedSeconds(durationSeconds) })
       : t("worked");
   const stepLabel =
-    step === "thinking" ? tLabels("thinkingLabel") : t(`steps.${step}`);
+    displayedStep === "thinking"
+      ? tLabels("thinkingLabel")
+      : t(`steps.${displayedStep}`);
   const label = isStreaming ? stepLabel : workedLabel;
   const active = isStreaming && step !== "waitingForApproval";
 
-  if (!hasDetails || (active && !forceOpen)) {
+  // While streaming the group starts closed so the layout stays still, but it
+  // is still a trigger: people want to peek at what is happening right now.
+  if (!hasDetails) {
     return (
       <div data-activity-group={groupId}>
         <ChatActivityStatus

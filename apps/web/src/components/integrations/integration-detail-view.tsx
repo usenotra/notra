@@ -3,7 +3,7 @@ import {
   ArrowUpRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import {
   buildDetailMetaTail,
@@ -28,7 +28,7 @@ export function IntegrationDetailView({
       <div className="flex w-[min(100%-3rem,64rem)] flex-col gap-8 pt-24 lg:pt-28">
         <Link
           className="inline-flex w-max cursor-pointer items-center gap-1.5 font-sans text-[0.875rem] leading-[1.29] font-medium whitespace-nowrap text-[#1E1E1E80] transition-colors hover:text-[#1E1E1E] dark:text-white/50 dark:hover:text-white"
-          href="/integrations"
+          to="/integrations"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           <span>All integrations</span>

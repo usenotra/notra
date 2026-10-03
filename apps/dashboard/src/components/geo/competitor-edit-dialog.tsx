@@ -18,6 +18,7 @@ export function CompetitorEditDialog({
   organizationId,
   competitor,
   initialName,
+  onImportCsv,
 }: CompetitorEditDialogProps) {
   const t = useTranslations("geo.competitorEditDialog");
   const tCommon = useTranslations("common");
@@ -26,7 +27,7 @@ export function CompetitorEditDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="text-xl font-semibold wrap-anywhere">
+          <ResponsiveDialogTitle className="wrap-anywhere">
             {competitor
               ? tCommon("labels.editName", { name: competitor.name })
               : tGeoShared("addCompetitor")}
@@ -38,7 +39,16 @@ export function CompetitorEditDialog({
         <CompetitorEditForm
           competitor={competitor}
           initialName={initialName}
+          onCancel={() => onOpenChange(false)}
           onDone={() => onOpenChange(false)}
+          onImportCsv={
+            onImportCsv
+              ? () => {
+                  onOpenChange(false);
+                  onImportCsv();
+                }
+              : undefined
+          }
           organizationId={organizationId}
         />
       </ResponsiveDialogContent>

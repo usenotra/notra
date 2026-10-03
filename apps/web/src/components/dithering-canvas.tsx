@@ -1,8 +1,20 @@
-"use client";
+import { ClientOnly } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 
-import dynamic from "next/dynamic";
+import type { DitheringCanvasProps } from "@/types/dithering";
 
-export const DitheringCanvas = dynamic(
-  () => import("./dithering-shader").then((module_) => module_.DitheringShader),
-  { ssr: false }
+const DitheringShader = lazy(() =>
+  import("./dithering-shader").then((module_) => ({
+    default: module_.DitheringShader,
+  }))
 );
+
+export function DitheringCanvas(props: DitheringCanvasProps) {
+  return (
+    <ClientOnly>
+      <Suspense>
+        <DitheringShader {...props} />
+      </Suspense>
+    </ClientOnly>
+  );
+}

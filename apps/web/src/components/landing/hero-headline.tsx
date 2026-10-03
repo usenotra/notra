@@ -1,7 +1,6 @@
-"use client";
-
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { tween } from "@notra/ui/lib/motion";
+import { cn } from "@notra/ui/lib/utils";
 import Scritto from "@scritto/react";
 import {
   AnimatePresence,
@@ -17,7 +16,11 @@ import {
   HERO_HEADLINE_LINE_TWO_PREFIX,
   HERO_HEADLINE_SUFFIX,
 } from "@/constants/landing/hero";
-import type { HeroCycleWord, HeroHeadlineProps } from "@/types/landing/hero";
+import type {
+  CycleMarkProps,
+  HeroCycleWord,
+  HeroHeadlineProps,
+} from "@/types/landing/hero";
 
 const ICON_SLOT_CLASS =
   "relative ml-[0.22em] inline-flex size-[1cap] shrink-0 items-center justify-center overflow-visible align-baseline";
@@ -30,11 +33,35 @@ function subscribeIsClient() {
   return () => {};
 }
 
-function useIsClient() {
+export function useIsClient() {
   return useSyncExternalStore(
     subscribeIsClient,
     () => true,
     () => false
+  );
+}
+
+export function CycleMark({
+  markKey,
+  animated,
+  className,
+  children,
+}: CycleMarkProps) {
+  return (
+    <span className={cn(ICON_SLOT_CLASS, className)}>
+      <AnimatePresence initial={false}>
+        <m.span
+          animate={ICON_SHOWN}
+          className="absolute inset-0 flex items-center justify-center [&_img]:size-full [&_svg]:size-full"
+          exit={animated ? ICON_HIDDEN : undefined}
+          initial={animated ? ICON_HIDDEN : false}
+          key={markKey}
+          transition={animated ? ICON_SWAP : { duration: 0 }}
+        >
+          {children}
+        </m.span>
+      </AnimatePresence>
+    </span>
   );
 }
 
@@ -43,24 +70,13 @@ function EngineMark({
   animated,
 }: Pick<HeroCycleWord, "engine"> & { animated: boolean }) {
   return (
-    <span className={ICON_SLOT_CLASS}>
-      <AnimatePresence initial={false}>
-        <m.span
-          animate={ICON_SHOWN}
-          className="absolute inset-0 flex items-center justify-center [&_svg]:size-full"
-          exit={animated ? ICON_HIDDEN : undefined}
-          initial={animated ? ICON_HIDDEN : false}
-          key={engine}
-          transition={animated ? ICON_SWAP : { duration: 0 }}
-        >
-          <EngineIcon className="size-full" engine={engine} />
-        </m.span>
-      </AnimatePresence>
-    </span>
+    <CycleMark animated={animated} markKey={engine}>
+      <EngineIcon className="size-full" engine={engine} />
+    </CycleMark>
   );
 }
 
-function HeadlineFlow({
+export function HeadlineFlow({
   children,
   className,
 }: {

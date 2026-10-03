@@ -22,7 +22,7 @@ import type {
 
 export const AGENT_FEEDBACK_NAV_LINK = "/feedback";
 export const AGENT_FEEDBACK_DOCS_URL =
-  "https://docs.usenotra.com/api/agent-feedback";
+  "https://www.usenotra.com/docs/api/agent-feedback";
 export const AGENT_FEEDBACK_API_BASE_URL = "https://api.usenotra.com";
 export const AGENT_FEEDBACK_API_PATH = "/v1/feedback";
 export const AGENT_FEEDBACK_API_URL_ENV = "FEEDBACK_API_URL";
@@ -127,3 +127,18 @@ export const AGENT_FEEDBACK_CLIENT_BRAND_RULES: readonly AgentFeedbackClientBran
     { brand: "copilot", aliases: ["copilot"] },
     { brand: "gemini", aliases: ["gemini"] },
   ];
+
+/** Words that don't title-case cleanly when formatting slug client names. */
+export const AGENT_FEEDBACK_CLIENT_WORD_LABELS: Record<string, string> = {
+  ai: "AI",
+  api: "API",
+  chatgpt: "ChatGPT",
+  cli: "CLI",
+  github: "GitHub",
+  gpt: "GPT",
+  ide: "IDE",
+  mcp: "MCP",
+  openai: "OpenAI",
+  sdk: "SDK",
+  vscode: "VS Code",
+};

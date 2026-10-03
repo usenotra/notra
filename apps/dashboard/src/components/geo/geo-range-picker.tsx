@@ -4,6 +4,7 @@ import { ArrowDown01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_FILTER_TRIGGER_CLASS,
+  GEO_MAX_RANGE_DAYS,
   GEO_RANGE_PRESETS,
 } from "@notra/geo-core/constants/geo";
 import { Button } from "@notra/ui/components/ui/button";
@@ -111,6 +112,7 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
               <Calendar
                 defaultMonth={geoCalendarDefaultMonth(selected?.from)}
                 disabled={{ after: new Date() }}
+                max={GEO_MAX_RANGE_DAYS - 1}
                 mode="range"
                 numberOfMonths={2}
                 onSelect={(next) => {

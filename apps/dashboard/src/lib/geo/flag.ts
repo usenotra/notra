@@ -8,6 +8,7 @@ import {
   GEO_FLAG_STALE_TIME_MS,
 } from "@notra/geo-core/constants/geo";
 import { GeoFlagEvaluationError } from "@notra/geo-core/geo/errors";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import type { GeoFlagState } from "@/types/geo";
@@ -40,7 +41,8 @@ export function resolveGeoFlagState(
 ): Effect.Effect<GeoFlagState> {
   return Effect.gen(function* () {
     const manager = getFlagsManager();
-    if (!manager) {
+    // The demo shows what a new workspace sees: flagged features stay off.
+    if (!manager || isDemoMode()) {
       return "disabled";
     }
 

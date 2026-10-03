@@ -5,18 +5,14 @@ export function getPageNumbers(
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }
-  const pages: Array<number | "ellipsis"> = [1];
-  if (current > 3) {
-    pages.push("ellipsis");
+  if (current <= 3) {
+    return [1, 2, 3, "ellipsis", total];
   }
-  const start = Math.max(2, current - 1);
-  const end = Math.min(total - 1, current + 1);
-  for (let i = start; i <= end; i++) {
-    pages.push(i);
+  if (current === 4) {
+    return [1, 2, 3, 4, 5, "ellipsis", total];
   }
-  if (current < total - 2) {
-    pages.push("ellipsis");
+  if (current >= total - 3) {
+    return [1, "ellipsis", total - 4, total - 3, total - 2, total - 1, total];
   }
-  pages.push(total);
-  return pages;
+  return [1, "ellipsis", current - 1, current, current + 1, "ellipsis", total];
 }

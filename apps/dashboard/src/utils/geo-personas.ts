@@ -1,5 +1,5 @@
 import { Avatar, Style } from "@dicebear/core";
-import personasStyle from "@dicebear/styles/personas.json";
+import micahStyle from "@dicebear/styles/micah.json";
 import type { GeoSequenceTurnResult } from "@notra/geo-core/types/geo";
 import type {
   GeoPersonaMemory,
@@ -47,7 +47,7 @@ export function groupPersonaMemories(
   return groups;
 }
 
-const personaAvatarStyle = new Style(personasStyle);
+const personaAvatarStyle = new Style(micahStyle);
 
 /** Deterministic illustrated portrait for a persona, keyed by its id. */
 export function personaAvatarDataUri(seed: string): string {
@@ -65,4 +65,18 @@ export function personaInitials(name: string): string {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
+}
+
+/**
+ * A sentence end glued to the next sentence, e.g. "early.Owns". Needs a
+ * lowercase letter on both sides so "U.S." or "Ph.D." stay intact.
+ */
+const GLUED_SENTENCE_BREAK = /(?<=\p{Ll}[.!?])(?=\p{Lu}\p{Ll})/gu;
+
+/**
+ * Summary and search style are one point per line, but some generated
+ * personas came back with the points glued together; split them back apart.
+ */
+export function personaPointsText(value: string): string {
+  return value.replace(GLUED_SENTENCE_BREAK, "\n");
 }

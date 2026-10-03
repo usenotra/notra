@@ -1,5 +1,7 @@
 "use client";
 
+import { Upload01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
@@ -53,12 +55,14 @@ const MODE_PANEL_CLASS =
 export function PromptAddDialog({
   open,
   onOpenChange,
+  onImportCsv,
   organizationId,
 }: PromptAddDialogProps) {
   const t = useTranslations("geo.promptAddDialog");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
+  const tShared = useTranslations("geo.pages.shared");
   const formId = useId();
   const promptId = useId();
   const promptHintId = useId();
@@ -264,6 +268,21 @@ export function PromptAddDialog({
           </Tabs>
         </form>
         <ResponsiveDialogFooter>
+          {onImportCsv ? (
+            <Button
+              className="sm:mr-auto"
+              disabled={busy}
+              onClick={() => {
+                close();
+                onImportCsv();
+              }}
+              type="button"
+              variant="ghost"
+            >
+              <HugeiconsIcon icon={Upload01Icon} size={14} />
+              {tShared("importCsv")}
+            </Button>
+          ) : null}
           <Button
             disabled={busy}
             onClick={close}

@@ -126,6 +126,73 @@
   }
 }
 
+/* Button loading state: the label blurs up and out, the dots rise in from below.
+   The progress fill fades once it has run to 100%. */
+@theme {
+  --animate-button-swap-in: button-swap-in 280ms cubic-bezier(0.23, 1, 0.32, 1)
+    both;
+  --animate-button-swap-out: button-swap-out 360ms
+    cubic-bezier(0.45, 0, 0.25, 1) both;
+  --animate-button-dot: button-dot 1s ease-in-out infinite;
+  --animate-button-progress-out: button-progress-out 600ms ease-out both;
+}
+
+/* Both ends are explicit: the hidden layer also carries opacity-0, which an
+   implicit keyframe would pick up and skip the fade. */
+@keyframes button-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes button-swap-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-0.45em);
+    filter: blur(4px);
+  }
+}
+
+@keyframes button-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-0.3em);
+  }
+}
+
+@keyframes button-progress-out {
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+
 /*
  * Baseline reduced-motion policy for every app.
  *

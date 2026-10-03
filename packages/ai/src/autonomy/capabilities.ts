@@ -397,11 +397,10 @@ const resolveIrisRepository = Effect.fn("iris.capabilities.resolveRepository")(
     );
     const signalRepositoryId =
       (signalRepository.success
-        ? (signalRepository.data.repositoryId ?? null)
-        : null) ??
-      (rootRepository.success
-        ? (rootRepository.data.repositoryId ?? null)
-        : null);
+        ? signalRepository.data.repositoryId
+        : undefined) ??
+      (rootRepository.success ? rootRepository.data.repositoryId : undefined) ??
+      null;
 
     const candidates: IrisRepositoryTarget[] = [];
     for (const integration of integrations) {

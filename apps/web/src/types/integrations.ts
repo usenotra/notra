@@ -64,11 +64,6 @@ export interface IntegrationModalProps {
   integration: Integration;
 }
 
-export interface IntegrationsLayoutProps {
-  children: ReactNode;
-  modal: ReactNode;
-}
-
 export interface IntegrationBannerProps {
   integration: Integration;
   className?: string;
@@ -97,6 +92,8 @@ export interface IntegrationDetailViewProps {
   integration: Integration;
 }
 
-export interface IntegrationDetailPageProps {
-  params: Promise<{ id: string }>;
+export interface IntegrationMarkdownEntry {
+  id: string;
+  title: string;
+  description: string;
 }

@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import {
   type AnyColumn,
   and,
@@ -416,16 +417,23 @@ function deriveAudience(
 }
 
 export function generatedAutoPromptIds(
-  settings: Pick<GeoSettings, "companyName" | "aliases">,
+  settings: Pick<GeoSettings, "companyName" | "aliases"> &
+    Partial<Pick<GeoSettings, "promptLanguage">>,
   brand: GeoBrandContext | null
 ): Set<string> {
   return new Set(buildGeoPrompts(settings, brand).map((prompt) => prompt.id));
 }
 
 export function buildGeoPrompts(
-  settings: Pick<GeoSettings, "companyName" | "aliases">,
+  settings: Pick<GeoSettings, "companyName" | "aliases"> &
+    Partial<Pick<GeoSettings, "promptLanguage">>,
   brand: GeoBrandContext | null
 ): GeoPromptDefinition[] {
+  // The templates are English. A project that picked another prompt language
+  // got its prompts written in that language by website discovery instead.
+  if ((settings.promptLanguage ?? DEFAULT_LANGUAGE) !== DEFAULT_LANGUAGE) {
+    return [];
+  }
   const brandTerms = buildBrandTerms(settings);
   const category = deriveCategory(
     brand?.companyDescription ?? null,
@@ -477,4 +485,28 @@ export function buildGeoPrompts(
   return prompts
     .filter((prompt) => !promptMentionsBrand(prompt.text, brandTerms))
     .slice(0, GEO_MAX_PROMPTS);
+}
+
+/**
+ * Prompts a scan asks, in scan order: unpaused auto prompts first, then the
+ * enabled custom prompts oldest first. Translation picks and defaults follow
+ * the same order.
+ */
+export function assembleGeoScanPrompts(input: {
+  autoPrompts: readonly GeoPromptDefinition[];
+  customRows: readonly { id: string; prompt: string }[];
+  pausedAutoPromptIds: readonly string[];
+  removedAutoPromptIds: readonly string[];
+}): GeoPromptDefinition[] {
+  const paused = new Set(input.pausedAutoPromptIds);
+  const removed = new Set(input.removedAutoPromptIds);
+  return [
+    ...input.autoPrompts
+      .filter((prompt) => isAutoPromptScanned(prompt.id, paused, removed))
+      .slice(0, GEO_MAX_PROMPTS),
+    ...input.customRows.map((row) => ({
+      id: customPromptScanId(row.id),
+      text: row.prompt,
+    })),
+  ];
 }

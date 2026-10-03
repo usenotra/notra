@@ -14,6 +14,8 @@ import {
   ALL_POST_CONTENT_TYPES,
   ALL_POST_STATUSES,
 } from "@notra/schemas/api/content";
+import { publishEventInTransaction } from "@notra/webhooks/drizzle";
+import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { nanoid } from "nanoid";
@@ -500,30 +502,48 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
 
   const patchResult = yield* Effect.tryPromise({
     try: () =>
-      input.db
-        .update(posts)
-        .set(updateData)
-        .where(
-          and(
-            eq(posts.id, input.postId),
-            eq(posts.organizationId, input.organizationId),
-            matchesPostUpdatedAt(input.prepared.expectedUpdatedAt)
+      input.db.transaction(async (tx) => {
+        const rows = await tx
+          .update(posts)
+          .set(updateData)
+          .where(
+            and(
+              eq(posts.id, input.postId),
+              eq(posts.organizationId, input.organizationId),
+              matchesPostUpdatedAt(input.prepared.expectedUpdatedAt)
+            )
           )
-        )
-        .returning({
-          id: posts.id,
-          title: posts.title,
-          slug: posts.slug,
-          content: posts.content,
-          htmlUrl: posts.htmlUrl,
-          markdown: posts.markdown,
-          recommendations: posts.recommendations,
-          contentType: posts.contentType,
-          sourceMetadata: posts.sourceMetadata,
-          status: posts.status,
-          createdAt: posts.createdAt,
-          updatedAt: posts.updatedAt,
-        }),
+          .returning({
+            id: posts.id,
+            title: posts.title,
+            slug: posts.slug,
+            content: posts.content,
+            htmlUrl: posts.htmlUrl,
+            markdown: posts.markdown,
+            recommendations: posts.recommendations,
+            contentType: posts.contentType,
+            sourceMetadata: posts.sourceMetadata,
+            status: posts.status,
+            githubPublish: posts.githubPublish,
+            createdAt: posts.createdAt,
+            updatedAt: posts.updatedAt,
+          });
+        const [updated] = rows;
+        if (
+          updated &&
+          updated.status === "published" &&
+          input.prepared.previousStatus !== "published"
+        ) {
+          await publishEventInTransaction(
+            tx,
+            postPublishedInput({
+              organizationId: input.organizationId,
+              postId: updated.id,
+            })
+          );
+        }
+        return rows;
+      }),
     catch: (cause) => {
       if (
         isPgUniqueViolation(cause) &&

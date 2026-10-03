@@ -186,8 +186,6 @@ export function useChatSessions() {
       queryClient.setQueryData(pendingQueryKey, nextPending);
     }
 
-    // The create request awaits title generation, so an arrived chat's title
-    // is final. Clear the skeleton even when the post-create refetch failed.
     const generatingIds = generatingQuery.data ?? [];
     const nextGenerating = excludeArrivedGeneratingIds(
       generatingIds,

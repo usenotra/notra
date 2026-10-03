@@ -49,6 +49,7 @@ export function RightPanel({ id, children }: RightPanelProps) {
             RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
             skipMotion && "transition-none",
             open && "overflow-visible",
+            open && !skipMotion && "starting:w-0",
             panelWidthClass(open, expanded)
           )}
           inert={open ? undefined : true}

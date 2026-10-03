@@ -4,6 +4,7 @@ import {
   closeContentPublicationForPullRequest,
   reconcileContentPublication,
 } from "@notra/ai/utils/content-publication";
+import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { createOctokit } from "@notra/ai/utils/octokit";
 
 export async function reconcileContentPublicationStep(
@@ -22,6 +23,19 @@ export async function reconcileContentPublicationStep(
     organizationId: publication.organizationId,
   });
   const octokit = createOctokit(token ?? undefined);
+  if (reconciled.headSha !== publication.headSha) {
+    const advanced = await reconcileContentPublication(
+      { publication, publishedAt },
+      githubAncestryValidator({
+        octokit,
+        owner: publication.owner,
+        repo: publication.repo,
+      })
+    );
+    if (!advanced) {
+      return;
+    }
+  }
   const { data: pullRequest } = await octokit.request(
     "GET /repos/{owner}/{repo}/pulls/{pull_number}",
     {

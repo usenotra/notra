@@ -1,3 +1,5 @@
+import { db } from "@notra/db/drizzle";
+import { demoSandboxes } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   createApiKeySchema,
@@ -5,13 +7,16 @@ import {
   updateKeyInputSchema,
 } from "@notra/schemas/dashboard/api-keys";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import type {
   KeyResponseData,
   V2ApisListKeysResponseBody,
 } from "@unkey/api/models/components";
+import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 
 import { API_KEY_EXPIRATION_MS } from "@/constants/api-keys";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import {
   expandLegacyApiKeyScopes,
@@ -27,6 +32,7 @@ import { authorizedProcedure } from "@/lib/orpc/base";
 
 import {
   badRequest,
+  forbidden,
   internalServerError,
   notFound,
   serviceUnavailable,
@@ -66,6 +72,23 @@ async function requireUnkeyConfig() {
     apiId,
     client: unkey,
   };
+}
+
+/** The sandbox's own key powers the API playground, so it must survive. */
+async function assertNotDemoSandboxKey(organizationId: string, keyId: string) {
+  if (!isDemoMode()) {
+    return;
+  }
+  const sandbox = await db.query.demoSandboxes.findFirst({
+    where: and(
+      eq(demoSandboxes.organizationId, organizationId),
+      eq(demoSandboxes.apiKeyId, keyId)
+    ),
+    columns: { anonymousId: true },
+  });
+  if (sandbox) {
+    throw forbidden(DEMO_DISABLED_MESSAGE);
+  }
 }
 
 type ListKeysResult =
@@ -229,6 +252,9 @@ export const apiKeysRouter = {
         );
       }
 
+      // The playground depends on the demo key keeping full access.
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
+
       const key = await findOrganizationKey(
         client,
         apiId,
@@ -319,6 +345,8 @@ export const apiKeysRouter = {
           (await getTranslations("errors.actions"))("invalidInput")
         );
       }
+
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
 
       const key = await findOrganizationKey(
         client,

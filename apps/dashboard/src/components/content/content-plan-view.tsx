@@ -99,7 +99,7 @@ function AddItemButton({
 }) {
   return (
     <button
-      className="text-muted-foreground hover:text-foreground inline-flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-sm transition-[color,transform] duration-150 ease-out active:scale-[0.96]"
+      className="text-muted-foreground hover:text-foreground inline-flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-sm transition-[color,transform] duration-150 ease-out active:scale-[0.97]"
       onClick={onClick}
       type="button"
     >
@@ -121,7 +121,7 @@ function RemoveItemButton({
   return (
     <Button
       aria-label={label}
-      className="text-muted-foreground size-7 shrink-0 opacity-0 transition-opacity duration-150 ease-out group-focus-within/item:opacity-100 group-hover/item:opacity-100 focus-visible:opacity-100 active:scale-[0.96]"
+      className="text-muted-foreground size-7 shrink-0 opacity-0 transition-opacity duration-150 ease-out group-focus-within/item:opacity-100 group-hover/item:opacity-100 focus-visible:opacity-100"
       onClick={onClick}
       onMouseDown={onMouseDown}
       size="sm"

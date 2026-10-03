@@ -19,6 +19,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     hasGitHubEnabled,
     hasLinearEnabled,
     hasMcpEnabled,
+    hasCodeResearch,
     timezone,
     workspace,
   } = params;
@@ -41,6 +42,10 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     hasLinearEnabled && linearContext?.length
       ? `\n\n## Linear Integration\nSource of truth identifiers for Linear context:\n${linearContext.map((c) => `- ${formatLinearContext(c)}`).join("\n")}\n\nWhen working with Linear data, call Linear tools (getLinearIssues, getLinearProjects, getLinearCycles) using integrationId.`
       : "";
+
+  const codeResearchSection = hasCodeResearch
+    ? '\n\n## Code Research\nWhen the user wants content about a specific feature of their product (for example "we just shipped X, write a blog post about it" or a pull request number), first call code-researcher directly, not inside code_mode, with the feature description, the integrationId, and the pull request number or branch if known. It reads the repository and returns a brief. Write from the brief\'s summary, userFacingBehavior, and howToUse. Never mention internal file paths, function or class names, or implementation details from sources in the content, and leave out anything listed in openQuestions. If it returns not_found or unavailable, continue with pull request and commit data. When the user asks what shipped recently and wants content about it, first gather the commits or pull requests, then call code-researcher for the one or two most user-facing features (one call per feature) before writing. Skip it only for plain changelog lists that just enumerate many small changes.'
+    : "";
 
   const mcpSection =
     hasMcpEnabled && mcpContext?.length
@@ -80,6 +85,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - Keep responses concise and actionable
     - Never use em dashes or en dashes in content. Use hyphens or rewrite the sentence.
     - When creating posts, use the matching create tool instead of only outputting content as text.
+    - When drafting a post directly in chat, load "unslop" with getSkillByName inside code_mode and apply it as the final editing pass to the title and body before calling the create tool. Preserve verified facts and brand voice. Delegated content-writer runs handle this in the subagent.
     - When the user asks for a new reusable writing skill, or a recurring voice or format emerges that is worth reusing, call createSkill (check listAvailableSkills inside code_mode for duplicates first) with a unique lowercase kebab-case name.
     - When the user asks for a schedule or a recurring automation that drafts content on a cadence, call createSchedule. Check listSchedules inside code_mode first and reuse a schedule that already matches. Times are UTC, so convert from the user's timezone. repositoryIds are GitHub integrationIds. If more than one repository is connected and the user did not name one, ask before creating the schedule. Leave autoPublish false unless the user explicitly wants changelog or blog drafts published automatically. LinkedIn, Twitter, and image schedules stay drafts. After it is created, tell them the name, cadence, output type, and that it is listed under Automations.
     - When you create a post, tell the user the post title and that it was saved as a draft.
@@ -88,7 +94,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
 
     ## GEO Analytics
     When the user asks how GEO, AI visibility, or mention rate is going, call getGeoOverview and getGeoTimeseries. Also call getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
-    ${capabilitiesSection}${integrationResolutionSection}${githubSection}${linearSection}${mcpSection}
+    ${capabilitiesSection}${integrationResolutionSection}${githubSection}${codeResearchSection}${linearSection}${mcpSection}
   `;
 }
 

@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@notra/db/drizzle";
 import { brandSitemapPages, brandSitemaps } from "@notra/db/schema";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ne, sql } from "drizzle-orm";
 
 import type {
   Sitemap,
@@ -179,6 +179,17 @@ export async function saveStoredSitemap(input: {
   pages: SitemapPage[];
 }) {
   await db.transaction(async (tx) => {
+    // Re-adding a URL replaces this identity's earlier row, including rows
+    // saved before ids were scoped to the identity.
+    await tx
+      .delete(brandSitemaps)
+      .where(
+        and(
+          eq(brandSitemaps.brandSettingsId, input.voiceId),
+          eq(brandSitemaps.url, input.sitemap.url),
+          ne(brandSitemaps.id, input.sitemap.id)
+        )
+      );
     await tx
       .insert(brandSitemaps)
       .values({

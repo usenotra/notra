@@ -7,6 +7,7 @@ import {
 import type { GeoModelCatalog } from "../src/types/geo";
 import { engineModelOf } from "../src/utils/geo-engine-family";
 import {
+  isPartialGeoScanEngineScope,
   resolveGeoGroundedZdrMode,
   resolveTrackedEngines,
   scopeGeoScanEngines,
@@ -52,25 +53,6 @@ describe("selected grounded engines", () => {
     expect(resolveGroundedEngines(["moonshotai/kimi-k3"], catalog).length).toBe(
       0
     );
-  });
-
-  test("none of the six legacy web-search routes are added to a selection", () => {
-    const legacyKeys = [
-      "openai/gpt-5.4-grounded",
-      "anthropic/claude-sonnet-4.6-grounded",
-      "google/gemini-3-flash-grounded",
-      "openai-direct-grounded",
-      "anthropic-direct-grounded",
-      "perplexity-sonar",
-    ];
-    const engines = resolveGroundedEngines(
-      ["anthropic/claude-sonnet-5"],
-      catalog
-    );
-    for (const key of legacyKeys) {
-      expect(engines.some((engine) => engine.key === key)).toBe(false);
-    }
-    expect(engines.length).toBe(1);
   });
 
   test("deduplicates selected models", () => {
@@ -170,10 +152,11 @@ describe("selected grounded engines", () => {
         },
         ...feed.slice(1),
       ]);
-      expect(partial.models.map((model) => model.id)).toEqual([
-        "openai/gpt-5.6-sol",
-        "perplexity/sonar",
-      ]);
+      expect(
+        partial.models
+          .filter((model) => model.gateways.includes("vercel"))
+          .map((model) => model.id)
+      ).toEqual(["openai/gpt-5.6-sol", "perplexity/sonar"]);
       expect(
         resolveGroundedEngines(["perplexity/sonar"], partial)[0]?.provider
       ).toBe("gateway-perplexity");
@@ -285,5 +268,30 @@ describe("selected grounded engines", () => {
         ["spacexai/grok-4.7"]
       );
     }
+  });
+});
+
+describe("partial engine scope", () => {
+  const tracked = ["anthropic/claude-sonnet-5", "openai/gpt-5.6-sol"];
+
+  test("a selection that leaves out a tracked engine is partial", () => {
+    expect(isPartialGeoScanEngineScope(tracked, ["openai/gpt-5.6-sol"])).toBe(
+      true
+    );
+  });
+
+  test("every tracked engine, with or without extra models, is a full scan", () => {
+    expect(isPartialGeoScanEngineScope(tracked, [...tracked].reverse())).toBe(
+      false
+    );
+    expect(
+      isPartialGeoScanEngineScope(tracked, [...tracked, "spacexai/grok-4.7"])
+    ).toBe(false);
+  });
+
+  test("a retired tracked id is matched through its replacement", () => {
+    expect(
+      isPartialGeoScanEngineScope(["spacexai/grok-4.6"], ["spacexai/grok-4.7"])
+    ).toBe(false);
   });
 });

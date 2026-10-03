@@ -18,6 +18,7 @@ import type {
   BillingPlanGroup,
   BillingPlanPrice,
   BillingTranslator,
+  PlanRenewalTerms,
   BillingSubscription,
   PlanCardAddon,
   PlanTierLimits,
@@ -188,6 +189,13 @@ export function getProductFeatures(
       return null;
     })
     .filter((feature): feature is ProductFeature => feature !== null);
+}
+
+export function planRenewalTerms(plan: BillingPlan): PlanRenewalTerms {
+  if (!(plan.freeTrial && plan.customerEligibility?.trialAvailable)) {
+    return "standard";
+  }
+  return plan.freeTrial.onEnd === "revert" ? "trialRevert" : "trial";
 }
 
 export function getPricingButtonText(

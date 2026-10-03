@@ -1,1 +1,5 @@
 packages/db/migrations/** linguist-generated=true
+
+# Skill tooling scripts are not product code; keep them out of the linguist
+# language stats so CodeQL default setup does not schedule a Python analysis.
+.agents/skills/**/*.py linguist-detectable=false

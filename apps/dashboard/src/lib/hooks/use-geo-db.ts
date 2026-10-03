@@ -238,6 +238,7 @@ export function useGeoProjectsDb(
       name: trimmedName,
       brandSettingsId: input.brandSettingsId,
       createdAt: new Date().toISOString(),
+      languages: input.languages,
     });
     const createdPromise = waitForProjectCreateHandoff(transaction.id);
     void createdPromise.catch(() => undefined);

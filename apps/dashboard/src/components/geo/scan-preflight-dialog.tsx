@@ -10,11 +10,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
 import { useLocale, useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
@@ -22,15 +17,13 @@ import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Twemoji } from "@/components/geo/twemoji";
 import { Checkbox } from "@/components/motion/checkbox";
-import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { cn } from "@/lib/utils";
 import type { ScanPreflightDialogProps } from "@/types/geo";
-import type { ScanPreflightHeaderProps } from "@/types/geo-scan-size";
-import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { scanPreflightEnginesToSubmit } from "@/utils/geo-scan-preflight";
 
 function ScanPreflightEngineRow({
@@ -48,18 +41,10 @@ function ScanPreflightEngineRow({
 }) {
   const id = useId();
   const name = formatEngineFamily(engine);
-  const tGeoShared = useTranslations("geo.shared");
-  const answerMode = engineAnswerMode(engine);
-  const mode = answerMode
-    ? tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[answerMode])
-    : null;
   const identity = (
     <>
       <EngineIcon className="size-4" engine={engine} />
       <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
-      {mode ? (
-        <span className="text-muted-foreground shrink-0 text-xs">{mode}</span>
-      ) : null}
     </>
   );
 
@@ -101,37 +86,17 @@ function ScanPreflightEngineRow({
 function ScanPreflightHeader({
   prompt,
   confirmationOnly,
-  warningSeverity,
-}: ScanPreflightHeaderProps) {
+}: {
+  prompt?: string;
+  confirmationOnly: boolean;
+}) {
   const t = useTranslations("geo.scanPreflightDialog");
   const title = prompt ? t("promptTitle") : t("title");
   const description = prompt ? t("promptBody") : t("body");
-  const sizeMessage =
-    warningSeverity === "danger" ? t("sizeDanger") : t("sizeWarn");
   return (
     <ResponsiveDialogHeader>
       <ResponsiveDialogTitle className="flex items-center gap-2">
         {confirmationOnly ? t("confirmTitle") : title}
-        {warningSeverity ? (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <span
-                  aria-label={sizeMessage}
-                  className={cn(
-                    "inline-flex size-3.5 cursor-help items-center justify-center rounded-full text-[10px] leading-none font-bold",
-                    warningSeverity === "danger"
-                      ? "bg-destructive text-destructive-foreground"
-                      : "bg-warning text-warning-foreground"
-                  )}
-                />
-              }
-            >
-              !
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">{sizeMessage}</TooltipContent>
-          </Tooltip>
-        ) : null}
       </ResponsiveDialogTitle>
       <ResponsiveDialogDescription>
         {confirmationOnly ? t("confirmBody") : description}
@@ -151,6 +116,7 @@ export function ScanPreflightDialog({
   languages,
   lastScanAt,
   prompt,
+  promptId,
   confirmationOnly = false,
 }: ScanPreflightDialogProps) {
   const t = useTranslations("geo.scanPreflightDialog");
@@ -166,11 +132,12 @@ export function ScanPreflightDialog({
   const allSelected = selectedCount === engines.length;
   const canRun = selectedCount > 0;
 
-  const { scanSize, warningSeverity } = useGeoScanEstimate({
+  const { scanSize } = useGeoScanEstimate({
     organizationId,
     promptCount,
     engines: selected,
     languages,
+    promptId,
     includeSequences: !prompt,
   });
 
@@ -197,7 +164,6 @@ export function ScanPreflightDialog({
         <ScanPreflightHeader
           prompt={prompt}
           confirmationOnly={confirmationOnly}
-          warningSeverity={warningSeverity}
         />
         {prompt ? <p className="text-sm font-medium">{prompt}</p> : null}
         <div className="flex flex-wrap items-center gap-1.5">

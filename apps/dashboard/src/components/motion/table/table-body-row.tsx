@@ -24,6 +24,7 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 }
 
 export function TableBodyRow<T>({
+  className,
   entry,
   index,
   isLastRow,
@@ -33,6 +34,7 @@ export function TableBodyRow<T>({
   isSelected,
   columns,
   onRowClick,
+  rowKeyboardActivation,
   detailId,
   expanded,
   onRowPointerEnter,
@@ -44,6 +46,7 @@ export function TableBodyRow<T>({
   renderRowContextMenu,
   rowRef,
 }: {
+  className?: string;
   entry: TableRow<T>;
   index: number;
   isLastRow: boolean;
@@ -53,6 +56,7 @@ export function TableBodyRow<T>({
   isSelected: boolean;
   columns: TableColumn<T>[];
   onRowClick?: (row: T) => void;
+  rowKeyboardActivation?: boolean;
   detailId?: string;
   expanded?: boolean;
   onRowPointerEnter?: (row: T) => void;
@@ -76,7 +80,8 @@ export function TableBodyRow<T>({
         "group transition-colors",
         "data-[selected=true]:bg-primary/5",
         "hover:bg-muted/50",
-        onRowClick && "cursor-pointer"
+        onRowClick && "cursor-pointer",
+        className
       )}
       data-selected={isSelected}
       onClick={
@@ -90,7 +95,7 @@ export function TableBodyRow<T>({
           : undefined
       }
       onKeyDown={
-        onRowClick
+        onRowClick && rowKeyboardActivation
           ? (event) => {
               if (event.target !== event.currentTarget) {
                 return;
@@ -119,7 +124,7 @@ export function TableBodyRow<T>({
           ? { minHeight: rowHeight }
           : { height: rowHeight }
       }
-      tabIndex={onRowClick ? 0 : undefined}
+      tabIndex={onRowClick && rowKeyboardActivation ? 0 : undefined}
     >
       {selectable ? (
         <td className={cn("text-center", cellBorder)}>

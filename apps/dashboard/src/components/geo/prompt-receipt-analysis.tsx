@@ -237,15 +237,14 @@ export function PromptReceiptAnalysis({
           </ReceiptSection>
         ) : null}
         {showHistory ? (
-          <ReceiptSection title={t("history")}>
-            <PromptReceiptHistory
-              competitors={competitors}
-              entries={entries}
-              isLoading={isHistoryLoading}
-              key={entries[0]?.check.id ?? "empty"}
-              onSelect={onSelectCheck}
-            />
-          </ReceiptSection>
+          <PromptReceiptHistory
+            competitors={competitors}
+            entries={entries}
+            isLoading={isHistoryLoading}
+            key={entries[0]?.check.id ?? "empty"}
+            onSelect={onSelectCheck}
+            title={t("history")}
+          />
         ) : null}
       </div>
     </div>

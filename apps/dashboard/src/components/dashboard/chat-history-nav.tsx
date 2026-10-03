@@ -133,11 +133,7 @@ export function ChatHistoryNav() {
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentChatId =
-    chatIdFromPath(pathname) ??
-    (typeof window === "undefined"
-      ? undefined
-      : chatIdFromPath(window.location.pathname));
+  const currentChatId = chatIdFromPath(pathname);
   const isOnChatRoute = pathSegments[1] === "chat";
   const pinnedSessions = sessions.filter((session) =>
     Boolean(session.pinnedAt)

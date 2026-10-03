@@ -14,6 +14,7 @@ import {
   formatTrafficLocation,
   trafficLogHostFilter,
 } from "@notra/geo-core/utils/geo-project-domains";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
 import {
@@ -103,9 +104,9 @@ function trafficPageColumns(
         return (
           <span className="flex items-center justify-end gap-2">
             <span className="text-sm tabular-nums">
-              {row.visits.toLocaleString(locale)}
+              <AnimatedNumber locale={locale} value={row.visits} />
             </span>
-            <GeoStatDelta delta={delta} />
+            <GeoStatDelta animated delta={delta} />
           </span>
         );
       },

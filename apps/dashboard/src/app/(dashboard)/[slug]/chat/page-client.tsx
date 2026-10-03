@@ -65,6 +65,7 @@ import {
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -74,6 +75,7 @@ import {
   ChatInputAdvanced,
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
+import { ChatMinimapRail } from "@/components/chat/chat-minimap-rail";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import {
   ChatQuoteProvider,
@@ -90,6 +92,7 @@ import {
 } from "@/components/chat/user-message-actions";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS } from "@/constants/chat-active-stream";
+import { ACTIVITY_STEP_SETTLE_MS } from "@/constants/chat-activity";
 import { MAX_VISIBLE_CHAT_IMAGES } from "@/constants/chat-images";
 import {
   AVAILABLE_MODELS,
@@ -114,6 +117,7 @@ import {
   reconcileCreatedChatTitle,
   useChatSessionMutations,
 } from "@/lib/hooks/use-chat-sessions";
+import { useDelayedAppearance } from "@/lib/hooks/use-delayed-appearance";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
@@ -144,6 +148,7 @@ import {
   shouldShowChatAuthorAvatars,
   toChatMessageAuthor,
 } from "@/utils/chat-message-author";
+import { buildChatMinimapTurns } from "@/utils/chat-minimap";
 import {
   CHAT_PREFERENCES_STORAGE_KEY,
   DEFAULT_CHAT_PREFERENCES,
@@ -162,6 +167,7 @@ import {
   resetNewChatClientState,
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { formatLongDate } from "@/utils/dashboard-greeting";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
@@ -2069,10 +2075,20 @@ function StandaloneChatPageClient({
   const chatActivity = getChatActivity(messages, isLoading || isMirrorWorking, {
     isStandaloneTool: (part) =>
       isContentEditorStandaloneTool(part) ||
+      (isToolUIPart(part) && isChatSubagentName(getToolName(part))) ||
       (isToolUIPart(part) &&
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),
   });
+  // Between steps of an assistant reply the indicator would blink in and out
+  // for a few frames, so it only appears once that gap actually lasts.
+  const showThinkingIndicator = useDelayedAppearance(
+    chatActivity.showThinkingIndicator,
+    {
+      delayMs: ACTIVITY_STEP_SETTLE_MS,
+      immediate: messages.at(-1)?.role !== "assistant",
+    }
+  );
 
   function renderPart(
     part: ChatUIMessage["parts"][number],
@@ -2463,6 +2479,16 @@ function StandaloneChatPageClient({
         );
       }
 
+      if (isChatSubagentName(toolName)) {
+        return (
+          <ChatSubagentToolPart
+            isActive={messageId === chatActivity.activeMessageId}
+            key={toolPart.toolCallId}
+            part={toolPart}
+          />
+        );
+      }
+
       if (
         toolPart.state === "input-streaming" ||
         toolPart.state === "input-available" ||
@@ -2626,9 +2652,11 @@ function StandaloneChatPageClient({
   }
 
   const lastMessage = messages.at(-1);
-  const { showThinkingIndicator } = chatActivity;
   const visibleMessages = messages.filter((message) =>
     hasVisibleChatContent(message)
+  );
+  const minimapTurns = buildChatMinimapTurns(visibleMessages, (message) =>
+    toDisplayText(getUserMessageText(message))
   );
 
   return (
@@ -2658,6 +2686,9 @@ function StandaloneChatPageClient({
                         : undefined;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
+                      const isGenerating =
+                        (isLoading || isMirrorWorking) &&
+                        message.id === lastAssistantMessageId;
                       const isEditing =
                         isUser && editingMessageId === message.id;
                       const userContentParts = isUser
@@ -2773,12 +2804,11 @@ function StandaloneChatPageClient({
                                       ? activitySeconds
                                       : undefined
                                   }
-                                  isLoading={
-                                    (isLoading || isMirrorWorking) &&
-                                    message.id === lastAssistantMessageId
-                                  }
+                                  isLoading={isGenerating}
                                   isStandaloneTool={(part) =>
                                     isContentEditorStandaloneTool(part) ||
+                                    (isToolUIPart(part) &&
+                                      isChatSubagentName(getToolName(part))) ||
                                     (isToolUIPart(part) &&
                                       part.type !== "dynamic-tool" &&
                                       (isCreateTool(part.type) ||
@@ -2824,7 +2854,7 @@ function StandaloneChatPageClient({
                                 }
                               />
                             )}
-                            {message.role === "assistant" && (
+                            {message.role === "assistant" && !isGenerating && (
                               <AssistantMetadataHover
                                 metadata={message.metadata}
                               />
@@ -2888,6 +2918,7 @@ function StandaloneChatPageClient({
                 </MessageScrollerContent>
               </MessageScrollerViewport>
               <MessageScrollerButton />
+              <ChatMinimapRail turns={minimapTurns} />
             </MessageScroller>
           </MessageScrollerProvider>
           <div

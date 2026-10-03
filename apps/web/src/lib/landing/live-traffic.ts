@@ -3,11 +3,7 @@ import {
   LIVE_TRAFFIC_PATHS,
   LIVE_TRAFFIC_PROVIDERS,
 } from "@/constants/landing/live-traffic";
-import type {
-  CitationRow,
-  EngineId,
-  LiveCitationRow,
-} from "@/types/landing/geo";
+import type { CitationRow, LiveCitationRow } from "@/types/landing/geo";
 
 const MS_PER_SECOND = 1000;
 const PAD_LENGTH = 2;
@@ -32,13 +28,8 @@ export function seedLiveRows(rows: CitationRow[]): LiveCitationRow[] {
   }));
 }
 
-export function randomLiveRow(
-  offsetMs: number,
-  engine: EngineId
-): LiveCitationRow {
-  const source = pick(
-    LIVE_TRAFFIC_PROVIDERS.filter((provider) => provider.engine === engine)
-  );
+export function randomLiveRow(offsetMs: number): LiveCitationRow {
+  const source = pick(LIVE_TRAFFIC_PROVIDERS);
   const path = pick(LIVE_TRAFFIC_PATHS);
   return {
     id: `live-${offsetMs}-${Math.random().toString(36).slice(2, 8)}`,

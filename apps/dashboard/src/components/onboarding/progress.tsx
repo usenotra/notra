@@ -43,13 +43,20 @@ export function OnboardingProgress({
         );
 
         if (!href) {
-          return <span key={step}>{pill}</span>;
+          return (
+            <span
+              className="flex size-6 items-center justify-center"
+              key={step}
+            >
+              {pill}
+            </span>
+          );
         }
 
         return (
           <Link
             aria-label={t("goTo", { step: String(step) })}
-            className="focus-visible:ring-ring relative rounded-full after:absolute after:top-1/2 after:left-1/2 after:h-6 after:w-3 after:-translate-1/2 hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+            className="focus-visible:ring-ring flex size-6 items-center justify-center rounded-full hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
             href={href}
             key={step}
           >

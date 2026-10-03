@@ -2,6 +2,7 @@ import { createRoute } from "@hono/zod-openapi";
 import { GEO_DOMAIN_REGEX } from "@notra/geo-core/constants/geo";
 import { parseCompetitorsCsv } from "@notra/geo-core/geo/csv-import";
 import { normalizeCompetitorDomain } from "@notra/geo-core/geo/domain";
+import { refreshGeoContentGapsBestEffort } from "@notra/geo-core/geo/gaps";
 import { suggestGeoCompetitors } from "@notra/geo-core/geo/onboarding";
 import {
   deleteGeoCompetitor,
@@ -22,6 +23,7 @@ import {
   competitorParamsSchema,
   projectParamsSchema,
 } from "@notra/schemas/api/geo-params";
+import { Effect } from "effect";
 
 import {
   GEO_COMMON_ERROR_RESPONSES,
@@ -192,6 +194,13 @@ geoCompetitorsRoutes.openapi(putCompetitorRoute, async (c) => {
         kind: body.kind,
         color: body.color,
       }
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {
@@ -244,6 +253,13 @@ geoCompetitorsRoutes.openapi(deleteCompetitorRoute, async (c) => {
     deleteGeoCompetitor(
       { organizationId: base.organizationId, projectId },
       name
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {
@@ -295,6 +311,13 @@ geoCompetitorsRoutes.openapi(importCompetitorsRoute, async (c) => {
     importGeoCompetitors(
       { organizationId: base.organizationId, projectId },
       rows
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {

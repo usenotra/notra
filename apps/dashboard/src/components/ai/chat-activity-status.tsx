@@ -27,6 +27,12 @@ export function ChatActivityStatus({
   return (
     <span className="text-muted-foreground inline-flex min-h-5 items-center gap-2 text-sm leading-5">
       <LazyMotion features={domMax}>
+        {active ? (
+          <BrailleLoader
+            className="h-5 shrink-0 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
+            ariaLabel={resolvedLabel}
+          />
+        ) : null}
         <span className="relative inline-flex h-5 items-center overflow-hidden">
           <span className="sr-only">{resolvedLabel}</span>
           <AnimatePresence initial={false} mode="popLayout">
@@ -49,13 +55,7 @@ export function ChatActivityStatus({
               transition={TRANSITION.enter}
             >
               {active ? (
-                <span className="inline-flex items-center gap-2">
-                  <BrailleLoader
-                    className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
-                    ariaLabel={resolvedLabel}
-                  />
-                  <Shimmer as="span">{resolvedLabel}</Shimmer>
-                </span>
+                <Shimmer as="span">{resolvedLabel}</Shimmer>
               ) : (
                 resolvedLabel
               )}

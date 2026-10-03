@@ -58,6 +58,7 @@ describe("proxy matcher", () => {
     "/ingest/static/array.js",
     "/_next/static/chunks/main.js",
     "/favicon.ico",
+    "/design.md",
   ])("skips AuthKit for machine and static route %s", (path) => {
     expect(matcher.test(path)).toBe(false);
   });
@@ -82,6 +83,8 @@ describe("proxy matcher", () => {
     "/api/internalx",
     "/.well-known/workflowx",
     "/ingestion-settings",
+    "/design.md-team",
+    "/design.mdx",
   ])("runs AuthKit for session route %s", (path) => {
     expect(matcher.test(path)).toBe(true);
   });

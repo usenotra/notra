@@ -26,10 +26,7 @@ export function PromptIntentBadge({ intent }: PromptIntentBadgeProps) {
   const intentLabel = useGeoPromptIntentLabel();
   return (
     <span
-      className={cn(
-        GEO_PROMPT_LABEL_PILL_CLASS,
-        GEO_PROMPT_INTENT_PILL_CLASS[intent]
-      )}
+      className={cn(GEO_PROMPT_LABEL_PILL_CLASS, GEO_PROMPT_INTENT_PILL_CLASS)}
     >
       <HugeiconsIcon
         aria-hidden

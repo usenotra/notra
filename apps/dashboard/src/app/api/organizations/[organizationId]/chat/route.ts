@@ -11,10 +11,7 @@ import {
   clearLastResponseStopped,
   generateAndSetChatTitle,
   generateChatId,
-  getChatProjectId,
-  getChatSession,
-  isChatDeleted,
-  loadChatHistory,
+  getChatSessionState,
   replaceChatHistory,
   setActiveChatStream,
 } from "@notra/ai/chat/history";
@@ -67,6 +64,7 @@ import {
   getChatContextKinds,
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
 import type { RouteContext } from "@/types/api/routes";
@@ -117,6 +115,14 @@ export const POST = withEvlog(async function POST(
     let projectId: string | null = parseResult.data.projectId ?? null;
     let bindProjectFromSession = false;
 
+    const latestMessage = messages.at(-1);
+    if (!latestMessage?.id) {
+      return NextResponse.json(
+        { error: "Latest message must include an id" },
+        { status: 400 }
+      );
+    }
+
     const trackBlocked = (code: string) => {
       trackServerEvent({
         event: POSTHOG_EVENTS.CHAT_GENERATION_BLOCKED,
@@ -127,9 +133,14 @@ export const POST = withEvlog(async function POST(
       });
     };
 
-    if (parseResult.data.chatId) {
-      const existingSession = await getChatSession(organizationId, chatId);
-      if (existingSession?.externalChannelId?.source === "slack") {
+    const existingSession = parseResult.data.chatId
+      ? await getChatSessionState(organizationId, chatId)
+      : null;
+    if (existingSession) {
+      if (existingSession.deletedAt !== null) {
+        return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+      }
+      if (existingSession.externalChannelSource === "slack") {
         trackBlocked("CHAT_READ_ONLY");
         return NextResponse.json(
           {
@@ -141,10 +152,8 @@ export const POST = withEvlog(async function POST(
       }
       // Existing chats keep the project stored at creation. Continuing with a
       // different active project must not retarget GEO tools or content.
-      if (existingSession) {
-        bindProjectFromSession = true;
-        projectId = await getChatProjectId(organizationId, chatId);
-      }
+      bindProjectFromSession = true;
+      projectId = existingSession.projectId;
     }
 
     if (
@@ -208,31 +217,7 @@ export const POST = withEvlog(async function POST(
 
     cleanupOrganizationId = organizationId;
     cleanupChatId = chatId;
-    const validatedIntegrations =
-      await getStandaloneChatIntegrations(organizationId);
     const context = parseResult.data.context ?? [];
-
-    if (!messages.length) {
-      return NextResponse.json(
-        { error: "At least one message is required" },
-        { status: 400 }
-      );
-    }
-
-    const latestMessage = messages.at(-1);
-    if (!latestMessage?.id) {
-      return NextResponse.json(
-        { error: "Latest message must include an id" },
-        { status: 400 }
-      );
-    }
-
-    if (
-      parseResult.data.chatId &&
-      (await isChatDeleted(organizationId, chatId))
-    ) {
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
-    }
 
     const streamId = nanoid();
     const streamAcquired = await setActiveChatStream(
@@ -249,26 +234,54 @@ export const POST = withEvlog(async function POST(
     }
     cleanupStreamId = streamId;
 
-    const [hydratedMessages, history] = await Promise.all([
-      hydrateSavedChatPosts(organizationId, chatId, messages),
-      loadChatHistory(organizationId, chatId),
-    ]);
-    messages = preserveConversationSelection(hydratedMessages, history);
+    // Finish all preparation before error cleanup can release the stream lock.
+    // Code research fails closed on its own, so it never rejects here.
+    const [hydrationResult, integrationsResult, codeResearchResult] =
+      await Promise.allSettled([
+        hydrateSavedChatPosts(organizationId, chatId, messages),
+        getStandaloneChatIntegrations(organizationId),
+        isCodeResearchEnabledForOrganization(organizationId),
+      ]);
 
-    const [historySaved] = await Promise.all([
-      replaceChatHistory(
-        organizationId,
-        chatId,
-        messages,
-        undefined,
-        undefined,
-        projectId
-      ),
-      clearLastResponseStopped(organizationId, chatId),
-    ]);
+    if (hydrationResult.status === "rejected") {
+      throw hydrationResult.reason;
+    }
+    if (integrationsResult.status === "rejected") {
+      throw integrationsResult.reason;
+    }
+    const validatedIntegrations = integrationsResult.value;
+    const codeResearch =
+      codeResearchResult.status === "fulfilled" && codeResearchResult.value;
+    messages = preserveConversationSelection(
+      hydrationResult.value,
+      existingSession?.messages ?? []
+    );
+
+    await clearLastResponseStopped(organizationId, chatId);
+    // Persist only after preparation succeeds so a failed send leaves no turn.
+    const historySaved = await replaceChatHistory(
+      organizationId,
+      chatId,
+      messages,
+      undefined,
+      // Reject a snapshot made stale before acquiring the stream lock.
+      existingSession
+        ? (existingSession.messages.at(-1)?.id ?? null)
+        : undefined,
+      projectId
+    );
 
     if (!historySaved) {
       await clearActiveChatStream(organizationId, chatId, streamId);
+      const currentSession = await getChatSessionState(organizationId, chatId);
+      if (currentSession && currentSession.deletedAt === null) {
+        return NextResponse.json(
+          {
+            error: "Chat changed while sending. Reload the chat and try again.",
+          },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }
 
@@ -315,6 +328,7 @@ export const POST = withEvlog(async function POST(
         validatedIntegrations,
         useMarkup,
         chargeAiCredits,
+        codeResearch,
         requestId,
         log,
         model: parseResult.data.model,
@@ -399,6 +413,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations,
   useMarkup,
   chargeAiCredits,
+  codeResearch,
   requestId,
   log,
   model,
@@ -420,6 +435,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations: ValidatedIntegration[];
   useMarkup: boolean;
   chargeAiCredits: boolean;
+  codeResearch: boolean;
   requestId: string;
   log: ReturnType<typeof getLogger>;
   model?: string;
@@ -467,6 +483,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
       },

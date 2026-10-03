@@ -1,3 +1,4 @@
+import type { IconSvgElement } from "@hugeicons/react";
 import type { SupportedLanguage } from "@notra/ai/constants/languages";
 import type { ToneProfile } from "@notra/ai/schemas/tone";
 import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
@@ -231,3 +232,15 @@ export interface AudienceFieldProps {
 }
 
 export type StepIconState = "pending" | "active" | "completed";
+
+export interface GuidelinesStatusLineProps {
+  generating: boolean;
+  lastGeneratedAt: string | null;
+}
+
+export interface GuidelinesActionButtonProps {
+  busy: boolean;
+  icon: IconSvgElement;
+  label: string;
+  onClick: () => void;
+}

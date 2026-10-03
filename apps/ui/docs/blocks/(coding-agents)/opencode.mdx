@@ -1,0 +1,39 @@
+---
+title: OpenCode
+description: A recreation of an OpenCode terminal session with a transcript, the prompt and the sidebar.
+---
+
+A rebuild of a session in the OpenCode terminal UI, composed from the [OpenCode components](/components/opencode/window). It's a working chat: type a prompt and press Enter, and OpenCode thinks, runs its tools and writes the reply while the status row shows the scanner. Press Escape to interrupt the turn. The transcript sticks to the bottom like a terminal and the sidebar shows from the `md` breakpoint up.
+
+<Component path="opencode/examples/opencode-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/opencode
+```
+
+This adds every OpenCode component to `components/opencode` along with the demo session and the `useOpencodeChat` hook. The hook starts from the finished turns you pass it and answers each prompt with the next scripted reply from `OPENCODE_REPLIES`. Pass `chat.busy`, `chat.send` and `chat.stop` to `OpencodeComposer` as `busy`, `onSend` and `onStop`, and replace the hook with your agent's stream to run a real session.
+
+The components use the system monospace stack through `font-opencode`. Point it at your own mono font to change it. Spacing is measured in terminal cells, `ch` across and `lh` down, so it follows the font.
+
+## Layout
+
+`OpencodeWindow` is a shadcn `Card`. The demo splits it with a CSS grid into the transcript column and an `OpencodeSidebar`. The transcript scrolls in an `OpencodeScrollArea`, a Base UI scroll area with a square terminal scrollbar, and opens on the latest turn. `OpencodeComposer` sits under it.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup` and `Kbd`, and the CLI installs any you're missing.
+
+Its colors are `--opencode-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-opencode-panel` and `text-opencode-blue`. They ship with values from OpenCode's light and dark themes, so the window follows your app's theme. Change the tokens in your CSS to retheme it:
+
+```css
+:root {
+  --opencode-bg: #090909;
+  --opencode-blue: var(--primary);
+}
+```
+
+## Trademarks
+
+OpenCode is a trademark of its respective owner. Notra is not affiliated with or endorsed by the OpenCode project. See [Trademarks](/trademarks).

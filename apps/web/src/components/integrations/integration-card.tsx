@@ -1,9 +1,9 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import {
   buildAuthorCategoryLine,
   buildCardMeta,
-  getIntegrationHref,
+  getIntegrationSlug,
 } from "@/lib/integrations/helpers";
 import type { IntegrationCardProps } from "@/types/integrations";
 
@@ -23,7 +23,15 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
       <Link
         aria-label={`View ${integration.name} details`}
         className="focus-visible:ring-primary absolute inset-0 z-0 cursor-pointer rounded-[1.25rem] outline-none focus-visible:ring-2"
-        href={getIntegrationHref(integration)}
+        mask={{
+          to: "/integrations/$id",
+          params: { id: getIntegrationSlug(integration) },
+        }}
+        search={(prev) => ({
+          ...prev,
+          integration: getIntegrationSlug(integration),
+        })}
+        to="/integrations"
       />
       <div className="pointer-events-none relative z-10 flex flex-col gap-3">
         <div className="flex items-center justify-between">

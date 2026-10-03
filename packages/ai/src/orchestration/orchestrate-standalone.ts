@@ -1,3 +1,4 @@
+import { CODE_RESEARCHER_TOOL_NAME } from "@notra/ai/constants/code-research";
 import { getEnabledMcpServerCount } from "@notra/ai/integrations/mcp-tool-index";
 import { createModel } from "@notra/ai/model";
 import { getStandaloneChatPrompt } from "@notra/ai/prompts/standalone-chat";
@@ -141,6 +142,8 @@ export async function orchestrateStandaloneChat(
       chatId,
       userId,
       useMarkup,
+      chargeAiCredits: input.chargeAiCredits,
+      codeResearch: input.codeResearch,
       validatedIntegrations,
       postResult,
     },
@@ -194,6 +197,7 @@ export async function orchestrateStandaloneChat(
     mcpContext,
     toolDescriptions: descriptions,
     hasGitHubEnabled: hasGitHubToolsActive,
+    hasCodeResearch: CODE_RESEARCHER_TOOL_NAME in baseToolSet.tools,
     hasLinearEnabled: hasLinearToolsActive,
     hasMcpEnabled: hasMcp,
     timezone,

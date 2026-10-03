@@ -11,7 +11,6 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -166,14 +165,11 @@ export function OrganizationsSection() {
 
   if (isOrganizationListLoading) {
     return (
-      <TitleCard
-        className="lg:col-span-2"
-        heading={tCommon("labels.organizations")}
-      >
-        <div className="space-y-3">
+      <TitleCard heading={tCommon("labels.organizations")}>
+        <div className="divide-y">
           {[1, 2, 3].map((i) => (
             <div
-              className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+              className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
               key={i}
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -199,7 +195,7 @@ export function OrganizationsSection() {
       <div className="space-y-4">
         <p className="text-muted-foreground text-sm">{t("description")}</p>
 
-        <div className="space-y-3">
+        <div className="divide-y">
           {organizations.map((org) => {
             const isActive = activeOrganization?.id === org.id;
             const ownedOrg = ownedOrganizationsById.get(org.id);
@@ -218,7 +214,7 @@ export function OrganizationsSection() {
 
             return (
               <div
-                className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+                className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                 key={org.id}
               >
                 <div className="flex min-w-0 items-center gap-3">
@@ -272,19 +268,13 @@ export function OrganizationsSection() {
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
                   {!isActive && (
                     <Button
-                      disabled={isSwitching === org.id}
+                      loading={isSwitching === org.id}
                       onClick={() => switchOrganization(org)}
                       size="sm"
                       variant="outline"
                     >
-                      {isSwitching === org.id ? (
-                        <LoaderCircle className="size-4 animate-spin" />
-                      ) : (
-                        <>
-                          <HugeiconsIcon icon={ViewIcon} size={16} />
-                          {t("view")}
-                        </>
-                      )}
+                      <HugeiconsIcon icon={ViewIcon} size={16} />
+                      {t("view")}
                     </Button>
                   )}
 
@@ -296,18 +286,12 @@ export function OrganizationsSection() {
                       organizationName={org.name}
                       trigger={
                         <Button
-                          disabled={isProcessingOrgAction === org.id}
+                          loading={isProcessingOrgAction === org.id}
                           size="sm"
                           variant="destructive"
                         >
-                          {isProcessingOrgAction === org.id ? (
-                            <LoaderCircle className="size-4 animate-spin" />
-                          ) : (
-                            <>
-                              <HugeiconsIcon icon={Logout02Icon} size={16} />
-                              {actionLabel}
-                            </>
-                          )}
+                          <HugeiconsIcon icon={Logout02Icon} size={16} />
+                          {actionLabel}
                         </Button>
                       }
                     />

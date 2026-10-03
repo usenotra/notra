@@ -8,11 +8,11 @@
       },
       "sections": {
         "account": {
-          "description": "Profil, Anmeldung und Datenschutz"
+          "description": "Profil, Login und verbundene Konten"
         },
         "appearance": {
-          "label": "Darstellung",
-          "description": "Heller, dunkler oder System-Modus"
+          "label": "Einstellungen",
+          "description": "Design, Sprache, Chat und Datenschutz"
         },
         "general": {
           "label": "Allgemein",
@@ -40,6 +40,9 @@
         "credits": {
           "description": "KI-Credit-Guthaben und Aufladungen"
         },
+        "webhooks": {
+          "description": "Endpunkte und Zustellverlauf"
+        },
         "logs": {
           "description": "Integrations-Events"
         },
@@ -58,8 +61,8 @@
     "modal": {
       "close": "Einstellungen schließen",
       "descriptions": {
-        "account": "Verwalte dein Profil und deine Kontoeinstellungen",
-        "appearance": "Wähle, wie Notra auf diesem Gerät aussieht",
+        "account": "Verwalte dein Profil und deinen Login",
+        "appearance": "Lege fest, wie Notra für dich aussieht und sich verhält",
         "general": "Verwalte die Einstellungen deiner Organisation",
         "members": "Verwalte, wer Zugriff auf diese Organisation hat",
         "notifications": "Konfiguriere E-Mail-Benachrichtigungen für deine Organisation",
@@ -68,6 +71,7 @@
         "usage": "Sieh dir verbleibende Kontingente und die Nutzung im Zeitverlauf an",
         "usage-alerts": "Konfiguriere Warnungen für Nutzung und Restguthaben",
         "credits": "Behalte dein KI-Credit-Guthaben und deine Nutzung im Blick",
+        "webhooks": "Verbinde deine Workflows und prüfe jede Zustellung",
         "logs": "Sieh dir Integrations-Events und ihren Zustellstatus an",
         "dev": "Nur in der Entwicklung verfügbare Tools zum Testen lokaler Abläufe",
         "geo-languages": "Sprachen, in denen deine Prompts gescannt werden",
@@ -164,6 +168,80 @@
         "resetFilters": "Filter zurücksetzen",
         "emptyTitle": "Noch keine Aktivität",
         "emptyDescription": "Events aus Integrationen, Automatisierungen, GEO-Scans und Syncs erscheinen hier, sobald sie laufen."
+      },
+      "webhooks": {
+        "period": "Letzte 30 Tage",
+        "refresh": "Webhook-Aktivität aktualisieren",
+        "addEndpoint": "Endpunkt hinzufügen",
+        "views": "Webhook-Ansichten",
+        "deliveries": "Zustellungen",
+        "endpoints": "Endpunkte",
+        "toasts": {
+          "retryQueued": "Zustellung wird erneut versucht",
+          "endpointRemoved": "Endpunkt entfernt"
+        },
+        "metrics": {
+          "total": "Zustellungen",
+          "succeeded": "Zugestellt",
+          "active": "Läuft",
+          "failed": "Fehlgeschlagen"
+        },
+        "statuses": {
+          "all": "Alle Status",
+          "succeeded": "Zugestellt",
+          "failed": "Fehlgeschlagen",
+          "retrying": "Neuer Versuch",
+          "pending": "Ausstehend",
+          "sending": "Wird gesendet",
+          "cancelled": "Abgebrochen"
+        },
+        "columns": {
+          "event": "Event und Ziel",
+          "response": "Antwort",
+          "attempts": "Versuche"
+        },
+        "filterLabel": "Zustellungen nach Status filtern",
+        "empty": {
+          "allTitle": "Hier tauchen deine Events auf",
+          "allDescription": "Füg einen Endpunkt hinzu und generier dann einen Post. Jede Zustellung und jeder neue Versuch landet hier.",
+          "filteredTitle": "Keine Zustellungen mit diesem Status",
+          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen."
+        },
+        "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
+        "endpointsEmpty": {
+          "title": "Verbinde deinen ersten Endpunkt",
+          "description": "Wähl aus, welche Events an deinen Workflow gehen."
+        },
+        "create": {
+          "readyTitle": "Dein Endpunkt ist bereit",
+          "title": "Endpunkt hinzufügen",
+          "readyDescription": "Kopier dir das Signing Secret jetzt. Du siehst es danach nicht mehr.",
+          "description": "Schick Notra-Events an jeden öffentlichen HTTPS-Endpunkt.",
+          "secret": "Signing Secret",
+          "copySecret": "Signing Secret kopieren",
+          "secretCopied": "Signing Secret kopiert",
+          "secretHint": "Prüf mit diesem Secret die Signatur jeder Anfrage, bevor du sie verarbeitest.",
+          "url": "Endpunkt-URL",
+          "events": "Events",
+          "submit": "Endpunkt erstellen"
+        },
+        "details": {
+          "title": "Zustelldetails",
+          "description": "Jeder Versuch, vom ersten Senden bis zur letzten Antwort.",
+          "history": "Versuchsverlauf",
+          "retention": "Wir speichern den Zustellverlauf 30 Tage lang.",
+          "retry": "Zustellung wiederholen",
+          "queueing": "Wird eingereiht…",
+          "destination": "Ziel",
+          "eventId": "Event-ID",
+          "deliveryId": "Zustell-ID",
+          "nextAttempt": "Nächster Versuch",
+          "queued": "In der Warteschlange. Der erste Versuch hat noch nicht angefangen.",
+          "attempt": "Versuch {number}",
+          "inFlight": "Sendet",
+          "payload": "Request-Payload",
+          "payloadCopied": "Payload kopiert"
+        }
       }
     },
     "logs": {
@@ -578,7 +656,6 @@
       "received": "Empfangen {time}",
       "via": "über",
       "inspect": "Sieh dir dieses Feedback an.",
-      "labels": "Labels",
       "statusLabel": "Feedback-Status",
       "message": "Nachricht",
       "metadata": "Metadaten",
@@ -587,7 +664,12 @@
         "externalId": "Externe ID",
         "contextUrl": "Kontext-URL",
         "userAgent": "User-Agent"
-      }
+      },
+      "resolve": "Als gelöst markieren",
+      "reopen": "Wieder öffnen",
+      "unarchive": "Wiederherstellen",
+      "field": "Feld",
+      "value": "Wert"
     },
     "empty": {
       "title": "Dein Feedback-Postfach ist leer",
@@ -612,9 +694,27 @@
       "received": "Empfangen"
     },
     "table": {
-      "empty": "Kein Feedback passt zu diesem Filter",
       "viewDetails": "Details ansehen",
-      "setStatus": "Status setzen"
+      "setStatus": "Status setzen",
+      "filterEmpty": {
+        "new": {
+          "title": "Alles erledigt",
+          "description": "Neues Feedback von Agents landet zuerst hier."
+        },
+        "triaged": {
+          "title": "Nichts gesichtet",
+          "description": "Feedback, das du dir angesehen, aber noch nicht gelöst hast, erscheint hier."
+        },
+        "resolved": {
+          "title": "Noch nichts gelöst",
+          "description": "Feedback, das du als gelöst markierst, erscheint hier."
+        },
+        "archived": {
+          "title": "Nichts archiviert",
+          "description": "Archiviere Feedback, um es aus deinem Posteingang zu nehmen, ohne es zu löschen."
+        }
+      },
+      "showAll": "Alles Feedback anzeigen"
     },
     "page": {
       "description": "Was KI-Agents über dein Produkt sagen."
@@ -785,6 +885,10 @@
       "conversationRunFailed": "Der Konversationslauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "personaRunFailed": "Der Persona-Lauf ist fehlgeschlagen. Bitte versuche es erneut.",
       "trackingSettingsRejected": "Das kann mit deinen aktuellen Tracking-Einstellungen nicht hinzugefügt werden",
+      "translationLimit": "In dieser Sprache werden schon {limit} Prompts gescannt. Entferne zuerst einen.",
+      "translationLast": "Jede Sprache scannt mindestens einen Prompt. Um sie nicht mehr zu scannen, entferne die Sprache.",
+      "translationDeferred": "Übersetzungen sind gerade nicht möglich. Sie werden beim nächsten Scan erstellt.",
+      "translationUnavailable": "Dieser Prompt wird in dieser Sprache nicht gescannt.",
       "websiteDiscoveryFailed": "Wir konnten diese Website nicht analysieren. Prüfe die URL und versuche es erneut.",
       "writerPlanFailed": "Der Inhaltsplan konnte nicht erstellt oder gespeichert werden. Bitte versuche es erneut.",
       "promptAlreadyTracked": "Dieser Prompt wird bereits getrackt",
@@ -1000,8 +1104,7 @@
     },
     "accountMenu": {
       "label": "Kontomenü",
-      "description": "Verwalte deine Sitzung, bevor du einen Tarif wählst.",
-      "signingOut": "Wird abgemeldet…"
+      "description": "Verwalte deine Sitzung, bevor du einen Tarif wählst."
     },
     "competitorSearch": {
       "unavailable": "Suche nicht verfügbar",
@@ -1064,25 +1167,33 @@
     "visibility": {
       "metaTitle": "Tracke deine KI-Sichtbarkeit",
       "brandName": "Markenname",
+      "brandNameRequired": "Gib deinen Markennamen ein, um fortzufahren.",
       "brandNamePlaceholder": "Acme",
       "questionsFrom": "Fragen von {host} <muted>({selected} von {total})</muted>",
       "questions": "Fragen <muted>({selected} von {total})</muted>",
       "skipStep": "Diesen Schritt überspringen",
-      "description": "Wir fragen ChatGPT, Claude, Gemini und Perplexity, was deine Käufer sie fragen, und prüfen, ob du genannt wirst.",
+      "description": "Notra ist ein modernes GEO-Tool, das ChatGPT, Claude und Gemini die Fragen deiner Käufer stellt. Sieh, ob du in den Antworten vorkommst, wer stattdessen genannt wird und wie du das ändern kannst.",
       "title": "Sieh, was KI über dich sagt",
       "reading": "{host} wird gelesen. Das dauert etwa 20 Sekunden.",
-      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein."
+      "readFailed": "{host} konnte nicht gelesen werden. Prüfe die Adresse oder gib unten einfach deinen Markennamen ein.",
+      "languagesHint": "Fragen werden auf {language} geschrieben. Weitere Sprachen übersetzen wir beim Scan."
     },
     "pricing": {
       "freeTrial": "Kostenlose Testphase",
       "startFreeTrial": "Kostenlos testen",
-      "getStarted": "Loslegen",
+      "selectPlan": "Tarif {plan} auswählen",
       "title": "Wähle deinen Tarif",
       "description": "Nutze Feedback kostenlos oder upgrade für KI-Inhalte und Sichtbarkeits-Tracking.",
       "continueFree": "Mit kostenlosem Feedback fortfahren",
       "renews": "{interval, select, year {Dein Tarif verlängert sich jedes Jahr automatisch, bis du kündigst.} other {Dein Tarif verlängert sich jeden Monat automatisch, bis du kündigst.}}"
     },
     "workspace": {
+      "slugStatus": {
+        "checking": "Slug-Verfügbarkeit wird geprüft",
+        "available": "Slug ist verfügbar",
+        "unavailable": "Slug ist bereits vergeben",
+        "error": "Slug-Verfügbarkeit konnte nicht geprüft werden"
+      },
       "validation": {
         "checkField": "Bitte prüfe dieses Feld",
         "websiteInvalid": "Bitte gib eine gültige öffentliche Website-URL ein (z. B. https://example.com)",
@@ -1281,6 +1392,7 @@
       },
       "typography": {
         "title": "Typografie",
+        "previewUnavailable": "Google-gehostete Vorschau nicht verfügbar; eine lokal installierte Schrift oder Systemschrift wird angezeigt.",
         "weight": "Stärke {value}",
         "size": "Größe {value}",
         "lineHeight": "Zeilenhöhe {value}"
@@ -1500,7 +1612,6 @@
           "amountLabel": "Anzahl der zu importierenden Beiträge:",
           "maxTooltip": "Maximal 20 Beiträge pro Import",
           "noAccountsDescription": "Verbinde ein X-Konto, um aktuelle Beiträge zu importieren.",
-          "importing": "Wird importiert…",
           "importedLabel": "Importiert",
           "connect": "X-Konto verbinden",
           "connectAnother": "Weiteres X-Konto verbinden"
@@ -1573,7 +1684,6 @@
     "create": {
       "description": "Ein Skill ist ein wiederverwendbarer Prompt, den deine Agenten zur Laufzeit laden.",
       "quickstart": "Schnellstart",
-      "importing": "Wird importiert",
       "quickstartHint": "Füge einen skills.sh-Link ein, um einen Skill zu importieren.",
       "quickstartErrors": {
         "unsupportedHost": "Nur skills.sh-Links werden unterstützt.",
@@ -1602,8 +1712,13 @@
       }
     },
     "table": {
-      "noSearchResults": "Keine Skills passen zu deiner Suche.",
-      "emptyView": "In dieser Ansicht gibt es noch keine Skills."
+      "noSearchResults": "Keine Skills passen zu deiner Suche."
+    },
+    "sort": {
+      "label": "Skills sortieren",
+      "ascending": "aufsteigend",
+      "descending": "absteigend",
+      "selected": "{field}, {direction}"
     },
     "shared": {
       "createSkill": "Skill erstellen"
@@ -1954,6 +2069,7 @@
       "acmeIncSlug": "acme-gmbh",
       "clearSearch": "Suche leeren",
       "usageAlerts": "Nutzungswarnungen",
+      "webhooks": "Webhooks",
       "regenerate": "Neu generieren",
       "nameLogo": "{name}-Logo",
       "loading": "Wird geladen…",
@@ -2093,7 +2209,6 @@
       "you": "(Du)",
       "removeCount": "Entfernen ({count})",
       "playingAgainstTheEngines": "Wird mit den KI-Engines durchgespielt…",
-      "multiTurnQuestionsWhereBuying": "Mehrstufige Fragen, bei denen Kaufentscheidungen fallen",
       "span": "Dauer",
       "noAgentJourneysCapturedYet": "Noch keine Agent-Journeys erfasst",
       "agentJourneys": "Agent-Journeys",
@@ -2291,25 +2406,7 @@
       "exactExcerpt": "Exakter Auszug: "
     },
     "brandSentimentCard": {
-      "scoreHint": "Von KI bewertete Tonalität gegenüber deiner Marke, von 0 bis 100. Positive Erwähnungen zählen 100, neutrale 50 und negative 0. Nur englische Single-Turn-Antworten. Unbekannte Labels und Nicht-Erwähnungen werden ausgeschlossen. Das ist ein beschreibender Score, keine Konfidenz und kein Prozentwert.",
-      "loadingThemes": "Themen werden geladen…",
-      "noThemes": "Keine Themen gefunden",
-      "runAnalysis": "Starte eine Analyse, um Themen zu finden",
-      "polarityShare": {
-        "positive": "{share} positiv",
-        "neutral": "{share} neutral",
-        "negative": "{share} negativ"
-      },
-      "cta": {
-        "positive": "Sieh dir an, was in gespeicherten Antworten funktioniert.",
-        "negative": "Erkenne, was schadet, bevor es sich verbreitet."
-      },
-      "analysisStatus": {
-        "stalePrevious": "Vorherige Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
-        "failedPrevious": "Analyse fehlgeschlagen. Vorherige Themen werden angezeigt.",
-        "failedRetry": "Analyse fehlgeschlagen. Versuch es noch einmal.",
-        "unavailable": "Die Themenanalyse ist nicht verfügbar."
-      }
+      "scoreHint": "Von KI bewertete Tonalität gegenüber deiner Marke, von 0 bis 100. Positive Erwähnungen zählen 100, neutrale 50 und negative 0. Nur englische Single-Turn-Antworten. Unbekannte Labels und Nicht-Erwähnungen werden ausgeschlossen. Das ist ein beschreibender Score, keine Konfidenz und kein Prozentwert."
     },
     "citationsTable": {
       "showDetails": "{title}, Details anzeigen",
@@ -2361,9 +2458,6 @@
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"
     },
-    "competitorShareCard": {
-      "description": "Dein Anteil an KI-Erwähnungen im Vergleich zu anderen Marken."
-    },
     "competitorsTable": {
       "nounSingular": "Wettbewerber",
       "nounPlural": "Wettbewerber",
@@ -2371,13 +2465,8 @@
       "removeDescriptionOne": "„{name}“ wird in GEO-Scans nicht mehr hervorgehoben. Bisherige Erwähnungen bleiben in deinen Ergebnissen.",
       "filterLabel": "Wettbewerber nach Name filtern",
       "filterPlaceholder": "Nach Name filtern…",
-      "typeFilters": {
-        "all": "Alle Arten",
-        "allDescription": "Alle getrackten Wettbewerber",
-        "directDescription": "Verkauft, was du verkaufst",
-        "indirectDescription": "Löst dasselbe Problem auf andere Weise"
-      },
-      "empty": "Keine Wettbewerber entsprechen diesen Filtern"
+      "empty": "Keine Wettbewerber entsprechen diesen Filtern",
+      "title": "Getrackte Wettbewerber"
     },
     "conversationBuilderDialog": {
       "description": "Eine echte Unterhaltung mit Käufern: eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden. Jede Runde wird auf deine Marke geprüft.",
@@ -2407,7 +2496,12 @@
       "deleteNamed": "{name} löschen",
       "generate": "Generieren",
       "emptyGenerating": "Unterhaltungen für deine Käufer werden geschrieben…",
-      "empty": "Tracke eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden, oder generiere ein paar zum Start"
+      "empty": "Tracke eine Einstiegsfrage und die Folgefragen, die über den Kauf entscheiden, oder generiere ein paar zum Start",
+      "run": "Ausführen",
+      "moreActions": "Weitere Aktionen für {name}",
+      "turnsCount": "{count, plural, one {# Runde} other {# Runden}}",
+      "intro": "Unterhaltungen über mehrere Runden, die einen Käufer von der ersten Frage bis zur Entscheidung begleiten",
+      "emptyTitle": "Noch keine Unterhaltungen"
     },
     "directions": {
       "labels": {
@@ -2483,19 +2577,14 @@
       }
     },
     "engineFamilySheet": {
+      "missedTitle": "{count, plural, one {# Prompt erwähnt dich nicht} other {# Prompts erwähnen dich nicht}}",
+      "foundTitle": "{count, plural, one {# Prompt zeigt dich} other {# Prompts zeigen dich}}",
+      "trend": "Sichtbarkeit im Verlauf",
       "descriptionModels": "Wie sichtbar deine Marke in jedem Modell ist",
       "descriptionEngine": "Wie sichtbar deine Marke in dieser KI-Engine ist",
       "lastChecked": "Zuletzt geprüft {time}",
-      "modes": {
-        "memory": "Ohne Suche"
-      },
-      "seriesLabel": "Markensichtbarkeit · {mode}",
-      "answerMode": "Antwortmodus",
+      "seriesLabel": "Markensichtbarkeit",
       "brandsHint": "Wie oft jede Marke in den Antworten dieser KI-Engine auf deine Prompts auftaucht",
-      "result": {
-        "miss": "Verfehlt"
-      },
-      "promptsCount": "Prompts ({count, number})",
       "resultHeader": "Ergebnis",
       "emptyPrompts": "Noch keine Prompts gescannt"
     },
@@ -2519,27 +2608,6 @@
       "empty": "Starte einen Scan, um die Erwähnungsraten der KI-Engines zu sehen",
       "emptySeed": "Erwähnungsrate nach KI-Engine",
       "noMatches": "Keine KI-Engines entsprechen diesem Filter"
-    },
-    "familyImproveCard": {
-      "closeGaps": "Diese Lücken schließen",
-      "insights": {
-        "searchAhead": {
-          "title": "Die Suche findet dich. Das Gedächtnis nicht.",
-          "body": "Wenn {family} im Web sucht, erwähnt es dich in {search} der Antworten. Ohne Suche sind es {memory}. Seiten, die {count, plural, one {den verpassten Prompt} other {die # verpassten Prompts}} beantworten, helfen der Suche, dich weiter zu zitieren."
-        },
-        "memoryAhead": {
-          "title": "Bekannt, aber nicht gefunden.",
-          "body": "{family} nennt dich schon ohne Suche ({memory}), aber die Live-Suche erwähnt dich nur in {search} der Antworten. Seiten, die zu {count, plural, one {dem verpassten Prompt} other {den # verpassten Prompts}} passen, schließen diese Lücke."
-        },
-        "closing": {
-          "title": "{count, plural, one {# Prompt verpasst dich noch} other {# Prompts verpassen dich noch}}",
-          "body": "{family} erwähnt dich schon oft. Die restlichen Lücken zu schließen ist der schnellste Weg, die Rate zu erhöhen."
-        },
-        "bothWeak": {
-          "title": "{count, plural, one {# Prompt erwähnt dich nie} other {# Prompts erwähnen dich nie}}",
-          "body": "Weder Suche noch Gedächtnis empfehlen dich bei diesen Fragen. Schreib die Seiten, die sie beantworten."
-        }
-      }
     },
     "gapDetailSheet": {
       "coverage": "Erwähnt von {visible} von {total} KI-Engines",
@@ -2569,8 +2637,11 @@
         "mentioned": "Erwähnt dich",
         "searched": "Hat diese Suche ausgeführt"
       },
-      "searchQueriesCount": "{count, plural, one {# Suchanfrage} other {# Suchanfragen}}",
       "empty": {
+        "preparing": {
+          "title": "Inhaltslücken werden vorbereitet",
+          "description": "Such- und Scan-Ergebnisse werden aufbereitet. Schau gleich noch einmal vorbei."
+        },
         "scanning": {
           "title": "KI-Engines werden gescannt",
           "description": "Lücken erscheinen hier, sobald der Scan abgeschlossen ist."
@@ -2582,14 +2653,9 @@
           "title": "Keine Prompt-Lücken",
           "description": "KI-Engines erwähnen dich bereits bei den Fragen, die du trackst."
         },
-        "noAiSearchGaps": {
-          "title": "Keine KI-Suchlücken",
-          "description": "Bei keiner Suche, die KI-Engines in deinen Scans ausgeführt haben, fehlst du bisher."
-        },
         "noSearchGaps": {
           "title": "Keine Suchlücken",
-          "description": "Verbinde die Search Console unter Prompts, um Suchanfragen abzurufen, die du noch nicht abdeckst.",
-          "action": "Prompts öffnen"
+          "description": "Search Console und KI-Scans haben noch keine unbesetzten Suchanfragen gefunden."
         },
         "noMatches": {
           "title": "Keine passenden Lücken",
@@ -2597,10 +2663,10 @@
         }
       },
       "gapType": "Lückentyp",
+      "openSearchGap": "Details zu {query} öffnen",
       "tabs": {
         "prompt": "Prompt-Lücken",
-        "search": "Suchlücken",
-        "ai": "KI-Suchlücken"
+        "search": "Suchlücken"
       },
       "filterLabel": "Inhaltslücken filtern",
       "filterPlaceholder": "Lücken filtern…",
@@ -2612,19 +2678,14 @@
       "columns": {
         "opportunity": "Potenzial",
         "visibleOn": "Sichtbar auf",
-        "sourceQuestion": "Ausgangsfrage",
+        "searchQuery": "Suchanfrage",
         "action": "Aktion",
-        "aiSearch": "KI-Suche",
-        "searches": "Suchen",
-        "searchedBy": "Gesucht von"
-      },
-      "hints": {
-        "impressions": "Google-Search-Impressionen insgesamt über alle Suchanfragen dieser Lücke.",
-        "recommendation": "Empfohlener nächster Schritt basierend auf Suchnachfrage und Überschneidung mit deinen bestehenden Inhalten.",
-        "searches": "Scan-Antworten, in denen eine KI-Engine diese Websuche ausgeführt hat."
+        "searches": "KI-Suchen"
       },
       "aiSearched": "KI suchte: {queries}",
-      "aiSearchSubtitle": "{more, plural, =0 {Aus „{prompt}“} other {Aus „{prompt}“ und # weiteren}}"
+      "aiSearchSubtitle": "{more, plural, =0 {Aus „{prompt}“} other {Aus „{prompt}“ und # weiteren}}",
+      "moreActions": "Weitere Aktionen für {query}",
+      "openAiDraft": "KI-Suchentwurf öffnen"
     },
     "geoAnswerActions": {
       "copy": "Antwort kopieren",
@@ -2701,12 +2762,27 @@
       "proxyTitle": "Proxy hinzufügen",
       "framework": "Framework"
     },
+    "promptTranslations": {
+      "title": "Übersetzungen",
+      "count": "{count}/{limit}",
+      "scanIn": "Auf {language} scannen",
+      "translationIn": "Übersetzung auf {language}",
+      "full": "Auf {language} werden schon {limit} Prompts gescannt. Schalte einen aus, um diesen hinzuzufügen.",
+      "last": "Auf {language} wird mindestens ein Prompt gescannt. Entferne die Sprache, um sie nicht mehr zu scannen.",
+      "translating": "Wird übersetzt…",
+      "translatedOnScan": "Wird beim nächsten Scan übersetzt",
+      "edit": "Bearbeiten",
+      "reset": "Zurücksetzen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
     "geoLanguagePicker": {
       "description": "{language} ist standardmäßig aktiv. Scanne bis zu {max} Sprachen.",
       "add": "Sprache hinzufügen",
       "limitReached": "Sprachlimit erreicht",
       "noMatches": "Keine passenden Sprachen",
-      "remove": "{language} entfernen"
+      "remove": "{language} entfernen",
+      "locked": "Prompts sind in dieser Sprache geschrieben, deshalb bleibt sie getrackt."
     },
     "geoPromptAnswerSkeleton": {
       "loading": "Antwort wird geladen"
@@ -2764,7 +2840,7 @@
       "automaticScans": "Automatische Scans"
     },
     "geoSettingsForm": {
-      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.{severity, select, warn { Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.} danger { Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.} other {}}",
+      "scanSize": "Etwa {count, number} Checks pro Scan, inklusive Websuche-Checks und Gesprächsrunden.",
       "description": "Wie deine Marke erkannt wird und wo Prompts gescannt werden.",
       "brand": {
         "companyNameHint": "Der Hauptname, nach dem wir in Antworten suchen.",
@@ -2782,7 +2858,7 @@
         "description": "Pfade, die als Conversion zählen, wenn ein KI-Verweis sie erreicht, zum Beispiel /signup oder /pricing. Präfix-Abgleich; /pricing zählt auch /pricing/teams."
       },
       "languages": {
-        "description": "Sprachen, in denen deine Prompts gescannt werden. Englisch ist standardmäßig aktiv."
+        "description": "Sprachen, in denen deine Prompts gescannt werden. Die Prompts sind auf {language} geschrieben, weitere Sprachen werden übersetzt."
       },
       "models": {
         "description": "Jeder aktivierte Anbieter führt jeden Prompt in der Häufigkeit aus, die du hier festlegst."
@@ -2903,7 +2979,7 @@
       "generate": "Persona generieren"
     },
     "personaDetailDialog": {
-      "running": "Läuft…",
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "viewAria": "Ansicht",
       "views": {
         "profile": "Profil"
@@ -2911,10 +2987,11 @@
       "scanHistory": "Scan-Verlauf der Persona",
       "latestScan": "Neuester · {time}",
       "emptyTitle": "Noch keine Unterhaltung",
-      "emptyDescription": "Personas sprechen während eines Scans mit jeder KI-Engine.",
+      "emptyDescription": "Personas sprechen bei jedem Scan mit allen Engines. Starte jetzt einen, um diese Unterhaltung zu sehen.",
       "pausedDescription": "Diese Persona ist pausiert. Nimm sie in Scans auf, um eine Unterhaltung zu starten.",
-      "waitingForScan": "Scan läuft. Die Unterhaltung dieser Persona erscheint, sobald die Ergebnisse bereit sind.",
-      "loadingConversation": "Unterhaltung wird geladen…"
+      "pausedTitle": "Persona pausiert",
+      "scanningTitle": "Scan läuft…",
+      "scanningDescription": "Diese Persona spricht gerade mit deinen Engines. Die Unterhaltung erscheint hier, sobald die Antworten da sind."
     },
     "personaProfileEditor": {
       "savePersona": "Persona speichern",
@@ -2947,10 +3024,10 @@
       "title": "Unterhaltungs-Prompts",
       "description": "Jede KI-Engine erhält genau diese Nachrichten in derselben Reihenfolge. Sie werden aus Profil und Erinnerungen der Persona generiert.",
       "message": "Nachricht {number}",
-      "emptyDescription": "Diese Persona ist von neuen Scans ausgeschlossen, bis feste Prompts aus ihrem aktuellen Profil und ihren Erinnerungen generiert wurden.",
-      "generating": "Prompts werden generiert…"
+      "emptyDescription": "Diese Persona ist von neuen Scans ausgeschlossen, bis feste Prompts aus ihrem aktuellen Profil und ihren Erinnerungen generiert wurden."
     },
     "personaTableActions": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "reactivate": "Persona reaktivieren",
       "restoreLimit": "Du kannst bis zu {max} aktive Personas haben. Archiviere eine, bevor du diese reaktivierst.",
       "waitForAction": "Warte, bis die aktuelle Persona-Aktion abgeschlossen ist.",
@@ -2967,7 +3044,7 @@
       "counts": "({active} aktiv{archived, plural, =0 {} other { · # archiviert}})",
       "memoriesHint": "Hintergrundfakten und Präferenzen, aus denen die festen Prompts dieser Persona generiert werden",
       "maxMessages": "Max. Nachrichten",
-      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten",
+      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten. Jede Antwort zählt als {multiplier} KI-Antworten.",
       "empty": "Noch keine Personas. Generiere ein Set, damit sie während der Scans deine Kategorie recherchieren",
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",
@@ -2986,19 +3063,17 @@
       "placeholder": "Identität wählen",
       "usesExisting": "Verwendet die bestehende Identität und Website: {url}",
       "multipleMatches": "Mehrere Identitäten nutzen diese Website. Wähle eine für dieses Projekt.",
-      "willCreateNamed": "Wir erstellen eine Markenidentität namens {name} und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "willCreateUnnamed": "Wir erstellen eine Markenidentität mit dem Namen dieses Projekts und analysieren diese Website, um sie zu befüllen. Die Analyse läuft im Hintergrund.",
-      "articlesNote": "Neue Artikel verwenden die Projektidentität. Für einzelne Artikel kannst du eine andere Identität wählen."
+      "willCreateNamed": "Erstellt die Markenidentität {name} aus dieser Website.",
+      "willCreateUnnamed": "Erstellt eine Markenidentität aus dieser Website."
     },
     "projectCreateDialog": {
-      "description": "Beginne mit der Website, die du tracken möchtest. Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
+      "description": "Wir finden Wettbewerber, erstellen Prompts und starten den ersten Scan.",
       "nameLabel": "Projektname",
       "invalidInput": "Gib eine gültige Website und einen Projektnamen ein.",
       "chooseIdentity": "Wähle eine Markenidentität für diese Website, bevor du fortfährst.",
       "analysisFailed": "Projekt erstellt, aber die Markenanalyse konnte nicht starten. Versuch es unter Markenidentität noch einmal.",
       "loadIdentitiesFailed": "Markenidentitäten konnten nicht geladen werden.",
       "identitySaved": "Die Markenidentität wurde gespeichert. Wenn du es noch einmal versuchst, verwenden wir sie wieder und starten die Analyse, sobald das Projekt existiert. Du kannst sie auch unter Markenidentität verwalten.",
-      "settingUp": "Projekt wird eingerichtet",
       "create": "Projekt erstellen"
     },
     "projectDeleteSection": {
@@ -3035,9 +3110,14 @@
       "actionAria": "Prompt kopieren: {prompt}"
     },
     "promptDetailDialog": {
+      "emptyTitle": "Noch keine Antworten",
+      "emptyDescription": "Dieser Prompt wird beim nächsten geplanten Scan abgefragt. Starte jetzt einen Scan, um die Antworten sofort zu sehen.",
+      "emptyPaused": "GEO-Scans sind pausiert. Aktiviere sie in den Einstellungen, damit dieser Prompt abgefragt wird.",
+      "emptyScanningTitle": "KI-Engines werden abgefragt…",
+      "emptyScanningDescription": "Die Antworten erscheinen hier, sobald der Scan fertig ist.",
+      "emptyEngines": "Wird abgefragt in",
       "scanFrom": "Scan vom <time>{date}</time>",
       "backToLatest": "Zurück zum neuesten Scan",
-      "latestAnswerMode": "Neueste {mode}-Antwort jeder KI-Engine",
       "latestAnswer": "Neueste Antwort jeder KI-Engine",
       "answerLanguage": "Antwortsprache",
       "noTags": "Keine Tags",
@@ -3088,16 +3168,6 @@
       "analysis": "Analyse",
       "raw": "Rohantwort"
     },
-    "promptSavedViewsMenu": {
-      "trigger": "Ansichten",
-      "save": "Aktuelle Ansicht speichern",
-      "empty": "Noch keine gespeicherten Ansichten",
-      "saved": "Gespeicherte Ansichten",
-      "saveDescription": "Benenne diese Kombination aus Suche und Filtern, damit du sie später wieder anwenden kannst.",
-      "namePlaceholder": "Vergleichs-Prompts",
-      "removeAria": "Ansicht löschen: {name}",
-      "allPrompts": "Alle Prompts"
-    },
     "promptScanButton": {
       "scanInProgress": "Warte, bis der aktuelle Scan fertig ist, bevor du einen neuen startest.",
       "promptDisabled": "Aktiviere diesen Prompt, um einen Scan zu starten.",
@@ -3112,7 +3182,6 @@
     },
     "promptSuggestions": {
       "trackAll": "Alle tracken",
-      "description": "Basierend auf Suchanfragen, für die deine Website bereits rankt",
       "dismissTitle": "Vorschlag entfernen?",
       "dismissDescription": "„{prompt}“ wird nicht mehr vorgeschlagen.",
       "empty": "Noch keine Vorschläge aus der Google-Suche"
@@ -3139,9 +3208,6 @@
       "removeAction": "{count, plural, one {Prompt entfernen} other {Prompts entfernen}}",
       "nounSingular": "Prompt",
       "nounPlural": "Prompts",
-      "viewApplied": "Ansicht angewendet: {name}",
-      "viewSaved": "Ansicht gespeichert",
-      "viewDeleted": "Ansicht gelöscht",
       "tagsCustomOnly": "Tags gelten nur für eigene Prompts. Automatisch erzeugte Prompts wurden übersprungen.",
       "columns": {
         "presence": "Präsenz"
@@ -3156,8 +3222,11 @@
         "auto": "Automatisch"
       },
       "addTagCount": "Tag hinzufügen ({count})",
-      "emptyIdle": "Füge einen Prompt hinzu, um zu tracken, wie KI-Engines antworten",
-      "noMatches": "Keine Prompts entsprechen diesen Filtern"
+      "emptyIdle": "Füge die Fragen hinzu, die deine Käufer KI-Engines stellen, oder importiere eine Liste als CSV.",
+      "noMatches": "Keine Prompts entsprechen diesen Filtern",
+      "emptyTitle": "Noch keine Prompts",
+      "noMatchesDescription": "Probier eine andere Suche oder setz die Filter zurück.",
+      "clearFilters": "Filter zurücksetzen"
     },
     "purposeBadge": {
       "description": {
@@ -3173,7 +3242,11 @@
       "running": "Scan läuft, {checks} Antworten gespeichert.",
       "failed": "Der letzte Scan wurde {when} vorzeitig beendet.",
       "finished": "Antworten aus dem letzten Scan, {when}.",
-      "progressLabel": "Gespeicherte Scan-Antworten"
+      "progressLabel": "Gespeicherte Scan-Antworten",
+      "empty": {
+        "title": "Noch keine Antworten",
+        "description": "Die Antworten der KI-Engines erscheinen hier, sobald der erste Scan gelaufen ist."
+      }
     },
     "scanAnswerSheet": {
       "title": "Scan-Antwort",
@@ -3195,8 +3268,6 @@
       "promptBody": "Wähle ein oder mehrere getrackte Modelle, die diesen Prompt in deinen konfigurierten Sprachen beantworten.",
       "confirmTitle": "Diesen Scan starten?",
       "confirmBody": "Prüfe die ausgewählten Modelle und den Scan-Umfang, bevor du startest.",
-      "sizeWarn": "Großer Scan. Er dauert länger und kostet mehr. Nutze weniger KI-Engines, Prompts oder Sprachen.",
-      "sizeDanger": "Sehr großer Scan. Er dauert wahrscheinlich lange. Nutze weniger KI-Engines, Prompts oder Sprachen.",
       "promptCountUnknown": "… Prompts",
       "calculating": "Checks werden berechnet…",
       "estimatedChecks": "{count} geschätzte Checks",
@@ -3222,14 +3293,11 @@
       "itemInProgress": "in Bearbeitung",
       "itemMissing": "fehlend",
       "itemAnswers": "Antworten",
-      "viewLabel": "Scan-Antworten",
+      "viewLabel": "Scan-Ergebnistyp",
       "missing": "Fehlend",
-      "filterByModel": "Scan-Antworten nach Modell filtern"
+      "filterByModel": "Scan-Ergebnisse nach Modell filtern"
     },
     "searchConsoleCard": {
-      "description": "Prompt-Ideen aus den Suchanfragen, für die du in der Google Search Console rankst",
-      "cardOptions": "Optionen für die Search-Console-Karte",
-      "hideCard": "Karte ausblenden",
       "property": "Property",
       "selectProperty": "Property auswählen",
       "connectProperty": "Property verbinden",
@@ -3241,11 +3309,32 @@
       "weeklySync": "Wöchentliche Synchronisierung",
       "actions": "Search-Console-Aktionen",
       "reauthRequired": "Der Google-Zugriff ist abgelaufen. Verbinde dich neu, damit Keyword-Vorschläge weiter synchronisiert werden.",
-      "choosePropertyHint": "Wähle, welche Search-Console-Property Notra analysieren soll."
+      "setupTitle": "Mach aus deinen Google-Suchen Prompts",
+      "setupDescription": "Verbinde die Search Console und Notra schlägt Prompts aus den Suchanfragen vor, über die Leute dich schon finden.",
+      "reauthTitle": "Google neu verbinden",
+      "examples": {
+        "projectManagement": {
+          "query": "projektmanagement software",
+          "prompt": "Welches Projektmanagement-Tool eignet sich für ein kleines Remote-Team?"
+        },
+        "startupCrm": {
+          "query": "crm für startups",
+          "prompt": "Welches CRM sollte ein junges Startup nutzen?"
+        },
+        "invoicing": {
+          "query": "rechnungsvorlage",
+          "prompt": "Wie verschicke ich professionelle Rechnungen ohne Steuerberater?"
+        }
+      }
     },
     "searchGapDetail": {
-      "eyebrow": "Suchlücke · Ausgangsfrage",
+      "eyebrow": "Suchlücke",
       "fallbackTitle": "Suchlücke",
+      "aiEvidence": "Belege aus KI-Suchen",
+      "uncoveredSearches": "{count, plural, one {# Antwort ohne deine Marke oder Website} other {# Antworten ohne deine Marke oder Website}}",
+      "searchedBy": "Engines, die diese Suche ausgeführt haben",
+      "relatedPrompts": "Beantwortete Fragen",
+      "mentionedCompetitors": "Erwähnte Wettbewerber",
       "acrossQueries": "Über alle Google-Suchanfragen dieser Lücke.",
       "draftTitle": "Entwurfstitel",
       "noQueryData": "Für diese Lücke sind keine Daten auf Suchanfrage-Ebene verfügbar.",
@@ -3257,30 +3346,40 @@
     },
     "sentimentResultsTable": {
       "columns": {
-        "claim": "Aussage",
+        "claim": "Thema",
         "evidence": "Belege"
       },
       "empty": "Noch keine Stimmungsthemen.",
-      "sheetDescription": "Exakte Zitate aus der analysierten Stichprobe gespeicherter Antworten.",
       "capturedAt": "{date} UTC"
     },
-    "sentimentScore": {
-      "comparisonLabel": "Score-Vergleich und Zeiträume",
-      "noComparable": "Kein vergleichbarer Score",
-      "deltaVsPrevious": "{delta} Pkt. ggü. Vorperiode",
-      "current": "Aktuell: {period}",
-      "previous": "Vorher: {period}",
-      "positionLabel": "Position des Stimmungs-Scores",
-      "outOf100": "{score} von 100",
-      "currentScoreLabel": "Aktueller Stimmungs-Score: {score} von 100"
+    "sentimentBreakdown": {
+      "eyebrow": "Markenstimmung",
+      "byEngine": "Nach Engine",
+      "enginesCount": "{count, plural, one {# Engine} other {# Engines}}",
+      "loading": {
+        "title": "Stimmung wird geladen"
+      },
+      "empty": {
+        "title": "Noch keine Stimmung",
+        "scanningTitle": "Antworten werden gescannt"
+      },
+      "error": {
+        "title": "Stimmung konnte nicht geladen werden",
+        "body": "Beim Laden des Werts ist etwas schiefgelaufen.",
+        "retry": "Erneut versuchen"
+      },
+      "noRatedAnswers": "Keine bewerteten Antworten",
+      "deltaLabel": "Stimmungswert",
+      "deltaHint": "ggü. Vorperiode",
+      "band": {
+        "strong": "Sehr positiv",
+        "positive": "Überwiegend positiv",
+        "mixed": "Gemischt",
+        "negative": "Überwiegend negativ"
+      }
     },
     "sentimentSkeleton": {
       "loading": "Stimmung wird geladen"
-    },
-    "sentimentSummary": {
-      "label": "Stimmungsübersicht",
-      "loadError": "Stimmungsübersicht konnte nicht geladen werden.",
-      "retry": "Übersicht erneut laden"
     },
     "sentimentThemesEmpty": {
       "retryAnalysis": "Analyse wiederholen",
@@ -3304,38 +3403,18 @@
         "couldNotFind": "Themen konnten nicht gefunden werden. Versuch es noch einmal.",
         "notConfigured": "Die Themenanalyse ist für dieses Projekt nicht eingerichtet."
       },
+      "analysisStatus": {
+        "stalePrevious": "Frühere Themen werden angezeigt. Die Analyse muss aktualisiert werden.",
+        "failedPrevious": "Analyse fehlgeschlagen. Frühere Themen werden angezeigt.",
+        "failedRetry": "Analyse fehlgeschlagen. Versuche es erneut.",
+        "unavailable": "Themenanalyse ist nicht verfügbar."
+      },
       "status": {
         "loading": "Analyse wird geladen…"
       }
     },
-    "sentimentTrendCard": {
-      "label": "Stimmungsverlauf",
-      "loadError": "Stimmung konnte nicht geladen werden.",
-      "retry": "Stimmung erneut laden",
-      "chart": {
-        "score": "Score",
-        "previous": "Vorperiode",
-        "estimate": "Geschätzter Score"
-      }
-    },
     "shareOfVoiceBrandTag": {
       "trackBrand": "{brand} tracken"
-    },
-    "shareOfVoiceBrandsDialog": {
-      "mentionsCount": "{count} Erwähnungen",
-      "title": "Weitere Marken",
-      "brands": "Marken",
-      "otherBrandsMentions": "Erwähnungen anderer Marken",
-      "searchPlaceholder": "Marken suchen…",
-      "filterLabel": "Marken nach Tracking-Status filtern",
-      "caption": "Weitere Marken, sortiert nach Erwähnungen. Der Anteil basiert auf allen Markenerwähnungen im ausgewählten Zeitraum.",
-      "change": "Veränderung",
-      "noMatching": "Keine passenden Marken",
-      "noBrandsInView": "Keine Marken in dieser Ansicht",
-      "tryAnother": "Versuche einen anderen Namen oder setze deine Filter zurück.",
-      "selectAnother": "Wähle einen anderen Tracking-Status, um mehr Marken zu sehen.",
-      "rowsOf": "{shown} von {total} Marken",
-      "shareFooter": "Anteil an allen Markenerwähnungen"
     },
     "shareOfVoiceChart": {
       "mentionsSr": "Erwähnungen",
@@ -3343,12 +3422,13 @@
       "leadingShare": "Führender Share of Voice",
       "shareHint": "Anteil an den erfassten Markenerwähnungen im ausgewählten Zeitraum.",
       "totalMentions": "Erwähnungen gesamt",
-      "legendLabel": "Legende des Share-of-Voice-Diagramms",
       "yourRank": "Dein Rang",
       "rankHint": "Rang nach Gesamterwähnungen im ausgewählten Zeitraum. Marken mit gleich vielen Erwähnungen teilen sich einen Rang.",
       "ofBrands": "von {count} Marken",
       "tableLabel": "Marken-Ranking nach Share of Voice",
-      "viewMore": "{count} weitere anzeigen"
+      "emptyTitle": "Noch kein Share of Voice",
+      "emptyScanningTitle": "Scan läuft",
+      "emptyDescription": "Nach dem nächsten Scan siehst du hier, wie oft KI-Engines dich im Vergleich zu deinen Wettbewerbern nennen."
     },
     "shareOfVoiceTable": {
       "trendLabel": "Share-of-Voice-Trend von {brand}",
@@ -3481,11 +3561,9 @@
         "help": "Planen erstellt ein Briefing, das du prüfst, bevor etwas entworfen wird. Schreiben plant und entwirft den Artikel in einem Schritt.",
         "pending": {
           "plan": {
-            "label": "Wird geplant…",
             "status": "Das Briefing wird geplant. Du prüfst es, bevor etwas entworfen wird."
           },
           "write": {
-            "label": "Wird geschrieben…",
             "status": "Das Briefing wird geplant, danach wird der Artikel entworfen. Das dauert etwa eine Minute."
           }
         },
@@ -3690,7 +3768,8 @@
       "competitors": {
         "metaTitle": "GEO-Wettbewerber",
         "description": "Wen KI-Engines statt dir empfehlen",
-        "setupDescription": "Richte zuerst das GEO-Tracking ein und verfolge dann, welche Wettbewerber KI-Engines nennen."
+        "setupDescription": "Richte zuerst das GEO-Tracking ein und verfolge dann, welche Wettbewerber KI-Engines nennen.",
+        "newCompetitor": "Neuer Wettbewerber"
       },
       "tabs": {
         "label": "GEO-Bereiche"
@@ -3733,7 +3812,11 @@
       "prompts": {
         "metaTitle": "GEO-Prompts",
         "description": "Die Fragen, die wir KI-Engines in deinem Namen stellen",
-        "setupDescription": "Richte zuerst das GEO-Tracking ein und verwalte dann die Prompts, die über KI-Engines gescannt werden."
+        "setupDescription": "Richte zuerst das GEO-Tracking ein und verwalte dann die Prompts, die über KI-Engines gescannt werden.",
+        "tabs": {
+          "suggestions": "Vorschläge",
+          "answers": "Antworten"
+        }
       },
       "shelfSpace": {
         "metaTitle": "GEO Shelf Space",
@@ -3772,6 +3855,9 @@
       "loadCompetitorDetailFailed": "Wettbewerberdetails konnten nicht geladen werden",
       "loadCompetitorSummaryFailed": "Wettbewerberübersicht konnte nicht geladen werden",
       "loadLanguagePerformanceFailed": "Sprach-Performance konnte nicht geladen werden",
+      "loadPromptTranslationsFailed": "Übersetzungen konnten nicht geladen werden",
+      "updatePromptTranslationFailed": "Die Übersetzung konnte nicht gespeichert werden",
+      "translatePromptsFailed": "Die Prompts konnten nicht übersetzt werden. Das passiert stattdessen beim nächsten Scan.",
       "geoTrackingGeneratedWebsite": "GEO-Tracking aus der Website erstellt",
       "generateGEOTrackingWebsiteFailed": "GEO-Tracking konnte nicht aus der Website erstellt werden",
       "importPromptsFailed": "Prompts konnten nicht importiert werden",
@@ -3801,6 +3887,8 @@
       "loadPromptSuggestionsFailed": "Prompt-Vorschläge konnten nicht geladen werden",
       "generateConversationsFailed": "Unterhaltungen konnten nicht erstellt werden",
       "promptAddedTracking": "Prompt zum Tracking hinzugefügt",
+      "trackedPromptNextScan": "Ergebnisse erscheinen nach dem nächsten Scan.",
+      "viewTrackedPrompt": "Ansehen",
       "addPromptFailed": "Prompt konnte nicht hinzugefügt werden",
       "addPromptsFailed": "Prompts konnten nicht hinzugefügt werden",
       "dismissSuggestionFailed": "Vorschlag konnte nicht verworfen werden",
@@ -3826,6 +3914,9 @@
       "loadPersonaActivityFailed": "Persona-Aktivität konnte nicht geladen werden",
       "checkPersonaGenerationFailed": "Persona-Erstellung konnte nicht geprüft werden",
       "generatePersonasFailed": "Personas konnten nicht erstellt werden",
+      "generatingPersonas": "Personas werden erstellt",
+      "generatingPersona": "Persona wird erstellt",
+      "generatingPersonasDescription": "Das läuft im Hintergrund, du kannst die Seite also verlassen und später wiederkommen.",
       "updatePersonaFailed": "Persona konnte nicht aktualisiert werden",
       "personaArchived": "Persona archiviert",
       "archivePersonaFailed": "Persona konnte nicht archiviert werden",
@@ -3864,7 +3955,13 @@
       "undo": "Rückgängig",
       "personaGenerationFailed": "Persona-Erstellung fehlgeschlagen. Versuch es nochmal.",
       "personaScanned": "Persona mit {count, plural, one {# KI-Engine} other {# KI-Engines}} gescannt",
-      "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden"
+      "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
+      "connectingProperty": "{property} wird verbunden…",
+      "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
+    },
+    "liveIndicator": {
+      "label": "Live",
+      "hint": "Aktualisiert sich automatisch, sobald neue Daten ankommen"
     }
   },
   "integrations": {
@@ -3966,7 +4063,6 @@
       "displayName": "Anzeigename",
       "displayNamePlaceholder": "z. B. Team-Meeting-Notizen",
       "apiKeyHelp": "Erstelle in der Granola-App unter Einstellungen, dann Connectors, dann API-Schlüssel einen Schlüssel. <link>Anleitung ansehen</link>",
-      "verifying": "Schlüssel wird geprüft",
       "connected": "Granola verbunden",
       "connectFailed": "Granola konnte nicht verbunden werden",
       "invalidForm": "Ungültige Formularwerte",
@@ -4077,7 +4173,6 @@
         "refreshFailed": "Repositories konnten nicht aktualisiert werden. Es werden die zuletzt geladenen Daten angezeigt."
       },
       "connectDialog": {
-        "redirecting": "Weiterleitung…",
         "install": "Auf GitHub installieren",
         "permissions": {
           "readMetadata": "Repository-Metadaten, Branches und Releases lesen",
@@ -4542,7 +4637,6 @@
       "title": "Iris pausieren?",
       "description": "Beim Pausieren werden geplante Durchläufe gestoppt und ausstehende Slack-Nachrichten abgebrochen. Du kannst jederzeit fortsetzen.",
       "keepRunning": "Weiterlaufen lassen",
-      "pausing": "Wird pausiert",
       "confirm": "Iris pausieren"
     },
     "runCard": {
@@ -4553,7 +4647,6 @@
         "retired": "Iris ist im Ruhestand",
         "working": "Iris arbeitet"
       },
-      "starting": "Wird gestartet",
       "tabs": {
         "signals": "Neueste Signale"
       },
@@ -4575,7 +4668,6 @@
     },
     "start": {
       "description": "Iris beobachtet, was du auslieferst, und übernimmt dein Marketing. Iris entwirft Changelogs, Blogbeiträge mit Bildern und Social-Media-Beiträge und fragt dich in Slack, bevor etwas live geht.",
-      "starting": "Iris wird gestartet",
       "start": "Iris starten",
       "beforeYouStart": "Bevor du startest",
       "slackWarning": "Verbinde einen Slack-Benachrichtigungskanal, damit Iris dir berichten kann. Du kannst trotzdem jetzt starten und ihn später verbinden. <link>Slack verbinden</link>"
@@ -4697,7 +4789,7 @@
       "engagementRate": "Engagement-Rate",
       "engagementHint": "{interactions} Interaktionen / {impressions} Impressionen",
       "followersHint": "über {count, plural, one {# verbundenes Konto} other {# verbundene Konten}}",
-      "impressionsHint": "Beiträge, {range}",
+      "impressionsHint": "über alle Beiträge, {range}",
       "interactionsHint": "{posts} Beiträge, {range}"
     },
     "ranges": {
@@ -5195,6 +5287,8 @@
       "quotas": "Verbleibende Kontingente in deinem Tarif."
     },
     "plans": {
+      "renewalTerms": "{kind, select, trial {Nach deiner kostenlosen Testphase verlängert sich dein Basistarif für {price} pro {interval} automatisch, bis du kündigst. Kündige vor Ende der Testphase, um Kosten zu vermeiden.} trialRevert {Deine kostenlose Testphase endet ohne automatische Zahlung. Ein kostenpflichtiger Basistarif verlängert sich für {price} pro {interval} nur, wenn du ihn abonnierst.} other {Dein Basistarif verlängert sich für {price} pro {interval} automatisch, bis du kündigst.}} Verwalte oder kündige dein Abo in den Abrechnungseinstellungen.",
+      "addonExtra": "Ausgewählte Add-ons kosten zusätzlich.",
       "tierDescription": "{tier, select, starter {Für Gründer, die ihre ersten Prompts tracken.} growth {Für Teams, die Prompts über Engines und Sprachen hinweg tracken.} scale {Für Agenturen und Teams mit mehreren Marken.} other {}}",
       "features": {
         "aiAnswers": "{count, number} getrackte KI-Antworten / Monat",
@@ -5724,7 +5818,6 @@
       "stepIdentities": {
         "emptyTitle": "Noch keine Markenidentität",
         "emptyDescription": "Gib deine Website ein und wir lernen deinen Ton und deine Zielgruppe kennen.",
-        "creating": "Wird erstellt…",
         "createButton": "Markenidentität erstellen",
         "title": "Welche Markenidentität soll verwendet werden?",
         "description": "Wähle eine oder mehrere Markenidentitäten oder überspringe den Schritt, um für ein allgemeines Publikum zu schreiben.",
@@ -5994,7 +6087,6 @@
       "noBrandIdentity": "Es gibt keine Markenidentität, in der du diese Referenz speichern kannst. Erstelle zuerst eine auf der Seite Markenidentität.",
       "overLimit": "Dieser Beitrag ist {count, plural, one {# Zeichen} other {# Zeichen}} über dem Limit von {limit, number} Zeichen für @{username}. Kürze ihn, um ihn zu posten.",
       "openOn": "Auf {platform} öffnen",
-      "posting": "Wird gepostet…",
       "postAs": "Als @{username} posten",
       "rejectsDuplicates": "{platform} lehnt doppelte Beiträge ab.",
       "readDocs": "Zur {platform}-Dokumentation",
@@ -6014,6 +6106,14 @@
       "formats": "{count} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
       "items": "Einträge",
+      "actions": {
+        "open": "Öffnen",
+        "openInNewTab": "In neuem Tab öffnen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Link kopiert",
+        "deleteTitle": "Inhalt löschen?",
+        "deleteDescription": "Dadurch werden \"{title}\" und alle {count, plural, one {# Beitrag} other {# Beiträge}} darin dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden."
+      },
       "detail": {
         "metaTitle": "Sammlung",
         "metaDescription": "Sieh dir alle Beiträge einer Inhaltssammlung an.",
@@ -6044,6 +6144,8 @@
       "loadLatestPlanFailed": "Aktueller Plan konnte nicht geladen werden",
       "refreshPlanFailed": "Plan konnte nicht aktualisiert werden",
       "postDeleted": "Beitrag gelöscht",
+      "collectionDeleted": "Inhalt gelöscht",
+      "deleteCollectionFailed": "Inhalt konnte nicht gelöscht werden",
       "deletePostFailed": "Beitrag konnte nicht gelöscht werden",
       "loadContentFailed": "Inhalte konnten nicht geladen werden",
       "loadRecentPostsFailed": "Letzte Beiträge konnten nicht geladen werden",
@@ -6137,9 +6239,7 @@
       "loadingDescription": "Der Dashboard-Agent wird geladen."
     },
     "overlays": {
-      "commandPalette": "Befehlspalette",
-      "loadingSearch": "Suche wird geladen…",
-      "loadingSettings": "Einstellungen werden geladen…"
+      "commandPalette": "Befehlspalette"
     },
     "brandSelector": {
       "createIdentity": "Identität erstellen"
@@ -6208,9 +6308,34 @@
     "activityDescription": "Deine Inhaltserstellung im Jahresverlauf",
     "emptyAction": "Inhalte ansehen",
     "emptyDescription": "Du hast heute noch keine neuen Beiträge. Erstelle jetzt einen oder sieh dir deine Entwürfe auf der Inhaltsseite an.",
-    "emptyTitle": "Heute noch keine Inhalte erstellt"
+    "emptyTitle": "Heute noch keine Inhalte erstellt",
+    "upgradeTitle": "Mit Studio Inhalte erstellen",
+    "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
   },
   "ai": {
+    "subagent": {
+      "names": {
+        "codeResearcher": "Code-Recherche",
+        "contentWriter": "Content-Writer",
+        "imageDesigner": "Bild-Designer",
+        "fallback": "Subagent"
+      },
+      "activity": {
+        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} notFound {Feature im Code nicht gefunden} interrupted {Unterbrochen} other {Repository konnte nicht gelesen werden}}",
+        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} skipped {Post übersprungen} notFound {Nichts zum Schreiben gefunden} interrupted {Unterbrochen} other {Post konnte nicht geschrieben werden}}",
+        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} skipped {Bild übersprungen} notFound {Nichts zu gestalten} interrupted {Unterbrochen} other {Bild konnte nicht gestaltet werden}}",
+        "fallback": "{state, select, running {Arbeitet} done {Fertig} skipped {Übersprungen} notFound {Nichts gefunden} interrupted {Unterbrochen} other {Fehlgeschlagen}}"
+      },
+      "steps": "{count, plural, =0 {keine Schritte} one {# Schritt} other {# Schritte}}",
+      "result": {
+        "brief": "Briefing: {feature}",
+        "draft": "{title, select, none {Entwurf gespeichert} other {Entwurf gespeichert: {title}}}",
+        "image": "{title, select, none {Bild gespeichert} other {Bild gespeichert: {title}}}",
+        "notFound": "{reason, select, none {Feature im Code nicht gefunden} other {Nicht gefunden: {reason}}}",
+        "skipped": "{reason, select, none {Übersprungen} other {Übersprungen: {reason}}}",
+        "failed": "{reason, select, none {Fehlgeschlagen} other {Fehlgeschlagen: {reason}}}"
+      }
+    },
     "toolBlock": {
       "tools": {
         "code_mode": "{state, select, running {Führe Tools aus} done {Tools ausgeführt} approve {Genehmigen: Tools} other {Fehlgeschlagen: Tools}}",
@@ -6270,7 +6395,16 @@
         "memory": "{state, select, running {Nutze Gedächtnis} done {Gedächtnis genutzt} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
         "getBrandReferences": "{state, select, running {Lade Markenreferenzen} done {Markenreferenzen geladen} approve {Genehmigen: Markenreferenzen} other {Fehlgeschlagen: Markenreferenzen}}",
         "webSearch": "{state, select, running {Suche im Web} done {Im Web gesucht} approve {Genehmigen: Websuche} other {Fehlgeschlagen: Websuche}}",
-        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}"
+        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
+        "codeResearcher": "{state, select, running {Untersuche den Code} done {Code untersucht} approve {Genehmigen: Code-Recherche} other {Fehlgeschlagen: Code-Recherche}}",
+        "contentWriter": "{state, select, running {Schreibe den Post} done {Post geschrieben} approve {Genehmigen: Post} other {Fehlgeschlagen: Post}}",
+        "openRepository": "{state, select, running {Öffne Repository} done {Repository geöffnet} approve {Genehmigen: Repository} other {Repository konnte nicht geöffnet werden}}",
+        "listRepositoryFiles": "{state, select, running {Liste Dateien} done {Dateien gelistet} approve {Genehmigen: Dateien} other {Fehlgeschlagen: Dateien}}",
+        "searchRepository": "{state, select, running {Durchsuche Code} done {Code durchsucht} approve {Genehmigen: Code-Suche} other {Fehlgeschlagen: Code-Suche}}",
+        "readRepositoryFile": "{state, select, running {Lese Datei} done {Datei gelesen} approve {Genehmigen: Datei} other {Fehlgeschlagen: Datei}}",
+        "repositoryHistory": "{state, select, running {Lese Historie} done {Historie gelesen} approve {Genehmigen: Historie} other {Fehlgeschlagen: Historie}}",
+        "showRepositoryChange": "{state, select, running {Prüfe Änderung} done {Änderung geprüft} approve {Genehmigen: Änderung} other {Fehlgeschlagen: Änderung}}",
+        "createPost": "{state, select, running {Speichere Entwurf} done {Entwurf gespeichert} approve {Genehmigen: Entwurf} other {Fehlgeschlagen: Entwurf}}"
       },
       "withSuffix": "{label} {suffix}",
       "memory": {
@@ -6378,7 +6512,9 @@
     "writeComment": "Kommentar schreiben",
     "writeCommentPlaceholder": "Kommentar schreiben…",
     "writeReplyPlaceholder": "Antwort schreiben…",
-    "send": "Kommentar senden"
+    "send": "Kommentar senden",
+    "emptyTitle": "Noch keine Kommentare",
+    "emptyDescription": "Teile Kontext oder nächste Schritte mit deinem Team."
   },
   "composer": {
     "preview": "Vorschau für {label}",
@@ -6399,6 +6535,9 @@
     "nextSlide": "Nächste Folie",
     "scrollToEnd": "Zum Ende scrollen",
     "scrollToStart": "Zum Anfang scrollen",
+    "conversationTurns": "Gesprächsverlauf",
+    "previousTurn": "Vorherige Nachricht",
+    "nextTurn": "Nächste Nachricht",
     "commandPaletteDescription": "Suche nach einem Befehl…",
     "chooseOption": "Wähle eine Option",
     "catalog": "Katalog",
@@ -6423,6 +6562,131 @@
       "hue": "Farbton",
       "opacity": "Deckkraft",
       "eyeDropper": "Farbe vom Bildschirm aufnehmen"
+    }
+  },
+  "demo": {
+    "start": {
+      "title": "Demo wird geöffnet…",
+      "description": "Einen Moment.",
+      "errorTitle": "Der Demo-Workspace konnte nicht erstellt werden",
+      "errorDescription": "Bitte versuch es gleich noch einmal.",
+      "retry": "Erneut versuchen"
+    },
+    "banner": {
+      "title": "Entdecke die Notra-Demo.",
+      "titleNamed": "Willkommen in der Notra-Demo, {name}.",
+      "customize": "Anpassen",
+      "reset": "Zurücksetzen",
+      "signup": "Konto erstellen",
+      "resetTitle": "Demo-Workspace zurücksetzen?",
+      "resetDescription": "Alle deine Änderungen werden verworfen und die Beispieldaten wiederhergestellt. Demo-ID, API-Key und Anpassung bleiben gleich.",
+      "cancel": "Abbrechen",
+      "resetConfirm": "Workspace zurücksetzen",
+      "resetting": "Wird zurückgesetzt…",
+      "resetFailed": "Der Workspace konnte nicht zurückgesetzt werden. Bitte versuch es erneut."
+    },
+    "playground": {
+      "title": "API-Playground",
+      "description": "Schick echte Requests an die Demo-API und sieh zu, wie sie diesen Workspace verändern.",
+      "tabs": {
+        "console": "Konsole",
+        "requests": "Requests",
+        "missions": "Missionen"
+      },
+      "toastStatus": "{status}",
+      "toastChanged": "{status} · {label}",
+      "view": "Ansehen",
+      "openFeed": "Details",
+      "demoId": "Demo-ID {id}",
+      "idCopied": "Demo-ID kopiert"
+    },
+    "console": {
+      "keyLabel": "Dein Demo-API-Key",
+      "copy": "Kopieren",
+      "keyCopied": "API-Key kopiert",
+      "keyHint": "Funktioniert mit curl, der Notra-CLI und MCP gegen {url}. Er läuft mit deinem Workspace ab.",
+      "noKey": "Für diesen Workspace ist kein API-Key verfügbar.",
+      "preset": "Beispiel",
+      "method": "Methode",
+      "path": "Pfad",
+      "body": "Request-Body (JSON)",
+      "send": "Request senden",
+      "sending": "Wird gesendet…",
+      "copyCurl": "Als curl kopieren",
+      "curlCopied": "curl-Befehl kopiert",
+      "seeFeed": "Der Request erscheint auch unter Requests, und das Dashboard aktualisiert sich live.",
+      "presets": {
+        "listPosts": "Neueste Posts abrufen",
+        "createPost": "Post-Entwurf anlegen",
+        "createPrompt": "Neuen GEO-Prompt tracken",
+        "startScan": "GEO-Scan starten",
+        "visibility": "KI-Sichtbarkeit abrufen",
+        "traffic": "KI-Traffic abrufen",
+        "listSchedules": "Zeitpläne abrufen",
+        "createSkill": "Skill anlegen"
+      }
+    },
+    "feed": {
+      "loading": "Wird geladen…",
+      "emptyTitle": "Noch keine Requests",
+      "emptyDescription": "Schick einen Request aus der Konsole, nutz curl oder klick dich durchs Dashboard. Alles taucht hier auf.",
+      "sources": {
+        "api": "API",
+        "console": "Konsole",
+        "ui": "UI",
+        "webhook": "Webhook"
+      },
+      "sameViaApi": "Dasselbe per API",
+      "copyCurl": "curl kopieren",
+      "curlCopied": "curl-Befehl kopiert",
+      "request": "Request",
+      "response": "Response"
+    },
+    "missions": {
+      "progress": "{done} von {total} erledigt",
+      "complete": "Erledigt",
+      "open": "Noch offen",
+      "scan": {
+        "title": "GEO-Scan starten",
+        "description": "Klick in der GEO-Übersicht auf Scan starten und sieh zu, wie neue Ergebnisse reinkommen."
+      },
+      "apiPrompt": {
+        "title": "Prompt per API anlegen",
+        "description": "Schick „Neuen GEO-Prompt tracken“ aus der Konsole. Er erscheint sofort unter GEO › Prompts."
+      },
+      "agentPost": {
+        "title": "Post schreiben und per API abrufen",
+        "description": "Lass den Agent einen Post schreiben und führ dann „Neueste Posts abrufen“ aus."
+      },
+      "schedule": {
+        "title": "Content automatisieren",
+        "description": "Leg unter Automation einen Zeitplan an oder nutz bei einem Jetzt ausführen."
+      },
+      "externalClient": {
+        "title": "API von deinem Rechner aufrufen",
+        "description": "Kopier einen Request als curl und führ ihn im Terminal aus, oder verbinde CLI oder MCP mit deinem Demo-Key."
+      },
+      "finishedTitle": "Du hast alles gesehen",
+      "finishedDescription": "Richte Notra in wenigen Minuten für deine eigene Marke ein.",
+      "signup": "Kostenlos starten",
+      "openConsole": "Konsole öffnen"
+    },
+    "customize": {
+      "title": "Notra-Demo anpassen",
+      "description": "Sag uns, wer du bist, und die Demo wird rund um deine Firma neu aufgebaut: Marke, KI-Sichtbarkeit, Inhalte und Team.",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "companyName": "Firmenname",
+      "note": "Dauert ein paar Sekunden. Deine Angaben existieren nur in diesem Demo-Workspace.",
+      "cancel": "Abbrechen",
+      "submit": "Demo anpassen",
+      "saving": "Wird neu aufgebaut…",
+      "failed": "Die Demo konnte nicht angepasst werden. Bitte versuch es erneut."
+    },
+    "apiCallout": {
+      "title": "Teste die API mit deinem Demo-Key",
+      "description": "Schick Requests aus dem Playground und sieh live, wie sie diesen Workspace verändern. curl, CLI und MCP gehen auch.",
+      "open": "API-Playground öffnen"
     }
   }
 }

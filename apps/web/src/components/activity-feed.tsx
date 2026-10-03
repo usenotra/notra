@@ -1,5 +1,3 @@
-"use client";
-
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import { Slack } from "@notra/ui/components/ui/svgs/slack";

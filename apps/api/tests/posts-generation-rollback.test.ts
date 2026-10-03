@@ -3,8 +3,6 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ContentGenerationJob } from "@notra/content-generation/schemas";
 import { InternalDashboardError } from "@notra/schemas/api/internal-dashboard";
 
-import { isConfirmedWorkflowTriggerRejection } from "../src/utils/brand-analysis";
-
 const sampleJob: ContentGenerationJob = {
   id: "job_test123",
   organizationId: "org_test",
@@ -82,18 +80,11 @@ mock.module("../src/utils/active-generations", () => ({
   removeActiveGeneration: removeActive,
 }));
 
-mock.module("../src/utils/content-generation", () => ({
-  triggerContentGenerationWorkflow: triggerWorkflow,
-  isConfirmedContentGenerationRejection: (error: unknown) => {
-    if (isConfirmedWorkflowTriggerRejection(error)) {
-      return true;
-    }
+const contentGeneration = await import("../src/utils/content-generation");
 
-    return (
-      error instanceof Error &&
-      error.message === "Content generation workflow URL is not configured"
-    );
-  },
+mock.module("../src/utils/content-generation", () => ({
+  ...contentGeneration,
+  triggerContentGenerationWorkflow: triggerWorkflow,
 }));
 
 const { createPostGeneration } = await import("../src/programs/posts");
