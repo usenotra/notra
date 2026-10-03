@@ -30,7 +30,9 @@ export async function dehydrateContentDetailQueries(
   const queryClient = getGeoServerQueryClient();
   const input = { organizationId, contentId };
 
-  void queryClient.prefetchQuery({
+  // Awaited: the route streams, so the document renders in the server HTML
+  // without holding back the shell.
+  await queryClient.prefetchQuery({
     ...dashboardOrpc.content.get.queryOptions({ input }),
     queryFn: () => client.content.get(input),
   });

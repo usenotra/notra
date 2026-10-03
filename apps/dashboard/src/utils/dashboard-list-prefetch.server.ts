@@ -49,9 +49,9 @@ const loadSkillsRouter = () =>
   import("@/lib/orpc/routers/skills").then((module) => module.skillsRouter);
 
 /**
- * Starts the content list (and the project collection it scopes) during the
- * page render. Pending queries are dehydrated, so the browser reuses this
- * work instead of waiting for hydration and then a second round trip.
+ * Loads the content list (and starts the project collection it scopes) on
+ * the server, so the browser reuses this work instead of waiting for
+ * hydration and then a second round trip.
  */
 export async function dehydrateContentListQueries(
   organizationId: string,
@@ -83,7 +83,9 @@ export async function dehydrateContentListQueries(
     queryFn: async () =>
       (await client.geo.projectsList(organizationInput)).projects,
   });
-  void queryClient.prefetchQuery({
+  // Awaited (the route streams, so the shell does not wait): the list is in
+  // the server HTML instead of rendering only after the client hydrates.
+  await queryClient.prefetchQuery({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: listInput,
     }),
@@ -109,18 +111,22 @@ export async function dehydrateIntegrationsQueries(
   const queryClient = getGeoServerQueryClient();
   const input = { organizationId };
 
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.integrations.list.queryOptions({ input }),
-    queryFn: () => client.integrations.list(input),
-  });
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.integrations.mcp.list.queryOptions({ input }),
-    queryFn: () => client.integrations.mcp.list(input),
-  });
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.integrations.mcp.storeList.queryOptions({ input }),
-    queryFn: () => client.integrations.mcp.storeList(input),
-  });
+  // Awaited for the same reason as the content list: the cards render in
+  // the server HTML of the streamed route.
+  await Promise.all([
+    queryClient.prefetchQuery({
+      ...dashboardOrpc.integrations.list.queryOptions({ input }),
+      queryFn: () => client.integrations.list(input),
+    }),
+    queryClient.prefetchQuery({
+      ...dashboardOrpc.integrations.mcp.list.queryOptions({ input }),
+      queryFn: () => client.integrations.mcp.list(input),
+    }),
+    queryClient.prefetchQuery({
+      ...dashboardOrpc.integrations.mcp.storeList.queryOptions({ input }),
+      queryFn: () => client.integrations.mcp.storeList(input),
+    }),
+  ]);
 
   return dehydrate(queryClient);
 }

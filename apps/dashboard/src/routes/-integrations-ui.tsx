@@ -72,6 +72,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       pendingComponent: Loading,
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "integrations" } }),
+      stream: true,
       component: ({ data, params }) => (
         <HydrationBoundary state={data.state}>
           <Integrations organizationSlug={params.slug} />

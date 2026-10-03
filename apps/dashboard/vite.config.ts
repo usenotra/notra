@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
               strictExecutionOrder: true,
               codeSplitting: {
                 groups: [
-                  { name: "initial", tags: ["$initial"], maxSize: 150_000 },
+                  { name: "initial", tags: ["$initial"], maxSize: 400_000 },
                 ],
               },
             },

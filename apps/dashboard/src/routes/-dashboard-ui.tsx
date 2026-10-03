@@ -236,6 +236,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       title: { namespace: "common", key: "labels.content" },
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "content" } }),
+      stream: true,
       pendingComponent: ContentLoading,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
@@ -256,6 +257,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       },
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "content-detail" } }),
+      stream: true,
       pendingComponent: ContentDetailLoading,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
