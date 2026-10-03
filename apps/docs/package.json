@@ -7,6 +7,6 @@
     "openapi:check": "mint openapi-check https://api.usenotra.com/openapi.json"
   },
   "devDependencies": {
-    "mint": "4.2.676"
+    "mint": "4.2.980"
   }
 }
