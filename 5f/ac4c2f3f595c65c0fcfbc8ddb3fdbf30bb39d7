@@ -1,0 +1,56 @@
+apps/dashboard/src/lib/auth/mfa-actions.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 4,11,18
+apps/dashboard/src/lib/onboarding/skip.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 4
+apps/dashboard/src/routes/-dashboard-loaders.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 28,54,67,117,206,223,260,297,314
+apps/dashboard/src/routes/-onboarding-loaders.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 93,124,184,220,254
+apps/dashboard/src/lib/auth/security-actions.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 35
+  ai_agent 14,21,28
+apps/dashboard/src/lib/i18n/catalog.ts
+  s_7a0c38829ccc1e::t_d594418fecd3fc 22-25,29
+  s_7a0c38829ccc1e::t_0427f05aff46fa 45-57
+apps/dashboard/nitro.config.ts
+  s_7a0c38829ccc1e::t_429a8068f3ac8c 26-28
+apps/dashboard/src/lib/auth/password-actions.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 18,25,32
+  ai_agent 4,11
+apps/dashboard/src/app/onboarding/workspace/actions.ts
+  ai_agent 4,22,29
+  s_7a0c38829ccc1e::t_e948ccf96d9710 13,38
+patches/@workflow%2Fnitro@4.1.14.patch
+  s_7a0c38829ccc1e::t_648295a6f905ba 43-63
+apps/dashboard/vite.config.ts
+  s_7a0c38829ccc1e::t_79b9f4177edf6a 10,57
+apps/dashboard/src/lib/organizations/actions.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 30,39,51,63,70,77,89,96,103
+  ai_agent 4,11,23
+apps/dashboard/src/routes/-entry-loaders.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 35,79,121,139,161
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_7a0c38829ccc1e::t_e948ccf96d9710 4,15,37
+apps/dashboard/src/lib/auth/social-actions.ts
+  ai_agent 4
+apps/dashboard/src/routes/__root.tsx
+  s_7a0c38829ccc1e::t_0427f05aff46fa 15-19,56
+apps/dashboard/src/constants/framework.ts
+  s_7a0c38829ccc1e::t_79b9f4177edf6a 28-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5fac4c2f3f595c65c0fcfbc8ddb3fdbf30bb39d7",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
