@@ -1,6 +1,18 @@
 import type { GeoSentimentResponse } from "@notra/geo-core/types/geo-sentiment";
+import {
+  engineFamilyLabel,
+  engineFamilyOf,
+} from "@notra/geo-core/utils/geo-engine-family";
+import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 
+import {
+  SENTIMENT_BAND_MIXED_MIN,
+  SENTIMENT_BAND_POSITIVE_MIN,
+  SENTIMENT_BAND_STRONG_MIN,
+} from "@/constants/geo-sentiment";
 import type {
+  SentimentFamilyBucket,
+  SentimentScoreBand,
   SentimentTrendCardProps,
   SentimentThemesMessage,
   SentimentThemesStateInput,
@@ -96,4 +108,40 @@ export function sentimentThemesState({
     showEmpty: !loading && !isError && !showResults,
     canAnalyze,
   };
+}
+
+export function sentimentScoreBand(score: number): SentimentScoreBand {
+  if (score >= SENTIMENT_BAND_STRONG_MIN) {
+    return "strong";
+  }
+  if (score >= SENTIMENT_BAND_POSITIVE_MIN) {
+    return "positive";
+  }
+  if (score >= SENTIMENT_BAND_MIXED_MIN) {
+    return "mixed";
+  }
+  return "negative";
+}
+
+export function sentimentFamilyBuckets(
+  engines: GeoSentimentResponse["engines"]
+): SentimentFamilyBucket[] {
+  const engineNames = engines.map(({ engine }) => engine).sort();
+  const families = [...new Set(engineNames.map(engineFamilyOf))];
+  return families
+    .map((family) => ({
+      family,
+      iconEngine:
+        engineNames.find((engine) => engineFamilyOf(engine) === family) ??
+        family,
+      label: engineFamilyLabel(family),
+      bucket: summarizeSentiment(
+        engines.filter((row) => engineFamilyOf(row.engine) === family)
+      ),
+    }))
+    .sort(
+      (left, right) =>
+        (right.bucket.score ?? -1) - (left.bucket.score ?? -1) ||
+        left.label.localeCompare(right.label, "en")
+    );
 }

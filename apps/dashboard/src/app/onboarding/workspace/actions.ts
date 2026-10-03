@@ -4,6 +4,7 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
 import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
+import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
@@ -200,7 +201,12 @@ export async function triggerOnboardingBrandAnalysis(
     throw new Error("Onboarding brand analysis has already been requested.");
   }
 
-  after(() => warmGeoOnboardingCache(input.organizationId, input.websiteUrl));
+  // The visibility step prefills its language from the browser, so warm the
+  // same variant.
+  const language = preferredGeoLanguage(requestHeaders?.get("accept-language"));
+  after(() =>
+    warmGeoOnboardingCache(input.organizationId, input.websiteUrl, language)
+  );
 
   try {
     await queueBrandAnalysisForOnboarding({

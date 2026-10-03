@@ -1,21 +1,15 @@
 import { IRIS_WAKE_CRON } from "@notra/ai/constants/autonomy";
-import { getAppUrl } from "@notra/ai/qstash/triggers";
+import {
+  createQstashRouteSchedule,
+  deleteQstashSchedule,
+} from "@notra/ai/qstash/triggers";
 import { db } from "@notra/db/drizzle";
 import { autonomyMandates } from "@notra/db/schema";
-import { Client as QStashClient } from "@upstash/qstash";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { IRIS_WAKE_ROUTE_PATH } from "@/constants/iris";
 import { IrisWakeScheduleError } from "@/lib/iris/errors";
-
-const getQstashClient = () => {
-  const token = process.env.QSTASH_TOKEN;
-  if (!token) {
-    throw new Error("QSTASH_TOKEN is not configured");
-  }
-  return new QStashClient({ token });
-};
 
 const persistScheduleId = Effect.fn("iris.wake.persistScheduleId")(
   function* (input: { mandateId: string; qstashScheduleId: string | null }) {
@@ -42,16 +36,12 @@ export const createIrisWakeSchedule = Effect.fn("iris.wake.create")(function* (
   mandateId: string
 ) {
   const scheduleId = yield* Effect.tryPromise({
-    try: async () => {
-      const client = getQstashClient();
-      const result = await client.schedules.create({
-        destination: `${getAppUrl()}${IRIS_WAKE_ROUTE_PATH}`,
+    try: () =>
+      createQstashRouteSchedule({
+        path: IRIS_WAKE_ROUTE_PATH,
         cron: IRIS_WAKE_CRON,
-        body: JSON.stringify({ organizationId, trigger: "wake" }),
-        headers: { "Content-Type": "application/json" },
-      });
-      return result.scheduleId;
-    },
+        body: { organizationId, trigger: "wake" },
+      }),
     catch: (cause) =>
       new IrisWakeScheduleError({
         message: "Failed to create the wake schedule",
@@ -75,10 +65,7 @@ export const createIrisWakeSchedule = Effect.fn("iris.wake.create")(function* (
   if (persisted._tag === "Failure") {
     const rollback = yield* Effect.result(
       Effect.tryPromise({
-        try: async () => {
-          const client = getQstashClient();
-          await client.schedules.delete(scheduleId);
-        },
+        try: () => deleteQstashSchedule(scheduleId),
         catch: (cause) =>
           new IrisWakeScheduleError({
             message: "Failed to roll back the orphaned wake schedule",
@@ -120,10 +107,7 @@ export const deleteIrisWakeSchedule = Effect.fn("iris.wake.delete")(
     if (scheduleId) {
       const deletion = yield* Effect.result(
         Effect.tryPromise({
-          try: async () => {
-            const client = getQstashClient();
-            await client.schedules.delete(scheduleId);
-          },
+          try: () => deleteQstashSchedule(scheduleId),
           catch: (cause) =>
             new IrisWakeScheduleError({
               message: "Failed to delete the wake schedule",

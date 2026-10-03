@@ -1,5 +1,6 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 import { runGeoScanCronSweep } from "@notra/geo-core/geo/scan-schedule";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
@@ -24,6 +25,12 @@ export async function GET(request: Request) {
     request.headers.get("authorization") !== `Bearer ${cronSecret}`
   ) {
     return new Response("Unauthorized", { status: 401 });
+  }
+  // The public demo runs no background jobs; scans start on demand. Checked
+  // after auth so reading the request keeps this route dynamic (a static
+  // 204 breaks the build).
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
   }
 
   try {

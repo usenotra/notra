@@ -1,0 +1,26 @@
+---
+title: Tool Call
+description: Tool calls with a status bullet and result, plus the collapsed "Ran 3 shell commands" line.
+---
+
+<Component path="claude-code/examples/claude-code-tool-call" />
+
+```bash
+bunx shadcn@latest add @notra/claude-code-tool-call
+```
+
+`ClaudeCodeToolCall` prints `● Tool(arg)` with the tool name in bold and the result on a dim `⎿` line under it. Without `arg` the line is plain text, which fits the running descriptions Claude Code shows, like `Checking branch commits and PR status` over `$ git log …`. The bullet is green for `success`, red for `error` and a pulsing gray for `pending`.
+
+The root is a shadcn `Collapsible`. With children, the result line becomes the trigger and gets a `(click to expand)` hint. The children show underneath with their whitespace kept.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `tool` | | Tool name, like `Bash`, `Read` or `notra - list_events (MCP)`. |
+| `arg` | | Shown in parentheses: a command, a path or `key: "value"` pairs. |
+| `result` | | The `⎿` line. |
+| `status` | `success` | `success`, `pending` or `error`. |
+| `children` | | Extra output shown when expanded. |
+
+`ClaudeCodeToolSummary` is the dim line Claude Code folds finished shell calls into, like `Ran 3 shell commands`. It pluralizes `noun` from `count`. Pass the calls as children and clicking the line shows them. `verb` defaults to `Ran` and `noun` to `shell command`.
+
+<include>./_used-in.mdx</include>

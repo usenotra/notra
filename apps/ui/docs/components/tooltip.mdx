@@ -1,12 +1,43 @@
 ---
 title: Tooltip
-description: A duotone tooltip with a muted header band tucked behind the content card.
+description: A shadcn Base UI tooltip with the Depth surface of the buttons that glides between neighbouring triggers.
 ---
 
-Hover or focus the button to open the tooltip. The header holds a title and an optional aside, and the card below holds any content.
+Hover one button, then slide along the toolbar. The tooltip glides over to the next button and resizes to its label instead of closing and reopening.
 
-<div class="not-prose flex justify-center rounded-2xl border border-border bg-muted/40 pt-10 pb-44 dot-grid">
-  <DuotoneTooltip label="Hover me" title="Weekly summary" aside="Last 7 days">
-    Visits grew 18% compared to the previous week, led by returning readers.
-  </DuotoneTooltip>
-</div>
+<Component path="tooltip/examples/tooltip-toolbar" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/notra-tooltip
+```
+
+This replaces `components/ui/tooltip.tsx`. The surface is built from your `--foreground` and `--background` tokens, so it inverts with your theme like the secondary button.
+
+## Moving between tooltips
+
+Wrap neighbouring triggers in one `TooltipProvider`. Every tooltip inside it shares a single popup, so moving to the next trigger slides the popup over, animates its width and swaps the label. The `delay` only applies to the first tooltip. Tooltips outside a provider open and close on their own.
+
+```tsx
+<TooltipProvider delay={400}>
+  <Tooltip>
+    <TooltipTrigger render={<Button size="icon-sm" variant="ghost" />}>
+      <BoldIcon />
+    </TooltipTrigger>
+    <TooltipContent>
+      Bold
+      <KbdGroup>
+        <Kbd>⌘</Kbd>
+        <Kbd>B</Kbd>
+      </KbdGroup>
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+```
+
+## Sides
+
+<Component path="tooltip/examples/tooltip-sides" />
+
+The popup scales in from its trigger and drifts a couple of pixels away from it. With reduced motion it only fades.

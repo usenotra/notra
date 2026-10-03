@@ -9,3 +9,10 @@ export const GEO_PROJECTS_OLDEST_ORDER: SQL[] = [
   asc(projects.createdAt),
   asc(projects.id),
 ];
+
+export const GEO_PROJECT_RESPONSE_COLUMNS = {
+  id: true,
+  name: true,
+  brandSettingsId: true,
+  createdAt: true,
+} as const;

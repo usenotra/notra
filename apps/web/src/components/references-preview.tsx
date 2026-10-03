@@ -4,7 +4,6 @@ import {
   RepeatIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 
 interface MockTweet {
   authorName: string;
@@ -46,7 +45,9 @@ function MockReferenceCard({ tweet }: { tweet: MockTweet }) {
       <div className="flex flex-col gap-2.5 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt={tweet.authorName}
               className="size-9 shrink-0 rounded-full object-cover"
               height={36}

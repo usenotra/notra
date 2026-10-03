@@ -1,3 +1,36 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Blume inlines this file into .blume/src/generated/ and only rebases @source,
+   so the import path is relative to that folder. */
+@import "../../../src/styles/blocks.css";
+
+/* Notra dashboard palette (packages/ui/src/styles/globals.css), mapped onto
+   Blume's tokens so previews match the product. Accent is shadcn's hover gray
+   here, not the brand color, like in the dashboard. */
+:root {
+  --notra-primary: oklch(0.6056 0.2189 292.7172);
+  --notra-card: hsl(0 0% 100%);
+  --blume-background: hsl(0 0% 100%);
+  --blume-foreground: hsl(0 0% 9%);
+  --blume-muted: hsl(0 0% 96.1%);
+  --blume-muted-foreground: hsl(0 0% 45.1%);
+  --blume-border: hsl(0 0% 89.8%);
+  --blume-accent: hsl(0 0% 96.1%);
+  --blume-accent-foreground: hsl(0 0% 9%);
+}
+
+:root[data-theme="dark"] {
+  --notra-card: hsl(240 6% 10%);
+  --blume-background: hsl(233 7% 8%);
+  --blume-foreground: hsl(0 0% 98%);
+  --blume-muted: hsl(0 0% 14.9%);
+  --blume-muted-foreground: hsl(0 0% 63.9%);
+  --blume-border: hsl(0 1% 17%);
+  --blume-accent: hsl(0 0% 14.9%);
+  --blume-accent-foreground: hsl(0 0% 98%);
+  --blume-code-background: hsl(240 6% 10%);
+}
+
 @font-face {
   font-family: "Google Sans Flex";
   font-style: normal;
@@ -12,14 +45,6 @@
 }
 
 :root {
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
   --aio-bg: #ffffff;
   --aio-fg: #0a0a0a;
   --aio-label: #1f1f1f;
@@ -45,14 +70,6 @@
 
 .dark,
 [data-theme="dark"] {
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
   --aio-bg: #22242a;
   --aio-fg: #e6e8f0;
   --aio-label: #e8e8e8;
@@ -77,14 +94,6 @@
 }
 
 @theme inline {
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
   --color-aio-bg: var(--aio-bg);
   --color-aio-fg: var(--aio-fg);
   --color-aio-label: var(--aio-label);
@@ -109,6 +118,23 @@
   --color-marketing-light-foreground: #1e1e1e;
   --tracking-marketing: -0.015em;
   --font-aio: "Google Sans", "Google Sans Flex", Roboto, Arial, sans-serif;
+}
+
+/* Blume centers each preview in a shrink-to-fit wrapper. Let full-width
+   examples (a w-full root) span the pane instead of collapsing to content. */
+body > div:has(> .w-full, > astro-island > .w-full) {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Blume's preview body is a flex row. Base UI appends portal containers (sheets,
+   menus, tooltips) to it, and they would become flex items that squeeze the
+   example. Take them out of the flow; their content is fixed-positioned. */
+body > [data-base-ui-portal] {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 0;
+  height: 0;
 }
 
 @layer base {

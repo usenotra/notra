@@ -1,5 +1,4 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import { TestimonialsShader } from "@/components/landing/testimonials-shader";
 import {
@@ -46,7 +45,9 @@ function TestimonialCard({
         </p>
         <div className="flex items-center gap-4">
           <div className="size-14 shrink-0 overflow-hidden rounded-full border border-[#1E1E1E40] bg-white dark:border-white/20">
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt={testimonial.avatarAlt}
               className="size-full object-cover"
               height={AVATAR_SIZE}

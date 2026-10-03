@@ -13,6 +13,7 @@ import { useRef } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GEO_CONTENT_GAPS_PREPARING_POLL_MS } from "@/constants/geo-content-gaps";
 import { toErrorMessage } from "@/utils/error-message";
 import { withoutPromptGap, withRestoredPromptGap } from "@/utils/geo-gaps";
 import { getConflictRevision, isNotFoundError } from "@/utils/orpc-errors";
@@ -27,6 +28,10 @@ export function useGeoWriterGaps(organizationId: string) {
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
+    refetchInterval: (query) =>
+      query.state.data?.snapshotReady === false
+        ? GEO_CONTENT_GAPS_PREPARING_POLL_MS
+        : false,
     meta: { errorMessage: tToast("loadContentGapsFailed") },
   });
 }

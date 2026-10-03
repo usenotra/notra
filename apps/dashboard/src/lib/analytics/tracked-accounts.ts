@@ -1,3 +1,6 @@
+import { demoSocialFollowers } from "@notra/analytics/tinybird/demo-social";
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import { normalizeTwitterProfileImageUrl } from "@/constants/twitter";
 import type {
   ResolvedTwitterAccount,
@@ -9,12 +12,37 @@ const TWITTER_RESOLVE_USER_FIELDS =
   "name,profile_image_url,public_metrics,verified,verified_type";
 const LEADING_AT_REGEX = /^@/;
 
+/**
+ * The demo never calls X: any handle resolves to a fictional account whose
+ * stats the demo generates, so tracking can be tried with any name.
+ */
+function resolveDemoTwitterAccount(handle: string): ResolvedTwitterAccount {
+  const providerAccountId = `demo-x-${handle.toLowerCase()}`;
+  const now = new Date();
+  return {
+    providerAccountId,
+    username: handle,
+    displayName: handle,
+    profileImageUrl: null,
+    verified: false,
+    verifiedType: "none",
+    followersCount: demoSocialFollowers(
+      { provider: "twitter", providerAccountId, kind: "tracked" },
+      now,
+      now
+    ),
+  };
+}
+
 export async function resolveTwitterAccount(
   username: string
 ): Promise<ResolvedTwitterAccount | null> {
   const handle = username.trim().replace(LEADING_AT_REGEX, "");
   if (handle.length === 0) {
     return null;
+  }
+  if (isDemoMode()) {
+    return resolveDemoTwitterAccount(handle);
   }
 
   const params = new URLSearchParams({

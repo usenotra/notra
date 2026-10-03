@@ -22,10 +22,14 @@ export interface ShowcaseOverviewGridProps {
   companies: ShowcaseOverviewCard[];
 }
 
-export interface ShowcaseCompanyPageProps {
-  params: Promise<{ name: string }>;
-}
-
-export interface ShowcaseEntryPageProps {
-  params: Promise<{ name: string; slug: string }>;
+export interface ShowcaseEntryData {
+  company: ShowcaseCompany;
+  name: string;
+  slug: string;
+  path: string;
+  entry: {
+    title: string;
+    description: string;
+    date: string;
+  };
 }

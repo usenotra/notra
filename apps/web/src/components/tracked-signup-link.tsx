@@ -1,7 +1,5 @@
-"use client";
-
 import { track } from "@databuddy/sdk/react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ComponentProps, MouseEvent } from "react";
 
 import { AUTH_SIGNUP_URL } from "@/constants/auth";
@@ -37,7 +35,7 @@ export function TrackedSignupLink({
   }
 
   return (
-    <Link href={trackedHref} onClick={handleClick} {...props}>
+    <Link to={trackedHref} onClick={handleClick} {...props}>
       {children}
     </Link>
   );

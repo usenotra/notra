@@ -34,37 +34,33 @@ function scanSentence(
     : t("finished", { when });
 }
 
-/** Section header for scans: a short status sentence and live progress. */
+/** One-line scan status beside the answers filters, with live progress. */
 export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
   const t = useTranslations("geo.scanActivityStatus");
-  const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
   const formatRelative = useFormatRelative();
   const running = !run || run.status === "running";
   const progress = run ? geoRunProgress(run) : null;
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0 space-y-1">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-          {tGeoShared("scans")}
-          {running ? (
-            <HugeiconsIcon
-              aria-hidden="true"
-              className="text-primary motion-safe:animate-spin"
-              icon={Loading03Icon}
-              size={14}
-            />
-          ) : null}
-        </h2>
-        <p className="text-muted-foreground text-sm tabular-nums">
+    <div className="flex min-w-0 items-center gap-3">
+      <p className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm tabular-nums">
+        {running ? (
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="text-primary shrink-0 motion-safe:animate-spin"
+            icon={Loading03Icon}
+            size={14}
+          />
+        ) : null}
+        <span className="truncate">
           {scanSentence(run, t, formatRelative, locale)}
-        </p>
-      </div>
+        </span>
+      </p>
       {running && progress !== null ? (
         <progress
           aria-label={t("progressLabel")}
-          className="bg-border [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-value]:bg-primary mt-2 h-1 w-32 shrink-0 overflow-hidden rounded-full"
+          className="bg-border [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-value]:bg-primary h-1 w-24 shrink-0 overflow-hidden rounded-full"
           max={100}
           value={progress}
         />

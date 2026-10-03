@@ -2,6 +2,7 @@
 
 import {
   GEO_PERSONA_MAX_COUNT,
+  GEO_PERSONA_BILLING_MULTIPLIER,
   GEO_PERSONA_MAX_TURNS,
 } from "@notra/geo-core/constants/geo-personas";
 import type {
@@ -174,7 +175,11 @@ export function PersonasTable({
             >
               {t("maxMessages")}
             </TooltipTrigger>
-            <TooltipContent>{t("maxMessagesHint")}</TooltipContent>
+            <TooltipContent>
+              {t("maxMessagesHint", {
+                multiplier: GEO_PERSONA_BILLING_MULTIPLIER,
+              })}
+            </TooltipContent>
           </Tooltip>
         ),
         width: GEO_PERSONAS_TURNS_COLUMN_WIDTH,

@@ -1,4 +1,4 @@
-import type { Transform } from "./scene";
+import type { FigmaEffect, Transform } from "./scene";
 import type { PathSubpath } from "./svg-path";
 
 export interface BuildSceneFromElementOptions {
@@ -54,7 +54,7 @@ export interface TextInfo {
   parentHeight: number;
 }
 
-export interface SvgShape {
+export interface SvgShape extends SvgStyling {
   subpaths: PathSubpath[];
   fill: string | null;
   fillRule: "nonzero" | "evenodd";
@@ -63,9 +63,29 @@ export interface SvgShape {
   strokeLineJoin: string;
   strokeDasharray: number[] | null;
   strokeWidth: number;
+  clipChain: string[];
+  effectGroup: string | null;
+  filterOutside: boolean;
 }
 
-export interface SvgInfo {
+export interface SvgStyling {
+  opacity: number | undefined;
+  blendMode: string | undefined;
+  effects: FigmaEffect[];
+}
+
+export interface SvgClip {
+  id: string;
+  subpaths: PathSubpath[];
+  fillRule: "nonzero" | "evenodd";
+  opacity: number;
+}
+
+export interface SvgEffectGroup extends SvgStyling {
+  id: string;
+}
+
+export interface SvgInfo extends SvgStyling {
   kind: "svg";
   name: string;
   x: number;
@@ -76,6 +96,9 @@ export interface SvgInfo {
   background: string;
   color: string;
   shapes: SvgShape[];
+  clips: SvgClip[];
+  effectGroups: SvgEffectGroup[];
+  clipsContent: boolean;
 }
 
 export type LayoutNode = ElementInfo | TextInfo | SvgInfo;

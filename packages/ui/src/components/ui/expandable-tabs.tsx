@@ -11,6 +11,7 @@ import { type ReactNode, useId, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
@@ -138,6 +139,7 @@ export function ExpandableTabs({
             className
           )}
         >
+          <TooltipProvider>
           {items.map((item) => (
             <ExpandableTab
               isActive={item.value === activeValue}
@@ -147,6 +149,7 @@ export function ExpandableTabs({
               onSelect={handleSelect}
             />
           ))}
+          </TooltipProvider>
         </menu>
       </LazyMotion>
     </div>

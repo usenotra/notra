@@ -10,6 +10,7 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
+import type { ContentBillingReservation } from "@notra/ai/types/billing";
 import { brandSettings, geoScans, geoSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Exit } from "effect";
@@ -21,10 +22,18 @@ import {
   GEO_SCAN_START_RETRY_WINDOW_MS,
   GEO_SCAN_STALE_MS,
 } from "../src/constants/geo";
-import { GeoContentBillingService, GeoWorkflowService } from "../src/deps";
+import {
+  GeoContentBillingService,
+  GeoEntitlementService,
+  GeoWorkflowService,
+} from "../src/deps";
 import { GeoScanError } from "../src/geo/errors";
 import { buildGeoPrompts } from "../src/geo/prompts";
-import type { GeoWorkflowServiceShape } from "../src/types/deps";
+import type { FinalizeContentBillingInput } from "../src/types/content-billing";
+import type {
+  GeoEntitlementServiceShape,
+  GeoWorkflowServiceShape,
+} from "../src/types/deps";
 import { EMPTY_AGENT_TOKEN_USAGE } from "../src/utils/token-usage";
 import {
   initializeDatabase,
@@ -54,6 +63,15 @@ const {
   withGeoScanRun,
 } = await import("../src/geo/scan-status");
 
+const ALLOWED_GATE: ContentBillingReservation = {
+  allowed: true,
+  mode: "unmetered",
+  featureId: null,
+  reserved: false,
+  lockId: null,
+  useMarkup: false,
+};
+
 const startWorkflow = mock<GeoWorkflowServiceShape["startGeoScanRun"]>(() =>
   Effect.succeed({ runId: "workflow-test" })
 );
@@ -62,10 +80,18 @@ const workflows: GeoWorkflowServiceShape = {
   startGeoWriterRun: () => Effect.die("Unexpected writer workflow"),
   startAgentReadinessRun: () => Effect.die("Unexpected readiness workflow"),
 };
+const checkScanBilling = mock<GeoEntitlementServiceShape["checkScanBilling"]>(
+  () => Effect.succeed(ALLOWED_GATE)
+);
+const entitlements: GeoEntitlementServiceShape = {
+  resolveZdrEntitlement: () => Effect.succeed("unknown"),
+  checkScanBilling,
+};
 const sweep = () =>
   Effect.runPromise(
     runGeoScanCronSweep().pipe(
-      Effect.provideService(GeoWorkflowService, workflows)
+      Effect.provideService(GeoWorkflowService, workflows),
+      Effect.provideService(GeoEntitlementService, entitlements)
     )
   );
 
@@ -90,6 +116,8 @@ beforeEach(async () => {
   startWorkflow.mockImplementation(() =>
     Effect.succeed({ runId: "workflow-test" })
   );
+  checkScanBilling.mockReset();
+  checkScanBilling.mockImplementation(() => Effect.succeed(ALLOWED_GATE));
   cleanupBoxes.mockReset();
   cleanupBoxes.mockImplementation(async () => undefined);
 });
@@ -191,6 +219,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -238,6 +267,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -306,6 +336,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 1,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -573,6 +604,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 1,
       advanceLost: 0,
       staleScansFailed: 0,
@@ -786,6 +818,7 @@ describe("scheduled GEO scans", () => {
       covered: 0,
       leaseLost: 0,
       alreadyRunning: 0,
+      billingDenied: 0,
       failed: 0,
       advanceLost: 0,
       staleScansFailed: 1,
@@ -819,6 +852,61 @@ describe("scheduled GEO scans", () => {
     await seedProject("cleanup-failure");
     cleanupBoxes.mockRejectedValueOnce(new Error("Box service unavailable"));
     expect((await sweep()).started).toBe(1);
+  });
+
+  test("a slot the billing gate denies advances without a claim, row, or workflow", async () => {
+    const anchor = wholeMinutesAgo(10);
+    await seedProject("broke", { nextScanAt: anchor });
+    checkScanBilling.mockImplementation(() =>
+      Effect.succeed({
+        ...ALLOWED_GATE,
+        allowed: false,
+        mode: "ai_credits",
+        reason: "no_entitlement",
+        balanceRemaining: null,
+      })
+    );
+
+    expect(await sweep()).toMatchObject({
+      due: 1,
+      started: 0,
+      billingDenied: 1,
+      failed: 0,
+    });
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(await testDb.select().from(geoScans)).toHaveLength(0);
+    const settings = await settingsFor("broke");
+    expect(settings?.scanStartedAt).toBeNull();
+    expect(settings?.scanLeaseUntil).toBeNull();
+    expect(settings?.nextScanAt?.getTime()).toBe(anchor.getTime() + DAY_MS);
+  });
+
+  test("a running scan keeps the slot even when billing would deny it", async () => {
+    const anchor = wholeMinutesAgo(10);
+    await seedProject("busy-broke", {
+      scanStartedAt: new Date(),
+      nextScanAt: anchor,
+    });
+    checkScanBilling.mockImplementation(() =>
+      Effect.succeed({ ...ALLOWED_GATE, allowed: false, mode: "ai_credits" })
+    );
+
+    expect(await sweep()).toMatchObject({
+      alreadyRunning: 1,
+      billingDenied: 0,
+    });
+    expect(checkScanBilling).not.toHaveBeenCalled();
+    expect((await settingsFor("busy-broke"))?.nextScanAt).toEqual(anchor);
+  });
+
+  test("a failing billing check still starts the scan", async () => {
+    await seedProject("billing-outage");
+    checkScanBilling.mockImplementation(() =>
+      Effect.fail(new Error("Autumn unavailable"))
+    );
+
+    expect(await sweep()).toMatchObject({ started: 1, billingDenied: 0 });
+    expect(startWorkflow).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -948,6 +1036,68 @@ describe("scan ownership and finalization", () => {
       mentions: 0,
     });
   });
+
+  test.each([
+    { status: "completed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 2, action: "confirm" },
+    { status: "failed" as const, checks: 0, action: "release" },
+    { status: "completed" as const, checks: 0, action: "release" },
+  ])(
+    "a $status scan with $checks checks settles billing with $action",
+    async ({ status, checks, action }) => {
+      const scope = await seedProject(`billing-${status}-${checks}`);
+      const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+      assert.ok(claim);
+      const scanId = await Effect.runPromise(createGeoScanRow(scope));
+      const billedUsage = { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 2 };
+      const finalized: FinalizeContentBillingInput[] = [];
+      await Effect.runPromise(
+        finalizeGeoScanProject(
+          {
+            ...scope,
+            scanId,
+            runId: "run-test",
+            companyName: "Notra",
+            aliases: [],
+            startedAtMs: Date.now(),
+            gate: {
+              allowed: true,
+              mode: "plan_quota",
+              featureId: "ai_answers",
+              reserved: true,
+              lockId: "lock-test",
+              useMarkup: false,
+            },
+          },
+          {
+            checks,
+            mentions: 0,
+            dropped: 0,
+            usage: EMPTY_AGENT_TOKEN_USAGE,
+            billedChecks: checks * 2,
+            billedUsage,
+          },
+          status,
+          claim.claimedAt.toISOString()
+        ).pipe(
+          Effect.provideService(GeoContentBillingService, {
+            gateContentBilling: () => Effect.die("Unexpected billing gate"),
+            finalizeContentBilling: (input) =>
+              Effect.sync(() => {
+                finalized.push(input);
+              }),
+          })
+        )
+      );
+
+      expect(finalized).toHaveLength(1);
+      expect(finalized[0]).toMatchObject(
+        action === "confirm"
+          ? { action, units: checks * 2, usage: billedUsage }
+          : { action }
+      );
+    }
+  );
 
   test("only one claimant and one duplicate delivery can acquire or renew a token", async () => {
     await seedProject("claim");

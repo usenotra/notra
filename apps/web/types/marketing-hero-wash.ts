@@ -5,4 +5,5 @@ export interface MarketingHeroWashProps {
   className?: string;
   title: ReactNode;
   subtitle?: ReactNode;
+  media?: ReactNode;
 }

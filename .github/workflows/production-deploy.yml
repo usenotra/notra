@@ -1,0 +1,40 @@
+name: Production deploy
+
+on:
+  schedule:
+    - cron: "0 12,19 * * *"
+      timezone: Europe/Berlin
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Check CI and report planned deployments without creating builds
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.repository == 'usenotra/notra'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Deploy checked main commit
+        run: node scripts/github/production-deploy.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: team_J0UtPqQdb8AdDMRkyvJuR8kM
+          DRY_RUN: ${{ inputs.dry_run || false }}

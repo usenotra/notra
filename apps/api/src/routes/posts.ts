@@ -22,6 +22,7 @@ import {
   InternalDashboardTimeoutError,
 } from "@notra/schemas/api/internal-dashboard";
 import { rateLimitResponseSchema } from "@notra/schemas/api/responses";
+import { Effect } from "effect";
 
 import {
   createPost,
@@ -246,7 +247,7 @@ const createPostGenerationRoute = createRoute({
   operationId: "createPostGeneration",
   summary: "Queue async post generation",
   description:
-    "Queues a generation job for one content type and returns 202 with the job. Select sources with integrations.github, integrations.linear, or github.repositories; when no selector is given at all, every connected GitHub integration is used. Poll GET /v1/posts/generate/{jobId} until job.status is completed, failed, or skipped. Notra does not send webhooks when the job finishes.",
+    "Queues a generation job for one content type and returns 202 with the job. Select sources with integrations.github, integrations.linear, or github.repositories; when no selector is given at all, every connected GitHub integration is used. Poll GET /v1/posts/generate/{jobId} until job.status is completed, failed, or skipped. Subscribe to post.generation.completed, post.generation.failed, or post.generation.skipped using /v1/webhooks for completion notifications.",
   request: {
     body: {
       content: {
@@ -634,42 +635,36 @@ postsRoutes.openapi(createPostGenerationRoute, async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  let repositoryIds: string[] | undefined;
-  let linearIntegrationIds: string[] | undefined;
-  let resolvedBrandVoiceId: string | null = null;
   const requestedIntegrations = {
     github: body.integrations?.github ?? body.repositoryIds,
     linear: body.integrations?.linear ?? body.linearIntegrationIds,
   };
 
-  try {
-    repositoryIds = await resolveRequestedRepositoryIds(c.get("db"), orgId, {
-      integrations: requestedIntegrations,
-      github: body.github,
-    });
-    linearIntegrationIds = await resolveRequestedLinearIntegrationIds(
-      c.get("db"),
-      orgId,
-      {
+  const targets = await runPostProgram(
+    Effect.all({
+      repositoryIds: resolveRequestedRepositoryIds(c.get("db"), orgId, {
         integrations: requestedIntegrations,
-      }
-    );
-    resolvedBrandVoiceId = await resolveRequestedBrandVoiceId(
-      c.get("db"),
-      orgId,
-      body.brandIdentityId ?? body.brandVoiceId
-    );
-  } catch (error) {
-    return c.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to resolve requested repositories",
-      },
-      400
-    );
+        github: body.github,
+      }),
+      linearIntegrationIds: resolveRequestedLinearIntegrationIds(
+        c.get("db"),
+        orgId,
+        { integrations: requestedIntegrations }
+      ),
+      resolvedBrandVoiceId: resolveRequestedBrandVoiceId(
+        c.get("db"),
+        orgId,
+        body.brandIdentityId ?? body.brandVoiceId
+      ),
+    })
+  );
+
+  if (targets._tag === "Failure") {
+    return c.json({ error: targets.failure.message }, 400);
   }
+
+  const { repositoryIds, linearIntegrationIds, resolvedBrandVoiceId } =
+    targets.success;
 
   // Charged immediately before the billable generation is queued: the 503, 404
   // and 400 responses above must not spend the caller's budget.

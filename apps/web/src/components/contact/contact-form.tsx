@@ -1,11 +1,9 @@
-"use client";
-
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 
 import { ContactFormSuccess } from "@/components/contact/contact-form-success";
@@ -292,7 +290,7 @@ export function ContactForm() {
             We screen messages for spam. See our{" "}
             <Link
               className="hover:text-primary font-medium text-[#1E1E1E] underline underline-offset-2 dark:text-white"
-              href="/privacy"
+              to="/privacy"
             >
               Privacy Policy
             </Link>

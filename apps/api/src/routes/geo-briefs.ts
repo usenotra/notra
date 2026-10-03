@@ -1,5 +1,8 @@
 import { createRoute } from "@hono/zod-openapi";
-import { loadGeoContentGaps } from "@notra/geo-core/geo/gaps";
+import {
+  loadGeoContentGaps,
+  refreshGeoContentGapsBestEffort,
+} from "@notra/geo-core/geo/gaps";
 import {
   approveAndStartGeoWriter,
   getGeoContentBrief,
@@ -16,6 +19,7 @@ import {
   planBriefResponseSchema,
 } from "@notra/schemas/api/geo-content";
 import { projectParamsSchema } from "@notra/schemas/api/geo-params";
+import { Effect } from "effect";
 
 import { API_TRIGGER_SOURCE } from "../constants/analytics";
 import {
@@ -238,7 +242,6 @@ geoBriefsRoutes.openapi(planBriefRoute, async (c) => {
   if (!outcome.ok) {
     return geoErrorResponse(c, outcome.failure);
   }
-
   trackApiEvent(c, {
     event: POSTHOG_EVENTS.GEO_BRIEF_PLANNED,
     organizationId: base.organizationId,
@@ -273,6 +276,19 @@ geoBriefsRoutes.openapi(approveBriefRoute, async (c) => {
     approveAndStartGeoWriter(
       { organizationId: base.organizationId, projectId },
       briefId
+    ).pipe(
+      Effect.tap(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      ),
+      Effect.tapError(() =>
+        refreshGeoContentGapsBestEffort({
+          organizationId: base.organizationId,
+          projectId,
+        })
+      )
     )
   );
   if (!outcome.ok) {

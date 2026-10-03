@@ -37,9 +37,6 @@ export const ACCOUNT_DETAIL_POSTS_LIMIT = 50;
 export const ACCOUNT_POSTS_TABLE_HEIGHT = 288;
 export const ACCOUNT_POSTS_PAGE_TABLE_HEIGHT = 620;
 
-export const CONNECT_X_CLASS =
-  "bg-[#0f1419] text-white hover:bg-[#0f1419]/90 dark:bg-white dark:text-[#0f1419] dark:hover:bg-white/90";
-
 export const LEADERBOARD_PAGE_HEIGHT = 620;
 export const LEADERBOARD_EMPTY_HEIGHT = 260;
 

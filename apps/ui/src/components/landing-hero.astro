@@ -1,0 +1,58 @@
+---
+import { marketingButtonVariants } from "../../registry/notra/marketing-button/components/marketing-button";
+import { LANDING_HERO } from "../constants/landing";
+import DuotoneTooltip from "./duotone-tooltip.astro";
+import HeroDither from "./hero-dither.astro";
+import InstallCommand from "./install-command.astro";
+
+interface Props {
+  repoUrl: string;
+}
+
+const { repoUrl } = Astro.props;
+---
+
+<section class="mx-auto max-w-6xl px-6 pt-6 pb-4">
+  <div
+    class="relative isolate overflow-clip rounded-3xl border border-border bg-(--notra-card) shadow-xs"
+  >
+    <HeroDither />
+    <div
+      class="relative grid items-center gap-12 lg:items-stretch px-8 py-14 sm:px-12 lg:grid-cols-[1.15fr_1fr] lg:py-20"
+    >
+      <div class="flex flex-col items-start gap-6">
+        <h1
+          class="font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance text-foreground min-[400px]:text-5xl sm:text-6xl"
+        >
+          The components<br />behind <span class="text-(--notra-primary)">Notra</span>
+        </h1>
+        <p class="max-w-md text-lg text-pretty text-muted-foreground">
+          {LANDING_HERO.description}
+        </p>
+        <div class="flex flex-wrap items-center gap-3">
+          <a class:list={[marketingButtonVariants({ variant: "primary" }), "no-underline"]} href="/introduction">
+            Get started
+          </a>
+          <a
+            class:list={[marketingButtonVariants({ variant: "light" }), "no-underline"]}
+            href={repoUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            View on GitHub
+          </a>
+        </div>
+        <InstallCommand items={LANDING_HERO.install.items} prefix={LANDING_HERO.install.prefix} />
+      </div>
+
+      <div
+        class="relative flex h-80 items-start justify-center overflow-hidden rounded-2xl lg:h-auto border border-border bg-background/70 pt-16 shadow-xs backdrop-blur-sm dot-grid"
+      >
+        <DuotoneTooltip aside="Last 7 days" label="Weekly summary" open title="Visits">
+          <span class="block text-2xl font-semibold tabular-nums text-foreground">12,480</span>
+          <span class="mt-1 block">Up 18% on the previous week, led by returning readers.</span>
+        </DuotoneTooltip>
+      </div>
+    </div>
+  </div>
+</section>

@@ -9,6 +9,7 @@ export function getTableViewportLayout({
   rowSizing,
   height,
   minHeight,
+  autoHeight = false,
   horizontalScrollbarHeight,
 }: TableViewportLayoutOptions): TableViewportLayout {
   const resolvedHeight = Math.max(height, minHeight ?? 0);
@@ -31,6 +32,16 @@ export function getTableViewportLayout({
     ? bodyHeight
     : Math.max(rowCount === 0 ? bodyHeight : contentHeight, minBodyHeight);
   const scrollbarGutter = contentSized || scrolls ? "stable" : undefined;
+
+  if (contentSized && autoHeight && rowCount > 0) {
+    return {
+      bodyHeight,
+      scrolls: false,
+      overflowClass: "overflow-x-auto overflow-y-hidden",
+      headerStyle: undefined,
+      bodyStyle: { minHeight: minBodyHeight },
+    };
+  }
 
   return {
     bodyHeight,

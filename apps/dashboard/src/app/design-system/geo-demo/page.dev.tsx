@@ -4,6 +4,7 @@ import {
   DESIGN_SYSTEM_GEO_OVERVIEW,
   DESIGN_SYSTEM_GEO_POINTS,
   DESIGN_SYSTEM_GEO_POINTS_FEW,
+  DESIGN_SYSTEM_GEO_PROMPT_RESULTS,
   DESIGN_SYSTEM_GEO_TRACKED_ENGINES,
 } from "@/constants/design-system-geo";
 
@@ -33,7 +34,9 @@ export default function GeoDemoPage() {
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <MentionRateCard
+                companyName="Notra"
                 engines={DESIGN_SYSTEM_GEO_OVERVIEW}
+                promptResults={DESIGN_SYSTEM_GEO_PROMPT_RESULTS}
                 timeseriesPoints={DESIGN_SYSTEM_GEO_POINTS}
                 trackedEngines={DESIGN_SYSTEM_GEO_TRACKED_ENGINES}
               />

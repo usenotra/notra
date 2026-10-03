@@ -3,6 +3,7 @@
 import { ArrowUp02Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
@@ -18,11 +19,15 @@ export function DiscussionComposer({
   onDraftChange,
   onSubmit,
   onCancelReply,
+  sticky = true,
 }: DiscussionComposerProps) {
   const t = useTranslations("comments");
   return (
     <form
-      className="bg-background sticky bottom-0 flex items-start gap-3 pt-2 pb-1"
+      className={cn(
+        "bg-background flex items-start gap-3 pt-2 pb-1",
+        sticky && "sticky bottom-0"
+      )}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -30,6 +35,7 @@ export function DiscussionComposer({
     >
       <Composer.Frame
         className="min-w-0 flex-1"
+        flat
         nudge={
           reply ? (
             <Composer.Nudge

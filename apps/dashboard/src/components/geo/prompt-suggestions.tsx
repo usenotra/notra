@@ -27,20 +27,21 @@ import {
   useGeoSuggestions,
   useGeoSuggestionsAcceptAll,
   useGscAnalyzing,
-  useGscCardDismissal,
   useGscStatus,
 } from "@/lib/hooks/use-geo";
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
 import type {
   DismissSuggestionDialogProps,
   PromptSuggestionsProps,
-  PromptSuggestionsToolbarProps,
   SuggestionColumnsOptions,
+  SuggestionDetailActionsProps,
   SuggestionRowActionsProps,
+  TrackAllButtonProps,
 } from "@/types/components/geo";
 import type { GeoPromptSuggestion } from "@/types/geo";
 import { formatCount, formatOneDecimal } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
+import { isSearchConsoleSynced } from "@/utils/gsc-site-url";
 import { tableHeightFor } from "@/utils/table";
 
 function SuggestionRowActions({
@@ -51,11 +52,11 @@ function SuggestionRowActions({
   onDismiss,
   suggestion,
 }: SuggestionRowActionsProps) {
-  const tCommon2 = useTranslations("common");
   const tGeoShared = useTranslations("geo.shared");
   return (
     <div className="flex h-full shrink-0 items-center justify-end gap-1">
       <Button
+        aria-busy={accepting}
         disabled={disabled}
         onClick={onAccept}
         size="sm"
@@ -66,7 +67,7 @@ function SuggestionRowActions({
         ) : (
           <HugeiconsIcon icon={PlusSignIcon} size={14} />
         )}
-        {accepting ? tCommon2("labels.adding") : tGeoShared("track")}
+        {tGeoShared("track")}
       </Button>
       <Button
         aria-label={tGeoShared("removePrompt", { prompt: suggestion.prompt })}
@@ -225,93 +226,6 @@ function suggestionColumns({
   ];
 }
 
-function gscConnectPromo(
-  isSearchConsolePending: boolean,
-  searchConsoleStatus: PromptSuggestionsToolbarProps["status"]
-): boolean {
-  return (
-    !isSearchConsolePending &&
-    searchConsoleStatus !== undefined &&
-    !searchConsoleStatus.connected
-  );
-}
-
-function showGscSuggestionsCard(
-  dismissed: boolean,
-  isSearchConsolePending: boolean,
-  searchConsoleStatus: PromptSuggestionsToolbarProps["status"],
-  connectPromo: boolean
-): boolean {
-  return !(
-    dismissed &&
-    (isSearchConsolePending || !searchConsoleStatus || connectPromo)
-  );
-}
-
-function PromptSuggestionsToolbar({
-  checking,
-  showSearchConsole,
-  trackAllPending,
-  suggestionsCount,
-  callbackPath,
-  isSearchConsolePending,
-  connectPromo,
-  onDismissCard,
-  onPropertyPickerOpenChange,
-  organizationId,
-  propertyPickerOpen,
-  status,
-  onTrackAll,
-}: PromptSuggestionsToolbarProps) {
-  const t = useTranslations("geo.promptSuggestions");
-  const tCommon2 = useTranslations("common");
-  const tGeoShared = useTranslations("geo.shared");
-  const trackAllAction =
-    !checking && suggestionsCount > 1 ? (
-      <Button
-        disabled={trackAllPending}
-        onClick={onTrackAll}
-        size="sm"
-        variant="outline"
-      >
-        {trackAllPending ? (
-          <StatusSpinner />
-        ) : (
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
-        )}
-        {trackAllPending ? tCommon2("labels.adding") : t("trackAll")}
-      </Button>
-    ) : null;
-
-  if (showSearchConsole) {
-    return (
-      <SearchConsoleToolbar
-        action={trackAllAction}
-        callbackPath={callbackPath}
-        isPending={isSearchConsolePending}
-        onDismiss={connectPromo ? onDismissCard : undefined}
-        onPropertyPickerOpenChange={onPropertyPickerOpenChange}
-        organizationId={organizationId}
-        propertyPickerOpen={propertyPickerOpen}
-        status={status}
-      />
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0 space-y-1">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-          {checking ? <StatusSpinner /> : null}
-          {tGeoShared("suggestedPrompts")}
-        </h2>
-        <p className="text-muted-foreground text-sm">{t("description")}</p>
-      </div>
-      {trackAllAction}
-    </div>
-  );
-}
-
 function DismissSuggestionDialog({
   suggestion,
   onOpenChange,
@@ -357,32 +271,74 @@ function DismissSuggestionDialog({
   );
 }
 
+function TrackAllButton({ pending, onClick }: TrackAllButtonProps) {
+  const t = useTranslations("geo.promptSuggestions");
+  return (
+    <Button
+      aria-busy={pending}
+      disabled={pending}
+      onClick={onClick}
+      size="sm"
+      variant="outline"
+    >
+      {pending ? (
+        <StatusSpinner />
+      ) : (
+        <HugeiconsIcon icon={PlusSignIcon} size={14} />
+      )}
+      {t("trackAll")}
+    </Button>
+  );
+}
+
+function SuggestionDetailActions({
+  accepting,
+  disabled,
+  dismissing,
+  onAccept,
+  onDismiss,
+}: SuggestionDetailActionsProps) {
+  const tGeoShared = useTranslations("geo.shared");
+  const tActions = useTranslations("common.actions");
+  return (
+    <>
+      <Button disabled={disabled} onClick={onDismiss} variant="outline">
+        {dismissing ? <StatusSpinner /> : null}
+        {tActions("remove")}
+      </Button>
+      <Button aria-busy={accepting} disabled={disabled} onClick={onAccept}>
+        {accepting ? <StatusSpinner /> : null}
+        {tGeoShared("track")}
+      </Button>
+    </>
+  );
+}
+
 export function PromptSuggestions({
   organizationId,
   callbackPath,
+  onViewTrackedPrompt,
 }: PromptSuggestionsProps) {
   const t = useTranslations("geo.promptSuggestions");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon2 = useTranslations("common");
-  const tCommon = useTranslations("common.actions");
   const locale = useLocale();
   const { data, isPending: suggestionsPending } =
     useGeoSuggestions(organizationId);
   const { data: searchConsoleStatus, isPending: isSearchConsolePending } =
     useGscStatus(organizationId);
-  const connectionSucceeded = useGscConnectionToast();
-  const { dismiss: dismissCard, dismissed } =
-    useGscCardDismissal(organizationId);
+  useGscConnectionToast();
   const checking = useGscAnalyzing(organizationId);
-  const accept = useGeoSuggestionAccept(organizationId);
-  const acceptAll = useGeoSuggestionsAcceptAll(organizationId);
+  const accept = useGeoSuggestionAccept(organizationId, onViewTrackedPrompt);
+  const acceptAll = useGeoSuggestionsAcceptAll(organizationId, () =>
+    onViewTrackedPrompt()
+  );
   const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
   const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
   const [confirmDismiss, setConfirmDismiss] =
     useState<GeoPromptSuggestion | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [propertyPickerOpen, setPropertyPickerOpen] =
-    useState(connectionSucceeded);
+  const [propertyPickerOpen, setPropertyPickerOpen] = useState(false);
   const pendingSuggestionRequests = useRef(new Map<string, Promise<unknown>>());
   const trackAllQueued = useRef(false);
   const rowActionsBlocked = () => trackAllQueued.current || acceptAll.isPending;
@@ -401,7 +357,7 @@ export function PromptSuggestions({
   const hasSuggestions = suggestions.length > 0;
   const loading = checking || suggestionsPending;
   const showSuggestionsTable =
-    loading || hasSuggestions || Boolean(searchConsoleStatus?.siteUrl);
+    loading || hasSuggestions || isSearchConsoleSynced(searchConsoleStatus);
   const detail = suggestions.find((row) => row.id === detailId) ?? null;
   const trackAllPending = isTrackAllQueued || acceptAll.isPending;
   const detailBusy =
@@ -410,16 +366,6 @@ export function PromptSuggestions({
       trackAllPending ||
       acceptingSuggestionIds.has(detail.id) ||
       dismissingSuggestionIds.has(detail.id));
-  const connectPromo = gscConnectPromo(
-    isSearchConsolePending,
-    searchConsoleStatus
-  );
-  const showSearchConsole = showGscSuggestionsCard(
-    dismissed,
-    isSearchConsolePending,
-    searchConsoleStatus,
-    connectPromo
-  );
 
   const acceptAllSuggestions = async () => {
     if (trackAllQueued.current || acceptAll.isPending) {
@@ -461,42 +407,41 @@ export function PromptSuggestions({
     },
   });
 
-  if (!(loading || hasSuggestions || showSearchConsole)) {
-    return null;
-  }
+  const trackAllAction =
+    !checking && suggestions.length > 1 ? (
+      <TrackAllButton
+        onClick={() => {
+          void acceptAllSuggestions();
+        }}
+        pending={trackAllPending}
+      />
+    ) : null;
 
   return (
     <section
       aria-busy={loading}
       aria-label={tGeoShared("suggestedPrompts")}
-      className="space-y-3"
+      className="space-y-4"
     >
-      <PromptSuggestionsToolbar
+      <SearchConsoleToolbar
+        action={trackAllAction}
         callbackPath={callbackPath}
-        checking={checking}
-        connectPromo={connectPromo}
-        isSearchConsolePending={isSearchConsolePending}
-        onDismissCard={dismissCard}
+        isPending={isSearchConsolePending}
         onPropertyPickerOpenChange={setPropertyPickerOpen}
-        onTrackAll={() => {
-          void acceptAllSuggestions();
-        }}
         organizationId={organizationId}
         propertyPickerOpen={propertyPickerOpen}
-        showSearchConsole={showSearchConsole}
         status={searchConsoleStatus}
-        suggestionsCount={suggestions.length}
-        trackAllPending={trackAllPending}
       />
       {showSuggestionsTable ? (
         <Table
+          autoHeight
           className="rounded-2xl"
           columns={columns}
           data={suggestions}
           defaultSort={{ key: "impressions", direction: "desc" }}
           emptyState={t("empty")}
           getRowId={(row) => row.id}
-          height={tableHeightFor(Math.max(suggestions.length, loading ? 3 : 1))}
+          height={tableHeightFor(loading ? 3 : 1)}
           loading={loading}
           onRowClick={(row) => setDetailId(row.id)}
           resizable
@@ -507,29 +452,13 @@ export function PromptSuggestions({
       <PromptSuggestionSheet
         actions={
           detail ? (
-            <>
-              <Button
-                disabled={detailBusy}
-                onClick={() => setConfirmDismiss(detail)}
-                variant="outline"
-              >
-                {dismissingSuggestionIds.has(detail.id) ? (
-                  <StatusSpinner />
-                ) : null}
-                {tCommon("remove")}
-              </Button>
-              <Button
-                disabled={detailBusy}
-                onClick={() => acceptSuggestion(detail.id)}
-              >
-                {acceptingSuggestionIds.has(detail.id) ? (
-                  <StatusSpinner />
-                ) : null}
-                {acceptingSuggestionIds.has(detail.id)
-                  ? tCommon2("labels.adding")
-                  : tGeoShared("track")}
-              </Button>
-            </>
+            <SuggestionDetailActions
+              accepting={acceptingSuggestionIds.has(detail.id)}
+              disabled={detailBusy}
+              dismissing={dismissingSuggestionIds.has(detail.id)}
+              onAccept={() => acceptSuggestion(detail.id)}
+              onDismiss={() => setConfirmDismiss(detail)}
+            />
           ) : null
         }
         onOpenChange={(open) => {

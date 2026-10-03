@@ -34,19 +34,19 @@ export function SentimentThemesEmpty({
     );
   }
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl">
+    <div className="relative min-h-72 w-full overflow-hidden rounded-2xl">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 px-3 pt-3 select-none sm:px-4 sm:pt-4"
       >
-        <div className="mask-[linear-gradient(to_bottom,black_0%,transparent_100%)] opacity-[0.38]">
+        <div className="mask-[linear-gradient(to_bottom,black_0%,transparent_60%)] opacity-[0.3]">
           <EmptyStateTablePreview
             columns={EMPTY_STATE_TABLE_COLUMNS.prompts}
             rows={EMPTY_STATE_TABLE_ROWS}
           />
         </div>
       </div>
-      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 py-12 text-center md:py-16">
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 pt-28 pb-12 text-center">
         <h3 className="text-xl font-semibold text-balance">
           <span
             className="sentiment-state-copy"

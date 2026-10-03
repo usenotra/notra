@@ -12,7 +12,6 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
@@ -154,17 +153,11 @@ export function AddSitemapDialog({
             {tCommon("cancel")}
           </Button>
           <Button
-            disabled={createSitemap.isPending || !trimmedUrl || isOffHost}
+            disabled={!trimmedUrl || isOffHost}
+            loading={createSitemap.isPending}
             onClick={handleSubmit}
           >
-            {createSitemap.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {tCommon2("labels.adding")}
-              </>
-            ) : (
-              tBrandShared("addSitemap")
-            )}
+            {tBrandShared("addSitemap")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

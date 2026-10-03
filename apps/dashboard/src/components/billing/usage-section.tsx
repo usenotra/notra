@@ -163,7 +163,11 @@ function UsageSectionSkeleton() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {USAGE_METRIC_SKELETON_KEYS.map((key) => (
-            <TitleCard heading={<Skeleton className="h-5 w-32" />} key={key}>
+            <TitleCard
+              headingAs="div"
+              heading={<Skeleton className="h-5 w-32" />}
+              key={key}
+            >
               <Skeleton className="h-8 w-28" />
             </TitleCard>
           ))}

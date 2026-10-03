@@ -1,5 +1,3 @@
-"use client";
-
 import { useLayoutEffect, useRef, useState } from "react";
 
 import type { AnimatedHeightProps } from "@/types/ip-checker";

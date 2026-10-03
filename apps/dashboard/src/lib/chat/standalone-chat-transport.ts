@@ -103,11 +103,11 @@ export function createStandaloneChatTransport({
       }
 
       const streamHeaders = new Headers(init?.headers);
-      if (latestMessageId) {
-        streamHeaders.set(
-          CHAT_STREAM_ID_HEADER,
-          encodeChatStreamId(latestMessageId)
-        );
+      // Pin the generation the trigger just started. Its id is the server's
+      // stream id, not the user message id: a mismatch subscribes to a
+      // channel that never receives chunks and the request hangs.
+      if (streamId) {
+        streamHeaders.set(CHAT_STREAM_ID_HEADER, encodeChatStreamId(streamId));
       }
       return fetchResumableChatStream(
         `/api/organizations/${live.organizationId.current}/chat/${requestBody.chatId}/stream`,

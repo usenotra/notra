@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import {
   SLACK_THREAD_CHANNEL,
   SLACK_THREAD_MESSAGES,
@@ -10,7 +8,9 @@ export function SlackThreadCard() {
   return (
     <div className="flex w-full grow basis-0 flex-col overflow-clip rounded-[1.25rem] bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.1875rem] lg:w-auto dark:bg-[#17131F] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
       <div className="flex items-center gap-2 px-5 py-3.5 [box-shadow:#F0F0F0_0_-0.0625rem_0_inset] dark:[box-shadow:#FFFFFF14_0_-0.0625rem_0_inset]">
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt="Slack logo"
           className="size-4 shrink-0"
           height={16}

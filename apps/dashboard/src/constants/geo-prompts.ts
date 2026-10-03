@@ -42,13 +42,9 @@ export const GEO_PROMPT_INTENT_ICONS: Record<
   other: MoreHorizontalCircle01Icon,
 };
 
-export const GEO_PROMPT_INTENT_PILL_CLASS: Record<GeoPromptIntent, string> = {
-  comparison: "border-info/25 bg-info/10 text-foreground",
-  list: "border-border bg-muted/50 text-muted-foreground dark:bg-muted/30",
-  how_to: "border-warning/25 bg-warning/10 text-foreground",
-  question: "border-info/25 bg-info/10 text-foreground",
-  other: "border-border bg-muted/50 text-muted-foreground dark:bg-muted/30",
-};
+/** Intents are categories, not states, so they share one neutral pill. */
+export const GEO_PROMPT_INTENT_PILL_CLASS =
+  "border-border bg-muted/50 text-muted-foreground dark:bg-muted/30";
 
 export const GEO_PROMPT_PRESENCE_ICONS: Record<
   GeoPresenceStatus,
@@ -88,3 +84,23 @@ export const GEO_PROMPT_OUTCOME_LABEL_KEYS = {
   cited: "ownedSourceCited",
   notMentioned: "notMentioned",
 } as const;
+
+/** Illustrative query → prompt pairs for the Search Console empty state. */
+export const GSC_SETUP_EXAMPLES = [
+  { key: "projectManagement", impressions: 1240 },
+  { key: "startupCrm", impressions: 860 },
+  { key: "invoicing", impressions: 430 },
+] as const;
+
+/** Query param that opens a tracked prompt's detail on the prompts tab. */
+export const GEO_PROMPT_DETAIL_QUERY_KEY = "prompt";
+
+export const GEO_PROMPTS_PAGE_TABS = [
+  "prompts",
+  "conversations",
+  "suggestions",
+  "answers",
+] as const;
+
+/** Matches `duration-slow`, the built-in tabs indicator's slide. */
+export const GEO_PROMPTS_TAB_INDICATOR_MS = 300;

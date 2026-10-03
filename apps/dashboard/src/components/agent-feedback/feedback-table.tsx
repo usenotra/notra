@@ -138,6 +138,7 @@ export function AgentFeedbackTableSkeleton() {
 }
 
 export function AgentFeedbackTable({
+  emptyState,
   items,
   isPending,
   isDeleting,
@@ -165,7 +166,7 @@ export function AgentFeedbackTable({
         columns={columns}
         data={items}
         defaultSort={{ key: "createdAt", direction: "desc" }}
-        emptyState={t("empty")}
+        emptyState={emptyState}
         getRowId={(item) => item.id}
         height={tableHeight}
         loading={isPending}

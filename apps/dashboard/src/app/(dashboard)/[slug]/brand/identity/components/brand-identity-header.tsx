@@ -3,7 +3,6 @@
 import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
@@ -53,12 +52,8 @@ export function BrandIdentityHeader({
         </p>
       </div>
       {activeTab === "guidelines" ? (
-        <Button disabled={isRefreshingGuidelines} onClick={onRefreshGuidelines}>
-          {isRefreshingGuidelines ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : (
-            <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
-          )}
+        <Button loading={isRefreshingGuidelines} onClick={onRefreshGuidelines}>
+          <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
           {tBrandShared("refreshGuidelines")}
         </Button>
       ) : null}

@@ -1,11 +1,15 @@
 ---
+import ExampleHeights from "./example-heights.astro";
+import SidebarMemory from "./sidebar-memory.astro";
 import ThemeHotkey from "./theme-hotkey.astro";
 ---
 
 <footer class="mx-auto w-full max-w-(--notra-content-width) px-(--notra-content-gutter) pt-16 pb-8">
   <p class="border-t border-(--blume-border) pt-6 text-xs text-(--blume-muted-foreground)">
-    Google is a trademark of Google LLC. Notra is not affiliated with Google, and all logos belong to their respective owners.{" "}
+    Google, OpenAI, Anthropic, Perplexity and the other brands shown are trademarks of their respective owners. Notra is not affiliated with any of them.{" "}
     <a class="underline underline-offset-2 hover:text-(--blume-foreground)" href="/trademarks">Trademarks</a>
   </p>
 </footer>
 <ThemeHotkey />
+<SidebarMemory />
+<ExampleHeights />

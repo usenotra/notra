@@ -17,6 +17,7 @@ import {
 } from "@notra/geo-core/utils/geo-engine-family";
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -26,6 +27,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
+import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -58,6 +61,7 @@ import {
   visibilityOverviewTotals,
   withTrackedMentionEngines,
 } from "@/utils/geo-charts";
+import { loadMotionFeatures } from "@/utils/load-motion-features";
 
 const ROW_STYLE = { height: `${GEO_MENTION_ROW_HEIGHT_REM}rem` } as const;
 const LIST_STYLE = {
@@ -107,15 +111,18 @@ function ProviderRow({
         <span className="truncate text-sm font-medium">{name}</span>
       </span>
       <span className="flex shrink-0 items-center justify-end gap-2">
-        <span
+        <FadeSwap
           className={cn(
             "text-sm tabular-nums",
             totals.visible === 0 && "text-muted-foreground"
           )}
+          swapKey={String(totals.visible)}
+          value={totals.visible}
         >
           {totals.visible.toLocaleString(locale)}
-        </span>
+        </FadeSwap>
         <GeoStatDelta
+          animated
           delta={visibilityDelta}
           label={t("visibilityLabel", { name })}
         />
@@ -175,6 +182,8 @@ export function MentionRateCard({
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   isScanning = false,
   organizationSlug,
+  companyName,
+  aliases,
   competitors,
 }: MentionRateCardProps) {
   const t = useTranslations("geo.mentionRateCard");
@@ -256,6 +265,7 @@ export function MentionRateCard({
     });
   };
   const { ref, atEnd } = useScrollOverflow<HTMLDivElement>(ranked.length);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="relative h-full">
@@ -279,14 +289,29 @@ export function MentionRateCard({
           <div className="flex flex-1 flex-col gap-4">
             <div className="flex items-end gap-2">
               <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {totals.visible.toLocaleString(locale)}
+                <FadeSwap
+                  swapKey={String(totals.visible)}
+                  value={totals.visible}
+                >
+                  {totals.visible.toLocaleString(locale)}
+                </FadeSwap>
               </p>
-              <GeoStatDelta
-                className="mb-0.5"
-                delta={overviewDelta}
-                hint={tGeoShared("vsFirstHalfOfThis")}
-                label={tCommon("labels.visibility")}
-              />
+              {/* Slides with the number's width instead of jumping under the
+                  outgoing value. */}
+              <LazyMotion features={loadMotionFeatures} strict>
+                <m.span
+                  className="mb-0.5 inline-flex"
+                  layout={reduceMotion ? false : "position"}
+                  transition={FADE_SWAP_TRANSITION}
+                >
+                  <GeoStatDelta
+                    animated
+                    delta={overviewDelta}
+                    hint={tGeoShared("vsFirstHalfOfThis")}
+                    label={tCommon("labels.visibility")}
+                  />
+                </m.span>
+              </LazyMotion>
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
@@ -330,8 +355,8 @@ export function MentionRateCard({
           </div>
         )}
         <EngineFamilySheet
-          aliases={settings?.aliases}
-          companyName={settings?.companyName}
+          aliases={settings?.aliases ?? aliases}
+          companyName={settings?.companyName ?? companyName}
           competitors={competitors}
           family={selected}
           onOpenChange={(open) => {

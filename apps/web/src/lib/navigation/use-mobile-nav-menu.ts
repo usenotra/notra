@@ -1,6 +1,4 @@
-"use client";
-
-import { usePathname } from "next/navigation";
+import { useLocation } from "@tanstack/react-router";
 import {
   type Dispatch,
   type RefObject,
@@ -19,7 +17,7 @@ export function useMobileNavMenu(
   setOpen: Dispatch<SetStateAction<boolean>>,
   triggerRef: RefObject<HTMLButtonElement | null>
 ) {
-  const pathname = usePathname();
+  const pathname = useLocation({ select: (location) => location.pathname });
   const wasOpenRef = useRef(false);
 
   useEffect(() => {

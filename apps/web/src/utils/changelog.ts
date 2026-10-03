@@ -33,15 +33,6 @@ export function getChangelogPostHref(slug: string) {
   return `${NOTRA_CHANGELOG_INDEX_PATH}/${slug}`;
 }
 
-export function formatChangelogDate(date: string) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
 export function buildChangelogTimelineItems(
   posts: NotraChangelogPost[]
 ): ChangelogTimelineItem[] {

@@ -106,7 +106,7 @@ export type GitHubInstallFailureReason =
 
 export type StartGitHubInstallResult =
   | { started: true }
-  | { started: false; reason: GitHubInstallFailureReason };
+  | { started: false; reason: GitHubInstallFailureReason; message?: string };
 
 export interface ConnectGitHubDialogProps {
   onConnect: () => void;

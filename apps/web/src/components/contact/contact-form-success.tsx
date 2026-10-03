@@ -1,5 +1,3 @@
-"use client";
-
 import { Confetti } from "@neoconfetti/react";
 
 export function ContactFormSuccess() {

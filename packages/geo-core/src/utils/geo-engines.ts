@@ -58,6 +58,21 @@ export function scopeGeoScanEngines(
 }
 
 /**
+ * Whether a run's engine selection leaves out a tracked engine. Such a run
+ * must not cover a scheduled project scan, or the skipped engines would go a
+ * whole interval without data.
+ */
+export function isPartialGeoScanEngineScope(
+  tracked: readonly string[],
+  scanEngines: readonly string[]
+): boolean {
+  const scanned = new Set(scanEngines);
+  return remapRetiredGeoEngineIds(tracked).some(
+    (engine) => !scanned.has(engine)
+  );
+}
+
+/**
  * Bare catalog calls that still search the web: Google AI Overview (SerpApi)
  * and Box coding agents. Cursor is excluded — it runs with no tools.
  */

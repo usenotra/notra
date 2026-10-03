@@ -4,15 +4,10 @@ import type {
   GeoScanRunSummary,
 } from "@notra/geo-core/types/geo-scan-history";
 import type { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import type { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
-import type { GeoEngineAnswerMode } from "@/types/geo-shared";
-
-export interface GeoScanActivityProps {
-  organizationId: string;
-}
 
 export interface GeoScanActivityStatusProps {
   run: GeoScanRunSummary | undefined;
@@ -36,7 +31,6 @@ export interface GeoScanControlsProviderProps {
 export interface GeoScanModelOption {
   id: string;
   label: string;
-  answerMode: GeoEngineAnswerMode | null;
   tracked: boolean;
   zdrBlocked: boolean;
 }
@@ -53,12 +47,47 @@ export interface GeoScanModelMenuProps {
   compact?: boolean;
   label?: string;
   primary?: boolean;
+  /** Controlled open state, e.g. for a hotkey. Uncontrolled when omitted. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onContinue: (engines: string[]) => void;
 }
 
 export interface GeoScanRunDetailProps {
   organizationId: string;
+}
+
+export interface GeoScanRunDetailState {
+  /** Scan the pages and filters below belong to. */
+  runId: string | null;
+  view: GeoScanRunView;
+  offset: number;
+  pendingOffset: number;
+  engine: string;
+}
+
+export interface GeoScanOpenAnswer {
+  checkId: string;
+  scanId: string;
+  language: string;
+}
+
+export interface GeoScanRunEmptyProps {
+  isError: boolean;
+  onRetry: () => void;
+}
+
+export interface GeoScanRunLoadedProps {
+  organizationId: string;
   run: GeoScanRunSummary;
+  query: ReturnType<typeof useGeoScanRun>;
+  state: GeoScanRunDetailState;
+  onStateChange: Dispatch<SetStateAction<GeoScanRunDetailState>>;
+}
+
+export interface GeoScanViewCountProps {
+  count: number;
+  locale: string;
 }
 
 export type GeoScanRunView = "answers" | "pending";
@@ -120,7 +149,6 @@ export interface GeoScanRunPendingTableProps {
   total: number;
   height: number;
   loading: boolean;
-  toolbar: ReactNode;
 }
 
 export interface GeoScanRunAnswersTableProps {
@@ -132,7 +160,6 @@ export interface GeoScanRunAnswersTableProps {
   total: number;
   height: number;
   loading: boolean;
-  toolbar: ReactNode;
   onRowClick: (row: GeoScanResultSummary) => void;
 }
 

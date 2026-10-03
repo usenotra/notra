@@ -17,7 +17,7 @@ export default defineConfig({
   ],
   format: ["esm"],
   outDir: "dist",
-  dts: true,
+  dts: { compilerOptions: { ignoreDeprecations: "6.0" } },
   clean: true,
   splitting: false,
   sourcemap: false,

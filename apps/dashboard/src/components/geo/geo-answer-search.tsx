@@ -8,9 +8,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoChatSkin } from "@notra/geo-core/types/geo";
 import { getReferenceDomain } from "@notra/geo-core/utils/reference-display";
-import { OpencodeSources } from "@notra/ui/components/brainless/opencode/opencode-sources";
-import { PerplexityFavicon } from "@notra/ui/components/brainless/perplexity/perplexity-favicon";
-import { PerplexitySearch } from "@notra/ui/components/brainless/perplexity/perplexity-search";
+import { OpencodeSources } from "@notra/ui/components/ai-skins/opencode/opencode-sources";
+import { PerplexityFavicon } from "@notra/ui/components/ai-skins/perplexity/perplexity-favicon";
+import { PerplexitySearch } from "@notra/ui/components/ai-skins/perplexity/perplexity-search";
 import {
   Collapsible,
   CollapsibleContent,

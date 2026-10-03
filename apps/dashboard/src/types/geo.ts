@@ -58,8 +58,9 @@ import type {
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
+  GeoPromptTranslationLanguagePlan,
+  GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
-import type { GeoRequestPayload } from "@usenotra/geo";
 import type { useTranslations } from "next-intl";
 import type {
   ComponentProps,
@@ -73,10 +74,13 @@ import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
+import type { GeoScanModelMenuProps } from "@/types/geo-scan-activity";
 
 export interface GeoProjectCreateInput {
   name: string;
   brandSettingsId: string;
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: string[];
 }
 
 export interface GeoProjectContextValue {
@@ -194,8 +198,7 @@ export interface GeoOverviewPageReady {
   isScanning: boolean;
   revealActive: boolean;
   tabs: GeoTabsProps;
-  scanPreflight: ScanPreflightDialogProps;
-  onRunScan: () => void;
+  scanMenu: GeoScanModelMenuProps;
 }
 
 export type GeoOverviewPageModel =
@@ -207,10 +210,6 @@ export interface GeoOverviewLoadedProps {
   page: GeoOverviewPageReady;
 }
 
-export interface GeoScanSpinnerProps {
-  visible: boolean;
-}
-
 export interface GeoStatDeltaLabels {
   new: string;
   points: (value: number) => string;
@@ -220,6 +219,8 @@ export interface GeoStatDeltaProps {
   delta: number | null;
   kind?: GeoStatDeltaKind;
   variant?: "pill" | "plain";
+  /** Rolls changed characters when the delta updates (range switches). */
+  animated?: boolean;
   label?: string;
   hint?: string;
   className?: string;
@@ -260,24 +261,6 @@ export interface GeoPromptTableFilters {
   source: GeoPromptSourceFilter;
 }
 
-export interface PromptFiltersSummaryLabels {
-  all: string;
-  intent: (intent: GeoPromptIntent) => string;
-  source: (source: GeoPromptSource) => string;
-}
-
-export interface GeoPromptSavedView {
-  id: string;
-  name: string;
-  query: GeoPromptTableFilters;
-}
-
-export interface UseGeoSavedViewsResult {
-  views: GeoPromptSavedView[];
-  saveView: (name: string, query: GeoPromptTableFilters) => void;
-  removeView: (viewId: string) => void;
-}
-
 export interface PromptTagsActionDialogProps {
   target: PromptTagsDialogTarget | null;
   suggestions: string[];
@@ -315,27 +298,47 @@ export interface PromptPresenceBadgeProps {
   status: GeoPresenceStatus | null;
 }
 
-export interface PromptSavedViewsMenuProps {
-  views: GeoPromptSavedView[];
-  filters: GeoPromptTableFilters;
-  onApply: (view: GeoPromptSavedView) => void;
-  onSave: (name: string) => void;
-  onRemove: (viewId: string) => void;
-}
-
-export interface PromptSaveViewDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (name: string) => void;
-}
-
 export interface PromptTagsDialogTarget {
   mode: "edit" | "bulk";
   rows: GeoPromptTableRow[];
 }
 
+export interface SlidingTabIndicatorProps {
+  /** Active tab value; a change starts the slide. */
+  value: string;
+}
+
+export interface TabIndicatorBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export interface PromptsPageTabIconProps {
+  children: ReactNode;
+  pinned?: boolean;
+}
+
+export interface PromptsPageTabCountProps {
+  count: number | undefined;
+}
+
+export interface ConversationRowActionsProps {
+  sequence: GeoPromptSequence;
+  isRunning: boolean;
+  isPending: boolean;
+  isRunPending: boolean;
+  onRun: () => void;
+  onToggle: (enabled: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
 export interface ConversationsCardProps {
   organizationId: string;
+  /** Renders Generate and New conversation here instead of above the table. */
+  actionsContainer?: HTMLElement | null;
 }
 
 export interface ConversationTurnDraft {
@@ -420,58 +423,8 @@ export type GeoCompetitorSuggestionsHandlerInput = GeoScopeInput &
 
 export type GeoBrandSearchHandlerInput = GeoScopeInput & GeoBrandSearchInput;
 
-export interface GeoVisitorSignals {
-  clientHints: boolean;
-  fetchMode: string | null;
-  tracing: boolean;
-}
-
-export interface GeoVisitorInput {
-  userAgent: string | undefined;
-  referer: string | undefined;
-  accept: string | undefined;
-  signals?: GeoVisitorSignals;
-}
-
-export interface GeoVisitorClassification {
-  visitorType: GeoVisitorType;
-  source: string;
-  agent: string;
-  category: string;
-  confidence: string;
-}
-
 export interface GeoTrafficLogQueryOptions {
   host?: string;
-}
-
-export interface GeoJourneyInput {
-  url: URL;
-  source: string;
-  ip: string | undefined;
-  capturedAt: Date;
-  visitorType: GeoVisitorType;
-  category: string;
-}
-
-export interface GeoJourneyTuning {
-  bucketSeconds: number;
-  fullIp: boolean;
-}
-
-export interface GeoTrafficEventInput {
-  organizationId: string;
-  projectId: string | null;
-  payload: GeoRequestPayload;
-  url: URL;
-  capturedAt: Date;
-  classification: GeoVisitorClassification;
-  journey: GeoJourneyResolution;
-}
-
-export interface GeoJourneyResolution {
-  journeyId: string;
-  path: string;
 }
 
 export interface GeoJourneyPathNode {
@@ -874,27 +827,6 @@ export interface EngineFamilyPromptHit {
   position: number | null;
 }
 
-export type FamilyImproveKind =
-  | "search-ahead"
-  | "memory-ahead"
-  | "both-weak"
-  | "closing";
-
-export interface FamilyImproveInsight {
-  kind: FamilyImproveKind;
-  title: string;
-  body: string;
-}
-
-export type FamilyImproveTranslator = ReturnType<
-  typeof useTranslations<"geo.familyImproveCard.insights">
->;
-
-export interface FamilyImproveCardProps {
-  insight: FamilyImproveInsight;
-  gapsHref?: string;
-}
-
 export interface EngineFamilySheetProps extends EngineFamilyBrandScope {
   family: GeoEngineFamily | null;
   timeseriesPoints?: readonly GeoTimeseriesPoint[];
@@ -1136,6 +1068,7 @@ export interface GeoBrandSectionProps {
 export interface GeoLanguagesSectionProps {
   languages: string[];
   onLanguagesChange: (values: string[]) => void;
+  promptLanguage?: string;
 }
 
 export interface GeoModelsSectionProps {
@@ -1276,6 +1209,10 @@ export interface GeoLanguagePickerProps {
   onChange: (values: string[]) => void;
   disabled?: boolean;
   labeled?: boolean;
+  /** Id for the search input, so a visible label can point at it. */
+  inputId?: string;
+  /** The project's prompt language; it cannot be removed. */
+  lockedLanguage?: string | null;
 }
 
 export interface ShareOfVoiceCardProps {
@@ -1311,35 +1248,6 @@ export interface TrackBrandButtonProps {
   brand: string;
   onTrack: (brand: string) => void;
   className?: string;
-}
-
-export interface ShareOfVoiceBrandsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  other: ShareOfVoiceRow;
-  others: readonly ShareOfVoiceRow[];
-  /** Daily mentions keyed by row id, for the change indicators. */
-  mentionSparklines: ReadonlyMap<string, GeoSparklinePoint[]>;
-  competitors?: GeoCompetitor[];
-  companyName?: string | null;
-  aliases?: readonly string[];
-  ownDomain?: string | null;
-  onBrandClick?: (row: ShareOfVoiceRow) => void;
-  onBrandPointerEnter?: (row: ShareOfVoiceRow) => void;
-  onTrackBrand?: (brand: string) => void;
-}
-
-export type ShareOfVoiceBrandFilter = "all" | "tracked" | "discovered";
-
-export interface ShareOfVoiceBrandRowProps {
-  row: ShareOfVoiceRow;
-  mentionSeries: readonly GeoSparklinePoint[];
-  own: boolean;
-  competitors?: GeoCompetitor[];
-  ownDomain?: string | null;
-  onOpen?: (row: ShareOfVoiceRow) => void;
-  onPrefetch?: (row: ShareOfVoiceRow) => void;
-  onTrack?: (brand: string) => void;
 }
 
 export interface ShareOfVoiceChartProps {
@@ -1387,6 +1295,8 @@ export interface CompetitorEditDialogProps {
   organizationId: string;
   competitor: GeoCompetitor | null;
   initialName?: string;
+  /** Shows a CSV import shortcut in the footer; closes the dialog first. */
+  onImportCsv?: () => void;
 }
 
 export interface CompetitorEditFormProps {
@@ -1395,6 +1305,7 @@ export interface CompetitorEditFormProps {
   initialName?: string;
   onDone: () => void;
   onCancel?: () => void;
+  onImportCsv?: () => void;
 }
 
 export interface CompetitorSummaryStatsProps {
@@ -1418,6 +1329,8 @@ export interface ScanPreflightDialogProps {
   confirmationOnly?: boolean;
   organizationId: string;
   prompt?: string;
+  /** Id of the single prompt being scanned. */
+  promptId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (engines?: string[]) => void;
@@ -1432,6 +1345,8 @@ export interface PromptScanButtonProps {
   organizationId: string;
   row: GeoPromptTableRow;
   compact?: boolean;
+  /** Filled primary trigger for the main action of a surface. */
+  primary?: boolean;
   onPrepare?: () => void;
 }
 
@@ -1456,6 +1371,8 @@ export interface CompetitorsTableProps {
   aliases: string[];
   ownDomain: string | null;
   isScanning?: boolean;
+  /** Share of voice per lowercased brand name; empty before the first scan. */
+  shareByBrand: ReadonlyMap<string, ShareOfVoiceRow>;
 }
 
 export interface PromptsTableProps {
@@ -1463,6 +1380,8 @@ export interface PromptsTableProps {
   prompts: GeoTrackedPrompt[];
   results: GeoPromptResultSummary[];
   isScanning?: boolean;
+  onAddPrompt: () => void;
+  onImportCsv: () => void;
 }
 
 export type PromptAddMode = "write" | "website";
@@ -1470,6 +1389,8 @@ export type PromptAddMode = "write" | "website";
 export interface PromptAddDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Opens the CSV import from the footer, for adding prompts in bulk. */
+  onImportCsv?: () => void;
   organizationId: string;
 }
 
@@ -1860,4 +1781,38 @@ export interface GscSyncResultMessage {
     | "noNewSuggestions"
     | "suggestionsAdded";
   count: number;
+}
+
+export interface PromptTranslationsSectionProps {
+  organizationId: string;
+  row: Pick<GeoPromptTableRow, "id" | "source" | "enabled">;
+  open: boolean;
+}
+
+export interface PromptTranslationRowProps {
+  plan: GeoPromptTranslationLanguagePlan;
+  promptId: string;
+  limit: number;
+  busy: boolean;
+  translating: boolean;
+  onSelect: (language: string, selected: boolean) => void;
+  /** Resolves false when the save failed, so the editor keeps its draft. */
+  onSave: (language: string, text: string) => Promise<boolean>;
+  onReset: (language: string) => void;
+}
+
+export interface PromptTranslationEditorProps {
+  language: string;
+  initialText: string;
+  busy: boolean;
+  onSave: (text: string) => Promise<boolean>;
+  onClose: () => void;
+}
+
+export interface PromptTranslationTextProps {
+  entry: GeoPromptTranslationEntry;
+  busy: boolean;
+  translating: boolean;
+  onEdit: () => void;
+  onReset: () => void;
 }

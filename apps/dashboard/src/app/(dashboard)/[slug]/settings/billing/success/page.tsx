@@ -2,7 +2,6 @@
 
 import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Confetti } from "@neoconfetti/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
@@ -13,6 +12,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { buttonVariants } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { CHECKOUT_SURFACES } from "@/constants/analytics-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";

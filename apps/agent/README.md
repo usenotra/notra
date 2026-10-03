@@ -11,25 +11,32 @@ dashboard /chat (canary, NOTRA_AGENT_CHAT=1)
 
 dashboard schedule/event workflows (canary, NOTRA_AGENT_CONTENT=1)
   └─ task-mode session with a delegation directive
-       └─ root agent ── content-writer subagent ── create_post → Postgres
+       └─ root agent ── generate_content workflow tool ── content-writer subagent ── create_post → Postgres
 
 apps/api /v2/agent-chats
   └─ create / send / stream sessions 1:1 against this deployment
 
 eve agent (this package, separate Vercel project)
-  ├─ root: Notra assistant (eve autoModel: gpt-6-luna / claude-sonnet-5 / claude-opus-5.5)
+  ├─ root: task → gpt-6-sol; chat → eve autoModel: gpt-6-luna / claude-sonnet-5.5 / claude-opus-5.5
   ├─ Slack: mentions, DMs, and active thread replies through /eve/v1/slack
   ├─ subagents/content-writer (openai/gpt-6-sol, structured result)
-  └─ subagents/image-designer (wraps the @upstash/box sandbox image pipeline)
+  └─ subagents/image-designer (claude-sonnet-5.5; wraps the @upstash/box sandbox image pipeline)
 ```
 
 Tool implementations live in `@notra/tools` (`src/assistant`, `src/content-writer`, `src/image`); this app only holds one-line adapter files, the channel, hooks, and instructions. Business logic (post persistence, image post persistence) is shared with the legacy AI SDK path via `@notra/ai/utils/post-service` and `@notra/ai/utils/image-post-service`.
 
 The content-writer loads `unslop` for a final editing pass before saving. Its seeded text matches the harness skill. Existing organizations receive the skill when their catalog is read, and can edit it like other system skills. The legacy background generator uses the same final pass.
 
+Automated content tasks use the blocking `generate_content` workflow tool to await the writer with `ctx.agent`. Direct subagent calls return a background `working` receipt, not the final result. Ending a task-mode root session with a progress acknowledgement fails its output schema and cancels the pending writer.
+
 ## Model routing
 
-The root agent picks its model per turn with eve's `autoModel`
+Automated content tasks (`surface: task`, from authenticated session attributes)
+pin the root agent to `openai/gpt-6-sol` with low reasoning and a 1,050,000-token
+context window. They bypass the chat classifier. The content-writer's model is
+unchanged.
+
+For chat, the root agent picks its model per turn with eve's `autoModel`
 (`agent/lib/utils/model.ts`), which asks the `typesafe-ai/jev` evaluation model
 to choose between the options in `ASSISTANT_AUTO_MODEL_OPTIONS`: a fast model
 for turns answered from general knowledge, the everyday model for anything
@@ -41,7 +48,8 @@ The choice is made once per turn and reused for the turn's tool-loop steps. eve
 does not expose the resolved model to hooks, so the resolver records it in
 session state and `getSelectedAssistantModelId` hands it to AI-credit metering
 and to mirrored Slack messages. `NOTRA_JEV_CLASSIFIERS=off` skips the evaluator
-and pins the agent to `ASSISTANT_MODEL_ID`.
+and pins chat to `ASSISTANT_MODEL_ID`; automated tasks remain on
+`ASSISTANT_TASK_MODEL_ID`.
 
 ## Authentication and tenancy
 

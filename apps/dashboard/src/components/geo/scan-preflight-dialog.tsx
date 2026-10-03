@@ -17,14 +17,13 @@ import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Twemoji } from "@/components/geo/twemoji";
 import { Checkbox } from "@/components/motion/checkbox";
-import { GEO_ENGINE_ANSWER_MODE_LABEL_KEYS } from "@/constants/geo-models";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { cn } from "@/lib/utils";
 import type { ScanPreflightDialogProps } from "@/types/geo";
-import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { scanPreflightEnginesToSubmit } from "@/utils/geo-scan-preflight";
 
 function ScanPreflightEngineRow({
@@ -42,18 +41,10 @@ function ScanPreflightEngineRow({
 }) {
   const id = useId();
   const name = formatEngineFamily(engine);
-  const tGeoShared = useTranslations("geo.shared");
-  const answerMode = engineAnswerMode(engine);
-  const mode = answerMode
-    ? tGeoShared(GEO_ENGINE_ANSWER_MODE_LABEL_KEYS[answerMode])
-    : null;
   const identity = (
     <>
       <EngineIcon className="size-4" engine={engine} />
       <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
-      {mode ? (
-        <span className="text-muted-foreground shrink-0 text-xs">{mode}</span>
-      ) : null}
     </>
   );
 
@@ -125,6 +116,7 @@ export function ScanPreflightDialog({
   languages,
   lastScanAt,
   prompt,
+  promptId,
   confirmationOnly = false,
 }: ScanPreflightDialogProps) {
   const t = useTranslations("geo.scanPreflightDialog");
@@ -145,6 +137,7 @@ export function ScanPreflightDialog({
     promptCount,
     engines: selected,
     languages,
+    promptId,
     includeSequences: !prompt,
   });
 

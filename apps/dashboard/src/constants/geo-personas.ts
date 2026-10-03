@@ -8,6 +8,10 @@ import type { PersonaDialogView } from "@/types/geo-personas-ui";
 export const GEO_PERSONA_RESULTS_POLL_MS = 15_000;
 export const GEO_PERSONA_FORECAST_DAYS = 7;
 export const GEO_PERSONA_FORECAST_SAMPLE_DAYS = 7;
+/** The activity chart's y-axis never shrinks below this ceiling (percent). */
+export const GEO_PERSONA_CHART_MIN_MAX = 20;
+/** Headroom steps for the y-axis ceiling (percent). */
+export const GEO_PERSONA_CHART_MAX_STEP = 10;
 export const GEO_PERSONA_DIALOG_VIEWS = [
   "conversation",
   "prompts",

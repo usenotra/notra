@@ -6,7 +6,7 @@ description: The gradient marketing buttons from the Notra landing page.
 <Component path="marketing-button/examples/marketing-button-demo" />
 
 ```bash
-bunx shadcn@latest add https://ui.usenotra.com/r/marketing-button.json
+bunx shadcn@latest add @notra/marketing-button
 ```
 
 `MarketingButton` is built on Base UI's `Button`, like the shadcn `Button`, so it takes every Button prop, including a `className` callback. The gradients and hover states ship as two Tailwind utilities, `marketing-gradient-primary` and `marketing-gradient-light`, added to your CSS by the install.
@@ -18,9 +18,17 @@ bunx shadcn@latest add https://ui.usenotra.com/r/marketing-button.json
 | `render` | none | Base UI's `render` prop. Pass an element to render a link. |
 | `nativeButton` | `true` | Set to `false` when `render` is not a `<button>`. |
 
-## Sizes
+## Primary
 
-<Component path="marketing-button/examples/marketing-button-sizes" />
+The purple gradient, for the main call to action.
+
+<Component path="marketing-button/examples/marketing-button-primary" />
+
+## Secondary
+
+The white gradient with `variant="light"`, for the action next to it.
+
+<Component path="marketing-button/examples/marketing-button-secondary" />
 
 ## As a link
 

@@ -21,7 +21,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Effect } from "effect";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
@@ -287,25 +286,16 @@ export function LinkedInPreview({
               )}
               <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <Button
-                  disabled={effectiveState === "loading"}
+                  loading={effectiveState === "loading"}
                   onClick={handleApprove}
                   size="sm"
                   variant="outline"
                 >
-                  {effectiveState === "loading" ? (
-                    <>
-                      <Loader2Icon className="size-4 animate-spin" />
-                      {tCommon("labels.saving")}
-                    </>
-                  ) : (
-                    <>
-                      <HugeiconsIcon
-                        className="size-4"
-                        icon={CheckmarkSquare01Icon}
-                      />
-                      {t("saveAsDraft")}
-                    </>
-                  )}
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={CheckmarkSquare01Icon}
+                  />
+                  {t("saveAsDraft")}
                 </Button>
                 <PostSocialButton
                   className="max-w-full"

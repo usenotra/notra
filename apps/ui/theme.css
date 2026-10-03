@@ -1,3 +1,11 @@
+/* Blume inlines this file into .blume/src/generated/ and only rebases @source,
+   so the import path is relative to that folder. */
+@import "../../../src/styles/blocks.css";
+
+html {
+  scrollbar-gutter: stable;
+}
+
 :root {
   --notra-content-width: 72rem;
   --notra-content-gutter: 1.5rem;
@@ -18,6 +26,32 @@
   [data-blume-doc-grid] {
     grid-template-columns: 15rem minmax(0, 1fr) 14rem;
   }
+}
+
+/* Notra dashboard palette (packages/ui/src/styles/globals.css), mapped onto
+   Blume's tokens so the docs site matches the product in both themes. */
+:root {
+  --notra-primary: oklch(0.6056 0.2189 292.7172);
+  --notra-card: hsl(0 0% 100%);
+  --blume-background: hsl(0 0% 100%);
+  --blume-foreground: hsl(0 0% 9%);
+  --blume-muted: hsl(0 0% 96.1%);
+  --blume-muted-foreground: hsl(0 0% 45.1%);
+  --blume-border: hsl(0 0% 89.8%);
+  --blume-accent: var(--notra-primary);
+  --blume-accent-foreground: oklch(0.997 0 0);
+}
+
+:root[data-theme="dark"] {
+  --notra-card: hsl(240 6% 10%);
+  --blume-background: hsl(233 7% 8%);
+  --blume-foreground: hsl(0 0% 98%);
+  --blume-muted: hsl(0 0% 14.9%);
+  --blume-muted-foreground: hsl(0 0% 63.9%);
+  --blume-border: hsl(0 1% 17%);
+  --blume-accent: var(--notra-primary);
+  --blume-accent-foreground: oklch(0.985 0 0);
+  --blume-code-background: hsl(240 6% 10%);
 }
 
 @utility dot-grid {
@@ -115,4 +149,81 @@
   --color-aio-popover-muted: var(--aio-popover-muted);
   --color-aio-action: var(--aio-action);
   --font-aio: "Google Sans", "Google Sans Flex", Roboto, Arial, sans-serif;
+}
+
+@theme inline {
+  --color-marketing-light-foreground: #1e1e1e;
+  --tracking-marketing: -0.015em;
+}
+
+@property --marketing-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklab(100% 0 0);
+}
+
+@property --marketing-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklab(100% 0 0);
+}
+
+@utility marketing-gradient-primary {
+  --marketing-gradient-from: oklab(69.9% 0.067 -0.16);
+  --marketing-gradient-to: oklab(52.6% 0.113 -0.27);
+  background-image: linear-gradient(
+    180deg,
+    var(--marketing-gradient-from) 0%,
+    var(--marketing-gradient-to) 100%
+  );
+  box-shadow:
+    #8b5cf640 0 0 0 0.5rem,
+    #28282814 0 0.0625rem 0.125rem,
+    #1e1e1e40 0 0 0 0.0625rem;
+  transition:
+    --marketing-gradient-from 200ms ease-out,
+    --marketing-gradient-to 200ms ease-out;
+
+  &:hover {
+    --marketing-gradient-to: oklab(33.9% 0.073 -0.174);
+  }
+
+  &:active {
+    --marketing-gradient-from: oklab(52.6% 0.113 -0.27);
+    --marketing-gradient-to: oklab(24.8% 0.053 -0.127);
+  }
+}
+
+@utility marketing-gradient-light {
+  --marketing-gradient-from: oklab(100% 0 0);
+  --marketing-gradient-to: oklab(95.5% 0 0);
+  background-image: linear-gradient(
+    180deg,
+    var(--marketing-gradient-from) 0%,
+    var(--marketing-gradient-to) 100%
+  );
+  box-shadow:
+    #ececec 0 0 0 0.0625rem,
+    #28282814 0 0.0625rem 0.125rem;
+  transition:
+    --marketing-gradient-from 200ms ease-out,
+    --marketing-gradient-to 200ms ease-out;
+
+  &:hover {
+    --marketing-gradient-to: oklab(89% 0 0);
+  }
+
+  &:active {
+    --marketing-gradient-from: oklab(95.5% 0 0);
+    --marketing-gradient-to: oklab(85% 0 0);
+  }
+}
+
+nav > ul > li > details > .blume-nav-summary {
+  color: var(--blume-foreground);
+  font-weight: 500;
+}
+
+li + li:has(> .blume-nav-heading) {
+  margin-top: 0.75rem;
 }

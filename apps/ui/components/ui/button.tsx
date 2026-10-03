@@ -1,23 +1,26 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
+import { useId } from "react";
+
+import { ButtonContent } from "@/components/ui/button-content";
 
 const buttonVariants = cva(
-  "group/button focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-3 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-3 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "border-primary/60 from-primary/85 to-primary text-primary-foreground bg-linear-to-b shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem]",
+          "border-primary/60 text-primary-foreground bg-linear-to-b from-[color-mix(in_oklab,var(--color-primary),black_8%)] to-[color-mix(in_oklab,var(--color-primary),black_20%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem]",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 bg-clip-padding shadow-[0_1px_2px_rgba(0,0,0,0.05)] [corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem] dark:shadow-none",
-        secondary:
           "border-border from-background to-muted text-foreground aria-expanded:from-secondary aria-expanded:to-secondary dark:from-input dark:to-muted bg-linear-to-b shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(0,0,0,0.06)] [corner-shape:squircle] hover:brightness-[0.97] supports-[corner-shape:squircle]:rounded-[0.75rem] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)] dark:hover:brightness-125",
+        secondary:
+          "border-foreground/60 from-foreground/85 to-foreground text-background hover:from-foreground/70 hover:to-foreground/85 bg-linear-to-b shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem]",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 bg-clip-padding",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40 bg-clip-padding [corner-shape:squircle] supports-[corner-shape:squircle]:rounded-[0.75rem]",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-destructive/60 from-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 bg-linear-to-b to-[color-mix(in_oklab,var(--color-destructive),black_12%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_1px_2px_rgba(0,0,0,0.18)] [corner-shape:squircle] hover:brightness-110 supports-[corner-shape:squircle]:rounded-[0.75rem] dark:from-[color-mix(in_oklab,var(--color-destructive),black_20%)] dark:to-[color-mix(in_oklab,var(--color-destructive),black_30%)]",
+        link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
         default:
@@ -40,19 +43,64 @@ const buttonVariants = cva(
   }
 );
 
+type ButtonProps = ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    /** Swaps the label for bouncing dots while an action runs. */
+    loading?: boolean;
+    /**
+     * Fills the button from the left, from 0 to 100, e.g. while a file
+     * uploads. Set it back to `undefined` when the work is done: the bar fills
+     * up and fades out. For work you can't measure, use `loading`.
+     */
+    progress?: number;
+  };
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
+  progress,
+  disabled,
+  focusableWhenDisabled,
+  "aria-describedby": ariaDescribedBy,
+  children,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
+  const hasProgress = progress !== undefined;
+  const busy = loading || hasProgress;
+  const progressTextId = useId();
+
   return (
     <ButtonPrimitive
+      aria-busy={busy || undefined}
+      // Announces the upload percentage without changing the button's name.
+      aria-describedby={
+        hasProgress
+          ? [ariaDescribedBy, progressTextId].filter(Boolean).join(" ")
+          : ariaDescribedBy
+      }
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        "has-data-[clip]:overflow-hidden",
+        busy && "cursor-progress"
+      )}
+      data-loading={loading ? "" : undefined}
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || busy}
+      focusableWhenDisabled={focusableWhenDisabled ?? busy}
       {...props}
-    />
+    >
+      <ButtonContent
+        loading={loading}
+        progress={progress}
+        progressTextId={progressTextId}
+      >
+        {children}
+      </ButtonContent>
+    </ButtonPrimitive>
   );
 }
 
 export { Button, buttonVariants };
+export type { ButtonProps };

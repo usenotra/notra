@@ -1,8 +1,8 @@
 import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
+import { getAuthorHref } from "@/utils/author-href";
 import { resolveSocialLink } from "@/utils/author-socials";
 import {
   filterPostsByAuthorSlug,
-  getAuthorHref,
   getNotraAuthorBySlug,
   listNotraAuthors,
 } from "@/utils/authors";

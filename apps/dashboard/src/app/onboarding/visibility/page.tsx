@@ -1,9 +1,11 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
-import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
+import { getGeoOnboardingSnapshot } from "@notra/geo-core/geo/onboarding-status";
+import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
@@ -59,10 +61,12 @@ export default async function OnboardingVisibilityPage({
     isDevReplay
   );
 
-  const [stage, hasPaidHistory] = await Promise.all([
-    getGeoOnboardingStage(organization.id, projectId),
-    hasPaidSubscriptionHistory(organization.id),
-  ]);
+  const [{ stage, languages: savedLanguages }, hasPaidHistory, requestHeaders] =
+    await Promise.all([
+      getGeoOnboardingSnapshot(organization.id, projectId),
+      hasPaidSubscriptionHistory(organization.id),
+      headers(),
+    ]);
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const dashboardHref = geoDashboardPath(organization.slug, projectId);
   const skipHref =
@@ -73,6 +77,12 @@ export default async function OnboardingVisibilityPage({
   return (
     <VisibilityForm
       companyName={brand.companyName}
+      initialLanguages={
+        savedLanguages?.languages ?? [
+          preferredGeoLanguage(requestHeaders.get("accept-language")),
+        ]
+      }
+      lockedLanguage={savedLanguages?.promptLanguage ?? null}
       inOnboardingFlow={inOnboardingFlow}
       nextHref={geoOnboardingCompetitorsPath(projectId, isDevReplay)}
       organizationId={organization.id}

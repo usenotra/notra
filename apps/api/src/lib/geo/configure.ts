@@ -2,6 +2,7 @@ import {
   allowUnmeteredAiInDevelopment,
   autumn,
 } from "@notra/ai/billing/autumn";
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import {
   GeoEntitlementService,
@@ -9,8 +10,10 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
-import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
-import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import {
+  agentReadinessNetworkLayer,
+  geoModelLayer,
+} from "@notra/geo-core/geo/host-layers";
 import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { Redis } from "@upstash/redis";
@@ -88,6 +91,18 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
       });
     }
   ),
+  checkScanBilling: Effect.fn("GeoApiEntitlement.checkScanBilling")(
+    (organizationId) =>
+      Effect.tryPromise({
+        try: () =>
+          checkContentBilling({
+            organizationId,
+            outputType: null,
+            quotaFeatureId: FEATURES.AI_ANSWERS,
+          }),
+        catch: (cause) => cause,
+      })
+  ),
 });
 
 const featureFlagLayer = Layer.succeed(GeoFeatureFlagService, {
@@ -122,8 +137,8 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
  * dashboard and are reached through its authenticated internal endpoints.
  */
 export const geoCoreApiLayer = Layer.mergeAll(
-  agentReadinessNetworkLive,
-  geoModelLive,
+  agentReadinessNetworkLayer,
+  geoModelLayer,
   geoSearchConsoleLive,
   workflowLayer,
   entitlementLayer,

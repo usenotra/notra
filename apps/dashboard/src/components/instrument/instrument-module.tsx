@@ -2,6 +2,7 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Card,
   CardAction,
@@ -62,6 +63,7 @@ function DualtoneModule({
       className={cn(
         "min-w-0 flex-1 overflow-visible rounded-2xl bg-transparent p-0 ring-0",
         (tableHeader || !bareBody) && "gap-0",
+        !bareBody && "border-shell-border bg-shell border p-0.5",
         className
       )}
     >
@@ -277,7 +279,7 @@ export function InstrumentEmpty({
             </span>
           ) : null}
           <p className="text-muted-foreground text-sm first-letter:uppercase">
-            {message}
+            {busy && message ? <Shimmer as="span">{message}</Shimmer> : message}
           </p>
         </div>
       ) : null}

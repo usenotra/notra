@@ -1,6 +1,5 @@
 "use client";
 
-import { Confetti } from "@neoconfetti/react";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
 import {
   ResponsiveAlertDialog,
@@ -13,11 +12,18 @@ import {
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
+import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
 import { cn } from "@notra/ui/lib/utils";
-import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -25,8 +31,10 @@ import { useState } from "react";
 import { AgentFeedbackDetailDialog } from "@/components/agent-feedback/feedback-detail-dialog";
 import { AgentFeedbackEmpty } from "@/components/agent-feedback/feedback-empty";
 import { AgentFeedbackSetupDialog } from "@/components/agent-feedback/feedback-setup-dialog";
+import { AgentFeedbackStatusIcon } from "@/components/agent-feedback/feedback-status-icon";
 import { AgentFeedbackTable } from "@/components/agent-feedback/feedback-table";
 import { Button } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -61,7 +69,9 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
   const organizationId = activeOrganization?.id ?? "";
   const [statusFilter, setStatusFilter] =
     useState<AgentFeedbackStatusFilter>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Held as a snapshot so the sheet stays open when a status change moves the
+  // item out of the active filter.
+  const [selected, setSelected] = useState<AgentFeedbackItem | null>(null);
   const [deleteCandidate, setDeleteCandidate] =
     useState<AgentFeedbackItem | null>(null);
   const [resolvedCelebration, setResolvedCelebration] = useState(0);
@@ -75,7 +85,9 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
   const totalCount = counts
     ? Object.values(counts).reduce((sum, value) => sum + value, 0)
     : 0;
-  const selectedItem = items.find((item) => item.id === selectedId) ?? null;
+  const selectedItem = selected
+    ? (items.find((item) => item.id === selected.id) ?? selected)
+    : null;
   const isLoading = !!organizationId && list.isPending;
   const showEmptyState = !isLoading && totalCount === 0;
 
@@ -88,14 +100,20 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
     }
 
     const wasResolved = item.status === "resolved";
+    const syncSelected = (next: AgentFeedbackItem) =>
+      setSelected((current) => (current?.id === next.id ? next : current));
+
+    syncSelected({ ...item, status });
     updateStatus.mutate(
-      { feedbackId: item.id, status },
+      { feedbackId: item.id, previousStatus: item.status, status },
       {
-        onSuccess: () => {
+        onSuccess: (updated) => {
+          syncSelected(updated);
           if (status === "resolved" && !wasResolved) {
             setResolvedCelebration((current) => current + 1);
           }
         },
+        onError: () => syncSelected(item),
       }
     );
   };
@@ -109,7 +127,7 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
     deleteFeedback.mutate(feedbackId, {
       onSuccess: () => {
         setDeleteCandidate(null);
-        setSelectedId((current) => (current === feedbackId ? null : current));
+        setSelected((current) => (current?.id === feedbackId ? null : current));
       },
     });
   };
@@ -157,11 +175,11 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
           hasNextPage={list.hasNextPage}
           onDelete={setDeleteCandidate}
           onLoadMore={() => list.fetchNextPage()}
-          onSelect={(item) => setSelectedId(item.id)}
+          onSelect={setSelected}
           onStatusChange={handleStatusChange}
           onStatusFilterChange={setStatusFilter}
           organizationId={organizationId}
-          selectedId={selectedId}
+          selectedId={selected?.id ?? null}
           showEmptyState={showEmptyState}
           statusFilter={statusFilter}
         />
@@ -170,9 +188,14 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
       <AgentFeedbackDetailDialog
         isUpdating={updateStatus.isPending}
         item={selectedItem}
+        onDelete={() => {
+          if (selectedItem) {
+            setDeleteCandidate(selectedItem);
+          }
+        }}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedId(null);
+            setSelected(null);
           }
         }}
         onStatusChange={(status) => {
@@ -274,6 +297,14 @@ function FeedbackList({
       <div className="min-h-0 flex-1">
         <AgentFeedbackTable
           isDeleting={isDeleting}
+          emptyState={
+            statusFilter === "all" ? undefined : (
+              <FeedbackFilterEmpty
+                onShowAll={() => onStatusFilterChange("all")}
+                status={statusFilter}
+              />
+            )
+          }
           isPending={isLoading || isPlaceholderData}
           isUpdatingStatus={isUpdatingStatus}
           items={items}
@@ -287,19 +318,46 @@ function FeedbackList({
       {hasNextPage ? (
         <div className="flex shrink-0 justify-center">
           <Button
-            disabled={isFetchingNextPage}
+            loading={isFetchingNextPage}
             onClick={onLoadMore}
             size="sm"
             variant="outline"
           >
-            {isFetchingNextPage ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : null}
             {tCommon("actions.loadMore")}
           </Button>
         </div>
       ) : null}
     </>
+  );
+}
+
+function FeedbackFilterEmpty({
+  onShowAll,
+  status,
+}: {
+  onShowAll: () => void;
+  status: AgentFeedbackStatus;
+}) {
+  const t = useTranslations("feedback.table");
+  return (
+    <Empty className="py-8 md:py-8">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <AgentFeedbackStatusIcon className="size-5" status={status} />
+        </EmptyMedia>
+        <EmptyTitle className="text-foreground">
+          {t(`filterEmpty.${status}.title`)}
+        </EmptyTitle>
+        <EmptyDescription>
+          {t(`filterEmpty.${status}.description`)}
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button onClick={onShowAll} size="sm" variant="outline">
+          {t("showAll")}
+        </Button>
+      </EmptyContent>
+    </Empty>
   );
 }
 

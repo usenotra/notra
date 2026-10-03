@@ -8,7 +8,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/button";
 import type { TableColumn } from "@/components/motion/table";
@@ -116,16 +115,12 @@ export function createAttachmentColumns({
                 <Button
                   aria-label={t("deleteFile", { filename: row.filename })}
                   className="text-muted-foreground hover:text-destructive"
-                  disabled={pending}
+                  loading={pending}
                   onClick={() => onDelete(row.key)}
                   size="icon-sm"
                   variant="ghost"
                 >
-                  {pending ? (
-                    <LoaderCircle className="size-3.5 animate-spin" />
-                  ) : (
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
-                  )}
+                  <HugeiconsIcon icon={Delete02Icon} size={14} />
                 </Button>
               }
             />

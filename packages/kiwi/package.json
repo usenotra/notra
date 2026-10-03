@@ -24,6 +24,6 @@
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "@types/opentype.js": "^1.3.9",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

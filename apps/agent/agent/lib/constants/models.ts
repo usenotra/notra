@@ -1,8 +1,9 @@
-export const ASSISTANT_MODEL_ID = "anthropic/claude-sonnet-5";
+export const ASSISTANT_MODEL_ID = "anthropic/claude-sonnet-5.5";
 export const ASSISTANT_FAST_MODEL_ID = "openai/gpt-6-luna";
 export const ASSISTANT_DEEP_MODEL_ID = "anthropic/claude-opus-5.5";
+export const ASSISTANT_TASK_MODEL_ID = "openai/gpt-6-sol";
 /** The image designer subagent stays on a fixed model; it never routes. */
-export const IMAGE_DESIGNER_MODEL_ID = "anthropic/claude-sonnet-5";
+export const IMAGE_DESIGNER_MODEL_ID = "anthropic/claude-sonnet-5.5";
 export const CONTENT_WRITER_MODEL_ID = "openai/gpt-6-sol";
 export const GPT_6_SOL_CONTEXT_WINDOW_TOKENS = 1_050_000;
 export const SONNET_5_CONTEXT_WINDOW_TOKENS = 1_000_000;
@@ -31,7 +32,7 @@ export const ASSISTANT_AUTO_MODEL_OPTIONS = {
   },
 } as const;
 
-/** Set to `off`, `false` or `0` to pin the assistant to ASSISTANT_MODEL_ID. */
+/** Set to `off`, `false` or `0` to pin chat to ASSISTANT_MODEL_ID; tasks stay fixed. */
 export const AUTO_MODEL_FLAG_ENV = "NOTRA_JEV_CLASSIFIERS";
 export const AUTO_MODEL_DISABLED_VALUES: ReadonlySet<string> = new Set([
   "0",

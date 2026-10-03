@@ -1,3 +1,4 @@
+import { DEMO_BRAND_WEBSITE_CONTENT } from "@notra/ai/constants/demo-responses";
 import type {
   ContextDevBrandRetrieveResponse,
   ContextDevBrandSearchResponse,
@@ -17,6 +18,7 @@ import type {
   ContextDevWebSearchResponse,
 } from "@notra/ai/types/context-dev";
 import type { OperationalLogEvent } from "@notra/ai/types/operational-log";
+import { isDemoMode } from "@notra/utils/demo-mode";
 
 import {
   BRAND_ANALYSIS_EXCLUDED_PATH_PARTS,
@@ -30,6 +32,7 @@ import {
   BRAND_SEARCH_TYPO_TOLERANCE,
   COMPETITORS_TIMEOUT_MS,
 } from "../constants/context-dev";
+import { demoContextDevResponse } from "./demo-context-dev";
 import { httpErrorKind } from "./http-error-kind";
 import { logOperationalEvent } from "./operational-log";
 
@@ -46,6 +49,11 @@ class ContextDevApiError extends Error {
     this.name = "ContextDevApiError";
     this.status = status;
   }
+}
+
+/** Whether context.dev calls can succeed: a key, or the demo's fixed data. */
+export function isContextDevConfigured(): boolean {
+  return Boolean(process.env.CONTEXT_DEV_API_KEY?.trim()) || isDemoMode();
 }
 
 function getContextDevApiKey(): string {
@@ -100,6 +108,10 @@ async function requestContextDev<TResponse>(
   let errorName: string | undefined;
   let errorKind: OperationalLogEvent["errorKind"] = "operation_error";
   try {
+    if (isDemoMode()) {
+      outcome = "success";
+      return demoContextDevResponse(path, init) as TResponse;
+    }
     const apiKey = getContextDevApiKey();
     errorKind = "transport_error";
     const response = await fetch(`${CONTEXT_DEV_API_BASE_URL}${path}`, {
@@ -323,6 +335,11 @@ function formatScrapedPagesForBrandAnalysis(
 export async function scrapeWebsiteForBrandAnalysis(
   url: string
 ): Promise<ContextDevScrapingResult> {
+  // The public demo never fetches websites; the analysis runs on a canned
+  // homepage so brand setup still completes end to end.
+  if (isDemoMode()) {
+    return { success: true, content: DEMO_BRAND_WEBSITE_CONTENT };
+  }
   const websiteUrl = normalizeContextDevWebsiteUrl(url);
 
   try {

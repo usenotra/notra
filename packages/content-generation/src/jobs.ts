@@ -1,3 +1,4 @@
+import { recordGenerationOutcome } from "@notra/webhooks/runtime/generation";
 import type { Redis } from "@upstash/redis";
 
 import {
@@ -128,6 +129,14 @@ export async function updateContentGenerationJob(
     })
   );
   await redis.expire(getJobKey(jobId), JOB_TTL_SECONDS);
+
+  if (
+    nextJob.status === "completed" ||
+    nextJob.status === "failed" ||
+    nextJob.status === "skipped"
+  ) {
+    await recordGenerationOutcome(nextJob);
+  }
 
   return nextJob;
 }

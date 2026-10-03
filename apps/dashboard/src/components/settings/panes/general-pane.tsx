@@ -22,7 +22,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -199,17 +198,10 @@ export function GeneralSettingsPane() {
                 trigger={
                   <Button
                     className="w-full sm:w-auto"
-                    disabled={isRemovingOrganization}
+                    loading={isRemovingOrganization}
                     variant="destructive"
                   >
-                    {isRemovingOrganization ? (
-                      <>
-                        <Loader2Icon className="size-4 animate-spin" />
-                        {tCommon("actions.deleting")}
-                      </>
-                    ) : (
-                      t("deleteOrganization")
-                    )}
+                    {t("deleteOrganization")}
                   </Button>
                 }
               />
@@ -323,12 +315,8 @@ function ConnectedAccountsGroup({
           <p className="text-sm font-medium">{label}</p>
         </div>
         {accounts.length > 0 && (
-          <Button disabled={isConnecting} onClick={onConnect} size="sm">
-            {isConnecting ? (
-              <Loader2Icon className="size-3.5 animate-spin" />
-            ) : (
-              <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
-            )}
+          <Button loading={isConnecting} onClick={onConnect} size="sm">
+            <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
             {tCommon("connect")}
           </Button>
         )}
@@ -342,18 +330,9 @@ function ConnectedAccountsGroup({
           <div className="text-center">
             <p className="text-muted-foreground text-sm">{emptyLabel}</p>
           </div>
-          <Button disabled={isConnecting} onClick={onConnect} size="sm">
-            {isConnecting ? (
-              <>
-                <Loader2Icon className="size-3.5 animate-spin" />
-                {tCommon2("labels.connecting")}
-              </>
-            ) : (
-              <>
-                <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
-                {connectLabel}
-              </>
-            )}
+          <Button loading={isConnecting} onClick={onConnect} size="sm">
+            <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
+            {connectLabel}
           </Button>
         </div>
       )}
@@ -413,20 +392,17 @@ function ConnectedAccountsGroup({
                         username: account.username,
                       })}
                       disabled={refreshMutation.isPending}
+                      loading={isRefreshing}
                       onClick={() => refreshMutation.mutate(account.id)}
                       size="icon-sm"
                       variant="outline"
                     />
                   }
                 >
-                  {isRefreshing ? (
-                    <Loader2Icon className="size-3.5 animate-spin" />
-                  ) : (
-                    <HugeiconsIcon
-                      className="size-3.5"
-                      icon={ArrowReloadHorizontalIcon}
-                    />
-                  )}
+                  <HugeiconsIcon
+                    className="size-3.5"
+                    icon={ArrowReloadHorizontalIcon}
+                  />
                 </TooltipTrigger>
                 <TooltipContent>{t("refreshTooltip")}</TooltipContent>
               </Tooltip>
@@ -435,6 +411,7 @@ function ConnectedAccountsGroup({
                   username: account.username,
                 })}
                 disabled={disconnectMutation.isPending}
+                loading={isDisconnecting}
                 onClick={() => {
                   disconnectMutation.mutate(account.id, {
                     onSuccess: () => toast.success(t("disconnected")),
@@ -445,17 +422,8 @@ function ConnectedAccountsGroup({
                 size="sm"
                 variant="outline"
               >
-                {isDisconnecting ? (
-                  <>
-                    <Loader2Icon className="size-3.5 animate-spin" />
-                    {t("disconnecting")}
-                  </>
-                ) : (
-                  <>
-                    <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
-                    {tCommon("disconnect")}
-                  </>
-                )}
+                <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
+                {tCommon("disconnect")}
               </Button>
             </div>
           </div>

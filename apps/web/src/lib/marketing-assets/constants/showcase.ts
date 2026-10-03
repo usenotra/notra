@@ -1,9 +1,11 @@
 import { assetShowcaseSectionsSchema } from "../schemas/showcase";
 import type { AssetShowcaseSection } from "../types/showcase";
 
+export const ASSET_GENERATE_SECTION_ID = "generate";
+
 export const ASSET_SHOWCASE_SECTIONS = assetShowcaseSectionsSchema.parse([
   {
-    id: "generate",
+    id: ASSET_GENERATE_SECTION_ID,
     headingPre: "If it looks generic, ",
     headingAccent: "nobody",
     headingPost: " clicks.",

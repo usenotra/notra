@@ -83,6 +83,7 @@ export function GeoScanControlsProvider({
           open
           organizationId={organizationId}
           prompt={request.prompt?.prompt}
+          promptId={request.prompt?.id}
           promptCount={request.prompt ? 1 : promptCount}
         />
       ) : null}

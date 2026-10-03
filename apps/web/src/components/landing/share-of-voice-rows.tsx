@@ -8,7 +8,6 @@ import {
   TableRow,
 } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 
 import { FEATURES_TABLE_OPTIONAL_COL } from "@/constants/landing/features";
 import type { ShareRow, ShareRowLogo } from "@/types/landing/geo";
@@ -27,14 +26,18 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
   if (logo.darkSrc) {
     return (
       <>
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={alt}
           className={cn(LOGO_CLASS, "dark:hidden")}
           height={LOGO_SIZE_PX}
           src={logo.src}
           width={LOGO_SIZE_PX}
         />
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt={alt}
           className={cn(LOGO_CLASS, "hidden dark:block")}
           height={LOGO_SIZE_PX}
@@ -45,7 +48,9 @@ function BrandLogo({ brand, logo }: { brand: string; logo: ShareRowLogo }) {
     );
   }
   const image = (
-    <Image
+    <img
+      decoding="async"
+      loading="lazy"
       alt={alt}
       className={cn(LOGO_CLASS, logo.invertOnDark && "dark:invert")}
       height={LOGO_SIZE_PX}

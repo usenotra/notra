@@ -26,7 +26,13 @@ function gap(id: string, opportunity: number): GeoPromptGapRow {
 }
 
 function response(promptGaps: GeoPromptGapRow[]): GeoContentGapsResponse {
-  return { promptGaps, searchGaps: [], aiSearchGaps: [], hasScanData: true };
+  return {
+    promptGaps,
+    searchGaps: [],
+    aiSearchGaps: [],
+    hasScanData: true,
+    snapshotReady: true,
+  };
 }
 
 describe("prompt gap ignore cache", () => {

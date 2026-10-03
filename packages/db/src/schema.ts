@@ -11,6 +11,7 @@ import {
   real,
   text,
   timestamp,
+  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -24,6 +25,7 @@ import {
   BLOG_POST_SUBTYPES,
   CONTENT_PUBLICATION_STATUSES,
 } from "./constants/content";
+import { DEMO_REQUEST_SOURCES } from "./constants/demo";
 import { GEO_PERSONA_MEMORY_KINDS } from "./constants/geo-personas";
 import { GEO_PROSPECT_REPORT_STATUSES } from "./constants/geo-prospect-reports";
 import {
@@ -35,6 +37,7 @@ import type {
   AgentReadinessIssue,
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
+import type { DemoAffectedEntity, DemoPersonalization } from "./types/demo";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type {
   GeoPersonaProfile,
@@ -1478,6 +1481,8 @@ export const geoSettings = pgTable(
       .notNull()
       .default(sql`ARRAY[]::text[]`),
     languages: text("languages").array(),
+    /** Language the stored prompts are written in. Null means English. */
+    promptLanguage: text("prompt_language"),
     engines: text("engines").array(),
     enforceZdr: boolean("enforce_zdr").notNull().default(true),
     trackWithoutSearch: boolean("track_without_search")
@@ -1519,6 +1524,17 @@ export const geoSettings = pgTable(
   ]
 );
 
+export const geoContentGapSnapshots = pgTable("geo_content_gap_snapshots", {
+  projectId: text("project_id")
+    .primaryKey()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  snapshot: jsonb("snapshot").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
 export const geoPrompts = pgTable(
   "geo_prompts",
   {
@@ -1549,6 +1565,45 @@ export const geoPrompts = pgTable(
       table.projectId,
       table.createdAt.desc()
     ),
+  ]
+);
+
+/**
+ * A prompt picked for scanning in one of the project's other tracked
+ * languages, with its stored translation. A row means "scan this prompt in
+ * this language"; `text` is null until it has been translated.
+ */
+export const geoPromptTranslations = pgTable(
+  "geo_prompt_translations",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    /** Scan prompt id: an auto prompt slug or `custom-<uuid>`. */
+    promptId: text("prompt_id").notNull(),
+    language: text("language").notNull(),
+    text: text("text"),
+    /** Prompt text the translation was made from, to spot stale ones. */
+    sourceText: text("source_text"),
+    /** Written by hand; kept even when the source prompt changes. */
+    edited: boolean("edited").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("geoPromptTranslations_project_prompt_language_idx").on(
+      table.projectId,
+      table.promptId,
+      table.language
+    ),
+    index("geoPromptTranslations_organizationId_idx").on(table.organizationId),
   ]
 );
 
@@ -3791,6 +3846,190 @@ export const discussionReactions = pgTable(
       table.commentId,
       table.userId,
       table.emoji
+    ),
+  ]
+);
+
+/**
+ * One row per anonymous visitor of the public demo (demo.usenotra.com). Only
+ * ever written when NOTRA_DEMO_MODE is on; production never has rows here.
+ * Deleting the organization cascades the sandbox and its request log.
+ */
+export const demoSandboxes = pgTable(
+  "demo_sandboxes",
+  {
+    anonymousId: text("anonymous_id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Demo keys only work against demo-api and expire with the sandbox, so
+    // keeping the plaintext lets the in-app API console send real requests.
+    apiKey: text("api_key"),
+    apiKeyId: text("api_key_id"),
+    timeZone: text("time_zone").default("UTC").notNull(),
+    anchorAt: timestamp("anchor_at").notNull(),
+    ipHash: text("ip_hash"),
+    // What the visitor entered under "Customize your experience"; reapplied
+    // on every reset. Null means the default Fieldnote workspace.
+    personalization: jsonb("personalization").$type<DemoPersonalization>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("demo_sandboxes_organization_id_uidx").on(table.organizationId),
+    index("demo_sandboxes_expires_at_idx").on(table.expiresAt),
+  ]
+);
+
+export const demoRequestLog = pgTable(
+  "demo_request_log",
+  {
+    id: text("id").primaryKey(),
+    anonymousId: text("anonymous_id")
+      .notNull()
+      .references(() => demoSandboxes.anonymousId, { onDelete: "cascade" }),
+    source: text("source", { enum: DEMO_REQUEST_SOURCES }).notNull(),
+    method: text("method").notNull(),
+    path: text("path").notNull(),
+    status: integer("status").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    requestBody: text("request_body"),
+    responseBody: text("response_body"),
+    affected: jsonb("affected")
+      .$type<DemoAffectedEntity[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("demo_request_log_anonymous_id_created_at_idx").on(
+      table.anonymousId,
+      table.createdAt
+    ),
+  ]
+);
+
+export const webhookEndpoints = pgTable(
+  "webhook_endpoints",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    events: text("events").array().notNull(),
+    secret: text("secret").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    unique("webhook_endpoints_org_id").on(table.organizationId, table.id),
+  ]
+);
+
+export const webhookEvents = pgTable(
+  "webhook_events",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    sourceKey: text("source_key").notNull(),
+    eventType: text("event_type").notNull(),
+    payload: text("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    dispatchAt: timestamp("dispatch_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("webhook_events_org_source").on(
+      table.organizationId,
+      table.sourceKey
+    ),
+    unique("webhook_events_org_id").on(table.organizationId, table.id),
+    index("webhook_events_dispatch").on(table.dispatchAt),
+    index("webhook_events_created_at").on(table.createdAt),
+  ]
+);
+
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id").notNull(),
+    endpointId: text("endpoint_id").notNull(),
+    eventId: text("event_id").notNull(),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(),
+    status: text("status").default("pending").notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    attemptLimit: integer("attempt_limit").default(8).notNull(),
+    leaseToken: text("lease_token"),
+    leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.organizationId, table.endpointId],
+      foreignColumns: [webhookEndpoints.organizationId, webhookEndpoints.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.eventId],
+      foreignColumns: [webhookEvents.organizationId, webhookEvents.id],
+    }).onDelete("cascade"),
+    uniqueIndex("webhook_deliveries_event_endpoint").on(
+      table.eventId,
+      table.endpointId
+    ),
+    index("webhook_deliveries_due").on(table.status, table.nextAttemptAt),
+    index("webhook_deliveries_org_created").on(
+      table.organizationId,
+      table.createdAt
+    ),
+    check(
+      "webhook_delivery_status",
+      sql`${table.status} in ('pending', 'sending', 'retrying', 'succeeded', 'failed', 'cancelled')`
+    ),
+    check("webhook_delivery_attempt_count", sql`${table.attemptCount} >= 0`),
+  ]
+);
+
+export const webhookAttempts = pgTable(
+  "webhook_attempts",
+  {
+    id: text("id").primaryKey(),
+    deliveryId: text("delivery_id")
+      .notNull()
+      .references(() => webhookDeliveries.id, { onDelete: "cascade" }),
+    attemptNumber: integer("attempt_number").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    statusCode: integer("status_code"),
+    error: text("error"),
+    durationMs: integer("duration_ms"),
+  },
+  (table) => [
+    uniqueIndex("webhook_attempts_delivery_number").on(
+      table.deliveryId,
+      table.attemptNumber
     ),
   ]
 );

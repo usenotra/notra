@@ -9,8 +9,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: tCommon("labels.geoSettings") };
 }
 
-export const instant = true;
-
 export default async function GeoSettingsRedirect({
   params,
   searchParams,

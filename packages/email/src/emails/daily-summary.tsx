@@ -80,40 +80,56 @@ export const DailySummaryEmail = ({
   organizationName = "Acme Inc",
   organizationSlug = "acme",
   dateLabel = "September 4, 2026",
-  headline = "You gained 8 prompts but lost 1 yesterday.",
+  headline = "You showed up in 2 new AI answers but dropped out of 1.",
   mentionRateLabel = "42%",
   mentionRateDeltaLabel = "+3 pts",
   scansCompleted = 1,
-  gained = 8,
+  gained = 2,
   lost = 1,
   items = [
     {
       id: "prompt-1:openai",
       title: "What is the best changelog tool for startups?",
-      changes: [{ id: "gained_mention", detail: "Gained mention", tone: "up" }],
+      changes: [
+        { id: "gained_mention", detail: "Now mentioned at #2", tone: "up" },
+      ],
       engineLabel: "ChatGPT",
       engineIconSrc: engineEmailLogoSrc("openai"),
     },
     {
       id: "prompt-2:perplexity",
       title: "How should small SaaS teams write release notes?",
-      changes: [{ id: "lost_mention", detail: "Lost mention", tone: "down" }],
+      changes: [
+        {
+          id: "competitor_displaced",
+          detail: "Replaced by Rival",
+          tone: "down",
+        },
+      ],
       engineLabel: "Perplexity",
       engineIconSrc: engineEmailLogoSrc("perplexity"),
     },
     {
       id: "prompt-3:gemini",
       title: "Which AI tools generate changelogs from GitHub?",
-      changes: [{ id: "position_improved", detail: "Position up", tone: "up" }],
+      changes: [
+        {
+          id: "position_improved",
+          detail: "Moved up from #4 to #2",
+          tone: "up",
+        },
+      ],
       engineLabel: "Gemini",
       engineIconSrc: engineEmailLogoSrc("gemini"),
     },
   ],
-  remainingCount = 2,
+  remainingCount = 0,
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: DailySummaryEmailProps) => {
   const rateTone = toneFromDelta(mentionRateDeltaLabel);
-  const promptChangesLabel = `+${gained}/-${lost}`;
+  const mentionChangesLabel = `+${gained} / −${lost}`;
+  const ratePill =
+    mentionRateDeltaLabel === "—" ? undefined : mentionRateDeltaLabel;
   const subtext = dailySummarySubtext(organizationName, scansCompleted);
 
   return (
@@ -150,12 +166,16 @@ export const DailySummaryEmail = ({
               >
                 <Row>
                   <MetricCell
-                    label="Mention rate"
-                    pill={mentionRateDeltaLabel}
+                    label="Visibility"
+                    pill={ratePill}
                     tone={rateTone}
                     value={mentionRateLabel}
                   />
-                  <MetricCell last label="Prompts" value={promptChangesLabel} />
+                  <MetricCell
+                    last
+                    label="Mentions"
+                    value={mentionChangesLabel}
+                  />
                 </Row>
               </EmailTitleCard>
             </Section>
@@ -180,7 +200,7 @@ export const DailySummaryEmail = ({
                         textAlign: "center",
                       }}
                     >
-                      And {remainingCount} more in GEO...
+                      And {remainingCount} more in Notra
                     </Text>
                   ) : null}
                 </EmailTitleCard>
@@ -407,11 +427,11 @@ DailySummaryEmail.PreviewProps = {
   organizationName: "Acme Inc",
   organizationSlug: "acme",
   dateLabel: "September 4, 2026",
-  headline: "You gained 8 prompts but lost 1 yesterday.",
+  headline: "You showed up in 3 new AI answers but dropped out of 1.",
   mentionRateLabel: "42%",
   mentionRateDeltaLabel: "+3 pts",
   scansCompleted: 1,
-  gained: 8,
+  gained: 3,
   lost: 1,
   items: [
     {
@@ -419,44 +439,42 @@ DailySummaryEmail.PreviewProps = {
       title:
         "can you recommend something for ai-powered desktop transcription application",
       changes: [
-        {
-          id: "citation_added",
-          detail: "12 citations added",
-          tone: "up",
-        },
-        {
-          id: "citation_removed",
-          detail: "7 citations removed",
-          tone: "down",
-        },
+        { id: "gained_mention", detail: "Now mentioned at #3", tone: "up" },
+        { id: "citation_added", detail: "Your site is now cited", tone: "up" },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      id: "prompt-2:anthropic",
+      id: "prompt-2:openai",
       title:
         "how do i get started with ai-powered desktop transcription application",
       changes: [
-        { id: "citation_added", detail: "Citation added", tone: "up" },
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        {
+          id: "lost_mention",
+          detail: "No longer mentioned (was #2)",
+          tone: "down",
+        },
       ],
-      engineLabel: "Claude",
-      engineIconSrc: engineEmailLogoSrc("anthropic"),
+      engineLabel: "ChatGPT",
+      engineIconSrc: engineEmailLogoSrc("openai"),
     },
     {
       id: "prompt-3:anthropic",
       title:
         "looking for an alternative for ai-powered desktop transcription application, what should i try?",
       changes: [
-        { id: "citation_added", detail: "Citation added", tone: "up" },
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        {
+          id: "position_dropped",
+          detail: "Moved down from #1 to #3 (new: Otter, Rev)",
+          tone: "down",
+        },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
   ],
-  remainingCount: 18,
+  remainingCount: 4,
   dashboardLink: "https://app.usenotra.com/acme/geo",
 } satisfies DailySummaryEmailProps;
 

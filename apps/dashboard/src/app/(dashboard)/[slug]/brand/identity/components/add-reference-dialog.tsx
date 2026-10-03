@@ -343,17 +343,11 @@ function TweetUrlStep({
           {tCommon("back")}
         </Button>
         <Button
-          disabled={isPending || !url.trim() || remaining === 0}
+          disabled={!url.trim() || remaining === 0}
+          loading={isPending}
           onClick={handleSubmit}
         >
-          {isPending ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              {tCommon2("labels.adding")}
-            </>
-          ) : (
-            tBrandShared("addReference")
-          )}
+          {tBrandShared("addReference")}
         </Button>
       </ResponsiveDialogFooter>
     </>
@@ -542,18 +536,13 @@ function ImportXStep({
                 <Button
                   className="cursor-pointer"
                   disabled={importTweets.isPending || remaining === 0}
+                  loading={isImporting}
                   onClick={() => handleImport(account)}
                   size="sm"
                   variant={didImport ? "outline" : "default"}
                 >
-                  {isImporting && (
-                    <>
-                      <Loader2Icon className="size-3.5 animate-spin" />
-                      {t("importing")}
-                    </>
-                  )}
-                  {!isImporting && didImport && t("importedLabel")}
-                  {!isImporting && !didImport && tCommon2("actions.import")}
+                  {didImport && t("importedLabel")}
+                  {!didImport && tCommon2("actions.import")}
                 </Button>
                 <button
                   className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors"

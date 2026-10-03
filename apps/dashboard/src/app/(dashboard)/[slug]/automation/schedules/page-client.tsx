@@ -43,7 +43,7 @@ import {
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -72,6 +72,7 @@ import type { SchedulePresetId } from "@/types/automation/schedule";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
 import { indexBrandVoices } from "@/utils/brand-voices";
+import { latest } from "@/utils/latest-date";
 import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 import { OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
@@ -722,6 +723,7 @@ function ScheduleTable({
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const format = useFormatter();
+  const now = useNow({ updateInterval: 60_000 });
   const formatFrequency = useScheduleFrequencyLabel();
   const outputTypeLabel = useOutputTypeLabel();
   const columns: TableColumn<Trigger>[] = [
@@ -806,7 +808,10 @@ function ScheduleTable({
       width: "6.5rem",
       cell: (trigger) => (
         <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-          {format.relativeTime(new Date(trigger.createdAt))}
+          {format.relativeTime(
+            new Date(trigger.createdAt),
+            latest(now, trigger.createdAt)
+          )}
         </span>
       ),
     },

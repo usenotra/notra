@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -12,6 +13,7 @@ import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
 import { isUserBanned } from "@/lib/auth/banned";
 import { AuthSessionError } from "@/lib/auth/errors";
 import { ensureLocalUser } from "@/lib/auth/sync";
+import { loadDemoIdentity } from "@/lib/demo/session";
 import type { AuthIdentityData, AuthSessionData } from "@/types/auth/session";
 import {
   evaluateLocalDevAuth,
@@ -144,6 +146,18 @@ const loadLocalDevIdentity = Effect.fn("auth.identity.localDev")(function* () {
 export const getAuthIdentity = cache(
   async (): Promise<AuthIdentityData | null> => {
     await connection();
+
+    // The public demo has no WorkOS: a signed cookie maps the anonymous
+    // visitor to their sandbox user.
+    if (isDemoMode()) {
+      try {
+        return await loadDemoIdentity();
+      } catch (error) {
+        unstable_rethrow(error);
+        console.error("Error reading demo session", error);
+        return null;
+      }
+    }
 
     if (isLocalDevAuthEnabled()) {
       let headerList: Headers | null = null;

@@ -2,6 +2,7 @@ import {
   createServerFlagsManager,
   type ServerFlagsManager,
 } from "@databuddy/sdk/node";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import {
@@ -39,6 +40,10 @@ export function resolveIrisFlagState(
   organizationId: string
 ): Effect.Effect<IrisFlagState> {
   return Effect.gen(function* () {
+    // The demo shows what a new workspace sees: flagged features stay off.
+    if (isDemoMode()) {
+      return "disabled";
+    }
     if (process.env.NODE_ENV === "development") {
       return "enabled";
     }

@@ -5,7 +5,7 @@ import {
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
 import type {
-  EngineFamilyModeTrendRow,
+  EngineFamilyTrendRow,
   EngineFamilyStatTrends,
   FamilyDayBucket,
   GeoCompetitor,
@@ -13,7 +13,6 @@ import type {
   GeoEngineFamily,
   GeoEngineFamilyMentionTotals,
   GeoEngineFamilyTotals,
-  GeoEngineMode,
   GeoEngineVariant,
   GeoOverviewEngine,
   GeoSparklinePoint,
@@ -473,19 +472,6 @@ export function engineFamilyCitationTotal(family: GeoEngineFamily): number {
   );
 }
 
-export function engineFamilyModeTotals(
-  family: GeoEngineFamily,
-  mode: GeoEngineMode
-): GeoEngineFamilyTotals | null {
-  return totalsForEngines(
-    engineFamilySources(family).filter((engine) =>
-      mode === "search"
-        ? isGroundedEngine(engine.engine)
-        : !isGroundedEngine(engine.engine)
-    )
-  );
-}
-
 function totalsForEngines(
   sources: readonly GeoOverviewEngine[]
 ): GeoEngineFamilyTotals | null {
@@ -500,30 +486,15 @@ function totalsForEngines(
   return { visible, checks, rate: checks === 0 ? 0 : visible / checks };
 }
 
-export function buildEngineFamilyModeTrendRows(
+export function buildEngineFamilyTrendRows(
   points: readonly GeoTimeseriesPoint[],
   family: string,
   locale: string
-): EngineFamilyModeTrendRow[] {
-  const all = mentionRateSparkline(points, { family, mode: "all" });
-  const search = mentionRateSparkline(points, { family, mode: "search" });
-  const memory = mentionRateSparkline(points, { family, mode: "memory" });
-  const allByDay = new Map(all.map((point) => [point.day, point.value]));
-  const searchByDay = new Map(search.map((point) => [point.day, point.value]));
-  const memoryByDay = new Map(memory.map((point) => [point.day, point.value]));
-  const knownDays = [
-    ...new Set([
-      ...allByDay.keys(),
-      ...searchByDay.keys(),
-      ...memoryByDay.keys(),
-    ]),
-  ].sort();
-  return knownDays.map((day) => ({
-    day: formatDayLabel(day, locale),
-    rawDay: day,
-    all: allByDay.get(day) ?? null,
-    search: searchByDay.get(day) ?? null,
-    memory: memoryByDay.get(day) ?? null,
+): EngineFamilyTrendRow[] {
+  return mentionRateSparkline(points, { family, mode: "all" }).map((point) => ({
+    day: formatDayLabel(point.day, locale),
+    rawDay: point.day,
+    all: point.value,
   }));
 }
 
@@ -792,8 +763,8 @@ export function geoStatDeltaTone(
   if (isGeoStatDeltaNew(delta)) {
     return "up";
   }
-  const rounded =
-    kind === "position" ? Math.round(delta * 10) / 10 : Math.round(delta);
+  const oneDecimal = kind === "position" || kind === "score";
+  const rounded = oneDecimal ? Math.round(delta * 10) / 10 : Math.round(delta);
   const effective = kind === "position" ? -rounded : rounded;
   if (effective > 0) {
     return "up";
@@ -819,6 +790,11 @@ export function formatGeoStatDelta(
   if (kind === "mentions") {
     const rounded = Math.round(Math.abs(delta));
     return signed ? `${delta >= 0 ? "+" : "-"}${rounded}%` : `${rounded}%`;
+  }
+  if (kind === "score") {
+    const rounded = Math.round(delta * 10) / 10;
+    const points = labels.points(rounded);
+    return signed && rounded >= 0 ? `+${points}` : points;
   }
   if (kind === "rate") {
     const rounded = Math.round(delta);

@@ -114,8 +114,15 @@ export function useGeoPersonasGenerate(organizationId: string) {
         projectId,
         ...request,
       }),
-    onSuccess: (started) => {
+    onSuccess: (started, request) => {
       queryClient.setQueryData(statusOptions.queryKey, started);
+      // Regenerating one persona shows progress in its own dialog.
+      if (request && "personaId" in request) {
+        return;
+      }
+      toast.info(tToast(request ? "generatingPersona" : "generatingPersonas"), {
+        description: tToast("generatingPersonasDescription"),
+      });
     },
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });

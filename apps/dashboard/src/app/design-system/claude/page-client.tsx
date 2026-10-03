@@ -1,19 +1,26 @@
 "use client";
 
 import {
-  ClaudeHeader,
-  ClaudeLogo,
-} from "@notra/ui/components/brainless/claude/claude-header";
-import { ClaudeMessage } from "@notra/ui/components/brainless/claude/claude-message";
+  ClaudeCodeHeader,
+  ClaudeCodeLogo,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-header";
+import { ClaudeCodeMessage } from "@notra/ui/components/ai-skins/claude-code/claude-code-message";
 import {
-  type ClaudeEffort,
-  type ClaudeMode,
-  ClaudePrompt,
-} from "@notra/ui/components/brainless/claude/claude-prompt";
-import { ClaudeTodoList } from "@notra/ui/components/brainless/claude/claude-todo-list";
-import { ClaudeToolCall } from "@notra/ui/components/brainless/claude/claude-tool-call";
+  type ClaudeCodeEffort,
+  type ClaudeCodeMode,
+  ClaudeCodePrompt,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-prompt";
+import {
+  ClaudeCodeSpinner,
+  ClaudeCodeTurnSummary,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-status";
+import { ClaudeCodeTerminal } from "@notra/ui/components/ai-skins/claude-code/claude-code-terminal";
+import { ClaudeCodeTodoList } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
+import {
+  ClaudeCodeToolCall,
+  ClaudeCodeToolSummary,
+} from "@notra/ui/components/ai-skins/claude-code/claude-code-tool-call";
 import { cn } from "@notra/ui/lib/utils";
-import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
@@ -27,39 +34,6 @@ import {
   CLAUDE_STORY_TOOL_STATUSES,
 } from "@/constants/design-system-claude";
 
-function ClaudeTerminal({
-  title,
-  children,
-  className,
-}: {
-  title?: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex w-full flex-col overflow-clip rounded-[1.25rem] bg-[#1E1E1E] [box-shadow:#28282833_0rem_1.5rem_3.5rem_-1rem]",
-        className
-      )}
-    >
-      <div className="flex items-center gap-3 bg-[#282828] px-4.5 py-3">
-        <div className="flex items-center gap-1.5">
-          <div className="size-2.5 shrink-0 rounded-full bg-[#4A4A4A]" />
-          <div className="size-2.5 shrink-0 rounded-full bg-[#4A4A4A]" />
-          <div className="size-2.5 shrink-0 rounded-full bg-[#4A4A4A]" />
-        </div>
-        {title ? (
-          <span className="font-mono text-[0.75rem] leading-4 text-[#FFFFFF66]">
-            {title}
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-col gap-3.5 p-4 sm:p-6">{children}</div>
-    </div>
-  );
-}
-
 function nextItem<T>(items: readonly T[], current: T): T {
   const index = items.indexOf(current);
   return items[(index + 1) % items.length] ?? current;
@@ -67,13 +41,13 @@ function nextItem<T>(items: readonly T[], current: T): T {
 
 function ClaudePromptPlayground() {
   const [value, setValue] = useState("");
-  const [mode, setMode] = useState<ClaudeMode>("auto");
-  const [effort, setEffort] = useState<ClaudeEffort>("xhigh");
+  const [mode, setMode] = useState<ClaudeCodeMode>("auto");
+  const [effort, setEffort] = useState<ClaudeCodeEffort>("xhigh");
 
   return (
     <div className="space-y-3">
-      <ClaudeTerminal title="claude — playground">
-        <ClaudePrompt
+      <ClaudeCodeTerminal title="claude — playground">
+        <ClaudeCodePrompt
           effort={effort}
           mode={mode}
           onChange={(event) => setValue(event.target.value)}
@@ -86,7 +60,7 @@ function ClaudePromptPlayground() {
           placeholder="Type here · Shift+Tab cycles mode"
           value={value}
         />
-      </ClaudeTerminal>
+      </ClaudeCodeTerminal>
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
         <span>Effort</span>
         <div className="flex flex-wrap gap-2">
@@ -123,61 +97,66 @@ export function DesignSystemClaudeCatalog() {
           id="claude-session"
           title="Full session"
         />
-        <ClaudeTerminal title={session.title}>
-          <ClaudeHeader {...session.header} />
-          <ClaudeMessage className="mt-1 rounded-sm px-2.5 py-1.5" from="user">
+        <ClaudeCodeTerminal title={session.title}>
+          <ClaudeCodeHeader {...session.header} />
+          <ClaudeCodeMessage from="user">
             {session.userMessage}
-          </ClaudeMessage>
-          <ClaudeMessage>{session.assistantMessage}</ClaudeMessage>
-          <ClaudeTodoList todos={session.todos} />
-          <div className="flex flex-col gap-2">
-            {session.toolCalls.map((call) => (
-              <ClaudeToolCall
+          </ClaudeCodeMessage>
+          <ClaudeCodeToolSummary count={session.commands.length}>
+            {session.commands.map((call) => (
+              <ClaudeCodeToolCall
                 arg={call.arg}
                 key={call.id}
                 result={call.result}
-                status={call.status}
                 tool={call.tool}
               />
             ))}
-          </div>
-          <ClaudeMessage>{session.resultMessage}</ClaudeMessage>
-          <ClaudePrompt
-            className="mt-1"
-            effort="xhigh"
-            mode="auto"
-            placeholder={session.promptPlaceholder}
+          </ClaudeCodeToolSummary>
+          <ClaudeCodeMessage>{session.assistantMessage}</ClaudeCodeMessage>
+          <ClaudeCodeTurnSummary {...session.summary} />
+          <ClaudeCodeMessage from="user">
+            {session.followUpMessage}
+          </ClaudeCodeMessage>
+          <ClaudeCodeTodoList todos={session.todos} />
+          <ClaudeCodeToolCall
+            result={session.pendingToolCall.result}
+            status={session.pendingToolCall.status}
+            tool={session.pendingToolCall.tool}
           />
-        </ClaudeTerminal>
+          <ClaudeCodeSpinner {...session.spinner} />
+          <ClaudeCodePrompt
+            className="mt-2"
+            mode="bypass"
+            placeholder={session.promptPlaceholder}
+            pullRequest={{ number: session.pullRequestNumber }}
+          />
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-header">
         <DesignSystemSectionHeader
-          description="Pixel logo plus the welcome banner."
+          description="The pixel mascot next to version, model and working directory, then notices."
           id="claude-header"
           title="Header"
         />
-        <ClaudeTerminal title="claude — header">
-          <div className="flex justify-center py-2">
-            <ClaudeLogo />
-          </div>
-          <ClaudeHeader {...session.header} />
-        </ClaudeTerminal>
+        <ClaudeCodeTerminal title="claude — header">
+          <ClaudeCodeLogo size={132} />
+          <ClaudeCodeHeader {...session.header} />
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-messages">
         <DesignSystemSectionHeader
-          description="User turns sit on a darker bar. Assistant turns are plain mono."
+          description="User turns sit on a full-width gray bar. Assistant turns start with a white bullet and render `code` and **bold**."
           id="claude-messages"
           title="Messages"
         />
-        <ClaudeTerminal title="claude — messages">
-          <ClaudeMessage className="rounded-sm px-2.5 py-1.5" from="user">
+        <ClaudeCodeTerminal title="claude — messages">
+          <ClaudeCodeMessage from="user">
             {session.userMessage}
-          </ClaudeMessage>
-          <ClaudeMessage>{session.assistantMessage}</ClaudeMessage>
-          <ClaudeMessage>{session.resultMessage}</ClaudeMessage>
-        </ClaudeTerminal>
+          </ClaudeCodeMessage>
+          <ClaudeCodeMessage>{session.assistantMessage}</ClaudeCodeMessage>
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-todos">
@@ -186,21 +165,21 @@ export function DesignSystemClaudeCatalog() {
           id="claude-todos"
           title="Todos"
         />
-        <ClaudeTerminal title="claude — todos">
-          <ClaudeTodoList todos={CLAUDE_STORY_TODO_STATES} />
-        </ClaudeTerminal>
+        <ClaudeCodeTerminal title="claude — todos">
+          <ClaudeCodeTodoList todos={CLAUDE_STORY_TODO_STATES} />
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-tools">
         <DesignSystemSectionHeader
-          description="Success, pending, error, and an expandable Read result."
+          description="Success, running, error, an expandable Read result, and the collapsed shell summary."
           id="claude-tools"
           title="Tool calls"
         />
-        <ClaudeTerminal title="claude — tools">
-          <div className="flex flex-col gap-3">
+        <ClaudeCodeTerminal title="claude — tools">
+          <div className="flex flex-col gap-5">
             {CLAUDE_STORY_TOOL_STATUSES.map((call) => (
-              <ClaudeToolCall
+              <ClaudeCodeToolCall
                 arg={call.arg}
                 defaultOpen={Boolean(call.detail)}
                 key={call.id}
@@ -209,10 +188,32 @@ export function DesignSystemClaudeCatalog() {
                 tool={call.tool}
               >
                 {call.detail}
-              </ClaudeToolCall>
+              </ClaudeCodeToolCall>
             ))}
+            <ClaudeCodeToolSummary count={session.commands.length}>
+              {session.commands.map((call) => (
+                <ClaudeCodeToolCall
+                  arg={call.arg}
+                  key={call.id}
+                  result={call.result}
+                  tool={call.tool}
+                />
+              ))}
+            </ClaudeCodeToolSummary>
           </div>
-        </ClaudeTerminal>
+        </ClaudeCodeTerminal>
+      </section>
+
+      <section className="scroll-mt-10 space-y-6" id="claude-status">
+        <DesignSystemSectionHeader
+          description="The orange spinner while a turn runs and the dim summary once it is done."
+          id="claude-status"
+          title="Status"
+        />
+        <ClaudeCodeTerminal title="claude — status">
+          <ClaudeCodeSpinner {...session.spinner} />
+          <ClaudeCodeTurnSummary {...session.summary} />
+        </ClaudeCodeTerminal>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-modes">
@@ -223,37 +224,40 @@ export function DesignSystemClaudeCatalog() {
         />
         <div className="grid gap-4 lg:grid-cols-2">
           {CLAUDE_STORY_PROMPT_MODES.map((variant) => (
-            <ClaudeTerminal key={variant.id} title={`claude — ${variant.mode}`}>
-              <ClaudePrompt
+            <ClaudeCodeTerminal
+              key={variant.id}
+              title={`claude — ${variant.mode}`}
+            >
+              <ClaudeCodePrompt
                 defaultValue=""
                 effort={variant.effort}
                 mode={variant.mode}
                 placeholder={variant.mode}
               />
-            </ClaudeTerminal>
+            </ClaudeCodeTerminal>
           ))}
         </div>
       </section>
 
       <section className="scroll-mt-10 space-y-6" id="claude-effort">
         <DesignSystemSectionHeader
-          description="Effort chips, including the ultracode rainbow rule."
+          description="Effort sits on the right of the status line. Ultracode is orange."
           id="claude-effort"
           title="Prompt effort"
         />
         <div className="grid gap-4 lg:grid-cols-2">
           {CLAUDE_STORY_PROMPT_EFFORTS.map((variant) => (
-            <ClaudeTerminal
+            <ClaudeCodeTerminal
               key={variant.id}
               title={`claude — ${variant.effort}`}
             >
-              <ClaudePrompt
+              <ClaudeCodePrompt
                 defaultValue=""
                 effort={variant.effort}
                 mode={variant.mode}
                 placeholder="/effort"
               />
-            </ClaudeTerminal>
+            </ClaudeCodeTerminal>
           ))}
         </div>
       </section>

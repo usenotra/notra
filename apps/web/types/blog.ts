@@ -27,10 +27,6 @@ export interface NotraAuthor extends NotraBlogAuthor {
   postCount: number;
 }
 
-export interface BlogAuthorPageProps {
-  params: Promise<{ slug: string }>;
-}
-
 export interface BlogCopyArticleProps {
   markdown: string;
   markdownUrl: string;
@@ -122,9 +118,9 @@ interface BlogHtmlArticleProps {
   html: string;
 }
 
-export interface BlogEntryPageProps {
-  params: Promise<{ slug: string }>;
-}
+export type BlogEntryData = Awaited<
+  ReturnType<typeof import("@/lib/blog/functions").getBlogPost>
+>;
 
 export interface BlogFaqEntry {
   question: string;

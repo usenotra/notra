@@ -1,3 +1,5 @@
+import { isDemoMode } from "@notra/utils/demo-mode";
+
 import { runDailySummaryCron } from "@/lib/email/daily-summary";
 
 export const maxDuration = 60;
@@ -13,6 +15,12 @@ export async function GET(request: Request) {
     request.headers.get("authorization") !== `Bearer ${cronSecret}`
   ) {
     return new Response("Unauthorized", { status: 401 });
+  }
+  // The public demo runs no background jobs; scans start on demand. Checked
+  // after auth so reading the request keeps this route dynamic (a static
+  // 204 breaks the build).
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
   }
 
   const result = await runDailySummaryCron();

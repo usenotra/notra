@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Copy01Icon,
   Download01Icon,
@@ -16,6 +14,7 @@ import {
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { TRANSITION, tween } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   AnimatePresence,
   domAnimation,
@@ -25,8 +24,6 @@ import {
   useReducedMotion,
   useScroll,
 } from "motion/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NavbarChevron, NavbarMenuToggle } from "@/components/navbar-glyphs";
@@ -244,7 +241,7 @@ function getNavbarMotion(reduceMotion: boolean) {
 }
 
 export function Navbar({ variant }: NavbarProps = {}) {
-  const pathname = usePathname();
+  const pathname = useLocation({ select: (location) => location.pathname });
   const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -449,7 +446,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                     <Link
                       aria-label="Notra home"
                       className="group flex flex-1 items-center"
-                      href={isAuthenticated ? "/home" : "/"}
+                      to={isAuthenticated ? "/home" : "/"}
                       onContextMenu={(event) => {
                         event.preventDefault();
                         setLogoMenuOpen(true);
@@ -499,7 +496,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                     }
                   />
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem render={<Link href="/brand" />}>
+                  <DropdownMenuItem render={<Link to="/brand" />}>
                     <HugeiconsIcon icon={PaintBoardIcon} />
                     Brand Guidelines
                   </DropdownMenuItem>
@@ -512,7 +509,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                     return (
                       <Link
                         className={`duration-fast font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out ${mutedNavClass}`}
-                        href={entry.href}
+                        to={entry.href}
                         key={entry.href}
                         onFocus={() => setActiveGroup(null)}
                         onMouseEnter={() => {
@@ -678,28 +675,28 @@ function DesktopAuthActions({
   if (isAuthenticated) {
     return (
       <div className="hidden items-center gap-3 lg:flex">
-        <Link
+        <a
           aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
           className={SIGNUP_BUTTON_CLASS}
           href={AUTH_DASHBOARD_URL}
         >
           Dashboard
           <NavbarKbd onLight>{AUTH_APP_HOTKEY}</NavbarKbd>
-        </Link>
+        </a>
       </div>
     );
   }
 
   return (
     <div className="hidden items-center gap-3 lg:flex">
-      <Link
+      <a
         aria-keyshortcuts={AUTH_SIGNIN_HOTKEY.toLowerCase()}
         className="font-display duration-fast inline-flex items-center gap-1.5 text-base leading-[1.14] tracking-[-0.015em] text-[#1E1E1E] transition-opacity ease-out hover:opacity-70 dark:text-white"
         href={AUTH_SIGNIN_URL}
       >
         Sign In
         <NavbarKbd>{AUTH_SIGNIN_HOTKEY}</NavbarKbd>
-      </Link>
+      </a>
       <TrackedSignupLink
         aria-keyshortcuts={AUTH_APP_HOTKEY.toLowerCase()}
         className={SIGNUP_BUTTON_CLASS}

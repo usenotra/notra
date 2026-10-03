@@ -60,7 +60,6 @@ export function GeoProjectBrandSelection({
             : t("willCreateUnnamed")}
         </p>
       )}
-      <p className="text-muted-foreground text-xs">{t("articlesNote")}</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { startSocialSignInInputSchema } from "@notra/schemas/dashboard/auth/social";
 import type { StartSocialSignInInput } from "@notra/schemas/types/dashboard/auth";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -25,6 +26,13 @@ export async function startSocialSignInAction(
   }
 
   const input = parsed.data;
+
+  // The demo has no WorkOS client; the UI explains this before calling, so
+  // just send the visitor back instead of failing with a 500.
+  if (isDemoMode()) {
+    redirect(sanitizeReturnTo(input.returnTo ?? null) ?? "/");
+  }
+
   const mappedProvider = SOCIAL_AUTH_PROVIDERS[input.provider];
 
   if (!mappedProvider) {

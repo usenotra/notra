@@ -1,5 +1,6 @@
 "use client";
 
+import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -10,12 +11,12 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { GeoLanguagePicker } from "@/components/geo/geo-language-picker";
 import { GeoProjectBrandSelection } from "@/components/geo/project-brand-selection";
 import {
   useAnalyzeBrand,
@@ -30,6 +31,14 @@ import {
   projectWebsiteUrl,
   resolveProjectBrandSelection,
 } from "@/utils/geo-projects";
+
+function browserGeoLanguages(): string[] {
+  return [
+    preferredGeoLanguage(
+      typeof navigator === "undefined" ? null : navigator.languages
+    ),
+  ];
+}
 
 export function GeoProjectCreateDialog({
   open,
@@ -46,6 +55,7 @@ export function GeoProjectCreateDialog({
   const [selectedBrandSettingsId, setSelectedBrandSettingsId] = useState<
     string | null
   >(null);
+  const [languages, setLanguages] = useState(browserGeoLanguages);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { createProject } = useGeoProjectsDb(organizationId, { enabled: open });
@@ -69,6 +79,7 @@ export function GeoProjectCreateDialog({
     setName("");
     setWebsite("");
     setSelectedBrandSettingsId(null);
+    setLanguages(browserGeoLanguages());
     setError(null);
     createIdentity.reset();
   };
@@ -101,6 +112,7 @@ export function GeoProjectCreateDialog({
       const project = await createProject({
         name: name.trim(),
         brandSettingsId,
+        languages,
       });
       if (
         !selectedIdentity ||
@@ -184,6 +196,18 @@ export function GeoProjectCreateDialog({
               value={name}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-languages`}>
+              {tCommon2("labels.languages")}
+            </Label>
+            <GeoLanguagePicker
+              disabled={isSubmitting}
+              inputId={`${id}-languages`}
+              labeled={false}
+              onChange={setLanguages}
+              selected={languages}
+            />
+          </div>
           {websiteUrl && brandQuery.isSuccess ? (
             <GeoProjectBrandSelection
               disabled={isSubmitting}
@@ -228,13 +252,11 @@ export function GeoProjectCreateDialog({
               {tCommon("cancel")}
             </Button>
             <Button
-              disabled={isSubmitting || !brandQuery.isSuccess}
+              disabled={!brandQuery.isSuccess}
+              loading={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : null}
-              {isSubmitting ? t("settingUp") : t("create")}
+              {t("create")}
             </Button>
           </ResponsiveDialogFooter>
         </form>

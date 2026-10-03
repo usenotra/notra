@@ -13,6 +13,7 @@
     "test": "turbo run test",
     "knip": "dotenv -- turbo run knip --filter=web --filter=dashboard --filter=api",
     "db:generate": "dotenv -- bunx drizzle-kit generate --config packages/db/drizzle.config.ts",
+    "db:check": "turbo run check:migrations --filter=@notra/db --",
     "db:migrate": "dotenv -- bunx drizzle-kit migrate --config packages/db/drizzle.config.ts",
     "db:push": "dotenv -- bunx drizzle-kit push --config packages/db/drizzle.config.ts",
     "db:studio": "dotenv -- bunx drizzle-kit studio --config packages/db/drizzle.config.ts",
@@ -30,7 +31,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@effect/tsgo": "0.45.0",
+    "@effect/tsgo": "0.47.2",
     "@shadcn/lint": "0.1.0",
     "@types/node": "24.13.2",
     "bun-types": "1.4.0",
@@ -44,6 +45,7 @@
     "oxlint": "1.82.0",
     "oxlint-tsgolint": "7.0.2001",
     "turbo": "^2.11.4",
+    "typescript": "7.0.2",
     "ultracite": "7.10.6"
   },
   "overrides": {

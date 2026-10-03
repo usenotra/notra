@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { SponsorsProps } from "~types/sponsors";
 
 import { SPONSORS_CAPTION } from "@/constants/contributors";
@@ -17,7 +17,7 @@ export function Sponsors({ sponsors }: SponsorsProps) {
         {sponsors.map((sponsor) => (
           <Link
             className="flex items-center gap-2.5 text-[#1E1E1E] transition-opacity hover:opacity-70 dark:text-white"
-            href={sponsor.url}
+            to={sponsor.url}
             key={sponsor.name}
             rel="noopener noreferrer"
             target="_blank"

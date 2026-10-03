@@ -20,6 +20,7 @@ import {
   posts,
   trackedSocialAccounts,
 } from "@notra/db/schema";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -62,6 +63,10 @@ function toNullableNumber(value: number | bigint | null): number | null {
 
 const syncTrackedAccountNow = Effect.fn("analytics.syncTrackedAccount")(
   function* (account: SyncableSocialAccount) {
+    // Demo stats are generated at read time; there is nothing to sync.
+    if (isDemoMode()) {
+      return;
+    }
     const capturedAt = new Date();
     yield* analyticsRequest("account ingest failed", () =>
       ingestSocialAccounts([buildAccountRow(account, capturedAt)])

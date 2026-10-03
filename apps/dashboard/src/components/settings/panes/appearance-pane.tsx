@@ -5,6 +5,9 @@ import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 
+import { ChatSection } from "@/components/settings/chat-section";
+import { LanguageSection } from "@/components/settings/language-section";
+import { PrivacySection } from "@/components/settings/privacy-section";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import {
   APPEARANCE_OPTIONS,
@@ -109,6 +112,9 @@ export function AppearanceSettingsPane() {
           })}
         </div>
       </fieldset>
+      <LanguageSection />
+      <ChatSection />
+      <PrivacySection />
     </SettingsPane>
   );
 }

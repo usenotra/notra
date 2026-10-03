@@ -9,8 +9,7 @@ import { toast } from "sonner";
 import { dashboardOrpc } from "../orpc/query";
 
 /**
- * Delete and publish actions for a post, shared by every surface that lists
- * posts (cards, sidebar) so the toasts and cache invalidations stay identical.
+ * Shared post and collection actions keep toasts and list caches consistent.
  */
 export function usePostActions(organizationId: string) {
   const tToast = useTranslations("content.toasts");
@@ -67,6 +66,27 @@ export function usePostActions(organizationId: string) {
     [invalidateLists, organizationId, tToast]
   );
 
+  const deleteCollection = useCallback(
+    (collectionId: string) => {
+      setIsDeleting(true);
+      return dashboardOrpc.content.collections.delete
+        .call({ organizationId, collectionId })
+        .then(async () => {
+          toast.success(tToast("collectionDeleted"));
+          await invalidateLists();
+          return true;
+        })
+        .catch(() => {
+          toast.error(tToast("deleteCollectionFailed"));
+          return false;
+        })
+        .finally(() => {
+          setIsDeleting(false);
+        });
+    },
+    [invalidateLists, organizationId, tToast]
+  );
+
   const togglePostStatus = useCallback(
     (contentId: string, status: PostStatus) => {
       setIsTogglingStatus(true);
@@ -101,8 +121,14 @@ export function usePostActions(organizationId: string) {
           setIsTogglingStatus(false);
         });
     },
-    [invalidateLists, organizationId, queryClient, tToast]
+    [invalidateLists, organizationId, queryClient, tToast, tCommon]
   );
 
-  return { deletePost, isDeleting, isTogglingStatus, togglePostStatus };
+  return {
+    deletePost,
+    deleteCollection,
+    isDeleting,
+    isTogglingStatus,
+    togglePostStatus,
+  };
 }

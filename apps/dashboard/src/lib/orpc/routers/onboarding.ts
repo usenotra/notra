@@ -49,17 +49,16 @@ export const onboardingRouter = {
         searchByName: input.searchByName,
       };
 
-      // Ahead of the rate limiter: a cached logo costs nothing upstream, and
-      // repeat navigation used to burn the per-query budget on every page view.
+      // Cached logos cost nothing upstream and do not consume the user's budget.
       const cached = await readCachedCompanyLogo(cacheKeyInput);
       if (cached) {
         return cached;
       }
 
-      const { success: withinLimit } = await ratelimit.companyLogo.limit(
-        `${context.user.id}:${input.query.toLowerCase()}`
-      );
-      if (!withinLimit) {
+      const { success: withinLimit, reason } =
+        await ratelimit.companyLogo.limit(context.user.id);
+      // Upstash returns success on timeout; paid lookups must fail closed.
+      if (!withinLimit || reason === "timeout") {
         const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
           message: tErrors("tooManyLogoLookups"),

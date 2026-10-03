@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusSignIcon, Upload01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
@@ -17,7 +17,6 @@ import { CompetitorsTable } from "@/components/geo/competitors-table";
 import { CompetitorsCsvImportDialog } from "@/components/geo/geo-csv-import-dialog";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
-import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -33,7 +32,7 @@ import {
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
-import type { GeoRangeControl } from "@/types/geo";
+import { shareOfVoiceByBrand } from "@/utils/geo-share-of-voice";
 
 import { GeoCompetitorsSkeleton } from "./skeleton";
 
@@ -43,19 +42,10 @@ const CompetitorShareCard = dynamic(
       (module) => module.CompetitorShareCard
     ),
   {
-    loading: () => <CompetitorShareCardLoading />,
+    loading: () => <Skeleton className="h-96 w-full rounded-2xl" />,
     ssr: false,
   }
 );
-
-function CompetitorShareCardLoading() {
-  const tGeoShared = useTranslations("geo.shared");
-  return (
-    <GeoSectionSkeleton eyebrow={tGeoShared("shareOfVoice")}>
-      <Skeleton className="h-64 w-full rounded-xl" />
-    </GeoSectionSkeleton>
-  );
-}
 
 interface PageClientProps {
   organizationSlug: string;
@@ -77,17 +67,21 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const { data: settingsData, isPending } = useGeoSettings(organizationId);
   // Full response: the share-of-voice change indicators need the daily
   // mention timeseries, which the summary-only variant leaves out.
-  const { data: competitorShare } = useGeoCompetitorShare(
-    organizationId,
-    geoRange.query
-  );
+  const { data: competitorShare, isPending: isSharePending } =
+    useGeoCompetitorShare(organizationId, geoRange.query);
   const { competitors } = useGeoCompetitorsDb(organizationId);
   const { domain: ownDomain } = useGeoActiveProject(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [initialName, setInitialName] = useState<string>();
   const [importOpen, setImportOpen] = useState(false);
 
-  useHotkey("C", () => setManagerOpen(true), {
+  const openManager = (name?: string) => {
+    setInitialName(name);
+    setManagerOpen(true);
+  };
+
+  useHotkey("C", () => openManager(), {
     enabled: !managerOpen && !importOpen,
   });
 
@@ -121,6 +115,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     );
   }
 
+  const points = competitorShare?.points ?? [];
+  const timeseries = competitorShare?.timeseries ?? [];
+
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -128,12 +125,29 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           description={t("description")}
           title={tCommon("labels.competitors")}
         >
-          <CompetitorsHeadingActions
-            geoRange={geoRange}
-            onAdd={() => setManagerOpen(true)}
-            onImport={() => setImportOpen(true)}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <GeoRangePicker control={geoRange} />
+            <Button onClick={() => openManager()} size="sm">
+              <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+              {t("newCompetitor")}
+              <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
+            </Button>
+          </div>
         </PageHeading>
+        {isSharePending ? (
+          <Skeleton className="h-96 w-full rounded-2xl" />
+        ) : (
+          <CompetitorShareCard
+            aliases={settings.aliases}
+            companyName={settings.companyName}
+            competitors={competitors}
+            isScanning={isScanning}
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+            points={points}
+            timeseries={timeseries}
+          />
+        )}
         <CompetitorsTable
           aliases={settings.aliases}
           companyName={settings.companyName}
@@ -142,20 +156,18 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           organizationId={organizationId}
           organizationSlug={organizationSlug}
           ownDomain={ownDomain}
-        />
-        <CompetitorShareCard
-          aliases={settings.aliases}
-          companyName={settings.companyName}
-          competitors={competitors}
-          isScanning={isScanning}
-          organizationId={organizationId}
-          organizationSlug={organizationSlug}
-          points={competitorShare?.points ?? []}
-          timeseries={competitorShare?.timeseries ?? []}
+          shareByBrand={shareOfVoiceByBrand({
+            points,
+            competitors,
+            companyName: settings.companyName,
+            aliases: settings.aliases,
+          })}
         />
       </div>
       <CompetitorEditDialog
         competitor={null}
+        initialName={initialName}
+        onImportCsv={initialName ? undefined : () => setImportOpen(true)}
         onOpenChange={setManagerOpen}
         open={managerOpen}
         organizationId={organizationId}
@@ -166,32 +178,5 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         organizationId={organizationId}
       />
     </PageContainer>
-  );
-}
-
-function CompetitorsHeadingActions({
-  geoRange,
-  onAdd,
-  onImport,
-}: {
-  geoRange: GeoRangeControl;
-  onAdd: () => void;
-  onImport: () => void;
-}) {
-  const tGeoShared2 = useTranslations("geo.shared");
-  const tShared = useTranslations("geo.pages.shared");
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <GeoRangePicker control={geoRange} />
-      <Button className="gap-1.5" onClick={onImport} variant="outline">
-        <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-        {tShared("importCsv")}
-      </Button>
-      <Button className="gap-1.5" onClick={onAdd}>
-        <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-        {tGeoShared2("addCompetitor")}
-        <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
-      </Button>
-    </div>
   );
 }

@@ -49,6 +49,7 @@ import { COMMAND_PALETTE_AI_ERROR_ACTION } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
+import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -73,6 +74,7 @@ import {
   COMMAND_ROUTES,
   COMMAND_SECTIONS,
   isCommandRouteAvailable,
+  isCommandRouteVisible,
 } from "./registry";
 
 const APPLE_PLATFORM_PATTERN = /Mac|iPhone|iPad|iPod/i;
@@ -780,6 +782,7 @@ function CommandPaletteList({
   slug,
   trimmedQuery,
 }: Omit<CommandPalettePanelProps, "isNavigatingAi">) {
+  const navVisibility = useNavVisibility();
   const t = useTranslations("commandPalette");
   const tCommon = useTranslations("common");
   const hasQuery = trimmedQuery.length > 0;
@@ -855,8 +858,10 @@ function CommandPaletteList({
       </CommandPrimitive.Empty>
 
       {COMMAND_SECTIONS.map((section) => {
-        const items = GROUPED_ROUTES[section].filter((route) =>
-          isCommandRouteAvailable(route, hasAiCredits)
+        const items = GROUPED_ROUTES[section].filter(
+          (route) =>
+            isCommandRouteAvailable(route, hasAiCredits) &&
+            isCommandRouteVisible(route, navVisibility)
         );
         if (items.length === 0) {
           return null;

@@ -5,7 +5,7 @@ import {
   randomBytes,
 } from "node:crypto";
 
-import type { NextRequest, NextResponse } from "next/server";
+import { deleteCookie, getCookie } from "@tanstack/react-start/server";
 
 import {
   githubAccessTokenSchema,
@@ -40,9 +40,11 @@ export function getGithubOAuthConfig(): GithubOAuthConfig | null {
   return { clientId, clientSecret };
 }
 
-export function getGithubCallbackUrl(request: NextRequest): string {
+export function getGithubCallbackUrl(request: Request): string {
   const origin =
-    process.env.VERCEL_ENV === "production" ? SITE_URL : request.nextUrl.origin;
+    process.env.VERCEL_ENV === "production"
+      ? SITE_URL
+      : new URL(request.url).origin;
   return new URL(CALLBACK_PATH, origin).toString();
 }
 
@@ -50,15 +52,9 @@ export function fingerprintGithubToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function clearGithubCookies(response: NextResponse): void {
-  response.cookies.delete({
-    name: GITHUB_TOKEN_COOKIE,
-    path: GITHUB_TOKEN_COOKIE_PATH,
-  });
-  response.cookies.delete({
-    name: GITHUB_CONNECTED_COOKIE,
-    path: GITHUB_COOKIE_PATH,
-  });
+export function clearGithubCookies(): void {
+  deleteCookie(GITHUB_TOKEN_COOKIE, { path: GITHUB_TOKEN_COOKIE_PATH });
+  deleteCookie(GITHUB_CONNECTED_COOKIE, { path: GITHUB_COOKIE_PATH });
 }
 
 export function readPendingOAuthStates(
@@ -181,12 +177,12 @@ function decryptGithubToken(value: string, secret: string): string | null {
   }
 }
 
-export function readGithubToken(request: NextRequest): string | null {
+export function readGithubToken(): string | null {
   const config = getGithubOAuthConfig();
   if (!config) {
     return null;
   }
-  const cookie = request.cookies.get(GITHUB_TOKEN_COOKIE)?.value;
+  const cookie = getCookie(GITHUB_TOKEN_COOKIE);
   if (!cookie) {
     return null;
   }

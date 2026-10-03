@@ -113,7 +113,7 @@ export default function GeoGapsSheetDemoPage() {
             setSelectedId(null);
           }
         }}
-        row={selected}
+        row={selected ? { kind: "console", row: selected, ai: null } : null}
       />
     </main>
   );

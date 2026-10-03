@@ -1,3 +1,4 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { deleteStaleGeoOpenCodeBoxes } from "@notra/ai/utils/geo-opencode-box";
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
@@ -13,8 +14,15 @@ import {
 import type { DueGeoScanRow, GeoScanCronSweepResult } from "../types/geo";
 import { describeGeoError, geoLogInfo, geoLogWarn } from "../utils/geo-log";
 import { geoDb, geoSkip } from "./effect";
-import { startClaimedGeoScanRun } from "./scan-handoff";
-import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
+import {
+  claimGeoScanRun,
+  releaseGeoScanRun,
+  sweepStaleGeoScanRows,
+} from "./scan-status";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_MINUTE = 60 * 1000;
@@ -158,11 +166,17 @@ const leaseDueGeoScanTick = Effect.fn("geo.leaseDueScanTick")(function* (
  * row, that sweep owns the schedule and our write must not clobber it. Losing
  * the race is reported, because it means this slot was advanced by someone
  * else and the project may be scanned twice for it.
+ *
+ * With `releaseClaimedAt` the same statement also hands back the scan claim
+ * this sweep took, so a skipped slot and a freed claim land together or not
+ * at all: a claim left behind would block manual scans until it goes stale,
+ * and a slot left behind would be retried.
  */
 const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   row: DueGeoScanRow,
   leaseUntil: Date,
-  coveredAt?: Date
+  coveredAt?: Date,
+  releaseClaimedAt?: Date
 ) {
   // A historical finish only covers slots through that finish, not through
   // this sweep. Leave later unserved slots due, even after a long outage.
@@ -177,11 +191,19 @@ const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   const advanced = yield* geoDb("scan slot advance failed", () =>
     db
       .update(geoSettings)
-      .set({ nextScanAt, scanLeaseUntil: null, scanFirstFailedAt: null })
+      .set({
+        nextScanAt,
+        scanLeaseUntil: null,
+        scanFirstFailedAt: null,
+        ...(releaseClaimedAt ? { scanStartedAt: null } : {}),
+      })
       .where(
         and(
           eq(geoSettings.id, row.id),
-          eq(geoSettings.scanLeaseUntil, leaseUntil)
+          eq(geoSettings.scanLeaseUntil, leaseUntil),
+          releaseClaimedAt
+            ? eq(geoSettings.scanStartedAt, releaseClaimedAt)
+            : undefined
         )
       )
       .returning({ id: geoSettings.id })
@@ -231,6 +253,8 @@ const backOffGeoScanLease = Effect.fn("geo.backOffScanLease")(function* (
  *   until the 12-hour retry window is exhausted),
  * - the process died mid-sweep.
  *
+ * A row the billing gate would deny is advanced without starting anything.
+ *
  * A slot that an attempt finishing after it became due already covered (that
  * manual scan, or an ambiguous hand-off that did start after all) is advanced
  * without starting anything, so a project is never scanned twice for one slot.
@@ -279,18 +303,25 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
     let covered = 0;
     let leaseLost = 0;
     let alreadyRunning = 0;
+    let billingDenied = 0;
     let failed = 0;
     let advanceLost = 0;
 
     // Advancing is the only write that can silently lose its row (another
     // sweep leased it after our lease expired), so every call goes through
     // this counter instead of assuming the slot moved.
-    const advance = (row: DueGeoScanRow, leaseUntil: Date, coveredAt?: Date) =>
+    const advance = (
+      row: DueGeoScanRow,
+      leaseUntil: Date,
+      coveredAt?: Date,
+      releaseClaimedAt?: Date
+    ) =>
       Effect.gen(function* () {
         const advanced = yield* advanceGeoScanSlot(
           row,
           leaseUntil,
-          coveredAt
+          coveredAt,
+          releaseClaimedAt
         ).pipe(
           geoSkip("scan slot advance failed", {
             event: "geo.scan.slot_advance_failed",
@@ -365,6 +396,46 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
           reason: "already_running",
           organizationId: row.organizationId,
           projectId: row.projectId,
+        });
+        continue;
+      }
+
+      // Checked only once this sweep owns the slot, so a scan that is still
+      // running keeps the slot on the already-running path above. A denied
+      // slot hands the claim back and moves on before a `geo_scans` row and a
+      // workflow run exist only to fail at the billing gate: retrying would
+      // deny it again.
+      const denial = yield* findGeoScanBillingDenial(
+        row.organizationId,
+        row.projectId
+      );
+      if (denial) {
+        const advanced = yield* advance(
+          row,
+          leaseUntil,
+          undefined,
+          claim.claimedAt
+        );
+        if (!advanced) {
+          // Nothing moved, so the slot is still due. Hand the claim back on
+          // its own as a best effort, so manual scans are not blocked while
+          // the next sweep retries the slot.
+          yield* releaseGeoScanRun(row.projectId, claim.claimedAt).pipe(
+            geoSkip("scan claim release failed", {
+              event: "geo.scan.claim_release_failed",
+              organizationId: row.organizationId,
+              projectId: row.projectId,
+            })
+          );
+          continue;
+        }
+        billingDenied += 1;
+        yield* geoLogWarn({
+          event: "geo.scan.skipped",
+          reason: "billing",
+          organizationId: row.organizationId,
+          projectId: row.projectId,
+          detail: describeContentBillingDenial(denial),
         });
         continue;
       }
@@ -484,6 +555,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       covered,
       leaseLost,
       alreadyRunning,
+      billingDenied,
       failed,
       advanceLost,
       staleScansFailed,

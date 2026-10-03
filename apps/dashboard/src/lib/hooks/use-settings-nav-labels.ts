@@ -11,6 +11,7 @@ export function useSettingsNavLabels(): SettingsNavLabels {
     groups: {
       account: tLabels("account"),
       organization: tLabels("organization"),
+      billing: tLabels("billing"),
       geo: tLabels("geo"),
       dev: t("nav.groups.dev"),
     },
@@ -64,6 +65,11 @@ export function useSettingsNavLabels(): SettingsNavLabels {
         label: tLabels("credits"),
         description: t("nav.sections.credits.description"),
         modalDescription: t("modal.descriptions.credits"),
+      },
+      webhooks: {
+        label: tLabels("webhooks"),
+        description: t("nav.sections.webhooks.description"),
+        modalDescription: t("modal.descriptions.webhooks"),
       },
       logs: {
         label: tLabels("logs"),

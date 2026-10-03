@@ -2,13 +2,6 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { bundle } from "@remotion/bundler";
-import {
-  ensureBrowser,
-  renderMedia,
-  selectComposition,
-} from "@remotion/renderer";
-
 import type { StarVideoInputProps } from "@/types/star-video";
 
 class RenderBusy extends Error {
@@ -20,7 +13,8 @@ let activeRenders = 0;
 
 let serveUrlPromise: Promise<string> | null = null;
 
-function bundleComposition(): Promise<string> {
+async function bundleComposition(): Promise<string> {
+  const { bundle } = await import("@remotion/bundler");
   return bundle({
     entryPoint: join(process.cwd(), "src/remotion/index.ts"),
     publicDir: join(process.cwd(), "public"),
@@ -49,6 +43,8 @@ export async function renderStarVideo(
   activeRenders += 1;
 
   try {
+    const { ensureBrowser, renderMedia, selectComposition } =
+      await import("@remotion/renderer");
     const [, serveUrl] = await Promise.all([ensureBrowser(), getServeUrl()]);
 
     const composition = await selectComposition({

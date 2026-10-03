@@ -1,7 +1,7 @@
 import { ArrowLeft02Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card } from "@notra/ui/components/ui/card";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { BlogPaginationCardProps } from "~types/blog";
 
 import { BlogAuthorAvatar } from "@/components/blog-author-avatar";
@@ -21,7 +21,7 @@ export function BlogPaginationCard({
   const authorRowDirection = isRight ? "flex-row-reverse" : "flex-row";
 
   return (
-    <Link className="group block h-full" href={link.href}>
+    <Link className="group block h-full" to={link.href}>
       <Card
         className={`hover:ring-primary/40 h-full gap-3 p-5 transition-colors hover:bg-[#C8B2EE26] dark:hover:bg-white/[0.04] ${containerAlignment}`}
       >

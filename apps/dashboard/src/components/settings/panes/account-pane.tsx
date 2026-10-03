@@ -2,16 +2,14 @@
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import type { SecurityLoadStatus } from "@notra/ui/types/security";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-import { ChatSection } from "@/components/settings/chat-section";
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { DeleteAccountSection } from "@/components/settings/delete-account";
-import { LanguageSection } from "@/components/settings/language-section";
 import { LoginDetailsSection } from "@/components/settings/login-details-section";
 import { OrganizationsSection } from "@/components/settings/organizations-section";
-import { PrivacySection } from "@/components/settings/privacy-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { TwoFactorSection } from "@/components/settings/two-factor-section";
@@ -22,6 +20,10 @@ function resolveSecurityStatus(
   isPending: boolean,
   isError: boolean
 ): SecurityLoadStatus {
+  // The demo has no WorkOS, so there is nothing to load: show the empty state.
+  if (isDemoModeClient()) {
+    return "ready";
+  }
   if (isPending) {
     return "loading";
   }
@@ -65,7 +67,7 @@ export function AccountSettingsPane() {
       }
       return result.data;
     },
-    enabled: !!user,
+    enabled: !!user && !isDemoModeClient(),
   });
 
   if (!user && isSessionPending) {
@@ -119,9 +121,6 @@ export function AccountSettingsPane() {
         onAccountsChange={refetchAccounts}
       />
       <OrganizationsSection />
-      <LanguageSection />
-      <PrivacySection />
-      <ChatSection />
       <DeleteAccountSection />
     </SettingsPane>
   );

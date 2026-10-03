@@ -1,6 +1,6 @@
 import { cn } from "cn";
 
-import { badgeVariants } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import {
   HoverCard,
   HoverCardContent,
@@ -135,16 +135,21 @@ export const AIOverviewCitation = ({
           </HoverCardContent>
         </HoverCard>
       ) : (
-        <a
-          aria-label={ariaLabel}
+        <Badge
           className={chipClassName}
-          href={source.href}
-          rel={rel}
-          target={target}
-          {...props}
+          render={
+            <a
+              aria-label={ariaLabel}
+              href={source.href}
+              rel={rel}
+              target={target}
+              {...props}
+            />
+          }
+          variant="secondary"
         >
           {chip}
-        </a>
+        </Badge>
       )}
     </span>
   );
