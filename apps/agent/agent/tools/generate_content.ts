@@ -1,3 +1,4 @@
+import { log } from "@notra/ai/evlog";
 import { codeResearchBriefSchema } from "@notra/ai/schemas/code-research";
 import { contentWriterResultSchema } from "@notra/ai/schemas/content-writer-result";
 import type { CodeResearchBrief } from "@notra/ai/types/code-research";
@@ -15,15 +16,27 @@ import type {
 async function canResearchCode(
   session: WorkflowToolContext["session"]
 ): Promise<boolean> {
+  // codeql[js/unknown-directive] Eve requires this directive for durable steps.
   "use step";
 
   return isCodeResearchEnabled({ session });
 }
 
+// Best effort: a failed cleanup must not turn a saved post into a failed
+// task, and the boxes still expire on their own TTL.
 async function releaseResearchBoxes(sessionKey: string): Promise<void> {
+  // codeql[js/unknown-directive] Eve requires this directive for durable steps.
   "use step";
 
-  await releaseCodeResearchWorkspaces(sessionKey);
+  try {
+    await releaseCodeResearchWorkspaces(sessionKey);
+  } catch (error) {
+    log.warn({
+      event: "code_research.box_release_failed",
+      sessionKey,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 // The brief only enriches the post, so a failed research run never fails the task.
