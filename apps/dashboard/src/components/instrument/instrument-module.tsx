@@ -63,6 +63,7 @@ function DualtoneModule({
       className={cn(
         "min-w-0 flex-1 overflow-visible rounded-2xl bg-transparent p-0 ring-0",
         (tableHeader || !bareBody) && "gap-0",
+        !bareBody && "border-shell-border bg-shell border p-0.5",
         className
       )}
     >

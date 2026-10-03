@@ -696,6 +696,10 @@ export interface GeoScanBatchOutcome {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  /** AI answers this batch bills; defaults to `checks`. */
+  billedChecks?: number;
+  /** Usage this batch bills as AI credits; defaults to `usage`. */
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFailureMetadata {
@@ -712,6 +716,8 @@ export interface GeoScanProjectTotals {
   usage: AgentTokenUsage;
   engineUsage?: AgentTokenUsage;
   judgeUsage?: AgentTokenUsage;
+  billedChecks?: number;
+  billedUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFinishTotals {

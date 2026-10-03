@@ -14,6 +14,7 @@ import { logGeoBillingFailure } from "../utils/geo-billing-log";
 import {
   addAgentTokenUsage,
   EMPTY_AGENT_TOKEN_USAGE,
+  scaleAgentTokenUsage,
 } from "../utils/token-usage";
 import { geoSkip } from "./effect";
 import { GeoScanError, GeoWriterCreditsExhaustedError } from "./errors";
@@ -53,6 +54,7 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
         })
       );
     }
+    const multiplier = input.billingMultiplier ?? 1;
     const settle = (
       action: "confirm" | "release",
       units = 0,
@@ -62,8 +64,8 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
         .finalizeContentBilling({
           reservation: gate,
           action,
-          units,
-          usage,
+          units: units * multiplier,
+          usage: usage && scaleAgentTokenUsage(usage, multiplier),
           fallbackModelId: input.fallbackModelId,
           properties: {
             ...input.properties,

@@ -57,6 +57,22 @@ export function filterScanModelOptions(
   );
 }
 
+/**
+ * Engines to send for a menu selection. `undefined` when it is exactly the
+ * tracked set, so the run stays a regular full scan. Untracked catalog
+ * models are kept, unlike the tracked-only preflight dialog.
+ */
+export function scanModelSelectionToSubmit(
+  tracked: readonly string[],
+  selected: readonly string[]
+): string[] | undefined {
+  const trackedIds = new Set(tracked);
+  const isTrackedSet =
+    selected.length === trackedIds.size &&
+    selected.every((id) => trackedIds.has(id));
+  return isTrackedSet ? undefined : [...selected];
+}
+
 export function defaultScanModelSelection(
   options: readonly GeoScanModelOption[]
 ): Set<string> {

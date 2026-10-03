@@ -46,6 +46,6 @@
     "@notra/typescript-config": "workspace:*",
     "@types/sanitize-html": "^2.16.0",
     "knip": "^6.12.1",
-    "typescript": "^5"
+    "typescript": "7.0.2"
   }
 }

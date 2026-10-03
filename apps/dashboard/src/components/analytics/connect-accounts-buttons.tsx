@@ -31,7 +31,7 @@ export function ConnectAccountsButtons({
   return (
     <SplitButton>
       <Button
-        disabled={twitter.isPending}
+        loading={twitter.isPending}
         onClick={() => {
           trackEvent(POSTHOG_EVENTS.INTEGRATION_CONNECT_STARTED, {
             provider: INTEGRATION_PROVIDERS.X,
@@ -39,11 +39,7 @@ export function ConnectAccountsButtons({
           void twitter.handleConnect();
         }}
       >
-        {twitter.isPending ? (
-          <Loader2Icon className="size-4 animate-spin" />
-        ) : (
-          <HugeiconsIcon className="size-4" icon={NewTwitterIcon} />
-        )}
+        <HugeiconsIcon className="size-4" icon={NewTwitterIcon} />
         {t("connectX")}
       </Button>
       <DropdownMenu>

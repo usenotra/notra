@@ -329,10 +329,96 @@ Open an issue or start a discussion in the repo.
 
 Thanks for helping improve Notra.
 
-## Vercel build selection
+## Production releases and Vercel build selection
+
+All five Vercel app configurations disable automatic Git deployments with
+`git.deploymentEnabled: false`. Pushing a branch, opening a PR, or merging into
+`main` therefore does not start a Vercel preview or production build. Local
+development and GitHub's code-quality checks continue to run as before.
+
+The [Production deploy workflow](.github/workflows/production-deploy.yml) releases
+`dashboard` (`notra`), `web` (`notra-web`), and `ui` (`notra-ui`) at **12:00 and
+19:00 Europe/Berlin** each day. The timezone includes daylight-saving changes;
+GitHub may start scheduled runs late. Production remains on `main`.
+
+Before merging this configuration, add a GitHub Actions repository secret named
+`VERCEL_TOKEN` containing a token with access to the Notra team's three projects.
+The team ID is configured in the workflow. No application secrets or local
+Vercel login tokens need to be copied into the repository. Keep Vercel's GitHub
+repository connection enabled so the API can build the pinned Git commit.
+
+The workflow uses the exact `main` SHA captured when the run starts. Its latest
+push runs of **Code quality** and **Knip** must have completed successfully;
+Code quality includes the unit/integration suite and type checks. Missing,
+running, cancelled, or failed checks prevent all builds for that release window.
+There is no automatic deployment when CI finishes later; the next scheduled
+window checks again.
+
+Each project is compared with the deployment serving its stable production alias
+(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`, or
+`notra-ui-notra.vercel.app`). The script resolves that alias to a deployment ID,
+then reads its commit SHA. A missing alias, wrong project, or unidentified live
+commit blocks all new builds. Neither the latest successful build nor
+`targets.production` is used as a substitute: the latter can refer to a skipped
+build that was never published. GitHub must confirm the
+selected commit is ahead of each project's production commit, or already identical.
+An older workflow rerun, diverged history, or a failed history lookup blocks all new
+builds. This prevents
+old runs from overwriting newer releases; use Vercel's rollback flow for a
+deliberate rollback.
+
+Changes in a project's own app directory trigger a build; shared packages and
+inputs outside `apps/` conservatively trigger all three. Changes confined to
+another app are skipped. Renames are compared as a deletion and an addition so
+moves between apps rebuild both. After the history check passes, missing local
+historical Git commits cause a build rather than an unsafe skip. Any
+already-active production build blocks the release before new builds start.
+
+The API requests use the same checked commit SHA and the `production` target for
+every project. Each project's existing build command, environment, migrations,
+and build cache remain in use. The workflow waits for `READY`, verifies the built
+SHA and that the production alias points to the new deployment, and reports
+failures in the Actions summary. Polling is limited to ten minutes
+per project, with a 60-minute job limit for all projects, the Railway services,
+and API overhead.
+Projects deploy independently; a failed project does not roll back another
+project's successful deployment.
+Deployment creation is not automatically retried, since a timed-out request may
+already have started a build.
+
+The same release also deploys the Railway services `dashboard` and `demo-api`
+(project notra-demo, serving demo.usenotra.com) and `ai-traffic-ingest`
+(project notra-prod). Their main-branch deployment triggers are removed, so
+pushes to `main` no longer deploy them; keep the GitHub repository connected so
+the API can build the pinned commit. Add a GitHub Actions secret named
+`RAILWAY_TOKEN` containing a Railway workspace token for the Notra workspace
+(railway.com/account/tokens); a project token cannot reach both projects.
+Without it, the whole release fails, including the Vercel builds.
+
+Railway services use the same history and change checks, compared with each
+service's latest successful deployment, and an active Railway deployment blocks
+the release before any builds start. They deploy only after every Vercel build
+succeeded, so a failed Vercel release leaves them on the previous commit. The
+builds run in parallel, polling is limited to 20 minutes, and the release fails
+unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
+patterns must stay unset: a deployment skipped by them would leave a service
+behind production and fails the release.
+
+For an urgent release, open **Actions → Production deploy → Run workflow**, select
+`main`, and leave `dry_run` unchecked. This uses the same CI and change checks.
+Check `dry_run` to validate configuration and report planned deployments without
+creating builds. A manual release is an explicit exception to the two daily
+windows. Rollback and direct CLI deployments remain available through Vercel.
+
+After merging, run the workflow once with `dry_run` checked, then verify the
+first scheduled production release. Preparation and automated tests do not
+verify Vercel's live build/delivery behavior. Do not disconnect the GitHub
+integration or replace the configs with `github.enabled: false`.
 
 Keep Vercel's **Skip unaffected projects** setting enabled for the Git-deployed
-apps (`web`, `dashboard`, and `ui`). Vercel uses the workspace dependency graph
+apps (`web`, `dashboard`, and `ui`). The scheduled script performs its own
+conservative change check before requesting a build. Vercel uses the workspace
+dependency graph
 to skip projects whose source and dependencies have not changed. Each workspace
 must have a unique package name and explicitly declare its internal dependencies
 in `package.json`.
@@ -345,15 +431,15 @@ deployment is marked **Production**. Alternatively, from the linked agent app
 directory run `vercel deploy --prod`. A different branch or `vercel deploy`
 without `--prod` may only create a preview and will not update the production URL.
 
-The app configs do not set an `ignoreCommand`; build selection relies on
+The app configs do not set an `ignoreCommand`. Keep
 [Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
-instead of the deprecated `turbo-ignore` secondary check. Keep the project's
+enabled alongside the scheduled script's change check. Keep the project's
 Ignored Build Step setting at its default so it does not run an old custom
 command after the repository override is removed.
 
 Changes outside the workspace definitions, such as root documentation, can
-trigger deployments for the Git-deployed apps. Built-in skipping may also select
-builds that the previous secondary check skipped for unrelated Bun lockfile changes.
+select builds during a scheduled release. Shared Bun lockfile changes can select
+all three projects as well.
 
 Root install configuration and the prepare script remain declared in
 `turbo.json#globalDependencies` for build cache invalidation. Declare any new

@@ -1,4 +1,4 @@
-import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 
@@ -64,16 +64,13 @@ export function PersonaPrompts({
             </p>
             <Button
               disabled={disabled}
+              loading={isGenerating}
               onClick={onGenerate}
               size="sm"
               type="button"
             >
-              <HugeiconsIcon
-                className={isGenerating ? "animate-spin" : undefined}
-                icon={isGenerating ? Loading03Icon : SparklesIcon}
-                size={14}
-              />
-              {isGenerating ? t("generating") : tGeoShared("generatePrompts")}
+              <HugeiconsIcon icon={SparklesIcon} size={14} />
+              {tGeoShared("generatePrompts")}
             </Button>
           </div>
         )}

@@ -1,8 +1,4 @@
-import {
-  Add01Icon,
-  AlertCircleIcon,
-  Loading03Icon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 
@@ -42,7 +38,6 @@ export function EventTriggerDialogFooter({
   repositoryCount,
 }: EventTriggerDialogFooterProps) {
   const t = useTranslations("automation.events.dialog");
-  const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   return (
     <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
@@ -61,21 +56,9 @@ export function EventTriggerDialogFooter({
           >
             {tCommon("cancel")}
           </Button>
-          <Button disabled={isPending} type="submit">
-            {isPending ? (
-              <>
-                <HugeiconsIcon
-                  className="size-4 animate-spin"
-                  icon={Loading03Icon}
-                />
-                {isEditMode ? tCommon("saving") : tCommon2("labels.adding")}
-              </>
-            ) : (
-              <>
-                <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                {isEditMode ? tCommon("saveChanges") : t("add")}
-              </>
-            )}
+          <Button loading={isPending} type="submit">
+            <HugeiconsIcon className="size-4" icon={Add01Icon} />
+            {isEditMode ? tCommon("saveChanges") : t("add")}
           </Button>
         </div>
       </div>

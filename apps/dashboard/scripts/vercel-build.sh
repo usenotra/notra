@@ -2,6 +2,8 @@
 set -euo pipefail
 cd ../..
 bun run db:check
+TURBO_TASKS_AVAILABLE_PARALLELISM=$(bash apps/dashboard/scripts/turbopack-parallelism.sh)
+export TURBO_TASKS_AVAILABLE_PARALLELISM
 turbo run build --filter=dashboard
 bun apps/dashboard/scripts/prune-build-cache.ts
 if [ "${VERCEL_ENV:-}" = "production" ]; then

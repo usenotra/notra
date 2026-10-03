@@ -2,7 +2,6 @@
 
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
@@ -38,33 +37,24 @@ export function ConnectedAccountRow({
       {linked ? (
         <Button
           className="shrink-0 self-start sm:self-auto"
-          disabled={!canUnlink || loading}
+          disabled={!canUnlink}
+          loading={loading}
           onClick={onUnlink}
           size="sm"
           variant="outline"
         >
-          {loading ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : (
-            <>
-              <HugeiconsIcon icon={Cancel01Icon} size={16} />
-              {tCommon("disconnect")}
-            </>
-          )}
+          <HugeiconsIcon icon={Cancel01Icon} size={16} />
+          {tCommon("disconnect")}
         </Button>
       ) : (
         <Button
           className="shrink-0 self-start sm:self-auto"
-          disabled={loading}
+          loading={loading}
           onClick={onLink}
           size="sm"
           variant="outline"
         >
-          {loading ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : (
-            tCommon("connect")
-          )}
+          {tCommon("connect")}
         </Button>
       )}
     </div>

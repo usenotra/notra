@@ -668,6 +668,7 @@ export const GEO_AGENT_LABELS: Record<string, string> = {
   "cohere-ai": "Cohere-AI",
   "cohere-training-data-crawler": "Cohere Training Crawler",
   "kagi-fetcher": "Kagi-Fetcher",
+  "google-extended": "Google-Extended",
   omgili: "Omgili",
 };
 

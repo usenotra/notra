@@ -44,6 +44,35 @@ type TrafficPurpose =
   | "assistant-browse"
   | "assistant-referral";
 
+export interface CitationRow {
+  id: string;
+  agoSeconds: number;
+  provider: string;
+  engine: string;
+  path: string;
+  purpose: TrafficPurpose;
+  markdown?: boolean;
+}
+
+export interface LiveCitationRow extends CitationRow {
+  offsetMs: number;
+}
+
+export interface LiveTrafficProvider {
+  provider: string;
+  engine: string;
+  purposes: TrafficPurpose[];
+}
+
+export interface CitationRowsProps {
+  rows: LiveCitationRow[];
+  base: number | null;
+  animated: boolean;
+  enteringId?: string | null;
+  onEntered?: (id: string) => void;
+  headers: { when: string; provider: string; path: string; purpose: string };
+}
+
 export interface TrafficSourceRow {
   id: string;
   source: string;

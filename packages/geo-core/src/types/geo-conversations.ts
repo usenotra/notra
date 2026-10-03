@@ -10,6 +10,8 @@ export interface GeoConversationReplayInput {
   properties: Record<string, string>;
   logPrefix: string;
   emptyMessage: string;
+  /** Charges this multiple of the run's answers and usage; defaults to 1. */
+  billingMultiplier?: number;
 }
 
 export type GeoConversationResult = Pick<

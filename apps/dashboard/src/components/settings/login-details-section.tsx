@@ -6,7 +6,6 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -69,17 +68,10 @@ export function LoginDetailsSection({
             </p>
             <Button
               className="mt-4"
-              disabled={passwordResetMutation.isPending}
+              loading={passwordResetMutation.isPending}
               onClick={() => passwordResetMutation.mutate()}
             >
-              {passwordResetMutation.isPending ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  {t("sending")}
-                </>
-              ) : (
-                t("sendReset")
-              )}
+              {t("sendReset")}
             </Button>
           </div>
         )}

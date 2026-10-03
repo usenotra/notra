@@ -60,6 +60,8 @@ const nextConfig: NextConfig = {
     ? [new URL(process.env.APP_URL).hostname]
     : [],
   reactCompiler: true,
+  // Without server source maps there is nothing for prerender workers to map.
+  enablePrerenderSourceMaps: false,
   cacheComponents: true,
   partialPrefetching: true,
   typescript: {
@@ -85,6 +87,12 @@ const nextConfig: NextConfig = {
       "recharts",
     ],
     hideLogsAfterAbort: true,
+    // Vercel drops the ~1 GB Turbopack cache as too large, so writing it
+    // only cost ~9 min per build on a standard machine.
+    turbopackFileSystemCacheForBuild: !process.env.VERCEL,
+    // Server source maps push `next build` past 8 GB, and production error
+    // stacks in the logs point at compiled chunks anyway.
+    serverSourceMaps: false,
     instantInsights: {
       validationLevel: "manual-warning",
     },

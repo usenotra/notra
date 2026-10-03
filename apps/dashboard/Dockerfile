@@ -26,7 +26,8 @@ ARG NEXT_PUBLIC_DATABUDDY_DEMO_DASHBOARD_WEBSITE_ID
 ARG WORKFLOW_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT_STANDALONE=1
-RUN bunx turbo run build --filter=dashboard
+RUN TURBO_TASKS_AVAILABLE_PARALLELISM=$(bash apps/dashboard/scripts/turbopack-parallelism.sh) \
+  bunx turbo run build --filter=dashboard
 
 # Migrations run from a single bundled script (drizzle-orm's migrator, built
 # from the frozen install above), so the image needs no drizzle-kit.

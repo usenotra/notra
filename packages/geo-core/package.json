@@ -42,6 +42,6 @@
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^20",
     "drizzle-kit": "0.31.10",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

@@ -55,6 +55,7 @@
 @source "../../../../packages/ui/src/components/shared/ui-labels-provider.tsx";
 @source "../../../../packages/ui/src/components/ui/avatar.tsx";
 @source "../../../../packages/ui/src/components/ui/badge.tsx";
+@source "../../../../packages/ui/src/components/ui/button-content.tsx";
 @source "../../../../packages/ui/src/components/ui/button-group.tsx";
 @source "../../../../packages/ui/src/components/ui/button.tsx";
 @source "../../../../packages/ui/src/components/ui/card.tsx";
@@ -70,10 +71,12 @@
 @source "../../../../packages/ui/src/components/ui/kbd.tsx";
 @source "../../../../packages/ui/src/components/ui/label.tsx";
 @source "../../../../packages/ui/src/components/ui/popover.tsx";
+@source "../../../../packages/ui/src/components/ui/scroll-area.tsx";
 @source "../../../../packages/ui/src/components/ui/select.tsx";
 @source "../../../../packages/ui/src/components/ui/separator.tsx";
 @source "../../../../packages/ui/src/components/ui/sheet.tsx";
 @source "../../../../packages/ui/src/components/ui/skeleton.tsx";
+@source "../../../../packages/ui/src/components/ui/sonner.tsx";
 @source "../../../../packages/ui/src/components/ui/step-slider.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/amazon.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/apple.tsx";

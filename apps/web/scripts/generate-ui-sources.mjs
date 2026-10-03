@@ -2,8 +2,6 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import ts from "typescript";
-
 const webRoot = fileURLToPath(new URL("../", import.meta.url));
 const uiRoot = path.resolve(webRoot, "../../packages/ui/src");
 const output = path.join(webRoot, "src/styles/ui-sources.css");
@@ -11,6 +9,43 @@ const extensions = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".mdx"];
 const pending = [];
 const visited = new Set();
 const sources = new Set();
+
+// Bun's scanner instead of the TypeScript API, which TypeScript 7 no longer ships.
+const transpilers = {
+  ".js": new Bun.Transpiler({ loader: "js" }),
+  ".jsx": new Bun.Transpiler({ loader: "jsx" }),
+  ".mjs": new Bun.Transpiler({ loader: "js" }),
+  ".ts": new Bun.Transpiler({ loader: "ts" }),
+  ".tsx": new Bun.Transpiler({ loader: "tsx" }),
+};
+// Top-level import/export statements in MDX; one statement never spans a blank line.
+const MDX_IMPORT =
+  /^(?:import\s*["'][^"'\n]+["']|(?:import|export)\b(?:[^\n]|\n(?!\s*\n))*?\bfrom\s*["'][^"'\n]+["']);?/gm;
+
+// Every static `import … from` / `export … from`, including type-only forms
+// (`import type`, `import { type X }`, `export { type X }`) the scanner drops.
+const STATIC_IMPORT =
+  /^\s*(?:import|export)\b[^;]*?\bfrom\s*["']([^"']+)["']/gm;
+
+function importSpecifiers(filename) {
+  const code = readFileSync(filename, "utf8");
+  // MDX is not JavaScript; only its top-level import/export lines are.
+  if (path.extname(filename) === ".mdx") {
+    // Code samples can repeat an import, so scan each statement on its own.
+    return (code.match(MDX_IMPORT) ?? []).flatMap((statement) =>
+      transpilers[".js"].scanImports(statement).map((entry) => entry.path)
+    );
+  }
+  const staticImports = [...code.matchAll(STATIC_IMPORT)].map(
+    (match) => match[1]
+  );
+  return [
+    ...transpilers[path.extname(filename)]
+      .scanImports(code)
+      .map((entry) => entry.path),
+    ...staticImports,
+  ];
+}
 
 function collect(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -49,8 +84,7 @@ while (pending.length > 0) {
   if (filename.startsWith(`${uiRoot}${path.sep}`)) {
     sources.add(filename);
   }
-  const imports = ts.preProcessFile(readFileSync(filename, "utf8"), true, true);
-  for (const { fileName: specifier } of imports.importedFiles) {
+  for (const specifier of importSpecifiers(filename)) {
     let base;
     if (specifier.startsWith("@notra/ui/")) {
       base = path.join(uiRoot, specifier.slice("@notra/ui/".length));

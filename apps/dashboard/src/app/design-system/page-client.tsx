@@ -238,6 +238,7 @@ import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
 
+import { DesignSystemButtonStatesDemo } from "./button-states-demo";
 import { DesignSystemWriteDialogDemo } from "./write-dialog-demo";
 
 const colorGroups = [
@@ -549,7 +550,9 @@ export default function DesignSystemClientPage() {
         <Card>
           <CardHeader>
             <CardTitle>Buttons</CardTitle>
-            <CardDescription>Variants and sizing options.</CardDescription>
+            <CardDescription>
+              Variants, sizing, and loading and progress states.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap gap-3">
@@ -570,6 +573,7 @@ export default function DesignSystemClientPage() {
               <Button size="icon-sm">◎</Button>
               <Button size="icon-lg">◎</Button>
             </div>
+            <DesignSystemButtonStatesDemo />
             <div className="flex flex-wrap items-center gap-4">
               <ButtonGroup>
                 <Button variant="outline">Left</Button>

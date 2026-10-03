@@ -30,7 +30,6 @@ export function GuidelinesPanel({
   voiceId,
 }: GuidelinesPanelProps) {
   const t = useTranslations("brand.guidelines.panel");
-  const tCommon2 = useTranslations("common");
   const tBrandShared = useTranslations("brand.shared");
   const tCommon = useTranslations("common.actions");
   const { data, isError, isPending, refetch } = useBrandGuidelines(
@@ -93,7 +92,6 @@ export function GuidelinesPanel({
         action={
           <GuidelinesActionButton
             busy={isRefreshBusy}
-            busyLabel={tCommon2("labels.generating")}
             icon={SparklesIcon}
             label={t("generate")}
             onClick={refresh.refreshGuidelines}
@@ -173,7 +171,6 @@ export function GuidelinesPanel({
           action={
             <GuidelinesActionButton
               busy={isRefreshBusy}
-              busyLabel={tCommon2("labels.refreshing")}
               icon={Refresh03Icon}
               label={tBrandShared("refreshGuidelines")}
               onClick={refresh.refreshGuidelines}

@@ -1104,8 +1104,7 @@
     },
     "accountMenu": {
       "label": "Kontomenü",
-      "description": "Verwalte deine Sitzung, bevor du einen Tarif wählst.",
-      "signingOut": "Wird abgemeldet…"
+      "description": "Verwalte deine Sitzung, bevor du einen Tarif wählst."
     },
     "competitorSearch": {
       "unavailable": "Suche nicht verfügbar",
@@ -1613,7 +1612,6 @@
           "amountLabel": "Anzahl der zu importierenden Beiträge:",
           "maxTooltip": "Maximal 20 Beiträge pro Import",
           "noAccountsDescription": "Verbinde ein X-Konto, um aktuelle Beiträge zu importieren.",
-          "importing": "Wird importiert…",
           "importedLabel": "Importiert",
           "connect": "X-Konto verbinden",
           "connectAnother": "Weiteres X-Konto verbinden"
@@ -1686,7 +1684,6 @@
     "create": {
       "description": "Ein Skill ist ein wiederverwendbarer Prompt, den deine Agenten zur Laufzeit laden.",
       "quickstart": "Schnellstart",
-      "importing": "Wird importiert",
       "quickstartHint": "Füge einen skills.sh-Link ein, um einen Skill zu importieren.",
       "quickstartErrors": {
         "unsupportedHost": "Nur skills.sh-Links werden unterstützt.",
@@ -2982,7 +2979,7 @@
       "generate": "Persona generieren"
     },
     "personaDetailDialog": {
-      "running": "Läuft…",
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "viewAria": "Ansicht",
       "views": {
         "profile": "Profil"
@@ -3027,10 +3024,10 @@
       "title": "Unterhaltungs-Prompts",
       "description": "Jede KI-Engine erhält genau diese Nachrichten in derselben Reihenfolge. Sie werden aus Profil und Erinnerungen der Persona generiert.",
       "message": "Nachricht {number}",
-      "emptyDescription": "Diese Persona ist von neuen Scans ausgeschlossen, bis feste Prompts aus ihrem aktuellen Profil und ihren Erinnerungen generiert wurden.",
-      "generating": "Prompts werden generiert…"
+      "emptyDescription": "Diese Persona ist von neuen Scans ausgeschlossen, bis feste Prompts aus ihrem aktuellen Profil und ihren Erinnerungen generiert wurden."
     },
     "personaTableActions": {
+      "answerCost": "Jede Persona-Antwort zählt als {multiplier} KI-Antworten",
       "reactivate": "Persona reaktivieren",
       "restoreLimit": "Du kannst bis zu {max} aktive Personas haben. Archiviere eine, bevor du diese reaktivierst.",
       "waitForAction": "Warte, bis die aktuelle Persona-Aktion abgeschlossen ist.",
@@ -3047,7 +3044,7 @@
       "counts": "({active} aktiv{archived, plural, =0 {} other { · # archiviert}})",
       "memoriesHint": "Hintergrundfakten und Präferenzen, aus denen die festen Prompts dieser Persona generiert werden",
       "maxMessages": "Max. Nachrichten",
-      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten",
+      "maxMessagesHint": "Obergrenze für Nachrichten, die diese Persona pro Scan an jede KI-Engine sendet, nicht bereits gesendete Nachrichten. Jede Antwort zählt als {multiplier} KI-Antworten.",
       "empty": "Noch keine Personas. Generiere ein Set, damit sie während der Scans deine Kategorie recherchieren",
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",
@@ -3077,7 +3074,6 @@
       "analysisFailed": "Projekt erstellt, aber die Markenanalyse konnte nicht starten. Versuch es unter Markenidentität noch einmal.",
       "loadIdentitiesFailed": "Markenidentitäten konnten nicht geladen werden.",
       "identitySaved": "Die Markenidentität wurde gespeichert. Wenn du es noch einmal versuchst, verwenden wir sie wieder und starten die Analyse, sobald das Projekt existiert. Du kannst sie auch unter Markenidentität verwalten.",
-      "settingUp": "Projekt wird eingerichtet",
       "create": "Projekt erstellen"
     },
     "projectDeleteSection": {
@@ -3565,11 +3561,9 @@
         "help": "Planen erstellt ein Briefing, das du prüfst, bevor etwas entworfen wird. Schreiben plant und entwirft den Artikel in einem Schritt.",
         "pending": {
           "plan": {
-            "label": "Wird geplant…",
             "status": "Das Briefing wird geplant. Du prüfst es, bevor etwas entworfen wird."
           },
           "write": {
-            "label": "Wird geschrieben…",
             "status": "Das Briefing wird geplant, danach wird der Artikel entworfen. Das dauert etwa eine Minute."
           }
         },
@@ -4069,7 +4063,6 @@
       "displayName": "Anzeigename",
       "displayNamePlaceholder": "z. B. Team-Meeting-Notizen",
       "apiKeyHelp": "Erstelle in der Granola-App unter Einstellungen, dann Connectors, dann API-Schlüssel einen Schlüssel. <link>Anleitung ansehen</link>",
-      "verifying": "Schlüssel wird geprüft",
       "connected": "Granola verbunden",
       "connectFailed": "Granola konnte nicht verbunden werden",
       "invalidForm": "Ungültige Formularwerte",
@@ -4180,7 +4173,6 @@
         "refreshFailed": "Repositories konnten nicht aktualisiert werden. Es werden die zuletzt geladenen Daten angezeigt."
       },
       "connectDialog": {
-        "redirecting": "Weiterleitung…",
         "install": "Auf GitHub installieren",
         "permissions": {
           "readMetadata": "Repository-Metadaten, Branches und Releases lesen",
@@ -4645,7 +4637,6 @@
       "title": "Iris pausieren?",
       "description": "Beim Pausieren werden geplante Durchläufe gestoppt und ausstehende Slack-Nachrichten abgebrochen. Du kannst jederzeit fortsetzen.",
       "keepRunning": "Weiterlaufen lassen",
-      "pausing": "Wird pausiert",
       "confirm": "Iris pausieren"
     },
     "runCard": {
@@ -4656,7 +4647,6 @@
         "retired": "Iris ist im Ruhestand",
         "working": "Iris arbeitet"
       },
-      "starting": "Wird gestartet",
       "tabs": {
         "signals": "Neueste Signale"
       },
@@ -4678,7 +4668,6 @@
     },
     "start": {
       "description": "Iris beobachtet, was du auslieferst, und übernimmt dein Marketing. Iris entwirft Changelogs, Blogbeiträge mit Bildern und Social-Media-Beiträge und fragt dich in Slack, bevor etwas live geht.",
-      "starting": "Iris wird gestartet",
       "start": "Iris starten",
       "beforeYouStart": "Bevor du startest",
       "slackWarning": "Verbinde einen Slack-Benachrichtigungskanal, damit Iris dir berichten kann. Du kannst trotzdem jetzt starten und ihn später verbinden. <link>Slack verbinden</link>"
@@ -5829,7 +5818,6 @@
       "stepIdentities": {
         "emptyTitle": "Noch keine Markenidentität",
         "emptyDescription": "Gib deine Website ein und wir lernen deinen Ton und deine Zielgruppe kennen.",
-        "creating": "Wird erstellt…",
         "createButton": "Markenidentität erstellen",
         "title": "Welche Markenidentität soll verwendet werden?",
         "description": "Wähle eine oder mehrere Markenidentitäten oder überspringe den Schritt, um für ein allgemeines Publikum zu schreiben.",
@@ -6099,7 +6087,6 @@
       "noBrandIdentity": "Es gibt keine Markenidentität, in der du diese Referenz speichern kannst. Erstelle zuerst eine auf der Seite Markenidentität.",
       "overLimit": "Dieser Beitrag ist {count, plural, one {# Zeichen} other {# Zeichen}} über dem Limit von {limit, number} Zeichen für @{username}. Kürze ihn, um ihn zu posten.",
       "openOn": "Auf {platform} öffnen",
-      "posting": "Wird gepostet…",
       "postAs": "Als @{username} posten",
       "rejectsDuplicates": "{platform} lehnt doppelte Beiträge ab.",
       "readDocs": "Zur {platform}-Dokumentation",
@@ -6119,6 +6106,14 @@
       "formats": "{count} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
       "items": "Einträge",
+      "actions": {
+        "open": "Öffnen",
+        "openInNewTab": "In neuem Tab öffnen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Link kopiert",
+        "deleteTitle": "Inhalt löschen?",
+        "deleteDescription": "Dadurch werden \"{title}\" und alle {count, plural, one {# Beitrag} other {# Beiträge}} darin dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden."
+      },
       "detail": {
         "metaTitle": "Sammlung",
         "metaDescription": "Sieh dir alle Beiträge einer Inhaltssammlung an.",
@@ -6149,6 +6144,8 @@
       "loadLatestPlanFailed": "Aktueller Plan konnte nicht geladen werden",
       "refreshPlanFailed": "Plan konnte nicht aktualisiert werden",
       "postDeleted": "Beitrag gelöscht",
+      "collectionDeleted": "Inhalt gelöscht",
+      "deleteCollectionFailed": "Inhalt konnte nicht gelöscht werden",
       "deletePostFailed": "Beitrag konnte nicht gelöscht werden",
       "loadContentFailed": "Inhalte konnten nicht geladen werden",
       "loadRecentPostsFailed": "Letzte Beiträge konnten nicht geladen werden",

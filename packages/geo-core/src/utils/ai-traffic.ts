@@ -1,4 +1,5 @@
 import { parseClickHouseDateTime } from "@notra/analytics/utils/datetime";
+import { AI_AGENT_SIGNATURES } from "@usenotra/geo/signatures";
 
 import {
   GEO_SOURCE_LABELS,
@@ -64,10 +65,24 @@ export function formatGeoSource(source: string): string {
   return lookupLabel(GEO_SOURCE_LABELS, trimmed.toLowerCase(), trimmed);
 }
 
+// Signature names keep the vendor's casing ("GPTBot"), so a lowercased token
+// from older rows or hand-written data can be mapped back to it.
+const SIGNATURE_AGENT_NAMES: Record<string, string> = Object.fromEntries(
+  AI_AGENT_SIGNATURES.map((signature) => [
+    signature.agent.toLowerCase(),
+    signature.agent,
+  ])
+);
+
 /** Bot name as its vendor writes it, e.g. "meta-externalagent" → "Meta-ExternalAgent". */
 export function formatGeoAgent(agent: string): string {
   const trimmed = agent.trim();
-  return lookupLabel(GEO_AGENT_LABELS, trimmed.toLowerCase(), trimmed);
+  const key = trimmed.toLowerCase();
+  return lookupLabel(
+    GEO_AGENT_LABELS,
+    key,
+    lookupLabel(SIGNATURE_AGENT_NAMES, key, trimmed)
+  );
 }
 
 export function isCitedTrafficSource(

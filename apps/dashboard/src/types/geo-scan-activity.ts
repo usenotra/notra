@@ -47,6 +47,9 @@ export interface GeoScanModelMenuProps {
   compact?: boolean;
   label?: string;
   primary?: boolean;
+  /** Controlled open state, e.g. for a hotkey. Uncontrolled when omitted. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onContinue: (engines: string[]) => void;
 }
 

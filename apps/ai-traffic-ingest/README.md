@@ -113,10 +113,27 @@ switching production traffic.
    service without invoking its local handler or asking customers to rotate
    tokens.
 
+The SDK's default origin is `https://ingest.usenotra.com`. Verify that this host
+serves `/api/geo/ingest` with the shared credentials before publishing an SDK
+release that uses it. Self-hosted SDK installations must configure `endpoint`
+explicitly; they do not inherit the dashboard's `GEO_INGEST_URL`.
+
 Leave `GEO_INGEST_URL` unset until Railway is ready. The existing dashboard
-endpoint continues using the shared pipeline locally. To roll back, unset the
-variable and redeploy the dashboard and API. Sites explicitly configured with
-the Railway URL must update their endpoint separately.
+endpoint continues using the shared pipeline locally.
+
+### Roll back
+
+1. Unset `GEO_INGEST_URL` and redeploy the dashboard and API. This restores the
+   dashboard's local handler and makes newly generated snippets use its origin.
+2. Sites using the SDK default or an explicit dedicated-service URL must set
+   `endpoint: "https://app.usenotra.com"` and redeploy. Use the deployment's
+   dashboard origin for self-hosted installations.
+3. Verify a tracked request reaches Tinybird through the dashboard handler.
+
+Removing `GEO_INGEST_URL` only changes dashboard routing and generated snippets.
+It does not redirect requests sent to `ingest.usenotra.com` or another dedicated
+origin. The SDK has no automatic dashboard fallback. Direct clients continue
+using the dedicated service until their endpoint is changed and redeployed.
 
 ## Monitoring in Axiom
 

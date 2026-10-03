@@ -1,4 +1,8 @@
 import { changelog } from "@/../.source/server";
+import {
+  FEATURE_DETAIL_LAST_MODIFIED,
+  FEATURE_DETAIL_PATHS,
+} from "@/constants/feature-pages/paths";
 import { MCP_USE_CASES, MCP_USE_CASES_PATH } from "@/constants/mcp-use-cases";
 import { fetchIntegrations } from "@/lib/integrations/fetch";
 import { getIntegrationHref } from "@/lib/integrations/helpers";
@@ -103,6 +107,10 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
       url: `${SITE_URL}/features/marketing/assets`,
       lastModified: STATIC_PAGE_LAST_MODIFIED,
     },
+    ...FEATURE_DETAIL_PATHS.map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: FEATURE_DETAIL_LAST_MODIFIED,
+    })),
     {
       url: `${SITE_URL}/pricing`,
       lastModified: STATIC_PAGE_LAST_MODIFIED,

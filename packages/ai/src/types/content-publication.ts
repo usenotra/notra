@@ -45,6 +45,8 @@ export interface PublicationSyncRepair {
   branch: string;
   markdown: string;
   title?: string;
+  /** Repository path at commitSha, including content moves. */
+  path?: string;
   imageMapping?: {
     owner: string;
     repo: string;

@@ -13,6 +13,11 @@ export const GEO_PERSONA_PROMPT_MAX_LENGTH = 400;
 export const GEO_PERSONA_BRIEF_MAX_LENGTH = 2000;
 /** Messages a persona may type per engine in one scan. */
 export const GEO_PERSONA_MAX_TURNS = 2;
+/**
+ * Persona answers bill at this multiple of a prompt answer: AI answers in a
+ * scan, AI credits when the organization pays by credits.
+ */
+export const GEO_PERSONA_BILLING_MULTIPLIER = 2;
 export const GEO_PERSONA_GENERATION_MODEL = "moonshotai/kimi-k3";
 export const GEO_PERSONA_GENERATION_MAX_TOKENS = 20_000;
 export const GEO_PERSONA_CONTEXT_PAGE_LIMIT = 30;

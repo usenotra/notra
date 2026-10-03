@@ -1,6 +1,6 @@
 "use client";
 
-import { Cancel01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 /**
  * WriteDialog is the GEO write entry: a sidebar of sections that jump to
@@ -545,22 +545,10 @@ function WriteActionButton({
   pendingAction: WriteAction | null;
   children: ReactNode;
 }) {
-  const t = useTranslations("geo.writer.writeDialog");
   const isPending = pendingAction === action;
   return (
-    <Button aria-busy={isPending} {...props}>
-      {isPending ? (
-        <>
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="size-4 animate-spin"
-            icon={Loading03Icon}
-          />
-          {t(`pending.${action}.label`)}
-        </>
-      ) : (
-        children
-      )}
+    <Button loading={isPending} {...props}>
+      {children}
     </Button>
   );
 }

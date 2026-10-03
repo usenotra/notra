@@ -14,11 +14,8 @@ import type {
   GeoTrackedPrompt,
 } from "@notra/geo-core/types/geo";
 
-import type {
-  GeoOverviewPageReady,
-  GeoRangeControl,
-  ScanPreflightDialogProps,
-} from "@/types/geo";
+import type { GeoOverviewPageReady, GeoRangeControl } from "@/types/geo";
+import type { GeoScanModelMenuProps } from "@/types/geo-scan-activity";
 
 export function countEnabledGeoPrompts(
   prompts: readonly GeoTrackedPrompt[] | undefined
@@ -88,10 +85,7 @@ export function toGeoOverviewReadyPage(input: {
   journeysLoading: boolean;
   isScanning: boolean;
   revealActive: boolean;
-  scanPreflight: Omit<
-    ScanPreflightDialogProps,
-    "engines" | "languages" | "organizationId"
-  >;
+  scanMenu: GeoScanModelMenuProps;
 }): GeoOverviewPageReady {
   const engines = input.engines ?? [];
   const timeseriesPoints = input.timeseriesPoints ?? [];
@@ -111,7 +105,6 @@ export function toGeoOverviewReadyPage(input: {
     geoRange: input.geoRange,
     isScanning: input.isScanning,
     revealActive: input.revealActive,
-    onRunScan: () => input.scanPreflight.onOpenChange(true),
     tabs: {
       promptCount: input.promptCount ?? 0,
       activeTab: input.activeTab,
@@ -134,11 +127,6 @@ export function toGeoOverviewReadyPage(input: {
       journeysLoading: input.journeysLoading,
       organizationId: input.organizationId,
     },
-    scanPreflight: {
-      ...input.scanPreflight,
-      organizationId: input.organizationId,
-      engines: input.settings.engines,
-      languages: input.settings.languages,
-    },
+    scanMenu: input.scanMenu,
   };
 }
