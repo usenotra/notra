@@ -1,0 +1,28 @@
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_400beee9e2f793::t_117e93e63bf097 699-741,743-787
+  s_400beee9e2f793::t_488507eefbfe19 742
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_400beee9e2f793::t_f3ff5d683db6a9 4
+packages/ai/src/utils/scheduled-publications.ts
+  s_400beee9e2f793::t_5262b40145a036 18,632,634-642,781
+  s_400beee9e2f793::t_263e2f291122c3 464-465,771-776,782
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_400beee9e2f793::t_f3ff5d683db6a9 61-69,71,403,428,555
+  s_400beee9e2f793::t_5262b40145a036 315-321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "50f0a5f0062c32a1f7cd6b155aeab19ba40a100c",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
