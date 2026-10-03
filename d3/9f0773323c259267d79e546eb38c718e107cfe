@@ -1,0 +1,23 @@
+packages/geo-core/src/ingest/live.ts
+  s_73d092d85928df::t_b6abcedd4c9870 18-25,30
+packages/geo-core/src/geo/live.ts
+  s_73d092d85928df::t_b2150b84b1c6f4 55-60
+apps/dashboard/src/utils/geo-citations.ts
+  s_73d092d85928df::t_516b330792276c 85-89,97-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d39f0773323c259267d79e546eb38c718e107cfe",
+  "prompts": {},
+  "sessions": {
+    "s_73d092d85928df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3361918-ab27-419e-88c6-568d2daa8f58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
