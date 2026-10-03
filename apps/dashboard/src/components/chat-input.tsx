@@ -181,7 +181,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
           <section aria-label={tChatShared("chatInputDropArea")}>
             <ChatQuotePreview />
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
               className="hidden"
               multiple
               onChange={onFileInputChange}

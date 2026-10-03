@@ -99,6 +99,7 @@
     "free-email-domains-list": "^1.0.16",
     "gray-matter": "^4.0.3",
     "lexical": "^0.39.0",
+    "libheif-js": "1.23.2",
     "lucide-react": "^0.562.0",
     "mailchecker": "^6.0.19",
     "marked": "^17.0.1",

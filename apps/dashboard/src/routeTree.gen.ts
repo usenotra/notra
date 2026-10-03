@@ -33,6 +33,7 @@ import { Route as ApiDemoSandboxRouteImport } from './routes/api.demo.sandbox'
 import { Route as ApiGeoIngestRouteImport } from './routes/api.geo.ingest'
 import { Route as ApiSocialAccountsCallbackRouteImport } from './routes/api.social-accounts.callback'
 import { Route as ApiUploadsContentImageRouteImport } from './routes/api.uploads.content-image'
+import { Route as ApiUploadsConvertHeicRouteImport } from './routes/api.uploads.convert-heic'
 import { Route as ApiWebhooksWorkosRouteImport } from './routes/api.webhooks.workos'
 import { Route as ApiWorkflowsGscSyncRouteImport } from './routes/api.workflows.gsc-sync'
 import { Route as ApiWorkflowsIrisRouteImport } from './routes/api.workflows.iris'
@@ -204,6 +205,11 @@ const ApiSocialAccountsCallbackRoute =
 const ApiUploadsContentImageRoute = ApiUploadsContentImageRouteImport.update({
   id: '/api/uploads/content-image',
   path: '/api/uploads/content-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUploadsConvertHeicRoute = ApiUploadsConvertHeicRouteImport.update({
+  id: '/api/uploads/convert-heic',
+  path: '/api/uploads/convert-heic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebhooksWorkosRoute = ApiWebhooksWorkosRouteImport.update({
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/api/geo/ingest': typeof ApiGeoIngestRoute
   '/api/social-accounts/callback': typeof ApiSocialAccountsCallbackRoute
   '/api/uploads/content-image': typeof ApiUploadsContentImageRoute
+  '/api/uploads/convert-heic': typeof ApiUploadsConvertHeicRoute
   '/api/webhooks/workos': typeof ApiWebhooksWorkosRoute
   '/api/workflows/gsc-sync': typeof ApiWorkflowsGscSyncRoute
   '/api/workflows/iris': typeof ApiWorkflowsIrisRoute
@@ -600,6 +607,7 @@ export interface FileRoutesByTo {
   '/api/geo/ingest': typeof ApiGeoIngestRoute
   '/api/social-accounts/callback': typeof ApiSocialAccountsCallbackRoute
   '/api/uploads/content-image': typeof ApiUploadsContentImageRoute
+  '/api/uploads/convert-heic': typeof ApiUploadsConvertHeicRoute
   '/api/webhooks/workos': typeof ApiWebhooksWorkosRoute
   '/api/workflows/gsc-sync': typeof ApiWorkflowsGscSyncRoute
   '/api/workflows/iris': typeof ApiWorkflowsIrisRoute
@@ -676,6 +684,7 @@ export interface FileRoutesById {
   '/api/geo/ingest': typeof ApiGeoIngestRoute
   '/api/social-accounts/callback': typeof ApiSocialAccountsCallbackRoute
   '/api/uploads/content-image': typeof ApiUploadsContentImageRoute
+  '/api/uploads/convert-heic': typeof ApiUploadsConvertHeicRoute
   '/api/webhooks/workos': typeof ApiWebhooksWorkosRoute
   '/api/workflows/gsc-sync': typeof ApiWorkflowsGscSyncRoute
   '/api/workflows/iris': typeof ApiWorkflowsIrisRoute
@@ -753,6 +762,7 @@ export interface FileRouteTypes {
     | '/api/geo/ingest'
     | '/api/social-accounts/callback'
     | '/api/uploads/content-image'
+    | '/api/uploads/convert-heic'
     | '/api/webhooks/workos'
     | '/api/workflows/gsc-sync'
     | '/api/workflows/iris'
@@ -828,6 +838,7 @@ export interface FileRouteTypes {
     | '/api/geo/ingest'
     | '/api/social-accounts/callback'
     | '/api/uploads/content-image'
+    | '/api/uploads/convert-heic'
     | '/api/webhooks/workos'
     | '/api/workflows/gsc-sync'
     | '/api/workflows/iris'
@@ -903,6 +914,7 @@ export interface FileRouteTypes {
     | '/api/geo/ingest'
     | '/api/social-accounts/callback'
     | '/api/uploads/content-image'
+    | '/api/uploads/convert-heic'
     | '/api/webhooks/workos'
     | '/api/workflows/gsc-sync'
     | '/api/workflows/iris'
@@ -979,6 +991,7 @@ export interface RootRouteChildren {
   ApiGeoIngestRoute: typeof ApiGeoIngestRoute
   ApiSocialAccountsCallbackRoute: typeof ApiSocialAccountsCallbackRoute
   ApiUploadsContentImageRoute: typeof ApiUploadsContentImageRoute
+  ApiUploadsConvertHeicRoute: typeof ApiUploadsConvertHeicRoute
   ApiWebhooksWorkosRoute: typeof ApiWebhooksWorkosRoute
   ApiWorkflowsGscSyncRoute: typeof ApiWorkflowsGscSyncRoute
   ApiWorkflowsIrisRoute: typeof ApiWorkflowsIrisRoute
@@ -1180,6 +1193,13 @@ declare module '@tanstack/react-router' {
       path: '/api/uploads/content-image'
       fullPath: '/api/uploads/content-image'
       preLoaderRoute: typeof ApiUploadsContentImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/uploads/convert-heic': {
+      id: '/api/uploads/convert-heic'
+      path: '/api/uploads/convert-heic'
+      fullPath: '/api/uploads/convert-heic'
+      preLoaderRoute: typeof ApiUploadsConvertHeicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/webhooks/workos': {
@@ -1707,6 +1727,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGeoIngestRoute: ApiGeoIngestRoute,
   ApiSocialAccountsCallbackRoute: ApiSocialAccountsCallbackRoute,
   ApiUploadsContentImageRoute: ApiUploadsContentImageRoute,
+  ApiUploadsConvertHeicRoute: ApiUploadsConvertHeicRoute,
   ApiWebhooksWorkosRoute: ApiWebhooksWorkosRoute,
   ApiWorkflowsGscSyncRoute: ApiWorkflowsGscSyncRoute,
   ApiWorkflowsIrisRoute: ApiWorkflowsIrisRoute,

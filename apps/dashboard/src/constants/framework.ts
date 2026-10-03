@@ -8,6 +8,7 @@ export const DASHBOARD_SECURITY_HEADERS = {
 
 export const DASHBOARD_FUNCTION_RULES = {
   "/api/uploads/content-image": { maxDuration: 30 },
+  "/api/uploads/convert-heic": { maxDuration: 30 },
   "/api/demo/sandbox": { maxDuration: 60 },
   "/api/demo/sandbox/reset": { maxDuration: 60 },
   "/api/demo/sandbox/customize": { maxDuration: 60 },

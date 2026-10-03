@@ -19,6 +19,7 @@
     "db:studio": "dotenv -- bunx drizzle-kit studio --config packages/db/drizzle.config.ts",
     "db:drop": "dotenv -- bunx drizzle-kit drop --config packages/db/drizzle.config.ts",
     "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts",
+    "evals": "bun --cwd apps/evals src/index.tsx",
     "devtools:api": "cd apps/api && bunx @ai-sdk/devtools",
     "devtools:dashboard": "cd apps/dashboard && bunx @ai-sdk/devtools",
     "check": "bun run check:effect && ultracite check --threads=4",
