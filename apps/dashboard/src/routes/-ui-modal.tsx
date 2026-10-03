@@ -6,6 +6,7 @@ import { CompetitorDetailSkeleton } from "@/app/(dashboard)/[slug]/geo/competito
 import { AccountModal } from "@/components/analytics/account-modal";
 import { CompetitorModal } from "@/components/geo/competitor-modal";
 import type { UiModalProviderProps } from "@/types/migration-routes";
+import { loadCompetitorDetailView } from "@/utils/competitor-detail-chunk";
 
 // The sheets themselves are tiny and open on click; only their (heavy) detail
 // views load lazily, behind skeletons inside the already open sheet.
@@ -15,7 +16,7 @@ const AccountDetail = lazy(() =>
   }))
 );
 const CompetitorDetail = lazy(() =>
-  import("@/components/geo/competitor-detail-view").then((module) => ({
+  loadCompetitorDetailView().then((module) => ({
     default: module.CompetitorDetailView,
   }))
 );

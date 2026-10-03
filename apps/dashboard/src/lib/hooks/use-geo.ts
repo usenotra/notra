@@ -79,6 +79,7 @@ import type {
   GeoTrafficLogQueryOptions,
   GscSyncResultMessage,
 } from "@/types/geo";
+import { loadCompetitorDetailView } from "@/utils/competitor-detail-chunk";
 import { toErrorMessage } from "@/utils/error-message";
 import { geoCompetitorDetailPath } from "@/utils/geo-competitors";
 import { describeGeoImportResult } from "@/utils/geo-import";
@@ -515,7 +516,7 @@ export function useGeoCompetitorRowNavigation(
     if (!aggregate) {
       prefetchDetail(brand);
       // The detail sheet's code, so the click only waits for data.
-      import("@/components/geo/competitor-detail-view").catch(() => undefined);
+      loadCompetitorDetailView().catch(() => undefined);
     }
   };
 
