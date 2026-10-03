@@ -1,0 +1,76 @@
+apps/evals/src/ui/app.tsx
+  s_69822f2ec3c761::t_cdb7c82ab494e0 11
+apps/evals/src/harness/content-harness.ts
+  s_69822f2ec3c761::t_99d444e7259926 6,35,37,43-44,46,97-106,221-231,242,248,267,276,303,328,345,431,435-438,441-442,445-453,457,464,467-472,475-478,482-502,517,523,617-620,622-630,632-638
+  s_69822f2ec3c761::t_d073ff3a3533d7 26
+apps/evals/src/ui/screens/results/fields.tsx
+  s_69822f2ec3c761::t_d3f07c320c38ed 1-6,10-128
+  s_69822f2ec3c761::t_1db705d44ad3be 7-9
+apps/evals/src/models/gateway.ts
+  s_69822f2ec3c761::t_d073ff3a3533d7 17,49,72-73,90-107
+  s_69822f2ec3c761::t_3fefa4fcf7ebc1 137,140-142,151
+apps/evals/src/utils/picker.ts
+  s_69822f2ec3c761::t_58b9bb60cc5db9 2-7,10-17,48,86
+  s_69822f2ec3c761::t_cdb7c82ab494e0 87
+apps/evals/src/ui/screens/picker.tsx
+  s_69822f2ec3c761::t_cdb7c82ab494e0 4,9
+packages/ai/src/constants/content-agents.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 1-30
+packages/ai/src/agents/twitter.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 2,14
+apps/evals/src/ui/screens/results/errors.tsx
+  s_69822f2ec3c761::t_d3f07c320c38ed 4-11,18-64
+  s_69822f2ec3c761::t_64f3e8968b69c3 12-17
+  s_69822f2ec3c761::t_1db705d44ad3be 1-3
+apps/evals/src/ui/screens/results/cases.tsx
+  s_69822f2ec3c761::t_1db705d44ad3be 1-4
+  s_69822f2ec3c761::t_d3f07c320c38ed 5-194
+packages/ai/src/agents/blog-post.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 2,14
+apps/evals/src/ui/screens/results.tsx
+  s_69822f2ec3c761::t_d3f07c320c38ed 8-11
+  s_69822f2ec3c761::t_1db705d44ad3be 4-6
+apps/evals/src/types/picker.ts
+  s_69822f2ec3c761::t_58b9bb60cc5db9 1-60
+apps/evals/src/utils/stats.ts
+  s_69822f2ec3c761::t_58b9bb60cc5db9 20
+apps/evals/src/store/picker-settings.ts
+  s_69822f2ec3c761::t_cdb7c82ab494e0 5-6
+apps/evals/src/suites/content-unslop.ts
+  s_69822f2ec3c761::t_d073ff3a3533d7 22,149,169-170,186
+  s_69822f2ec3c761::t_6cafbe25ab44aa 1,3
+apps/evals/src/suites/content-demo.ts
+  s_69822f2ec3c761::t_d073ff3a3533d7 1-2,19,53
+apps/evals/src/constants/picker.ts
+  s_69822f2ec3c761::t_58b9bb60cc5db9 1-16
+apps/evals/src/ui/screens/results/overview.tsx
+  s_69822f2ec3c761::t_d3f07c320c38ed 5-264
+  s_69822f2ec3c761::t_1db705d44ad3be 1-4
+apps/evals/src/scoring/content-post.ts
+  s_69822f2ec3c761::t_d073ff3a3533d7 1-2,4,83,139,141
+packages/ai/src/types/agents.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 112-121
+packages/ai/src/agents/changelog.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 2,14
+packages/ai/src/agents/linkedin.ts
+  s_69822f2ec3c761::t_2265b07e8d1212 2,14
+apps/evals/src/suites/content-agent.ts
+  s_69822f2ec3c761::t_6cafbe25ab44aa 1,3
+  s_69822f2ec3c761::t_d073ff3a3533d7 22,36,108-109,114,153-154,159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ca7109e997b517aa7f1c0c0e144c61a2484fcf60",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
