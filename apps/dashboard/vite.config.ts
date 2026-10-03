@@ -7,8 +7,8 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 
-import { SERVER_ONLY_PACKAGES } from "./src/constants/framework";
-import { dashboardWorkflow } from "./src/utils/framework-workflow-plugin";
+import { SERVER_ONLY_PACKAGES } from "./src/constants/framework.ts";
+import { dashboardWorkflow } from "./src/utils/framework-workflow-plugin.ts";
 
 export default defineConfig(({ mode }) => {
   const publicEnvironment = loadEnv(mode, process.cwd(), "NEXT_PUBLIC_");

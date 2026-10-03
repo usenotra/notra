@@ -157,6 +157,7 @@
 @source "../../../../packages/ui/src/constants/claude-chat-models.ts";
 @source "../../../../packages/ui/src/constants/codex-skin.ts";
 @source "../../../../packages/ui/src/constants/command-tabs.ts";
+@source "../../../../packages/ui/src/constants/framework-image.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
 @source "../../../../packages/ui/src/constants/kibo-ui-labels.ts";
@@ -171,6 +172,7 @@
 @source "../../../../packages/ui/src/hooks/use-opencode-frame.ts";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";
 @source "../../../../packages/ui/src/lib/claude-chat-model.ts";
+@source "../../../../packages/ui/src/lib/framework-image.ts";
 @source "../../../../packages/ui/src/lib/gemini-model.ts";
 @source "../../../../packages/ui/src/lib/geo-answer-font.ts";
 @source "../../../../packages/ui/src/lib/geo-bar.ts";

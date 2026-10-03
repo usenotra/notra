@@ -256,33 +256,6 @@
   --diffs-token-dark-bg: transparent;
 }
 
-@keyframes geo-live-in {
-  from {
-    opacity: 0;
-    transform: translateX(-4px);
-  }
-}
-
-@keyframes geo-live-ping {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(2.6);
-  }
-}
-
-.geo-live-in {
-  animation: geo-live-in var(--transition-duration-slow) var(--ease-emphasized)
-    both;
-}
-
-.geo-live-ping {
-  animation: geo-live-ping 1s var(--ease-emphasized) both;
-}
-
 /*
  * A request that just arrived in the live log: the row opens to its height so
  * the rows below glide down instead of jumping, its content fades in out of a
@@ -354,13 +327,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .geo-log-row-arrive,
-  .geo-log-row-arrive > td > div,
-  .geo-live-in,
-  .geo-live-ping {
+  .geo-log-row-arrive > td > div {
     animation: none;
-  }
-
-  .geo-live-ping {
-    opacity: 0;
   }
 }

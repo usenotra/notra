@@ -15,7 +15,6 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { AiTrafficCard } from "@/components/geo/ai-traffic-card";
 import { AiTrafficLogCard } from "@/components/geo/ai-traffic-log-card";
-import { GeoLiveIndicator } from "@/components/geo/geo-live-indicator";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { TrafficEmpty } from "@/components/geo/traffic-empty";
@@ -88,7 +87,6 @@ function TrafficPageView({
   const header = (
     <PageHeader description={t("description")} title={t("title")}>
       <div className="flex items-center gap-2">
-        <GeoLiveIndicator />
         <GeoRangePicker control={geoRange} />
       </div>
     </PageHeader>
