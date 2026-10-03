@@ -15,21 +15,46 @@ function escapeRegExp(value: string): string {
 }
 
 const MENTION_PATTERN_CACHE_MAX_ENTRIES = 2000;
-const ASCII_ONLY_REGEX = /^[\u0020-\u007E]*$/;
-// Under Unicode simple case folding (the "iu" flags) only U+017F (long s) and
-// U+212A (Kelvin sign) fold to ASCII letters. toLowerCase() already maps the
-// Kelvin sign to "k", so mapping long s makes a substring check an exact
-// prefilter for ASCII phrases.
-const LONG_S_REGEX = /\u017F/g;
+const FOLDED_CACHE_MAX_ENTRIES = 5000;
+const foldedChars = new Map<string, string>();
+const foldedPhrases = new Map<string, string>();
 
-/** True when the "iu" mention regex for `phrase` could match `foldedText`. */
-function mayContainMention(foldedText: string, phrase: string): boolean {
-  if (!ASCII_ONLY_REGEX.test(phrase)) {
-    // Non-ASCII folding has too many special cases to mirror; let the
-    // regex decide.
-    return true;
+/**
+ * Maps every member of a case-insensitive class of the "iu" mention regex
+ * (Unicode simple case folding) to the same string: long s, "s" and "S" all
+ * give "s"; micro sign, "μ" and "Μ" give "μ"; "ß" and "ẞ" give "ss".
+ * Folding is per character, so a regex match always folds to a substring of
+ * the folded text. Merging a few extra characters only costs a regex run.
+ */
+function foldChar(char: string): string {
+  const cached = foldedChars.get(char);
+  if (cached !== undefined) {
+    return cached;
   }
-  return foldedText.includes(phrase.toLowerCase());
+  const folded = char.toLowerCase().toUpperCase().toLowerCase();
+  foldedChars.set(char, folded);
+  return folded;
+}
+
+function foldCase(value: string): string {
+  let folded = "";
+  for (const char of value) {
+    folded += foldChar(char);
+  }
+  return folded;
+}
+
+function foldPhrase(phrase: string): string {
+  const cached = foldedPhrases.get(phrase);
+  if (cached !== undefined) {
+    return cached;
+  }
+  if (foldedPhrases.size >= FOLDED_CACHE_MAX_ENTRIES) {
+    foldedPhrases.clear();
+  }
+  const folded = foldCase(phrase);
+  foldedPhrases.set(phrase, folded);
+  return folded;
 }
 
 const mentionPatterns = new Map<string, RegExp>();
@@ -106,9 +131,9 @@ export function geoAnswerMentionSpans(
   const spans: GeoAnswerMentionSpan[] = [];
   // With hundreds of tracked competitors most terms never occur, so a
   // substring check skips the regex for them.
-  const foldedText = text.toLowerCase().replace(LONG_S_REGEX, "s");
+  const foldedText = foldCase(text);
   const byLength = terms
-    .filter((term) => mayContainMention(foldedText, term.phrase))
+    .filter((term) => foldedText.includes(foldPhrase(term.phrase)))
     .toSorted((left, right) => right.phrase.length - left.phrase.length);
 
   for (const term of byLength) {
