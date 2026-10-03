@@ -86,7 +86,7 @@ describe("image cache", () => {
     );
     expect(first.status).toBe(200);
     expect(first.headers.get("cache-control")).toBe(
-      "public, max-age=14400, must-revalidate"
+      "public, max-age=14400, s-maxage=14400, must-revalidate"
     );
     const etag = first.headers.get("etag") ?? "";
     expect(etag).toMatch(/^"[\w-]+"$/);

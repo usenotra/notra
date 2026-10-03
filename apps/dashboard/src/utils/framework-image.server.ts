@@ -107,7 +107,7 @@ function imageResponse(request: Request, image: CachedImage) {
     "Content-Type": image.contentType,
     "Cache-Control":
       image.maxAge > 0
-        ? `public, max-age=${image.maxAge}, must-revalidate`
+        ? `public, max-age=${image.maxAge}, s-maxage=${image.maxAge}, must-revalidate`
         : "no-store",
     Age: String(Math.max(0, Math.floor((Date.now() - image.createdAt) / 1000))),
     ETag: image.etag,

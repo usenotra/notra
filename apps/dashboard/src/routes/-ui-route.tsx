@@ -1,7 +1,8 @@
 import { createRoute, type Router } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import type { AbstractIntlMessages } from "use-intl";
+import { createTranslator } from "use-intl/core";
 
-import { getTranslations } from "@/lib/i18n/server";
+import type { DashboardLocale } from "@/types/i18n";
 import type {
   UiRouteFactoryOptions,
   UiRouteSearch,
@@ -9,23 +10,29 @@ import type {
   UiPageParams,
 } from "@/types/migration-routes";
 
-const loadTitle = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteTitle) => data)
-  .handler(async ({ data }) => {
-    if (!data.namespace || !data.key) {
-      return {
-        title: data.title,
-        description: undefined as string | undefined,
-      };
-    }
-    const t = await getTranslations(data.namespace as never);
-    return {
-      title: t(data.key as never),
-      description: data.descriptionKey
-        ? t(data.descriptionKey as never)
-        : undefined,
-    };
-  });
+interface RootLoaderData {
+  locale: DashboardLocale;
+  messages: AbstractIntlMessages;
+}
+
+/**
+ * Page titles come from the catalog the root route already loaded, so a
+ * navigation never needs a server round trip just to translate its title.
+ */
+function translateTitle(title: UiRouteTitle, root: RootLoaderData | undefined) {
+  if (!(title.namespace && title.key && root)) {
+    return { title: title.title, description: undefined as string | undefined };
+  }
+  const t = createTranslator({
+    locale: root.locale,
+    messages: root.messages,
+    namespace: title.namespace as never,
+  }) as unknown as (key: string) => string;
+  return {
+    title: t(title.key),
+    description: title.descriptionKey ? t(title.descriptionKey) : undefined,
+  };
+}
 
 export function uiRouteSearch(search: Record<string, unknown>): UiRouteSearch {
   return Object.fromEntries(
@@ -71,25 +78,27 @@ export function createUiRoute<T = undefined>({
     loaderDeps: ({ search }) => ({ search }),
     loader: async ({ params, deps }) => {
       const input = { params, searchParams: deps.search };
-      const [data, metadata] = await Promise.all([
-        loader?.(input),
-        title ? loadTitle({ data: title }) : undefined,
-      ]);
-      return { data, metadata };
+      return { data: await loader?.(input) };
     },
-    head: ({ loaderData }) => {
+    head: ({ loaderData, matches }) => {
+      const metadata = title
+        ? translateTitle(
+            title,
+            matches[0]?.loaderData as RootLoaderData | undefined
+          )
+        : undefined;
       const pageHeading =
         loaderData && pageTitle
           ? pageTitle(loaderData.data as T)
-          : loaderData?.metadata?.title;
+          : metadata?.title;
       return {
         meta: [
           ...(pageHeading ? [{ title: `${pageHeading} - Notra` }] : []),
-          ...(loaderData?.metadata?.description
+          ...(metadata?.description
             ? [
                 {
                   name: "description",
-                  content: loaderData.metadata.description,
+                  content: metadata.description,
                 },
               ]
             : []),

@@ -1,5 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 
+import { RouteError } from "@/components/route-error";
+
 import { createDashboardUiRoutes } from "./routes/-dashboard-ui";
 import { createEntryUiRoutes } from "./routes/-entry-ui";
 import { createOnboardingUiRoutes } from "./routes/-onboarding-ui";
@@ -16,6 +18,7 @@ export function getRouter() {
   return createRouter({
     routeTree: dashboardRouteTree,
     scrollRestoration: true,
+    defaultErrorComponent: RouteError,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
   });

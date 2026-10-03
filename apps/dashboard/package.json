@@ -131,6 +131,7 @@
   "devDependencies": {
     "@ai-sdk/devtools": "1.0.22",
     "@notra/typescript-config": "workspace:*",
+    "@rolldown/plugin-babel": "0.2.4",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "^20",
     "@types/react": "^19.3.0",
@@ -138,6 +139,7 @@
     "@types/sanitize-html": "^2.16.0",
     "@types/three": "^0.182.0",
     "@vitejs/plugin-react": "6.1.1",
+    "babel-plugin-react-compiler": "1.0.0",
     "drizzle-kit": "^0.31.8",
     "happy-dom": "^20.14.5",
     "knip": "^6.12.1",

@@ -111,7 +111,8 @@ export function createGeoUiRoutes(parent: AnyRoute) {
       title: { namespace: "geo.shared", key: "competitor" },
       pendingComponent: CompetitorLoading,
       component: ({ params }) => {
-        const competitor = decodeURIComponent(params.competitor);
+        // The router already decodes path params.
+        const competitor = params.competitor;
         return (
           <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
             <div className="w-full px-4 lg:px-6">

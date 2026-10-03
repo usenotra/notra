@@ -17,6 +17,11 @@ const posthogAssetsHost = posthogHost.replace(
 export default defineConfig({
   preset: process.env.VERCEL === "1" ? "vercel" : "node-server",
   compatibilityDate: "2026-10-02",
+  // The node-server build (Railway demo) has no CDN in front, and Nitro does
+  // not compress responses itself; Next's standalone server gzipped assets.
+  // Vercel compresses at the edge, so its build skips the extra work.
+  compressPublicAssets:
+    process.env.VERCEL === "1" ? false : { gzip: true, brotli: true },
   workflow: {
     runtime: "nodejs24.x",
     externalPackages: ["@resvg/resvg-js", "@cursor/sdk"],

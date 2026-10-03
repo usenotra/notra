@@ -100,6 +100,10 @@ const FeedbackLoading = lazy(
 );
 const IrisLoading = lazy(() => import("@/app/(dashboard)/[slug]/iris/loading"));
 
+type OrganizationShell = Awaited<ReturnType<typeof loadOrganizationShell>>;
+
+let clientShellCache: { slug: string; shell: OrganizationShell } | undefined;
+
 export function createDashboardUiRoutes(parent: AnyRoute) {
   function OrganizationLayout() {
     const { organizationShell } =
@@ -147,11 +151,25 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
     getParentRoute: () => parent,
     path: "$slug",
     validateSearch: uiRouteSearch,
-    beforeLoad: async ({ params, search }) => ({
-      organizationShell: await loadOrganizationShell({
+    beforeLoad: async ({ params, search, cause }) => {
+      // The shell only seeds client state (sidebar, active organization), like
+      // the Next layout that stayed mounted between pages. Reuse it while the
+      // user stays in this workspace; entering a workspace fetches it again.
+      // Page loaders still check access on every request.
+      const cached = clientShellCache;
+      if (cause !== "enter" && cached?.slug === params.slug) {
+        return { organizationShell: cached.shell };
+      }
+      const shell = await loadOrganizationShell({
         data: { params, searchParams: search },
-      }),
-    }),
+      });
+      // Never on the server: a module-level cache there would be shared
+      // between users.
+      if (typeof window !== "undefined") {
+        clientShellCache = { slug: params.slug, shell };
+      }
+      return { organizationShell: shell };
+    },
     pendingComponent: DashboardLoading,
     component: OrganizationLayout,
   });

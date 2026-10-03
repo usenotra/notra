@@ -38,7 +38,8 @@ export function createAnalyticsUiRoutes(parent: AnyRoute) {
       title: { namespace: "common", key: "labels.account" },
       pendingComponent: Loading,
       component: ({ params }) => {
-        const handle = decodeURIComponent(params.handle);
+        // The router already decodes path params.
+        const handle = params.handle;
         return (
           <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
             <div className="w-full px-4 lg:px-6">
