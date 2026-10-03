@@ -1,5 +1,6 @@
 import { contentTypeSchema } from "@notra/ai/schemas/content";
 import {
+  LEAKED_TOOL_MARKUP_REGEX,
   POST_SLUG_MAX_LENGTH,
   POST_SLUG_REGEX,
   supportsPostSlug,
@@ -39,18 +40,24 @@ const postSlugSchema = z
     "Slug must contain lowercase letters, numbers, and hyphens only"
   );
 
+// Rejecting the call makes the model retry instead of saving a post whose body
+// contains the rest of its broken tool call (and the recommendations).
+const postTextSchema = z
+  .string()
+  .refine(
+    (value) => !LEAKED_TOOL_MARKUP_REGEX.test(value),
+    "Contains tool-call markup (e.g. </markdown> or <parameter name=...>). Pass each field as its own argument."
+  );
+
 const createPostBaseInputShape = {
   title: z
     .string()
     .max(120)
     .describe("The post title, plain text without markdown"),
-  markdown: z
-    .string()
-    .describe(
-      "The full post content body as markdown/MDX, without the title heading"
-    ),
-  recommendations: z
-    .string()
+  markdown: postTextSchema.describe(
+    "The full post content body as markdown/MDX, without the title heading"
+  ),
+  recommendations: postTextSchema
     .nullable()
     .optional()
     .describe(
@@ -184,12 +191,10 @@ export function createUpdatePostTool(
       .max(120)
       .optional()
       .describe("Updated title, plain text without markdown"),
-    markdown: z
-      .string()
+    markdown: postTextSchema
       .optional()
       .describe("Updated content body as markdown/MDX"),
-    recommendations: z
-      .string()
+    recommendations: postTextSchema
       .nullable()
       .optional()
       .describe(
