@@ -161,9 +161,9 @@ export const contentUnslopSuite: EvalSuite<
   }),
   productionModel: CONTENT_AGENT_MODEL,
   defaultContenders: [
+    CONTENT_AGENT_MODEL,
     "anthropic/claude-sonnet-5",
     "openai/gpt-6-sol",
-    "openai/gpt-6-luna",
   ],
   timeoutMs: 120_000,
   run: (input, ctx) =>

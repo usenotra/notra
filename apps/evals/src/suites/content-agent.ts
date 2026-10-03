@@ -104,7 +104,11 @@ export const contentAgentSuite: EvalSuite<
     "The whole background content agent: real dispatcher prompt, real skills and tool definitions, fixture GitHub data. Scores the create/skip decision, tool use (sources, primary skill, unslop), hard output rules and a Jev judge for grounding, coverage and voice. Slowest and most expensive suite.",
   cases: buildCases(["changelog", "twitter_post"]),
   productionModel: CONTENT_AGENT_MODEL,
-  defaultContenders: ["anthropic/claude-sonnet-5", "openai/gpt-6-sol"],
+  defaultContenders: [
+    CONTENT_AGENT_MODEL,
+    "anthropic/claude-sonnet-5",
+    "openai/gpt-6-sol",
+  ],
   labelFields: ["decision"],
   timeoutMs: 240_000,
   run: (input, ctx) =>
@@ -146,6 +150,7 @@ export const contentDraftSuite: EvalSuite<
   cases: buildCases(ALL_TYPES),
   productionModel: CONTENT_AGENT_MODEL,
   defaultContenders: [
+    CONTENT_AGENT_MODEL,
     "anthropic/claude-sonnet-5",
     "openai/gpt-6-sol",
     "anthropic/claude-opus-5.5",
