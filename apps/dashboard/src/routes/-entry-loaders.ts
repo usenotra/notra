@@ -32,7 +32,7 @@ import {
 } from "@/utils/marketing-attribution.server";
 
 export const loadAppEntry = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { searchParams } }) => {
     const session = await getSession();
     if (!session?.user) {
@@ -76,7 +76,7 @@ export const loadGuestAccess = createServerFn({ method: "GET" }).handler(
 );
 
 export const loadLogin = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { searchParams } }) => {
     const read = (key: string) =>
       typeof searchParams[key] === "string" ? searchParams[key] : undefined;
@@ -118,7 +118,7 @@ export const loadLogin = createServerFn({ method: "GET" })
   });
 
 export const loadDemoEntry = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { searchParams } }) => {
     if (!isDemoMode()) {
       throw notFound();
@@ -136,7 +136,7 @@ export const loadDemoEntry = createServerFn({ method: "GET" })
   });
 
 export const loadIntegrationEntry = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
     const resolution = await Effect.runPromise(
       resolveIntegrationConnectDeeplink(params.integrationSlug ?? "")
@@ -158,7 +158,7 @@ export const loadLegacyApiKeys = createServerFn({ method: "GET" }).handler(
 );
 
 export const loadAuthCallback = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { searchParams } }) => {
     const session = await getSession();
     const requestHeaders = getRequestHeaders();

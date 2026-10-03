@@ -1,39 +1,35 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const signInWithPasswordServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof signInWithPasswordActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof signInWithPasswordActionImpl>) => data)
   .handler(({ data }) => signInWithPasswordActionImpl(...data));
 export const signInWithPasswordAction = (
   ...data: Parameters<typeof signInWithPasswordActionImpl>
 ) => signInWithPasswordServerFn({ data });
 
 const signUpWithPasswordServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof signUpWithPasswordActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof signUpWithPasswordActionImpl>) => data)
   .handler(({ data }) => signUpWithPasswordActionImpl(...data));
 export const signUpWithPasswordAction = (
   ...data: Parameters<typeof signUpWithPasswordActionImpl>
 ) => signUpWithPasswordServerFn({ data });
 
 const verifyEmailCodeServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof verifyEmailCodeActionImpl>) => data)
+  .validator((data: Parameters<typeof verifyEmailCodeActionImpl>) => data)
   .handler(({ data }) => verifyEmailCodeActionImpl(...data));
 export const verifyEmailCodeAction = (
   ...data: Parameters<typeof verifyEmailCodeActionImpl>
 ) => verifyEmailCodeServerFn({ data });
 
 const forgotPasswordServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof forgotPasswordActionImpl>) => data)
+  .validator((data: Parameters<typeof forgotPasswordActionImpl>) => data)
   .handler(({ data }) => forgotPasswordActionImpl(...data));
 export const forgotPasswordAction = (
   ...data: Parameters<typeof forgotPasswordActionImpl>
 ) => forgotPasswordServerFn({ data });
 
 const resetPasswordServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof resetPasswordActionImpl>) => data)
+  .validator((data: Parameters<typeof resetPasswordActionImpl>) => data)
   .handler(({ data }) => resetPasswordActionImpl(...data));
 export const resetPasswordAction = (
   ...data: Parameters<typeof resetPasswordActionImpl>

@@ -11,34 +11,28 @@ const startTotpEnrollmentServerFn = createServerFn({ method: "POST" }).handler(
 export const startTotpEnrollmentAction = () => startTotpEnrollmentServerFn();
 
 const discardTotpEnrollmentServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof discardTotpEnrollmentActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof discardTotpEnrollmentActionImpl>) => data)
   .handler(({ data }) => discardTotpEnrollmentActionImpl(...data));
 export const discardTotpEnrollmentAction = (
   ...data: Parameters<typeof discardTotpEnrollmentActionImpl>
 ) => discardTotpEnrollmentServerFn({ data });
 
 const verifyTotpEnrollmentServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof verifyTotpEnrollmentActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof verifyTotpEnrollmentActionImpl>) => data)
   .handler(({ data }) => verifyTotpEnrollmentActionImpl(...data));
 export const verifyTotpEnrollmentAction = (
   ...data: Parameters<typeof verifyTotpEnrollmentActionImpl>
 ) => verifyTotpEnrollmentServerFn({ data });
 
 const regenerateBackupCodesServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof regenerateBackupCodesActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof regenerateBackupCodesActionImpl>) => data)
   .handler(({ data }) => regenerateBackupCodesActionImpl(...data));
 export const regenerateBackupCodesAction = (
   ...data: Parameters<typeof regenerateBackupCodesActionImpl>
 ) => regenerateBackupCodesServerFn({ data });
 
 const removeAuthFactorServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof removeAuthFactorActionImpl>) => data)
+  .validator((data: Parameters<typeof removeAuthFactorActionImpl>) => data)
   .handler(({ data }) => removeAuthFactorActionImpl(...data));
 export const removeAuthFactorAction = (
   ...data: Parameters<typeof removeAuthFactorActionImpl>

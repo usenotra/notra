@@ -1,21 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const verifyMfaCodeServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof verifyMfaCodeActionImpl>) => data)
+  .validator((data: Parameters<typeof verifyMfaCodeActionImpl>) => data)
   .handler(({ data }) => verifyMfaCodeActionImpl(...data));
 export const verifyMfaCodeAction = (
   ...data: Parameters<typeof verifyMfaCodeActionImpl>
 ) => verifyMfaCodeServerFn({ data });
 
 const redeemBackupCodeServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof redeemBackupCodeActionImpl>) => data)
+  .validator((data: Parameters<typeof redeemBackupCodeActionImpl>) => data)
   .handler(({ data }) => redeemBackupCodeActionImpl(...data));
 export const redeemBackupCodeAction = (
   ...data: Parameters<typeof redeemBackupCodeActionImpl>
 ) => redeemBackupCodeServerFn({ data });
 
 const resumeSocialEnrollmentServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (data: Parameters<typeof resumeSocialEnrollmentActionImpl>) => data
   )
   .handler(({ data }) => resumeSocialEnrollmentActionImpl(...data));

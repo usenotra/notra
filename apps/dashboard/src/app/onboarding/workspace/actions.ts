@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const isWorkspaceSlugAvailableServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof isWorkspaceSlugAvailableImpl>) => data
-  )
+  .validator((data: Parameters<typeof isWorkspaceSlugAvailableImpl>) => data)
   .handler(({ data }) => isWorkspaceSlugAvailableImpl(...data));
 export const isWorkspaceSlugAvailable = (
   ...data: Parameters<typeof isWorkspaceSlugAvailableImpl>
@@ -12,7 +10,7 @@ export const isWorkspaceSlugAvailable = (
 const triggerOnboardingBrandAnalysisServerFn = createServerFn({
   method: "POST",
 })
-  .inputValidator(
+  .validator(
     (data: Parameters<typeof triggerOnboardingBrandAnalysisImpl>) => data
   )
   .handler(({ data }) => triggerOnboardingBrandAnalysisImpl(...data));
@@ -21,18 +19,14 @@ export const triggerOnboardingBrandAnalysis = (
 ) => triggerOnboardingBrandAnalysisServerFn({ data });
 
 const triggerOnboardingAgentSetupServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof triggerOnboardingAgentSetupImpl>) => data
-  )
+  .validator((data: Parameters<typeof triggerOnboardingAgentSetupImpl>) => data)
   .handler(({ data }) => triggerOnboardingAgentSetupImpl(...data));
 export const triggerOnboardingAgentSetup = (
   ...data: Parameters<typeof triggerOnboardingAgentSetupImpl>
 ) => triggerOnboardingAgentSetupServerFn({ data });
 
 const saveOnboardingAttributionServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof saveOnboardingAttributionImpl>) => data
-  )
+  .validator((data: Parameters<typeof saveOnboardingAttributionImpl>) => data)
   .handler(({ data }) => saveOnboardingAttributionImpl(...data));
 export const saveOnboardingAttribution = (
   ...data: Parameters<typeof saveOnboardingAttributionImpl>
@@ -41,7 +35,7 @@ export const saveOnboardingAttribution = (
 const saveOnboardingNotificationSettingsServerFn = createServerFn({
   method: "POST",
 })
-  .inputValidator(
+  .validator(
     (data: Parameters<typeof saveOnboardingNotificationSettingsImpl>) => data
   )
   .handler(({ data }) => saveOnboardingNotificationSettingsImpl(...data));

@@ -23,6 +23,9 @@ export default defineConfig({
   compressPublicAssets:
     process.env.VERCEL === "1" ? false : { gzip: true, brotli: true },
   workflow: {
+    // Only these hold "use workflow"/"use step" modules. The default (".")
+    // makes the builder glob and scan every source file on each dev start.
+    dirs: ["src/workflows", "src/lib/workflows"],
     runtime: "nodejs24.x",
     externalPackages: ["@resvg/resvg-js", "@cursor/sdk"],
   } satisfies ModuleOptions,

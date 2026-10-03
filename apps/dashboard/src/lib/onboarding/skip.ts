@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const skipOnboardingServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof skipOnboardingImpl>) => data)
+  .validator((data: Parameters<typeof skipOnboardingImpl>) => data)
   .handler(({ data }) => skipOnboardingImpl(...data));
 export const skipOnboarding = (
   ...data: Parameters<typeof skipOnboardingImpl>

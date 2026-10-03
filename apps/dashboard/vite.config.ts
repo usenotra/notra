@@ -7,6 +7,7 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 
+import { SERVER_ONLY_PACKAGES } from "./src/constants/framework";
 import { dashboardWorkflow } from "./src/utils/framework-workflow-plugin";
 
 export default defineConfig(({ mode }) => {
@@ -53,7 +54,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      exclude: ["@resvg/resvg-js"],
+      exclude: SERVER_ONLY_PACKAGES,
     },
     server: { host: "127.0.0.1", port: 3000, strictPort: true },
     resolve: {

@@ -19,10 +19,14 @@ const CATALOG_URLS: Record<DashboardLocale, string> = {
 const catalogs = new Map<DashboardLocale, AbstractIntlMessages>();
 const pending = new Map<DashboardLocale, Promise<AbstractIntlMessages>>();
 
+// The dev server resolves `?url` imports to app paths, which the auth
+// middleware redirects to /login, so dev imports the catalog like the server.
+const SERVES_CATALOG_ASSETS = !import.meta.env.DEV;
+
 async function fetchCatalog(
   locale: DashboardLocale
 ): Promise<AbstractIntlMessages> {
-  if (import.meta.env.SSR) {
+  if (import.meta.env.SSR || !SERVES_CATALOG_ASSETS) {
     const catalog =
       locale === "de"
         ? await import("../../../messages/de.json")
@@ -38,8 +42,19 @@ async function fetchCatalog(
   return (await response.json()) as AbstractIntlMessages;
 }
 
-export function catalogUrl(locale: DashboardLocale) {
-  return CATALOG_URLS[locale];
+/** `<head>` preload for the hashed catalog asset, in builds that serve one. */
+export function catalogPreloadLinks(locale: DashboardLocale | undefined) {
+  if (!(locale && SERVES_CATALOG_ASSETS)) {
+    return [];
+  }
+  return [
+    {
+      rel: "preload",
+      href: CATALOG_URLS[locale],
+      as: "fetch",
+      crossOrigin: "anonymous" as const,
+    },
+  ];
 }
 
 export function getCatalog(locale: DashboardLocale) {

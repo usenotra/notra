@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const signOutServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     if (!Array.isArray(data)) {
       throw new Error("Invalid action arguments");
     }
@@ -12,7 +12,7 @@ export const signOutAction = (...data: Parameters<typeof signOutActionImpl>) =>
   signOutServerFn({ data });
 
 const updateUserServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof updateUserActionImpl>) => data)
+  .validator((data: Parameters<typeof updateUserActionImpl>) => data)
   .handler(({ data }) => updateUserActionImpl(...data));
 export const updateUserAction = (
   ...data: Parameters<typeof updateUserActionImpl>
@@ -34,7 +34,7 @@ const listAccountsServerFn = createServerFn({ method: "POST" }).handler(() =>
 export const listAccountsAction = () => listAccountsServerFn();
 
 const unlinkAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof unlinkAccountActionImpl>) => data)
+  .validator((data: Parameters<typeof unlinkAccountActionImpl>) => data)
   .handler(({ data }) => unlinkAccountActionImpl(...data));
 export const unlinkAccountAction = (
   ...data: Parameters<typeof unlinkAccountActionImpl>

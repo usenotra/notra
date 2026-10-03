@@ -1,18 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const createOrganizationServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof createOrganizationActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof createOrganizationActionImpl>) => data)
   .handler(({ data }) => createOrganizationActionImpl(...data));
 export const createOrganizationAction = (
   ...data: Parameters<typeof createOrganizationActionImpl>
 ) => createOrganizationServerFn({ data });
 
 const updateOrganizationServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof updateOrganizationActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof updateOrganizationActionImpl>) => data)
   .handler(({ data }) => updateOrganizationActionImpl(...data));
 export const updateOrganizationAction = (
   ...data: Parameters<typeof updateOrganizationActionImpl>
@@ -24,16 +20,14 @@ const listOrganizationsServerFn = createServerFn({ method: "POST" }).handler(
 export const listOrganizationsAction = () => listOrganizationsServerFn();
 
 const setActiveOrganizationServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof setActiveOrganizationActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof setActiveOrganizationActionImpl>) => data)
   .handler(({ data }) => setActiveOrganizationActionImpl(...data));
 export const setActiveOrganizationAction = (
   ...data: Parameters<typeof setActiveOrganizationActionImpl>
 ) => setActiveOrganizationServerFn({ data });
 
 const getOrganizationSummaryServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (data: Parameters<typeof getOrganizationSummaryActionImpl>) => data
   )
   .handler(({ data }) => getOrganizationSummaryActionImpl(...data));
@@ -42,7 +36,7 @@ export const getOrganizationSummaryAction = (
 ) => getOrganizationSummaryServerFn({ data });
 
 const getFullOrganizationServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     if (!Array.isArray(data)) {
       throw new Error("Invalid action arguments");
     }
@@ -54,7 +48,7 @@ export const getFullOrganizationAction = (
 ) => getFullOrganizationServerFn({ data });
 
 const listMembersServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     if (!Array.isArray(data)) {
       throw new Error("Invalid action arguments");
     }
@@ -66,21 +60,21 @@ export const listMembersAction = (
 ) => listMembersServerFn({ data });
 
 const updateMemberRoleServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof updateMemberRoleActionImpl>) => data)
+  .validator((data: Parameters<typeof updateMemberRoleActionImpl>) => data)
   .handler(({ data }) => updateMemberRoleActionImpl(...data));
 export const updateMemberRoleAction = (
   ...data: Parameters<typeof updateMemberRoleActionImpl>
 ) => updateMemberRoleServerFn({ data });
 
 const removeMemberServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof removeMemberActionImpl>) => data)
+  .validator((data: Parameters<typeof removeMemberActionImpl>) => data)
   .handler(({ data }) => removeMemberActionImpl(...data));
 export const removeMemberAction = (
   ...data: Parameters<typeof removeMemberActionImpl>
 ) => removeMemberServerFn({ data });
 
 const listInvitationsServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     if (!Array.isArray(data)) {
       throw new Error("Invalid action arguments");
     }
@@ -92,21 +86,21 @@ export const listInvitationsAction = (
 ) => listInvitationsServerFn({ data });
 
 const inviteMemberServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof inviteMemberActionImpl>) => data)
+  .validator((data: Parameters<typeof inviteMemberActionImpl>) => data)
   .handler(({ data }) => inviteMemberActionImpl(...data));
 export const inviteMemberAction = (
   ...data: Parameters<typeof inviteMemberActionImpl>
 ) => inviteMemberServerFn({ data });
 
 const cancelInvitationServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof cancelInvitationActionImpl>) => data)
+  .validator((data: Parameters<typeof cancelInvitationActionImpl>) => data)
   .handler(({ data }) => cancelInvitationActionImpl(...data));
 export const cancelInvitationAction = (
   ...data: Parameters<typeof cancelInvitationActionImpl>
 ) => cancelInvitationServerFn({ data });
 
 const resendInvitationServerFn = createServerFn({ method: "POST" })
-  .inputValidator((data: Parameters<typeof resendInvitationActionImpl>) => data)
+  .validator((data: Parameters<typeof resendInvitationActionImpl>) => data)
   .handler(({ data }) => resendInvitationActionImpl(...data));
 export const resendInvitationAction = (
   ...data: Parameters<typeof resendInvitationActionImpl>

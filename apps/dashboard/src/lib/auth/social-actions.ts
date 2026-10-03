@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const startSocialSignInServerFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: Parameters<typeof startSocialSignInActionImpl>) => data
-  )
+  .validator((data: Parameters<typeof startSocialSignInActionImpl>) => data)
   .handler(({ data }) => startSocialSignInActionImpl(...data));
 export const startSocialSignInAction = (
   ...data: Parameters<typeof startSocialSignInActionImpl>

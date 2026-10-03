@@ -12,7 +12,11 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/geist-mono";
 
 import { NotFoundContent } from "@/components/not-found-content";
-import { catalogUrl, getCatalog, loadCatalog } from "@/lib/i18n/catalog";
+import {
+  catalogPreloadLinks,
+  getCatalog,
+  loadCatalog,
+} from "@/lib/i18n/catalog";
 import { getLocale } from "@/lib/i18n/server";
 import { Providers } from "@/utils/providers";
 
@@ -49,16 +53,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: styles },
-      ...(loaderData
-        ? [
-            {
-              rel: "preload",
-              href: catalogUrl(loaderData.locale),
-              as: "fetch",
-              crossOrigin: "anonymous" as const,
-            },
-          ]
-        : []),
+      ...catalogPreloadLinks(loaderData?.locale),
       { rel: "icon", href: "/favicon.ico" },
       { rel: "icon", href: "/icon0.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-icon.png" },

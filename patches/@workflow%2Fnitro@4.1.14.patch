@@ -40,6 +40,27 @@ diff --git a/dist/builders.js b/dist/builders.js
          const newConfig = JSON.parse(await readFile(configPath, 'utf-8'));
          originalConfig.routes.unshift({ src: FLOW_ROUTE, dest: '/.well-known/workflow/v1/flow' }, { src: STEP_ROUTE, dest: '/.well-known/workflow/v1/step' }, ...newConfig.routes);
          await writeFile(configPath, JSON.stringify(originalConfig, null, 2));
+diff --git a/dist/index.js b/dist/index.js
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -250,7 +250,7 @@
+           currentImportPath = pathToFileURL(handlerPath).href + "?t=" + version;
+           ${preloadSteps[buildPath]}
+         }
+-        return (await import(currentImportPath)).POST;
++        return (await import(/* @vite-ignore */ currentImportPath)).POST;
+       }
+ 
+       export default fromWebHandler(async (request, context) => {
+@@ -275,7 +275,7 @@
+           currentImportPath = pathToFileURL(handlerPath).href + "?t=" + version;
+           ${preloadSteps[buildPath]}
+         }
+-        return (await import(currentImportPath)).POST;
++        return (await import(/* @vite-ignore */ currentImportPath)).POST;
+       }
+ 
+       export default async ({ req }) => {
 diff --git a/dist/types.d.ts b/dist/types.d.ts
 --- a/dist/types.d.ts
 +++ b/dist/types.d.ts

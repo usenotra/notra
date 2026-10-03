@@ -90,7 +90,7 @@ export const loadOnboardingLayout = createServerFn({ method: "GET" }).handler(
 );
 
 export const loadOnboardingEntry = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
     const { organization, projectId, replay } = await onboardingContext(data);
     await redirectIfAnyOrganizationHasPaidHistory();
@@ -121,7 +121,7 @@ export const loadOnboardingEntry = createServerFn({ method: "GET" })
   });
 
 export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
     const { organization, projectId, replay } = await onboardingContext(data);
     if (!organization) {
@@ -181,7 +181,7 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
   });
 
 export const loadOnboardingVisibility = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
     const { organization, projectId, replay, brand } =
       await onboardingBrandContext(data);
@@ -217,7 +217,7 @@ export const loadOnboardingVisibility = createServerFn({ method: "GET" })
   });
 
 export const loadOnboardingCompetitors = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
     const { organization, projectId, replay, brand } =
       await onboardingBrandContext(data);
@@ -251,7 +251,7 @@ export const loadOnboardingCompetitors = createServerFn({ method: "GET" })
   });
 
 export const loadOnboardingPricing = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
     const { organization, projectId, replay } = await onboardingContext(data);
     if (!organization) {

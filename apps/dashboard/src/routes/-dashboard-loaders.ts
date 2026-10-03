@@ -25,7 +25,7 @@ import { toOrganizationSummary } from "@/utils/organization-summary";
 import { getSidebarWidthFromCookie } from "@/utils/sidebar-width";
 
 export const loadOrganizationShell = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
     const { organization } = await validateOrganizationAccess(
       params.slug ?? ""
@@ -51,7 +51,7 @@ export const loadOrganizationShell = createServerFn({ method: "GET" })
 
 /** Redirects of the organization root that must precede a streamed render. */
 export const gateDashboardHome = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params, searchParams } }) => {
     await validateOrganizationAccess(params.slug ?? "");
     await redirectOrgRootToStoredMode(
@@ -64,7 +64,7 @@ export const loadDashboardHome = createServerFn({
   method: "GET",
   strict: { output: false },
 })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params, searchParams, gated } }) => {
     const slug = params.slug ?? "";
     const { organization, user, member } =
@@ -114,7 +114,7 @@ export const loadOrganizationPage = createServerFn({
   method: "GET",
   strict: { output: false },
 })
-  .inputValidator(
+  .validator(
     (
       data: UiRouteInput & {
         kind:
@@ -203,7 +203,7 @@ export const loadOrganizationPage = createServerFn({
   });
 
 export const loadGeoScope = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
     const slug = params.slug ?? "";
     const { organization } = await validateOrganizationAccess(slug);
@@ -220,7 +220,7 @@ type GeoPageKind = "overview" | "traffic" | "gsc";
 
 /** Sends a stale `?project=` to the repaired URL before a streamed render. */
 export const gateGeoPage = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput & { kind: GeoPageKind }) => data)
+  .validator((data: UiRouteInput & { kind: GeoPageKind }) => data)
   .handler(async ({ data: { params, searchParams, kind } }) => {
     const slug = params.slug ?? "";
     const { organization } = await validateOrganizationAccess(slug);
@@ -257,7 +257,7 @@ export const loadGeoPage = createServerFn({
   method: "GET",
   strict: { output: false },
 })
-  .inputValidator((data: UiRouteInput & { kind: GeoPageKind }) => data)
+  .validator((data: UiRouteInput & { kind: GeoPageKind }) => data)
   .handler(async ({ data: { params, searchParams, kind, gated } }) => {
     const slug = params.slug ?? "";
     const { organization } = await validateOrganizationAccess(slug);
@@ -294,7 +294,7 @@ export const loadGeoPage = createServerFn({
   });
 
 export const loadIntegrationConnect = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
     const { resolveOrganizationIntegrationConnect } =
       await import("@/lib/integrations/deeplink-resolution");
@@ -311,7 +311,7 @@ export const loadIntegrationConnect = createServerFn({ method: "GET" })
   });
 
 export const loadLinearDetail = createServerFn({ method: "GET" })
-  .inputValidator((data: UiRouteInput) => data)
+  .validator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
     const { organization } = await validateOrganizationAccess(
       params.slug ?? ""
