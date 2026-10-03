@@ -220,6 +220,7 @@ export function DashboardShell({
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
+  onboardingBannerDismissed,
 }: DashboardShellProps) {
   const t = useTranslations("dashboard.onboardingBanner");
   const { activeOrganization } = useOrganizationsContext();
@@ -230,8 +231,10 @@ export function DashboardShell({
     initialOnboardingAgentRun
   );
   const runAgent = useRunOnboardingAgent();
-  const { dismiss, dismissed } =
-    useOnboardingAgentBannerDismissal(organizationId);
+  const { dismiss, dismissed } = useOnboardingAgentBannerDismissal(
+    organizationId,
+    onboardingBannerDismissed
+  );
   const running = data?.running ?? false;
   const canStart = !!data && !data.ran && !running && !dismissed;
   const bannerAvailable = running || canStart;

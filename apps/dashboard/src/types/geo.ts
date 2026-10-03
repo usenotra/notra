@@ -183,12 +183,6 @@ export interface GeoProjectScopeProps {
   children: ReactNode;
 }
 
-export interface GeoLiveContextValue {
-  connected: boolean;
-  /** Live announcements received for the viewed scope so far. */
-  updates: number;
-}
-
 export interface GeoLiveProviderProps {
   organizationId: string;
   children: ReactNode;
@@ -1033,9 +1027,31 @@ export interface CodeSnippetProps {
   className?: string;
   filename?: string;
   headerEnd?: ReactNode;
+  /** Variant switcher shown in the header (e.g. `CodeSnippetTabs`). */
+  tabs?: ReactNode;
   variant?: "command" | "panel";
   label?: string;
   onCopy?: () => void;
+}
+
+export interface CodeSnippetTabOption {
+  value: string;
+  label: string;
+  icon?: ReactNode;
+}
+
+export interface CodeSnippetTabsProps {
+  label: string;
+  value: string;
+  options: readonly CodeSnippetTabOption[];
+  onValueChange: (value: string) => void;
+}
+
+export interface CopyPromptButtonProps {
+  prompt: string;
+  disabled?: boolean;
+  onCopy?: () => void;
+  className?: string;
 }
 
 export interface CopyCodeButtonProps {

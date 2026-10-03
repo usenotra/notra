@@ -98,6 +98,7 @@ interface DashboardClientWrapperProps {
   initialSidebarOpen?: boolean;
   initialSidebarWidth: number;
   modal?: React.ReactNode;
+  onboardingBannerDismissed?: boolean;
 }
 
 export function DashboardClientWrapper({
@@ -108,6 +109,7 @@ export function DashboardClientWrapper({
   initialSidebarOpen = true,
   initialSidebarWidth,
   modal,
+  onboardingBannerDismissed = false,
 }: DashboardClientWrapperProps) {
   return (
     <DashboardRuntimeProviders>
@@ -123,6 +125,7 @@ export function DashboardClientWrapper({
                   initialOnboardingAgentRun={initialOnboardingAgentRun}
                   initialSidebarOpen={initialSidebarOpen}
                   initialSidebarWidth={initialSidebarWidth}
+                  onboardingBannerDismissed={onboardingBannerDismissed}
                 >
                   {children}
                 </DashboardShell>

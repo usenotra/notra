@@ -15,6 +15,7 @@ import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { getTranslations } from "@/lib/i18n/server";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
 import type { UiRouteInput } from "@/types/migration-routes";
+import { onboardingBannerDismissedCookie } from "@/utils/cookies";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
 import {
   geoProjectRepairPath,
@@ -39,6 +40,8 @@ export const loadOrganizationShell = createServerFn({ method: "GET" })
         getCookie(SIDEBAR_WIDTH_COOKIE_NAME)
       ),
       demoBannerHidden: getCookie(DEMO_BANNER_COOKIE) === DEMO_BANNER_OFF,
+      onboardingBannerDismissed:
+        getCookie(onboardingBannerDismissedCookie(organization.id)) === "1",
       initialOnboardingAgentRun: {
         organizationId: organization.id,
         state: resolveOnboardingAgentRunState({

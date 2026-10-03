@@ -514,6 +514,8 @@ export function useGeoCompetitorRowNavigation(
     );
     if (!aggregate) {
       prefetchDetail(brand);
+      // The detail sheet's code, so the click only waits for data.
+      import("@/components/geo/competitor-detail-view").catch(() => undefined);
     }
   };
 

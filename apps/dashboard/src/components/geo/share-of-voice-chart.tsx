@@ -303,12 +303,13 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             hint={t("shareHint")}
             readout={`${formatChartInteger(totalMentions, locale)} ${t("totalMentions")}`}
             variant="table"
-            bodyClassName="flex flex-col items-center justify-center p-5"
+            bodyClassName="flex flex-col p-3"
           >
-            <div className="relative w-full max-w-80">
+            {/* Fills the card, which the ranking card next to it stretches. */}
+            <div className="relative min-h-72 w-full flex-1">
               <EChartsPieChart
                 animation={false}
-                className="h-72 w-full"
+                className="absolute inset-0"
                 config={donutConfig}
                 data={slices.filter((row) => row.mentions > 0)}
                 dataKey="mentions"

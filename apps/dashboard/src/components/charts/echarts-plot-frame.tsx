@@ -1,49 +1,26 @@
 "use client";
 
-import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { tween } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
-import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
 import { ChartDownloadButton } from "@/components/charts/chart-download-button";
-import {
-  CHART_MARK_LIVE_DARK_OPACITY,
-  CHART_MARK_LIVE_OPACITY,
-  CHART_MARK_WORD,
-} from "@/constants/chart-download";
 import { cn } from "@/lib/utils";
 import type { EChartsPlotFrameProps } from "@/types/charts";
-
-const MARK_OPACITY_STYLE = {
-  "--chart-mark-opacity": CHART_MARK_LIVE_OPACITY,
-  "--chart-mark-opacity-dark": CHART_MARK_LIVE_DARK_OPACITY,
-} as CSSProperties;
-
-const HOVER_FADE =
-  "opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/chart:opacity-100 group-focus-within/chart:opacity-100 motion-reduce:transition-none";
 
 const EXPORT_REVEAL =
   "pointer-events-none opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/chart:opacity-100 group-focus-within/chart:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 group-hover/chart:pointer-events-auto group-focus-within/chart:pointer-events-auto motion-reduce:transition-none";
 
+// The Notra watermark only goes into the downloaded PNG (utils/chart-download).
 function ChartPlotChrome() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-[1] hidden @min-[12rem]:block">
-      <div
-        aria-hidden="true"
-        className={cn("flex h-full items-center justify-center", HOVER_FADE)}
-        style={MARK_OPACITY_STYLE}
-      >
-        <div className="flex items-center gap-[0.28em] text-[length:min(28cqh,7rem)] leading-none font-semibold tracking-tight [opacity:var(--chart-mark-opacity)] dark:[opacity:var(--chart-mark-opacity-dark)]">
-          <Notra className="h-[1em] w-auto shrink-0 [&_path]:stroke-current" />
-          <span className="text-foreground text-[0.62em] leading-none">
-            {CHART_MARK_WORD}
-          </span>
-        </div>
-      </div>
-      <div className={cn("absolute top-1 right-1", EXPORT_REVEAL)}>
-        <ChartDownloadButton className="bg-background/80 hover:bg-background" />
-      </div>
+    <div
+      className={cn(
+        "absolute top-1 right-1 z-[1] hidden @min-[12rem]:block",
+        EXPORT_REVEAL
+      )}
+    >
+      <ChartDownloadButton className="bg-background/80 hover:bg-background" />
     </div>
   );
 }

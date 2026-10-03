@@ -1,21 +1,17 @@
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
+import { CompetitorDetailSkeleton } from "@/app/(dashboard)/[slug]/geo/competitors/skeleton";
+import { AccountModal } from "@/components/analytics/account-modal";
+import { CompetitorModal } from "@/components/geo/competitor-modal";
 import type { UiModalProviderProps } from "@/types/migration-routes";
 
-const AccountModal = lazy(() =>
-  import("@/components/analytics/account-modal").then((module) => ({
-    default: module.AccountModal,
-  }))
-);
+// The sheets themselves are tiny and open on click; only their (heavy) detail
+// views load lazily, behind skeletons inside the already open sheet.
 const AccountDetail = lazy(() =>
   import("@/components/analytics/account-detail-view").then((module) => ({
     default: module.AccountDetailView,
-  }))
-);
-const CompetitorModal = lazy(() =>
-  import("@/components/geo/competitor-modal").then((module) => ({
-    default: module.CompetitorModal,
   }))
 );
 const CompetitorDetail = lazy(() =>
@@ -34,6 +30,21 @@ const RaycastDialog = lazy(() =>
   )
 );
 
+function AccountDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-10 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </div>
+      <Skeleton className="h-48 w-full" />
+    </div>
+  );
+}
+
 export function UiModalProvider({ children }: UiModalProviderProps) {
   const router = useRouter();
   const modal = useLocation({
@@ -51,18 +62,22 @@ export function UiModalProvider({ children }: UiModalProviderProps) {
       <Suspense fallback={null}>
         {modal?.kind === "account" ? (
           <AccountModal key={modal.name} title={modal.name}>
-            <AccountDetail
-              handle={modal.name}
-              organizationSlug={modal.organizationSlug}
-            />
+            <Suspense fallback={<AccountDetailSkeleton />}>
+              <AccountDetail
+                handle={modal.name}
+                organizationSlug={modal.organizationSlug}
+              />
+            </Suspense>
           </AccountModal>
         ) : null}
         {modal?.kind === "competitor" ? (
           <CompetitorModal key={modal.name} title={modal.name}>
-            <CompetitorDetail
-              competitor={modal.name}
-              organizationSlug={modal.organizationSlug}
-            />
+            <Suspense fallback={<CompetitorDetailSkeleton />}>
+              <CompetitorDetail
+                competitor={modal.name}
+                organizationSlug={modal.organizationSlug}
+              />
+            </Suspense>
           </CompetitorModal>
         ) : null}
         {modal?.kind === "framer" ? (

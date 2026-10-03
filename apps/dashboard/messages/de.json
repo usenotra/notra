@@ -2593,9 +2593,7 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "KI-Engine ({count, number})",
-        "visible": "Sichtbar",
-        "lastChecked": "Zuletzt geprüft"
+        "engineCount": "KI-Engine ({count, number})"
       },
       "hints": {
         "visible": "Antworten, in denen du überhaupt aufgetaucht bist: Deine Marke wurde genannt, eine deiner Seiten wurde als Quelle zitiert oder beides. Zitate sind in dieser Zahl enthalten.",
@@ -2604,6 +2602,7 @@
         "avgPosition": "Durchschnittlicher Rang deiner Marke in den Antworten, die sie genannt haben. Antworten, die dich nur zitiert haben, haben keinen Rang und werden nicht berücksichtigt."
       },
       "visibilityLabel": "Sichtbarkeit in {engine}",
+      "visibleCount": "{count, number} sichtbar",
       "readoutScanning": "Scan läuft",
       "filterLabel": "KI-Engines filtern",
       "filterPlaceholder": "Nach KI-Engine filtern…",
@@ -3974,10 +3973,6 @@
       "searchPlaceholder": "Wettbewerber suchen",
       "moreHidden": "{count, plural, one {# weiterer Wettbewerber} other {# weitere Wettbewerber}}. Suche, um {count, plural, one {ihn} other {sie}} zu finden.",
       "noMatches": "Keine Wettbewerber passen zu „{query}“."
-    },
-    "liveIndicator": {
-      "label": "Live",
-      "hint": "Aktualisiert sich automatisch, sobald neue Daten ankommen"
     }
   },
   "integrations": {

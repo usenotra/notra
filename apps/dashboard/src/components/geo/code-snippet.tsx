@@ -1,8 +1,14 @@
 "use client";
 
-import { Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
+import {
+  AiMagicIcon,
+  Copy01Icon,
+  Tick01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COPY_FEEDBACK_MS } from "@notra/geo-core/constants/geo";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { highlight } from "sugar-high";
@@ -10,7 +16,12 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
-import type { CodeSnippetProps, CopyCodeButtonProps } from "@/types/geo";
+import type {
+  CodeSnippetProps,
+  CodeSnippetTabsProps,
+  CopyCodeButtonProps,
+  CopyPromptButtonProps,
+} from "@/types/geo";
 
 export function useCopyCode(code: string) {
   const tCommon = useTranslations("common");
@@ -102,11 +113,97 @@ function CommandSnippet({
   );
 }
 
+/** Underlined variant tabs that sit in a `CodeSnippet` header. */
+export function CodeSnippetTabs({
+  label,
+  value,
+  options,
+  onValueChange,
+}: CodeSnippetTabsProps) {
+  return (
+    <Tabs className="gap-0" onValueChange={onValueChange} value={value}>
+      <TabsList aria-label={label} className="h-9 gap-3" variant="line">
+        {options.map((option) => (
+          <TabsTrigger
+            // The underline (the trigger's last child) sits on the header's
+            // bottom edge instead of below it, where the code body covers it.
+            className="flex-none gap-1.5 px-0 text-xs [&>span:last-child]:bottom-0"
+            key={option.value}
+            value={option.value}
+          >
+            {option.icon}
+            {option.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
+}
+
+/**
+ * "Copy agent prompt" with the confirmation in place: icon and label cross-fade
+ * to the copied state inside a fixed-width label cell, so nothing reflows.
+ */
+export function CopyPromptButton({
+  prompt,
+  disabled,
+  onCopy,
+  className,
+}: CopyPromptButtonProps) {
+  const tCommon = useTranslations("common");
+  const { copied, copy } = useCopyCode(prompt);
+  const fade =
+    "col-start-1 row-start-1 transition-[opacity,filter,translate,scale] duration-normal ease-emphasized motion-reduce:transition-none";
+  const hidden = "opacity-0 blur-[2px]";
+
+  return (
+    <Button
+      className={cn("gap-2", className)}
+      disabled={disabled}
+      onClick={() => {
+        onCopy?.();
+        return copy();
+      }}
+      size="sm"
+      type="button"
+      variant="outline"
+    >
+      <span aria-hidden="true" className="grid size-3.5 place-items-center">
+        <HugeiconsIcon
+          className={cn(fade, copied && `${hidden} scale-50`)}
+          icon={AiMagicIcon}
+          size={14}
+        />
+        <HugeiconsIcon
+          className={cn(fade, "text-success", !copied && `${hidden} scale-50`)}
+          icon={Tick02Icon}
+          size={14}
+        />
+      </span>
+      <span className="grid">
+        <span
+          aria-hidden={copied}
+          className={cn(fade, copied && `${hidden} -translate-y-1`)}
+        >
+          {tCommon("labels.copyAgentPrompt")}
+        </span>
+        <span
+          aria-hidden={!copied}
+          className={cn(fade, !copied && `${hidden} translate-y-1`)}
+        >
+          {tCommon("labels.promptCopied")}
+        </span>
+      </span>
+    </Button>
+  );
+}
+
 export function CodeSnippet({
   code,
   className,
   filename,
   headerEnd,
+  tabs,
   variant = "panel",
   label,
   onCopy,
@@ -126,14 +223,23 @@ export function CodeSnippet({
   return (
     <div className={cn("min-w-0", className)}>
       <div className="border-border/60 bg-muted/40 overflow-hidden rounded-t-lg border border-b-0 pb-3">
-        <div className="flex h-9 min-w-0 items-center gap-2 ps-3 pe-1">
+        <div className="flex h-9 min-w-0 items-center gap-3 ps-3 pe-1">
+          {tabs ? (
+            <div className="min-w-0 flex-1 [scrollbar-width:none] overflow-x-auto">
+              {tabs}
+            </div>
+          ) : null}
           {filename ? (
-            <p className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-xs">
+            <p
+              className={cn(
+                "text-muted-foreground truncate font-mono text-xs",
+                tabs ? "shrink-0 pe-2" : "min-w-0 flex-1"
+              )}
+            >
               {filename}
             </p>
-          ) : (
-            <span className="min-w-0 flex-1" />
-          )}
+          ) : null}
+          {tabs || filename ? null : <span className="min-w-0 flex-1" />}
           {headerEnd}
         </div>
       </div>

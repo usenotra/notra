@@ -49,7 +49,7 @@ export function ShelfViewToggle({
               <button
                 aria-pressed={selected}
                 className={cn(
-                  "relative inline-flex h-7 items-center gap-1 rounded-md px-2 text-[0.8rem] font-medium",
+                  "relative inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium",
                   "duration-fast transition-colors ease-out",
                   "focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none",
                   selected

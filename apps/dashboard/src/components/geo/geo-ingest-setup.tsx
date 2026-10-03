@@ -1,7 +1,5 @@
 "use client";
 
-import { AiMagicIcon, Tick01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_INGEST_DEFAULT_FRAMEWORK,
   GEO_INGEST_DEFAULT_PACKAGE_MANAGER,
@@ -9,18 +7,16 @@ import {
   GEO_INGEST_PACKAGE_MANAGER_OPTIONS,
   GEO_INGEST_TOKEN_ENV,
 } from "@notra/geo-core/constants/geo";
-import type {
-  GeoIngestFramework,
-  GeoIngestPackageManager,
-} from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
-import { Button } from "@/components/button";
-import { CodeSnippet, useCopyCode } from "@/components/geo/code-snippet";
+import {
+  CodeSnippet,
+  CodeSnippetTabs,
+  CopyPromptButton,
+} from "@/components/geo/code-snippet";
 import { GeoPackageManagerIcon } from "@/components/geo/package-manager-icon";
 import { TRAFFIC_INSTALL_COPY_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -31,7 +27,16 @@ import {
   geoIngestAgentPrompt,
   geoIngestInstallCommand,
   geoIngestSnippet,
+  isGeoIngestFramework,
+  isGeoIngestPackageManager,
 } from "@/utils/geo-ingest";
+
+const PACKAGE_MANAGER_TABS = GEO_INGEST_PACKAGE_MANAGER_OPTIONS.map(
+  (option) => ({
+    ...option,
+    icon: <GeoPackageManagerIcon manager={option.value} />,
+  })
+);
 
 export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
   const t = useTranslations("geo.geoIngestSetup");
@@ -43,7 +48,6 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
   const snippet = geoIngestSnippet(setup, framework);
   const installCommand = geoIngestInstallCommand(packageManager);
   const agentPrompt = geoIngestAgentPrompt(setup, framework, packageManager);
-  const { copied, copy } = useCopyCode(agentPrompt);
   const file =
     GEO_INGEST_FRAMEWORK_OPTIONS.find((option) => option.value === framework)
       ?.file ?? "proxy.ts";
@@ -74,36 +78,24 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
   return (
     <div className={cn("space-y-5", className)}>
       <section className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">
-            {tCommon("labels.installThePackage")}
-          </h3>
-          <Tabs
-            className="shrink-0 gap-0"
-            onValueChange={(value) =>
-              setPackageManager(value as GeoIngestPackageManager)
-            }
-            value={packageManager}
-          >
-            <TabsList aria-label={tCommon("labels.packageManager")}>
-              {GEO_INGEST_PACKAGE_MANAGER_OPTIONS.map((option) => (
-                <TabsTrigger
-                  aria-label={option.label}
-                  className="gap-1 px-2 text-xs"
-                  key={option.value}
-                  value={option.value}
-                >
-                  <GeoPackageManagerIcon manager={option.value} />
-                  {option.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
+        <h3 className="text-sm font-medium">
+          {tCommon("labels.installThePackage")}
+        </h3>
         <CodeSnippet
           code={installCommand}
           onCopy={() => trackCopied(TRAFFIC_INSTALL_COPY_KINDS.INSTALL_COMMAND)}
-          variant="command"
+          tabs={
+            <CodeSnippetTabs
+              label={tCommon("labels.packageManager")}
+              onValueChange={(value) => {
+                if (isGeoIngestPackageManager(value)) {
+                  setPackageManager(value);
+                }
+              }}
+              options={PACKAGE_MANAGER_TABS}
+              value={packageManager}
+            />
+          }
         />
       </section>
       {token ? (
@@ -116,33 +108,23 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
         </section>
       ) : null}
       <section className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 pe-1">
-          <h3 className="text-sm font-medium">{t("proxyTitle")}</h3>
-          <Tabs
-            className="shrink-0 gap-0"
-            onValueChange={(value) => setFramework(value as GeoIngestFramework)}
-            value={framework}
-          >
-            <TabsList
-              aria-label={t("framework")}
-              className="h-auto min-h-8 flex-wrap justify-end"
-            >
-              {GEO_INGEST_FRAMEWORK_OPTIONS.map((option) => (
-                <TabsTrigger
-                  className="px-2 text-xs"
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
+        <h3 className="text-sm font-medium">{t("proxyTitle")}</h3>
         <CodeSnippet
           code={snippet}
           filename={file}
           onCopy={() => trackCopied(TRAFFIC_INSTALL_COPY_KINDS.PROXY_SNIPPET)}
+          tabs={
+            <CodeSnippetTabs
+              label={t("framework")}
+              onValueChange={(value) => {
+                if (isGeoIngestFramework(value)) {
+                  setFramework(value);
+                }
+              }}
+              options={GEO_INGEST_FRAMEWORK_OPTIONS}
+              value={framework}
+            />
+          }
         />
       </section>
       <div className="space-y-2">
@@ -153,20 +135,11 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
           </span>
           <span className="bg-border/80 h-px flex-1" />
         </div>
-        <Button
-          className="text-muted-foreground mx-auto flex w-fit"
-          onClick={() => {
-            trackCopied(TRAFFIC_INSTALL_COPY_KINDS.AGENT_PROMPT);
-            return copy();
-          }}
-          size="sm"
-          variant="ghost"
-        >
-          <HugeiconsIcon icon={copied ? Tick01Icon : AiMagicIcon} size={14} />
-          {copied
-            ? tCommon("labels.promptCopied")
-            : tCommon("labels.copyAgentPrompt")}
-        </Button>
+        <CopyPromptButton
+          className="mx-auto flex w-fit"
+          onCopy={() => trackCopied(TRAFFIC_INSTALL_COPY_KINDS.AGENT_PROMPT)}
+          prompt={agentPrompt}
+        />
       </div>
     </div>
   );
