@@ -46,7 +46,7 @@ const postTextSchema = z
   .string()
   .refine(
     (value) => !LEAKED_TOOL_MARKUP_REGEX.test(value),
-    "Contains tool-call markup (e.g. </markdown> or <parameter name=...>). Pass each field as its own argument."
+    "Contains tool-call markup (<parameter name=...>). Pass each field as its own argument."
   );
 
 const createPostBaseInputShape = {
