@@ -7,6 +7,7 @@ export interface MeasuredModel {
   /** Latest run that contains this model; older runs are ignored. */
   readonly runId: string;
   readonly runAt: string;
+  /** Distinct cases scored; repeats of one case count once. */
   readonly cases: number;
   readonly errors: number;
   readonly errorRate: number;
@@ -18,6 +19,8 @@ export interface MeasuredModel {
   readonly p50Ms: number;
   /** Contender spend per attempted call (judge spend excluded). */
   readonly costPerCall: number;
+  /** False if any finished call has no reported or list-price cost. */
+  readonly costKnown: boolean;
 }
 
 /** A measured model judged against the suite's bar. */

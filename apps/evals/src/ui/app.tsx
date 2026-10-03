@@ -1,4 +1,4 @@
-import { useRenderer } from "@opentui/react";
+import { useKeyboard, useRenderer } from "@opentui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { contenderFromId } from "../constants/contenders";
@@ -28,6 +28,7 @@ type Screen =
     };
 
 const VERIFY_REPEATS = 2;
+const QUIT_SAVE_TIMEOUT_MS = 5000;
 
 const RENDER_THROTTLE_MS = 80;
 
@@ -73,11 +74,26 @@ export function App({
     []
   );
 
-  const quit = useCallback(() => {
-    handleRef.current?.cancel();
+  // Cancel and wait for the runner's final save so the run file is not left
+  // marked running; give up after a few seconds rather than hang on exit.
+  const quit = useCallback(async () => {
+    const handle = handleRef.current;
+    if (handle) {
+      handle.cancel();
+      await Promise.race([
+        handle.done.catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, QUIT_SAVE_TIMEOUT_MS)),
+      ]);
+    }
     renderer.destroy();
     process.exit(0);
   }, [renderer]);
+
+  useKeyboard((key) => {
+    if (key.ctrl && key.name === "c") {
+      quit().catch(() => process.exit(1));
+    }
+  });
 
   const launch = useCallback(
     (request: RunRequest) => {
@@ -225,7 +241,9 @@ export function App({
       onHistory={openHistory}
       onPicker={openPicker}
       onToggleDemo={() => setDemo((value) => !value)}
-      onQuit={quit}
+      onQuit={() => {
+        quit().catch(() => process.exit(1));
+      }}
     />
   );
 }

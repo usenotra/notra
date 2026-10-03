@@ -115,6 +115,8 @@ export interface TaskResult {
   readonly caseId: string;
   readonly repeat: number;
   status: TaskStatus;
+  /** The model call finished; a retry only re-runs scoring. */
+  called?: boolean;
   startedAt?: number;
   durationMs?: number;
   score?: CaseScore;
