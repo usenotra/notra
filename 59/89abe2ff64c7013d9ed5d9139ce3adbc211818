@@ -1,0 +1,31 @@
+apps/dashboard/src/components/settings/connected-accounts-section.tsx
+  s_7a0c38829ccc1e::t_018dce4585ac62 41
+apps/dashboard/src/lib/auth/social-actions.ts
+  s_7a0c38829ccc1e::t_018dce4585ac62 3-4,10
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_7a0c38829ccc1e::t_018dce4585ac62 3-4,14
+packages/ui/src/components/shared/auth/login-form.tsx
+  s_7a0c38829ccc1e::t_018dce4585ac62 92-93
+apps/dashboard/src/lib/framework/follow-server-redirect.ts
+  s_7a0c38829ccc1e::t_018dce4585ac62 1-23
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_7a0c38829ccc1e::t_018dce4585ac62 142
+apps/dashboard/src/lib/auth/client.ts
+  s_7a0c38829ccc1e::t_018dce4585ac62 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5989abe2ff64c7013d9ed5d9139ce3adbc211818",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
