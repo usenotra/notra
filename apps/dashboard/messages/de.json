@@ -898,7 +898,7 @@
       "createConversationFailed": "Konversation konnte nicht erstellt werden",
       "conversationLimit": "Du kannst bis zu {limit} Konversationen haben. Entferne eine, bevor du eine weitere hinzufügst.",
       "personaLimit": "Du kannst bis zu {limit} aktive Personas haben. Archiviere eine, bevor du eine weitere hinzufügst oder reaktivierst.",
-      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere importierst.",
+      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere hinzufügst.",
       "configureTrackingFirst": "Konfiguriere zuerst deine Einstellungen für das Marken-Tracking",
       "enableTrackingFirst": "Aktiviere das Marken-Tracking, bevor du einen Scan startest",
       "scanAlreadyRunning": "Für dieses Projekt läuft bereits ein Scan",
@@ -2729,7 +2729,11 @@
       "duplicates": "Duplikate übersprungen",
       "problems": "Zeilen mit Problemen",
       "downloadTemplate": "Vorlage herunterladen",
-      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}"
+      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}",
+      "newRows": "Neu",
+      "updatedRows": "Schon getrackt, wird aktualisiert",
+      "overLimit": "Über dem Limit von {limit}, nicht importiert",
+      "overLimitHint": "Dein Projekt trackt {current} von {limit} Wettbewerbern. Entferne zuerst welche, um den Rest zu importieren."
     },
     "geoEnginePicker": {
       "approvedWithoutZdr": "Ohne ZDR freigegeben",
@@ -3545,7 +3549,10 @@
         "clearAll": "Alle abwählen",
         "empty": "Noch keine Wettbewerber getrackt. Füge sie in den GEO-Einstellungen hinzu, um Alternativen zu erwähnen.",
         "mentioned": "Statt dir empfohlen",
-        "withDomain": "{detail} · {domain}"
+        "withDomain": "{detail} · {domain}",
+        "selectedCount": "{count} von {max} ausgewählt",
+        "limitHint": "Ein Briefing grenzt sich gegen bis zu {max} Wettbewerber ab.",
+        "autoPick": "Nichts ausgewählt: Das Briefing nutzt die {max} Wettbewerber, die AI-Engines am häufigsten empfehlen."
       },
       "writeDialog": {
         "description": "Plane oder schreibe einen Artikel aus einem Prompt, Inhaltstyp, einer Markenidentität und Wettbewerbern.",
@@ -3958,6 +3965,12 @@
       "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
       "connectingProperty": "{property} wird verbunden…",
       "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
+    },
+    "competitorChoices": {
+      "searchLabel": "Wettbewerber suchen",
+      "searchPlaceholder": "Wettbewerber suchen",
+      "moreHidden": "{count, plural, one {# weiterer Wettbewerber} other {# weitere Wettbewerber}}. Suche, um {count, plural, one {ihn} other {sie}} zu finden.",
+      "noMatches": "Keine Wettbewerber passen zu „{query}“."
     }
   },
   "integrations": {

@@ -26,6 +26,7 @@ import type {
   GeoShelfOpportunityPatch,
   GeoShelfOpportunityWrite,
   GeoShelfPlacement,
+  GeoShelfPlacementBrand,
   GeoShelfPlacementWrite,
   GeoShelfRow,
   GeoShelfSource,
@@ -292,12 +293,72 @@ export function applyShelfOpportunityChanges(
   };
 }
 
+/**
+ * Sources only store competitors with a known status. Those come first, then
+ * every other tracked competitor as "unknown" so it can still be set by hand.
+ */
+export function withUncheckedCompetitors(
+  placements: readonly GeoShelfPlacement[],
+  competitors: readonly GeoCompetitor[]
+): GeoShelfPlacement[] {
+  const stored = placements.filter(
+    (placement) => placement.competitorId !== null
+  );
+  const storedIds = new Set(stored.map((placement) => placement.competitorId));
+  const unchecked = competitors.flatMap<GeoShelfPlacement>((competitor) =>
+    storedIds.has(competitor.id)
+      ? []
+      : [
+          {
+            competitorId: competitor.id,
+            brandName: competitor.name,
+            brandDomain: competitor.domain,
+            status: "unknown",
+            position: null,
+            hasLink: false,
+            evidence: "manual",
+            excerpt: null,
+            checkedAt: "",
+          },
+        ]
+  );
+  return [...stored, ...unchecked];
+}
+
 export function applyShelfPlacementStatus(
   source: GeoShelfSource,
   competitorId: string | null,
   status: GeoShelfPlacement["status"],
-  nowIso: string
+  nowIso: string,
+  brand?: GeoShelfPlacementBrand
 ): GeoShelfSource {
+  const isStored = source.placements.some(
+    (placement) => placement.competitorId === competitorId
+  );
+  // Competitors nobody has checked yet are not stored on the source.
+  if (!isStored) {
+    if (!brand) {
+      return source;
+    }
+    return {
+      ...source,
+      placements: [
+        ...source.placements,
+        {
+          competitorId,
+          brandName: brand.name,
+          brandDomain: brand.domain,
+          status,
+          position: null,
+          hasLink: false,
+          evidence: "manual",
+          excerpt: null,
+          checkedAt: nowIso,
+        },
+      ],
+      updatedAt: nowIso,
+    };
+  }
   return {
     ...source,
     placements: source.placements.map((placement) => {
@@ -371,17 +432,24 @@ export function buildOptimisticShelfSource(
       excerpt: null,
       checkedAt: nowIso,
     },
-    ...context.competitors.map<GeoShelfPlacement>((competitor) => ({
-      competitorId: competitor.id,
-      brandName: competitor.name,
-      brandDomain: competitor.domain,
-      status: presentIds.has(competitor.id) ? "present" : "unknown",
-      position: null,
-      hasLink: false,
-      evidence: "manual",
-      excerpt: null,
-      checkedAt: nowIso,
-    })),
+    // Like the server, only competitors with a known status are stored.
+    ...context.competitors.flatMap<GeoShelfPlacement>((competitor) =>
+      presentIds.has(competitor.id)
+        ? [
+            {
+              competitorId: competitor.id,
+              brandName: competitor.name,
+              brandDomain: competitor.domain,
+              status: "present",
+              position: null,
+              hasLink: false,
+              evidence: "manual",
+              excerpt: null,
+              checkedAt: nowIso,
+            },
+          ]
+        : []
+    ),
   ];
   const title = draft.title.trim();
   return {

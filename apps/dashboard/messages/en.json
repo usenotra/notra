@@ -898,7 +898,7 @@
       "createConversationFailed": "Failed to create conversation",
       "conversationLimit": "You can have up to {limit} conversations. Remove one before adding another.",
       "personaLimit": "You can have up to {limit} active personas. Archive one before adding or reactivating another.",
-      "competitorLimit": "You can track up to {limit} competitors. Remove some before importing more.",
+      "competitorLimit": "You can track up to {limit} competitors. Remove some before adding more.",
       "configureTrackingFirst": "Configure your brand tracking settings first",
       "enableTrackingFirst": "Enable brand tracking before starting a scan",
       "scanAlreadyRunning": "A scan is already running for this project",
@@ -2729,7 +2729,11 @@
       "duplicates": "Duplicates skipped",
       "problems": "Rows with problems",
       "downloadTemplate": "Download template",
-      "fileRejected": "Choose a single CSV file up to {size}"
+      "fileRejected": "Choose a single CSV file up to {size}",
+      "newRows": "New",
+      "updatedRows": "Already tracked, will be updated",
+      "overLimit": "Over the limit of {limit}, not imported",
+      "overLimitHint": "Your project tracks {current} of {limit} competitors. Remove some first to import the rest."
     },
     "geoEnginePicker": {
       "approvedWithoutZdr": "Approved without ZDR",
@@ -3545,7 +3549,10 @@
         "clearAll": "Clear all",
         "empty": "No competitors tracked yet. Add them in GEO settings to mention alternatives.",
         "mentioned": "Recommended instead of you",
-        "withDomain": "{detail} · {domain}"
+        "withDomain": "{detail} · {domain}",
+        "selectedCount": "{count} of {max} selected",
+        "limitHint": "A brief positions against up to {max} competitors.",
+        "autoPick": "Nothing picked: the brief uses the {max} competitors AI engines recommend most."
       },
       "writeDialog": {
         "description": "Plan or write an article from a prompt, content type, brand identity and competitors.",
@@ -3958,6 +3965,12 @@
       "resolveCreatedProjectFailed": "Failed to resolve created project",
       "connectingProperty": "Connecting {property}…",
       "connectingPropertyDescription": "Reading your search queries. This can take a minute, keep working in the meantime."
+    },
+    "competitorChoices": {
+      "searchLabel": "Search competitors",
+      "searchPlaceholder": "Search competitors",
+      "moreHidden": "{count, plural, one {# more competitor} other {# more competitors}}. Search to find {count, plural, one {it} other {them}}.",
+      "noMatches": "No competitors match “{query}”."
     }
   },
   "integrations": {

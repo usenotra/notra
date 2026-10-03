@@ -3,15 +3,16 @@ import {
   updateGscIntegrationIfUnchanged,
 } from "@notra/ai/integrations/google-search-console";
 import type { GscIntegrationRow } from "@notra/ai/types/google-search-console";
+import { GEO_CONTEXT_COMPETITOR_LIMIT } from "@notra/db/constants/geo-context-competitors";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
-  geoCompetitors,
   geoPromptSuggestions,
   geoPrompts,
   geoSettings,
   projects,
 } from "@notra/db/schema";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import { and, eq, isNull, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -310,7 +311,8 @@ function mergeCompetitorNames(
     seen.add(key);
     names.push(name.trim());
   }
-  return names;
+  // Ranked rows come first, so the cut keeps the most relevant names.
+  return names.slice(0, GEO_CONTEXT_COMPETITOR_LIMIT);
 }
 
 const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
@@ -351,13 +353,9 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
         })
       ),
       geoDb("read suggestion competitors", () =>
-        db.query.geoCompetitors.findMany({
-          where: and(
-            eq(geoCompetitors.organizationId, organizationId),
-            eq(geoCompetitors.projectId, projectId)
-          ),
-          columns: { name: true },
-        })
+        selectGeoContextCompetitors({ organizationId, projectId }).then(
+          (selection) => selection.competitors
+        )
       ),
       geoDb("read tracked suggestions", () =>
         db.query.geoPrompts.findMany({

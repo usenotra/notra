@@ -22,6 +22,7 @@ import type {
   GeoShelfPlacementStatus,
   GeoShelfPlacementsTableProps,
 } from "@/types/geo-shelf";
+import { withUncheckedCompetitors } from "@/utils/geo-shelf";
 import { tableHeightFor } from "@/utils/table";
 
 function toPlacementStatus(value: string): GeoShelfPlacementStatus {
@@ -32,6 +33,7 @@ function toPlacementStatus(value: string): GeoShelfPlacementStatus {
 
 export function ShelfPlacementsTable({
   row,
+  competitors,
   ownBrandName,
   onSetPlacementStatus,
   disabled,
@@ -41,7 +43,7 @@ export function ShelfPlacementsTable({
   const tGeoShared = useTranslations("geo.shared");
   const placements = [
     ...(row.ownPlacement ? [row.ownPlacement] : []),
-    ...row.competitorPlacements,
+    ...withUncheckedCompetitors(row.competitorPlacements, competitors),
   ];
 
   const columns: TableColumn<GeoShelfPlacement>[] = [
@@ -85,7 +87,8 @@ export function ShelfPlacementsTable({
             onSetPlacementStatus(
               row.id,
               placement.competitorId,
-              toPlacementStatus(value ?? "unknown")
+              toPlacementStatus(value ?? "unknown"),
+              { name: placement.brandName, domain: placement.brandDomain }
             )
           }
           value={placement.status}

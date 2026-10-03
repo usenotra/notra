@@ -260,11 +260,12 @@ export function useGeoShelfSources(
   const setPlacementStatus: GeoShelfDbApi["setPlacementStatus"] = (
     sourceId,
     competitorId,
-    status
+    status,
+    brand
   ) => {
     const nowIso = new Date().toISOString();
     patchSource(resolveSourceId(sourceId), (source) =>
-      applyShelfPlacementStatus(source, competitorId, status, nowIso)
+      applyShelfPlacementStatus(source, competitorId, status, nowIso, brand)
     );
     persist(
       sourceId,

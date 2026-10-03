@@ -56,7 +56,12 @@ import type {
 import { existingPageLabel } from "@/utils/geo-gaps";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoContentPath } from "@/utils/geo-write-entry";
-import { recommendedContentSubtype } from "@/utils/geo-writer";
+import {
+  defaultWriterCompetitorIds,
+  recommendedContentSubtype,
+} from "@/utils/geo-writer";
+
+const EMPTY_MENTIONED_COMPETITORS: readonly string[] = [];
 
 import { WriteBrandSelect } from "./write-brand-select";
 import { WriteCompetitorChoices } from "./write-competitor-choices";
@@ -163,7 +168,8 @@ function WriteDialogForm({
   const promptBadgeLabel = existingPageUrl
     ? t("updating", { page: existingPageLabel(existingPageUrl) })
     : baselineLabel;
-  const mentionedCompetitors = initial?.mentionedCompetitors ?? [];
+  const mentionedCompetitors =
+    initial?.mentionedCompetitors ?? EMPTY_MENTIONED_COMPETITORS;
   const {
     brandVoiceId,
     setBrandVoiceId,
@@ -195,8 +201,10 @@ function WriteDialogForm({
     if (competitorsTouched || competitors.length === 0) {
       return;
     }
-    setCompetitorIds(competitors.map((competitor) => competitor.id));
-  }, [competitors, competitorsTouched]);
+    setCompetitorIds(
+      defaultWriterCompetitorIds(competitors, mentionedCompetitors)
+    );
+  }, [competitors, competitorsTouched, mentionedCompetitors]);
 
   const jumpToSection = (id: WriteDialogSectionId) => {
     setActiveSection(id);

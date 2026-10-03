@@ -121,7 +121,7 @@ export function buildFeaturesMarkdown() {
       ANSWER_EXAMPLE_SUBCOPY,
       "",
       "### Competitors",
-      "Track up to 25 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
+      "Track up to 2,000 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
       "",
       "### Agent journeys",
       "Follow a single AI agent across your site: which pages it fetched, in what order and whether it asked for markdown.",

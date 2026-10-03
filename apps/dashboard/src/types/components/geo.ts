@@ -145,6 +145,32 @@ export interface GeoCsvImportDialogProps<TRow> {
   parse: (text: string) => GeoCsvParseResult<TRow>;
   onImport: (rows: TRow[]) => Promise<unknown>;
   isPending: boolean;
+  /** Splits rows into new, updated and over-limit before importing. */
+  capacity?: GeoCsvImportCapacity<TRow>;
+}
+
+export interface GeoCsvImportCapacity<TRow> {
+  limit: number;
+  existingKeys: ReadonlySet<string>;
+  keyOf: (row: TRow) => string;
+}
+
+export interface GeoCsvImportPlan<TRow> {
+  rows: TRow[];
+  added: number;
+  updated: number;
+  overLimit: number;
+}
+
+export interface CompetitorChoicesSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export interface CompetitorChoicesFooterProps {
+  query: string;
+  hidden: number;
+  visibleCount: number;
 }
 
 export interface GeoImportDialogProps {

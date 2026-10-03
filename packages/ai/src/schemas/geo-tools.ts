@@ -73,6 +73,15 @@ export const getGeoProjectContextInputSchema = z.object({
     .min(1)
     .describe("GEO project ID returned by the project-listing tool."),
   includeAnswers: includeAnswersSchema,
+  competitorSearch: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .optional()
+    .describe(
+      "Find tracked competitors whose name contains this text. Use when the project tracks more competitors than the ones returned."
+    ),
 });
 
 export const getGeoWriterContextInputSchema = z.object({

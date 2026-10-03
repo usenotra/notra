@@ -7,6 +7,7 @@ import {
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_MAX_COMPETITORS } from "@notra/geo-core/constants/geo";
 import {
   GEO_CSV_IMPORT_ACCEPT,
   GEO_CSV_IMPORT_MAX_BYTES,
@@ -18,7 +19,9 @@ import {
   parsePromptsCsv,
   readGeoCsvFile,
 } from "@notra/geo-core/geo/csv-import";
+import { competitorKey } from "@notra/geo-core/geo/domain";
 import type {
+  GeoCompetitorImportRow,
   GeoCsvIssue,
   GeoCsvSelection,
 } from "@notra/geo-core/types/geo-import";
@@ -44,13 +47,15 @@ import {
   useGeoImportCompetitors,
   useGeoImportPrompts,
 } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
+  GeoCsvImportCapacity,
   GeoCsvImportDialogProps,
   GeoImportDialogProps,
 } from "@/types/components/geo";
 import { downloadBlob } from "@/utils/download";
-import { formatCsvFileSize } from "@/utils/geo-import";
+import { formatCsvFileSize, planGeoCsvImport } from "@/utils/geo-import";
 
 function CsvIssueList({ issues }: { issues: GeoCsvIssue[] }) {
   const t = useTranslations("geo.geoCsvImportDialog");
@@ -107,6 +112,7 @@ function GeoCsvImportDialog<TRow>({
   parse,
   onImport,
   isPending,
+  capacity,
 }: GeoCsvImportDialogProps<TRow>) {
   const t = useTranslations("geo.geoCsvImportDialog");
   const tCommon = useTranslations("common.actions");
@@ -120,7 +126,8 @@ function GeoCsvImportDialog<TRow>({
     null
   );
   const copy = GEO_IMPORT_COPY[kind];
-  const rows = selection?.result.rows ?? [];
+  const plan = planGeoCsvImport(selection?.result.rows ?? [], capacity);
+  const rows = plan.rows;
   const issues = selection?.result.issues ?? [];
   const duplicates = selection?.result.duplicates ?? 0;
   const canImport = rows.length > 0 && !isPending;
@@ -237,7 +244,34 @@ function GeoCsvImportDialog<TRow>({
           </Dropzone>
           {selection ? (
             <div className="divide-y rounded-lg border text-sm">
-              <CsvSummaryRow label={t("ready")} value={rows.length} />
+              {capacity ? (
+                <>
+                  <CsvSummaryRow label={t("newRows")} value={plan.added} />
+                  {plan.updated > 0 ? (
+                    <CsvSummaryRow
+                      label={t("updatedRows")}
+                      value={plan.updated}
+                    />
+                  ) : null}
+                  {plan.overLimit > 0 ? (
+                    <div className="space-y-1 pb-3">
+                      <CsvSummaryRow
+                        label={t("overLimit", { limit: capacity.limit })}
+                        tone="warning"
+                        value={plan.overLimit}
+                      />
+                      <p className="text-muted-foreground px-3 text-xs text-pretty">
+                        {t("overLimitHint", {
+                          current: capacity.existingKeys.size,
+                          limit: capacity.limit,
+                        })}
+                      </p>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <CsvSummaryRow label={t("ready")} value={rows.length} />
+              )}
               {duplicates > 0 ? (
                 <CsvSummaryRow label={t("duplicates")} value={duplicates} />
               ) : null}
@@ -313,8 +347,19 @@ export function CompetitorsCsvImportDialog({
   organizationId,
 }: GeoImportDialogProps) {
   const importCompetitors = useGeoImportCompetitors(organizationId);
+  const { competitors } = useGeoCompetitorsDb(organizationId, {
+    enabled: open,
+  });
+  const capacity: GeoCsvImportCapacity<GeoCompetitorImportRow> = {
+    limit: GEO_MAX_COMPETITORS,
+    existingKeys: new Set(
+      competitors.map((competitor) => competitorKey(competitor.name))
+    ),
+    keyOf: (row) => competitorKey(row.name),
+  };
   return (
     <GeoCsvImportDialog
+      capacity={capacity}
       isPending={importCompetitors.isPending}
       kind="competitors"
       onImport={(rows) => importCompetitors.mutateAsync(rows)}

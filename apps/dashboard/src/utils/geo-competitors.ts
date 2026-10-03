@@ -466,3 +466,33 @@ export function buildCompetitorRows(
     .sort((a, b) => b.score - a.score)
     .map((entry) => entry.row);
 }
+
+function matchesCompetitorQuery(competitor: GeoCompetitor, query: string) {
+  return [competitor.name, competitor.domain ?? "", ...competitor.synonyms]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
+
+/**
+ * What a competitor picker renders: the competitors matching the search
+ * query, capped so a project with hundreds of competitors does not render
+ * hundreds of cards.
+ */
+export function visibleCompetitorChoices(
+  competitors: readonly GeoCompetitor[],
+  query: string,
+  maxShown: number
+): { visible: GeoCompetitor[]; hidden: number } {
+  const normalizedQuery = query.trim().toLowerCase();
+  const matches =
+    normalizedQuery.length > 0
+      ? competitors.filter((competitor) =>
+          matchesCompetitorQuery(competitor, normalizedQuery)
+        )
+      : competitors;
+  return {
+    visible: matches.slice(0, maxShown),
+    hidden: Math.max(0, matches.length - maxShown),
+  };
+}

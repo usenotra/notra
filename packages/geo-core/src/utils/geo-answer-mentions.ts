@@ -14,11 +14,24 @@ function escapeRegExp(value: string): string {
   return value.replace(REGEXP_ESCAPE_REGEX, "\\$&");
 }
 
+const MENTION_PATTERN_CACHE_MAX_ENTRIES = 2000;
+const mentionPatterns = new Map<string, RegExp>();
+
 function mentionPattern(phrase: string): RegExp {
-  return new RegExp(
+  const cached = mentionPatterns.get(phrase);
+  if (cached) {
+    cached.lastIndex = 0;
+    return cached;
+  }
+  const pattern = new RegExp(
     `(?<!${MENTION_WORD_CHAR})${escapeRegExp(phrase)}(?!${MENTION_WORD_CHAR})`,
     "giu"
   );
+  if (mentionPatterns.size >= MENTION_PATTERN_CACHE_MAX_ENTRIES) {
+    mentionPatterns.clear();
+  }
+  mentionPatterns.set(phrase, pattern);
+  return pattern;
 }
 
 function pushTerm(
@@ -74,9 +87,12 @@ export function geoAnswerMentionSpans(
 
   const occupied = new Array<boolean>(text.length).fill(false);
   const spans: GeoAnswerMentionSpan[] = [];
-  const byLength = terms.toSorted(
-    (left, right) => right.phrase.length - left.phrase.length
-  );
+  // With hundreds of tracked competitors most terms never occur, so a plain
+  // substring check skips the regex for them.
+  const lowerText = text.toLowerCase();
+  const byLength = terms
+    .filter((term) => lowerText.includes(term.phrase.toLowerCase()))
+    .toSorted((left, right) => right.phrase.length - left.phrase.length);
 
   for (const term of byLength) {
     for (const match of text.matchAll(mentionPattern(term.phrase))) {
