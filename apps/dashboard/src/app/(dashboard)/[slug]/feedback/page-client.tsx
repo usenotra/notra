@@ -308,25 +308,14 @@ function FeedbackList({
           isPending={isLoading || isPlaceholderData}
           isUpdatingStatus={isUpdatingStatus}
           items={items}
+          loadingMore={isFetchingNextPage}
           onDelete={onDelete}
+          onLoadMore={hasNextPage ? onLoadMore : undefined}
           onSelect={onSelect}
           onStatusChange={onStatusChange}
           selectedId={selectedId}
         />
       </div>
-
-      {hasNextPage ? (
-        <div className="flex shrink-0 justify-center">
-          <Button
-            loading={isFetchingNextPage}
-            onClick={onLoadMore}
-            size="sm"
-            variant="outline"
-          >
-            {tCommon("actions.loadMore")}
-          </Button>
-        </div>
-      ) : null}
     </>
   );
 }

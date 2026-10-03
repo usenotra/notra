@@ -373,6 +373,34 @@ function changeRowId(event: GeoChangeEvent): string {
   return `${event.kind}-${event.promptId}-${event.engine}`;
 }
 
+/** Empty body for the changes card: no comparison scan yet, or nothing moved. */
+function ChangesEmpty({
+  isScanning,
+  reason,
+}: {
+  isScanning: boolean;
+  reason: "needsScans" | "noChanges";
+}) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoShared = useTranslations("geo.shared");
+  return (
+    <InstrumentEmpty
+      busy={isScanning}
+      className="h-40"
+      message={isScanning ? tGeoShared("scanningEngines") : t(reason)}
+      preview={
+        <div className="px-6 pt-2">
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.changes}
+            rows={3}
+          />
+        </div>
+      }
+      seed={GEO_CHANGES_LABEL}
+    />
+  );
+}
+
 export function WhatChangedCard({
   organizationId,
   organizationSlug,
@@ -442,42 +470,13 @@ export function WhatChangedCard({
       toolbar={data ? <SummaryToolbar summary={data.summary} /> : undefined}
     />
   );
-  if (!isPending && data) {
-    if (!data.previousScan) {
-      body = (
-        <InstrumentEmpty
-          busy={isScanning}
-          className="h-40"
-          message={isScanning ? tGeoShared("scanningEngines") : t("needsScans")}
-          preview={
-            <div className="px-6 pt-2">
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
-                rows={3}
-              />
-            </div>
-          }
-          seed={GEO_CHANGES_LABEL}
-        />
-      );
-    } else if (events.length === 0) {
-      body = (
-        <InstrumentEmpty
-          busy={isScanning}
-          className="h-40"
-          message={isScanning ? tGeoShared("scanningEngines") : t("noChanges")}
-          preview={
-            <div className="px-6 pt-2">
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
-                rows={3}
-              />
-            </div>
-          }
-          seed={GEO_CHANGES_LABEL}
-        />
-      );
-    }
+  if (!isPending && data && (!data.previousScan || events.length === 0)) {
+    body = (
+      <ChangesEmpty
+        isScanning={isScanning}
+        reason={data.previousScan ? "noChanges" : "needsScans"}
+      />
+    );
   }
 
   return (

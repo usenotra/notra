@@ -3,6 +3,7 @@
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { useTranslations } from "next-intl";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo } from "react";
@@ -48,12 +49,15 @@ export default function PageClient({
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
   );
   const page = Math.max(1, rawPage);
-  const [pageSize, setPageSize] = useQueryState(
+  const [rawPageSize, setPageSize] = useQueryState(
     "pageSize",
     parseAsInteger
       .withDefault(COLLECTIONS_PAGE_SIZE)
       .withOptions({ clearOnDefault: true })
   );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, COLLECTIONS_PAGE_SIZE);
   const [view, setView] = useQueryState(
     "view",
     parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")

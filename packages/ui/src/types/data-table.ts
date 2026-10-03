@@ -254,7 +254,6 @@ export interface TableColumnGroupProps<T> {
 export interface DataTableHeaderProps<T> {
   columns: TableColumn<T>[];
   rowHeight: number;
-  reduce: boolean;
   thRefs: HeaderCellRefs;
   selectable: boolean;
   allSelected: boolean;

@@ -11,6 +11,7 @@ import {
   HEADER_CH_BUFFER,
   HEADER_PAD_X_PX,
   HINT_ICON_PX,
+  TABLE_PAGE_SIZE_OPTIONS,
   SORT_ICON_PX,
 } from "@notra/ui/constants/table";
 
@@ -279,3 +280,35 @@ export function getTableViewportLayout({
   };
 }
 
+
+/**
+ * A page size from an untrusted source (URL, storage) snapped to one of the
+ * offered sizes, so `?pageSize=0` or `?pageSize=9999` can't break paging or a
+ * request with a bounded limit.
+ */
+export function normalizePageSize(
+  value: number,
+  fallback: number,
+  options: readonly number[] = TABLE_PAGE_SIZE_OPTIONS
+): number {
+  return options.includes(value) ? value : fallback;
+}
+
+/** Class and inline style shared by the header and body `<table>`s. */
+export function tableLayout<T>(
+  columns: readonly TableColumn<T>[],
+  widths: Record<string, number>,
+  minColumnWidth: number,
+  extraFixedWidths: readonly string[]
+) {
+  // Shrink-wrap only after every column has an explicit resized width.
+  const sized =
+    columns.length > 0 && columns.every((column) => widths[column.key] != null);
+  return {
+    className: sized ? "w-max min-w-full" : "w-full",
+    style: {
+      tableLayout: "fixed" as const,
+      minWidth: tableMinWidthCss(columns, minColumnWidth, extraFixedWidths),
+    },
+  };
+}

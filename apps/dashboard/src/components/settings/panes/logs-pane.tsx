@@ -1,6 +1,7 @@
 "use client";
 
 import type { SortState } from "@notra/ui/components/ui/data-table";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
@@ -37,10 +38,13 @@ export function LogsSettingsPane() {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [pageSize, setPageSize] = useQueryState(
+  const [rawPageSize, setPageSize] = useQueryState(
     "pageSize",
     parseAsInteger.withDefault(LOGS_PAGE_SIZE)
   );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, LOGS_PAGE_SIZE);
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [source, setSource] = useQueryState(
     "source",

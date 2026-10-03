@@ -208,7 +208,6 @@
           "filteredDescription": "Pick another filter to see more of your history.",
           "showAll": "Show all deliveries"
         },
-        "pageSummary": "{range} deliveries, refreshes every {seconds}s",
         "endpointsEmpty": {
           "title": "Connect your first endpoint",
           "description": "Pick which events go to your workflow."
@@ -242,7 +241,9 @@
           "inFlight": "Sending",
           "payload": "Request payload",
           "payloadCopied": "Payload copied"
-        }
+        },
+        "refreshInterval": "Refreshes every {seconds}s",
+        "itemLabel": "deliveries"
       }
     },
     "logs": {

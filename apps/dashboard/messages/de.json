@@ -208,7 +208,6 @@
           "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen.",
           "showAll": "Alle Zustellungen anzeigen"
         },
-        "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
         "endpointsEmpty": {
           "title": "Verbinde deinen ersten Endpunkt",
           "description": "Wähl aus, welche Events an deinen Workflow gehen."
@@ -242,7 +241,9 @@
           "inFlight": "Sendet",
           "payload": "Request-Payload",
           "payloadCopied": "Payload kopiert"
-        }
+        },
+        "refreshInterval": "Aktualisiert alle {seconds} s",
+        "itemLabel": "Zustellungen"
       }
     },
     "logs": {

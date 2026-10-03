@@ -26,10 +26,9 @@ const STAT_SKELETON_KEYS = ["a", "b", "c"] as const;
 
 function JourneyStatCardSkeleton({ eyebrow }: { eyebrow: string }) {
   return (
-    <div className="bg-card flex flex-col gap-5 rounded-xl border p-6">
-      <div className="flex h-7 items-center justify-between">
+    <div className="flex flex-col gap-5">
+      <div className="flex h-7 items-center">
         <p className="text-sm font-medium">{eyebrow}</p>
-        <Skeleton className="h-4 w-20" />
       </div>
       <Skeleton className="h-9 w-32" />
       <div className="grid grid-cols-3 gap-3">

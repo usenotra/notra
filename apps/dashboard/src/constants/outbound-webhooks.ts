@@ -11,8 +11,6 @@ import type {
 export const WEBHOOK_PAGE_SIZE = PAGE_SIZE;
 export const WEBHOOK_REFRESH_INTERVAL_MS = 10_000;
 export const WEBHOOK_TABLE_ROW_HEIGHT = 60;
-export const WEBHOOK_TABLE_HEADER_HEIGHT = 42;
-export const WEBHOOK_TABLE_MAX_HEIGHT = 440;
 export const WEBHOOK_TABLE_EMPTY_HEIGHT = 360;
 
 export const WEBHOOK_FILTERS = [

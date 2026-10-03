@@ -11,7 +11,7 @@ import { MentionTrendCard } from "@/components/geo/mention-trend-card";
 import { ShareOfVoiceCard } from "@/components/geo/share-of-voice-card";
 import { TrafficPagesCard } from "@/components/geo/traffic-pages-card";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
+import { InstrumentSection } from "@/components/instrument/instrument-module";
 import {
   GEO_DIRECTIONS_COMPANY,
   GEO_DIRECTIONS_ENGINES,
@@ -130,12 +130,12 @@ export function DirectionInstrument() {
           <TrafficPagesCard pages={[...GEO_DIRECTIONS_PAGES]} />
         </div>
         <div className="lg:col-span-12">
-          <InstrumentModule
+          <InstrumentSection
             eyebrow={t("promptResults")}
             readout={t("positionPerEngine")}
           >
             <PromptResultsTable />
-          </InstrumentModule>
+          </InstrumentSection>
         </div>
       </InstrumentGrid>
     </div>

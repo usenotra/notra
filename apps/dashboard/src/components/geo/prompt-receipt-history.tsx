@@ -373,6 +373,7 @@ export function PromptReceiptHistory({
       loading={isLoading}
       rowHeight={TABLE_ROW_HEIGHT}
       rowSizing="content"
+      autoHeight
       skeletonRows={GEO_PROMPT_HISTORY_SKELETON_ROWS}
       toolbar={<h3 className="px-4 py-3 text-sm font-medium">{title}</h3>}
     />

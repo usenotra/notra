@@ -53,6 +53,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { TABLE_FRAME_INSET_PX } from "@notra/ui/constants/table";
 import { useLocale, useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -141,7 +142,11 @@ function remainingTableHeight(element: HTMLElement): number {
     parent = parent.parentElement;
   }
 
-  return Math.max(element.clientHeight, pageAvailable, scrollAvailable);
+  // The table frame adds its rim and borders on top of the passed height.
+  return (
+    Math.max(element.clientHeight, pageAvailable, scrollAvailable) -
+    TABLE_FRAME_INSET_PX
+  );
 }
 
 function useFillHeight(fallback: number) {

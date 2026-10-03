@@ -221,6 +221,7 @@ function ConsoleSearchGapDetails({ gap, ai }: GeoConsoleSearchGapDetailsProps) {
             getRowId={(query) => query.query}
             height={360}
             rowSizing="content"
+            autoHeight
           />
         </section>
 

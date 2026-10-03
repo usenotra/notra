@@ -13,6 +13,7 @@ import {
 } from "@notra/ui/components/ui/context-menu";
 import {
   DataTable,
+  InfiniteDataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "next-intl";
@@ -149,6 +150,8 @@ export function AgentFeedbackTable({
   onSelect,
   onStatusChange,
   onDelete,
+  onLoadMore,
+  loadingMore = false,
 }: AgentFeedbackTableProps) {
   const t = useTranslations("feedback.table");
   const tCommon = useTranslations("common");
@@ -163,14 +166,16 @@ export function AgentFeedbackTable({
 
   return (
     <div className="h-full min-h-0" ref={tableRef}>
-      <DataTable
+      <InfiniteDataTable
         columns={columns}
         data={items}
         defaultSort={{ key: "createdAt", direction: "desc" }}
         emptyState={emptyState}
         getRowId={(item) => item.id}
         height={tableHeight}
-        loading={isPending}
+        loading={isPending || loadingMore}
+        loadingMore={loadingMore}
+        onEndReached={loadingMore ? undefined : onLoadMore}
         onRowClick={onSelect}
         renderRowContextMenu={(item) => (
           <>

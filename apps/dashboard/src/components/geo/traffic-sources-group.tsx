@@ -93,7 +93,7 @@ function TrafficSourcesGroup({
   const collapsedBar = (
     <div
       className={cn(
-        "border-border bg-muted relative flex items-center border-x px-4",
+        "border-shell-border bg-shell relative flex items-center border-x px-4",
         stacked ? "-mt-5 border-t-0 pt-5" : "border-t",
         followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border-b",
         stacked && "rounded-t-none"

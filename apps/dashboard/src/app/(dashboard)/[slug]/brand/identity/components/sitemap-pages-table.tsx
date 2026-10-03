@@ -185,7 +185,6 @@ export function SitemapPagesTable({
         }}
         emptyState={search.trim() ? t("noSearchResults") : t("emptyView")}
         getRowId={(page) => page.id}
-        height={440}
         loading={isPending}
         rowHeight={TABLE_ROW_HEIGHT}
       />

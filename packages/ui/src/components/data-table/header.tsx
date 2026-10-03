@@ -5,7 +5,6 @@ import {
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { motion } from "motion/react";
 import type { ReactElement } from "react";
 
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
@@ -21,7 +20,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { alignFlex, alignText, headerMinWidth } from "@notra/ui/lib/data-table";
-import { DURATION, EASE } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
 import type {
   DataTableHeaderProps,
@@ -74,7 +72,6 @@ function WithHeaderHint<T>({
 export function DataTableHeader<T>({
   columns,
   rowHeight,
-  reduce,
   thRefs,
   selectable,
   allSelected,
@@ -138,22 +135,16 @@ export function DataTableHeader<T>({
                       {column.align === "right" ? null : (
                         <HeaderLabel column={column} />
                       )}
-                      <motion.span
-                        animate={{
-                          rotate:
-                            active && sort?.direction === "desc" ? 180 : 0,
-                          opacity: active ? 1 : 0.35,
-                        }}
+                      <span
                         aria-hidden
-                        className="inline-flex shrink-0"
-                        transition={
-                          reduce
-                            ? { duration: 0 }
-                            : { duration: DURATION.fast, ease: EASE.emphasized }
-                        }
+                        className={cn(
+                          "inline-flex shrink-0 transition-[rotate,opacity] duration-fast ease-out motion-reduce:transition-none",
+                          active ? "opacity-100" : "opacity-35",
+                          active && sort?.direction === "desc" && "rotate-180"
+                        )}
                       >
                         <HugeiconsIcon icon={ArrowUp01Icon} size={14} />
-                      </motion.span>
+                      </span>
                       {column.align === "right" ? (
                         <HeaderLabel column={column} />
                       ) : null}

@@ -43,10 +43,151 @@ function pageSizeChoices(
   return [...new Set([...options, pageSize])].sort((a, b) => a - b);
 }
 
+/** Visible row range for a page; `total` is unknown with cursor paging. */
+function pageRange(
+  page: number,
+  pageSize: number,
+  pageRowCount: number,
+  totalItems: number | undefined
+): TablePaginationRange {
+  const offset = (page - 1) * pageSize;
+  if (totalItems === undefined) {
+    return {
+      start: pageRowCount === 0 ? 0 : offset + 1,
+      end: offset + pageRowCount,
+    };
+  }
+  return {
+    start: totalItems === 0 || pageRowCount === 0 ? 0 : offset + 1,
+    end: Math.min(totalItems, page * pageSize),
+    total: totalItems,
+  };
+}
+
+function RangeText({
+  range,
+  itemLabel,
+  formatRange,
+}: {
+  range: TablePaginationRange;
+  itemLabel?: string;
+  formatRange?: (range: TablePaginationRange) => string;
+}) {
+  const labels = useDataTableLabels();
+  const locale = labels.locale ?? "en-US";
+  let text = formatRange?.(range);
+  if (text === undefined) {
+    const start = range.start.toLocaleString(locale);
+    const end = range.end.toLocaleString(locale);
+    const base =
+      range.total === undefined
+        ? labels.paginationRangeOpen(start, end)
+        : labels.paginationRange(
+            start,
+            end,
+            range.total.toLocaleString(locale)
+          );
+    text = itemLabel ? `${base} ${itemLabel}` : base;
+  }
+  return <span className="min-w-0 truncate tabular-nums">{text}</span>;
+}
+
+function PageSizeSelect({
+  pageSize,
+  options,
+  onPageSizeChange,
+}: {
+  pageSize: number;
+  options: readonly number[];
+  onPageSizeChange: (pageSize: number) => void;
+}) {
+  const labels = useDataTableLabels();
+  const locale = labels.locale ?? "en-US";
+  return (
+    <Select
+      onValueChange={(value) => {
+        if (value) {
+          onPageSizeChange(Number(value));
+        }
+      }}
+      value={String(pageSize)}
+    >
+      <SelectTrigger
+        aria-label={labels.rowsPerPage}
+        className="hover:bg-muted aria-expanded:bg-muted dark:hover:bg-muted/50 -ml-2.5 border-transparent bg-transparent text-xs shadow-none dark:bg-transparent"
+        size="sm"
+      >
+        <SelectValue>
+          {(value: string) =>
+            labels.showRows(Number(value).toLocaleString(locale))
+          }
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {pageSizeChoices(options, pageSize).map((size) => (
+          <SelectItem key={size} value={String(size)}>
+            {labels.showRows(size.toLocaleString(locale))}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function PageControls({
+  page,
+  pageCount,
+  isFirst,
+  isLast,
+  setPage,
+}: {
+  page: number;
+  pageCount?: number;
+  isFirst: boolean;
+  isLast: boolean;
+  setPage: (page: number) => void;
+}) {
+  const labels = useDataTableLabels();
+  const locale = labels.locale ?? "en-US";
+  const pageText = page.toLocaleString(locale);
+  return (
+    <nav
+      aria-label={labels.pagination}
+      className="ml-auto flex items-center gap-3"
+    >
+      <span aria-live="polite" className="tabular-nums">
+        {pageCount === undefined
+          ? labels.pageNumber(pageText)
+          : labels.pageOf(pageText, pageCount.toLocaleString(locale))}
+      </span>
+      <div className="flex items-center gap-1">
+        <Button
+          aria-label={labels.goToPreviousPage}
+          disabled={isFirst}
+          onClick={() => setPage(page - 1)}
+          size="icon-sm"
+          variant="outline"
+        >
+          <ChevronLeftIcon />
+        </Button>
+        <Button
+          aria-label={labels.goToNextPage}
+          disabled={isLast}
+          onClick={() => setPage(page + 1)}
+          size="icon-sm"
+          variant="outline"
+        >
+          <ChevronRightIcon />
+        </Button>
+      </div>
+    </nav>
+  );
+}
+
 /**
- * Footer pager: the visible range on the left, "Page 2 of 9" and prev/next on
- * the right. One shape for known and unknown totals, so every table pages the
- * same way.
+ * Footer pager: the page-size select (or the visible range) on the left,
+ * "Page 2 of 9" and prev/next on the right. One shape for known and unknown
+ * totals, so every table pages the same way.
  */
 export function TablePagination({
   page,
@@ -62,41 +203,16 @@ export function TablePagination({
   onPageSizeChange,
   pageSizeOptions = TABLE_PAGE_SIZE_OPTIONS,
 }: TablePaginationProps) {
-  const labels = useDataTableLabels();
-  const locale = labels.locale ?? "en-US";
-  const offset = (page - 1) * pageSize;
-  const knownTotal = totalItems !== undefined;
-  const total = totalItems ?? offset + pageRowCount;
-  const start = total === 0 || pageRowCount === 0 ? 0 : offset + 1;
-  const end = knownTotal
-    ? Math.min(total, page * pageSize)
-    : offset + pageRowCount;
+  const range = pageRange(page, pageSize, pageRowCount, totalItems);
   const isFirst = page <= 1;
   const isLast = pageCount === undefined ? !hasNextPage : page >= pageCount;
   const hasPages = !(isFirst && isLast);
-  const label = itemLabel ? ` ${itemLabel}` : "";
-  const startText = start.toLocaleString(locale);
-  const endText = end.toLocaleString(locale);
-  const pageText = page.toLocaleString(locale);
-  let rangeText = labels.paginationRangeOpen(startText, endText);
-  if (knownTotal) {
-    rangeText = labels.paginationRange(
-      startText,
-      endText,
-      total.toLocaleString(locale)
-    );
-  }
   // A size picker only helps once there is more than the smallest page.
   const smallestSize = Math.min(...pageSizeOptions, pageSize);
-  const showSizeSelect =
-    onPageSizeChange !== undefined &&
-    (knownTotal
-      ? total > smallestSize
-      : hasPages || pageRowCount > smallestSize);
-  const pageStatus =
-    pageCount === undefined
-      ? labels.pageNumber(pageText)
-      : labels.pageOf(pageText, pageCount.toLocaleString(locale));
+  const hasMoreThanSmallest =
+    range.total === undefined
+      ? hasPages || pageRowCount > smallestSize
+      : range.total > smallestSize;
 
   return (
     <div
@@ -105,70 +221,27 @@ export function TablePagination({
         className
       )}
     >
-      {showSizeSelect ? (
-        <Select
-          onValueChange={(value) => {
-            if (value) {
-              onPageSizeChange(Number(value));
-            }
-          }}
-          value={String(pageSize)}
-        >
-          <SelectTrigger
-            aria-label={labels.rowsPerPage}
-            className="hover:bg-muted aria-expanded:bg-muted dark:hover:bg-muted/50 -ml-2.5 border-transparent bg-transparent text-xs shadow-none dark:bg-transparent"
-            size="sm"
-          >
-            <SelectValue>
-              {(value: string) =>
-                labels.showRows(Number(value).toLocaleString(locale))
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {pageSizeChoices(pageSizeOptions, pageSize).map((size) => (
-              <SelectItem key={size} value={String(size)}>
-                {labels.showRows(size.toLocaleString(locale))}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {onPageSizeChange && hasMoreThanSmallest ? (
+        <PageSizeSelect
+          onPageSizeChange={onPageSizeChange}
+          options={pageSizeOptions}
+          pageSize={pageSize}
+        />
       ) : (
-        <span className="min-w-0 truncate tabular-nums">
-          {formatRange
-            ? formatRange({ start, end, total: knownTotal ? total : undefined })
-            : `${rangeText}${label}`}
-        </span>
+        <RangeText
+          formatRange={formatRange}
+          itemLabel={itemLabel}
+          range={range}
+        />
       )}
       {hasPages ? (
-        <nav
-          aria-label={labels.pagination}
-          className="ml-auto flex items-center gap-3"
-        >
-          <span aria-live="polite" className="tabular-nums">
-            {pageStatus}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              aria-label={labels.goToPreviousPage}
-              disabled={isFirst}
-              onClick={() => setPage(page - 1)}
-              size="icon-sm"
-              variant="outline"
-            >
-              <ChevronLeftIcon />
-            </Button>
-            <Button
-              aria-label={labels.goToNextPage}
-              disabled={isLast}
-              onClick={() => setPage(page + 1)}
-              size="icon-sm"
-              variant="outline"
-            >
-              <ChevronRightIcon />
-            </Button>
-          </div>
-        </nav>
+        <PageControls
+          isFirst={isFirst}
+          isLast={isLast}
+          page={page}
+          pageCount={pageCount}
+          setPage={setPage}
+        />
       ) : null}
     </div>
   );

@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { EmptyState } from "@/components/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { DataTableProps as LogsDataTableProps } from "@/types/logs/data-table";
-import { tableHeightFor } from "@/utils/table";
+import { paginatedTableHeightFor } from "@/utils/table";
 
 const LOGS_SKELETON_ROW_COUNT = 10;
 
@@ -28,8 +28,12 @@ export function LogsDataTable<TData>({
   totalCount,
 }: LogsDataTableProps<TData>) {
   const t = useTranslations("settings.logs");
-  const rowCount =
-    isLoading && data.length === 0 ? LOGS_SKELETON_ROW_COUNT : data.length;
+  // Paged tables size to their page; only the first load needs room for
+  // skeleton rows.
+  const skeletonHeight =
+    isLoading && data.length === 0
+      ? paginatedTableHeightFor(LOGS_SKELETON_ROW_COUNT, TABLE_ROW_HEIGHT)
+      : undefined;
 
   if (data.length === 0 && !isLoading && emptyState) {
     return (
@@ -67,7 +71,7 @@ export function LogsDataTable<TData>({
         itemLabel: t("itemLabel"),
       }}
       getRowId={getRowId}
-      height={tableHeightFor(rowCount, TABLE_ROW_HEIGHT)}
+      height={skeletonHeight}
       loading={isLoading}
       onRowClick={onRowClick}
       onSortChange={onSortChange}

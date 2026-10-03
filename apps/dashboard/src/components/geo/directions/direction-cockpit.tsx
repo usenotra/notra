@@ -15,7 +15,10 @@ import { EChartsLineChart } from "@/components/evilcharts/charts/echarts-line-ch
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { PromptResultsTable } from "@/components/geo/directions/prompt-results-table";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
+import {
+  InstrumentModule,
+  InstrumentSection,
+} from "@/components/instrument/instrument-module";
 import { CHART_PERCENT_SCALE } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,
@@ -268,15 +271,15 @@ export function DirectionCockpit() {
             />
           </EChartsLineChart>
         </InstrumentModule>
-        <InstrumentModule eyebrow={t("cockpit.trafficBySource")}>
+        <InstrumentSection eyebrow={t("cockpit.trafficBySource")}>
           <SourcesTable />
-        </InstrumentModule>
-        <InstrumentModule
+        </InstrumentSection>
+        <InstrumentSection
           eyebrow={t("labels.promptResults")}
           readout={t("labels.positionPerEngine")}
         >
           <PromptResultsTable />
-        </InstrumentModule>
+        </InstrumentSection>
       </div>
     </div>
   );

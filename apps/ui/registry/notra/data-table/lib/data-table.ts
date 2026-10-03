@@ -274,3 +274,22 @@ export function getTableViewportLayout({
           },
   };
 }
+
+/** Class and inline style shared by the header and body `<table>`s. */
+export function tableLayout<T>(
+  columns: readonly TableColumn<T>[],
+  widths: Record<string, number>,
+  minColumnWidth: number,
+  extraFixedWidths: readonly string[]
+) {
+  // Shrink-wrap only after every column has an explicit resized width.
+  const sized =
+    columns.length > 0 && columns.every((column) => widths[column.key] != null);
+  return {
+    className: sized ? "w-max min-w-full" : "w-full",
+    style: {
+      tableLayout: "fixed" as const,
+      minWidth: tableMinWidthCss(columns, minColumnWidth, extraFixedWidths),
+    },
+  };
+}

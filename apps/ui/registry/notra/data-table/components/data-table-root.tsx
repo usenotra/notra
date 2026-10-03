@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "cn";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import {
   CHECKBOX_COLUMN_WIDTH,
@@ -16,12 +16,12 @@ import { useCollapsibleColumns } from "../hooks/use-collapsible-columns";
 import { useColumnResize } from "../hooks/use-column-resize";
 import { useColumnSort } from "../hooks/use-column-sort";
 import { useRowSelection } from "../hooks/use-row-selection";
+import { useTablePaging } from "../hooks/use-table-paging";
 import { useTableViewport } from "../hooks/use-table-viewport";
 import {
-  pageRows,
   pinRowsFirst,
   tableLoadingOverlay,
-  tableMinWidthCss,
+  tableLayout,
 } from "../lib/data-table";
 import type { DataTableRootProps, HeaderCellRefs } from "../types/data-table";
 import { DataTableBody } from "./data-table-body";
@@ -66,7 +66,7 @@ function DataTableRootInner<T>({
   onColumnResize,
   rowHeight = DATA_TABLE_ROW_HEIGHT,
   rowSizing = "fixed",
-  height = DATA_TABLE_HEIGHT,
+  height: heightProp,
   minHeight,
   autoHeight = false,
   overscan = DATA_TABLE_OVERSCAN,
@@ -129,48 +129,29 @@ function DataTableRootInner<T>({
       onSelectionChange,
     });
   const displayRows = pinRowsFirst(sortedRows, isRowPinned);
-  // Only client pagination slices here; server and cursor pages arrive as `data`.
-  // Client paging keeps the reader's page size itself unless the caller
-  // controls it through `onPageSizeChange`.
-  const [clientPageSize, setClientPageSize] = useState<number | null>(null);
-  const clientPagingProp =
-    pagination?.mode === undefined || pagination.mode === "client"
-      ? pagination
-      : undefined;
-  const ownsPageSize = Boolean(
-    clientPagingProp && !clientPagingProp.onPageSizeChange
-  );
-  const clientPaging =
-    clientPagingProp && ownsPageSize && clientPageSize !== null
-      ? { ...clientPagingProp, pageSize: clientPageSize }
-      : clientPagingProp;
-  const effectivePagination = clientPaging ?? pagination;
-  const clientPageCount = clientPaging
-    ? Math.max(1, Math.ceil(displayRows.length / clientPaging.pageSize))
-    : 1;
-  const pagedRows = clientPaging
-    ? pageRows(
-        displayRows,
-        Math.min(Math.max(1, clientPaging.page), clientPageCount),
-        clientPaging.pageSize
-      )
-    : pageRows(displayRows, 1, visibleRowCount);
+  const paging = useTablePaging(displayRows, pagination, visibleRowCount);
+  const { pagedRows } = paging;
   const footerContent =
     footer || pagination ? (
       <>
         {footer}
         {pagination ? (
           <DataTablePager
-            onClientPageSizeChange={
-              ownsPageSize ? setClientPageSize : undefined
-            }
-            pagination={effectivePagination ?? pagination}
+            onClientPageSizeChange={paging.onClientPageSizeChange}
+            pagination={paging.pagination ?? pagination}
             rowCount={displayRows.length}
           />
         ) : null}
       </>
     ) : undefined;
 
+  // A paged table shows its whole page by default; only an explicit `height`
+  // caps it with a scrolling body.
+  const height =
+    heightProp ??
+    (pagination
+      ? (Math.max(pagedRows.length, 1) + 1) * rowHeight
+      : DATA_TABLE_HEIGHT);
   const {
     headerScrollRef,
     scrollRef,
@@ -210,20 +191,17 @@ function DataTableRootInner<T>({
     loadingMoreProp,
     Boolean(onEndReached)
   );
-  // Shrink-wrap only after every column has an explicit resized width.
-  const sized =
-    visibleColumns.length > 0 &&
-    visibleColumns.every((column) => widths[column.key] != null);
-  const tableClassName = cn(
-    "border-separate border-spacing-0 text-sm tabular-nums",
-    sized ? "w-max min-w-full" : "w-full"
-  );
-  const minTableWidth = tableMinWidthCss(
+  const layout = tableLayout(
     visibleColumns,
+    widths,
     minColumnWidth,
     selectable ? [CHECKBOX_COLUMN_WIDTH] : []
   );
-  const tableStyle = { tableLayout: "fixed" as const, minWidth: minTableWidth };
+  const tableClassName = cn(
+    "border-separate border-spacing-0 text-sm tabular-nums",
+    layout.className
+  );
+  const tableStyle = layout.style;
 
   return (
     <div

@@ -30,12 +30,11 @@ import {
   WEBHOOK_PAGE_SIZE,
   WEBHOOK_REFRESH_INTERVAL_MS,
   WEBHOOK_TABLE_EMPTY_HEIGHT,
-  WEBHOOK_TABLE_HEADER_HEIGHT,
-  WEBHOOK_TABLE_MAX_HEIGHT,
   WEBHOOK_TABLE_ROW_HEIGHT,
 } from "@/constants/outbound-webhooks";
 import type { WebhookDeliveriesProps } from "@/types/webhooks/outbound";
 import { isWebhookFilter } from "@/utils/outbound-webhooks";
+import { paginatedTableHeightFor } from "@/utils/table";
 
 export function WebhookDeliveries({
   rows,
@@ -54,34 +53,40 @@ export function WebhookDeliveries({
   const t = useTranslations("settings.panes.webhooks");
   const tStatuses = useTranslations("settings.panes.webhooks.statuses");
   const columns = useWebhookColumns();
+  // A paged table shows the whole page; the header takes one row of height.
   const tableHeight =
     rows.length === 0
       ? WEBHOOK_TABLE_EMPTY_HEIGHT
-      : Math.min(
-          WEBHOOK_TABLE_MAX_HEIGHT,
-          rows.length * WEBHOOK_TABLE_ROW_HEIGHT + WEBHOOK_TABLE_HEADER_HEIGHT
-        );
+      : paginatedTableHeightFor(rows.length, WEBHOOK_TABLE_ROW_HEIGHT);
   return (
     <div className="space-y-3">
-      <Select
-        onValueChange={(value) => onFilter(value ?? "all")}
-        value={filter}
-      >
-        <SelectTrigger aria-label={t("filterLabel")} className="w-44">
-          <SelectValue>
-            {(value: string) =>
-              isWebhookFilter(value) ? tStatuses(value) : value
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {WEBHOOK_FILTERS.map((status) => (
-            <SelectItem key={status} value={status}>
-              {tStatuses(status)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center justify-between gap-3">
+        <Select
+          onValueChange={(value) => onFilter(value ?? "all")}
+          value={filter}
+        >
+          <SelectTrigger aria-label={t("filterLabel")} className="w-44">
+            <SelectValue>
+              {(value: string) =>
+                isWebhookFilter(value) ? tStatuses(value) : value
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {WEBHOOK_FILTERS.map((status) => (
+              <SelectItem key={status} value={status}>
+                {tStatuses(status)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {/* Shown outside the pager so it stays visible before the first delivery. */}
+        <span className="text-muted-foreground text-xs">
+          {t("refreshInterval", {
+            seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
+          })}
+        </span>
+      </div>
       <DataTable
         columns={columns}
         data={rows}
@@ -93,11 +98,7 @@ export function WebhookDeliveries({
           pageSize: WEBHOOK_PAGE_SIZE,
           hasNextPage: hasMore && !fetching,
           onPageChange: (page) => onPage((page - 1) * WEBHOOK_PAGE_SIZE),
-          formatRange: ({ start, end }) =>
-            t("pageSummary", {
-              range: `${start}–${end}`,
-              seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
-            }),
+          itemLabel: t("itemLabel"),
         }}
         rowHeight={WEBHOOK_TABLE_ROW_HEIGHT}
         height={tableHeight}

@@ -40,6 +40,8 @@ export const CHECKBOX_COLUMN_WIDTH = "3rem";
  * on both sides. Add it to any outer width that has to fit a framed table.
  */
 export const TABLE_FRAME_INSET = "8px";
+/** `TABLE_FRAME_INSET` as a number, for heights measured in px. */
+export const TABLE_FRAME_INSET_PX = 8;
 
 /** Horizontal padding of header labels (`px-4` on both sides). */
 export const HEADER_PAD_X_PX = 32;

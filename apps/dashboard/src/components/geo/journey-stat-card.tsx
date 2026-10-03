@@ -5,13 +5,14 @@ import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
 import {
   InstrumentEmpty,
-  InstrumentModule,
+  InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { JourneyStatCardProps } from "@/types/geo";
 
 /**
- * Shared frame for the two journey overview cards, so the headline, the stat
- * row and the preview table always line up side by side.
+ * Shared layout for the two journey overviews, so the headline, the stat row
+ * and the preview table always line up side by side. It has no card of its
+ * own: the table brings the frame.
  */
 export function JourneyStatCard({
   eyebrow,
@@ -43,7 +44,7 @@ export function JourneyStatCard({
   );
 
   return (
-    <InstrumentModule className="h-full" eyebrow={eyebrow}>
+    <InstrumentSection className="h-full" eyebrow={eyebrow}>
       {total === 0 ? (
         empty
       ) : (
@@ -78,6 +79,6 @@ export function JourneyStatCard({
           {children}
         </div>
       )}
-    </InstrumentModule>
+    </InstrumentSection>
   );
 }
