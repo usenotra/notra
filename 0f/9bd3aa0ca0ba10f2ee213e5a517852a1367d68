@@ -1,0 +1,108 @@
+apps/dashboard/src/components/webhooks/deliveries.tsx
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 64-82
+  s_b8d7fe52266314::t_d891340f0fcf83 63,83-89,101
+  s_b8d7fe52266314::t_3e8c320e14d889 37,56,60
+apps/dashboard/src/components/geo/journeys-tab.tsx
+  s_b8d7fe52266314::t_74122978842c07 29-30
+apps/dashboard/src/components/geo/gaps-table.tsx
+  s_b8d7fe52266314::t_ecd8b8eaf55b33 56
+  s_b8d7fe52266314::t_ee501b16ba42d2 145-149
+apps/dashboard/src/components/billing/credit-activity.tsx
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 8
+  s_b8d7fe52266314::t_08d8e616c462cb 73,79-81
+packages/ui/src/constants/table.ts
+  s_b8d7fe52266314::t_627bc019267fee 43-44
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_b8d7fe52266314::t_f16f915dfc2f3c 311,313
+apps/dashboard/messages/en.json
+  s_b8d7fe52266314::t_d891340f0fcf83 244-246
+packages/ui/src/components/data-table/root.tsx
+  s_b8d7fe52266314::t_ae8ae748317f30 62,141-147
+  s_b8d7fe52266314::t_b056c4771f3d07 3,20,24,125-126,133-134,187,189,193-195,197
+  s_b8d7fe52266314::t_be56dc75c4ea98 196
+apps/dashboard/src/lib/hooks/use-available-table-height.ts
+  s_b8d7fe52266314::t_627bc019267fee 3,6-9,21
+apps/dashboard/src/components/geo/prompt-receipt-history.tsx
+  s_b8d7fe52266314::t_ac31982d6c6cbe 376
+apps/dashboard/src/components/agent-feedback/feedback-table.tsx
+  s_b8d7fe52266314::t_f16f915dfc2f3c 16
+  s_b8d7fe52266314::t_f1bf43f54afbf4 153-154,169,176-178
+apps/dashboard/src/components/settings/panes/logs-pane.tsx
+  s_b8d7fe52266314::t_08d8e616c462cb 41,45-47
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 4
+apps/dashboard/messages/de.json
+  s_b8d7fe52266314::t_d891340f0fcf83 244-246
+apps/dashboard/src/components/geo/traffic-sources-group.tsx
+  s_b8d7fe52266314::t_d4244e01b9b2d9 96
+apps/dashboard/src/components/geo/directions/direction-instrument.tsx
+  s_b8d7fe52266314::t_3cbc8666927dd5 14,133,138
+packages/ui/src/lib/data-table.ts
+  s_b8d7fe52266314::t_b056c4771f3d07 296-314
+  s_b8d7fe52266314::t_bcecde60344125 14,283-295
+packages/ui/src/components/data-table/header.tsx
+  s_b8d7fe52266314::t_590cc7a8214b48 138,140-144,147
+apps/ui/registry/notra/data-table/hooks/use-table-paging.ts
+  s_b8d7fe52266314::t_b056c4771f3d07 1-3,5-41
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 4
+apps/dashboard/src/components/geo/writer/brief-history.tsx
+  s_b8d7fe52266314::t_627bc019267fee 64-70,121-123
+  s_b8d7fe52266314::t_9222856e257b2b 15
+apps/ui/registry/notra/data-table/components/data-table-root.tsx
+  s_b8d7fe52266314::t_ae8ae748317f30 69,148-154
+  s_b8d7fe52266314::t_7581fec0f862d5 140-141
+  s_b8d7fe52266314::t_b056c4771f3d07 4,19,24,132-133,194,196,200-204
+packages/ui/src/hooks/use-table-paging.ts
+  s_b8d7fe52266314::t_b056c4771f3d07 1-44
+apps/dashboard/src/components/geo/search-gap-detail.tsx
+  s_b8d7fe52266314::t_9222856e257b2b 224
+apps/dashboard/src/components/geo/what-changed-card.tsx
+  s_b8d7fe52266314::t_60f945f60f1a3e 376-403,473-479
+apps/dashboard/src/types/agent-feedback.ts
+  s_b8d7fe52266314::t_f1bf43f54afbf4 110-112
+apps/dashboard/src/components/geo/directions/direction-cockpit.tsx
+  s_b8d7fe52266314::t_3cbc8666927dd5 18-21,274,276-277,282
+apps/dashboard/src/components/empty-state-preview.tsx
+  s_b8d7fe52266314::t_d4244e01b9b2d9 60-61,76,97
+  s_b8d7fe52266314::t_9222856e257b2b 4,77-96
+apps/dashboard/src/components/geo/journey-stat-card.tsx
+  s_b8d7fe52266314::t_74122978842c07 8,13-15,47,82
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/data-table.tsx
+  s_b8d7fe52266314::t_3ef62370272370 11,31-36,74
+packages/ui/src/components/shared/table-pagination.tsx
+  s_b8d7fe52266314::t_72d1694046b679 46-183,185-187,203,209-212,221-226,228-232,235-241
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_b8d7fe52266314::t_cbedcfc4225777 339-378,404-405,423,451
+  s_b8d7fe52266314::t_263d149748152d 320-338,424-428
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 6
+  s_b8d7fe52266314::t_08d8e616c462cb 52,58-60
+apps/dashboard/src/components/analytics/account-detail-view.tsx
+  s_b8d7fe52266314::t_4a766afc1fdd52 67-68,73,155,157,223-308
+  s_b8d7fe52266314::t_5479cf16adde4e 48
+  s_b8d7fe52266314::t_83c28e6ed5ed76 309
+  s_b8d7fe52266314::t_1c16e24025ffb5 159-168,174-203,205-208,211-222,313
+apps/dashboard/src/components/geo/prompt-receipt-analysis.tsx
+  s_b8d7fe52266314::t_ae31d3ff795aaf 46,53,131,143,187-188,196
+  s_b8d7fe52266314::t_4923ab03468045 8,16
+apps/ui/registry/notra/data-table/components/data-table-pagination.tsx
+  s_b8d7fe52266314::t_7eb01277be5783 46-84,90-116,118-186,188-190,206,212-215,224-229,231-235,238-244
+  s_b8d7fe52266314::t_cb2b9b47ed84c7 85-89,117
+apps/ui/registry/notra/data-table/lib/data-table.ts
+  s_b8d7fe52266314::t_b056c4771f3d07 277-295
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0f9bd3aa0ca0ba10f2ee213e5a517852a1367d68",
+  "prompts": {},
+  "sessions": {
+    "s_b8d7fe52266314": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3347740f-19da-418e-a6cf-0fc74f8e3daf",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
