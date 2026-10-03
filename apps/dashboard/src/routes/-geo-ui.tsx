@@ -5,7 +5,7 @@ import { lazy } from "react";
 import { PageContainer } from "@/components/layout/container";
 import { geoSettingsPath } from "@/utils/settings-path";
 
-import { loadGeoPage } from "./-dashboard-loaders";
+import { gateGeoPage, loadGeoPage } from "./-dashboard-loaders";
 import { createUiRoute } from "./-ui-route";
 
 const Overview = lazy(() => import("@/app/(dashboard)/[slug]/geo/page-client"));
@@ -84,6 +84,8 @@ export function createGeoUiRoutes(parent: AnyRoute) {
       title: { namespace: "common", key: "labels.geo" },
       pendingComponent: OverviewLoading,
       loader: (input) => loadGeoPage({ data: { ...input, kind: "overview" } }),
+      gate: (input) => gateGeoPage({ data: { ...input, kind: "overview" } }),
+      stream: true,
       component: ({ data, params }) => (
         <HydrationBoundary state={data.state}>
           <Overview organizationSlug={params.slug} />
@@ -96,6 +98,8 @@ export function createGeoUiRoutes(parent: AnyRoute) {
       title: { namespace: "geo.pages.traffic", key: "metaTitle" },
       pendingComponent: TrafficLoading,
       loader: (input) => loadGeoPage({ data: { ...input, kind: "traffic" } }),
+      gate: (input) => gateGeoPage({ data: { ...input, kind: "traffic" } }),
+      stream: true,
       component: ({ data, params }) => (
         <HydrationBoundary state={data.state}>
           <Traffic organizationSlug={params.slug} />

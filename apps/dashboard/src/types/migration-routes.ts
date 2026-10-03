@@ -6,6 +6,8 @@ export type UiRouteSearch = Record<string, string | string[] | undefined>;
 export interface UiRouteInput {
   params: Record<string, string>;
   searchParams: UiRouteSearch;
+  /** The route's gate already ran for this request (streamed first render). */
+  gated?: boolean;
 }
 
 export interface UiPageParams extends Record<string, string> {
@@ -38,6 +40,23 @@ export interface UiRouteOptions<T> {
   pendingComponent?: RouteComponent;
   title?: UiRouteTitle;
   pageTitle?: (data: T) => string;
+  /**
+   * Stream the page data into the first server-rendered document: the shell
+   * and `pendingComponent` flush before `loader` resolves (like Next's
+   * loading.tsx). Client navigations still await the loader.
+   */
+  stream?: boolean;
+  /**
+   * Awaited before a streamed loader starts, for redirects that must reach
+   * the browser as HTTP redirects. The loader repeats them on client
+   * navigations, so a gate never runs there.
+   */
+  gate?: (input: UiRouteInput) => Promise<unknown>;
+}
+
+export interface StreamedUiPageProps<T> extends Omit<UiPageProps<T>, "data"> {
+  page: ComponentType<UiPageProps<T>>;
+  pending: Promise<T>;
 }
 
 export interface UiRouteFactoryOptions<T> extends UiRouteOptions<T> {

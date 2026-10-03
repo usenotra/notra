@@ -20,7 +20,9 @@ export function getRouter() {
     scrollRestoration: true,
     defaultErrorComponent: RouteError,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
+    // A loader preloaded on hover serves the click that follows instead of
+    // running again, so the click no longer waits for a server round trip.
+    defaultPreloadStaleTime: 10_000,
   });
 }
 

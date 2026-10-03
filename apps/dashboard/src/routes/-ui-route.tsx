@@ -1,9 +1,11 @@
 import { createRoute, type Router } from "@tanstack/react-router";
+import { use } from "react";
 import { createTranslator } from "use-intl/core";
 
 import { getCatalog } from "@/lib/i18n/catalog";
 import type { DashboardLocale } from "@/types/i18n";
 import type {
+  StreamedUiPageProps,
   UiRouteFactoryOptions,
   UiRouteSearch,
   UiRouteTitle,
@@ -62,6 +64,14 @@ export function uiPageParams(
   };
 }
 
+function StreamedUiPage<T>({
+  page: Page,
+  pending,
+  ...props
+}: StreamedUiPageProps<T>) {
+  return <Page data={use(pending)} {...props} />;
+}
+
 export function createUiRoute<T = undefined>({
   parent,
   path,
@@ -70,6 +80,8 @@ export function createUiRoute<T = undefined>({
   pendingComponent,
   title,
   pageTitle,
+  stream,
+  gate,
 }: UiRouteFactoryOptions<T>) {
   const route = createRoute({
     getParentRoute: () => parent,
@@ -78,7 +90,14 @@ export function createUiRoute<T = undefined>({
     loaderDeps: ({ search }) => ({ search }),
     loader: async ({ params, deps }) => {
       const input = { params, searchParams: deps.search };
-      return { data: await loader?.(input) };
+      if (stream && loader && import.meta.env.SSR) {
+        await gate?.(input);
+        return {
+          data: undefined,
+          pending: loader({ ...input, gated: gate !== undefined }),
+        };
+      }
+      return { data: await loader?.(input), pending: undefined };
     },
     head: ({ loaderData, matches }) => {
       const metadata = title
@@ -88,7 +107,7 @@ export function createUiRoute<T = undefined>({
           )
         : undefined;
       const pageHeading =
-        loaderData && pageTitle
+        loaderData?.data !== undefined && pageTitle
           ? pageTitle(loaderData.data as T)
           : metadata?.title;
       return {
@@ -108,9 +127,19 @@ export function createUiRoute<T = undefined>({
     pendingComponent,
   });
   function UiPage() {
-    const { data } = route.useLoaderData<Router<typeof route>>();
+    const { data, pending } = route.useLoaderData<Router<typeof route>>();
     const params = route.useParams<Router<typeof route>>();
     const searchParams = route.useSearch<Router<typeof route>>();
+    if (pending) {
+      return (
+        <StreamedUiPage
+          page={Page}
+          params={uiPageParams(params)}
+          pending={pending as Promise<T>}
+          searchParams={searchParams}
+        />
+      );
+    }
     return (
       <Page
         data={data as T}

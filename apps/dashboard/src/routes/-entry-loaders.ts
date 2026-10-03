@@ -18,7 +18,6 @@ import {
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { isSessionBanned } from "@/lib/auth/banned";
 import { readPendingMfaFlow } from "@/lib/auth/mfa-cookies";
-import { getCurrentDemoSandbox } from "@/lib/demo/session";
 import { demoThemeParser, serializeDemoTheme } from "@/lib/demo/theme-param";
 import { getTranslations } from "@/lib/i18n/server";
 import { resolveIntegrationConnectDeeplink } from "@/lib/integrations/deeplink-resolution";
@@ -129,6 +128,7 @@ export const loadDemoEntry = createServerFn({ method: "GET" })
         ? searchParams.returnTo
         : undefined
     );
+    const { getCurrentDemoSandbox } = await import("@/lib/demo/session");
     if (await getCurrentDemoSandbox()) {
       throw redirect({ href: target ?? "/" });
     }

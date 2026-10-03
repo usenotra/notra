@@ -1,4 +1,3 @@
-import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
 import {
   getSidebarOpenFromCookie,
   SIDEBAR_COOKIE_NAME,
@@ -12,29 +11,15 @@ import { Effect } from "effect";
 import { DEMO_BANNER_COOKIE, DEMO_BANNER_OFF } from "@/constants/demo";
 import { SIDEBAR_WIDTH_COOKIE_NAME } from "@/constants/nav";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
-import { resolveAiProductAccess } from "@/lib/billing/subscription";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { getTranslations } from "@/lib/i18n/server";
-import { resolveOrganizationIntegrationConnect } from "@/lib/integrations/deeplink-resolution";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
 import type { UiRouteInput } from "@/types/migration-routes";
-import { dehydrateContentDetailQueries } from "@/utils/content-prefetch.server";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
-import { dehydrateDashboardHomeQueries } from "@/utils/dashboard-home-prefetch.server";
-import {
-  dehydrateContentListQueries,
-  dehydrateIntegrationsQueries,
-  dehydrateSkillDetailQuery,
-  dehydrateSkillsQueries,
-} from "@/utils/dashboard-list-prefetch.server";
 import {
   geoProjectRepairPath,
   geoRequestedProjectId,
 } from "@/utils/geo-hydration";
-import {
-  dehydrateGeoOverviewQueries,
-  dehydrateGeoTrafficQueries,
-} from "@/utils/geo-prefetch.server";
 import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { toOrganizationSummary } from "@/utils/organization-summary";
 import { getSidebarWidthFromCookie } from "@/utils/sidebar-width";
@@ -64,44 +49,63 @@ export const loadOrganizationShell = createServerFn({ method: "GET" })
     };
   });
 
+/** Redirects of the organization root that must precede a streamed render. */
+export const gateDashboardHome = createServerFn({ method: "GET" })
+  .inputValidator((data: UiRouteInput) => data)
+  .handler(async ({ data: { params, searchParams } }) => {
+    await validateOrganizationAccess(params.slug ?? "");
+    await redirectOrgRootToStoredMode(
+      params.slug ?? "",
+      Promise.resolve(searchParams)
+    );
+  });
+
 export const loadDashboardHome = createServerFn({
   method: "GET",
   strict: { output: false },
 })
   .inputValidator((data: UiRouteInput) => data)
-  .handler(async ({ data: { params, searchParams } }) => {
+  .handler(async ({ data: { params, searchParams, gated } }) => {
     const slug = params.slug ?? "";
-    const accessPromise = validateOrganizationAccess(slug).then(
-      async (access) => ({
-        ...access,
-        billing: await resolveAiProductAccess(access.organization.id),
-      })
+    const { organization, user, member } =
+      await validateOrganizationAccess(slug);
+    if (!gated) {
+      await redirectOrgRootToStoredMode(slug, Promise.resolve(searchParams));
+    }
+    // The billing lookup is a round trip to Autumn; the home data does not
+    // depend on it, so both run at once and the data is dropped without access.
+    const billingPromise = import("@/lib/billing/subscription").then(
+      ({ resolveAiProductAccess }) => resolveAiProductAccess(organization.id)
     );
-    await redirectOrgRootToStoredMode(slug, Promise.resolve(searchParams));
-    const { organization, user, member, billing } = await accessPromise;
+    const homePromise = (async () => {
+      const { dehydrateDashboardHomeQueries } =
+        await import("@/utils/dashboard-home-prefetch.server");
+      const projectId = await resolveInitialGeoProjectId(
+        organization.id,
+        slug,
+        geoRequestedProjectId(searchParams)
+      );
+      const t = await getTranslations("home");
+      const period = getGreetingPeriod(new Date());
+      const name = user.name?.trim();
+      return {
+        greetingText: name
+          ? t("greetingWithName", { period, name })
+          : t("greeting", { period }),
+        state: await dehydrateDashboardHomeQueries(
+          organization.id,
+          projectId,
+          getRequestHeaders(),
+          member && { userId: user.id, id: member.id, role: member.role }
+        ),
+      };
+    })();
+    const billing = await billingPromise;
     if (!billing.hasAccess) {
+      homePromise.catch(() => undefined);
       return { hasAccess: false as const };
     }
-    const projectId = await resolveInitialGeoProjectId(
-      organization.id,
-      slug,
-      geoRequestedProjectId(searchParams)
-    );
-    const t = await getTranslations("home");
-    const period = getGreetingPeriod(new Date());
-    const name = user.name?.trim();
-    return {
-      hasAccess: true as const,
-      greetingText: name
-        ? t("greetingWithName", { period, name })
-        : t("greeting", { period }),
-      state: await dehydrateDashboardHomeQueries(
-        organization.id,
-        projectId,
-        getRequestHeaders(),
-        member && { userId: user.id, id: member.id, role: member.role }
-      ),
-    };
+    return { hasAccess: true as const, ...(await homePromise) };
   });
 
 export const loadOrganizationPage = createServerFn({
@@ -145,8 +149,12 @@ export const loadOrganizationPage = createServerFn({
     const requestedPage = Number(rawPage);
     const page =
       Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+    // Prefetch modules (and the oRPC routers behind them) load on first use:
+    // a cold server instance renders its first page without all of them.
     let state: DehydratedState | undefined;
     if (kind === "content") {
+      const { dehydrateContentListQueries } =
+        await import("@/utils/dashboard-list-prefetch.server");
       state = await dehydrateContentListQueries(
         organization.id,
         projectId,
@@ -155,6 +163,8 @@ export const loadOrganizationPage = createServerFn({
         membership
       );
     } else if (kind === "content-detail") {
+      const { dehydrateContentDetailQueries } =
+        await import("@/utils/content-prefetch.server");
       state = await dehydrateContentDetailQueries(
         organization.id,
         params.id ?? "",
@@ -162,12 +172,16 @@ export const loadOrganizationPage = createServerFn({
         membership
       );
     } else if (kind === "skills") {
+      const { dehydrateSkillsQueries } =
+        await import("@/utils/dashboard-list-prefetch.server");
       state = await dehydrateSkillsQueries(
         organization.id,
         requestHeaders,
         membership
       );
     } else if (kind === "skill-detail") {
+      const { dehydrateSkillDetailQuery } =
+        await import("@/utils/dashboard-list-prefetch.server");
       state = await dehydrateSkillDetailQuery(
         organization.id,
         params.name ?? "",
@@ -175,6 +189,8 @@ export const loadOrganizationPage = createServerFn({
         membership
       );
     } else if (kind === "integrations") {
+      const { dehydrateIntegrationsQueries } =
+        await import("@/utils/dashboard-list-prefetch.server");
       state = await dehydrateIntegrationsQueries(
         organization.id,
         requestHeaders,
@@ -198,13 +214,11 @@ export const loadGeoScope = createServerFn({ method: "GET" })
     };
   });
 
-export const loadGeoPage = createServerFn({
-  method: "GET",
-  strict: { output: false },
-})
-  .inputValidator(
-    (data: UiRouteInput & { kind: "overview" | "traffic" | "gsc" }) => data
-  )
+type GeoPageKind = "overview" | "traffic" | "gsc";
+
+/** Sends a stale `?project=` to the repaired URL before a streamed render. */
+export const gateGeoPage = createServerFn({ method: "GET" })
+  .inputValidator((data: UiRouteInput & { kind: GeoPageKind }) => data)
   .handler(async ({ data: { params, searchParams, kind } }) => {
     const slug = params.slug ?? "";
     const { organization } = await validateOrganizationAccess(slug);
@@ -214,19 +228,50 @@ export const loadGeoPage = createServerFn({
       slug,
       requestedProjectId
     );
-    if (requestedProjectId && requestedProjectId !== projectId) {
-      let repairPath: string | undefined;
-      if (kind === "traffic") {
-        repairPath = "/geo/traffic";
-      } else if (kind === "gsc") {
-        repairPath = "/integrations/google-search-console";
-      }
-      throw redirect({
-        href: geoProjectRepairPath(slug, searchParams, projectId, repairPath),
-      });
+    redirectStaleGeoProject(slug, searchParams, kind, projectId);
+  });
+
+function redirectStaleGeoProject(
+  slug: string,
+  searchParams: UiRouteInput["searchParams"],
+  kind: GeoPageKind,
+  projectId: string | undefined
+) {
+  const requestedProjectId = geoRequestedProjectId(searchParams);
+  if (requestedProjectId && requestedProjectId !== projectId) {
+    let repairPath: string | undefined;
+    if (kind === "traffic") {
+      repairPath = "/geo/traffic";
+    } else if (kind === "gsc") {
+      repairPath = "/integrations/google-search-console";
+    }
+    throw redirect({
+      href: geoProjectRepairPath(slug, searchParams, projectId, repairPath),
+    });
+  }
+}
+
+export const loadGeoPage = createServerFn({
+  method: "GET",
+  strict: { output: false },
+})
+  .inputValidator((data: UiRouteInput & { kind: GeoPageKind }) => data)
+  .handler(async ({ data: { params, searchParams, kind, gated } }) => {
+    const slug = params.slug ?? "";
+    const { organization } = await validateOrganizationAccess(slug);
+    const requestedProjectId = geoRequestedProjectId(searchParams);
+    const projectId = await resolveInitialGeoProjectId(
+      organization.id,
+      slug,
+      requestedProjectId
+    );
+    if (!gated) {
+      redirectStaleGeoProject(slug, searchParams, kind, projectId);
     }
     let state: DehydratedState | undefined;
     if (kind === "overview") {
+      const { dehydrateGeoOverviewQueries } =
+        await import("@/utils/geo-prefetch.server");
       state = await dehydrateGeoOverviewQueries(
         organization.id,
         projectId,
@@ -234,6 +279,8 @@ export const loadGeoPage = createServerFn({
         getRequestHeaders()
       );
     } else if (kind === "traffic") {
+      const { dehydrateGeoTrafficQueries } =
+        await import("@/utils/geo-prefetch.server");
       state = await dehydrateGeoTrafficQueries(
         organization.id,
         projectId,
@@ -247,6 +294,8 @@ export const loadGeoPage = createServerFn({
 export const loadIntegrationConnect = createServerFn({ method: "GET" })
   .inputValidator((data: UiRouteInput) => data)
   .handler(async ({ data: { params } }) => {
+    const { resolveOrganizationIntegrationConnect } =
+      await import("@/lib/integrations/deeplink-resolution");
     const resolution = await Effect.runPromise(
       resolveOrganizationIntegrationConnect({
         organizationSlug: params.slug ?? "",
@@ -266,7 +315,10 @@ export const loadLinearDetail = createServerFn({ method: "GET" })
       params.slug ?? ""
     );
     const [integration, t, common] = await Promise.all([
-      getLinearIntegrationById(params.id ?? ""),
+      import("@notra/ai/integrations/linear").then(
+        ({ getLinearIntegrationById }) =>
+          getLinearIntegrationById(params.id ?? "")
+      ),
       getTranslations("integrations.detailPage"),
       getTranslations("common"),
     ]);

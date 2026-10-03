@@ -5,10 +5,6 @@ import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 import { geoDbQueryKey } from "@/lib/db/geo-collections";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import { contentRouter } from "@/lib/orpc/routers/content";
-import { geoRouter } from "@/lib/orpc/routers/geo";
-import { integrationsRouter } from "@/lib/orpc/routers/integrations";
-import { skillsRouter } from "@/lib/orpc/routers/skills";
 import type { OrganizationMembership } from "@/types/auth/organization";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
 
@@ -39,6 +35,19 @@ function routerContext(requestHeaders: Headers) {
   return () => createORPCContext({ headers: requestHeaders });
 }
 
+// Routers load with the page that needs them: importing all four (the GEO
+// engines, the Linear SDK, …) for any one page slowed every cold start.
+const loadContentRouter = () =>
+  import("@/lib/orpc/routers/content").then((module) => module.contentRouter);
+const loadGeoRouter = () =>
+  import("@/lib/orpc/routers/geo").then((module) => module.geoRouter);
+const loadIntegrationsRouter = () =>
+  import("@/lib/orpc/routers/integrations").then(
+    (module) => module.integrationsRouter
+  );
+const loadSkillsRouter = () =>
+  import("@/lib/orpc/routers/skills").then((module) => module.skillsRouter);
+
 /**
  * Starts the content list (and the project collection it scopes) during the
  * page render. Pending queries are dehydrated, so the browser reuses this
@@ -51,7 +60,11 @@ export async function dehydrateContentListQueries(
   requestHeaders: Headers,
   membership?: PrefetchMembership
 ) {
-  await seedMembership(organizationId, requestHeaders, membership);
+  const [contentRouter, geoRouter] = await Promise.all([
+    loadContentRouter(),
+    loadGeoRouter(),
+    seedMembership(organizationId, requestHeaders, membership),
+  ]);
   const client = createRouterClient(
     { content: contentRouter, geo: geoRouter },
     { context: routerContext(requestHeaders) }
@@ -85,7 +98,10 @@ export async function dehydrateIntegrationsQueries(
   requestHeaders: Headers,
   membership?: PrefetchMembership
 ) {
-  await seedMembership(organizationId, requestHeaders, membership);
+  const [integrationsRouter] = await Promise.all([
+    loadIntegrationsRouter(),
+    seedMembership(organizationId, requestHeaders, membership),
+  ]);
   const client = createRouterClient(
     { integrations: integrationsRouter },
     { context: routerContext(requestHeaders) }
@@ -114,7 +130,10 @@ export async function dehydrateSkillsQueries(
   requestHeaders: Headers,
   membership?: PrefetchMembership
 ) {
-  await seedMembership(organizationId, requestHeaders, membership);
+  const [skillsRouter] = await Promise.all([
+    loadSkillsRouter(),
+    seedMembership(organizationId, requestHeaders, membership),
+  ]);
   const client = createRouterClient(
     { skills: skillsRouter },
     { context: routerContext(requestHeaders) }
@@ -139,7 +158,10 @@ export async function dehydrateSkillDetailQuery(
   requestHeaders: Headers,
   membership?: PrefetchMembership
 ) {
-  await seedMembership(organizationId, requestHeaders, membership);
+  const [skillsRouter] = await Promise.all([
+    loadSkillsRouter(),
+    seedMembership(organizationId, requestHeaders, membership),
+  ]);
   const client = createRouterClient(
     { skills: skillsRouter },
     { context: routerContext(requestHeaders) }

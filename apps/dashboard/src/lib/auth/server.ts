@@ -12,7 +12,6 @@ import { isUserBanned } from "@/lib/auth/banned";
 import { AuthSessionError } from "@/lib/auth/errors";
 import { cacheAuthRequest } from "@/lib/auth/request-cache";
 import { ensureLocalUser } from "@/lib/auth/sync";
-import { loadDemoIdentity } from "@/lib/demo/session";
 import type { AuthIdentityData, AuthSessionData } from "@/types/auth/session";
 import {
   evaluateLocalDevAuth,
@@ -147,6 +146,10 @@ export const getAuthIdentity = cacheAuthRequest(
     // visitor to their sandbox user.
     if (isDemoMode()) {
       try {
+        // Imported only in demo mode: the sandbox module pulls in the GEO
+        // sample data and scan programs, which every request would otherwise
+        // load on a cold server.
+        const { loadDemoIdentity } = await import("@/lib/demo/session");
         return await loadDemoIdentity();
       } catch (error) {
         if (isRedirect(error) || isNotFound(error)) {

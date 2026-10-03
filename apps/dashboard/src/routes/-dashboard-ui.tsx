@@ -25,6 +25,7 @@ import {
 
 import { createAnalyticsUiRoutes } from "./-analytics-ui";
 import {
+  gateDashboardHome,
   loadDashboardHome,
   loadGeoScope,
   loadOrganizationPage,
@@ -207,6 +208,8 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "/",
       title: { namespace: "dashboard", key: "metaTitle" },
       loader: (input) => loadDashboardHome({ data: input }),
+      gate: (input) => gateDashboardHome({ data: input }),
+      stream: true,
       pendingComponent: DashboardLoading,
       component: ({ params, data }) =>
         data.hasAccess ? (
@@ -283,6 +286,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       title: { namespace: "common", key: "labels.skills" },
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "skills" } }),
+      stream: true,
       pendingComponent: SkillsLoading,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
@@ -296,6 +300,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       title: { namespace: "skills.detail", key: "metaTitle" },
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "skill-detail" } }),
+      stream: true,
       pendingComponent: SkillDetailLoading,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
