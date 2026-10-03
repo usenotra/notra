@@ -1,0 +1,23 @@
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_7a0c38829ccc1e::t_87b416c40eb8e6 82,519
+apps/dashboard/src/routes/-ui-modal.tsx
+  s_7a0c38829ccc1e::t_87b416c40eb8e6 9,19
+apps/dashboard/src/utils/competitor-detail-chunk.ts
+  s_7a0c38829ccc1e::t_87b416c40eb8e6 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2bca35277db9cc3979d4f18dc314e459204e08c6",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
