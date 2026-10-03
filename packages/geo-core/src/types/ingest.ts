@@ -5,6 +5,12 @@ import type { GeoIngestIdentity, GeoVisitorType } from "./geo";
 
 export type GeoIngestDefer = (task: () => Promise<void>) => void;
 
+/**
+ * Hands an event to a write buffer. Returns false when the buffer cannot take
+ * it, in which case the pipeline writes the event to Tinybird directly.
+ */
+export type GeoIngestEnqueue = (event: GeoTrafficEventRow) => boolean;
+
 export interface GeoIngestAnalyticsInput {
   identity: GeoIngestIdentity;
   event: GeoTrafficEventRow;

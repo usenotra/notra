@@ -42,7 +42,8 @@ mock.module("./redis", () => ({
   getAnalyticsRedis: () => redis,
 }));
 
-const { bumpPurgeGeneration, cachedQuery } = await import("./query-cache");
+const { bumpPurgeGeneration, cachedQuery, geoLiveTtlSeconds } =
+  await import("./query-cache");
 
 function liveOptions(fetch: () => Promise<unknown>) {
   return {
@@ -118,5 +119,23 @@ describe("cachedQuery live scope", () => {
     const again = await cachedQuery(liveOptions(fetch));
     expect(again).toEqual({ visits: 1 });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("geoLiveTtlSeconds", () => {
+  const minute = 60_000;
+
+  test("keeps entries until the next flush window has settled", () => {
+    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 1))).toBe(4 * 60 + 20);
+  });
+
+  test("entries cached before the batch is readable expire at the settle point", () => {
+    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 5000)).toBe(15);
+  });
+
+  test("entries cached right after settling last the whole window", () => {
+    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 20_000)).toBe(
+      (5 * minute) / 1000
+    );
   });
 });

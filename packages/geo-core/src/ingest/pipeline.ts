@@ -9,7 +9,11 @@ import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
 
 import { GEO_INGEST_TINYBIRD_TIMEOUT_MS } from "../constants/ingest";
-import type { GeoIngestDefer, GeoIngestResult } from "../types/ingest";
+import type {
+  GeoIngestDefer,
+  GeoIngestEnqueue,
+  GeoIngestResult,
+} from "../types/ingest";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -148,7 +152,8 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
 
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   request: Request,
-  defer: GeoIngestDefer
+  defer: GeoIngestDefer,
+  enqueue?: GeoIngestEnqueue
 ) {
   const identity = yield* readBearerIdentity(request);
 
@@ -232,7 +237,12 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
 
   yield* enforceRateLimit(identity.organizationId);
   const ingestStartedAt = Date.now();
-  yield* ingestEvent(event);
+  // A buffered event is acknowledged before it reaches Tinybird; the batcher
+  // retries failed writes. Without a buffer (or when it is full) the 202
+  // still waits for the write.
+  if (!enqueue?.(event)) {
+    yield* ingestEvent(event);
+  }
   const ingestMs = Date.now() - ingestStartedAt;
   // Analytics and the live update must not hold the 202 open for the site
   // that sent the event.

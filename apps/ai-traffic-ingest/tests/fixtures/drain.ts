@@ -4,8 +4,12 @@ import type { GeoIngestDefer } from "@notra/geo-core/types/ingest";
 
 mock.module("../../src/utils/config", () => ({
   missingIngestEnvironment: () => [],
+  ingestFlushIntervalMs: () => 0,
 }));
-mock.module("@notra/ai/evlog", () => ({ flushGeoLog: async () => {} }));
+mock.module("@notra/ai/evlog", () => ({
+  flushGeoLog: async () => {},
+  geoLog: { info: () => {}, warn: () => {}, error: () => {} },
+}));
 mock.module("../../src/http", () => ({
   createIngestApp: (defer: GeoIngestDefer) => ({
     async fetch(request: Request) {

@@ -1,13 +1,18 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { createGeoEventBatcher } from "@notra/geo-core/ingest/batcher";
 
 import {
   INGEST_DEFAULT_PORT,
   INGEST_DRAIN_TIMEOUT_MS,
+  INGEST_EVENTS_FLUSH_TIMEOUT_MS,
   INGEST_FLUSH_TIMEOUT_MS,
   INGEST_MAX_BODY_BYTES,
 } from "./constants/server";
 import { createIngestApp } from "./http";
-import { missingIngestEnvironment } from "./utils/config";
+import {
+  ingestFlushIntervalMs,
+  missingIngestEnvironment,
+} from "./utils/config";
 
 const pending = new Set<Promise<void>>();
 const active = new Set<Promise<Response>>();
@@ -16,14 +21,23 @@ if (missing.length > 0) {
   console.warn(`[geo-ingest] Missing configuration: ${missing.join(", ")}`);
 }
 
-const app = createIngestApp((task) => {
-  const promise = task()
-    .catch((error) => {
-      console.error("[geo-ingest] Background task failed", error);
-    })
-    .finally(() => pending.delete(promise));
-  pending.add(promise);
-});
+const flushIntervalMs = ingestFlushIntervalMs();
+const batcher =
+  flushIntervalMs > 0
+    ? createGeoEventBatcher({ intervalMs: flushIntervalMs })
+    : null;
+
+const app = createIngestApp(
+  (task) => {
+    const promise = task()
+      .catch((error) => {
+        console.error("[geo-ingest] Background task failed", error);
+      })
+      .finally(() => pending.delete(promise));
+    pending.add(promise);
+  },
+  batcher ? (event) => batcher.enqueue(event) : undefined
+);
 
 const server = Bun.serve({
   hostname: "0.0.0.0",
@@ -72,6 +86,17 @@ async function shutdown() {
       `[geo-ingest] Drain exceeded ${INGEST_DRAIN_TIMEOUT_MS}ms, closing connections`
     );
     server.stop(true);
+  }
+  if (batcher) {
+    const flushed = await withDeadline(
+      () => batcher.stop(),
+      INGEST_EVENTS_FLUSH_TIMEOUT_MS
+    );
+    if (!flushed || batcher.size() > 0) {
+      console.error(
+        `[geo-ingest] Buffered events not written before exit (${batcher.size()} left in buffer)`
+      );
+    }
   }
   if (!(await withDeadline(flushGeoLog, INGEST_FLUSH_TIMEOUT_MS))) {
     console.error(

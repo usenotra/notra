@@ -4,6 +4,8 @@ import { Effect } from "effect";
 import {
   EXTERNAL_CACHE_KEY_PREFIX,
   EXTERNAL_CACHE_TTL_SECONDS,
+  GEO_TRAFFIC_FLUSH_INTERVAL_MS,
+  GEO_TRAFFIC_FLUSH_SETTLE_MS,
   GLOBAL_SCOPE_ID,
   INITIAL_CACHE_VERSION,
   LIVE_QUERY_CACHE_TTL_SECONDS,
@@ -52,6 +54,23 @@ function stableParams(params: Record<string, unknown>): string {
     .filter(([, value]) => value !== undefined)
     .sort(([left], [right]) => left.localeCompare(right));
   return JSON.stringify(Object.fromEntries(entries));
+}
+
+/**
+ * Seconds until the next geo flush window has settled. Entries cached right
+ * after a boundary but before the batch is readable expire at the settle
+ * point, so the new batch is never hidden for a whole window.
+ */
+export function geoLiveTtlSeconds(now: number = Date.now()): number {
+  const boundary =
+    now - (now % GEO_TRAFFIC_FLUSH_INTERVAL_MS) + GEO_TRAFFIC_FLUSH_SETTLE_MS;
+  const expiresAt =
+    boundary > now ? boundary : boundary + GEO_TRAFFIC_FLUSH_INTERVAL_MS;
+  return Math.max(1, Math.ceil((expiresAt - now) / 1000));
+}
+
+function liveTtlSeconds(scope: AnalyticsCacheScope): number {
+  return scope === "geo" ? geoLiveTtlSeconds() : LIVE_QUERY_CACHE_TTL_SECONDS;
 }
 
 function readVersion(
@@ -151,7 +170,7 @@ function liveQuery<TResult>(
       // pre-purge fetch can never make deleted rows readable again.
       yield* Effect.tryPromise(() =>
         redis.set(key, toJsonSafe({ generation, value: fresh }), {
-          ex: LIVE_QUERY_CACHE_TTL_SECONDS,
+          ex: liveTtlSeconds(options.scope),
         })
       ).pipe(Effect.ignore);
     }
@@ -184,7 +203,7 @@ export function bumpAnalyticsVersions(
 // it matches, which makes the bump O(1) and race-free: an in-flight
 // pre-purge fetch writes the old generation and readers reject it after the
 // bump. Errors are swallowed — worst case, entries stay readable until they
-// expire within LIVE_QUERY_CACHE_TTL_SECONDS.
+// expire (the next geo flush window, or LIVE_QUERY_CACHE_TTL_SECONDS).
 export function bumpPurgeGeneration(
   scope: AnalyticsCacheScope,
   organizationId: string | null

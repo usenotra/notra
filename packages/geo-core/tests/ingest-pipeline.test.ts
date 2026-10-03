@@ -153,6 +153,35 @@ describe("runGeoIngest ordering", () => {
     expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
   });
 
+  test("hands tracked traffic to the buffer instead of writing it", async () => {
+    const buffered: unknown[] = [];
+    const outcome = await Effect.runPromise(
+      runGeoIngest(
+        ingestRequest(),
+        () => {},
+        (event) => {
+          buffered.push(event);
+          return true;
+        }
+      )
+    );
+
+    expect(outcome.outcome).toBe("ingested");
+    expect(buffered).toHaveLength(1);
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
+  });
+
+  test("writes directly when the buffer refuses the event", async () => {
+    await Effect.runPromise(
+      runGeoIngest(
+        ingestRequest(),
+        () => {},
+        () => false
+      )
+    );
+    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
+  });
+
   test("defers analytics until after the event was stored", async () => {
     const tasks: Array<() => Promise<void>> = [];
     await Effect.runPromise(
