@@ -1,0 +1,32 @@
+apps/dashboard/src/utils/geo-competitors.ts
+  s_615bd4fdceb062::t_d7b9ba3860196f 470-487,489,494-495,505-512
+  ai_agent 488
+packages/geo-core/tests/geo-answer-mentions.test.ts
+  ai_agent 32-38
+  s_615bd4fdceb062::t_30dcd8197549ba 41-46
+packages/ai/src/utils/geo-tool-data.ts
+  s_615bd4fdceb062::t_20a5523cf00071 31-41
+  s_615bd4fdceb062::t_d7b9ba3860196f 263-267,280,283-286
+packages/db/src/utils/geo-context-competitors.ts
+  s_615bd4fdceb062::t_71de1d493d5a85 64-68
+packages/geo-core/src/utils/geo-answer-mentions.ts
+  ai_agent 18
+  s_615bd4fdceb062::t_1b010904649dff 19-32,107,109,111
+  s_615bd4fdceb062::t_4535791829b927 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "94a617648a263be1a2771ad06b4e9cded51c7b17",
+  "prompts": {},
+  "sessions": {
+    "s_615bd4fdceb062": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ef6a449a-eed5-4b37-9ac0-6026666bfe8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
