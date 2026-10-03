@@ -40,7 +40,7 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   with 32+ chars), a base64-encoded **32-byte**
   `INTEGRATION_ENCRYPTION_KEY` (`openssl rand -base64 32`), and the
   `APP_URL` / `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` = `http://localhost:3000`.
-- Most third-party keys are optional and degrade gracefully (Autumn billing, Resend,
+- Most third-party keys are optional and degrade gracefully (Autumn billing, Brew email,
   Redis, R2, integrations). GEO scanning picks up extra engines when their keys are
   set: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PERPLEXITY_API_KEY`, and
   `CURSOR_API_KEY` (Cursor runs locally via `@cursor/sdk`, not through a gateway).

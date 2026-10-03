@@ -1,7 +1,6 @@
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, members, organizations } from "@notra/db/schema";
-import { getResend } from "@notra/email/utils/resend";
 import {
   type AutomatedWorkflowFailureState,
   automatedWorkflowFailureStateSchema,
@@ -87,14 +86,6 @@ async function sendPausedEmails({
   reason,
   logPrefix,
 }: RecordAutomatedWorkflowPauseParams) {
-  const resend = getResend();
-  if (!resend) {
-    console.warn(
-      `[${logPrefix}] Resend not configured, skipping workflow paused email`
-    );
-    return;
-  }
-
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { name: true, slug: true },
@@ -114,7 +105,7 @@ async function sendPausedEmails({
   const pauseEventId = crypto.randomUUID();
 
   for (const recipientEmail of ownerEmails) {
-    const result = await sendWorkflowPausedEmail(resend, {
+    const result = await sendWorkflowPausedEmail({
       recipientEmail,
       organizationName,
       organizationSlug,

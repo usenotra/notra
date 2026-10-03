@@ -46,7 +46,7 @@ Install or prepare:
   - Upstash Redis
   - Upstash QStash
   - Cloudflare R2
-  - Resend
+  - Brew (email)
   - Unkey
 
 ## Getting Started
@@ -86,7 +86,7 @@ Helpful provider docs:
 - Upstash (Redis/QStash): https://upstash.com
 - Unkey: https://unkey.com
 - Cloudflare R2: https://developers.cloudflare.com/r2/
-- Resend: https://resend.com
+- Brew: https://brew.new
 
 5. Run database migrations:
 

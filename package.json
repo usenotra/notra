@@ -27,7 +27,9 @@
     "format": "ultracite fix --threads=4",
     "format:unsafe": "ultracite fix --unsafe --threads=4",
     "commitlint": "commitlint",
-    "prepare": "husky && ./scripts/prepare-effect.sh && effect-tsgo patch --no-typescript --oxlint"
+    "prepare": "husky && ./scripts/prepare-effect.sh && effect-tsgo patch --no-typescript --oxlint",
+    "brew:setup": "dotenv -- bun packages/email/scripts/brew-setup.ts",
+    "brew:test-send": "dotenv -- bun packages/email/scripts/brew-test-send.tsx"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

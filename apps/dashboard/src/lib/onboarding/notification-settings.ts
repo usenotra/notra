@@ -1,6 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { organizationNotificationSettings } from "@notra/db/schema";
 
+import { runAfterResponse } from "@/lib/after-response";
+import { syncBrewContactsForOrganizationOwners } from "@/lib/email/brew-contacts";
+
 export async function upsertOnboardingNotificationSettings({
   organizationId,
   dailySummary,
@@ -29,4 +32,8 @@ export async function upsertOnboardingNotificationSettings({
       },
       target: organizationNotificationSettings.organizationId,
     });
+
+  runAfterResponse("[BrewContacts] Sync failed", () =>
+    syncBrewContactsForOrganizationOwners(organizationId)
+  );
 }
