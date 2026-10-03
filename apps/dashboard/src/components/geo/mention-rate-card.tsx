@@ -18,6 +18,7 @@ import {
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -38,7 +39,6 @@ import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import {
   InstrumentEmpty,
   InstrumentModule,
@@ -139,7 +139,7 @@ function ProviderRow({
       <HoverCardTrigger render={<button {...buttonProps} />}>
         {content}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           trackEngine ? (
             <Button
@@ -169,7 +169,7 @@ function ProviderRow({
         <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
           {t("untrackedHint")}
         </p>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

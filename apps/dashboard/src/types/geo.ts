@@ -65,7 +65,6 @@ import type { useTranslations } from "next-intl";
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
-  PointerEventHandler,
   ReactNode,
 } from "react";
 
@@ -987,16 +986,6 @@ export interface GeoTrafficPurposeTotal {
   category: string;
   visits: number;
   members: string[];
-}
-
-export interface TrafficBreakdownCardProps {
-  icon: ReactNode;
-  title: string;
-  aside?: ReactNode;
-  align?: "start" | "center" | "end";
-  children: ReactNode;
-  onPointerEnter?: PointerEventHandler<HTMLDivElement>;
-  onPointerLeave?: PointerEventHandler<HTMLDivElement>;
 }
 
 export interface TrafficSourceGroupIconProps {
