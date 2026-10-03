@@ -1,0 +1,32 @@
+apps/dashboard/messages/en.json
+  s_a8495c724e50c2::t_ec4e9f66f62152 177
+apps/dashboard/src/app/design-system/webhooks/page-client.tsx
+  s_a8495c724e50c2::t_ec4e9f66f62152 4,49-50,155-162
+apps/dashboard/src/components/webhooks/overview.tsx
+  s_a8495c724e50c2::t_ec4e9f66f62152 78,90,93-94
+apps/dashboard/src/lib/orpc/routers/outbound-webhooks.ts
+  s_a8495c724e50c2::t_ec4e9f66f62152 48-51
+  s_a8495c724e50c2::t_75c5f1c29fa287 44-47,52-55
+packages/webhooks/src/programs/history.ts
+  s_a8495c724e50c2::t_75c5f1c29fa287 35,45-46
+apps/dashboard/messages/de.json
+  s_a8495c724e50c2::t_ec4e9f66f62152 177
+apps/dashboard/src/types/webhooks/outbound.ts
+  s_a8495c724e50c2::t_ec4e9f66f62152 46-47,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b7c23b977be159957e0eee753af5c23b7e71e045",
+  "prompts": {},
+  "sessions": {
+    "s_a8495c724e50c2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "09fc83ed-9694-4bfc-85d3-1263116d26f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
