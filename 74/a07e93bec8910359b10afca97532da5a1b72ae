@@ -1,0 +1,503 @@
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  s_2e1b04b64a383c::t_68130b28002af7 35-38,42,59
+apps/dashboard/src/components/sites/site-overview-hero.tsx
+  s_2e1b04b64a383c::t_d9b56bfe90575a 41,70-75,236-239
+  s_2e1b04b64a383c::t_537d62c6e1706f 12,21,24-28,62,89
+apps/sites-builder/compiler/types/source.ts
+  s_2e1b04b64a383c::t_0e6d5a17a09b78 5-6
+  s_2e1b04b64a383c::t_9317206eba5b68 1-4,7-25
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_2e1b04b64a383c::t_68130b28002af7 35-36,61
+apps/dashboard/src/components/sites/site-copy-button.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 17
+apps/sites/src/responses.ts
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 1,8,10,58
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 2
+packages/sites-server/src/box-build.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 29
+apps/dashboard/src/components/sites/sites-page-shell.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 2,4
+apps/sites-builder/src/constants/builtins.ts
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 1-9,15
+  s_2e1b04b64a383c::t_05bb3c48957c21 10-14
+packages/sites-core/src/utils/build-target.ts
+  s_2e1b04b64a383c::t_9e050e36419288 1
+packages/sites-server/src/types/urls.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-13
+apps/sites-builder/src/constants/entries.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1
+apps/dashboard/src/components/sites/editor/site-code-editor.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 6,22,24-25,41
+apps/sites/src/index.ts
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 2
+apps/dashboard/src/utils/site-deployment-steps.ts
+  s_2e1b04b64a383c::t_a9ebe84b90b8ca 13,24,35,43,67,76
+  s_2e1b04b64a383c::t_5c0b5686595f22 1,4
+apps/dashboard/src/components/sites/site-rollback-dialog.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 18
+packages/sites-server/src/cloudflare-saas.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 28-38
+apps/sites-builder/src/constants/theme.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/deployments/[deploymentId]/page.tsx
+  s_2e1b04b64a383c::t_d05a6b4cf52798 5,12
+apps/sites-builder/src/types/entries.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-4
+  s_2e1b04b64a383c::t_d3ef07063adee4 5-14
+packages/sites-server/src/constants/webhooks.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-11
+apps/sites/src/types/serving.ts
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 4
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-3,5-40
+packages/sites-server/src/constants/domains.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 1-2
+  s_2e1b04b64a383c::t_9103594a32c531 3
+apps/dashboard/src/app/(dashboard)/[slug]/sites/skeleton.tsx
+  s_2e1b04b64a383c::t_d05a6b4cf52798 9,18
+packages/sites-server/src/domains.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 19,23-30,97,190,232
+packages/sites-server/src/types/cloudflare-saas.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-28
+packages/sites-server/src/types/editor.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-50
+apps/sites-builder/src/utils/color.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-17
+apps/dashboard/src/constants/site-editor.ts
+  s_2e1b04b64a383c::t_66ca701810f3dd 17-36
+apps/sites/src/loaders.ts
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 7-10
+  s_2e1b04b64a383c::t_3f3daa9fc342cd 21
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 12-20
+apps/dashboard/src/components/dashboard/nav-site.tsx
+  s_2e1b04b64a383c::t_db8fa2f8782617 16,18,24,46
+apps/sites-builder/src/lib/entries.ts
+  s_2e1b04b64a383c::t_05bb3c48957c21 3
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1
+  s_2e1b04b64a383c::t_d3ef07063adee4 6
+packages/sites-server/tests/domain-connect.test.ts
+  s_2e1b04b64a383c::t_2da38c762bbdab 8-11,17
+packages/sites-core/src/types/serving-state.ts
+  s_2e1b04b64a383c::t_9e050e36419288 1-21
+apps/dashboard/src/lib/workflows/start.ts
+  s_2e1b04b64a383c::t_0cd06592804881 65
+  s_2e1b04b64a383c::t_341408b5e50186 41
+apps/sites/src/utils/html.ts
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-6
+apps/dashboard/src/components/sites/pages/site-domains-page.tsx
+  s_2e1b04b64a383c::t_68130b28002af7 24,27-28,30,40
+apps/sites-builder/compiler/utils/public-assets.ts
+  s_2e1b04b64a383c::t_32093aa8df22ac 1
+apps/sites-builder/src/pages/[...slug].astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 5,7
+packages/sites-server/src/r2.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 11,83
+  s_2e1b04b64a383c::t_8fefa0c3f18912 45
+packages/sites-server/src/sites.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 13,26,48,50,52-53,55,57,59,95-96,210,344
+  s_2e1b04b64a383c::t_68130b28002af7 49,51,54,56,97,235,346,452
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/layout.tsx
+  s_2e1b04b64a383c::t_d05a6b4cf52798 2,7
+apps/dashboard/src/components/sites/editor/site-editor-pane.tsx
+  s_2e1b04b64a383c::t_8bf10729d5fd74 15,19,201
+apps/dashboard/src/components/sites/site-topbar-title.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 14-18,22,46,67
+apps/sites-builder/compiler/types/agent-files.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-38
+packages/sites-server/src/jobs.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 6-12,96
+apps/dashboard/src/components/sites/pages/site-previews-page.tsx
+  s_2e1b04b64a383c::t_68130b28002af7 43,53
+apps/dashboard/src/components/sites/site-context.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 5
+apps/dashboard/src/components/sites/site-domain-proxy.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 16-17
+apps/dashboard/src/types/components/nav.ts
+  s_2e1b04b64a383c::t_db8fa2f8782617 195-198
+packages/sites-server/src/utils/hash.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 4-8
+  s_2e1b04b64a383c::t_8fefa0c3f18912 1-3
+apps/dashboard/src/utils/site-editor.ts
+  s_2e1b04b64a383c::t_d9b56bfe90575a 173
+  s_2e1b04b64a383c::t_3b5ac515f20178 4-8,11,18-23,192-256
+apps/dashboard/src/components/sites/editor/site-editor-status-bar.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 14
+apps/dashboard/src/components/sites/site-publish-dialog.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 24-25,27,115
+apps/dashboard/src/components/sites/site-previews-table.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 54-58,73
+packages/sites-server/src/github.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 4-7,9-16,20-22,40,62,107,115,130,145,154,175
+packages/sites-server/src/types/github.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-59
+apps/sites-builder/src/lib/params.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 3
+apps/sites-builder/src/utils/reading-time.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-10
+apps/dashboard/src/app/(dashboard)/[slug]/sites/page.tsx
+  s_2e1b04b64a383c::t_d05a6b4cf52798 5-6,15,20
+apps/sites/src/constants/cache.ts
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-7
+packages/sites-server/src/types/state.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-16
+packages/sites-server/src/domain-connect.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 50-53
+apps/dashboard/src/components/sites/site-deployment-menu.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 24,42
+apps/sites-builder/src/lib/theme.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-3
+apps/sites-builder/src/components/PostCard.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 2,4-5
+apps/sites-builder/src/types/builtins.ts
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 1-15
+apps/sites-builder/src/components/BlogPost.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 3,5-7
+apps/dashboard/src/components/sites/editor/site-publish-change.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 20
+apps/sites-builder/compiler/types/build.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 2-14
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 1
+packages/sites-server/src/constants/build.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-7
+apps/dashboard/src/components/sites/site-layout.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 10,22
+apps/dashboard/src/components/sites/editor/site-editor-file-bar.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 38-39
+apps/dashboard/src/lib/sites/dispatch.ts
+  s_2e1b04b64a383c::t_9413fb27efcbdc 8,32
+apps/sites-builder/src/components/Icon.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 2-3
+packages/sites-compiler/src/validate.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 7-8,12-19,30
+apps/sites-builder/src/pages/notra-pages.json.ts
+  s_2e1b04b64a383c::t_05bb3c48957c21 3
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 5
+apps/dashboard/src/components/sites/editor/site-file-diff.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 15
+apps/sites-builder/src/builtins/Callout.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 3-4,7,12
+apps/dashboard/src/utils/site-build-log.ts
+  s_2e1b04b64a383c::t_d9b56bfe90575a 193-196
+  s_2e1b04b64a383c::t_a9ebe84b90b8ca 1-5,9,130,169,218
+packages/sites-server/src/tar.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 63-66
+  s_2e1b04b64a383c::t_4138ba6e14321c 3,5,7,9,60,74-75,81,83
+packages/sites-core/src/utils/hosts.ts
+  s_2e1b04b64a383c::t_9e050e36419288 2,5,9,37
+packages/sites-server/src/types/jobs.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-14
+packages/sites-server/src/constants/content-types.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1
+packages/sites-server/src/constants/github.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-8
+packages/sites-server/src/types/reporting.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-8
+packages/sites-server/src/types/webhooks.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-49
+apps/dashboard/src/components/sites/site-delete-dialog.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 22
+apps/dashboard/src/types/components/sites.ts
+  s_2e1b04b64a383c::t_743a78f8fde4af 1-9,11-110,112-401
+  s_2e1b04b64a383c::t_14fba80b642924 10,111
+packages/sites-core/src/types/build.ts
+  s_2e1b04b64a383c::t_6df138e430eac0 1-11
+apps/sites-builder/compiler/build.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 2,17-18,20-22,28,69-71
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 6-10
+apps/sites-builder/src/utils/icons.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-13
+packages/sites-server/src/types/sites.ts
+  s_2e1b04b64a383c::t_68130b28002af7 36-54
+  s_2e1b04b64a383c::t_1017e983778511 1-35
+apps/dashboard/src/components/sites/site-meta.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 1,4,12
+apps/dashboard/src/components/sites/sites-table.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 12-13
+packages/sites-compiler/src/jsx.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 32-35
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1,6-7
+apps/dashboard/src/types/hooks/sites.ts
+  s_2e1b04b64a383c::t_72f5f20f4f4e3f 1-18
+apps/dashboard/src/components/sites/editor/site-file-tree.tsx
+  s_2e1b04b64a383c::t_66ca701810f3dd 23,25-31,44,75-76,102-103,203
+  s_2e1b04b64a383c::t_d9b56bfe90575a 48-51
+apps/dashboard/src/components/sites/pages/site-deployments-page.tsx
+  s_2e1b04b64a383c::t_d9b56bfe90575a 56-58,145-147
+  s_2e1b04b64a383c::t_f7a63418c65e11 29,42-46,62,93,133,161,173
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/page.tsx
+  s_2e1b04b64a383c::t_d05a6b4cf52798 5-6,15,20
+packages/db/src/schema.ts
+  s_2e1b04b64a383c::t_766af4940c25db 11,15
+apps/sites-builder/compiler/constants/public-assets.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-3
+apps/dashboard/src/components/sites/site-deployment-properties.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 10-13,18,61
+apps/dashboard/src/utils/site-diagnostics.ts
+  s_2e1b04b64a383c::t_39126c018ea50b 1-21
+packages/sites-server/README.md
+  s_2e1b04b64a383c::t_68130b28002af7 65
+apps/dashboard/src/components/sites/editor/site-editor-conflict-banner.tsx
+  s_2e1b04b64a383c::t_5919165a673a3c 8
+apps/dashboard/src/types/sites.ts
+  s_2e1b04b64a383c::t_0c95028e4d93cc 54-59,70-88,96-97,99,101,202-209,248-253
+packages/sites-server/src/urls.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 4,14-17,33-35,50-52
+apps/sites/src/constants/routing.ts
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-2
+packages/sites-core/src/types/sites.ts
+  s_2e1b04b64a383c::t_6df138e430eac0 1-3
+packages/sites-server/src/constants/domain-connect.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-25
+apps/sites-builder/src/pages/feed.xml.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 11
+packages/sites-server/src/webhooks.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 16
+  s_2e1b04b64a383c::t_4138ba6e14321c 23-30,227-229
+packages/sites-server/src/deployments.ts
+  s_2e1b04b64a383c::t_68130b28002af7 14-18,31,94
+apps/sites-builder/src/types/build-params.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-50
+packages/sites-compiler/src/mdx.ts
+  s_2e1b04b64a383c::t_68130b28002af7 23,29,44,66
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 14,16,22,24-28,30-31,354-355,393
+apps/sites-builder/src/content.config.ts
+  s_2e1b04b64a383c::t_d3ef07063adee4 6,8
+  s_2e1b04b64a383c::t_9b755fed1d1db7 5,17,26
+packages/sites-server/src/publish.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 8,10,13-16,23-25
+apps/dashboard/src/components/sites/site-deployments-table.tsx
+  s_2e1b04b64a383c::t_766af4940c25db 6,15-16,18,43
+packages/sites-server/src/preview-access.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 9-12,19-21
+apps/sites-builder/compiler/utils/html-to-markdown.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-189
+packages/sites-server/src/state.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 6-15,24,26-30,38,55-56,73,93-94,106,125,136,156,180
+packages/sites-compiler/src/types/validate.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-25
+apps/sites-builder/src/components/Footer.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 3
+packages/sites-server/src/utils/shell.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 1-3
+apps/sites-builder/compiler/constants/markdown.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-11
+packages/sites-core/src/types/site-config.ts
+  s_2e1b04b64a383c::t_6df138e430eac0 1-4
+packages/sites-server/src/constants/deployments.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-9
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_2e1b04b64a383c::t_0cd06592804881 78,96-101,125-128,133
+  s_2e1b04b64a383c::t_4fe4707c134ac9 68
+packages/sites-server/src/schemas/domain-connect.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-9
+apps/sites-builder/src/schemas/entries.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-24
+apps/sites/src/handler.ts
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 2-3
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 24-25,33
+packages/sites-server/src/utils/content-types.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-9
+apps/sites-builder/src/utils/dates.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-14
+apps/dashboard/src/components/sites/site-domain-dns.tsx
+  s_2e1b04b64a383c::t_766af4940c25db 11-14,16-21,23,38,46,55,74,94,121
+apps/sites/tests/handler.test.ts
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 7
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 11
+apps/sites-builder/src/components/ChangelogEntry.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 4-5
+apps/dashboard/src/components/sites/site-relative-time.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 6,13
+packages/sites-server/src/editor.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 13-15,17-28,72,83,92,102,132,144,172,290,303,324-325,386,440
+apps/dashboard/src/app/sites/preview-access/route.ts
+  s_2e1b04b64a383c::t_d05a6b4cf52798 5
+  s_2e1b04b64a383c::t_d9b56bfe90575a 17-19
+packages/sites-compiler/src/constants/builtins.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-2,29-31,35,58-68
+packages/sites-server/src/utils/json.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 1-7
+apps/dashboard/src/app/sites/domain-connect/[token]/route.ts
+  s_2e1b04b64a383c::t_d05a6b4cf52798 11,20
+packages/sites-core/src/types/deployment.ts
+  s_2e1b04b64a383c::t_6df138e430eac0 1-30
+packages/sites-server/src/types/preview-access.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-13
+apps/sites-builder/compiler/utils/fs.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-34
+packages/sites-server/src/utils/concurrency.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 1-20
+packages/sites-server/src/pipeline.ts
+  s_2e1b04b64a383c::t_b6245de5f01977 5,19-22,113,159,176
+packages/sites-server/src/runner.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 5,22
+apps/sites-builder/compiler/agent-files.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1,3-10,66,97,106-108
+apps/sites/src/utils/routing.ts
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 5-7,59
+  s_2e1b04b64a383c::t_cf4f3e1c91780e 4
+apps/dashboard/src/lib/hooks/use-site-domain-check.ts
+  s_2e1b04b64a383c::t_3d75ac6cf096cb 7,15
+apps/sites-builder/compiler/collect.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 11-12
+  s_2e1b04b64a383c::t_0e6d5a17a09b78 4,9
+apps/dashboard/src/components/sites/site-new-file-dialog.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 28-29
+apps/sites-builder/src/builtins/index.ts
+  s_2e1b04b64a383c::t_05bb3c48957c21 1
+packages/sites-compiler/src/utils/estree.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 4-6,78
+  s_2e1b04b64a383c::t_8fefa0c3f18912 77
+apps/sites/src/preview-auth.ts
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 12-13
+apps/dashboard/src/types/site-editor.ts
+  s_2e1b04b64a383c::t_121f3156dc2cf6 1-3,26-28,45-48,57-58,60-63
+apps/sites-builder/src/components/BlogIndex.astro
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 2,4-5
+apps/sites/src/pages.ts
+  s_2e1b04b64a383c::t_fd0ff4233e4f61 1
+packages/sites-server/src/types/tar.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-11
+apps/sites-builder/compiler/constants/source.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-4
+packages/sites-server/src/types/domain-connect.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-67
+apps/dashboard/src/constants/sites.ts
+  s_2e1b04b64a383c::t_a9ebe84b90b8ca 198,200
+  s_2e1b04b64a383c::t_e7b18f8e09e1b1 2-3,5,9-10,20,22-23,168-169,174-197,199,201-247
+  s_2e1b04b64a383c::t_d9b56bfe90575a 170-173
+packages/sites-server/src/constants/state.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-2
+packages/sites-server/src/types/domains.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-15
+packages/sites-server/src/constants/jobs.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1-12
+apps/dashboard/src/components/sites/pages/site-editor-page.tsx
+  s_2e1b04b64a383c::t_68130b28002af7 38-42,192
+apps/dashboard/src/types/sites-server.ts
+  s_2e1b04b64a383c::t_72f5f20f4f4e3f 1,3,6-33
+  s_2e1b04b64a383c::t_766af4940c25db 2
+  s_2e1b04b64a383c::t_51f579817eff27 4-5
+apps/dashboard/src/components/sites/site-form-fields.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 23,25,88
+packages/sites-compiler/src/types/mdx.ts
+  s_2e1b04b64a383c::t_68130b28002af7 5-15
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-4,16-72
+apps/sites-builder/compiler/prepare.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1,4,8-9,31-33
+  s_2e1b04b64a383c::t_32093aa8df22ac 5
+apps/sites-builder/compiler/constants/build.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-2
+packages/sites-compiler/src/utils/paths.ts
+  s_2e1b04b64a383c::t_8fefa0c3f18912 65
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 3-4
+apps/dashboard/src/components/sites/site-create-form.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 51,67
+packages/sites-compiler/src/types/paths.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-10
+apps/sites-builder/src/types/icons.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-3
+packages/sites-server/src/types/build.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-32
+apps/sites/src/utils/cookies.ts
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-13
+apps/dashboard/src/components/sites/editor/site-editor-problems.tsx
+  s_2e1b04b64a383c::t_39126c018ea50b 14-18,29,69
+apps/sites/src/constants/responses.ts
+  s_2e1b04b64a383c::t_d11110dcbc3697 1-20
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_2e1b04b64a383c::t_ba9f6888239151 17,36,44-51,56,59,75,120,128,147,394,420,424,443,487
+  s_2e1b04b64a383c::t_d9b56bfe90575a 63-65,331,372
+apps/dashboard/src/utils/site-deployments.ts
+  s_2e1b04b64a383c::t_f7a63418c65e11 2,4,7-16,80-155
+packages/sites-compiler/src/types/estree.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-11
+apps/dashboard/src/components/sites/site-domains-table.tsx
+  s_2e1b04b64a383c::t_d9b56bfe90575a 101,324-326,360-362
+  s_2e1b04b64a383c::t_542f0aa7e79b11 309
+  s_2e1b04b64a383c::t_766af4940c25db 40-41,43-46,48,53,69,240
+packages/sites-core/src/constants/sites.ts
+  s_2e1b04b64a383c::t_6df138e430eac0 1-2,17-34
+apps/dashboard/src/components/sites/site-preview-frame.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 4,6-9,11,21,25,56-57
+apps/dashboard/src/lib/sites/serialize.ts
+  s_2e1b04b64a383c::t_51f579817eff27 11-12,57,91,108
+  s_2e1b04b64a383c::t_9413fb27efcbdc 9-10,13
+apps/dashboard/src/utils/site-links.ts
+  s_2e1b04b64a383c::t_c3ac34ba8802b5 2,36,46
+apps/dashboard/src/components/sites/site-build-logs.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 29-32,34-40,53,75,91,97,131,145,171
+packages/sites-server/src/constants/editor.ts
+  s_2e1b04b64a383c::t_9103594a32c531 1
+packages/sites-server/src/utils/root-directory.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 1-10
+apps/dashboard/src/lib/hooks/use-site-domain-connect.ts
+  s_2e1b04b64a383c::t_3d75ac6cf096cb 5,15
+apps/dashboard/src/lib/hooks/use-sites.ts
+  s_2e1b04b64a383c::t_9413fb27efcbdc 9
+  s_2e1b04b64a383c::t_3d75ac6cf096cb 38,57
+packages/sites-server/src/utils/diagnostics.ts
+  s_2e1b04b64a383c::t_e3406407e97f1f 1-19
+apps/sites-builder/compiler/cli.ts
+  s_2e1b04b64a383c::t_0e6d5a17a09b78 9
+  s_2e1b04b64a383c::t_9317206eba5b68 16
+apps/sites-builder/src/utils/xml.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-6
+packages/sites-server/src/types/deployments.ts
+  s_2e1b04b64a383c::t_68130b28002af7 28-32
+  s_2e1b04b64a383c::t_1017e983778511 1-2,7-27,33-54
+  s_2e1b04b64a383c::t_8fefa0c3f18912 3-6
+apps/dashboard/src/app/api/webhooks/github/app/route.ts
+  s_2e1b04b64a383c::t_d05a6b4cf52798 9,39,49
+apps/dashboard/src/components/sites/site-status-dot.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 8,22
+apps/dashboard/src/components/sites/site-domain-add-dialog.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 26,29-30
+  s_2e1b04b64a383c::t_d9b56bfe90575a 119-124
+apps/sites-builder/src/pages/sitemap.xml.ts
+  s_2e1b04b64a383c::t_10d5f51ac55c9b 3,5
+apps/sites-builder/compiler/constants/cli.ts
+  s_2e1b04b64a383c::t_9317206eba5b68 1-5
+packages/sites-core/src/utils/mounts.ts
+  s_2e1b04b64a383c::t_9e050e36419288 1-4,7,9,24,26,80-81,95-96
+packages/sites-compiler/src/types/jsx.ts
+  s_2e1b04b64a383c::t_40ec9c7504e9e5 1-7
+apps/dashboard/src/types/components/site-editor.ts
+  s_2e1b04b64a383c::t_7f17cdae1b2578 1-119
+packages/sites-server/src/reporting.ts
+  s_2e1b04b64a383c::t_4138ba6e14321c 5,12-14
+apps/dashboard/src/components/sites/site-repository-layout.tsx
+  s_2e1b04b64a383c::t_537d62c6e1706f 9
+apps/sites-builder/src/types/theme.ts
+  s_2e1b04b64a383c::t_9b755fed1d1db7 1-6
+packages/sites-core/src/types/hosts.ts
+  s_2e1b04b64a383c::t_9e050e36419288 1-4
+apps/dashboard/src/components/sites/site-deployment-timeline.tsx
+  s_2e1b04b64a383c::t_fad781fe92a44d 3-4,12-16,18-21,26,47,98,100
+  s_2e1b04b64a383c::t_d9b56bfe90575a 123-125
+packages/sites-core/src/utils/serving-state.ts
+  s_2e1b04b64a383c::t_9e050e36419288 1,5-11,13-15,35,108
+packages/sites-server/src/types/r2.ts
+  s_2e1b04b64a383c::t_1017e983778511 1-12
+apps/dashboard/src/lib/hooks/use-site-deployments.ts
+  s_2e1b04b64a383c::t_3d75ac6cf096cb 13-15,33,51,56
+apps/dashboard/src/utils/site-domains.ts
+  s_2e1b04b64a383c::t_766af4940c25db 1-32
+apps/dashboard/src/utils/site-sections.ts
+  s_2e1b04b64a383c::t_db8fa2f8782617 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "74a07e93bec8910359b10afca97532da5a1b72ae",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
