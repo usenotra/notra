@@ -1,0 +1,75 @@
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_400beee9e2f793::t_b2edef7fc84598 319,323,361,364,458,461,464,475,480,485,488,555,558,561,565-566,926,929
+  s_400beee9e2f793::t_c055dc7fcf3d2f 360
+apps/dashboard/src/lib/integrations/github/content-pull-request.ts
+  s_400beee9e2f793::t_8728d7ac072b46 2-6
+apps/dashboard/src/types/integrations/github.ts
+  s_400beee9e2f793::t_8728d7ac072b46 508-518
+packages/ai/src/utils/scheduled-publications.ts
+  s_400beee9e2f793::t_8a0bc459bffc04 39,682,703-753,819-825,830
+  s_400beee9e2f793::t_bd7c39a2a52429 55-56,81,87,134
+  s_400beee9e2f793::t_d9dc60317b21ab 565-567
+  s_400beee9e2f793::t_aeb9b9f9dd5fbb 306,311,318,332,347,375
+  s_400beee9e2f793::t_bb3e4cb56f66e0 676-677
+  s_400beee9e2f793::t_63e25f8b6c992e 49,284
+apps/dashboard/src/components/content/schedule/schedule-destination-status-list.tsx
+  s_400beee9e2f793::t_c055dc7fcf3d2f 5
+  s_400beee9e2f793::t_e8aecf618550a2 35
+packages/ai/src/schemas/post-schedules.ts
+  s_400beee9e2f793::t_045291f50b2e00 1-5,10-86
+packages/schemas/src/schemas/dashboard/content-calendar.ts
+  s_400beee9e2f793::t_34d36eafaa5515 2,29
+  s_400beee9e2f793::t_ee6105c67920f6 21-26
+apps/dashboard/src/workflows/steps/scheduled-publication-steps.ts
+  s_400beee9e2f793::t_d9dc60317b21ab 39-40,43-44
+apps/dashboard/src/utils/content-calendar.ts
+  s_400beee9e2f793::t_601d6acc354b28 198-201
+  s_400beee9e2f793::t_fd95949b9fbb6d 299-301
+  s_400beee9e2f793::t_e8aecf618550a2 2-6,93,112,136,146,192,271-272,297-298,306,356
+  s_400beee9e2f793::t_c055dc7fcf3d2f 7
+apps/dashboard/src/types/content/calendar.ts
+  s_400beee9e2f793::t_e8aecf618550a2 23
+  s_400beee9e2f793::t_c055dc7fcf3d2f 1
+apps/dashboard/src/types/content/schedule.ts
+  s_400beee9e2f793::t_e8aecf618550a2 2-5,25,45,49,97,121
+  s_400beee9e2f793::t_c055dc7fcf3d2f 6
+  s_400beee9e2f793::t_68062b09c4ce83 12-16
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_400beee9e2f793::t_528d0214673847 9-15
+apps/dashboard/src/lib/hooks/use-content-calendar.ts
+  s_400beee9e2f793::t_e8aecf618550a2 4-6,58,62,150
+  s_400beee9e2f793::t_68062b09c4ce83 19-22
+apps/dashboard/src/lib/email/scheduled-publication.ts
+  s_400beee9e2f793::t_0d543c57167929 10,22
+packages/ai/src/types/scheduled-publications.ts
+  s_400beee9e2f793::t_63e25f8b6c992e 68-70
+  s_400beee9e2f793::t_c0c74df0411407 7,9-33
+  s_400beee9e2f793::t_27d13bc0c615ee 63-65,73
+  s_400beee9e2f793::t_f46e02ec07886a 125-133
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_400beee9e2f793::t_528d0214673847 35-38,197,201,259-269,324-325,327-339,350-363,381,385,435-436,447
+  s_400beee9e2f793::t_7d2f350013d067 217,228,254
+  s_400beee9e2f793::t_8728d7ac072b46 39
+packages/ai/src/tools/post-schedules.ts
+  s_400beee9e2f793::t_730980d1e6b329 6-10
+packages/ai/src/utils/content-calendar.ts
+  s_400beee9e2f793::t_f76676583020ed 9,11-14,57,69,136
+packages/schemas/src/schemas/api/post-schedules.ts
+  s_400beee9e2f793::t_e24e8f2eb5e4bf 4-7,77-81,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b62e0b878ba4a32fcc0e800260364b6e91550d29",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
