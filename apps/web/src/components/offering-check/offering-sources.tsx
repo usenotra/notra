@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -19,6 +17,7 @@ import type {
   OfferingSourceSiteProps,
   OfferingSourcesProps,
 } from "@/types/offering-check";
+import { countSourcePages } from "@/utils/offering-check";
 
 import { OfferingFavicon } from "./offering-favicon";
 
@@ -101,7 +100,7 @@ export function OfferingSources({ sources }: OfferingSourcesProps) {
   if (sources.length === 0) {
     return null;
   }
-  const pageCount = sources.reduce((total, source) => total + source.pages, 0);
+  const pageCount = countSourcePages(sources);
 
   return (
     <Collapsible className="mt-4 flex flex-col">

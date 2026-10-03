@@ -1,19 +1,16 @@
 import type {
   OfferingCheckSample,
-  OfferingReportStatus,
+  OfferingFailureStatus,
   OfferingVerdict,
   OfferingVerdictCopy,
-  OfferingVerdictOverviewCopy,
 } from "@/types/offering-check";
 import { SITE_URL } from "@/utils/urls";
 
-const OFFERING_CHECK_PATH = "/offering" as const;
+export const OFFERING_CHECK_PATH = "/offering";
+
+export const OFFERING_REPORT_PATH = "/offering/report";
 
 export const OFFERING_CHECK_URL = `${SITE_URL}${OFFERING_CHECK_PATH}`;
-
-export const OFFERING_REPORT_PATH = `${OFFERING_CHECK_PATH}/report`;
-
-export const OFFERING_CHECK_FORM_PATH = OFFERING_CHECK_PATH;
 
 export const OFFERING_CHECK_API_PATH = "/api/offering-check";
 
@@ -95,16 +92,11 @@ end
 return {1, 0}
 `;
 
-export const OFFERING_CHECK_QUERY_KEYS = {
-  domain: "domain",
-  feature: "feature",
-} as const;
-
 export const OFFERING_CHECK_INVALID_MESSAGE =
   "Enter a website like acme.com. Feature name and description are optional.";
 
 export const OFFERING_REPORT_FAILURE_MESSAGES: Record<
-  Exclude<OfferingReportStatus, "checking" | "done">,
+  OfferingFailureStatus,
   string
 > = {
   "rate-limited": "You have used your free checks for now. Try again later.",
@@ -120,71 +112,54 @@ export const OFFERING_CHECK_SAMPLES: readonly OfferingCheckSample[] = [
 
 export const OFFERING_MODE_TITLE = "With web search";
 
-export const OFFERING_VERDICT_COPY: Record<
-  OfferingVerdict,
-  OfferingVerdictCopy
-> = {
+const AMBER = {
+  badgeClassName:
+    "bg-[#FDF1DC] text-[#8A5A00] dark:bg-[#F5A62333] dark:text-[#F5C76A]",
+  textClassName: "text-[#8A5A00] dark:text-[#F5C76A]",
+};
+
+const CONFIDENTLY_WRONG_BODY =
+  "It describes something different from what you ship. That is worse than silence, because it sounds confident.";
+
+export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
   knows: {
     label: "Knows it",
-    textClassName: "text-[#1C6B3F] dark:text-[#86EFAC]",
-    className:
+    badgeClassName:
       "bg-[#DFF5E8] text-[#1C6B3F] dark:bg-[#22C55E2E] dark:text-[#86EFAC]",
+    textClassName: "text-[#1C6B3F] dark:text-[#86EFAC]",
+    heroLead: "AI finds ",
+    featureBody:
+      "It finds the feature and can describe what it does from the pages available on the web.",
+    companyBody:
+      "It finds your product and can describe concrete products or features from the pages available on the web.",
   },
   vague: {
+    ...AMBER,
     label: "Vague",
-    textClassName: "text-[#8A5A00] dark:text-[#F5C76A]",
-    className:
-      "bg-[#FDF1DC] text-[#8A5A00] dark:bg-[#F5A62333] dark:text-[#F5C76A]",
+    heroLead: "AI is vague about ",
+    featureBody:
+      "It mentions the feature but cannot say what it does. Buyers asking about it get a hedged answer.",
+    companyBody:
+      "It knows you exist but stays generic about what you offer. Buyers asking about you get a hedged answer.",
   },
   confused: {
+    ...AMBER,
     label: "Mixes it up",
-    textClassName: "text-[#8A5A00] dark:text-[#F5C76A]",
-    className:
-      "bg-[#FDF1DC] text-[#8A5A00] dark:bg-[#F5A62333] dark:text-[#F5C76A]",
+    heroLead: "AI mixes up ",
+    featureBody: CONFIDENTLY_WRONG_BODY,
+    companyBody: CONFIDENTLY_WRONG_BODY,
   },
   unknown: {
     label: "Does not know it",
-    textClassName: "text-[#9B1C1C] dark:text-[#FCA5A5]",
-    className:
+    badgeClassName:
       "bg-[#FCE4E4] text-[#9B1C1C] dark:bg-[#EF444433] dark:text-[#FCA5A5]",
+    textClassName: "text-[#9B1C1C] dark:text-[#FCA5A5]",
+    heroLead: "AI does not know ",
+    featureBody:
+      "Even with web search it could not find it. Anyone asking an assistant about it hears that it does not exist.",
+    companyBody:
+      "Even with web search it could not say what you offer. Anyone asking an assistant about you gets nothing.",
   },
-};
-
-export const OFFERING_VERDICT_OVERVIEW_COPY: Record<
-  OfferingVerdict,
-  OfferingVerdictOverviewCopy
-> = {
-  knows: {
-    lead: "AI finds ",
-    trail: "",
-    body: "It finds the feature and can describe what it does from the pages available on the web.",
-  },
-  vague: {
-    lead: "AI is vague about ",
-    trail: "",
-    body: "It mentions the feature but cannot say what it does. Buyers asking about it get a hedged answer.",
-  },
-  confused: {
-    lead: "AI mixes up ",
-    trail: "",
-    body: "It describes something different from what you ship. That is worse than silence, because it sounds confident.",
-  },
-  unknown: {
-    lead: "AI does not know ",
-    trail: "",
-    body: "Even with web search it could not find it. Anyone asking an assistant about it hears that it does not exist.",
-  },
-};
-
-export const OFFERING_COMPANY_VERDICT_BODY: Record<OfferingVerdict, string> = {
-  knows:
-    "It finds your product and can describe concrete products or features from the pages available on the web.",
-  vague:
-    "It knows you exist but stays generic about what you offer. Buyers asking about you get a hedged answer.",
-  confused:
-    "It describes something different from what you ship. That is worse than silence, because it sounds confident.",
-  unknown:
-    "Even with web search it could not say what you offer. Anyone asking an assistant about you gets nothing.",
 };
 
 export const OFFERING_YOU_TOOLTIP =

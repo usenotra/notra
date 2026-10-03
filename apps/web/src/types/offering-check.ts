@@ -51,26 +51,23 @@ export type OfferingStreamEvent =
 
 export type OfferingStreamEmit = (event: OfferingStreamEvent) => void;
 
-export interface OfferingVerdictOverviewCopy {
-  lead: string;
-  trail: string;
-  body: string;
-}
-
 export interface OfferingVerdictCopy {
   label: string;
-  className: string;
+  badgeClassName: string;
   textClassName: string;
+  /** Hero title before the subject, e.g. "AI finds ". */
+  heroLead: string;
+  featureBody: string;
+  companyBody: string;
 }
 
 export type OfferingCheckSample = OfferingCheckInput;
 
-export type OfferingReportStatus =
-  | "checking"
-  | "done"
-  | "rate-limited"
-  | "unavailable"
-  | "error";
+export type OfferingFailureStatus = "rate-limited" | "unavailable" | "error";
+
+type OfferingReportStatus = "checking" | "done" | OfferingFailureStatus;
+
+export type OfferingFormProblem = "invalid" | OfferingFailureStatus;
 
 export interface OfferingCheckFormProps {
   samples: readonly OfferingCheckSample[];
@@ -90,8 +87,6 @@ export interface OfferingLiveState {
   result: OfferingCheckResult | null;
 }
 
-export type OfferingChatPhase = "thinking" | "searching" | "writing" | "done";
-
 export interface OfferingChatWindowProps {
   feature: string;
   question: string;
@@ -99,17 +94,7 @@ export interface OfferingChatWindowProps {
 }
 
 export interface OfferingChatReasoningProps {
-  hasAnswer: boolean;
   state: OfferingLiveState;
-}
-
-export interface OfferingReasoningTraceProps {
-  answered: boolean;
-  seconds: number;
-  reasoning: string;
-  hasSearchActivity: boolean;
-  queries: readonly string[];
-  domains: readonly string[];
 }
 
 export interface OfferingMarkdownNode {
@@ -167,4 +152,8 @@ export interface OfferingSentenceFieldProps extends ComponentProps<"input"> {
   label: string;
   invalid: boolean;
   leading?: ReactNode;
+}
+
+export interface OfferingDomainFaviconProps {
+  value: string;
 }

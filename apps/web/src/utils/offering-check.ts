@@ -3,7 +3,6 @@ import {
   OFFERING_CHECK_MAX_SOURCE_PAGES,
 } from "@/constants/offering-check";
 import type {
-  OfferingChatPhase,
   OfferingCheckResult,
   OfferingCheckInput,
   OfferingLiveState,
@@ -135,24 +134,6 @@ export function buildOfferingQuestion(input: OfferingCheckInput): string {
   return `Does ${input.domain} offer a feature called "${feature}"? What does it do? If you do not know it, tell me what they offer instead.`;
 }
 
-export function getOfferingChatPhase(
-  done: boolean,
-  answered: boolean,
-  hasAnswer: boolean,
-  waitingForSearch: boolean
-): OfferingChatPhase {
-  if (done) {
-    return "done";
-  }
-  if (answered) {
-    return "done";
-  }
-  if (hasAnswer) {
-    return "writing";
-  }
-  return waitingForSearch ? "searching" : "thinking";
-}
-
 const REGEX_SPECIAL_PATTERN = /[.*+?^${}()|[\]\\]/g;
 const WORD_CHARACTER = String.raw`[\p{L}\p{M}\p{N}_]`;
 
@@ -224,6 +205,12 @@ export function getOfferingActivityLabel(
     return `Searching the web · ${state.domains.length} ${sites}`;
   }
   return state.queries.length > 0 ? "Searching the web" : "Thinking";
+}
+
+export function countSourcePages(
+  sources: readonly OfferingSourceDomain[]
+): number {
+  return sources.reduce((total, source) => total + source.pages, 0);
 }
 
 export function describeOwnSiteUse(result: OfferingCheckResult): string {

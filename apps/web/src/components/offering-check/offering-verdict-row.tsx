@@ -11,7 +11,7 @@ import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 
-import { OFFERING_VERDICT_COPY } from "@/constants/offering-check";
+import { OFFERING_VERDICTS } from "@/constants/offering-check";
 import type {
   OfferingVerdict,
   OfferingVerdictRowProps,
@@ -29,7 +29,7 @@ export function OfferingVerdictRow({
   summary,
   activity,
 }: OfferingVerdictRowProps) {
-  const copy = verdict ? OFFERING_VERDICT_COPY[verdict] : null;
+  const copy = verdict ? OFFERING_VERDICTS[verdict] : null;
 
   return (
     <div className="flex items-start gap-4">
@@ -37,7 +37,7 @@ export function OfferingVerdictRow({
         aria-hidden
         className={cn(
           "flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors duration-300",
-          copy?.className ?? "bg-muted text-muted-foreground"
+          copy?.badgeClassName ?? "bg-muted text-muted-foreground"
         )}
       >
         <HugeiconsIcon

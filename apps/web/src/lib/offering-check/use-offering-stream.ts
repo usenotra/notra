@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useSyncExternalStore } from "react";
 
 import { OFFERING_CHECK_API_PATH } from "@/constants/offering-check";
@@ -8,27 +6,36 @@ import type {
   OfferingCheckInput,
   OfferingCheckResult,
   OfferingLiveState,
-  OfferingReportStatus,
+  OfferingFailureStatus,
   OfferingStreamEvent,
 } from "@/types/offering-check";
+import {
+  failureStatusFor,
+  readOfferingDescription,
+} from "@/utils/offering-report";
 
 type Action =
   | { type: "event"; event: OfferingStreamEvent }
-  | { type: "failed"; status: OfferingReportStatus };
+  | { type: "failed"; status: OfferingFailureStatus };
 
-const STATUS_BY_RESPONSE: Partial<Record<number, OfferingReportStatus>> = {
-  429: "rate-limited",
-  503: "unavailable",
+const INITIAL_STATE: OfferingLiveState = {
+  status: "checking",
+  answer: "",
+  reasoning: "",
+  seconds: null,
+  queries: [],
+  domains: [],
+  result: null,
 };
 
-function initialState(result: OfferingCheckResult | null): OfferingLiveState {
+function settledState(result: OfferingCheckResult): OfferingLiveState {
   return {
-    status: result ? "done" : "checking",
-    answer: result?.answer ?? "",
-    reasoning: result?.reasoning ?? "",
-    seconds: result?.seconds ?? null,
-    queries: result?.queries ?? [],
-    domains: result?.sources.map((source) => source.domain) ?? [],
+    status: "done",
+    answer: result.answer,
+    reasoning: result.reasoning,
+    seconds: result.seconds,
+    queries: result.queries,
+    domains: result.sources.map((source) => source.domain),
     result,
   };
 }
@@ -61,7 +68,7 @@ function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
         seconds: event.seconds,
       };
     case "result":
-      return initialState(event.result);
+      return settledState(event.result);
     default:
       return { ...state, status: "error" };
   }
@@ -100,19 +107,24 @@ async function streamOfferingCheck(
   input: OfferingCheckInput,
   signal: AbortSignal,
   onEvent: (event: OfferingStreamEvent) => void,
-  onFailure: (status: OfferingReportStatus) => void
+  onFailure: (status: OfferingFailureStatus) => void
 ) {
+  // The optional description never goes into the shareable URL, so it is
+  // picked up from this tab's session when the check starts.
   const response = await fetch(OFFERING_CHECK_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      ...input,
+      description: readOfferingDescription(input),
+    }),
     signal,
   }).catch(() => null);
   if (signal.aborted) {
     return;
   }
   if (!response?.ok) {
-    onFailure(STATUS_BY_RESPONSE[response?.status ?? 0] ?? "error");
+    onFailure(failureStatusFor(response?.status));
     return;
   }
 
@@ -126,11 +138,8 @@ async function streamOfferingCheck(
   }
 }
 
-function createOfferingStreamStore(
-  input: OfferingCheckInput,
-  initialResult: OfferingCheckResult | null
-) {
-  let state = initialState(initialResult);
+function createOfferingStreamStore(input: OfferingCheckInput) {
+  let state = INITIAL_STATE;
   let start: ReturnType<typeof setTimeout> | null = null;
   let controller: AbortController | null = null;
   const listeners = new Set<() => void>();
@@ -145,7 +154,7 @@ function createOfferingStreamStore(
     getSnapshot: () => state,
     subscribe: (listener: () => void) => {
       listeners.add(listener);
-      if (!(initialResult || start || controller)) {
+      if (!(start || controller)) {
         start = setTimeout(() => {
           start = null;
           controller = new AbortController();
@@ -178,17 +187,12 @@ function createOfferingStreamStore(
 }
 
 export function useOfferingStream(
-  input: OfferingCheckInput,
-  initialResult: OfferingCheckResult | null
+  input: OfferingCheckInput
 ): OfferingLiveState {
   const { domain, feature, description } = input;
   const store = useMemo(
-    () =>
-      createOfferingStreamStore(
-        { domain, feature, description },
-        initialResult
-      ),
-    [domain, feature, description, initialResult]
+    () => createOfferingStreamStore({ domain, feature, description }),
+    [domain, feature, description]
   );
   return useSyncExternalStore(
     store.subscribe,

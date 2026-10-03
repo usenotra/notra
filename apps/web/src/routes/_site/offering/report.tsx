@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { OfferingReport } from "@/components/offering-check/offering-report";
-import { OFFERING_CHECK_FORM_PATH } from "@/constants/offering-check";
+import { OFFERING_CHECK_PATH } from "@/constants/offering-check";
 import {
   offeringCheckRequestSchema,
   offeringReportSearchSchema,
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_site/offering/report")({
   beforeLoad: ({ search }) => {
     const parsed = offeringCheckRequestSchema.safeParse(search);
     if (!parsed.success) {
-      throw redirect({ to: OFFERING_CHECK_FORM_PATH });
+      throw redirect({ to: OFFERING_CHECK_PATH });
     }
     return { input: parsed.data };
   },

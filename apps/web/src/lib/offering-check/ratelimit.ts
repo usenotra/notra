@@ -12,13 +12,13 @@ import { getOfferingCheckBrandFeatureIdentity } from "@/utils/offering-check";
 
 import { getOfferingCheckRedis } from "./redis";
 
-class OfferingCheckRateLimitExceeded extends Data.TaggedError(
+export class OfferingCheckRateLimitExceeded extends Data.TaggedError(
   "OfferingCheckRateLimitExceeded"
 )<{
   readonly reset: number;
 }> {}
 
-class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
+export class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
   "OfferingCheckRateLimitUnavailable"
 )<{
   readonly cause: unknown;
@@ -26,46 +26,44 @@ class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
 
 const GLOBAL_KEY = "global";
 
-function ipHash(request: Request) {
-  return createHash("sha256").update(getClientIp(request)).digest("hex");
+type RateLimitName = keyof typeof OFFERING_CHECK_RATE_LIMITS;
+
+interface RateLimitCheck {
+  key: string;
+  requests: number;
+  windowMs: number;
 }
 
-function limitChecks(request: Request, input: OfferingCheckInput) {
-  const ipKey = ipHash(request);
-  const brandKey = createHash("sha256").update(input.domain).digest("hex");
-  const brandFeatureKey = createHash("sha256")
-    .update(getOfferingCheckBrandFeatureIdentity(input))
-    .digest("hex");
-  return (
-    [
-      { name: "perIpHour", key: ipKey },
-      { name: "perIpDay", key: ipKey },
-      { name: "perBrandDay", key: brandKey },
-      { name: "perBrandFeatureDay", key: brandFeatureKey },
-      { name: "globalDay", key: GLOBAL_KEY },
-    ] as const
-  ).map(({ name, key }) => ({
+function sha256(value: string) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function limitCheck(name: RateLimitName, id: string): RateLimitCheck {
+  return {
     ...OFFERING_CHECK_RATE_LIMITS[name],
-    key: `ratelimit:web:offering-check:${name}:${key}`,
-  }));
+    key: `ratelimit:web:offering-check:${name}:${id}`,
+  };
 }
 
-function preflightLimitChecks(request: Request) {
+function scanLimitChecks(
+  request: Request,
+  input: OfferingCheckInput
+): RateLimitCheck[] {
+  const ip = sha256(getClientIp(request));
   return [
-    {
-      ...OFFERING_CHECK_RATE_LIMITS.preflightPerIpMinute,
-      key: `ratelimit:web:offering-check:preflightPerIpMinute:${ipHash(request)}`,
-    },
+    limitCheck("perIpHour", ip),
+    limitCheck("perIpDay", ip),
+    limitCheck("perBrandDay", sha256(input.domain)),
+    limitCheck(
+      "perBrandFeatureDay",
+      sha256(getOfferingCheckBrandFeatureIdentity(input))
+    ),
+    limitCheck("globalDay", GLOBAL_KEY),
   ];
 }
 
 const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
-  function* (
-    checks:
-      | ReturnType<typeof limitChecks>
-      | ReturnType<typeof preflightLimitChecks>,
-    consume: boolean
-  ) {
+  function* (checks: readonly RateLimitCheck[], consume: boolean) {
     const redis = getOfferingCheckRedis();
     if (!redis) {
       if (process.env.NODE_ENV === "production") {
@@ -120,17 +118,20 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
 export const peekOfferingCheckRateLimit = Effect.fn(
   "peekOfferingCheckRateLimit"
 )(function* (request: Request, input: OfferingCheckInput) {
-  yield* checkOfferingCheckRateLimit(limitChecks(request, input), false);
+  yield* checkOfferingCheckRateLimit(scanLimitChecks(request, input), false);
 });
 
 export const enforceOfferingCheckRateLimit = Effect.fn(
   "enforceOfferingCheckRateLimit"
 )(function* (request: Request, input: OfferingCheckInput) {
-  yield* checkOfferingCheckRateLimit(limitChecks(request, input), true);
+  yield* checkOfferingCheckRateLimit(scanLimitChecks(request, input), true);
 });
 
 export const enforceOfferingCheckPreflightRateLimit = Effect.fn(
   "enforceOfferingCheckPreflightRateLimit"
 )(function* (request: Request) {
-  yield* checkOfferingCheckRateLimit(preflightLimitChecks(request), true);
+  yield* checkOfferingCheckRateLimit(
+    [limitCheck("preflightPerIpMinute", sha256(getClientIp(request)))],
+    true
+  );
 });

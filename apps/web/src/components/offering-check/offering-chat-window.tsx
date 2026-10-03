@@ -1,15 +1,11 @@
-"use client";
-
 import { AiBrain01Icon, GlobalSearchIcon } from "@hugeicons/core-free-icons";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { ChatgptMessage } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-message";
 import { ChatgptReasoning } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-reasoning";
-import { ChatgptThinking } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-thinking";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { geoAnswerMarkdownFontClass } from "@notra/ui/lib/geo-answer-font";
 import { cn } from "@notra/ui/lib/utils";
-import { useState } from "react";
 
 import {
   OFFERING_CHECK_MODEL_LABEL,
@@ -20,11 +16,9 @@ import { useElapsedSeconds } from "@/lib/offering-check/use-elapsed-seconds";
 import type {
   OfferingChatReasoningProps,
   OfferingChatWindowProps,
-  OfferingReasoningTraceProps,
 } from "@/types/offering-check";
 import {
   createFeatureHighlightPlugin,
-  getOfferingChatPhase,
   stripAnswerCitations,
 } from "@/utils/offering-check";
 
@@ -37,82 +31,54 @@ const ANSWER_MARKDOWN_CLASS =
 const ENTER_CLASS =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500 motion-reduce:animate-none";
 
-function OfferingReasoningTrace({
-  answered,
-  seconds,
-  reasoning,
-  hasSearchActivity,
-  queries,
-  domains,
-}: OfferingReasoningTraceProps) {
-  const hasTrace = reasoning.length > 0 || hasSearchActivity;
-  return (
-    <ChatgptReasoning complete={answered} seconds={seconds}>
-      {hasTrace ? (
-        <div className="border-border mb-2 flex flex-col gap-3 border-l pl-3.5">
-          {reasoning.length > 0 ? (
-            <OfferingTraceStep icon={AiBrain01Icon} label="Thought">
-              <MessageResponse className="text-muted-foreground text-[14px] leading-6 [&_p]:my-1.5 [&_p:first-child]:mt-0 [&_strong]:font-medium">
-                {reasoning}
-              </MessageResponse>
-            </OfferingTraceStep>
-          ) : null}
-          {hasSearchActivity ? (
-            <OfferingTraceStep
-              icon={GlobalSearchIcon}
-              label="Searched the web"
-              meta={`${domains.length} ${domains.length === 1 ? "site" : "sites"}`}
-            >
-              <OfferingSearchActivity domains={domains} queries={queries} />
-            </OfferingTraceStep>
-          ) : null}
-        </div>
-      ) : null}
-    </ChatgptReasoning>
-  );
-}
-
-function OfferingChatReasoning({
-  hasAnswer,
-  state,
-}: OfferingChatReasoningProps) {
+function OfferingChatReasoning({ state }: OfferingChatReasoningProps) {
   const reasoning = state.reasoning.trim();
-  const finalSeconds = state.seconds;
-  const answered = finalSeconds !== null;
+  const answered = state.seconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
-  const hasSearchActivity =
-    state.queries.length > 0 || state.domains.length > 0;
-  const hasTrace = reasoning.length > 0 || hasSearchActivity;
-  const showWorkedFor = answered || hasTrace || hasAnswer;
-  const phase = getOfferingChatPhase(
-    state.result !== null,
-    answered,
-    hasAnswer,
-    !hasSearchActivity && reasoning.length === 0
-  );
+  const { domains, queries } = state;
+  const searched = queries.length > 0 || domains.length > 0;
+  const started =
+    answered || searched || reasoning.length > 0 || state.answer.length > 0;
+
+  if (!started) {
+    return (
+      <Shimmer className="text-[15px] leading-7 font-medium">
+        Searching the web
+      </Shimmer>
+    );
+  }
 
   return (
     <div className="flex flex-col items-start gap-2.5">
-      {showWorkedFor ? (
-        <OfferingReasoningTrace
-          answered={answered}
-          domains={state.domains}
-          hasSearchActivity={hasSearchActivity}
-          queries={state.queries}
-          reasoning={reasoning}
-          seconds={finalSeconds ?? liveSeconds}
-        />
-      ) : null}
+      <ChatgptReasoning
+        complete={answered}
+        seconds={state.seconds ?? liveSeconds}
+      >
+        {reasoning.length > 0 || searched ? (
+          <div className="border-border mb-2 flex flex-col gap-3 border-l pl-3.5">
+            {reasoning.length > 0 ? (
+              <OfferingTraceStep icon={AiBrain01Icon} label="Thought">
+                <MessageResponse className="text-muted-foreground text-[14px] leading-6 [&_p]:my-1.5 [&_p:first-child]:mt-0 [&_strong]:font-medium">
+                  {reasoning}
+                </MessageResponse>
+              </OfferingTraceStep>
+            ) : null}
+            {searched ? (
+              <OfferingTraceStep
+                icon={GlobalSearchIcon}
+                label="Searched the web"
+                meta={`${domains.length} ${domains.length === 1 ? "site" : "sites"}`}
+              >
+                <OfferingSearchActivity domains={domains} queries={queries} />
+              </OfferingTraceStep>
+            ) : null}
+          </div>
+        ) : null}
+      </ChatgptReasoning>
       {state.result?.searchUsed === false ? (
         <p className="text-muted-foreground text-[14px] leading-6">
           {OFFERING_SEARCH_SKIPPED_HINT}
         </p>
-      ) : null}
-      {phase === "thinking" && !showWorkedFor ? <ChatgptThinking /> : null}
-      {phase === "searching" ? (
-        <Shimmer className="text-[15px] leading-7 font-medium">
-          Searching the web
-        </Shimmer>
       ) : null}
     </div>
   );
@@ -123,8 +89,6 @@ export function OfferingChatWindow({
   question,
   state,
 }: OfferingChatWindowProps) {
-  const [live] = useState(() => state.result === null);
-  const enterClass = live ? ENTER_CLASS : null;
   const answer = stripAnswerCitations(state.answer);
   const answered = state.seconds !== null;
 
@@ -145,7 +109,7 @@ export function OfferingChatWindow({
       >
         <div className="flex flex-col gap-5 px-5 py-5">
           <ChatgptMessage
-            className={cn("[&>div]:max-w-[88%]", enterClass)}
+            className={cn("[&>div]:max-w-[88%]", ENTER_CLASS)}
             from="user"
           >
             {question}
@@ -153,16 +117,11 @@ export function OfferingChatWindow({
 
           <ChatgptMessage
             className={cn(
-              enterClass,
-              live ? "delay-300 motion-reduce:delay-0" : null
+              ENTER_CLASS,
+              "[animation-delay:300ms] motion-reduce:[animation-delay:0ms]"
             )}
             from="assistant"
-            reasoning={
-              <OfferingChatReasoning
-                hasAnswer={answer.length > 0}
-                state={state}
-              />
-            }
+            reasoning={<OfferingChatReasoning state={state} />}
           >
             {answer.length > 0 ? (
               <MessageResponse

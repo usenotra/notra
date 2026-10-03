@@ -9,31 +9,28 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { cn } from "@notra/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import {
   OFFERING_CHECK_DESCRIPTION_MAX_LENGTH,
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
   OFFERING_CHECK_INVALID_MESSAGE,
-  OFFERING_CHECK_PREFLIGHT_PATH,
   OFFERING_REPORT_FAILURE_MESSAGES,
-  OFFERING_FAVICON_SETTLE_MS,
-  OFFERING_SAMPLE_TYPE_MS,
+  OFFERING_REPORT_PATH,
 } from "@/constants/offering-check";
+import { preflightOfferingCheck } from "@/lib/offering-check/preflight";
+import { useSampleTyping } from "@/lib/offering-check/use-sample-typing";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type {
   OfferingCheckFormProps,
   OfferingCheckInput,
-  OfferingSentenceFieldProps,
+  OfferingFormProblem,
 } from "@/types/offering-check";
-import { normalizeDomain } from "@/utils/offering-check";
-import {
-  offeringReportHref,
-  storeOfferingReportDescription,
-} from "@/utils/offering-report";
-import { getReducedMotionSnapshot } from "@/utils/reduced-motion";
+import { storeOfferingDescription } from "@/utils/offering-report";
 
+import { OfferingDomainFavicon } from "./offering-domain-favicon";
 import { OfferingFavicon } from "./offering-favicon";
+import { OfferingSentenceField } from "./offering-sentence-field";
 
 const SWAP_CLASS =
   "transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] [grid-area:1/1] motion-reduce:transition-none";
@@ -41,129 +38,38 @@ const SWAP_HIDDEN = "scale-25 opacity-0 blur-[4px]";
 const REVEAL_CLASS =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[ending-style]:h-0 data-[ending-style]:opacity-0 data-[starting-style]:h-0 data-[starting-style]:opacity-0 motion-reduce:transition-none";
 
-function SentenceField({
-  id,
-  label,
-  leading,
-  invalid,
-  className,
-  ...props
-}: OfferingSentenceFieldProps) {
-  return (
-    <span
-      className={cn(
-        "group/field relative inline-flex max-w-full items-baseline gap-2 rounded-xl px-1 align-baseline transition-[background-color] duration-200 focus-within:bg-[#8B5CF614] hover:bg-[#8B5CF60D] dark:focus-within:bg-[#A78BFA1F] dark:hover:bg-[#A78BFA14]",
-        className
-      )}
-    >
-      <label className="sr-only" htmlFor={id}>
-        {label}
-      </label>
-      {leading}
-      <input
-        aria-describedby={invalid ? "offering-check-error" : undefined}
-        aria-invalid={invalid}
-        className="[field-sizing:content] max-w-full min-w-[4ch] bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] outline-none placeholder:text-[#8B5CF659] dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA59]"
-        id={id}
-        size={Math.max(
-          String(props.value ?? "").length,
-          props.placeholder?.length ?? 0,
-          4
-        )}
-        {...props}
-      />
-      <span
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-1 bottom-0.5 h-0.5 rounded-full transition-colors duration-200",
-          invalid
-            ? "bg-[#DC2626]"
-            : "bg-[#8B5CF63D] group-focus-within/field:bg-[#8B5CF6] dark:bg-[#A78BFA40] dark:group-focus-within/field:bg-[#A78BFA]"
-        )}
-      />
-    </span>
-  );
-}
-
 export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const navigate = useNavigate();
   const [domain, setDomain] = useState("");
   const [feature, setFeature] = useState("");
   const [description, setDescription] = useState("");
-  const [invalid, setInvalid] = useState(false);
-  const [blocked, setBlocked] = useState<string | null>(null);
+  const [problem, setProblem] = useState<OfferingFormProblem | null>(null);
   const [pending, setPending] = useState(false);
-  const typing = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [settledDomain, setSettledDomain] = useState<string | null>(null);
-
-  // Waits for a pause in typing so the favicon does not flicker per keystroke.
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setSettledDomain(normalizeDomain(domain)),
-      OFFERING_FAVICON_SETTLE_MS
-    );
-    return () => clearTimeout(timer);
-  }, [domain]);
-
-  useEffect(
-    () => () => {
-      if (typing.current) {
-        clearInterval(typing.current);
-      }
-    },
-    []
-  );
+  const typeSample = useSampleTyping((nextDomain, nextFeature) => {
+    setDomain(nextDomain);
+    setFeature(nextFeature);
+  });
 
   const openReport = async (input: OfferingCheckInput) => {
-    setBlocked(null);
+    setProblem(null);
     setPending(true);
-    const response = await fetch(OFFERING_CHECK_PREFLIGHT_PATH, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    }).catch(() => null);
-    if (!response?.ok) {
-      const reason =
-        {
-          429: OFFERING_REPORT_FAILURE_MESSAGES["rate-limited"],
-          503: OFFERING_REPORT_FAILURE_MESSAGES.unavailable,
-        }[response?.status ?? 0] ?? OFFERING_REPORT_FAILURE_MESSAGES.error;
-      setBlocked(reason);
+    const failure = await preflightOfferingCheck(input);
+    if (failure) {
+      setProblem(failure);
       setPending(false);
       return;
     }
-    storeOfferingReportDescription(input);
-    await navigate({ href: offeringReportHref(input) });
+    storeOfferingDescription(input);
+    await navigate({
+      to: OFFERING_REPORT_PATH,
+      search: { domain: input.domain, feature: input.feature || undefined },
+    });
   };
 
-  // Types the sample in so the sentence visibly fills itself.
   const fillSample = (sample: OfferingCheckInput) => {
-    if (typing.current) {
-      clearInterval(typing.current);
-    }
-    setInvalid(false);
-    setBlocked(null);
+    setProblem(null);
     setDescription(sample.description);
-    if (getReducedMotionSnapshot()) {
-      setDomain(sample.domain);
-      setFeature(sample.feature);
-      return;
-    }
-    const total = sample.domain.length + sample.feature.length;
-    let typed = 0;
-    setDomain("");
-    setFeature("");
-    typing.current = setInterval(() => {
-      typed += 1;
-      setDomain(sample.domain.slice(0, typed));
-      setFeature(
-        sample.feature.slice(0, Math.max(0, typed - sample.domain.length))
-      );
-      if (typed >= total && typing.current) {
-        clearInterval(typing.current);
-        typing.current = null;
-      }
-    }, OFFERING_SAMPLE_TYPE_MS);
+    typeSample(sample);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -173,53 +79,38 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
       feature,
       description,
     });
-    if (!parsed.success) {
-      setInvalid(true);
-      return;
+    if (parsed.success) {
+      openReport(parsed.data);
+    } else {
+      setProblem("invalid");
     }
-    openReport(parsed.data);
   };
+
+  const invalid = problem === "invalid";
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
       <p className="font-display text-foreground text-[1.75rem]/[1.55] font-medium tracking-[-0.02em] text-pretty sm:text-[2.25rem]/[1.5]">
         Does AI know{" "}
-        <SentenceField
+        <OfferingSentenceField
           autoCapitalize="none"
           autoComplete="url"
           id="offering-check-domain"
           inputMode="url"
           invalid={invalid}
           label="Your website"
-          leading={
-            <span
-              className={cn(
-                "grid shrink-0 self-center transition-[width,opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
-                settledDomain
-                  ? "w-7 opacity-100"
-                  : "w-0 scale-50 opacity-0 blur-[2px]"
-              )}
-            >
-              {settledDomain ? (
-                <OfferingFavicon
-                  className="size-7 rounded-lg"
-                  domain={settledDomain}
-                  key={settledDomain}
-                />
-              ) : null}
-            </span>
-          }
+          leading={<OfferingDomainFavicon value={domain} />}
           name="domain"
           onChange={(event) => {
             setDomain(event.target.value);
-            setInvalid(false);
+            setProblem(null);
           }}
           placeholder="acme.com"
           spellCheck={false}
           value={domain}
         />{" "}
         and{" "}
-        <SentenceField
+        <OfferingSentenceField
           autoComplete="off"
           id="offering-check-feature"
           invalid={false}
@@ -228,7 +119,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           name="feature"
           onChange={(event) => {
             setFeature(event.target.value);
-            setInvalid(false);
+            setProblem(null);
           }}
           placeholder="your feature"
           value={feature}
@@ -266,7 +157,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      {invalid || blocked ? (
+      {problem ? (
         <p
           className={cn(
             "mt-4 text-[0.875rem]/5.5",
@@ -277,7 +168,9 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           id={invalid ? "offering-check-error" : undefined}
           role="alert"
         >
-          {invalid ? OFFERING_CHECK_INVALID_MESSAGE : blocked}
+          {invalid
+            ? OFFERING_CHECK_INVALID_MESSAGE
+            : OFFERING_REPORT_FAILURE_MESSAGES[problem]}
         </p>
       ) : null}
 

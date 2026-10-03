@@ -1,34 +1,38 @@
-import {
-  OFFERING_CHECK_QUERY_KEYS,
-  OFFERING_REPORT_PATH,
-} from "@/constants/offering-check";
-import type { OfferingCheckInput } from "@/types/offering-check";
+import type {
+  OfferingCheckInput,
+  OfferingFailureStatus,
+} from "@/types/offering-check";
 
-export function offeringReportHref(input: OfferingCheckInput): string {
-  const params = new URLSearchParams({
-    [OFFERING_CHECK_QUERY_KEYS.domain]: input.domain,
-  });
-  if (input.feature.length > 0) {
-    params.set(OFFERING_CHECK_QUERY_KEYS.feature, input.feature);
-  }
-  return `${OFFERING_REPORT_PATH}?${params.toString()}`;
+import { getOfferingCheckBrandFeatureIdentity } from "./offering-check";
+
+const DESCRIPTION_KEY_PREFIX = "offering-check:description:";
+
+const FAILURE_BY_HTTP_STATUS: Partial<Record<number, OfferingFailureStatus>> = {
+  429: "rate-limited",
+  503: "unavailable",
+};
+
+function descriptionKey(input: OfferingCheckInput): string {
+  return `${DESCRIPTION_KEY_PREFIX}${getOfferingCheckBrandFeatureIdentity(input)}`;
 }
 
-export function storeOfferingReportDescription(
-  input: OfferingCheckInput
-): void {
+export function failureStatusFor(
+  httpStatus: number | undefined
+): OfferingFailureStatus {
+  return FAILURE_BY_HTTP_STATUS[httpStatus ?? 0] ?? "error";
+}
+
+export function storeOfferingDescription(input: OfferingCheckInput): void {
   try {
-    sessionStorage.setItem(offeringReportHref(input), input.description);
+    sessionStorage.setItem(descriptionKey(input), input.description);
   } catch {
     // The report still works without optional context when storage is blocked.
   }
 }
 
-export function readOfferingReportDescription(
-  input: OfferingCheckInput
-): string {
+export function readOfferingDescription(input: OfferingCheckInput): string {
   try {
-    return sessionStorage.getItem(offeringReportHref(input)) ?? "";
+    return sessionStorage.getItem(descriptionKey(input)) ?? "";
   } catch {
     return "";
   }

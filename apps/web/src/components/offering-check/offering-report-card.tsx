@@ -15,6 +15,7 @@ import type {
 } from "@/types/offering-check";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 import {
+  countSourcePages,
   describeOwnSiteUse,
   getOfferingActivityLabel,
 } from "@/utils/offering-check";
@@ -92,8 +93,6 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
   const { result } = state;
   const answered = state.seconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
-  const pagesRead =
-    result?.sources.reduce((total, source) => total + source.pages, 0) ?? 0;
 
   return (
     <div className="w-full rounded-3xl border border-[#1E1E1E14] bg-[linear-gradient(in_oklab_180deg,oklab(95.1%_0.011_-0.018_/_15%)_0%,oklab(93.7%_0.019_-0.031_/_75%)_100%)] p-2 sm:rounded-[2rem] sm:p-3 dark:border-white/10 dark:bg-white/[0.02] dark:bg-none">
@@ -150,7 +149,11 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
             label="Sites searched"
             value={result?.sources.length ?? state.domains.length}
           />
-          <ReportStat label="Pages read" pending={!result} value={pagesRead} />
+          <ReportStat
+            label="Pages read"
+            pending={!result}
+            value={result ? countSourcePages(result.sources) : null}
+          />
           <ReportStat
             label="Your site"
             pending={!result}

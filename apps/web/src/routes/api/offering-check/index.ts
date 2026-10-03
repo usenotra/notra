@@ -1,24 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Effect } from "effect";
 
-import {
-  OFFERING_CHECK_KILL_SWITCH_ENV,
-  OFFERING_CHECK_TIMEOUT_MS,
-} from "@/constants/offering-check";
+import { OFFERING_CHECK_TIMEOUT_MS } from "@/constants/offering-check";
 import {
   readCachedOfferingCheck,
   writeCachedOfferingCheck,
 } from "@/lib/offering-check/cache";
 import { enforceOfferingCheckRateLimit } from "@/lib/offering-check/ratelimit";
-import { isSameOriginRequest } from "@/lib/offering-check/same-origin";
+import {
+  rateLimitResponse,
+  readOfferingCheckRequest,
+} from "@/lib/offering-check/request";
 import { runOfferingCheck } from "@/lib/offering-check/scan";
-import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type {
   OfferingCheckInput,
   OfferingCheckResult,
   OfferingStreamEvent,
 } from "@/types/offering-check";
-import { jsonError } from "@/utils/api-response";
 
 const STREAM_HEADERS = {
   "Cache-Control": "no-store",
@@ -75,25 +73,10 @@ function streamEvents(
 }
 
 async function POST(request: Request) {
-  if (process.env[OFFERING_CHECK_KILL_SWITCH_ENV] === "off") {
-    return jsonError("The checker is paused", 503);
+  const input = await readOfferingCheckRequest(request);
+  if (input instanceof Response) {
+    return input;
   }
-  if (!isSameOriginRequest(request)) {
-    return jsonError("Forbidden", 403);
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonError("Invalid JSON payload", 400);
-  }
-
-  const parsed = offeringCheckRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return jsonError("Enter a website and a feature name", 400);
-  }
-  const input = parsed.data;
 
   return Effect.runPromise(
     Effect.gen(function* () {
@@ -102,24 +85,7 @@ async function POST(request: Request) {
         yield* enforceOfferingCheckRateLimit(request, input);
       }
       return streamEvents(request, input, cached);
-    }).pipe(
-      Effect.catchTags({
-        OfferingCheckRateLimitUnavailable: () =>
-          Effect.succeed(jsonError("Rate limit service unavailable", 503)),
-        OfferingCheckRateLimitExceeded: (error) => {
-          const retryAfter = Math.max(
-            0,
-            Math.ceil((error.reset - Date.now()) / 1000)
-          );
-          return Effect.succeed(
-            Response.json(
-              { error: "Rate limit exceeded" },
-              { headers: { "Retry-After": String(retryAfter) }, status: 429 }
-            )
-          );
-        },
-      })
-    )
+    }).pipe(Effect.catch((error) => Effect.succeed(rateLimitResponse(error))))
   );
 }
 
