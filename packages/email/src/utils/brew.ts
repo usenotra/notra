@@ -215,7 +215,10 @@ export async function sendBrewEmail(
   };
 }
 
-/** Upserts contacts in batches. A no-op without a Brew key. */
+/**
+ * Upserts contacts. A no-op without a Brew key. One contact uses the single
+ * write (100/min), more go in batches (10/min), per Brew's rate-limit policies.
+ */
 export async function upsertBrewContacts(
   contacts: BrewContactInput[]
 ): Promise<{ failed: number; errors: BrewEmailError[] }> {
@@ -223,6 +226,16 @@ export async function upsertBrewContacts(
   const errors: BrewEmailError[] = [];
   if (!isBrewConfigured()) {
     return { failed, errors };
+  }
+
+  if (contacts.length === 1) {
+    const result = await brewRequest<unknown>("/contacts", {
+      method: "POST",
+      body: contacts[0],
+    });
+    return result.ok
+      ? { failed, errors }
+      : { failed: 1, errors: [result.error] };
   }
 
   for (

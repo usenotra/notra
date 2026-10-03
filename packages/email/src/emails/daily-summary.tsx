@@ -6,7 +6,6 @@ import {
   Heading,
   Html,
   Img,
-  Link,
   Preview,
   Row,
   Section,
@@ -17,6 +16,7 @@ import {
 import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
+import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import { EmailTitleCard } from "../components/title-card";
 import { EMAIL_THEME } from "../constants/theme";
 import type {
@@ -32,15 +32,15 @@ const PILL: Record<
 > = {
   up: {
     backgroundColor: EMAIL_THEME.geoUpWash,
-    color: EMAIL_THEME.geoUp,
+    color: EMAIL_THEME.geoUpText,
   },
   down: {
     backgroundColor: EMAIL_THEME.geoDownWash,
-    color: EMAIL_THEME.geoDown,
+    color: EMAIL_THEME.geoDownText,
   },
   neutral: {
     backgroundColor: EMAIL_THEME.muted,
-    color: EMAIL_THEME.mutedForeground,
+    color: EMAIL_THEME.subtleForeground,
   },
 };
 
@@ -153,7 +153,7 @@ export const DailySummaryEmail = ({
                 action={
                   <Text
                     style={{
-                      color: EMAIL_THEME.mutedForeground,
+                      color: EMAIL_THEME.subtleForeground,
                       fontSize: "12px",
                       margin: 0,
                       whiteSpace: "nowrap",
@@ -194,7 +194,7 @@ export const DailySummaryEmail = ({
                   {remainingCount > 0 ? (
                     <Text
                       style={{
-                        color: EMAIL_THEME.mutedForeground,
+                        color: EMAIL_THEME.subtleForeground,
                         fontSize: "13px",
                         margin: "12px 0 0",
                         textAlign: "center",
@@ -213,17 +213,10 @@ export const DailySummaryEmail = ({
               </EmailCtaButton>
             </Section>
 
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
-              </Text>
-            </Section>
+            <EmailNotificationSettingsNote
+              organizationName={organizationName}
+              organizationSlug={organizationSlug}
+            />
 
             <EmailFooter showPhysicalAddress />
           </Container>
@@ -258,7 +251,7 @@ function MetricCell({
     >
       <Text
         style={{
-          color: EMAIL_THEME.mutedForeground,
+          color: EMAIL_THEME.subtleForeground,
           fontSize: "12px",
           margin: 0,
         }}
@@ -322,7 +315,7 @@ function ChangeRow({
             <span
               key={change.id}
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
                 marginRight: "8px",
@@ -336,7 +329,7 @@ function ChangeRow({
           {item.engineLabel ? (
             <span
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
                 verticalAlign: "middle",

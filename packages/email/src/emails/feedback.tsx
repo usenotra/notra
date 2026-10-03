@@ -15,6 +15,7 @@ import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
 import type { FeedbackEmailProps } from "../types/feedback";
 import { FEEDBACK_SENTIMENT_META } from "../utils/feedback";
+import { toPreviewText } from "../utils/preview";
 
 export const FeedbackEmail = ({
   message = "The new editor feels a lot snappier, but I'd love to see dark mode fixes on the mobile nav.",
@@ -31,10 +32,7 @@ export const FeedbackEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>
-        {sentimentMeta ? `${sentimentMeta.emoji} ` : ""}New feedback from{" "}
-        {userName}
-      </Preview>
+      <Preview>{toPreviewText(message)}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
           <Container className="mx-auto my-[40px] max-w-[520px] rounded p-[20px]">

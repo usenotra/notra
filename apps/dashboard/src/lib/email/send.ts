@@ -33,6 +33,7 @@ export async function sendWelcomeEmail({ userEmail }: { userEmail: string }) {
 }
 
 export async function sendScheduledContentFailedEmail({
+  digestBatchKey,
   recipientEmail,
   organizationName,
   scheduleName,
@@ -40,13 +41,12 @@ export async function sendScheduledContentFailedEmail({
   organizationSlug,
   subject,
 }: SendScheduledContentFailedEmailProps) {
-  const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
+  const settingsLink = `${process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/automation/schedules`;
 
   return sendBrewEmail({
     category: "schedule-content-failed",
     to: recipientEmail,
-    subject:
-      subject ?? `Your ${scheduleName} schedule failed to generate content`,
+    subject: subject ?? `${scheduleName} couldn't generate content`,
     react: ScheduledContentFailedEmail({
       organizationName,
       organizationSlug,
@@ -54,11 +54,12 @@ export async function sendScheduledContentFailedEmail({
       reason,
       settingsLink,
     }),
-    idempotencyKey: `${recipientEmail}:${scheduleName}:${Date.now()}`,
+    idempotencyKey: digestBatchKey,
   });
 }
 
 export async function sendScheduledContentSkippedEmail({
+  digestBatchKey,
   recipientEmail,
   organizationName,
   scheduleName,
@@ -66,13 +67,12 @@ export async function sendScheduledContentSkippedEmail({
   organizationSlug,
   subject,
 }: SendScheduledContentSkippedEmailProps) {
-  const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
+  const settingsLink = `${process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/automation/schedules`;
 
   return sendBrewEmail({
     category: "schedule-content-skipped",
     to: recipientEmail,
-    subject:
-      subject ?? `Your ${scheduleName} schedule skipped content generation`,
+    subject: subject ?? `${scheduleName} skipped a run`,
     react: ScheduledContentSkippedEmail({
       organizationName,
       organizationSlug,
@@ -80,11 +80,12 @@ export async function sendScheduledContentSkippedEmail({
       reason,
       settingsLink,
     }),
-    idempotencyKey: `${recipientEmail}:${scheduleName}:${Date.now()}`,
+    idempotencyKey: digestBatchKey,
   });
 }
 
 export async function sendAiCreditsDepletedEmail({
+  digestBatchKey,
   recipientEmail,
   organizationName,
   automationName,
@@ -110,7 +111,7 @@ export async function sendAiCreditsDepletedEmail({
       creditsLink,
       limitLabel,
     }),
-    idempotencyKey: `${recipientEmail}:${organizationSlug}:${automationName}:${Date.now()}`,
+    idempotencyKey: digestBatchKey,
   });
 }
 
@@ -128,7 +129,7 @@ export async function sendWorkflowPausedEmail({
   return sendBrewEmail({
     category: "workflow-paused",
     to: recipientEmail,
-    subject: subject ?? "Your Notra workflow was paused",
+    subject: subject ?? `${automationName} was paused`,
     react: WorkflowPausedEmail({
       organizationName,
       organizationSlug,
@@ -136,7 +137,7 @@ export async function sendWorkflowPausedEmail({
       reason,
       settingsLink,
     }),
-    idempotencyKey: `${recipientEmail}:${organizationSlug}:${automationName}:${reason}:${pauseEventId ?? Date.now()}`,
+    idempotencyKey: `${recipientEmail}:${pauseEventId}`,
   });
 }
 
@@ -169,11 +170,13 @@ export async function sendFeedbackEmail({
       pageUrl,
       userAgent,
     }),
-    idempotencyKey: `${userEmail}:${message}:${sentiment ?? ""}:${Date.now()}`,
+    // Same feedback twice within Brew's 24 h window is a double submit.
+    idempotencyKey: `${to}:${userEmail}:${sentiment ?? ""}:${message}`,
   });
 }
 
 export async function sendScheduledContentCreatedEmail({
+  digestBatchKey,
   recipientEmail,
   organizationName,
   scheduleName,
@@ -186,7 +189,7 @@ export async function sendScheduledContentCreatedEmail({
   return sendBrewEmail({
     category: "schedule-content-created",
     to: recipientEmail,
-    subject: subject ?? `Your ${scheduleName} schedule created new content`,
+    subject: subject ?? `New content from ${scheduleName}`,
     react: ScheduledContentCreatedEmail({
       organizationName,
       organizationSlug,
@@ -195,7 +198,7 @@ export async function sendScheduledContentCreatedEmail({
       contentType,
       contentOverviewLink,
     }),
-    idempotencyKey: `${recipientEmail}:${createdContent.map((item) => item.contentLink).join(",")}`,
+    idempotencyKey: digestBatchKey,
   });
 }
 
@@ -218,7 +221,8 @@ export async function sendDailySummaryEmail({
   return sendBrewEmail({
     category: "daily-summary",
     to: recipientEmail,
-    subject: headline,
+    // The headline goes in the preview text; long subjects get truncated.
+    subject: `GEO recap for ${organizationName}, ${dateLabel}`,
     react: DailySummaryEmail({
       organizationName,
       organizationSlug,

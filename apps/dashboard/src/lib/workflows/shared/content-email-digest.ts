@@ -171,6 +171,10 @@ export async function flushContentEmailDigest({
     return;
   }
 
+  // The batch only changes once it is trimmed after a successful send, so a
+  // retried step reuses this key and Brew replays instead of sending twice.
+  const digestBatchKey = [digestKey, ...rawEvents].join("\n");
+
   if (kind === "ai_credits_depleted") {
     const creditEvents = events.filter(
       (event) => event.kind === "ai_credits_depleted"
@@ -185,6 +189,7 @@ export async function flushContentEmailDigest({
 
     assertEmailSent({
       result: await sendAiCreditsDepletedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstEvent.organizationName,
         organizationSlug: firstEvent.organizationSlug,
@@ -218,6 +223,7 @@ export async function flushContentEmailDigest({
 
     assertEmailSent({
       result: await sendScheduledContentCreatedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstCreatedEvent.organizationName,
         organizationSlug: firstCreatedEvent.organizationSlug,
@@ -249,6 +255,7 @@ export async function flushContentEmailDigest({
 
     assertEmailSent({
       result: await sendScheduledContentFailedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstFailedEvent.organizationName,
         organizationSlug: firstFailedEvent.organizationSlug,
@@ -280,6 +287,7 @@ export async function flushContentEmailDigest({
 
   assertEmailSent({
     result: await sendScheduledContentSkippedEmail({
+      digestBatchKey,
       recipientEmail,
       organizationName: firstSkippedEvent.organizationName,
       organizationSlug: firstSkippedEvent.organizationSlug,

@@ -4,21 +4,23 @@ import {
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Section,
   Tailwind,
   Text,
 } from "react-email";
 
-import { EmailButton } from "../components/button";
+import { EmailButtonFallbackLink } from "../components/button-fallback-link";
+import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
+import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import type {
   WorkflowPausedEmailProps,
   WorkflowPausedReason,
 } from "../types/workflow-paused";
 import { EMAIL_CONFIG } from "../utils/config";
+import { toPreviewText } from "../utils/preview";
 
 function getReasonCopy(reason: WorkflowPausedReason) {
   if (reason === "ai_credits_depleted") {
@@ -42,7 +44,9 @@ export const WorkflowPausedEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your Notra workflow was paused</Preview>
+      <Preview>
+        {toPreviewText(`${automationName}: ${getReasonCopy(reason)}`)}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
           <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
@@ -67,25 +71,17 @@ export const WorkflowPausedEmail = ({
             </Section>
 
             <Section className="my-8 text-center">
-              <EmailButton href={settingsLink}>Review Workflow</EmailButton>
+              <EmailCtaButton href={settingsLink}>
+                Review Workflow
+              </EmailCtaButton>
             </Section>
 
-            <Text className="text-[14px] leading-[24px] text-black">
-              If the button does not work, copy and paste this URL into your
-              browser: <Link href={settingsLink}>{settingsLink}</Link>
-            </Text>
+            <EmailButtonFallbackLink href={settingsLink} />
 
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] tracking-wide text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
-              </Text>
-            </Section>
+            <EmailNotificationSettingsNote
+              organizationName={organizationName}
+              organizationSlug={organizationSlug}
+            />
 
             <EmailFooter />
           </Container>

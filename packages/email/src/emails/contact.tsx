@@ -14,6 +14,7 @@ import {
 import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
 import type { ContactMessageEmailProps } from "../types/contact";
+import { toPreviewText } from "../utils/preview";
 
 export const ContactMessageEmail = ({
   name = "Jane Doe",
@@ -24,10 +25,7 @@ export const ContactMessageEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>
-        New contact message from {name}
-        {company ? ` (${company})` : ""}
-      </Preview>
+      <Preview>{toPreviewText(message)}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
           <Container className="mx-auto my-[40px] max-w-[520px] rounded p-[20px]">

@@ -4,14 +4,14 @@ import {
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Section,
   Tailwind,
   Text,
 } from "react-email";
 
-import { EmailButton } from "../components/button";
+import { EmailButtonFallbackLink } from "../components/button-fallback-link";
+import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
 import { EmailLogo } from "../components/logo";
 import type { AiCreditsDepletedEmailProps } from "../types/ai-credits-depleted";
@@ -26,8 +26,8 @@ export const AiCreditsDepletedEmail = ({
 }: AiCreditsDepletedEmailProps) => {
   const heading = limitLabel ? "Plan limit reached" : "AI credits are depleted";
   const previewText = limitLabel
-    ? "Your Notra plan limit was reached"
-    : "Your Notra AI credits are depleted";
+    ? `${automationName} in ${organizationName} is on hold until your plan resets or you upgrade.`
+    : `Add AI credits so ${automationName} in ${organizationName} can run again.`;
   const buttonLabel = limitLabel ? "View plan" : "Add AI Credits";
 
   return (
@@ -52,13 +52,10 @@ export const AiCreditsDepletedEmail = ({
             </Text>
 
             <Section className="my-8 text-center">
-              <EmailButton href={creditsLink}>{buttonLabel}</EmailButton>
+              <EmailCtaButton href={creditsLink}>{buttonLabel}</EmailCtaButton>
             </Section>
 
-            <Text className="text-[14px] leading-[24px] text-black">
-              If the button does not work, copy and paste this URL into your
-              browser: <Link href={creditsLink}>{creditsLink}</Link>
-            </Text>
+            <EmailButtonFallbackLink href={creditsLink} />
 
             <EmailFooter />
           </Container>

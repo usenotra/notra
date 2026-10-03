@@ -1,7 +1,7 @@
 /**
- * Provisions the Brew side of Notra email: sending domains, one pass-through
- * design, one trigger + published automation per email type, the contact
- * fields the app syncs, and a marketing opt-in audience.
+ * Provisions the Brew side of Notra email: sending domains, pass-through
+ * designs, one strict trigger + published automation per email type, the
+ * contact fields the app syncs, and a marketing opt-in audience.
  *
  *   bun run brew:setup -- --profile test
  *   bun run brew:setup -- --profile production
@@ -18,9 +18,16 @@ import { brewRequest } from "../src/utils/brew";
 
 type Profile = "test" | "production";
 type SenderRole = "notifications" | "founder";
+type SendingPurpose = "marketing" | "transactional";
 
 interface Sender {
   domain: string;
+  /**
+   * Brew's split: transactional for mail the person triggered (notifications),
+   * marketing for lifecycle mail (welcome), which adds unsubscribe handling.
+   * Keep the two on separate subdomains to isolate reputation.
+   */
+  purpose: SendingPurpose;
   fromAddress: string;
   fromName: string;
   replyTo: string;
@@ -30,7 +37,7 @@ interface BrewDomain {
   domainId: string;
   name: string;
   sendable: boolean;
-  sendingPurpose: "marketing" | "transactional";
+  sendingPurpose: SendingPurpose;
   records?: { type?: string; name?: string; value?: string }[];
 }
 
@@ -43,6 +50,11 @@ interface BrewEmail {
 interface BrewTrigger {
   triggerEventId: string;
   title: string;
+}
+
+interface BrewReadiness {
+  ready: boolean;
+  blockers: { code?: string; message?: string }[];
 }
 
 interface BrewNode {
@@ -63,15 +75,18 @@ interface BrewAutomation {
 }
 
 const PROFILES: Record<Profile, Record<SenderRole, Sender>> = {
+  // One verified test domain, so the test welcome flow stays transactional.
   test: {
     notifications: {
       domain: "jan-test.usenotra.com",
+      purpose: "transactional",
       fromAddress: "hello@jan-test.usenotra.com",
       fromName: "Notra",
       replyTo: "support@usenotra.com",
     },
     founder: {
       domain: "jan-test.usenotra.com",
+      purpose: "transactional",
       fromAddress: "hello@jan-test.usenotra.com",
       fromName: "Dominik from Notra",
       replyTo: "dominik@usenotra.com",
@@ -80,12 +95,14 @@ const PROFILES: Record<Profile, Record<SenderRole, Sender>> = {
   production: {
     notifications: {
       domain: "notifications.usenotra.com",
+      purpose: "transactional",
       fromAddress: "notifications@notifications.usenotra.com",
       fromName: "Notra",
       replyTo: "support@usenotra.com",
     },
     founder: {
       domain: "hello.usenotra.com",
+      purpose: "marketing",
       fromAddress: "dominik@hello.usenotra.com",
       fromName: "Dominik from Notra",
       replyTo: "dominik@usenotra.com",
@@ -120,10 +137,22 @@ const EMAILS: Record<BrewEmailCategory, { label: string; sender: SenderRole }> =
 
 const NAME_PREFIX = "Notra · ";
 const MARKETING_AUDIENCE_NAME = `${NAME_PREFIX}Marketing opt-in`;
-const DESIGN_TITLE = `${NAME_PREFIX}Rendered React Email`;
 // `message` is an object so Brew keeps it as template data instead of
 // copying subject and HTML onto the contact.
-const DESIGN_HTML = "{{ message.html | raw }}";
+const RENDERED_HTML = "{{ message.html | raw }}";
+// Brew swaps `#unsubscribe` for a signed per-recipient link on marketing sends.
+const UNSUBSCRIBE_FOOTER =
+  '<p style="margin:0 0 32px;text-align:center;font-family:sans-serif;font-size:12px;color:#717175">Don\'t want these emails? <a href="#unsubscribe" style="color:#717175;text-decoration:underline">Unsubscribe</a></p>';
+const DESIGNS: Record<SendingPurpose, { title: string; html: string }> = {
+  transactional: {
+    title: `${NAME_PREFIX}Rendered React Email`,
+    html: RENDERED_HTML,
+  },
+  marketing: {
+    title: `${NAME_PREFIX}Rendered React Email (marketing)`,
+    html: `${RENDERED_HTML}${UNSUBSCRIBE_FOOTER}`,
+  },
+};
 const SUBJECT_TAG = "{{ message.subject }}";
 const TRIGGER_NODE_ID = "trigger";
 const SEND_NODE_ID = "send";
@@ -201,7 +230,7 @@ async function list<T>(path: string): Promise<T[]> {
 }
 
 async function ensureDomain(
-  name: string,
+  { domain: name, purpose }: Sender,
   existing: BrewDomain[]
 ): Promise<BrewDomain> {
   let domain = existing.find((row) => row.name === name);
@@ -209,14 +238,14 @@ async function ensureDomain(
   if (!domain) {
     domain = await api<BrewDomain>("POST", "/domains", {
       name,
-      sendingPurpose: "transactional",
+      sendingPurpose: purpose,
     });
-    console.log(`Added domain ${name}`);
-  } else if (domain.sendingPurpose !== "transactional") {
+    console.log(`Added ${purpose} domain ${name}`);
+  } else if (domain.sendingPurpose !== purpose) {
     domain = await api<BrewDomain>("PATCH", `/domains/${domain.domainId}`, {
-      sendingPurpose: "transactional",
+      sendingPurpose: purpose,
     });
-    console.log(`Switched ${name} to transactional`);
+    console.log(`Switched ${name} to ${purpose}`);
   }
 
   if (!domain.sendable) {
@@ -236,9 +265,15 @@ async function ensureSenderDomains(
   const existing = await list<BrewDomain>("/domains");
   const resolved = new Map<string, BrewDomain>();
   const resolve = async (role: SenderRole) => {
-    const name = senders[role].domain;
-    const domain = resolved.get(name) ?? (await ensureDomain(name, existing));
-    resolved.set(name, domain);
+    const sender = senders[role];
+    const domain =
+      resolved.get(sender.domain) ?? (await ensureDomain(sender, existing));
+    if (domain.sendingPurpose !== sender.purpose) {
+      throw new Error(
+        `${sender.domain} can't be ${domain.sendingPurpose} and ${sender.purpose}`
+      );
+    }
+    resolved.set(sender.domain, domain);
     return domain;
   };
 
@@ -290,20 +325,94 @@ async function ensureMarketingAudience() {
   console.log(`Created audience ${MARKETING_AUDIENCE_NAME}`);
 }
 
-async function ensureDesign() {
-  const emails = await list<BrewEmail>("/emails");
-  const existing = emails.find((email) => email.title === DESIGN_TITLE);
-  if (existing) {
-    return existing;
+async function ensureDesign(
+  purpose: SendingPurpose,
+  existing: BrewEmail[]
+): Promise<BrewEmail> {
+  const { title, html } = DESIGNS[purpose];
+  const design = existing.find((email) => email.title === title);
+  if (design) {
+    return design;
   }
 
   const created = await api<BrewEmail>("POST", "/emails/import", {
     format: "html",
-    title: DESIGN_TITLE,
-    content: DESIGN_HTML,
+    title,
+    content: html,
   });
-  console.log(`Imported design ${DESIGN_TITLE}`);
+  console.log(`Imported design ${title}`);
   return created;
+}
+
+/** Resolves each sender role to the pass-through design for its purpose. */
+async function ensureSenderDesigns(
+  senders: Record<SenderRole, Sender>
+): Promise<Record<SenderRole, BrewEmail>> {
+  const existing = await list<BrewEmail>("/emails");
+  const resolved = new Map<SendingPurpose, BrewEmail>();
+  const resolve = async (role: SenderRole) => {
+    const { purpose } = senders[role];
+    const design =
+      resolved.get(purpose) ?? (await ensureDesign(purpose, existing));
+    resolved.set(purpose, design);
+    return design;
+  };
+
+  return {
+    notifications: await resolve("notifications"),
+    founder: await resolve("founder"),
+  };
+}
+
+/**
+ * Brew recommends strict contracts on transactional triggers: a payload with
+ * undeclared keys fails instead of sending. Enforcement can only tighten while
+ * no published automation reads the trigger, so unpublish first (republished
+ * right after by ensureAutomation).
+ */
+async function ensureStrictContract(
+  name: string,
+  triggerEventId: string,
+  automation: BrewAutomation | undefined
+) {
+  const contract = await api<{ enforcement?: string }>(
+    "GET",
+    `/automations/triggers/${triggerEventId}/contract`
+  );
+  if (contract.enforcement === "strict") {
+    return;
+  }
+
+  if (automation?.published) {
+    await api("PATCH", `/automations/${automation.automationId}`, {
+      published: false,
+    });
+  }
+  await api("PUT", `/automations/triggers/${triggerEventId}/contract`, {
+    enforcement: "strict",
+  });
+  console.log(`Set strict payload contract on ${name}`);
+}
+
+async function assertTriggersReady(
+  triggerIds: Record<BrewEmailCategory, string>
+) {
+  const blocked: string[] = [];
+
+  for (const [category, triggerEventId] of Object.entries(triggerIds)) {
+    const readiness = await api<BrewReadiness>(
+      "GET",
+      `/automations/triggers/${triggerEventId}/readiness`
+    );
+    if (!readiness.ready) {
+      const reasons = readiness.blockers.map((b) => b.code ?? b.message);
+      blocked.push(`${category}: ${reasons.join(", ")}`);
+    }
+  }
+
+  if (blocked.length > 0) {
+    throw new Error(`Triggers not ready to fire:\n${blocked.join("\n")}`);
+  }
 }
 
 type SendConfig = Record<(typeof RECONCILED_SEND_FIELDS)[number], string>;
@@ -420,7 +529,7 @@ async function main() {
   await ensureContactFields();
   await ensureMarketingAudience();
   const domainIds = await ensureSenderDomains(senders);
-  const design = await ensureDesign();
+  const designs = await ensureSenderDesigns(senders);
   const triggers = await list<BrewTrigger>("/automations/triggers");
   const automations = await list<BrewAutomation>("/automations");
   const triggerIds = {} as Record<BrewEmailCategory, string>;
@@ -442,13 +551,17 @@ async function main() {
     }
     triggerIds[category] = trigger.triggerEventId;
 
+    const automation = automations.find((row) => row.name === name);
+    await ensureStrictContract(name, trigger.triggerEventId, automation);
     await ensureAutomation(
       name,
       trigger.triggerEventId,
-      buildSendConfig(design, senders[role], domainIds[role]),
-      automations.find((automation) => automation.name === name)
+      buildSendConfig(designs[role], senders[role], domainIds[role]),
+      automation
     );
   }
+
+  await assertTriggersReady(triggerIds);
 
   const outdated = (Object.keys(triggerIds) as BrewEmailCategory[]).filter(
     (category) => BREW_EMAIL_TRIGGERS[category] !== triggerIds[category]
