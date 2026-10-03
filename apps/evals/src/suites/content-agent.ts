@@ -59,9 +59,11 @@ function processFields(
   input: ContentInput
 ): FieldScore[] {
   const calls = output.toolCalls;
-  const loadedSkill = calls.includes("getSkillByName");
-  const unslopLoaded =
-    calls.filter((name) => name === "getSkillByName").length >= 2;
+  const skills = output.skillsLoaded ?? [];
+  // The dispatcher allows a better-fitting skill than the hint, so any
+  // writing skill counts; unslop has to be loaded by name.
+  const loadedSkill = skills.some((name) => name !== "unslop");
+  const unslopLoaded = skills.includes("unslop");
   const fetchedData =
     calls.includes("getCommitsByTimeframe") ||
     calls.includes("getPullRequests");

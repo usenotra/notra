@@ -58,10 +58,15 @@ if (values.help) {
   await printRuns();
 } else if (command === "pick") {
   const { printPicks } = await import("./headless");
+  const tolerancePts =
+    values.tolerance === undefined ? undefined : Number(values.tolerance);
+  if (tolerancePts !== undefined && !Number.isFinite(tolerancePts)) {
+    console.error(`--tolerance must be a number, got "${values.tolerance}"`);
+    process.exit(1);
+  }
   await printPicks({
     demo: values.demo ?? false,
-    tolerancePts:
-      values.tolerance === undefined ? undefined : Number(values.tolerance),
+    tolerancePts,
     json: values.json ?? false,
   });
 } else if (command === "run") {

@@ -5,7 +5,7 @@ import { contenderFromId } from "../constants/contenders";
 import { allPrices, type ModelPrice } from "../models/pricing";
 import { type RunHandle, startRun } from "../runner/run-eval";
 import { loadPickerSettings } from "../store/picker-settings";
-import { listRuns } from "../store/runs";
+import { listRuns, markInterrupted } from "../store/runs";
 import { getSuite, SUITES } from "../suites/registry";
 import type { AnySuite, EvalRun } from "../types/eval";
 import type { PickerSettings } from "../types/picker";
@@ -82,6 +82,8 @@ export function App({
   const launch = useCallback(
     (request: RunRequest) => {
       setLastSuiteId(request.suite.id);
+      // Only one run is tracked; an older one would keep spending unseen.
+      handleRef.current?.cancel();
       const handle = startRun({
         suite: request.suite,
         config: {
@@ -106,6 +108,7 @@ export function App({
       if (!suite) {
         return;
       }
+      handleRef.current?.cancel();
       const handle = startRun({
         suite,
         config: run.config,
@@ -119,14 +122,25 @@ export function App({
     [scheduleRender]
   );
 
+  // Saved runs; any "running" one other than the live run was interrupted.
+  const loadRuns = useCallback(async () => {
+    const live = handleRef.current?.run;
+    const activeId = live?.status === "running" ? live.id : undefined;
+    return (await listRuns()).map((run) =>
+      run.status === "running" && run.id !== activeId
+        ? markInterrupted(run)
+        : run
+    );
+  }, []);
+
   const openPicker = useCallback(async () => {
     const [runs, prices, settings] = await Promise.all([
-      listRuns(),
+      loadRuns(),
       allPrices(),
       loadPickerSettings(),
     ]);
     setScreen({ name: "picker", runs, prices, settings });
-  }, []);
+  }, [loadRuns]);
 
   const verify = useCallback(
     (suite: AnySuite, modelIds: string[]) =>
@@ -140,8 +154,8 @@ export function App({
   );
 
   const openHistory = useCallback(async () => {
-    setScreen({ name: "history", runs: await listRuns() });
-  }, []);
+    setScreen({ name: "history", runs: await loadRuns() });
+  }, [loadRuns]);
 
   if (screen.name === "run" && handleRef.current) {
     const { run } = handleRef.current;
