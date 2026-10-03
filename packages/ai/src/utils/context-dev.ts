@@ -110,7 +110,8 @@ async function requestContextDev<TResponse>(
   let errorCode: string | undefined;
   let errorMessage: string | undefined;
   let errorKind: OperationalLogEvent["errorKind"] = "operation_error";
-  const params = new URL(path, CONTEXT_DEV_API_BASE_URL).searchParams;
+  const requestUrl = new URL(path, CONTEXT_DEV_API_BASE_URL);
+  const params = requestUrl.searchParams;
   const domain = params.get("domain");
   try {
     if (isDemoMode()) {
@@ -146,7 +147,11 @@ async function requestContextDev<TResponse>(
     errorName = error instanceof Error ? error.name : "UnknownError";
     if (error instanceof ContextDevApiError) {
       errorCode = error.code;
-      errorMessage = mapContextDevError(error).error;
+      errorMessage =
+        requestUrl.pathname === "/web/scrape/markdown" ||
+        requestUrl.pathname === "/web/scrape/sitemap"
+          ? mapContextDevError(error).error
+          : `Context.dev request ${requestUrl.pathname} failed with status ${error.status}`;
     }
     throw error;
   } finally {

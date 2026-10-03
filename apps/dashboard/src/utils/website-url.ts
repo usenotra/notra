@@ -6,6 +6,22 @@ import {
 import { ORPCError } from "@orpc/server";
 import { getTranslations } from "next-intl/server";
 
+import { ratelimit } from "./ratelimit";
+
+export async function validateOnboardingWebsite(
+  url: string,
+  userId: string
+): Promise<string> {
+  const { success } = await ratelimit.onboardingBrandAnalysis.limit(userId);
+  if (!success) {
+    const t = await getTranslations("errors.integrations");
+    throw new ORPCError("TOO_MANY_REQUESTS", {
+      message: t("tooManyConnectionAttempts"),
+    });
+  }
+  return validateWebsiteUrl(url);
+}
+
 export async function validateWebsiteUrl(rawUrl: string): Promise<string> {
   const parsed = publicWebsiteUrlSchema.safeParse(rawUrl);
   if (!parsed.success) {

@@ -74,7 +74,7 @@ import type {
   UpdateOrganizationInput,
 } from "@/types/organizations/actions";
 import type { OrganizationTrackingInput } from "@/types/organizations/analytics";
-import { validateWebsiteUrl } from "@/utils/website-url";
+import { validateOnboardingWebsite } from "@/utils/website-url";
 
 const enforceTeamMembersLimit = Effect.fn(
   "organizations.actions.enforceTeamMembersLimit"
@@ -286,7 +286,7 @@ export async function createOrganizationAction(
       const { slug, websiteUrl } = input;
       if (websiteUrl) {
         yield* Effect.tryPromise({
-          try: () => validateWebsiteUrl(websiteUrl),
+          try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
           catch: (error) =>
             new ActionFailure({
               message:

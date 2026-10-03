@@ -1,5 +1,5 @@
 import type { LookupAddress } from "node:dns";
-import { lookup } from "node:dns/promises";
+import { Resolver } from "node:dns/promises";
 import { isIP } from "node:net";
 
 import { WEBSITE_DNS_TIMEOUT_MS } from "./constants/url";
@@ -262,52 +262,38 @@ export async function resolvePublicHttpUrl(
     return [{ address: hostname, family: ipVersion }];
   }
 
+  const resolver = new Resolver({ timeout: WEBSITE_DNS_TIMEOUT_MS, tries: 1 });
+  const timer = setTimeout(() => resolver.cancel(), WEBSITE_DNS_TIMEOUT_MS);
   let addresses: LookupAddress[];
-  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    addresses = await Promise.race([
-      lookup(hostname, { all: true, verbatim: false }),
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(
-          () =>
-            reject(
-              new PublicUrlValidationError(
-                "Website domain check is temporarily unavailable. Please try again.",
-                "temporary"
-              )
-            ),
-          WEBSITE_DNS_TIMEOUT_MS
-        );
-      }),
+    const results = await Promise.allSettled([
+      resolver.resolve4(hostname),
+      resolver.resolve6(hostname),
     ]);
-  } catch (error) {
-    if (error instanceof PublicUrlValidationError) {
-      throw error;
-    }
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error.code === "ENOTFOUND" || error.code === "ENODATA")
-    ) {
+    addresses = results.flatMap((result, index) =>
+      result.status === "fulfilled"
+        ? result.value.map((address) => ({
+            address,
+            family: index === 0 ? 4 : 6,
+          }))
+        : []
+    );
+    if (addresses.length === 0) {
+      const temporary = results.some(
+        (result) =>
+          result.status === "rejected" &&
+          result.reason?.code !== "ENOTFOUND" &&
+          result.reason?.code !== "ENODATA"
+      );
       throw new PublicUrlValidationError(
-        "Website domain could not be resolved. Please check the domain name.",
-        "not_found"
+        temporary
+          ? "Website domain check is temporarily unavailable. Please try again."
+          : "Website domain could not be resolved. Please check the domain name.",
+        temporary ? "temporary" : "not_found"
       );
     }
-    throw new PublicUrlValidationError(
-      "Website domain check is temporarily unavailable. Please try again.",
-      "temporary"
-    );
   } finally {
     clearTimeout(timer);
-  }
-
-  if (addresses.length === 0) {
-    throw new PublicUrlValidationError(
-      "Website domain could not be resolved. Please check the domain name.",
-      "not_found"
-    );
   }
 
   for (const address of addresses) {

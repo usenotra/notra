@@ -59,7 +59,10 @@ import type {
 } from "@/types/onboarding-agent";
 import type { ActionResult } from "@/types/organizations/actions";
 import { ratelimit } from "@/utils/ratelimit";
-import { validateWebsiteUrl } from "@/utils/website-url";
+import {
+  validateOnboardingWebsite,
+  validateWebsiteUrl,
+} from "@/utils/website-url";
 
 const ANALYSIS_LOCK_TTL_SECONDS = 60;
 
@@ -73,21 +76,8 @@ export async function validateOnboardingWebsiteUrl(
       error: { message: "Unauthorized", code: "UNAUTHORIZED" },
     };
   }
-  const { success } = await ratelimit.onboardingBrandAnalysis.limit(
-    session.user.id
-  );
-  if (!success) {
-    const t = await getTranslations("errors.integrations");
-    return {
-      data: null,
-      error: {
-        message: t("tooManyConnectionAttempts"),
-        code: "TOO_MANY_REQUESTS",
-      },
-    };
-  }
   try {
-    await validateWebsiteUrl(rawUrl);
+    await validateOnboardingWebsite(rawUrl, session.user.id);
     return { data: null, error: null };
   } catch (error) {
     if (error instanceof ORPCError) {
