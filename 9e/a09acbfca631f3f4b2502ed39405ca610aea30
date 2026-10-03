@@ -1,0 +1,221 @@
+apps/evals/src/models/pricing.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-80
+apps/dashboard/src/utils/compress-content-image.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 8,11,40,45-49
+apps/evals/src/store/runs.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-65
+apps/evals/src/harness/content-harness.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-647
+apps/dashboard/src/types/libheif-js.d.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-8
+apps/dashboard/src/components/chat-input.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 184
+apps/evals/src/scoring/text-checks.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-114
+apps/evals/src/index.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-103
+apps/evals/src/suites/feedback-classifier.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-279
+apps/evals/src/ui/screens/run.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-287
+packages/ai/src/skills/unslop-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 31
+apps/evals/src/headless.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-191
+packages/ai/src/constants/models.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 3-8
+apps/evals/src/types/picker.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-63
+packages/ai/src/skills/functions/current-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-31
+apps/dashboard/src/constants/content-image.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 7-16
+apps/evals/src/scoring/content-post.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-237
+apps/evals/src/types/eval.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-171
+apps/evals/src/ui/screens/picker.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-536
+packages/tools/src/skill-editor/get-skill.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1,23-24,36-41
+apps/evals/src/constants/paths.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-11
+apps/dashboard/src/utils/content-drop-caret.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-19
+apps/dashboard/src/types/content/media.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 7-15
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 86,117,1441-1445,1453-1457,1461,1486-1487,1491-1493,2678
+apps/evals/src/utils/charts.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-143
+apps/dashboard/src/components/content/editor/plugins/image-upload-plugin.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 6,32-37,42,66,100,103,160-161,175,180-184,186,191,199-205,213-226,230-277,280-281,283-284,289,296,308-310,313,317,401-406,412
+packages/ai/src/constants/content-agents.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-30
+apps/dashboard/package.json
+  s_b8d7fe52266314::t_3a80d809f8f936 93
+apps/dashboard/src/utils/prepare-chat-image.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-44
+apps/evals/src/constants/gateway.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-7
+apps/evals/src/suites/chat-router.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-245
+apps/dashboard/src/workflows/on-demand-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,329
+apps/evals/src/store/picker-settings.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-26
+apps/evals/src/utils/env.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-29
+packages/ai/src/prompts/collection-title.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-16
+packages/ai/src/router/lazy-model.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 156-157,159-162,183-184,189-190,203,207-209,221-222,298-299
+apps/dashboard/src/utils/prepare-chat-image.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-27
+apps/dashboard/src/lib/orpc/routers/skills.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1,108
+apps/dashboard/src/workflows/schedule-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,497
+packages/ai/src/skills/functions/service.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 15,94
+packages/ai/src/skills/seed.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 6
+apps/dashboard/src/utils/heic-coded-pixels.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-61
+packages/ai/src/types/router.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 132-135,137-138
+apps/dashboard/src/app/api/uploads/convert-heic/route.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-68
+apps/dashboard/src/utils/compress-content-image-heic.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-172
+apps/dashboard/src/utils/read-bounded-request-body.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-35
+apps/dashboard/src/utils/fixtures/checker-1024.heic.base64
+  s_b8d7fe52266314::t_3a80d809f8f936 1-29
+apps/evals/src/constants/picker.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-16
+apps/evals/src/models/gateway.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-225
+apps/dashboard/src/workflows/event-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,396
+apps/evals/src/ui/screens/home.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-406
+apps/evals/src/ui/screens/results/errors.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-64
+packages/ai/src/tools/post.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 3,43-51,57-60,194,197
+apps/dashboard/src/constants/agent-content.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1,10,14
+apps/dashboard/tests/convert-heic-route.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-96
+apps/evals/src/scoring/jev-judge.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-86
+apps/evals/tsconfig.json
+  s_b8d7fe52266314::t_3a80d809f8f936 1-15
+apps/evals/src/ui/screens/results/cases.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-194
+bun.lock
+  ai_agent 198,253-270,1784-1803,3258-3259,3790-3791,4386-4387,5042-5043,5066,5296-5297,5398,5752-5753,6140-6145,6608-6609,6752-6753,6784-6785,6858-6859,6902-6903,6914,6970-6971,7420-7421,7962-7965,8120-8125,8532
+apps/evals/src/utils/picker.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-263
+apps/evals/.gitignore
+  s_b8d7fe52266314::t_3a80d809f8f936 1-2
+apps/evals/src/ui/app.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-249
+apps/evals/src/ui/screens/results/fields.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-128
+apps/evals/src/suites/content-demo.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-74
+apps/evals/package.json
+  s_b8d7fe52266314::t_3a80d809f8f936 1-25
+apps/dashboard/src/components/content/editor/nodes/content-image-node.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 126-129
+apps/evals/src/suites/registry.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-20
+apps/evals/src/ui/components.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-90
+packages/ai/src/agents/blog-post.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,14
+apps/dashboard/src/utils/content-place-block.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-83
+apps/evals/src/fixtures/content-scenarios.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-618
+packages/ai/src/agents/twitter.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,14
+packages/ai/src/skills/system-skills.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-54
+packages/ai/src/jobs/collection-title.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 8,10,104
+apps/evals/README.md
+  s_b8d7fe52266314::t_3a80d809f8f936 1-35
+apps/dashboard/src/lib/hooks/use-chat-composer-attachments.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 21,35,150-154,158-162,166,191-192,196-198,330-335
+apps/dashboard/src/utils/content-drop-caret.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-15
+apps/evals/src/ui/screens/results/overview.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-264
+packages/ai/src/router/adapters/openrouter.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 14-18,95-96,98-102,104-107,109
+apps/dashboard/src/utils/compress-content-image.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,10,13,18,29-38,54-56,79-131,140-144,149-150,157,165,172,175,178,183
+packages/ai/src/schemas/post.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 6-13
+packages/ai/src/prompts/content-dispatcher.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-44
+packages/ai/src/types/agents.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 112-121
+apps/evals/src/runner/run-eval.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-243
+apps/dashboard/src/types/content/heic-image.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-30
+apps/api/src/programs/skills.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1,69-72
+apps/evals/src/constants/theme.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-56
+apps/evals/src/utils/stats.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-151
+apps/evals/src/ui/screens/results.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-186
+apps/dashboard/src/components/content/editor/nodes/content-video-node.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 116-119
+packages/ai/src/agents/linkedin.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,14
+apps/dashboard/src/utils/content-place-block.test.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-200
+apps/evals/src/runner/demo.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-180
+apps/evals/src/suites/content-agent.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-181
+apps/evals/src/ui/screens/history.tsx
+  s_b8d7fe52266314::t_3a80d809f8f936 1-138
+packages/ai/src/agents/changelog.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 2,14
+package.json
+  s_b8d7fe52266314::t_3a80d809f8f936 22
+packages/ai/src/agents/background-gen.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-4,7,79,85,87,138-140
+apps/evals/src/suites/collection-title.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-260
+packages/ai/src/router/model-ids.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 20-36
+apps/evals/src/suites/content-unslop.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-277
+apps/evals/src/constants/contenders.ts
+  s_b8d7fe52266314::t_3a80d809f8f936 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9ea09acbfca631f3f4b2502ed39405ca610aea30",
+  "prompts": {},
+  "sessions": {
+    "s_b8d7fe52266314": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3347740f-19da-418e-a6cf-0fc74f8e3daf",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
