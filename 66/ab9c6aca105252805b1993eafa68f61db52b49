@@ -1,0 +1,19 @@
+apps/dashboard/src/components/ai/chat-subagent-block.tsx
+  s_03280d3e9db7b8::t_b5300a569344ae 95-152,171,207-212,217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "66ab9c6aca105252805b1993eafa68f61db52b49",
+  "prompts": {},
+  "sessions": {
+    "s_03280d3e9db7b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5805dac5-66fe-437c-b3b2-708dc0622f2d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
