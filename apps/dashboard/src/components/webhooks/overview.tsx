@@ -75,7 +75,7 @@ function WebhookActiveState({
   return (
     <p className="text-warning mt-auto flex h-6 items-end gap-1.5 text-xs">
       <span className="bg-warning mb-1 size-1.5 rounded-full motion-safe:animate-pulse" />
-      {t("sending")}
+      {t("processing")}
     </p>
   );
 }
@@ -87,8 +87,11 @@ function WebhookTrace({
 }: Omit<WebhookSparklineProps, "days"> & {
   activity: WebhookMetricsProps["activity"];
 }) {
-  if (!activity) {
+  if (activity === undefined) {
     return <Skeleton className="h-6 w-full" />;
+  }
+  if (activity === null) {
+    return <div className="h-6" />;
   }
   return (
     <WebhookSparkline days={activity} series={series} className={className} />

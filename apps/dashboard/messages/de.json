@@ -174,7 +174,7 @@
         "refresh": "Webhook-Aktivität aktualisieren",
         "addEndpoint": "Endpunkt hinzufügen",
         "rightNow": "Gerade",
-        "sending": "Wird gesendet",
+        "processing": "In Bearbeitung",
         "idle": "Nichts offen",
         "views": "Webhook-Ansichten",
         "deliveries": "Zustellungen",

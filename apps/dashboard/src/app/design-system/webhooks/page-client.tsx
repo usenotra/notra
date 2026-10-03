@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogTitle } from "@notra/ui/components/ui/dialog";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/button";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
@@ -45,6 +45,8 @@ type SampleProps = Partial<
   readonly rows?: OutboundDelivery[];
   readonly initialFilter?: WebhookFilter;
 };
+
+const PREVIEW_PENDING_MS = 1500;
 
 const DETAIL_BY_STATUS: Partial<
   Record<OutboundDelivery["status"], WebhookDeliveryDetail>
@@ -150,6 +152,14 @@ function OverlayTriggers() {
   const [detail, setDetail] = useState<
     keyof typeof DESIGN_SYSTEM_WEBHOOK_DETAILS | "loading" | "error" | null
   >(null);
+  // "Creating…" blocks every close path, so resolve it like a real request would.
+  useEffect(() => {
+    if (create !== "pending") {
+      return;
+    }
+    const timer = setTimeout(() => setCreate("secret"), PREVIEW_PENDING_MS);
+    return () => clearTimeout(timer);
+  }, [create]);
   const detailFixture =
     detail === "loading" || detail === "error" || detail === null
       ? undefined

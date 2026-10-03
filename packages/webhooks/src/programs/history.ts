@@ -32,6 +32,7 @@ export const listDeliveries = Effect.fn("webhooks.listDeliveries")(function* (
   );
 });
 
+/** Totals over the same 30 UTC days that `deliveryActivity` charts. */
 export const deliveryStats = Effect.fn("webhooks.deliveryStats")(function* (
   organizationId: OrganizationId
 ) {
@@ -41,7 +42,8 @@ export const deliveryStats = Effect.fn("webhooks.deliveryStats")(function* (
     count(*) FILTER (WHERE status = 'succeeded')::int AS succeeded,
     count(*) FILTER (WHERE status = 'failed')::int AS failed,
     count(*) FILTER (WHERE status IN ('pending', 'sending', 'retrying'))::int AS active
-    FROM webhook_deliveries WHERE organization_id = $1 AND created_at >= now() - interval '30 days'`,
+    FROM webhook_deliveries WHERE organization_id = $1
+    AND created_at >= (date_trunc('day', now() AT TIME ZONE 'UTC') - interval '29 days') AT TIME ZONE 'UTC'`,
     [organizationId]
   );
   return stats ?? { total: 0, succeeded: 0, failed: 0, active: 0 };

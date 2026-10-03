@@ -43,7 +43,8 @@ export interface WebhookWorkspaceProps {
 
 export interface WebhookMetricsProps {
   readonly stats: WebhookStats | undefined;
-  readonly activity: readonly WebhookActivityDay[] | undefined;
+  /** `undefined` while loading, `null` when the trace query failed. */
+  readonly activity: readonly WebhookActivityDay[] | null | undefined;
 }
 
 export interface WebhookSparklineProps {
@@ -77,7 +78,7 @@ export interface WebhookStatusFilterProps {
 
 export interface WebhookWorkspaceViewProps {
   readonly stats: WebhookStats | undefined;
-  readonly activity: readonly WebhookActivityDay[] | undefined;
+  readonly activity: readonly WebhookActivityDay[] | null | undefined;
   readonly endpoints: readonly OutboundEndpoint[];
   readonly rows: OutboundDelivery[];
   readonly canManage: boolean;
