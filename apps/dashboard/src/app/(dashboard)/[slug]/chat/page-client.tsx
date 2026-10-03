@@ -2686,6 +2686,9 @@ function StandaloneChatPageClient({
                         : undefined;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
+                      const isGenerating =
+                        (isLoading || isMirrorWorking) &&
+                        message.id === lastAssistantMessageId;
                       const isEditing =
                         isUser && editingMessageId === message.id;
                       const userContentParts = isUser
@@ -2801,10 +2804,7 @@ function StandaloneChatPageClient({
                                       ? activitySeconds
                                       : undefined
                                   }
-                                  isLoading={
-                                    (isLoading || isMirrorWorking) &&
-                                    message.id === lastAssistantMessageId
-                                  }
+                                  isLoading={isGenerating}
                                   isStandaloneTool={(part) =>
                                     isContentEditorStandaloneTool(part) ||
                                     (isToolUIPart(part) &&
@@ -2854,7 +2854,7 @@ function StandaloneChatPageClient({
                                 }
                               />
                             )}
-                            {message.role === "assistant" && (
+                            {message.role === "assistant" && !isGenerating && (
                               <AssistantMetadataHover
                                 metadata={message.metadata}
                               />

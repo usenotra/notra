@@ -343,7 +343,7 @@ function ContentChatActivityMessage({
             )}
           </MessageContent>
         ) : null}
-        {message.role === "assistant" ? (
+        {message.role === "assistant" && !isLoading ? (
           <AssistantMetadataHover compact metadata={assistantMetadata} />
         ) : null}
       </Message>
