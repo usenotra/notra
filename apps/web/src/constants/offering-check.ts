@@ -1,11 +1,9 @@
 import type {
-  OfferingCheckMode,
   OfferingCheckSample,
-  OfferingOverall,
-  OfferingOverallCopy,
-  OfferingVerdict,
   OfferingReportStatus,
+  OfferingVerdict,
   OfferingVerdictCopy,
+  OfferingVerdictOverviewCopy,
 } from "@/types/offering-check";
 import { SITE_URL } from "@/utils/urls";
 
@@ -24,10 +22,10 @@ export const OFFERING_CHECK_PREFLIGHT_PATH = `${OFFERING_CHECK_API_PATH}/preflig
 export const OFFERING_CHECK_TITLE = "Does AI Know Your Features?";
 
 export const OFFERING_CHECK_DESCRIPTION =
-  "Enter your website, and a feature name if you want to check one. We ask GPT-5.6 about it twice, once from memory and once with web search, and show what it says, which pages it read and what it thinks you offer instead. Free, no sign-up.";
+  "Enter your website, and a feature name if you want to check one. We ask GPT-5.6 about it with web search and show what it says, which pages it read and what it thinks you offer instead. Free, no sign-up.";
 
 export const OFFERING_CHECK_HERO_SUBTITLE =
-  "Enter your website, or name a feature you shipped. We ask GPT-5.6 about it from memory and with web search, then show what it knows, which pages it read and what it thinks you offer instead. Free, no sign-up.";
+  "Enter your website, or name a feature you shipped. We ask GPT-5.6 about it with web search, then show what it finds, which pages it read and what it thinks you offer instead. Free, no sign-up.";
 
 export const OFFERING_CHECK_MODEL = "openai/gpt-5.6-luna";
 
@@ -49,17 +47,16 @@ export const OFFERING_CHECK_MAX_SOURCE_DOMAINS = 8;
 
 export const OFFERING_CHECK_MAX_SOURCE_PAGES = 25;
 
-export const OFFERING_CHECK_ANSWER_MAX_OUTPUT_TOKENS = 1200;
-
-export const OFFERING_CHECK_JUDGE_MAX_OUTPUT_TOKENS = 1000;
+export const OFFERING_CHECK_MAX_OUTPUT_TOKENS = 1800;
 
 export const OFFERING_CHECK_TIMEOUT_MS = 50_000;
 
 export const OFFERING_CHECK_CACHE_SECONDS = 60 * 60 * 24;
 
-export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v5";
+export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v6";
 
 export const OFFERING_CHECK_RATE_LIMITS = {
+  preflightPerIpMinute: { requests: 30, windowMs: 60 * 1000 },
   perIpHour: { requests: 5, windowMs: 60 * 60 * 1000 },
   perIpDay: { requests: 15, windowMs: 24 * 60 * 60 * 1000 },
   perBrandDay: { requests: 25, windowMs: 24 * 60 * 60 * 1000 },
@@ -101,7 +98,6 @@ return {1, 0}
 export const OFFERING_CHECK_QUERY_KEYS = {
   domain: "domain",
   feature: "feature",
-  description: "description",
 } as const;
 
 export const OFFERING_CHECK_INVALID_MESSAGE =
@@ -122,10 +118,7 @@ export const OFFERING_CHECK_SAMPLES: readonly OfferingCheckSample[] = [
   { domain: "resend.com", feature: "Broadcasts", description: "" },
 ];
 
-export const OFFERING_MODE_TITLES: Record<OfferingCheckMode, string> = {
-  memory: "From memory",
-  search: "With web search",
-};
+export const OFFERING_MODE_TITLE = "With web search";
 
 export const OFFERING_VERDICT_COPY: Record<
   OfferingVerdict,
@@ -153,19 +146,14 @@ export const OFFERING_VERDICT_COPY: Record<
   },
 };
 
-export const OFFERING_OVERALL_COPY: Record<
-  OfferingOverall,
-  OfferingOverallCopy
+export const OFFERING_VERDICT_OVERVIEW_COPY: Record<
+  OfferingVerdict,
+  OfferingVerdictOverviewCopy
 > = {
-  known: {
-    lead: "AI knows ",
+  knows: {
+    lead: "AI finds ",
     trail: "",
-    body: "It can describe the feature without looking anything up, so it comes up even when the assistant does not search.",
-  },
-  "search-only": {
-    lead: "AI only finds ",
-    trail: " by searching",
-    body: "The model did not learn this feature in training. It gets it right once it searches, so answers depend on your pages ranking for the question.",
+    body: "It finds the feature and can describe what it does from the pages available on the web.",
   },
   vague: {
     lead: "AI is vague about ",
@@ -184,11 +172,9 @@ export const OFFERING_OVERALL_COPY: Record<
   },
 };
 
-export const OFFERING_COMPANY_OVERALL_BODY: Record<OfferingOverall, string> = {
-  known:
-    "It can say what you offer without looking anything up, so you come up even when the assistant does not search.",
-  "search-only":
-    "The model did not learn your product in training. It gets it right once it searches, so answers depend on your pages ranking for the question.",
+export const OFFERING_COMPANY_VERDICT_BODY: Record<OfferingVerdict, string> = {
+  knows:
+    "It finds your product and can describe concrete products or features from the pages available on the web.",
   vague:
     "It knows you exist but stays generic about what you offer. Buyers asking about you get a hedged answer.",
   confused:

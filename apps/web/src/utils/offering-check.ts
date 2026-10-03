@@ -6,8 +6,6 @@ import type {
   OfferingChatPhase,
   OfferingCheckInput,
   OfferingMarkdownNode,
-  OfferingModeResult,
-  OfferingOverall,
   OfferingSourceDomain,
 } from "@/types/offering-check";
 
@@ -127,25 +125,6 @@ export function groupSourcesByDomain(
     .slice(0, OFFERING_CHECK_MAX_SOURCE_DOMAINS);
 }
 
-export function resolveOverall(
-  memory: Pick<OfferingModeResult, "verdict">,
-  search: Pick<OfferingModeResult, "verdict">
-): OfferingOverall {
-  if (search.verdict === "knows") {
-    return memory.verdict === "knows" ? "known" : "search-only";
-  }
-  if (memory.verdict === "knows") {
-    return "known";
-  }
-  if (search.verdict === "confused" || memory.verdict === "confused") {
-    return "confused";
-  }
-  if (search.verdict === "vague" || memory.verdict === "vague") {
-    return "vague";
-  }
-  return "unknown";
-}
-
 export function buildOfferingQuestion(input: OfferingCheckInput): string {
   if (input.feature.length === 0) {
     return `What does ${input.domain} offer? List its main products and features and say briefly what each one does.`;
@@ -164,7 +143,7 @@ export function getOfferingChatPhase(
     return "done";
   }
   if (answered) {
-    return "grading";
+    return "done";
   }
   if (hasAnswer) {
     return "writing";
@@ -173,6 +152,7 @@ export function getOfferingChatPhase(
 }
 
 const REGEX_SPECIAL_PATTERN = /[.*+?^${}()|[\]\\]/g;
+const WORD_CHARACTER = String.raw`[\p{L}\p{M}\p{N}_]`;
 
 function highlightFeatureText(
   node: OfferingMarkdownNode,
@@ -215,8 +195,8 @@ function highlightFeatureText(
 export function createFeatureHighlightPlugin(feature: string) {
   const needle = feature.replaceAll('"', "").trim();
   const pattern = new RegExp(
-    `(${needle.replace(REGEX_SPECIAL_PATTERN, "\\$&")})`,
-    "gi"
+    `(?<!${WORD_CHARACTER})(${needle.replace(REGEX_SPECIAL_PATTERN, "\\$&")})(?!${WORD_CHARACTER})`,
+    "giu"
   );
   return () => (tree: OfferingMarkdownNode) => {
     if (needle.length > 0) {

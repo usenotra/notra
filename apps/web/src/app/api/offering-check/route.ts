@@ -36,13 +36,17 @@ function streamEvents(
   cached: OfferingCheckResult | null
 ): Response {
   const encoder = new TextEncoder();
+  let active = true;
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
       const emit = (event: OfferingStreamEvent) => {
-        controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        if (active) {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        }
       };
       if (cached) {
         emit({ type: "result", result: cached });
+        active = false;
         controller.close();
         return;
       }
@@ -62,9 +66,13 @@ function streamEvents(
           emit({ type: "error" });
         }
       }
-      if (!request.signal.aborted) {
+      if (active) {
+        active = false;
         controller.close();
       }
+    },
+    cancel() {
+      active = false;
     },
   });
   return new Response(body, { headers: STREAM_HEADERS });

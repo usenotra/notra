@@ -27,8 +27,12 @@ class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
 
 const GLOBAL_KEY = "global";
 
+function ipHash(request: NextRequest) {
+  return createHash("sha256").update(getClientIp(request)).digest("hex");
+}
+
 function limitChecks(request: NextRequest, input: OfferingCheckInput) {
-  const ipKey = createHash("sha256").update(getClientIp(request)).digest("hex");
+  const ipKey = ipHash(request);
   const brandKey = createHash("sha256").update(input.domain).digest("hex");
   const brandFeatureKey = createHash("sha256")
     .update(getOfferingCheckBrandFeatureIdentity(input))
@@ -47,10 +51,20 @@ function limitChecks(request: NextRequest, input: OfferingCheckInput) {
   }));
 }
 
+function preflightLimitChecks(request: NextRequest) {
+  return [
+    {
+      ...OFFERING_CHECK_RATE_LIMITS.preflightPerIpMinute,
+      key: `ratelimit:web:offering-check:preflightPerIpMinute:${ipHash(request)}`,
+    },
+  ];
+}
+
 const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
   function* (
-    request: NextRequest,
-    input: OfferingCheckInput,
+    checks:
+      | ReturnType<typeof limitChecks>
+      | ReturnType<typeof preflightLimitChecks>,
     consume: boolean
   ) {
     const redis = getOfferingCheckRedis();
@@ -68,7 +82,6 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
     }
 
     const now = Date.now();
-    const checks = limitChecks(request, input);
     const keys = checks.flatMap(({ key, windowMs }) => {
       const window = Math.floor(now / windowMs);
       return [`${key}:${window}`, `${key}:${window - 1}`];
@@ -108,11 +121,17 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
 export const peekOfferingCheckRateLimit = Effect.fn(
   "peekOfferingCheckRateLimit"
 )(function* (request: NextRequest, input: OfferingCheckInput) {
-  yield* checkOfferingCheckRateLimit(request, input, false);
+  yield* checkOfferingCheckRateLimit(limitChecks(request, input), false);
 });
 
 export const enforceOfferingCheckRateLimit = Effect.fn(
   "enforceOfferingCheckRateLimit"
 )(function* (request: NextRequest, input: OfferingCheckInput) {
-  yield* checkOfferingCheckRateLimit(request, input, true);
+  yield* checkOfferingCheckRateLimit(limitChecks(request, input), true);
+});
+
+export const enforceOfferingCheckPreflightRateLimit = Effect.fn(
+  "enforceOfferingCheckPreflightRateLimit"
+)(function* (request: NextRequest) {
+  yield* checkOfferingCheckRateLimit(preflightLimitChecks(request), true);
 });

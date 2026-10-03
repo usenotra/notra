@@ -6,6 +6,7 @@ import { Data, Effect } from "effect";
 import type { NextRequest } from "next/server";
 
 import { CONTACT_RATE_LIMITS } from "@/constants/contact";
+import { getClientIp } from "@/utils/client-ip";
 
 type LimiterKind = keyof typeof CONTACT_RATE_LIMITS;
 
@@ -59,27 +60,6 @@ function getLimiter(kind: LimiterKind): Ratelimit | null {
   });
 
   return limiters[kind] ?? null;
-}
-
-function getClientIp(request: NextRequest): string {
-  const vercelForwardedFor = request.headers
-    .get("x-vercel-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-
-  if (vercelForwardedFor) {
-    return vercelForwardedFor;
-  }
-
-  if (process.env.VERCEL) {
-    return "unknown";
-  }
-
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    "unknown"
-  );
 }
 
 function getIpRateLimitKey(request: NextRequest): string {

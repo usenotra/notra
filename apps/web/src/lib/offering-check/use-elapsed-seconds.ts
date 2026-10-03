@@ -13,10 +13,10 @@ export function useElapsedSeconds(running: boolean): number {
     }
     const startedAt = Date.now();
     const timer = setInterval(() => {
-      setSeconds(Math.round((Date.now() - startedAt) / TICK_MS));
+      setSeconds(Math.max(1, Math.round((Date.now() - startedAt) / TICK_MS)));
     }, TICK_MS);
     return () => clearInterval(timer);
   }, [running]);
 
-  return seconds;
+  return running ? Math.max(1, seconds) : seconds;
 }

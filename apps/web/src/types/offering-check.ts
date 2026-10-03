@@ -3,27 +3,10 @@ import type { ReactNode } from "react";
 
 export type OfferingVerdict = "knows" | "vague" | "confused" | "unknown";
 
-export type OfferingOverall =
-  | "known"
-  | "search-only"
-  | "vague"
-  | "confused"
-  | "unknown";
-
-export type OfferingCheckMode = "memory" | "search";
-
 export interface OfferingCheckInput {
   domain: string;
   feature: string;
   description: string;
-}
-
-export interface OfferingModeResult {
-  verdict: OfferingVerdict;
-  summary: string;
-  answer: string;
-  reasoning: string;
-  seconds: number;
 }
 
 interface OfferingSourcePage {
@@ -46,9 +29,11 @@ export interface OfferingCheckResult {
   companyName: string;
   companyDescription: string;
   model: string;
-  overall: OfferingOverall;
-  memory: OfferingModeResult;
-  search: OfferingModeResult;
+  verdict: OfferingVerdict;
+  summary: string;
+  answer: string;
+  reasoning: string;
+  seconds: number;
   otherOfferings: string[];
   queries: string[];
   searchUsed: boolean;
@@ -56,26 +41,17 @@ export interface OfferingCheckResult {
   checkedAt: string;
 }
 
-export interface OfferingRawAnswer {
-  answer: string;
-  reasoning: string;
-  seconds: number;
-  queries: string[];
-  retrievedUrls: string[];
-  citedUrls: string[];
-}
-
 export type OfferingStreamEvent =
-  | { type: "delta"; mode: OfferingCheckMode; text: string }
-  | { type: "reasoning"; mode: OfferingCheckMode; text: string }
+  | { type: "delta"; text: string }
+  | { type: "reasoning"; text: string }
   | { type: "search"; queries: string[]; domains: string[] }
-  | { type: "answered"; mode: OfferingCheckMode; seconds: number }
+  | { type: "answered"; seconds: number }
   | { type: "result"; result: OfferingCheckResult }
   | { type: "error" };
 
 export type OfferingStreamEmit = (event: OfferingStreamEvent) => void;
 
-export interface OfferingOverallCopy {
+export interface OfferingVerdictOverviewCopy {
   lead: string;
   trail: string;
   body: string;
@@ -103,41 +79,32 @@ export interface OfferingReportPageProps {
   searchParams: Promise<{
     domain?: string | string[];
     feature?: string | string[];
-    description?: string | string[];
   }>;
 }
 
 export interface OfferingReportProps {
   input: OfferingCheckInput;
-  initialResult: OfferingCheckResult | null;
 }
 
 export interface OfferingLiveState {
   status: OfferingReportStatus;
-  answers: Record<OfferingCheckMode, string>;
-  reasoning: Record<OfferingCheckMode, string>;
-  seconds: Record<OfferingCheckMode, number | null>;
+  answer: string;
+  reasoning: string;
+  seconds: number | null;
   queries: string[];
   domains: string[];
   result: OfferingCheckResult | null;
 }
 
-export type OfferingChatPhase =
-  | "thinking"
-  | "searching"
-  | "writing"
-  | "grading"
-  | "done";
+export type OfferingChatPhase = "thinking" | "searching" | "writing" | "done";
 
 export interface OfferingChatWindowProps {
-  mode: OfferingCheckMode;
   feature: string;
   question: string;
   state: OfferingLiveState;
 }
 
 export interface OfferingChatReasoningProps {
-  mode: OfferingCheckMode;
   hasAnswer: boolean;
   state: OfferingLiveState;
 }

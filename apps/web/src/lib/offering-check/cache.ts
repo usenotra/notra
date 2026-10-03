@@ -44,6 +44,6 @@ export const writeCachedOfferingCheck = Effect.fn("offeringCheck.writeCache")(
     }
     yield* Effect.tryPromise(() =>
       redis.set(cacheKey(input), result, { ex: OFFERING_CHECK_CACHE_SECONDS })
-    ).pipe(Effect.ignore);
+    ).pipe(Effect.timeout("1 second"), Effect.ignore);
   }
 );

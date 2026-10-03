@@ -96,14 +96,13 @@ export default function OfferingCheckPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className={sectionTitleClass}>Why we ask twice</h2>
+            <h2 className={sectionTitleClass}>Why we search the web</h2>
             <p className={bodyClass}>
-              Assistants answer from two places. What the model learned in
-              training is always there, but it is months old and thin on
-              anything you shipped recently. Web search is fresh, but it only
-              runs for some questions and only finds what ranks. A feature the
-              model knows from memory shows up in every answer. A feature it
-              only finds by searching shows up when your page wins the search.
+              Model training is months old and thin on anything you shipped
+              recently. Web search can find fresh product pages, docs and
+              changelogs, but only when those pages rank for the question. This
+              check shows what the model can find now and which sources shape
+              its answer.
             </p>
           </div>
 

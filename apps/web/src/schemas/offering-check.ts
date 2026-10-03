@@ -59,24 +59,15 @@ export const offeringCheckRequestSchema = z
 
 const verdictSchema = z.enum(["knows", "vague", "confused", "unknown"]);
 
-export const offeringJudgementSchema = z.object({
+export const offeringResponseSchema = z.object({
+  answer: z.string(),
+  verdict: verdictSchema,
+  summary: z.string().max(SUMMARY_MAX_LENGTH),
   companyName: z.string().max(COMPANY_NAME_MAX_LENGTH),
   companyDescription: z.string().max(COMPANY_DESCRIPTION_MAX_LENGTH),
-  memoryVerdict: verdictSchema,
-  memorySummary: z.string().max(SUMMARY_MAX_LENGTH),
-  searchVerdict: verdictSchema,
-  searchSummary: z.string().max(SUMMARY_MAX_LENGTH),
   otherOfferings: z
     .array(z.string().max(OTHER_OFFERING_MAX_LENGTH))
     .max(OFFERING_CHECK_MAX_OTHER_OFFERINGS),
-});
-
-const modeResultSchema = z.object({
-  verdict: verdictSchema,
-  summary: z.string(),
-  answer: z.string(),
-  reasoning: z.string(),
-  seconds: z.number(),
 });
 
 export const offeringCheckResultSchema = z.object({
@@ -85,9 +76,11 @@ export const offeringCheckResultSchema = z.object({
   companyName: z.string(),
   companyDescription: z.string(),
   model: z.string(),
-  overall: z.enum(["known", "search-only", "vague", "confused", "unknown"]),
-  memory: modeResultSchema,
-  search: modeResultSchema,
+  verdict: verdictSchema,
+  summary: z.string(),
+  answer: z.string(),
+  reasoning: z.string(),
+  seconds: z.number(),
   otherOfferings: z.array(z.string()),
   queries: z.array(z.string()),
   searchUsed: z.boolean(),
@@ -104,25 +97,15 @@ export const offeringCheckResultSchema = z.object({
   checkedAt: z.string(),
 });
 
-const modeSchema = z.enum(["memory", "search"]);
-
 export const offeringStreamEventSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("delta"), mode: modeSchema, text: z.string() }),
-  z.object({
-    type: z.literal("reasoning"),
-    mode: modeSchema,
-    text: z.string(),
-  }),
+  z.object({ type: z.literal("delta"), text: z.string() }),
+  z.object({ type: z.literal("reasoning"), text: z.string() }),
   z.object({
     type: z.literal("search"),
     queries: z.array(z.string()),
     domains: z.array(z.string()),
   }),
-  z.object({
-    type: z.literal("answered"),
-    mode: modeSchema,
-    seconds: z.number(),
-  }),
+  z.object({ type: z.literal("answered"), seconds: z.number() }),
   z.object({ type: z.literal("result"), result: offeringCheckResultSchema }),
   z.object({ type: z.literal("error") }),
 ]);

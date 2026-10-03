@@ -11,6 +11,7 @@ import {
   getOfferingCheckCacheIdentity,
   stripAnswerCitations,
 } from "./offering-check";
+import { offeringReportHref } from "./offering-report";
 
 describe("offering check identities", () => {
   const first = {
@@ -50,6 +51,17 @@ describe("offering check identities", () => {
   });
 });
 
+test("keeps the private description out of the report URL", () => {
+  const href = offeringReportHref({
+    domain: "example.com",
+    feature: "AI: Search",
+    description: "Private launch details",
+  });
+
+  expect(href).toBe("/offering/report?domain=example.com&feature=AI%3A+Search");
+  expect(href).not.toContain("Private");
+});
+
 test("highlights feature text after Markdown parsing", () => {
   const tree: OfferingMarkdownNode = {
     type: "root",
@@ -77,9 +89,37 @@ test("highlights feature text after Markdown parsing", () => {
   ]);
 });
 
-test("moves from writing to grading only after the answer completes", () => {
+test("highlights only complete Unicode word spans", () => {
+  const tree: OfferingMarkdownNode = {
+    type: "root",
+    children: [
+      {
+        type: "text",
+        value: "AI appears alone, not in said or mail. Café, not Cafés.",
+      },
+    ],
+  };
+
+  createFeatureHighlightPlugin("AI")()(tree);
+
+  expect(
+    tree.children?.filter((child) => child.tagName === "mark")
+  ).toHaveLength(1);
+
+  const accentedTree: OfferingMarkdownNode = {
+    type: "root",
+    children: [{ type: "text", value: "Café and Caféine" }],
+  };
+  createFeatureHighlightPlugin("Café")()(accentedTree);
+
+  expect(
+    accentedTree.children?.filter((child) => child.tagName === "mark")
+  ).toHaveLength(1);
+});
+
+test("moves from writing to done after the answer completes", () => {
   expect(getOfferingChatPhase(false, false, true, false)).toBe("writing");
-  expect(getOfferingChatPhase(false, true, true, false)).toBe("grading");
+  expect(getOfferingChatPhase(false, true, true, false)).toBe("done");
 });
 
 test("treats citation-only answers as empty", () => {

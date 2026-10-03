@@ -24,18 +24,9 @@ const STATUS_BY_RESPONSE: Partial<Record<number, OfferingReportStatus>> = {
 function initialState(result: OfferingCheckResult | null): OfferingLiveState {
   return {
     status: result ? "done" : "checking",
-    answers: {
-      memory: result?.memory.answer ?? "",
-      search: result?.search.answer ?? "",
-    },
-    reasoning: {
-      memory: result?.memory.reasoning ?? "",
-      search: result?.search.reasoning ?? "",
-    },
-    seconds: {
-      memory: result?.memory.seconds ?? null,
-      search: result?.search.seconds ?? null,
-    },
+    answer: result?.answer ?? "",
+    reasoning: result?.reasoning ?? "",
+    seconds: result?.seconds ?? null,
     queries: result?.queries ?? [],
     domains: result?.sources.map((source) => source.domain) ?? [],
     result,
@@ -51,18 +42,12 @@ function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
     case "delta":
       return {
         ...state,
-        answers: {
-          ...state.answers,
-          [event.mode]: state.answers[event.mode] + event.text,
-        },
+        answer: state.answer + event.text,
       };
     case "reasoning":
       return {
         ...state,
-        reasoning: {
-          ...state.reasoning,
-          [event.mode]: state.reasoning[event.mode] + event.text,
-        },
+        reasoning: state.reasoning + event.text,
       };
     case "search":
       return {
@@ -73,7 +58,7 @@ function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
     case "answered":
       return {
         ...state,
-        seconds: { ...state.seconds, [event.mode]: event.seconds },
+        seconds: event.seconds,
       };
     case "result":
       return initialState(event.result);

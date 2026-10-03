@@ -13,7 +13,7 @@ import { useState } from "react";
 
 import {
   OFFERING_CHECK_MODEL_LABEL,
-  OFFERING_MODE_TITLES,
+  OFFERING_MODE_TITLE,
   OFFERING_SEARCH_SKIPPED_HINT,
 } from "@/constants/offering-check";
 import { useElapsedSeconds } from "@/lib/offering-check/use-elapsed-seconds";
@@ -73,24 +73,22 @@ function OfferingReasoningTrace({
 }
 
 function OfferingChatReasoning({
-  mode,
   hasAnswer,
   state,
 }: OfferingChatReasoningProps) {
-  const isSearch = mode === "search";
-  const reasoning = state.reasoning[mode].trim();
-  const finalSeconds = state.seconds[mode];
+  const reasoning = state.reasoning.trim();
+  const finalSeconds = state.seconds;
   const answered = finalSeconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
   const hasSearchActivity =
-    isSearch && (state.queries.length > 0 || state.domains.length > 0);
+    state.queries.length > 0 || state.domains.length > 0;
   const hasTrace = reasoning.length > 0 || hasSearchActivity;
   const showWorkedFor = answered || hasTrace || hasAnswer;
   const phase = getOfferingChatPhase(
     state.result !== null,
     answered,
     hasAnswer,
-    isSearch && !hasSearchActivity && reasoning.length === 0
+    !hasSearchActivity && reasoning.length === 0
   );
 
   return (
@@ -105,7 +103,7 @@ function OfferingChatReasoning({
           seconds={finalSeconds ?? liveSeconds}
         />
       ) : null}
-      {isSearch && state.result?.searchUsed === false ? (
+      {state.result?.searchUsed === false ? (
         <p className="text-muted-foreground text-[14px] leading-6">
           {OFFERING_SEARCH_SKIPPED_HINT}
         </p>
@@ -121,23 +119,21 @@ function OfferingChatReasoning({
 }
 
 export function OfferingChatWindow({
-  mode,
   feature,
   question,
   state,
 }: OfferingChatWindowProps) {
-  const isSearch = mode === "search";
   const [live] = useState(() => state.result === null);
   const enterClass = live ? ENTER_CLASS : null;
-  const answer = stripAnswerCitations(state.answers[mode]);
-  const answered = state.seconds[mode] !== null;
+  const answer = stripAnswerCitations(state.answer);
+  const answered = state.seconds !== null;
 
   return (
     <div className="flex min-w-0 flex-col rounded-2xl shadow-[0_0_0_0.0625rem_#1E1E1E05,0_0.0625rem_0.125rem_#1E1E1E0A,0_0.5rem_1.5rem_-0.5rem_#1E1E1E14,0_1.5rem_3rem_-1.5rem_#8B5CF61F] dark:shadow-none">
       <div className="border-border bg-muted flex h-16 items-center gap-2.5 rounded-t-2xl border border-b-0 px-5 pb-5">
         <EngineIcon className="block size-4.5 shrink-0" engine="openai" />
         <h3 className="text-foreground min-w-0 grow truncate text-[15px] leading-5 font-semibold">
-          {OFFERING_MODE_TITLES[mode]}
+          {OFFERING_MODE_TITLE}
           <span className="text-muted-foreground pl-2 font-normal">
             {OFFERING_CHECK_MODEL_LABEL}
           </span>
@@ -164,7 +160,6 @@ export function OfferingChatWindow({
           reasoning={
             <OfferingChatReasoning
               hasAnswer={answer.length > 0}
-              mode={mode}
               state={state}
             />
           }
@@ -180,7 +175,7 @@ export function OfferingChatWindow({
               {answer}
             </MessageResponse>
           ) : null}
-          {isSearch && state.result ? (
+          {state.result ? (
             <OfferingSources sources={state.result.sources} />
           ) : null}
         </ChatgptMessage>

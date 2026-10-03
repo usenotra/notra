@@ -3,6 +3,7 @@
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
@@ -10,16 +11,19 @@ import {
   OFFERING_CHECK_FORM_PATH,
   OFFERING_CHECK_MODEL_LABEL,
   OFFERING_CHECK_SIGNUP_SOURCE,
-  OFFERING_COMPANY_OVERALL_BODY,
-  OFFERING_OVERALL_COPY,
+  OFFERING_COMPANY_VERDICT_BODY,
   OFFERING_REPORT_FAILURE_MESSAGES,
+  OFFERING_VERDICT_OVERVIEW_COPY,
 } from "@/constants/offering-check";
 import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
+import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type {
+  OfferingCheckInput,
   OfferingCompanyHeaderProps,
   OfferingReportProps,
 } from "@/types/offering-check";
 import { buildOfferingQuestion } from "@/utils/offering-check";
+import { readOfferingReportDescription } from "@/utils/offering-report";
 
 import { OfferingChatWindow } from "./offering-chat-window";
 import { OfferingFavicon } from "./offering-favicon";
@@ -31,6 +35,10 @@ const metaClass =
   "font-sans text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70";
 const backLinkClass =
   "font-sans text-[0.9375rem]/6 font-medium text-[#8B5CF6] hover:underline dark:text-[#A78BFA]";
+
+function subscribeToStoredDescription() {
+  return () => {};
+}
 
 function CompanyHeader({ domain, result }: OfferingCompanyHeaderProps) {
   return (
@@ -79,8 +87,8 @@ function CompanyHeader({ domain, result }: OfferingCompanyHeaderProps) {
   );
 }
 
-export function OfferingReport({ input, initialResult }: OfferingReportProps) {
-  const state = useOfferingStream(input, initialResult);
+function OfferingReportContent({ input }: OfferingReportProps) {
+  const state = useOfferingStream(input, null);
   const { result, status } = state;
   const hasFeature = input.feature.length > 0;
   const subject = hasFeature
@@ -107,11 +115,13 @@ export function OfferingReport({ input, initialResult }: OfferingReportProps) {
     );
   }
 
-  const overall = result ? OFFERING_OVERALL_COPY[result.overall] : null;
+  const overview = result
+    ? OFFERING_VERDICT_OVERVIEW_COPY[result.verdict]
+    : null;
   const overallBody =
     result && !hasFeature
-      ? OFFERING_COMPANY_OVERALL_BODY[result.overall]
-      : overall?.body;
+      ? OFFERING_COMPANY_VERDICT_BODY[result.verdict]
+      : overview?.body;
   const question = buildOfferingQuestion(input);
 
   return (
@@ -119,13 +129,13 @@ export function OfferingReport({ input, initialResult }: OfferingReportProps) {
       <MarketingHeroWash
         subtitle={
           overallBody ??
-          `Once from memory, once with web search. You are watching the answers come in.`
+          `Searching the web now. You are watching the answer come in.`
         }
         title={
           <>
-            {overall?.lead ?? `Asking ${OFFERING_CHECK_MODEL_LABEL} about `}
+            {overview?.lead ?? `Asking ${OFFERING_CHECK_MODEL_LABEL} about `}
             <span className="text-primary">{subject}</span>
-            {overall?.trail}
+            {overview?.trail}
           </>
         }
       />
@@ -134,16 +144,9 @@ export function OfferingReport({ input, initialResult }: OfferingReportProps) {
 
         <OfferingVerdictSummary result={result} />
 
-        <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="w-full">
           <OfferingChatWindow
             feature={input.feature}
-            mode="memory"
-            question={question}
-            state={state}
-          />
-          <OfferingChatWindow
-            feature={input.feature}
-            mode="search"
             question={question}
             state={state}
           />
@@ -171,4 +174,25 @@ export function OfferingReport({ input, initialResult }: OfferingReportProps) {
       </div>
     </>
   );
+}
+
+export function OfferingReport({ input }: OfferingReportProps) {
+  const description = useSyncExternalStore(
+    subscribeToStoredDescription,
+    () => readOfferingReportDescription(input),
+    () => null
+  );
+
+  const parsed = offeringCheckRequestSchema.safeParse({
+    ...input,
+    description,
+  });
+  const storedInput = parsed.success ? parsed.data : null;
+
+  return storedInput ? (
+    <OfferingReportContent
+      input={storedInput}
+      key={JSON.stringify(storedInput)}
+    />
+  ) : null;
 }

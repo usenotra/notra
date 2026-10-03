@@ -3,7 +3,10 @@ import type { NextRequest } from "next/server";
 
 import { OFFERING_CHECK_KILL_SWITCH_ENV } from "@/constants/offering-check";
 import { readCachedOfferingCheck } from "@/lib/offering-check/cache";
-import { peekOfferingCheckRateLimit } from "@/lib/offering-check/ratelimit";
+import {
+  enforceOfferingCheckPreflightRateLimit,
+  peekOfferingCheckRateLimit,
+} from "@/lib/offering-check/ratelimit";
 import { isSameOriginRequest } from "@/lib/offering-check/same-origin";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import { jsonError } from "@/utils/api-response";
@@ -27,6 +30,7 @@ export async function POST(request: NextRequest) {
 
   return Effect.runPromise(
     Effect.gen(function* () {
+      yield* enforceOfferingCheckPreflightRateLimit(request);
       const cached = yield* readCachedOfferingCheck(parsed.data);
       if (!cached) {
         yield* peekOfferingCheckRateLimit(request, parsed.data);
