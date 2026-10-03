@@ -96,7 +96,8 @@ export default defineConfig(({ command }) => ({
         "/**": { headers: buildSecurityHeaders(command === "serve") },
       },
       devProxy: {
-        "/docs": { target: `${DOCS_PROXY_ORIGIN}/docs`, changeOrigin: true },
+        "/docs": { target: DOCS_PROXY_ORIGIN, changeOrigin: true },
+        "/docs/**": { target: DOCS_PROXY_ORIGIN, changeOrigin: true },
       },
       vercel: {
         config: {
