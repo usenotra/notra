@@ -1,0 +1,135 @@
+apps/web/src/lib/contact/send-message-email.ts
+  s_d0ef1cf38b3100::t_8d6bc43c7d7a2b 55-60
+  s_d0ef1cf38b3100::t_c43d26e203cd95 26,31,37
+  s_d0ef1cf38b3100::t_dcae7fb9a10560 3,54
+apps/dashboard/src/lib/orpc/routers/feedback.ts
+  s_d0ef1cf38b3100::t_55c81ab135ca1b 68
+apps/dashboard/src/lib/auth/sync.ts
+  s_d0ef1cf38b3100::t_993e66fa63a6c9 22-23,277-285
+  s_d0ef1cf38b3100::t_fe60067d656bbd 12
+apps/dashboard/vercel.json
+  s_d0ef1cf38b3100::t_3d6b27aa3f3dd5 25-28
+apps/dashboard/src/lib/analytics/posthog-server.ts
+  s_d0ef1cf38b3100::t_389c88fb592d08 14,27-30
+CONTRIBUTING.md
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 49,89
+packages/email/scripts/brew-setup.ts
+  s_d0ef1cf38b3100::t_def4f429e8faaa 157-158
+  s_d0ef1cf38b3100::t_9af83a8b25b16b 156,159,162,164-166
+  s_d0ef1cf38b3100::t_0f749f773395a1 1,5-11,18-121,123-142,144-155,160-161,163,167-170,178,180-181,183-190,194-202,220-221,227-228,230-231,236,244,248-252,254-255,293-308,311-314,316-326,354,363-364,366-368,371-372,375,378,390,402,404,407,413-419,423-444,446,451-468
+  s_d0ef1cf38b3100::t_00ebea0bf846d0 237-243,245-247,253
+  s_d0ef1cf38b3100::t_2e44d1226bebff 16-17,171-177,179,182,203-219,222-226,229,232-235,309-310,315,327-353,355-362,365,369-370,373-374,376-377,379-389,391-401,403,405-406,408-412,422,445,447-450
+  s_d0ef1cf38b3100::t_f5aa0229e26336 272-277
+  s_d0ef1cf38b3100::t_d6dadf2cc72850 2-4,12-15,122,256-271,278-292,420-421
+  s_d0ef1cf38b3100::t_d3bf9f39f3c598 191-193
+  s_d0ef1cf38b3100::t_c0bcbbdf3b6942 143
+packages/email/src/utils/dev.ts
+  s_d0ef1cf38b3100::t_9c43d836673f5e 1,3,5,9-11,17
+  s_d0ef1cf38b3100::t_c5e31a64198de5 6-8,14-16
+apps/web/src/content/legal/privacy.mdx
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 5,57
+AGENTS.md
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 43
+apps/web/src/content/legal/terms.mdx
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 5,76,109
+packages/email/src/emails/contact.tsx
+  s_d0ef1cf38b3100::t_af109b893ae142 7,51-55
+packages/email/scripts/brew-test-send.tsx
+  s_d0ef1cf38b3100::t_677d501aaf5cfd 1-18,20-60,63-71,73-85
+  s_d0ef1cf38b3100::t_fe60067d656bbd 19,61-62,72
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_d0ef1cf38b3100::t_993e66fa63a6c9 5,32,121-123,217-219
+  s_d0ef1cf38b3100::t_36d960a395a2d9 119-120,124-126,216
+  s_d0ef1cf38b3100::t_fe60067d656bbd 26
+packages/email/src/types/brew.ts
+  s_d0ef1cf38b3100::t_f571bba5dd3940 67-83,88
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 5
+  s_d0ef1cf38b3100::t_9c43d836673f5e 23,27-32,42-45
+  s_d0ef1cf38b3100::t_e03d1beaa70e95 1-4,6-22,24-26,33-35,38,41,46-66,84-87,89-94
+  s_d0ef1cf38b3100::t_c048d397a0a590 36-37
+  s_d0ef1cf38b3100::t_aa169f1e99babf 39-40
+packages/email/src/emails/feedback.tsx
+  s_d0ef1cf38b3100::t_af109b893ae142 7,58-65
+apps/dashboard/src/app/api/cron/brew-contacts/route.ts
+  s_d0ef1cf38b3100::t_3d6b27aa3f3dd5 1,3,5,7-22,25-26
+packages/email/package.json
+  s_d0ef1cf38b3100::t_6c683539dfdec6 25
+  s_d0ef1cf38b3100::t_598689d95676c2 24,29
+apps/dashboard/src/lib/email/send.ts
+  s_d0ef1cf38b3100::t_84aa5153741495 27-30,46-56,72-82,103-112,129-138,159-171,187-197,219-235
+  s_d0ef1cf38b3100::t_833cf229cd1347 9,25-26,31,35-42,45,57,61-68,71,83,87-94,102,113,117-125,128,139,143-153,158,172,176-186,198,202-218,236
+  s_d0ef1cf38b3100::t_62349a8dceaf6b 32,58,84,114,140,173,199,237
+apps/dashboard/src/lib/onboarding/notification-settings.ts
+  s_d0ef1cf38b3100::t_993e66fa63a6c9 4-5,36
+  s_d0ef1cf38b3100::t_42dda67f9aabca 6,35,37-38
+apps/dashboard/src/constants/email/brew-contacts.ts
+  s_d0ef1cf38b3100::t_f5edd6ff061c00 1-2
+apps/dashboard/src/lib/email/daily-summary.ts
+  s_d0ef1cf38b3100::t_05f72d2aa8ddc6 290
+  s_d0ef1cf38b3100::t_df5e037a1a7fb7 288
+packages/email/src/constants/brew.ts
+  s_d0ef1cf38b3100::t_bd2090e09abd88 34-42
+  s_d0ef1cf38b3100::t_9c43d836673f5e 20-24
+  s_d0ef1cf38b3100::t_8a917574cdd7b8 11,13-19
+  s_d0ef1cf38b3100::t_f571bba5dd3940 1-5,43-56
+  s_d0ef1cf38b3100::t_1b1dd1e9d4b856 6-10,25-33,57
+  s_d0ef1cf38b3100::t_aa169f1e99babf 12
+apps/dashboard/src/lib/workflows/shared/auto-pause.ts
+  s_d0ef1cf38b3100::t_05f72d2aa8ddc6 108
+apps/dashboard/src/lib/email/brew-contacts.ts
+  s_d0ef1cf38b3100::t_7a4b4350d49028 99
+  s_d0ef1cf38b3100::t_fe60067d656bbd 9
+  s_d0ef1cf38b3100::t_bda25d76f9faa2 89,94
+  s_d0ef1cf38b3100::t_1d060d15213091 31
+  s_d0ef1cf38b3100::t_d3bf9f39f3c598 68-71,113
+  s_d0ef1cf38b3100::t_d51497ffd525f7 1-8,10-11,14-24,27-30,32-40,43-67,72-88,90-93,95-98,100-112,114-117
+  s_d0ef1cf38b3100::t_efbccaeabe19cb 41-42
+  s_d0ef1cf38b3100::t_45ea4eb0f1503e 25-26
+  s_d0ef1cf38b3100::t_769a7d9b66f209 12-13
+apps/dashboard/src/lib/orpc/routers/notifications.ts
+  s_d0ef1cf38b3100::t_42dda67f9aabca 105-107
+  s_d0ef1cf38b3100::t_fe60067d656bbd 8
+  s_d0ef1cf38b3100::t_993e66fa63a6c9 11,104
+packages/email/src/utils/brew.ts
+  s_d0ef1cf38b3100::t_a860ff7a99f2d9 10
+  s_d0ef1cf38b3100::t_95a6d1f151212b 193,195
+  s_d0ef1cf38b3100::t_5e9f6cfcfb9ecb 16
+  s_d0ef1cf38b3100::t_366798c9a18ce8 212,214-215
+  s_d0ef1cf38b3100::t_d3bf9f39f3c598 228-232
+  s_d0ef1cf38b3100::t_272fe6b70c2c46 245-246
+  s_d0ef1cf38b3100::t_c26435a73c8e81 259-262,273
+  s_d0ef1cf38b3100::t_aa169f1e99babf 17,79,88,91-92,127-129,132,191-192,194,196,201,205-209,213
+  s_d0ef1cf38b3100::t_3b85de5709a306 2,11,13-15,24-25,30,34-35,38-39,41,43-46,98-126,130-131,133,135-136,165-168,170,172-173,176,179,218,224-226,234-237,263-266,274-277
+  s_d0ef1cf38b3100::t_7aa231e6142f19 153-157,162-164,183
+  s_d0ef1cf38b3100::t_9bae2c54905780 86
+  s_d0ef1cf38b3100::t_06960a8bac3ff4 1,3-4,7-9,12,18,20-23,26,28-29,31-33,40,42,47-78,80-85,87,89-90,93-97,137-152,169,171,174-175,177-178,180-182,184-190,197-200,202,204,210-211,216-217,219-223,227,233,238-244,247-251,253-254,256,267-270,272
+  s_d0ef1cf38b3100::t_86ea85ee3c052e 158-161
+apps/dashboard/src/lib/workflows/shared/content-email-digest.ts
+  s_d0ef1cf38b3100::t_d3bf9f39f3c598 2
+  s_d0ef1cf38b3100::t_05f72d2aa8ddc6 187,220,251,282
+package.json
+  s_d0ef1cf38b3100::t_a4b41ed0bd18b5 30-31
+  s_d0ef1cf38b3100::t_c0bcbbdf3b6942 29
+apps/dashboard/src/lib/after-response.ts
+  s_d0ef1cf38b3100::t_389c88fb592d08 1-16,18,20-23
+turbo.json
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 47-48
+.env.example
+  s_d0ef1cf38b3100::t_e03a1ff3f1bf7e 74-76,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "dba5023482137401515f614524e006ab6169fc56",
+  "prompts": {},
+  "sessions": {
+    "s_d0ef1cf38b3100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a72b35a-e666-4a98-a981-1ef6b945f21c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
