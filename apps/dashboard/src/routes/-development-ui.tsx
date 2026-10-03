@@ -22,6 +22,9 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
     () => import("@/app/design-system/2fa-preview/page.dev")
   );
   const AuthFlow = lazy(() => import("@/app/design-system/auth-flow/page.dev"));
+  const CodeResearch = lazy(
+    () => import("@/app/design-system/code-research/page.dev")
+  );
   const GeoDemo = lazy(() => import("@/app/design-system/geo-demo/page.dev"));
   const GeoFirstScan = lazy(
     () => import("@/app/design-system/geo-first-scan/page.dev")
@@ -69,6 +72,11 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
         parent: preview,
         path: "auth-flow",
         component: () => <AuthFlow />,
+      }),
+      createUiRoute({
+        parent: preview,
+        path: "code-research",
+        component: () => <CodeResearch />,
       }),
       createUiRoute({
         parent: preview,
