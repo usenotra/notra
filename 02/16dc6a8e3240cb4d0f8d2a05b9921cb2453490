@@ -1,0 +1,60 @@
+apps/dashboard/src/components/geo/traffic-page-sources-cell.tsx
+  s_3a41eae16a95f9::t_50f36db562689b 9
+  s_3a41eae16a95f9::t_7127a721ae607d 69,107
+apps/dashboard/src/components/geo/traffic-purpose-cell.tsx
+  s_3a41eae16a95f9::t_50f36db562689b 5
+  s_3a41eae16a95f9::t_7127a721ae607d 72,117
+apps/dashboard/src/components/chat/assistant-metadata-hover.tsx
+  s_3a41eae16a95f9::t_b9094bfd56ca32 7-9,96-99,101-102,106,110-116,118-120,122-124,126-128,130-132
+  s_3a41eae16a95f9::t_17ec716e211b6e 10-13
+packages/ui/src/components/ui/detail-card.tsx
+  s_3a41eae16a95f9::t_49e08dc521c06f 9-11,19,52-53
+  ai_agent 23,28-35,37,39
+  s_3a41eae16a95f9::t_b9094bfd56ca32 4-7,45-51
+apps/dashboard/src/components/automation/sources-cell.tsx
+  s_3a41eae16a95f9::t_17ec716e211b6e 1-5,33-36
+  s_3a41eae16a95f9::t_b9094bfd56ca32 23,25-28,47-48
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_3a41eae16a95f9::t_4bbac652b311a7 1380-1389
+  ai_agent 84-86
+apps/dashboard/src/components/geo/prompt-keyword-textarea.tsx
+  s_3a41eae16a95f9::t_50f36db562689b 3
+  s_3a41eae16a95f9::t_7127a721ae607d 275,310
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_3a41eae16a95f9::t_7127a721ae607d 142,172
+  s_3a41eae16a95f9::t_50f36db562689b 21
+apps/dashboard/src/components/geo/geo-answer-mention-card.tsx
+  s_3a41eae16a95f9::t_50f36db562689b 5
+  s_3a41eae16a95f9::t_7127a721ae607d 44,120
+apps/dashboard/src/components/geo/prompt-receipt-history.tsx
+  s_3a41eae16a95f9::t_17ec716e211b6e 10,12-14,179-180,195-200,202,207-208
+packages/ui/src/types/detail-card.ts
+  s_3a41eae16a95f9::t_bd2bcf218371eb 1-3,5-11
+  s_3a41eae16a95f9::t_b9094bfd56ca32 12-16
+  s_3a41eae16a95f9::t_73f8902ed3c8c0 4
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_3a41eae16a95f9::t_50f36db562689b 13
+  s_3a41eae16a95f9::t_7127a721ae607d 62,89,181,219
+apps/dashboard/src/components/geo/share-of-voice-chart.tsx
+  s_3a41eae16a95f9::t_7127a721ae607d 174,203
+  s_3a41eae16a95f9::t_50f36db562689b 14
+apps/dashboard/src/components/geo/shelf/shelf-ticket-assignee-card.tsx
+  s_3a41eae16a95f9::t_7127a721ae607d 26,45
+  s_3a41eae16a95f9::t_50f36db562689b 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0216dc6a8e3240cb4d0f8d2a05b9921cb2453490",
+  "prompts": {},
+  "sessions": {
+    "s_3a41eae16a95f9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab5b8820-1a05-4aba-82f0-c3d4b0cf0b19",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
