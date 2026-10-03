@@ -4,6 +4,10 @@ import { Link04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_SHELF_PLACEMENT_STATUSES } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -14,7 +18,6 @@ import { useTranslations } from "next-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
@@ -142,7 +145,7 @@ export function ShelfPlacementsTable({
   ];
 
   return (
-    <Table
+    <DataTable
       columns={columns}
       data={placements}
       getRowId={(placement) => placement.competitorId ?? "own"}

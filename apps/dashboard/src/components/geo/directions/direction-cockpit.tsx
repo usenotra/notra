@@ -3,6 +3,10 @@
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Card, CardContent } from "@notra/ui/components/ui/card";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useFormatter, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
@@ -12,7 +16,6 @@ import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { PromptResultsTable } from "@/components/geo/directions/prompt-results-table";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { CHART_PERCENT_SCALE } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,
@@ -205,8 +208,7 @@ function SourcesTable() {
           })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_SOURCES]}
         defaultSort={{ key: "visits", direction: "desc" }}

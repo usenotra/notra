@@ -7,6 +7,10 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
@@ -18,7 +22,6 @@ import { useMemo } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   ACCOUNT_DETAIL_MIN_POINTS,
@@ -340,8 +343,7 @@ export function AccountDetailView({
             })}
           </span>
         </div>
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={columns}
           data={posts}
           defaultSort={{ key: "postedAt", direction: "desc" }}

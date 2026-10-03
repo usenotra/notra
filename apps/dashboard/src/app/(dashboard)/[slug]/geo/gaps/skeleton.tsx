@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -24,7 +24,7 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
           <Skeleton className="h-8 w-36 rounded-md" />
         </div>
       </div>
-      <GeoTableSkeleton rows={GAP_ROW_COUNT} />
+      <DataTableSkeleton rows={GAP_ROW_COUNT} />
       <p aria-live="polite" className="sr-only">
         {t("loadingStatus")}
       </p>

@@ -49,7 +49,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { TABLE_CHROME_CLASS } from "@notra/ui/constants/table";
+import {
+  TABLE_CARD_CELLS_CLASS,
+  TABLE_FRAME_CLASS,
+  TABLE_INNER_RADIUS_CLASS,
+} from "@notra/ui/constants/table";
 
 import type { FileUIPart, UIMessage } from "ai";
 import Image from "next/image";
@@ -477,10 +481,11 @@ function MessageMarkdownTable({
   };
 
   const renderTable = () => (
-    <div className="max-w-full overflow-x-auto">
+    <div className={cn("max-w-full overflow-x-auto", TABLE_INNER_RADIUS_CLASS)}>
       <table
         className={cn(
           "w-full min-w-max caption-bottom border-separate border-spacing-0 text-sm [&_thead_th:last-child]:pr-24",
+          TABLE_CARD_CELLS_CLASS,
           className,
         )}
         ref={tableRef}
@@ -495,7 +500,7 @@ function MessageMarkdownTable({
     <div
       className={cn(
         "group/table relative max-w-full",
-        TABLE_CHROME_CLASS,
+        TABLE_FRAME_CLASS,
         toolbarOpen && "is-menu-open",
       )}
     >
@@ -619,7 +624,7 @@ function MessageMarkdownTable({
                 </ResponsiveDialogClose>
               </ResponsiveDialogHeader>
               <div className="min-h-0 flex-1 overflow-auto p-4">
-                <div className={TABLE_CHROME_CLASS}>{renderTable()}</div>
+                <div className={TABLE_FRAME_CLASS}>{renderTable()}</div>
               </div>
             </ResponsiveDialogContent>
           </ResponsiveDialog>

@@ -19,6 +19,10 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -30,7 +34,6 @@ import {
   CollectionMenuItems,
 } from "@/components/content/collection-menu-items";
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
@@ -356,12 +359,19 @@ export function CollectionsView({
 
   return (
     <>
-      <Table
-        className="rounded-xl"
+      <DataTable
         columns={columns}
         data={collections}
         emptyState={t("emptyPage")}
-        footer={<TablePagination {...pagination} itemLabel={t("items")} />}
+        pagination={{
+          mode: "server",
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+          totalItems: pagination.totalItems,
+          onPageChange: pagination.setPage,
+          onPageSizeChange: pagination.onPageSizeChange,
+          itemLabel: t("items"),
+        }}
         getRowId={(collection) => collection.id}
         height={paginatedTableHeightFor(
           pagination.pageRowCount,

@@ -1,15 +1,6 @@
 import { cn } from "cn";
 import type { ComponentProps, ReactNode } from "react";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
 import type { CodexListProps, CodexTableProps } from "../types/codex";
 
 /** Keys items by their text, counting repeats so duplicate rows stay unique. */
@@ -58,52 +49,51 @@ export const CodexTable = ({
 }: CodexTableProps) => {
   const codeColumnSet = new Set(codeColumns);
 
+  // The block mirrors the Codex terminal, so it renders a bare table rather
+  // than the framed shadcn one.
   return (
-    <div className="-ms-[2ch] max-w-[calc(100%+2ch)]">
-      <Table
+    <div className="-ms-[2ch] max-w-[calc(100%+2ch)] overflow-x-auto">
+      <table
         className={cn(
-          "w-auto border-separate border-spacing-x-[2ch] border-spacing-y-0 text-start text-[length:inherit]",
+          "w-auto caption-bottom border-separate border-spacing-x-[2ch] border-spacing-y-0 text-start text-[length:inherit]",
           className
         )}
         data-slot="codex-table"
         {...props}
       >
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
+        <thead>
+          <tr>
             {headers.map((header) => (
-              <TableHead
-                className="border-codex-rule text-codex-yellow h-auto border-b-2 px-[1ch] pb-[0.65em] text-start font-bold whitespace-normal"
+              <th
+                className="border-codex-rule text-codex-yellow border-b-2 px-[1ch] pb-[0.65em] text-start align-middle font-bold"
                 key={header}
                 scope="col"
               >
                 {header}
-              </TableHead>
+              </th>
             ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+          </tr>
+        </thead>
+        <tbody>
           {withTextKeys(rows, (row) => row.map(nodeText).join("|")).map(
             ({ item: row, key }) => (
-              <TableRow
-                className="group/codex-row hover:bg-transparent"
-                key={key}
-              >
+              <tr className="group/codex-row" key={key}>
                 {row.map((cell, columnIndex) => (
-                  <TableCell
+                  <td
                     className={cn(
-                      "border-codex-rule border-b px-[1ch] py-[0.65em] align-top whitespace-normal group-last/codex-row:border-b-0",
+                      "border-codex-rule border-b px-[1ch] py-[0.65em] align-top group-last/codex-row:border-b-0",
                       codeColumnSet.has(columnIndex) && "text-codex-green"
                     )}
                     key={headers[columnIndex] ?? `extra-${columnIndex}`}
                   >
                     {cell}
-                  </TableCell>
+                  </td>
                 ))}
-              </TableRow>
+              </tr>
             )
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 };

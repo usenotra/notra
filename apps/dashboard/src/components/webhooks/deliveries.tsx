@@ -1,6 +1,19 @@
 "use client";
-import { WebhookIcon } from "@hugeicons/core-free-icons";
+import {
+  PlusSignIcon,
+  FilterHorizontalIcon,
+  WebhookIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DataTable } from "@notra/ui/components/ui/data-table";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import {
   Select,
   SelectContent,
@@ -11,7 +24,6 @@ import {
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/button";
-import { Table } from "@/components/motion/table";
 import { useWebhookColumns } from "@/components/webhooks/columns";
 import {
   WEBHOOK_FILTERS,
@@ -32,13 +44,15 @@ export function WebhookDeliveries({
   loading,
   fetching,
   hasMore,
+  hasEndpoints,
+  canCreate,
+  onCreate,
   onSelect,
   onFilter,
   onPage,
 }: WebhookDeliveriesProps) {
   const t = useTranslations("settings.panes.webhooks");
   const tStatuses = useTranslations("settings.panes.webhooks.statuses");
-  const tActions = useTranslations("common.actions");
   const columns = useWebhookColumns();
   const tableHeight =
     rows.length === 0
@@ -47,8 +61,6 @@ export function WebhookDeliveries({
           WEBHOOK_TABLE_MAX_HEIGHT,
           rows.length * WEBHOOK_TABLE_ROW_HEIGHT + WEBHOOK_TABLE_HEADER_HEIGHT
         );
-  const rangeLabel =
-    rows.length === 0 ? "0" : `${offset + 1}–${offset + rows.length}`;
   return (
     <div className="space-y-3">
       <Select
@@ -70,61 +82,67 @@ export function WebhookDeliveries({
           ))}
         </SelectContent>
       </Select>
-      <Table
+      <DataTable
         columns={columns}
         data={rows}
         getRowId={(row) => row.id}
         onRowClick={onSelect}
+        pagination={{
+          mode: "cursor",
+          page: Math.floor(offset / WEBHOOK_PAGE_SIZE) + 1,
+          pageSize: WEBHOOK_PAGE_SIZE,
+          hasNextPage: hasMore && !fetching,
+          onPageChange: (page) => onPage((page - 1) * WEBHOOK_PAGE_SIZE),
+          formatRange: ({ start, end }) =>
+            t("pageSummary", {
+              range: `${start}–${end}`,
+              seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
+            }),
+        }}
         rowHeight={WEBHOOK_TABLE_ROW_HEIGHT}
         height={tableHeight}
         loading={loading}
         skeletonRows={4}
-        className="rounded-lg"
         emptyState={
-          <div className="space-y-3 px-6 py-8 text-center">
-            <HugeiconsIcon
-              icon={WebhookIcon}
-              className="text-muted-foreground mx-auto size-7"
-            />
-            <p className="text-sm font-medium">
-              {filter === "all"
-                ? t("empty.allTitle")
-                : t("empty.filteredTitle")}
-            </p>
-            <p className="text-muted-foreground mx-auto max-w-xs text-xs leading-relaxed">
-              {filter === "all"
-                ? t("empty.allDescription")
-                : t("empty.filteredDescription")}
-            </p>
-          </div>
+          <Empty className="py-8 md:py-8">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <HugeiconsIcon
+                  icon={filter === "all" ? WebhookIcon : FilterHorizontalIcon}
+                />
+              </EmptyMedia>
+              <EmptyTitle>
+                {filter === "all"
+                  ? t("empty.allTitle")
+                  : t("empty.filteredTitle")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {filter === "all"
+                  ? t("empty.allDescription")
+                  : t("empty.filteredDescription")}
+              </EmptyDescription>
+            </EmptyHeader>
+            {filter === "all" && hasEndpoints ? null : (
+              <EmptyContent>
+                {filter === "all" ? (
+                  <Button disabled={!canCreate} onClick={onCreate} size="sm">
+                    <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+                    {t("addEndpoint")}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => onFilter("all")}
+                    size="sm"
+                    variant="outline"
+                  >
+                    {t("empty.showAll")}
+                  </Button>
+                )}
+              </EmptyContent>
+            )}
+          </Empty>
         }
       />
-      <div className="text-muted-foreground flex items-center justify-between text-xs">
-        <span>
-          {t("pageSummary", {
-            range: rangeLabel,
-            seconds: WEBHOOK_REFRESH_INTERVAL_MS / 1000,
-          })}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={offset === 0 || fetching}
-            onClick={() => onPage(Math.max(0, offset - WEBHOOK_PAGE_SIZE))}
-          >
-            {tActions("previous")}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!hasMore || fetching}
-            onClick={() => onPage(offset + WEBHOOK_PAGE_SIZE)}
-          >
-            {tActions("next")}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }

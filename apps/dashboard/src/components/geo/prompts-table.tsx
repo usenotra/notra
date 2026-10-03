@@ -29,6 +29,10 @@ import {
   ContextMenuSeparator,
 } from "@notra/ui/components/ui/context-menu";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -58,7 +62,6 @@ import {
 } from "@/components/geo/prompt-badges";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import { PromptTagsActionDialog } from "@/components/geo/prompt-tags-action-dialog";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import {
   GEO_PROMPT_DEFAULT_FILTERS,
@@ -349,7 +352,7 @@ export function PromptsTable({
         <EmptyMedia variant="icon">
           <HugeiconsIcon icon={SearchIcon} />
         </EmptyMedia>
-        <EmptyTitle className="text-foreground">{t("noMatches")}</EmptyTitle>
+        <EmptyTitle>{t("noMatches")}</EmptyTitle>
         <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
@@ -592,8 +595,7 @@ export function PromptsTable({
         </div>
       </div>
 
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={rows}
         emptyState={emptyState}

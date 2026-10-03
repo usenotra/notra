@@ -2,19 +2,15 @@
 
 import { FEATURES } from "@notra/ai/billing/features";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@notra/ui/components/ui/pagination";
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useAutumnClient } from "autumn-js/react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
 
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CREDIT_EVENTS_PAGE_SIZE } from "@/constants/billing-credits";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -31,7 +27,6 @@ export function CreditActivity() {
   const t = useTranslations("billing.creditActivity");
   const tCommon = useTranslations("common");
   const outputTypeLabel = useOutputTypeLabel();
-  const tUi = useTranslations("ui");
   const locale = useLocale();
   const format = useFormatter();
   const eventColumns: TableColumn<ListEventsRow>[] = [
@@ -74,7 +69,13 @@ export function CreditActivity() {
     "page",
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
   );
-  const eventsOffset = Math.max(0, page - 1) * CREDIT_EVENTS_PAGE_SIZE;
+  const [pageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger
+      .withDefault(CREDIT_EVENTS_PAGE_SIZE)
+      .withOptions({ clearOnDefault: true })
+  );
+  const eventsOffset = Math.max(0, page - 1) * pageSize;
   const autumnClient = useAutumnClient({ caller: "CreditsPageClient" });
   const { activeOrganization } = useOrganizationsContext();
   const { data: session } = authClient.useSession();
@@ -96,68 +97,39 @@ export function CreditActivity() {
       activeOrganization?.id,
       FEATURES.AI_CREDITS,
       eventsOffset,
-      CREDIT_EVENTS_PAGE_SIZE,
+      pageSize,
     ],
     queryFn: () => {
       const params = {
         featureId: FEATURES.AI_CREDITS,
         offset: eventsOffset,
-        limit: CREDIT_EVENTS_PAGE_SIZE,
+        limit: pageSize,
       };
       return autumnClient.listEvents(params);
     },
     enabled: sessionMatchesOrganization,
     placeholderData,
   });
-  const hasMore = hasMorePaginatedResults(eventsData, CREDIT_EVENTS_PAGE_SIZE);
-  const hasPrevious = page > 1;
+  const hasMore = hasMorePaginatedResults(eventsData, pageSize);
   const visibleEvents =
     eventsData?.list.filter((event) => event.value !== 0) ?? [];
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">{t("title")}</h2>
-      <Table
+      <DataTable
         columns={eventColumns}
         data={visibleEvents}
         emptyState={t("empty")}
-        footer={
-          hasPrevious || hasMore ? (
-            <Pagination
-              aria-label={tUi("pagination")}
-              className="mx-0 w-auto justify-end px-3"
-            >
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    aria-label={tUi("goToPreviousPage")}
-                    className={cn(
-                      !hasPrevious && "pointer-events-none opacity-50"
-                    )}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      if (hasPrevious) {
-                        setPage(Math.max(1, page - 1));
-                      }
-                    }}
-                  />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext
-                    aria-label={tUi("goToNextPage")}
-                    className={cn(!hasMore && "pointer-events-none opacity-50")}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      if (hasMore) {
-                        setPage(page + 1);
-                      }
-                    }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          ) : undefined
-        }
+        pagination={{
+          mode: "cursor",
+          page,
+          pageSize,
+          onPageSizeChange: setPageSize,
+          hasNextPage: hasMore,
+          onPageChange: setPage,
+          itemLabel: t("itemLabel"),
+        }}
         getRowId={(event) => event.id}
         height={paginatedTableHeightFor(
           isPending && visibleEvents.length === 0 ? 5 : visibleEvents.length

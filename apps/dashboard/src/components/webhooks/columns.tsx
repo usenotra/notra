@@ -1,7 +1,7 @@
 "use client";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import { WebhookStatus } from "@/components/webhooks/status";
 import type { OutboundDelivery } from "@/types/webhooks/outbound";
 import { formatLogTimestamp } from "@/utils/logs";

@@ -27,6 +27,10 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -62,7 +66,6 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { GapDetailSheet } from "@/components/geo/gap-detail-sheet";
 import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -1249,8 +1252,7 @@ export function GeoGapsTable({
   ]);
   const tables = {
     prompt: (
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={promptColumns}
         data={filteredPromptGaps}
         defaultSort={{ key: "opportunity", direction: "desc" }}
@@ -1260,8 +1262,8 @@ export function GeoGapsTable({
       />
     ),
     search: (
-      <Table
-        className="rounded-2xl [&_tbody_td]:align-middle"
+      <DataTable
+        className="[&_tbody_td]:align-middle"
         columns={searchColumns}
         data={filteredSearchRows}
         getRowId={({ kind, row }) => `${kind}:${row.id}`}

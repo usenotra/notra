@@ -13,7 +13,10 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
+import {
+  CONTENT_COLLECTION_VIEWS,
+  COLLECTIONS_PAGE_SIZE,
+} from "@/constants/content-collections";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -45,13 +48,19 @@ export default function PageClient({
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
   );
   const page = Math.max(1, rawPage);
+  const [pageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger
+      .withDefault(COLLECTIONS_PAGE_SIZE)
+      .withOptions({ clearOnDefault: true })
+  );
   const [view, setView] = useQueryState(
     "view",
     parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")
   );
 
   const { data, isPending, isError, isPlaceholderData, refetch } =
-    useCollections(organizationId, page, initialProjectId);
+    useCollections(organizationId, page, pageSize, initialProjectId);
 
   const collections = useMemo(
     () => data?.collections ?? [],
@@ -66,6 +75,10 @@ export default function PageClient({
     totalItems: data?.pagination.totalCount ?? collections.length,
     pageRowCount: collections.length,
     setPage: (next) => setPage(Math.min(Math.max(1, next), pageCount)),
+    onPageSizeChange: (next) => {
+      void setPageSize(next);
+      void setPage(1);
+    },
   };
 
   const isEmpty =

@@ -8,12 +8,15 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "next-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
 import { JourneyStatCard } from "@/components/geo/journey-stat-card";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneyOverviewCardProps } from "@/types/geo";
 import {
@@ -105,8 +108,7 @@ export function JourneyOverviewCard({
       ]}
       total={totals.journeys}
     >
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={sources.filter((row) => row.journeys > 0)}
         defaultSort={{ key: "journeys", direction: "desc" }}

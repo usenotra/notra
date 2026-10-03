@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { Window } from "happy-dom";
-import { NextIntlClientProvider } from "next-intl";
 
 if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
   test("table row pointer and keyboard actions", () => {
@@ -33,8 +32,8 @@ if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
 
   const { act } = await import("react");
   const { createRoot } = await import("react-dom/client");
-  const { TableBodyRow } =
-    await import("../src/components/motion/table/table-body-row");
+  const { DataTableBodyRow } =
+    await import("@notra/ui/components/data-table/body");
 
   test("a row with a native action still opens from non-interactive cells", async () => {
     const container = document.createElement("div");
@@ -45,50 +44,43 @@ if (process.env.NOTRA_TABLE_ROW_CLIENT_TEST !== "1") {
 
     await act(async () => {
       root.render(
-        <NextIntlClientProvider
-          locale="en"
-          messages={{ shared: { table: { selectRow: "Select row {row}" } } }}
-        >
-          <table>
-            <tbody>
-              <TableBodyRow
-                columns={[
-                  {
-                    key: "query",
-                    header: "Query",
-                    cell: () => (
-                      <button
-                        aria-label="Open search gap"
-                        onClick={onButtonClick}
-                        type="button"
-                      >
-                        Query
-                      </button>
-                    ),
-                  },
-                  {
-                    key: "impressions",
-                    header: "Impressions",
-                    cell: () => 128,
-                  },
-                ]}
-                entry={{ id: "gap-1", row: { id: "gap-1" } }}
-                hasRowMenu={false}
-                index={0}
-                isLastRow
-                isSelected={false}
-                onRowClick={onRowClick}
-                onToggleRow={() => {}}
-                renderRowContextMenu={undefined}
-                rowHeight={48}
-                rowKeyboardActivation={false}
-                rowRef={() => {}}
-                rowSizing="content"
-                selectable={false}
-              />
-            </tbody>
-          </table>
-        </NextIntlClientProvider>
+        <table>
+          <tbody>
+            <DataTableBodyRow
+              columns={[
+                {
+                  key: "query",
+                  header: "Query",
+                  cell: () => (
+                    <button
+                      aria-label="Open search gap"
+                      onClick={onButtonClick}
+                      type="button"
+                    >
+                      Query
+                    </button>
+                  ),
+                },
+                {
+                  key: "impressions",
+                  header: "Impressions",
+                  cell: () => 128,
+                },
+              ]}
+              entry={{ id: "gap-1", row: { id: "gap-1" } }}
+              index={0}
+              isLastRow
+              isSelected={false}
+              onRowClick={onRowClick}
+              onToggleRow={() => {}}
+              renderRowContextMenu={undefined}
+              rowHeight={48}
+              rowKeyboardActivation={false}
+              rowSizing="content"
+              selectable={false}
+            />
+          </tbody>
+        </table>
       );
     });
 

@@ -205,7 +205,8 @@
           "allTitle": "Your events show up here",
           "allDescription": "Add an endpoint, then generate a post. Every delivery and retry gets logged here.",
           "filteredTitle": "No deliveries with this status",
-          "filteredDescription": "Pick another filter to see more of your history."
+          "filteredDescription": "Pick another filter to see more of your history.",
+          "showAll": "Show all deliveries"
         },
         "pageSummary": "{range} deliveries, refreshes every {seconds}s",
         "endpointsEmpty": {
@@ -1220,16 +1221,9 @@
   },
   "shared": {
     "table": {
-      "insertBefore": "Insert before",
-      "insertAfter": "Insert after",
-      "columnOptions": "{column} column options",
-      "rowOptions": "Row {row} options",
       "selectAllRows": "Select all rows",
       "selectRow": "Select row {row}",
-      "reorderColumn": "Reorder {column} column",
-      "renameColumn": "Rename {column} column",
-      "resizeColumn": "Resize {column} column",
-      "cellLabel": "{column} for row {row}"
+      "resizeColumn": "Resize {column} column"
     },
     "checkbox": {
       "partiallySelected": "Partially selected"
@@ -1547,7 +1541,8 @@
         "searchLabel": "Search sitemap URLs",
         "searchPlaceholder": "Search URLs…",
         "noSearchResults": "No URLs match your search.",
-        "emptyView": "No URLs in this view yet."
+        "emptyView": "No URLs in this view yet.",
+        "itemLabel": "pages"
       }
     },
     "references": {
@@ -5194,7 +5189,8 @@
     "creditActivity": {
       "aiChat": "AI chat",
       "title": "Recent activity",
-      "empty": "No usage events yet"
+      "empty": "No usage events yet",
+      "itemLabel": "events"
     },
     "creditUsage": {
       "creditsUsed": "Credits used",
@@ -6528,6 +6524,11 @@
     "goToNextPage": "Go to next page",
     "morePages": "More pages",
     "paginationRange": "{start}-{end} of {total}",
+    "paginationRangeOpen": "{start}-{end}",
+    "pageOf": "Page {page} of {total}",
+    "pageNumber": "Page {page}",
+    "showRows": "Show {count}",
+    "rowsPerPage": "Rows per page",
     "toggleSidebar": "Toggle sidebar",
     "sidebarTitle": "Sidebar",
     "sidebarDescription": "Displays the mobile sidebar.",

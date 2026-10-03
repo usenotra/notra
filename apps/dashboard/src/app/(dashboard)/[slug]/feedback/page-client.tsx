@@ -345,9 +345,7 @@ function FeedbackFilterEmpty({
         <EmptyMedia variant="icon">
           <AgentFeedbackStatusIcon className="size-5" status={status} />
         </EmptyMedia>
-        <EmptyTitle className="text-foreground">
-          {t(`filterEmpty.${status}.title`)}
-        </EmptyTitle>
+        <EmptyTitle>{t(`filterEmpty.${status}.title`)}</EmptyTitle>
         <EmptyDescription>
           {t(`filterEmpty.${status}.description`)}
         </EmptyDescription>

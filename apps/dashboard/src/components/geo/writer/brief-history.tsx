@@ -8,12 +8,15 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useBriefStatusLabels } from "@/lib/hooks/use-brief-status-labels";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import type { BriefHistoryProps } from "@/types/components/geo-writer";
@@ -172,8 +175,7 @@ export function BriefHistory({
 
   return (
     <div className="min-h-0 w-full" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={briefs}
         defaultSort={{ key: "createdAt", direction: "desc" }}

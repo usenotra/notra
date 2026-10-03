@@ -2,15 +2,18 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
-
-import { Table, type TableColumn } from "@/components/motion/table";
-import { useCollapsibleColumns } from "@/components/motion/table/use-collapsible-columns";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import {
   DEFAULT_MIN_COLUMN_WIDTH,
   TABLE_FRAME_INSET,
-  tableMinWidthCss,
-} from "@/components/motion/table/utils";
+} from "@notra/ui/constants/table";
+import { useCollapsibleColumns } from "@notra/ui/hooks/use-collapsible-columns";
+import { tableMinWidthCss } from "@notra/ui/lib/data-table";
+import { useTranslations } from "next-intl";
+
 import {
   TRAFFIC_SOURCE_BAND_LABEL_KEYS,
   TRAFFIC_SOURCE_BANDS,
@@ -112,8 +115,7 @@ function TrafficSourcesGroup({
       className={cn("relative", stacked && "-mt-5")}
       style={{ zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band] }}
     >
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={groupColumns}
         data={groups}
         defaultSort={{ key: "visits", direction: "desc" }}

@@ -1,8 +1,8 @@
-import { TableCell, TableHead, TableRow } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
 
 import { EngineIcon } from "@/components/feature-pages/engine-icon";
 import { TableCard } from "@/components/feature-pages/table-card";
+import { TableCell, TableHead, TableRow } from "@/components/marketing-table";
 import {
   AI_CRAWLER_PAGE_COLUMNS,
   AI_CRAWLER_PAGE_ROWS,
