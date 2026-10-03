@@ -4,7 +4,7 @@ export const CODE_RESEARCH_DISABLE_ENV = "NOTRA_CODE_RESEARCH";
 export const CODE_RESEARCH_SESSION_ATTRIBUTE = "codeResearch";
 
 export const CODE_RESEARCH_BOX_NAME_PREFIX = "notra-code-";
-export const CODE_RESEARCH_BOX_TTL_SECONDS = 45 * 60;
+export const CODE_RESEARCH_BOX_TTL_SECONDS = 15 * 60;
 // Reusing a box this close to its TTL risks it vanishing mid-research.
 export const CODE_RESEARCH_BOX_REUSE_MARGIN_SECONDS = 5 * 60;
 export const CODE_RESEARCH_BOX_REQUEST_TIMEOUT_MS = 240_000;

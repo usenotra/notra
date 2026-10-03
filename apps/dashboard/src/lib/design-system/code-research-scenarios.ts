@@ -352,7 +352,7 @@ function freshOpenRepository(params: {
       },
       {
         title: "EphemeralBox statt Box",
-        body: "Wird ohne Polling in ca. 2 s erstellt und löscht sich nach der TTL von 45 min selbst. Es gibt keinen Aufräum-Cron. Netzwerk: nur github.com, der Rest ist geblockt.",
+        body: "Wird ohne Polling in ca. 2 s erstellt und löscht sich nach der TTL von 15 min selbst. Es gibt keinen Aufräum-Cron. Netzwerk: nur github.com, der Rest ist geblockt.",
       }
     ),
     {
@@ -700,7 +700,7 @@ function firstRunSteps(): CodeResearchStep[] {
           title: "Briefing ist zurück, Box bleibt warm",
           body: `Der Researcher gibt ein strukturiertes Briefing zurück, keine Rohdateien. Die Box wird nicht gelöscht: Folgefragen im Chat nutzen sie weiter. Redis vergisst sie ${String(CODE_RESEARCH_DEMO_REUSE_MARGIN_MINUTES)} min vor der TTL, damit nie eine sterbende Box reattached wird.`,
         },
-        sandboxEnd: { expiresLabel: expiresLabel(44) },
+        sandboxEnd: { expiresLabel: expiresLabel(14) },
       },
       CODE_RESEARCH_PLAYBACK_DELAYS.toolEndMin
     ),
@@ -797,9 +797,9 @@ function followUpSteps(): CodeResearchStep[] {
       "3 Minuten später",
       {
         title: "Folgefrage im selben Chat",
-        body: "Die Box aus dem ersten Lauf lebt noch (TTL 45 min). Redis kennt sie unter dem Schlüssel der Root-Session.",
+        body: "Die Box aus dem ersten Lauf lebt noch (TTL 15 min). Redis kennt sie unter dem Schlüssel der Root-Session.",
       },
-      { expiresLabel: expiresLabel(41) }
+      { expiresLabel: expiresLabel(11) }
     ),
     userMessage(
       "u2",
@@ -866,7 +866,7 @@ function followUpSteps(): CodeResearchStep[] {
           { ...RESEARCH_BRIEF, feature: "Sortierung im Skills-Tab" },
           21_000
         ),
-        sandboxEnd: { expiresLabel: expiresLabel(40) },
+        sandboxEnd: { expiresLabel: expiresLabel(10) },
       },
       CODE_RESEARCH_PLAYBACK_DELAYS.toolEndMin
     ),
@@ -994,7 +994,7 @@ function expiredSteps(): CodeResearchStep[] {
       "50 Minuten später",
       {
         title: "Die Box ist weg",
-        body: "Nach 45 min hat Upstash die EphemeralBox selbst gelöscht. Der Redis-Eintrag war schon nach 40 min abgelaufen. Nichts musste aufgeräumt werden.",
+        body: "Nach 15 min hat Upstash die EphemeralBox selbst gelöscht. Der Redis-Eintrag war schon nach 10 min abgelaufen. Nichts musste aufgeräumt werden.",
       },
       {
         phase: "expired",
@@ -1184,7 +1184,7 @@ export function buildCodeResearchScenarios(): CodeResearchScenario[] {
     {
       id: "expired",
       label: "Box abgelaufen",
-      description: "50 min später: TTL vorbei, open_repository baut neu auf.",
+      description: "20 min später: TTL vorbei, open_repository baut neu auf.",
       ...expired,
     },
     {

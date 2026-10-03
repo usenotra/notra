@@ -8,7 +8,7 @@ export const CODE_RESEARCH_DEMO_INTEGRATION_ID = "gh_int_notra";
 export const CODE_RESEARCH_DEMO_REPOSITORY = "usenotra/notra";
 export const CODE_RESEARCH_DEMO_ROOT_SESSION = "wrun_01M3PC…4X";
 export const CODE_RESEARCH_DEMO_REDIS_KEY = `code-research:box:${CODE_RESEARCH_DEMO_ROOT_SESSION}:${CODE_RESEARCH_DEMO_INTEGRATION_ID}`;
-export const CODE_RESEARCH_DEMO_BOX_TTL_MINUTES = 45;
+export const CODE_RESEARCH_DEMO_BOX_TTL_MINUTES = 15;
 export const CODE_RESEARCH_DEMO_REUSE_MARGIN_MINUTES = 5;
 
 // Playback pacing at 1x. Real durations from the live test are shown separately.
@@ -71,7 +71,7 @@ export const CODE_RESEARCH_STAGE_DEFINITIONS: Omit<
     id: "create",
     label: "EphemeralBox.create",
     detail:
-      "node, small, TTL 45 min, Netzwerk nur github.com, Token per attachHeaders.",
+      "node, small, TTL 15 min, Netzwerk nur github.com, Token per attachHeaders.",
   },
   {
     id: "clone",

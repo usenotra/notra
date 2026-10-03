@@ -1,3 +1,8 @@
+import type { codeResearchBriefSchema } from "@notra/ai/schemas/code-research";
+import type { z } from "zod";
+
+export type CodeResearchBrief = z.infer<typeof codeResearchBriefSchema>;
+
 export type CodeResearchTarget =
   | { kind: "default" }
   | { kind: "branch"; branch: string }

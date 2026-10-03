@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import {
   CODE_RESEARCH_BOX_REUSE_MARGIN_SECONDS,
+  CODE_RESEARCH_BOX_TTL_SECONDS,
   CODE_RESEARCH_LEASE_POLL_MS,
   CODE_RESEARCH_LEASE_RENEW_MS,
   CODE_RESEARCH_LEASE_TTL_SECONDS,
@@ -34,9 +35,15 @@ import { and, eq } from "drizzle-orm";
 
 // Without Redis (local dev) boxes are only reused within one process.
 const memoryStates = new Map<string, CodeResearchWorkspaceState>();
+const memorySessionIndex = new Map<string, Set<string>>();
 
 function stateKey(sessionKey: string, integrationId: string) {
   return `code-research:box:${sessionKey}:${integrationId}`;
+}
+
+// Lists a session's state keys, so a finished run can delete its boxes.
+function sessionIndexKey(sessionKey: string) {
+  return `code-research:session:${sessionKey}`;
 }
 
 function leaseKey(sessionKey: string, integrationId: string) {
@@ -60,7 +67,11 @@ async function readState(key: string) {
   return await redis.get<CodeResearchWorkspaceState>(key);
 }
 
-async function writeState(key: string, state: CodeResearchWorkspaceState) {
+async function writeState(
+  sessionKey: string,
+  key: string,
+  state: CodeResearchWorkspaceState
+) {
   const ttl =
     state.expiresAt - nowSeconds() - CODE_RESEARCH_BOX_REUSE_MARGIN_SECONDS;
   if (ttl <= 0) {
@@ -68,9 +79,19 @@ async function writeState(key: string, state: CodeResearchWorkspaceState) {
   }
   if (!redis) {
     memoryStates.set(key, state);
+    const keys = memorySessionIndex.get(sessionKey) ?? new Set<string>();
+    keys.add(key);
+    memorySessionIndex.set(sessionKey, keys);
     return;
   }
-  await redis.set(key, state, { ex: ttl });
+  const indexKey = sessionIndexKey(sessionKey);
+  // A full box TTL outlives every state the index points at.
+  await redis
+    .pipeline()
+    .set(key, state, { ex: ttl })
+    .sadd(indexKey, key)
+    .expire(indexKey, CODE_RESEARCH_BOX_TTL_SECONDS)
+    .exec();
 }
 
 async function clearState(key: string) {
@@ -154,6 +175,7 @@ function sleep(ms: number) {
 }
 
 async function reuseWorkspace(params: {
+  sessionKey: string;
   key: string;
   state: CodeResearchWorkspaceState;
   target: CodeResearchTarget | null;
@@ -172,7 +194,7 @@ async function reuseWorkspace(params: {
     params.state.repository.defaultBranch
   );
   const state = { ...params.state, target: params.target, headSha };
-  await writeState(params.key, state);
+  await writeState(params.sessionKey, params.key, state);
   return { box, state, reused: true };
 }
 
@@ -251,6 +273,7 @@ async function resolveBoxToken(
 }
 
 async function createWorkspace(params: {
+  sessionKey: string;
   key: string;
   organizationId: string;
   integrationId: string;
@@ -298,7 +321,7 @@ async function createWorkspace(params: {
       headSha,
       expiresAt,
     };
-    await writeState(params.key, state);
+    await writeState(params.sessionKey, params.key, state);
     log.info({
       event: "code_research.box_ready",
       boxId: box.id,
@@ -339,7 +362,12 @@ export async function acquireCodeResearchWorkspace(params: {
       );
     }
     if (state && isReusable(state) && !params.target) {
-      const reused = await reuseWorkspace({ key, state, target: null });
+      const reused = await reuseWorkspace({
+        sessionKey: params.sessionKey,
+        key,
+        state,
+        target: null,
+      });
       if (reused) {
         return reused;
       }
@@ -352,6 +380,7 @@ export async function acquireCodeResearchWorkspace(params: {
           const fresh = await readState(key);
           if (fresh && isReusable(fresh)) {
             const reused = await reuseWorkspace({
+              sessionKey: params.sessionKey,
               key,
               state: fresh,
               target: params.target,
@@ -361,6 +390,7 @@ export async function acquireCodeResearchWorkspace(params: {
             }
           }
           return await createWorkspace({
+            sessionKey: params.sessionKey,
             key,
             organizationId: params.organizationId,
             integrationId: params.integrationId,
@@ -377,4 +407,42 @@ export async function acquireCodeResearchWorkspace(params: {
   throw new Error(
     "Timed out waiting for the repository sandbox. Try again in a moment."
   );
+}
+
+/**
+ * Deletes every box a session opened. Runs that cannot get follow-up
+ * questions call this when they finish instead of leaving the boxes idle
+ * until their TTL.
+ */
+export async function releaseCodeResearchWorkspaces(
+  sessionKey: string
+): Promise<void> {
+  const indexKey = sessionIndexKey(sessionKey);
+  const keys = redis
+    ? await redis.smembers(indexKey)
+    : [...(memorySessionIndex.get(sessionKey) ?? [])];
+  await Promise.all(
+    keys.map(async (key) => {
+      const state = await readState(key);
+      await clearState(key);
+      if (!state) {
+        return;
+      }
+      const box = await attachCodeResearchBox(state.boxId).catch(() => null);
+      if (box) {
+        await deleteCodeResearchBox(box);
+      }
+      log.info({
+        event: "code_research.box_released",
+        boxId: state.boxId,
+        organizationId: state.repository.organizationId,
+        integrationId: state.repository.integrationId,
+      });
+    })
+  );
+  if (redis) {
+    await redis.del(indexKey);
+  } else {
+    memorySessionIndex.delete(sessionKey);
+  }
 }

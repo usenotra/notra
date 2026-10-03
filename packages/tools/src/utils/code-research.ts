@@ -6,7 +6,9 @@ import type { SessionContext } from "eve/context";
 import { requireOrganizationId } from "./organization";
 import { getBooleanSessionAttribute } from "./session";
 
-export function isCodeResearchEnabled(ctx: SessionContext): boolean {
+export function isCodeResearchEnabled(
+  ctx: Pick<SessionContext, "session">
+): boolean {
   if (!isCodeResearchConfigured()) {
     return false;
   }
