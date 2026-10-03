@@ -16,6 +16,7 @@ import {
   LIVE_DEMO_PREVIEW_ALT,
   LIVE_DEMO_PREVIEW_DARK_SRC,
   LIVE_DEMO_PREVIEW_SRC,
+  LIVE_DEMO_PREVIEW_THEME_SCRIPT,
   LIVE_DEMO_READY_MESSAGE,
   LIVE_DEMO_STALLED_ACTION,
   LIVE_DEMO_STALLED_LABEL,
@@ -131,23 +132,28 @@ export function LiveDemoEmbed() {
           />
         ) : null}
         {ready ? null : (
-          <picture>
-            <source
-              media={previewMedia}
-              srcSet={LIVE_DEMO_PREVIEW_DARK_SRC}
-              type="image/webp"
-            />
-            <img
-              decoding="async"
-              loading="eager"
-              alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none absolute inset-0 size-full object-cover object-top-left"
-              fetchPriority="high"
-              height={1250}
-              src={LIVE_DEMO_PREVIEW_SRC}
-              width={2000}
-            />
-          </picture>
+          <>
+            <picture>
+              <source
+                media={previewMedia}
+                srcSet={LIVE_DEMO_PREVIEW_DARK_SRC}
+                suppressHydrationWarning
+                type="image/webp"
+              />
+              <img
+                decoding="async"
+                loading={resolvedTheme ? "eager" : "lazy"}
+                alt={LIVE_DEMO_PREVIEW_ALT}
+                className="pointer-events-none absolute inset-0 size-full object-cover object-top-left"
+                fetchPriority="high"
+                height={1250}
+                src={LIVE_DEMO_PREVIEW_SRC}
+                suppressHydrationWarning
+                width={2000}
+              />
+            </picture>
+            <script>{LIVE_DEMO_PREVIEW_THEME_SCRIPT}</script>
+          </>
         )}
         {mounted && !ready ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
