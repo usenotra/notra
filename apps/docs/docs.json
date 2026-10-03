@@ -65,7 +65,6 @@
       "mcp",
       "chatgpt",
       "claude",
-      "perplexity",
       "cursor"
     ],
     "display": "header"
@@ -446,6 +445,10 @@
       {
         "label": "Discord",
         "href": "https://www.usenotra.com/discord"
+      },
+      {
+        "type": "github",
+        "href": "https://github.com/usenotra/notra"
       }
     ],
     "primary": {
