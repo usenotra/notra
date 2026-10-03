@@ -1,0 +1,31 @@
+apps/dashboard/src/utils/dashboard-home-prefetch.server.ts
+  s_7a0c38829ccc1e::t_a66e95505ebbbd 39-42
+  s_7a0c38829ccc1e::t_efc2ff72483dce 80-87,89-97,105
+apps/dashboard/src/utils/dashboard-list-prefetch.server.ts
+  s_7a0c38829ccc1e::t_efc2ff72483dce 86-88,114-129
+  s_7a0c38829ccc1e::t_32d017f41a8727 52-54
+apps/dashboard/vite.config.ts
+  s_7a0c38829ccc1e::t_147b45c56c24bc 36
+apps/dashboard/src/utils/content-prefetch.server.ts
+  s_7a0c38829ccc1e::t_efc2ff72483dce 33-35
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_7a0c38829ccc1e::t_efc2ff72483dce 239,260
+apps/dashboard/src/routes/-integrations-ui.tsx
+  s_7a0c38829ccc1e::t_efc2ff72483dce 75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "99155e82959268032c2faca0861e6e9b02b9bab1",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
