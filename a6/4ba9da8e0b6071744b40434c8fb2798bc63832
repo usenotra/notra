@@ -1,0 +1,24 @@
+packages/ai/src/utils/scheduled-publications.ts
+  s_400beee9e2f793::t_aa9f0b08783881 319-324,332-333,451,462-464
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_400beee9e2f793::t_aa9f0b08783881 414-426,430
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_400beee9e2f793::t_aa9f0b08783881 681
+  s_400beee9e2f793::t_9dc3df0e45036d 648-663
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a64ba9da8e0b6071744b40434c8fb2798bc63832",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
