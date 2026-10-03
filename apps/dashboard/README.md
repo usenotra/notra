@@ -10,6 +10,3 @@ production output.
 Native routes live in `src/routes`. Retained feature components and request
 handlers under `src/app` are imported explicitly; that directory does not register
 routes automatically. Localization uses `use-intl` and the dashboard server helpers.
-
-See [migration testing](docs/migration-testing.md) for isolated verification and
-[migration status](docs/migration-status.md) for deployment sign-off boundaries.

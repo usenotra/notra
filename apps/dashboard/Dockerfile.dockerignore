@@ -4,7 +4,6 @@ node_modules
 **/node_modules
 .turbo
 **/.turbo
-**/.next
 **/.vercel
 **/.wrangler
 .env
@@ -16,7 +15,6 @@ node_modules
 .agents
 .cursor
 .repos
-.hoplite
 .output
 **/.output
 **/.cache

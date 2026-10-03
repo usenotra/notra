@@ -34,11 +34,6 @@ export interface GitHubRepositoryMenuProps extends GitHubRepositoryActionsProps 
   onDialog: (dialog: GitHubRepositoryDialog) => void;
 }
 
-export interface GitHubLegacyPageProps {
-  params: Promise<{ slug: string; id: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}
-
 export interface GitHubWebhookSettingsProps {
   repository: GitHubRepository;
   organizationId: string;

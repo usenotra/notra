@@ -82,7 +82,7 @@ bun run dev --filter=dashboard
 bun run dev --filter=web
 ```
 
-The dashboard's Vite development server binds to `127.0.0.1:3000`. Production builds use Nitro; run `bun run start` from `apps/dashboard` to serve the `.output` artifact. See the [migration testing guide](apps/dashboard/docs/migration-testing.md) for isolated verification. Existing `NEXT_PUBLIC_*` deployment variable names are retained for compatibility and do not imply a Next.js dashboard runtime.
+The dashboard's Vite development server binds to `127.0.0.1:3000`. Production builds use Nitro; run `bun run start` from `apps/dashboard` to serve the `.output` artifact. Existing `NEXT_PUBLIC_*` deployment variable names are retained for compatibility and do not imply a Next.js dashboard runtime.
 
 Useful checks from the repository root:
 

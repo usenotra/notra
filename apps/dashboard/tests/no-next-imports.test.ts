@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 test.each([
-  "../../src/",
-  "../../../../packages/ui/src/",
-  "../../../../packages/ai/src/",
+  "../src/",
+  "../../../packages/ui/src/",
+  "../../../packages/ai/src/",
 ])("%s has no Next framework imports", (directory) => {
   const source = fileURLToPath(new URL(directory, import.meta.url));
   const violations = readdirSync(source, { recursive: true })
@@ -20,7 +20,7 @@ test.each([
 });
 
 test("dashboard configuration does not depend on Next framework adapters", () => {
-  const dashboard = fileURLToPath(new URL("../../", import.meta.url));
+  const dashboard = fileURLToPath(new URL("../", import.meta.url));
   const manifest = JSON.parse(
     readFileSync(join(dashboard, "package.json"), "utf8")
   );

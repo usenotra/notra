@@ -8,13 +8,6 @@ export type CollectionsTranslator = ReturnType<
   typeof useTranslations<"content.collections">
 >;
 
-export interface CollectionPageProps {
-  params: Promise<{
-    slug: string;
-    id: string;
-  }>;
-}
-
 export interface RenameCollectionDialogProps {
   collectionId: string;
   currentName: string;

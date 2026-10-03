@@ -121,9 +121,7 @@ The dashboard runs Vite on `127.0.0.1:3000`. Build it with
 `bun run build --filter=dashboard`, then run `bun run start` from
 `apps/dashboard` to serve Nitro's `.output/server/index.mjs`. Run
 `bun run check-types --filter=dashboard` separately: `vite build` does not
-perform the full TypeScript check. See the dashboard's
-[migration testing guide](apps/dashboard/docs/migration-testing.md) for isolated
-browser, data, and production-artifact checks. Existing `NEXT_PUBLIC_*`
+perform the full TypeScript check. Existing `NEXT_PUBLIC_*`
 deployment variable names remain supported; they are not framework dependencies.
 
 ## QStash Local Workflows

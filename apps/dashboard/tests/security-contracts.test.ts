@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 
-import * as healthcheck from "../../src/app/api/healthcheck/route";
-import { NON_DASHBOARD_PATH } from "../../src/constants/auth-routes";
+import * as healthcheck from "../src/app/api/healthcheck/route";
+import { NON_DASHBOARD_PATH } from "../src/constants/auth-routes";
 import {
   buildPostAuthRedirectPath,
   sanitizeReturnTo,
-} from "../../src/lib/auth/return-to";
-import { dispatchRouteHandler } from "../../src/lib/auth/route-handler";
-import { buildSessionCorsHeaders } from "../../src/lib/auth/session-cors";
-import { negotiateDashboardLocale } from "../../src/utils/i18n";
-import { evaluateLocalDevAuth } from "../../src/utils/local-dev-auth";
+} from "../src/lib/auth/return-to";
+import { dispatchRouteHandler } from "../src/lib/auth/route-handler";
+import { buildSessionCorsHeaders } from "../src/lib/auth/session-cors";
+import { negotiateDashboardLocale } from "../src/utils/i18n";
+import { evaluateLocalDevAuth } from "../src/utils/local-dev-auth";
 
 describe("migration executable security contracts", () => {
   test("real healthcheck survives GET, HEAD, OPTIONS and unsupported method dispatch", async () => {

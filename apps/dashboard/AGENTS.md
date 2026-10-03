@@ -8,6 +8,9 @@ Use `@/lib/navigation`, `@/components/framework/link`,
 `@/components/framework/image`, and `@/utils/lazy-component` directly. Localization
 uses `use-intl` in components and `@/lib/i18n/server` on the server.
 
+A server function that throws `redirect()` only rejects with it when called from
+the client; wrap such calls in `followServerRedirect`
+(`@/lib/framework/follow-server-redirect`) so the browser actually navigates.
+
 Run `bun run test`, `bun run check-types`, and `bun run build` from this directory.
-See `docs/migration-testing.md` for isolated browser and data checks. Do not use
-production credentials or customer data for verification.
+Do not use production credentials or customer data for verification.

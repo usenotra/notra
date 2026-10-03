@@ -172,12 +172,6 @@ export interface GeoTrafficSkeletonProps {
   geoRange?: GeoRangeControl;
 }
 
-export interface GeoLayoutProps {
-  children: ReactNode;
-  modal: ReactNode;
-  params: Promise<{ slug: string }>;
-}
-
 export interface GeoProjectScopeProps {
   slug: string;
   children: ReactNode;

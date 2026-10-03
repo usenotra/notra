@@ -192,13 +192,6 @@ export interface VisibilityBrandDraft {
   languages: readonly string[];
 }
 
-export interface OnboardingGeoPageProps {
-  searchParams: Promise<{
-    project?: string | string[];
-    replay?: string | string[];
-  }>;
-}
-
 export interface OrgLogoFieldProps {
   disabled?: boolean;
   isLoading?: boolean;

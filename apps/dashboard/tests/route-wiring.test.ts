@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 test("every original handler has a native route registered in the generated tree", () => {
-  const sourceRoot = resolve(import.meta.dirname, "../../src");
+  const sourceRoot = resolve(import.meta.dirname, "../src");
   const generated = readFileSync(
     resolve(sourceRoot, "routeTree.gen.ts"),
     "utf8"
@@ -70,7 +70,7 @@ test("every original handler has a native route registered in the generated tree
 
 test("router combines generated server routes with dashboard, entry and onboarding UI routes", () => {
   const source = readFileSync(
-    new URL("../../src/router.tsx", import.meta.url),
+    new URL("../src/router.tsx", import.meta.url),
     "utf8"
   );
   expect(source).toContain("Object.values(routeTree.children ?? {})");
