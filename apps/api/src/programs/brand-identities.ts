@@ -53,6 +53,7 @@ import {
   deleteQstashSchedulesForTriggers,
   getTriggersForBrandIdentity,
 } from "../utils/triggers";
+import { validateBrandWebsiteUrl } from "./website-url";
 
 const database = <A>(operation: () => Promise<A>) =>
   Effect.tryPromise({
@@ -234,6 +235,7 @@ export const listBrandIdentities = Effect.fn("brandIdentities.list")(
 
 export const createBrandIdentity = Effect.fn("brandIdentities.create")(
   function* (input: CreateBrandIdentityProgramInput) {
+    yield* validateBrandWebsiteUrl(input.body.websiteUrl);
     const name = input.body.name?.trim() || "Untitled Brand Voice";
     const websiteUrl = input.body.websiteUrl;
     const newBrandIdentityId = crypto.randomUUID();
@@ -378,6 +380,7 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
   }
 
   if (body.websiteUrl !== undefined) {
+    yield* validateBrandWebsiteUrl(body.websiteUrl);
     updateData.websiteUrl = body.websiteUrl;
   }
 

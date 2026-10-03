@@ -5,6 +5,7 @@ import {
   saveOnboardingNotificationSettings,
   triggerOnboardingAgentSetup,
   triggerOnboardingBrandAnalysis,
+  validateOnboardingWebsiteUrl,
 } from "@/app/onboarding/workspace/actions";
 import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
@@ -67,6 +68,14 @@ export async function submitWorkspaceForm({
   let organizationId: string;
 
   if (existingOrg) {
+    if (parsed.data.websiteUrl) {
+      const validation = await validateOnboardingWebsiteUrl(
+        parsed.data.websiteUrl
+      );
+      if (validation.error) {
+        throw new Error(validation.error.message);
+      }
+    }
     organizationId = existingOrg.id;
     if (logoFile || logoSourceUrl) {
       await authClient.organization.setActive({
@@ -75,6 +84,7 @@ export async function submitWorkspaceForm({
     }
   } else {
     const { data, error } = await authClient.organization.create({
+      websiteUrl: parsed.data.websiteUrl,
       name: parsed.data.name,
       slug: parsed.data.slug,
       logo: generateOrganizationAvatar(parsed.data.slug),

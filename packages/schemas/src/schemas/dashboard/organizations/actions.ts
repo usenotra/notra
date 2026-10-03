@@ -1,4 +1,5 @@
 import "zod/compile";
+import { optionalPublicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   memberRoleSchema,
@@ -38,6 +39,7 @@ const memberEmailSchema = z
   .max(MEMBER_EMAIL_MAX_LENGTH, "Email address is too long");
 
 export const createOrganizationInputSchema = z.object({
+  websiteUrl: optionalPublicWebsiteUrlSchema.optional(),
   name: organizationNameSchema,
   slug: trimmedOrganizationSlugSchema,
   logo: organizationLogoSchema.optional(),

@@ -2,6 +2,8 @@ import type { LookupAddress } from "node:dns";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
+import { WEBSITE_DNS_TIMEOUT_MS } from "./constants/url";
+
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",
   "metadata",
@@ -12,9 +14,15 @@ const BLOCKED_HOSTNAME_SUFFIXES = [".internal", ".local", ".localhost"];
 const HEXTET_REGEX = /^[0-9a-f]{1,4}$/;
 
 export class PublicUrlValidationError extends Error {
-  constructor(message: string) {
+  readonly reason: "invalid" | "not_found" | "temporary";
+
+  constructor(
+    message: string,
+    reason: "invalid" | "not_found" | "temporary" = "invalid"
+  ) {
     super(message);
     this.name = "PublicUrlValidationError";
+    this.reason = reason;
   }
 }
 
@@ -255,14 +263,51 @@ export async function resolvePublicHttpUrl(
   }
 
   let addresses: LookupAddress[];
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    addresses = await lookup(hostname, { all: true, verbatim: false });
-  } catch {
-    throw new PublicUrlValidationError("URL hostname could not be resolved");
+    addresses = await Promise.race([
+      lookup(hostname, { all: true, verbatim: false }),
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new PublicUrlValidationError(
+                "Website domain check is temporarily unavailable. Please try again.",
+                "temporary"
+              )
+            ),
+          WEBSITE_DNS_TIMEOUT_MS
+        );
+      }),
+    ]);
+  } catch (error) {
+    if (error instanceof PublicUrlValidationError) {
+      throw error;
+    }
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error.code === "ENOTFOUND" || error.code === "ENODATA")
+    ) {
+      throw new PublicUrlValidationError(
+        "Website domain could not be resolved. Please check the domain name.",
+        "not_found"
+      );
+    }
+    throw new PublicUrlValidationError(
+      "Website domain check is temporarily unavailable. Please try again.",
+      "temporary"
+    );
+  } finally {
+    clearTimeout(timer);
   }
 
   if (addresses.length === 0) {
-    throw new PublicUrlValidationError("URL hostname could not be resolved");
+    throw new PublicUrlValidationError(
+      "Website domain could not be resolved. Please check the domain name.",
+      "not_found"
+    );
   }
 
   for (const address of addresses) {

@@ -57,9 +57,48 @@ import type {
   TriggerOnboardingAgentSetupInput,
   TriggerOnboardingAgentSetupResult,
 } from "@/types/onboarding-agent";
+import type { ActionResult } from "@/types/organizations/actions";
 import { ratelimit } from "@/utils/ratelimit";
+import { validateWebsiteUrl } from "@/utils/website-url";
 
 const ANALYSIS_LOCK_TTL_SECONDS = 60;
+
+export async function validateOnboardingWebsiteUrl(
+  rawUrl: string
+): Promise<ActionResult<null>> {
+  const session = await getAuthSession();
+  if (!session?.user) {
+    return {
+      data: null,
+      error: { message: "Unauthorized", code: "UNAUTHORIZED" },
+    };
+  }
+  const { success } = await ratelimit.onboardingBrandAnalysis.limit(
+    session.user.id
+  );
+  if (!success) {
+    const t = await getTranslations("errors.integrations");
+    return {
+      data: null,
+      error: {
+        message: t("tooManyConnectionAttempts"),
+        code: "TOO_MANY_REQUESTS",
+      },
+    };
+  }
+  try {
+    await validateWebsiteUrl(rawUrl);
+    return { data: null, error: null };
+  } catch (error) {
+    if (error instanceof ORPCError) {
+      return {
+        data: null,
+        error: { message: error.message, code: error.code },
+      };
+    }
+    throw error;
+  }
+}
 
 export async function isWorkspaceSlugAvailable(slug: string): Promise<boolean> {
   const session = await getAuthSession();
@@ -186,6 +225,7 @@ export async function triggerOnboardingBrandAnalysis(
     );
   }
 
+  await validateWebsiteUrl(input.websiteUrl);
   const acquiredLock = await tryAcquireBrandAnalysisLock(input.organizationId);
 
   if (!acquiredLock) {
