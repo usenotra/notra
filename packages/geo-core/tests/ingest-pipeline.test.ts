@@ -26,7 +26,6 @@ const verifyGeoIngestToken = mock((): GeoIngestIdentity => ({
   generation: 1,
 }));
 const resolveJourneyId = mock(() => ({ journeyId: "journey_1", path: "/" }));
-const announceGeoTrafficEvent = mock(async () => undefined);
 
 mock.module("@notra/analytics/tinybird/client", () => ({
   ingestGeoTrafficEvents,
@@ -47,9 +46,6 @@ mock.module("../src/ingest/analytics", () => ({
 }));
 mock.module("../src/ingest/journey", () => ({
   resolveJourneyId,
-}));
-mock.module("../src/ingest/live", () => ({
-  announceGeoTrafficEvent,
 }));
 mock.module("../src/ingest/ratelimit", () => ({
   geoIngestRatelimit: { limit: ratelimitLimit },
