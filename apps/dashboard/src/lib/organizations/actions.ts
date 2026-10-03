@@ -44,7 +44,6 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { readWorkOSError } from "@/lib/auth/workos-error";
-import { queueValidatedOnboardingBrandAnalysis } from "@/lib/onboarding/brand-analysis";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import {
   requireManagerMembership,
@@ -305,9 +304,8 @@ export async function createOrganizationAction(
         );
       }
 
-      let validatedWebsiteUrl: string | undefined;
       if (websiteUrl) {
-        validatedWebsiteUrl = yield* Effect.tryPromise({
+        yield* Effect.tryPromise({
           try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
           catch: (error) =>
             new ActionFailure({
@@ -446,24 +444,6 @@ export async function createOrganizationAction(
           path: "/",
           maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
         });
-      }
-
-      if (validatedWebsiteUrl) {
-        const url = validatedWebsiteUrl;
-        yield* tryDb(
-          () =>
-            queueValidatedOnboardingBrandAnalysis(
-              { organizationId, websiteUrl: url, name: input.name },
-              session.user.id
-            ),
-          "Failed to queue onboarding brand analysis"
-        ).pipe(
-          Effect.catch(() =>
-            Effect.logWarning("Failed to queue onboarding brand analysis").pipe(
-              Effect.annotateLogs({ organizationId })
-            )
-          )
-        );
       }
 
       return organization;

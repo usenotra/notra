@@ -149,7 +149,6 @@ export const voiceInputSchema = organizationIdInputSchema.extend({
 export const voiceCreateInputSchema = organizationIdInputSchema.extend({
   name: z.string().optional(),
   websiteUrl: z.string().min(1, "Website URL is required"),
-  startAnalysis: z.boolean().default(false),
 });
 
 export const voiceUpdateInputSchema = organizationIdInputSchema

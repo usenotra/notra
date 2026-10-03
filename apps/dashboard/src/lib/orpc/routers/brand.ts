@@ -349,34 +349,7 @@ export const brandRouter = {
             },
           });
 
-          let analysisStarted = false;
-          if (input.startAnalysis) {
-            try {
-              await startBrandAnalysisRun({
-                organizationId: input.organizationId,
-                url: websiteUrl,
-                voiceId: createdVoice.id,
-              });
-              analysisStarted = true;
-              trackServerEvent({
-                event: POSTHOG_EVENTS.BRAND_ANALYSIS_STARTED,
-                headers: context.headers,
-                userId: auth.user.id,
-                organizationId: input.organizationId,
-                properties: { voice_id: createdVoice.id },
-              });
-            } catch {
-              console.error(
-                "[Brand Analysis] Failed to start analysis for new identity",
-                {
-                  organizationId: input.organizationId,
-                  voiceId: createdVoice.id,
-                }
-              );
-            }
-          }
-
-          return { voice: serializeBrandVoice(createdVoice), analysisStarted };
+          return { voice: serializeBrandVoice(createdVoice) };
         } catch (error) {
           if (isUniqueConstraintError(error)) {
             const tErrors = await getTranslations("errors.brand");

@@ -235,35 +235,20 @@ export function useUpdateBrandSettings(organizationId: string) {
   });
 }
 
-export function useCreateBrandVoice(
-  organizationId: string,
-  startPolling?: () => void
-) {
+export function useCreateBrandVoice(organizationId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params: {
       name: string;
       websiteUrl: string;
-      startAnalysis?: boolean;
-    }): Promise<{ voice: BrandSettings; analysisStarted: boolean }> => {
+    }): Promise<{ voice: BrandSettings }> => {
       return dashboardOrpc.brand.voices.create.call({
         organizationId,
         ...params,
       });
     },
-    onSuccess: (result) => {
-      if (result.analysisStarted) {
-        queryClient.setQueryData(
-          dashboardOrpc.brand.analysis.getProgress.queryKey({
-            input: { organizationId },
-          }),
-          {
-            progress: { status: "scraping", currentStep: 1, totalSteps: 3 },
-          }
-        );
-        startPolling?.();
-      }
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.brand.voices.list.queryKey({
           input: { organizationId },

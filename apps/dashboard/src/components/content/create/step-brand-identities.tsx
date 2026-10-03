@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 import {
+  useAnalyzeBrand,
   useBrandAnalysisProgress,
   useCreateBrandVoice,
 } from "@/lib/hooks/use-brand-analysis";
@@ -43,9 +44,10 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
   const tCommon = useTranslations("common");
   const [url, setUrl] = useState("");
   const { startPolling } = useBrandAnalysisProgress(organizationId);
-  const createMutation = useCreateBrandVoice(organizationId, startPolling);
+  const createMutation = useCreateBrandVoice(organizationId);
+  const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
 
-  const isSubmitting = createMutation.isPending;
+  const isSubmitting = createMutation.isPending || analyzeMutation.isPending;
 
   const handleSubmit = async () => {
     const trimmedUrl = url.trim();
@@ -66,14 +68,18 @@ function InlineCreateForm({ organizationId }: InlineCreateFormProps) {
       const result = await createMutation.mutateAsync({
         name: deriveNameFromUrl(websiteUrl),
         websiteUrl,
-        startAnalysis: true,
       });
       setUrl("");
-      if (result.analysisStarted) {
-        toast.success(tCommon("messages.brandIdentityCreatedAnalysisStarted"));
-      } else {
-        toast.error(tCommon("messages.brandIdentityCreatedButFailed"));
-      }
+      analyzeMutation
+        .mutateAsync({ url: websiteUrl, voiceId: result.voice.id })
+        .then(() => {
+          toast.success(
+            tCommon("messages.brandIdentityCreatedAnalysisStarted")
+          );
+        })
+        .catch(() => {
+          toast.error(tCommon("messages.brandIdentityCreatedButFailed"));
+        });
     } catch (error) {
       toast.error(
         error instanceof Error

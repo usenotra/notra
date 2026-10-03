@@ -19,7 +19,10 @@ import { Button } from "@/components/button";
 import type { AddIdentityDialogProps } from "@/types/brand-identity";
 import { sanitizeBrandUrlInput } from "@/utils/brand-identity";
 
-import { useCreateBrandVoice } from "../../../../../../lib/hooks/use-brand-analysis";
+import {
+  useAnalyzeBrand,
+  useCreateBrandVoice,
+} from "../../../../../../lib/hooks/use-brand-analysis";
 
 export function AddIdentityDialog({
   open,
@@ -34,9 +37,10 @@ export function AddIdentityDialog({
   const tCommon = useTranslations("common.actions");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
-  const createMutation = useCreateBrandVoice(organizationId, startPolling);
+  const createMutation = useCreateBrandVoice(organizationId);
+  const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
 
-  const isSubmitting = createMutation.isPending;
+  const isSubmitting = createMutation.isPending || analyzeMutation.isPending;
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
@@ -67,7 +71,6 @@ export function AddIdentityDialog({
       const result = await createMutation.mutateAsync({
         name: trimmedName,
         websiteUrl,
-        startAnalysis: true,
       });
       const voice = result.voice;
       onCreated(voice);
@@ -77,9 +80,13 @@ export function AddIdentityDialog({
         setUrl("");
       }, 300);
 
-      if (result.analysisStarted) {
+      try {
+        await analyzeMutation.mutateAsync({
+          url: websiteUrl,
+          voiceId: voice.id,
+        });
         toast.success(tCommon2("messages.brandIdentityCreatedAnalysisStarted"));
-      } else {
+      } catch {
         toast.error(tCommon2("messages.brandIdentityCreatedButFailed"));
       }
     } catch (error) {
