@@ -37,6 +37,18 @@ interface GeoWriteCounts {
   rejected: number;
 }
 
+interface GeoChunkResult extends GeoWriteCounts {
+  /** Rows a retryable failure left unwritten, in their original order. */
+  pending: GeoTrafficEventRow[];
+  error?: unknown;
+}
+
+const EMPTY_COUNTS: GeoWriteCounts = {
+  written: 0,
+  quarantined: 0,
+  rejected: 0,
+};
+
 export interface GeoEventBatcher {
   enqueue: (event: GeoTrafficEventRow) => boolean;
   /**
@@ -146,12 +158,13 @@ export function createGeoEventBatcher(
   /**
    * Writes one chunk. A rejected payload is split in halves until the rows
    * Tinybird refuses are isolated, so one bad row (or an oversized chunk)
-   * never takes valid events down with it. Retryable errors propagate.
+   * never takes valid events down with it. On a retryable failure the rows
+   * not yet accepted come back as `pending`, never ones already written.
    */
   async function writeChunk(
     chunk: GeoTrafficEventRow[],
     context: Record<string, unknown>
-  ): Promise<GeoWriteCounts> {
+  ): Promise<GeoChunkResult> {
     try {
       const result = await withTimeout(
         write(chunk),
@@ -165,10 +178,11 @@ export function createGeoEventBatcher(
         written: result.successful_rows,
         quarantined: result.quarantined_rows,
         rejected: 0,
+        pending: [],
       };
     } catch (error) {
       if (isRetryable(error)) {
-        throw error;
+        return { ...EMPTY_COUNTS, pending: chunk, error };
       }
       if (chunk.length === 1) {
         geoLog.error({
@@ -179,15 +193,21 @@ export function createGeoEventBatcher(
           errorMessage: errorMessage(error),
           ...context,
         });
-        return { written: 0, quarantined: 0, rejected: 1 };
+        return { ...EMPTY_COUNTS, rejected: 1, pending: [] };
       }
       const middle = Math.ceil(chunk.length / 2);
+      const right = chunk.slice(middle);
       const left = await writeChunk(chunk.slice(0, middle), context);
-      const right = await writeChunk(chunk.slice(middle), context);
+      if (left.pending.length > 0) {
+        return { ...left, pending: [...left.pending, ...right] };
+      }
+      const rest = await writeChunk(right, context);
       return {
-        written: left.written + right.written,
-        quarantined: left.quarantined + right.quarantined,
-        rejected: left.rejected + right.rejected,
+        written: left.written + rest.written,
+        quarantined: left.quarantined + rest.quarantined,
+        rejected: left.rejected + rest.rejected,
+        pending: rest.pending,
+        error: rest.error,
       };
     }
   }
@@ -203,28 +223,25 @@ export function createGeoEventBatcher(
       runtime: getGeoIngestRuntime(),
       region: getGeoIngestRegion(),
     };
-    const totals: GeoWriteCounts = { written: 0, quarantined: 0, rejected: 0 };
+    const totals: GeoWriteCounts = { ...EMPTY_COUNTS };
     for (let start = 0; start < rows.length; start += maxRowsPerWrite) {
-      try {
-        const counts = await writeChunk(
-          rows.slice(start, start + maxRowsPerWrite),
-          context
-        );
-        totals.written += counts.written;
-        totals.quarantined += counts.quarantined;
-        totals.rejected += counts.rejected;
-      } catch (error) {
+      const end = start + maxRowsPerWrite;
+      const result = await writeChunk(rows.slice(start, end), context);
+      totals.written += result.written;
+      totals.quarantined += result.quarantined;
+      totals.rejected += result.rejected;
+      if (result.pending.length > 0) {
         // At-least-once: a timed-out write may still land, so a retry can
-        // duplicate rows; losing acknowledged ones is the worse outcome.
-        // Rows that arrived during the write sit behind the retried ones.
-        buffer = [...rows.slice(start), ...buffer];
+        // duplicate those rows; losing acknowledged ones is the worse
+        // outcome. Rows that arrived during the write sit behind them.
+        buffer = [...result.pending, ...rows.slice(end), ...buffer];
         geoLog.error({
           event: "geo.ingest.flush",
           outcome: "failed",
           rows: rows.length,
-          written: totals.written,
+          ...totals,
           retrying: buffer.length,
-          errorMessage: errorMessage(error),
+          errorMessage: errorMessage(result.error),
           durationMs: Math.round(performance.now() - startedAt),
           ...context,
         });
