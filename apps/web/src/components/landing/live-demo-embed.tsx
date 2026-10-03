@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
+import { LiveDemoPreview } from "@/components/landing/live-demo-preview";
 import {
   LIVE_DEMO_CLOSE_LABEL,
   LIVE_DEMO_EMBED_URL,
@@ -13,10 +14,6 @@ import {
   LIVE_DEMO_LOADING_LABEL,
   LIVE_DEMO_OPEN_LABEL,
   LIVE_DEMO_ORIGIN,
-  LIVE_DEMO_PREVIEW_ALT,
-  LIVE_DEMO_PREVIEW_DARK_SRC,
-  LIVE_DEMO_PREVIEW_SRC,
-  LIVE_DEMO_PREVIEW_THEME_SCRIPT,
   LIVE_DEMO_READY_MESSAGE,
   LIVE_DEMO_STALLED_ACTION,
   LIVE_DEMO_STALLED_LABEL,
@@ -40,10 +37,6 @@ export function LiveDemoEmbed() {
   const { resolvedTheme } = useTheme();
   const [initialTheme, setInitialTheme] = useState<string>();
   const [listening, setListening] = useState(false);
-  let previewMedia = "(prefers-color-scheme: dark)";
-  if (resolvedTheme) {
-    previewMedia = resolvedTheme === "dark" ? "all" : "not all";
-  }
   const src = initialTheme
     ? `${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`
     : LIVE_DEMO_EMBED_URL;
@@ -131,30 +124,7 @@ export function LiveDemoEmbed() {
             title={LIVE_DEMO_IFRAME_TITLE}
           />
         ) : null}
-        {ready ? null : (
-          <>
-            <picture>
-              <source
-                media={previewMedia}
-                srcSet={LIVE_DEMO_PREVIEW_DARK_SRC}
-                suppressHydrationWarning
-                type="image/webp"
-              />
-              <img
-                decoding="async"
-                loading={resolvedTheme ? "eager" : "lazy"}
-                alt={LIVE_DEMO_PREVIEW_ALT}
-                className="pointer-events-none absolute inset-0 size-full object-cover object-top-left"
-                fetchPriority="high"
-                height={1250}
-                src={LIVE_DEMO_PREVIEW_SRC}
-                suppressHydrationWarning
-                width={2000}
-              />
-            </picture>
-            <script>{LIVE_DEMO_PREVIEW_THEME_SCRIPT}</script>
-          </>
-        )}
+        {ready ? null : <LiveDemoPreview />}
         {mounted && !ready ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
             <span
