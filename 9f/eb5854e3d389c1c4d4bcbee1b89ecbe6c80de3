@@ -1,0 +1,51 @@
+apps/dashboard/src/utils/geo-citations.ts
+  s_73d092d85928df::t_00825cdeeb0dc8 72-74
+apps/dashboard/src/components/providers/geo-live-provider.tsx
+  s_79fdbd0ceb13e5::t_6ccac6e038ff0f 6-7,45-51,85,101-112,114,117-123
+apps/dashboard/src/styles/globals.css
+  s_79fdbd0ceb13e5::t_f8fa7a8ec3f583 263-264,267-275,281-288,294,296,298-299,301,334
+  s_79fdbd0ceb13e5::t_82e7329b1e56c6 265-266,278-279
+  s_79fdbd0ceb13e5::t_999367f462a881 300,302-308
+  s_79fdbd0ceb13e5::t_f2f9bea6b9a52d 292,295,297,309-329
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_73d092d85928df::t_a64a98907d20a5 25-28
+  s_73d092d85928df::t_d504fc07de7f0a 187
+  s_73d092d85928df::t_dc3635b7b911d1 197-200,205-216,218-229
+  s_79fdbd0ceb13e5::t_f2f9bea6b9a52d 232-238,312-317
+  s_73d092d85928df::t_7f6ab5d2804334 18
+apps/dashboard/src/constants/geo-citations.ts
+  s_73d092d85928df::t_22b8cb1afc27d3 3-5
+  s_79fdbd0ceb13e5::t_30324ef74dc275 1-2
+apps/dashboard/src/components/geo/ai-traffic-log-card.tsx
+  s_73d092d85928df::t_0f7dc4f347b8bf 71-73
+package.json
+  s_79fdbd0ceb13e5::t_71f38a7c778dda 66
+packages/geo-core/src/constants/geo.ts
+  s_79fdbd0ceb13e5::t_6ccac6e038ff0f 1080-1083
+apps/dashboard/src/types/geo.ts
+  s_73d092d85928df::t_4d955b01aee8bd 934-938
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9feb5854e3d389c1c4d4bcbee1b89ecbe6c80de3",
+  "prompts": {},
+  "sessions": {
+    "s_73d092d85928df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3361918-ab27-419e-88c6-568d2daa8f58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_79fdbd0ceb13e5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a17cbdfc-2882-4ecb-a9da-c2e2e6fe69e5",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
