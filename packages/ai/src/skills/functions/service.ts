@@ -15,6 +15,12 @@ import type {
 import { UNSLOP_CONTENT } from "../unslop-content";
 import { normalizeSkillSummary } from "./guidance";
 
+/** System skills whose seeded copies follow the code instead of the seed-time text. */
+const REFRESHED_SYSTEM_SKILLS: Readonly<Record<string, () => string>> = {
+  "blog-post": getConversationalBlogPostPrompt,
+  unslop: () => UNSLOP_CONTENT,
+};
+
 const promptableSkillWhere = (organizationId: string) =>
   and(
     eq(skills.organizationId, organizationId),
@@ -88,16 +94,15 @@ export async function loadSkillByName(
       : null;
   }
 
+  // Serve the current text for an untouched seeded copy; keep organization edits.
+  const isUntouchedSeed =
+    row.isSystem && row.updatedAt.getTime() === row.createdAt.getTime();
+  const current = isUntouchedSeed ? REFRESHED_SYSTEM_SKILLS[name] : undefined;
+
   return {
     name: row.name,
     description: row.description,
-    // Refresh only the untouched seeded copy; preserve organization edits.
-    content:
-      row.isSystem &&
-      name === "blog-post" &&
-      row.updatedAt.getTime() === row.createdAt.getTime()
-        ? getConversationalBlogPostPrompt()
-        : row.content.trim(),
+    content: current ? current() : row.content.trim(),
   };
 }
 
