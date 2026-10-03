@@ -1,26 +1,25 @@
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
+import type { ContentAgentProfile } from "@notra/ai/types/agents";
 
 import {
   CONTENT_SCENARIOS,
   type ContentScenario,
 } from "../fixtures/content-scenarios";
 import {
-  CONTENT_TYPES,
-  type ContentTypeConfig,
   type ContentTypeId,
   type HarnessOutput,
   runContentAgent,
   runDraftStage,
   transcriptFor,
 } from "../harness/content-harness";
-import { estimateCost } from "../models/gateway";
 import { scoreContentOutput } from "../scoring/content-post";
 import type { CaseScore, EvalCase, EvalSuite, FieldScore } from "../types/eval";
 import { demoContentOutput } from "./content-demo";
 
 interface ContentInput {
   scenario: ContentScenario;
-  contentType: ContentTypeConfig;
+  contentType: ContentAgentProfile;
 }
 
 type ContentExpected = ContentScenario["expected"];
@@ -34,7 +33,7 @@ function buildCases(
     const forScenario: readonly ContentTypeId[] =
       scenario.expected.decision === "skip" ? ["changelog"] : types;
     for (const typeId of forScenario) {
-      const contentType = CONTENT_TYPES[typeId];
+      const contentType = CONTENT_AGENT_PROFILES[typeId];
       cases.push({
         id: `${scenario.id}:${typeId}`,
         title: `${scenario.title} → ${contentType.contentLabel}`,
@@ -106,20 +105,13 @@ export const contentAgentSuite: EvalSuite<
   defaultContenders: ["anthropic/claude-sonnet-5", "openai/gpt-6-sol"],
   labelFields: ["decision"],
   timeoutMs: 240_000,
-  async run(input, ctx) {
-    const run = await runContentAgent({
+  run: (input, ctx) =>
+    runContentAgent({
       modelId: ctx.contender.modelId,
       scenario: input.scenario,
       contentType: input.contentType,
       abortSignal: ctx.abortSignal,
-    });
-    return {
-      output: run.output,
-      usage: run.usage,
-      costUsd: await estimateCost(ctx.contender.modelId, run.usage),
-      transcript: transcriptFor(run.output),
-    };
-  },
+    }),
   async score(output, testCase, ctx) {
     const base = await scoreContentOutput(
       output,
@@ -158,20 +150,13 @@ export const contentDraftSuite: EvalSuite<
   ],
   labelFields: ["decision"],
   timeoutMs: 120_000,
-  async run(input, ctx) {
-    const run = await runDraftStage({
+  run: (input, ctx) =>
+    runDraftStage({
       modelId: ctx.contender.modelId,
       scenario: input.scenario,
       contentType: input.contentType,
       abortSignal: ctx.abortSignal,
-    });
-    return {
-      output: run.output,
-      usage: run.usage,
-      costUsd: await estimateCost(ctx.contender.modelId, run.usage),
-      transcript: transcriptFor(run.output),
-    };
-  },
+    }),
   score: (output, testCase, ctx) =>
     scoreContentOutput(
       output,

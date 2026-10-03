@@ -8,7 +8,7 @@ import { loadPickerSettings } from "../store/picker-settings";
 import { listRuns } from "../store/runs";
 import { getSuite, SUITES } from "../suites/registry";
 import type { AnySuite, EvalRun } from "../types/eval";
-import type { PickerSettings } from "../utils/picker";
+import type { PickerSettings } from "../types/picker";
 import { HistoryScreen } from "./screens/history";
 import { createHomeMemory, HomeScreen, type RunRequest } from "./screens/home";
 import { PickerScreen } from "./screens/picker";

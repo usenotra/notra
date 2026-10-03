@@ -17,7 +17,7 @@ export function percentile(values: readonly number[], p: number): number {
   return sorted[index] ?? 0;
 }
 
-function mean(values: readonly number[]): number {
+export function mean(values: readonly number[]): number {
   if (values.length === 0) {
     return 0;
   }

@@ -1,6 +1,7 @@
+import type { ContentAgentProfile } from "@notra/ai/types/agents";
+
 import type { ContentScenario } from "../fixtures/content-scenarios";
 import type {
-  ContentTypeConfig,
   HarnessDecision,
   HarnessOutput,
 } from "../harness/content-harness";
@@ -15,7 +16,7 @@ const DEMO_SLOP = [
 /** Plausible createPost/skip output for demo runs. */
 export function demoContentOutput(
   scenario: ContentScenario,
-  contentType: ContentTypeConfig,
+  contentType: ContentAgentProfile,
   demo: DemoContext
 ): HarnessOutput {
   const decisions: HarnessDecision[] = ["create", "skip", "fail"];
@@ -49,7 +50,7 @@ export function demoContentOutput(
     : DEMO_SLOP[Math.floor(demo.rng() * DEMO_SLOP.length)];
   const joiner = demo.hit() ? ". " : " — ";
   const body =
-    contentType.id === "twitter_post"
+    contentType.contentType === "twitter_post"
       ? `${opener} ${facts.slice(0, 2).join(joiner)}.`
       : [
           opener,

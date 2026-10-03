@@ -1,79 +1,20 @@
 import { CONTENDER_CATALOG, contenderFromId } from "../constants/contenders";
+import {
+  COST_INCLUDED_IN,
+  DEFAULT_VOLUME,
+  MAX_ERROR_RATE,
+  MIN_CASES,
+} from "../constants/picker";
 import type { ModelPrice } from "../models/pricing";
 import type { AnySuite, EvalRun, TaskResult } from "../types/eval";
-import { percentile } from "./stats";
-
-/** A model needs this many scored cases (or every case of a small suite). */
-export const MIN_CASES = 5;
-/** Models failing more calls than this are never recommended. */
-export const MAX_ERROR_RATE = 0.1;
-
-/** What the saved runs say about one model on one suite. */
-export interface ModelEvidence {
-  readonly modelId: string;
-  readonly label: string;
-  /** Latest run that contains this model; older runs are ignored. */
-  readonly runId: string;
-  readonly runAt: string;
-  readonly cases: number;
-  readonly errors: number;
-  readonly errorRate: number;
-  /** Mean case score, 0..1. */
-  readonly score: number;
-  /** Standard error of the mean score. */
-  readonly scoreSe: number;
-  readonly passRate: number;
-  readonly p50Ms: number;
-  /** Contender spend per attempted call (judge spend excluded). */
-  readonly costPerCall: number;
-  readonly frontier: boolean;
-  readonly eligible: boolean;
-  /** Why it is not eligible, if it is not. */
-  readonly blocker?: string;
-}
-
-/** An untested catalog model priced from the measured token usage. */
-export interface Candidate {
-  readonly modelId: string;
-  readonly label: string;
-  readonly estCostPerCall: number;
-}
-
-export interface SuitePick {
-  readonly suite: AnySuite;
-  readonly evidence: readonly ModelEvidence[];
-  readonly production?: ModelEvidence;
-  readonly recommended?: ModelEvidence;
-  /** Best measured score, the bar the tolerance is applied to. */
-  readonly bestScore: number;
-  readonly candidates: readonly Candidate[];
-  readonly volume: number;
-  /** Suite whose call already contains this stage's spend. */
-  readonly includedIn?: string;
-  /** Fewer scored cases than MIN_CASES, so the pick needs a verify run. */
-  readonly smallSample: boolean;
-  readonly monthlyNow?: number;
-  readonly monthlyRecommended?: number;
-}
-
-export interface PickerSettings {
-  /** Allowed score drop below the best model, in percentage points. */
-  tolerancePts: number;
-  /** Calls per month per suite, used to turn $/call into $/month. */
-  volumes: Record<string, number>;
-}
-
-export const DEFAULT_VOLUME = 1000;
-
-/**
- * Stages whose spend is already inside another suite's call in prod (the
- * draft and unslop steps run inside the one content agent loop), so they are
- * left out of the monthly totals.
- */
-export const COST_INCLUDED_IN: Readonly<Record<string, string>> = {
-  "content-draft": "content-agent",
-  "content-unslop": "content-agent",
-};
+import type {
+  Candidate,
+  MeasuredModel,
+  ModelEvidence,
+  PickerSettings,
+  SuitePick,
+} from "../types/picker";
+import { mean, percentile } from "./stats";
 
 /** Per-call spend reads badly at classifier prices, so show it per 1k calls. */
 export function formatPerThousand(costPerCall: number): string {
@@ -86,17 +27,6 @@ export function formatPerThousand(costPerCall: number): string {
 
 export function createPickerSettings(): PickerSettings {
   return { tolerancePts: 2, volumes: {} };
-}
-
-function mean(values: readonly number[]): number {
-  if (values.length === 0) {
-    return 0;
-  }
-  let sum = 0;
-  for (const value of values) {
-    sum += value;
-  }
-  return sum / values.length;
 }
 
 function standardError(values: readonly number[]): number {
@@ -115,7 +45,7 @@ function evidenceFromTasks(
   modelId: string,
   run: EvalRun,
   tasks: readonly TaskResult[]
-): Omit<ModelEvidence, "frontier" | "eligible" | "blocker"> {
+): MeasuredModel {
   const finished = tasks.filter((task) => task.status === "done");
   const attempted = tasks.filter(
     (task) => task.status === "done" || task.status === "error"
@@ -153,11 +83,8 @@ export function collectEvidence(
   runs: readonly EvalRun[],
   suiteId: string,
   demo: boolean
-): Omit<ModelEvidence, "frontier" | "eligible" | "blocker">[] {
-  const latest = new Map<
-    string,
-    Omit<ModelEvidence, "frontier" | "eligible" | "blocker">
-  >();
+): MeasuredModel[] {
+  const latest = new Map<string, MeasuredModel>();
   const ordered = [...runs].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
   );
