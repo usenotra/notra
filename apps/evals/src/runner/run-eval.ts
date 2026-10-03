@@ -76,23 +76,21 @@ async function executeTask(
   const startedAt = performance.now();
 
   try {
-    const result: CallResult<unknown> = config.demo
-      ? await demoCall(suite, testCase, contender, signal)
-      : await suite.run(testCase.input, {
-          contender,
-          abortSignal: signal,
-          demo: false,
-        });
-    task.durationMs = Math.round(performance.now() - startedAt);
-    task.output = result.output;
-    task.usage = result.usage;
-    task.costUsd = result.costUsd;
-    task.transcript = result.transcript;
-    task.score = await suite.score(result.output, testCase, {
-      abortSignal: runSignal,
-      demo: config.demo,
-    });
-    task.status = "done";
+    if (!task.called) {
+      const result: CallResult<unknown> = config.demo
+        ? await demoCall(suite, testCase, contender, signal)
+        : await suite.run(testCase.input, {
+            contender,
+            abortSignal: signal,
+            demo: false,
+          });
+      task.durationMs = Math.round(performance.now() - startedAt);
+      task.output = result.output;
+      task.usage = result.usage;
+      task.costUsd = result.costUsd;
+      task.transcript = result.transcript;
+      task.called = true;
+    }
   } catch (error) {
     task.durationMs = Math.round(performance.now() - startedAt);
     task.status = "error";
@@ -100,6 +98,18 @@ async function executeTask(
       signal.aborted && !runSignal.aborted
         ? `Timed out after ${suite.timeoutMs}ms`
         : describeError(error);
+    return;
+  }
+
+  try {
+    task.score = await suite.score(task.output, testCase, {
+      abortSignal: runSignal,
+      demo: config.demo,
+    });
+    task.status = "done";
+  } catch (error) {
+    task.status = "error";
+    task.error = `Scoring failed: ${describeError(error)}`;
   }
 }
 
@@ -121,16 +131,23 @@ export function startRun(options: StartRunOptions): RunHandle {
 
   if (options.resume) {
     for (const task of run.tasks) {
-      if (task.status !== "done") {
-        Object.assign(task, {
-          status: "queued",
-          error: undefined,
-          durationMs: undefined,
-          score: undefined,
-          output: undefined,
-          transcript: undefined,
-        });
+      if (task.status === "done") {
+        continue;
       }
+      // Keep a finished model call so only its scoring is retried.
+      Object.assign(
+        task,
+        task.called
+          ? { status: "queued", error: undefined, score: undefined }
+          : {
+              status: "queued",
+              error: undefined,
+              durationMs: undefined,
+              score: undefined,
+              output: undefined,
+              transcript: undefined,
+            }
+      );
     }
   }
 

@@ -8,9 +8,11 @@ function runPath(id: string): string {
   return join(RUNS_DIR, `${id}.json`);
 }
 
+/** Sortable by time; the random suffix keeps same-second runs apart. */
 export function createRunId(suiteId: string, demo: boolean): string {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  return `${stamp}_${suiteId}${demo ? "_demo" : ""}`;
+  const suffix = crypto.randomUUID().slice(0, 6);
+  return `${stamp}-${suffix}_${suiteId}${demo ? "_demo" : ""}`;
 }
 
 /** Atomic write so a crash mid-save never leaves a truncated run file. */

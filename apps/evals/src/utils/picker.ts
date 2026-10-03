@@ -64,7 +64,7 @@ function evidenceFromTasks(
     label: contender?.label ?? contenderFromId(modelId).label,
     runId: run.id,
     runAt: run.createdAt,
-    cases: finished.length,
+    cases: new Set(finished.map((task) => task.caseId)).size,
     errors,
     errorRate: attempted.length ? errors / attempted.length : 0,
     score: mean(scores),
@@ -75,6 +75,7 @@ function evidenceFromTasks(
       50
     ),
     costPerCall: attempted.length ? spend / attempted.length : 0,
+    costKnown: finished.every((task) => task.costUsd !== undefined),
   };
 }
 
@@ -174,6 +175,8 @@ export function pickForSuite({
       let blocker: string | undefined;
       if (item.cases < minCases) {
         blocker = `only ${item.cases} cases`;
+      } else if (!item.costKnown) {
+        blocker = "cost unknown";
       } else if (item.errorRate > MAX_ERROR_RATE) {
         blocker = `${Math.round(item.errorRate * 100)}% errors`;
       } else if (item.score < bar) {
@@ -181,7 +184,13 @@ export function pickForSuite({
       }
       return {
         ...item,
-        frontier: trusted.includes(item) && isOnFrontier(item, trusted),
+        frontier:
+          item.costKnown &&
+          trusted.includes(item) &&
+          isOnFrontier(
+            item,
+            trusted.filter((other) => other.costKnown)
+          ),
         eligible: blocker === undefined,
         blocker,
       };

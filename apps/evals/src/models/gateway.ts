@@ -69,14 +69,17 @@ function readGatewayCost(metadata: unknown): number | undefined {
   return undefined;
 }
 
-/** List-price estimate for calls without a gateway-reported cost. */
+/**
+ * List-price estimate for calls without a gateway-reported cost. Undefined
+ * when the model has no list price, so an unknown cost never reads as free.
+ */
 async function estimateCost(
   modelId: string,
   usage: TokenUsage
-): Promise<number> {
+): Promise<number | undefined> {
   const price = await priceFor(modelId);
   if (!price) {
-    return 0;
+    return undefined;
   }
   const uncached = Math.max(0, usage.inputTokens - usage.cachedInputTokens);
   // Cache reads bill at roughly a tenth of the input price across providers.
@@ -95,7 +98,7 @@ export async function runCost(
   modelId: string,
   usage: TokenUsage,
   steps: readonly { providerMetadata?: unknown }[]
-): Promise<number> {
+): Promise<number | undefined> {
   let total = 0;
   for (const step of steps) {
     const cost = readGatewayCost(step.providerMetadata);
@@ -111,7 +114,7 @@ async function costFor(
   modelId: string,
   usage: TokenUsage,
   metadata: unknown
-): Promise<number> {
+): Promise<number | undefined> {
   const reported = readGatewayCost(metadata);
   if (reported !== undefined) {
     return reported;
