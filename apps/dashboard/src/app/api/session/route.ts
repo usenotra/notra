@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { getAuthSession } from "@/lib/auth/server";
+import { getAuthIdentity, getAuthSession } from "@/lib/auth/server";
 import { buildSessionCorsHeaders } from "@/lib/auth/session-cors";
 import { readLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import type { ClientSessionData } from "@/types/auth/session";
@@ -19,6 +19,11 @@ export function OPTIONS(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const headers = buildSessionCorsHeaders(request.headers.get("origin"));
+  if (request.nextUrl.searchParams.get("view") === "navbar") {
+    const identity = await getAuthIdentity();
+    return Response.json({ isAuthenticated: Boolean(identity) }, { headers });
+  }
+
   const data = await getAuthSession();
 
   if (!data) {

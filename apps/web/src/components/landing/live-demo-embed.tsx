@@ -39,6 +39,10 @@ export function LiveDemoEmbed() {
   const { resolvedTheme } = useTheme();
   const [initialTheme, setInitialTheme] = useState<string>();
   const [listening, setListening] = useState(false);
+  let previewMedia = "(prefers-color-scheme: dark)";
+  if (resolvedTheme) {
+    previewMedia = resolvedTheme === "dark" ? "all" : "not all";
+  }
   const src = initialTheme
     ? `${LIVE_DEMO_EMBED_URL}&${LIVE_DEMO_THEME_PARAM}=${initialTheme}`
     : LIVE_DEMO_EMBED_URL;
@@ -127,24 +131,23 @@ export function LiveDemoEmbed() {
           />
         ) : null}
         {ready ? null : (
-          <>
+          <picture>
+            <source
+              media={previewMedia}
+              srcSet={LIVE_DEMO_PREVIEW_DARK_SRC}
+              type="image/webp"
+            />
             <img
               decoding="async"
               loading="eager"
               alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none absolute inset-0 size-full object-cover object-top-left dark:hidden"
+              className="pointer-events-none absolute inset-0 size-full object-cover object-top-left"
               fetchPriority="high"
+              height={1250}
               src={LIVE_DEMO_PREVIEW_SRC}
+              width={2000}
             />
-            <img
-              decoding="async"
-              loading="eager"
-              alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none absolute inset-0 hidden size-full object-cover object-top-left dark:block"
-              fetchPriority="high"
-              src={LIVE_DEMO_PREVIEW_DARK_SRC}
-            />
-          </>
+          </picture>
         )}
         {mounted && !ready ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
