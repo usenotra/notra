@@ -1,4 +1,7 @@
-import { LOG_PIPELINE_OPTIONS } from "@notra/ai/constants/evlog";
+import {
+  AXIOM_PERMANENT_ERROR_PATTERN,
+  LOG_PIPELINE_OPTIONS,
+} from "@notra/ai/constants/evlog";
 import type {
   LogFlushCheckpoint,
   SequencedDrainContext,
@@ -7,6 +10,12 @@ import type { DrainContext } from "evlog";
 import { type AxiomConfig, sendBatchToAxiom } from "evlog/axiom";
 import { createDrainPipeline, type DrainPipelineOptions } from "evlog/pipeline";
 
+function isPermanentAxiomError(error: unknown): boolean {
+  return (
+    error instanceof Error && AXIOM_PERMANENT_ERROR_PATTERN.test(error.message)
+  );
+}
+
 export function createAxiomPipeline(
   config: AxiomConfig,
   options: DrainPipelineOptions<DrainContext> = LOG_PIPELINE_OPTIONS
@@ -14,6 +23,7 @@ export function createAxiomPipeline(
   let sequence = 0;
   let pumping = false;
   let overflowCount = 0;
+  let disabled = false;
   const pending = new Set<number>();
   const checkpoints = new Map<number, LogFlushCheckpoint>();
 
@@ -69,12 +79,32 @@ export function createAxiomPipeline(
       setTimeout(resolve, 0);
     });
     reportOverflow();
+    if (disabled) {
+      settle(batch);
+      return;
+    }
     // evlog 2.13's createAxiomDrain swallows send errors. The throwing batch
     // API lets the pipeline own retries and report exhausted deliveries.
-    await sendBatchToAxiom(
-      batch.map(({ event }) => event),
-      { ...config, retries: 0 }
-    );
+    try {
+      await sendBatchToAxiom(
+        batch.map(({ event }) => event),
+        { ...config, retries: 0 }
+      );
+    } catch (error) {
+      if (!isPermanentAxiomError(error)) {
+        throw error;
+      }
+      // Batches already in flight can be rejected after the first one.
+      if (disabled) {
+        settle(batch);
+        return;
+      }
+      disabled = true;
+      console.warn(
+        `[evlog/${config.dataset}] Axiom rejected the request, log shipping is off until the next deploy`,
+        error
+      );
+    }
     reportOverflow();
     settle(batch);
   });
@@ -100,6 +130,9 @@ export function createAxiomPipeline(
   }
 
   const push = (ctx: DrainContext) => {
+    if (disabled) {
+      return;
+    }
     sequence += 1;
     pending.add(sequence);
     pipeline({ ...ctx, sequence });

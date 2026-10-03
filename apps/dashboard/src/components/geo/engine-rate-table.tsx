@@ -10,6 +10,7 @@ import {
 import type { GeoEngineFamily } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Input } from "@notra/ui/components/ui/input";
 import { useLocale, useTranslations } from "next-intl";
@@ -57,9 +58,13 @@ function RateCell({ family }: { family: GeoEngineFamily }) {
   return (
     <span className="flex items-center gap-2">
       <GeoBar className="w-24 shrink-0" value={totals.rate} />
-      <span className="text-sm tabular-nums">
+      <FadeSwap
+        className="text-sm tabular-nums"
+        swapKey={formatMentionRate(totals.rate)}
+        value={totals.rate}
+      >
         {formatMentionRate(totals.rate)}
-      </span>
+      </FadeSwap>
     </span>
   );
 }
@@ -146,10 +151,15 @@ export function EngineRateTable({
           }
           return (
             <span className="flex items-center gap-2">
-              <span className="text-sm tabular-nums">
+              <FadeSwap
+                className="text-sm tabular-nums"
+                swapKey={String(totals.visible)}
+                value={totals.visible}
+              >
                 {totals.visible.toLocaleString(locale)}
-              </span>
+              </FadeSwap>
               <GeoStatDelta
+                animated
                 delta={trends.visibilityDelta}
                 hint={tGeoShared("vsFirstHalfOfThis")}
                 label={t("visibilityLabel", {
@@ -177,9 +187,13 @@ export function EngineRateTable({
             );
           }
           return (
-            <span className="text-sm tabular-nums">
+            <FadeSwap
+              className="text-sm tabular-nums"
+              swapKey={String(engineFamilyCitationTotal(row))}
+              value={engineFamilyCitationTotal(row)}
+            >
               {engineFamilyCitationTotal(row).toLocaleString(locale)}
-            </span>
+            </FadeSwap>
           );
         },
         sortValue: (row) =>

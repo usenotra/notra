@@ -20,6 +20,7 @@ import { AGENT_PROXY_ALLOWED_PATHS } from "@/constants/agent";
 import { createNotraAgentClient, startAgentSession } from "@/lib/agent/client";
 import { isAgentChatEnabled } from "@/lib/agent/flag";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import type { AgentSurface } from "@/types/agent";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 
@@ -119,9 +120,10 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const [rateLimited, credits] = await Promise.all([
+  const [rateLimited, credits, codeResearch] = await Promise.all([
     enforceChatGenerationRatelimit(organizationId, auth.context.user.id),
     checkAiCredits(organizationId),
+    isCodeResearchEnabledForOrganization(organizationId),
   ]);
   if (rateLimited) {
     return rateLimited;
@@ -157,6 +159,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
           contentId,
           useMarkup: credits.useMarkup,
           chargeAiCredits: credits.chargeAiCredits,
+          codeResearch,
         },
         message: parsed.data.message,
       });
@@ -200,6 +203,7 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
     contentId: mapping.contentId ?? undefined,
     useMarkup: credits.useMarkup,
     chargeAiCredits: credits.chargeAiCredits,
+    codeResearch,
   });
   try {
     return await forwardAgentFollowUp({

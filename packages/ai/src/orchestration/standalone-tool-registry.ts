@@ -1,8 +1,10 @@
+import { CODE_RESEARCHER_TOOL_NAME } from "@notra/ai/constants/code-research";
 import { contentTypeSchema } from "@notra/ai/schemas/content";
 import {
   createAddBrandReferenceTool,
   createGetAvailableBrandReferencesTool,
 } from "@notra/ai/tools/brand-references";
+import { createCodeResearcherTool } from "@notra/ai/tools/code-researcher";
 import { exampleTool } from "@notra/ai/tools/example";
 import {
   createGetGeoCompetitorShareTool,
@@ -59,6 +61,7 @@ import type {
   ToolSet,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
+import { isCodeResearchConfigured } from "@notra/ai/utils/code-research-box";
 import type { Tool } from "ai";
 
 /** Tools that write user-visible records and must pause for user approval. */
@@ -203,6 +206,21 @@ export function buildStandaloneToolSet(
       { organizationId, allowedIntegrationIds },
       deps?.resolveContext
     );
+
+    if (params.codeResearch && chatId && isCodeResearchConfigured()) {
+      tools[CODE_RESEARCHER_TOOL_NAME] = createCodeResearcherTool({
+        organizationId,
+        // One box per chat and repository, reused across turns.
+        sessionKey: `chat:${chatId}`,
+        allowedIntegrationIds,
+        resolveContext: deps?.resolveContext,
+        useMarkup,
+        chargeAiCredits: params.chargeAiCredits,
+      });
+      descriptions.push(
+        `**Code research**: Read the connected repositories' code to understand a specific feature before writing about it`
+      );
+    }
 
     const repos = getGitHubRepoList(validatedIntegrations);
     descriptions.push(

@@ -1,3 +1,4 @@
+import { GeoLiveProvider } from "@/components/providers/geo-live-provider";
 import { GeoProjectQueryProvider } from "@/components/providers/geo-project-provider";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
@@ -21,7 +22,9 @@ export async function GeoProjectScope({
 
   return (
     <GeoProjectQueryProvider initialProjectId={initialProjectId} key={slug}>
-      {children}
+      <GeoLiveProvider organizationId={organization.id}>
+        {children}
+      </GeoLiveProvider>
     </GeoProjectQueryProvider>
   );
 }

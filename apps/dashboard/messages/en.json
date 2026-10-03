@@ -3958,6 +3958,10 @@
       "resolveCreatedProjectFailed": "Failed to resolve created project",
       "connectingProperty": "Connecting {property}…",
       "connectingPropertyDescription": "Reading your search queries. This can take a minute, keep working in the meantime."
+    },
+    "liveIndicator": {
+      "label": "Live",
+      "hint": "Updates on its own as new data comes in"
     }
   },
   "integrations": {
@@ -6309,6 +6313,29 @@
     "upgradeDescription": "Studio is included in paid plans. Upgrade to create content and use AI tools."
   },
   "ai": {
+    "subagent": {
+      "names": {
+        "codeResearcher": "Code research",
+        "contentWriter": "Content writer",
+        "imageDesigner": "Image designer",
+        "fallback": "Subagent"
+      },
+      "activity": {
+        "codeResearcher": "{state, select, running {Reading the repository} done {Read the repository} skipped {Skipped, no brief} notFound {Feature not found in the code} interrupted {Interrupted} other {Could not read the repository}}",
+        "contentWriter": "{state, select, running {Writing the post} done {Wrote the post} skipped {Skipped the post} notFound {Nothing to write about} interrupted {Interrupted} other {Could not write the post}}",
+        "imageDesigner": "{state, select, running {Designing the image} done {Designed the image} skipped {Skipped the image} notFound {Nothing to design} interrupted {Interrupted} other {Could not design the image}}",
+        "fallback": "{state, select, running {Working} done {Done} skipped {Skipped} notFound {Nothing found} interrupted {Interrupted} other {Failed}}"
+      },
+      "steps": "{count, plural, =0 {no steps} one {# step} other {# steps}}",
+      "result": {
+        "brief": "Brief: {feature}",
+        "draft": "{title, select, none {Saved draft} other {Saved draft: {title}}}",
+        "image": "{title, select, none {Saved image} other {Saved image: {title}}}",
+        "notFound": "{reason, select, none {Feature not found in the code} other {Not found: {reason}}}",
+        "skipped": "{reason, select, none {Skipped} other {Skipped: {reason}}}",
+        "failed": "{reason, select, none {Failed} other {Failed: {reason}}}"
+      }
+    },
     "toolBlock": {
       "tools": {
         "code_mode": "{state, select, running {Executing tools} done {Executed tools} approve {Approve tools} other {Failed tools}}",
@@ -6368,7 +6395,16 @@
         "memory": "{state, select, running {Using memory} done {Used memory} approve {Approve memory} other {Failed memory}}",
         "getBrandReferences": "{state, select, running {Loading brand references} done {Loaded brand references} approve {Approve brand references} other {Failed brand references}}",
         "webSearch": "{state, select, running {Searching web} done {Searched web} approve {Approve web} other {Failed web}}",
-        "searchMemories": "{state, select, running {Searching memory} done {Searched memory} approve {Approve memory} other {Failed memory}}"
+        "searchMemories": "{state, select, running {Searching memory} done {Searched memory} approve {Approve memory} other {Failed memory}}",
+        "codeResearcher": "{state, select, running {Researching the code} done {Researched the code} approve {Approve code research} other {Failed code research}}",
+        "contentWriter": "{state, select, running {Writing the post} done {Wrote the post} approve {Approve post writing} other {Failed post writing}}",
+        "openRepository": "{state, select, running {Opening repository} done {Opened repository} approve {Approve repository} other {Could not open repository}}",
+        "listRepositoryFiles": "{state, select, running {Listing files} done {Listed files} approve {Approve files} other {Failed files}}",
+        "searchRepository": "{state, select, running {Searching code} done {Searched code} approve {Approve code search} other {Failed code search}}",
+        "readRepositoryFile": "{state, select, running {Reading file} done {Read file} approve {Approve file} other {Failed file}}",
+        "repositoryHistory": "{state, select, running {Reading history} done {Read history} approve {Approve history} other {Failed history}}",
+        "showRepositoryChange": "{state, select, running {Inspecting change} done {Inspected change} approve {Approve change} other {Failed change}}",
+        "createPost": "{state, select, running {Saving draft} done {Saved draft} approve {Approve draft} other {Failed draft}}"
       },
       "withSuffix": "{label} {suffix}",
       "memory": {

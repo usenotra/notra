@@ -16,11 +16,15 @@ import { withStandaloneCodeMode } from "./code-mode";
 
 const ORGANIZATION_ID = "org_code_mode_test";
 
+// The code researcher is only registered when a box key is configured.
+process.env.UPSTASH_BOX_API_KEY ??= "test-box-key";
+
 // Tools that write data, need approval, or render in the chat UI (charts, post
 // cards, brand favicons) must stay directly callable. A new standalone tool
 // has to be added here or to STANDALONE_CODE_MODE_TOOL_NAMES.
 const DIRECT_TOOL_NAMES = [
   "addBrandReference",
+  "code-researcher",
   "createBlogPost",
   "createChangelog",
   "createImage",
@@ -42,6 +46,7 @@ function buildFullStandaloneRegistry() {
     organizationId: ORGANIZATION_ID,
     chatId: "chat_code_mode_test",
     userId: "user_code_mode_test",
+    codeResearch: true,
     validatedIntegrations: [
       {
         id: "github_integration",

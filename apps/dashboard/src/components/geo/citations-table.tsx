@@ -15,12 +15,17 @@ import {
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
 import { useLocale, useNow, useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
+import {
+  GEO_LOG_ARRIVE_ANIMATION_MS,
+  GEO_LOG_ARRIVE_STAGGER_STEPS,
+} from "@/constants/geo-citations";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
 import { useAiTrafficLabels } from "@/lib/hooks/use-ai-traffic-labels";
 import { useIsClient } from "@/lib/hooks/use-is-client";
@@ -28,7 +33,8 @@ import type { CitationsTableProps } from "@/types/geo";
 import { countryName } from "@/utils/country";
 import {
   citationProviderTooltip,
-  citationRowId,
+  arrivedCitationRowIds,
+  citationRowIds,
   formatCitationProvider,
   formatCitationTimestamp,
 } from "@/utils/geo-citations";
@@ -223,12 +229,58 @@ const CITATIONS_DEFAULT_SORT = {
 export function CitationsTable({
   entries,
   height,
+  liveKey,
   loading = false,
 }: CitationsTableProps) {
   const t = useTranslations("geo.citationsTable");
   const tGeoShared = useTranslations("geo.shared");
   const trafficLabels = useAiTrafficLabels();
   const locale = useLocale();
+  const rowIds = useMemo(() => citationRowIds(entries), [entries]);
+  // Adjusted during render ("state from previous props") so the render that
+  // shows new rows already marks them.
+  const [known, setKnown] = useState<{
+    key: string | undefined;
+    ids: ReadonlySet<string>;
+  }>(() => ({ key: liveKey, ids: new Set(rowIds.values()) }));
+  const [arrivedIds, setArrivedIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const currentIds = new Set(rowIds.values());
+  const idsChanged =
+    currentIds.size !== known.ids.size ||
+    [...currentIds].some((id) => !known.ids.has(id));
+  // A placeholder (no key) waits for its result. A result of another query,
+  // such as a relaxed filter, brings older rows that did not just arrive.
+  if (liveKey !== undefined && (idsChanged || liveKey !== known.key)) {
+    setArrivedIds(
+      liveKey === known.key
+        ? arrivedCitationRowIds(known.ids, currentIds)
+        : new Set()
+    );
+    setKnown({ key: liveKey, ids: currentIds });
+  }
+  // The log is virtualized: a row scrolled back into view remounts and would
+  // replay its arrival, so the mark comes off once the animation is over.
+  useEffect(() => {
+    if (arrivedIds.size === 0) {
+      return;
+    }
+    const clear = setTimeout(
+      () => setArrivedIds(new Set()),
+      GEO_LOG_ARRIVE_ANIMATION_MS
+    );
+    return () => clearTimeout(clear);
+  }, [arrivedIds]);
+  const rowId = (entry: GeoTrafficLogEntry, index: number) =>
+    rowIds.get(entry) ?? String(index);
+  // Position among this update's arrivals, in table order, for the stagger.
+  const arrivalOrder = new Map<string, number>();
+  for (const id of rowIds.values()) {
+    if (arrivedIds.has(id)) {
+      arrivalOrder.set(id, arrivalOrder.size);
+    }
+  }
   const columns: TableColumn<GeoTrafficLogEntry>[] = [
     {
       key: "capturedAt",
@@ -290,7 +342,13 @@ export function CitationsTable({
       columns={columns}
       data={entries}
       defaultSort={CITATIONS_DEFAULT_SORT}
-      getRowId={citationRowId}
+      getRowClassName={(entry) => {
+        const order = arrivalOrder.get(rowId(entry, -1));
+        return order === undefined
+          ? undefined
+          : `geo-log-row-arrive geo-log-arrive-${Math.min(order, GEO_LOG_ARRIVE_STAGGER_STEPS)}`;
+      }}
+      getRowId={rowId}
       height={height}
       loading={loading}
       resizable

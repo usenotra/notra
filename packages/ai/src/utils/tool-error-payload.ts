@@ -33,6 +33,28 @@ function toErrorPayload(toolName: string, error: unknown) {
   };
 }
 
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  return (
+    typeof value === "object" && value !== null && Symbol.asyncIterator in value
+  );
+}
+
+// Generator tools stream preliminary results; errors surface while iterating.
+async function* withIterableErrorPayload(
+  toolName: string,
+  iterable: AsyncIterable<unknown>,
+  abortSignal: AbortSignal | undefined
+) {
+  try {
+    yield* iterable;
+  } catch (error) {
+    if (isAbortError(error) || abortSignal?.aborted) {
+      throw error;
+    }
+    yield toErrorPayload(toolName, error);
+  }
+}
+
 export function withToolErrorPayloads(
   tools: Record<string, Tool>
 ): Record<string, Tool> {
@@ -43,17 +65,31 @@ export function withToolErrorPayloads(
       wrapped[toolName] = originalTool;
       continue;
     }
+    const handleError = (error: unknown, abortSignal?: AbortSignal) => {
+      if (isAbortError(error) || abortSignal?.aborted) {
+        throw error;
+      }
+      return toErrorPayload(toolName, error);
+    };
     wrapped[toolName] = {
       ...originalTool,
-      execute: async (input, options) => {
+      execute: (input, options) => {
+        let result: unknown;
         try {
-          return await execute.call(originalTool, input, options);
+          result = execute.call(originalTool, input, options);
         } catch (error) {
-          if (isAbortError(error) || options?.abortSignal?.aborted) {
-            throw error;
-          }
-          return toErrorPayload(toolName, error);
+          return handleError(error, options?.abortSignal);
         }
+        if (isAsyncIterable(result)) {
+          return withIterableErrorPayload(
+            toolName,
+            result,
+            options?.abortSignal
+          );
+        }
+        return Promise.resolve(result).catch((error: unknown) =>
+          handleError(error, options?.abortSignal)
+        );
       },
     };
   }
