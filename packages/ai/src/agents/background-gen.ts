@@ -1,4 +1,7 @@
-import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
+import {
+  AGENT_DEFAULT_MODEL,
+  CONTENT_AGENT_MODEL,
+} from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import { buildContentDispatcherInstructions } from "@notra/ai/prompts/content-dispatcher";
@@ -132,7 +135,9 @@ export async function runBackgroundGen(
         },
         gateway: { tags: ["content-generation"] },
       },
-      { modelId: CONTENT_AGENT_MODEL }
+      // Fall back to the previous, proven content model rather than the
+      // generic OpenAI chain (gpt-5.4-mini), which was never evaluated here.
+      { modelId: CONTENT_AGENT_MODEL, fallbackModels: [AGENT_DEFAULT_MODEL] }
     ),
     tools: {
       ...brandReferenceTools,
