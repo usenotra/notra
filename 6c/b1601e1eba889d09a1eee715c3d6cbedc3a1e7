@@ -1,0 +1,31 @@
+apps/evals/src/suites/content-agent.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 1,105,153
+packages/ai/src/constants/models.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 3-8
+apps/dashboard/src/workflows/on-demand-content.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 2,329
+apps/dashboard/src/workflows/event-content.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 2,396
+packages/ai/src/agents/background-gen.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 1,82,84,135
+apps/dashboard/src/workflows/schedule-content.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 2,497
+apps/evals/src/suites/content-unslop.ts
+  s_69822f2ec3c761::t_044960a9aadb0d 1,163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6cb1601e1eba889d09a1eee715c3d6cbedc3a1e7",
+  "prompts": {},
+  "sessions": {
+    "s_69822f2ec3c761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5afd9e39-646c-4e7a-97cc-dd762a714348",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
