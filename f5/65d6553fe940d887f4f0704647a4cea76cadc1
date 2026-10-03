@@ -1,0 +1,190 @@
+apps/dashboard/src/lib/content/image-export.ts
+  s_bbcd322ac5c324::t_fae319fbe80635 3,73,106,235-258,260-261,263-271,273-282
+  s_bbcd322ac5c324::t_7a8b4bf7d07d1b 233-234,259,262,272
+packages/ai/src/schemas/excalidraw-diagram.ts
+  s_bbcd322ac5c324::t_112a32cc8f7ff5 64-67
+  s_bbcd322ac5c324::t_5aef41a81efc41 1-63,68-89
+apps/dashboard/src/utils/image-content.ts
+  s_bbcd322ac5c324::t_e9ce3fff822f72 29-30,34-45
+  s_bbcd322ac5c324::t_bf16576af24a51 31-33
+packages/ai/src/utils/image-assets.ts
+  s_bbcd322ac5c324::t_14004e581086c1 3,144-160
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/excalidraw/route.ts
+  s_bbcd322ac5c324::t_3b7c6d289a305d 5-11,13-54,58-74,76,134-135
+  s_bbcd322ac5c324::t_7a8b4bf7d07d1b 55-57
+  s_bbcd322ac5c324::t_0aa3ecd721945b 75
+  s_bbcd322ac5c324::t_a867d3d448bc4d 1-4,12,77-133
+packages/ai/src/utils/diagram-edit.ts
+  s_bbcd322ac5c324::t_a8c050b4e3b3c0 2-5,67-82,84-94,132-145,149-150,169-170,174-179,216-221,237-238
+  s_bbcd322ac5c324::t_cd0e51e5b436cb 193-194
+  s_bbcd322ac5c324::t_6865c218f1068a 187,191-192,196
+  s_bbcd322ac5c324::t_a45d3b9d3e2dd0 329-337,339-340,358,373
+  s_bbcd322ac5c324::t_e23937c067fcde 9,345
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 21
+  s_bbcd322ac5c324::t_8d1e59132530be 27,312,360-362,364-367,380-382,392
+  s_bbcd322ac5c324::t_dc577a110c59d1 290-299,325,347
+  s_bbcd322ac5c324::t_3eafbdd195b9da 396-414,423,489-494,509,513
+  s_bbcd322ac5c324::t_07ad066feba546 209-210
+  s_bbcd322ac5c324::t_44003a4ae112d5 1,6-8,10-20,22-26,28-42,45-66,83,95-131,146-148,151-168,171-173,180-186,188-190,195,197-208,211-215,222-236,239-252,276-279,283-289,300-305,309,311,322-324,326-328,341-343,346,348-357,359,374-379,383-384,393-395,415-422,424-488,495-508,510-512,514-547
+  s_bbcd322ac5c324::t_1cba111d2a4afe 313-321,338
+  s_bbcd322ac5c324::t_f489462d08eb30 253-275,280-282
+  s_bbcd322ac5c324::t_cdbc559f25b8f2 43-44,306-308
+  s_bbcd322ac5c324::t_d95fd3c6b9c266 310,368-372,385,387,390
+  s_bbcd322ac5c324::t_40209e0e7925ff 363,386,388-389,391
+apps/dashboard/src/types/components/content-detail-toolbar.ts
+  s_bbcd322ac5c324::t_7a8b4bf7d07d1b 15
+packages/ai/src/utils/image-post-service.ts
+  s_bbcd322ac5c324::t_cd0e51e5b436cb 15
+  s_bbcd322ac5c324::t_ffb88588e970ba 36-39,42-46,54-58,222-227,254-257
+  s_bbcd322ac5c324::t_60173e5f027d48 299,360
+  s_bbcd322ac5c324::t_14004e581086c1 14,17,29-35,40-41,47-53,59-60,81-85,89,260,271-277,279
+packages/ai/src/constants/excalidraw-diagram.ts
+  s_bbcd322ac5c324::t_2a96b2bc12b8ad 150-153,166-184
+  s_bbcd322ac5c324::t_e23937c067fcde 220-224,228-233
+  s_bbcd322ac5c324::t_73a8eea35a03b4 92
+  s_bbcd322ac5c324::t_ee50085bc84055 73-79,202-208,212
+  s_bbcd322ac5c324::t_d95fd3c6b9c266 225-226
+  s_bbcd322ac5c324::t_1cba111d2a4afe 227
+  s_bbcd322ac5c324::t_8d1e59132530be 25-26
+  s_bbcd322ac5c324::t_44003a4ae112d5 219,234-235
+  s_bbcd322ac5c324::t_daaf784f5d0a0a 1-24,27-72,80-91,93-149,154-165,185-201,209-211,213-218
+apps/agent/agent/subagents/image-designer/instructions.md
+  s_bbcd322ac5c324::t_973ffc062e389e 3,7-8
+packages/ai/package.json
+  s_bbcd322ac5c324::t_8c2b7473b2d2ce 75,77,87,89
+packages/ai/src/types/excalidraw-diagram.ts
+  s_bbcd322ac5c324::t_fec233ca28dbd1 27
+  s_bbcd322ac5c324::t_9915f427fc0bf4 43
+  s_bbcd322ac5c324::t_b5aae520be95dc 1-26,28-42,44-101,103-107
+  s_bbcd322ac5c324::t_2aace102dc1658 102
+apps/dashboard/src/constants/image-export.ts
+  s_bbcd322ac5c324::t_e9ce3fff822f72 1-12,20-21
+packages/ai/src/prompts/diagram-assets.ts
+  s_bbcd322ac5c324::t_cba84247428b9a 1-29,31-49,51-52,54-60,62-80,82-111,115-120
+  s_bbcd322ac5c324::t_73a8eea35a03b4 30,61,81
+  s_bbcd322ac5c324::t_ee50085bc84055 50,53,112-114
+apps/dashboard/src/utils/image-export.test.ts
+  s_bbcd322ac5c324::t_6a73440984a88a 33
+  s_bbcd322ac5c324::t_8d57cff024804c 1-32,34-40
+apps/dashboard/src/components/content/diagram-editor-canvas.tsx
+  s_bbcd322ac5c324::t_459c0dcc67fb58 4-5,16-22,27-33
+  s_bbcd322ac5c324::t_870ea205056f0a 1-3,6-15,23-26,34-44
+packages/ai/src/utils/excalidraw-layout-check.ts
+  s_bbcd322ac5c324::t_3dfc09a04e4a9e 1-27,31-95,99-127,164-184,198-257
+  s_bbcd322ac5c324::t_8d1e59132530be 28-30,96-98
+  s_bbcd322ac5c324::t_6b3b32af28c9e9 128-163,185-197
+apps/dashboard/messages/en.json
+  s_bbcd322ac5c324::t_2325ad4efddb61 5989-6000
+  s_bbcd322ac5c324::t_19fc478d43efdd 6180-6182
+packages/ai/src/prompts/marketing-assets.ts
+  s_bbcd322ac5c324::t_8d434dc38bf7e5 8
+apps/dashboard/messages/de.json
+  s_bbcd322ac5c324::t_2325ad4efddb61 5989-6000
+  s_bbcd322ac5c324::t_19fc478d43efdd 6180-6182
+apps/dashboard/package.json
+  s_bbcd322ac5c324::t_62286a68945a7c 32
+apps/dashboard/src/schemas/diagram-editor.ts
+  s_bbcd322ac5c324::t_a867d3d448bc4d 1-17
+packages/ai/src/utils/excalidraw-render.ts
+  s_bbcd322ac5c324::t_a2f7392d265248 28,40,42,44,54,58,70,90,112,323,389
+  s_bbcd322ac5c324::t_2aace102dc1658 16,430-436,448
+  s_bbcd322ac5c324::t_9706cff5b8369b 357-362,375,415
+  s_bbcd322ac5c324::t_e4a778f5229326 52-53,55-57,59-67,89,91-100,104-111,117,339,351
+  s_bbcd322ac5c324::t_bf16576af24a51 405
+  s_bbcd322ac5c324::t_b0e8a3cfe95e60 68-69,71-88,101-103
+  s_bbcd322ac5c324::t_80aacb000c8936 1-15,17-27,29-39,41,43,45-51,113-116,118-299,307-310,318-322,324-338,340-346,352-356,363-374,376-388,390-404,406-414,416-429,438-447,449-455
+  s_bbcd322ac5c324::t_112a32cc8f7ff5 300-306,311-317,347-350,437
+packages/ai/src/utils/repo-image-skills.ts
+  s_bbcd322ac5c324::t_cb50e8b8152867 72-90
+  s_bbcd322ac5c324::t_112a32cc8f7ff5 2-7
+apps/dashboard/src/utils/image-export.ts
+  s_bbcd322ac5c324::t_e9ce3fff822f72 2,15-28
+packages/ai/src/types/repo-image.ts
+  s_bbcd322ac5c324::t_2aace102dc1658 7-10,34-35
+  s_bbcd322ac5c324::t_fd7dc349a4293f 3,14,28,32-33
+packages/ui/src/components/ui/svgs/tldraw.tsx
+  s_bbcd322ac5c324::t_93fa1d42721e06 4,8
+  s_bbcd322ac5c324::t_38047a79ee1d15 1-3,5-7,9-13
+packages/ui/src/components/ui/svgs/excalidraw.tsx
+  s_bbcd322ac5c324::t_38047a79ee1d15 1-14
+packages/ai/tests/excalidraw-diagram.test.ts
+  s_bbcd322ac5c324::t_69d5aaa0c74909 1-145,148-166,168-327
+  s_bbcd322ac5c324::t_1df607d0b17ec0 146-147,167
+packages/tools/src/schemas/image-tools.ts
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 22-27
+packages/ai/tests/diagram-edit.test.ts
+  s_bbcd322ac5c324::t_bcaaf60f1b962a 1-7,14-166,175-176,185-205,225-274
+  s_bbcd322ac5c324::t_849af06ecdbd66 206-224
+  s_bbcd322ac5c324::t_35060599414624 8-13,167-174,177-184
+packages/ai/src/agents/repo-image.ts
+  s_bbcd322ac5c324::t_5ccd8649833d57 53,546-548,552-569
+  s_bbcd322ac5c324::t_a51dd183b10210 549-551,740-741,816
+  s_bbcd322ac5c324::t_2aace102dc1658 38,734-738,743-744,830,872-877,893,924
+  s_bbcd322ac5c324::t_112a32cc8f7ff5 2-4,49-52,71-72,413-490,498-525,527-529,531-536,538-543,545,570,572-593,595-596,599,601-602,604-640,642,644,646,650,653-654,656-676,678-717,721-725,884
+  s_bbcd322ac5c324::t_90a7eaa97c08e9 491-497,526,530,537,544,571,594,597-598,600,603,641,643,645,647-649,651-652,655,677,718-720,726-729,870-871,880-883,887-892,894-896,898-902
+  s_bbcd322ac5c324::t_75f56f14d60348 24-28,36,39-41,46,54,61,828-829,853-856,919,923
+apps/dashboard/src/types/components/toast-message.ts
+  s_bbcd322ac5c324::t_19fc478d43efdd 16-18
+packages/tools/src/image/generate-image.ts
+  s_bbcd322ac5c324::t_60173e5f027d48 68,86
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 74
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_bbcd322ac5c324::t_7a8b4bf7d07d1b 56,65-66,76-81
+  s_bbcd322ac5c324::t_a027d539549066 20,111-117
+  s_bbcd322ac5c324::t_bf16576af24a51 28,41-46,48,67-69,75,82-83,133-134,137,141,143,155,157
+apps/dashboard/src/components/content/diagram-editor-dialog.tsx
+  s_bbcd322ac5c324::t_7f7c61336ce3d4 105-117
+  s_bbcd322ac5c324::t_a027d539549066 3,86-88,123,132
+  s_bbcd322ac5c324::t_2325ad4efddb61 1-2,4-85,89-104,119-122,124-131,133-153
+  s_bbcd322ac5c324::t_6a73440984a88a 118
+packages/ai/tests/excalidraw-diagram-check-script.test.ts
+  s_bbcd322ac5c324::t_350f4a052f30c3 37-72,101-142
+  s_bbcd322ac5c324::t_73a8eea35a03b4 1,3-29,32-36,73-100,143-150
+  s_bbcd322ac5c324::t_9fd5f06f2d892d 2,30-31
+apps/agent/agent/instructions.md
+  s_bbcd322ac5c324::t_973ffc062e389e 15
+packages/tools/src/image/revise-image.ts
+  s_bbcd322ac5c324::t_cd0e51e5b436cb 37
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 6-8,35,60-70,122
+apps/dashboard/src/types/components/diagram-editor.ts
+  s_bbcd322ac5c324::t_870ea205056f0a 1-17
+packages/ai/src/orchestration/tool-registry.ts
+  s_bbcd322ac5c324::t_df4e0b42cecd68 94
+bun.lock
+  ai_agent 136,415,417,427,429,939,1253-1262,2025,2037,2047,2049,2057-2058,2065-2066,2081,2087,3209-3210,3261-3262,3283-3284,3401-3404,3723-3724,3953-3954,4003-4004,4137-4138,4143-4144,4307-4310,4367-4368,4437-4438,4659-4660,4773-4774,4839,4893-4894,4911-4912,4935-4940,5035-5036,5255-5256,5347-5348,5797-5798,6007-6018,6085-6086,6213-6214,6221-6222,6249-6251,6253,6255,6257,6259,6261,6263,6265,6267,6269,6271-6283,6287-6302,6317-6330,6903-6906,6937-6938,7069-7070,7153-7154,7389-7390,7447-7464,7609-7610,7615-7627,7629,7631,7633-7635,7643-7662,8145-8146,8369-8380,8525-8528,8869-8878,8969,8971,8973,9175-9176,9199-9200,9293,9295,9385-9387
+packages/ai/src/utils/excalidraw-diagram.ts
+  s_bbcd322ac5c324::t_ffb88588e970ba 20,55-67
+  s_bbcd322ac5c324::t_0e6ff9ee8c47b3 1-19,21-29,31-35,38-40,77-96,98-121,123-291,295-296,300-308,310-468
+  s_bbcd322ac5c324::t_fec233ca28dbd1 30,97,122
+  s_bbcd322ac5c324::t_112a32cc8f7ff5 36-37,41-54,68-76,292-294,297-299,309
+packages/ai/src/prompts/diagram-edit.ts
+  s_bbcd322ac5c324::t_44003a4ae112d5 1-39
+packages/ai/src/schemas/repo-image.ts
+  s_bbcd322ac5c324::t_fd7dc349a4293f 7-8,21-25
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 108-113
+packages/ai/src/tools/image.ts
+  s_bbcd322ac5c324::t_3a2ad5f8b825bb 15-17,65,118,122,125-132,137-145,162
+  s_bbcd322ac5c324::t_60173e5f027d48 59,76
+  s_bbcd322ac5c324::t_cd0e51e5b436cb 38,40,133-136
+apps/dashboard/src/lib/content/image-export.test.ts
+  s_bbcd322ac5c324::t_8d57cff024804c 22,327-342,345-414,419-446
+  s_bbcd322ac5c324::t_350f4a052f30c3 343-344,415-418
+apps/dashboard/src/components/content/image-export-target-icon.tsx
+  s_bbcd322ac5c324::t_e9ce3fff822f72 1,4,16-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f565d6553fe940d887f4f0704647a4cea76cadc1",
+  "prompts": {},
+  "sessions": {
+    "s_bbcd322ac5c324": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29a26219-977c-4740-ac57-6cd86fff38ef",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
