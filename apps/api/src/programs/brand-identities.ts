@@ -12,6 +12,7 @@ import {
   projects,
 } from "@notra/db/schema";
 import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
+import { isSameUrl } from "@notra/utils/url";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -361,7 +362,7 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
         eq(brandSettings.id, input.brandIdentityId),
         eq(brandSettings.organizationId, input.organizationId)
       ),
-      columns: { id: true },
+      columns: { id: true, websiteUrl: true },
     })
   );
 
@@ -379,7 +380,10 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
     updateData.name = body.name;
   }
 
-  if (body.websiteUrl !== undefined) {
+  if (
+    body.websiteUrl !== undefined &&
+    !isSameUrl(body.websiteUrl, existingBrandIdentity.websiteUrl)
+  ) {
     yield* validateBrandWebsiteUrl(body.websiteUrl);
     updateData.websiteUrl = body.websiteUrl;
   }
@@ -480,7 +484,7 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
     return yield* new BrandIdentityNotFoundError();
   }
 
-  if (body.websiteUrl !== undefined) {
+  if (updateData.websiteUrl !== undefined) {
     yield* Effect.promise(() =>
       invalidateGeoIngestHostsCacheForBrand(
         input.organizationId,

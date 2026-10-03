@@ -44,6 +44,7 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { readWorkOSError } from "@/lib/auth/workos-error";
+import { queueValidatedOnboardingBrandAnalysis } from "@/lib/onboarding/brand-analysis";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import {
   requireManagerMembership,
@@ -284,19 +285,6 @@ export async function createOrganizationAction(
         rawInput
       );
       const { slug, websiteUrl } = input;
-      if (websiteUrl) {
-        yield* Effect.tryPromise({
-          try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
-          catch: (error) =>
-            new ActionFailure({
-              message:
-                error instanceof ORPCError
-                  ? error.message
-                  : "Website domain check failed",
-              cause: error instanceof ORPCError ? undefined : error,
-            }),
-        });
-      }
 
       const existing = yield* tryDb(
         () =>
@@ -315,6 +303,21 @@ export async function createOrganizationAction(
             ))("slugTaken"),
           })
         );
+      }
+
+      let validatedWebsiteUrl: string | undefined;
+      if (websiteUrl) {
+        validatedWebsiteUrl = yield* Effect.tryPromise({
+          try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
+          catch: (error) =>
+            new ActionFailure({
+              message:
+                error instanceof ORPCError
+                  ? error.message
+                  : "Website domain check failed",
+              cause: error instanceof ORPCError ? undefined : error,
+            }),
+        });
       }
 
       const organizationId = crypto.randomUUID();
@@ -443,6 +446,24 @@ export async function createOrganizationAction(
           path: "/",
           maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
         });
+      }
+
+      if (validatedWebsiteUrl) {
+        const url = validatedWebsiteUrl;
+        yield* tryDb(
+          () =>
+            queueValidatedOnboardingBrandAnalysis(
+              { organizationId, websiteUrl: url, name: input.name },
+              session.user.id
+            ),
+          "Failed to queue onboarding brand analysis"
+        ).pipe(
+          Effect.catch(() =>
+            Effect.logWarning("Failed to queue onboarding brand analysis").pipe(
+              Effect.annotateLogs({ organizationId })
+            )
+          )
+        );
       }
 
       return organization;

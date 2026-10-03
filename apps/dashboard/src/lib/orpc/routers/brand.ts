@@ -46,6 +46,7 @@ import {
   updateGuidelineScreenshotSchema,
   updateGuidelineTokenSchema,
 } from "@notra/schemas/dashboard/brand-guidelines";
+import { isSameUrl } from "@notra/utils/url";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { getTranslations } from "next-intl/server";
@@ -298,8 +299,6 @@ export const brandRouter = {
           typeof input.name === "string" && input.name.trim()
             ? input.name.trim()
             : (await getTranslations("brand.defaults"))("untitledIdentity");
-        const websiteUrl = await validateWebsiteUrl(input.websiteUrl);
-
         const existingVoice = await db.query.brandSettings.findFirst({
           where: and(
             eq(brandSettings.organizationId, input.organizationId),
@@ -311,6 +310,8 @@ export const brandRouter = {
           const tErrors = await getTranslations("errors.brand");
           throw conflict(tErrors("voiceNameTaken"));
         }
+
+        const websiteUrl = await validateWebsiteUrl(input.websiteUrl);
 
         const hasAnyVoice = await db.query.brandSettings.findFirst({
           where: eq(brandSettings.organizationId, input.organizationId),
@@ -348,7 +349,34 @@ export const brandRouter = {
             },
           });
 
-          return { voice: serializeBrandVoice(createdVoice) };
+          let analysisStarted = false;
+          if (input.startAnalysis) {
+            try {
+              await startBrandAnalysisRun({
+                organizationId: input.organizationId,
+                url: websiteUrl,
+                voiceId: createdVoice.id,
+              });
+              analysisStarted = true;
+              trackServerEvent({
+                event: POSTHOG_EVENTS.BRAND_ANALYSIS_STARTED,
+                headers: context.headers,
+                userId: auth.user.id,
+                organizationId: input.organizationId,
+                properties: { voice_id: createdVoice.id },
+              });
+            } catch {
+              console.error(
+                "[Brand Analysis] Failed to start analysis for new identity",
+                {
+                  organizationId: input.organizationId,
+                  voiceId: createdVoice.id,
+                }
+              );
+            }
+          }
+
+          return { voice: serializeBrandVoice(createdVoice), analysisStarted };
         } catch (error) {
           if (isUniqueConstraintError(error)) {
             const tErrors = await getTranslations("errors.brand");
@@ -367,10 +395,14 @@ export const brandRouter = {
         });
         await assertActiveSubscription(input.organizationId);
 
-        await verifyVoiceOwnership(input.organizationId, input.voiceId);
+        const voice = await verifyVoiceOwnership(
+          input.organizationId,
+          input.voiceId
+        );
 
         const normalizedWebsiteUrl =
-          input.websiteUrl === undefined
+          input.websiteUrl === undefined ||
+          isSameUrl(input.websiteUrl, voice.websiteUrl)
             ? undefined
             : await validateWebsiteUrl(input.websiteUrl);
 
@@ -378,6 +410,7 @@ export const brandRouter = {
           const {
             organizationId: _organizationId,
             voiceId: _voiceId,
+            websiteUrl: _websiteUrl,
             ...updates
           } = input;
 

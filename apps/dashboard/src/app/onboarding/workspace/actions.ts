@@ -1,10 +1,7 @@
 "use server";
 
-import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
-import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
-import { preferredGeoLanguage } from "@notra/geo-core/utils/geo-locale-language";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
@@ -35,12 +32,12 @@ import {
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getAuthSession } from "@/lib/auth/server";
-import { queueBrandAnalysisForOnboarding } from "@/lib/brand-analysis";
 import {
   ensureDefaultBrandIdentity,
   launchReservedOnboardingAgent,
   reserveInitialOnboardingAgentRun,
 } from "@/lib/onboarding-agent";
+import { queueValidatedOnboardingBrandAnalysis } from "@/lib/onboarding/brand-analysis";
 import {
   resolveCompanyDomain,
   resolveReachableWebsiteUrl,
@@ -59,16 +56,12 @@ import type {
 } from "@/types/onboarding-agent";
 import type { ActionResult } from "@/types/organizations/actions";
 import { ratelimit } from "@/utils/ratelimit";
-import {
-  validateOnboardingWebsite,
-  validateWebsiteUrl,
-} from "@/utils/website-url";
+import { validateOnboardingWebsite } from "@/utils/website-url";
 
-const ANALYSIS_LOCK_TTL_SECONDS = 60;
-
-export async function validateOnboardingWebsiteUrl(
-  rawUrl: string
+export async function initializeOnboardingBrandAnalysis(
+  rawInput: OnboardingBrandAnalysisInput
 ): Promise<ActionResult<null>> {
+  const input = onboardingBrandAnalysisSchema.parse(rawInput);
   const session = await getAuthSession();
   if (!session?.user) {
     return {
@@ -76,8 +69,32 @@ export async function validateOnboardingWebsiteUrl(
       error: { message: "Unauthorized", code: "UNAUTHORIZED" },
     };
   }
+  const membership = await db.query.members.findFirst({
+    where: and(
+      eq(members.userId, session.user.id),
+      eq(members.organizationId, input.organizationId)
+    ),
+    columns: { id: true },
+  });
+  if (!membership) {
+    return { data: null, error: { message: "Forbidden", code: "FORBIDDEN" } };
+  }
+  const existingBrand = await db.query.brandSettings.findFirst({
+    where: eq(brandSettings.organizationId, input.organizationId),
+    columns: { id: true },
+  });
+  if (existingBrand) {
+    return { data: null, error: null };
+  }
   try {
-    await validateOnboardingWebsite(rawUrl, session.user.id);
+    const websiteUrl = await validateOnboardingWebsite(
+      input.websiteUrl,
+      session.user.id
+    );
+    await queueValidatedOnboardingBrandAnalysis(
+      { ...input, websiteUrl },
+      session.user.id
+    );
     return { data: null, error: null };
   } catch (error) {
     if (error instanceof ORPCError) {
@@ -105,23 +122,6 @@ export async function isWorkspaceSlugAvailable(slug: string): Promise<boolean> {
     where: eq(organizations.slug, slug),
   });
   return !existing;
-}
-
-async function tryAcquireBrandAnalysisLock(organizationId: string) {
-  if (!redis) {
-    return true;
-  }
-
-  const result = await redis.set(
-    `onboarding:brand-analysis:lock:${organizationId}`,
-    "1",
-    {
-      ex: ANALYSIS_LOCK_TTL_SECONDS,
-      nx: true,
-    }
-  );
-
-  return result === "OK";
 }
 
 async function runOnboardingAgentSetup({
@@ -171,106 +171,6 @@ async function runOnboardingAgentSetup({
       reservedAt,
     })
   );
-}
-
-export async function triggerOnboardingBrandAnalysis(
-  rawInput: OnboardingBrandAnalysisInput
-) {
-  const input = onboardingBrandAnalysisSchema.parse(rawInput);
-  const session = await getAuthSession();
-
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
-
-  const membership = await db.query.members.findFirst({
-    where: and(
-      eq(members.userId, session.user.id),
-      eq(members.organizationId, input.organizationId)
-    ),
-    columns: { id: true },
-  });
-
-  if (!membership) {
-    throw new Error("Forbidden");
-  }
-
-  const [{ success: withinLimit }, requestHeaders] = await Promise.all([
-    ratelimit.onboardingBrandAnalysis.limit(input.organizationId),
-    readRequestHeaders(),
-  ]);
-
-  if (!withinLimit) {
-    trackServerEvent({
-      event: POSTHOG_EVENTS.ONBOARDING_BRAND_ANALYSIS_FAILED,
-      headers: requestHeaders,
-      userId: session.user.id,
-      organizationId: input.organizationId,
-      properties: {
-        reason: ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS.RATE_LIMITED,
-      },
-    });
-    throw new Error(
-      "Too many onboarding brand analysis requests. Please try again shortly."
-    );
-  }
-
-  await validateWebsiteUrl(input.websiteUrl);
-  const acquiredLock = await tryAcquireBrandAnalysisLock(input.organizationId);
-
-  if (!acquiredLock) {
-    throw new Error("Onboarding brand analysis is already in progress.");
-  }
-
-  const existingBrand = await db.query.brandSettings.findFirst({
-    where: eq(brandSettings.organizationId, input.organizationId),
-    columns: { id: true },
-  });
-
-  if (existingBrand) {
-    throw new Error("Onboarding brand analysis has already been requested.");
-  }
-
-  // The visibility step prefills its language from the browser, so warm the
-  // same variant.
-  const language = preferredGeoLanguage(requestHeaders?.get("accept-language"));
-  after(() =>
-    warmGeoOnboardingCache(input.organizationId, input.websiteUrl, language)
-  );
-
-  try {
-    await queueBrandAnalysisForOnboarding({
-      organizationId: input.organizationId,
-      websiteUrl: input.websiteUrl,
-      name: input.name,
-    });
-  } catch (error) {
-    console.error("[Onboarding] Failed to queue brand analysis", {
-      organizationId: input.organizationId,
-      error,
-    });
-    trackServerEvent({
-      event: POSTHOG_EVENTS.ONBOARDING_BRAND_ANALYSIS_FAILED,
-      headers: requestHeaders,
-      userId: session.user.id,
-      organizationId: input.organizationId,
-      properties: {
-        reason: ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS.QUEUE_FAILED,
-      },
-    });
-    throw new Error(
-      "Couldn't kick off the brand analysis. Please try again in a moment."
-    );
-  }
-
-  trackServerEvent({
-    event: POSTHOG_EVENTS.ONBOARDING_BRAND_ANALYSIS_STARTED,
-    headers: requestHeaders,
-    userId: session.user.id,
-    organizationId: input.organizationId,
-  });
-
-  return { success: true };
 }
 
 export async function triggerOnboardingAgentSetup(

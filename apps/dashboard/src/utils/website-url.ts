@@ -12,7 +12,7 @@ export async function validateOnboardingWebsite(
   url: string,
   userId: string
 ): Promise<string> {
-  const { success } = await ratelimit.onboardingBrandAnalysis.limit(userId);
+  const { success } = await ratelimit.onboardingWebsiteCheck.limit(userId);
   if (!success) {
     const t = await getTranslations("errors.integrations");
     throw new ORPCError("TOO_MANY_REQUESTS", {

@@ -26,6 +26,14 @@ export class PublicUrlValidationError extends Error {
   }
 }
 
+export function isSameUrl(url: string, previousUrl: string | null): boolean {
+  const current = URL.parse(url);
+  const previous = previousUrl ? URL.parse(previousUrl) : null;
+  return (
+    current !== null && previous !== null && current.href === previous.href
+  );
+}
+
 function ipv4ToNumber(ip: string): number | null {
   const parts = ip.split(".");
   if (parts.length !== 4) {

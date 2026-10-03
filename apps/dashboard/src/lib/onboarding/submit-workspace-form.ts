@@ -4,8 +4,7 @@ import {
   saveOnboardingAttribution,
   saveOnboardingNotificationSettings,
   triggerOnboardingAgentSetup,
-  triggerOnboardingBrandAnalysis,
-  validateOnboardingWebsiteUrl,
+  initializeOnboardingBrandAnalysis,
 } from "@/app/onboarding/workspace/actions";
 import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
@@ -69,9 +68,11 @@ export async function submitWorkspaceForm({
 
   if (existingOrg) {
     if (parsed.data.websiteUrl) {
-      const validation = await validateOnboardingWebsiteUrl(
-        parsed.data.websiteUrl
-      );
+      const validation = await initializeOnboardingBrandAnalysis({
+        organizationId: existingOrg.id,
+        websiteUrl: parsed.data.websiteUrl,
+        name: parsed.data.name,
+      });
       if (validation.error) {
         throw new Error(validation.error.message);
       }
@@ -156,21 +157,6 @@ export async function submitWorkspaceForm({
           error,
         });
       });
-  }
-
-  if (parsed.data.websiteUrl) {
-    try {
-      await triggerOnboardingBrandAnalysis({
-        organizationId,
-        websiteUrl: parsed.data.websiteUrl,
-        name: parsed.data.name,
-      });
-    } catch (error) {
-      console.error("[Onboarding] Background brand analysis failed", {
-        organizationId,
-        error,
-      });
-    }
   }
 
   try {
