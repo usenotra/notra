@@ -15,6 +15,7 @@ import { StudioUpgradeGate } from "@/components/dashboard/studio-upgrade-gate";
 import { GeoCatalogWarmer } from "@/components/geo/geo-catalog-warmer";
 import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { IntegrationsBackLink } from "@/components/integrations/integrations-back-link";
+import { GeoLiveProvider } from "@/components/providers/geo-live-provider";
 import { GeoProjectQueryProvider } from "@/components/providers/geo-project-provider";
 import { LOGS_SETTINGS_SEARCH_KEYS } from "@/constants/settings";
 import {
@@ -133,16 +134,22 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
 
   function GeoLayout() {
     const { slug } = organization.useParams<Router<typeof organization>>();
+    const { organizationShell } =
+      organization.useRouteContext<Router<typeof organization>>();
     const { projectId } = geo.useLoaderData<Router<typeof geo>>();
     return (
       <>
         <GeoCatalogWarmer organizationSlug={slug} />
         <GeoProjectQueryProvider initialProjectId={projectId} key={slug}>
-          <GeoPageGate fallback={<DashboardLoading />}>
-            <UiModalProvider>
-              <Outlet />
-            </UiModalProvider>
-          </GeoPageGate>
+          <GeoLiveProvider
+            organizationId={organizationShell.initialActiveOrganization.id}
+          >
+            <GeoPageGate fallback={<DashboardLoading />}>
+              <UiModalProvider>
+                <Outlet />
+              </UiModalProvider>
+            </GeoPageGate>
+          </GeoLiveProvider>
         </GeoProjectQueryProvider>
       </>
     );

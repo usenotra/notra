@@ -44,6 +44,7 @@ import { useTranslations } from "use-intl";
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatEmptyDither } from "@/components/ai/chat-empty-dither";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { isMcpToolName } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -64,6 +65,7 @@ import type {
 import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
 import { displayChatTitle } from "@/utils/chat-history-groups";
 import { getChatFilePartFields } from "@/utils/chat-message-parts";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
   getContentChatAttachments,
@@ -97,6 +99,17 @@ function ContentChatActivityFeed({
         <MessageScrollerButton />
       </MessageScroller>
     </MessageScrollerProvider>
+  );
+}
+
+// Subagents get their own row with nested steps instead of hiding inside the
+// collapsed activity group.
+function isAgentPanelStandaloneTool(
+  part: Parameters<typeof isContentEditorStandaloneTool>[0]
+): boolean {
+  return (
+    isContentEditorStandaloneTool(part) ||
+    (isToolUIPart(part) && isChatSubagentName(getToolName(part)))
   );
 }
 
@@ -250,7 +263,7 @@ function ContentChatActivityMessage({
                 durationMs={assistantMetadata?.generationDurationMs}
                 elapsedSeconds={elapsedSeconds}
                 isLoading={isLoading}
-                isStandaloneTool={isContentEditorStandaloneTool}
+                isStandaloneTool={isAgentPanelStandaloneTool}
                 messageId={message.id}
                 parts={message.parts}
                 renderStandalone={(part, index) => {
@@ -266,17 +279,27 @@ function ContentChatActivityMessage({
                     </MessageResponse>
                   );
                 }}
-                renderTool={(part) =>
-                  isToolUIPart(part)
-                    ? renderContentChatToolPart({
-                        part,
-                        isActive: isLoading,
-                        organizationSlug,
-                        onApproveTool,
-                        onDenyTool,
-                      })
-                    : null
-                }
+                renderTool={(part) => {
+                  if (!isToolUIPart(part)) {
+                    return null;
+                  }
+                  if (isChatSubagentName(getToolName(part))) {
+                    return (
+                      <ChatSubagentToolPart
+                        isActive={isLoading}
+                        key={part.toolCallId}
+                        part={part}
+                      />
+                    );
+                  }
+                  return renderContentChatToolPart({
+                    part,
+                    isActive: isLoading,
+                    organizationSlug,
+                    onApproveTool,
+                    onDenyTool,
+                  });
+                }}
               />
             ) : (
               <>
@@ -320,7 +343,7 @@ function ContentChatActivityMessage({
             )}
           </MessageContent>
         ) : null}
-        {message.role === "assistant" ? (
+        {message.role === "assistant" && !isLoading ? (
           <AssistantMetadataHover compact metadata={assistantMetadata} />
         ) : null}
       </Message>
@@ -562,7 +585,7 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
     lastMessage?.role === "assistant" ? lastMessage.id : undefined
   );
   const { showThinkingIndicator } = getChatActivity(messages, isAgentBusy, {
-    isStandaloneTool: isContentEditorStandaloneTool,
+    isStandaloneTool: isAgentPanelStandaloneTool,
     includeFileParts: false,
   });
   const visibleMessages = messages.filter((message) =>

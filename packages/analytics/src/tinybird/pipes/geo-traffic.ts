@@ -246,6 +246,20 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
   },
 });
 
+const GEO_TRAFFIC_LOG_FILTER_SQL = `WHERE organization_id = {{String(organization_id)}}
+          ${GEO_PROJECT_SCOPE_SQL}
+          ${GEO_EXCLUDED_SOURCES_SQL}
+          AND (
+            ({{String(visitor_type, '')}} = '' AND visitor_type IN ('crawler', 'ai_referral'))
+            OR has(splitByChar(',', {{String(visitor_type, '')}}), visitor_type)
+          )
+          AND (
+            {{String(category, '')}} = ''
+            OR has(splitByChar(',', {{String(category, '')}}), category)
+          )
+          AND captured_at >= now() - toIntervalDay(90)
+          ${GEO_HOST_FILTER_SQL}`;
+
 export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
   description: "Most recent captured AI visits, newest first",
   params: {
@@ -270,6 +284,10 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
   nodes: [
     node({
       name: "recent",
+      // The sort key can't serve newest-first across both visitor types, so
+      // a plain ORDER BY ... LIMIT reads every column of the 90-day window.
+      // Finding the cutoff on captured_at alone first and then reading only
+      // the rows at or after it cut bytes read ~9x in a benchmark.
       sql: `
         SELECT
           captured_at,
@@ -285,20 +303,18 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
           wants_markdown,
           substring(ua, 1, 180) AS ua_snippet
         FROM geo_traffic_events
-        WHERE organization_id = {{String(organization_id)}}
-          ${GEO_PROJECT_SCOPE_SQL}
-          ${GEO_EXCLUDED_SOURCES_SQL}
-          AND (
-            ({{String(visitor_type, '')}} = '' AND visitor_type IN ('crawler', 'ai_referral'))
-            OR has(splitByChar(',', {{String(visitor_type, '')}}), visitor_type)
+        ${GEO_TRAFFIC_LOG_FILTER_SQL}
+          AND captured_at >= (
+            SELECT min(captured_at)
+            FROM (
+              SELECT captured_at
+              FROM geo_traffic_events
+              ${GEO_TRAFFIC_LOG_FILTER_SQL}
+              ORDER BY captured_at DESC
+              LIMIT {{Int32(limit, 50)}}
+            )
           )
-          AND (
-            {{String(category, '')}} = ''
-            OR has(splitByChar(',', {{String(category, '')}}), category)
-          )
-          AND captured_at >= now() - toIntervalDay(90)
-          ${GEO_HOST_FILTER_SQL}
-        ORDER BY captured_at DESC
+        ORDER BY captured_at DESC, request_id DESC
         LIMIT {{Int32(limit, 50)}}
       `,
     }),

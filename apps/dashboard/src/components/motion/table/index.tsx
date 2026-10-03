@@ -78,6 +78,7 @@ export function Table<T>({
   onRowClick,
   rowKeyboardActivation = true,
   isRowClickable,
+  getRowClassName,
   renderRowContextMenu,
   renderRowDetail,
   onRowPointerEnter,
@@ -311,6 +312,7 @@ export function Table<T>({
               onRowClick={onRowClick}
               rowKeyboardActivation={rowKeyboardActivation}
               isRowClickable={isRowClickable}
+              getRowClassName={getRowClassName}
               onRowPointerEnter={onRowPointerEnter}
               renderRowContextMenu={renderRowContextMenu}
               renderRowDetail={renderRowDetail}

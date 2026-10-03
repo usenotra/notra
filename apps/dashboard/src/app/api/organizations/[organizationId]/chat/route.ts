@@ -62,6 +62,7 @@ import {
   getChatContextKinds,
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import { afterResponse as after } from "@/lib/framework/after-response";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
@@ -231,10 +232,13 @@ export const POST = withEvlog(async function POST(
     cleanupStreamId = streamId;
 
     // Finish all preparation before error cleanup can release the stream lock.
-    const [hydrationResult, integrationsResult] = await Promise.allSettled([
-      hydrateSavedChatPosts(organizationId, chatId, messages),
-      getStandaloneChatIntegrations(organizationId),
-    ]);
+    // Code research fails closed on its own, so it never rejects here.
+    const [hydrationResult, integrationsResult, codeResearchResult] =
+      await Promise.allSettled([
+        hydrateSavedChatPosts(organizationId, chatId, messages),
+        getStandaloneChatIntegrations(organizationId),
+        isCodeResearchEnabledForOrganization(organizationId),
+      ]);
 
     if (hydrationResult.status === "rejected") {
       throw hydrationResult.reason;
@@ -243,6 +247,8 @@ export const POST = withEvlog(async function POST(
       throw integrationsResult.reason;
     }
     const validatedIntegrations = integrationsResult.value;
+    const codeResearch =
+      codeResearchResult.status === "fulfilled" && codeResearchResult.value;
     messages = preserveConversationSelection(
       hydrationResult.value,
       existingSession?.messages ?? []
@@ -321,6 +327,7 @@ export const POST = withEvlog(async function POST(
         validatedIntegrations,
         useMarkup,
         chargeAiCredits,
+        codeResearch,
         requestId,
         log,
         model: parseResult.data.model,
@@ -405,6 +412,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations,
   useMarkup,
   chargeAiCredits,
+  codeResearch,
   requestId,
   log,
   model,
@@ -426,6 +434,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations: ValidatedIntegration[];
   useMarkup: boolean;
   chargeAiCredits: boolean;
+  codeResearch: boolean;
   requestId: string;
   log: ReturnType<typeof getLogger>;
   model?: string;
@@ -473,6 +482,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
       },

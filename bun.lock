@@ -65,6 +65,7 @@
       "name": "ai-traffic-ingest",
       "dependencies": {
         "@notra/ai": "workspace:*",
+        "@notra/analytics": "workspace:*",
         "@notra/geo-core": "workspace:*",
         "hono": "^4.12.30",
       },
@@ -472,6 +473,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@neondatabase/serverless": "^1.0.2",
+        "@upstash/redis": "^1.38.4",
         "@vercel/functions": "^3.7.2",
         "drizzle-orm": "^0.45.2",
         "pg": "^8.23.0",

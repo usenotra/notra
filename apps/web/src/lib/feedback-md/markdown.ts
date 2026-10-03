@@ -29,7 +29,7 @@ const NOTRA_FEEDBACK_CURL = [
   '  -H "Content-Type: application/json" \\',
   "  -d '{",
   '    "message": "The search tool times out when the query has quotes.",',
-  '    "contextUrl": "https://docs.usenotra.com/search"',
+  '    "contextUrl": "https://www.usenotra.com/docs/search"',
   "  }'",
 ].join("\n");
 
