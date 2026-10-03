@@ -28,8 +28,10 @@ interface TitleExpected {
 const GENERIC_TITLES =
   /^(changelog|blog post|linkedin post|tweet|updates?|improvements?|weekly update)s?$/i;
 const SLUG_REGEX = /\b[\w-]+\/[\w-]+\b/;
+// Whole month names or abbreviations only, so "Markdown", "Decision" or
+// "Separate" are not mistaken for dates.
 const DATE_REGEX =
-  /\b(20\d\d|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\bq[1-4]\b|\bweek \d+\b/i;
+  /\b(20\d\d|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)\b|\bq[1-4]\b|\bweek \d+\b/i;
 
 const CASES: EvalCase<TitleInput, TitleExpected>[] = [
   {

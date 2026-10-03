@@ -30,6 +30,21 @@ export async function loadRun(id: string): Promise<EvalRun | undefined> {
   }
 }
 
+/**
+ * A run still marked running on disk after its process exited (Ctrl+C,
+ * crash). Marks it cancelled in memory so it can be retried.
+ */
+export function markInterrupted(run: EvalRun): EvalRun {
+  for (const task of run.tasks) {
+    if (task.status === "queued" || task.status === "running") {
+      task.status = "error";
+      task.error = "Interrupted";
+    }
+  }
+  run.status = "cancelled";
+  return run;
+}
+
 export async function listRuns(): Promise<EvalRun[]> {
   let files: string[];
   try {

@@ -59,6 +59,8 @@ export interface HarnessOutput {
   post?: HarnessPost;
   reason?: string;
   toolCalls: string[];
+  /** `name` of every getSkillByName call, in order. */
+  skillsLoaded?: string[];
   steps: number;
   /** Rejected or failed tool calls, e.g. a skip reason over 300 chars. */
   toolErrors?: string[];
@@ -387,10 +389,11 @@ function collectToolErrors(steps: readonly StepLike[]): string[] {
 function toOutput(
   state: HarnessState,
   toolCalls: string[],
+  skillsLoaded: string[],
   steps: number,
   toolErrors: string[]
 ): HarnessOutput {
-  const base = { toolCalls, steps, toolErrors };
+  const base = { toolCalls, skillsLoaded, steps, toolErrors };
   const post = state.posts[0];
   if (post) {
     return { decision: "create", post, ...base };
@@ -465,9 +468,13 @@ async function runLoop(params: LoopParams): Promise<CallResult<HarnessOutput>> {
     abortSignal: params.abortSignal,
   });
   const usage = toUsage(result.totalUsage);
+  const calls = result.steps.flatMap((step) => step.toolCalls);
   const output = toOutput(
     state,
-    result.steps.flatMap((step) => step.toolCalls.map((call) => call.toolName)),
+    calls.map((call) => call.toolName),
+    calls
+      .filter((call) => call.toolName === "getSkillByName")
+      .map((call) => String((call.input as { name?: unknown }).name)),
     result.steps.length,
     collectToolErrors(result.steps)
   );

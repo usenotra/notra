@@ -42,6 +42,9 @@ async function loadPrices(): Promise<Record<string, ModelPrice>> {
     const response = await fetch(PRICE_LIST_URL, {
       signal: AbortSignal.timeout(5000),
     });
+    if (!response.ok) {
+      throw new Error(`Price list returned ${response.status}`);
+    }
     const body = (await response.json()) as { data?: GatewayModelEntry[] };
     const prices: Record<string, ModelPrice> = {};
     for (const entry of body.data ?? []) {

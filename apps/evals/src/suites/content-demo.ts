@@ -68,6 +68,7 @@ export function demoContentOutput(
       recommendations: null,
     },
     toolCalls,
+    skillsLoaded: [contentType.skillName, "unslop"],
     steps: toolCalls.length,
   };
 }

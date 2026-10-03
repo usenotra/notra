@@ -7,8 +7,10 @@ import { judgeWithJev } from "./jev-judge";
 import { countDashes, germanShare, plainLength, slopHits } from "./text-checks";
 
 const TWEET_MAX_CHARS = 280;
+// The SDK turns rejected calls into tool-error parts carrying only the error
+// message (not the class name), e.g. "Invalid input for tool skip: ...".
 const REJECTED_CALL_REGEX =
-  /InvalidToolInputError|NoSuchToolError|InvalidToolArgumentsError/;
+  /Invalid input for tool |tried to call unavailable tool |InvalidToolInputError|NoSuchToolError/;
 const LINKEDIN_MAX_CHARS = 1600;
 
 const POST_QUESTIONS = {
