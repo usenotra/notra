@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { getTableViewportLayout } from "@/utils/table-viewport";
+import { getTableViewportLayout } from "@notra/ui/lib/data-table";
 
 describe("table viewport layout", () => {
   test("small fixed lists shrink to their rows and account for the horizontal scrollbar", () => {

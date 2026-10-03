@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 
 const BRIEF_ROW_COUNT = 6;
@@ -15,7 +15,7 @@ export function GeoWriterSkeleton({
 }) {
   const t = useTranslations("geo.pages.write");
   const tCommon = useTranslations("common");
-  const table = <GeoTableSkeleton rows={BRIEF_ROW_COUNT} />;
+  const table = <DataTableSkeleton rows={BRIEF_ROW_COUNT} />;
 
   if (embedded) {
     return table;

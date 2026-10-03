@@ -16,6 +16,10 @@ import {
 } from "@notra/geo-core/utils/geo-project-domains";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -33,7 +37,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type {
@@ -187,8 +190,7 @@ function TrafficPagesResults({
     );
   }
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={filteredGroups}
       defaultSort={{ key: "visits", direction: "desc" }}

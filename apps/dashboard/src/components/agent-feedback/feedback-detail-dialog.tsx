@@ -9,6 +9,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_FEEDBACK_STATUSES } from "@notra/db/constants/agent-feedback";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -34,7 +38,6 @@ import {
 import { Button } from "@/components/button";
 import { Discussion } from "@/components/comments/discussion";
 import { useCopyCode } from "@/components/geo/code-snippet";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useRetainedDetail } from "@/lib/hooks/use-retained-detail";
 import type {
@@ -193,8 +196,7 @@ function FeedbackDetailsTable({
   ];
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={rows}
       getRowId={(row) => row.key}

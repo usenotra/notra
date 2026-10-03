@@ -7,6 +7,7 @@ import {
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
 } from "@notra/geo-core/constants/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +17,6 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
-import { Table } from "@/components/motion/table";
 import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
@@ -256,7 +256,7 @@ export function PromptReceiptHistory({
     ) : undefined;
 
   return (
-    <Table
+    <DataTable
       columns={[
         {
           key: "scan",

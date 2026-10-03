@@ -12,6 +12,7 @@ export default defineMeta({
     "tooltip",
     "duotone-tooltip",
     "chat-minimap",
+    "data-table",
     "ai-search",
     "ai-chat",
     "coding-agents",

@@ -2,34 +2,32 @@
 
 import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "next-intl";
 
 import { EmptyState } from "@/components/empty-state";
-import { Table } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import type { DataTableProps } from "@/types/logs/data-table";
+import type { DataTableProps as LogsDataTableProps } from "@/types/logs/data-table";
 import { tableHeightFor } from "@/utils/table";
 
 const LOGS_SKELETON_ROW_COUNT = 10;
 
-export function DataTable<TData>({
+export function LogsDataTable<TData>({
   columns,
   data,
   getRowId,
   page,
   pageSize,
-  totalPages,
   onPageChange,
+  onPageSizeChange,
   isLoading,
   emptyState,
   onRowClick,
   sort,
   onSortChange,
   totalCount,
-}: DataTableProps<TData>) {
+}: LogsDataTableProps<TData>) {
   const t = useTranslations("settings.logs");
-  const totalItems = totalCount ?? data.length;
   const rowCount =
     isLoading && data.length === 0 ? LOGS_SKELETON_ROW_COUNT : data.length;
 
@@ -54,25 +52,20 @@ export function DataTable<TData>({
   }
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={data}
       defaultSort={{ key: "createdAt", direction: "desc" }}
       emptyState={t("noResults")}
-      footer={
-        totalPages > 1 || data.length > 0 ? (
-          <TablePagination
-            itemLabel={t("itemLabel")}
-            page={page}
-            pageCount={totalPages}
-            pageRowCount={data.length}
-            pageSize={pageSize}
-            setPage={onPageChange}
-            totalItems={totalItems}
-          />
-        ) : undefined
-      }
+      pagination={{
+        mode: "server",
+        page,
+        pageSize,
+        totalItems: totalCount,
+        onPageChange,
+        onPageSizeChange,
+        itemLabel: t("itemLabel"),
+      }}
       getRowId={getRowId}
       height={tableHeightFor(rowCount, TABLE_ROW_HEIGHT)}
       loading={isLoading}

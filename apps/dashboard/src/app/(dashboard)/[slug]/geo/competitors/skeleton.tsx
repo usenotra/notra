@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 
@@ -50,7 +50,7 @@ export function GeoCompetitorsSkeleton() {
           </div>
         </PageHeading>
         <Skeleton className="h-96 w-full rounded-2xl" />
-        <GeoTableSkeleton rows={COMPETITOR_ROW_COUNT} />
+        <DataTableSkeleton rows={COMPETITOR_ROW_COUNT} />
       </div>
     </PageContainer>
   );

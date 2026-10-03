@@ -1,4 +1,14 @@
 "use client";
+import { PlusSignIcon, Link04Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "next-intl";
@@ -40,20 +50,21 @@ export function WebhookEndpoints({
   const tActions = useTranslations("common.actions");
   if (endpoints.length === 0) {
     return (
-      <div className="space-y-2 rounded-lg border p-8 text-center">
-        <p className="text-sm font-medium">{t("endpointsEmpty.title")}</p>
-        <p className="text-muted-foreground text-xs">
-          {t("endpointsEmpty.description")}
-        </p>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={disabled}
-          onClick={onCreate}
-        >
-          {t("addEndpoint")}
-        </Button>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon icon={Link04Icon} />
+          </EmptyMedia>
+          <EmptyTitle>{t("endpointsEmpty.title")}</EmptyTitle>
+          <EmptyDescription>{t("endpointsEmpty.description")}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button disabled={disabled} onClick={onCreate} size="sm">
+            <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+            {t("addEndpoint")}
+          </Button>
+        </EmptyContent>
+      </Empty>
     );
   }
   return (

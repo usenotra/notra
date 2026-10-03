@@ -3,6 +3,7 @@
 import { GEO_JOURNEY_OVERVIEW_ROWS } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -12,10 +13,7 @@ import { JourneyGroupSheet } from "@/components/geo/journey-group-sheet";
 import { JourneyOverviewCard } from "@/components/geo/journey-overview-card";
 import { JourneyPathsCard } from "@/components/geo/journey-paths-card";
 import { JourneysCard } from "@/components/geo/journeys-card";
-import {
-  GeoSectionSkeleton,
-  GeoTableSkeleton,
-} from "@/components/geo/skeleton-parts";
+import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -42,7 +40,7 @@ function JourneyStatCardSkeleton({ eyebrow }: { eyebrow: string }) {
           </div>
         ))}
       </div>
-      <GeoTableSkeleton rows={GEO_JOURNEY_OVERVIEW_ROWS} />
+      <DataTableSkeleton rows={GEO_JOURNEY_OVERVIEW_ROWS} />
     </div>
   );
 }
@@ -59,7 +57,7 @@ function JourneysTabSkeleton() {
         <JourneyStatCardSkeleton eyebrow={tGeoShared("fetchedPages")} />
       </div>
       <GeoSectionSkeleton eyebrow={tGeoShared("agentJourneys")}>
-        <GeoTableSkeleton rows={JOURNEY_TABLE_SKELETON_ROWS} />
+        <DataTableSkeleton rows={JOURNEY_TABLE_SKELETON_ROWS} />
       </GeoSectionSkeleton>
     </div>
   );

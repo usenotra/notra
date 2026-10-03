@@ -205,7 +205,8 @@
           "allTitle": "Hier tauchen deine Events auf",
           "allDescription": "Füg einen Endpunkt hinzu und generier dann einen Post. Jede Zustellung und jeder neue Versuch landet hier.",
           "filteredTitle": "Keine Zustellungen mit diesem Status",
-          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen."
+          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen.",
+          "showAll": "Alle Zustellungen anzeigen"
         },
         "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
         "endpointsEmpty": {
@@ -1220,16 +1221,9 @@
   },
   "shared": {
     "table": {
-      "insertBefore": "Davor einfügen",
-      "insertAfter": "Danach einfügen",
-      "columnOptions": "Optionen für Spalte {column}",
-      "rowOptions": "Optionen für Zeile {row}",
       "selectAllRows": "Alle Zeilen auswählen",
       "selectRow": "Zeile {row} auswählen",
-      "reorderColumn": "Spalte {column} verschieben",
-      "renameColumn": "Spalte {column} umbenennen",
-      "resizeColumn": "Breite der Spalte {column} ändern",
-      "cellLabel": "{column} in Zeile {row}"
+      "resizeColumn": "Breite der Spalte {column} ändern"
     },
     "checkbox": {
       "partiallySelected": "Teilweise ausgewählt"
@@ -1547,7 +1541,8 @@
         "searchLabel": "Sitemap-URLs durchsuchen",
         "searchPlaceholder": "URLs durchsuchen…",
         "noSearchResults": "Keine URLs passen zu deiner Suche.",
-        "emptyView": "In dieser Ansicht gibt es noch keine URLs."
+        "emptyView": "In dieser Ansicht gibt es noch keine URLs.",
+        "itemLabel": "Seiten"
       }
     },
     "references": {
@@ -5194,7 +5189,8 @@
     "creditActivity": {
       "aiChat": "KI-Chat",
       "title": "Letzte Aktivität",
-      "empty": "Noch keine Nutzungsereignisse"
+      "empty": "Noch keine Nutzungsereignisse",
+      "itemLabel": "Ereignisse"
     },
     "creditUsage": {
       "creditsUsed": "Verbrauchte Credits",
@@ -6528,6 +6524,11 @@
     "goToNextPage": "Zur nächsten Seite",
     "morePages": "Weitere Seiten",
     "paginationRange": "{start}-{end} von {total}",
+    "paginationRangeOpen": "{start}-{end}",
+    "pageOf": "Seite {page} von {total}",
+    "pageNumber": "Seite {page}",
+    "showRows": "{count} anzeigen",
+    "rowsPerPage": "Zeilen pro Seite",
     "toggleSidebar": "Seitenleiste ein-/ausblenden",
     "sidebarTitle": "Seitenleiste",
     "sidebarDescription": "Zeigt die mobile Seitenleiste an.",

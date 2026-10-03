@@ -1,14 +1,12 @@
 "use client";
 
 import { GEO_TRAFFIC_FUNNEL_STAGES } from "@notra/geo-core/constants/geo";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
-import {
-  GeoSectionSkeleton,
-  GeoTableSkeleton,
-} from "@/components/geo/skeleton-parts";
+import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -61,19 +59,19 @@ export function GeoTrafficSkeleton({ geoRange }: GeoTrafficSkeletonProps) {
             action={<Skeleton className="h-3.5 w-36" />}
             eyebrow={tCommon("labels.sources")}
           >
-            <GeoTableSkeleton rows={SOURCE_ROW_COUNT} />
+            <DataTableSkeleton rows={SOURCE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-8" />}
             eyebrow={tGeoShared("topPagesByAiSource")}
           >
-            <GeoTableSkeleton rows={PAGE_ROW_COUNT} />
+            <DataTableSkeleton rows={PAGE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <GeoSectionSkeleton
             action={<Skeleton className="h-3.5 w-24" />}
             eyebrow={tGeoShared("recentAiRequests")}
           >
-            <GeoTableSkeleton rows={CITATION_ROW_COUNT} />
+            <DataTableSkeleton rows={CITATION_ROW_COUNT} />
           </GeoSectionSkeleton>
         </div>
       </div>

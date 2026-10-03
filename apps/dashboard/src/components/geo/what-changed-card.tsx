@@ -27,6 +27,10 @@ import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -43,7 +47,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import {
@@ -424,8 +427,7 @@ export function WhatChangedCard({
   }
 
   let body = (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={events}
       defaultSort={CHANGES_DEFAULT_SORT}

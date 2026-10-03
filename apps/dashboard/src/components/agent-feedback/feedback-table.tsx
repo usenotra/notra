@@ -11,6 +11,10 @@ import {
   ContextMenuRadioItem,
   ContextMenuSeparator,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "next-intl";
 
 import { AgentFeedbackAgent } from "@/components/agent-feedback/feedback-agent-icon";
@@ -19,7 +23,6 @@ import {
   AgentFeedbackSentimentLabel,
   AgentFeedbackStatusBadge,
 } from "@/components/agent-feedback/feedback-badges";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useAvailableTableHeight } from "@/lib/hooks/use-available-table-height";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type {
@@ -124,8 +127,7 @@ export function AgentFeedbackTableSkeleton() {
 
   return (
     <div className="h-full min-h-0" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[]}
         height={tableHeight}
@@ -161,8 +163,7 @@ export function AgentFeedbackTable({
 
   return (
     <div className="h-full min-h-0" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={items}
         defaultSort={{ key: "createdAt", direction: "desc" }}

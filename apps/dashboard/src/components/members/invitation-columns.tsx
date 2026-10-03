@@ -4,9 +4,9 @@ import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useLocale, useTranslations } from "next-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import type { InvitationSummary } from "@/types/organizations/actions";
 
 import { InvitationActions } from "./invitation-actions";

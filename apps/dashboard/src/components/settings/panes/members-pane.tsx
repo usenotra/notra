@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tabs,
@@ -15,7 +16,6 @@ import { useState } from "react";
 import { useMemberColumns } from "@/components/members/columns";
 import { useInvitationColumns } from "@/components/members/invitation-columns";
 import { InviteMemberPopover } from "@/components/members/invite-member-popover";
-import { Table } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -108,7 +108,7 @@ export function MembersSettingsPane() {
         </div>
 
         <TabsContent className="mt-4" value="members">
-          <Table
+          <DataTable
             columns={memberColumns}
             data={members ?? []}
             emptyState={t("noMembers")}
@@ -120,7 +120,7 @@ export function MembersSettingsPane() {
         </TabsContent>
 
         <TabsContent className="mt-4" value="pending">
-          <Table
+          <DataTable
             columns={invitationColumns}
             data={pendingInvitations ?? []}
             emptyState={t("noPending")}

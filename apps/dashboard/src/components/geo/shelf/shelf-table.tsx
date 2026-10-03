@@ -5,6 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
+  InfiniteDataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
@@ -25,7 +29,6 @@ import { ShelfPlacementBadge } from "@/components/geo/shelf/shelf-placement-badg
 import { ShelfTableContextMenu } from "@/components/geo/shelf/shelf-table-context-menu";
 import { ShelfTicketAssigneeCard } from "@/components/geo/shelf/shelf-ticket-assignee-card";
 import { ShelfTicketBadge } from "@/components/geo/shelf/shelf-ticket-badge";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -305,8 +308,7 @@ export function ShelfTable({
     : columns;
 
   return (
-    <Table
-      className="rounded-2xl"
+    <InfiniteDataTable
       columns={visibleColumns}
       data={rows}
       emptyState={tLabels("noMatches")}

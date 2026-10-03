@@ -9,6 +9,10 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
@@ -19,7 +23,6 @@ import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { ANALYTICS_TOOLTIP_DELAY_MS } from "@/constants/analytics";
 import { TABLE_ROW_HEIGHT, TABLE_SKELETON_ROWS } from "@/constants/table";
 import { useDayLabel } from "@/lib/hooks/use-day-label";
@@ -159,8 +162,7 @@ export function TopPostsCard({
           seed="Top posts"
         />
       ) : (
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={columns}
           data={posts}
           defaultSort={{ key: "engagement", direction: "desc" }}

@@ -135,6 +135,9 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
             loading={overview.isPending}
             fetching={overview.isFetching}
             hasMore={deliveries.length > WEBHOOK_PAGE_SIZE}
+            hasEndpoints={endpoints.length > 0}
+            canCreate={canManage}
+            onCreate={() => setCreating(true)}
             onSelect={setSelected}
             onFilter={(status) => {
               setFilter(status);

@@ -4,6 +4,14 @@
    so the import path is relative to that folder. */
 @import "../../../src/styles/blocks.css";
 
+/* Blume sizes each example frame to its content. When an example grows,
+   the content is briefly taller than the frame, and a classic scrollbar
+   would flash in, narrow the page and shift every column sideways. The
+   frame never needs to scroll, so it never gets one. */
+html {
+  overflow-y: hidden;
+}
+
 /* Notra dashboard palette (packages/ui/src/styles/globals.css), mapped onto
    Blume's tokens so previews match the product. Accent is shadcn's hover gray
    here, not the brand color, like in the dashboard. */
@@ -45,6 +53,10 @@
 }
 
 :root {
+  --shell: hsl(240 6% 94.5%);
+  --shell-border: hsl(240 5% 87%);
+  --surface-lift:
+    0 1px 2px hsl(240 10% 10% / 0.06), 0 2px 8px -2px hsl(240 10% 10% / 0.06);
   --aio-bg: #ffffff;
   --aio-fg: #0a0a0a;
   --aio-label: #1f1f1f;
@@ -70,6 +82,10 @@
 
 .dark,
 [data-theme="dark"] {
+  --shell: hsl(240 5% 14.5%);
+  --shell-border: hsl(240 4% 20%);
+  --surface-lift:
+    inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(0 0% 0% / 0.4);
   --aio-bg: #22242a;
   --aio-fg: #e6e8f0;
   --aio-label: #e8e8e8;
@@ -94,6 +110,9 @@
 }
 
 @theme inline {
+  --color-shell: var(--shell);
+  --color-shell-border: var(--shell-border);
+  --shadow-lift: var(--surface-lift);
   --color-aio-bg: var(--aio-bg);
   --color-aio-fg: var(--aio-fg);
   --color-aio-label: var(--aio-label);
