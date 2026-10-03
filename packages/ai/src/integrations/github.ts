@@ -187,6 +187,20 @@ function createGitHubAppJwt() {
   return `${header}.${payload}.${signature}`;
 }
 
+/** Installation token narrowed to the given repositories and permissions (least privilege). */
+export async function createScopedGitHubAppInstallationToken(
+  installationId: string,
+  scope: GitHubInstallationTokenScope
+) {
+  return runGitHubEffect(
+    createGitHubAppInstallationTokenEffect(
+      installationId,
+      undefined,
+      scope
+    ).pipe(Effect.mapError((error) => error.cause))
+  );
+}
+
 async function createGitHubAppInstallationToken(installationId: string) {
   return runGitHubEffect(
     createGitHubAppInstallationTokenEffect(installationId).pipe(

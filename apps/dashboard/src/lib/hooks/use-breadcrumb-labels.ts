@@ -26,6 +26,7 @@ export function useBreadcrumbLabels(): BreadcrumbLabels {
       leaderboard: tLabels("leaderboard"),
       schedules: tLabels("schedules"),
       settings: tActions("settings"),
+      sites: tLabels("sites"),
       skills: tLabels("skills"),
       usage: tLabels("usage"),
     },

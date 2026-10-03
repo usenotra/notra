@@ -1,0 +1,30 @@
+---
+import Icon from "../components/Icon.astro";
+import type { IconName } from "../lib/icons";
+
+type Variant = "note" | "tip" | "info" | "warning" | "check" | "danger";
+interface Props {
+  variant?: Variant;
+  title?: string;
+}
+
+const { variant = "note", title } = Astro.props;
+// Neutral surface; only the icon carries the tone, like the dashboard Alert.
+const tones: Record<Variant, { icon: IconName; tone: string; label: string }> = {
+  note: { icon: "info", tone: "var(--muted-foreground)", label: "Note" },
+  info: { icon: "info", tone: "var(--info)", label: "Info" },
+  tip: { icon: "lightbulb", tone: "var(--success)", label: "Tip" },
+  check: { icon: "circle-check", tone: "var(--success)", label: "Done" },
+  warning: { icon: "triangle-alert", tone: "var(--warning)", label: "Warning" },
+  danger: { icon: "octagon-alert", tone: "var(--destructive)", label: "Danger" },
+};
+const tone = tones[variant];
+---
+
+<aside class="not-prose my-6 flex gap-3 rounded-lg border border-border px-4 py-3 text-[0.9375rem] leading-relaxed" aria-label={title ?? tone.label}>
+  <span class="mt-[0.2rem] shrink-0" style={`color: ${tone.tone}`}><Icon name={tone.icon} size={15} /></span>
+  <div class="min-w-0 text-[color-mix(in_oklab,var(--foreground)_85%,transparent)] [&_a]:font-medium [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:text-[0.875em] [&>p]:my-0 [&>p+p]:mt-2">
+    {title && <p class="mb-0.5 font-medium text-foreground" data-callout-title>{title}</p>}
+    <slot />
+  </div>
+</aside>

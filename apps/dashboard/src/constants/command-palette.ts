@@ -19,6 +19,7 @@ export const COMMAND_ROUTE_LABEL_KEYS = {
   "geo-settings-languages": "languages",
   "geo-settings-models": "models",
   content: "content",
+  sites: "sites",
   "brand-company-info": "companyInfo",
   "brand-references": "references",
   "automation-schedules": "schedules",

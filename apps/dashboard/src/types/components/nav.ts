@@ -12,6 +12,7 @@ export type NavItemLabelKey =
   | "home"
   | "chat"
   | "content"
+  | "sites"
   | "analytics"
   | "feedback"
   | "brandIdentityTitle"

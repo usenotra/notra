@@ -56,7 +56,15 @@ import { irisControllerRun } from "@/workflows/iris-controller";
 import { onDemandContentWorkflow } from "@/workflows/on-demand-content";
 import { onboardingAgentWorkflow } from "@/workflows/onboarding-agent";
 import { scheduleContentWorkflow } from "@/workflows/schedule-content";
+import { siteJobWorkflow } from "@/workflows/site-job";
 import { socialAnalyticsSyncWorkflow } from "@/workflows/social-analytics-sync";
+
+export async function startSiteJobRun(
+  jobId: string
+): Promise<{ runId: string }> {
+  const run = await start(siteJobWorkflow, [jobId]);
+  return { runId: run.runId };
+}
 
 export async function startGitHubMentionRun(context: GitHubMentionContext) {
   const run = await start(githubMentionWorkflow, [context]);

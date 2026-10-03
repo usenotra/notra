@@ -1,0 +1,30 @@
+---
+import { config } from "../lib/params";
+import { logoFor } from "../lib/theme";
+
+/** A post's cover, or a quiet logo tile when it has none, so grids keep one rhythm. */
+interface Props {
+  image?: string;
+  class?: string;
+  eager?: boolean;
+}
+
+const { image, class: className, eager = false } = Astro.props;
+const logo = logoFor("light");
+---
+
+<div class:list={["image-outline overflow-hidden bg-muted", className]}>
+  {
+    image ? (
+      <img src={image} alt="" class="size-full object-cover" loading={eager ? "eager" : "lazy"} decoding="async" />
+    ) : (
+      <div class="flex size-full items-center justify-center">
+        {logo ? (
+          <img src={logo} alt="" class="size-10 opacity-60 grayscale" loading="lazy" />
+        ) : (
+          <span class="text-2xl font-semibold text-muted-foreground/60">{config.name.slice(0, 1).toUpperCase()}</span>
+        )}
+      </div>
+    )
+  }
+</div>

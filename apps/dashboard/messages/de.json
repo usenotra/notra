@@ -2109,7 +2109,8 @@
       "apiKey": "API-Schlüssel",
       "logOut": "Abmelden",
       "allPlatforms": "Alle Plattformen",
-      "contentActivity": "Inhaltsaktivität"
+      "contentActivity": "Inhaltsaktivität",
+      "sites": "Sites"
     },
     "messages": {
       "yourAiCreditsHaveBeen": "Deine KI-Credits wurden aufgeladen und sind einsatzbereit.",
@@ -4786,6 +4787,856 @@
     "signalStatus": {
       "coalesced": "Gruppiert",
       "processed": "Geprüft"
+    }
+  },
+  "sites": {
+    "title": "Sites",
+    "description": "Blogs und Changelogs, gebaut und gehostet aus deinem GitHub-Repository",
+    "newSite": "Neue Site",
+    "empty": {
+      "title": "Noch keine Sites",
+      "description": "Hoste Blog und Changelog aus einem GitHub-Repo. Jeder Push geht live, jeder Pull Request bekommt eine Vorschau."
+    },
+    "loadFailed": {
+      "title": "Sites konnten nicht geladen werden",
+      "description": "Lade die Seite neu, um es erneut zu versuchen."
+    },
+    "unavailable": {
+      "title": "Sites ist hier nicht verfügbar",
+      "description": "Notra Sites ist in dieser Umgebung noch nicht eingerichtet."
+    },
+    "list": {
+      "columns": {
+        "site": "Site",
+        "lastDeployment": "Letztes Deployment"
+      },
+      "noDeployments": "Noch keine Deployments",
+      "notConnected": "Repository getrennt"
+    },
+    "status": {
+      "queued": "In Warteschlange",
+      "building": "Wird gebaut",
+      "uploading": "Wird hochgeladen",
+      "ready": "Bereit",
+      "live": "Live",
+      "superseded": "Ersetzt",
+      "failed": "Fehlgeschlagen",
+      "canceled": "Abgebrochen",
+      "expired": "Abgelaufen"
+    },
+    "domainStatus": {
+      "pending": "Ausstehend",
+      "verifying": "Wird geprüft",
+      "active": "Aktiv",
+      "failed": "Fehlgeschlagen"
+    },
+    "kinds": {
+      "production": "Produktion",
+      "preview": "Vorschau"
+    },
+    "triggers": {
+      "push": "Push",
+      "pull_request": "Pull Request",
+      "manual": "Manuell",
+      "redeploy": "Redeploy",
+      "config": "Einstellungsänderung"
+    },
+    "layout": {
+      "title": "Repository-Aufbau",
+      "description": "Notra baut diese Dateien aus dem Root-Verzeichnis.",
+      "config": "Name, Logo, Farben und Navigation",
+      "blog": "Eine Datei pro Beitrag",
+      "changelog": "Eine Datei pro Release",
+      "snippets": "Komponenten für dein MDX",
+      "public": "Bilder und andere statische Dateien"
+    },
+    "sections": {
+      "title": "Bereiche",
+      "pathHint": "Pfade auf deiner Website",
+      "pathLabel": "Pfad für {section}",
+      "blog": "Blog",
+      "blogDescription": "Beiträge aus blog/*.mdx",
+      "changelog": "Changelog",
+      "changelogDescription": "Releases aus changelog/*.mdx",
+      "atLeastOne": "Aktiviere den Blog, den Changelog oder beides."
+    },
+    "visibility": {
+      "recommended": "Empfohlen",
+      "protected": {
+        "title": "Geschützt",
+        "description": "Nur Mitglieder deiner Organisation und Personen mit Freigabelink. Ideal für private Repositories."
+      },
+      "public": {
+        "title": "Öffentlich",
+        "description": "Alle mit dem Link. Vorschauen werden nie von Suchmaschinen indexiert."
+      }
+    },
+    "publishModes": {
+      "recommended": "Empfohlen",
+      "pull_request": {
+        "title": "Pull Request",
+        "description": "Änderungen aus dem Dashboard öffnen einen Pull Request zur Prüfung."
+      },
+      "direct": {
+        "title": "Direkter Commit",
+        "description": "Änderungen werden direkt auf den Produktions-Branch committet, wenn er nicht geschützt ist."
+      }
+    },
+    "new": {
+      "title": "Neue Site",
+      "description": "Verbinde ein Repository. Jeder Push auf den Produktions-Branch geht live.",
+      "repositoryPlaceholder": "Repository auswählen",
+      "repositoryHint": "Über die GitHub-App verbundene Repositories.",
+      "repositoryRequired": "Wähle zuerst ein Repository aus",
+      "manageRepositories": "Weiteres Repository verbinden",
+      "private": "Privates Repository",
+      "noRepositories": {
+        "title": "Verbinde zuerst ein Repository",
+        "description": "Sites werden aus einem GitHub-Repository gebaut. Verbinde eins unter Integrationen und komm dann hierher zurück.",
+        "action": "GitHub verbinden"
+      },
+      "name": "Name der Site",
+      "namePlaceholder": "Acme-Blog",
+      "address": "Adresse",
+      "addressHint": "Leer lassen, um den Namen der Site zu verwenden.",
+      "addressInvalid": "Verwende 3–40 Kleinbuchstaben, Ziffern und einzelne Bindestriche.",
+      "branch": "Produktions-Branch",
+      "branchHint": "Pushes auf diesen Branch gehen live.",
+      "rootDirectory": "Root-Verzeichnis",
+      "rootDirectoryHint": "Für Monorepos: der Ordner mit notra.json.",
+      "rootDirectoryPlaceholder": "apps/blog",
+      "previewVisibility": "Wer Vorschauen öffnen kann",
+      "publishMode": "Veröffentlichen aus dem Editor",
+      "create": "Site erstellen",
+      "created": "Site erstellt",
+      "createdDeploying": "Site erstellt. Das erste Deployment ist unterwegs.",
+      "createFailed": "Site konnte nicht erstellt werden"
+    },
+    "detail": {
+      "visit": "Öffnen",
+      "deployLatest": "Neuesten Stand deployen",
+      "deployQueued": "Deployment eingereiht",
+      "deployFailed": "Deployment konnte nicht gestartet werden",
+      "offline": "Offline",
+      "offlineDescription": "Diese Site ist offline. Besucher sehen eine „nicht verfügbar“-Seite, bis du sie wieder online nimmst.",
+      "offlineAction": "In den Einstellungen verwalten",
+      "statusAnnouncement": "Letztes Deployment: {status}",
+      "backToSites": "Zurück zu Sites",
+      "notFound": {
+        "title": "Site nicht gefunden",
+        "description": "Sie wurde vielleicht gelöscht oder gehört zu einer anderen Organisation."
+      },
+      "loadFailed": {
+        "title": "Diese Site konnte nicht geladen werden",
+        "description": "Lade die Seite neu, um es erneut zu versuchen."
+      },
+      "tabs": {
+        "overview": "Übersicht",
+        "deployments": "Deployments",
+        "previews": "Vorschauen",
+        "domains": "Domains",
+        "editor": "Editor",
+        "settings": "Einstellungen"
+      }
+    },
+    "overview": {
+      "live": "Live-Deployment",
+      "details": "Details",
+      "noCommitMessage": "Keine Commit-Nachricht",
+      "wentLive": "Live seit",
+      "builtIn": "Gebaut in {duration}",
+      "noLive": "Noch nichts live",
+      "noLiveDescription": "Das erste Deployment geht live, sobald der Build fertig ist.",
+      "manage": "Verwalten",
+      "openEditor": "Editor öffnen",
+      "previews": "Vorschauen",
+      "previewsCount": "{count, plural, =0 {Keine offenen Vorschauen} one {# offene Vorschau} other {# offene Vorschauen}}",
+      "domains": "Domains",
+      "domainsCount": "{count, plural, one {# eigene Domain} other {# eigene Domains}}",
+      "noDomains": "Nur Notra-Adresse",
+      "drafts": "Editor-Entwürfe",
+      "draftsCount": "{count, plural, =0 {Keine unveröffentlichten Änderungen} one {# unveröffentlichte Datei} other {# unveröffentlichte Dateien}}",
+      "recent": "Letzte Deployments",
+      "viewAll": "Alle anzeigen"
+    },
+    "deployments": {
+      "title": "Deployments",
+      "empty": "Noch keine Deployments",
+      "current": "Aktuell live",
+      "noCommitMessage": "Keine Commit-Nachricht",
+      "redeployQueued": "Redeploy eingereiht",
+      "redeployFailed": "Redeploy fehlgeschlagen",
+      "columns": {
+        "environment": "Umgebung",
+        "commit": "Commit",
+        "trigger": "Auslöser",
+        "duration": "Dauer"
+      },
+      "actions": {
+        "label": "Aktionen für Deployment {sha}",
+        "view": "Details ansehen",
+        "visit": "Öffnen",
+        "redeploy": "Redeploy",
+        "rollback": "Als Produktion wiederherstellen"
+      }
+    },
+    "rollback": {
+      "title": "Dieses Deployment wiederherstellen?",
+      "description": "Es geht sofort live. Nichts wird neu gebaut: Die Dateien dieses Deployments werden unverändert ausgeliefert.",
+      "noCommitMessage": "Keine Commit-Nachricht",
+      "confirm": "Wiederherstellen",
+      "done": "Deployment wiederhergestellt",
+      "failed": "Deployment konnte nicht wiederhergestellt werden"
+    },
+    "deployment": {
+      "title": "Deployment {sha}",
+      "back": "Zurück zu den Deployments",
+      "statusAnnouncement": "Deployment-Status: {status}",
+      "summary": "Zusammenfassung",
+      "field": "Feld",
+      "value": "Wert",
+      "environment": "Umgebung",
+      "branch": "Branch",
+      "pullRequest": "Pull Request #{number}",
+      "finished": "Fertig",
+      "wentLive": "Live gegangen",
+      "output": "Ausgabe",
+      "files": "{count, plural, one {# Datei} other {# Dateien}}",
+      "errorTitle": "Build fehlgeschlagen",
+      "diagnostics": "Diagnose",
+      "diagnosticsPending": "Diagnosen erscheinen, wenn der Build fertig ist.",
+      "noDiagnostics": "Keine Fehler oder Warnungen",
+      "log": "Build-Log",
+      "logPending": "Warte auf den Start des Builds",
+      "logEmpty": "Kein Build-Log für dieses Deployment",
+      "notFound": {
+        "title": "Deployment nicht gefunden",
+        "description": "Es gehört vielleicht zu einer anderen Site."
+      },
+      "loadFailedTitle": "Dieses Deployment konnte nicht geladen werden",
+      "loadFailed": "Lade die Seite neu, um es erneut zu versuchen."
+    },
+    "diagnostics": {
+      "error": "Fehler",
+      "warning": "Warnung"
+    },
+    "previews": {
+      "title": "Vorschauen",
+      "descriptionProtected": "Jeder Pull Request bekommt eine eigene Vorschau. Nur Mitglieder können sie öffnen; Freigabelinks gelten {days} Tage.",
+      "descriptionPublic": "Jeder Pull Request bekommt eine eigene Vorschau. Alle mit dem Link können sie öffnen.",
+      "empty": "Noch keine Vorschauen. Öffne einen Pull Request oder erstelle unten eine Vorschau für einen Branch.",
+      "disabled": "Vorschauen sind für diese Site ausgeschaltet.",
+      "openSettings": "In den Einstellungen aktivieren",
+      "columns": {
+        "preview": "Vorschau",
+        "source": "Quelle",
+        "commit": "Commit",
+        "access": "Zugriff"
+      },
+      "pullRequest": "PR #{number}",
+      "actionsLabel": "Weitere Aktionen für {key}",
+      "copyShareLink": "Freigabelink kopieren",
+      "copyLink": "Link kopieren",
+      "shareCopied": "Freigabelink kopiert. Er gilt {days} Tage.",
+      "shareFailed": "Freigabelink konnte nicht erstellt werden",
+      "openFailed": "Vorschau konnte nicht geöffnet werden",
+      "deleteTitle": "Diese Vorschau löschen?",
+      "deleteDescription": "{key} funktioniert sofort nicht mehr. Ein neuer Push auf den Branch oder Pull Request erstellt sie wieder.",
+      "deleted": "Vorschau gelöscht",
+      "deleteFailed": "Vorschau konnte nicht gelöscht werden",
+      "branchTitle": "Vorschau für einen Branch",
+      "branchDescription": "Baue einen beliebigen Branch, ohne einen Pull Request zu öffnen.",
+      "branchLabel": "Branch-Name",
+      "branchPlaceholder": "feature/neuer-beitrag",
+      "createPreview": "Vorschau erstellen",
+      "created": "Vorschau {key} wird gebaut",
+      "createFailed": "Vorschau konnte nicht erstellt werden"
+    },
+    "domains": {
+      "title": "Domains",
+      "description": "Eine verifizierte Domain wird zur kanonischen URL und die Site wird neu gebaut. Die aktuelle Version bleibt live, bis der neue Build erfolgreich ist.",
+      "aliasHint": "Notra-Adresse. Funktioniert immer.",
+      "primary": "Primär",
+      "kinds": {
+        "subdomain": "Eigene Subdomain",
+        "proxy": "Pfad auf deiner Website"
+      },
+      "lastChecked": "Geprüft",
+      "check": "Prüfen",
+      "checkFailed": "Domain konnte nicht geprüft werden",
+      "verified": "Domain verifiziert",
+      "verifiedRebuilding": "Domain verifiziert. Wird für die neue Adresse neu gebaut…",
+      "notVerifiedYet": "Noch nicht verifiziert",
+      "removeLabel": "{hostname} entfernen",
+      "removeTitle": "Diese Domain entfernen?",
+      "removeDescription": "{hostname} liefert diese Site nicht mehr aus.",
+      "removePrimaryDescription": "{hostname} liefert diese Site nicht mehr aus. Sie wechselt zurück zu {alias} und wird neu gebaut.",
+      "removed": "Domain entfernt",
+      "removeFailed": "Domain konnte nicht entfernt werden",
+      "dnsSetup": "DNS-Einträge",
+      "dnsHint": "Lege diese Einträge bei deinem DNS-Anbieter an und klicke dann auf Prüfen. DNS-Änderungen können ein paar Minuten dauern.",
+      "proxySetup": "Proxy-Einrichtung",
+      "addTitle": "Domain hinzufügen",
+      "addDescription": "Liefere die Site unter deiner eigenen Domain aus.",
+      "kindLabel": "Art der Verbindung",
+      "subdomainDescription": "Leite eine Subdomain wie blog.acme.com per DNS-Eintrag zu Notra.",
+      "proxyDescription": "Behalte acme.com und leite /blog und /changelog von deiner bestehenden Website weiter.",
+      "subdomainLabel": "Subdomain",
+      "subdomainHint": "Im nächsten Schritt zeigen wir dir die DNS-Einträge.",
+      "proxyLabel": "Domain deiner Website",
+      "proxyHint": "Wir zeigen dir fertige Konfigurationen für Vercel, Next.js, TanStack Start, Cloudflare und nginx.",
+      "add": "Domain hinzufügen",
+      "added": "Domain hinzugefügt",
+      "addFailed": "Domain konnte nicht hinzugefügt werden",
+      "records": {
+        "type": "Typ",
+        "name": "Name",
+        "value": "Wert",
+        "purpose": "Zweck",
+        "empty": "Keine Einträge nötig",
+        "purposes": {
+          "routing": "Routing",
+          "ownership": "Inhaberschaft",
+          "certificate": "Zertifikat"
+        }
+      },
+      "proxy": {
+        "yourDomain": "deine-domain.de",
+        "forward": "Leite {paths} und alles darunter an {origin} weiter, der Pfad bleibt gleich.",
+        "noCookies": "Leite keine Cookies oder Authorization-Header weiter; die Site braucht sie nicht.",
+        "recipes": {
+          "vercel": "vercel.json",
+          "next": "Next.js",
+          "tanstack": "TanStack Start",
+          "cloudflare": "Cloudflare Worker",
+          "nginx": "nginx"
+        }
+      }
+    },
+    "editor": {
+      "intro": "Änderungen werden als Entwürfe gespeichert und berühren die Live-Site erst, wenn du veröffentlichst.",
+      "draftCount": "{count, plural, one {# Datei geändert.} other {# Dateien geändert.}}",
+      "newFileAction": "Neue Datei",
+      "validate": "Prüfen",
+      "validateOk": "Keine Probleme gefunden",
+      "validateFailed": "Site konnte nicht geprüft werden",
+      "problems": "{count, plural, one {# Problem} other {# Probleme}}",
+      "publishAction": "Veröffentlichen",
+      "dismiss": "Ausblenden",
+      "filesLabel": "Dateien der Site",
+      "filesFailed": "Dateien konnten nicht von GitHub geladen werden",
+      "noFiles": "Noch keine bearbeitbaren Dateien. Erstelle eine, um loszulegen.",
+      "newFile": "Neue Datei",
+      "hasDraft": "Unveröffentlichte Änderungen",
+      "newBadge": "Neu",
+      "autosaveHint": "Entwürfe werden automatisch gespeichert. Mit ⌘S speicherst du sofort.",
+      "loadFailed": "Diese Datei konnte nicht geladen werden",
+      "saveNow": "Jetzt speichern",
+      "saveFailed": "Entwurf konnte nicht gespeichert werden",
+      "discardDraft": "Entwurf verwerfen",
+      "discarded": "Entwurf verworfen",
+      "discardFailed": "Entwurf konnte nicht verworfen werden",
+      "createFailed": "Datei konnte nicht erstellt werden",
+      "status": {
+        "unsaved": "Ungespeicherte Änderungen",
+        "saving": "Wird gespeichert…",
+        "saved": "Entwurf gespeichert",
+        "draft": "Entwurf",
+        "published": "Veröffentlichte Version"
+      },
+      "conflict": {
+        "title": "Diese Dateien wurden auf GitHub geändert",
+        "description": "Jemand hat Änderungen gepusht, nachdem du angefangen hast zu bearbeiten. Behalte deine Änderungen auf der neuesten Version, vergleiche sie mit der veröffentlichten Datei und veröffentliche dann erneut.",
+        "rebase": "Meine Änderungen auf neueste Version setzen",
+        "rebased": "Die Entwürfe basieren jetzt auf der neuesten Version. Prüfe sie vor dem Veröffentlichen.",
+        "rebaseFailed": "Entwürfe konnten nicht aktualisiert werden"
+      }
+    },
+    "newFile": {
+      "title": "Neue Datei",
+      "description": "Startet als Entwurf mit ausgefülltem Frontmatter.",
+      "section": "Bereich",
+      "postTitle": "Titel",
+      "blogPlaceholder": "Unsere neue API",
+      "changelogPlaceholder": "Schnellere Exporte",
+      "fileName": "Dateiname",
+      "pathHint": "Erstellt {path}",
+      "invalidName": "Verwende Kleinbuchstaben, Ziffern und Bindestriche.",
+      "exists": "{path} existiert bereits."
+    },
+    "publish": {
+      "title": "Änderungen veröffentlichen",
+      "description": "{count, plural, one {# geänderte Datei geht} other {# geänderte Dateien gehen}} als ein Commit zu GitHub.",
+      "message": "Commit-Nachricht",
+      "messagePlaceholder": "Blogbeiträge aktualisieren",
+      "mode": "Art der Veröffentlichung",
+      "pullRequestDescription": "Öffnet einen Pull Request in {branch}. Er geht live, sobald er gemergt ist.",
+      "directDescription": "Committet auf {branch} und geht sofort live.",
+      "directDisabled": "Für diese Site ausgeschaltet. Ändere das in den Einstellungen.",
+      "openPullRequest": "Pull Request öffnen",
+      "commit": "Committen und deployen",
+      "pullRequestOpened": "Pull Request geöffnet",
+      "viewPullRequest": "Ansehen",
+      "committed": "Veröffentlicht. Wird jetzt deployt.",
+      "failed": "Veröffentlichen fehlgeschlagen"
+    },
+    "settings": {
+      "general": "Allgemein",
+      "content": "Inhalte",
+      "rebuildHint": "Geänderte Pfade bauen die Site neu. Die aktuelle Version bleibt live, bis der Build erfolgreich ist.",
+      "previews": "Vorschauen",
+      "previewsEnabled": "Vorschauen bauen",
+      "previewsEnabledHint": "Eine Vorschau für jeden Pull Request.",
+      "publishing": "Veröffentlichen",
+      "saved": "Einstellungen gespeichert",
+      "savedRebuilding": "Einstellungen gespeichert. Wird neu gebaut…",
+      "saveFailed": "Einstellungen konnten nicht gespeichert werden",
+      "dangerZone": "Gefahrenzone",
+      "offline": {
+        "title": "Site offline nehmen",
+        "description": "Besucher sehen eine „nicht verfügbar“-Seite. Deployments und Einstellungen bleiben erhalten.",
+        "action": "Offline nehmen",
+        "confirmTitle": "Diese Site offline nehmen?",
+        "confirmDescription": "Besucher sehen sofort eine „nicht verfügbar“-Seite, auf allen Domains. Du kannst sie jederzeit wieder online nehmen.",
+        "done": "Site ist offline",
+        "restoreTitle": "Site wieder online nehmen",
+        "restoreDescription": "Liefert das letzte Live-Deployment wieder aus.",
+        "restore": "Wieder online nehmen",
+        "restored": "Site ist wieder online",
+        "failed": "Status der Site konnte nicht geändert werden"
+      },
+      "delete": {
+        "title": "Site löschen",
+        "summary": "Entfernt die Site, ihre Deployments und Domains. Dein Repository bleibt unverändert.",
+        "action": "Site löschen",
+        "description": "Das löscht die Site, alle Deployments, Vorschauen und Domains. Das lässt sich nicht rückgängig machen. Dein GitHub-Repository bleibt unberührt.",
+        "confirmLabel": "Gib <code>{name}</code> ein, um zu bestätigen",
+        "confirm": "Site löschen",
+        "done": "{name} gelöscht",
+        "failed": "Site konnte nicht gelöscht werden"
+      }
+    },
+    "previewFrame": {
+      "title": "Vorschau der Site",
+      "unavailable": "Keine Vorschau verfügbar"
+    },
+    "overviewPage": {
+      "visitSite": "Seite öffnen",
+      "updatedBy": "Aktualisiert <time></time> von {author}",
+      "updatedVia": "Aktualisiert <time></time> · {trigger}",
+      "notLiveYet": "Noch nichts live. Das erste Deployment geht live, sobald sein Build fertig ist.",
+      "newDeployment": "Neues Deployment",
+      "followBuild": "Build ansehen",
+      "viewLogs": "Logs ansehen",
+      "previewBuilding": "Deine Seite wird gebaut…",
+      "previewOffline": "Seite ist offline",
+      "domains": "Domains",
+      "notraAddress": "Notra-Adresse",
+      "addCustomDomain": "Eigene Domain hinzufügen",
+      "repository": "Repository",
+      "noRepository": "Kein Repository verbunden",
+      "productionBranch": "Produktions-Branch",
+      "drafts": "Entwürfe im Editor",
+      "draftsHint": "{count, plural, one {# unveröffentlichte Änderung} other {# unveröffentlichte Änderungen}} im Editor",
+      "activity": "Aktivität",
+      "viewAll": "Alle ansehen",
+      "noCommitMessage": "Keine Commit-Nachricht",
+      "columns": {
+        "author": "Autor",
+        "open": "Öffnen"
+      },
+      "activityEmptyTitle": "Noch keine Deployments",
+      "activityEmptyDescription": "Pushe auf {branch} oder deploye den neuesten Commit.",
+      "previews": "Previews",
+      "previewsEmptyTitle": "Jeder Pull Request bekommt eine Preview",
+      "previewsEmptyDescription": "Öffne einen Pull Request auf GitHub, dann erscheint seine Preview hier.",
+      "previewsOff": "Previews sind für diese Seite ausgeschaltet.",
+      "goToPreviews": "Zu den Previews",
+      "turnOnPreviews": "In den Einstellungen einschalten",
+      "production": "Produktion",
+      "previewNothingLive": "Noch nichts live"
+    },
+    "deploymentsPage": {
+      "description": "Alle Builds dieser Site, die neuesten zuerst.",
+      "count": "{count, plural, one {# Deployment} other {# Deployments}}",
+      "current": "Aktuell",
+      "by": "Deployt von {author}",
+      "columns": {
+        "deployment": "Deployment",
+        "status": "Status",
+        "environment": "Umgebung",
+        "commit": "Commit",
+        "branch": "Branch",
+        "created": "Erstellt",
+        "actions": "Aktionen"
+      },
+      "filters": {
+        "label": "Deployments filtern",
+        "environment": "Umgebung",
+        "status": "Status",
+        "trigger": "Auslöser",
+        "remove": "Filter {filter} entfernen",
+        "clear": "Filter zurücksetzen",
+        "more": "+{count}",
+        "allEnvironments": "Alle Umgebungen",
+        "allStatuses": "Alle Status"
+      },
+      "statusFilters": {
+        "ready": "Bereit",
+        "building": "Wird gebaut",
+        "queued": "In der Warteschlange",
+        "failed": "Fehlgeschlagen",
+        "canceled": "Abgebrochen",
+        "superseded": "Ersetzt",
+        "expired": "Abgelaufen"
+      },
+      "actions": {
+        "copyUrl": "URL kopieren",
+        "copied": "URL kopiert"
+      },
+      "empty": {
+        "title": "Noch keine Deployments",
+        "description": "Pushe auf {branch} oder deploye den neuesten Commit, um den ersten Build zu starten."
+      },
+      "noMatches": {
+        "title": "Keine Deployments für diese Filter",
+        "description": "Probier einen anderen Filter oder setz sie zurück, um alle Deployments zu sehen."
+      },
+      "loadFailed": {
+        "title": "Deployments konnten nicht geladen werden",
+        "description": "Lade die Seite neu, um es noch mal zu versuchen."
+      }
+    },
+    "deploymentPage": {
+      "title": "Deployment-Details",
+      "copyUrl": "URL kopieren",
+      "copied": "URL kopiert",
+      "buildLogs": "Build-Logs",
+      "visit": "Öffnen",
+      "more": "Weitere Aktionen",
+      "current": "Aktuell",
+      "live": "Live",
+      "notLive": "Nicht live",
+      "fields": {
+        "created": "Erstellt",
+        "status": "Status",
+        "duration": "Dauer",
+        "environment": "Umgebung",
+        "domains": "Domains",
+        "source": "Quelle",
+        "property": "Eigenschaft",
+        "value": "Wert"
+      },
+      "via": "über {trigger}",
+      "durationAgo": "{time}",
+      "pullRequest": "#{number}",
+      "preview": {
+        "protected": "Diese Preview ist geschützt. Öffne sie, um dich anzumelden.",
+        "notLive": "Gerade nicht live. Die Site zeigt ein anderes Deployment.",
+        "building": "Die Vorschau erscheint, sobald dieser Build live ist.",
+        "failed": "Nichts zu sehen. Dieser Build wurde nicht fertig.",
+        "expired": "Die Dateien dieses Deployments wurden aufgeräumt."
+      },
+      "steps": {
+        "label": "Fortschritt",
+        "queued": "Warteschlange",
+        "building": "Build",
+        "uploading": "Upload",
+        "ready": "Bereit",
+        "live": "Live",
+        "failed": "Fehlgeschlagen",
+        "canceled": "Abgebrochen",
+        "superseded": "Übersprungen",
+        "waiting": "Wartet auf einen Builder",
+        "publishing": "Veröffentlichen",
+        "showLog": "Build-Log",
+        "notLiveNote": "Nicht mehr live",
+        "expiredNote": "Dateien entfernt"
+      },
+      "notice": {
+        "failed": "Build fehlgeschlagen",
+        "canceled": "Dieser Build wurde abgebrochen, bevor er fertig war.",
+        "superseded": "Ein neuerer Commit hat diesen Build ersetzt, bevor er startete.",
+        "expired": "Die Dateien dieses Deployments wurden aufgeräumt. Deploye den Commit neu, um ihn wieder zu bauen."
+      },
+      "log": {
+        "title": "Build-Logs",
+        "lines": "{count, plural, one {# Zeile} other {# Zeilen}}",
+        "copy": "Log kopieren",
+        "copied": "Log kopiert",
+        "find": "In Logs suchen",
+        "matches": "{current} von {total}",
+        "noMatches": "Keine Treffer",
+        "next": "Nächster Treffer",
+        "previous": "Vorheriger Treffer",
+        "onlyMatches": "Nur passende Zeilen",
+        "waiting": "Warte auf den Start des Builds…",
+        "empty": "Kein Build-Log für dieses Deployment.",
+        "jumpToLatest": "Zum Ende springen",
+        "warnings": "{count, plural, one {# Warnung} other {# Warnungen}}",
+        "errors": "{count, plural, one {# Fehler} other {# Fehler}}",
+        "label": "Ausgabe des Build-Logs",
+        "starting": "Build-Sandbox startet…",
+        "streaming": "Live",
+        "filter": "Log filtern",
+        "clearFilter": "Filter löschen",
+        "folded": "{count, plural, one {# weitere Zeile zeigen} other {# weitere Zeilen zeigen}}"
+      },
+      "diagnostics": {
+        "title": "Diagnose",
+        "none": "Keine Fehler oder Warnungen.",
+        "pending": "Die Diagnose erscheint, wenn der Build fertig ist."
+      },
+      "output": {
+        "title": "Ausgabe",
+        "files": "Dateien",
+        "size": "Größe",
+        "buildTime": "Build-Zeit",
+        "toolchain": "Toolchain",
+        "finished": "Fertig",
+        "pending": "Erscheint, sobald der Build gespeichert ist.",
+        "none": "Dieser Build hat keine Ausgabe erzeugt.",
+        "fileCount": "{count, plural, one {# Datei} other {# Dateien}}"
+      },
+      "sections": {
+        "build": "Build",
+        "details": "Details"
+      },
+      "byline": {
+        "push": "Gepusht von {author}",
+        "pull_request": "Pull Request von {author}",
+        "manual": "Deployt von {author}",
+        "redeploy": "Neu deployt von {author}",
+        "config": "Einstellungen geändert von {author}"
+      },
+      "bylineAnonymous": {
+        "push": "Gepusht",
+        "pull_request": "Pull Request",
+        "manual": "Manuell deployt",
+        "redeploy": "Neu deployt",
+        "config": "Einstellungen geändert"
+      }
+    },
+    "previewsPage": {
+      "title": "Previews",
+      "description": "Jeder Pull Request bekommt seine eigene Preview.",
+      "accessProtected": "Geschützt: nur Mitglieder und Freigabelinks",
+      "accessPublic": "Öffentlich: alle mit dem Link",
+      "branchTitle": "Branch-Preview erstellen",
+      "branchDescription": "Bau einen beliebigen Branch, ohne einen Pull Request zu öffnen.",
+      "branchLabel": "Branch-Name",
+      "branchPlaceholder": "feature/neuer-post",
+      "createPreview": "Preview erstellen",
+      "created": "Preview {key} wird gebaut",
+      "createFailed": "Preview konnte nicht erstellt werden",
+      "disabled": "Previews sind für diese Seite ausgeschaltet.",
+      "turnOn": "In den Einstellungen einschalten",
+      "emptyTitle": "Noch keine Previews",
+      "emptyDescription": "Öffne einen Pull Request, dann erscheint seine Preview hier. Du kannst auch jeden Branch als Preview bauen.",
+      "columns": {
+        "preview": "Preview",
+        "access": "Zugriff"
+      },
+      "pullRequest": "#{number}",
+      "noCommitMessage": "Keine Commit-Nachricht",
+      "open": "Öffnen",
+      "openLabel": "Preview {name} öffnen",
+      "actionsLabel": "Weitere Aktionen für {name}",
+      "copyShareLink": "Freigabelink kopieren",
+      "copyLink": "Link kopieren",
+      "shareCopied": "Freigabelink kopiert. Er gilt {days} Tage.",
+      "shareFailed": "Freigabelink konnte nicht erstellt werden",
+      "openFailed": "Preview konnte nicht geöffnet werden",
+      "viewDeployment": "Deployment ansehen",
+      "delete": "Preview löschen",
+      "deleteTitle": "Diese Preview löschen?",
+      "deleteDescription": "Die Preview von {name} funktioniert sofort nicht mehr. Ein neuer Push auf den Branch oder Pull Request erstellt sie wieder.",
+      "deleted": "Preview gelöscht",
+      "deleteFailed": "Preview konnte nicht gelöscht werden"
+    },
+    "domainsPage": {
+      "title": "Domains",
+      "description": "Stelle deine Site unter deiner eigenen Domain bereit. Eine verifizierte Domain wird zur primären Adresse.",
+      "addDomain": "Domain hinzufügen",
+      "listLabel": "Domains dieser Site",
+      "notraAddress": "Notra-Adresse",
+      "notraAddressHint": "Funktioniert immer, auch mit eigener Domain.",
+      "primary": "Primär",
+      "primaryHint": "Kanonische Adresse für Links, Feeds und Suchmaschinen.",
+      "open": "Öffnen",
+      "copyUrl": "URL kopieren",
+      "kinds": {
+        "subdomain": "Subdomain",
+        "proxy": "Pfade auf deiner Website"
+      },
+      "kindProxyPaths": "Pfade auf deiner Website: {paths}",
+      "checked": "Geprüft",
+      "notChecked": "Noch nicht geprüft",
+      "check": "Prüfen",
+      "checking": "Wird geprüft…",
+      "checkLabel": "{hostname} prüfen",
+      "moreLabel": "Weitere Aktionen für {hostname}",
+      "checkFailed": "Domain konnte nicht geprüft werden",
+      "verified": "Domain verifiziert",
+      "verifiedRebuilding": "Domain verifiziert. Die Site wird für die neue Adresse neu gebaut…",
+      "notVerifiedYet": "Noch nicht verifiziert",
+      "verifyNow": "Jetzt prüfen",
+      "verifyDnsHint": "Einträge angelegt? Prüfe die Domain. DNS-Änderungen können ein paar Minuten dauern.",
+      "verifyProxyHint": "Rewrites deployt? Prüfe die Domain. Wir rufen eine Testdatei über deine Website ab.",
+      "lastErrorTitle": "Letzte Prüfung fehlgeschlagen",
+      "showDnsRecords": "DNS-Einträge",
+      "showProxySetup": "Proxy-Einrichtung",
+      "remove": "Entfernen",
+      "removeConfirm": "Domain entfernen",
+      "removeTitle": "Domain entfernen?",
+      "removeDescription": "{hostname} liefert diese Site dann nicht mehr aus.",
+      "removePrimaryDescription": "{hostname} liefert diese Site dann nicht mehr aus. Sie zieht zurück auf {alias} und wird neu gebaut.",
+      "removed": "Domain entfernt",
+      "removeFailed": "Domain konnte nicht entfernt werden",
+      "status": {
+        "active": "Aktiv",
+        "dnsRequired": "DNS fehlt",
+        "proxyRequired": "Rewrites fehlen",
+        "verifying": "Wird verifiziert",
+        "failed": "Fehlgeschlagen"
+      },
+      "empty": {
+        "title": "Noch keine eigene Domain",
+        "description": "Deine Site ist unter der Notra-Adresse live. Füge eine Domain hinzu, um sie als blog.acme.com oder acme.com/blog bereitzustellen."
+      },
+      "dns": {
+        "title": "DNS-Konfiguration",
+        "description": "Lege diese Einträge dort an, wo du das DNS für {hostname} verwaltest.",
+        "calloutTitle": "Lege diese Einträge bei deinem DNS-Anbieter an",
+        "manualTitle": "Oder lege die Einträge selbst an",
+        "calloutDescription": "Kopiere Name und Wert jeweils genau.",
+        "cloudflareHint": "Stell bei Cloudflare den Proxy-Status auf „Nur DNS“.",
+        "type": "Typ",
+        "name": "Name",
+        "value": "Wert",
+        "noRecords": "Keine Einträge nötig",
+        "connectTitle": "Einrichtung mit einem Klick",
+        "connect": "Mit {provider} verbinden",
+        "connectDescription": "Wir legen die DNS-Einträge für dich an. Du bestätigst das bei {provider}."
+      },
+      "proxy": {
+        "title": "Proxy-Einrichtung",
+        "description": "Leite <code>{paths}</code> und alles darunter an <code>{origin}</code> weiter, der Pfad bleibt gleich.",
+        "platform": "Plattform",
+        "noCookies": "Leite keine Cookies oder Authorization-Header weiter. Die Site braucht sie nicht.",
+        "recipes": {
+          "vercel": "Vercel",
+          "next": "Next.js",
+          "netlify": "Netlify",
+          "tanstack": "TanStack Start",
+          "cloudflare": "Cloudflare Worker",
+          "nginx": "nginx"
+        }
+      },
+      "add": {
+        "title": "Domain hinzufügen",
+        "description": "Stelle diese Site unter einer Domain bereit, die dir gehört.",
+        "kindLabel": "Wie willst du sie verbinden?",
+        "subdomainTitle": "Subdomain",
+        "subdomainDescription": "Zum Beispiel blog.acme.com. Du legst einen DNS-Eintrag an.",
+        "proxyTitle": "Pfade auf deiner Website",
+        "proxyDescription": "Zum Beispiel acme.com/blog. Deine Website leitet {paths} weiter.",
+        "subdomainLabel": "Subdomain",
+        "proxyLabel": "Domain deiner Website",
+        "subdomainHint": "Gib die vollständige Subdomain ein. Danach zeigen wir dir die DNS-Einträge.",
+        "proxyHint": "Gib nur die Domain ein. Danach zeigen wir dir die Rewrites für {paths}.",
+        "submit": "Domain hinzufügen",
+        "added": "Domain hinzugefügt",
+        "addFailed": "Domain konnte nicht hinzugefügt werden"
+      },
+      "connectResult": {
+        "success": "DNS-Einträge angelegt",
+        "successDescription": "Wir verifizieren die Domain, sobald das DNS aktualisiert ist. Das kann ein paar Minuten dauern.",
+        "cancelled": "DNS-Einrichtung abgebrochen",
+        "cancelledDescription": "Es wurde nichts geändert. Versuch es noch mal oder lege die Einträge selbst an.",
+        "error": "Dein DNS-Anbieter konnte die Einträge nicht anlegen",
+        "errorDescription": "Lege sie selbst an, siehe DNS-Konfiguration unten."
+      },
+      "setupErrorTitle": "Diese Domain lässt sich noch nicht verifizieren",
+      "columns": {
+        "domain": "Domain",
+        "status": "Status",
+        "checked": "Geprüft",
+        "actions": "Aktionen"
+      }
+    },
+    "editorPage": {
+      "title": "Editor",
+      "description": "Bearbeite deine Beiträge als Entwurf. Live geht erst, was du veröffentlichst.",
+      "newFile": "Neue Datei",
+      "validate": "Prüfen",
+      "publish": "Veröffentlichen",
+      "publishLabel": "{count, plural, =0 {Veröffentlichen, keine Entwürfe} one {# Entwurf veröffentlichen} other {# Entwürfe veröffentlichen}}",
+      "retry": "Erneut versuchen",
+      "empty": {
+        "title": "Wähle eine Datei oder leg eine an",
+        "description": "Änderungen werden als Entwurf gespeichert und bleiben offline, bis du sie veröffentlichst.",
+        "chooseFile": "Datei wählen"
+      },
+      "tree": {
+        "title": "Dateien",
+        "label": "Dateien der Website",
+        "filter": "Dateien filtern",
+        "clearFilter": "Filter löschen",
+        "noMatches": "Keine passenden Dateien",
+        "noFiles": "Noch keine Dateien"
+      },
+      "file": {
+        "contentLabel": "Inhalt von {path}",
+        "discard": "Entwurf verwerfen",
+        "copyPath": "Pfad kopieren",
+        "pathCopied": "Pfad kopiert",
+        "openOnGithub": "Auf GitHub öffnen",
+        "viewOnSite": "Auf der Website ansehen",
+        "view": "Ansicht",
+        "edit": "Bearbeiten",
+        "changes": "Änderungen",
+        "more": "Weitere Aktionen",
+        "discardNew": "Neue Datei verwerfen",
+        "diffStyle": {
+          "split": "Nebeneinander zeigen",
+          "unified": "Untereinander zeigen"
+        }
+      },
+      "state": {
+        "published": "Veröffentlichte Version",
+        "draft": "Entwurf",
+        "newFile": "Neue Datei",
+        "savedAgo": "{kind} · gespeichert {time}",
+        "unsaved": "Nicht gespeichert",
+        "saving": "Speichert…",
+        "error": "Speichern fehlgeschlagen",
+        "conflict": "Auf GitHub geändert"
+      },
+      "status": {
+        "check": "Auf Probleme prüfen",
+        "checking": "Prüft…",
+        "noProblems": "Keine Probleme",
+        "problems": "{errors, plural, one {# Fehler} other {# Fehler}}, {warnings, plural, one {# Warnung} other {# Warnungen}}"
+      },
+      "problems": {
+        "title": "Probleme",
+        "close": "Probleme schließen",
+        "none": "Keine Probleme gefunden"
+      },
+      "publishDialog": {
+        "changes": "Änderungen",
+        "added": "Neu",
+        "deleted": "Gelöscht"
+      },
+      "changes": {
+        "none": "Noch keine Änderungen. Deine Bearbeitungen erscheinen hier neben der veröffentlichten Version."
+      }
+    },
+    "settingsPage": {
+      "title": "Einstellungen",
+      "description": "Repository, Bereiche, Previews und Veröffentlichen für diese Site.",
+      "unsaved": "Du hast ungespeicherte Änderungen"
     }
   },
   "analytics": {

@@ -1,0 +1,84 @@
+---
+title: "Domains"
+description: "Serve your site on a subdomain or under paths of your existing website."
+---
+
+Every site gets a Notra address. You can add your own:
+
+## Subdomain
+
+Use a subdomain like `blog.acme.com`. Add the DNS records shown in the dashboard (a `CNAME` to Notra); Notra issues the certificate. Your main website is not affected.
+
+### Connect with your DNS provider
+
+If your DNS is hosted by a provider that supports [Domain Connect](https://www.domainconnect.org/), such as Cloudflare, GoDaddy or IONOS, the dashboard offers **Connect with Cloudflare** (or your provider's name). You sign in at your DNS provider, review the records and approve; the provider adds them for you and sends you back to Notra, which checks the domain right away. Only records on your subdomain are created. If your provider is not supported, add the records by hand as described above.
+
+## Paths on your existing website
+
+Keep your website where it is and forward `/blog` and `/changelog` to Notra. DNS cannot route paths, so this needs a rewrite on the host that serves `acme.com`. Use your site's Notra address (shown in the dashboard) as the target and keep the path.
+
+<CodeGroup>
+```json vercel.json
+{
+  "rewrites": [
+    { "source": "/blog", "destination": "https://acme.<notra-address>/blog" },
+    { "source": "/blog/:path*", "destination": "https://acme.<notra-address>/blog/:path*" },
+    { "source": "/changelog", "destination": "https://acme.<notra-address>/changelog" },
+    { "source": "/changelog/:path*", "destination": "https://acme.<notra-address>/changelog/:path*" }
+  ]
+}
+```
+
+```js next.config.js
+export default {
+  async rewrites() {
+    return [
+      { source: "/blog", destination: "https://acme.<notra-address>/blog" },
+      { source: "/blog/:path*", destination: "https://acme.<notra-address>/blog/:path*" },
+      { source: "/changelog", destination: "https://acme.<notra-address>/changelog" },
+      { source: "/changelog/:path*", destination: "https://acme.<notra-address>/changelog/:path*" },
+    ];
+  },
+};
+```
+
+```nginx nginx
+location ~ ^/(blog|changelog)(/|$) {
+  proxy_pass https://acme.<notra-address>;
+  proxy_set_header Host acme.<notra-address>;
+  proxy_set_header Cookie "";
+  proxy_set_header Authorization "";
+  proxy_ssl_server_name on;
+}
+```
+
+```js Cloudflare Worker
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (/^\/(blog|changelog)(\/|$)/.test(url.pathname)) {
+      const headers = new Headers(request.headers);
+      headers.delete("cookie");
+      headers.delete("authorization");
+      return fetch(`https://acme.<notra-address>${url.pathname}${url.search}`, { headers });
+    }
+    return fetch(request);
+  },
+};
+```
+</CodeGroup>
+
+Do not forward cookies or `Authorization` headers; Notra never needs them.
+
+Then click **Check** in the dashboard. Notra requests `/blog/_notra/probe.txt` (and the same for `/changelog`) through your website. Once both answer, your domain becomes the canonical address: links, feeds, sitemaps and social previews are rebuilt for it. The current version stays live until that build finishes.
+
+### Search engines
+
+Your `robots.txt` stays yours. Add the section sitemaps to it:
+
+```text robots.txt
+Sitemap: https://acme.com/blog/sitemap.xml
+Sitemap: https://acme.com/changelog/sitemap.xml
+```
+
+The Notra address itself tells crawlers not to index it once your own domain is verified, so pages are only indexed under `acme.com`.

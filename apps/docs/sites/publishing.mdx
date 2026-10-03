@@ -1,0 +1,29 @@
+---
+title: "Publishing and previews"
+description: "How changes go live, how previews work, and how to roll back."
+---
+
+## Publishing
+
+- **Push or merge to the production branch** and the site deploys. The previous version stays live until the new build succeeds.
+- **Edit in Notra.** The editor saves drafts in Notra only; the live site does not change. When you publish, Notra commits directly to the production branch if your site allows it and the branch is not protected, or opens a pull request. Branch protection and rulesets are always respected.
+- If a file changed on GitHub after you started editing, publishing stops and shows which files conflict.
+
+## Previews
+
+Every pull request into the production branch gets a preview at its own address, updated on every new commit and removed when the pull request is closed. You can also preview any branch manually from the dashboard.
+
+| Visibility | Who can open it |
+| --- | --- |
+| Protected (default) | Members of your Notra workspace, and anyone with a share link (valid 7 days) |
+| Public | Anyone with the link |
+
+Previews are always excluded from search engines.
+
+## Rollback
+
+Open **Deployments**, pick an earlier deployment and choose **Restore**. The switch is instant. Deployments built for a different domain or path cannot be restored; redeploy their commit instead.
+
+## Taking a site offline
+
+**Settings → Take site offline** stops serving every page within seconds, including cached ones.

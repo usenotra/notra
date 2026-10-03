@@ -28,6 +28,7 @@ import {
 } from "./deferred-sidebar-status";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
+import { NavSite } from "./nav-site";
 import { NavUtility } from "./nav-utility";
 import { OrgSelector } from "./org-selector";
 import { SidebarLabel } from "./sidebar-label";
@@ -94,7 +95,12 @@ export function DashboardSidebar({
   const slug = pathnameSegments[0] ?? activeOrganization?.slug ?? "";
 
   const section = pathnameSegments[1];
-  const panelId = section === "chat" || section === "brand" ? section : "main";
+  const siteSegment = section === "sites" ? pathnameSegments[2] : undefined;
+  const isSitePage = Boolean(siteSegment) && siteSegment !== "new";
+  let panelId = section === "chat" || section === "brand" ? section : "main";
+  if (isSitePage) {
+    panelId = "site";
+  }
   const isSubpage = panelId !== "main";
 
   const [hasMoreNavigation, setHasMoreNavigation] = useState(false);
@@ -136,6 +142,10 @@ export function DashboardSidebar({
   }, [isMobile, navigationKey, setOpenMobile]);
 
   function handleBack() {
+    if (isSitePage) {
+      router.push(`/${slug}/sites`);
+      return;
+    }
     if (hasVisitedMainRef.current) {
       router.back();
       return;
@@ -183,6 +193,16 @@ export function DashboardSidebar({
                 <>
                   <SidebarBackButton onBack={handleBack} />
                   <NavBrandIdentity slug={slug} />
+                </>
+              ),
+            },
+            {
+              id: "site",
+              side: "right",
+              children: (
+                <>
+                  <SidebarBackButton onBack={handleBack} />
+                  <NavSite slug={slug} />
                 </>
               ),
             },

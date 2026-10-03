@@ -1,0 +1,12 @@
+---
+interface Props {
+  id: string;
+  title?: string;
+}
+const { id, title = "YouTube video" } = Astro.props;
+const safeId = id.replace(/[^A-Za-z0-9_-]/g, "");
+---
+
+<figure class="not-prose my-8 aspect-video overflow-hidden rounded-lg border border-border">
+  <iframe class="size-full" src={`https://www.youtube-nocookie.com/embed/${safeId}`} title={title} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</figure>

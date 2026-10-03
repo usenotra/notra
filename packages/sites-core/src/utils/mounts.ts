@@ -1,0 +1,124 @@
+import { SITE_AREAS } from "@notra/sites-core/constants/sites";
+import type {
+  SiteArea,
+  SiteMounts,
+} from "@notra/sites-core/schemas/deployment";
+
+const MOUNT_SEGMENT = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
+const MAX_MOUNT_SEGMENTS = 3;
+
+export class SiteMountError extends Error {
+  readonly name = "SiteMountError";
+}
+
+/** `"Blog/"` → `"/blog"`, `""` or `"/"` → `"/"`. Rejects anything that is not plain lowercase path segments. */
+export function normalizeMountPath(input: string): string {
+  const trimmed = input.trim().toLowerCase();
+  const segments = trimmed.split("/").filter(Boolean);
+  if (segments.length === 0) {
+    return "/";
+  }
+  if (segments.length > MAX_MOUNT_SEGMENTS) {
+    throw new SiteMountError(
+      `Mount "${input}" is nested too deep (max ${MAX_MOUNT_SEGMENTS} segments)`
+    );
+  }
+  for (const segment of segments) {
+    if (!MOUNT_SEGMENT.test(segment) || segment === "_notra") {
+      throw new SiteMountError(
+        `Mount "${input}" may only contain lowercase letters, digits and dashes`
+      );
+    }
+  }
+  return `/${segments.join("/")}`;
+}
+
+function isWithin(path: string, mount: string): boolean {
+  if (mount === "/") {
+    return true;
+  }
+  return path === mount || path.startsWith(`${mount}/`);
+}
+
+/**
+ * Normalizes and checks both mounts. A root mount may coexist with a nested
+ * one (`/` + `/changelog`); the build then refuses root pages that would land
+ * inside the nested mount.
+ */
+export function normalizeSiteMounts(mounts: SiteMounts): SiteMounts {
+  const normalized: SiteMounts = {};
+  for (const area of SITE_AREAS) {
+    const value = mounts[area];
+    if (value !== undefined) {
+      normalized[area] = normalizeMountPath(value);
+    }
+  }
+  if (normalized.blog && normalized.changelog) {
+    if (normalized.blog === normalized.changelog) {
+      throw new SiteMountError("Blog and changelog need different paths");
+    }
+    const nestedNonRoot =
+      (normalized.blog !== "/" &&
+        isWithin(normalized.changelog, normalized.blog)) ||
+      (normalized.changelog !== "/" &&
+        isWithin(normalized.blog, normalized.changelog));
+    if (nestedNonRoot) {
+      throw new SiteMountError(
+        "Blog and changelog paths may not be nested inside each other"
+      );
+    }
+  }
+  if (!(normalized.blog ?? normalized.changelog)) {
+    throw new SiteMountError("At least one area needs a path");
+  }
+  return normalized;
+}
+
+export function listMountedAreas(
+  mounts: SiteMounts
+): Array<{ area: SiteArea; mount: string }> {
+  const areas: Array<{ area: SiteArea; mount: string }> = [];
+  for (const area of SITE_AREAS) {
+    const mount = mounts[area];
+    if (mount) {
+      areas.push({ area, mount });
+    }
+  }
+  return areas;
+}
+
+/** Most specific mount wins, so `/changelog/x` resolves to the changelog even when the blog sits at `/`. */
+export function resolveAreaForPath(
+  mounts: SiteMounts,
+  pathname: string
+): { area: SiteArea; mount: string } | null {
+  let best: { area: SiteArea; mount: string } | null = null;
+  for (const entry of listMountedAreas(mounts)) {
+    if (!isWithin(pathname, entry.mount)) {
+      continue;
+    }
+    if (!best || entry.mount.length > best.mount.length) {
+      best = entry;
+    }
+  }
+  return best;
+}
+
+/** `/blog` + `post/a` → `/blog/post/a`, `/` + `post` → `/post`. */
+export function joinMountPath(mount: string, path: string): string {
+  const tail = path.replace(/^\/+/, "");
+  if (mount === "/") {
+    return `/${tail}`;
+  }
+  return tail ? `${mount}/${tail}` : mount;
+}
+
+/** True when a file the root-mounted area produced would shadow the other mount. */
+export function pathCollidesWithOtherMount(
+  mounts: SiteMounts,
+  area: SiteArea,
+  urlPath: string
+): boolean {
+  const owner = resolveAreaForPath(mounts, urlPath);
+  return owner !== null && owner.area !== area;
+}

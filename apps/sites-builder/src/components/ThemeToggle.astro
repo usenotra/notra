@@ -1,0 +1,23 @@
+---
+import { config } from "../lib/params";
+import Icon from "./Icon.astro";
+---
+
+{
+  !config.appearance.strict && (
+    <button type="button" data-theme-toggle class="text-muted-foreground transition-colors hover:text-foreground" aria-label="Toggle dark mode">
+      <Icon name="sun" size={15} class="dark:hidden" />
+      <Icon name="moon" size={15} class="hidden dark:block" />
+    </button>
+  )
+}
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")) {
+    button.addEventListener("click", () => {
+      const dark = !document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", dark);
+      localStorage.setItem("notra-theme", dark ? "dark" : "light");
+    });
+  }
+</script>

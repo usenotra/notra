@@ -20,6 +20,8 @@ export default defineConfig({
     "packages/db/migrations/**",
     ".temp/**",
     "**/*.astro",
+    // Customer site content used as build fixtures, not product code.
+    "apps/sites-builder/fixtures/**",
   ],
   options: {
     reportUnusedDisableDirectives: "warn",

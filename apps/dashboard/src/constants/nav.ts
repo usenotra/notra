@@ -22,6 +22,7 @@ import {
   SearchList01Icon,
   Settings01Icon,
   UserGroupIcon,
+  WebDesign01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   GEO_AGENT_READINESS_NAV_LINK,
@@ -35,6 +36,7 @@ import { DURATION } from "@notra/ui/lib/motion";
 
 import { AGENT_FEEDBACK_NAV_LINK } from "@/constants/agent-feedback";
 import { IRIS_NAV_LINK } from "@/constants/iris";
+import { SITES_NAV_LINK } from "@/constants/sites";
 import type {
   NavMainItem,
   NavPrimaryActionConfig,
@@ -103,12 +105,14 @@ export const STUDIO_ROUTE_SECTIONS: ReadonlySet<string> = new Set([
   "brand",
   "automation",
   "iris",
+  "sites",
 ]);
 
 export const NAV_MAIN_ITEMS: NavMainItem[] = [
   { link: HOME_NAV_LINK, icon: Home01Icon, labelKey: "home" },
   { link: CHAT_NAV_LINK, icon: Message01Icon, labelKey: "chat", badge: "beta" },
   { link: CONTENT_NAV_LINK, icon: NoteIcon, labelKey: "content" },
+  { link: SITES_NAV_LINK, icon: WebDesign01Icon, labelKey: "sites" },
   { link: ANALYTICS_NAV_LINK, icon: Analytics01Icon, labelKey: "analytics" },
   {
     link: AGENT_FEEDBACK_NAV_LINK,
@@ -187,6 +191,7 @@ export const NAV_STUDIO_LINKS: readonly string[] = [
   HOME_NAV_LINK,
   CHAT_NAV_LINK,
   CONTENT_NAV_LINK,
+  SITES_NAV_LINK,
   ANALYTICS_NAV_LINK,
   BRAND_IDENTITY_NAV_LINK,
 ];

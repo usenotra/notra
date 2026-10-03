@@ -1,0 +1,19 @@
+---
+import BlogIndex from "../components/BlogIndex.astro";
+import ChangelogIndex from "../components/ChangelogIndex.astro";
+import Base from "../layouts/Base.astro";
+import { absoluteUrl, areaDescription, areaTitle, config, href, markdownHref, params } from "../lib/params";
+
+const title = areaTitle(params.area);
+const jsonLd = {
+  "@type": params.area === "blog" ? "Blog" : "CollectionPage",
+  name: title,
+  description: areaDescription(params.area),
+  url: absoluteUrl(href()),
+  publisher: { "@type": "Organization", name: config.name },
+};
+---
+
+<Base title={`${title} · ${config.name}`} description={areaDescription(params.area)} markdown={markdownHref()} jsonLd={jsonLd}>
+  {params.area === "blog" ? <BlogIndex /> : <ChangelogIndex />}
+</Base>

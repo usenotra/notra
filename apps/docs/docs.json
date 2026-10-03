@@ -110,6 +110,18 @@
             ]
           },
           {
+            "group": "Sites",
+            "icon": "globe",
+            "pages": [
+              "sites/overview",
+              "sites/repository",
+              "sites/components",
+              "sites/publishing",
+              "sites/domains",
+              "sites/agents"
+            ]
+          },
+          {
             "group": "Automation",
             "icon": "bolt",
             "pages": [

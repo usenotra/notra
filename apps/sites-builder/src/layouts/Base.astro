@@ -1,0 +1,79 @@
+---
+import "../styles/global.css";
+import "@notra/custom-css";
+import CodeBlocks from "../components/CodeBlocks.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { absoluteUrl, areaTitle, assetUrl, config, href, llmsHref, params } from "../lib/params";
+import { decorationClass, faviconFor, fontFaces, googleFontsUrl, themeStyle } from "../lib/theme";
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  noindex?: boolean;
+  publishedTime?: Date;
+  /** Path of the page's Markdown twin, advertised to agents. */
+  markdown?: string;
+  /** schema.org structured data for the page. */
+  jsonLd?: Record<string, unknown>;
+}
+
+const { title, description, image, type = "website", noindex = false, publishedTime, markdown, jsonLd } = Astro.props;
+// Same URL form as the sitemap and feed: no trailing slash (except the bare root).
+const canonicalPath = Astro.url.pathname.length > 1 ? Astro.url.pathname.replace(/\/+$/, "") : Astro.url.pathname;
+const canonical = absoluteUrl(canonicalPath);
+const ogImage = image ? absoluteUrl(assetUrl(image) ?? image) : undefined;
+const robots = params.noindex || noindex ? "noindex, nofollow" : undefined;
+const fontsUrl = googleFontsUrl();
+const appearance = config.appearance;
+const codeDark = config.styling.codeblocks === "dark";
+const lightFavicon = faviconFor("light");
+const darkFavicon = faviconFor("dark");
+---
+
+<!doctype html>
+<html lang="en" class:list={[decorationClass(), codeDark && "code-dark"]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    {robots && <meta name="robots" content={robots} />}
+    {lightFavicon && <link rel="icon" href={lightFavicon} media={darkFavicon !== lightFavicon ? "(prefers-color-scheme: light)" : undefined} />}
+    {darkFavicon && darkFavicon !== lightFavicon && <link rel="icon" href={darkFavicon} media="(prefers-color-scheme: dark)" />}
+    {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
+    <link rel="alternate" type="text/plain" title="llms.txt" href={llmsHref()} />
+    <link rel="alternate" type="application/rss+xml" title={areaTitle(params.area).startsWith(config.name) ? areaTitle(params.area) : `${config.name} ${areaTitle(params.area)}`} href={href("feed.xml")} />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={config.name} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+    <meta name="generator" content="Notra Sites" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", ...jsonLd }).replaceAll("<", "\\u003c")} />}
+    {fontsUrl && <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />}
+    {fontsUrl && <link rel="stylesheet" href={fontsUrl} />}
+    <style is:inline set:html={`${fontFaces()}${themeStyle()}`}></style>
+    <script is:inline define:vars={{ appearance }}>
+      // Before first paint: stored choice (unless strict) → configured default → system.
+      const stored = appearance.strict ? null : localStorage.getItem("notra-theme");
+      const mode = stored ?? appearance.default;
+      const dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    </script>
+  </head>
+  <body class="flex min-h-dvh flex-col font-sans text-foreground">
+    <Header />
+    <main class="w-full flex-1 px-5 pt-14 pb-24 sm:px-6 sm:pt-20">
+      <slot />
+    </main>
+    <Footer />
+    <CodeBlocks />
+  </body>
+</html>

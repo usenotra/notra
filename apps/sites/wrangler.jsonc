@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "notra-sites",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true },
+  "r2_buckets": [{ "binding": "SITES_BUCKET", "bucket_name": "notra-sites" }],
+  "vars": {
+    "HOSTING_DOMAIN": "notra.site",
+    "DASHBOARD_URL": "https://app.usenotra.com",
+  },
+  // Secrets: PREVIEW_SECRET (required), DEV_HOST_OVERRIDE_TOKEN (dev only, never in production)
+  "env": {
+    "dev": {
+      "name": "notra-sites-dev",
+      "workers_dev": true,
+      // `remote: true` makes `wrangler dev --env dev` read the real dev bucket the dashboard writes to.
+      "r2_buckets": [
+        {
+          "binding": "SITES_BUCKET",
+          "bucket_name": "notra-sites-dev",
+          "remote": true,
+        },
+      ],
+      "vars": {
+        "HOSTING_DOMAIN": "sites.localhost",
+        "DASHBOARD_URL": "http://localhost:3000",
+      },
+    },
+  },
+}

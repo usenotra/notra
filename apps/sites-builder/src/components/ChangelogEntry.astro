@@ -1,0 +1,34 @@
+---
+import { render } from "astro:content";
+import { type ChangelogEntry, formatDate, isoDate } from "../lib/entries";
+import { assetUrl, href } from "../lib/params";
+
+interface Props {
+  entry: ChangelogEntry;
+  /** On the index every entry links to its own page; on the entry page the title is the h1. */
+  standalone?: boolean;
+}
+
+const { entry, standalone = false } = Astro.props;
+const { Content } = await render(entry);
+const Heading = standalone ? "h1" : "h2";
+const anchor = entry.id.replaceAll("/", "-");
+const image = assetUrl(entry.data.image);
+---
+
+<article id={anchor} class="grid scroll-mt-20 gap-2 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-6">
+  <div class="text-sm text-muted-foreground tabular-nums sm:sticky sm:top-20 sm:self-start sm:pt-1">
+    <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>
+    {entry.data.version && <p class="mt-0.5">{entry.data.version}</p>}
+  </div>
+  <div class="min-w-0">
+    <Heading class:list={["font-semibold tracking-[-0.02em] text-balance", standalone ? "text-[1.75rem] leading-tight" : "text-lg"]}>
+      {standalone ? entry.data.title : <a href={href(entry.id)} class="underline-offset-4 hover:underline">{entry.data.title}</a>}
+      {entry.data.draft && <span class="ml-2 align-middle text-sm font-normal tracking-normal text-warning">Draft</span>}
+    </Heading>
+    {image && <img src={image} alt="" class="mt-5 w-full rounded-lg border border-border" loading="lazy" />}
+    <div class="prose prose-notra mt-4 max-w-none" data-md-root={standalone ? "" : undefined}>
+      <Content />
+    </div>
+  </div>
+</article>

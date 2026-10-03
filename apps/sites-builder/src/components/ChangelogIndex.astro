@@ -1,0 +1,22 @@
+---
+import { getChangelogEntries } from "../lib/entries";
+import { areaDescription, areaTitle } from "../lib/params";
+import ChangelogEntry from "./ChangelogEntry.astro";
+import PageHeader from "./PageHeader.astro";
+
+const entries = await getChangelogEntries();
+---
+
+<div class="mx-auto max-w-3xl">
+<PageHeader title={areaTitle("changelog")} description={areaDescription("changelog")} />
+
+{
+  entries.length === 0 ? (
+    <p class="mt-12 text-sm text-muted-foreground">Nothing shipped yet. Add an .mdx file to changelog/ and push.</p>
+  ) : (
+    <div class="mt-10 divide-y divide-border border-t border-border [&>article]:py-10">
+      {entries.map((entry) => <ChangelogEntry entry={entry} />)}
+    </div>
+  )
+}
+</div>

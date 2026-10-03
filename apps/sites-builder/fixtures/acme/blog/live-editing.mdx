@@ -1,0 +1,25 @@
+---
+title: "Edit in the browser, publish through GitHub"
+description: "Drafts stay in Notra until you publish them as a commit or a pull request."
+date: 2026-09-20
+author: Dominik
+image: /images/cover-editor.svg
+tags: [product, editor]
+---
+
+Every change in the editor is a draft. Nothing reaches the live site until you publish.
+
+## How publishing works
+
+When you publish, Notra checks your branch protection and either commits directly or opens a pull request.
+
+```ts
+const result = await notra.sites.publish({ message: "Update pricing post", mode: "pull_request" });
+console.log(result.pullRequestUrl);
+```
+
+<Tip>Pull requests get their own preview link automatically.</Tip>
+
+## Conflicts
+
+If someone changed the same file on GitHub, Notra shows which files conflict instead of overwriting them.

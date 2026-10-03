@@ -1,0 +1,48 @@
+---
+import { render } from "astro:content";
+import { authorsOf, type BlogEntry, formatDate, getBlogEntries, isoDate, readingMinutes } from "../lib/entries";
+import { areaTitle, assetUrl, href } from "../lib/params";
+import PostCard from "./PostCard.astro";
+
+interface Props {
+  entry: BlogEntry;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const image = assetUrl(entry.data.image);
+const authors = authorsOf(entry);
+const more = (await getBlogEntries()).filter((other) => other.id !== entry.id).slice(0, 2);
+---
+
+<article class="mx-auto max-w-3xl">
+  <div class="mx-auto max-w-2xl">
+    <a href={href()} class="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">← {areaTitle("blog")}</a>
+    <header class="mt-10">
+      <p class="text-[0.8125rem] text-muted-foreground tabular-nums">
+        <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time> · {readingMinutes(entry.body)} min read
+        {entry.data.draft && <span class="text-warning"> · Draft</span>}
+      </p>
+      <h1 class="mt-3 text-[2rem] leading-[1.15] font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]">{entry.data.title}</h1>
+      {entry.data.description && <p class="mt-4 text-lg leading-8 text-pretty text-muted-foreground">{entry.data.description}</p>}
+      {authors.length > 0 && <p class="mt-6 text-sm">By {new Intl.ListFormat("en").format(authors)}</p>}
+    </header>
+  </div>
+
+  {image && <img src={image} alt="" class="image-outline mt-10 aspect-[16/9] w-full rounded-2xl object-cover" loading="eager" />}
+
+  <div class="prose prose-notra mx-auto mt-10 max-w-2xl" data-md-root>
+    <Content />
+  </div>
+</article>
+
+{
+  more.length > 0 && (
+    <aside aria-labelledby="more-posts" class="mx-auto mt-24 max-w-3xl border-t border-border pt-10">
+      <h2 id="more-posts" class="text-sm font-medium text-muted-foreground">More from {areaTitle("blog")}</h2>
+      <div class="mt-6 grid gap-x-8 gap-y-10 sm:grid-cols-2">
+        {more.map((other) => <PostCard entry={other} headingLevel="h3" />)}
+      </div>
+    </aside>
+  )
+}

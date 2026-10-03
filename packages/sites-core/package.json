@@ -1,0 +1,24 @@
+{
+  "name": "@notra/sites-core",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./constants/*": "./src/constants/*.ts",
+    "./schemas/*": "./src/schemas/*.ts",
+    "./types/*": "./src/types/*.ts",
+    "./utils/*": "./src/utils/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@notra/typescript-config": "workspace:*",
+    "bun-types": "1.4.0",
+    "typescript": "7.0.2"
+  }
+}

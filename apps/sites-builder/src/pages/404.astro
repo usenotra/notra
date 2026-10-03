@@ -1,0 +1,13 @@
+---
+import Base from "../layouts/Base.astro";
+import { areaTitle, config, href, params } from "../lib/params";
+---
+
+<Base title={`Page not found · ${config.name}`} noindex>
+  <section class="mx-auto max-w-2xl py-16">
+    <p class="text-sm text-muted-foreground">404</p>
+    <h1 class="mt-2 text-2xl font-semibold tracking-[-0.02em]">This page doesn’t exist</h1>
+    <p class="mt-2 text-muted-foreground">It may have moved, or the link is wrong.</p>
+    <a href={href()} class="mt-6 inline-block text-sm font-medium underline underline-offset-4">Back to {areaTitle(params.area)}</a>
+  </section>
+</Base>

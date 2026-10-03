@@ -1,0 +1,63 @@
+---
+title: "Introducing Acme Flow"
+description: "A calmer way to ship product updates, with interactive examples."
+date: 2026-09-28
+author: ["Jan", "Dominik"]
+image: /images/cover-flow.svg
+tags: [launch, product]
+---
+
+import { Counter, Greeting } from "/snippets/counter.jsx";
+import Install from "/snippets/install.mdx";
+import { company, plan } from "../../snippets/variables.mdx";
+import Parent from "/snippets/nested-parent.mdx";
+
+export const InlineToggle = ({ label }) => {
+  const [on, setOn] = useState(false);
+  return (
+    <button type="button" data-testid="inline-toggle" onClick={() => setOn(!on)}>
+      {label}: {on ? "on" : "off"}
+    </button>
+  );
+};
+
+Today {company} ships **Acme Flow** on the {plan.name} plan for ${plan.price}.
+
+<Frame caption="The Acme Flow editor">
+  ![The Acme Flow editor](/images/cover-editor.svg)
+</Frame>
+
+<Note>This post exercises every MDX feature Notra Sites supports.</Note>
+
+## Interactive pieces
+
+<Counter start={3} label="Clicks" />
+
+<InlineToggle label="Inline toggle" />
+
+<Greeting name="reader" />
+
+## Snippets
+
+<Install packageName="acme-flow" nodeVersion="22" />
+
+<Parent />
+
+## Built-ins
+
+<Tabs>
+  <Tab title="npm">npm install acme</Tab>
+  <Tab title="bun">bun add acme</Tab>
+</Tabs>
+
+<Steps>
+  <Step title="Connect GitHub">Pick the repository.</Step>
+  <Step title="Write MDX">Push a commit.</Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Docs" href="https://acme.example.com/docs">Read the docs.</Card>
+  <Card title="Changelog" href="/changelog">See what shipped.</Card>
+</CardGroup>
+
+<Accordion title="Is it fast?">Yes. Static HTML, islands only where needed.</Accordion>

@@ -1,0 +1,39 @@
+---
+title: "AI agents"
+description: "Every page of your site is readable by AI agents as Markdown, with no setup."
+---
+
+Notra Sites serve the same content to people and to AI agents. Nothing to configure.
+
+## Markdown for every page
+
+Each post, changelog entry and index page also exists as clean Markdown, with a short header (URL, date, authors, version, tags) and absolute links:
+
+- Add `.md` to any URL: `https://acme.com/blog/launch.md`, `https://acme.com/blog/index.md`
+- Or request the normal URL with `Accept: text/markdown`. Browsers still get HTML.
+
+```bash
+curl -H "Accept: text/markdown" https://acme.com/blog/launch
+```
+
+HTML pages point to their Markdown version with `<link rel="alternate" type="text/markdown">` and a `Link` response header.
+
+## llms.txt
+
+[llms.txt](https://llmstxt.org) lists every published page with a link to its Markdown, and `llms-full.txt` contains all of them in one file.
+
+| URL | Contains |
+| --- | --- |
+| `/blog/llms.txt`, `/changelog/llms.txt` | One section |
+| `/llms.txt` | Blog and changelog, on your Notra address or subdomain |
+
+If you forward paths from your own website, `/llms.txt` belongs to your website. Link the section files from your own `llms.txt`, or forward `/llms.txt` to Notra too. Drafts and posts with `noindex: true` are left out. A `public/llms.txt` in your repository replaces the generated one.
+
+## Crawlers and structured data
+
+- `robots.txt` allows search engines and AI crawlers (GPTBot, ClaudeBot, PerplexityBot and others) on your canonical address and links to `llms.txt` and the sitemaps. Previews are never indexed.
+- Every page includes schema.org data (`BlogPosting` for posts) plus Open Graph tags, a canonical URL and an RSS feed.
+
+<Note>
+When you forward paths through your own host, keep the request's `Accept` header. Vercel, Next.js, Netlify and Cloudflare rewrites do this by default.
+</Note>

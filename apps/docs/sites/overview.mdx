@@ -1,0 +1,37 @@
+---
+title: "Notra Sites"
+description: "Host your blog and changelog from a GitHub repository, with previews for every pull request."
+---
+
+Notra Sites builds a blog and a changelog from MDX files in your GitHub repository and serves them on your own domain. It works like Mintlify for docs:
+
+- **Git is the source of truth.** Every push to your production branch goes live. Edits made in Notra become a commit or a pull request.
+- **Every pull request gets a preview** with its own link. Previews are never indexed by search engines.
+- **Your own URL.** Use a subdomain like `blog.acme.com`, or keep your website and serve `acme.com/blog` and `acme.com/changelog` through it.
+- **MDX with your own components.** Built-in components plus your own React snippets, the same model Mintlify uses.
+
+## How a deploy works
+
+1. You push to the production branch (or merge a pull request).
+2. Notra builds the exact commit in an isolated sandbox with no network access and no credentials.
+3. The finished files are uploaded, checked and switched live in one step. A failed build never touches the live site.
+4. A GitHub check on the commit links to the live URL or shows what failed, line by line.
+
+You can switch back to an earlier deployment instantly from the dashboard, without rebuilding.
+
+## Set up a site
+
+<Steps>
+  <Step title="Connect GitHub">
+    Install the Notra GitHub App on the repository under **Integrations → GitHub**.
+  </Step>
+  <Step title="Add the files">
+    Add a `notra.json` and your first post. See [Repository layout](/sites/repository).
+  </Step>
+  <Step title="Create the site">
+    In the dashboard, open **Sites → New site**, pick the repository and decide which sections (blog, changelog) to publish and where.
+  </Step>
+  <Step title="Add your domain">
+    Point a subdomain at Notra or add a rewrite to your website. See [Domains](/sites/domains).
+  </Step>
+</Steps>

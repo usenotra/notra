@@ -1,3 +1,18 @@
+import {
+  SITE_DEPLOYMENT_KINDS,
+  SITE_DEPLOYMENT_STATUSES,
+  SITE_DEPLOYMENT_TRIGGERS,
+  SITE_DOMAIN_KINDS,
+  SITE_DOMAIN_STATUSES,
+  SITE_PREVIEW_VISIBILITIES,
+  SITE_PUBLISH_MODES,
+  SITE_STATUSES,
+} from "@notra/sites-core/constants/sites";
+import type { SiteDiagnostic } from "@notra/sites-core/schemas/build";
+import type {
+  SiteBuildTarget,
+  SiteMounts,
+} from "@notra/sites-core/schemas/deployment";
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
@@ -54,6 +69,10 @@ import {
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 import type { PostGitHubPublish } from "./types/post-github-publish";
+import type {
+  SiteDomainVerificationRecord,
+  SiteJobPayload,
+} from "./types/sites";
 
 export const lookbackWindowEnum = pgEnum("lookback_window", [
   "current_day",
@@ -4032,4 +4051,286 @@ export const webhookAttempts = pgTable(
       table.attemptNumber
     ),
   ]
+);
+
+export const SITE_JOB_KINDS = [
+  "build",
+  "remove_preview",
+  "sync_state",
+] as const;
+export const SITE_JOB_STATUSES = [
+  "pending",
+  "running",
+  "done",
+  "failed",
+] as const;
+
+/**
+ * A hosted blog/changelog built from a customer GitHub repository.
+ * `publicOrigin` + `mounts` decide every URL; they only change through the
+ * dashboard (after verification), never through a commit.
+ */
+export const sites = pgTable(
+  "sites",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    repositoryId: text("repository_id").references(
+      () => githubIntegrations.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    githubInstallationId: text("github_installation_id"),
+    githubRepositoryId: text("github_repository_id"),
+    repositoryOwner: text("repository_owner"),
+    repositoryName: text("repository_name"),
+    productionBranch: text("production_branch").notNull().default("main"),
+    rootDirectory: text("root_directory").notNull().default(""),
+    publicOrigin: text("public_origin").notNull(),
+    mounts: jsonb("mounts").$type<SiteMounts>().notNull(),
+    previewsEnabled: boolean("previews_enabled").notNull().default(true),
+    previewVisibility: text("preview_visibility", {
+      enum: SITE_PREVIEW_VISIBILITIES,
+    })
+      .notNull()
+      .default("protected"),
+    publishMode: text("publish_mode", { enum: SITE_PUBLISH_MODES })
+      .notNull()
+      .default("pull_request"),
+    status: text("status", { enum: SITE_STATUSES }).notNull().default("active"),
+    suspendedReason: text("suspended_reason"),
+    /**
+     * Counter for deployment and activation generations; only ever incremented in SQL.
+     * What is live is not stored here: R2 `sites/{id}/state.json` is the only authority.
+     */
+    lastGeneration: integer("last_generation").notNull().default(0),
+    createdByUserId: text("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("sites_organizationId_idx").on(table.organizationId),
+    uniqueIndex("sites_slug_uidx").on(table.slug),
+    index("sites_githubRepositoryId_idx").on(table.githubRepositoryId),
+  ]
+);
+
+export const siteDomains = pgTable(
+  "site_domains",
+  {
+    id: text("id").primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    /** Normalized host: `blog.acme.com` (subdomain) or `acme.com` (proxy origin). */
+    hostname: text("hostname").notNull(),
+    kind: text("kind", { enum: SITE_DOMAIN_KINDS }).notNull(),
+    status: text("status", { enum: SITE_DOMAIN_STATUSES })
+      .notNull()
+      .default("pending"),
+    cloudflareHostnameId: text("cloudflare_hostname_id"),
+    verificationRecords: jsonb("verification_records")
+      .$type<SiteDomainVerificationRecord[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    lastError: text("last_error"),
+    lastCheckedAt: timestamp("last_checked_at"),
+    verifiedAt: timestamp("verified_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("siteDomains_siteId_idx").on(table.siteId),
+    uniqueIndex("siteDomains_site_hostname_uidx").on(
+      table.siteId,
+      table.hostname
+    ),
+    // Only a verified domain is exclusive; unverified claims must not block the real owner.
+    uniqueIndex("siteDomains_active_hostname_uidx")
+      .on(table.hostname)
+      .where(sql`${table.status} = 'active'`),
+    index("siteDomains_hostname_idx").on(table.hostname),
+  ]
+);
+
+export const siteDeployments = pgTable(
+  "site_deployments",
+  {
+    id: text("id").primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: SITE_DEPLOYMENT_KINDS }).notNull(),
+    previewKey: text("preview_key"),
+    trigger: text("trigger", { enum: SITE_DEPLOYMENT_TRIGGERS }).notNull(),
+    status: text("status", { enum: SITE_DEPLOYMENT_STATUSES })
+      .notNull()
+      .default("queued"),
+    /** Per-site ordering for activation; a pointer never moves to a lower generation. */
+    generation: integer("generation").notNull(),
+    branch: text("branch").notNull(),
+    commitSha: text("commit_sha").notNull(),
+    commitMessage: text("commit_message"),
+    commitAuthor: text("commit_author"),
+    pullRequestNumber: integer("pull_request_number"),
+    target: jsonb("target").$type<SiteBuildTarget>().notNull(),
+    configHash: text("config_hash").notNull(),
+    toolchainVersion: text("toolchain_version"),
+    fileCount: integer("file_count"),
+    totalBytes: integer("total_bytes"),
+    buildDurationMs: integer("build_duration_ms"),
+    diagnostics: jsonb("diagnostics")
+      .$type<SiteDiagnostic[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    errorMessage: text("error_message"),
+    checkRunId: text("check_run_id"),
+    requestedByUserId: text("requested_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("siteDeployments_site_created_idx").on(table.siteId, table.createdAt),
+    uniqueIndex("siteDeployments_site_generation_uidx").on(
+      table.siteId,
+      table.generation
+    ),
+    index("siteDeployments_site_preview_idx").on(
+      table.siteId,
+      table.previewKey
+    ),
+  ]
+);
+
+/**
+ * Transactional outbox for site work. Rows are written in the same transaction
+ * as the deployment they belong to and claimed with a lease, so a crash or a
+ * lost dispatch only delays work; the sweep picks it up again.
+ */
+export const siteJobs = pgTable(
+  "site_jobs",
+  {
+    id: text("id").primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    deploymentId: text("deployment_id").references(() => siteDeployments.id, {
+      onDelete: "cascade",
+    }),
+    kind: text("kind", { enum: SITE_JOB_KINDS }).notNull(),
+    payload: jsonb("payload")
+      .$type<SiteJobPayload>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    status: text("status", { enum: SITE_JOB_STATUSES })
+      .notNull()
+      .default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(3),
+    availableAt: timestamp("available_at").defaultNow().notNull(),
+    leaseUntil: timestamp("lease_until"),
+    dispatchedAt: timestamp("dispatched_at"),
+    lastError: text("last_error"),
+    dedupeKey: text("dedupe_key"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("siteJobs_due_idx").on(table.status, table.availableAt),
+    uniqueIndex("siteJobs_dedupeKey_uidx").on(table.dedupeKey),
+  ]
+);
+
+/** Durable GitHub delivery dedup: the insert is the claim. */
+export const siteWebhookDeliveries = pgTable("site_webhook_deliveries", {
+  deliveryId: text("delivery_id").primaryKey(),
+  event: text("event").notNull(),
+  receivedAt: timestamp("received_at").defaultNow().notNull(),
+});
+
+/** Saved editor drafts. They never touch the live site until published as a commit or PR. */
+export const siteDrafts = pgTable(
+  "site_drafts",
+  {
+    id: text("id").primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    path: text("path").notNull(),
+    content: text("content").notNull(),
+    /** Git blob SHA the draft started from; null for new files. */
+    baseBlobSha: text("base_blob_sha"),
+    baseCommitSha: text("base_commit_sha"),
+    deleted: boolean("deleted").notNull().default(false),
+    updatedByUserId: text("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("siteDrafts_site_path_uidx").on(table.siteId, table.path),
+  ]
+);
+
+export const sitesRelations = relations(sites, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [sites.organizationId],
+    references: [organizations.id],
+  }),
+  repository: one(githubIntegrations, {
+    fields: [sites.repositoryId],
+    references: [githubIntegrations.id],
+  }),
+  domains: many(siteDomains),
+  deployments: many(siteDeployments),
+}));
+
+export const siteDomainsRelations = relations(siteDomains, ({ one }) => ({
+  site: one(sites, { fields: [siteDomains.siteId], references: [sites.id] }),
+}));
+
+export const siteDeploymentsRelations = relations(
+  siteDeployments,
+  ({ one }) => ({
+    site: one(sites, {
+      fields: [siteDeployments.siteId],
+      references: [sites.id],
+    }),
+  })
 );

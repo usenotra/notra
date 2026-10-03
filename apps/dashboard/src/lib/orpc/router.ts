@@ -16,6 +16,7 @@ import { notificationsRouter } from "./routers/notifications";
 import { onboardingRouter } from "./routers/onboarding";
 import { outboundWebhooksRouter } from "./routers/outbound-webhooks";
 import { searchRouter } from "./routers/search";
+import { sitesRouter } from "./routers/sites";
 import { skillsRouter } from "./routers/skills";
 import { socialAccountsRouter } from "./routers/social-accounts";
 import { uploadRouter } from "./routers/upload";
@@ -36,6 +37,7 @@ export const dashboardRouter = {
   geo: geoRouter,
   github: githubRouter,
   iris: irisRouter,
+  sites: sitesRouter,
   integrations: integrationsRouter,
   logs: logsRouter,
   notifications: notificationsRouter,

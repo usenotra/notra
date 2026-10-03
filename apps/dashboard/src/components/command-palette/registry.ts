@@ -25,6 +25,7 @@ import {
   UserCircleIcon,
   UserGroupIcon,
   Wallet01Icon,
+  WebDesign01Icon,
 } from "@hugeicons/core-free-icons";
 
 import type {
@@ -206,6 +207,22 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     icon: NoteIcon,
     section: "Workspace",
     path: (slug) => `/${slug}/content`,
+  },
+  {
+    id: "sites",
+    label: "Sites",
+    keywords: [
+      "sites",
+      "blog",
+      "changelog",
+      "hosting",
+      "deployments",
+      "domains",
+      "previews",
+    ],
+    icon: WebDesign01Icon,
+    section: "Workspace",
+    path: (slug) => `/${slug}/sites`,
   },
   {
     id: "brand-company-info",

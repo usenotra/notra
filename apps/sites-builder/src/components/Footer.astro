@@ -1,0 +1,28 @@
+---
+import { socialIcon } from "../lib/icons";
+import { config, href } from "../lib/params";
+import Icon from "./Icon.astro";
+
+const socials = Object.entries(config.footer.socials);
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="border-t border-border">
+  <div class="flex w-full flex-col gap-3 px-5 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>© {year} {config.name}</span>
+      {config.footer.links.map((link) => <a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a>)}
+      <a href={href("feed.xml")} class="transition-colors hover:text-foreground">RSS</a>
+    </div>
+    <div class="flex items-center gap-4">
+      {
+        socials.map(([name, url]) => (
+          <a href={url} rel="noopener" aria-label={name} class="transition-colors hover:text-foreground">
+            <Icon name={socialIcon(name)} size={15} />
+          </a>
+        ))
+      }
+      <a href="https://usenotra.com/?ref=sites" rel="noopener" class="transition-colors hover:text-foreground">Powered by Notra</a>
+    </div>
+  </div>
+</footer>

@@ -35,6 +35,12 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { FeedbackForm } from "@/components/dashboard/feedback-popover";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
+import {
+  DeploymentTopbarTitle,
+  SiteSectionTopbarTitle,
+  SiteTopbarTitle,
+} from "@/components/sites/site-topbar-title";
+import { SITE_SECTIONS } from "@/constants/sites";
 import { useBreadcrumbLabels } from "@/lib/hooks/use-breadcrumb-labels";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
@@ -47,6 +53,7 @@ import {
 import { withGeoProject } from "@/utils/geo-paths";
 import { toGeoTab } from "@/utils/geo-tabs";
 import { scheduleDemo } from "@/utils/schedule-demo";
+import { siteHref } from "@/utils/site-links";
 
 const NON_ORG_PATHS: string[] = [];
 
@@ -226,9 +233,16 @@ function headerBreadcrumbItems(
     breadcrumbSegments[0] === "brand" &&
     breadcrumbSegments[1] === "identity";
   const isGeo = !isNonOrgPath && breadcrumbSegments[0] === "geo";
+  const isSiteDetail =
+    !isNonOrgPath &&
+    breadcrumbSegments[0] === "sites" &&
+    (breadcrumbSegments[1]?.startsWith("site_") ?? false);
 
   if (isBrandIdentity) {
     return brandIdentityHeaderBreadcrumbs(id, slug, labels);
+  }
+  if (isSiteDetail) {
+    return sitesHeaderBreadcrumbs(breadcrumbSegments, id, slug, labels);
   }
   if (isGeo) {
     return geoHeaderBreadcrumbs({
@@ -280,6 +294,81 @@ function brandIdentityHeaderBreadcrumbs(
     <BreadcrumbItem className="min-w-0" key={`${id}-brand-identity-selector`}>
       <BrandTopbarIdentitySelector slug={slug ?? ""} />
     </BreadcrumbItem>,
+  ];
+}
+
+/** `/sites/{siteId}[/deployments/{deploymentId}]` → Sites › Site name › sha. */
+function sitesHeaderBreadcrumbs(
+  breadcrumbSegments: string[],
+  id: string,
+  slug: string | undefined,
+  labels: BreadcrumbLabels
+) {
+  const siteId = breadcrumbSegments[1] ?? "";
+  const section = SITE_SECTIONS.find(
+    (item) => item.path === `/${breadcrumbSegments[2] ?? ""}`
+  )?.section;
+  const deploymentId =
+    section === "deployments" ? breadcrumbSegments[3] : undefined;
+  const siteSlug = slug ?? "";
+  const separator = (key: string) => (
+    <BreadcrumbSeparator key={`${id}-sites-sep-${key}`}>
+      <HugeiconsIcon icon={ArrowRight01Icon} />
+    </BreadcrumbSeparator>
+  );
+  return [
+    <BreadcrumbItem
+      className="shrink-0 hover:underline"
+      key={`${id}-sites-root`}
+    >
+      <BreadcrumbLink
+        render={<Link href={`/${slug}/sites`}>{labels.segments.sites}</Link>}
+      />
+    </BreadcrumbItem>,
+    separator("site"),
+    <BreadcrumbItem
+      className={cn("min-w-0", section && "hover:underline")}
+      key={`${id}-sites-site`}
+    >
+      <SiteTopbarTitle
+        href={section ? siteHref(siteSlug, siteId) : null}
+        siteId={siteId}
+      />
+    </BreadcrumbItem>,
+    ...(section
+      ? [
+          <BreadcrumbSeparator
+            className={cn(deploymentId && "max-sm:hidden")}
+            key={`${id}-sites-sep-section`}
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} />
+          </BreadcrumbSeparator>,
+          <BreadcrumbItem
+            // On phones the deployment crumb needs the room; the sidebar still shows the section.
+            className={cn(
+              "shrink-0",
+              deploymentId && "hover:underline max-sm:hidden"
+            )}
+            key={`${id}-sites-section`}
+          >
+            <SiteSectionTopbarTitle
+              href={deploymentId ? siteHref(siteSlug, siteId, section) : null}
+              section={section}
+            />
+          </BreadcrumbItem>,
+        ]
+      : []),
+    ...(deploymentId
+      ? [
+          separator("deployment"),
+          <BreadcrumbItem className="min-w-0" key={`${id}-sites-deployment`}>
+            <DeploymentTopbarTitle
+              deploymentId={deploymentId}
+              siteId={siteId}
+            />
+          </BreadcrumbItem>,
+        ]
+      : []),
   ];
 }
 

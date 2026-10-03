@@ -1,0 +1,65 @@
+---
+import BlogPost from "../components/BlogPost.astro";
+import ChangelogEntry from "../components/ChangelogEntry.astro";
+import Base from "../layouts/Base.astro";
+import { authorsOf, type BlogEntry, type ChangelogEntry as ChangelogEntryType, getBlogEntries, getChangelogEntries } from "../lib/entries";
+import { absoluteUrl, areaTitle, assetUrl, config, href, markdownHref, params } from "../lib/params";
+
+export async function getStaticPaths() {
+  if (params.area === "blog") {
+    const entries = await getBlogEntries();
+    return entries.map((entry) => ({
+      params: { slug: entry.id },
+      props: { kind: "blog" as const, entry },
+    }));
+  }
+  const entries = await getChangelogEntries();
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { kind: "changelog" as const, entry } }));
+}
+
+type Props =
+  | { kind: "blog"; entry: BlogEntry }
+  | { kind: "changelog"; entry: ChangelogEntryType };
+
+const props = Astro.props as Props;
+const entry = props.entry;
+const noindex = props.kind === "blog" ? props.entry.data.noindex || props.entry.data.draft : props.entry.data.draft;
+const image = assetUrl(entry.data.image);
+const jsonLd = {
+  "@type": props.kind === "blog" ? "BlogPosting" : "TechArticle",
+  headline: entry.data.title,
+  description: entry.data.description,
+  datePublished: entry.data.date.toISOString(),
+  dateModified: (props.kind === "blog" ? props.entry.data.updated : undefined)?.toISOString() ?? entry.data.date.toISOString(),
+  url: absoluteUrl(href(entry.id)),
+  mainEntityOfPage: absoluteUrl(href(entry.id)),
+  image: image ? absoluteUrl(image) : undefined,
+  keywords: entry.data.tags.length > 0 ? entry.data.tags.join(", ") : undefined,
+  author: props.kind === "blog" ? authorsOf(props.entry).map((name) => ({ "@type": "Person", name })) : undefined,
+  version: props.kind === "changelog" ? props.entry.data.version : undefined,
+  publisher: { "@type": "Organization", name: config.name },
+};
+---
+
+<Base
+  title={`${entry.data.title} · ${config.name}`}
+  description={entry.data.description ?? config.description}
+  image={entry.data.image}
+  type={props.kind === "blog" ? "article" : "website"}
+  noindex={noindex}
+  publishedTime={entry.data.date}
+  markdown={markdownHref(href(entry.id))}
+  jsonLd={jsonLd}
+>
+  {props.kind === "blog" && <BlogPost entry={props.entry} />}
+  {
+    props.kind === "changelog" && (
+      <div class="mx-auto max-w-3xl">
+        <a href={href()} class="text-sm text-muted-foreground transition-colors hover:text-foreground">← {areaTitle("changelog")}</a>
+        <div class="mt-8">
+          <ChangelogEntry entry={props.entry} standalone />
+        </div>
+      </div>
+    )
+  }
+</Base>

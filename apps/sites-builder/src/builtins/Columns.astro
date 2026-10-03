@@ -1,0 +1,8 @@
+---
+import CardGroup from "./CardGroup.astro";
+interface Props {
+  cols?: number;
+}
+---
+
+<CardGroup cols={Astro.props.cols}><slot /></CardGroup>

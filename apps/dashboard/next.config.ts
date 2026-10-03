@@ -111,6 +111,10 @@ const nextConfig: NextConfig = {
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",
+    "@notra/sites-core",
+    // Imported as TypeScript source through @notra/sites-server.
+    "@notra/sites-compiler",
+    "@notra/sites-server",
   ],
   serverExternalPackages: [
     // Let Next.js remove the guarded import before devtools filesystem tracing.

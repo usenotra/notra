@@ -1,0 +1,62 @@
+---
+import { areaHref, config, href, params } from "../lib/params";
+import { logoFor } from "../lib/theme";
+import ThemeToggle from "./ThemeToggle.astro";
+
+const lightLogo = logoFor("light");
+const darkLogo = logoFor("dark");
+const logoHref = typeof config.logo === "object" && config.logo.href ? config.logo.href : href();
+const sections = (["blog", "changelog"] as const)
+  .map((area) => ({ area, label: area === "blog" ? "Blog" : "Changelog", href: areaHref(area), active: area === params.area }))
+  .filter((section) => section.href !== null);
+---
+
+<header class="sticky top-0 z-30 border-b border-border bg-[color-mix(in_oklab,var(--page-background)_85%,transparent)] backdrop-blur-md">
+  <div class="flex h-14 w-full items-center gap-5 px-5 sm:px-6">
+    <a href={logoHref} class="flex min-w-0 shrink-0 items-center gap-2 text-sm font-semibold">
+      {
+        lightLogo && (
+          <>
+            <img src={lightLogo} alt="" width="20" height="20" class="size-5 rounded object-contain dark:hidden" />
+            <img src={darkLogo ?? lightLogo} alt="" width="20" height="20" class="hidden size-5 rounded object-contain dark:block" />
+          </>
+        )
+      }
+      <span class="truncate">{config.name}</span>
+    </a>
+
+    {
+      sections.length > 1 && (
+        <nav aria-label="Sections" class="flex items-center gap-4 text-sm">
+          {sections.map((section) => (
+            <a
+              href={section.href}
+              aria-current={section.active ? "page" : undefined}
+              class:list={["transition-colors", section.active ? "text-foreground" : "text-muted-foreground hover:text-foreground"]}
+            >
+              {section.label}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    <nav aria-label="Main" class="ml-auto flex items-center gap-4 text-sm">
+      {
+        config.navbar.links.map((link) => (
+          <a href={link.href} class="hidden text-muted-foreground transition-colors hover:text-foreground md:inline">
+            {link.label}
+          </a>
+        ))
+      }
+      <ThemeToggle />
+      {
+        config.navbar.cta && (
+          <a href={config.navbar.cta.href} class="btn btn-primary">
+            {config.navbar.cta.label}
+          </a>
+        )
+      }
+    </nav>
+  </div>
+</header>
