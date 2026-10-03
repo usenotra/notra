@@ -3958,6 +3958,10 @@
       "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
       "connectingProperty": "{property} wird verbunden…",
       "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
+    },
+    "liveIndicator": {
+      "label": "Live",
+      "hint": "Aktualisiert sich automatisch, sobald neue Daten ankommen"
     }
   },
   "integrations": {
@@ -6309,6 +6313,29 @@
     "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
   },
   "ai": {
+    "subagent": {
+      "names": {
+        "codeResearcher": "Code-Recherche",
+        "contentWriter": "Content-Writer",
+        "imageDesigner": "Bild-Designer",
+        "fallback": "Subagent"
+      },
+      "activity": {
+        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} notFound {Feature im Code nicht gefunden} interrupted {Unterbrochen} other {Repository konnte nicht gelesen werden}}",
+        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} skipped {Post übersprungen} notFound {Nichts zum Schreiben gefunden} interrupted {Unterbrochen} other {Post konnte nicht geschrieben werden}}",
+        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} skipped {Bild übersprungen} notFound {Nichts zu gestalten} interrupted {Unterbrochen} other {Bild konnte nicht gestaltet werden}}",
+        "fallback": "{state, select, running {Arbeitet} done {Fertig} skipped {Übersprungen} notFound {Nichts gefunden} interrupted {Unterbrochen} other {Fehlgeschlagen}}"
+      },
+      "steps": "{count, plural, =0 {keine Schritte} one {# Schritt} other {# Schritte}}",
+      "result": {
+        "brief": "Briefing: {feature}",
+        "draft": "{title, select, none {Entwurf gespeichert} other {Entwurf gespeichert: {title}}}",
+        "image": "{title, select, none {Bild gespeichert} other {Bild gespeichert: {title}}}",
+        "notFound": "{reason, select, none {Feature im Code nicht gefunden} other {Nicht gefunden: {reason}}}",
+        "skipped": "{reason, select, none {Übersprungen} other {Übersprungen: {reason}}}",
+        "failed": "{reason, select, none {Fehlgeschlagen} other {Fehlgeschlagen: {reason}}}"
+      }
+    },
     "toolBlock": {
       "tools": {
         "code_mode": "{state, select, running {Führe Tools aus} done {Tools ausgeführt} approve {Genehmigen: Tools} other {Fehlgeschlagen: Tools}}",
@@ -6368,7 +6395,16 @@
         "memory": "{state, select, running {Nutze Gedächtnis} done {Gedächtnis genutzt} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
         "getBrandReferences": "{state, select, running {Lade Markenreferenzen} done {Markenreferenzen geladen} approve {Genehmigen: Markenreferenzen} other {Fehlgeschlagen: Markenreferenzen}}",
         "webSearch": "{state, select, running {Suche im Web} done {Im Web gesucht} approve {Genehmigen: Websuche} other {Fehlgeschlagen: Websuche}}",
-        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}"
+        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
+        "codeResearcher": "{state, select, running {Untersuche den Code} done {Code untersucht} approve {Genehmigen: Code-Recherche} other {Fehlgeschlagen: Code-Recherche}}",
+        "contentWriter": "{state, select, running {Schreibe den Post} done {Post geschrieben} approve {Genehmigen: Post} other {Fehlgeschlagen: Post}}",
+        "openRepository": "{state, select, running {Öffne Repository} done {Repository geöffnet} approve {Genehmigen: Repository} other {Repository konnte nicht geöffnet werden}}",
+        "listRepositoryFiles": "{state, select, running {Liste Dateien} done {Dateien gelistet} approve {Genehmigen: Dateien} other {Fehlgeschlagen: Dateien}}",
+        "searchRepository": "{state, select, running {Durchsuche Code} done {Code durchsucht} approve {Genehmigen: Code-Suche} other {Fehlgeschlagen: Code-Suche}}",
+        "readRepositoryFile": "{state, select, running {Lese Datei} done {Datei gelesen} approve {Genehmigen: Datei} other {Fehlgeschlagen: Datei}}",
+        "repositoryHistory": "{state, select, running {Lese Historie} done {Historie gelesen} approve {Genehmigen: Historie} other {Fehlgeschlagen: Historie}}",
+        "showRepositoryChange": "{state, select, running {Prüfe Änderung} done {Änderung geprüft} approve {Genehmigen: Änderung} other {Fehlgeschlagen: Änderung}}",
+        "createPost": "{state, select, running {Speichere Entwurf} done {Entwurf gespeichert} approve {Genehmigen: Entwurf} other {Fehlgeschlagen: Entwurf}}"
       },
       "withSuffix": "{label} {suffix}",
       "memory": {

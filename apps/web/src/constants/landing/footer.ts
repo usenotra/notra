@@ -73,12 +73,12 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
         links: [
           {
             label: "Docs",
-            href: "https://docs.usenotra.com",
+            href: "https://www.usenotra.com/docs",
             external: true,
           },
           {
             label: "CLI",
-            href: "https://docs.usenotra.com/devtools/cli",
+            href: "https://www.usenotra.com/docs/devtools/cli",
             external: true,
           },
           {

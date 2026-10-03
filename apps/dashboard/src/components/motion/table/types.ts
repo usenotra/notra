@@ -112,6 +112,8 @@ interface TableBaseProps<T> {
   rowKeyboardActivation?: boolean;
   /** Only matching rows receive click handlers, keyboard activation, and pointer styling. */
   isRowClickable?: (row: T) => boolean;
+  /** Extra classes for a row, e.g. to animate rows that just arrived. */
+  getRowClassName?: (row: T) => string | undefined;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */

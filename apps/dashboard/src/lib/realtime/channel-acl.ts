@@ -6,6 +6,7 @@ import type { ParsedChatChannel } from "@/types/realtime/channel";
 
 const CHAT_CHANNEL_PREFIX = "chat";
 const DEMO_CHANNEL_PATTERN = /^demo:([^:*?\s]+)$/;
+const GEO_LIVE_CHANNEL_PATTERN = /^geo:([^:*?\s]+)$/;
 const CHAT_CHANNEL_SEGMENT_COUNT = 4;
 const FORBIDDEN_CHANNEL_CHARS = /[*?\s]/;
 
@@ -71,6 +72,11 @@ export async function authorizeRealtimeChannels({
     const demo = isDemoMode() ? DEMO_CHANNEL_PATTERN.exec(channel) : null;
     if (demo?.[1]) {
       parsed = { organizationId: demo[1], chatId: "demo", streamId: "demo" };
+    }
+    // GEO live updates: `geo:{orgId}`, any member of the organization.
+    const geo = GEO_LIVE_CHANNEL_PATTERN.exec(channel);
+    if (geo?.[1]) {
+      parsed = { organizationId: geo[1], chatId: "geo", streamId: "geo" };
     }
     if (!parsed) {
       return jsonResponse(403, { error: "Forbidden channel" });

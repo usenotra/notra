@@ -379,11 +379,30 @@ every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
-per project, with a 45-minute job limit for all three projects and API overhead.
+per project, with a 60-minute job limit for all projects, the Railway services,
+and API overhead.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
 already have started a build.
+
+The same release also deploys the Railway services `dashboard` and `demo-api`
+(project notra-demo, serving demo.usenotra.com) and `ai-traffic-ingest`
+(project notra-prod). Their main-branch deployment triggers are removed, so
+pushes to `main` no longer deploy them; keep the GitHub repository connected so
+the API can build the pinned commit. Add a GitHub Actions secret named
+`RAILWAY_TOKEN` containing a Railway workspace token for the Notra workspace
+(railway.com/account/tokens); a project token cannot reach both projects.
+Without it, the whole release fails, including the Vercel builds.
+
+Railway services use the same history and change checks, compared with each
+service's latest successful deployment, and an active Railway deployment blocks
+the release before any builds start. They deploy only after every Vercel build
+succeeded, so a failed Vercel release leaves them on the previous commit. The
+builds run in parallel, polling is limited to 20 minutes, and the release fails
+unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
+patterns must stay unset: a deployment skipped by them would leave a service
+behind production and fails the release.
 
 For an urgent release, open **Actions → Production deploy → Run workflow**, select
 `main`, and leave `dry_run` unchecked. This uses the same CI and change checks.

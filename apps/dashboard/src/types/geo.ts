@@ -184,6 +184,17 @@ export interface GeoProjectScopeProps {
   children: ReactNode;
 }
 
+export interface GeoLiveContextValue {
+  connected: boolean;
+  /** Live announcements received for the viewed scope so far. */
+  updates: number;
+}
+
+export interface GeoLiveProviderProps {
+  organizationId: string;
+  children: ReactNode;
+}
+
 export interface GeoOverviewPageEmpty {
   status: "empty";
   organizationId: string;
@@ -916,6 +927,11 @@ export interface AiTrafficLogCardProps {
 export interface CitationsTableProps {
   entries: GeoTrafficLogEntry[];
   height: number;
+  /**
+   * The query the entries answer; rows only animate in while it stays the
+   * same. Undefined while the entries are another query's placeholder.
+   */
+  liveKey?: string;
   loading?: boolean;
 }
 

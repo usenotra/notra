@@ -6,7 +6,11 @@ import {
   GEO_INGEST_DROPPED_LOG_SAMPLE_RATE,
   GEO_INGEST_ERROR_MESSAGE_MAX_LENGTH,
 } from "../constants/ingest";
-import type { GeoIngestDefer, GeoIngestResult } from "../types/ingest";
+import type {
+  GeoIngestBuffer,
+  GeoIngestDefer,
+  GeoIngestResult,
+} from "../types/ingest";
 import {
   getGeoIngestRegion,
   getGeoIngestRuntime,
@@ -65,7 +69,8 @@ function sampleRateFor(fields: IngestLogFields): number {
  */
 export async function handleGeoIngestRequest(
   request: Request,
-  defer: GeoIngestDefer
+  defer: GeoIngestDefer,
+  buffer?: GeoIngestBuffer
 ): Promise<Response> {
   const startedAt = performance.now();
   let response: Response;
@@ -73,7 +78,7 @@ export async function handleGeoIngestRequest(
 
   try {
     const outcome = await Effect.runPromise(
-      Effect.result(runGeoIngest(request, defer))
+      Effect.result(runGeoIngest(request, defer, buffer))
     );
     if (outcome._tag === "Failure") {
       response = toGeoIngestErrorResponse(outcome.failure);

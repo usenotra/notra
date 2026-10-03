@@ -13,6 +13,7 @@ export const AGENT_VOICE_HEADER = "x-notra-voice-id";
 export const AGENT_BRAND_AGENT_TYPE_HEADER = "x-notra-brand-agent-type";
 export const AGENT_SOURCE_METADATA_HEADER = "x-notra-source-metadata";
 export const AGENT_GENERATION_CONFIG_HEADER = "x-notra-generation-config";
+export const AGENT_CODE_RESEARCH_HEADER = "x-notra-code-research";
 
 export const AGENT_SURFACES = [
   "standalone-chat",

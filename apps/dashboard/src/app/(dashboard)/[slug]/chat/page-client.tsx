@@ -65,6 +65,7 @@ import {
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -166,6 +167,7 @@ import {
   resetNewChatClientState,
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { formatLongDate } from "@/utils/dashboard-greeting";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
@@ -2073,6 +2075,7 @@ function StandaloneChatPageClient({
   const chatActivity = getChatActivity(messages, isLoading || isMirrorWorking, {
     isStandaloneTool: (part) =>
       isContentEditorStandaloneTool(part) ||
+      (isToolUIPart(part) && isChatSubagentName(getToolName(part))) ||
       (isToolUIPart(part) &&
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),
@@ -2476,6 +2479,16 @@ function StandaloneChatPageClient({
         );
       }
 
+      if (isChatSubagentName(toolName)) {
+        return (
+          <ChatSubagentToolPart
+            isActive={messageId === chatActivity.activeMessageId}
+            key={toolPart.toolCallId}
+            part={toolPart}
+          />
+        );
+      }
+
       if (
         toolPart.state === "input-streaming" ||
         toolPart.state === "input-available" ||
@@ -2673,6 +2686,9 @@ function StandaloneChatPageClient({
                         : undefined;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
+                      const isGenerating =
+                        (isLoading || isMirrorWorking) &&
+                        message.id === lastAssistantMessageId;
                       const isEditing =
                         isUser && editingMessageId === message.id;
                       const userContentParts = isUser
@@ -2788,12 +2804,11 @@ function StandaloneChatPageClient({
                                       ? activitySeconds
                                       : undefined
                                   }
-                                  isLoading={
-                                    (isLoading || isMirrorWorking) &&
-                                    message.id === lastAssistantMessageId
-                                  }
+                                  isLoading={isGenerating}
                                   isStandaloneTool={(part) =>
                                     isContentEditorStandaloneTool(part) ||
+                                    (isToolUIPart(part) &&
+                                      isChatSubagentName(getToolName(part))) ||
                                     (isToolUIPart(part) &&
                                       part.type !== "dynamic-tool" &&
                                       (isCreateTool(part.type) ||
@@ -2839,7 +2854,7 @@ function StandaloneChatPageClient({
                                 }
                               />
                             )}
-                            {message.role === "assistant" && (
+                            {message.role === "assistant" && !isGenerating && (
                               <AssistantMetadataHover
                                 metadata={message.metadata}
                               />

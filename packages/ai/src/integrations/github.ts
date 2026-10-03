@@ -37,6 +37,7 @@ import type {
   GitHubAppPublishAccess,
   GitHubInstallationReference,
   GitHubCredentialDependencies,
+  GitHubInstallationTokenScope,
   SelectGitHubRepositoriesParams,
 } from "../types/github-operations";
 import type {
@@ -196,7 +197,8 @@ async function createGitHubAppInstallationToken(installationId: string) {
 
 function createGitHubAppInstallationTokenEffect(
   installationId: string,
-  requestTimeoutMs?: number
+  requestTimeoutMs?: number,
+  scope?: GitHubInstallationTokenScope
 ) {
   return Effect.gen(function* () {
     const jwt = yield* Effect.try({
@@ -213,6 +215,10 @@ function createGitHubAppInstallationTokenEffect(
           "POST /app/installations/{installation_id}/access_tokens",
           {
             installation_id: Number(installationId),
+            ...(scope?.repositories
+              ? { repositories: scope.repositories }
+              : {}),
+            ...(scope?.permissions ? { permissions: scope.permissions } : {}),
             headers: { "X-GitHub-Api-Version": "2022-11-28" },
           }
         ),
@@ -1719,19 +1725,24 @@ export function createGitHubAppInstallationTokenForRecordEffect(
 
 export function getTokenForIntegrationIdEffect(
   integrationId: string,
-  options?: { organizationId?: string; requestTimeoutMs?: number }
+  options?: {
+    organizationId?: string;
+    requestTimeoutMs?: number;
+    scope?: GitHubInstallationTokenScope;
+  }
 ) {
   return resolveGitHubToken(
     { integrationId, organizationId: options?.organizationId },
     {
       ...githubCredentialDependencies,
-      ...(options?.requestTimeoutMs === undefined
+      ...(options?.requestTimeoutMs === undefined && !options?.scope
         ? {}
         : {
             createInstallationToken: (installationId: string) =>
               createGitHubAppInstallationTokenEffect(
                 installationId,
-                options.requestTimeoutMs
+                options.requestTimeoutMs,
+                options.scope
               ),
           }),
       findIntegration: (params) =>
@@ -1768,7 +1779,11 @@ export function getTokenForIntegrationIdEffect(
 
 export function getTokenForIntegrationId(
   integrationId: string,
-  options?: { organizationId?: string; requestTimeoutMs?: number }
+  options?: {
+    organizationId?: string;
+    requestTimeoutMs?: number;
+    scope?: GitHubInstallationTokenScope;
+  }
 ) {
   return runGitHubEffect(
     getTokenForIntegrationIdEffect(integrationId, options).pipe(
@@ -1782,7 +1797,10 @@ export function getTokenForIntegrationId(
 
 export async function getGitHubToolRepositoryContextByIntegrationId(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: {
+    organizationId?: string;
+    tokenScope?: GitHubInstallationTokenScope;
+  }
 ): Promise<GitHubToolRepositoryContext> {
   const whereClause = options?.organizationId
     ? and(
@@ -1828,6 +1846,9 @@ export async function getGitHubToolRepositoryContextByIntegrationId(
   const token =
     (await getTokenForIntegrationId(integration.id, {
       organizationId: integration.organizationId,
+      scope: options?.tokenScope
+        ? { ...options.tokenScope, repositories: [repo] }
+        : undefined,
     })) ?? undefined;
 
   return {

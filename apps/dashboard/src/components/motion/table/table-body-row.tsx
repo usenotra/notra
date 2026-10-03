@@ -24,6 +24,7 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 }
 
 export function TableBodyRow<T>({
+  className,
   entry,
   index,
   isLastRow,
@@ -45,6 +46,7 @@ export function TableBodyRow<T>({
   renderRowContextMenu,
   rowRef,
 }: {
+  className?: string;
   entry: TableRow<T>;
   index: number;
   isLastRow: boolean;
@@ -78,7 +80,8 @@ export function TableBodyRow<T>({
         "group transition-colors",
         "data-[selected=true]:bg-primary/5",
         "hover:bg-muted/50",
-        onRowClick && "cursor-pointer"
+        onRowClick && "cursor-pointer",
+        className
       )}
       data-selected={isSelected}
       onClick={

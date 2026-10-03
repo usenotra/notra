@@ -22,7 +22,7 @@ import type {
 
 export const AGENT_FEEDBACK_NAV_LINK = "/feedback";
 export const AGENT_FEEDBACK_DOCS_URL =
-  "https://docs.usenotra.com/api/agent-feedback";
+  "https://www.usenotra.com/docs/api/agent-feedback";
 export const AGENT_FEEDBACK_API_BASE_URL = "https://api.usenotra.com";
 export const AGENT_FEEDBACK_API_PATH = "/v1/feedback";
 export const AGENT_FEEDBACK_API_URL_ENV = "FEEDBACK_API_URL";
