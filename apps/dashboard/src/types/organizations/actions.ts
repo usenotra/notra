@@ -40,6 +40,7 @@ export interface FullOrganization extends OrganizationRow {
 }
 
 export interface CreateOrganizationInput {
+  websiteUrl?: string;
   name: string;
   slug: string;
   logo?: string;

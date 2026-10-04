@@ -22,7 +22,6 @@ import {
 } from "@notra/db/schema";
 import { deleteBrandReferenceMemory } from "@notra/db/utils/supermemory";
 import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
-import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
@@ -47,6 +46,7 @@ import {
   updateGuidelineScreenshotSchema,
   updateGuidelineTokenSchema,
 } from "@notra/schemas/dashboard/brand-guidelines";
+import { isSameUrl } from "@notra/utils/url";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -97,6 +97,7 @@ import {
   fetchTwitterUserWithPinnedTweet,
   twitterAppFetch,
 } from "@/utils/twitter-fetcher";
+import { validateWebsiteUrl } from "@/utils/website-url";
 
 import {
   badRequest,
@@ -186,17 +187,6 @@ function isMemorySyncFieldUpdate(data: {
     Object.hasOwn(data, "applicableTo") ||
     Object.hasOwn(data, "sourceUrl")
   );
-}
-
-async function normalizeBrandVoiceWebsiteUrl(rawUrl: string) {
-  const parseResult = publicWebsiteUrlSchema.safeParse(rawUrl);
-
-  if (!parseResult.success) {
-    const tErrors = await getTranslations("errors.integrations");
-    throw badRequest(tErrors("publicUrlInvalid"));
-  }
-
-  return new URL(parseResult.data).href;
 }
 
 function serializeBrandVoice(voice: {
@@ -309,10 +299,6 @@ export const brandRouter = {
           typeof input.name === "string" && input.name.trim()
             ? input.name.trim()
             : (await getTranslations("brand.defaults"))("untitledIdentity");
-        const websiteUrl = await normalizeBrandVoiceWebsiteUrl(
-          input.websiteUrl
-        );
-
         const existingVoice = await db.query.brandSettings.findFirst({
           where: and(
             eq(brandSettings.organizationId, input.organizationId),
@@ -324,6 +310,8 @@ export const brandRouter = {
           const tErrors = await getTranslations("errors.brand");
           throw conflict(tErrors("voiceNameTaken"));
         }
+
+        const websiteUrl = await validateWebsiteUrl(input.websiteUrl);
 
         const hasAnyVoice = await db.query.brandSettings.findFirst({
           where: eq(brandSettings.organizationId, input.organizationId),
@@ -380,19 +368,24 @@ export const brandRouter = {
         });
         await assertActiveSubscription(input.organizationId);
 
-        await verifyVoiceOwnership(input.organizationId, input.voiceId);
+        const voice = await verifyVoiceOwnership(
+          input.organizationId,
+          input.voiceId
+        );
+
+        const normalizedWebsiteUrl =
+          input.websiteUrl === undefined ||
+          isSameUrl(input.websiteUrl, voice.websiteUrl)
+            ? undefined
+            : await validateWebsiteUrl(input.websiteUrl);
 
         try {
           const {
             organizationId: _organizationId,
             voiceId: _voiceId,
+            websiteUrl: _websiteUrl,
             ...updates
           } = input;
-
-          const normalizedWebsiteUrl =
-            updates.websiteUrl === undefined
-              ? undefined
-              : await normalizeBrandVoiceWebsiteUrl(updates.websiteUrl);
 
           await db
             .update(brandSettings)
@@ -634,9 +627,10 @@ export const brandRouter = {
         });
         await assertActiveSubscription(input.organizationId);
 
+        const url = await validateWebsiteUrl(input.url);
         await startBrandAnalysisRun({
           organizationId: input.organizationId,
-          url: input.url,
+          url,
           voiceId: input.voiceId || undefined,
         });
 
