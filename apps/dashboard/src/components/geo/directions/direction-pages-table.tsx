@@ -3,10 +3,13 @@
 import type { GeoTrafficPage } from "@notra/geo-core/types/geo";
 import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useFormatter, useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_DIRECTIONS_PAGES } from "@/constants/geo-directions";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
@@ -64,8 +67,7 @@ export function DirectionPagesTable({ className }: DirectionBlockProps) {
           })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_PAGES]}
         defaultSort={{ key: "visits", direction: "desc" }}

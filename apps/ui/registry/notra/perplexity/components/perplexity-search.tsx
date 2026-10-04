@@ -250,7 +250,7 @@ const SourcesBody = ({
 
   if (!footerProps.sequential && emptyDescription) {
     return (
-      <Empty className="items-start rounded-none border-0 p-0 text-left">
+      <Empty className="items-start rounded-none border-0 p-0 text-left md:p-0">
         <EmptyDescription className="text-pplx-subtle text-sm leading-5">
           {emptyDescription}
         </EmptyDescription>

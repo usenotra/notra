@@ -3,6 +3,10 @@
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Card, CardContent } from "@notra/ui/components/ui/card";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useMemo } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
@@ -11,8 +15,10 @@ import { EChartsLineChart } from "@/components/evilcharts/charts/echarts-line-ch
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { PromptResultsTable } from "@/components/geo/directions/prompt-results-table";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
+import {
+  InstrumentModule,
+  InstrumentSection,
+} from "@/components/instrument/instrument-module";
 import { CHART_PERCENT_SCALE } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,
@@ -205,8 +211,7 @@ function SourcesTable() {
           })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_SOURCES]}
         defaultSort={{ key: "visits", direction: "desc" }}
@@ -266,15 +271,15 @@ export function DirectionCockpit() {
             />
           </EChartsLineChart>
         </InstrumentModule>
-        <InstrumentModule eyebrow={t("cockpit.trafficBySource")}>
+        <InstrumentSection eyebrow={t("cockpit.trafficBySource")}>
           <SourcesTable />
-        </InstrumentModule>
-        <InstrumentModule
+        </InstrumentSection>
+        <InstrumentSection
           eyebrow={t("labels.promptResults")}
           readout={t("labels.positionPerEngine")}
         >
           <PromptResultsTable />
-        </InstrumentModule>
+        </InstrumentSection>
       </div>
     </div>
   );

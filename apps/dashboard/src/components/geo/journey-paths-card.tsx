@@ -5,12 +5,15 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourneyPageStats } from "@notra/geo-core/types/geo";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
 import { JourneyStatCard } from "@/components/geo/journey-stat-card";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneyPageKindStat, JourneyPathsCardProps } from "@/types/geo";
 import {
@@ -91,8 +94,7 @@ export function JourneyPathsCard({
       }))}
       total={totalPages}
     >
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={pages}
         defaultSort={{ key: "journeys", direction: "desc" }}

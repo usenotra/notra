@@ -1,6 +1,9 @@
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { PurposeBadge } from "@notra/ui/components/geo/purpose-badge";
 import { StatTiles } from "@notra/ui/components/geo/stat-tiles";
+import { cn } from "@notra/ui/lib/utils";
+
+import { MockFrame } from "@/components/landing/mock-frame";
 import {
   Table,
   TableBody,
@@ -8,10 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
-import { MockFrame } from "@/components/landing/mock-frame";
+} from "@/components/marketing-table";
 import {
   FEATURES_TABLE_OPTIONAL_COL,
   FEATURES_TRAFFIC_FRAME,

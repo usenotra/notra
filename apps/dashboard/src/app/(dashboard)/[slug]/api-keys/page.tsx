@@ -44,6 +44,10 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -97,7 +101,6 @@ import { Button } from "@/components/button";
 import { DemoApiCallout } from "@/components/demo/demo-api-callout";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   API_KEY_EXPIRATION_OPTIONS,
@@ -427,7 +430,7 @@ function ApiKeysTable({
   const visibleRows = isPending ? 3 : Math.max(keys.length, 1);
 
   return (
-    <Table
+    <DataTable
       columns={columns}
       data={keys}
       emptyState={t("empty")}

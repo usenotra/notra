@@ -8,6 +8,10 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Button } from "@notra/ui/components/ui/button";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Tooltip,
@@ -26,7 +30,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   ANALYTICS_PROVIDER_FILTER_VALUES,
   ANALYTICS_PROVIDER_FILTERS,
@@ -309,8 +312,7 @@ export function LeaderboardCard({
               </Button>
             )}
           </div>
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={columns}
             data={rows}
             defaultSort={{ key: "rank", direction: "asc" }}

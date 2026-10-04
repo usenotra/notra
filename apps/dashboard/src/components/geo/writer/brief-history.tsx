@@ -8,12 +8,16 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import { TABLE_FRAME_INSET_PX } from "@notra/ui/constants/table";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useBriefStatusLabels } from "@/lib/hooks/use-brief-status-labels";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import type { BriefHistoryProps } from "@/types/components/geo-writer";
@@ -57,7 +61,13 @@ function remainingTableHeight(element: HTMLElement): number {
     return 0;
   }
 
-  return page.getBoundingClientRect().bottom - inset - elementTop;
+  // The table frame adds its rim and borders on top of the passed height.
+  return (
+    page.getBoundingClientRect().bottom -
+    inset -
+    elementTop -
+    TABLE_FRAME_INSET_PX
+  );
 }
 
 function useFillHeight(fallback: number) {
@@ -108,10 +118,9 @@ export function BriefHistory({
   const [tableRef, tableHeight] = useFillHeight(GEO_WRITE_TABLE_HEIGHT);
   const tableBodyHeight = Math.min(
     tableHeight,
-    Math.max(
-      briefs.length * GEO_WRITE_TABLE_ROW_HEIGHT,
-      GEO_WRITE_TABLE_ROW_HEIGHT * GEO_WRITE_TABLE_MIN_ROWS
-    )
+    // One extra row for the header, which `height` includes.
+    (Math.max(briefs.length, GEO_WRITE_TABLE_MIN_ROWS) + 1) *
+      GEO_WRITE_TABLE_ROW_HEIGHT
   );
 
   const columns = useMemo<TableColumn<GeoContentBriefSummary>[]>(
@@ -172,8 +181,7 @@ export function BriefHistory({
 
   return (
     <div className="min-h-0 w-full" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={briefs}
         defaultSort={{ key: "createdAt", direction: "desc" }}

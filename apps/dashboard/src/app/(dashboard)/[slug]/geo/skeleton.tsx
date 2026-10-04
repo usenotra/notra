@@ -1,14 +1,12 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import {
-  GeoSectionSkeleton,
-  GeoTableSkeleton,
-} from "@/components/geo/skeleton-parts";
+import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 
 const ENGINE_ROW_COUNT = 4;
@@ -57,7 +55,7 @@ export function GeoPageSkeleton() {
             action={<Skeleton className="h-7 w-40 rounded-md" />}
             eyebrow={tGeoShared("engines")}
           >
-            <GeoTableSkeleton rows={ENGINE_ROW_COUNT} />
+            <DataTableSkeleton rows={ENGINE_ROW_COUNT} />
           </GeoSectionSkeleton>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <GeoSectionSkeleton

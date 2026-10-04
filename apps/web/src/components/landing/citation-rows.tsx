@@ -1,15 +1,15 @@
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { PurposeBadge } from "@notra/ui/components/geo/purpose-badge";
 import { ScrollArea, ScrollBar } from "@notra/ui/components/ui/scroll-area";
+import { cn } from "@notra/ui/lib/utils";
+
 import {
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
+} from "@/components/marketing-table";
 import {
   DUAL_TONE_TABLE_BODY,
   DUAL_TONE_TABLE_CLASS,

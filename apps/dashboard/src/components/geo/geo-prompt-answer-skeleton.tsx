@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import type { GeoPromptAnswerSkeletonProps } from "@/types/geo-prompt-detail";
 
 function RawAnswerSkeleton() {
@@ -34,7 +34,7 @@ function AnalysisAnswerSkeleton() {
         <Skeleton className="h-14 rounded-xl" />
         <Skeleton className="h-14 rounded-xl" />
       </div>
-      <GeoTableSkeleton rows={4} />
+      <DataTableSkeleton rows={4} />
     </div>
   );
 }

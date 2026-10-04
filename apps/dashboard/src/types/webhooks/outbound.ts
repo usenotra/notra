@@ -67,7 +67,11 @@ export interface WebhookDeliveriesProps {
   readonly loading: boolean;
   readonly fetching: boolean;
   readonly hasMore: boolean;
+  readonly hasEndpoints: boolean;
+  readonly canCreate: boolean;
+  readonly onCreate: () => void;
   readonly onSelect: (delivery: OutboundDelivery) => void;
+  readonly onFilter: (filter: WebhookFilter) => void;
   readonly onPage: (offset: number) => void;
 }
 

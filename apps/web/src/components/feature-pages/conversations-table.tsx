@@ -1,9 +1,9 @@
-import { TableCell, TableHead, TableRow } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
 
 import { EngineIcon } from "@/components/feature-pages/engine-icon";
 import { RankBadge } from "@/components/feature-pages/rank-badge";
 import { TableCard } from "@/components/feature-pages/table-card";
+import { TableCell, TableHead, TableRow } from "@/components/marketing-table";
 import {
   CONVERSATIONS_ENGINE_ROWS,
   CONVERSATIONS_THREAD_TITLE,
