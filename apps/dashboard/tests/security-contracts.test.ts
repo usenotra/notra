@@ -1,11 +1,18 @@
 import { describe, expect, test } from "bun:test";
 
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import { os, type RouterClient } from "@orpc/server";
+import { RPCHandler } from "@orpc/server/fetch";
+
 import { NON_DASHBOARD_PATH } from "../src/constants/auth-routes";
 import {
   buildPostAuthRedirectPath,
   sanitizeReturnTo,
 } from "../src/lib/auth/return-to";
 import { buildSessionCorsHeaders } from "../src/lib/auth/session-cors";
+import { createDashboardHandlerPlugins } from "../src/lib/orpc/handler-plugins";
+import { createDashboardLinkPlugins } from "../src/lib/orpc/link-plugins";
 import { evaluateLocalDevAuth } from "../src/utils/local-dev-auth";
 
 describe("migration executable security contracts", () => {
@@ -103,5 +110,57 @@ describe("migration executable security contracts", () => {
         reason: "non_loopback",
       });
     }
+  });
+
+  test("rpc procedures only run for requests carrying the dashboard client's CSRF header", async () => {
+    let calls = 0;
+    const router = {
+      mutate: os.handler(() => {
+        calls += 1;
+        return "ok";
+      }),
+    };
+    const handler = new RPCHandler(router, {
+      plugins: createDashboardHandlerPlugins(),
+    });
+    const handle = async (request: Request) =>
+      (await handler.handle(request, { prefix: "/rpc", context: {} }))
+        .response ?? new Response("Not Found", { status: 404 });
+
+    const forged = await handle(
+      new Request("https://app.invalid/rpc/mutate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      })
+    );
+    expect(forged.status).toBe(403);
+    const forgedBatch = await handle(
+      new Request("https://app.invalid/rpc/__batch__", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-orpc-batch": "buffered",
+        },
+        body: JSON.stringify([
+          { url: "https://app.invalid/rpc/mutate", method: "POST", body: {} },
+        ]),
+      })
+    );
+    expect(await forgedBatch.text()).not.toContain('"ok"');
+    expect(calls).toBe(0);
+
+    const client: RouterClient<typeof router> = createORPCClient(
+      new RPCLink({
+        url: "https://app.invalid/rpc",
+        plugins: createDashboardLinkPlugins(),
+        fetch: (request) => handle(request),
+      })
+    );
+    expect(await Promise.all([client.mutate(), client.mutate()])).toEqual([
+      "ok",
+      "ok",
+    ]);
+    expect(calls).toBe(2);
   });
 });
