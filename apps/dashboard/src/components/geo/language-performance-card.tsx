@@ -24,6 +24,10 @@ import {
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -37,7 +41,6 @@ import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Twemoji } from "@/components/geo/twemoji";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoSettingsLanguageAdd } from "@/lib/hooks/use-geo";
@@ -264,8 +267,7 @@ export function LanguagePerformanceCard({
         eyebrow={tGeoShared("performanceByLanguage")}
         hint={t("hint")}
       >
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={columns}
           data={rows}
           defaultSort={{ key: "mentionRate", direction: "desc" }}

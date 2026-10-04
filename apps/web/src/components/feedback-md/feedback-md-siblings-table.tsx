@@ -1,3 +1,5 @@
+import { cn } from "@notra/ui/lib/utils";
+
 import {
   Table,
   TableBody,
@@ -5,9 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
+} from "@/components/marketing-table";
 import { FEEDBACK_MD_SIBLINGS } from "@/lib/feedback-md/constants";
 
 export function FeedbackMdSiblingsTable() {

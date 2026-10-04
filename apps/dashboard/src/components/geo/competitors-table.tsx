@@ -3,6 +3,10 @@
 import { Delete02Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COMPETITORS_TABLE_ROW_HEIGHT } from "@notra/geo-core/constants/geo";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -13,7 +17,6 @@ import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { ShareOfVoiceCell } from "@/components/geo/share-of-voice-cell";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_COMPETITORS_TABLE_VISIBLE_ROWS } from "@/constants/geo-competitors";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
@@ -223,8 +226,7 @@ export function CompetitorsTable({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={
             hasShareData
               ? columns

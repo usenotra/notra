@@ -16,6 +16,11 @@ export interface UiLabels {
   goToNextPage: string;
   morePages: string;
   paginationRange: (start: string, end: string, total: string) => string;
+  paginationRangeOpen: (start: string, end: string) => string;
+  pageOf: (page: string, total: string) => string;
+  pageNumber: (page: string) => string;
+  showRows: (count: string) => string;
+  rowsPerPage: string;
   toggleSidebar: string;
   sidebarTitle: string;
   sidebarDescription: string;
@@ -36,6 +41,10 @@ export interface UiLabels {
   previousBranch: string;
   nextBranch: string;
   table: string;
+  noData: string;
+  selectAllRows: string;
+  selectRow: (row: string) => string;
+  resizeColumn: (column: string) => string;
   copyTableAsMarkdown: string;
   downloadTable: string;
   viewTableFullscreen: string;

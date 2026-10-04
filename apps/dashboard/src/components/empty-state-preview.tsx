@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardHeader } from "@notra/ui/components/ui/card";
+import { TABLE_BODY_CLASS, TABLE_FRAME_CLASS } from "@notra/ui/constants/table";
 import { useId } from "react";
 
 import {
@@ -56,8 +57,8 @@ export function EmptyStateTablePreview({
 }: EmptyStateTablePreviewProps) {
   const id = useId();
   return (
-    <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border shadow-2xs">
-      <div className="border-border/60 bg-muted/80 flex items-center gap-4 border-b px-4 py-2.5">
+    <div className={TABLE_FRAME_CLASS}>
+      <div className="flex items-center gap-4 px-4 py-2.5">
         {columns.map((width, column) => {
           const columnKey = EMPTY_STATE_COLUMN_KEYS[column];
           if (!columnKey) {
@@ -72,26 +73,28 @@ export function EmptyStateTablePreview({
           );
         })}
       </div>
-      {EMPTY_STATE_ROW_KEYS.slice(0, rows).map((rowKey, row) => (
-        <div
-          className="border-border/60 bg-background flex items-center gap-4 border-b px-4 py-3 last:border-b-0"
-          key={`${id}-${rowKey}`}
-        >
-          {columns.map((width, column) => {
-            const columnKey = EMPTY_STATE_COLUMN_KEYS[column];
-            if (!columnKey) {
-              return null;
-            }
-            return (
-              <GhostBar
-                className="h-4"
-                key={`${id}-${rowKey}-${columnKey}`}
-                width={scaledWidth(width, row, column)}
-              />
-            );
-          })}
-        </div>
-      ))}
+      <div className={cn(TABLE_BODY_CLASS, "overflow-hidden")}>
+        {EMPTY_STATE_ROW_KEYS.slice(0, rows).map((rowKey, row) => (
+          <div
+            className="border-border/60 flex items-center gap-4 border-b px-4 py-3 last:border-b-0"
+            key={`${id}-${rowKey}`}
+          >
+            {columns.map((width, column) => {
+              const columnKey = EMPTY_STATE_COLUMN_KEYS[column];
+              if (!columnKey) {
+                return null;
+              }
+              return (
+                <GhostBar
+                  className="h-4"
+                  key={`${id}-${rowKey}-${columnKey}`}
+                  width={scaledWidth(width, row, column)}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

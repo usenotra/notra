@@ -6,6 +6,7 @@ export type LandingPreview =
   | "claude"
   | "claude-code"
   | "codex"
+  | "data-table"
   | "duotone-tooltip"
   | "gemini"
   | "marketing-button"

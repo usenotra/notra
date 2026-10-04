@@ -7,9 +7,9 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Badge } from "@notra/ui/components/ui/badge";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "use-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
 import { MemberActions } from "./member-actions";

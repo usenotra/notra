@@ -34,6 +34,14 @@
     {
       "source": "/integrations/mcp",
       "destination": "/devtools/mcp"
+    },
+    {
+      "source": "/integrations/featul",
+      "destination": "/integrations/overview"
+    },
+    {
+      "source": "/api/rust-sdk",
+      "destination": "/api/getting-started"
     }
   ],
   "api": {
@@ -129,7 +137,6 @@
               "integrations/granola",
               "integrations/google-search-console",
               "integrations/framer",
-              "integrations/featul",
               "integrations/kontentspace"
             ]
           },
@@ -170,7 +177,6 @@
           {
             "group": "Guides",
             "pages": [
-              "api/rust-sdk",
               "api/caching",
               "api/common-tasks",
               "api/pagination",

@@ -124,13 +124,6 @@ export interface GeoScanPromptCellProps {
   turn: number | null;
 }
 
-export interface GeoScanTablePaginationProps {
-  offset: number;
-  total: number;
-  itemLabel: string;
-  onOffsetChange: (offset: number) => void;
-}
-
 export interface GeoScanRunEmptyStateInput {
   running: boolean;
   isError: boolean;

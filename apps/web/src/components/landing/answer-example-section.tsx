@@ -1,6 +1,9 @@
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { PromptOutcomeIcon } from "@notra/ui/components/geo/prompt-outcome-icon";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { cn } from "@notra/ui/lib/utils";
+
+import { DeferredAnswerDemo } from "@/components/landing/deferred-answer-demo";
 import {
   Table,
   TableBody,
@@ -8,10 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
-import { DeferredAnswerDemo } from "@/components/landing/deferred-answer-demo";
+} from "@/components/marketing-table";
 import {
   ANSWER_EXAMPLE_FACTS,
   ANSWER_EXAMPLE_HEADING,

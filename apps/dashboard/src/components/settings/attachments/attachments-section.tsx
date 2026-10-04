@@ -16,6 +16,7 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import {
   Select,
   SelectContent,
@@ -35,7 +36,6 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
-import { Table } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { createAttachmentColumns } from "@/components/settings/attachments/attachment-columns";
 import { SettingsPane } from "@/components/settings/settings-pane";
@@ -196,8 +196,7 @@ export function AttachmentsSection() {
         ) : null}
       </div>
 
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={attachments}
         emptyState={isError ? t("loadFailed") : t("empty")}

@@ -3,6 +3,7 @@
 import { Delete02Icon, File02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MIME_DISPLAY_LABELS } from "@notra/schemas/constants/dashboard/upload";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import {
   Tooltip,
   TooltipContent,
@@ -10,7 +11,6 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 
 import { Button } from "@/components/button";
-import type { TableColumn } from "@/components/motion/table";
 import {
   isImageMimeType,
   isPdfMimeType,

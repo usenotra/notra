@@ -1,11 +1,3 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { CODEX_COLORS } from "@notra/ui/constants/codex-skin";
 import { cn } from "@notra/ui/lib/utils";
 import type { CodexListProps, CodexTableProps } from "@notra/ui/types/codex-skin";
@@ -54,17 +46,24 @@ export function CodexTable({
     borderBottom: isLastRow ? undefined : `1px solid ${CODEX_COLORS.rule}`,
   });
 
+  // The skin mirrors the Codex terminal, so it renders a bare table instead
+  // of the app's framed one.
   return (
-    <div className={cn("-ml-[2ch] max-w-[calc(100%+2ch)]", className)}>
-      <Table
-        className="w-auto text-left text-[length:inherit] normal-nums"
+    <div
+      className={cn(
+        "-ml-[2ch] max-w-[calc(100%+2ch)] overflow-x-auto",
+        className
+      )}
+    >
+      <table
+        className="w-auto border-separate text-left text-[length:inherit] normal-nums"
         style={{ borderSpacing: "2ch 0" }}
       >
-        <TableHeader className="bg-transparent text-inherit">
-          <TableRow className="hover:bg-transparent">
+        <thead>
+          <tr>
             {headers.map((header) => (
-              <TableHead
-                className="h-auto px-[1ch] pb-[0.65em] font-bold whitespace-normal"
+              <th
+                className="px-[1ch] pb-[0.65em] align-middle font-bold"
                 key={header}
                 scope="col"
                 style={{
@@ -73,17 +72,17 @@ export function CodexTable({
                 }}
               >
                 {header}
-              </TableHead>
+              </th>
             ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&>tr>td]:bg-transparent [&>tr:hover>td]:bg-transparent [&_tr:first-child>td]:shadow-none">
+          </tr>
+        </thead>
+        <tbody>
           {withTextKeys(rows, (row) => row.map(nodeText).join("|")).map(
             ({ item: row, key }, rowIndex) => (
-              <TableRow className="hover:bg-transparent" key={key}>
+              <tr key={key}>
                 {row.map((cell, columnIndex) => (
-                  <TableCell
-                    className="px-[1ch] py-[0.65em] align-top whitespace-normal"
+                  <td
+                    className="px-[1ch] py-[0.65em] align-top"
                     key={headers[columnIndex] ?? `extra-${columnIndex}`}
                     style={{
                       ...cellStyle(rowIndex === rows.length - 1),
@@ -93,13 +92,13 @@ export function CodexTable({
                     }}
                   >
                     {cell}
-                  </TableCell>
+                  </td>
                 ))}
-              </TableRow>
+              </tr>
             )
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }
