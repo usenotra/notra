@@ -25,6 +25,9 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
   const AuthFlow = lazyPage(
     () => import("@/app/design-system/auth-flow/page.dev")
   );
+  const BreakUi = lazyPage(
+    () => import("@/app/design-system/break-ui/page.dev")
+  );
   const CodeResearch = lazyPage(
     () => import("@/app/design-system/code-research/page.dev")
   );
@@ -85,6 +88,12 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
         path: "auth-flow",
         preload: AuthFlow.preload,
         component: () => <AuthFlow />,
+      }),
+      createUiRoute({
+        parent: preview,
+        path: "break-ui",
+        preload: BreakUi.preload,
+        component: () => <BreakUi />,
       }),
       createUiRoute({
         parent: preview,

@@ -18,6 +18,7 @@ const LINKS = [
   { href: "/design-system/geo-traffic", label: "GEO traffic" },
   { href: "/design-system/scan-filters", label: "Scans table" },
   { href: "/design-system/webhooks", label: "Webhooks" },
+  { href: "/design-system/break-ui", label: "Break UI" },
 ] as const;
 
 export function DesignSystemNav() {
