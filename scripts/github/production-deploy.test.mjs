@@ -3,7 +3,13 @@ import { test } from "node:test";
 
 import { release } from "./production-deploy.mjs";
 
-function fixture({ dryRun = false, changed = () => true, override } = {}) {
+function fixture({
+  dryRun = false,
+  changed = () => true,
+  override,
+  api = false,
+  apiStatus = 200,
+} = {}) {
   const sha = "a".repeat(40);
   const previousSha = "b".repeat(40);
   const calls = [];
@@ -19,6 +25,7 @@ function fixture({ dryRun = false, changed = () => true, override } = {}) {
     GITHUB_REPOSITORY: "usenotra/notra",
     GITHUB_REF: "refs/heads/main",
     DRY_RUN: String(dryRun),
+    ...(api ? { UNKEY_DEPLOY_ROOT_KEY: "test-unkey" } : {}),
   };
   const fetchImpl = async (input, options) => {
     const url = new URL(input);
@@ -66,6 +73,59 @@ function fixture({ dryRun = false, changed = () => true, override } = {}) {
             url: "production.vercel.app",
           };
         }
+      } else if (url.hostname === "api.unkey.com") {
+        assert.equal(options.headers.Authorization, "Bearer test-unkey");
+        switch (url.pathname) {
+          case "/v2/domains.listDomains":
+            data = [
+              {
+                domain: "api.usenotra.com",
+                status: "verified",
+                projectId: "proj_test",
+                appId: "app_test",
+                environmentId: "env_test",
+              },
+            ];
+            break;
+          case "/v2/apps.getApp":
+            data = {
+              id: "app_test",
+              slug: "api",
+              git: { repository: "usenotra/notra", defaultBranch: "main" },
+              isRolledBack: false,
+              currentDeploymentId: "live-api",
+            };
+            break;
+          case "/v2/environments.getEnvironment":
+            data = {
+              id: "env_test",
+              slug: "production",
+              kind: "production",
+              build: { autoDeploy: false },
+            };
+            break;
+          case "/v2/deployments.listDeployments":
+            data = [];
+            break;
+          case "/v3/deployments.createDeployment":
+            data = { deploymentId: "new-api" };
+            break;
+          case "/v2/deployments.getDeployment":
+            data = {
+              id: body.deploymentId,
+              status: "ready",
+              isCurrent: true,
+              project: "notra",
+              app: "api",
+              environment: "production",
+              git: {
+                commitSha: body.deploymentId === "new-api" ? sha : previousSha,
+              },
+            };
+            break;
+          default:
+            assert.fail(`Unexpected Unkey endpoint: ${url.pathname}`);
+        }
       } else {
         assert.equal(url.hostname, "backboard.railway.com");
         if (body.query.includes("serviceInstanceDeployV2")) {
@@ -86,7 +146,13 @@ function fixture({ dryRun = false, changed = () => true, override } = {}) {
         data = { data };
       }
     }
-    return { ok: true, json: async () => data };
+    const status =
+      typeof apiStatus === "function" ? apiStatus(call) : apiStatus;
+    return {
+      ok: url.hostname !== "api.unkey.com" || (status >= 200 && status < 300),
+      status,
+      json: async () => (url.hostname === "api.unkey.com" ? { data } : data),
+    };
   };
   return {
     sha,
@@ -111,6 +177,7 @@ function builds(calls) {
   return calls.filter(
     ({ url, body }) =>
       url.pathname === "/v13/deployments" ||
+      url.pathname === "/v3/deployments.createDeployment" ||
       body?.query?.includes("serviceInstanceDeployV2")
   );
 }
@@ -227,3 +294,206 @@ test("failed agent deployment prevents Railway builds", async () => {
     builds(calls).every(({ url }) => url.hostname === "api.vercel.com")
   );
 });
+
+test("Unkey is opt-in and does not call its API without a deployment key", async () => {
+  const { run, calls } = fixture();
+  await run();
+  assert.ok(calls.every(({ url }) => url.hostname !== "api.unkey.com"));
+});
+
+test("Unkey discovers the verified production domain and deploys the pinned commit", async () => {
+  const { run, calls, sha, directories } = fixture({ api: true });
+  await run();
+  const deployment = calls.find(
+    ({ url }) => url.pathname === "/v3/deployments.createDeployment"
+  );
+  assert.deepEqual(deployment.body, {
+    project: "proj_test",
+    app: "app_test",
+    environment: "env_test",
+    git: { branch: "main", commitSha: sha },
+  });
+  assert.equal(directories.length, 9);
+  const apiIndex = calls.indexOf(deployment);
+  assert.ok(
+    calls.findIndex(({ body }) =>
+      body?.query?.includes("serviceInstanceDeployV2")
+    ) > apiIndex
+  );
+});
+
+test("Unkey dry run can inspect auto-deploy configuration without creating builds", async () => {
+  const { run, calls } = fixture({
+    api: true,
+    dryRun: true,
+    override: ({ url }) =>
+      url.pathname === "/v2/environments.getEnvironment"
+        ? {
+            id: "env_test",
+            slug: "production",
+            kind: "production",
+            build: { autoDeploy: true },
+          }
+        : undefined,
+  });
+  await run();
+  assert.equal(builds(calls).length, 0);
+});
+
+test("unchanged API skips the Unkey build", async () => {
+  const { run, calls } = fixture({
+    api: true,
+    changed: (app) => app !== "apps/api",
+  });
+  await run();
+  assert.ok(
+    calls.every(
+      ({ url }) => url.pathname !== "/v3/deployments.createDeployment"
+    )
+  );
+});
+
+for (const [name, path, data] of [
+  ["missing domain", "/v2/domains.listDomains", []],
+  [
+    "unverified domain",
+    "/v2/domains.listDomains",
+    [{ domain: "api.usenotra.com", status: "pending" }],
+  ],
+  [
+    "wrong repository",
+    "/v2/apps.getApp",
+    {
+      id: "app_test",
+      git: { repository: "other/repo", defaultBranch: "main" },
+    },
+  ],
+  [
+    "wrong branch",
+    "/v2/apps.getApp",
+    {
+      id: "app_test",
+      git: { repository: "usenotra/notra", defaultBranch: "develop" },
+    },
+  ],
+  [
+    "rollback",
+    "/v2/apps.getApp",
+    {
+      id: "app_test",
+      git: { repository: "usenotra/notra", defaultBranch: "main" },
+      isRolledBack: true,
+    },
+  ],
+  [
+    "preview environment",
+    "/v2/environments.getEnvironment",
+    { id: "env_test", kind: "preview" },
+  ],
+  [
+    "automatic production deployment",
+    "/v2/environments.getEnvironment",
+    { id: "env_test", kind: "production", build: { autoDeploy: true } },
+  ],
+  [
+    "active deployment",
+    "/v2/deployments.listDeployments",
+    [{ id: "active-api" }],
+  ],
+  [
+    "unidentified live commit",
+    "/v2/deployments.getDeployment",
+    {
+      id: "live-api",
+      status: "ready",
+      isCurrent: true,
+      app: "api",
+      environment: "production",
+    },
+  ],
+]) {
+  test(`Unkey ${name} prevents all builds`, async () => {
+    const { run, calls } = fixture({
+      api: true,
+      override: ({ url }) => (url.pathname === path ? data : undefined),
+    });
+    await assert.rejects(run(), /unkey/);
+    assert.equal(builds(calls).length, 0);
+  });
+}
+
+test("Unkey authentication failure prevents all builds without exposing credentials", async () => {
+  const { run, calls } = fixture({ api: true, apiStatus: 403 });
+  await assert.rejects(run(), {
+    message: "unkey v2/domains.listDomains: HTTP 403",
+  });
+  assert.equal(builds(calls).length, 0);
+});
+
+test("diverged Unkey production history prevents all builds", async () => {
+  const { run, calls } = fixture({
+    api: true,
+    override: ({ url }) =>
+      url.pathname.includes("/compare/") ? { status: "diverged" } : undefined,
+  });
+  await assert.rejects(run(), /unkey API: release commit is not ahead/);
+  assert.equal(builds(calls).length, 0);
+});
+
+test("Unkey creation failure is not retried and prevents Railway builds", async () => {
+  const { run, calls } = fixture({
+    api: true,
+    apiStatus: ({ url }) =>
+      url.pathname === "/v3/deployments.createDeployment" ? 500 : 200,
+  });
+  await assert.rejects(
+    run(),
+    /unkey v3\/deployments.createDeployment: HTTP 500/
+  );
+  assert.equal(
+    calls.filter(
+      ({ url }) => url.pathname === "/v3/deployments.createDeployment"
+    ).length,
+    1
+  );
+  assert.ok(
+    builds(calls).every(({ url }) => url.hostname !== "backboard.railway.com")
+  );
+});
+
+for (const [name, update] of [
+  ["failed", { status: "failed" }],
+  ["wrong commit", { git: { commitSha: "c".repeat(40) } }],
+  ["wrong target", { app: "other" }],
+  ["never current", { isCurrent: false }],
+]) {
+  test(`Unkey deployment ${name} blocks Railway releases`, async () => {
+    const { run, calls } = fixture({
+      api: true,
+      override: ({ url, body }) =>
+        url.pathname === "/v2/deployments.getDeployment" &&
+        body.deploymentId === "new-api"
+          ? {
+              id: "new-api",
+              status: "ready",
+              isCurrent: true,
+              project: "notra",
+              app: "api",
+              environment: "production",
+              git: { commitSha: "a".repeat(40) },
+              ...update,
+            }
+          : undefined,
+    });
+    await assert.rejects(run(), /unkey/);
+    assert.ok(
+      builds(calls).every(({ url }) => url.hostname !== "backboard.railway.com")
+    );
+    assert.equal(
+      calls.filter(
+        ({ url }) => url.pathname === "/v3/deployments.createDeployment"
+      ).length,
+      1
+    );
+  });
+}

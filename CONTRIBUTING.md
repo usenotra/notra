@@ -382,7 +382,7 @@ and build cache remain in use. The workflow waits for `READY`, verifies the buil
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
 per project. Five sequential Vercel builds plus the 20-minute Railway phase can
-take up to 70 minutes, excluding API overhead, within the workflow's 100-minute
+take up to 70 minutes, excluding API overhead, within the workflow's 120-minute
 job limit.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
@@ -407,12 +407,42 @@ unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
 patterns must stay unset: a deployment skipped by them would leave a service
 behind production and fails the release.
 
-The production API at `api.usenotra.com` is hosted on Unkey Compute,
-not the Railway `demo-api` service, and remains separate from this release.
-Adding it requires credentials for its Compute workspace and verified deployment
-targets. Do not disable its per-push trigger until a replacement pinned-SHA
-release is merged and verified. Adding the Railway demo API does not control
-the production API.
+The production API at `api.usenotra.com` is hosted on Unkey Compute, not the
+Railway `demo-api` service. Its scheduled release is opt-in: add the GitHub Actions
+secret `UNKEY_DEPLOY_ROOT_KEY` to enable it. Without that secret, the workflow
+reports that the API remains outside the scheduled release and continues releasing
+the other services. Use a separate deployment root key from the API's runtime
+`UNKEY_ROOT_KEY`; no new application `.env` values are needed.
+
+The script discovers the target from the exact verified `api.usenotra.com` domain
+using [Unkey's domain API](https://unkey.com/docs/compute/api-reference/domains/list-domains).
+It verifies the app's connected repository and `main` branch, the production
+environment, its current live deployment and Git history, and the absence of
+active deployments or a rollback. Configured but inaccessible or invalid targets
+prevent all new builds; the script does not fall back to an unrelated project.
+Give the Compute-workspace root key read access to this app, its production
+environment, domains and deployments, and write access to its deployment
+collection. It does not need environment-variable access, environment-setting
+write access, or permissions to other apps. See the
+[root-key permission reference](https://unkey.com/docs/platform/root-keys/permission-reference).
+
+To activate after merging, add the secret and run **Production deploy** with
+`dry_run` checked. This performs read-only preflight requests and reports the
+planned API deployment; it allows auto deploy to remain enabled during inspection.
+After a successful dry-run, turn off **Auto deploy** for the API's production
+environment under Unkey **App Settings → Build settings**, preserving its GitHub
+repository connection and preview settings. Then run a manual production release
+and verify it. Real releases refuse to run while production auto deploy is enabled
+or cannot be verified as disabled. Never disable the existing trigger before the
+replacement configuration is ready.
+
+Changed API builds use [createDeployment](https://unkey.com/docs/compute/api-reference/deployments/create-deployment)
+with the exact checked `git.commitSha`. After the Vercel releases succeed, the
+workflow builds the API and polls for up to 20 minutes until that deployment is
+`ready`, has the expected target and commit, and is current in production. An API
+failure prevents Railway deployments. Deployment creation is not retried, and no
+provider settings are changed by the workflow. The release is not atomic: an API
+failure does not roll back Vercel projects that have already published.
 
 For an urgent release, open **Actions → Production deploy → Run workflow**, select
 `main`, and leave `dry_run` unchecked. This uses the same CI and change checks.
