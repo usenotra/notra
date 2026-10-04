@@ -907,13 +907,19 @@ export const geoRouter = {
     }),
   modelCatalog: authorizedProcedure
     .input(geoModelCatalogInputSchema)
-    .handler(({ input }) =>
-      Effect.runPromise(
+    .handler(async ({ context, input }) => {
+      // The catalog carries the organization's engine flags.
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      return Effect.runPromise(
         loadGeoModelCatalog(input.organizationId).pipe(
           Effect.provide(geoCoreDashboardLayer)
         )
-      )
-    ),
+      );
+    }),
   settings: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoOpenHandler((input) => loadGeoSettings(input))),
