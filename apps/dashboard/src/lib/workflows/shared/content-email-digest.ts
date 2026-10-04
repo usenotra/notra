@@ -1,7 +1,12 @@
 import { redis } from "@notra/ai/utils/redis";
 import type { EmailResult } from "@notra/email/types/brew";
 
-import { CONTENT_EMAIL_DIGEST_TTL_SECONDS } from "@/constants/workflows";
+import {
+  ACK_CONTENT_EMAIL_DIGEST_SCRIPT,
+  CONTENT_EMAIL_DIGEST_BATCH_SENT,
+  CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
+  CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+} from "@/constants/workflows";
 import {
   sendAiCreditsDepletedEmail,
   sendScheduledContentCreatedEmail,
@@ -155,22 +160,29 @@ function assertEmailSent({
 }
 
 /**
- * Pins the events a flush sends to the first attempt. Events appended while a
- * send is in flight stay out of a retry, so the retry reuses the same Brew
- * idempotency key and they wait for the next window instead.
+ * Pins the events a flush sends to its first attempt, so a retry resends the
+ * same email under the same Brew idempotency key. Events appended meanwhile
+ * go to the next flush. `acknowledge` is safe to repeat and tells whether
+ * such events are waiting.
  */
 async function readDigestBatch(digestKey: string, batchId: string) {
   if (!redis) {
-    return { rawEvents: [] as unknown[], complete: async () => {} };
+    return {
+      rawEvents: [] as unknown[],
+      alreadySent: false,
+      acknowledge: async () => false,
+    };
   }
 
   const client = redis;
-  const batchSizeKey = `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`;
-  await client.set(batchSizeKey, await client.llen(digestKey), {
-    ex: CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+  const batchKey = `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`;
+  await client.set(batchKey, await client.llen(digestKey), {
+    ex: CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
     nx: true,
   });
-  const batchSize = Number(await client.get(batchSizeKey));
+  const batch = await client.get<number | string>(batchKey);
+  const alreadySent = batch === CONTENT_EMAIL_DIGEST_BATCH_SENT;
+  const batchSize = alreadySent ? 0 : Number(batch);
   const rawEvents =
     batchSize > 0
       ? await client.lrange<unknown>(digestKey, 0, batchSize - 1)
@@ -178,38 +190,29 @@ async function readDigestBatch(digestKey: string, batchId: string) {
 
   return {
     rawEvents,
-    complete: async () => {
-      await client.ltrim(digestKey, rawEvents.length, -1);
-      await client.del(getContentEmailDigestLockKey(digestKey), batchSizeKey);
-    },
+    alreadySent,
+    acknowledge: async () =>
+      (await client.eval(
+        ACK_CONTENT_EMAIL_DIGEST_SCRIPT,
+        [digestKey, getContentEmailDigestLockKey(digestKey), batchKey],
+        [
+          CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+          CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
+          CONTENT_EMAIL_DIGEST_BATCH_SENT,
+        ]
+      )) === 1,
   };
 }
 
-/**
- * Sends one digest. `batchId` must be unique per flush and stable across its
- * retries (the workflow step id): it scopes the batch and the idempotency key.
- */
-export async function flushContentEmailDigest(
-  { digestKey, recipientEmail, kind }: ContentEmailDigestPayload,
-  batchId: string
+async function sendDigest(
+  { recipientEmail, kind }: ContentEmailDigestPayload,
+  events: ContentEmailDigestEvent[],
+  digestBatchKey: string
 ) {
-  if (!redis) {
-    return;
-  }
-
-  const { rawEvents, complete } = await readDigestBatch(digestKey, batchId);
-  const events = parseDigestEvents(rawEvents, kind);
-  if (events.length === 0) {
-    await complete();
-    return;
-  }
-
   const firstEvent = events[0];
   if (!firstEvent) {
     return;
   }
-
-  const digestBatchKey = `${digestKey}:${batchId}`;
 
   if (kind === "ai_credits_depleted") {
     const creditEvents = events.filter(
@@ -235,7 +238,6 @@ export async function flushContentEmailDigest(
       recipientEmail,
       kind,
     });
-    await complete();
     return;
   }
 
@@ -274,7 +276,6 @@ export async function flushContentEmailDigest(
       recipientEmail,
       kind,
     });
-    await complete();
     return;
   }
 
@@ -306,7 +307,6 @@ export async function flushContentEmailDigest(
       recipientEmail,
       kind,
     });
-    await complete();
     return;
   }
 
@@ -337,5 +337,27 @@ export async function flushContentEmailDigest(
     recipientEmail,
     kind,
   });
-  await complete();
+}
+
+/**
+ * Sends one digest and returns whether newer events are waiting for another
+ * flush. `batchId` must be unique per flush and stable across its retries
+ * (the workflow step id): it scopes the batch and the idempotency key.
+ */
+export async function flushContentEmailDigest(
+  payload: ContentEmailDigestPayload,
+  batchId: string
+): Promise<boolean> {
+  const { rawEvents, alreadySent, acknowledge } = await readDigestBatch(
+    payload.digestKey,
+    batchId
+  );
+  if (!alreadySent) {
+    await sendDigest(
+      payload,
+      parseDigestEvents(rawEvents, payload.kind),
+      `${payload.digestKey}:${batchId}`
+    );
+  }
+  return acknowledge();
 }

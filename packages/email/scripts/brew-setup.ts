@@ -342,14 +342,25 @@ async function ensureStrictContract(
     return;
   }
 
-  if (automation?.published) {
+  const wasPublished = automation?.published === true;
+  if (wasPublished) {
     await api("PATCH", `/automations/${automation.automationId}`, {
       published: false,
     });
   }
-  await api("PUT", `/automations/triggers/${triggerEventId}/contract`, {
-    enforcement: "strict",
-  });
+  try {
+    await api("PUT", `/automations/triggers/${triggerEventId}/contract`, {
+      enforcement: "strict",
+    });
+  } catch (error) {
+    // Don't leave a live email switched off when the setup stops here.
+    if (wasPublished) {
+      await api("PATCH", `/automations/${automation.automationId}`, {
+        published: true,
+      });
+    }
+    throw error;
+  }
   console.log(`Set strict payload contract on ${name}`);
 }
 

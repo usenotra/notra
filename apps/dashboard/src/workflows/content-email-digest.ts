@@ -20,8 +20,13 @@ export async function contentEmailDigestWorkflow(
 
   const parsedPayload = contentEmailDigestPayloadSchema.parse(payload);
   const workflowStartedAt = Date.now();
-  await sleep(CONTENT_EMAIL_DIGEST_DELAY);
-  await flushContentEmailDigestStep(parsedPayload);
+  // The window stays claimed while events keep arriving, so every event is
+  // flushed by this run or by one started after the window was released.
+  let hasMore = true;
+  while (hasMore) {
+    await sleep(CONTENT_EMAIL_DIGEST_DELAY);
+    hasMore = await flushContentEmailDigestStep(parsedPayload);
+  }
   await trackWorkflowOutcome({
     workflow: WORKFLOW_ANALYTICS_NAMES.CONTENT_EMAIL_DIGEST,
     outcome: WORKFLOW_OUTCOMES.COMPLETED,
