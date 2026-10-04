@@ -1,3 +1,4 @@
+import { GEO_CONTEXT_COMPETITOR_LIMIT } from "@notra/db/constants/geo-context-competitors";
 import { isDemoMode } from "@notra/utils/demo-mode";
 
 import type {
@@ -474,10 +475,8 @@ export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v7";
 export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
-export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
 export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
-export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
 export const GEO_ONBOARDING_MAX_PROMPTS = 30;
 export const GEO_ONBOARDING_SUGGESTED_COMPETITORS = 10;
 export const GEO_BRAND_SEARCH_MIN_QUERY_LENGTH = 2;
@@ -937,7 +936,18 @@ export const GEO_EMPTY_TRAFFIC_RESPONSE: AiTrafficResponse = {
 };
 
 export const GEO_MAX_ALIASES = 10;
-export const GEO_MAX_COMPETITORS = 25;
+/**
+ * Tracking a competitor only adds a name to match in answers, so this is a
+ * safety ceiling rather than a product limit. LLM prompts never see the whole
+ * list; see GEO_COMPETITOR_CONTEXT_LIMIT.
+ */
+export const GEO_MAX_COMPETITORS = 2000;
+/**
+ * How many tracked competitors an LLM prompt gets (personas, conversations,
+ * suggestions, writer briefs, agent context), ranked by how often engines
+ * recommend them. Keeps token usage flat however many are tracked.
+ */
+export const GEO_COMPETITOR_CONTEXT_LIMIT = GEO_CONTEXT_COMPETITOR_LIMIT;
 export const GEO_MAX_CONVERSION_PATHS = 20;
 export const GEO_CONVERSION_PATH_MAX_LENGTH = 200;
 export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";

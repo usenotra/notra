@@ -160,6 +160,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
       </div>
 
       <ShelfDetailDialog
+        competitors={page.competitors}
         organizationId={page.organizationId}
         currentMemberId={page.currentMemberId}
         isPending={

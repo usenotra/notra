@@ -1,4 +1,5 @@
 import { getContentBillingLimitLabel } from "@notra/ai/billing/content-billing";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 import { isCustomIntervalDue } from "@notra/ai/utils/schedule-interval";
 import { scheduleWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 import { sleep } from "workflow";
@@ -493,7 +494,7 @@ export async function scheduleContentWorkflow(payload: {
       action: "confirm",
       units: createdPosts.length,
       usage: contentResult.usage,
-      fallbackModelId: "anthropic/claude-sonnet-5",
+      fallbackModelId: CONTENT_AGENT_MODEL,
       properties: buildCreditProperties(
         gate,
         trigger.outputType,

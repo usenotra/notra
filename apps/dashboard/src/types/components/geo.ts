@@ -1,5 +1,6 @@
 import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type {
+  GeoCsvIssue,
   GeoCsvParseResult,
   GeoImportKind,
 } from "@notra/geo-core/types/geo-import";
@@ -145,6 +146,47 @@ export interface GeoCsvImportDialogProps<TRow> {
   parse: (text: string) => GeoCsvParseResult<TRow>;
   onImport: (rows: TRow[]) => Promise<unknown>;
   isPending: boolean;
+  /** Splits rows into new, updated and over-limit before importing. */
+  capacity?: GeoCsvImportCapacity<TRow>;
+}
+
+export interface GeoCsvImportCapacity<TRow> {
+  /** False until the tracked list has loaded; the split is unknown before. */
+  isReady: boolean;
+  limit: number;
+  existingKeys: ReadonlySet<string>;
+  keyOf: (row: TRow) => string;
+}
+
+export interface GeoCsvImportPlan<TRow> {
+  rows: TRow[];
+  added: number;
+  updated: number;
+  overLimit: number;
+}
+
+export interface CsvImportPlanRowsProps<TRow> {
+  capacity: GeoCsvImportCapacity<TRow> | undefined;
+  plan: GeoCsvImportPlan<TRow>;
+  readyCount: number;
+}
+
+export interface CsvImportSummaryProps<
+  TRow,
+> extends CsvImportPlanRowsProps<TRow> {
+  duplicates: number;
+  issues: GeoCsvIssue[];
+}
+
+export interface CompetitorChoicesSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export interface CompetitorChoicesFooterProps {
+  query: string;
+  hidden: number;
+  visibleCount: number;
 }
 
 export interface GeoImportDialogProps {

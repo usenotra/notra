@@ -425,34 +425,38 @@ export const upsertGeoCompetitor = Effect.fn("geo.competitorUpsert")(function* (
   input: GeoCompetitorUpsertInput
 ) {
   const key = competitorKey(input.previousName ?? input.name);
-  const competitors = yield* reconcileGeoCompetitors(scopeInput, (current) => {
-    const entries: GeoCompetitorSeed[] = current.map((competitor) =>
-      competitorKey(competitor.name) === key
-        ? {
-            name: input.name.trim(),
-            domain: input.domain,
-            synonyms: input.synonyms ?? competitor.synonyms,
-            kind: input.kind ?? competitor.kind,
-            color: input.color ?? competitor.color,
-          }
-        : competitor
-    );
+  const competitors = yield* reconcileGeoCompetitors(
+    scopeInput,
+    (current) => {
+      const entries: GeoCompetitorSeed[] = current.map((competitor) =>
+        competitorKey(competitor.name) === key
+          ? {
+              name: input.name.trim(),
+              domain: input.domain,
+              synonyms: input.synonyms ?? competitor.synonyms,
+              kind: input.kind ?? competitor.kind,
+              color: input.color ?? competitor.color,
+            }
+          : competitor
+      );
 
-    if (
-      !entries.some(
-        (entry) => competitorKey(entry.name) === competitorKey(input.name)
-      )
-    ) {
-      entries.push({
-        name: input.name.trim(),
-        domain: input.domain,
-        synonyms: input.synonyms ?? [],
-        kind: input.kind ?? "direct",
-        color: input.color ?? null,
-      });
-    }
-    return entries;
-  });
+      if (
+        !entries.some(
+          (entry) => competitorKey(entry.name) === competitorKey(input.name)
+        )
+      ) {
+        entries.push({
+          name: input.name.trim(),
+          domain: input.domain,
+          synonyms: input.synonyms ?? [],
+          kind: input.kind ?? "direct",
+          color: input.color ?? null,
+        });
+      }
+      return entries;
+    },
+    GEO_MAX_COMPETITORS
+  );
   const response: GeoCompetitorsResponse = { competitors };
   return response;
 });

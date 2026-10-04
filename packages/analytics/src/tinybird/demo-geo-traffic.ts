@@ -281,7 +281,11 @@ function log(events: DemoTrafficEvent[], params: DemoTrafficParams, now: Date) {
         event.captured_at >= since &&
         matchesHost(event, params.host)
     )
-    .sort((a, b) => b.captured_at.localeCompare(a.captured_at))
+    .sort(
+      (a, b) =>
+        b.captured_at.localeCompare(a.captured_at) ||
+        b.request_id.localeCompare(a.request_id)
+    )
     .slice(0, params.limit ?? 50)
     .map((event) => ({
       captured_at: event.captured_at,

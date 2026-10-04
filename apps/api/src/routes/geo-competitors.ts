@@ -136,7 +136,7 @@ const importCompetitorsRoute = createRoute({
   operationId: "importGeoCompetitors",
   summary: "Bulk import GEO competitors",
   description:
-    "Accepts either structured `rows` or raw `csv` text. Existing competitors are updated in place rather than duplicated.",
+    "Accepts either structured `rows` or raw `csv` text. Existing competitors are updated in place rather than duplicated. One request takes a project's whole list (up to 2,000 competitors), so send it in a single call instead of splitting it.",
   request: {
     params: projectParamsSchema,
     body: {

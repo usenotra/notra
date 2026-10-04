@@ -52,6 +52,7 @@ export function ShelfDetailDialog({
   members,
   currentMemberId,
   ownBrandName,
+  competitors,
   onUpdateOpportunity,
   onSetPlacementStatus,
   isPending,
@@ -190,6 +191,7 @@ export function ShelfDetailDialog({
           <section className="space-y-3">
             <SectionHeader title={t("whoIsOnShelf")} />
             <ShelfPlacementsTable
+              competitors={competitors}
               disabled={isPending}
               onSetPlacementStatus={onSetPlacementStatus}
               ownBrandName={ownBrandName}

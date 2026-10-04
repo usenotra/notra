@@ -5,9 +5,10 @@ import sharp from "sharp";
 mock.module("server-only", () => ({}));
 
 let compressContentImage: typeof import("./compress-content-image").compressContentImage;
+let isHeic: typeof import("./compress-content-image").isHeic;
 
 beforeAll(async () => {
-  ({ compressContentImage } = await import("./compress-content-image"));
+  ({ compressContentImage, isHeic } = await import("./compress-content-image"));
 });
 
 async function uncompressedPng() {
@@ -36,8 +37,14 @@ test("png compression stays lossless and does not grow", async () => {
 test("rejects non-images and files over 20MB", async () => {
   await expect(
     compressContentImage(Buffer.from("not an image"))
-  ).rejects.toThrow("Use a JPEG, PNG, GIF, WebP, or AVIF image");
+  ).rejects.toThrow("Use a JPEG, PNG, GIF, WebP, AVIF, or HEIC image");
   await expect(
     compressContentImage(Buffer.alloc(20 * 1024 * 1024 + 1))
   ).rejects.toThrow("Image must be 20MB or smaller");
+});
+
+test("recognizes Apple image containers without trusting file extensions", () => {
+  expect(isHeic(Buffer.from("0000ftypheic0000"))).toBe(true);
+  expect(isHeic(Buffer.from("0000ftypavif0000"))).toBe(false);
+  expect(isHeic(Buffer.from("photo.heic"))).toBe(false);
 });

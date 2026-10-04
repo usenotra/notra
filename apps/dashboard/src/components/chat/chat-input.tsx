@@ -83,6 +83,7 @@ import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatModelLabels } from "@/lib/hooks/use-chat-model-labels";
@@ -113,6 +114,7 @@ import {
   getIntegrationReferenceValue,
   getReferenceDisplay,
 } from "@/utils/integration-reference";
+import { prepareChatImage } from "@/utils/prepare-chat-image";
 import {
   extractSkillDraftTokens,
   parseSkillDraftNames,
@@ -1436,7 +1438,11 @@ export function ChatInputAdvanced({
 
       const accepted: File[] = [];
       for (const file of files.slice(0, remainingSlots)) {
-        if (!isAllowedChatMimeType(file.type, model)) {
+        if (
+          !isAllowedChatMimeType(file.type, model) &&
+          !/\.heic$/i.test(file.name) &&
+          file.type !== "image/heic"
+        ) {
           toast.error(
             file.type === "text/plain" || file.type === "text/markdown"
               ? t("upload.unsupportedText", { model: currentModel.label })
@@ -1444,11 +1450,15 @@ export function ChatInputAdvanced({
           );
           continue;
         }
-        if (file.size > MAX_CHAT_FILE_SIZE) {
+        const maxBytes =
+          /\.heic$/i.test(file.name) || file.type === "image/heic"
+            ? MAX_CHAT_HEIC_INPUT_BYTES
+            : MAX_CHAT_FILE_SIZE;
+        if (file.size > maxBytes) {
           toast.error(
             t("upload.tooLarge", {
               name: file.name,
-              size: MAX_CHAT_FILE_SIZE / 1024 / 1024,
+              size: maxBytes / 1024 / 1024,
             })
           );
           continue;
@@ -1473,13 +1483,14 @@ export function ChatInputAdvanced({
             return false;
           }
           try {
-            const result = await uploadFile({ file, type: "chat" });
+            const readyFile = await prepareChatImage(file);
+            const result = await uploadFile({ file: readyFile, type: "chat" });
             const uploadedAttachment = {
               url: result.url,
               key: result.key,
-              filename: file.name,
-              mediaType: file.type,
-              size: file.size,
+              filename: readyFile.name,
+              mediaType: readyFile.type,
+              size: readyFile.size,
             };
             completedUploadsRef.current.set(placeholder.id, uploadedAttachment);
 
@@ -2664,7 +2675,7 @@ export function ChatInputAdvanced({
           <section aria-label={tChatShared("chatInputDropArea")}>
             <ChatQuotePreview disabled={isQueued} />
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
               className="hidden"
               multiple
               onChange={onFileInputChange}

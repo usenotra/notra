@@ -1,3 +1,4 @@
+import { currentSkillContent } from "@notra/ai/skills/functions/current-content";
 import { db } from "@notra/db/drizzle";
 import { skills } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -19,6 +20,8 @@ export function createGetSkillTool() {
           description: skills.description,
           content: skills.content,
           isSystem: skills.isSystem,
+          createdAt: skills.createdAt,
+          updatedAt: skills.updatedAt,
         })
         .from(skills)
         .where(
@@ -30,7 +33,12 @@ export function createGetSkillTool() {
       if (!skill) {
         throw new Error(`Skill "${name}" was not found for this organization`);
       }
-      return skill;
+      return {
+        name: skill.name,
+        description: skill.description,
+        content: currentSkillContent(skill),
+        isSystem: skill.isSystem,
+      };
     },
   });
 }

@@ -128,18 +128,19 @@ export function createGetGeoProjectContextTool(
     description: toolDescription({
       toolName: "getGeoProjectContext",
       intro:
-        "Returns one GEO project's brand name and aliases, configured competitors, tracked prompts, and latest per-engine checks.",
+        "Returns one GEO project's brand name and aliases, its most relevant tracked competitors (the ones AI engines recommend most) with the total tracked count, tracked prompts, and latest per-engine checks.",
       whenToUse:
         "Use for a detailed project-level picture before giving GEO positioning, competitor, prompt, or content recommendations.",
       usageNotes:
-        "Call listGeoProjects first and pass an exact project ID. Use includeAnswers=true only when full answers are necessary.",
+        "Call listGeoProjects first and pass an exact project ID. Use includeAnswers=true only when full answers are necessary. When trackedCompetitorCount is larger than the competitors returned, pass competitorSearch to look up a specific one.",
     }),
     inputSchema: getGeoProjectContextInputSchema,
-    execute: ({ projectId, includeAnswers }) =>
+    execute: ({ projectId, includeAnswers, competitorSearch }) =>
       loadGeoProjectContextForTool(
         config.organizationId,
         projectId,
-        includeAnswers
+        includeAnswers,
+        competitorSearch
       ),
   });
 }

@@ -2,6 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -9,7 +10,6 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 
 import { PurposeBadge } from "@/components/geo/purpose-badge";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
@@ -69,7 +69,7 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
           />
         ))}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={tGeoShared("countPluralOneVisitOther", { count: group.visits })}
         icon={<TrafficSourceGroupIcon group={group} />}
         title={group.label}
@@ -114,7 +114,7 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
             );
           })}
         </ul>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

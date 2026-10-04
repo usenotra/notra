@@ -11,6 +11,7 @@ import {
   GEO_DISCOVERY_ALIAS_LIMIT,
   GEO_DISCOVERY_CACHE_TTL_SECONDS,
   GEO_DISCOVERY_COMPETITOR_LIMIT,
+  GEO_MAX_COMPETITORS,
   GEO_DISCOVERY_CONVERSATIONS,
   GEO_DISCOVERY_MAX_ALIASES,
   GEO_DISCOVERY_MAX_COMPETITORS,
@@ -313,16 +314,18 @@ const persistGeoWebsiteGeneration = Effect.fn(
     tx,
     organizationId,
     projectId,
+    // Discovery only tops a project up to its own limit; competitors that
+    // are already tracked (e.g. a CSV import) are never dropped.
     (current) =>
       buildCompetitorSeeds(
         unionValues(
           current.map((competitor) => competitor.name),
           discoveredCompetitors.map((entry) => entry.name),
-          GEO_DISCOVERY_COMPETITOR_LIMIT
+          Math.max(current.length, GEO_DISCOVERY_COMPETITOR_LIMIT)
         ),
         discoveredCompetitors
       ),
-    GEO_DISCOVERY_COMPETITOR_LIMIT
+    GEO_MAX_COMPETITORS
   );
   if (competitorOutcome.status === "limit") {
     return yield* Effect.fail(
