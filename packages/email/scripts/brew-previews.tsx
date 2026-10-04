@@ -20,31 +20,44 @@ process.env.NEXT_PUBLIC_SITE_URL = "https://usenotra.com";
 process.env.NEXT_PUBLIC_APP_URL = "https://app.usenotra.com";
 const { EMAIL_LABELS, EMAIL_SAMPLES } = await import("./email-samples");
 
-// Old previews go only after every replacement imported, so a failed run
-// leaves the previous set in place.
+// Old previews go only after every replacement imported, and a failed run
+// removes what it imported, so the group always holds exactly one set.
 const stale = (
   await list<{ emailId: string; title: string }>("/emails")
 ).filter((row) => row.title.startsWith(TITLE_PREFIX));
 
-for (const [category, [subject, react]] of Object.entries(EMAIL_SAMPLES) as [
-  BrewEmailCategory,
-  [string, ReactElement],
-][]) {
-  const html = await render(react);
-  // The welcome email goes out through the marketing design with this footer.
-  const content =
-    category === "welcome"
-      ? html.replace("</body>", `${BREW_UNSUBSCRIBE_FOOTER}</body>`)
-      : html;
+const imported: string[] = [];
+try {
+  for (const [category, [subject, react]] of Object.entries(EMAIL_SAMPLES) as [
+    BrewEmailCategory,
+    [string, ReactElement],
+  ][]) {
+    const html = await render(react);
+    // The welcome email goes out through the marketing design with this footer.
+    const content =
+      category === "welcome"
+        ? html.replace("</body>", `${BREW_UNSUBSCRIBE_FOOTER}</body>`)
+        : html;
 
-  await api("POST", "/emails/import", {
-    format: "html",
-    title: `${TITLE_PREFIX}${EMAIL_LABELS[category]}`,
-    subjectLine: subject,
-    groupName: GROUP_NAME,
-    content,
-  });
-  console.log(`Imported preview ${EMAIL_LABELS[category]}`);
+    const { emailId } = await api<{ emailId: string }>(
+      "POST",
+      "/emails/import",
+      {
+        format: "html",
+        title: `${TITLE_PREFIX}${EMAIL_LABELS[category]}`,
+        subjectLine: subject,
+        groupName: GROUP_NAME,
+        content,
+      }
+    );
+    imported.push(emailId);
+    console.log(`Imported preview ${EMAIL_LABELS[category]}`);
+  }
+} catch (error) {
+  for (const emailId of imported) {
+    await api("DELETE", `/emails/${emailId}`);
+  }
+  throw error;
 }
 
 for (const email of stale) {

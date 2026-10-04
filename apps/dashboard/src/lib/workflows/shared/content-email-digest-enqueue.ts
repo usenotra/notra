@@ -45,8 +45,8 @@ export async function enqueueContentEmailDigest({
         return;
       }
 
-      const claimed = await claimContentEmailDigestWindow(digestKey);
-      if (!claimed) {
+      const lockToken = await claimContentEmailDigestWindow(digestKey);
+      if (!lockToken) {
         return;
       }
 
@@ -55,6 +55,7 @@ export async function enqueueContentEmailDigest({
         recipientEmail,
         organizationId,
         kind,
+        lockToken,
       };
 
       try {
