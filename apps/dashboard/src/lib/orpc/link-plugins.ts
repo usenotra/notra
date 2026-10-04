@@ -12,8 +12,26 @@ import {
  */
 const NON_BATCHABLE_ROOT_PATHS = new Set(["attachments", "upload"]);
 
+/**
+ * Procedures that write cookies. A streamed batch sends its headers as soon as
+ * the first item settles, so a cookie set by a slower item in the same batch
+ * would never reach the browser.
+ */
+const COOKIE_WRITING_PROCEDURES = new Set([
+  "organization.create",
+  "organization.update",
+  "organization.setActive",
+]);
+const COOKIE_WRITING_NAMESPACES = new Set(["user.account", "user.security"]);
+
 function isUnbatchedProcedure(path: readonly string[]) {
   if (NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? "")) {
+    return true;
+  }
+  if (
+    COOKIE_WRITING_PROCEDURES.has(path.join(".")) ||
+    COOKIE_WRITING_NAMESPACES.has(path.slice(0, 2).join("."))
+  ) {
     return true;
   }
   // The GitHub catalog talks to GitHub. Keeping it out of the page batch

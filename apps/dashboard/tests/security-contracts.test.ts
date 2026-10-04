@@ -163,4 +163,47 @@ describe("migration executable security contracts", () => {
     ]);
     expect(calls).toBe(2);
   });
+
+  test("cookie-writing rpc procedures never share a streamed batch", async () => {
+    const procedure = os.$context<{ resHeaders: Headers }>();
+    const router = {
+      organization: { list: procedure.handler(() => "orgs") },
+      user: {
+        security: {
+          startTotpEnrollment: procedure.handler(async ({ context }) => {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            context.resHeaders.append("set-cookie", "enrollment=1");
+            return "enrolled";
+          }),
+        },
+      },
+    };
+    const handler = new RPCHandler(router, {
+      plugins: createDashboardHandlerPlugins<{ resHeaders: Headers }>(),
+    });
+    const cookies: string[] = [];
+    const client: RouterClient<typeof router> = createORPCClient(
+      new RPCLink({
+        url: "https://app.invalid/rpc",
+        plugins: createDashboardLinkPlugins(),
+        fetch: async (request) => {
+          const resHeaders = new Headers();
+          const { response } = await handler.handle(request, {
+            prefix: "/rpc",
+            context: { resHeaders },
+          });
+          cookies.push(...resHeaders.getSetCookie());
+          return response ?? new Response("Not Found", { status: 404 });
+        },
+      })
+    );
+
+    expect(
+      await Promise.all([
+        client.organization.list(),
+        client.user.security.startTotpEnrollment(),
+      ])
+    ).toEqual(["orgs", "enrolled"]);
+    expect(cookies).toEqual(["enrollment=1"]);
+  });
 });
