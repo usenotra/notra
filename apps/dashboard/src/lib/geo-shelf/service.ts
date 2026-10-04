@@ -1,8 +1,8 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, projects } from "@notra/db/schema";
 import {
-  isEmptyShelfSyncCurrent,
   markEmptyShelfSync,
+  readEmptyShelfSync,
 } from "@notra/db/utils/geo-check-cache";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
 import {
@@ -336,11 +336,14 @@ export async function listGeoShelfSourcePage(
   if (page.hasScanData || query.offset > 0) {
     return { ...page, isSampleData: false };
   }
-  if (
-    (await isEmptyShelfSyncCurrent(key)) ||
-    (await syncGeoShelfCitations(seed)) === 0
-  ) {
-    void markEmptyShelfSync(key);
+  const emptySync = await readEmptyShelfSync(key);
+  if (emptySync.current) {
+    return { ...page, isSampleData: false };
+  }
+  if ((await syncGeoShelfCitations(seed)) === 0) {
+    if (emptySync.generation !== null) {
+      void markEmptyShelfSync(key, emptySync.generation);
+    }
     return { ...page, isSampleData: false };
   }
   return {
