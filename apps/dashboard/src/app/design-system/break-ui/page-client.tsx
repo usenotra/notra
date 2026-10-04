@@ -168,32 +168,59 @@ function collectionsForPage(
   );
 }
 
+function isPreviewWriteProcedure(procedureUrl: string) {
+  const procedure = new URL(procedureUrl, window.location.origin).pathname
+    .split("/")
+    .at(-1);
+  return PREVIEW_WRITE_PROCEDURE.test(procedure ?? "");
+}
+
+async function isPreviewWrite(request: Request) {
+  const url = new URL(request.url, window.location.origin);
+  if (url.origin !== window.location.origin || request.method === "GET") {
+    return false;
+  }
+  if (
+    url.pathname.startsWith("/_serverFn") ||
+    url.pathname.startsWith("/api/")
+  ) {
+    return true;
+  }
+  if (!url.pathname.startsWith("/rpc/")) {
+    return false;
+  }
+  if (!url.pathname.endsWith("/__batch__")) {
+    return isPreviewWriteProcedure(url.pathname);
+  }
+  // A batch carries every call's own URL; one write blocks the whole batch.
+  const items: unknown = await request.clone().json();
+  return (
+    Array.isArray(items) &&
+    items.some(
+      (item: unknown) =>
+        typeof item === "object" &&
+        item !== null &&
+        "url" in item &&
+        typeof item.url === "string" &&
+        isPreviewWriteProcedure(item.url)
+    )
+  );
+}
+
 /**
  * The samples are real components wired to real clients. Writes from this
- * page (deleting a fixture collection, switching organization, inviting) are
- * answered locally instead of reaching the API.
+ * page (deleting a fixture collection, switching or creating an organization,
+ * inviting) are answered locally instead of reaching the API. The oRPC client
+ * resolves `fetch` per call, so it goes through this guard too.
  */
 function usePreviewWriteGuard() {
   useEffect(() => {
     const realFetch = window.fetch;
-    window.fetch = (input, init) => {
-      const request = new Request(input, init);
-      const url = new URL(request.url, window.location.origin);
-      const procedure = url.pathname.startsWith("/rpc/")
-        ? (url.pathname.split("/").at(-1) ?? "")
-        : "";
-      const isWrite =
-        url.origin === window.location.origin &&
-        request.method !== "GET" &&
-        (url.pathname.startsWith("/_serverFn") ||
-          url.pathname.startsWith("/api/") ||
-          PREVIEW_WRITE_PROCEDURE.test(procedure));
-      if (isWrite) {
-        return Promise.resolve(
-          Response.json(
-            { message: "Disabled in the break-ui preview" },
-            { status: 403 }
-          )
+    window.fetch = async (input, init) => {
+      if (await isPreviewWrite(new Request(input, init))) {
+        return Response.json(
+          { message: "Disabled in the break-ui preview" },
+          { status: 403 }
         );
       }
       return realFetch(input, init);

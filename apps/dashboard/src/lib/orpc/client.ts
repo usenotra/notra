@@ -18,6 +18,9 @@ function getBaseUrl() {
 }
 
 const link = new RPCLink({
+  // Looked up per call rather than captured once, so a page that swaps
+  // `fetch` (the break-ui preview's write guard) also covers this client.
+  fetch: (request, init) => globalThis.fetch(request, init),
   plugins: createDashboardLinkPlugins(),
   url: `${getBaseUrl()}/rpc`,
 });
