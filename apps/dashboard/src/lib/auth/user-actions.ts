@@ -220,6 +220,13 @@ export async function deleteUserAction(): Promise<
         () => db.delete(users).where(eq(users.id, session.user.id)),
         "Failed to delete user"
       );
+      // Again once the row is gone: a contact sync that read the user just
+      // before could have recreated the contact in between.
+      yield* Effect.sync(() =>
+        runAfterResponse("[BrewContacts] Delete failed", () =>
+          deleteBrewContact(session.user.email)
+        )
+      );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");
       yield* Effect.promise(clearLocaleCookie);
