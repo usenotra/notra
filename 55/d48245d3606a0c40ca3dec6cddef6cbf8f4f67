@@ -1,0 +1,95 @@
+apps/sites/src/types/worker.ts
+  s_2e1b04b64a383c::t_7eea4c02650c2a 23-24,29-31,41-42
+  s_2e1b04b64a383c::t_e4dcdd17a99bae 25-26,43-45
+apps/sites/src/types/serving.ts
+  s_2e1b04b64a383c::t_9ef9c0e5aa6b50 13-14
+packages/geo-core/src/utils/ingest-sites.ts
+  s_2e1b04b64a383c::t_7a6e3c5cb0e6e3 1-22
+packages/geo-core/src/ingest/pipeline.ts
+  s_2e1b04b64a383c::t_1252dbf411d12d 4-8,39-61,75-78,222,226,228,230,251-259
+  s_2e1b04b64a383c::t_7a6e3c5cb0e6e3 13
+  s_2e1b04b64a383c::t_02e475a0a14d65 38,227,229
+apps/sites/wrangler.jsonc
+  s_2e1b04b64a383c::t_0f810071943684 21-22,47-48
+apps/sites/src/index.ts
+  s_2e1b04b64a383c::t_e4dcdd17a99bae 27-28
+  s_2e1b04b64a383c::t_7eea4c02650c2a 26
+packages/geo-core/src/types/ingest.ts
+  s_2e1b04b64a383c::t_c509a0e7ca808a 74-75
+packages/sites-core/src/utils/serving-state.ts
+  s_2e1b04b64a383c::t_0a29dc3c033fd1 25
+  s_2e1b04b64a383c::t_777f01895dd5cc 24
+  s_2e1b04b64a383c::t_23b7268e915689 26
+apps/docs/sites/agents.mdx
+  s_2e1b04b64a383c::t_f0b99a422a9485 37-44
+packages/geo-core/tests/ingest-pipeline.test.ts
+  s_2e1b04b64a383c::t_ca8eee8c55dc76 30-42,44-45,53-54,64-65,67,92-93,96,355-399,401-424
+  s_2e1b04b64a383c::t_02e475a0a14d65 43,66,132,400
+apps/sites/src/constants/traffic.ts
+  s_2e1b04b64a383c::t_91d879e9d3d228 1,7-12
+  s_2e1b04b64a383c::t_8d677c81c75049 2-6
+packages/geo-core/src/ingest/identity.ts
+  s_2e1b04b64a383c::t_1252dbf411d12d 42-45
+packages/sites-server/src/state.ts
+  s_2e1b04b64a383c::t_0a29dc3c033fd1 3,102-103,105-109,115
+  s_2e1b04b64a383c::t_619cdf688bbb57 1-2,104,112-114,116,211,215-217
+  s_2e1b04b64a383c::t_54ac6103d84707 212-214
+apps/sites/src/types/traffic.ts
+  s_2e1b04b64a383c::t_91d879e9d3d228 1-27,29-36
+  s_2e1b04b64a383c::t_e4dcdd17a99bae 28
+apps/sites/src/traffic.ts
+  s_2e1b04b64a383c::t_91d879e9d3d228 82-83
+  s_2e1b04b64a383c::t_32d06835ef9c4d 1-81,84-90
+packages/sites-core/src/schemas/deployment.ts
+  s_2e1b04b64a383c::t_0a29dc3c033fd1 117-118
+  s_2e1b04b64a383c::t_23b7268e915689 119-132
+  s_2e1b04b64a383c::t_452acc9c4c22a5 115-116
+packages/geo-core/src/constants/geo.ts
+  s_2e1b04b64a383c::t_d0e57e7356190f 480,554-557
+  s_2e1b04b64a383c::t_a392d708ec3475 481-482
+  s_2e1b04b64a383c::t_02e475a0a14d65 483-484
+apps/sites/src/handler.ts
+  s_2e1b04b64a383c::t_bb9b3074654f33 32-33,106,137-142,153,160-202
+apps/sites/tests/handler.test.ts
+  s_2e1b04b64a383c::t_a3e558db532469 129
+  s_2e1b04b64a383c::t_8d677c81c75049 271-273
+  s_2e1b04b64a383c::t_cc82fc97af5635 130-137
+  s_2e1b04b64a383c::t_aefe763d27ca7d 270,274-301
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_2e1b04b64a383c::t_267f0c73fb7988 9
+  s_2e1b04b64a383c::t_80ce3204b439fa 307-308,311-313
+  s_2e1b04b64a383c::t_0c5fe00af3df79 305-306,309-310
+packages/geo-core/src/ingest/hosts.ts
+  s_2e1b04b64a383c::t_1252dbf411d12d 87-90
+packages/geo-core/src/types/geo.ts
+  s_2e1b04b64a383c::t_c509a0e7ca808a 1232-1246,1248-1250
+  s_2e1b04b64a383c::t_8d677c81c75049 1247
+packages/geo-core/package.json
+  s_2e1b04b64a383c::t_a392d708ec3475 30
+packages/sites-server/package.json
+  s_2e1b04b64a383c::t_0a29dc3c033fd1 17
+packages/geo-core/src/ingest/sites.ts
+  s_2e1b04b64a383c::t_a392d708ec3475 9-10,20-26,72-88
+  s_2e1b04b64a383c::t_0ef09f96f8d465 1-2,4-6,8,11,13-19,27-41,43-65,70-71,89-100,102-103,116-118,120-124,128-130,132-135,137-153
+  s_2e1b04b64a383c::t_ca8eee8c55dc76 42
+  s_2e1b04b64a383c::t_02e475a0a14d65 3,7,12,66-69,101,104-115,119,125-127,131,136
+packages/geo-core/src/geo/ingest.ts
+  s_2e1b04b64a383c::t_2a13573498bfcc 12-13,160-181,186-204,209-213,227
+  s_2e1b04b64a383c::t_ca8eee8c55dc76 182-185,205-208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "55d48245d3606a0c40ca3dec6cddef6cbf8f4f67",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
