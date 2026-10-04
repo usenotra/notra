@@ -1,0 +1,35 @@
+apps/dashboard/src/components/content/schedule/schedule-destination-fields.tsx
+  s_400beee9e2f793::t_b3fe20993a6b52 19,30-67,82-88,90,110,112,144-151,153,177,181
+  s_400beee9e2f793::t_eb82ceb5b9f39b 154-174
+apps/dashboard/src/components/content/schedule/schedule-destination-mark.tsx
+  s_400beee9e2f793::t_9e60039e462c0c 8,36,40
+apps/dashboard/src/components/content/calendar/content-calendar-item-chip.tsx
+  s_400beee9e2f793::t_eb82ceb5b9f39b 5,18,22,31-35,55-56,70-103,111,139-146,154-156,200-211,213-215,235-238
+packages/ui/src/components/shared/truncate-with-tooltip.tsx
+  s_400beee9e2f793::t_9e60039e462c0c 50-51
+apps/dashboard/src/types/content/schedule.ts
+  s_400beee9e2f793::t_b3fe20993a6b52 7,62-67
+  s_400beee9e2f793::t_eb82ceb5b9f39b 61
+apps/dashboard/src/components/content/schedule/schedule-dialog-footer.tsx
+  s_400beee9e2f793::t_9e60039e462c0c 61,69,99
+apps/dashboard/src/types/content/calendar.ts
+  s_400beee9e2f793::t_eb82ceb5b9f39b 2,65-72
+apps/dashboard/src/lib/hooks/use-schedule-destination-name.ts
+  s_400beee9e2f793::t_9e60039e462c0c 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4da5f0544ba25fb4f04c5d3cf62c500dc07868bd",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
