@@ -5,8 +5,8 @@ import { flushContentEmailDigest } from "@/lib/workflows/shared/content-email-di
 
 export async function flushContentEmailDigestStep(
   payload: ContentEmailDigestPayload
-): Promise<void> {
+): Promise<boolean> {
   "use step";
-  // The step id is unique per run and stable across retries.
-  await flushContentEmailDigest(payload, getStepMetadata().stepId);
+  // The step id is unique per flush and stable across its retries.
+  return flushContentEmailDigest(payload, getStepMetadata().stepId);
 }

@@ -170,8 +170,19 @@ export async function sendFeedbackEmail({
       pageUrl,
       userAgent,
     }),
-    // Same feedback twice within Brew's 24 h window is a double submit.
-    idempotencyKey: `${to}:${userEmail}:${sentiment ?? ""}:${message}`,
+    // Everything the email shows: the same feedback from the same page within
+    // Brew's 24 h window is a double submit, anything else a new message.
+    idempotencyKey: JSON.stringify([
+      to,
+      userName,
+      userEmail,
+      organizationName,
+      organizationSlug,
+      pageUrl,
+      userAgent,
+      sentiment,
+      message,
+    ]),
   });
 }
 
