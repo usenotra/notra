@@ -19,6 +19,16 @@ const projects = [
     directory: "apps/ui",
     productionAlias: "notra-ui-notra.vercel.app",
   },
+  {
+    name: "notra-agent",
+    directory: "apps/agent",
+    productionAlias: "notra-agent-notra.vercel.app",
+  },
+  {
+    name: "notra-onboarding-agent",
+    directory: "apps/onboarding-agent",
+    productionAlias: "notra-onboarding-agent-notra.vercel.app",
+  },
 ];
 // Railway services follow the Vercel release instead of auto-deploying every
 // push to main, so the demo and the ingest never run ahead of production.
