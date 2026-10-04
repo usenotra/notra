@@ -48,6 +48,7 @@ export const EXAMPLE_HEIGHTS: Record<string, number> = {
   "codex/examples/codex-terminal": 288,
   "codex/examples/codex-working": 288,
   "data-table/examples/data-table-demo": 676,
+  "data-table/examples/data-table-empty": 344,
   "data-table/examples/data-table-infinite": 489,
   "data-table/examples/table-primitives": 289,
   "gemini/examples/gemini-actions": 287,

@@ -88,6 +88,32 @@ Server and cursor tables without `onPageSizeChange` show the range, like "11-20 
 
 `loading` fills an empty table with skeleton rows and dims a table that already has rows. `DataTableSkeleton` renders the same frame on its own for route-level loading. `emptyState` takes text or any node, such as an Empty block with an action.
 
+<Component path="data-table/examples/data-table-empty" />
+
+```tsx
+<DataTable
+  columns={columns}
+  data={visits}
+  height={300}
+  emptyState={
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <BotIcon />
+        </EmptyMedia>
+        <EmptyTitle>No crawler visits yet</EmptyTitle>
+        <EmptyDescription>Add the tracking snippet to your site.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button size="sm">Add snippet</Button>
+      </EmptyContent>
+    </Empty>
+  }
+/>
+```
+
+`height` sizes the empty state; once rows arrive, the table shrinks to fit them.
+
 ## Labels
 
 Every string the table renders comes from `labels`, in English by default. Pass the ones you want to translate:
