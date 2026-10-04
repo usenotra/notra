@@ -81,7 +81,6 @@ export function DataTableRoot<T>({
   visibleRowCount,
   flushTop = false,
   flushBottom = false,
-  overlapTop = false,
   scrollFade = true,
   className,
 }: DataTableRootProps<T>) {
@@ -158,6 +157,7 @@ export function DataTableRoot<T>({
     paddingTop,
     paddingBottom,
     atEnd,
+    atStart,
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
@@ -206,11 +206,12 @@ export function DataTableRoot<T>({
       <TableFrame flushBottom={flushBottom} flushTop={flushTop}>
         <TableHeaderSurface
           flushTop={flushTop}
-          overlapTop={overlapTop}
           toolbar={toolbar}
         >
+          {/* Transparent side borders match the body's, so both tables get the
+              same width and the columns line up. */}
           <div
-            className="overflow-hidden"
+            className="overflow-hidden border-x border-transparent"
             ref={headerScrollRef}
             style={headerStyle}
           >
@@ -237,8 +238,6 @@ export function DataTableRoot<T>({
         </TableHeaderSurface>
         <TableBodySurface
           dimRows={dimRows}
-          flushBottom={flushBottom}
-          hasFooter={Boolean(footerContent)}
           isEmpty={isEmpty}
           loadingState={loadingState}
           onScroll={handleScroll}
@@ -246,6 +245,7 @@ export function DataTableRoot<T>({
           scrollRef={scrollRef}
           style={bodyStyle}
         >
+          <TableScrollFade edge="top" hidden={atStart} scrollFade={scrollFade} />
           <table className={tableClassName} style={tableStyle}>
             {columnGroup}
             <DataTableBody
@@ -273,9 +273,9 @@ export function DataTableRoot<T>({
               skeletonRows={skeletonRows}
             />
           </table>
-          <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
+          <TableScrollFade edge="bottom" hidden={atEnd} scrollFade={scrollFade} />
         </TableBodySurface>
-        <TableFooterSurface flushBottom={flushBottom} footer={footerContent} />
+        <TableFooterSurface footer={footerContent} />
       </TableFrame>
     </div>
   );

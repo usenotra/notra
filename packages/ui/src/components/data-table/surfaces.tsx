@@ -11,7 +11,11 @@ import type {
   TableScrollFadeProps,
 } from "@notra/ui/types/data-table";
 
-/** Grey shell that wraps header, body and footer with a 2px rim. */
+/**
+ * Grey shell that wraps header, body and footer with a 2px rim. A flush edge
+ * joins the shell of the table next to it: the border and radius go, the rim
+ * stays, so stacked tables read as one tray with a card per section.
+ */
 export function TableFrame({
   flushTop,
   flushBottom,
@@ -21,8 +25,8 @@ export function TableFrame({
     <div
       className={cn(
         TABLE_FRAME_CLASS,
-        flushTop && "rounded-t-none border-t-0 pt-0",
-        flushBottom && "rounded-b-none border-b-0 pb-0"
+        flushTop && "rounded-t-none border-t-0",
+        flushBottom && "rounded-b-none border-b-0"
       )}
     >
       {children}
@@ -33,15 +37,13 @@ export function TableFrame({
 export function TableHeaderSurface({
   toolbar,
   flushTop,
-  overlapTop,
   children,
 }: TableHeaderSurfaceProps) {
   return (
     <div
       className={cn(
         "overflow-hidden rounded-t-[14px] pb-5",
-        flushTop && "rounded-t-none",
-        overlapTop && "pt-5"
+        flushTop && "rounded-t-none"
       )}
     >
       {toolbar ? (
@@ -54,7 +56,15 @@ export function TableHeaderSurface({
   );
 }
 
-export function TableScrollFade({ scrollFade, atEnd }: TableScrollFadeProps) {
+/**
+ * Soft fade over the edge where more rows are hidden: at the bottom until the
+ * reader reaches the end, at the top once they scroll away from the start.
+ */
+export function TableScrollFade({
+  scrollFade,
+  edge,
+  hidden,
+}: TableScrollFadeProps) {
   if (!scrollFade) {
     return null;
   }
@@ -62,8 +72,11 @@ export function TableScrollFade({ scrollFade, atEnd }: TableScrollFadeProps) {
     <div
       aria-hidden="true"
       className={cn(
-        "from-background pointer-events-none sticky bottom-0 left-0 -mt-8 h-8 bg-linear-to-t to-transparent transition-opacity duration-200 motion-reduce:transition-none",
-        atEnd ? "opacity-0" : "opacity-100"
+        "from-background pointer-events-none sticky left-0 z-10 h-8 to-transparent transition-opacity duration-200 motion-reduce:transition-none",
+        edge === "top"
+          ? "top-0 -mb-8 bg-linear-to-b"
+          : "bottom-0 -mt-8 bg-linear-to-t",
+        hidden ? "opacity-0" : "opacity-100"
       )}
     />
   );
@@ -72,8 +85,6 @@ export function TableScrollFade({ scrollFade, atEnd }: TableScrollFadeProps) {
 export function TableBodySurface({
   isEmpty,
   overflowClass,
-  flushBottom,
-  hasFooter,
   dimRows,
   loadingState,
   onScroll,
@@ -87,7 +98,6 @@ export function TableBodySurface({
         "scrollbar-floating relative -mt-5 box-content outline-none",
         TABLE_BODY_CLASS,
         isEmpty ? "overflow-hidden" : overflowClass,
-        flushBottom && !hasFooter && "rounded-b-none border-b-0",
         dimRows &&
           "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
       )}
@@ -102,20 +112,12 @@ export function TableBodySurface({
   );
 }
 
-export function TableFooterSurface({
-  footer,
-  flushBottom,
-}: TableFooterSurfaceProps) {
+export function TableFooterSurface({ footer }: TableFooterSurfaceProps) {
   if (!footer) {
     return null;
   }
   return (
-    <div
-      className={cn(
-        "-mt-5 rounded-b-[14px] pt-5",
-        flushBottom && "rounded-b-none"
-      )}
-    >
+    <div className="-mt-5 rounded-b-[14px] pt-5">
       {footer}
     </div>
   );

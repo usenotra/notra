@@ -83,3 +83,6 @@ export const DATA_TABLE_LABELS: DataTableLabels = {
   showRows: (count) => `Show ${count}`,
   rowsPerPage: "Rows per page",
 };
+
+/** Sideways overflow below this many px is rounding, not columns that don't fit. */
+export const HORIZONTAL_OVERFLOW_TOLERANCE_PX = 2;

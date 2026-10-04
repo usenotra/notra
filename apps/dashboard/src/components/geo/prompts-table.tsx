@@ -85,7 +85,7 @@ import {
   promptPresenceSortValue,
 } from "@/utils/geo-prompts";
 
-const PROMPT_ACTIONS_WIDTH = "6rem";
+const PROMPT_ACTIONS_WIDTH = "6.5rem";
 
 function PromptRowActions({
   row,
@@ -127,13 +127,12 @@ function PromptRowActions({
       {pauseSwitch}
       <Button
         aria-label={tGeoShared("removePrompt", { prompt: row.prompt })}
-        className="group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
         disabled={isPending}
         onClick={(event) => {
           event.stopPropagation();
           onDelete();
         }}
-        size="icon"
+        size="icon-sm"
         variant="ghost"
       >
         <HugeiconsIcon icon={Delete02Icon} size={14} />

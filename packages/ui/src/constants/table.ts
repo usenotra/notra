@@ -67,3 +67,6 @@ export const TABLE_SKELETON_ROW_HEIGHT = 52;
 
 /** Page sizes the table footer offers by default. */
 export const TABLE_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50] as const;
+
+/** Sideways overflow below this many px is rounding, not columns that don't fit. */
+export const HORIZONTAL_OVERFLOW_TOLERANCE_PX = 2;

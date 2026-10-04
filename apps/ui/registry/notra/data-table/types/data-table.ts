@@ -175,13 +175,11 @@ export interface DataTableProps<T> {
   /** Page the rows and render the pager in the footer. Omit to render every row. */
   pagination?: DataTablePagination;
   emptyState?: ReactNode;
-  /** Square off the top edge so the table can sit flush under another surface. */
+  /** Join the shell of the table above: no top border or radius, rim kept. */
   flushTop?: boolean;
-  /** Square off the bottom edge so another surface can sit flush beneath the table. */
+  /** Join the shell of the table below: no bottom border or radius, rim kept. */
   flushBottom?: boolean;
-  /** Pad the header band so the table can tuck 20px under the rounded bottom of a surface above it. */
-  overlapTop?: boolean;
-  /** Fade the bottom edge while more rows can be scrolled into view. Default on. */
+  /** Fade the top and bottom edges while more rows are scrolled out of view. Default on. */
   scrollFade?: boolean;
   /** Overrides for the table's strings, e.g. translations. */
   labels?: Partial<DataTableLabels>;
@@ -228,7 +226,7 @@ export interface DataTableSkeletonProps {
 
 export interface TableHeaderSurfaceProps extends Pick<
   DataTableProps<unknown>,
-  "toolbar" | "flushTop" | "overlapTop"
+  "toolbar" | "flushTop"
 > {
   children: ReactNode;
 }
@@ -240,16 +238,15 @@ export interface TableFrameProps extends Pick<
   children: ReactNode;
 }
 
-export type TableFooterSurfaceProps = Pick<
-  DataTableProps<unknown>,
-  "footer" | "flushBottom"
->;
+export type TableFooterSurfaceProps = Pick<DataTableProps<unknown>, "footer">;
 
 export interface TableScrollFadeProps extends Pick<
   DataTableProps<unknown>,
   "scrollFade"
 > {
-  atEnd: boolean;
+  edge: "top" | "bottom";
+  /** No rows hidden past this edge, so the fade is not shown. */
+  hidden: boolean;
 }
 
 export type TableLoadingState = "dimmed" | "more" | "skeleton";
@@ -263,8 +260,6 @@ export interface TableLoadingOverlay {
 export interface TableBodySurfaceProps {
   isEmpty: boolean;
   overflowClass: string;
-  flushBottom: boolean;
-  hasFooter: boolean;
   dimRows: boolean;
   loadingState: TableLoadingState | undefined;
   onScroll: UIEventHandler<HTMLDivElement>;

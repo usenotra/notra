@@ -1,6 +1,9 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { INFINITE_TABLE_END_THRESHOLD_ROWS } from "@notra/ui/constants/table";
+import {
+  HORIZONTAL_OVERFLOW_TOLERANCE_PX,
+  INFINITE_TABLE_END_THRESHOLD_ROWS,
+} from "@notra/ui/constants/table";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { UseTableViewportOptions } from "@notra/ui/types/data-table";
@@ -22,6 +25,7 @@ export function useTableViewport<T>({
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const endReachedRef = useRef(false);
   const [horizontalScrollbarHeight, setHorizontalScrollbarHeight] = useState(0);
+  const [overflowsX, setOverflowsX] = useState(false);
 
   const virtualizer = useVirtualizer({
     enabled: rowSizing === "fixed",
@@ -65,6 +69,7 @@ export function useTableViewport<T>({
   }, [rows.length]);
 
   const [atEnd, setAtEnd] = useState(true);
+  const [atStart, setAtStart] = useState(true);
 
   // Asks for the next page once the reader is near the bottom. Also runs when
   // the rows or the viewport change, so a first page too short to scroll
@@ -96,6 +101,7 @@ export function useTableViewport<T>({
     setAtEnd(
       element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
     );
+    setAtStart(element.scrollTop <= 1);
     requestMoreIfNearEnd(element);
   }, [requestMoreIfNearEnd]);
 
@@ -110,6 +116,7 @@ export function useTableViewport<T>({
       setAtEnd(
         element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
       );
+      setAtStart(element.scrollTop <= 1);
       requestMoreIfNearEnd(element);
     };
     measure();
@@ -139,9 +146,36 @@ export function useTableViewport<T>({
     return () => observer.disconnect();
   }, []);
 
+  // Rounding at some zoom levels leaves the rows a pixel wider than the body,
+  // which lets a trackpad nudge the table sideways. Only scroll sideways when
+  // the columns really don't fit.
+  useEffect(() => {
+    const element = scrollRef.current;
+    const table = element?.querySelector("table");
+    if (!(element && table)) {
+      return;
+    }
+    const measure = () => {
+      setOverflowsX(
+        element.scrollWidth - element.clientWidth >
+          HORIZONTAL_OVERFLOW_TOLERANCE_PX
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, []);
+
 
   return {
     ...layout,
+    overflowClass: overflowsX
+      ? layout.overflowClass
+      : layout.overflowClass
+          .replace("overflow-x-auto", "overflow-x-hidden")
+          .replace("overflow-auto", "overflow-x-hidden overflow-y-auto"),
     scrollRef,
     headerScrollRef,
     handleScroll,
@@ -149,5 +183,6 @@ export function useTableViewport<T>({
     paddingTop,
     paddingBottom,
     atEnd,
+    atStart,
   };
 }

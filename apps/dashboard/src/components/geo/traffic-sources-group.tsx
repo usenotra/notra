@@ -18,8 +18,6 @@ import {
   TRAFFIC_SOURCE_BAND_LABEL_KEYS,
   TRAFFIC_SOURCE_BANDS,
   TRAFFIC_SOURCE_COLLAPSED_BORDER_PX,
-  TRAFFIC_SOURCE_STACK_OVERLAP_PX,
-  TRAFFIC_SOURCE_STACK_Z_INDEX,
 } from "@/constants/geo-traffic-sources";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
@@ -90,48 +88,38 @@ function TrafficSourcesGroup({
       ? columns
       : [{ ...first, header, sortable: false }, ...rest];
 
+  // Bands share one grey shell: only the outer edges of the stack get a
+  // border and radius, the seams between bands stay open.
   const collapsedBar = (
     <div
       className={cn(
-        "border-shell-border bg-shell relative flex items-center border-x px-4",
-        stacked ? "-mt-5 border-t-0 pt-5" : "border-t",
-        followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border-b",
-        stacked && "rounded-t-none"
+        "border-shell-border bg-shell flex items-center border-x px-[1.125rem]",
+        stacked ? "border-t-0" : "rounded-t-2xl border-t",
+        followedByStack ? "border-b-0" : "rounded-b-2xl border-b"
       )}
-      style={{
-        height:
-          TABLE_ROW_HEIGHT +
-          TRAFFIC_SOURCE_COLLAPSED_BORDER_PX +
-          (stacked ? TRAFFIC_SOURCE_STACK_OVERLAP_PX : 0),
-        zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band],
-      }}
+      style={{ height: TABLE_ROW_HEIGHT + TRAFFIC_SOURCE_COLLAPSED_BORDER_PX }}
     >
       {header}
     </div>
   );
 
   const table = (
-    <div
-      className={cn("relative", stacked && "-mt-5")}
-      style={{ zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band] }}
-    >
-      <DataTable
-        columns={groupColumns}
-        data={groups}
-        defaultSort={{ key: "visits", direction: "desc" }}
-        emptyState={tGeoShared("noAiTrafficCapturedYet")}
-        flushTop={stacked}
-        getRowId={(row) => trafficGroupKey(row.band, row.key)}
-        // Uncapped so no band scrolls on its own: a scrollbar would shift its
-        // columns out of line with the bands stacked above and below.
-        height={paginatedTableHeightFor(count)}
-        loading={loading}
-        onRowClick={onOpen}
-        overlapTop={stacked} // pairs with -mt-5 so the stacked header is not clipped
-        resizable
-        rowHeight={TABLE_ROW_HEIGHT}
-      />
-    </div>
+    <DataTable
+      columns={groupColumns}
+      data={groups}
+      defaultSort={{ key: "visits", direction: "desc" }}
+      emptyState={tGeoShared("noAiTrafficCapturedYet")}
+      flushBottom={followedByStack}
+      flushTop={stacked}
+      getRowId={(row) => trafficGroupKey(row.band, row.key)}
+      // Uncapped so no band scrolls on its own: a scrollbar would shift its
+      // columns out of line with the bands stacked above and below.
+      height={paginatedTableHeightFor(count)}
+      loading={loading}
+      onRowClick={onOpen}
+      resizable
+      rowHeight={TABLE_ROW_HEIGHT}
+    />
   );
 
   return showTable ? table : collapsedBar;
@@ -158,7 +146,7 @@ export function TrafficSourcesStack({
   ]);
 
   return (
-    <div className="isolate min-w-0 overflow-x-auto" ref={containerRef}>
+    <div className="min-w-0 overflow-x-auto" ref={containerRef}>
       <div className="w-full" style={{ minWidth }}>
         {TRAFFIC_SOURCE_BANDS.map((band, index) => (
           <TrafficSourcesGroup
