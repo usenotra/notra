@@ -1,0 +1,39 @@
+apps/dashboard/src/lib/orpc/routers/chat.ts
+  s_7a0c38829ccc1e::t_9cebd9f42f0d9d 1-7,17-22,28,30-246
+packages/schemas/src/schemas/dashboard/chat.ts
+  s_7a0c38829ccc1e::t_17c14cbf15deb3 9
+  s_7a0c38829ccc1e::t_a2d0dd2814305e 1-8,10-27
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/route.ts
+  s_7a0c38829ccc1e::t_829912d0923d1b 1-5,7-22
+apps/dashboard/src/lib/orpc/router.ts
+  s_7a0c38829ccc1e::t_2cce0fa0b7250d 7,36
+apps/dashboard/src/lib/hooks/use-chat-sessions.ts
+  s_7a0c38829ccc1e::t_381a3283cf1c9b 17,135-141,291-297,324-330,345-347
+  s_7a0c38829ccc1e::t_832f70b0a9ba17 4
+apps/dashboard/src/routeTree.gen.ts
+  s_7a0c38829ccc1e::t_02eb9c7e0abe0d 36,204-208,484,554,625,697,767,837,908,1111-1117,1550
+  s_7a0c38829ccc1e::t_9159696da38f86 405-407,411-413,417-419,423-425,429-431,1358,1361,1365,1368,1372,1375,1379,1382,1386,1389,1467,1475
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/[chatId]/route.ts
+  s_7a0c38829ccc1e::t_829912d0923d1b 5,35-43
+apps/dashboard/src/lib/chat/history.ts
+  s_7a0c38829ccc1e::t_eb8da5c4bcc64d 16-20,22,41,48
+  s_7a0c38829ccc1e::t_6483eaf34ed6db 9,27
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_7a0c38829ccc1e::t_b461cf5e2efa98 124,852-855,857-861,1852,2314-2319,2323
+  s_7a0c38829ccc1e::t_4fc1671afa95fb 2312-2313,2320-2322
+  s_7a0c38829ccc1e::t_832f70b0a9ba17 32
+  s_7a0c38829ccc1e::t_6f7cb1e9515dc6 1843-1851,1853
+packages/ai/src/chat/history.ts
+  s_7a0c38829ccc1e::t_6483eaf34ed6db 357,360,381
+apps/dashboard/src/components/dashboard/chat-history-nav.tsx
+  s_7a0c38829ccc1e::t_553636a25188e2 60
+  s_7a0c38829ccc1e::t_beafb784fa9c29 105-108,110-113
+apps/dashboard/src/components/dashboard/dashboard-agent-panel.tsx
+  s_7a0c38829ccc1e::t_48f3f71bfcfb0e 4,43,81-84,224-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "625a8fdc8b8542d16c2deb949ce05e7a45a667f6",
+  "prompts": {}
+}
