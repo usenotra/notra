@@ -1,0 +1,56 @@
+apps/web/src/types/auth/session.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-10
+apps/web/src/utils/navbar-session.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-48
+bun.lock
+  ai_agent 401
+apps/web/src/components/signed-out-landing-redirect.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 3
+apps/web/tsconfig.json
+  s_7a0c38829ccc1e::t_9ba6a55486a113 10
+apps/web/src/components/navbar.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 672-708
+apps/web/src/routes/__root.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 17,53-56
+apps/web/knip.json
+  s_7a0c38829ccc1e::t_9ba6a55486a113 8
+apps/web/src/constants/landing/live-demo.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 25-36
+apps/web/package.json
+  s_7a0c38829ccc1e::t_9ba6a55486a113 11,89
+apps/web/src/components/landing/hero-headline.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 104-106
+apps/web/src/lib/auth/use-navbar-auth-hotkeys.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 10
+apps/web/src/utils/navbar-session-script.test.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-149
+apps/web/src/components/landing/live-demo-embed.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 6,127
+apps/web/src/components/landing/live-demo-preview.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-41
+apps/dashboard/tests/navbar-session.test.ts
+  s_7a0c38829ccc1e::t_a8040c41d4cd81 22,41,49
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-21,23-40,42-48,50-55
+apps/web/src/constants/auth/session.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-4
+apps/web/src/lib/auth/use-dashboard-session.ts
+  s_7a0c38829ccc1e::t_9ba6a55486a113 3-4,14-20,22
+apps/web/src/components/landing/live-demo-embed.test.tsx
+  s_7a0c38829ccc1e::t_9ba6a55486a113 1-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6ee265ffc715b13f42c01201c1bdfb23bef0927a",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
