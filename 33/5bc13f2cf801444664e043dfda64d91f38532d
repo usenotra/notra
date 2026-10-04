@@ -1,0 +1,22 @@
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_d0ef1cf38b3100::t_fa8b6f8e1dc38f 167
+  s_d0ef1cf38b3100::t_d0ea0469892893 163-166,168-169
+packages/email/src/utils/brew.ts
+  s_d0ef1cf38b3100::t_c20dc407476943 1,102-104,108,110-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "335bc13f2cf801444664e043dfda64d91f38532d",
+  "prompts": {},
+  "sessions": {
+    "s_d0ef1cf38b3100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a72b35a-e666-4a98-a981-1ef6b945f21c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
