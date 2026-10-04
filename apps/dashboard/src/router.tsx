@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 
 import { RouteError } from "@/components/route-error";
+import { parseSearch, stringifySearch } from "@/utils/search-params";
 
 import { createDashboardUiRoutes } from "./routes/-dashboard-ui";
 import { createEntryUiRoutes } from "./routes/-entry-ui";
@@ -23,6 +24,8 @@ export function getRouter() {
     // A loader preloaded on hover serves the click that follows instead of
     // running again, so the click no longer waits for a server round trip.
     defaultPreloadStaleTime: 10_000,
+    parseSearch,
+    stringifySearch,
   });
 }
 

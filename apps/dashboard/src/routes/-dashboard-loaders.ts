@@ -105,9 +105,12 @@ export const loadDashboardHome = createServerFn({
         ),
       };
     })();
+    // Observed right away: if the home data fails while billing is still in
+    // flight (or billing itself fails), the rejection must not count as
+    // unhandled. Awaiting homePromise below still rethrows it.
+    homePromise.catch(() => undefined);
     const billing = await billingPromise;
     if (!billing.hasAccess) {
-      homePromise.catch(() => undefined);
       return { hasAccess: false as const };
     }
     return { hasAccess: true as const, ...(await homePromise) };
