@@ -88,6 +88,20 @@ async function saveMarketingChoice({
   return user.email;
 }
 
+/** Never throws, so an opt-out still reaches the unsubscribe list. */
+async function trySyncContact(userId: string): Promise<boolean> {
+  try {
+    const { failed } = await syncBrewContacts([userId]);
+    return failed === 0;
+  } catch (error) {
+    console.error("[MarketingConsent] Contact sync failed", {
+      userId,
+      error: error instanceof Error ? error.message : error,
+    });
+    return false;
+  }
+}
+
 /**
  * Mirrors a stored choice to Brew. An opt-in upserts the contact (with its
  * consent record) before lifting the unsubscribe, because Brew creates
@@ -103,8 +117,7 @@ async function mirrorMarketingChoice({
   email: string;
   enabled: boolean;
 }): Promise<MarketingEmailsState> {
-  const { failed } = await syncBrewContacts([userId]);
-  const synced = failed === 0;
+  const synced = await trySyncContact(userId);
 
   if (enabled && !synced) {
     throw new Error("Failed to sync the Brew contact");
