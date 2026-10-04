@@ -36,9 +36,8 @@ export function SentimentEngineList({
       {families.map(({ family, iconEngine, label, bucket }) => (
         <Tooltip key={family}>
           <TooltipTrigger
-            render={
-              <div className="hover:bg-muted/60 grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_2rem] items-center gap-4 px-5 py-2.5 text-sm transition-colors" />
-            }
+            // A button, so keyboard users can open the breakdown too.
+            className="hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-ring grid w-full grid-cols-[minmax(0,9rem)_minmax(0,1fr)_2rem] items-center gap-4 px-5 py-2.5 text-left text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset"
           >
             <span className="flex min-w-0 items-center gap-2 font-medium">
               <EngineIcon className="size-4 shrink-0" engine={iconEngine} />
