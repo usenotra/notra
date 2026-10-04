@@ -25,7 +25,7 @@ import {
 } from "@notra/ui/components/ui/data-table";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useState } from "react";
-import { useTranslations } from "use-intl";
+import { useNow, useTranslations } from "use-intl";
 
 import {
   CollectionActionsMenu,
@@ -34,6 +34,7 @@ import {
 import Link from "@/components/framework/link";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
+  COLLECTION_JUST_NOW_MS,
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
@@ -213,11 +214,18 @@ export function CollectionsView({
     </ResponsiveAlertDialog>
   );
   const dateFnsLocale = useDateFnsLocale();
-  const formatRelativeDate = (dateString: string) =>
-    formatDistanceToNowStrict(new Date(dateString), {
+  const now = useNow();
+  const formatRelativeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    // date-fns has no "just now"; it would print "0 seconds ago".
+    if (Math.abs(now.getTime() - date.getTime()) < COLLECTION_JUST_NOW_MS) {
+      return tCommon("time.justNow");
+    }
+    return formatDistanceToNowStrict(date, {
       addSuffix: true,
       locale: dateFnsLocale,
     });
+  };
   const collectionColumns: TableColumn<PostCollectionSummary>[] = [
     {
       key: "types",
@@ -351,7 +359,10 @@ export function CollectionsView({
             {t("emptyPage")}
           </p>
         ) : null}
-        <TablePagination {...pagination} itemLabel={t("items")} />
+        <TablePagination
+          {...pagination}
+          itemLabel={t("items", { count: pagination.totalItems })}
+        />
         {deleteDialog}
       </div>
     );
@@ -370,7 +381,7 @@ export function CollectionsView({
           totalItems: pagination.totalItems,
           onPageChange: pagination.setPage,
           onPageSizeChange: pagination.onPageSizeChange,
-          itemLabel: t("items"),
+          itemLabel: t("items", { count: pagination.totalItems }),
         }}
         getRowId={(collection) => collection.id}
         height={paginatedTableHeightFor(
