@@ -217,13 +217,16 @@ function usePreviewWriteGuard() {
   useEffect(() => {
     const realFetch = window.fetch;
     window.fetch = async (input, init) => {
-      if (await isPreviewWrite(new Request(input, init))) {
+      // Building the Request consumes a Request input's body, so the built
+      // one is what gets forwarded.
+      const request = new Request(input, init);
+      if (await isPreviewWrite(request)) {
         return Response.json(
           { message: "Disabled in the break-ui preview" },
           { status: 403 }
         );
       }
-      return realFetch(input, init);
+      return realFetch(request);
     };
     return () => {
       window.fetch = realFetch;
