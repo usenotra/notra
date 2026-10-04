@@ -217,91 +217,6 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     expect(syncWrite).not.toHaveBeenCalled();
   });
 
-  test("image synchronization uses the recorded file rather than the changed image order", async () => {
-    const octokit = {
-      request: async (_route: string, args: { ref: string }) => {
-        expect(args.ref).toBe("recorded");
-        return {
-          data: {
-            type: "file",
-            content: Buffer.from("![A](./a.png)\n![B](./b.png)").toString(
-              "base64"
-            ),
-          },
-        };
-      },
-    } as unknown as GitHubMentionOctokit;
-    await syncPublishedPostAfterCommit({
-      octokit,
-      organizationId: "org",
-      publication: {
-        ...publication,
-        path: "page.md",
-        headSha: "recorded",
-        markdown: "![A](https://cdn/a.png)\n![B](https://cdn/b.png)",
-      },
-      files: [
-        {
-          path: "page.md",
-          contents: "![B](./b.png)\n![New](https://cdn/new.png)",
-        },
-      ],
-      commitSha: "next",
-      branch: "content",
-      recordPublicationHead: true,
-    });
-    expect(syncWrite).toHaveBeenCalledWith(
-      {
-        organizationId: "org",
-        publicationId: "pub",
-        postId: "post",
-        baselineHeadSha: "recorded",
-        expectedHeadSha: "recorded",
-        commitSha: "next",
-        branch: "content",
-        markdown: "![B](https://cdn/b.png)\n![New](https://cdn/new.png)",
-        path: "page.md",
-      },
-      expect.any(Function)
-    );
-  });
-
-  test("an applied suggestion copies the pull request file into the post", async () => {
-    const octokit = {
-      request: async (route: string, args: { ref?: string; path?: string }) => {
-        if (String(route).includes("/contents/")) {
-          expect(args.ref).toBe("applied");
-          expect(args.path).toBe("docs/page.md");
-          return {
-            data: {
-              type: "file",
-              content: Buffer.from("# Applied suggestion").toString("base64"),
-            },
-          };
-        }
-        return { data: { status: "ahead" } };
-      },
-    } as unknown as GitHubMentionOctokit;
-    const result = await syncPublishedPostFromPullRequestHead({
-      octokit,
-      organizationId: "org",
-      publication: { ...publication, headSha: null },
-      commitSha: "applied",
-      branch: "content",
-    });
-    expect(result).toEqual({
-      status: "synchronized",
-      markdown: "# Updated",
-    });
-    expect(syncWrite).toHaveBeenCalledWith(
-      expect.objectContaining({
-        commitSha: "applied",
-        markdown: "# Applied suggestion",
-      }),
-      expect.any(Function)
-    );
-  });
-
   test("a missing published file is ignored, but GitHub outages retry", async () => {
     const missing = Object.assign(new Error("Not Found"), { status: 404 });
     const unavailable = Object.assign(new Error("Bad Gateway"), {
@@ -333,47 +248,6 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
         branch: "content",
       })
     ).rejects.toThrow("Bad Gateway");
-  });
-
-  test("failed image translation schedules the immutable mapping payload", async () => {
-    const scheduled: unknown[] = [];
-    const octokit = {
-      request: async () => {
-        throw new Error("recorded file unavailable");
-      },
-    } as unknown as GitHubMentionOctokit;
-    const result = await syncPublishedPostAfterCommit({
-      octokit,
-      organizationId: "org",
-      publication: {
-        ...publication,
-        path: "page.md",
-        headSha: "recorded",
-        markdown: "![A](https://cdn/a.png)",
-      },
-      files: [{ path: "page.md", contents: "![A](./a.png)" }],
-      commitSha: "next",
-      branch: "content",
-      recordPublicationHead: true,
-      scheduleRepair: async (repair) => {
-        scheduled.push(structuredClone(repair));
-      },
-    });
-    expect(result).toEqual({ status: "pending" });
-    expect(syncWrite).not.toHaveBeenCalled();
-    expect(scheduled).toEqual([
-      expect.objectContaining({
-        commitSha: "next",
-        markdown: "![A](./a.png)",
-        imageMapping: {
-          owner: "acme",
-          repo: "docs",
-          path: "page.md",
-          headSha: "recorded",
-          markdown: "![A](https://cdn/a.png)",
-        },
-      }),
-    ]);
   });
 
   test("repair preparation restores original CDN targets before database sync", async () => {

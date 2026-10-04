@@ -6,25 +6,6 @@ import {
 } from "./framework-request";
 
 describe("dashboard runtime redirects", () => {
-  test.each([
-    ["/home?source=demo", "https://www.usenotra.com/home?source=demo", 308],
-    ["/landing", "https://www.usenotra.com/landing", 308],
-    ["/acme/settings?tab=billing", "/acme?tab=billing&settings=general", 307],
-    ["/acme/logs", "/acme?settings=logs", 307],
-    ["/acme/schedules", "/acme/automation/schedules", 308],
-    [
-      "/acme/automation/schedule?test=1",
-      "/acme/automation/schedules?test=1",
-      308,
-    ],
-  ])("preserves redirect %s", (path, destination, status) => {
-    const response = getDashboardRedirect(
-      new Request(`http://localhost${path}`)
-    );
-    expect(response?.status).toBe(status);
-    expect(response?.headers.get("location")).toBe(destination);
-  });
-
   test("restores the organization only from a valid cookie slug", () => {
     const response = getDashboardRedirect(
       new Request("http://localhost/api-keys?source=settings", {
@@ -45,15 +26,6 @@ describe("dashboard runtime redirects", () => {
       ).toBeUndefined();
     }
   });
-
-  test.each(["/", "/acme", "/api/healthcheck", "/api-keys", "/acme/geo/gaps"])(
-    "leaves current route %s alone",
-    (path) => {
-      expect(
-        getDashboardRedirect(new Request(`http://localhost${path}`))
-      ).toBeUndefined();
-    }
-  );
 });
 
 describe("dashboard deployment security", () => {

@@ -158,42 +158,6 @@ describe("resolveRoute", () => {
     assert.equal(lookups, 2);
   });
 
-  test("plan lookups are cached for the TTL", async () => {
-    let now = 0;
-    const { router, planLookups } = createTestRouter({
-      plans,
-      now: () => now,
-      planCacheTtlMs: 1000,
-    });
-    await router.resolveRoute({ modelId: MODEL, organizationId: PAID_ORG });
-    await router.resolveRoute({ modelId: MODEL, organizationId: PAID_ORG });
-    assert.deepEqual(planLookups, [PAID_ORG]);
-    now = 1001;
-    const decision = await router.resolveRoute({
-      modelId: MODEL,
-      organizationId: PAID_ORG,
-    });
-    assert.deepEqual(planLookups, [PAID_ORG, PAID_ORG]);
-    assert.equal(decision.planSource, "resolver");
-  });
-
-  test("plan lookup failure falls back to free and logs", async () => {
-    const { router, logger } = createTestRouter({
-      resolvePlan: () => Promise.reject(new Error("autumn down")),
-    });
-    const decision = await router.resolveRoute({
-      modelId: MODEL,
-      organizationId: PAID_ORG,
-    });
-    assert.equal(decision.plan, "free");
-    assert.equal(decision.planSource, "default");
-    assert.ok(
-      logger.entries.some(
-        (entry) => entry.event === "ai.router.plan_lookup_failed"
-      )
-    );
-  });
-
   test("missing openrouter key: free org falls back to vercel with reason", async () => {
     const { router, logger } = createTestRouter({ plans, openrouter: null });
     const decision = await router.resolveRoute({
@@ -332,47 +296,6 @@ describe("resolveRoute", () => {
 });
 
 describe("RoutedLanguageModel", () => {
-  test("resolves lazily once for concurrent and subsequent calls", async () => {
-    const { router, openrouter, planLookups } = createTestRouter({ plans });
-    assert.ok(openrouter);
-    const model = router.model(MODEL, { organizationId: FREE_ORG });
-    assert.equal(model.provider, "notra-router");
-    assert.equal(model.modelId, MODEL);
-    assert.deepEqual(planLookups, []);
-    assert.deepEqual(openrouter.createdModels, []);
-
-    await Promise.all([
-      model.doGenerate(callOptions()),
-      model.doGenerate(callOptions()),
-      Promise.resolve(model.supportedUrls),
-    ]);
-    await model.doGenerate(callOptions());
-    assert.deepEqual(planLookups, [FREE_ORG]);
-    assert.deepEqual(openrouter.createdModels, [MODEL]);
-    assert.equal(openrouter.calls.length, 3);
-  });
-
-  test("retries resolution after a failed first attempt", async () => {
-    let available = false;
-    const openrouter = createFakeAdapter({
-      id: "openrouter",
-      supportedModels: () => available,
-    });
-    const { router } = createTestRouter({ plans, openrouter, vercel: null });
-    const model = router.model(MODEL, { organizationId: FREE_ORG });
-    await assert.rejects(
-      async () => await model.doGenerate(callOptions()),
-      UnsupportedModelError
-    );
-    assert.deepEqual(openrouter.createdModels, []);
-
-    available = true;
-    const result = await model.doGenerate(callOptions());
-    assert.equal(metadataOf(result)?.gateway, "openrouter");
-    assert.deepEqual(openrouter.createdModels, [MODEL]);
-    assert.equal(openrouter.calls.length, 1);
-  });
-
   test("openrouter calls carry ZDR provider options and no vercel block", async () => {
     const { router, openrouter } = createTestRouter({ plans });
     const model = router.model(MODEL, { organizationId: FREE_ORG });

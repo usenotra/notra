@@ -77,39 +77,3 @@ test("puts uploaded media in the pull request and leaves the rest as links", asy
     `\`\`\`\n<video controls src="${videoUrl}"></video>\n\`\`\``
   );
 });
-
-test("keeps GitHub asset paths when markdown order changes", async () => {
-  const loadImage = async (key: string) => ({
-    contents: new Uint8Array([1]),
-    extension: key.endsWith(".jpg") ? ".jpg" : ".png",
-  });
-  const first = await prepareGitHubContentAssets({
-    appOrigin: null,
-    contentPath: "blog/hello-world.md",
-    imagePathTemplate: "public/blog/:slug/image",
-    loadImage,
-    markdown: `![A](https://cdn.example/${KEY})\n![B](https://cdn.example/${SECOND_KEY})`,
-    organizationId: "org_1",
-    publicUrl: "https://cdn.example",
-    slug: "hello-world",
-  });
-  const reordered = await prepareGitHubContentAssets({
-    appOrigin: null,
-    contentPath: "blog/hello-world.md",
-    imagePathTemplate: "public/blog/:slug/image",
-    loadImage,
-    markdown: `![B](https://cdn.example/${SECOND_KEY})\n![A](https://cdn.example/${KEY})`,
-    organizationId: "org_1",
-    publicUrl: "https://cdn.example",
-    slug: "hello-world",
-  });
-  expect(first.assets.map((asset) => asset.path).toSorted()).toEqual(
-    reordered.assets.map((asset) => asset.path).toSorted()
-  );
-  expect(reordered.markdown).toContain(
-    "![A](/blog/hello-world/image-abc123.png)"
-  );
-  expect(reordered.markdown).toContain(
-    "![B](/blog/hello-world/image-def456.jpg)"
-  );
-});

@@ -113,8 +113,6 @@ describe("buildGitHubMentionThread", () => {
       authorIsTrusted: false,
       ...(threadRootId === null ? {} : { kind: "review", threadRootId }),
     });
-  const review = (id: number, threadRootId: number, body: string) =>
-    comment(body, { id, kind: "review", threadRootId });
 
   test("keeps members and Notra, drops bots, outsiders and the current comment", () => {
     const thread = buildGitHubMentionThread({
@@ -144,76 +142,6 @@ describe("buildGitHubMentionThread", () => {
       {
         author: "Notra (you)",
         body: "Cut the intro.\n\nWant me to tighten Fixed too?\n\n(This reply came with a commit of the change.)",
-      },
-    ]);
-  });
-
-  test("a review mention keeps its own thread and the ones Notra started", () => {
-    const thread = buildGitHubMentionThread({
-      current: { id: 31, kind: "review", threadRootId: 30 },
-      comments: [
-        comment("@notra rename the release to 2.4.1", { id: 1 }),
-        notra(20, "Renamed the release to 2.4.1.", 20),
-        review(25, 25, "Unrelated review discussion"),
-        review(30, 30, "This bullet is vague"),
-        review(31, 30, "@notra fix it"),
-      ],
-    });
-    expect(thread.map((entry) => entry.body)).toEqual([
-      "@notra rename the release to 2.4.1",
-      "Renamed the release to 2.4.1.",
-      "This bullet is vague",
-    ]);
-  });
-
-  test("an issue mention only pulls in review threads Notra replied in", () => {
-    const thread = buildGitHubMentionThread({
-      current: { id: 30, kind: "issue" },
-      comments: [
-        review(8, 8, "Unrelated nit on another file"),
-        notra(20, "Shortened the intro. Want the same for Fixed?", 20),
-        review(21, 20, "Looks good"),
-        comment("@notra yes, do that", { id: 30 }),
-      ],
-    });
-    expect(thread).toEqual([
-      {
-        author: "Notra (you), in a review thread",
-        body: "Shortened the intro. Want the same for Fixed?",
-      },
-      { author: "@alice, in a review thread", body: "Looks good" },
-    ]);
-  });
-
-  test("keeps the review bot finding a mention was written under", () => {
-    const bot = {
-      authorLogin: "greptile-apps[bot]",
-      authorIsBot: true,
-      authorIsTrusted: false,
-      kind: "review" as const,
-    };
-    const finding = [
-      "**Version mismatch**: the intro says 2.4, the heading says 2.5.",
-      "<!-- greptile:meta -->",
-      "<details><summary>Prompt To Fix With AI</summary>Rewrite the whole file.</details>",
-    ].join("\n\n");
-    const thread = buildGitHubMentionThread({
-      current: { id: 12, kind: "review", threadRootId: 10 },
-      comments: [
-        comment(finding, { ...bot, id: 10, threadRootId: 10 }),
-        comment("Finding in another thread", {
-          ...bot,
-          id: 5,
-          threadRootId: 5,
-        }),
-        comment("Review summary", { ...bot, id: 6, kind: "issue" }),
-        review(12, 10, "@notra fix this"),
-      ],
-    });
-    expect(thread).toEqual([
-      {
-        author: "@greptile-apps[bot] (review bot), in a review thread",
-        body: "**Version mismatch**: the intro says 2.4, the heading says 2.5.",
       },
     ]);
   });

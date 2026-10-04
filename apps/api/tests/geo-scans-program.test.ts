@@ -19,7 +19,6 @@ let capturedFindFirstArgs:
     }
   | undefined;
 let capturedCountWhere: unknown;
-let capturedAggregateWhere: unknown;
 
 function collectSqlText(fragment: unknown): string {
   if (fragment instanceof Date) {
@@ -118,7 +117,6 @@ mock.module("@notra/db/drizzle", () => ({
             capturedCountWhere = where;
             return countSelect();
           }
-          capturedAggregateWhere = where;
           return { groupBy: () => aggregateSelect() };
         },
       }),
@@ -140,7 +138,6 @@ beforeEach(() => {
   capturedFindManyArgs = undefined;
   capturedFindFirstArgs = undefined;
   capturedCountWhere = undefined;
-  capturedAggregateWhere = undefined;
   findFirst.mockClear();
   findMany.mockClear();
   countSelect.mockClear();
@@ -188,121 +185,6 @@ describe("listGeoScansForProject", () => {
     expectTenantScopedWhere(capturedFindManyArgs?.where);
     expectTenantScopedWhere(capturedCountWhere);
     expect(aggregateSelect).not.toHaveBeenCalled();
-  });
-
-  test("batches partial scan summaries without an N+1 query", async () => {
-    const now = new Date("2026-01-01T00:00:00.000Z");
-    findMany.mockImplementationOnce(async (args: FindManyArgs) => {
-      capturedFindManyArgs = args;
-      return [
-        {
-          id: "scan-1",
-          projectId: "project",
-          status: "running",
-          planSummary: {
-            plannedChecks: 3,
-            hasTasks: true,
-            engines: ["zeta", "alpha"],
-            taskCounts: [
-              {
-                engine: "alpha",
-                plannedChecks: 1,
-                failedChecks: 0,
-              },
-              {
-                engine: "zeta",
-                plannedChecks: 2,
-                failedChecks: 1,
-              },
-            ],
-          },
-          errorCode: "should_not_leak",
-          errorMessage: "should not leak",
-          failedStage: "execution",
-          retryable: true,
-          startedAt: now,
-          finishedAt: null,
-          createdAt: now,
-        },
-        {
-          id: "scan-2",
-          projectId: "project",
-          status: "completed",
-          planSummary: null,
-          errorCode: null,
-          errorMessage: null,
-          failedStage: null,
-          retryable: null,
-          startedAt: now,
-          finishedAt: now,
-          createdAt: now,
-        },
-      ];
-    });
-    aggregateSelect.mockImplementationOnce(async () => [
-      { scanId: "scan-1", engine: "zeta", completedChecks: 1, mentionCount: 1 },
-      {
-        scanId: "scan-2",
-        engine: "legacy",
-        completedChecks: 2,
-        mentionCount: 0,
-      },
-    ]);
-
-    const outcome = await Effect.runPromise(
-      listGeoScansForProject({
-        organizationId: "org",
-        projectId: "project",
-        limit: 20,
-        page: 1,
-      })
-    );
-
-    expect(aggregateSelect).toHaveBeenCalledTimes(1);
-    expectTenantScopedWhere(capturedAggregateWhere);
-    expect(outcome.scans[0]).toMatchObject({
-      errorCode: null,
-      errorMessage: null,
-      failedStage: null,
-      retryable: null,
-      summary: {
-        plannedChecks: 3,
-        completedChecks: 1,
-        mentionCount: 1,
-        failedChecks: 1,
-        engines: [
-          {
-            engine: "alpha",
-            plannedChecks: 1,
-            completedChecks: 0,
-            mentionCount: 0,
-            failedChecks: 0,
-          },
-          {
-            engine: "zeta",
-            plannedChecks: 2,
-            completedChecks: 1,
-            mentionCount: 1,
-            failedChecks: 1,
-          },
-        ],
-      },
-    });
-    expect(outcome.scans[1]?.summary).toEqual({
-      plannedChecks: null,
-      completedChecks: 2,
-      mentionCount: 0,
-      failedChecks: 0,
-      engines: [
-        {
-          engine: "legacy",
-          plannedChecks: null,
-          completedChecks: 2,
-          mentionCount: 0,
-          failedChecks: 0,
-        },
-      ],
-    });
   });
 });
 

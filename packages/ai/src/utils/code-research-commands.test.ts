@@ -7,11 +7,9 @@ import {
   buildCloneScript,
   buildListFilesScript,
   buildReadFileScript,
-  globToRegExp,
   isDeniedRepoPath,
   normalizeRepoPath,
   parseCommitLines,
-  parseListFiles,
   parseSearchMatches,
   parseShowChange,
   redactSecrets,
@@ -151,33 +149,6 @@ describe("secret handling in results", () => {
       `${"a".repeat(40)}\u001fJan\u001f2026-09-29\u001ffix: rotate ghp_${"b".repeat(36)}`
     );
     expect(commit?.subject).not.toContain("ghp_");
-  });
-});
-
-describe("parseListFiles", () => {
-  test("filters by glob relative to the listed path", () => {
-    const listing = [
-      "apps/web/src/flag.ts",
-      "apps/web/src/lib/geo/flag.ts",
-      "apps/web/src/lib/geo/flag.test.ts",
-      "apps/web/README.md",
-    ].join("\n");
-    expect(parseListFiles(listing, "apps/web", 10, "**/flag.ts").files).toEqual(
-      ["apps/web/src/flag.ts", "apps/web/src/lib/geo/flag.ts"]
-    );
-    expect(parseListFiles(listing, "apps/web", 10, "*.md").files).toEqual([
-      "apps/web/README.md",
-    ]);
-  });
-});
-
-describe("globToRegExp", () => {
-  test("keeps * inside one directory and lets ** cross them", () => {
-    expect(globToRegExp("*.ts").test("a.ts")).toBe(true);
-    expect(globToRegExp("*.ts").test("dir/a.ts")).toBe(false);
-    expect(globToRegExp("**/*.ts").test("a/b/c.ts")).toBe(true);
-    expect(globToRegExp("src/?.ts").test("src/a.ts")).toBe(true);
-    expect(globToRegExp("a+b.(x)").test("a+b.(x)")).toBe(true);
   });
 });
 

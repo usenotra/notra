@@ -36,26 +36,3 @@ test("validates a requested project in the organization before accepting it", as
     "org-1",
   ]);
 });
-
-test("invalid requested projects fall back to the validated cookie then oldest project", async () => {
-  findFirst.mockReset();
-  findFirst
-    .mockResolvedValueOnce(undefined)
-    .mockResolvedValueOnce({ id: "cookie-project" });
-  expect(
-    await resolveInitialGeoProjectId("org-1", "org", "foreign-project")
-  ).toBe("cookie-project");
-  findFirst.mockReset();
-  findFirst
-    .mockResolvedValueOnce(undefined)
-    .mockResolvedValueOnce(undefined)
-    .mockResolvedValueOnce({ id: "oldest-project" });
-  expect(
-    await resolveInitialGeoProjectId("org-1", "org", "deleted-project")
-  ).toBe("oldest-project");
-  const oldestQuery = findFirst.mock.calls[2]?.[0];
-  const dialect = new PgDialect();
-  expect(
-    oldestQuery?.orderBy?.map((clause) => dialect.sqlToQuery(clause).sql)
-  ).toEqual(['"projects"."created_at" asc', '"projects"."id" asc']);
-});

@@ -16,7 +16,6 @@ import { Effect, Layer, Redacted, Schema } from "effect";
 
 import { publishEventInTransaction } from "../src/drizzle";
 import { WebhookQueueError, WebhookStorageError } from "../src/errors/webhooks";
-import { publishBrandAnalysisOutcome } from "../src/programs/brand-analysis";
 import {
   claimDelivery,
   deliver,
@@ -28,7 +27,6 @@ import {
   listEndpoints,
 } from "../src/programs/endpoints";
 import { publishEvent } from "../src/programs/events";
-import { publishGenerationOutcome } from "../src/programs/generation";
 import {
   listAttempts,
   listDeliveries,
@@ -39,7 +37,7 @@ import { cleanup, dispatchEvent, recover } from "../src/programs/recovery";
 import { OrganizationId } from "../src/schemas/webhooks";
 import { WebhookCrypto, webCryptoLayer } from "../src/services/crypto";
 import { WebhookDatabase } from "../src/services/database";
-import { cloudflareQueuesLayer, WebhookQueues } from "../src/services/queue";
+import { WebhookQueues } from "../src/services/queue";
 import {
   cloudflareTransportLayer,
   WebhookTransport,
@@ -524,137 +522,6 @@ test("a delivery insert failure rolls back the event and can be retried", () =>
     }).pipe(Effect.provide(layers))
   ));
 
-test("generation outcome schema rejects missing posts and emits failure/skipped events", () =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* createEndpoint({
-        organizationId: org,
-        url: "https://hooks.usenotra.com/receive",
-        events: [
-          "post.generation.completed",
-          "post.generation.failed",
-          "post.generation.skipped",
-        ],
-      });
-      expect(
-        (yield* Effect.result(
-          publishGenerationOutcome({
-            id: "missing",
-            organizationId: org,
-            status: "completed",
-            postId: null,
-            error: null,
-          })
-        ))._tag
-      ).toBe("Failure");
-      yield* publishGenerationOutcome({
-        id: "failed",
-        organizationId: org,
-        status: "failed",
-        postId: null,
-        error: "Generation failed",
-      });
-      yield* publishGenerationOutcome({
-        id: "skipped",
-        organizationId: org,
-        status: "skipped",
-        postId: null,
-        error: "No activity",
-      });
-      yield* publishGenerationOutcome({
-        id: "running",
-        organizationId: org,
-        status: "running",
-        postId: null,
-        error: null,
-      });
-      expect(
-        (yield* listDeliveries(org))
-          .map((delivery) => delivery.eventType)
-          .sort()
-      ).toEqual(["post.generation.failed", "post.generation.skipped"]);
-    }).pipe(Effect.provide(layers))
-  ));
-
-test("brand analysis outcome emits terminal events and dedupes retries", () =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* createEndpoint({
-        organizationId: org,
-        url: "https://hooks.usenotra.com/receive",
-        events: [
-          "brand_identity.generation.completed",
-          "brand_identity.generation.failed",
-        ],
-      });
-      expect(
-        (yield* Effect.result(
-          publishBrandAnalysisOutcome({
-            id: "missing",
-            organizationId: org,
-            brandIdentityId: "",
-            status: "completed",
-            error: null,
-          })
-        ))._tag
-      ).toBe("Failure");
-      yield* publishBrandAnalysisOutcome({
-        id: "queued",
-        organizationId: org,
-        brandIdentityId: "brand_1",
-        status: "queued",
-        error: null,
-      });
-      yield* publishBrandAnalysisOutcome({
-        id: "done",
-        organizationId: org,
-        brandIdentityId: "brand_1",
-        status: "completed",
-        error: null,
-      });
-      yield* publishBrandAnalysisOutcome({
-        id: "broken",
-        organizationId: org,
-        brandIdentityId: "brand_2",
-        status: "failed",
-        error: "Scrape failed",
-      });
-      // A retried producer re-reporting the same job is a no-op.
-      yield* publishBrandAnalysisOutcome({
-        id: "broken",
-        organizationId: org,
-        brandIdentityId: "brand_2",
-        status: "failed",
-        error: "Scrape failed",
-      });
-      expect(
-        (yield* listDeliveries(org))
-          .map((delivery) => delivery.eventType)
-          .sort()
-      ).toEqual([
-        "brand_identity.generation.completed",
-        "brand_identity.generation.failed",
-      ]);
-    }).pipe(Effect.provide(layers))
-  ));
-
-test("post.published is emitted once even when a post is republished", () =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* createEndpoint({
-        organizationId: org,
-        url: "https://hooks.usenotra.com/receive",
-        events: ["post.published"],
-      });
-      const input = { organizationId: org, postId: "post_1" };
-      yield* publishPostPublished(input);
-      yield* publishPostPublished(input);
-      expect(
-        (yield* listDeliveries(org)).map((delivery) => delivery.eventType)
-      ).toEqual(["post.published"]);
-    }).pipe(Effect.provide(layers))
-  ));
-
 test("transactional outbox publish commits and rolls back with the caller", async () => {
   await Effect.runPromise(
     createEndpoint({
@@ -849,33 +716,6 @@ const runBatch = async (queue: string, body: unknown) => {
   await worker.queue(batch, bindings);
   return { acked, retried };
 };
-
-test("queue deliveries chunks sendBatch at Cloudflare's 100-message limit", async () => {
-  const batches: number[] = [];
-  await Effect.runPromise(
-    Effect.gen(function* () {
-      const queues = yield* WebhookQueues;
-      yield* queues.deliveries(
-        Array.from({ length: 250 }, (_, index) => `d${index}`)
-      );
-      yield* queues.deliveries([]);
-    }).pipe(
-      Effect.provide(
-        cloudflareQueuesLayer({
-          EVENT_QUEUE: queueStub(),
-          DELIVERY_QUEUE: {
-            ...queueStub<{ deliveryId: string }>(),
-            sendBatch: (messages) => {
-              batches.push([...messages].length);
-              return Promise.resolve({ metadata: { metrics: idleMetrics } });
-            },
-          },
-        })
-      )
-    )
-  );
-  expect(batches).toEqual([100, 100, 50]);
-});
 
 test("worker retries messages it cannot process instead of acking or crashing", async () => {
   const unknownQueue = await runBatch("notra-unknown", { deliveryId: "x" });

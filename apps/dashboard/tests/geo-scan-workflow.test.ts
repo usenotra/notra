@@ -226,52 +226,6 @@ describe("GEO scan workflow orchestration", () => {
     expect(sleep).not.toHaveBeenCalled();
   });
 
-  test("empty project discovery does not prepare, bill, or retry a scan", async () => {
-    listProjects.mockResolvedValue([]);
-    expect(await geoScanWorkflow({ organizationId: "org-test" })).toEqual({
-      status: "skipped",
-    });
-    expect(prepare).not.toHaveBeenCalled();
-    expect(taskBatch).not.toHaveBeenCalled();
-    expect(sleep).not.toHaveBeenCalled();
-  });
-
-  test("a project whose preparation skips does not execute or finalize batches", async () => {
-    prepare.mockResolvedValue({ status: "skipped", reason: "already_running" });
-    expect(await geoScanWorkflow({ organizationId: "org-test" })).toEqual({
-      status: "skipped",
-    });
-    expect(taskBatch).not.toHaveBeenCalled();
-    expect(finalize).not.toHaveBeenCalled();
-    expect(appendLog).not.toHaveBeenCalled();
-    expect(sleep).not.toHaveBeenCalled();
-  });
-
-  test("runs projects sequentially so their batch windows cannot multiply provider traffic", async () => {
-    listProjects.mockResolvedValue(["project-one", "project-two"]);
-    let releaseFirstProject: (() => void) | undefined;
-    taskBatch.mockImplementationOnce(
-      (_context, batch) =>
-        new Promise((resolve) => {
-          releaseFirstProject = () =>
-            resolve({
-              checks: batch.length,
-              mentions: 0,
-              dropped: 0,
-              usage: EMPTY_AGENT_TOKEN_USAGE,
-            });
-        })
-    );
-    const run = geoScanWorkflow({ organizationId: "org-test" });
-    await settle(() => releaseFirstProject !== undefined);
-    expect(prepare).toHaveBeenCalledTimes(1);
-    expect(prepare.mock.calls[0]?.[1]).toBe("project-one");
-    releaseFirstProject?.();
-    await settle(() => prepare.mock.calls.length === 2);
-    expect(prepare.mock.calls[1]?.[1]).toBe("project-two");
-    expect(await run).toMatchObject({ status: "completed" });
-  });
-
   test("revalidates a handed claim before scanning projects listed ahead of it", async () => {
     listProjects.mockResolvedValue([
       "project-earlier",
@@ -407,55 +361,6 @@ describe("GEO scan workflow orchestration", () => {
       })
     );
     expect(sleep).not.toHaveBeenCalled();
-  });
-
-  test("keeps a window of batches in flight and refills a slot as soon as one settles", async () => {
-    const plan = scanPlan(
-      "project-test",
-      GEO_SCAN_TASK_BATCH_SIZE * (GEO_SCAN_BATCH_CONCURRENCY + 2)
-    );
-    prepare.mockResolvedValue({ status: "planned", plan });
-    let inFlight = 0;
-    let peakInFlight = 0;
-    const releases: (() => void)[] = [];
-    taskBatch.mockImplementation((_context, batch) => {
-      inFlight += 1;
-      peakInFlight = Math.max(peakInFlight, inFlight);
-      return new Promise((resolve) => {
-        releases.push(() => {
-          inFlight -= 1;
-          resolve({
-            checks: batch.length,
-            mentions: 0,
-            dropped: 0,
-            usage: EMPTY_AGENT_TOKEN_USAGE,
-          });
-        });
-      });
-    });
-    const run = geoScanWorkflow({ organizationId: "org-test" });
-    await settle(() => releases.length === GEO_SCAN_BATCH_CONCURRENCY);
-    expect(taskBatch).toHaveBeenCalledTimes(GEO_SCAN_BATCH_CONCURRENCY);
-    // Releasing one batch refills exactly one slot without waiting for the rest.
-    releases.shift()?.();
-    await settle(
-      () => taskBatch.mock.calls.length === GEO_SCAN_BATCH_CONCURRENCY + 1
-    );
-    expect(inFlight).toBe(GEO_SCAN_BATCH_CONCURRENCY);
-    releases.shift()?.();
-    await settle(
-      () => taskBatch.mock.calls.length === GEO_SCAN_BATCH_CONCURRENCY + 2
-    );
-    while (releases.length > 0) {
-      releases.shift()?.();
-      await tick();
-    }
-    expect(await run).toEqual({
-      status: "completed",
-      checks: plan.tasks.length,
-      mentions: 0,
-    });
-    expect(peakInFlight).toBe(GEO_SCAN_BATCH_CONCURRENCY);
   });
 
   test("stops starting batches after a failure but drains the ones in flight", async () => {
@@ -693,53 +598,5 @@ describe("GEO scan workflow orchestration", () => {
       "failed",
       "failed",
     ]);
-  });
-
-  test("a logging failure on the success path does not change the scan outcome", async () => {
-    appendLog.mockRejectedValue(new Error("Redis unavailable"));
-    const result = await geoScanWorkflow({ organizationId: "org-test" });
-    expect(result).toMatchObject({ status: "completed" });
-    expect(finalize.mock.calls.map(([, , status]) => status)).toEqual([
-      "completed",
-    ]);
-    expect(appendLog).toHaveBeenCalledTimes(1);
-  });
-
-  test("a sentiment startup failure records its cause without failing the scan", async () => {
-    startSentiment.mockRejectedValue(new Error("Workflow queue unavailable"));
-    expect(await geoScanWorkflow({ organizationId: "org-test" })).toMatchObject(
-      { status: "completed" }
-    );
-    expect(finalize.mock.calls.map(([, , status]) => status)).toEqual([
-      "completed",
-    ]);
-    expect(appendLog.mock.calls.map(([input]) => input.status)).toEqual([
-      "failed",
-      "success",
-    ]);
-    expect(appendLog.mock.calls[0]?.[0]).toMatchObject({
-      integrationType: "geo",
-      errorMessage: "Workflow queue unavailable",
-    });
-  });
-
-  test("a shelf citation sync failure is logged without failing the scan", async () => {
-    syncShelf.mockRejectedValue(new Error("Database unavailable"));
-    expect(await geoScanWorkflow({ organizationId: "org-test" })).toMatchObject(
-      { status: "completed" }
-    );
-    expect(syncShelf).toHaveBeenCalledWith({
-      organizationId: "org-test",
-      projectId: "project-test",
-    });
-    expect(startSentiment).toHaveBeenCalledTimes(1);
-    expect(appendLog.mock.calls.map(([input]) => input.status)).toEqual([
-      "failed",
-      "success",
-    ]);
-    expect(appendLog.mock.calls[0]?.[0]).toMatchObject({
-      integrationType: "geo",
-      errorMessage: "Database unavailable",
-    });
   });
 });

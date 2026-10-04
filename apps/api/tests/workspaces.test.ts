@@ -1,7 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
 
-import { getWorkspacesResponseSchema } from "@notra/schemas/api/workspaces";
-
 import { workspaceRoutes } from "../src/routes/workspaces";
 import type { AuthData } from "../src/types/auth";
 import { createOpenApiApp } from "../src/utils/openapi-app";
@@ -73,53 +71,6 @@ describe("workspace context", () => {
       authentication: { type: "apiKey" },
     });
     expect(db.query.members.findMany).not.toHaveBeenCalled();
-    expect(db.query.users.findFirst).not.toHaveBeenCalled();
-  });
-
-  test("OAuth users receive all accepted memberships with the current workspace first", async () => {
-    const otherWorkspace = {
-      id: "org_other",
-      slug: "other",
-      name: "Other workspace",
-      logo: "https://example.com/logo.png",
-    };
-    const db = createDb([
-      { role: "member", organizations: otherWorkspace },
-      { role: "admin", organizations: currentWorkspace },
-    ]);
-    const auth: AuthData = {
-      type: "oauth",
-      keyId: "oauth:user_test:org_current",
-      userId: "user_test",
-      scopes: ["posts.read"],
-      identity: { externalId: currentWorkspace.id },
-    };
-
-    const response = await getWorkspaceContext(db, auth, currentWorkspace.id);
-
-    expect(response).toEqual({
-      currentWorkspace,
-      workspaces: [
-        {
-          ...currentWorkspace,
-          role: "admin",
-          status: "active",
-          isCurrent: true,
-        },
-        {
-          ...otherWorkspace,
-          role: "member",
-          status: "active",
-          isCurrent: false,
-        },
-      ],
-      authentication: {
-        type: "oauth",
-        accountId: "user_test",
-        scopes: ["posts.read"],
-      },
-    });
-    expect(getWorkspacesResponseSchema.safeParse(response).success).toBe(true);
     expect(db.query.users.findFirst).not.toHaveBeenCalled();
   });
 

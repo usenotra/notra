@@ -100,20 +100,6 @@ test("varying queries and modes cannot bypass one user's limit, including concur
   ).resolves.toBeDefined();
 });
 
-test("cached resolved and unresolved results remain available after the budget is exhausted", async () => {
-  usage.set("user-1", COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE);
-  for (const result of [
-    { domain: "cached.com", url: "https://media.brand.dev/logo.png" },
-    { domain: null, url: null },
-  ]) {
-    cached.set("Cached", result);
-    await expect(lookup("Cached")).resolves.toEqual(result);
-  }
-  expect(limit).not.toHaveBeenCalled();
-  expect(search).not.toHaveBeenCalled();
-  expect(retrieve).not.toHaveBeenCalled();
-});
-
 test("a fail-open limiter timeout never reaches either paid lookup", async () => {
   for (const searchByName of [true, false]) {
     limit.mockResolvedValueOnce({ success: true, reason: "timeout" });

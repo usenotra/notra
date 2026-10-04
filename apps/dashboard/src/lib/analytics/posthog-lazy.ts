@@ -21,7 +21,7 @@ let clientPromise: Promise<PostHog | null> | null = null;
 let readyClient: PostHog | null = null;
 let initGeneration = 0;
 const readyWaiters: Array<(client: PostHog) => void> = [];
-let importPostHogJs = (): Promise<PostHogJsModule> => import("posthog-js");
+const importPostHogJs = (): Promise<PostHogJsModule> => import("posthog-js");
 
 async function loadAndInit(attempt: number): Promise<PostHog | null> {
   if (!POSTHOG_PROJECT_TOKEN) {
@@ -110,25 +110,6 @@ export function abandonPendingPostHogInit(attempt: number): void {
 
 export function getPostHogInitGeneration(): number {
   return initGeneration;
-}
-
-type TestPostHogImport = () => Promise<{
-  default: {
-    init: (...args: never[]) => unknown;
-    capture?: (...args: unknown[]) => unknown;
-  };
-}>;
-
-/** Test-only: drop client state so a later case can start a fresh init. */
-export function resetPostHogForTests(nextImport?: TestPostHogImport): void {
-  initGeneration += 1;
-  clientPromise = null;
-  readyClient = null;
-  readyWaiters.length = 0;
-  importPostHogJs =
-    nextImport === undefined
-      ? () => import("posthog-js")
-      : () => nextImport() as Promise<PostHogJsModule>;
 }
 
 /** Starts loading and initialising posthog-js if it has not started yet. */

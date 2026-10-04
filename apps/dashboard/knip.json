@@ -4,6 +4,7 @@
     "src/start.ts",
     "src/client.tsx",
     "src/router.tsx",
+    "src/lib/framework/runtime.ts",
     "src/routes/**/*.{ts,tsx}",
     "src/app/**/route.ts",
     "scripts/*.ts",

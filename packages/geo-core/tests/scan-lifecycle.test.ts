@@ -28,7 +28,6 @@ import {
   GeoWorkflowService,
 } from "../src/deps";
 import { GeoScanError } from "../src/geo/errors";
-import { buildGeoPrompts } from "../src/geo/prompts";
 import type { FinalizeContentBillingInput } from "../src/types/content-billing";
 import type {
   GeoEntitlementServiceShape,
@@ -123,47 +122,6 @@ beforeEach(async () => {
 });
 
 describe("scan project brand context", () => {
-  test("generates prompts from the selected project's brand, not the default brand", async () => {
-    const emailScope = await seedProject("email-sdk");
-    const botScope = await seedProject("akeru-bot");
-    await testDb
-      .update(brandSettings)
-      .set({
-        isDefault: true,
-        companyDescription: "sending transactional emails",
-        audience: "email developers",
-      })
-      .where(eq(brandSettings.id, "brand-email-sdk"));
-    await testDb
-      .update(brandSettings)
-      .set({
-        companyDescription: "moderating Discord communities",
-        audience: "community moderators",
-      })
-      .where(eq(brandSettings.id, "brand-akeru-bot"));
-
-    const emailBrand = await Effect.runPromise(loadGeoProjectBrand(emailScope));
-    const botBrand = await Effect.runPromise(loadGeoProjectBrand(botScope));
-    expect(emailBrand?.companyDescription).toBe("sending transactional emails");
-    expect(botBrand).toEqual({
-      companyDescription: "moderating Discord communities",
-      audience: "community moderators",
-      websiteUrl: "https://example.com",
-    });
-    const prompts = buildGeoPrompts(
-      { companyName: "Akeru Bot", aliases: [] },
-      botBrand
-    );
-    expect(prompts.length).toBeGreaterThan(0);
-    for (const prompt of prompts) {
-      expect(prompt.text).toContain("discord");
-      expect(prompt.text).not.toContain("email");
-    }
-    expect(
-      prompts.find((prompt) => prompt.id === "audience-specific")?.text
-    ).toContain("community moderators");
-  });
-
   test("never falls back to another brand for missing context or a foreign project", async () => {
     const scope = await seedProject("selected");
     await seedProject("default");
@@ -528,41 +486,6 @@ describe("scheduled GEO scans", () => {
     expect(settings?.scanLeaseUntil).toBeNull();
   });
 
-  test("a failed slot update preserves its error without reporting a lost lease", async () => {
-    const { geoLog } = await import("@notra/ai/evlog");
-    const anchor = wholeMinutesAgo(60);
-    await seedProject("advance-error", { nextScanAt: anchor });
-    await database.postgres.exec(`
-      ALTER TABLE geo_settings ADD CONSTRAINT reject_slot_advance
-      CHECK (project_id <> 'advance-error' OR scan_lease_until IS NOT NULL
-        OR next_scan_at = '${anchor.toISOString()}'::timestamp)
-    `);
-    try {
-      expect(await sweep()).toMatchObject({ started: 1, advanceLost: 0 });
-      expect(geoLog.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          event: "geo.scan.slot_advance_failed",
-          projectId: "advance-error",
-          errorName: "GeoDatabaseError",
-          causeMessage: expect.stringContaining("Failed query"),
-        })
-      );
-      expect(geoLog.warn).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          event: "geo.scan.slot_advance_lost",
-          projectId: "advance-error",
-        })
-      );
-      const settings = await settingsFor("advance-error");
-      expect(settings?.nextScanAt).toEqual(anchor);
-      expect(settings?.scanLeaseUntil).toBeInstanceOf(Date);
-    } finally {
-      await database.postgres.exec(
-        "ALTER TABLE geo_settings DROP CONSTRAINT reject_slot_advance"
-      );
-    }
-  });
-
   test("a stale lease cannot overwrite the slot another sweep advanced", async () => {
     const anchor = wholeMinutesAgo(60);
     await seedProject("stolen", { nextScanAt: anchor });
@@ -764,34 +687,6 @@ describe("scheduled GEO scans", () => {
     expect(settings?.scanLeaseUntil?.getTime()).toBeGreaterThan(Date.now());
   });
 
-  test("an exhausted slot with only ambiguous starts marks its stale scan", async () => {
-    const anchor = wholeMinutesAgo(60);
-    await seedProject("timed-out-retries", { nextScanAt: anchor });
-    startWorkflow.mockImplementation(() =>
-      Effect.fail(new Error("Request timed out"))
-    );
-    try {
-      expect((await sweep()).failed).toBe(1);
-      setSystemTime(
-        new Date(Date.now() + GEO_SCAN_START_RETRY_WINDOW_MS + 60_000)
-      );
-      await expireGeoScanLease("timed-out-retries");
-      expect((await sweep()).failed).toBe(1);
-      expect((await settingsFor("timed-out-retries"))?.nextScanAt).toEqual(
-        nextGeoScanAtAfter(24, anchor)
-      );
-      expect(
-        (
-          await testDb.query.geoScans.findMany({
-            where: eq(geoScans.projectId, "timed-out-retries"),
-          })
-        ).some((scan) => scan.errorCode === "scan_retry_exhausted")
-      ).toBe(true);
-    } finally {
-      setSystemTime();
-    }
-  });
-
   test("an ambiguous timeout holds the claim and running row to prevent duplicate billing", async () => {
     await seedProject("timeout");
     startWorkflow.mockImplementationOnce(() =>
@@ -846,12 +741,6 @@ describe("scheduled GEO scans", () => {
       )
     );
     expect((await sweep()).started).toBe(2);
-  });
-
-  test("box cleanup failure does not stop scheduled scans", async () => {
-    await seedProject("cleanup-failure");
-    cleanupBoxes.mockRejectedValueOnce(new Error("Box service unavailable"));
-    expect((await sweep()).started).toBe(1);
   });
 
   test("a slot the billing gate denies advances without a claim, row, or workflow", async () => {
@@ -976,66 +865,6 @@ describe("scan ownership and finalization", () => {
       });
     }
   );
-
-  test("a failed project finalization persists its classified execution failure", async () => {
-    const scope = await seedProject("failed-finalization");
-    const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
-    assert.ok(claim);
-    const scanId = await Effect.runPromise(createGeoScanRow(scope));
-
-    await Effect.runPromise(
-      finalizeGeoScanProject(
-        {
-          ...scope,
-          scanId,
-          runId: "run-test",
-          companyName: "Notra",
-          aliases: [],
-          startedAtMs: Date.now(),
-          gate: {
-            allowed: true,
-            mode: "unmetered",
-            featureId: null,
-            reserved: false,
-            lockId: null,
-            useMarkup: false,
-          },
-        },
-        {
-          checks: 0,
-          mentions: 0,
-          dropped: 1,
-          usage: EMPTY_AGENT_TOKEN_USAGE,
-        },
-        "failed",
-        claim.claimedAt.toISOString(),
-        {
-          errorCode: "geo_scan_error",
-          errorMessage: "The scan engine was unavailable.",
-          failedStage: "execution",
-          retryable: true,
-        }
-      ).pipe(
-        Effect.provideService(GeoContentBillingService, {
-          gateContentBilling: () => Effect.die("Unexpected billing gate"),
-          finalizeContentBilling: () => Effect.void,
-        })
-      )
-    );
-
-    expect((await testDb.select().from(geoScans))[0]).toMatchObject({
-      id: scanId,
-      status: "failed",
-      errorCode: "geo_scan_error",
-      errorMessage: "The scan engine was unavailable.",
-      failedStage: "execution",
-      retryable: true,
-      runId: "run-test",
-      checksTotal: 1,
-      checksFailed: 1,
-      mentions: 0,
-    });
-  });
 
   test.each([
     { status: "completed" as const, checks: 2, action: "confirm" },

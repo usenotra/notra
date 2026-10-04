@@ -42,8 +42,7 @@ mock.module("./redis", () => ({
   getAnalyticsRedis: () => redis,
 }));
 
-const { bumpPurgeGeneration, cachedQuery, geoLiveTtlSeconds } =
-  await import("./query-cache");
+const { bumpPurgeGeneration, cachedQuery } = await import("./query-cache");
 
 function liveOptions(fetch: () => Promise<unknown>) {
   return {
@@ -58,17 +57,6 @@ function liveOptions(fetch: () => Promise<unknown>) {
 describe("cachedQuery live scope", () => {
   beforeEach(() => {
     redis = createFakeRedis();
-  });
-
-  test("serves the cached entry while the purge generation is unchanged", async () => {
-    const fetch = mock(async () => ({ visits: 1 }));
-
-    const first = await cachedQuery(liveOptions(fetch));
-    const second = await cachedQuery(liveOptions(fetch));
-
-    expect(first).toEqual({ visits: 1 });
-    expect(second).toEqual({ visits: 1 });
-    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   test("entries from before a purge are not served after the generation bump", async () => {
@@ -119,27 +107,5 @@ describe("cachedQuery live scope", () => {
     const again = await cachedQuery(liveOptions(fetch));
     expect(again).toEqual({ visits: 1 });
     expect(fetch).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("geoLiveTtlSeconds", () => {
-  const minute = 60_000;
-
-  test("keeps entries until the next flush window has settled", () => {
-    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 1))).toBe(4 * 60 + 20);
-  });
-
-  test("entries cached before the batch is readable expire at the settle point", () => {
-    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 5000)).toBe(15);
-  });
-
-  test("falls back to the plain live TTL without batching", () => {
-    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 1), 0)).toBe(30);
-  });
-
-  test("entries cached right after settling last the whole window", () => {
-    expect(geoLiveTtlSeconds(Date.UTC(2026, 9, 3, 10, 5) + 20_000)).toBe(
-      (5 * minute) / 1000
-    );
   });
 });

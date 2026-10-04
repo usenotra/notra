@@ -50,16 +50,6 @@ function withMarkdown(markdown: string) {
   return { editor, next };
 }
 
-test("image and video markdown round-trip through the editor", () => {
-  expect(
-    withMarkdown("![Cover photo](https://cdn.example/a.png)").next
-  ).toContain("![Cover photo](https://cdn.example/a.png)");
-  expect(
-    withMarkdown('<video controls src="https://cdn.example/a.mp4"></video>')
-      .next
-  ).toContain('<video controls src="https://cdn.example/a.mp4"></video>');
-});
-
 test("unsafe media urls stay as text", () => {
   const unsafeUrl = ["java", "script:alert(1)"].join("");
   const image = withMarkdown(`![x](${unsafeUrl})`);

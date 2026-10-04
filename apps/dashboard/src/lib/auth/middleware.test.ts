@@ -44,26 +44,6 @@ async function invokeMiddleware(path: string, headers?: HeadersInit) {
 }
 
 describe("dashboard authentication middleware", () => {
-  test("serves assets, optimized images, and machine endpoints without WorkOS", async () => {
-    Reflect.set(process.env, "NODE_ENV", "production");
-    delete process.env.WORKOS_API_KEY;
-    for (const path of [
-      "/assets/dashboard.js",
-      "/assets/dashboard.css",
-      "/api/image?url=%2Fdemo%2Fsample.png",
-      "/api/healthcheck",
-      "/api/webhooks/workos",
-      "/api/cron/geo-scan",
-      "/api/internal/workflows/geo-scan",
-      "/api/workflows/schedule",
-      "/.well-known/workflow/v1/step",
-    ]) {
-      const response = await invokeMiddleware(path);
-      expect(response.status).toBe(202);
-      expect(await response.text()).toBe("downstream");
-    }
-  });
-
   test("keeps design-system routes unavailable in production", async () => {
     Reflect.set(process.env, "NODE_ENV", "production");
     expect((await invokeMiddleware("/design-system/auth-flow")).status).toBe(

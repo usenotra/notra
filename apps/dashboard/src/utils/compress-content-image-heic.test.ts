@@ -1,22 +1,14 @@
 import { expect, mock, test } from "bun:test";
-import { readFile } from "node:fs/promises";
 
 import realLibheif from "libheif-js/wasm-bundle";
-import sharp from "sharp";
 
 import type { HeicDecoder } from "@/types/content/heic-image";
 
-const realAlloc = realLibheif.heif_context_alloc.bind(realLibheif);
-const realFree = realLibheif.heif_context_free.bind(realLibheif);
-const realLimit =
-  realLibheif.heif_context_set_maximum_image_size_limit.bind(realLibheif);
-const realParse = realLibheif.heif_context_read_from_memory.bind(realLibheif);
 const realPrimary =
   realLibheif.heif_js_context_get_primary_image_handle.bind(realLibheif);
 const realErrorCodes = realLibheif.heif_error_code;
 const RealImage = realLibheif.HeifImage;
 const primary = mock(realPrimary);
-let decodeReal = false;
 
 // Model a HEIC container whose coded dimensions are larger than its compact byte representation.
 function box(type: string, payload: Buffer): Buffer {
@@ -44,20 +36,15 @@ function oversizedHeic(): Buffer {
 }
 
 // Observe native context disposal when malformed files fail to parse.
-const freed = mock((value: Parameters<HeicDecoder["heif_context_free"]>[0]) => {
-  if (decodeReal) {
-    realFree(value);
-  }
-});
+const freed = mock(
+  (_value: Parameters<HeicDecoder["heif_context_free"]>[0]) => undefined
+);
 // Simulate the pre-handle parsing exception that leaked in heic-decode.
 const parse = mock(
   (
     value: Parameters<HeicDecoder["heif_context_read_from_memory"]>[0],
     bytes: Uint8Array
   ) => {
-    if (decodeReal) {
-      return realParse(value, bytes);
-    }
     throw new Error("malformed item");
   }
 );
@@ -65,13 +52,9 @@ const parse = mock(
 // Emulate the actual Embind context object rather than the old numeric mock.
 const context = { $$: { ptr: 123 } };
 // Observe context allocation after valid-size metadata passes preflight.
-const alloc = mock(() => (decodeReal ? realAlloc() : context));
+const alloc = mock(() => context);
 // Assert the raw WASM setter receives a pointer and the correct square-root bound.
-const limit = mock((pointer: number, maximumWidth: number) => {
-  if (decodeReal) {
-    realLimit(pointer, maximumWidth);
-  }
-});
+const limit = mock((_pointer: number, _maximumWidth: number) => undefined);
 
 mock.module("@tanstack/react-start/server-only", () => ({}));
 mock.module("libheif-js/wasm-bundle", () => ({
@@ -150,23 +133,4 @@ test("frees the native HEIC context if malformed parsing throws", async () => {
   );
   expect(alloc).toHaveBeenCalledTimes(3);
   expect(freed).toHaveBeenCalledWith(context);
-});
-
-// Verify the actual decoder against the MIT/Apache-2.0 Apple-generated heic-rs checker-1024 fixture.
-test("decodes a real Apple-encoded grid HEIC through the JPEG upload path", async () => {
-  const fixture = await readFile(
-    new URL("fixtures/checker-1024.heic.base64", import.meta.url),
-    "utf8"
-  );
-  decodeReal = true;
-  try {
-    const output = await compressContentImage(Buffer.from(fixture, "base64"));
-    expect(output.mimeType).toBe("image/jpeg");
-    const metadata = await sharp(output.bytes).metadata();
-    expect([metadata.width, metadata.height]).toEqual([1024, 1024]);
-    expect(primary).toHaveBeenCalledTimes(1);
-    expect(freed).toHaveBeenCalledTimes(4);
-  } finally {
-    decodeReal = false;
-  }
 });

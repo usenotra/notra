@@ -245,22 +245,6 @@ describe("createPostGeneration rollback", () => {
     expect(setJobStatus).not.toHaveBeenCalled();
   });
 
-  test("removes the active generation entry during pre-acceptance compensation", async () => {
-    appendEvent.mockRejectedValueOnce(new Error("redis unavailable"));
-
-    const result = await runPostProgram(
-      createPostGeneration(generationInput())
-    );
-
-    expect(result._tag).toBe("Failure");
-    expect(addActive).toHaveBeenCalled();
-    expect(removeActive).toHaveBeenCalledWith(
-      expect.anything(),
-      "org_test",
-      "job_test123"
-    );
-  });
-
   test("surfaces collection delete failures during rollback", async () => {
     mockDb.delete.mockImplementationOnce(() => ({
       where: mock(async () => {

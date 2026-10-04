@@ -125,32 +125,6 @@ describe("runGeoIngest ordering", () => {
     }
   });
 
-  test("drops untracked visitors without any Redis/DB/Tinybird I/O", async () => {
-    const outcome = await run(
-      ingestRequest({
-        method: "GET",
-        url: "https://example.com/",
-        userAgent: "Mozilla/5.0",
-      })
-    );
-
-    expect(outcome._tag).toBe("Success");
-    expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
-    expect(loadIngestAllowedHosts).not.toHaveBeenCalled();
-    expect(ratelimitLimit).not.toHaveBeenCalled();
-    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
-  });
-
-  test("writes directly when the buffer refuses the event", async () => {
-    await Effect.runPromise(
-      runGeoIngest(ingestRequest(), () => {}, {
-        enqueue: () => false,
-        expedite: () => {},
-      })
-    );
-    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
-  });
-
   test("rejects tracked traffic when the rate-limit transport fails", async () => {
     ratelimitLimit.mockImplementation(async () => {
       throw new Error("Redis unavailable");

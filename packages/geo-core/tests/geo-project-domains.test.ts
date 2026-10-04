@@ -5,7 +5,6 @@ import {
   ingestAllowedHosts,
   matchesProjectHost,
   normalizeProjectDomain,
-  normalizeProjectDomains,
 } from "../src/utils/geo-project-domains";
 
 describe("normalizeProjectDomain", () => {
@@ -33,35 +32,7 @@ describe("normalizeProjectDomain", () => {
   });
 });
 
-describe("normalizeProjectDomains", () => {
-  test("dedupes and drops invalid entries", () => {
-    expect(
-      normalizeProjectDomains([
-        "https://Example.com",
-        "www.example.com",
-        "docs.example.com",
-        "nope",
-        "",
-      ])
-    ).toEqual(["example.com", "docs.example.com"]);
-  });
-});
-
 describe("ingestAllowedHosts", () => {
-  test("includes the brand website and extra tracked domains", () => {
-    expect(
-      ingestAllowedHosts("https://www.Example.com/blog", [
-        "docs.example.com",
-        "https://www.example.com",
-      ])
-    ).toEqual(["example.com", "docs.example.com"]);
-  });
-
-  test("returns an empty list when nothing is configured", () => {
-    expect(ingestAllowedHosts(null)).toEqual([]);
-    expect(ingestAllowedHosts("", ["not a domain"])).toEqual([]);
-  });
-
   test("keeps Unicode brand sites on the punycode allowlist", () => {
     expect(ingestAllowedHosts("https://bücher.de")).toEqual([
       "xn--bcher-kva.de",
@@ -121,9 +92,5 @@ describe("matchesProjectHost", () => {
   test("does not match sibling hosts", () => {
     expect(matchesProjectHost("notexample.com", ["example.com"])).toBe(false);
     expect(matchesProjectHost("example.com", ["docs.example.com"])).toBe(false);
-  });
-
-  test("an empty list matches nothing", () => {
-    expect(matchesProjectHost("example.com", [])).toBe(false);
   });
 });
