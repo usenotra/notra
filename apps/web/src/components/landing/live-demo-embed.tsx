@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
+import { LiveDemoPreview } from "@/components/landing/live-demo-preview";
 import {
   LIVE_DEMO_CLOSE_LABEL,
   LIVE_DEMO_EMBED_URL,
@@ -13,9 +14,6 @@ import {
   LIVE_DEMO_LOADING_LABEL,
   LIVE_DEMO_OPEN_LABEL,
   LIVE_DEMO_ORIGIN,
-  LIVE_DEMO_PREVIEW_ALT,
-  LIVE_DEMO_PREVIEW_DARK_SRC,
-  LIVE_DEMO_PREVIEW_SRC,
   LIVE_DEMO_READY_MESSAGE,
   LIVE_DEMO_STALLED_ACTION,
   LIVE_DEMO_STALLED_LABEL,
@@ -126,26 +124,7 @@ export function LiveDemoEmbed() {
             title={LIVE_DEMO_IFRAME_TITLE}
           />
         ) : null}
-        {ready ? null : (
-          <>
-            <img
-              decoding="async"
-              loading="eager"
-              alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none absolute inset-0 size-full object-cover object-top-left dark:hidden"
-              fetchPriority="high"
-              src={LIVE_DEMO_PREVIEW_SRC}
-            />
-            <img
-              decoding="async"
-              loading="eager"
-              alt={LIVE_DEMO_PREVIEW_ALT}
-              className="pointer-events-none absolute inset-0 hidden size-full object-cover object-top-left dark:block"
-              fetchPriority="high"
-              src={LIVE_DEMO_PREVIEW_DARK_SRC}
-            />
-          </>
-        )}
+        {ready ? null : <LiveDemoPreview />}
         {mounted && !ready ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/30">
             <span
