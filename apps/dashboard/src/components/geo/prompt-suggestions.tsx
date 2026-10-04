@@ -336,6 +336,20 @@ function isSuggestionBusy(
   );
 }
 
+/** Accepts the rest once every in-flight row request settled without error. */
+async function acceptAllAfterPending(
+  pendingRequests: Map<string, Promise<unknown>>,
+  acceptAll: () => Promise<unknown>
+): Promise<void> {
+  const pendingResults = await Promise.allSettled([
+    ...pendingRequests.values(),
+  ]);
+  if (pendingResults.some((result) => result.status === "rejected")) {
+    return;
+  }
+  await acceptAll();
+}
+
 /**
  * "Track all" waits for any single-row accept or dismiss still in flight, then
  * accepts the rest. While it is queued, row actions are blocked.
@@ -353,20 +367,15 @@ function useTrackAllQueue(
     }
     queued.current = true;
     setIsQueued(true);
-    try {
-      const pendingResults = await Promise.allSettled([
-        ...pendingRequests.current.values(),
-      ]);
-      if (pendingResults.some((result) => result.status === "rejected")) {
-        return;
-      }
-      await acceptAll.mutateAsync();
-    } catch {
+    // No try/finally here: React Compiler can't compile it inside a hook.
+    await acceptAllAfterPending(
+      pendingRequests.current,
+      acceptAll.mutateAsync
+    ).catch(() => {
       // The mutation hook reports the error.
-    } finally {
-      queued.current = false;
-      setIsQueued(false);
-    }
+    });
+    queued.current = false;
+    setIsQueued(false);
   };
 
   return {
