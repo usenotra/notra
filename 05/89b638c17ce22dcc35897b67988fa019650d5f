@@ -1,0 +1,25 @@
+bun.lock
+  ai_agent 228,652-653,680,2352,2354,2356,2358,2362,2364,2368,2472,5256,5998-5999,6002-6003,6240,6244,6888-6889,7232-7239,7242-7253
+apps/dashboard/package.json
+  s_7a0c38829ccc1e::t_c0fa6347f911a8 124
+packages/ui/package.json
+  s_7a0c38829ccc1e::t_c0fa6347f911a8 34-35,62
+bunfig.toml
+  s_7a0c38829ccc1e::t_c0fa6347f911a8 73-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0589b638c17ce22dcc35897b67988fa019650d5f",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
