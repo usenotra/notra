@@ -178,7 +178,6 @@ export function WebhookEndpoints({
   onCreate,
 }: WebhookEndpointsProps) {
   const t = useTranslations("settings.panes.webhooks");
-  const tActions = useTranslations("common.actions");
   if (endpoints.length === 0) {
     return (
       <Empty>
@@ -217,7 +216,7 @@ export function WebhookEndpoints({
           <Button
             size="icon-sm"
             variant="ghost"
-            aria-label={tActions("remove")}
+            aria-label={t("removeEndpoint", { url: endpoint.url })}
             disabled={disabled}
             onClick={() => onRemove(endpoint.id)}
           >

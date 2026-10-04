@@ -173,6 +173,7 @@
         "period": "Last 30 days",
         "refresh": "Refresh webhook activity",
         "addEndpoint": "Add endpoint",
+        "removeEndpoint": "Remove endpoint {url}",
         "rightNow": "Right now",
         "processing": "Processing",
         "idle": "Idle",

@@ -173,6 +173,7 @@
         "period": "Letzte 30 Tage",
         "refresh": "Webhook-Aktivität aktualisieren",
         "addEndpoint": "Endpunkt hinzufügen",
+        "removeEndpoint": "Endpunkt {url} entfernen",
         "rightNow": "Gerade",
         "processing": "In Bearbeitung",
         "idle": "Nichts offen",
