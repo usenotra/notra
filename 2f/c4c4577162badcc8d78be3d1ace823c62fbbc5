@@ -1,0 +1,21 @@
+packages/db/src/utils/geo-check-cache.ts
+  s_7a0c38829ccc1e::t_1f153540a18fd6 123-126,128,130,133,137,142,146-147
+apps/dashboard/src/lib/geo-shelf/service.ts
+  s_7a0c38829ccc1e::t_1f153540a18fd6 5,339-346
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2fc4c4577162badcc8d78be3d1ace823c62fbbc5",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
