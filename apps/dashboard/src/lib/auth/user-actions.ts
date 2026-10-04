@@ -160,6 +160,13 @@ export async function deleteUserAction(): Promise<
       }
       const session = yield* requireSession();
 
+      // Before anything else: once the user row is gone, prune can no longer
+      // tell this contact apart from one Brew got elsewhere.
+      yield* tryAction(
+        () => deleteBrewContact(session.user.email),
+        "Failed to delete email contact"
+      );
+
       const { sessionId } = yield* tryAction(
         () => withAuth(),
         "Failed to read auth session"
@@ -212,11 +219,6 @@ export async function deleteUserAction(): Promise<
       yield* tryAction(
         () => db.delete(users).where(eq(users.id, session.user.id)),
         "Failed to delete user"
-      );
-      yield* Effect.sync(() =>
-        runAfterResponse("[BrewContacts] Delete failed", () =>
-          deleteBrewContact(session.user.email)
-        )
       );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");

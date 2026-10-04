@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { render } from "react-email";
@@ -102,13 +102,18 @@ async function brewFetch<T>(
 
 /**
  * Calls the Brew API, retrying rate limits, outages and network errors with
- * exponential backoff. Writes are safe to retry: fires carry an idempotency
- * key and contact writes are upserts.
+ * exponential backoff. A POST without its own idempotency key gets one for
+ * all its attempts, so a retry after a lost response replays instead of
+ * creating a second resource.
  */
 export async function brewRequest<T>(
   path: string,
-  init: BrewRequestInit
+  requestInit: BrewRequestInit
 ): Promise<BrewResponse<T>> {
+  const init: BrewRequestInit =
+    requestInit.method === "POST" && !requestInit.idempotencyKey
+      ? { ...requestInit, idempotencyKey: `notra:${randomUUID()}` }
+      : requestInit;
   const apiKey = process.env.BREW_API_KEY;
   if (!apiKey) {
     return {
