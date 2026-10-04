@@ -1,0 +1,27 @@
+apps/dashboard/src/lib/email/brew-contacts.ts
+  s_d0ef1cf38b3100::t_d51497ffd525f7 1
+apps/dashboard/src/lib/after-response.ts
+  s_d0ef1cf38b3100::t_389c88fb592d08 1,21
+apps/dashboard/src/routeTree.gen.ts
+  s_d0ef1cf38b3100::t_5039ed5c5b24c9 26-1560
+apps/dashboard/src/routes/api.cron.brew-contacts.ts
+  s_d0ef1cf38b3100::t_ed5fe4beed8475 1-14
+apps/dashboard/src/lib/auth/user-actions.ts
+  s_d0ef1cf38b3100::t_b5e054a2a3bce5 226-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "36830c18285344be2be21ad518328607fa1ea2be",
+  "prompts": {},
+  "sessions": {
+    "s_d0ef1cf38b3100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a72b35a-e666-4a98-a981-1ef6b945f21c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
