@@ -3244,7 +3244,6 @@
       "runningWithTotal": "Scanning now, {checks} of {total} answers saved.",
       "running": "Scanning now, {checks} answers saved.",
       "failed": "The last scan stopped early {when}.",
-      "finished": "Answers from the last scan, {when}.",
       "progressLabel": "Saved scan answers",
       "empty": {
         "title": "No answers yet",

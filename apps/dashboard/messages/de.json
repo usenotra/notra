@@ -3244,7 +3244,6 @@
       "runningWithTotal": "Scan läuft, {checks} von {total} Antworten gespeichert.",
       "running": "Scan läuft, {checks} Antworten gespeichert.",
       "failed": "Der letzte Scan wurde {when} vorzeitig beendet.",
-      "finished": "Antworten aus dem letzten Scan, {when}.",
       "progressLabel": "Gespeicherte Scan-Antworten",
       "empty": {
         "title": "Noch keine Antworten",
