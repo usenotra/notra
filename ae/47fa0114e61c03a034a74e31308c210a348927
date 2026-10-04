@@ -1,0 +1,401 @@
+apps/docs/api/caching.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 25
+apps/ui/registry/notra/data-table/components/data-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-62
+apps/ui/registry/notra/data-table/hooks/use-column-sort.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4
+bun.lock
+  ai_agent 311
+apps/web/src/components/marketing-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-89
+packages/ui/src/components/shared/table-pagination.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-5,7-15,21-22,24-27,33-64,67-134,137-138,140-153,155-164,166,168-181,184-188,194-195,200-201,203,205-212,217,221-241
+apps/ui/src/constants/example-heights.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 50-53
+apps/ui/src/components/previews/data-table-preview.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-50
+packages/ui/src/components/data-table/column-group.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-8,10,12,14-26,28-51
+apps/dashboard/src/components/automation/events-skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,10
+apps/dashboard/messages/en.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 176,213-214,249-250,1231,1549-1550,5204-5205,6539-6543
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 25-27,893
+apps/dashboard/src/components/geo/engine-rate-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 15-18,285
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-3,148
+apps/dashboard/src/app/(dashboard)/[slug]/geo/personas/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 7,223
+apps/ui/components/ui/empty.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-18,24,27,36-39,46,50,55-56,58-83,87-91,93-94,97-99,107,110,120,123,132-133,135
+apps/web/src/components/landing/features-card-traffic.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-6,14
+apps/dashboard/src/components/geo/conversations-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 16-18,328
+scripts/github/production-deploy.mjs
+  s_7a0c38829ccc1e::t_4f84673ab975de 22-31
+apps/dashboard/src/components/geo/journey-paths-card.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 8-11,97
+apps/ui/components/ui/table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-20,25,28-38,44,48,54,64,75,78,88,91,103
+apps/dashboard/src/components/geo/competitors-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6-9,229
+apps/dashboard/public/design.md
+  s_7a0c38829ccc1e::t_4f84673ab975de 42,71-72,207
+apps/dashboard/src/app/design-system/geo-gaps/page.dev.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-7,97
+apps/dashboard/src/components/geo/language-performance-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 27-29,270
+apps/docs/integrations/framer.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 23
+packages/ui/src/types/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-8,32,48-87,89,111-112,126-127,148,150-151,153,155,157,162-177,185,189-346
+scripts/github/production-deploy.test.mjs
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-229
+packages/ui/src/constants/table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-72
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/data-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 5,10-11,15,22,29,31-36,59,64-72,74
+apps/ui/registry.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 990-1127,9311,9524
+apps/web/src/components/feature-pages/table-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3
+apps/web/src/components/feedback-md/feedback-md-siblings-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-2,10
+apps/web/src/components/landing/citation-rows.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-5,12
+apps/dashboard/src/lib/hooks/use-collections.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 19,38
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  ai_agent 6,17-20,52-60,67,82-85
+apps/dashboard/src/app/(dashboard)/[slug]/geo/shelf-space/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,32
+apps/ui/components/ui/select.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-201
+apps/ui/registry/notra/data-table/components/data-table-root.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-294
+apps/dashboard/src/types/table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 8
+apps/dashboard/src/app/(dashboard)/[slug]/geo/write/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,18
+packages/ui/src/components/ui/checkbox.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4,7,9-23,25-40,43-44
+apps/dashboard/src/components/geo/journey-overview-card.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 11-14,111
+apps/dashboard/src/components/geo/ai-traffic-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 18
+apps/dashboard/src/components/members/invitation-columns.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 7
+apps/dashboard/src/components/agent-feedback/feedback-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 14-18,131,153-154,169,176-178
+apps/dashboard/src/components/billing/credit-activity.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5-8,73-82,104,110,117,124,128-136
+apps/dashboard/src/components/geo/prompt-receipt-history.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 10,262,379
+apps/docs/docs.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 37-44
+packages/ui/src/components/ai-elements/message.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 52-56,484,488,503,627
+packages/ui/src/components/data-table/header.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 8-16,22-23,25,27,72,87-88,90-122,124-125,127-132,135-136,139,141-143,146,148-186
+apps/dashboard/src/components/webhooks/workspace.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 123-125,127
+apps/dashboard/messages/de.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 176,213-214,249-250,1231,1549-1550,5204-5205,6539-6543
+packages/ui/src/components/data-table/body.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4,10-26,37-79,94-96,99-100,102,104,120,133,135-136,139,142,147,150,152-153,162,166,168,170-171,185-289
+packages/ui/src/hooks/use-collapsible-columns.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4,18,20,30,35,71,73-74,76,108
+packages/ui/src/hooks/use-column-resize.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 4,8,10-11,13-14,16,18-19,21-26,28-41,44-50,52,55,57-58,61-65,67,70,72-73,77-78,81,84
+apps/ui/registry/notra/data-table/components/data-table-body.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1,3,5-12,14-184,207,212,217,222-223,225,228-232,234-235,237,242,248-270,280,285
+package.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 13
+apps/dashboard/src/lib/hooks/use-available-table-height.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,6-9,21
+apps/dashboard/src/app/(dashboard)/[slug]/geo/personas/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,23
+apps/dashboard/src/components/geo/search-gap-detail.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6,179,224
+apps/ui/registry/notra/data-table/types/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-375
+apps/dashboard/src/components/billing/usage-alerts-section.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 7-10,22,146-190,192-258
+apps/web/src/components/landing/features-card-gaps.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5-8,16
+apps/dashboard/src/components/geo/competitor-detail-view.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 22-25,242
+apps/dashboard/src/components/geo/journeys-tab.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6,16,29-30,42,59
+apps/dashboard/src/components/geo/journey-stat-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 8,13-15,47,82
+apps/dashboard/src/components/geo/skeleton-parts.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6
+apps/ui/components/ui/context-menu.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-271
+apps/dashboard/src/components/geo/writer/brief-history.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 11-15,64-70,121-123,184
+apps/dashboard/src/lib/i18n/ui-labels.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 7,27-32,53-56
+apps/dashboard/src/utils/geo-scan-activity.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 10-14
+apps/dashboard/src/app/(dashboard)/[slug]/content/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,30
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 15-18,320-387,413-414,432-437,460,482
+apps/dashboard/src/types/geo.ts
+  ai_agent 64
+apps/web/src/components/feature-pages/conversations-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4,9,62,68,74
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 311,313,337
+apps/dashboard/src/components/geo/gaps-table.tsx
+  ai_agent 30-32,56,145-149,1260,1270-1271
+apps/dashboard/src/components/geo/journeys-card.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 10-13,143,158
+apps/dashboard/src/components/members/columns.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 10
+apps/dashboard/src/components/geo/directions/direction-instrument.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 14,133,138
+packages/geo-core/src/ingest/identity.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 8-10,20
+packages/ui/src/constants/ui-labels.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 18-22,43-46
+apps/dashboard/src/components/settings/panes/members-pane.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4,111,123
+apps/ui/registry/notra/data-table/examples/data-table-empty.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-81
+apps/dashboard/src/app/(dashboard)/[slug]/api-keys/page.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 47-49,433
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 32-34,88,135,354,597
+apps/dashboard/src/components/geo/what-changed-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 30-32,376-403,458,473-479
+apps/dashboard/src/components/settings/panes/logs-pane.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4,16,41-47,79,128,153-154
+apps/ui/registry/notra/data-table/hooks/use-collapsible-columns.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1,3-4,6-25,27-36,39-49,51-80,82-86,89-109,111-115,117-119,121-123,125
+apps/ui/registry/notra/data-table/components/data-table-pager.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-72
+apps/ui/registry/notra/data-table/hooks/use-column-resize.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 8
+apps/web/src/components/landing/share-of-voice-rows.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-3,11
+apps/ui/src/styles/blocks.css
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-5,16-19,33-36,49-51
+apps/ui/components/ui/checkbox.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-27
+apps/dashboard/src/components/geo/scan-activity-status.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 11-14,34,37,44-46
+apps/dashboard/src/components/settings/attachments/attachment-columns.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6
+apps/dashboard/src/constants/billing.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 89-95
+apps/dashboard/src/constants/outbound-webhooks.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 14
+apps/dashboard/src/types/logs/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-5,34,40
+apps/ui/registry/notra/data-table/components/data-table-labels.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,5-13,15-16,18,20-22,25-28
+packages/ui/src/lib/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-4,7-219,282-314
+packages/ui/src/types/table-pagination.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-5
+packages/ui/src/components/data-table/pager.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-70
+apps/dashboard/src/components/webhooks/overview.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-6,9-16,183-197,219
+packages/ui/src/hooks/use-row-selection.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-67
+packages/ui/src/components/data-table/root.tsx
+  s_7a0c38829ccc1e::t_1ccb7195fa0647 5-30,32-35,42,44-45,60,62,65,69,80-81,86-88,99,111,124-138,140-146,160,173-174,176-177,187-189,191,193-197,203,209,211-212,214,220,222,248,251,253-256,261-263,265-273,276,278
+apps/ui/docs/components/data-table.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2-3,6,8,10,13-37,39,42-74,76,78-87,89-114,117-129,132,134,136
+apps/dashboard/src/components/geo/traffic-source-sheet.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 18-20,242,267
+apps/ui/registry/notra/data-table/examples/data-table-infinite.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-96
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,10
+apps/ui/docs/components/meta.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 15
+packages/ui/src/components/data-table/surfaces.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-5,12,14-18,27-29,46,59-67,75-79,98-99,115,120
+apps/web/src/components/feature-pages/crawler-pages-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5
+packages/ui/src/types/ui-labels.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 19-23,44-47
+packages/ui/src/components/ai-skins/codex/codex-markdown.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 49-50,52-59,62-63,65-66,75,77-79,82,84-85,95,97,100-101
+apps/dashboard/src/components/geo/engine-family-sheet.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 20-22,420,431
+apps/dashboard/src/components/geo/personas-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 15-17,242
+apps/web/src/components/landing/answer-example-section.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-6,14
+apps/dashboard/src/components/geo/shelf/shelf-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 8-10,322
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/columns.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 6
+apps/dashboard/src/components/geo/directions/direction-engine-bars.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 4-7,70
+apps/ui/registry/notra/perplexity/components/perplexity-search.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 253
+apps/dashboard/src/components/geo/geo-prompt-answer-skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,37
+apps/dashboard/src/app/design-system/scan-filters/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 7-10,117-119,134,136,138-143,145
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/google-search-console/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 17-19,51,219-248,250-267,299-318,330-337
+apps/dashboard/src/components/empty-state-preview.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4,60-61,76-97
+apps/dashboard/src/components/geo/traffic-pages-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 19-22,193
+apps/ui/registry/notra/data-table/components/data-table-header.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-177
+apps/dashboard/src/components/webhooks/deliveries.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 2-6,8-16,24,40,75-77,79,84,88-149,151-166
+apps/docs/api/getting-started.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 175
+apps/ui/package.json
+  s_7a0c38829ccc1e::t_4f84673ab975de 17
+apps/ui/src/types/landing.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 9
+apps/dashboard/src/components/geo/traffic-sources-group.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 6-8,12-16,91-92,96-98,100,107-122,149
+apps/ui/src/components/landing-sections.astro
+  s_7a0c38829ccc1e::t_4f84673ab975de 11,28
+apps/ui/registry/notra/data-table/components/data-table-column-group.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1,7-8,10,18,20-21,23-24,30-35,40-42
+apps/ui/registry/notra/data-table/components/data-table-pagination.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-248
+apps/web/src/components/landing/features-card-engines.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-5,13
+apps/dashboard/src/components/agent-feedback/feedback-detail-dialog.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 12-14,199
+apps/dashboard/src/components/geo/shelf/shelf-placements-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 7-9,167
+apps/docs/integrations/kontentspace.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2,23
+packages/ui/src/components/ui/data-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,7-28,30-36,38-40,42,44,47-48,52,55-56,60-61
+apps/dashboard/src/app/(dashboard)/[slug]/geo/gaps/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,27
+apps/dashboard/src/components/geo/directions/direction-leaderboard.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 11-14,94,202
+apps/web/src/components/feature-pages/personas-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3
+apps/ui/registry/notra/data-table/lib/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-15,100,108,122,126,155-157,159-162,215-295
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 16-20,68-71,258-272,282,311,315-320,345,349-354,502,521,610-633
+apps/docs/integrations/github.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2
+apps/dashboard/src/components/geo/share-of-voice-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 9-12,208
+apps/dashboard/src/components/analytics/leaderboard-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 11-14,315
+apps/dashboard/src/components/webhooks/columns.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 2
+apps/dashboard/src/components/analytics/top-posts-card.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 12-14,165
+apps/dashboard/src/components/geo/journey-group-sheet.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 16-18,162,177,334
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/sitemap-pages-table.tsx
+  ai_agent 7-9,177,179-185
+apps/dashboard/src/components/geo/journey-detail-sheet.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 13-15,223
+apps/ui/registry/notra/data-table/components/data-table-surfaces.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-118
+CONTRIBUTING.md
+  s_7a0c38829ccc1e::t_4f84673ab975de 351-352,357,370-373,384,395-397,421-427,448-450,460
+apps/ui/registry/notra/codex/components/codex-markdown.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 52-53,55-56,58,64-65,67-68,73,75-77,80,82,84,90,92,95-96
+apps/dashboard/src/components/content/collections-view.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 22-25,362,366-374
+packages/ui/src/hooks/use-column-sort.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-73
+apps/ui/registry/notra/data-table/hooks/use-row-selection.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 3
+packages/ui/src/hooks/use-table-viewport.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-188
+apps/docs/integrations/slack.mdx
+  s_7a0c38829ccc1e::t_4f84673ab975de 2
+apps/dashboard/src/components/geo/directions/direction-cockpit.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 6-9,18-21,214,274,276-277,282
+apps/dashboard/src/components/geo/directions/direction-pages-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 6-9,70
+apps/dashboard/src/components/geo/prompt-receipt-analysis.tsx
+  ai_agent 8,16,46,53,131,143,187-188,196
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3-4,15
+apps/dashboard/src/components/billing/invoices-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 4-7,74
+apps/ui/registry/notra/data-table/constants/data-table.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-88
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5,46
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 13-16,343
+apps/dashboard/src/components/geo/prompt-suggestion-sheet.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 4,34
+apps/ui/registry/notra/data-table/examples/data-table-demo.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-102
+apps/ui/registry/notra/data-table/hooks/use-table-paging.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-41
+apps/dashboard/src/app/(dashboard)/[slug]/geo/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,9,58
+.github/workflows/production-deploy.yml
+  s_7a0c38829ccc1e::t_4f84673ab975de 26,34-80
+apps/dashboard/src/components/settings/attachments/attachments-section.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 19,199
+apps/ui/registry/notra/data-table/examples/table-primitives.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-43
+apps/ui/registry/notra/data-table/hooks/use-table-viewport.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 4-9,27,71-105,118-119,125,148-151,153-154,157-168,172-176,184
+packages/ui/src/components/ui/table.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,5-9,15,18-28,34,38,44,54,65,78,93
+apps/dashboard/src/components/geo/directions/prompt-results-table.tsx
+  s_7a0c38829ccc1e::t_42bb2bc3e8e7d1 5-8,106
+apps/ui/src/constants/landing.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 64-70
+apps/dashboard/src/app/(dashboard)/[slug]/automation/events/page-client.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5-8,529
+apps/dashboard/src/types/agent-feedback.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 110-112
+packages/ui/src/hooks/use-table-paging.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 1-44
+apps/dashboard/src/types/webhooks/outbound.ts
+  s_7a0c38829ccc1e::t_4f84673ab975de 70-72,74
+apps/dashboard/src/components/analytics/account-detail-view.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 10-13,48,67-68,73,155,157,159-168,174-203,205-208,211-311,369
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/skeleton.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 3,53
+apps/dashboard/src/components/geo/traffic-page-sources-cell.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 63-65
+apps/dashboard/src/components/settings/panes/billing-pane.tsx
+  s_7a0c38829ccc1e::t_4f84673ab975de 5,22-23,79-82
+apps/ui/src/styles/examples.css
+  s_7a0c38829ccc1e::t_4f84673ab975de 7-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ae47fa0114e61c03a034a74e31308c210a348927",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
