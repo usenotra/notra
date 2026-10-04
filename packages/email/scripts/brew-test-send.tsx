@@ -6,51 +6,9 @@
  */
 import type { ReactElement } from "react";
 
-import { AiCreditsDepletedEmail } from "../src/emails/ai-credits-depleted";
-import { ContactMessageEmail } from "../src/emails/contact";
-import { DailySummaryEmail } from "../src/emails/daily-summary";
-import { FeedbackEmail } from "../src/emails/feedback";
-import { ScheduledContentCreatedEmail } from "../src/emails/schedule-content-created";
-import { ScheduledContentFailedEmail } from "../src/emails/schedule-content-failed";
-import { ScheduledContentSkippedEmail } from "../src/emails/schedule-content-skipped";
-import { WelcomeEmail } from "../src/emails/welcome";
-import { WorkflowPausedEmail } from "../src/emails/workflow-paused";
 import type { BrewEmailCategory } from "../src/types/brew";
 import { isBrewConfigured, sendBrewEmail } from "../src/utils/brew";
-
-// Every template falls back to sample data for omitted props.
-const SAMPLES: Record<BrewEmailCategory, [string, ReactElement]> = {
-  welcome: ["Welcome to Notra", WelcomeEmail()],
-  feedback: ["🙂 New feedback from Jane Doe", FeedbackEmail({} as never)],
-  contact: [
-    "New contact message from Jane Doe",
-    ContactMessageEmail({} as never),
-  ],
-  "ai-credits-depleted": [
-    "Your Notra AI credits are depleted",
-    AiCreditsDepletedEmail({} as never),
-  ],
-  "workflow-paused": [
-    "Weekly Product Updates was paused",
-    WorkflowPausedEmail({} as never),
-  ],
-  "schedule-content-created": [
-    "New content from Weekly Product Updates",
-    ScheduledContentCreatedEmail({} as never),
-  ],
-  "schedule-content-failed": [
-    "Weekly Product Updates couldn't generate content",
-    ScheduledContentFailedEmail({} as never),
-  ],
-  "schedule-content-skipped": [
-    "Weekly Product Updates skipped a run",
-    ScheduledContentSkippedEmail({} as never),
-  ],
-  "daily-summary": [
-    `GEO recap for ${DailySummaryEmail.PreviewProps.organizationName}, ${DailySummaryEmail.PreviewProps.dateLabel}`,
-    DailySummaryEmail(DailySummaryEmail.PreviewProps),
-  ],
-};
+import { EMAIL_SAMPLES } from "./email-samples";
 
 const toIndex = process.argv.indexOf("--to");
 const to = toIndex === -1 ? undefined : process.argv[toIndex + 1];
@@ -65,7 +23,7 @@ if (!isBrewConfigured()) {
 
 const runId = Date.now();
 
-for (const [category, [subject, react]] of Object.entries(SAMPLES) as [
+for (const [category, [subject, react]] of Object.entries(EMAIL_SAMPLES) as [
   BrewEmailCategory,
   [string, ReactElement],
 ][]) {

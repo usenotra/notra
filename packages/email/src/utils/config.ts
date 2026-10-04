@@ -34,14 +34,6 @@ export const EMAIL_CONFIG = {
   },
 
   /**
-   * Horizontal mark + “Notra” lockup. PNG so email clients can render it.
-   */
-  getWordmarkUrl(): string {
-    const siteUrl = this.getSiteUrl();
-    return `${siteUrl}/brand/notra-wordmark.png`;
-  },
-
-  /**
    * Reply-to email address
    */
   replyTo: "support@usenotra.com",

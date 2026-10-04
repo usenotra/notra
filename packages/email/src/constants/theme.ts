@@ -30,4 +30,10 @@ export const EMAIL_THEME = {
   /** Pill text on the geo washes; the UI tones are under 4.5:1 there. */
   geoUpText: "#2A7048",
   geoDownText: "#B4322D",
+  /**
+   * Explicit system stack: Outlook on Windows falls back to Times New Roman
+   * when the first families (Tailwind's `ui-sans-serif`) are unknown.
+   */
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 } as const;

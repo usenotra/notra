@@ -13,8 +13,14 @@ import {
   BREW_CONTACT_FIELD_TYPES,
   BREW_EMAIL_TRIGGERS,
 } from "../src/constants/brew";
-import type { BrewEmailCategory, BrewRequestInit } from "../src/types/brew";
-import { brewRequest } from "../src/utils/brew";
+import type { BrewEmailCategory } from "../src/types/brew";
+import {
+  api,
+  BREW_UNSUBSCRIBE_FOOTER,
+  ensureEmailGroup,
+  list,
+} from "./brew-api";
+import { EMAIL_LABELS } from "./email-samples";
 
 type Profile = "test" | "production";
 type SenderRole = "notifications" | "founder";
@@ -110,39 +116,24 @@ const PROFILES: Record<Profile, Record<SenderRole, Sender>> = {
   },
 };
 
-const EMAILS: Record<BrewEmailCategory, { label: string; sender: SenderRole }> =
-  {
-    welcome: { label: "Welcome", sender: "founder" },
-    feedback: { label: "Product feedback", sender: "notifications" },
-    contact: { label: "Contact form message", sender: "notifications" },
-    "ai-credits-depleted": {
-      label: "AI credits depleted",
-      sender: "notifications",
-    },
-    "workflow-paused": { label: "Workflow paused", sender: "notifications" },
-    "schedule-content-created": {
-      label: "Scheduled content created",
-      sender: "notifications",
-    },
-    "schedule-content-failed": {
-      label: "Scheduled content failed",
-      sender: "notifications",
-    },
-    "schedule-content-skipped": {
-      label: "Scheduled content skipped",
-      sender: "notifications",
-    },
-    "daily-summary": { label: "Daily GEO summary", sender: "notifications" },
-  };
+const EMAIL_SENDERS: Record<BrewEmailCategory, SenderRole> = {
+  welcome: "founder",
+  feedback: "notifications",
+  contact: "notifications",
+  "ai-credits-depleted": "notifications",
+  "workflow-paused": "notifications",
+  "schedule-content-created": "notifications",
+  "schedule-content-failed": "notifications",
+  "schedule-content-skipped": "notifications",
+  "daily-summary": "notifications",
+};
 
 const NAME_PREFIX = "Notra · ";
+const SYSTEM_GROUP_NAME = `${NAME_PREFIX}System (do not edit)`;
 const MARKETING_AUDIENCE_NAME = `${NAME_PREFIX}Marketing opt-in`;
 // `message` is an object so Brew keeps it as template data instead of
 // copying subject and HTML onto the contact.
 const RENDERED_HTML = "{{ message.html | raw }}";
-// Brew swaps `#unsubscribe` for a signed per-recipient link on marketing sends.
-const UNSUBSCRIBE_FOOTER =
-  '<p style="margin:0 0 32px;text-align:center;font-family:sans-serif;font-size:12px;color:#717175">Don\'t want these emails? <a href="#unsubscribe" style="color:#717175;text-decoration:underline">Unsubscribe</a></p>';
 const DESIGNS: Record<SendingPurpose, { title: string; html: string }> = {
   transactional: {
     title: `${NAME_PREFIX}Rendered React Email`,
@@ -150,7 +141,7 @@ const DESIGNS: Record<SendingPurpose, { title: string; html: string }> = {
   },
   marketing: {
     title: `${NAME_PREFIX}Rendered React Email (marketing)`,
-    html: `${RENDERED_HTML}${UNSUBSCRIBE_FOOTER}`,
+    html: `${RENDERED_HTML}${BREW_UNSUBSCRIBE_FOOTER}`,
   },
 };
 const SUBJECT_TAG = "{{ message.subject }}";
@@ -195,38 +186,6 @@ function parseProfile(): Profile {
     );
   }
   return value;
-}
-
-async function api<T>(
-  method: BrewRequestInit["method"],
-  path: string,
-  body?: unknown
-): Promise<T> {
-  const result = await brewRequest<T>(path, { method, body });
-  if (!result.ok) {
-    throw new Error(
-      `${method} ${path} → ${result.error.name}: ${result.error.message}`
-    );
-  }
-  return result.data;
-}
-
-async function list<T>(path: string): Promise<T[]> {
-  const rows: T[] = [];
-  let cursor: string | null = null;
-
-  do {
-    const separator = path.includes("?") ? "&" : "?";
-    const query = cursor
-      ? `${separator}cursor=${encodeURIComponent(cursor)}`
-      : "";
-    const page: { data: T[]; pagination: { cursor: string | null } } =
-      await api("GET", `${path}${query}`);
-    rows.push(...page.data);
-    cursor = page.pagination.cursor;
-  } while (cursor !== null);
-
-  return rows;
 }
 
 async function ensureDomain(
@@ -530,15 +489,19 @@ async function main() {
   await ensureMarketingAudience();
   const domainIds = await ensureSenderDomains(senders);
   const designs = await ensureSenderDesigns(senders);
+  // Pass-through designs look empty in Brew; the group name says why.
+  await ensureEmailGroup(SYSTEM_GROUP_NAME, [
+    ...new Set(Object.values(designs).map((design) => design.emailId)),
+  ]);
   const triggers = await list<BrewTrigger>("/automations/triggers");
   const automations = await list<BrewAutomation>("/automations");
   const triggerIds = {} as Record<BrewEmailCategory, string>;
 
-  for (const [category, { label, sender: role }] of Object.entries(EMAILS) as [
+  for (const [category, role] of Object.entries(EMAIL_SENDERS) as [
     BrewEmailCategory,
-    (typeof EMAILS)[BrewEmailCategory],
+    SenderRole,
   ][]) {
-    const name = `${NAME_PREFIX}${label}`;
+    const name = `${NAME_PREFIX}${EMAIL_LABELS[category]}`;
 
     let trigger = triggers.find((row) => row.title === name);
     if (!trigger) {
