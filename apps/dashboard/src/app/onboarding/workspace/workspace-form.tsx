@@ -175,9 +175,10 @@ export function WorkspaceForm({
           logoSourceUrl: null,
           value,
         });
-        if (!value.websiteUrl.trim()) {
+        if (!(value.websiteUrl.trim() || currentOrg?.hasBrand)) {
           // The GEO steps start from the brand the website analysis creates;
-          // without a website they would send the user straight back here.
+          // without a website or an existing brand they would send the user
+          // straight back here.
           await followServerRedirect(
             skipOnboarding(
               currentOrg?.slug ?? value.slug,

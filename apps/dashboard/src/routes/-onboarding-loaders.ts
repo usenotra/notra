@@ -167,6 +167,7 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
             ...existingOrg,
             dailySummary: notificationSettings?.dailySummary ?? true,
             marketingEmails: notificationSettings?.marketingEmails ?? true,
+            hasBrand: Boolean(brand),
           }
         : undefined,
       progressHrefs: onboardingProgressHrefs({

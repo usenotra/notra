@@ -38,6 +38,8 @@ export interface OnboardingExistingOrg {
   name: string;
   dailySummary: boolean;
   marketingEmails: boolean;
+  /** A brand exists, so the GEO onboarding steps can run without a new website. */
+  hasBrand?: boolean;
 }
 
 export interface WorkspaceFormProps {
