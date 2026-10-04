@@ -337,12 +337,13 @@ All five Vercel app configurations disable automatic Git deployments with
 development and GitHub's code-quality checks continue to run as before.
 
 The [Production deploy workflow](.github/workflows/production-deploy.yml) releases
-`dashboard` (`notra`), `web` (`notra-web`), and `ui` (`notra-ui`) at **12:00 and
+`dashboard` (`notra`), `web` (`notra-web`), `ui` (`notra-ui`), `agent`
+(`notra-agent`), and `onboarding-agent` (`notra-onboarding-agent`) at **12:00 and
 19:00 Europe/Berlin** each day. The timezone includes daylight-saving changes;
 GitHub may start scheduled runs late. Production remains on `main`.
 
 Before merging this configuration, add a GitHub Actions repository secret named
-`VERCEL_TOKEN` containing a token with access to the Notra team's three projects.
+`VERCEL_TOKEN` containing a token with access to the Notra team's five projects.
 The team ID is configured in the workflow. No application secrets or local
 Vercel login tokens need to be copied into the repository. Keep Vercel's GitHub
 repository connection enabled so the API can build the pinned Git commit.
@@ -355,9 +356,10 @@ There is no automatic deployment when CI finishes later; the next scheduled
 window checks again.
 
 Each project is compared with the deployment serving its stable production alias
-(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`, or
-`notra-ui-notra.vercel.app`). The script resolves that alias to a deployment ID,
-then reads its commit SHA. A missing alias, wrong project, or unidentified live
+(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`,
+`notra-ui-notra.vercel.app`, `notra-agent-notra.vercel.app`, or
+`notra-onboarding-agent-notra.vercel.app`). The script resolves that alias to a
+deployment ID, then reads its commit SHA. A missing alias, wrong project, or unidentified live
 commit blocks all new builds. Neither the latest successful build nor
 `targets.production` is used as a substitute: the latter can refer to a skipped
 build that was never published. GitHub must confirm the
@@ -368,7 +370,7 @@ old runs from overwriting newer releases; use Vercel's rollback flow for a
 deliberate rollback.
 
 Changes in a project's own app directory trigger a build; shared packages and
-inputs outside `apps/` conservatively trigger all three. Changes confined to
+inputs outside `apps/` conservatively trigger all five. Changes confined to
 another app are skipped. Renames are compared as a deletion and an addition so
 moves between apps rebuild both. After the history check passes, missing local
 historical Git commits cause a build rather than an unsafe skip. Any
@@ -379,8 +381,9 @@ every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
-per project, with a 60-minute job limit for all projects, the Railway services,
-and API overhead.
+per project. Five sequential Vercel builds plus the 20-minute Railway phase can
+take up to 70 minutes, excluding API overhead, within the workflow's 100-minute
+job limit.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
@@ -404,6 +407,13 @@ unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
 patterns must stay unset: a deployment skipped by them would leave a service
 behind production and fails the release.
 
+The production API at `api.usenotra.com` is hosted on Unkey Compute,
+not the Railway `demo-api` service, and remains separate from this release.
+Adding it requires credentials for its Compute workspace and verified deployment
+targets. Do not disable its per-push trigger until a replacement pinned-SHA
+release is merged and verified. Adding the Railway demo API does not control
+the production API.
+
 For an urgent release, open **Actions → Production deploy → Run workflow**, select
 `main`, and leave `dry_run` unchecked. This uses the same CI and change checks.
 Check `dry_run` to validate configuration and report planned deployments without
@@ -424,12 +434,9 @@ must have a unique package name and explicitly declare its internal dependencies
 in `package.json`.
 
 `agent` and `onboarding-agent` have `git.deploymentEnabled: false` in their
-`vercel.json` files. Pushes and merges do not deploy them. For a production
-release, open the agent's Vercel project → **Deployments** → **Create Deployment**
-and select its configured production branch (usually `main`), then verify the
-deployment is marked **Production**. Alternatively, from the linked agent app
-directory run `vercel deploy --prod`. A different branch or `vercel deploy`
-without `--prod` may only create a preview and will not update the production URL.
+`vercel.json` files. Pushes and merges do not deploy them. They now participate
+in the same scheduled and manually dispatched production release as the other
+Vercel apps, with their own live-alias, history, and change checks.
 
 The app configs do not set an `ignoreCommand`. Keep
 [Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
@@ -439,7 +446,7 @@ command after the repository override is removed.
 
 Changes outside the workspace definitions, such as root documentation, can
 select builds during a scheduled release. Shared Bun lockfile changes can select
-all three projects as well.
+all five projects as well.
 
 Root install configuration and the prepare script remain declared in
 `turbo.json#globalDependencies` for build cache invalidation. Declare any new
