@@ -1,0 +1,25 @@
+apps/dashboard/src/components/geo/shelf/shelf-view.tsx
+  s_7a0c38829ccc1e::t_4259aa619ac8b8 29,42
+apps/dashboard/src/types/geo-shelf.ts
+  s_7a0c38829ccc1e::t_4259aa619ac8b8 274-275,293
+apps/dashboard/src/app/(dashboard)/[slug]/geo/shelf-space/page-client.tsx
+  s_7a0c38829ccc1e::t_4259aa619ac8b8 140
+apps/dashboard/src/components/geo/shelf/shelf-table.tsx
+  s_7a0c38829ccc1e::t_4259aa619ac8b8 111-117,123-126,128,227,276-278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6501c381f6ba75fdb808043d5af70d3332320757",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
