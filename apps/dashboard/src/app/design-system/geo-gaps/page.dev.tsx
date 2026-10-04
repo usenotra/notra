@@ -1,11 +1,14 @@
 "use client";
 
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { DESIGN_SYSTEM_SEARCH_GAPS } from "@/constants/design-system-gaps";
 
 import { PrototypeAnswerSheet } from "./prototype-answer-sheet";
@@ -91,8 +94,7 @@ export default function GeoGapsSheetDemoPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium">Search gaps · side drawer</h2>
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={SEARCH_COLUMNS}
           data={DESIGN_SYSTEM_SEARCH_GAPS}
           getRowId={(row) => row.id}

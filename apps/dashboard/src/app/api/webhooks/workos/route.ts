@@ -1,8 +1,7 @@
 import { workosWebhookPayloadSchema } from "@notra/schemas/dashboard/workos-webhook";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Event as WorkOSEvent } from "@workos-inc/node";
+import { getWorkOS } from "@workos/authkit-session";
 import { Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 import {
   removeMembershipFromWebhook,
@@ -21,7 +20,7 @@ function handleMembershipEvent(event: WorkOSEvent) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const secret = process.env.WORKOS_WEBHOOK_SECRET;
 
   if (!secret) {

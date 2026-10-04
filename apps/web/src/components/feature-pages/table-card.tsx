@@ -1,10 +1,6 @@
-import {
-  TableBody,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
 
+import { TableBody, TableHeader, TableRow } from "@/components/marketing-table";
 import {
   DUAL_TONE_TABLE_BODY,
   DUAL_TONE_TABLE_CLASS,

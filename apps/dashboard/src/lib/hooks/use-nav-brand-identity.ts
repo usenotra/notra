@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
 
@@ -8,6 +7,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useReferences } from "@/lib/hooks/use-brand-references";
 import { useSitemaps } from "@/lib/hooks/use-brand-sitemaps";
+import { usePathname } from "@/lib/navigation";
 import type { NavBrandIdentityModel } from "@/types/components/nav";
 import {
   buildBrandIdentityNavItems,

@@ -3,12 +3,12 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { ShelfAddDialog } from "@/components/geo/shelf/shelf-add-dialog";
 import { ShelfDetailDialog } from "@/components/geo/shelf/shelf-detail-dialog";
 import { ShelfPageControls } from "@/components/geo/shelf/shelf-page-controls";
@@ -137,6 +137,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
           ) : null}
           <ShelfView
             boardCounts={page.boardCounts}
+            competitorCount={page.competitors.length}
             currentMemberId={page.currentMemberId}
             filteredCount={page.filteredCount}
             hasNextPage={page.hasNextPage}
@@ -160,6 +161,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
       </div>
 
       <ShelfDetailDialog
+        competitors={page.competitors}
         organizationId={page.organizationId}
         currentMemberId={page.currentMemberId}
         isPending={

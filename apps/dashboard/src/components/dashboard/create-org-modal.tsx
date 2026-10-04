@@ -13,13 +13,13 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { errorMessageOr, generateOrganizationAvatar } from "@/lib/utils";
 import { createOrganizationFormSchema } from "@/schemas/create-organization-form";
 import { setLastVisitedOrganization } from "@/utils/cookies";

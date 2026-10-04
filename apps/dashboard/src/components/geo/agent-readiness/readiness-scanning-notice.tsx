@@ -2,7 +2,7 @@ import { AiScanIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import type { AgentReadinessScanningNoticeProps } from "@/types/agent-readiness";

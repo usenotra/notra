@@ -12,11 +12,11 @@ import {
 } from "@notra/ui/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import {
   isImageMimeType,
   isPdfMimeType,

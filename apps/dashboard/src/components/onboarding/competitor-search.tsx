@@ -3,7 +3,7 @@
 import { GEO_BRAND_SEARCH_MAX_QUERY_LENGTH } from "@notra/geo-core/constants/geo";
 import { Combobox, ComboboxInput } from "@notra/ui/components/ui/combobox";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { CompetitorSearchContent } from "@/components/onboarding/competitor-search-content";
 import { useCompetitorSearchState } from "@/lib/hooks/use-competitor-search-state";

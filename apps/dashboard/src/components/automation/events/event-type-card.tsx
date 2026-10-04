@@ -3,7 +3,7 @@
 import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EVENT_TYPE_META } from "@/constants/event-triggers";
 import type { EventTypeCardProps } from "@/types/automation/event-trigger";

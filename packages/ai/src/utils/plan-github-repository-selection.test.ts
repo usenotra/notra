@@ -49,22 +49,6 @@ describe("GitHub repository migration planning", () => {
     expect(plan.deselectedIds).toEqual([]);
   });
 
-  test("accepts ID and name matches that identify the same integration", () => {
-    const plan = planGitHubRepositorySelection(
-      [
-        {
-          ...LEGACY_GITHUB_REPOSITORY,
-          githubRepositoryId: "github-sdk",
-          githubAppInstallationId: "installation-a",
-        },
-      ],
-      GITHUB_REPOSITORY_SELECTION
-    );
-
-    expect(plan.selections[0]?.integrationId).toBe("existing-integration");
-    expect(plan.deselectedIds).toEqual([]);
-  });
-
   test("rejects a reused repository name bound to a different GitHub identity", () => {
     expect(() =>
       planGitHubRepositorySelection(

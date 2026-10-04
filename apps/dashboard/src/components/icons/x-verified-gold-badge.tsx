@@ -1,5 +1,5 @@
-import { useTranslations } from "next-intl";
 import type { SVGProps } from "react";
+import { useTranslations } from "use-intl";
 
 const XVerifiedGoldBadge = (props: SVGProps<SVGSVGElement>) => {
   const t = useTranslations("shared.icons");

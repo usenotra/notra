@@ -4,7 +4,7 @@ import type {
   TotpEnrollmentPanelLabels,
 } from "@notra/ui/types/auth";
 import type { BackupCodesPanelLabels } from "@notra/ui/types/security";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useBackupCodesPanelLabels(): BackupCodesPanelLabels {
   const t = useTranslations("settings.twoFactor.backupCodes");

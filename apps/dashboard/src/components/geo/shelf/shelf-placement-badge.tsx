@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { useGeoShelfPlacementLabels } from "@/lib/hooks/use-geo-shelf-labels";
 import { cn } from "@/lib/utils";

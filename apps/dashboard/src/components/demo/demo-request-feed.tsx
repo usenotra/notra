@@ -5,10 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { DemoRequestEvent } from "@notra/db/types/demo";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
-import { useFormatter, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useDemoRequestDetail,

@@ -1,4 +1,4 @@
-import "server-only";
+import "@tanstack/react-start/server-only";
 import sanitizeHtml, { type IOptions } from "sanitize-html";
 
 const SVG_ROOT_TAG_REGEX = /<svg[\s>]/i;

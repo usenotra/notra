@@ -8,10 +8,6 @@ import type {
 import type { GEO_PERSONA_GENERATION_STEPS } from "@/constants/geo-personas";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 
-export interface GeoPersonasPageProps {
-  params: Promise<{ slug: string }>;
-}
-
 export interface PersonaGenerationCounterProps {
   progress: PersonaGenerationProgress;
 }

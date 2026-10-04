@@ -12,10 +12,24 @@ const BLOCKED_HOSTNAME_SUFFIXES = [".internal", ".local", ".localhost"];
 const HEXTET_REGEX = /^[0-9a-f]{1,4}$/;
 
 export class PublicUrlValidationError extends Error {
-  constructor(message: string) {
+  readonly reason: "invalid" | "not_found" | "temporary";
+
+  constructor(
+    message: string,
+    reason: "invalid" | "not_found" | "temporary" = "invalid"
+  ) {
     super(message);
     this.name = "PublicUrlValidationError";
+    this.reason = reason;
   }
+}
+
+export function isSameUrl(url: string, previousUrl: string | null): boolean {
+  const current = URL.parse(url);
+  const previous = previousUrl ? URL.parse(previousUrl) : null;
+  return (
+    current !== null && previous !== null && current.href === previous.href
+  );
 }
 
 function ipv4ToNumber(ip: string): number | null {

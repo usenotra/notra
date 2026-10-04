@@ -9,7 +9,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
-import { useTranslations } from "next-intl";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
 import { DiscussionComposer } from "@/components/comments/discussion-composer";
 import { DiscussionList } from "@/components/comments/discussion-list";
@@ -32,9 +33,14 @@ function DiscussionFeed({
   const tCommon = useTranslations("common.actions");
   if (isPending) {
     return (
-      <p className="sr-only" role="status">
-        {t("loading")}
-      </p>
+      <div className="flex gap-3 py-2 pb-5" role="status">
+        <span className="sr-only">{t("loading")}</span>
+        <Skeleton className="size-8 shrink-0 rounded-full" />
+        <div className="flex-1 space-y-2 pt-1">
+          <Skeleton className="h-3.5 w-32" />
+          <Skeleton className="h-3.5 w-3/4" />
+        </div>
+      </div>
     );
   }
   if (isError) {
@@ -144,7 +150,7 @@ export function Discussion({
         textarea={textarea}
         onDraftChange={setDraft}
         onSubmit={submit}
-        sticky={!isEmpty}
+        sticky={items.length > 0}
         onCancelReply={() => {
           setReply(null);
           textarea.current?.focus();

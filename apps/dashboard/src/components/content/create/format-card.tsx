@@ -4,7 +4,7 @@ import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { OnDemandContentType } from "@notra/schemas/dashboard/content";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
 import { FORMAT_CARD_META } from "@/constants/content-formats";

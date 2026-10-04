@@ -16,6 +16,7 @@ import type {
   NavVisibility,
   SidebarMode,
 } from "@/types/components/nav";
+import type { SettingsUrlSearchParams } from "@/types/settings/modal";
 
 import { geoNavHref } from "./geo-paths";
 import { filterIrisNavItems } from "./iris-flag";
@@ -70,12 +71,25 @@ export function isOrgRootPath(pathname: string, slug: string): boolean {
 export function resolveOrgRootRedirect(
   slug: string,
   storedMode: SidebarMode | null,
-  projectId?: string
+  projectId?: string,
+  searchParams: SettingsUrlSearchParams = {}
 ): string | null {
   if (storedMode !== "geo") {
     return null;
   }
-  return geoNavHref(slug, GEO_OVERVIEW_NAV_LINK, projectId);
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item !== undefined) {
+        query.append(key, item);
+      }
+    }
+  }
+  if (projectId) {
+    query.set("project", projectId);
+  }
+  const path = geoNavHref(slug, GEO_OVERVIEW_NAV_LINK);
+  return query.size ? `${path}?${query}` : path;
 }
 
 /**

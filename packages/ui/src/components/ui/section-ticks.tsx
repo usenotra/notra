@@ -8,7 +8,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { cn } from "@notra/ui/lib/utils";
-import Link from "next/link";
+import { Link } from "@notra/ui/components/framework-provider";
 import type { MouseEvent } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 

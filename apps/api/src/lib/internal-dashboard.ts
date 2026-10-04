@@ -17,7 +17,7 @@ export class InternalDashboardService extends Context.Service<
   InternalDashboardOperations
 >()("api/InternalDashboard") {}
 
-export function internalDashboardLayer(deps: InternalDashboardDependencies) {
+function internalDashboardLayer(deps: InternalDashboardDependencies) {
   return Layer.succeed(
     InternalDashboardService,
     InternalDashboardService.of({

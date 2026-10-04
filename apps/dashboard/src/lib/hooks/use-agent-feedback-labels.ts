@@ -2,7 +2,7 @@ import type {
   AgentFeedbackKind,
   AgentFeedbackStatus,
 } from "@notra/db/types/agent-feedback";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useAgentFeedbackStatusLabels(): Record<
   AgentFeedbackStatus,

@@ -6,9 +6,12 @@ import type {
 } from "@/types/content/collection";
 
 export function collectionTitle(collection: PostCollectionSummary): string {
-  return !collection.isGenerating && collection.postCount === 1
-    ? (collection.singlePost?.title ?? collection.name)
-    : collection.name;
+  const postTitle =
+    !collection.isGenerating && collection.postCount === 1
+      ? collection.singlePost?.title.trim()
+      : undefined;
+  // A single post with a blank title falls back to its collection's name.
+  return postTitle || collection.name;
 }
 
 export function collectionHref(

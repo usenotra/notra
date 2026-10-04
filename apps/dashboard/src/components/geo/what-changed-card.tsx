@@ -27,13 +27,16 @@ import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
@@ -43,7 +46,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import {
@@ -54,6 +56,7 @@ import {
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoChanges } from "@/lib/hooks/use-geo";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type {
   GeoChangeCellProps,
@@ -370,6 +373,34 @@ function changeRowId(event: GeoChangeEvent): string {
   return `${event.kind}-${event.promptId}-${event.engine}`;
 }
 
+/** Empty body for the changes card: no comparison scan yet, or nothing moved. */
+function ChangesEmpty({
+  isScanning,
+  reason,
+}: {
+  isScanning: boolean;
+  reason: "needsScans" | "noChanges";
+}) {
+  const t = useTranslations("geo.whatChangedCard");
+  const tGeoShared = useTranslations("geo.shared");
+  return (
+    <InstrumentEmpty
+      busy={isScanning}
+      className="h-40"
+      message={isScanning ? tGeoShared("scanningEngines") : t(reason)}
+      preview={
+        <div className="px-6 pt-2">
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.changes}
+            rows={3}
+          />
+        </div>
+      }
+      seed={GEO_CHANGES_LABEL}
+    />
+  );
+}
+
 export function WhatChangedCard({
   organizationId,
   organizationSlug,
@@ -424,8 +455,7 @@ export function WhatChangedCard({
   }
 
   let body = (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={events}
       defaultSort={CHANGES_DEFAULT_SORT}
@@ -440,42 +470,13 @@ export function WhatChangedCard({
       toolbar={data ? <SummaryToolbar summary={data.summary} /> : undefined}
     />
   );
-  if (!isPending && data) {
-    if (!data.previousScan) {
-      body = (
-        <InstrumentEmpty
-          busy={isScanning}
-          className="h-40"
-          message={isScanning ? tGeoShared("scanningEngines") : t("needsScans")}
-          preview={
-            <div className="px-6 pt-2">
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
-                rows={3}
-              />
-            </div>
-          }
-          seed={GEO_CHANGES_LABEL}
-        />
-      );
-    } else if (events.length === 0) {
-      body = (
-        <InstrumentEmpty
-          busy={isScanning}
-          className="h-40"
-          message={isScanning ? tGeoShared("scanningEngines") : t("noChanges")}
-          preview={
-            <div className="px-6 pt-2">
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
-                rows={3}
-              />
-            </div>
-          }
-          seed={GEO_CHANGES_LABEL}
-        />
-      );
-    }
+  if (!isPending && data && (!data.previousScan || events.length === 0)) {
+    body = (
+      <ChangesEmpty
+        isScanning={isScanning}
+        reason={data.previousScan ? "noChanges" : "needsScans"}
+      />
+    );
   }
 
   return (

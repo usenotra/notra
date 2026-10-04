@@ -385,10 +385,6 @@ export interface LeaderboardCardProps {
   variant?: "module" | "page";
 }
 
-export interface AnalyticsPageClientProps {
-  organizationSlug: string;
-}
-
 export type AnalyticsProviderFilter = "all" | "twitter" | "linkedin";
 
 export type AnalyticsFlagState = "enabled" | "disabled" | "unavailable";

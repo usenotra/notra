@@ -1,6 +1,6 @@
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { ONBOARDING_STEP_COUNT } from "@/constants/onboarding";
 import { cn } from "@/lib/utils";
 import type { OnboardingProgressProps } from "@/types/onboarding";
@@ -28,7 +28,7 @@ export function OnboardingProgress({
   return (
     <nav
       aria-label={t("label", { current, total: STEPS.length })}
-      className="flex items-center gap-1.5"
+      className="flex items-center gap-1"
     >
       {STEPS.map((step) => {
         const href = hrefs?.[step - 1];
@@ -44,10 +44,7 @@ export function OnboardingProgress({
 
         if (!href) {
           return (
-            <span
-              className="flex size-6 items-center justify-center"
-              key={step}
-            >
+            <span className="flex h-6 items-center justify-center" key={step}>
               {pill}
             </span>
           );
@@ -56,7 +53,10 @@ export function OnboardingProgress({
         return (
           <Link
             aria-label={t("goTo", { step: String(step) })}
-            className="focus-visible:ring-ring flex size-6 items-center justify-center rounded-full hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+            className={cn(
+              "focus-visible:ring-ring flex size-6 items-center rounded-full hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none",
+              step < current ? "justify-end" : "justify-start"
+            )}
             href={href}
             key={step}
           >

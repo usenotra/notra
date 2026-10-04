@@ -1,16 +1,18 @@
-import { useLocale, useTranslations } from "next-intl";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
 import {
   InstrumentEmpty,
-  InstrumentModule,
+  InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { JourneyStatCardProps } from "@/types/geo";
 
 /**
- * Shared frame for the two journey overview cards, so the headline, the stat
- * row and the preview table always line up side by side.
+ * Shared layout for the two journey overviews, so the headline, the stat row
+ * and the preview table always line up side by side. It has no card of its
+ * own: the table brings the frame.
  */
 export function JourneyStatCard({
   eyebrow,
@@ -42,18 +44,19 @@ export function JourneyStatCard({
   );
 
   return (
-    <InstrumentModule className="h-full" eyebrow={eyebrow}>
+    <InstrumentSection className="h-full" eyebrow={eyebrow}>
       {total === 0 ? (
         empty
       ) : (
         <div className="flex h-full flex-col gap-5">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
-              {total.toLocaleString(locale)}
+              <AnimatedNumber locale={locale} value={total} />
             </p>
             <p className="text-muted-foreground text-sm">{caption}</p>
             {delta === undefined ? null : (
               <GeoStatDelta
+                animated
                 className="self-center"
                 delta={delta}
                 hint={tGeoShared("vsPreviousPeriodOfThe")}
@@ -76,6 +79,6 @@ export function JourneyStatCard({
           {children}
         </div>
       )}
-    </InstrumentModule>
+    </InstrumentSection>
   );
 }

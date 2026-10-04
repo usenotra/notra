@@ -1,4 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DataTable } from "@notra/ui/components/ui/data-table";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import {
   Sheet,
   SheetContent,
@@ -7,12 +9,10 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
-import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { Table } from "@/components/motion/table";
-import type { TableColumn } from "@/components/motion/table/types";
 import {
   AGENT_FEEDBACK_LABEL_PILL_CLASS,
   AGENT_FEEDBACK_SENTIMENT_ICONS,
@@ -145,7 +145,7 @@ export function SentimentResultsTable({
       data-ready={!pending}
       inert={pending || undefined}
     >
-      <Table
+      <DataTable
         columns={
           isMobile
             ? columns.filter(
@@ -175,7 +175,6 @@ export function SentimentResultsTable({
               : null;
           setSelectedId(row.id);
         }}
-        className="[&_tr:focus-visible]:outline-ring rounded-2xl [&_tr:focus-visible]:outline-2 [&_tr:focus-visible]:-outline-offset-2"
       />
       <Sheet
         open={current !== null}

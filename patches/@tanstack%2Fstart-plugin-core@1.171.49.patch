@@ -1,0 +1,92 @@
+diff --git a/dist/esm/import-protection/analysis.js b/dist/esm/import-protection/analysis.js
+index edc345a667341870bb1f6bee42082992196a382a..80eaaef3a61fc3adc8312f9ecef403f0a43a31d2 100644
+--- a/dist/esm/import-protection/analysis.js
++++ b/dist/esm/import-protection/analysis.js
+@@ -190,7 +190,29 @@ function buildImportAnalysis(result) {
+ 	};
+ }
+ function getOrCreateImportAnalysis(result) {
+-	if (!result.analysis) result.analysis = buildImportAnalysis(result);
++	if (!result.analysis) {
++		const analysis = buildImportAnalysis(result);
++		// The AST is only read again to locate a violation (findUsagePosInAnalysis).
++		// Cached per module it kept every transformed module's Babel AST alive for
++		// the life of the dev server, so drop it and re-parse on that rare path.
++		const code = result.code;
++		const filename = result.filename;
++		let ast;
++		delete analysis.ast;
++		delete result.parsedAst;
++		Object.defineProperty(analysis, "ast", {
++			configurable: true,
++			enumerable: true,
++			get() {
++				ast ??= parseAst({
++					code,
++					filename
++				});
++				return ast;
++			}
++		});
++		result.analysis = analysis;
++	}
+ 	return result.analysis;
+ }
+ function getImportSourcesFromResult(result) {
+diff --git a/dist/esm/start-compiler/compiler.js b/dist/esm/start-compiler/compiler.js
+index b71cf76007e2d702f90bf63101a6b72501e63460..6195d322a30dcfa3697478e79c13d9bbc44d89db 100644
+--- a/dist/esm/start-compiler/compiler.js
++++ b/dist/esm/start-compiler/compiler.js
+@@ -234,6 +234,44 @@ function getExternalDirectCallCandidateKind(path, candidates) {
+ 		return path.scope.getBinding(node.callee.object.name)?.path.isImportNamespaceSpecifier() ? kind : void 0;
+ 	}
+ }
++/**
++* The module cache only needs a binding's initializer for kind resolution
++* (resolveExprKind), which follows wrappers, call callees, member objects and
++* identifiers. Keeping the full initializer retained every module's top-level
++* code (whole components) as Babel AST for the life of the dev server.
++*/
++function kindLookupSkeleton(node) {
++	if (!node) return null;
++	switch (node.type) {
++		case "TSAsExpression":
++		case "TSSatisfiesExpression":
++		case "TSTypeAssertion":
++		case "TSNonNullExpression":
++		case "ParenthesizedExpression": return {
++			type: node.type,
++			expression: kindLookupSkeleton(node.expression)
++		};
++		case "CallExpression": return {
++			type: node.type,
++			callee: kindLookupSkeleton(node.callee),
++			arguments: []
++		};
++		case "MemberExpression": return {
++			type: node.type,
++			object: kindLookupSkeleton(node.object),
++			property: node.property?.type === "Identifier" ? {
++				type: "Identifier",
++				name: node.property.name
++			} : { type: node.property?.type ?? "Unknown" },
++			computed: node.computed
++		};
++		case "Identifier": return {
++			type: "Identifier",
++			name: node.name
++		};
++		default: return { type: node.type };
++	}
++}
+ var StartCompiler = class {
+ 	options;
+ 	moduleCache = /* @__PURE__ */ new Map();
+@@ -409,6 +447,7 @@ var StartCompiler = class {
+ 	*/
+ 	extractModuleInfo(ast, id) {
+ 		const extracted = extractModuleInfoFromAst(ast);
++		for (const binding of extracted.bindings.values()) if (binding.type === "var" && binding.init) binding.init = kindLookupSkeleton(binding.init);
+ 		const info = {
+ 			id,
+ 			bindings: new Map(extracted.bindings),

@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { runAutomaticSentiment } from "@notra/geo-core/geo/sentiment-automation";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { Effect } from "effect";

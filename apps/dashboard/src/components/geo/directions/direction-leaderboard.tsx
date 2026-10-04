@@ -8,14 +8,17 @@ import {
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
-import { useLocale, useTranslations } from "next-intl";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ChartSparkline } from "@/components/charts/chart-sparkline";
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { DirectionDonut } from "@/components/geo/directions/direction-donut";
 import { DirectionPagesTable } from "@/components/geo/directions/direction-pages-table";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,
@@ -88,8 +91,7 @@ function EngineRank() {
           {t("enginesCount", { count: GEO_DIRECTIONS_ENGINES.length })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_ENGINES]}
         defaultSort={{ key: "rate", direction: "desc" }}
@@ -197,8 +199,7 @@ function JourneysTable() {
           })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_JOURNEYS]}
         defaultSort={{ key: "lastSeenAt", direction: "desc" }}

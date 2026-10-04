@@ -1,19 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  getSearchQuery,
-  getSearchSources,
-  isPublicSearchDomain,
-} from "./chat-search-activity";
+import { getSearchSources, isPublicSearchDomain } from "./chat-search-activity";
 
 describe("chat-search-activity", () => {
-  test("reads the query from search input", () => {
-    expect(getSearchQuery({ query: " GDPR voice STT " })).toBe(
-      "GDPR voice STT"
-    );
-    expect(getSearchQuery({})).toBeUndefined();
-  });
-
   test("collects unique sources from results and nested web data", () => {
     expect(
       getSearchSources({

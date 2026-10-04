@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import type { ContentEmailDigestPayload } from "@notra/schemas/dashboard/workflows";
 import { getStepMetadata } from "workflow";
 

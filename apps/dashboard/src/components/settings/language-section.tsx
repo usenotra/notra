@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { DASHBOARD_LOCALE_OPTIONS } from "@/constants/locales";
 import { useLocalePreference } from "@/lib/hooks/use-locale-preference";

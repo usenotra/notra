@@ -3,7 +3,7 @@
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { useHidePersonalData } from "@/lib/hooks/use-privacy-preferences";
 

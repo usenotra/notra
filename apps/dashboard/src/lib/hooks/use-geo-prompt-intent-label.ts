@@ -1,5 +1,5 @@
 import type { GeoPromptIntent } from "@notra/geo-core/types/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useGeoPromptIntentLabel() {
   const t = useTranslations("geo.promptBadges");

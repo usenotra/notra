@@ -987,6 +987,145 @@
       ]
     },
     {
+      "name": "notra-table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "shadcn table primitives in a grey shell with a 2px rim around a lifted body card.",
+      "dependencies": ["cn"],
+      "cssVars": {
+        "theme": {
+          "color-shell": "var(--shell)",
+          "color-shell-border": "var(--shell-border)",
+          "shadow-lift": "var(--surface-lift)"
+        },
+        "light": {
+          "shell": "hsl(240 6% 94.5%)",
+          "shell-border": "hsl(240 5% 87%)",
+          "surface-lift": "0 1px 2px hsl(240 10% 10% / 0.06), 0 2px 8px -2px hsl(240 10% 10% / 0.06)"
+        },
+        "dark": {
+          "shell": "hsl(240 5% 14.5%)",
+          "shell-border": "hsl(240 4% 20%)",
+          "surface-lift": "inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(0 0% 0% / 0.4)"
+        }
+      },
+      "files": [
+        {
+          "path": "components/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "data-table",
+      "type": "registry:component",
+      "title": "Data Table",
+      "description": "A sortable, selectable table with a sticky header, virtualized rows, pagination with a page-size select, and an infinite-scroll variant.",
+      "dependencies": ["@tanstack/react-virtual", "cn", "lucide-react"],
+      "registryDependencies": [
+        "https://ui.usenotra.com/r/notra-table.json",
+        "https://ui.usenotra.com/r/notra-button.json",
+        "https://ui.usenotra.com/r/notra-tooltip.json",
+        "checkbox",
+        "context-menu",
+        "select",
+        "skeleton"
+      ],
+      "files": [
+        {
+          "path": "registry/notra/data-table/components/data-table-body.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-body.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-column-group.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-column-group.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-header.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-header.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-labels.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-labels.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-pager.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-pager.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-pagination.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-pagination.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-root.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-root.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table-surfaces.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-surfaces.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/components/data-table.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table.tsx"
+        },
+        {
+          "path": "registry/notra/data-table/constants/data-table.ts",
+          "type": "registry:lib",
+          "target": "components/data-table/constants/data-table.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-collapsible-columns.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-collapsible-columns.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-column-resize.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-column-resize.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-column-sort.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-column-sort.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-row-selection.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-row-selection.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-table-paging.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-table-paging.ts"
+        },
+        {
+          "path": "registry/notra/data-table/hooks/use-table-viewport.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-table-viewport.ts"
+        },
+        {
+          "path": "registry/notra/data-table/lib/data-table.ts",
+          "type": "registry:lib",
+          "target": "components/data-table/lib/data-table.ts"
+        },
+        {
+          "path": "registry/notra/data-table/types/data-table.ts",
+          "type": "registry:lib",
+          "target": "components/data-table/types/data-table.ts"
+        }
+      ]
+    },
+    {
       "name": "shimmer",
       "type": "registry:component",
       "title": "Shimmer",
@@ -9169,7 +9308,7 @@
       "title": "Codex Markdown",
       "description": "Bullet lists, tables with yellow headers and green inline code, styled like Codex answers.",
       "dependencies": ["cn"],
-      "registryDependencies": ["card", "collapsible", "table"],
+      "registryDependencies": ["card", "collapsible"],
       "cssVars": {
         "theme": {
           "color-codex-bg": "var(--codex-bg)",
@@ -9382,8 +9521,7 @@
         "collapsible",
         "input-group",
         "kbd",
-        "scroll-area",
-        "table"
+        "scroll-area"
       ],
       "cssVars": {
         "theme": {

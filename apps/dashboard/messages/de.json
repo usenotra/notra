@@ -173,6 +173,10 @@
         "period": "Letzte 30 Tage",
         "refresh": "Webhook-Aktivität aktualisieren",
         "addEndpoint": "Endpunkt hinzufügen",
+        "removeEndpoint": "Endpunkt {url} entfernen",
+        "rightNow": "Gerade",
+        "processing": "In Bearbeitung",
+        "idle": "Nichts offen",
         "views": "Webhook-Ansichten",
         "deliveries": "Zustellungen",
         "endpoints": "Endpunkte",
@@ -196,18 +200,19 @@
           "cancelled": "Abgebrochen"
         },
         "columns": {
-          "event": "Event und Ziel",
+          "event": "Event",
+          "destination": "Ziel",
           "response": "Antwort",
-          "attempts": "Versuche"
+          "attemptCount": "{count, plural, one {# Versuch} other {# Versuche}}"
         },
         "filterLabel": "Zustellungen nach Status filtern",
         "empty": {
           "allTitle": "Hier tauchen deine Events auf",
           "allDescription": "Füg einen Endpunkt hinzu und generier dann einen Post. Jede Zustellung und jeder neue Versuch landet hier.",
           "filteredTitle": "Keine Zustellungen mit diesem Status",
-          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen."
+          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen.",
+          "showAll": "Alle Zustellungen anzeigen"
         },
-        "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
         "endpointsEmpty": {
           "title": "Verbinde deinen ersten Endpunkt",
           "description": "Wähl aus, welche Events an deinen Workflow gehen."
@@ -241,7 +246,8 @@
           "inFlight": "Sendet",
           "payload": "Request-Payload",
           "payloadCopied": "Payload kopiert"
-        }
+        },
+        "itemLabel": "Zustellungen"
       }
     },
     "logs": {
@@ -467,6 +473,7 @@
     "roleLabel": "{role, select, owner {Inhaber} admin {Admin} member {Mitglied} other {{role}}}",
     "teamMemberLimit": "Du hast das Limit für Teammitglieder in deinem aktuellen Tarif erreicht.",
     "viewPlans": "Tarife ansehen",
+    "invitationExpired": "Abgelaufen",
     "columns": {
       "user": "Nutzer"
     },
@@ -898,7 +905,7 @@
       "createConversationFailed": "Konversation konnte nicht erstellt werden",
       "conversationLimit": "Du kannst bis zu {limit} Konversationen haben. Entferne eine, bevor du eine weitere hinzufügst.",
       "personaLimit": "Du kannst bis zu {limit} aktive Personas haben. Archiviere eine, bevor du eine weitere hinzufügst oder reaktivierst.",
-      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere importierst.",
+      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere hinzufügst.",
       "configureTrackingFirst": "Konfiguriere zuerst deine Einstellungen für das Marken-Tracking",
       "enableTrackingFirst": "Aktiviere das Marken-Tracking, bevor du einen Scan startest",
       "scanAlreadyRunning": "Für dieses Projekt läuft bereits ein Scan",
@@ -992,6 +999,8 @@
       "branchNotFound": "Dieser Branch existiert im Repository nicht",
       "granolaKeyRejected": "Granola konnte diesen API-Schlüssel nicht bestätigen. Prüfe den Schlüssel und seine Berechtigungen und versuche es erneut.",
       "publicUrlInvalid": "Gib eine öffentliche http- oder https-URL ein",
+      "websiteDomainNotFound": "Website-Domain nicht gefunden. Bitte prüfe die Website-Adresse.",
+      "websiteDnsUnavailable": "Wir konnten die Website-Domain gerade nicht prüfen. Bitte versuche es erneut.",
       "mcpAuthorizationFailed": "Die Autorisierung beim MCP-Server ist fehlgeschlagen. Prüfe die URL und versuche es erneut.",
       "tooManyConnectionAttempts": "Zu viele Verbindungsversuche. Warte eine Minute und versuch es nochmal.",
       "selectOneRepository": "Bitte wähle genau ein Repository aus",
@@ -1220,16 +1229,9 @@
   },
   "shared": {
     "table": {
-      "insertBefore": "Davor einfügen",
-      "insertAfter": "Danach einfügen",
-      "columnOptions": "Optionen für Spalte {column}",
-      "rowOptions": "Optionen für Zeile {row}",
       "selectAllRows": "Alle Zeilen auswählen",
       "selectRow": "Zeile {row} auswählen",
-      "reorderColumn": "Spalte {column} verschieben",
-      "renameColumn": "Spalte {column} umbenennen",
-      "resizeColumn": "Breite der Spalte {column} ändern",
-      "cellLabel": "{column} in Zeile {row}"
+      "resizeColumn": "Breite der Spalte {column} ändern"
     },
     "checkbox": {
       "partiallySelected": "Teilweise ausgewählt"
@@ -1547,7 +1549,8 @@
         "searchLabel": "Sitemap-URLs durchsuchen",
         "searchPlaceholder": "URLs durchsuchen…",
         "noSearchResults": "Keine URLs passen zu deiner Suche.",
-        "emptyView": "In dieser Ansicht gibt es noch keine URLs."
+        "emptyView": "In dieser Ansicht gibt es noch keine URLs.",
+        "itemLabel": "Seiten"
       }
     },
     "references": {
@@ -2590,9 +2593,7 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "KI-Engine ({count, number})",
-        "visible": "Sichtbar",
-        "lastChecked": "Zuletzt geprüft"
+        "engineCount": "KI-Engine ({count, number})"
       },
       "hints": {
         "visible": "Antworten, in denen du überhaupt aufgetaucht bist: Deine Marke wurde genannt, eine deiner Seiten wurde als Quelle zitiert oder beides. Zitate sind in dieser Zahl enthalten.",
@@ -2601,6 +2602,7 @@
         "avgPosition": "Durchschnittlicher Rang deiner Marke in den Antworten, die sie genannt haben. Antworten, die dich nur zitiert haben, haben keinen Rang und werden nicht berücksichtigt."
       },
       "visibilityLabel": "Sichtbarkeit in {engine}",
+      "visibleCount": "{count, number} sichtbar",
       "readoutScanning": "Scan läuft",
       "filterLabel": "KI-Engines filtern",
       "filterPlaceholder": "Nach KI-Engine filtern…",
@@ -2729,7 +2731,11 @@
       "duplicates": "Duplikate übersprungen",
       "problems": "Zeilen mit Problemen",
       "downloadTemplate": "Vorlage herunterladen",
-      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}"
+      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}",
+      "newRows": "Neu",
+      "updatedRows": "Schon getrackt, wird aktualisiert",
+      "overLimit": "Über dem Limit von {limit}, nicht importiert",
+      "overLimitHint": "Dein Projekt trackt {current} von {limit} Wettbewerbern. Entferne zuerst welche, um den Rest zu importieren."
     },
     "geoEnginePicker": {
       "approvedWithoutZdr": "Ohne ZDR freigegeben",
@@ -3241,7 +3247,6 @@
       "runningWithTotal": "Scan läuft, {checks} von {total} Antworten gespeichert.",
       "running": "Scan läuft, {checks} Antworten gespeichert.",
       "failed": "Der letzte Scan wurde {when} vorzeitig beendet.",
-      "finished": "Antworten aus dem letzten Scan, {when}.",
       "progressLabel": "Gespeicherte Scan-Antworten",
       "empty": {
         "title": "Noch keine Antworten",
@@ -3369,6 +3374,7 @@
         "retry": "Erneut versuchen"
       },
       "noRatedAnswers": "Keine bewerteten Antworten",
+      "ratedAnswers": "{count, plural, one {# bewertete Antwort} other {# bewertete Antworten}}",
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
       "band": {
@@ -3545,7 +3551,10 @@
         "clearAll": "Alle abwählen",
         "empty": "Noch keine Wettbewerber getrackt. Füge sie in den GEO-Einstellungen hinzu, um Alternativen zu erwähnen.",
         "mentioned": "Statt dir empfohlen",
-        "withDomain": "{detail} · {domain}"
+        "withDomain": "{detail} · {domain}",
+        "selectedCount": "{count} von {max} ausgewählt",
+        "limitHint": "Ein Briefing grenzt sich gegen bis zu {max} Wettbewerber ab.",
+        "autoPick": "Nichts ausgewählt: Das Briefing nutzt die {max} Wettbewerber, die AI-Engines am häufigsten empfehlen."
       },
       "writeDialog": {
         "description": "Plane oder schreibe einen Artikel aus einem Prompt, Inhaltstyp, einer Markenidentität und Wettbewerbern.",
@@ -3958,6 +3967,12 @@
       "resolveCreatedProjectFailed": "Erstelltes Projekt konnte nicht gefunden werden",
       "connectingProperty": "{property} wird verbunden…",
       "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
+    },
+    "competitorChoices": {
+      "searchLabel": "Wettbewerber suchen",
+      "searchPlaceholder": "Wettbewerber suchen",
+      "moreHidden": "{count, plural, one {# weiterer Wettbewerber} other {# weitere Wettbewerber}}. Suche, um {count, plural, one {ihn} other {sie}} zu finden.",
+      "noMatches": "Keine Wettbewerber passen zu „{query}“."
     }
   },
   "integrations": {
@@ -5190,7 +5205,8 @@
     "creditActivity": {
       "aiChat": "KI-Chat",
       "title": "Letzte Aktivität",
-      "empty": "Noch keine Nutzungsereignisse"
+      "empty": "Noch keine Nutzungsereignisse",
+      "itemLabel": "Ereignisse"
     },
     "creditUsage": {
       "creditsUsed": "Verbrauchte Credits",
@@ -6093,15 +6109,15 @@
     "collections": {
       "status": "{status, select, generating {Wird erstellt} published {Veröffentlicht} draft {Entwurf} other {Leer}}",
       "source": "{source, select, manual {Manuell} chat {Chat} schedule {Zeitplan} automation {Automatisierung} api {API} backfill {Backfill} other {{source}}}",
-      "metaGeneratingProgress": "{source} · {ready} von {expected, plural, one {# Beitrag} other {# Beiträgen}} fertig",
+      "metaGeneratingProgress": "{source} · {ready, number} von {expected, plural, one {# Beitrag} other {# Beiträgen}} fertig",
       "metaGeneratingCount": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} fertig",
-      "metaPartiallyPublished": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} · {published} veröffentlicht",
+      "metaPartiallyPublished": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} · {published, number} veröffentlicht",
       "metaSingle": "{source} · Einzelner Beitrag",
       "metaEmpty": "{source} · Leere Sammlung",
       "metaCount": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}}",
-      "formats": "{count} Formate",
+      "formats": "{count, number} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
-      "items": "Einträge",
+      "items": "{count, plural, one {Eintrag} other {Einträge}}",
       "actions": {
         "open": "Öffnen",
         "openInNewTab": "In neuem Tab öffnen",
@@ -6309,6 +6325,29 @@
     "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
   },
   "ai": {
+    "subagent": {
+      "names": {
+        "codeResearcher": "Code-Recherche",
+        "contentWriter": "Content-Writer",
+        "imageDesigner": "Bild-Designer",
+        "fallback": "Subagent"
+      },
+      "activity": {
+        "codeResearcher": "{state, select, running {Liest das Repository} done {Repository gelesen} skipped {Übersprungen, kein Briefing} notFound {Feature im Code nicht gefunden} interrupted {Unterbrochen} other {Repository konnte nicht gelesen werden}}",
+        "contentWriter": "{state, select, running {Schreibt den Post} done {Post geschrieben} skipped {Post übersprungen} notFound {Nichts zum Schreiben gefunden} interrupted {Unterbrochen} other {Post konnte nicht geschrieben werden}}",
+        "imageDesigner": "{state, select, running {Gestaltet das Bild} done {Bild gestaltet} skipped {Bild übersprungen} notFound {Nichts zu gestalten} interrupted {Unterbrochen} other {Bild konnte nicht gestaltet werden}}",
+        "fallback": "{state, select, running {Arbeitet} done {Fertig} skipped {Übersprungen} notFound {Nichts gefunden} interrupted {Unterbrochen} other {Fehlgeschlagen}}"
+      },
+      "steps": "{count, plural, =0 {keine Schritte} one {# Schritt} other {# Schritte}}",
+      "result": {
+        "brief": "Briefing: {feature}",
+        "draft": "{title, select, none {Entwurf gespeichert} other {Entwurf gespeichert: {title}}}",
+        "image": "{title, select, none {Bild gespeichert} other {Bild gespeichert: {title}}}",
+        "notFound": "{reason, select, none {Feature im Code nicht gefunden} other {Nicht gefunden: {reason}}}",
+        "skipped": "{reason, select, none {Übersprungen} other {Übersprungen: {reason}}}",
+        "failed": "{reason, select, none {Fehlgeschlagen} other {Fehlgeschlagen: {reason}}}"
+      }
+    },
     "toolBlock": {
       "tools": {
         "code_mode": "{state, select, running {Führe Tools aus} done {Tools ausgeführt} approve {Genehmigen: Tools} other {Fehlgeschlagen: Tools}}",
@@ -6368,7 +6407,16 @@
         "memory": "{state, select, running {Nutze Gedächtnis} done {Gedächtnis genutzt} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
         "getBrandReferences": "{state, select, running {Lade Markenreferenzen} done {Markenreferenzen geladen} approve {Genehmigen: Markenreferenzen} other {Fehlgeschlagen: Markenreferenzen}}",
         "webSearch": "{state, select, running {Suche im Web} done {Im Web gesucht} approve {Genehmigen: Websuche} other {Fehlgeschlagen: Websuche}}",
-        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}"
+        "searchMemories": "{state, select, running {Durchsuche Gedächtnis} done {Gedächtnis durchsucht} approve {Genehmigen: Gedächtnis} other {Fehlgeschlagen: Gedächtnis}}",
+        "codeResearcher": "{state, select, running {Untersuche den Code} done {Code untersucht} approve {Genehmigen: Code-Recherche} other {Fehlgeschlagen: Code-Recherche}}",
+        "contentWriter": "{state, select, running {Schreibe den Post} done {Post geschrieben} approve {Genehmigen: Post} other {Fehlgeschlagen: Post}}",
+        "openRepository": "{state, select, running {Öffne Repository} done {Repository geöffnet} approve {Genehmigen: Repository} other {Repository konnte nicht geöffnet werden}}",
+        "listRepositoryFiles": "{state, select, running {Liste Dateien} done {Dateien gelistet} approve {Genehmigen: Dateien} other {Fehlgeschlagen: Dateien}}",
+        "searchRepository": "{state, select, running {Durchsuche Code} done {Code durchsucht} approve {Genehmigen: Code-Suche} other {Fehlgeschlagen: Code-Suche}}",
+        "readRepositoryFile": "{state, select, running {Lese Datei} done {Datei gelesen} approve {Genehmigen: Datei} other {Fehlgeschlagen: Datei}}",
+        "repositoryHistory": "{state, select, running {Lese Historie} done {Historie gelesen} approve {Genehmigen: Historie} other {Fehlgeschlagen: Historie}}",
+        "showRepositoryChange": "{state, select, running {Prüfe Änderung} done {Änderung geprüft} approve {Genehmigen: Änderung} other {Fehlgeschlagen: Änderung}}",
+        "createPost": "{state, select, running {Speichere Entwurf} done {Entwurf gespeichert} approve {Genehmigen: Entwurf} other {Fehlgeschlagen: Entwurf}}"
       },
       "withSuffix": "{label} {suffix}",
       "memory": {
@@ -6492,6 +6540,11 @@
     "goToNextPage": "Zur nächsten Seite",
     "morePages": "Weitere Seiten",
     "paginationRange": "{start}-{end} von {total}",
+    "paginationRangeOpen": "{start}-{end}",
+    "pageOf": "Seite {page} von {total}",
+    "pageNumber": "Seite {page}",
+    "showRows": "{count} anzeigen",
+    "rowsPerPage": "Zeilen pro Seite",
     "toggleSidebar": "Seitenleiste ein-/ausblenden",
     "sidebarTitle": "Seitenleiste",
     "sidebarDescription": "Zeigt die mobile Seitenleiste an.",

@@ -3,7 +3,7 @@
 import { ApiIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { useDemoPlayground } from "@/components/demo/demo-playground-context";
 

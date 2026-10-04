@@ -1,7 +1,7 @@
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import type { BlogPreviewActionsProps } from "@/types/content/ai-preview";
 
 export function BlogPreviewActions({

@@ -1,8 +1,8 @@
 "use client";
 
-import { useFormatter } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
 import { useMemo } from "react";
+import { useFormatter } from "use-intl";
 
 import {
   parseLocalDay,

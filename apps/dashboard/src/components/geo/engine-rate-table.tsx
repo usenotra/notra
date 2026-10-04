@@ -10,10 +10,15 @@ import {
 import type { GeoEngineFamily } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
@@ -24,7 +29,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { EngineRateTableProps } from "@/types/geo";
@@ -43,8 +47,17 @@ import { tableHeightFor } from "@/utils/table";
 
 const NOT_SCANNED_RATE = -1;
 
-function RateCell({ family }: { family: GeoEngineFamily }) {
+/** Rate bar, rate, how many answers that is, and the change in that count. */
+function VisibilityCell({
+  family,
+  timeseriesPoints,
+}: {
+  family: GeoEngineFamily;
+  timeseriesPoints: EngineRateTableProps["timeseriesPoints"];
+}) {
+  const t = useTranslations("geo.engineRateTable");
   const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const totals = engineFamilyTotals(family);
   if (!totals) {
     return (
@@ -53,13 +66,31 @@ function RateCell({ family }: { family: GeoEngineFamily }) {
       </span>
     );
   }
-
+  const trends = engineFamilyStatTrends(
+    timeseriesPoints ?? GEO_EMPTY_TIMESERIES,
+    family.family
+  );
   return (
-    <span className="flex items-center gap-2">
-      <GeoBar className="w-24 shrink-0" value={totals.rate} />
-      <span className="text-sm tabular-nums">
+    <span className="flex min-w-0 items-center gap-2">
+      <GeoBar className="w-16 shrink-0" value={totals.rate} />
+      <FadeSwap
+        className="text-sm tabular-nums"
+        swapKey={formatMentionRate(totals.rate)}
+        value={totals.rate}
+      >
         {formatMentionRate(totals.rate)}
+      </FadeSwap>
+      <span className="text-muted-foreground truncate text-xs tabular-nums">
+        {t("visibleCount", { count: totals.visible })}
       </span>
+      <GeoStatDelta
+        animated
+        delta={trends.visibilityDelta}
+        hint={tGeoShared("vsFirstHalfOfThis")}
+        label={t("visibilityLabel", {
+          engine: engineFamilyLabel(family.family),
+        })}
+      />
     </span>
   );
 }
@@ -121,52 +152,35 @@ export function EngineRateTable({
         width: "1fr",
         sortable: true,
         cell: (row) => (
-          <span className="flex min-w-0 items-center gap-2 font-medium">
+          <span className="flex min-w-0 items-center gap-2">
             <EngineIcon engine={row.family} />
-            <span className="truncate">{engineFamilyLabel(row.family)}</span>
+            <span className="truncate font-medium">
+              {engineFamilyLabel(row.family)}
+            </span>
+            <span className="text-muted-foreground shrink-0 text-[0.6875rem] whitespace-nowrap tabular-nums">
+              {lastCheckedOf(row, locale)}
+            </span>
           </span>
         ),
         sortValue: (row) => engineFamilyLabel(row.family),
       },
       {
-        key: "mentions",
-        header: t("columns.visible"),
-        hint: t("hints.visible"),
-        width: "10rem",
+        key: "rate",
+        header: tGeoShared("brandVisibility"),
+        hint: t("hints.rate"),
+        width: "1.6fr",
         sortable: true,
-        cell: (row) => {
-          const totals = engineFamilyTotals(row);
-          const trends = engineFamilyStatTrends(timeseriesPoints, row.family);
-          if (!totals) {
-            return (
-              <span className="text-muted-foreground text-xs">
-                {tGeoShared("notScanned")}
-              </span>
-            );
-          }
-          return (
-            <span className="flex items-center gap-2">
-              <span className="text-sm tabular-nums">
-                {totals.visible.toLocaleString(locale)}
-              </span>
-              <GeoStatDelta
-                delta={trends.visibilityDelta}
-                hint={tGeoShared("vsFirstHalfOfThis")}
-                label={t("visibilityLabel", {
-                  engine: engineFamilyLabel(row.family),
-                })}
-              />
-            </span>
-          );
-        },
-        sortValue: (row) => engineFamilyTotals(row)?.visible ?? -1,
+        cell: (row) => (
+          <VisibilityCell family={row} timeseriesPoints={timeseriesPoints} />
+        ),
+        sortValue: (row) => engineFamilyTotals(row)?.rate ?? NOT_SCANNED_RATE,
       },
       {
         key: "citations",
         collapsePriority: 3,
         header: tGeoShared("citations"),
         hint: t("hints.citations"),
-        width: "8rem",
+        width: "7rem",
         sortable: true,
         cell: (row) => {
           if (!engineFamilyTotals(row)) {
@@ -177,46 +191,30 @@ export function EngineRateTable({
             );
           }
           return (
-            <span className="text-sm tabular-nums">
+            <FadeSwap
+              className="text-sm tabular-nums"
+              swapKey={String(engineFamilyCitationTotal(row))}
+              value={engineFamilyCitationTotal(row)}
+            >
               {engineFamilyCitationTotal(row).toLocaleString(locale)}
-            </span>
+            </FadeSwap>
           );
         },
         sortValue: (row) =>
           engineFamilyTotals(row) ? engineFamilyCitationTotal(row) : -1,
       },
       {
-        key: "rate",
-        header: tGeoShared("brandVisibility"),
-        hint: t("hints.rate"),
-        width: "1.4fr",
-        sortable: true,
-        cell: (row) => <RateCell family={row} />,
-        sortValue: (row) => engineFamilyTotals(row)?.rate ?? NOT_SCANNED_RATE,
-      },
-      {
         key: "avgPosition",
         collapsePriority: 2,
         header: tGeoShared("avgPosition"),
         hint: t("hints.avgPosition"),
-        width: "8.5rem",
+        width: "7.5rem",
         sortable: true,
         cell: (row) => (
           <span className="text-sm tabular-nums">{avgPositionOf(row)}</span>
         ),
         sortValue: (row) =>
           engineFamilyAvgPosition(row) ?? Number.MAX_SAFE_INTEGER,
-      },
-      {
-        key: "lastChecked",
-        collapsePriority: 4,
-        header: t("columns.lastChecked"),
-        width: "9.375rem",
-        cell: (row) => (
-          <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-            {lastCheckedOf(row, locale)}
-          </span>
-        ),
       },
       {
         key: "trend",
@@ -284,11 +282,10 @@ export function EngineRateTable({
         />
       ) : (
         <div className="flex flex-col gap-2">
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={columns}
             data={filtered}
-            defaultSort={{ key: "mentions", direction: "desc" }}
+            defaultSort={{ key: "rate", direction: "desc" }}
             emptyState={t("noMatches")}
             getRowId={(row) => row.family}
             height={tableHeightFor(filtered.length)}

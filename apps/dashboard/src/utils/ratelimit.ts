@@ -1,7 +1,6 @@
+import { getRequestHeaders as headers } from "@tanstack/react-start/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { headers } from "next/headers";
-import type { NextRequest } from "next/server";
 
 import { COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE } from "@/constants/company-logo";
 import {
@@ -61,6 +60,11 @@ export const ratelimit = {
     redis,
     prefix: "ratelimit:onboarding-brand-analysis",
     limiter: Ratelimit.slidingWindow(2, "10m"),
+  }),
+  onboardingWebsiteCheck: new Ratelimit({
+    redis,
+    prefix: "ratelimit:onboarding-website-check",
+    limiter: Ratelimit.slidingWindow(30, "1m"),
   }),
   companyLogo: new Ratelimit({
     redis,
@@ -203,7 +207,7 @@ export function getClientIpFromHeaders(headersList: Headers): string {
   );
 }
 
-export function getClientIp(request: NextRequest): string {
+export function getClientIp(request: Request): string {
   if (process.env.VERCEL !== "1") {
     return "unknown";
   }

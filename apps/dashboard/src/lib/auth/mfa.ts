@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
 import type { AuthFlowResult } from "@notra/schemas/types/dashboard/auth";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 

@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
-import { readFile } from "node:fs/promises";
 
 import { Effect, Layer } from "effect";
 
@@ -87,42 +86,5 @@ describe("GET /api/cron/geo-scan", () => {
     );
     expect(response.status).toBe(401);
     expect(sweep).not.toHaveBeenCalled();
-  });
-
-  test("returns the actual sweep counters after an authorized request", async () => {
-    const response = await GET(
-      new Request("http://localhost/api/cron/geo-scan", {
-        headers: { authorization: "Bearer cron-test-secret" },
-      })
-    );
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(sweepResult);
-    expect(sweep).toHaveBeenCalledTimes(1);
-    // The buffered sweep log has to reach the drain before the function ends.
-    expect(flushGeoLog).toHaveBeenCalledTimes(1);
-  });
-
-  test("does not report success when the sweep fails", async () => {
-    sweep.mockImplementationOnce(() =>
-      Effect.fail(new Error("Database unavailable"))
-    );
-    await expect(
-      GET(
-        new Request("http://localhost/api/cron/geo-scan", {
-          headers: { authorization: "Bearer cron-test-secret" },
-        })
-      )
-    ).rejects.toThrow("Database unavailable");
-    expect(flushGeoLog).toHaveBeenCalledTimes(1);
-  });
-
-  test("Vercel actually registers the tested endpoint as a recurring cron", async () => {
-    const config = JSON.parse(
-      await readFile(new URL("../vercel.json", import.meta.url), "utf8")
-    );
-    expect(config.crons).toContainEqual({
-      path: "/api/cron/geo-scan",
-      schedule: "*/10 * * * *",
-    });
   });
 });

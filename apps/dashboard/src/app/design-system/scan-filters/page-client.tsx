@@ -3,14 +3,16 @@
 import { MinusSignIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_SCAN_RESULTS_PAGE_SIZE } from "@notra/geo-core/constants/geo-scan-history";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { Badge } from "@notra/ui/components/ui/badge";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useState } from "react";
 
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { ScanRunFilters } from "@/components/geo/scan-run-detail";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   DESIGN_SYSTEM_SCAN_ANSWERS,
   DESIGN_SYSTEM_SCAN_MISSING,
@@ -112,13 +114,9 @@ export default function ScanFiltersDesignSystemClientPage() {
     (row) => !engine || row.engine === engine
   );
   const rows = view === "answers" ? answers : missing;
-  const pageCount = Math.max(
-    1,
-    Math.ceil(rows.length / GEO_SCAN_RESULTS_PAGE_SIZE)
-  );
-  const pageRows = rows.slice(
-    (page - 1) * GEO_SCAN_RESULTS_PAGE_SIZE,
-    page * GEO_SCAN_RESULTS_PAGE_SIZE
+  const pageRowCount = Math.min(
+    GEO_SCAN_RESULTS_PAGE_SIZE,
+    rows.length - (page - 1) * GEO_SCAN_RESULTS_PAGE_SIZE
   );
 
   return (
@@ -133,24 +131,18 @@ export default function ScanFiltersDesignSystemClientPage() {
             Answers from the last scan · sample data
           </p>
         </div>
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={view === "answers" ? answerColumns : missingColumns}
-          data={pageRows}
+          data={rows}
           emptyState="No results for this model."
-          footer={
-            <TablePagination
-              itemLabel={view === "answers" ? "answers" : "missing"}
-              page={page}
-              pageCount={pageCount}
-              pageRowCount={pageRows.length}
-              pageSize={GEO_SCAN_RESULTS_PAGE_SIZE}
-              setPage={setPage}
-              totalItems={rows.length}
-            />
-          }
+          pagination={{
+            page,
+            pageSize: GEO_SCAN_RESULTS_PAGE_SIZE,
+            onPageChange: setPage,
+            itemLabel: view === "answers" ? "answers" : "missing",
+          }}
           getRowId={(row) => row.id}
-          height={paginatedTableHeightFor(pageRows.length)}
+          height={paginatedTableHeightFor(pageRowCount)}
           rowHeight={TABLE_ROW_HEIGHT}
           toolbar={
             <ScanRunFilters

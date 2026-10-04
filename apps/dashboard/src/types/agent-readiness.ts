@@ -31,10 +31,6 @@ export interface AgentReadinessScanDialogProps {
   isPending: boolean;
 }
 
-export interface AgentReadinessPageProps {
-  params: Promise<{ slug: string }>;
-}
-
 export interface AgentReadinessBodyProps {
   data: AgentReadinessResponse;
   isScanPending: boolean;

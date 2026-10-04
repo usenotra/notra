@@ -13,7 +13,6 @@ import { mcpOAuthCallbackQuerySchema } from "@notra/schemas/dashboard/integratio
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { createMcpOAuthPopupCompletionResponse } from "@notra/utils/oauth-popup";
 import { Effect } from "effect";
-import type { NextRequest } from "next/server";
 
 import {
   INTEGRATION_AUTH_KINDS,
@@ -25,7 +24,7 @@ import {
   trackIntegrationConnectFailed,
 } from "@/lib/integrations/connect-events";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const baseUrl =
     process.env.APP_URL ??
     process.env.NEXT_PUBLIC_SITE_URL ??

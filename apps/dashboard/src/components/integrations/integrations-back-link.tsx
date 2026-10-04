@@ -3,18 +3,18 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useParams, useSelectedLayoutSegment } from "next/navigation";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
+import { useParams, usePathname } from "@/lib/navigation";
 
 export function IntegrationsBackLink() {
   const t = useTranslations("integrations");
-  const segment = useSelectedLayoutSegment();
+  const pathname = usePathname();
   const { slug } = useParams<{ slug: string }>();
 
-  if (!segment) {
+  if (pathname === `/${slug}/integrations`) {
     return null;
   }
 

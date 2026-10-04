@@ -101,7 +101,9 @@ function HeadlineLineTwo({
       value={word.text}
     />
   ) : (
-    <span className="ml-[0.16em]">{word.text}</span>
+    <span className="ml-[0.16em] [font-kerning:none] [font-variant-ligatures:none]">
+      {word.text}
+    </span>
   );
   const line = (
     <>

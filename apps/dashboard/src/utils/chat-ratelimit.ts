@@ -4,7 +4,6 @@ import {
 } from "@notra/ai/constants/rate-limits";
 import { type Algorithm, Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { NextResponse } from "next/server";
 
 const ORGANIZATION_PREFIX = "ratelimit:chat-generation";
 const USER_PREFIX = "ratelimit:dashboard-chat-generation-user";
@@ -138,7 +137,7 @@ function rateLimitedResponse(result: {
     Math.ceil((result.reset - Date.now()) / 1000)
   );
 
-  return NextResponse.json(
+  return Response.json(
     {
       error: "Rate limit exceeded",
       limit: result.limit,
@@ -163,7 +162,7 @@ function rateLimitedResponse(result: {
 export async function enforceChatGenerationRatelimit(
   organizationId: string,
   userId: string
-): Promise<NextResponse | null> {
+): Promise<Response | null> {
   const result = await chatGenerationRatelimit.limit(
     JSON.stringify([organizationId, userId])
   );

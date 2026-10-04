@@ -130,6 +130,7 @@ import {
 import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
+import { memoizeGeoRequest } from "../utils/request-memo";
 import { competitorKey } from "./domain";
 import { geoDb, geoQuery, geoSkip } from "./effect";
 import {
@@ -208,15 +209,26 @@ function mergeLegacyCompetitors(
   return merged;
 }
 
+/**
+ * One settings read per request: a GEO batch (overview, prompts, competitors,
+ * traffic) otherwise reads the same row once per procedure. Outside a request
+ * memo (workflows, mutations) it reads straight through.
+ */
+function findGeoSettingsRow(projectId: string) {
+  return memoizeGeoRequest(`settings:${projectId}`, () =>
+    db.query.geoSettings.findFirst({
+      where: eq(geoSettings.projectId, projectId),
+    })
+  );
+}
+
 export const loadGeoSettings = Effect.fn("geo.settings")(function* (
   input: GeoScopeInput
 ) {
   const scope = yield* resolveGeoScope(input);
   const row = scope.projectId
     ? yield* geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, scope.projectId ?? ""),
-        })
+        findGeoSettingsRow(scope.projectId ?? "")
       )
     : null;
 
@@ -388,12 +400,7 @@ const loadCompetitorsByProject = Effect.fn("geo.competitorsByProject")(
             orderBy: [asc(geoCompetitors.createdAt)],
           })
         ),
-        geoDb("settings lookup failed", () =>
-          db.query.geoSettings.findFirst({
-            columns: { competitors: true },
-            where: eq(geoSettings.projectId, projectId),
-          })
-        ),
+        geoDb("settings lookup failed", () => findGeoSettingsRow(projectId)),
       ],
       { concurrency: "unbounded" }
     );
@@ -425,34 +432,38 @@ export const upsertGeoCompetitor = Effect.fn("geo.competitorUpsert")(function* (
   input: GeoCompetitorUpsertInput
 ) {
   const key = competitorKey(input.previousName ?? input.name);
-  const competitors = yield* reconcileGeoCompetitors(scopeInput, (current) => {
-    const entries: GeoCompetitorSeed[] = current.map((competitor) =>
-      competitorKey(competitor.name) === key
-        ? {
-            name: input.name.trim(),
-            domain: input.domain,
-            synonyms: input.synonyms ?? competitor.synonyms,
-            kind: input.kind ?? competitor.kind,
-            color: input.color ?? competitor.color,
-          }
-        : competitor
-    );
+  const competitors = yield* reconcileGeoCompetitors(
+    scopeInput,
+    (current) => {
+      const entries: GeoCompetitorSeed[] = current.map((competitor) =>
+        competitorKey(competitor.name) === key
+          ? {
+              name: input.name.trim(),
+              domain: input.domain,
+              synonyms: input.synonyms ?? competitor.synonyms,
+              kind: input.kind ?? competitor.kind,
+              color: input.color ?? competitor.color,
+            }
+          : competitor
+      );
 
-    if (
-      !entries.some(
-        (entry) => competitorKey(entry.name) === competitorKey(input.name)
-      )
-    ) {
-      entries.push({
-        name: input.name.trim(),
-        domain: input.domain,
-        synonyms: input.synonyms ?? [],
-        kind: input.kind ?? "direct",
-        color: input.color ?? null,
-      });
-    }
-    return entries;
-  });
+      if (
+        !entries.some(
+          (entry) => competitorKey(entry.name) === competitorKey(input.name)
+        )
+      ) {
+        entries.push({
+          name: input.name.trim(),
+          domain: input.domain,
+          synonyms: input.synonyms ?? [],
+          kind: input.kind ?? "direct",
+          color: input.color ?? null,
+        });
+      }
+      return entries;
+    },
+    GEO_MAX_COMPETITORS
+  );
   const response: GeoCompetitorsResponse = { competitors };
   return response;
 });
@@ -1154,10 +1165,7 @@ export const loadAiTraffic = Effect.fn("geo.aiTraffic")(function* (
   const windowParams = geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS);
   const settingsRow = scope.projectId
     ? yield* geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          columns: { conversionPaths: true },
-          where: eq(geoSettings.projectId, scope.projectId ?? ""),
-        })
+        findGeoSettingsRow(scope.projectId ?? "")
       )
     : null;
   const conversionPaths = settingsRow?.conversionPaths ?? [];
@@ -1463,11 +1471,7 @@ export const listGeoPrompts = Effect.fn("geo.promptsList")(function* (
           orderBy: [desc(geoPrompts.createdAt)],
         })
       ),
-      geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, projectId),
-        })
-      ),
+      geoDb("settings lookup failed", () => findGeoSettingsRow(projectId)),
       loadGeoProjectBrand({ organizationId: scope.organizationId, projectId }),
     ],
     { concurrency: "unbounded" }

@@ -5,8 +5,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
+import { useLocale } from "use-intl";
 
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { CommentTimestampProps } from "@/types/comments";

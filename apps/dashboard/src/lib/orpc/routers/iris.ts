@@ -19,7 +19,6 @@ import {
 } from "@notra/schemas/dashboard/iris";
 import { and, count, desc, eq, gte, isNotNull, lt } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import {
   IRIS_DEFAULT_POLICY,
@@ -30,6 +29,7 @@ import {
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getTranslations } from "@/lib/i18n/server";
 import { assertIrisEnabled } from "@/lib/iris/access";
 import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
 import { hasOpenRun } from "@/lib/iris/history";

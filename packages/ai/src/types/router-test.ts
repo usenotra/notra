@@ -1,8 +1,6 @@
 import type { LanguageModelV4CallOptions } from "@ai-sdk/provider";
 import type {
-  DecideGatewayInput,
   GatewayAdapter,
-  GatewayDecision,
   GatewayId,
   ModelRouterConfig,
   Plan,
@@ -47,10 +45,4 @@ export interface TestRouterOptions {
   now?: () => number;
   planCacheTtlMs?: number;
   creditCheckTtlMs?: number;
-}
-
-export interface PolicyTestCase {
-  name: string;
-  input: Omit<DecideGatewayInput, "policy">;
-  expected: GatewayDecision;
 }

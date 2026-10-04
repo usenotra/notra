@@ -4,7 +4,7 @@ export const APP_URL = "https://app.usenotra.com";
 
 export const API_URL = "https://api.usenotra.com";
 
-export const DOCS_URL = "https://docs.usenotra.com";
+export const DOCS_URL = `${SITE_URL}/docs`;
 
 export const MCP_URL = "https://mcp.usenotra.com/mcp";
 

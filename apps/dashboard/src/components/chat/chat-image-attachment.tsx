@@ -1,10 +1,10 @@
 "use client";
 
 import type { ChatImageAttachmentProps } from "@notra/ai/types/chat";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { cn } from "@/lib/utils";
 
 export function ChatImageAttachment({

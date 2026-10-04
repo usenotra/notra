@@ -1,9 +1,9 @@
 "use client";
 
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { BlogPreviewActions } from "@/components/ai/blog-preview-actions";
 import { useContent } from "@/lib/hooks/use-content";

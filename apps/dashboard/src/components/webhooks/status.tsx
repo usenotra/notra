@@ -1,5 +1,5 @@
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { WEBHOOK_STATUS_VARIANTS } from "@/constants/outbound-webhooks";
 import type { OutboundDelivery } from "@/types/webhooks/outbound";

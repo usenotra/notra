@@ -1,4 +1,4 @@
-import { after } from "next/server";
+import { afterResponse } from "@/lib/framework/after-response";
 
 /**
  * Runs best-effort work after the response is sent, so it never fails or
@@ -18,7 +18,7 @@ export function runAfterResponse(
   };
 
   try {
-    after(run);
+    afterResponse(run);
   } catch {
     void run();
   }

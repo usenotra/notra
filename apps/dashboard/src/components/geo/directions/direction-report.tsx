@@ -1,8 +1,8 @@
 "use client";
 
 import { formatGeoJourneyChip } from "@notra/geo-core/utils/ai-traffic";
-import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { DirectionDonut } from "@/components/geo/directions/direction-donut";
 import { DirectionEngineBars } from "@/components/geo/directions/direction-engine-bars";

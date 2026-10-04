@@ -21,6 +21,7 @@ import type {
   GeoCheckSource,
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
+import { bumpGeoCheckGeneration } from "@notra/db/utils/geo-check-cache";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { and, asc, desc, eq } from "drizzle-orm";
@@ -530,6 +531,10 @@ export const clearGeoSampleData = Effect.fn("geo.sampleDataClear")(function* (
           )
         )
     );
+  }
+
+  if (sampleProject) {
+    yield* Effect.promise(() => bumpGeoCheckGeneration([input.organizationId]));
   }
 
   const response: GeoSampleDataClearResponse = {

@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { randomUUID } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";

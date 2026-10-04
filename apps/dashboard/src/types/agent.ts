@@ -17,6 +17,7 @@ export interface AgentSessionScope {
   brandAgentType?: string;
   sourceMetadata?: object;
   generationConfig?: object;
+  codeResearch?: boolean;
 }
 
 export interface StartAgentSessionInput {

@@ -1,33 +1,35 @@
-import { getTranslations } from "next-intl/server";
+import { useServerFn } from "@tanstack/react-start";
+import { useContext } from "react";
+import { useTranslations } from "use-intl";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
-import {
-  getLastActiveOrganization,
-  validateOrganizationAccess,
-} from "@/lib/auth/actions";
+import { OnboardingSplitLayoutContext } from "@/components/onboarding/split-layout-context";
 import { skipOnboarding } from "@/lib/onboarding/skip";
 import type { OnboardingStepLayoutProps } from "@/types/onboarding";
 
-export async function OnboardingSplitLayout({
+export function OnboardingSplitLayout({
   children,
   step,
 }: OnboardingStepLayoutProps) {
-  const tOnboardingShared = await getTranslations("onboarding.shared");
-  const organization = await getLastActiveOrganization();
-  const member = organization
-    ? (await validateOrganizationAccess(organization.slug)).member
-    : null;
-  const canSkip = member?.role === "owner" || member?.role === "admin";
+  const tOnboardingShared = useTranslations("onboarding.shared");
+  const context = useContext(OnboardingSplitLayoutContext);
+  const skip = useServerFn(skipOnboarding);
+  if (!context) {
+    throw new Error("Onboarding layout requires its server-loaded context");
+  }
+  const { organizationSlug, canSkip } = context;
 
   return (
     <div className="flex h-screen w-full justify-center lg:grid lg:grid-cols-2">
       <section className="flex h-full min-h-0 w-full flex-col items-center justify-between overflow-y-auto px-6 py-5 lg:px-10 lg:py-6">
         <AuthWordmark />
         <div className="w-full max-w-md min-w-0 py-6">{children}</div>
-        {organization && canSkip ? (
+        {organizationSlug && canSkip ? (
           <form
-            action={skipOnboarding.bind(null, organization.slug, step)}
+            action={async () => {
+              await skip(organizationSlug, step);
+            }}
             className="flex justify-center py-2"
           >
             <button

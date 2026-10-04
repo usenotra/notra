@@ -1,6 +1,5 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { headers } from "next/headers";
-import type { NextRequest } from "next/server";
+import { getRequestHeaders as headers } from "@tanstack/react-start/server";
 
 import { DEMO_START_PATH } from "@/constants/demo";
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
@@ -12,8 +11,6 @@ import { getCurrentDemoSandbox, writeDemoSession } from "@/lib/demo/session";
 import { getDemoClientIp, hashDemoClientIp } from "@/utils/demo-ip-hash";
 import { resolveDemoLanding, safeDemoReturnTo } from "@/utils/demo-return-to";
 import { ratelimit } from "@/utils/ratelimit";
-
-export const maxDuration = 60;
 
 /**
  * Relative redirect: behind a proxy (e.g. Railway) request.url carries the
@@ -28,11 +25,13 @@ function redirectTo(location: string) {
  * redirects straight into it, so the demo opens without a loading screen.
  * Only an empty pool falls back to the start page, which seeds one.
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   if (!isDemoMode()) {
     return new Response(null, { status: 404 });
   }
-  const target = safeDemoReturnTo(request.nextUrl.searchParams.get("returnTo"));
+  const target = safeDemoReturnTo(
+    new URL(request.url).searchParams.get("returnTo")
+  );
   if (await getCurrentDemoSandbox()) {
     return redirectTo(target ?? "/");
   }

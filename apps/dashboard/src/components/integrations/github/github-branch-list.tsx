@@ -13,7 +13,7 @@ import {
   CommandItem,
   CommandList,
 } from "@notra/ui/components/ui/command";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubBranchListProps } from "@/types/integrations/github";

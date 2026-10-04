@@ -19,6 +19,16 @@ const projects = [
     directory: "apps/ui",
     productionAlias: "notra-ui-notra.vercel.app",
   },
+  {
+    name: "notra-agent",
+    directory: "apps/agent",
+    productionAlias: "notra-agent-notra.vercel.app",
+  },
+  {
+    name: "notra-onboarding-agent",
+    directory: "apps/onboarding-agent",
+    productionAlias: "notra-onboarding-agent-notra.vercel.app",
+  },
 ];
 // Railway services follow the Vercel release instead of auto-deploying every
 // push to main, so the demo and the ingest never run ahead of production.
@@ -224,6 +234,122 @@ export async function release({
   }
   await report(`Release commit: \`${sha}\``);
 
+  const unkey = async (path, body) => {
+    const response = await fetchImpl(`https://api.unkey.com/${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.UNKEY_DEPLOY_ROOT_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) {
+      throw new Error(`unkey ${path}: HTTP ${response.status}`);
+    }
+    const result = await response.json();
+    if (result.error || result.data === undefined) {
+      throw new Error(`unkey ${path}: invalid response`);
+    }
+    return result.data;
+  };
+  const unkeyActiveStates = [
+    "pending",
+    "starting",
+    "building",
+    "deploying",
+    "network",
+    "finalizing",
+    "awaiting_approval",
+  ];
+  const planApiRelease = async () => {
+    const domains = await unkey("v2/domains.listDomains", {
+      search: "api.usenotra.com",
+      limit: 100,
+    });
+    const matches = domains.filter(
+      (domain) => domain.domain === "api.usenotra.com"
+    );
+    if (matches.length !== 1 || matches[0].status !== "verified") {
+      throw new Error(
+        "unkey: cannot identify verified api.usenotra.com domain"
+      );
+    }
+    const domain = matches[0];
+    const target = {
+      project: domain.projectId,
+      app: domain.appId,
+      environment: domain.environmentId,
+    };
+    const app = await unkey("v2/apps.getApp", {
+      project: target.project,
+      app: target.app,
+    });
+    const environment = await unkey("v2/environments.getEnvironment", target);
+    if (
+      app.id !== target.app ||
+      app.git?.repository !== env.GITHUB_REPOSITORY ||
+      app.git?.defaultBranch !== "main" ||
+      app.isRolledBack ||
+      environment.id !== target.environment ||
+      environment.kind !== "production"
+    ) {
+      throw new Error(
+        "unkey: API must track this repository's main in production without rollback"
+      );
+    }
+    if (environment.build?.autoDeploy !== false) {
+      if (env.DRY_RUN !== "true") {
+        throw new Error(
+          "unkey: disable production auto deploy before scheduled releases"
+        );
+      }
+      await report(
+        "unkey: disable production auto deploy before enabling real releases"
+      );
+    }
+    const active = await unkey("v2/deployments.listDeployments", {
+      ...target,
+      status: unkeyActiveStates,
+      limit: 1,
+    });
+    if (active.length > 0) {
+      throw new Error("unkey: API already has an active production deployment");
+    }
+    if (!app.currentDeploymentId) {
+      throw new Error("unkey: API has no current production deployment");
+    }
+    const live = await unkey("v2/deployments.getDeployment", {
+      deploymentId: app.currentDeploymentId,
+    });
+    if (
+      live.id !== app.currentDeploymentId ||
+      live.status !== "ready" ||
+      live.isCurrent !== true ||
+      live.app !== app.slug ||
+      live.environment !== environment.slug ||
+      !live.git?.commitSha
+    ) {
+      throw new Error("unkey: cannot identify API's live production commit");
+    }
+    await assertAheadOf("unkey API", live.git.commitSha);
+    return {
+      target,
+      live,
+      changed:
+        live.git.commitSha !== sha &&
+        buildChanged("apps/api", live.git.commitSha, sha),
+    };
+  };
+  let apiPlan;
+  if (env.UNKEY_DEPLOY_ROOT_KEY) {
+    apiPlan = await planApiRelease();
+  } else {
+    await report(
+      "unkey: API release disabled; configure UNKEY_DEPLOY_ROOT_KEY to enable"
+    );
+  }
+
   const plans = [];
   for (const project of projects) {
     const active = await request(
@@ -363,6 +489,76 @@ export async function release({
     // Keep Railway on the previous commit while production did not move.
     await report("Railway: skipped, a Vercel production deployment failed");
     throw new Error(failures.join("\n"));
+  }
+
+  if (apiPlan) {
+    if (env.DRY_RUN !== "true") {
+      const refreshed = await planApiRelease();
+      if (
+        Object.keys(apiPlan.target).some(
+          (key) => apiPlan.target[key] !== refreshed.target[key]
+        )
+      ) {
+        throw new Error(
+          "unkey: production domain target changed during Vercel releases"
+        );
+      }
+      apiPlan = refreshed;
+    }
+    if (!apiPlan.changed) {
+      await report("unkey: skipped, no API build changes since production");
+    } else if (env.DRY_RUN === "true") {
+      await report(`unkey: would deploy API at ${sha}`);
+    } else {
+      const deployment = await unkey("v3/deployments.createDeployment", {
+        ...apiPlan.target,
+        git: { branch: "main", commitSha: sha },
+      });
+      if (!deployment.deploymentId) {
+        throw new Error("unkey: deployment creation returned no ID");
+      }
+      await report(`unkey: started API deployment ${deployment.deploymentId}`);
+      const deadline = Date.now() + 20 * 60_000;
+      let completed = false;
+      for (
+        let attempt = 0;
+        attempt < 120 && Date.now() < deadline;
+        attempt += 1
+      ) {
+        const status = await unkey("v2/deployments.getDeployment", {
+          deploymentId: deployment.deploymentId,
+        });
+        if (
+          status.id !== deployment.deploymentId ||
+          status.app !== apiPlan.live.app ||
+          status.project !== apiPlan.live.project ||
+          status.environment !== apiPlan.live.environment
+        ) {
+          throw new Error("unkey: API deployment target changed");
+        }
+        if (status.status === "ready") {
+          if (status.git?.commitSha !== sha) {
+            throw new Error("unkey: API built a different commit");
+          }
+          if (status.isCurrent === true) {
+            await report(`unkey: API ready and current at ${sha}`);
+            completed = true;
+            break;
+          }
+        } else if (!unkeyActiveStates.includes(status.status)) {
+          throw new Error(`unkey: API deployment ended ${status.status}`);
+        }
+        const remaining = deadline - Date.now();
+        if (remaining > 0) {
+          await sleep(Math.min(10_000, remaining));
+        }
+      }
+      if (!completed) {
+        throw new Error(
+          "unkey: API deployment did not become current in 20 minutes"
+        );
+      }
+    }
   }
 
   const started = [];

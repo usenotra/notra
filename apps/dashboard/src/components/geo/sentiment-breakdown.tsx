@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
@@ -82,7 +82,7 @@ export function SentimentBreakdown({
               )}
             </div>
           </div>
-          <ul className="flex items-center gap-4 text-xs">
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             {SENTIMENT_POLARITIES.map((polarity) => (
               <li className="flex items-center gap-1.5" key={polarity}>
                 <span
@@ -102,7 +102,7 @@ export function SentimentBreakdown({
         <EChartsBarChart
           animation={false}
           barCategoryGap={4}
-          className="min-h-52 w-full flex-1 cursor-crosshair"
+          className="h-56 w-full cursor-crosshair"
           config={{
             positive: {
               label: tCommon("positive"),

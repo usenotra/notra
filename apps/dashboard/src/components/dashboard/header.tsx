@@ -20,11 +20,9 @@ import { Separator } from "@notra/ui/components/ui/separator";
 import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { cn } from "@notra/ui/lib/utils";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { useCommandPalette } from "@/components/command-palette/command-palette-context";
 import { BrandTopbarIdentitySelector } from "@/components/dashboard/brand-topbar-identity-selector";
@@ -35,9 +33,11 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { FeedbackForm } from "@/components/dashboard/feedback-popover";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
+import Link from "@/components/framework/link";
 import { useBreadcrumbLabels } from "@/lib/hooks/use-breadcrumb-labels";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname } from "@/lib/navigation";
 import type { BreadcrumbLabels } from "@/types/dashboard/breadcrumbs";
 import {
   fallbackSegmentLabel,

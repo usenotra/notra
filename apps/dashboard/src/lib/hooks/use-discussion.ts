@@ -4,9 +4,9 @@ import type { RealtimeSchema } from "@notra/ai/realtime";
 import { ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@upstash/realtime/client";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { COMMENT_REACTIONS } from "@/constants/comments";
 import { dashboardOrpc } from "@/lib/orpc/query";

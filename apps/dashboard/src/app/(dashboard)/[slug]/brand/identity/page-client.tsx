@@ -1,10 +1,10 @@
 "use client";
 
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useTranslations } from "next-intl";
 import { useQueryState } from "nuqs";
 import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useBrandIdentityAnalysis } from "@/lib/hooks/use-brand-identity-analysis";

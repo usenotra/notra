@@ -1,7 +1,8 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import dynamic from "next/dynamic";
+
+import dynamic from "@/utils/lazy-component";
 
 import type { ContentEditorProps } from "./types";
 

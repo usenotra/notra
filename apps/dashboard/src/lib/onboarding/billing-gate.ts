@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-
+import { redirect } from "@/lib/navigation";
 import { findFirstPaidOrganization } from "@/lib/onboarding/first-paid-organization";
 
 export async function redirectIfAnyOrganizationHasPaidHistory() {

@@ -4,26 +4,22 @@ import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_USAGE_ALERTS } from "@notra/schemas/constants/usage-alerts";
 import { Badge } from "@notra/ui/components/ui/badge";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Switch } from "@notra/ui/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { type ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { UsageAlertForm } from "@/components/billing/usage-alert-form";
 import { Button } from "@/components/button";
 import { SidebarSwap } from "@/components/dashboard/sidebar-swap";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { authClient } from "@/lib/auth/client";
 import { useUsageFeatureName } from "@/lib/hooks/use-usage-feature-name";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -147,110 +143,119 @@ export function UsageAlertsSection({
       </div>
     );
   } else {
-    alertsContent = (
-      <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("columns.alert")}</TableHead>
-              <TableHead>{t("feature")}</TableHead>
-              <TableHead>{t("threshold")}</TableHead>
-              <TableHead className="w-28">{tCommon("labels.status")}</TableHead>
-              <TableHead className="w-24 text-right">
-                <span className="sr-only">{tCommon("labels.actions")}</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {alerts.map((alert, index) => {
-              const configuredFeature = alert.featureId
-                ? features.find((feature) => feature.id === alert.featureId)
-                : undefined;
-              let featureName = t("allFeatures");
-              if (alert.featureId) {
-                featureName = configuredFeature
-                  ? featureNameOf(configuredFeature)
-                  : alert.featureId;
-              }
-              const rowLabel =
-                alert.name || t("rowLabel", { feature: featureName });
-
-              return (
-                <TableRow
-                  className={cn(
-                    "group relative",
-                    !controlsDisabled && "cursor-pointer"
-                  )}
-                  key={`${alert.featureId ?? "all"}-${alert.name ?? "unnamed"}-${alert.thresholdType}-${alert.threshold}`}
-                >
-                  <TableCell className="max-w-56 font-medium wrap-anywhere whitespace-normal">
-                    <button
-                      className="focus-visible:after:ring-ring text-left outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-inset disabled:pointer-events-none"
-                      disabled={controlsDisabled}
-                      onClick={() => showEditForm(alert)}
-                      type="button"
-                    >
-                      {rowLabel}
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {featureName}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground tabular-nums">
-                    {t("thresholdValue", {
-                      threshold: alert.threshold,
-                      percentage: alert.thresholdType.endsWith("_percentage")
-                        ? "yes"
-                        : "no",
-                      direction: alert.thresholdType.startsWith("remaining")
-                        ? "remaining"
-                        : "used",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={alert.enabled ? "success" : "secondary"}>
-                      {alert.enabled ? tStates("enabled") : tStates("disabled")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="relative z-10 flex items-center justify-end gap-2">
-                      <Switch
-                        aria-label={
-                          alert.enabled
-                            ? t("disableLabel", { label: rowLabel })
-                            : t("enableLabel", { label: rowLabel })
-                        }
-                        checked={alert.enabled}
-                        disabled={controlsDisabled}
-                        onCheckedChange={(enabled) => {
-                          const nextAlerts = alerts.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, enabled } : item
-                          );
-                          void saveAlerts(nextAlerts);
-                        }}
-                        size="sm"
-                      />
-                      <Button
-                        aria-label={t("deleteLabel", { label: rowLabel })}
-                        disabled={controlsDisabled}
-                        onClick={() => {
-                          void saveAlerts(
-                            alerts.filter((_, itemIndex) => itemIndex !== index)
-                          );
-                        }}
-                        size="icon-sm"
-                        variant="ghost"
-                      >
-                        <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
+    const rows = alerts.map((alert, index) => {
+      const configuredFeature = alert.featureId
+        ? features.find((feature) => feature.id === alert.featureId)
+        : undefined;
+      let featureName = t("allFeatures");
+      if (alert.featureId) {
+        featureName = configuredFeature
+          ? featureNameOf(configuredFeature)
+          : alert.featureId;
+      }
+      return {
+        alert,
+        index,
+        featureName,
+        rowLabel: alert.name || t("rowLabel", { feature: featureName }),
+      };
+    });
+    type AlertRow = (typeof rows)[number];
+    const columns: TableColumn<AlertRow>[] = [
+      {
+        key: "alert",
+        header: t("columns.alert"),
+        width: "1.4fr",
+        cell: ({ rowLabel }) => <span className="font-medium">{rowLabel}</span>,
+      },
+      {
+        key: "feature",
+        header: t("feature"),
+        cell: ({ featureName }) => (
+          <span className="text-muted-foreground">{featureName}</span>
+        ),
+      },
+      {
+        key: "threshold",
+        header: t("threshold"),
+        cell: ({ alert }) => (
+          <span className="text-muted-foreground tabular-nums">
+            {t("thresholdValue", {
+              threshold: alert.threshold,
+              percentage: alert.thresholdType.endsWith("_percentage")
+                ? "yes"
+                : "no",
+              direction: alert.thresholdType.startsWith("remaining")
+                ? "remaining"
+                : "used",
             })}
-          </TableBody>
-        </Table>
-      </div>
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: tCommon("labels.status"),
+        width: "7rem",
+        cell: ({ alert }) => (
+          <Badge variant={alert.enabled ? "success" : "secondary"}>
+            {alert.enabled ? tStates("enabled") : tStates("disabled")}
+          </Badge>
+        ),
+      },
+      {
+        key: "actions",
+        header: <span className="sr-only">{tCommon("labels.actions")}</span>,
+        width: "6.5rem",
+        align: "right",
+        cell: ({ alert, index, rowLabel }) => (
+          <div className="flex items-center justify-end gap-2">
+            <Switch
+              aria-label={
+                alert.enabled
+                  ? t("disableLabel", { label: rowLabel })
+                  : t("enableLabel", { label: rowLabel })
+              }
+              checked={alert.enabled}
+              disabled={controlsDisabled}
+              onCheckedChange={(enabled) => {
+                const nextAlerts = alerts.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, enabled } : item
+                );
+                void saveAlerts(nextAlerts);
+              }}
+              size="sm"
+            />
+            <Button
+              aria-label={t("deleteLabel", { label: rowLabel })}
+              disabled={controlsDisabled}
+              onClick={() => {
+                void saveAlerts(
+                  alerts.filter((_, itemIndex) => itemIndex !== index)
+                );
+              }}
+              size="icon-sm"
+              variant="ghost"
+            >
+              <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+            </Button>
+          </div>
+        ),
+      },
+    ];
+    alertsContent = (
+      <DataTable
+        columns={columns}
+        data={rows}
+        getRowId={({ alert }) =>
+          `${alert.featureId ?? "all"}-${alert.name ?? "unnamed"}-${alert.thresholdType}-${alert.threshold}`
+        }
+        onRowClick={
+          controlsDisabled ? undefined : ({ alert }) => showEditForm(alert)
+        }
+        autoHeight
+        rowHeight={TABLE_ROW_HEIGHT}
+        rowSizing="content"
+      />
     );
   }
 

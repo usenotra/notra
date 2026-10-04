@@ -4,6 +4,7 @@ import { MAX_ATTEMPTS, PAGE_SIZE } from "../constants/delivery";
 import { WebhookNotFound, WebhookValidationError } from "../errors/webhooks";
 import {
   Attempt,
+  DeliveryActivityDay,
   DeliveryDetail,
   DeliveryStats,
   DeliverySummary,
@@ -31,6 +32,7 @@ export const listDeliveries = Effect.fn("webhooks.listDeliveries")(function* (
   );
 });
 
+/** Totals over the same 30 UTC days that `deliveryActivity` charts. */
 export const deliveryStats = Effect.fn("webhooks.deliveryStats")(function* (
   organizationId: OrganizationId
 ) {
@@ -40,11 +42,35 @@ export const deliveryStats = Effect.fn("webhooks.deliveryStats")(function* (
     count(*) FILTER (WHERE status = 'succeeded')::int AS succeeded,
     count(*) FILTER (WHERE status = 'failed')::int AS failed,
     count(*) FILTER (WHERE status IN ('pending', 'sending', 'retrying'))::int AS active
-    FROM webhook_deliveries WHERE organization_id = $1 AND created_at >= now() - interval '30 days'`,
+    FROM webhook_deliveries WHERE organization_id = $1
+    AND created_at >= (date_trunc('day', now() AT TIME ZONE 'UTC') - interval '29 days') AT TIME ZONE 'UTC'`,
     [organizationId]
   );
   return stats ?? { total: 0, succeeded: 0, failed: 0, active: 0 };
 });
+
+/** One row per UTC day for the last 30 days, oldest first, zero-filled. */
+export const deliveryActivity = Effect.fn("webhooks.deliveryActivity")(
+  function* (organizationId: OrganizationId) {
+    return yield* queryRows(
+      DeliveryActivityDay,
+      `SELECT to_char(day, 'YYYY-MM-DD') AS date,
+      count(d.id)::int AS total,
+      count(d.id) FILTER (WHERE d.status = 'succeeded')::int AS succeeded,
+      count(d.id) FILTER (WHERE d.status = 'failed')::int AS failed
+      FROM generate_series(
+        date_trunc('day', now() AT TIME ZONE 'UTC') - interval '29 days',
+        date_trunc('day', now() AT TIME ZONE 'UTC'),
+        interval '1 day'
+      ) AS day
+      LEFT JOIN webhook_deliveries d ON d.organization_id = $1
+        AND d.created_at >= day AT TIME ZONE 'UTC'
+        AND d.created_at < (day + interval '1 day') AT TIME ZONE 'UTC'
+      GROUP BY day ORDER BY day`,
+      [organizationId]
+    );
+  }
+);
 
 export const getDelivery = Effect.fn("webhooks.getDelivery")(function* (
   organizationId: OrganizationId,

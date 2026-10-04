@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
   COLLECTION_GRID_SKELETON_KEYS,
   COLLECTION_TABLE_SKELETON_ROWS,
@@ -27,5 +27,5 @@ export function CollectionsPageSkeleton({
       </div>
     );
   }
-  return <GeoTableSkeleton rows={COLLECTION_TABLE_SKELETON_ROWS} />;
+  return <DataTableSkeleton rows={COLLECTION_TABLE_SKELETON_ROWS} />;
 }

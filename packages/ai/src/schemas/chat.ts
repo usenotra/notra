@@ -227,10 +227,6 @@ export const chatSessionSummarySchema = z.object({
   externalChannelId: externalChannelIdSchema.nullable().optional(),
 });
 
-export const chatSessionResponseSchema = z.object({
-  session: chatSessionSummarySchema.optional(),
-});
-
 export const chatSessionsListResponseSchema = z.object({
   sessions: z.array(chatSessionSummarySchema).optional(),
 });

@@ -1,0 +1,12 @@
+diff --git a/dist/base-builder.js b/dist/base-builder.js
+--- a/dist/base-builder.js
++++ b/dist/base-builder.js
+@@ -697,7 +697,7 @@ export class BaseBuilder {
+             keepNames: true,
+             minify: false,
+             treeShaking: true,
+-            jsx: 'preserve',
++            jsx: this.config.buildTarget === 'vercel-build-output-api' ? 'automatic' : 'preserve',
+             logLevel: 'error',
+             // Use tsconfig for path alias resolution.
+             // For symlinked configs this uses tsconfigRaw to preserve cwd-relative aliases.

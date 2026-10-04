@@ -1,5 +1,6 @@
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
-import { useLocale, useTranslations } from "next-intl";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import type { JourneyCountCellProps } from "@/types/geo";
@@ -15,12 +16,13 @@ export function JourneyCountCell({
   return (
     <span className="flex items-center justify-end gap-2">
       <GeoStatDelta
+        animated
         delta={trafficVisitDelta(journeys, previousJourneys)}
         hint={tGeoShared("vsPreviousPeriodOfThe")}
         label={label}
       />
       <span className="min-w-8 text-right text-sm tabular-nums">
-        {journeys.toLocaleString(locale)}
+        <AnimatedNumber locale={locale} value={journeys} />
       </span>
     </span>
   );

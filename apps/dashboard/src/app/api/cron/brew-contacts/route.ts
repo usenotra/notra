@@ -3,8 +3,6 @@ import { isDemoMode } from "@notra/utils/demo-mode";
 
 import { pruneBrewContacts, syncBrewContacts } from "@/lib/email/brew-contacts";
 
-export const maxDuration = 300;
-
 /**
  * Vercel Cron entry point that upserts every user into Brew and deletes
  * contacts of removed users. Signups, preference changes and deletions sync

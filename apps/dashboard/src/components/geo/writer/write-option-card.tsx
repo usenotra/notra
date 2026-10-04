@@ -32,10 +32,12 @@ export function WriteOptionCard({
   onToggle,
   compact = false,
   badge = null,
+  disabled = false,
 }: WriteOptionCardProps) {
   const shellClassName = cn(
     "group bg-card relative flex cursor-pointer rounded-lg border text-left transition-colors",
     "hover:border-foreground/20",
+    "disabled:hover:border-border disabled:cursor-not-allowed disabled:opacity-50",
     selected ? "border-foreground/40 bg-foreground/[0.02]" : "border-border",
     compact ? "items-center gap-2.5 px-3 py-2" : "flex-col gap-3 p-4"
   );
@@ -45,6 +47,7 @@ export function WriteOptionCard({
       <button
         aria-pressed={selected}
         className={shellClassName}
+        disabled={disabled}
         onClick={onToggle}
         type="button"
       >
@@ -73,6 +76,7 @@ export function WriteOptionCard({
     <button
       aria-pressed={selected}
       className={shellClassName}
+      disabled={disabled}
       onClick={onToggle}
       type="button"
     >

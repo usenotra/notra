@@ -1,5 +1,5 @@
 import { useStore } from "@tanstack/react-form";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EVENT_TYPE_ORDER } from "@/constants/event-triggers";
 import type { EventTriggerFormSectionProps } from "@/types/automation/event-trigger";

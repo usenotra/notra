@@ -27,11 +27,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
-import Link from "next/link";
 import { memo, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import { useBlogPostSubtypeLabels } from "@/lib/hooks/use-blog-post-subtype-labels";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { cn } from "@/lib/utils";

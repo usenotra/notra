@@ -13,8 +13,8 @@ import {
   ResponsiveDialogFooter,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { PersonaAddDialogProps } from "@/types/geo-personas-ui";

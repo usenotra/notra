@@ -13,7 +13,7 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { DiffView } from "@/components/content/diff-view";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";

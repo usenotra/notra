@@ -19,19 +19,22 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { formatDistanceToNowStrict } from "date-fns";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useNow, useTranslations } from "use-intl";
 
 import {
   CollectionActionsMenu,
   CollectionMenuItems,
 } from "@/components/content/collection-menu-items";
+import Link from "@/components/framework/link";
 import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
+  COLLECTION_JUST_NOW_MS,
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
@@ -39,6 +42,7 @@ import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,
@@ -210,11 +214,18 @@ export function CollectionsView({
     </ResponsiveAlertDialog>
   );
   const dateFnsLocale = useDateFnsLocale();
-  const formatRelativeDate = (dateString: string) =>
-    formatDistanceToNowStrict(new Date(dateString), {
+  const now = useNow({ updateInterval: 60_000 });
+  const formatRelativeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    // date-fns has no "just now"; it would print "0 seconds ago".
+    if (Math.abs(now.getTime() - date.getTime()) < COLLECTION_JUST_NOW_MS) {
+      return tCommon("time.justNow");
+    }
+    return formatDistanceToNowStrict(date, {
       addSuffix: true,
       locale: dateFnsLocale,
     });
+  };
   const collectionColumns: TableColumn<PostCollectionSummary>[] = [
     {
       key: "types",
@@ -348,7 +359,10 @@ export function CollectionsView({
             {t("emptyPage")}
           </p>
         ) : null}
-        <TablePagination {...pagination} itemLabel={t("items")} />
+        <TablePagination
+          {...pagination}
+          itemLabel={t("items", { count: pagination.totalItems })}
+        />
         {deleteDialog}
       </div>
     );
@@ -356,12 +370,19 @@ export function CollectionsView({
 
   return (
     <>
-      <Table
-        className="rounded-xl"
+      <DataTable
         columns={columns}
         data={collections}
         emptyState={t("emptyPage")}
-        footer={<TablePagination {...pagination} itemLabel={t("items")} />}
+        pagination={{
+          mode: "server",
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+          totalItems: pagination.totalItems,
+          onPageChange: pagination.setPage,
+          onPageSizeChange: pagination.onPageSizeChange,
+          itemLabel: t("items", { count: pagination.totalItems }),
+        }}
         getRowId={(collection) => collection.id}
         height={paginatedTableHeightFor(
           pagination.pageRowCount,

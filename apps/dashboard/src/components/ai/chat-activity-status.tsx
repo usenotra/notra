@@ -10,7 +10,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { ChatActivityStatusProps } from "@/types/components/chat-activity-group";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";

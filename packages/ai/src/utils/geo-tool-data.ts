@@ -11,6 +11,7 @@ import {
   buildGeoTimeseriesChart,
 } from "@notra/ai/utils/chart-artifact";
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "@notra/db/constants/geo-checks";
+import { GEO_CONTEXT_COMPETITOR_LIMIT } from "@notra/db/constants/geo-context-competitors";
 import { db } from "@notra/db/drizzle";
 import {
   geoCompetitors,
@@ -26,7 +27,20 @@ import {
   queryGeoCheckTimeseries,
   toGeoCheckWindow,
 } from "@notra/db/utils/geo-checks";
-import { and, asc, desc, eq, gte, inArray, isNull } from "drizzle-orm";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  sql,
+} from "drizzle-orm";
+
+const LIKE_SPECIAL_CHARS_REGEX = /[%_\\]/g;
 
 const MS_PER_DAY = 86_400_000;
 
@@ -241,10 +255,47 @@ export async function loadGeoCompetitorShareForTool(
   };
 }
 
+function searchTrackedCompetitors(
+  organizationId: string,
+  projectId: string,
+  search: string
+) {
+  const normalized = search.toLowerCase();
+  const pattern = escapeLikePattern(normalized);
+  const lowerName = sql`lower(${geoCompetitors.name})`;
+  // Exact names first, then prefixes, so the limit never hides the one
+  // competitor the agent asked for by its full name.
+  return db
+    .select({
+      id: geoCompetitors.id,
+      name: geoCompetitors.name,
+      domain: geoCompetitors.domain,
+      kind: geoCompetitors.kind,
+    })
+    .from(geoCompetitors)
+    .where(
+      and(
+        eq(geoCompetitors.projectId, projectId),
+        eq(geoCompetitors.organizationId, organizationId),
+        ilike(geoCompetitors.name, `%${pattern}%`)
+      )
+    )
+    .orderBy(
+      sql`case when ${lowerName} = ${normalized} then 0 when ${lowerName} like ${`${pattern}%`} then 1 else 2 end`,
+      asc(geoCompetitors.name)
+    )
+    .limit(GEO_CONTEXT_COMPETITOR_LIMIT);
+}
+
+function escapeLikePattern(value: string): string {
+  return value.replace(LIKE_SPECIAL_CHARS_REGEX, "\\$&");
+}
+
 export async function loadGeoProjectContextForTool(
   organizationId: string,
   projectId: string,
-  includeAnswers: boolean
+  includeAnswers: boolean,
+  competitorSearch?: string
 ) {
   const since = new Date(Date.now() - GEO_CONTEXT_LOOKBACK_DAYS * MS_PER_DAY);
   const mentionWhere = and(
@@ -276,19 +327,8 @@ export async function loadGeoProjectContextForTool(
         eq(geoSettings.organizationId, organizationId)
       ),
     }),
-    db
-      .select({
-        name: geoCompetitors.name,
-        domain: geoCompetitors.domain,
-        kind: geoCompetitors.kind,
-      })
-      .from(geoCompetitors)
-      .where(
-        and(
-          eq(geoCompetitors.projectId, projectId),
-          eq(geoCompetitors.organizationId, organizationId)
-        )
-      ),
+    // The ones engines recommend most; a search reaches the rest.
+    selectGeoContextCompetitors({ organizationId, projectId }),
     db
       .select({ id: geoPrompts.id, prompt: geoPrompts.prompt })
       .from(geoPrompts)
@@ -309,6 +349,14 @@ export async function loadGeoProjectContextForTool(
       .orderBy(...mentionOrderBy)
       .limit(GEO_CONTEXT_MAX_CHECKS),
   ]);
+
+  const searchedCompetitors = competitorSearch?.trim()
+    ? await searchTrackedCompetitors(
+        organizationId,
+        projectId,
+        competitorSearch.trim()
+      )
+    : null;
 
   const latestChecks = checks.map((check) => {
     const base = {
@@ -345,7 +393,10 @@ export async function loadGeoProjectContextForTool(
       name: settings?.companyName ?? null,
       aliases: settings?.aliases ?? [],
     },
-    competitors,
+    competitors: (searchedCompetitors ?? competitors.competitors).map(
+      ({ name, domain, kind }) => ({ name, domain, kind })
+    ),
+    trackedCompetitorCount: competitors.total,
     trackedPrompts: prompts.map((prompt) => prompt.prompt),
     latestChecks,
   };

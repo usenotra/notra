@@ -3,9 +3,9 @@
 import { normalizePublicWebsiteUrl } from "@notra/geo-core/schemas/url";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { AUTO_SAVE_DELAY } from "@/constants/brand-identity";
 import type { BrandFormProps } from "@/types/brand-identity";

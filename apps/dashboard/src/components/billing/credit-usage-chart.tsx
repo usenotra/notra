@@ -8,8 +8,8 @@ import {
   type ChartConfig,
 } from "@notra/ui/components/ui/chart";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { CREDIT_USAGE_CHART_COLOR } from "@/constants/billing-credits";
 import {

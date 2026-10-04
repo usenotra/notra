@@ -4,6 +4,7 @@ import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import Counter from "@notra/ui/components/shared/counter";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import {
   Empty,
   EmptyContent,
@@ -13,16 +14,15 @@ import {
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -220,7 +220,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
         </PageHeader>
 
         {isLoadingPersonas ? (
-          <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
+          <DataTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
         ) : null}
 
         {hasPersonas ? (

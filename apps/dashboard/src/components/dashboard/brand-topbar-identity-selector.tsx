@@ -22,13 +22,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
+import { useRouter } from "@/lib/navigation";
 import { getBrandFaviconUrl } from "@/utils/brand";
 import {
   brandIdentityViewParser,

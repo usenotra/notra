@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { ActionFailure } from "@/lib/actions/errors";
+import { getTranslations } from "@/lib/i18n/server";
 import type { ActionResult } from "@/types/organizations/actions";
 
 export async function runAction<T>(
