@@ -1,33 +1,19 @@
-apps/dashboard/src/constants/design-system-break-ui.ts
-  s_7a0c38829ccc1e::t_52c2d9b238817f 130-135,147-152,159-164,166,171-178,298-304
-  s_7a0c38829ccc1e::t_b5ed6cabcf6028 1-76,90-129,136-146,153-158,165,167-170,179-297,305-537
-  s_7a0c38829ccc1e::t_96efeae8f7e171 77-89
-apps/dashboard/src/types/design-system/break-ui.ts
-  s_7a0c38829ccc1e::t_1f12066a9240b5 1-32
-apps/dashboard/src/components/design-system/design-system-nav.tsx
-  s_7a0c38829ccc1e::t_e34c48ef890e05 21
-apps/dashboard/src/routes/-development-ui.tsx
-  s_7a0c38829ccc1e::t_e34c48ef890e05 28-30,92-96
 apps/dashboard/src/app/design-system/break-ui/page-client.tsx
-  s_7a0c38829ccc1e::t_52c2d9b238817f 3-6,27
-  s_7a0c38829ccc1e::t_8e5e76809ff0b5 1-2,7-26,28-100,102-107,110-190,192-201,204-242,244-248
-  s_7a0c38829ccc1e::t_82a6e9ea68b15d 101,108-109,191,202-203,243
+  ai_agent 1-248
+apps/dashboard/src/components/design-system/design-system-nav.tsx
+  ai_agent 21
+apps/dashboard/src/constants/design-system-break-ui.ts
+  ai_agent 1-537
+apps/dashboard/src/routes/-development-ui.tsx
+  ai_agent 28-30,92-96
 apps/dashboard/src/app/design-system/break-ui/page.dev.tsx
-  s_7a0c38829ccc1e::t_ddeab2c63cbc99 1-5
+  ai_agent 1-5
+apps/dashboard/src/types/design-system/break-ui.ts
+  ai_agent 1-32
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.5.2",
   "base_commit_sha": "94cd54408b5acd177833ef70a44050f877a3197a",
-  "prompts": {},
-  "sessions": {
-    "s_7a0c38829ccc1e": {
-      "agent_id": {
-        "tool": "claude",
-        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
-        "model": "claude-opus-5-5"
-      },
-      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
-    }
-  }
+  "prompts": {}
 }
