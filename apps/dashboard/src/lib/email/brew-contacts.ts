@@ -5,6 +5,7 @@ import {
   organizationNotificationSettings,
   users,
 } from "@notra/db/schema";
+import { BREW_MARKETING_CONSENT_EVIDENCE } from "@notra/email/constants/brew";
 import type { BrewContactInput } from "@notra/email/types/brew";
 import {
   deleteBrewContact,
@@ -47,12 +48,7 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
       email: users.email,
       name: users.name,
       createdAt: users.createdAt,
-      // No sender reads this flag; without a saved choice it stays off
-      // because marketing email is opt-in only (Terms of Service).
-      marketingEmails: ownedOrganizationsWith(
-        organizationNotificationSettings.marketingEmails,
-        false
-      ),
+      marketingOptInAt: users.marketingOptInAt,
       dailySummaryEmails: ownedOrganizationsWith(
         organizationNotificationSettings.dailySummary,
         true
@@ -82,15 +78,25 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
     .where(userIds ? inArray(users.id, userIds) : undefined)
     .groupBy(users.id);
 
-  return rows.map(({ id, email, name, createdAt, ...preferences }) => ({
-    email,
-    ...splitName(name, email),
-    customFields: {
-      notraUserId: id,
-      signedUpAt: createdAt.toISOString(),
-      ...preferences,
-    },
-  }));
+  return rows.map(
+    ({ id, email, name, createdAt, marketingOptInAt, ...preferences }) => ({
+      email,
+      ...splitName(name, email),
+      customFields: {
+        notraUserId: id,
+        signedUpAt: createdAt.toISOString(),
+        marketingEmails: marketingOptInAt !== null,
+        ...preferences,
+      },
+      ...(marketingOptInAt && {
+        consent: {
+          source: "form" as const,
+          capturedAt: marketingOptInAt.toISOString(),
+          evidence: BREW_MARKETING_CONSENT_EVIDENCE,
+        },
+      }),
+    })
+  );
 }
 
 /** Upserts the given users, or every user when called without ids. */

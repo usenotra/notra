@@ -9,6 +9,7 @@ import {
   BREW_CONTACTS_PAGE_SIZE,
   BREW_EMAIL_TRIGGERS,
   BREW_IDEMPOTENCY_HASH_LENGTH,
+  BREW_MARKETING_DOMAIN,
   BREW_MAX_RETRIES,
   BREW_REQUEST_TIMEOUT_MS,
   BREW_RETRY_BASE_DELAY_MS,
@@ -21,6 +22,9 @@ import type {
   BrewContact,
   BrewContactInput,
   BrewContactsPage,
+  BrewDomainsPage,
+  BrewMarketingStatus,
+  BrewUnsubscribeRemoval,
   BrewContactsBatchResponse,
   BrewEmailError,
   BrewErrorBody,
@@ -318,4 +322,93 @@ export async function deleteBrewContact(email: string): Promise<void> {
       `Failed to delete Brew contact: ${result.error.name} ${result.error.message}`
     );
   }
+}
+
+let marketingDomainId: Promise<string> | undefined;
+
+/** Looks up the marketing domain id once per process. */
+function getMarketingDomainId(): Promise<string> {
+  marketingDomainId ??= (async () => {
+    const result = await brewRequest<BrewDomainsPage>(
+      `/domains?limit=${BREW_CONTACTS_PAGE_SIZE}`,
+      { method: "GET" }
+    );
+    const domain = result.ok
+      ? result.data.data.find((row) => row.name === BREW_MARKETING_DOMAIN)
+      : undefined;
+    if (!domain) {
+      throw new Error(
+        result.ok
+          ? `Brew has no domain ${BREW_MARKETING_DOMAIN}`
+          : `Failed to list Brew domains: ${result.error.message}`
+      );
+    }
+    return domain.domainId;
+  })().catch((error: unknown) => {
+    marketingDomainId = undefined;
+    throw error;
+  });
+
+  return marketingDomainId;
+}
+
+/** Reads whether Brew lets marketing email reach the contact. */
+export async function getBrewMarketingStatus(
+  email: string
+): Promise<BrewMarketingStatus> {
+  if (!isBrewConfigured()) {
+    return "unknown";
+  }
+
+  const result = await brewRequest<BrewContact>(
+    `/contacts/${encodeURIComponent(email)}`,
+    { method: "GET" }
+  );
+  if (!result.ok) {
+    return "unknown";
+  }
+  if (result.data.subscribed === false) {
+    return "globally_unsubscribed";
+  }
+  return result.data.unsubscribedDomains?.includes(BREW_MARKETING_DOMAIN)
+    ? "domain_unsubscribed"
+    : "subscribed";
+}
+
+/**
+ * Puts the contact on, or takes it off, the marketing domain's unsubscribe
+ * list. Upsert the contact first: Brew creates unknown addresses as globally
+ * unsubscribed, which no API call can undo. Returns the resulting status;
+ * a brand-wide opt-out from an email footer stays in place.
+ */
+export async function setBrewMarketingUnsubscribed(
+  email: string,
+  unsubscribed: boolean
+): Promise<BrewMarketingStatus> {
+  if (!isBrewConfigured()) {
+    return "unknown";
+  }
+
+  const domainId = await getMarketingDomainId();
+  if (unsubscribed) {
+    const result = await brewRequest<unknown>(
+      `/domains/${domainId}/unsubscribes`,
+      { method: "POST", body: { emails: [email] } }
+    );
+    if (!result.ok) {
+      throw new Error(`Failed to unsubscribe in Brew: ${result.error.message}`);
+    }
+    return "domain_unsubscribed";
+  }
+
+  const result = await brewRequest<BrewUnsubscribeRemoval>(
+    `/domains/${domainId}/unsubscribes/${encodeURIComponent(email)}`,
+    { method: "DELETE" }
+  );
+  if (!result.ok) {
+    throw new Error(`Failed to resubscribe in Brew: ${result.error.message}`);
+  }
+  return result.data.globallyUnsubscribed
+    ? "globally_unsubscribed"
+    : "subscribed";
 }

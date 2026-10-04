@@ -36,6 +36,7 @@ import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getAuthSession } from "@/lib/auth/server";
 import { queueBrandAnalysisForOnboarding } from "@/lib/brand-analysis";
+import { applyOnboardingMarketingChoice } from "@/lib/email/marketing-consent";
 import {
   ensureDefaultBrandIdentity,
   launchReservedOnboardingAgent,
@@ -413,6 +414,7 @@ export async function saveOnboardingNotificationSettings(
   }
 
   let membershipRole: string;
+  let userId: string;
 
   try {
     const access = await assertOrganizationAccess({
@@ -420,6 +422,7 @@ export async function saveOnboardingNotificationSettings(
       organizationId: parsed.data.organizationId,
     });
     membershipRole = access.membership.role;
+    userId = access.user.id;
   } catch (error) {
     if (error instanceof ORPCError) {
       return {
@@ -441,7 +444,11 @@ export async function saveOnboardingNotificationSettings(
   await upsertOnboardingNotificationSettings({
     organizationId: parsed.data.organizationId,
     dailySummary: parsed.data.dailySummary,
-    marketingEmails: parsed.data.marketingEmails,
+  });
+  // Marketing consent is the user's own, not the organization's.
+  await applyOnboardingMarketingChoice({
+    userId,
+    enabled: parsed.data.marketingEmails,
   });
 
   return { success: true };

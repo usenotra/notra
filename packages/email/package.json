@@ -21,6 +21,7 @@
     "./utils/config": "./src/utils/config.ts",
     "./utils/engine-logo": "./src/utils/engine-logo.ts",
     "./utils/feedback": "./src/utils/feedback.ts",
+    "./constants/brew": "./src/constants/brew.ts",
     "./utils/brew": "./src/utils/brew.ts",
     "./types/brew": "./src/types/brew.ts"
   },

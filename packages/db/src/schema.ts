@@ -98,6 +98,11 @@ export const users = pgTable("users", {
   showAgentStats: boolean("show_agent_stats").default(false).notNull(),
   locale: text("locale"),
   workosUserId: text("workos_user_id").unique(),
+  /**
+   * When the user opted into marketing email; null means no consent. Opting
+   * out from an email footer lives in Brew, not here.
+   */
+  marketingOptInAt: timestamp("marketing_opt_in_at"),
 });
 
 export const userBackupCodes = pgTable(
@@ -1348,7 +1353,12 @@ export const organizationNotificationSettings = pgTable(
     scheduledContentSkipped: boolean("scheduled_content_skipped")
       .default(false)
       .notNull(),
-    marketingEmails: boolean("marketing_emails").default(true).notNull(),
+    /**
+     * @deprecated Unused since marketing consent moved to
+     * `users.marketing_opt_in_at`. Dropped in a follow-up migration once no
+     * deployment reads it.
+     */
+    marketingEmails: boolean("marketing_emails").default(false).notNull(),
     dailySummary: boolean("daily_summary").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

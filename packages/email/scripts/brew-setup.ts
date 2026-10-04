@@ -10,6 +10,7 @@
  * the node with id "send" is reconciled, so steps added in Brew survive.
  */
 import {
+  BREW_MARKETING_DOMAIN,
   BREW_CONTACT_FIELD_TYPES,
   BREW_EMAIL_TRIGGERS,
 } from "../src/constants/brew";
@@ -107,9 +108,9 @@ const PROFILES: Record<Profile, Record<SenderRole, Sender>> = {
       replyTo: "support@usenotra.com",
     },
     founder: {
-      domain: "marketing.usenotra.com",
+      domain: BREW_MARKETING_DOMAIN,
       purpose: "marketing",
-      fromAddress: "dominik@marketing.usenotra.com",
+      fromAddress: `dominik@${BREW_MARKETING_DOMAIN}`,
       fromName: "Dominik from Notra",
       replyTo: "dominik@usenotra.com",
     },

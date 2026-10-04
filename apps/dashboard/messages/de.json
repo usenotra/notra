@@ -146,7 +146,9 @@
           "marketingEmails": {
             "description": "E-Mails zu neuen Funktionen, Tipps und Ankündigungen erhalten"
           }
-        }
+        },
+        "marketingPersonal": "Gilt nur für dich. Jede E-Mail enthält außerdem einen Abmeldelink.",
+        "marketingBlocked": "Du hast dich über einen Link in einer E-Mail von allen Marketing-E-Mails abgemeldet. Schreib an support@usenotra.com, um sie wieder zu erhalten."
       },
       "billing": {
         "plansDescription": "Wechsle deinen Tarif oder mach ein Upgrade.",

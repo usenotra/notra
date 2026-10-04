@@ -3,6 +3,7 @@ import {
   brandSettings,
   organizationNotificationSettings,
   organizations,
+  users,
 } from "@notra/db/schema";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
@@ -44,7 +45,7 @@ export default async function OnboardingWorkspacePage({
     isDevReplay
   );
 
-  const [brand, existingOrgRow, notificationSettings, stage] =
+  const [brand, existingOrgRow, notificationSettings, stage, user] =
     await Promise.all([
       db.query.brandSettings.findFirst({
         where: eq(brandSettings.organizationId, existing.id),
@@ -63,12 +64,13 @@ export default async function OnboardingWorkspacePage({
       }),
       db.query.organizationNotificationSettings.findFirst({
         where: eq(organizationNotificationSettings.organizationId, existing.id),
-        columns: {
-          dailySummary: true,
-          marketingEmails: true,
-        },
+        columns: { dailySummary: true },
       }),
       getGeoOnboardingStage(existing.id, projectId),
+      db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+        columns: { marketingOptInAt: true },
+      }),
     ]);
 
   const progressHrefs = onboardingProgressHrefs({
@@ -89,7 +91,7 @@ export default async function OnboardingWorkspacePage({
       existingOrg={{
         ...existingOrgRow,
         dailySummary: notificationSettings?.dailySummary ?? true,
-        marketingEmails: notificationSettings?.marketingEmails ?? true,
+        marketingEmails: Boolean(user?.marketingOptInAt),
       }}
       progressHrefs={progressHrefs}
     />

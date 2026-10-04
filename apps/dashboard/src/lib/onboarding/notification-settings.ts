@@ -7,11 +7,9 @@ import { syncBrewContactsForOrganizationOwners } from "@/lib/email/brew-contacts
 export async function upsertOnboardingNotificationSettings({
   organizationId,
   dailySummary,
-  marketingEmails,
 }: {
   organizationId: string;
   dailySummary: boolean;
-  marketingEmails: boolean;
 }) {
   await db
     .insert(organizationNotificationSettings)
@@ -21,13 +19,11 @@ export async function upsertOnboardingNotificationSettings({
       scheduledContentCreation: false,
       scheduledContentFailed: false,
       scheduledContentSkipped: false,
-      marketingEmails,
       dailySummary,
     })
     .onConflictDoUpdate({
       set: {
         dailySummary,
-        marketingEmails,
         updatedAt: new Date(),
       },
       target: organizationNotificationSettings.organizationId,

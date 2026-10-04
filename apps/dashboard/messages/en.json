@@ -146,7 +146,9 @@
           "marketingEmails": {
             "description": "Receive emails about new features, tips and announcements"
           }
-        }
+        },
+        "marketingPersonal": "Just for you. Every email also has an unsubscribe link.",
+        "marketingBlocked": "You unsubscribed from all marketing emails through a link in an email. Contact support@usenotra.com to receive them again."
       },
       "billing": {
         "plansDescription": "Change your plan or upgrade.",
