@@ -1,0 +1,80 @@
+apps/dashboard/src/lib/orpc/routers/brand.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 49,100,314-315,371-380,386,630,633
+packages/utils/src/url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 15-20,23,27-32
+packages/ai/src/utils/website-log-url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1-13
+packages/ai/src/types/operational-log.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 19-21
+apps/dashboard/src/types/workflow-failure-alert.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 2
+apps/dashboard/src/types/workflows/brand-analysis.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 6
+packages/schemas/src/schemas/dashboard/organizations/actions.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 2,42
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 45,109-110,123,170-171
+apps/dashboard/src/types/analytics/workflow-events.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 29
+apps/dashboard/src/lib/organizations/actions.ts
+  ai_agent 128,183,391,412-423
+packages/ai/src/utils/context-dev.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 38,110-111,113-115,148-155,168-172,186-188,196-210,215,220-222,229,236-238,379,403-405
+apps/dashboard/src/utils/workflow-failure-alert.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 2,21-28,61,70
+apps/dashboard/src/types/onboarding.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 214
+apps/dashboard/src/workflows/brand-analysis.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 104,142,196
+apps/dashboard/src/lib/analytics/workflow-lifecycle.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 95,161
+packages/utils/src/website-url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1-55
+apps/dashboard/src/app/onboarding/workspace/actions.ts
+  ai_agent 10-18,112,114-117,121-144,230,250-257,273-280,283-293,297-303,322,333-340,350
+apps/api/src/utils/brand-identities.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 74-76
+apps/api/src/types/brand-identities.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 18,40
+apps/dashboard/messages/en.json
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1001-1002
+packages/utils/src/constants/url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1
+apps/dashboard/src/lib/onboarding/submit-workspace-form.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 8,58,72-79,88,99-103,168-174
+packages/utils/package.json
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 11
+apps/api/src/programs/brand-identities.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 15,57,239,365,383-387,487
+apps/api/src/programs/website-url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1-23
+apps/dashboard/src/components/onboarding/progress.tsx
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 31,47,56-59
+apps/dashboard/src/utils/ratelimit.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 64-68
+apps/api/src/errors/brand-identities.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 3-7
+apps/dashboard/messages/de.json
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1001-1002
+apps/dashboard/src/utils/website-url.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 1-4,7-51
+  s_7a0c38829ccc1e::t_694a464ddc4c46 5-6
+apps/dashboard/src/types/organizations/actions.ts
+  s_7a0c38829ccc1e::t_f1f937d3fdbfaa 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "76845a07b4fb3d255e01a88f232bbc27e4e1a757",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
