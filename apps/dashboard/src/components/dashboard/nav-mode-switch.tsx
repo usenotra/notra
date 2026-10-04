@@ -78,7 +78,6 @@ export function NavModeSwitch({
                     : "text-muted-foreground hover:text-foreground"
                 )}
                 disablePrefetch={!prefetchHome}
-                eagerPrefetch={!isActive && prefetchHome}
                 href={geoNavHref(
                   slug,
                   SIDEBAR_MODE_HOME_LINKS[option.id],
@@ -104,9 +103,6 @@ export function NavModeSwitch({
               render={
                 <SidebarNavLink
                   disablePrefetch={!canPrefetchSidebarModeHome(option.id)}
-                  eagerPrefetch={
-                    option.id !== mode && canPrefetchSidebarModeHome(option.id)
-                  }
                   href={geoNavHref(
                     slug,
                     SIDEBAR_MODE_HOME_LINKS[option.id],

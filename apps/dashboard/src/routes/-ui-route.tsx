@@ -82,14 +82,25 @@ export function createUiRoute<T = undefined>({
   pageTitle,
   stream,
   gate,
+  preload,
+  loaderSearchKeys,
 }: UiRouteFactoryOptions<T>) {
   const route = createRoute({
     getParentRoute: () => parent,
     path,
     validateSearch: uiRouteSearch,
-    loaderDeps: ({ search }) => ({ search }),
-    loader: async ({ params, deps }) => {
-      const input = { params, searchParams: deps.search };
+    loaderDeps: ({ search }) => ({
+      search: loaderSearchKeys
+        ? Object.fromEntries(
+            loaderSearchKeys.map((key) => [key, search[key]] as const)
+          )
+        : search,
+    }),
+    loader: async ({ params, location }) => {
+      const input = {
+        params,
+        searchParams: uiRouteSearch(location.search as Record<string, unknown>),
+      };
       if (stream && loader && import.meta.env.SSR) {
         await gate?.(input);
         return {
@@ -147,6 +158,12 @@ export function createUiRoute<T = undefined>({
         searchParams={searchParams}
       />
     );
+  }
+  // The router calls `component.preload` while the route preloads or loads.
+  const preloadPage =
+    preload ?? (Page as { preload?: () => Promise<unknown> }).preload;
+  if (preloadPage) {
+    Object.assign(UiPage, { preload: preloadPage });
   }
   return route.update({ component: UiPage });
 }

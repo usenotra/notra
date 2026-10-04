@@ -4,12 +4,13 @@ import {
   Outlet,
   type Router,
 } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 
 import OnboardingLayout from "@/app/onboarding/layout";
 import { OnboardingSplitLayout } from "@/components/onboarding/split-layout";
 import { OnboardingSplitLayoutContext } from "@/components/onboarding/split-layout-context";
 import { ONBOARDING_STEPS } from "@/constants/analytics-events";
+import { lazyPage } from "@/utils/lazy-page";
 
 import {
   loadOnboardingCompetitors,
@@ -21,22 +22,22 @@ import {
 } from "./-onboarding-loaders";
 import { createUiRoute } from "./-ui-route";
 
-const Workspace = lazy(() =>
+const Workspace = lazyPage(() =>
   import("@/app/onboarding/workspace/workspace-form").then((module) => ({
     default: module.WorkspaceForm,
   }))
 );
-const Visibility = lazy(() =>
+const Visibility = lazyPage(() =>
   import("@/app/onboarding/visibility/visibility-form").then((module) => ({
     default: module.VisibilityForm,
   }))
 );
-const Competitors = lazy(() =>
+const Competitors = lazyPage(() =>
   import("@/app/onboarding/competitors/competitors-form").then((module) => ({
     default: module.CompetitorsForm,
   }))
 );
-const Pricing = lazy(() =>
+const Pricing = lazyPage(() =>
   import("@/app/onboarding/pricing-client").then((module) => ({
     default: module.PricingClient,
   }))
@@ -74,6 +75,7 @@ export function createOnboardingUiRoutes(parent: AnyRoute) {
         parent: onboarding,
         path: "workspace",
         loader: (input) => loadOnboardingWorkspace({ data: input }),
+        preload: Workspace.preload,
         component: ({ data }) => (
           <OnboardingSplitLayout step={ONBOARDING_STEPS.WORKSPACE}>
             <Workspace {...data} />
@@ -85,6 +87,7 @@ export function createOnboardingUiRoutes(parent: AnyRoute) {
         path: "visibility",
         title: { namespace: "onboarding.visibility", key: "metaTitle" },
         loader: (input) => loadOnboardingVisibility({ data: input }),
+        preload: Visibility.preload,
         component: ({ data }) => (
           <OnboardingSplitLayout step={ONBOARDING_STEPS.VISIBILITY}>
             <Visibility {...data} />
@@ -96,6 +99,7 @@ export function createOnboardingUiRoutes(parent: AnyRoute) {
         path: "competitors",
         title: { namespace: "onboarding.competitors", key: "metaTitle" },
         loader: (input) => loadOnboardingCompetitors({ data: input }),
+        preload: Competitors.preload,
         component: ({ data }) => (
           <OnboardingSplitLayout step={ONBOARDING_STEPS.COMPETITORS}>
             <Competitors {...data} />
@@ -106,6 +110,7 @@ export function createOnboardingUiRoutes(parent: AnyRoute) {
         parent: onboarding,
         path: "pricing",
         loader: (input) => loadOnboardingPricing({ data: input }),
+        preload: Pricing.preload,
         component: ({ data }) => <Pricing {...data} />,
       }),
     ]),

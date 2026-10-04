@@ -1,31 +1,32 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useLocation, useRouter } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 
 import { CompetitorDetailSkeleton } from "@/app/(dashboard)/[slug]/geo/competitors/skeleton";
 import { AccountModal } from "@/components/analytics/account-modal";
 import { CompetitorModal } from "@/components/geo/competitor-modal";
 import type { UiModalProviderProps } from "@/types/migration-routes";
 import { loadCompetitorDetailView } from "@/utils/competitor-detail-chunk";
+import { lazyPage } from "@/utils/lazy-page";
 
 // The sheets themselves are tiny and open on click; only their (heavy) detail
 // views load lazily, behind skeletons inside the already open sheet.
-const AccountDetail = lazy(() =>
+const AccountDetail = lazyPage(() =>
   import("@/components/analytics/account-detail-view").then((module) => ({
     default: module.AccountDetailView,
   }))
 );
-const CompetitorDetail = lazy(() =>
+const CompetitorDetail = lazyPage(() =>
   loadCompetitorDetailView().then((module) => ({
     default: module.CompetitorDetailView,
   }))
 );
-const FramerDialog = lazy(() =>
+const FramerDialog = lazyPage(() =>
   import("@/components/integrations/framer-setup-guide-dialog").then(
     (module) => ({ default: module.FramerSetupGuideDialog })
   )
 );
-const RaycastDialog = lazy(() =>
+const RaycastDialog = lazyPage(() =>
   import("@/components/integrations/raycast-setup-guide-dialog").then(
     (module) => ({ default: module.RaycastSetupGuideDialog })
   )

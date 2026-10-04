@@ -4,7 +4,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 
 import AuthPublicLayout from "@/app/(auth-public)/layout";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
@@ -16,6 +16,7 @@ import { LoginForm } from "@/components/auth/login-form";
 import { LoginFormSkeleton } from "@/components/auth/login-form-skeleton";
 import { SocialEnrollmentResume } from "@/components/auth/social-enrollment-resume";
 import { DemoStart } from "@/components/demo/demo-start";
+import { lazyPage } from "@/utils/lazy-page";
 
 import { createDevelopmentUiRoutes } from "./-development-ui";
 import {
@@ -29,13 +30,15 @@ import {
 } from "./-entry-loaders";
 import { createUiRoute } from "./-ui-route";
 
-const Signup = lazy(() => import("@/app/(auth)/signup/page"));
-const ForgotPassword = lazy(() => import("@/app/(auth)/forgot-password/page"));
-const ResetPassword = lazy(
+const Signup = lazyPage(() => import("@/app/(auth)/signup/page"));
+const ForgotPassword = lazyPage(
+  () => import("@/app/(auth)/forgot-password/page")
+);
+const ResetPassword = lazyPage(
   () => import("@/app/(auth-public)/reset-password/page")
 );
-const Banned = lazy(() => import("@/app/auth/banned/page"));
-const Linkedin = lazy(() => import("@/app/connect/linkedin/page"));
+const Banned = lazyPage(() => import("@/app/auth/banned/page"));
+const Linkedin = lazyPage(() => import("@/app/connect/linkedin/page"));
 
 export function createEntryUiRoutes(parent: AnyRoute) {
   const guest = createRoute({
@@ -108,17 +111,20 @@ export function createEntryUiRoutes(parent: AnyRoute) {
       createUiRoute({
         parent: guest,
         path: "signup",
+        preload: Signup.preload,
         component: () => <Signup />,
       }),
       createUiRoute({
         parent: guest,
         path: "forgot-password",
+        preload: ForgotPassword.preload,
         component: () => <ForgotPassword />,
       }),
     ]),
     createUiRoute({
       parent,
       path: "reset-password",
+      preload: ResetPassword.preload,
       component: () => (
         <AuthPublicLayout>
           <Suspense fallback={<LoginFormSkeleton />}>
@@ -147,6 +153,7 @@ export function createEntryUiRoutes(parent: AnyRoute) {
     createUiRoute({
       parent,
       path: "connect/linkedin",
+      preload: Linkedin.preload,
       component: () => <Linkedin />,
     }),
     createUiRoute({

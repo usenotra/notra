@@ -1,22 +1,22 @@
 import type { AnyRoute } from "@tanstack/react-router";
-import { lazy } from "react";
 
 import { PageContainer } from "@/components/layout/container";
+import { lazyPage } from "@/utils/lazy-page";
 
 import { createUiRoute } from "./-ui-route";
 
-const Overview = lazy(
+const Overview = lazyPage(
   () => import("@/app/(dashboard)/[slug]/analytics/page-client")
 );
-const Leaderboard = lazy(
+const Leaderboard = lazyPage(
   () => import("@/app/(dashboard)/[slug]/analytics/leaderboard/page-client")
 );
-const AccountDetailView = lazy(() =>
+const AccountDetailView = lazyPage(() =>
   import("@/components/analytics/account-detail-view").then((module) => ({
     default: module.AccountDetailView,
   }))
 );
-const Loading = lazy(
+const Loading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/analytics/loading")
 );
 
@@ -27,6 +27,7 @@ export function createAnalyticsUiRoutes(parent: AnyRoute) {
       path: "/",
       title: { namespace: "common", key: "labels.analytics" },
       pendingComponent: Loading,
+      preload: Overview.preload,
       component: () => <Overview />,
     }),
     createUiRoute({
@@ -34,6 +35,7 @@ export function createAnalyticsUiRoutes(parent: AnyRoute) {
       path: "leaderboard",
       title: { namespace: "common", key: "labels.leaderboard" },
       pendingComponent: Loading,
+      preload: Leaderboard.preload,
       component: () => <Leaderboard />,
     }),
     createUiRoute({
@@ -41,6 +43,7 @@ export function createAnalyticsUiRoutes(parent: AnyRoute) {
       path: "accounts/$handle",
       title: { namespace: "common", key: "labels.account" },
       pendingComponent: Loading,
+      preload: AccountDetailView.preload,
       component: ({ params }) => {
         // The router already decodes path params.
         const handle = params.handle;

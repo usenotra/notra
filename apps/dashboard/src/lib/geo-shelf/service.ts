@@ -1,5 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, projects } from "@notra/db/schema";
+import {
+  isEmptyShelfSyncCurrent,
+  markEmptyShelfSync,
+} from "@notra/db/utils/geo-check-cache";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
 import {
   loadGeoCompetitors,
@@ -329,11 +333,14 @@ export async function listGeoShelfSourcePage(
   const page = await queryGeoShelfSourcePage(key, query);
   // A project whose last scan predates the post-scan sync has no scan rows
   // yet, even when someone already added a shelf by hand.
+  if (page.hasScanData || query.offset > 0) {
+    return { ...page, isSampleData: false };
+  }
   if (
-    page.hasScanData ||
-    query.offset > 0 ||
+    (await isEmptyShelfSyncCurrent(key)) ||
     (await syncGeoShelfCitations(seed)) === 0
   ) {
+    void markEmptyShelfSync(key);
     return { ...page, isSampleData: false };
   }
   return {

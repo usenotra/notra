@@ -52,6 +52,19 @@ export interface UiRouteOptions<T> {
    * navigations, so a gate never runs there.
    */
   gate?: (input: UiRouteInput) => Promise<unknown>;
+  /**
+   * Downloads the page's code (a `lazyPage` component's `preload`). The router
+   * calls it when the route is preloaded on hover or loaded, so the chunk
+   * arrives with the data instead of after it.
+   */
+  preload?: () => Promise<unknown>;
+  /**
+   * The search params the loader depends on. Other params (settings modal,
+   * in-page tabs, filters) then change the URL without re-running the loader,
+   * which is a server round trip and can flash `pendingComponent`. The loader
+   * still receives the full search. Omit to re-run on any search change.
+   */
+  loaderSearchKeys?: readonly string[];
 }
 
 export interface StreamedUiPageProps<T> extends Omit<UiPageProps<T>, "data"> {

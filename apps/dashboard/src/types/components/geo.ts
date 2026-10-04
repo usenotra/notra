@@ -124,11 +124,14 @@ export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;
   fallback?: ReactNode;
+  /** The server found the GEO entitlement: render while billing loads. */
+  entitled?: boolean;
 }
 
 export interface GeoPageGateProps {
   children: ReactNode;
   fallback: ReactNode;
+  entitled?: boolean;
 }
 
 export interface GeoUpgradeDialogProps {

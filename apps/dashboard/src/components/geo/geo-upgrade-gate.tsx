@@ -30,6 +30,7 @@ function subscribeToStorage(callback: () => void) {
 export function GeoUpgradeGate({
   slug,
   children,
+  entitled = false,
   fallback,
 }: GeoUpgradeGateProps) {
   const t = useTranslations("geo.geoUpgradeGate");
@@ -87,7 +88,7 @@ export function GeoUpgradeGate({
   }, [dialogOpen, organizationId, route]);
 
   if (isLoading) {
-    return fallback ?? <GeoPageSkeleton />;
+    return entitled ? children : (fallback ?? <GeoPageSkeleton />);
   }
 
   if (isUnavailable) {

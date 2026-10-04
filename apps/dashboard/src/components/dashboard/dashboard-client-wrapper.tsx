@@ -24,12 +24,10 @@ const loadCommandPalette = () =>
     (module) => module.CommandPalette
   );
 
-async function loadSettingsModal() {
-  const settingsModule = await import("@/components/settings/settings-modal");
-  // Resolve only once the default pane is cached, so opening never shows its skeleton.
-  await settingsModule.preloadDefaultSettingsPane().catch(() => undefined);
-  return settingsModule.SettingsModal;
-}
+const loadSettingsModal = () =>
+  import("@/components/settings/settings-modal").then(
+    (module) => module.SettingsModal
+  );
 
 /** Upper bound for waiting on an idle period before warming the overlays anyway. */
 const OVERLAY_PRELOAD_IDLE_TIMEOUT_MS = 3000;

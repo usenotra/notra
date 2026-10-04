@@ -1,9 +1,9 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import { type AnyRoute, redirect } from "@tanstack/react-router";
-import { lazy } from "react";
 
 import { GeoProjectQueryProvider } from "@/components/providers/geo-project-provider";
 import type { UiPageProps } from "@/types/migration-routes";
+import { lazyPage } from "@/utils/lazy-page";
 
 import {
   loadGeoPage,
@@ -13,44 +13,44 @@ import {
 } from "./-dashboard-loaders";
 import { createUiRoute } from "./-ui-route";
 
-const Integrations = lazy(
+const Integrations = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/page-client")
 );
-const Framer = lazy(
+const Framer = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/framer/page-client")
 );
-const Raycast = lazy(
+const Raycast = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/raycast/page-client")
 );
-const Github = lazy(
+const Github = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/github/page-client")
 );
-const Gsc = lazy(
+const Gsc = lazyPage(
   () =>
     import("@/app/(dashboard)/[slug]/integrations/google-search-console/page-client")
 );
-const Granola = lazy(
+const Granola = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/granola/page-client")
 );
-const Linear = lazy(
+const Linear = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/linear/page-client")
 );
-const LinearDetail = lazy(
+const LinearDetail = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/linear/[id]/page-client")
 );
-const Mcp = lazy(
+const Mcp = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/mcp/page-client")
 );
-const Slack = lazy(
+const Slack = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/slack/page-client")
 );
-const Loading = lazy(
+const Loading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/loading")
 );
-const GithubLoading = lazy(
+const GithubLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/integrations/github/loading")
 );
-const GscLoading = lazy(
+const GscLoading = lazyPage(
   () =>
     import("@/app/(dashboard)/[slug]/integrations/google-search-console/loading")
 );
@@ -70,9 +70,11 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "/",
       title: { namespace: "common", key: "labels.integrations" },
       pendingComponent: Loading,
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "integrations" } }),
       stream: true,
+      preload: Integrations.preload,
       component: ({ data, params }) => (
         <HydrationBoundary state={data.state}>
           <Integrations organizationSlug={params.slug} />
@@ -85,6 +87,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       title: { namespace: "common", key: "labels.integrations" },
       pendingComponent: Loading,
       loader: (input) => loadIntegrationConnect({ data: input }),
+      preload: Integrations.preload,
       component: ({ data, params }) => (
         <Integrations
           connectSlug={data.connectSlug}
@@ -111,6 +114,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "github",
       title: { namespace: "integrations.github.page", key: "metaTitle" },
       pendingComponent: GithubLoading,
+      preload: Github.preload,
       component: ({ params }) => <Github organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -136,7 +140,9 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "google-search-console",
       title: { title: "Google Search Console" },
       pendingComponent: GscLoading,
+      loaderSearchKeys: ["project", "range"],
       loader: (input) => loadGeoPage({ data: { ...input, kind: "gsc" } }),
+      preload: Gsc.preload,
       component: ({ data, params }) => (
         <GeoProjectQueryProvider initialProjectId={data.projectId}>
           <Gsc organizationSlug={params.slug} />
@@ -148,6 +154,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "granola",
       title: { namespace: "integrations.shared", key: "granolaIntegration" },
       pendingComponent: Loading,
+      preload: Granola.preload,
       component: ({ params }) => <Granola organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -155,6 +162,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "linear",
       title: { namespace: "integrations.shared", key: "linearIntegrations" },
       pendingComponent: Loading,
+      preload: Linear.preload,
       component: ({ params }) => <Linear organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -163,6 +171,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       loader: (input) => loadLinearDetail({ data: input }),
       pageTitle: (data) => data.title,
       pendingComponent: Loading,
+      preload: LinearDetail.preload,
       component: ({ params }) => <LinearDetail integrationId={params.id} />,
     }),
     createUiRoute({
@@ -170,6 +179,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "mcp",
       title: { namespace: "integrations.shared", key: "mcpServers" },
       pendingComponent: Loading,
+      preload: Mcp.preload,
       component: ({ params }) => <Mcp organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -177,6 +187,7 @@ export function createIntegrationUiRoutes(parent: AnyRoute) {
       path: "slack",
       title: { namespace: "integrations.shared", key: "slackIntegration" },
       pendingComponent: Loading,
+      preload: Slack.preload,
       component: ({ params }) => <Slack organizationSlug={params.slug} />,
     }),
   ];

@@ -213,13 +213,17 @@ export const loadGeoScope = createServerFn({ method: "GET" })
   .handler(async ({ data: { params } }) => {
     const slug = params.slug ?? "";
     const { organization } = await validateOrganizationAccess(slug);
-    return {
-      projectId: await resolveInitialGeoProjectId(
-        organization.id,
-        slug,
-        undefined
-      ),
-    };
+    const [projectId, entitlement] = await Promise.all([
+      resolveInitialGeoProjectId(organization.id, slug, undefined),
+      import("@/lib/billing/subscription")
+        .then(({ resolveGeoEntitlement }) =>
+          resolveGeoEntitlement(organization.id)
+        )
+        .catch(() => "unknown" as const),
+    ]);
+    // Lets the GEO pages render while the client's own billing lookup runs;
+    // the client still shows the paywall if that lookup says locked.
+    return { projectId, geoEntitled: entitlement !== "denied" };
   });
 
 type GeoPageKind = "overview" | "traffic" | "gsc";

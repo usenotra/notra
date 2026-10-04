@@ -6,7 +6,7 @@ import {
   redirect,
   type Router,
 } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-context";
 import { AnalyticsShell } from "@/components/analytics/analytics-shell";
@@ -18,6 +18,7 @@ import { IntegrationsBackLink } from "@/components/integrations/integrations-bac
 import { GeoLiveProvider } from "@/components/providers/geo-live-provider";
 import { GeoProjectQueryProvider } from "@/components/providers/geo-project-provider";
 import { LOGS_SETTINGS_SEARCH_KEYS } from "@/constants/settings";
+import { lazyPage } from "@/utils/lazy-page";
 import {
   firstSearchParamValue,
   settingsPath,
@@ -37,70 +38,82 @@ import { createIntegrationUiRoutes } from "./-integrations-ui";
 import { UiModalProvider } from "./-ui-modal";
 import { createUiRoute, uiRouteSearch } from "./-ui-route";
 
-const Home = lazy(() => import("@/app/(dashboard)/[slug]/page-client"));
-const Content = lazy(
+const Home = lazyPage(() => import("@/app/(dashboard)/[slug]/page-client"));
+const Content = lazyPage(
   () => import("@/app/(dashboard)/[slug]/content/page-client")
 );
-const ContentDetail = lazy(
+const ContentDetail = lazyPage(
   () => import("@/app/(dashboard)/[slug]/content/[id]/page-client")
 );
-const Collection = lazy(
+const Collection = lazyPage(
   () => import("@/app/(dashboard)/[slug]/collection/[id]/page-client")
 );
-const Skills = lazy(
+const Skills = lazyPage(
   () => import("@/app/(dashboard)/[slug]/skills/page-client")
 );
-const SkillDetail = lazy(
+const SkillDetail = lazyPage(
   () => import("@/app/(dashboard)/[slug]/skills/[name]/page-client")
 );
-const Chat = lazy(() => import("@/app/(dashboard)/[slug]/chat/page-client"));
-const ApiKeys = lazy(() => import("@/app/(dashboard)/[slug]/api-keys/page"));
-const Events = lazy(
+const Chat = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/chat/page-client")
+);
+const ApiKeys = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/api-keys/page")
+);
+const Events = lazyPage(
   () => import("@/app/(dashboard)/[slug]/automation/events/page-client")
 );
-const Schedules = lazy(
+const Schedules = lazyPage(
   () => import("@/app/(dashboard)/[slug]/automation/schedules/page-client")
 );
-const Brand = lazy(
+const Brand = lazyPage(
   () => import("@/app/(dashboard)/[slug]/brand/identity/page-client")
 );
-const Feedback = lazy(
+const Feedback = lazyPage(
   () => import("@/app/(dashboard)/[slug]/feedback/page-client")
 );
-const Iris = lazy(() => import("@/app/(dashboard)/[slug]/iris/page-client"));
-const BillingSuccess = lazy(
+const Iris = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/iris/page-client")
+);
+const BillingSuccess = lazyPage(
   () => import("@/app/(dashboard)/[slug]/settings/billing/success/page")
 );
-const DashboardLoading = lazy(() => import("@/app/(dashboard)/[slug]/loading"));
-const ContentLoading = lazy(
+const DashboardLoading = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/loading")
+);
+const ContentLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/content/loading")
 );
-const ContentDetailLoading = lazy(
+const ContentDetailLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/content/[id]/loading")
 );
-const CollectionLoading = lazy(
+const CollectionLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/collection/[id]/loading")
 );
-const SkillsLoading = lazy(
+const SkillsLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/skills/loading")
 );
-const SkillDetailLoading = lazy(
+const SkillDetailLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/skills/[name]/loading")
 );
-const ChatLoading = lazy(() => import("@/app/(dashboard)/[slug]/chat/loading"));
-const EventsLoading = lazy(
+const ChatLoading = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/chat/loading")
+);
+const EventsLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/automation/events/loading")
 );
-const SchedulesLoading = lazy(
+const SchedulesLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/automation/schedules/loading")
 );
-const BrandLoading = lazy(
+const BrandLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/brand/identity/loading")
 );
-const FeedbackLoading = lazy(
+const FeedbackLoading = lazyPage(
   () => import("@/app/(dashboard)/[slug]/feedback/loading")
 );
-const IrisLoading = lazy(() => import("@/app/(dashboard)/[slug]/iris/loading"));
+const IrisLoading = lazyPage(
+  () => import("@/app/(dashboard)/[slug]/iris/loading")
+);
 
 type OrganizationShell = Awaited<ReturnType<typeof loadOrganizationShell>>;
 
@@ -136,7 +149,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
     const { slug } = organization.useParams<Router<typeof organization>>();
     const { organizationShell } =
       organization.useRouteContext<Router<typeof organization>>();
-    const { projectId } = geo.useLoaderData<Router<typeof geo>>();
+    const { projectId, geoEntitled } = geo.useLoaderData<Router<typeof geo>>();
     return (
       <>
         <GeoCatalogWarmer organizationSlug={slug} />
@@ -144,7 +157,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
           <GeoLiveProvider
             organizationId={organizationShell.initialActiveOrganization.id}
           >
-            <GeoPageGate fallback={<DashboardLoading />}>
+            <GeoPageGate entitled={geoEntitled} fallback={<DashboardLoading />}>
               <UiModalProvider>
                 <Outlet />
               </UiModalProvider>
@@ -214,10 +227,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       parent: organization,
       path: "/",
       title: { namespace: "dashboard", key: "metaTitle" },
+      loaderSearchKeys: ["project"],
       loader: (input) => loadDashboardHome({ data: input }),
       gate: (input) => gateDashboardHome({ data: input }),
       stream: true,
       pendingComponent: DashboardLoading,
+      preload: Home.preload,
       component: ({ params, data }) =>
         data.hasAccess ? (
           <HydrationBoundary state={data.state}>
@@ -234,10 +249,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       parent: organization,
       path: "content",
       title: { namespace: "common", key: "labels.content" },
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "content" } }),
       stream: true,
       pendingComponent: ContentLoading,
+      preload: Content.preload,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
           <Content
@@ -255,10 +272,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
         key: "metaTitle",
         descriptionKey: "metaDescription",
       },
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "content-detail" } }),
       stream: true,
       pendingComponent: ContentDetailLoading,
+      preload: ContentDetail.preload,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
           <ContentDetail
@@ -278,9 +297,11 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
         key: "metaTitle",
         descriptionKey: "metaDescription",
       },
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "collection" } }),
       pendingComponent: CollectionLoading,
+      preload: Collection.preload,
       component: ({ params, data }) => (
         <Collection
           collectionId={params.id}
@@ -293,10 +314,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       parent: organization,
       path: "skills",
       title: { namespace: "common", key: "labels.skills" },
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "skills" } }),
       stream: true,
       pendingComponent: SkillsLoading,
+      preload: Skills.preload,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
           <Skills organizationId={data.organizationId} slug={params.slug} />
@@ -307,10 +330,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       parent: organization,
       path: "skills/$name",
       title: { namespace: "skills.detail", key: "metaTitle" },
+      loaderSearchKeys: ["project", "page"],
       loader: (input) =>
         loadOrganizationPage({ data: { ...input, kind: "skill-detail" } }),
       stream: true,
       pendingComponent: SkillDetailLoading,
+      preload: SkillDetail.preload,
       component: ({ params, data }) => (
         <HydrationBoundary state={data.state}>
           <SkillDetail
@@ -327,6 +352,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "chat",
       title: { title: "Chat" },
       pendingComponent: ChatLoading,
+      preload: Chat.preload,
       component: ({ params }) => <Chat organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -334,6 +360,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "chat/$chatId",
       title: { title: "Chat" },
       pendingComponent: ChatLoading,
+      preload: Chat.preload,
       component: ({ params }) => (
         <Chat
           chatId={params.chatId}
@@ -345,6 +372,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
     createUiRoute({
       parent: organization,
       path: "api-keys",
+      preload: ApiKeys.preload,
       component: () => <ApiKeys />,
     }),
     createUiRoute({
@@ -352,6 +380,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "automation/events",
       title: { namespace: "automation", key: "eventsMetaTitle" },
       pendingComponent: EventsLoading,
+      preload: Events.preload,
       component: ({ params }) => <Events organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -359,6 +388,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "automation/schedules",
       title: { namespace: "automation", key: "schedulesMetaTitle" },
       pendingComponent: SchedulesLoading,
+      preload: Schedules.preload,
       component: ({ params }) => <Schedules organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -366,6 +396,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "brand/identity",
       title: { namespace: "common", key: "labels.brandIdentity" },
       pendingComponent: BrandLoading,
+      preload: Brand.preload,
       component: ({ params }) => <Brand organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -373,6 +404,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "feedback",
       title: { namespace: "common", key: "labels.feedback" },
       pendingComponent: FeedbackLoading,
+      preload: Feedback.preload,
       component: ({ params }) => <Feedback organizationSlug={params.slug} />,
     }),
     createUiRoute({
@@ -380,11 +412,13 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
       path: "iris",
       title: { title: "Iris" },
       pendingComponent: IrisLoading,
+      preload: Iris.preload,
       component: ({ params }) => <Iris organizationSlug={params.slug} />,
     }),
     createUiRoute({
       parent: organization,
       path: "settings/billing/success",
+      preload: BillingSuccess.preload,
       component: () => <BillingSuccess />,
     }),
     ...(

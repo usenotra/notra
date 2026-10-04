@@ -16,6 +16,23 @@ import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
 
+/**
+ * Positive billing answers are reused across requests for a minute: every
+ * GEO batch and dashboard render otherwise waits on an Autumn round trip.
+ * Denials are never cached, so an upgrade applies on the next request; a
+ * cancellation takes up to the TTL to apply.
+ */
+const GRANTED_ACCESS_TTL_MS = 60_000;
+const grantedGeoEntitlement = new Map<string, number>();
+const grantedAiProductAccess = new Map<
+  string,
+  { expiresAt: number; activePlanId: string | null }
+>();
+
+function isFresh(expiresAt: number | undefined): expiresAt is number {
+  return expiresAt !== undefined && expiresAt > Date.now();
+}
+
 const checkAiAnswersEntitlement = async (organizationId: string) => {
   if (!autumn) {
     return null;
@@ -77,6 +94,11 @@ export async function resolveAiProductAccess(organizationId: string) {
     return { hasAccess: true, activePlanId: null };
   }
 
+  const granted = grantedAiProductAccess.get(organizationId);
+  if (granted && isFresh(granted.expiresAt)) {
+    return { hasAccess: true, activePlanId: granted.activePlanId };
+  }
+
   let hasAccess = false;
   let activePlanId: string | null = null;
 
@@ -108,6 +130,12 @@ export async function resolveAiProductAccess(organizationId: string) {
     throw internalServerError("Failed to verify subscription status");
   }
 
+  if (hasAccess) {
+    grantedAiProductAccess.set(organizationId, {
+      expiresAt: Date.now() + GRANTED_ACCESS_TTL_MS,
+      activePlanId,
+    });
+  }
   return { hasAccess, activePlanId };
 }
 
@@ -177,13 +205,24 @@ export async function resolveGeoEntitlement(
     return "skipped";
   }
 
+  if (isFresh(grantedGeoEntitlement.get(organizationId))) {
+    return "entitled";
+  }
+
   try {
     const memo = headers ? getORPCRequestMemo(headers) : undefined;
     let outcome = memo?.geoEntitlementByOrganization.get(organizationId);
     if (!outcome) {
-      outcome = checkAiAnswersEntitlement(organizationId).then((data) =>
-        data?.balance != null ? "entitled" : "denied"
-      );
+      outcome = checkAiAnswersEntitlement(organizationId).then((data) => {
+        if (data?.balance == null) {
+          return "denied";
+        }
+        grantedGeoEntitlement.set(
+          organizationId,
+          Date.now() + GRANTED_ACCESS_TTL_MS
+        );
+        return "entitled";
+      });
       memo?.geoEntitlementByOrganization.set(organizationId, outcome);
     }
     return await outcome;
