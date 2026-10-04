@@ -264,7 +264,13 @@ function getDefaultEditExpiration(
   return "90d";
 }
 
-function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
+function ApiKeysHeader({
+  createDisabled,
+  onCreate,
+}: {
+  createDisabled: boolean;
+  onCreate: () => void;
+}) {
   const t = useTranslations("apiKeys");
   const tCommon2 = useTranslations("common");
   return (
@@ -274,7 +280,11 @@ function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
       title={tCommon2("labels.apiKeys")}
     >
       <div className="flex items-center gap-2">
-        <Button className="gap-1.5" onClick={onCreate}>
+        <Button
+          className="gap-1.5"
+          disabled={createDisabled}
+          onClick={onCreate}
+        >
           <HugeiconsIcon className="size-4" icon={Add01Icon} />
           {t("createKey")}
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
@@ -845,6 +855,11 @@ export default function ApiKeysPage() {
   // Creating a key needs an active plan; say so up front instead of after
   // the user has filled in the form.
   const openCreateDialog = () => {
+    // Until billing has loaded we cannot tell, and an open form would only be
+    // rejected on submit.
+    if (planLoading) {
+      return false;
+    }
     if (planLocked) {
       toast.error(tBilling("subscriptionRequired"), {
         action: {
@@ -1092,6 +1107,7 @@ export default function ApiKeysPage() {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <ApiKeysHeader
+          createDisabled={planLoading}
           onCreate={() => {
             openCreateDialog();
           }}
