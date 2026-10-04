@@ -1,0 +1,25 @@
+apps/ui/registry.json
+  s_b8d7fe52266314::t_d62ac295c797ea 1107-1110
+apps/dashboard/src/components/geo/scan-activity-status.tsx
+  s_b8d7fe52266314::t_49b3cfbca14ef8 11-14,21,44,59-61
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_b8d7fe52266314::t_49b3cfbca14ef8 68-71,610-633
+apps/dashboard/src/utils/geo-scan-activity.ts
+  s_b8d7fe52266314::t_49b3cfbca14ef8 10-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "63a79a7ed6b3e679ecf83f20e19641fc73329faf",
+  "prompts": {},
+  "sessions": {
+    "s_b8d7fe52266314": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3347740f-19da-418e-a6cf-0fc74f8e3daf",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
