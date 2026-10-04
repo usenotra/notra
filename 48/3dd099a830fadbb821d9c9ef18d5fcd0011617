@@ -1,0 +1,32 @@
+packages/ui/src/components/ui/svgs/meta.tsx
+  s_7a0c38829ccc1e::t_eaa6af02173113 9-46
+  s_7a0c38829ccc1e::t_65e5bb355a1ab3 1,3-8,47-48
+apps/dashboard/messages/en.json
+  s_7a0c38829ccc1e::t_94efe1bfe2a340 3376
+apps/dashboard/src/components/geo/sentiment-engine-list.tsx
+  s_7a0c38829ccc1e::t_186c3de3d6027e 1-5,11-14,24,28-31,37-57,59-64,73,75-82,84-90
+  s_7a0c38829ccc1e::t_d2fa354446896d 15,58,65-72,74,83
+apps/dashboard/src/components/geo/sentiment-breakdown.tsx
+  s_7a0c38829ccc1e::t_cfad0128d63f93 105
+packages/ui/src/components/ui/svgs/microsoftCopilot.tsx
+  s_7a0c38829ccc1e::t_65e5bb355a1ab3 1,3-8,108-109
+  s_7a0c38829ccc1e::t_eaa6af02173113 9-107
+apps/dashboard/messages/de.json
+  s_7a0c38829ccc1e::t_94efe1bfe2a340 3376
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "483dd099a830fadbb821d9c9ef18d5fcd0011617",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
