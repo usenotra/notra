@@ -107,9 +107,9 @@ const PROFILES: Record<Profile, Record<SenderRole, Sender>> = {
       replyTo: "support@usenotra.com",
     },
     founder: {
-      domain: "hello.usenotra.com",
+      domain: "marketing.usenotra.com",
       purpose: "marketing",
-      fromAddress: "dominik@hello.usenotra.com",
+      fromAddress: "dominik@marketing.usenotra.com",
       fromName: "Dominik from Notra",
       replyTo: "dominik@usenotra.com",
     },
