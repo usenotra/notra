@@ -17,6 +17,7 @@ import type {
 
 const DIGEST_KEY_PREFIX = "content-email-digest";
 const DIGEST_LOCK_KEY_PREFIX = "content-email-digest-lock";
+const DIGEST_BATCH_KEY_PREFIX = "content-email-digest-batch";
 
 export function getContentEmailDigestKey({
   organizationId,
@@ -82,14 +83,20 @@ export async function releaseContentEmailDigestWindow(digestKey: string) {
   await redis.del(getContentEmailDigestLockKey(digestKey));
 }
 
+/**
+ * Upstash deserializes JSON list items on read, so events usually arrive as
+ * objects; strings only show up for clients with that turned off.
+ */
 function parseDigestEvents(
-  rawEvents: string[],
+  rawEvents: unknown[],
   kind: ContentEmailDigestKind
 ): ContentEmailDigestEvent[] {
   return rawEvents.flatMap((rawEvent) => {
     try {
-      const parsed = JSON.parse(rawEvent) as ContentEmailDigestEvent;
-      return parsed.kind === kind ? [parsed] : [];
+      const parsed = (
+        typeof rawEvent === "string" ? JSON.parse(rawEvent) : rawEvent
+      ) as ContentEmailDigestEvent | null;
+      return parsed?.kind === kind ? [parsed] : [];
     } catch {
       return [];
     }
@@ -147,22 +154,53 @@ function assertEmailSent({
   );
 }
 
-export async function flushContentEmailDigest({
-  digestKey,
-  recipientEmail,
-  kind,
-}: ContentEmailDigestPayload) {
-  "use step";
+/**
+ * Pins the events a flush sends to the first attempt. Events appended while a
+ * send is in flight stay out of a retry, so the retry reuses the same Brew
+ * idempotency key and they wait for the next window instead.
+ */
+async function readDigestBatch(digestKey: string, batchId: string) {
+  if (!redis) {
+    return { rawEvents: [] as unknown[], complete: async () => {} };
+  }
 
+  const client = redis;
+  const batchSizeKey = `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`;
+  await client.set(batchSizeKey, await client.llen(digestKey), {
+    ex: CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+    nx: true,
+  });
+  const batchSize = Number(await client.get(batchSizeKey));
+  const rawEvents =
+    batchSize > 0
+      ? await client.lrange<unknown>(digestKey, 0, batchSize - 1)
+      : [];
+
+  return {
+    rawEvents,
+    complete: async () => {
+      await client.ltrim(digestKey, rawEvents.length, -1);
+      await client.del(getContentEmailDigestLockKey(digestKey), batchSizeKey);
+    },
+  };
+}
+
+/**
+ * Sends one digest. `batchId` must be unique per flush and stable across its
+ * retries (the workflow step id): it scopes the batch and the idempotency key.
+ */
+export async function flushContentEmailDigest(
+  { digestKey, recipientEmail, kind }: ContentEmailDigestPayload,
+  batchId: string
+) {
   if (!redis) {
     return;
   }
 
-  const rawEvents = await redis.lrange<string>(digestKey, 0, -1);
+  const { rawEvents, complete } = await readDigestBatch(digestKey, batchId);
   const events = parseDigestEvents(rawEvents, kind);
   if (events.length === 0) {
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
+    await complete();
     return;
   }
 
@@ -171,9 +209,7 @@ export async function flushContentEmailDigest({
     return;
   }
 
-  // The batch only changes once it is trimmed after a successful send, so a
-  // retried step reuses this key and Brew replays instead of sending twice.
-  const digestBatchKey = [digestKey, ...rawEvents].join("\n");
+  const digestBatchKey = `${digestKey}:${batchId}`;
 
   if (kind === "ai_credits_depleted") {
     const creditEvents = events.filter(
@@ -199,8 +235,7 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
+    await complete();
     return;
   }
 
@@ -239,8 +274,7 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
+    await complete();
     return;
   }
 
@@ -272,8 +306,7 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
+    await complete();
     return;
   }
 
@@ -304,6 +337,5 @@ export async function flushContentEmailDigest({
     recipientEmail,
     kind,
   });
-  await redis.ltrim(digestKey, rawEvents.length, -1);
-  await redis.del(getContentEmailDigestLockKey(digestKey));
+  await complete();
 }

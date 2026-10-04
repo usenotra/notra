@@ -466,6 +466,16 @@ async function ensureAutomation(
     ? await reconcileSendStep(existing.automationId, sendConfig)
     : await createAutomation(name, triggerEventId, sendConfig);
 
+  // A reshaped graph is left as is, but ensureStrictContract may have
+  // unpublished it, so bring it back live.
+  if (!automation && existing?.published) {
+    await api("PATCH", `/automations/${existing.automationId}`, {
+      published: true,
+    });
+    console.log(`Republished ${name}`);
+    return;
+  }
+
   // New automations and saved edits are drafts until published.
   const isLiveLatest =
     automation?.published &&

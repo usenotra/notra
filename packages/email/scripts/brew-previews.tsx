@@ -20,12 +20,11 @@ process.env.NEXT_PUBLIC_SITE_URL = "https://usenotra.com";
 process.env.NEXT_PUBLIC_APP_URL = "https://app.usenotra.com";
 const { EMAIL_LABELS, EMAIL_SAMPLES } = await import("./email-samples");
 
-const existing = await list<{ emailId: string; title: string }>("/emails");
-for (const email of existing.filter((row) =>
-  row.title.startsWith(TITLE_PREFIX)
-)) {
-  await api("DELETE", `/emails/${email.emailId}`);
-}
+// Old previews go only after every replacement imported, so a failed run
+// leaves the previous set in place.
+const stale = (
+  await list<{ emailId: string; title: string }>("/emails")
+).filter((row) => row.title.startsWith(TITLE_PREFIX));
 
 for (const [category, [subject, react]] of Object.entries(EMAIL_SAMPLES) as [
   BrewEmailCategory,
@@ -46,4 +45,8 @@ for (const [category, [subject, react]] of Object.entries(EMAIL_SAMPLES) as [
     content,
   });
   console.log(`Imported preview ${EMAIL_LABELS[category]}`);
+}
+
+for (const email of stale) {
+  await api("DELETE", `/emails/${email.emailId}`);
 }
