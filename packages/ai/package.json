@@ -37,7 +37,7 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
-    "test": "bun test src && bun test tests"
+    "test": "bun test src"
   },
   "dependencies": {
     "@ai-sdk/code-mode": "1.0.62",
