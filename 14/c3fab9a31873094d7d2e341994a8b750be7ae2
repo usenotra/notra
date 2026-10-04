@@ -1,0 +1,23 @@
+apps/dashboard/src/types/onboarding.ts
+  s_7a0c38829ccc1e::t_b6d2ba55ffa971 41-42
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_7a0c38829ccc1e::t_b6d2ba55ffa971 178,180-181
+apps/dashboard/src/routes/-onboarding-loaders.ts
+  s_7a0c38829ccc1e::t_b6d2ba55ffa971 170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "14c3fab9a31873094d7d2e341994a8b750be7ae2",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
