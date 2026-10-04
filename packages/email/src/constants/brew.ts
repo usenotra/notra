@@ -21,6 +21,8 @@ export const BREW_MAX_RETRIES = 3;
 export const BREW_RETRY_BASE_DELAY_MS = 1000;
 export const BREW_RETRY_JITTER_MS = 1000;
 /** Brew rate limits are per 60 s window, so a full `Retry-After` fits. */
+/** Largest page Brew serves for list endpoints. */
+export const BREW_CONTACTS_PAGE_SIZE = 100;
 export const BREW_RETRY_MAX_DELAY_MS = 60_000;
 
 /** Brew caps contact upserts at 1000 rows per request. */

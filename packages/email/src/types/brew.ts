@@ -88,6 +88,16 @@ export interface BrewContactInput {
   customFields: BrewContactCustomFields;
 }
 
+export interface BrewContact {
+  email: string;
+  customFields?: Partial<BrewContactCustomFields>;
+}
+
+export interface BrewContactsPage {
+  data: BrewContact[];
+  pagination: { cursor: string | null };
+}
+
 export interface BrewContactsBatchResponse {
   summary?: Record<string, number>;
   errors?: { email?: string; code?: string; message?: string }[];

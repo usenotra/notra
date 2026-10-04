@@ -6,10 +6,19 @@ import {
   users,
 } from "@notra/db/schema";
 import type { BrewContactInput } from "@notra/email/types/brew";
-import { isBrewConfigured, upsertBrewContacts } from "@notra/email/utils/brew";
+import {
+  deleteBrewContact,
+  isBrewConfigured,
+  listBrewContacts,
+  upsertBrewContacts,
+} from "@notra/email/utils/brew";
 import { and, type AnyColumn, eq, inArray, sql } from "drizzle-orm";
 
-import { BREW_CONTACTS_LOGGED_ERROR_LIMIT } from "@/constants/email/brew-contacts";
+import {
+  BREW_CONTACTS_LOGGED_ERROR_LIMIT,
+  BREW_CONTACTS_MAX_PRUNE_RATIO,
+  BREW_CONTACTS_PRUNE_FLOOR,
+} from "@/constants/email/brew-contacts";
 
 const WHITESPACE_REGEX = /\s+/;
 
@@ -101,6 +110,58 @@ export async function syncBrewContacts(userIds?: string[]) {
   }
 
   return { synced: contacts.length - failed, failed };
+}
+
+/**
+ * Deletes Brew contacts whose Notra user no longer exists, catching account
+ * deletions whose immediate Brew delete failed. Contacts Brew got from
+ * anywhere else (no `notraUserId`) are left alone.
+ */
+export async function pruneBrewContacts() {
+  if (!isBrewConfigured()) {
+    return { pruned: 0 };
+  }
+
+  const listed = await listBrewContacts();
+  if (!listed.ok) {
+    throw new Error(`Failed to list Brew contacts: ${listed.error.message}`);
+  }
+
+  const synced = listed.data.filter(
+    (contact) => contact.customFields?.notraUserId
+  );
+  const userIds = synced.map(
+    (contact) => contact.customFields?.notraUserId ?? ""
+  );
+  const existing = new Set(
+    userIds.length === 0
+      ? []
+      : (
+          await db
+            .select({ id: users.id })
+            .from(users)
+            .where(inArray(users.id, userIds))
+        ).map((user) => user.id)
+  );
+  const orphans = synced.filter(
+    (contact) => !existing.has(contact.customFields?.notraUserId ?? "")
+  );
+
+  const pruneLimit = Math.max(
+    BREW_CONTACTS_PRUNE_FLOOR,
+    synced.length * BREW_CONTACTS_MAX_PRUNE_RATIO
+  );
+  if (orphans.length > pruneLimit) {
+    throw new Error(
+      `Refusing to prune ${orphans.length} of ${synced.length} Brew contacts`
+    );
+  }
+
+  for (const contact of orphans) {
+    await deleteBrewContact(contact.email);
+  }
+
+  return { pruned: orphans.length };
 }
 
 export async function syncBrewContactsForOrganizationOwners(

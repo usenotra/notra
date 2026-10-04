@@ -6,6 +6,7 @@ import { render } from "react-email";
 import {
   BREW_API_BASE_URL,
   BREW_CONTACTS_BATCH_SIZE,
+  BREW_CONTACTS_PAGE_SIZE,
   BREW_EMAIL_TRIGGERS,
   BREW_IDEMPOTENCY_HASH_LENGTH,
   BREW_MAX_RETRIES,
@@ -17,7 +18,9 @@ import {
   HTTP_TOO_MANY_REQUESTS,
 } from "../constants/brew";
 import type {
+  BrewContact,
   BrewContactInput,
+  BrewContactsPage,
   BrewContactsBatchResponse,
   BrewEmailError,
   BrewErrorBody,
@@ -120,7 +123,15 @@ export async function brewRequest<T>(
 
   for (let attempt = 0; ; attempt += 1) {
     const result = await brewFetch<T>(apiKey, path, init);
-    if (result.ok || !result.error.retryable || attempt >= BREW_MAX_RETRIES) {
+    // Waiting out a longer Retry-After would hold the request open for
+    // minutes; the caller's own retry (workflow step, nightly cron) is better.
+    const retryAfterMs = result.ok ? 0 : (result.error.retryAfterMs ?? 0);
+    if (
+      result.ok ||
+      !result.error.retryable ||
+      attempt >= BREW_MAX_RETRIES ||
+      retryAfterMs > BREW_RETRY_MAX_DELAY_MS
+    ) {
       return result;
     }
 
@@ -128,10 +139,7 @@ export async function brewRequest<T>(
       BREW_RETRY_BASE_DELAY_MS * 2 ** attempt +
       Math.random() * BREW_RETRY_JITTER_MS;
     await sleep(
-      Math.min(
-        Math.max(backoffMs, result.error.retryAfterMs ?? 0),
-        BREW_RETRY_MAX_DELAY_MS
-      )
+      Math.max(Math.min(backoffMs, BREW_RETRY_MAX_DELAY_MS), retryAfterMs)
     );
   }
 }
@@ -267,6 +275,28 @@ export async function upsertBrewContacts(
   }
 
   return { failed, errors };
+}
+
+/** Lists every Brew contact, page by page. */
+export async function listBrewContacts(): Promise<BrewResponse<BrewContact[]>> {
+  const contacts: BrewContact[] = [];
+  let cursor: string | null = null;
+
+  do {
+    const query: string = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+    const result: BrewResponse<BrewContactsPage> =
+      await brewRequest<BrewContactsPage>(
+        `/contacts?limit=${BREW_CONTACTS_PAGE_SIZE}${query}`,
+        { method: "GET" }
+      );
+    if (!result.ok) {
+      return result;
+    }
+    contacts.push(...result.data.data);
+    cursor = result.data.pagination.cursor;
+  } while (cursor);
+
+  return { ok: true, data: contacts };
 }
 
 /**
