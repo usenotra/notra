@@ -15,6 +15,8 @@ bunx shadcn@latest add @notra/data-table
 
 This installs the table into `components/data-table/` and replaces `components/ui/table.tsx` with the framed [Table](#table) primitives. It also pulls in [Button](/components/button) and [Tooltip](/components/tooltip), plus shadcn's Checkbox, Select, Context Menu and Skeleton.
 
+The table needs a shadcn project on Base UI (a `base-*` style) and Tailwind CSS v4. On a Radix style, the Checkbox, Tooltip and Context Menu APIs differ and the table won't compile.
+
 ## Usage
 
 Describe the columns once and pass the rows. A column reads `row[key]` unless it has a `cell` renderer, and sorts by the same value unless it has `sortValue`.
