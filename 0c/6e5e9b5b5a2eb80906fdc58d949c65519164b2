@@ -1,0 +1,19 @@
+apps/dashboard/src/lib/orpc/routers/geo.ts
+  s_7a0c38829ccc1e::t_a70545159b428a 910-917,921-922
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0c6e5e9b5b5a2eb80906fdc58d949c65519164b2",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
