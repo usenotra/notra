@@ -1,0 +1,80 @@
+apps/dashboard/src/lib/brand-analysis.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 12,145
+apps/dashboard/src/routes/-integrations-ui.tsx
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 5
+apps/dashboard/src/lib/framework/runtime.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 14
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/route.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 66,287
+packages/ui/src/constants/framework-image.ts
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 3
+apps/dashboard/src/lib/demo/sandbox.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 56,327,392,556
+apps/dashboard/src/lib/demo/ui-actions.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 6,64
+apps/dashboard/src/lib/framework/after-response.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 11,16
+apps/dashboard/src/lib/billing/subscription.ts
+  ai_agent 237-239
+  s_7a0c38829ccc1e::t_10e2115edae769 9,23-25,27-28,44-63,99-142,156-157
+apps/dashboard/src/lib/geo-shelf/request-service.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 10,69
+apps/dashboard/src/utils/dashboard-home-prefetch.server.ts
+  s_7a0c38829ccc1e::t_006d78fc1bd34a 10,13,49,51
+apps/dashboard/src/routes/-ui-modal.tsx
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 8
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 83,887
+apps/dashboard/src/types/ui-route.ts
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 45-46
+apps/dashboard/src/app/onboarding/workspace/actions.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 80,250,344
+apps/dashboard/src/lib/framework/follow-server-redirect.ts
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 5
+apps/dashboard/src/types/auth/organization.ts
+  s_7a0c38829ccc1e::t_006d78fc1bd34a 16-18
+apps/dashboard/src/lib/orpc/routers/geo.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 283,981
+apps/dashboard/src/routes/-ui-route.tsx
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 13
+apps/dashboard/src/utils/dashboard-list-prefetch.server.ts
+  s_7a0c38829ccc1e::t_006d78fc1bd34a 8,10,39,79,115,143
+apps/dashboard/src/app/api/webhooks/github/app/route.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 4,26
+apps/dashboard/src/utils/content-prefetch.server.ts
+  s_7a0c38829ccc1e::t_006d78fc1bd34a 7,9,15,17
+apps/dashboard/src/routes/-onboarding-loaders.ts
+  s_7a0c38829ccc1e::t_d5e8befdb95a81 33
+apps/dashboard/src/routes/-entry-loaders.ts
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 28
+  s_7a0c38829ccc1e::t_d5e8befdb95a81 12,155
+apps/dashboard/src/app/rpc/[[...rest]]/route.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 14,83
+apps/dashboard/src/utils/seed-membership.server.ts
+  s_7a0c38829ccc1e::t_006d78fc1bd34a 1-23
+apps/dashboard/src/lib/analytics/posthog-server.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 14,36
+apps/dashboard/src/routes/-dashboard-loaders.ts
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 17
+  s_7a0c38829ccc1e::t_e02ee1cd211fac 243-249,256,287-293
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/posts/route.ts
+  s_7a0c38829ccc1e::t_d33884edc374e5 17,158
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_7a0c38829ccc1e::t_9bbf6fefabaea5 176-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d8bc290300060c84e3b2a860bfd1efe66f7ee4ac",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
