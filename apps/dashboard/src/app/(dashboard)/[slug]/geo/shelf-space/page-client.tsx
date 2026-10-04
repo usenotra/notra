@@ -137,6 +137,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
           ) : null}
           <ShelfView
             boardCounts={page.boardCounts}
+            competitorCount={page.competitors.length}
             currentMemberId={page.currentMemberId}
             filteredCount={page.filteredCount}
             hasNextPage={page.hasNextPage}
