@@ -1,3 +1,4 @@
+import { isBrewConfigured } from "@notra/email/utils/brew";
 import { isDemoMode } from "@notra/utils/demo-mode";
 
 import { pruneBrewContacts, syncBrewContacts } from "@/lib/email/brew-contacts";
@@ -21,6 +22,10 @@ export async function GET(request: Request) {
   // Checked after auth so reading the request keeps this route dynamic.
   if (isDemoMode()) {
     return new Response(null, { status: 204 });
+  }
+  // A missing key would make every sync a silent no-op; fail loudly instead.
+  if (!isBrewConfigured()) {
+    return Response.json({ error: "BREW_API_KEY is not set" }, { status: 503 });
   }
 
   const result = await syncBrewContacts();
