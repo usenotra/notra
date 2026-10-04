@@ -1,0 +1,27 @@
+apps/dashboard/src/lib/orpc/link-plugins.ts
+  s_7a0c38829ccc1e::t_461f162cc87247 1-32
+apps/dashboard/tests/security-contracts.test.ts
+  s_7a0c38829ccc1e::t_2bbd5a51d56d18 3-7,14-15,114-164
+apps/dashboard/src/app/rpc/[[...rest]]/route.ts
+  s_7a0c38829ccc1e::t_461f162cc87247 15,42
+apps/dashboard/src/lib/orpc/client.ts
+  s_7a0c38829ccc1e::t_461f162cc87247 5,21
+apps/dashboard/src/lib/orpc/handler-plugins.ts
+  s_7a0c38829ccc1e::t_461f162cc87247 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "64ca67745f429e8d911f54980eb93feb3afb806a",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
