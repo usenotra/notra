@@ -33,6 +33,7 @@ import {
   ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS,
   ONBOARDING_STEP_WORKSPACE,
 } from "@/constants/onboarding";
+import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
 import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
 import { extractDomain } from "@/lib/onboarding/company-logo";
 import {
@@ -40,6 +41,7 @@ import {
   readFileAsDataUrl,
   validateLogoFile,
 } from "@/lib/onboarding/logo-file";
+import { skipOnboarding } from "@/lib/onboarding/skip";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type {
   OnboardingExistingOrg,
@@ -173,6 +175,17 @@ export function WorkspaceForm({
           logoSourceUrl: null,
           value,
         });
+        if (!value.websiteUrl.trim()) {
+          // The GEO steps start from the brand the website analysis creates;
+          // without a website they would send the user straight back here.
+          await followServerRedirect(
+            skipOnboarding(
+              currentOrg?.slug ?? value.slug,
+              ONBOARDING_STEPS.WORKSPACE
+            )
+          );
+          return;
+        }
         window.location.assign("/onboarding/visibility");
       } catch (err) {
         toast.error(
