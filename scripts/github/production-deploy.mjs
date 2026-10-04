@@ -262,8 +262,7 @@ export async function release({
     "finalizing",
     "awaiting_approval",
   ];
-  let apiPlan;
-  if (env.UNKEY_DEPLOY_ROOT_KEY) {
+  const planApiRelease = async () => {
     const domains = await unkey("v2/domains.listDomains", {
       search: "api.usenotra.com",
       limit: 100,
@@ -334,11 +333,17 @@ export async function release({
       throw new Error("unkey: cannot identify API's live production commit");
     }
     await assertAheadOf("unkey API", live.git.commitSha);
-    apiPlan = {
+    return {
       target,
       live,
-      changed: buildChanged("apps/api", live.git.commitSha, sha),
+      changed:
+        live.git.commitSha !== sha &&
+        buildChanged("apps/api", live.git.commitSha, sha),
     };
+  };
+  let apiPlan;
+  if (env.UNKEY_DEPLOY_ROOT_KEY) {
+    apiPlan = await planApiRelease();
   } else {
     await report(
       "unkey: API release disabled; configure UNKEY_DEPLOY_ROOT_KEY to enable"
@@ -487,6 +492,19 @@ export async function release({
   }
 
   if (apiPlan) {
+    if (env.DRY_RUN !== "true") {
+      const refreshed = await planApiRelease();
+      if (
+        Object.keys(apiPlan.target).some(
+          (key) => apiPlan.target[key] !== refreshed.target[key]
+        )
+      ) {
+        throw new Error(
+          "unkey: production domain target changed during Vercel releases"
+        );
+      }
+      apiPlan = refreshed;
+    }
     if (!apiPlan.changed) {
       await report("unkey: skipped, no API build changes since production");
     } else if (env.DRY_RUN === "true") {

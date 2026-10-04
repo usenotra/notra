@@ -313,7 +313,11 @@ test("Unkey discovers the verified production domain and deploys the pinned comm
     environment: "env_test",
     git: { branch: "main", commitSha: sha },
   });
-  assert.equal(directories.length, 9);
+  assert.equal(directories.length, 10);
+  assert.equal(
+    directories.filter((directory) => directory === "apps/api").length,
+    3
+  );
   const apiIndex = calls.indexOf(deployment);
   assert.ok(
     calls.findIndex(({ body }) =>
@@ -458,6 +462,119 @@ test("Unkey creation failure is not retried and prevents Railway builds", async 
   );
   assert.ok(
     builds(calls).every(({ url }) => url.hostname !== "backboard.railway.com")
+  );
+});
+
+for (const [name, path, data] of [
+  [
+    "active deployment",
+    "/v2/deployments.listDeployments",
+    [{ id: "manual-api" }],
+  ],
+  [
+    "rollback",
+    "/v2/apps.getApp",
+    {
+      id: "app_test",
+      git: { repository: "usenotra/notra", defaultBranch: "main" },
+      isRolledBack: true,
+    },
+  ],
+  [
+    "auto deploy enabled",
+    "/v2/environments.getEnvironment",
+    { id: "env_test", kind: "production", build: { autoDeploy: true } },
+  ],
+  [
+    "repository changed",
+    "/v2/apps.getApp",
+    {
+      id: "app_test",
+      git: { repository: "other/repo", defaultBranch: "main" },
+    },
+  ],
+]) {
+  test(`Unkey intervening ${name} blocks API creation after Vercel`, async () => {
+    let reads = 0;
+    const { run, calls } = fixture({
+      api: true,
+      override: ({ url }) => {
+        if (url.pathname === path && ++reads === 2) {
+          return data;
+        }
+      },
+    });
+    await assert.rejects(run(), /unkey/);
+    assert.equal(
+      calls.filter(({ url }) => url.pathname === "/v13/deployments").length,
+      5
+    );
+    assert.ok(
+      builds(calls).every(({ url }) => url.hostname === "api.vercel.com")
+    );
+  });
+}
+
+test("Unkey intervening newer commit cannot be overwritten by the scheduled release", async () => {
+  let reads = 0;
+  const newer = "c".repeat(40);
+  const { run, calls } = fixture({
+    api: true,
+    override: ({ url, body }) => {
+      if (
+        url.pathname === "/v2/deployments.getDeployment" &&
+        body.deploymentId === "live-api" &&
+        ++reads === 2
+      ) {
+        return {
+          id: "live-api",
+          status: "ready",
+          isCurrent: true,
+          app: "api",
+          environment: "production",
+          git: { commitSha: newer },
+        };
+      }
+      if (url.pathname.includes(`/compare/${newer}`)) {
+        return { status: "behind" };
+      }
+    },
+  });
+  await assert.rejects(run(), /unkey API: release commit is not ahead/);
+  assert.ok(
+    builds(calls).every(({ url }) => url.hostname === "api.vercel.com")
+  );
+});
+
+test("Unkey intervening release of the selected SHA skips duplicate API creation", async () => {
+  let reads = 0;
+  const { run, calls } = fixture({
+    api: true,
+    override: ({ url, body }) => {
+      if (
+        url.pathname === "/v2/deployments.getDeployment" &&
+        body.deploymentId === "live-api" &&
+        ++reads === 2
+      ) {
+        return {
+          id: "live-api",
+          status: "ready",
+          isCurrent: true,
+          app: "api",
+          environment: "production",
+          git: { commitSha: "a".repeat(40) },
+        };
+      }
+    },
+  });
+  await run();
+  assert.ok(
+    calls.every(
+      ({ url }) => url.pathname !== "/v3/deployments.createDeployment"
+    )
+  );
+  assert.ok(
+    builds(calls).some(({ url }) => url.hostname === "backboard.railway.com")
   );
 });
 

@@ -381,9 +381,9 @@ every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
-per project. Five sequential Vercel builds plus the 20-minute Railway phase can
-take up to 70 minutes, excluding API overhead, within the workflow's 120-minute
-job limit.
+per project. Five sequential Vercel builds, the 20-minute Unkey phase, and the
+20-minute Railway phase can take up to 90 minutes when the API release is enabled,
+excluding API overhead, within the workflow's 120-minute job limit.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
@@ -438,7 +438,10 @@ replacement configuration is ready.
 
 Changed API builds use [createDeployment](https://unkey.com/docs/compute/api-reference/deployments/create-deployment)
 with the exact checked `git.commitSha`. After the Vercel releases succeed, the
-workflow builds the API and polls for up to 20 minutes until that deployment is
+workflow rechecks the API's production configuration, active deployments and live
+commit before creating its build. An intervening newer release, rollback, or domain
+target change blocks the API deployment; an intervening release of the selected
+commit skips the duplicate build. It then polls for up to 20 minutes until that deployment is
 `ready`, has the expected target and commit, and is current in production. An API
 failure prevents Railway deployments. Deployment creation is not retried, and no
 provider settings are changed by the workflow. The release is not atomic: an API
