@@ -445,20 +445,11 @@ export async function saveOnboardingNotificationSettings(
     organizationId: parsed.data.organizationId,
     dailySummary: parsed.data.dailySummary,
   });
-  // Marketing consent is the user's own, not the organization's. The choice
-  // is saved before Brew is called, and the nightly contact sync retries Brew,
-  // so a Brew outage must not block onboarding.
-  try {
-    await applyOnboardingMarketingChoice({
-      userId,
-      enabled: parsed.data.marketingEmails,
-    });
-  } catch (error) {
-    console.error("[Onboarding] Failed to sync marketing consent to Brew", {
-      userId,
-      error: error instanceof Error ? error.message : error,
-    });
-  }
+  // Marketing consent is the user's own, not the organization's.
+  await applyOnboardingMarketingChoice({
+    userId,
+    enabled: parsed.data.marketingEmails,
+  });
 
   return { success: true };
 }

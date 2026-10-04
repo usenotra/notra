@@ -103,8 +103,13 @@ export const users = pgTable("users", {
    * from an email footer live in Brew, not here.
    */
   marketingOptInAt: timestamp("marketing_opt_in_at"),
-  /** Where the opt-in was given ("onboarding" or "settings"), for proof. */
-  marketingOptInSource: text("marketing_opt_in_source"),
+  /**
+   * Proof of the opt-in: where it was given and the exact wording shown, in
+   * the user's language. Sent to Brew as consent evidence.
+   */
+  marketingOptInEvidence: text("marketing_opt_in_evidence"),
+  /** Privacy policy version in force when the user opted in. */
+  marketingOptInPolicyVersion: text("marketing_opt_in_policy_version"),
 });
 
 export const userBackupCodes = pgTable(

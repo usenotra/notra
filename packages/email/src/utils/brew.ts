@@ -329,21 +329,29 @@ let marketingDomainId: Promise<string> | undefined;
 /** Looks up the marketing domain id once per process. */
 function getMarketingDomainId(): Promise<string> {
   marketingDomainId ??= (async () => {
-    const result = await brewRequest<BrewDomainsPage>(
-      `/domains?limit=${BREW_CONTACTS_PAGE_SIZE}`,
-      { method: "GET" }
-    );
-    const domain = result.ok
-      ? result.data.data.find((row) => row.name === BREW_MARKETING_DOMAIN)
-      : undefined;
-    if (!domain) {
-      throw new Error(
-        result.ok
-          ? `Brew has no domain ${BREW_MARKETING_DOMAIN}`
-          : `Failed to list Brew domains: ${result.error.message}`
+    let cursor: string | null = null;
+    do {
+      const query: string = cursor
+        ? `&cursor=${encodeURIComponent(cursor)}`
+        : "";
+      const result: BrewResponse<BrewDomainsPage> =
+        await brewRequest<BrewDomainsPage>(
+          `/domains?limit=${BREW_CONTACTS_PAGE_SIZE}${query}`,
+          { method: "GET" }
+        );
+      if (!result.ok) {
+        throw new Error(`Failed to list Brew domains: ${result.error.message}`);
+      }
+      const domain = result.data.data.find(
+        (row) => row.name === BREW_MARKETING_DOMAIN
       );
-    }
-    return domain.domainId;
+      if (domain) {
+        return domain.domainId;
+      }
+      cursor = result.data.pagination.cursor;
+    } while (cursor);
+
+    throw new Error(`Brew has no domain ${BREW_MARKETING_DOMAIN}`);
   })().catch((error: unknown) => {
     marketingDomainId = undefined;
     throw error;

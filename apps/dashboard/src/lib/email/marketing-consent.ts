@@ -1,11 +1,13 @@
 import "server-only";
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
+import { BREW_MARKETING_CONSENT_POLICY_VERSION } from "@notra/email/constants/brew";
 import {
   getBrewMarketingStatus,
   setBrewMarketingUnsubscribed,
 } from "@notra/email/utils/brew";
 import { eq } from "drizzle-orm";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { syncBrewContacts } from "@/lib/email/brew-contacts";
 import type {
@@ -37,12 +39,24 @@ export async function getMarketingEmailsState(
   };
 }
 
-/**
- * Records the user's choice and mirrors it to Brew. The contact is upserted
- * before its unsubscribe list entry changes, because Brew creates unknown
- * addresses as globally unsubscribed.
- */
-export async function setMarketingEmails({
+/** The checkbox exactly as the user saw it, in their language. */
+async function buildConsentEvidence(source: MarketingOptInSource) {
+  const locale = await getLocale();
+  const tLabels = await getTranslations("common.labels");
+  const description =
+    source === "onboarding"
+      ? (await getTranslations("onboarding.emailPrefs"))(
+          "marketingEmails.description"
+        )
+      : (await getTranslations("settings.panes.notifications"))(
+          "toggles.marketingEmails.description"
+        );
+
+  return `Notra ${source} (${locale}): unchecked checkbox "${tLabels("productUpdates")}: ${description}", ticked by the signed-in user (verified email)`;
+}
+
+/** Stores the choice. Throws only on database errors. */
+async function saveMarketingChoice({
   userId,
   enabled,
   source,
@@ -50,32 +64,78 @@ export async function setMarketingEmails({
   userId: string;
   enabled: boolean;
   source: MarketingOptInSource;
-}): Promise<MarketingEmailsState> {
+}): Promise<string> {
   const [user] = await db
     .update(users)
-    .set({
-      marketingOptInAt: enabled ? new Date() : null,
-      marketingOptInSource: enabled ? source : null,
-    })
+    .set(
+      enabled
+        ? {
+            marketingOptInAt: new Date(),
+            marketingOptInEvidence: await buildConsentEvidence(source),
+            marketingOptInPolicyVersion: BREW_MARKETING_CONSENT_POLICY_VERSION,
+          }
+        : {
+            marketingOptInAt: null,
+            marketingOptInEvidence: null,
+            marketingOptInPolicyVersion: null,
+          }
+    )
     .where(eq(users.id, userId))
     .returning({ email: users.email });
   if (!user) {
     throw new Error("User not found");
   }
+  return user.email;
+}
 
+/**
+ * Mirrors a stored choice to Brew. An opt-in upserts the contact (with its
+ * consent record) before lifting the unsubscribe, because Brew creates
+ * unknown addresses as globally unsubscribed. An opt-out unsubscribes even
+ * when the contact sync fails, so no marketing email slips through.
+ */
+async function mirrorMarketingChoice({
+  userId,
+  email,
+  enabled,
+}: {
+  userId: string;
+  email: string;
+  enabled: boolean;
+}): Promise<MarketingEmailsState> {
   const { failed } = await syncBrewContacts([userId]);
-  if (failed > 0) {
+  const synced = failed === 0;
+
+  if (enabled && !synced) {
     throw new Error("Failed to sync the Brew contact");
   }
 
-  const status = await setBrewMarketingUnsubscribed(user.email, !enabled);
+  const status = await setBrewMarketingUnsubscribed(email, !enabled);
+  if (!synced) {
+    throw new Error("Failed to sync the Brew contact");
+  }
+
   return {
     enabled: enabled && status !== "globally_unsubscribed",
     blockedByUnsubscribe: status === "globally_unsubscribed",
   };
 }
 
-/** Applies the onboarding checkbox, touching Brew only when it changed. */
+/** Records the user's choice and mirrors it to Brew. */
+export async function setMarketingEmails(options: {
+  userId: string;
+  enabled: boolean;
+  source: MarketingOptInSource;
+}): Promise<MarketingEmailsState> {
+  const email = await saveMarketingChoice(options);
+  return mirrorMarketingChoice({ ...options, email });
+}
+
+/**
+ * Applies the onboarding checkbox when it changed. The choice is always
+ * stored; a Brew failure is only logged (the nightly contact sync catches
+ * up), so a Brew outage never blocks onboarding.
+ */
 export async function applyOnboardingMarketingChoice({
   userId,
   enabled,
@@ -91,5 +151,17 @@ export async function applyOnboardingMarketingChoice({
     return;
   }
 
-  await setMarketingEmails({ userId, enabled, source: "onboarding" });
+  const email = await saveMarketingChoice({
+    userId,
+    enabled,
+    source: "onboarding",
+  });
+  try {
+    await mirrorMarketingChoice({ userId, email, enabled });
+  } catch (error) {
+    console.error("[MarketingConsent] Failed to mirror choice to Brew", {
+      userId,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 }

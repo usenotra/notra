@@ -33,10 +33,6 @@ export const BREW_CONTACTS_PAGE_SIZE = 100;
  */
 export const BREW_MARKETING_DOMAIN = "marketing.usenotra.com";
 
-/** Wording the user agreed to, recorded as Brew consent evidence. */
-export const BREW_MARKETING_CONSENT_WORDING =
-  'unchecked checkbox "Product updates: new features, tips and announcements", ticked by the signed-in user (verified email)';
-
 /** Privacy policy in force when consent is given; bump with the policy date. */
 export const BREW_MARKETING_CONSENT_POLICY_VERSION = "privacy-2026-10-04";
 

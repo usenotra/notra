@@ -5,10 +5,6 @@ import {
   organizationNotificationSettings,
   users,
 } from "@notra/db/schema";
-import {
-  BREW_MARKETING_CONSENT_POLICY_VERSION,
-  BREW_MARKETING_CONSENT_WORDING,
-} from "@notra/email/constants/brew";
 import type { BrewContactInput } from "@notra/email/types/brew";
 import {
   deleteBrewContact,
@@ -52,7 +48,8 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
       name: users.name,
       createdAt: users.createdAt,
       marketingOptInAt: users.marketingOptInAt,
-      marketingOptInSource: users.marketingOptInSource,
+      marketingOptInEvidence: users.marketingOptInEvidence,
+      marketingOptInPolicyVersion: users.marketingOptInPolicyVersion,
       dailySummaryEmails: ownedOrganizationsWith(
         organizationNotificationSettings.dailySummary,
         true
@@ -89,7 +86,8 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
       name,
       createdAt,
       marketingOptInAt,
-      marketingOptInSource,
+      marketingOptInEvidence,
+      marketingOptInPolicyVersion,
       ...preferences
     }) => ({
       email,
@@ -100,14 +98,16 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
         marketingEmails: marketingOptInAt !== null,
         ...preferences,
       },
-      ...(marketingOptInAt && {
-        consent: {
-          source: "form" as const,
-          capturedAt: marketingOptInAt.toISOString(),
-          policyVersion: BREW_MARKETING_CONSENT_POLICY_VERSION,
-          evidence: `Notra ${marketingOptInSource ?? "app"}: ${BREW_MARKETING_CONSENT_WORDING}`,
-        },
-      }),
+      ...(marketingOptInAt &&
+        marketingOptInEvidence &&
+        marketingOptInPolicyVersion && {
+          consent: {
+            source: "form" as const,
+            capturedAt: marketingOptInAt.toISOString(),
+            policyVersion: marketingOptInPolicyVersion,
+            evidence: marketingOptInEvidence,
+          },
+        }),
     })
   );
 }

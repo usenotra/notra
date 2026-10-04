@@ -1,5 +1,5 @@
 {
-  "id": "d6d5bf03-2b60-41d0-b46d-dabca8f7bb6b",
+  "id": "6747c3b9-f2a0-41b9-9858-7a2105ffc1c6",
   "prevId": "ba2321e4-6324-4e25-b21e-29cbc66d198c",
   "version": "7",
   "dialect": "postgresql",
@@ -12763,8 +12763,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "marketing_opt_in_source": {
-          "name": "marketing_opt_in_source",
+        "marketing_opt_in_evidence": {
+          "name": "marketing_opt_in_evidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "marketing_opt_in_policy_version": {
+          "name": "marketing_opt_in_policy_version",
           "type": "text",
           "primaryKey": false,
           "notNull": false
