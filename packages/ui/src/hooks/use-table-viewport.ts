@@ -66,6 +66,39 @@ export function useTableViewport<T>({
 
   const [atEnd, setAtEnd] = useState(true);
 
+  // Asks for the next page once the reader is near the bottom. Also runs when
+  // the rows or the viewport change, so a first page too short to scroll
+  // still loads the rest.
+  const requestMoreIfNearEnd = useCallback(
+    (element: HTMLDivElement) => {
+      if (!onEndReached || loading || endReachedRef.current) {
+        return;
+      }
+      if (
+        element.scrollHeight - element.scrollTop - element.clientHeight <
+        rowHeight * INFINITE_TABLE_END_THRESHOLD_ROWS
+      ) {
+        endReachedRef.current = true;
+        onEndReached();
+      }
+    },
+    [onEndReached, loading, rowHeight]
+  );
+
+  const handleScroll = useCallback(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+    if (headerScrollRef.current) {
+      headerScrollRef.current.scrollLeft = element.scrollLeft;
+    }
+    setAtEnd(
+      element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
+    );
+    requestMoreIfNearEnd(element);
+  }, [requestMoreIfNearEnd]);
+
   // Keep the end fade in sync when content or viewport size changes without a
   // scroll event (initial render, rows appended, container resized).
   useEffect(() => {
@@ -77,12 +110,13 @@ export function useTableViewport<T>({
       setAtEnd(
         element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
       );
+      requestMoreIfNearEnd(element);
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [rows.length]);
+  }, [rows.length, requestMoreIfNearEnd]);
 
   // Classic horizontal scrollbars consume height; compensate to avoid clipping a row.
   useEffect(() => {
@@ -105,28 +139,6 @@ export function useTableViewport<T>({
     return () => observer.disconnect();
   }, []);
 
-  const handleScroll = useCallback(() => {
-    const element = scrollRef.current;
-    if (!element) {
-      return;
-    }
-    if (headerScrollRef.current) {
-      headerScrollRef.current.scrollLeft = element.scrollLeft;
-    }
-    setAtEnd(
-      element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
-    );
-    if (!onEndReached || loading || endReachedRef.current) {
-      return;
-    }
-    if (
-      element.scrollHeight - element.scrollTop - element.clientHeight <
-      rowHeight * INFINITE_TABLE_END_THRESHOLD_ROWS
-    ) {
-      endReachedRef.current = true;
-      onEndReached();
-    }
-  }, [onEndReached, loading, rowHeight]);
 
   return {
     ...layout,

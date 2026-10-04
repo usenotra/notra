@@ -241,8 +241,6 @@ export function AccountDetailView({
     engagementRate: t("metrics.engagementRate"),
   };
   const format = useFormatter();
-  const formatMetric = useFormatMetric();
-  const formatDayLabel = useDayLabel();
   const chartConfig = useMemo<ChartConfig>(
     () => ({
       [ACCOUNT_DETAIL_SERIES_KEY]: {

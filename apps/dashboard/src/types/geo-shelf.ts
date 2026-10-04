@@ -218,8 +218,15 @@ export interface GeoShelfDbApi {
   setPlacementStatus: (
     sourceId: string,
     competitorId: string | null,
-    status: GeoShelfPlacementStatus
+    status: GeoShelfPlacementStatus,
+    brand?: GeoShelfPlacementBrand
   ) => void;
+}
+
+/** Names a competitor that has no stored placement on a source yet. */
+export interface GeoShelfPlacementBrand {
+  name: string;
+  domain: string | null;
 }
 
 export interface GeoShelfToolbarProps {
@@ -354,6 +361,7 @@ export interface GeoShelfDetailDialogProps {
   members: GeoShelfMember[];
   currentMemberId: string | null;
   ownBrandName: string;
+  competitors: readonly GeoCompetitor[];
   onUpdateOpportunity: GeoShelfDbApi["updateOpportunity"];
   onSetPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
   isPending: boolean;
@@ -411,6 +419,7 @@ export interface GeoShelfAddDialogProps {
 
 export interface GeoShelfPlacementsTableProps {
   row: GeoShelfRow;
+  competitors: readonly GeoCompetitor[];
   ownBrandName: string;
   onSetPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
   disabled: boolean;

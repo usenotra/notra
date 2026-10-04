@@ -1,10 +1,21 @@
 "use client";
 
+import { GEO_COMPETITOR_CONTEXT_LIMIT } from "@notra/geo-core/constants/geo";
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
+import {
+  CompetitorChoicesFooter,
+  CompetitorChoicesSearch,
+} from "@/components/geo/competitor-choices-search";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
+import {
+  GEO_COMPETITOR_CHOICES_MAX_SHOWN,
+  GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD,
+} from "@/constants/geo-competitors";
 import type { WriteCompetitorChoicesProps } from "@/types/components/geo-writer";
+import { visibleCompetitorChoices } from "@/utils/geo-competitors";
 import { isWriterCompetitorMentioned } from "@/utils/geo-writer";
 
 import { WriteOptionCard } from "./write-option-card";
@@ -18,6 +29,7 @@ export function WriteCompetitorChoices({
 }: WriteCompetitorChoicesProps) {
   const t = useTranslations("geo.writer.writeCompetitorChoices");
   const tGeoShared = useTranslations("geo.shared");
+  const [query, setQuery] = useState("");
   const competitorDetail = (competitor: GeoCompetitor) => {
     const detail = isWriterCompetitorMentioned(competitor, mentionedCompetitors)
       ? t("mentioned")
@@ -26,9 +38,28 @@ export function WriteCompetitorChoices({
       ? t("withDomain", { detail, domain: competitor.domain })
       : detail;
   };
+  // A brief only positions against so many competitors, so "select all" is
+  // offered only while the whole list fits.
+  const fitsLimit = competitors.length <= GEO_COMPETITOR_CONTEXT_LIMIT;
   const allSelected =
     competitors.length > 0 && selectedIds.length === competitors.length;
+  const atLimit = selectedIds.length >= GEO_COMPETITOR_CONTEXT_LIMIT;
   const selected = new Set(selectedIds);
+  const isSearchable =
+    competitors.length > GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD;
+  const { visible, hidden } = visibleCompetitorChoices(
+    competitors,
+    query,
+    GEO_COMPETITOR_CHOICES_MAX_SHOWN
+  );
+
+  const toggleAll = () => {
+    if (allSelected || !fitsLimit) {
+      onChange([]);
+      return;
+    }
+    onChange(competitors.map((item) => item.id));
+  };
 
   return (
     <section
@@ -37,15 +68,15 @@ export function WriteCompetitorChoices({
     >
       <div className="flex items-start justify-between gap-3">
         {children}
-        {competitors.length > 0 ? (
+        {competitors.length > 0 && (fitsLimit || selectedIds.length > 0) ? (
           <button
             className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer text-xs transition-colors"
-            onClick={() =>
-              onChange(allSelected ? [] : competitors.map((item) => item.id))
-            }
+            onClick={toggleAll}
             type="button"
           >
-            {allSelected ? t("clearAll") : tGeoShared("selectAll")}
+            {allSelected || !fitsLimit
+              ? t("clearAll")
+              : tGeoShared("selectAll")}
           </button>
         ) : null}
       </div>
@@ -54,30 +85,62 @@ export function WriteCompetitorChoices({
           {t("empty")}
         </p>
       ) : (
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {competitors.map((competitor) => (
-            <WriteOptionCard
-              compact
-              description={competitorDetail(competitor)}
-              icon={
-                <CompetitorLogo
-                  className="size-5"
-                  domain={competitor.domain}
-                  name={competitor.name}
+        <div className="space-y-3">
+          {isSearchable ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="sm:w-64">
+                <CompetitorChoicesSearch onChange={setQuery} value={query} />
+              </div>
+              <p
+                className="text-muted-foreground text-xs tabular-nums"
+                title={t("limitHint", { max: GEO_COMPETITOR_CONTEXT_LIMIT })}
+              >
+                {t("selectedCount", {
+                  count: selectedIds.length,
+                  max: GEO_COMPETITOR_CONTEXT_LIMIT,
+                })}
+              </p>
+            </div>
+          ) : null}
+          {!fitsLimit && selectedIds.length === 0 ? (
+            <p className="text-muted-foreground text-xs text-pretty">
+              {t("autoPick", { max: GEO_COMPETITOR_CONTEXT_LIMIT })}
+            </p>
+          ) : null}
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((competitor) => {
+              const isSelected = selected.has(competitor.id);
+              return (
+                <WriteOptionCard
+                  compact
+                  description={competitorDetail(competitor)}
+                  disabled={!isSelected && atLimit}
+                  icon={
+                    <CompetitorLogo
+                      className="size-5"
+                      domain={competitor.domain}
+                      name={competitor.name}
+                    />
+                  }
+                  key={competitor.id}
+                  label={competitor.name}
+                  onToggle={() =>
+                    onChange(
+                      isSelected
+                        ? selectedIds.filter((id) => id !== competitor.id)
+                        : [...selectedIds, competitor.id]
+                    )
+                  }
+                  selected={isSelected}
                 />
-              }
-              key={competitor.id}
-              label={competitor.name}
-              onToggle={() =>
-                onChange(
-                  selected.has(competitor.id)
-                    ? selectedIds.filter((id) => id !== competitor.id)
-                    : [...selectedIds, competitor.id]
-                )
-              }
-              selected={selected.has(competitor.id)}
-            />
-          ))}
+              );
+            })}
+          </div>
+          <CompetitorChoicesFooter
+            hidden={hidden}
+            query={query}
+            visibleCount={visible.length}
+          />
         </div>
       )}
     </section>

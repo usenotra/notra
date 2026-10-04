@@ -456,15 +456,17 @@ function buildPlacements(
   const statusByBrand = new Map(
     writes.map((write) => [placementKey(write.competitorId), write.status])
   );
-  return shelfBrands(seed).map((brand) =>
-    toPlacement(
-      brand,
-      statusByBrand.get(placementKey(brand.competitorId)) ?? "unknown",
-      nowIso,
-      undefined,
-      evidence
-    )
-  );
+  // A project can track hundreds of competitors, so only the own brand and
+  // competitors with a known status are stored. A missing competitor reads as
+  // "unknown".
+  return shelfBrands(seed).flatMap((brand) => {
+    const status =
+      statusByBrand.get(placementKey(brand.competitorId)) ?? "unknown";
+    if (brand.competitorId !== null && status === "unknown") {
+      return [];
+    }
+    return [toPlacement(brand, status, nowIso, undefined, evidence)];
+  });
 }
 
 /**
@@ -492,6 +494,15 @@ function mergePlacements(
     );
     const previous = next[index];
     if (previous?.status === write.status) {
+      continue;
+    }
+    // A competitor without a stored placement reads as "unknown", so
+    // clearing one drops it instead of storing "unknown".
+    if (write.competitorId !== null && write.status === "unknown") {
+      if (previous) {
+        next.splice(index, 1);
+        changed = true;
+      }
       continue;
     }
     const brand =

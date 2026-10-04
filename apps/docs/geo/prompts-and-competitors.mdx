@@ -174,7 +174,7 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences/$SEQ
 
 ## Competitors
 
-The **Competitors** page answers "Who AI engines recommend instead of you". Notra matches competitor names case-insensitively in every answer, so the list you keep here decides what share of voice and content gaps can see. A project can track up to 25 competitors.
+The **Competitors** page answers "Who AI engines recommend instead of you". Notra matches competitor names case-insensitively in every answer, so the list you keep here decides what share of voice and content gaps can see. A project can track up to 2,000 competitors. Generated content (personas, conversations, prompt suggestions, briefs) only uses the 25 that AI engines recommend most.
 
 Each competitor has:
 
@@ -260,7 +260,7 @@ curl "https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/suggestio
 **Import CSV** on the Competitors page and the API import endpoint share the same rules: a `name` column is required, `domain`, `kind`, and `synonyms` are optional, and existing competitors are updated in place rather than duplicated.
 
 <ParamField body="rows" type="array">
-  1 to 25 objects with `name` (required), `domain`, `kind`, and `synonyms` (up to 8).
+  1 to 2,000 objects with `name` (required), `domain`, `kind`, and `synonyms` (up to 8).
 </ParamField>
 <ParamField body="csv" type="string">
   Raw CSV text, up to 1 MiB, with a `name` column and optional `domain`, `kind`, `synonyms` columns. Used when `rows` is omitted.
@@ -278,7 +278,7 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/im
   }'
 ```
 
-The response carries `imported`, `updated`, `skipped`, `issues[]`, and the full `competitors[]` list. Import allows 10 requests per 10 minutes per organization.
+The response carries `imported`, `updated`, `skipped`, `issues[]`, and the full `competitors[]` list. One request takes up to 2,000 rows, so send the whole list at once instead of splitting it. Import allows 10 requests per 10 minutes per organization.
 
 ## Competitor detail
 

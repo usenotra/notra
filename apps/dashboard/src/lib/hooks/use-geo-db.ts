@@ -340,7 +340,7 @@ export function useGeoCompetitorsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery({
+  const { data, isLoading } = useLiveQuery({
     queryKey: [definition.id, isEnabled],
     query: (q) =>
       q
@@ -371,6 +371,7 @@ export function useGeoCompetitorsDb(
 
   return {
     competitors,
+    isLoading,
     pendingCompetitorIds: pendingIds,
     saveCompetitor,
     removeCompetitor,

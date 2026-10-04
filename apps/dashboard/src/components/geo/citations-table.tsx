@@ -14,6 +14,7 @@ import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -23,7 +24,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PurposeBadge } from "@/components/geo/purpose-badge";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { CountryFlag } from "@/components/geo/twemoji";
 import {
   GEO_LOG_ARRIVE_ANIMATION_MS,
@@ -62,7 +62,7 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
         <EngineIcon engine={engine} />
         <span className="truncate">{detail.title}</span>
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           detail.raw ? (
             <span className="block max-w-32 truncate font-mono">
@@ -89,7 +89,7 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
             </dd>
           </div>
         </dl>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }
@@ -181,7 +181,7 @@ function PurposeCell({ entry }: { entry: GeoTrafficLogEntry }) {
         <PurposeBadge category={entry.category} tooltip={false} />
         {entry.wantsMarkdown ? <MarkdownBadge /> : null}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         icon={
           purposeIcon ? (
             <HugeiconsIcon
@@ -219,7 +219,7 @@ function PurposeCell({ entry }: { entry: GeoTrafficLogEntry }) {
             </li>
           ) : null}
         </ul>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }
