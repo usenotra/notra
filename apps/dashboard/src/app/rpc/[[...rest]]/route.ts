@@ -4,10 +4,6 @@ import { runWithGeoRequestMemo } from "@notra/geo-core/utils/request-memo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
-import {
-  BatchHandlerPlugin,
-  SimpleCsrfProtectionHandlerPlugin,
-} from "@orpc/server/plugins";
 
 import { DASHBOARD_RPC_SLOW_REQUEST_MS } from "@/constants/request-telemetry";
 import {
@@ -16,6 +12,7 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { afterResponse } from "@/lib/framework/after-response";
 import { createORPCContext, type ORPCRequestMemo } from "@/lib/orpc/context";
+import { createDashboardHandlerPlugins } from "@/lib/orpc/handler-plugins";
 import { dashboardRouter } from "@/lib/orpc/router";
 import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
 import { isServerFailureError } from "@/utils/orpc-errors";
@@ -42,9 +39,7 @@ const handler = new RPCHandler(dashboardRouter, {
       }
     }),
   ],
-  // Only our client sends the CSRF header, so a cross-site form post can never
-  // reach a procedure, cookies or not.
-  plugins: [new BatchHandlerPlugin(), new SimpleCsrfProtectionHandlerPlugin()],
+  plugins: createDashboardHandlerPlugins(),
 });
 
 const handle = withEvlog(async (request: Request) => {
