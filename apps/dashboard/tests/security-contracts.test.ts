@@ -186,14 +186,20 @@ describe("migration executable security contracts", () => {
       new RPCLink({
         url: "https://app.invalid/rpc",
         plugins: createDashboardLinkPlugins(),
+        // Like the framework, cookies set during the call join the response
+        // headers once the handler returns; whatever comes later is lost.
         fetch: async (request) => {
           const resHeaders = new Headers();
-          const { response } = await handler.handle(request, {
-            prefix: "/rpc",
-            context: { resHeaders },
-          });
-          cookies.push(...resHeaders.getSetCookie());
-          return response ?? new Response("Not Found", { status: 404 });
+          const { response = new Response("Not Found", { status: 404 }) } =
+            await handler.handle(request, {
+              prefix: "/rpc",
+              context: { resHeaders },
+            });
+          for (const cookie of resHeaders.getSetCookie()) {
+            response.headers.append("set-cookie", cookie);
+          }
+          cookies.push(...response.headers.getSetCookie());
+          return response;
         },
       })
     );
