@@ -88,6 +88,7 @@ import {
   type ComponentType,
   type ReactNode,
   useEffect,
+  useEffectEvent,
   useReducer,
 } from "react";
 import { toast } from "sonner";
@@ -837,7 +838,7 @@ export default function ApiKeysPage() {
     newKeyConfig.scopes !== null &&
     newKeyConfig.expiration !== null;
 
-  const { isLocked: planLocked } = useHasActivePlan();
+  const { isLocked: planLocked, isLoading: planLoading } = useHasActivePlan();
   const { openSettings } = useSettingsModal();
   const tMembers = useTranslations("members");
   const tBilling = useTranslations("errors.billing");
@@ -892,11 +893,16 @@ export default function ApiKeysPage() {
     expiration: newKeyExpiration,
   };
 
+  // A preconfigured link waits for billing, so a free plan gets the hint
+  // instead of a form it cannot submit.
+  const openPreconfiguredDialog = useEffectEvent(() => {
+    openCreateDialog();
+  });
   useEffect(() => {
-    if (hasNewKeyConfig && !planLocked) {
-      dispatchUi({ type: "createDialogChanged", open: true });
+    if (hasNewKeyConfig && !planLoading) {
+      openPreconfiguredDialog();
     }
-  }, [hasNewKeyConfig, planLocked]);
+  }, [hasNewKeyConfig, planLoading]);
 
   const handlePresetSelect = (id: string) => {
     const preset = API_KEY_PRESETS.find((item) => item.id === id);
