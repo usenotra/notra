@@ -106,6 +106,7 @@ import {
   notFound,
   tooManyRequests,
 } from "../utils/errors";
+import { brandSitemapsRouter } from "./brand-sitemaps";
 
 const FREE_IMPORTED_TWEET_REFERENCE_LIMIT = 10;
 
@@ -974,6 +975,7 @@ export const brandRouter = {
         return getBrandGuidelines(input.voiceId);
       }),
   },
+  sitemaps: brandSitemapsRouter,
   references: {
     list: baseProcedure
       .input(voiceInputSchema)

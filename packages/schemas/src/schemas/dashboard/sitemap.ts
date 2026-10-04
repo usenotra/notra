@@ -18,3 +18,20 @@ export const deleteSitemapSchema = z.object({
 });
 
 export type DeleteSitemapInput = z.infer<typeof deleteSitemapSchema>;
+
+const sitemapPageCategorySchema = z.enum([
+  "crawled",
+  "failed",
+  "queued",
+  "redirect",
+]);
+
+export const listSitemapPagesSchema = z.object({
+  organizationId: z.string().min(1),
+  voiceId: z.string().min(1),
+  sitemapId: z.string().min(1),
+  category: sitemapPageCategorySchema.optional(),
+  cursor: z.string().optional(),
+  limit: z.number().int().optional(),
+  query: z.string().optional(),
+});
