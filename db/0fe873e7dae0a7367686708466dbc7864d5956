@@ -1,0 +1,19 @@
+apps/dashboard/src/lib/hooks/use-billing-customer.ts
+  s_7a0c38829ccc1e::t_801e93257ca591 5,8-13,15-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "db0fe873e7dae0a7367686708466dbc7864d5956",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
