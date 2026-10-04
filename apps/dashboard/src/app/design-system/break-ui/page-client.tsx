@@ -6,7 +6,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import { CollectionsView } from "@/components/content/collections-view";
 import { FeedbackProvider } from "@/components/dashboard/feedback-context";
@@ -20,6 +20,7 @@ import {
   BREAK_UI_DATASET_LABELS,
   BREAK_UI_DATASETS,
   BREAK_UI_FIXTURES,
+  PREVIEW_WRITE_PROCEDURE,
 } from "@/constants/design-system-break-ui";
 import { SIDEBAR_MIN_WIDTH } from "@/constants/nav";
 import { useIsClient } from "@/lib/hooks/use-is-client";
@@ -137,6 +138,72 @@ function SentimentSample({ fixture }: { fixture: BreakUiFixture }) {
   );
 }
 
+/**
+ * The pager pages through `collectionTotal` rows while the fixture holds a
+ * handful; repeat them with distinct ids and names so every page differs.
+ */
+function collectionsForPage(
+  collections: BreakUiFixture["collections"],
+  total: number,
+  page: number
+): BreakUiFixture["collections"] {
+  if (collections.length === 0 || total <= collections.length) {
+    return collections;
+  }
+  const offset = (page - 1) * COLLECTIONS_PAGE_SIZE;
+  const count = Math.max(0, Math.min(COLLECTIONS_PAGE_SIZE, total - offset));
+  return Array.from({ length: count }, (_, index) => offset + index).flatMap(
+    (position) => {
+      const base = collections[position % collections.length];
+      return base
+        ? [
+            {
+              ...base,
+              id: `${base.id}-${position}`,
+              name: `${base.name} · ${position + 1}`,
+            },
+          ]
+        : [];
+    }
+  );
+}
+
+/**
+ * The samples are real components wired to real clients. Writes from this
+ * page (deleting a fixture collection, switching organization, inviting) are
+ * answered locally instead of reaching the API.
+ */
+function usePreviewWriteGuard() {
+  useEffect(() => {
+    const realFetch = window.fetch;
+    window.fetch = (input, init) => {
+      const request = new Request(input, init);
+      const url = new URL(request.url, window.location.origin);
+      const procedure = url.pathname.startsWith("/rpc/")
+        ? (url.pathname.split("/").at(-1) ?? "")
+        : "";
+      const isWrite =
+        url.origin === window.location.origin &&
+        request.method !== "GET" &&
+        (url.pathname.startsWith("/_serverFn") ||
+          url.pathname.startsWith("/api/") ||
+          PREVIEW_WRITE_PROCEDURE.test(procedure));
+      if (isWrite) {
+        return Promise.resolve(
+          Response.json(
+            { message: "Disabled in the break-ui preview" },
+            { status: 403 }
+          )
+        );
+      }
+      return realFetch(input, init);
+    };
+    return () => {
+      window.fetch = realFetch;
+    };
+  }, []);
+}
+
 function CollectionsSample({
   fixture,
   view,
@@ -152,7 +219,11 @@ function CollectionsSample({
   return (
     <div className="@container/main">
       <CollectionsView
-        collections={fixture.collections}
+        collections={collectionsForPage(
+          fixture.collections,
+          fixture.collectionTotal,
+          page
+        )}
         organizationId={fixture.activeOrganization.id}
         organizationSlug={fixture.activeOrganization.slug}
         pagination={{
@@ -160,7 +231,11 @@ function CollectionsSample({
           pageCount,
           pageSize: COLLECTIONS_PAGE_SIZE,
           totalItems: fixture.collectionTotal,
-          pageRowCount: fixture.collections.length,
+          pageRowCount: collectionsForPage(
+            fixture.collections,
+            fixture.collectionTotal,
+            page
+          ).length,
           setPage,
         }}
         view={view}
@@ -172,6 +247,7 @@ function CollectionsSample({
 function BreakUiSamples({ dataset }: { dataset: BreakUiDataset }) {
   const fixture = BREAK_UI_FIXTURES[dataset];
   const queryClient = useMemo(() => fixtureQueryClient(fixture), [fixture]);
+  usePreviewWriteGuard();
   return (
     <QueryClientProvider client={queryClient}>
       <OrganizationsProvider>

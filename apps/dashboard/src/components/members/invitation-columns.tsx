@@ -33,7 +33,7 @@ export function useInvitationColumns(): TableColumn<InvitationSummary>[] {
   const tCommon = useTranslations("common");
   const tMembers = useTranslations("members");
   const locale = useLocale();
-  const now = useNow();
+  const now = useNow({ updateInterval: 60_000 });
   return [
     {
       key: "email",

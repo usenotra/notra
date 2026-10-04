@@ -22,6 +22,10 @@ import type {
  * collection name 200 chars); fields without a limit get long but believable
  * values.
  */
+/** RPC procedures the preview answers locally instead of calling. */
+export const PREVIEW_WRITE_PROCEDURE =
+  /^(create|update|delete|remove|set|invite|cancel|resend|revoke|rename|duplicate|archive|publish|move)/i;
+
 export const BREAK_UI_DATASETS = [
   "demo",
   "worst",

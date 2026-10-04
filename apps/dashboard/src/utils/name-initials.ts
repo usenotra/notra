@@ -23,8 +23,11 @@ export function nameInitials(name: string, limit = 2): string {
   if (words.length === 0) {
     return firstGrapheme(trimmed);
   }
-  return words
-    .slice(0, limit)
-    .map((word) => firstGrapheme(word).toLocaleUpperCase())
-    .join("");
+  return (
+    words
+      .slice(0, limit)
+      // Uppercasing can grow a grapheme ("ß" → "SS"); keep one per word.
+      .map((word) => firstGrapheme(firstGrapheme(word).toLocaleUpperCase()))
+      .join("")
+  );
 }

@@ -214,7 +214,7 @@ export function CollectionsView({
     </ResponsiveAlertDialog>
   );
   const dateFnsLocale = useDateFnsLocale();
-  const now = useNow();
+  const now = useNow({ updateInterval: 60_000 });
   const formatRelativeDate = (dateString: string) => {
     const date = new Date(dateString);
     // date-fns has no "just now"; it would print "0 seconds ago".
