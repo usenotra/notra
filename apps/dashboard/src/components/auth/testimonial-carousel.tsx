@@ -3,10 +3,10 @@
 import { CarouselProgress } from "@notra/ui/components/ui/carousel-progress";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import {
   AUTH_TESTIMONIAL_INTERVAL_MS,
   AUTH_TESTIMONIALS,

@@ -3,10 +3,10 @@
 import { ComputerIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import type { GuidelinesScreenshotsSectionProps } from "@/types/brand-identity";
 import type { BrandGuidelineScreenshot } from "@/types/hooks/brand-guidelines";
 import { joinMeta } from "@/utils/brand-guideline-display";

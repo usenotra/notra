@@ -10,8 +10,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_READINESS_MAX_SCORE } from "@notra/geo-core/constants/agent-readiness";
 import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useFormatter, useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { AgentReadinessScoreGauge } from "@/components/geo/agent-readiness/readiness-score-gauge";

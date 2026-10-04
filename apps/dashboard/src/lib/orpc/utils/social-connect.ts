@@ -1,10 +1,10 @@
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import {
   SOCIAL_DUPLICATE_CONTENT_CODE,
   SOCIAL_DUPLICATE_CONTENT_REGEX,
 } from "@/constants/social-connect";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   assertNotDemo,
   badRequest,

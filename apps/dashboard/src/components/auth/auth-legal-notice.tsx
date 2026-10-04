@@ -1,7 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
+
+import Link from "@/components/framework/link";
 
 export function AuthLegalNotice() {
   const t = useTranslations("auth.legal");

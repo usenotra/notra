@@ -17,13 +17,17 @@ import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
@@ -35,7 +39,6 @@ import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { CHART_PERCENT_SCALE, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_PROMPT_DETAIL_SURFACES,
@@ -414,8 +417,7 @@ function PromptHits({
   return (
     <>
       {missed.length > 0 ? (
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={missedColumns}
           data={missed}
           emptyState={t("emptyPrompts")}
@@ -426,8 +428,7 @@ function PromptHits({
         />
       ) : null}
       {found.length > 0 ? (
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={foundColumns}
           data={found}
           defaultSort={{ key: "result", direction: "asc" }}

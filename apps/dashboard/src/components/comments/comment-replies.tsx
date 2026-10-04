@@ -5,8 +5,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { CommentItem } from "@/components/comments/comment-item";
 import { COMMENT_REPLY_PREVIEW_COUNT } from "@/constants/comments";

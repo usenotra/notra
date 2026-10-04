@@ -136,7 +136,7 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/briefs \
   Up to 8 ids; only the first is used and it overrides the project's brand identity.
 </ParamField>
 <ParamField body="competitorIds" type="string[]">
-  Up to 25 tracked competitor ids to position against.
+  Tracked competitor ids to position against. The brief uses at most 25 of them, preferring the ones named in the evidence and then the ones AI engines recommend most.
 </ParamField>
 <ParamField body="sitemapId" type="string">
   Sitemap whose pages the planner may link to.

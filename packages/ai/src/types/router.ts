@@ -129,8 +129,13 @@ export interface GatewayAdapter {
   ): SharedV4ProviderOptions;
   checkHealth(): Promise<GatewayHealth>;
   getBalance(): Promise<GatewayBalance>;
+  /**
+   * `servedModelId` is the model id the provider reported in its response,
+   * which differs from the requested one after a gateway-side fallback.
+   */
   extractRouteMetadata(
-    providerMetadata: SharedV4ProviderMetadata | undefined
+    providerMetadata: SharedV4ProviderMetadata | undefined,
+    servedModelId?: string
   ): Partial<
     Pick<RouteMetadata, "generationId" | "upstreamProvider" | "model">
   >;

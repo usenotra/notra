@@ -9,7 +9,8 @@ export const IMAGE_GEN_AGENT_SKILLS_INSTALL_COMMAND =
 export const IMAGE_GEN_MODEL_ID = "vercel/anthropic/claude-opus-5.5";
 export const IMAGE_REVIEW_MODEL_ID = "vercel/anthropic/claude-sonnet-5";
 export const BOX_BASE_URL =
-  process.env.UPSTASH_BOX_BASE_URL ?? "https://us-east-1.box.upstash.com";
+  process.env.UPSTASH_BOX_BASE_URL?.trim() ||
+  "https://us-east-1.box.upstash.com";
 export const TRAILING_SLASH_RE = /\/$/;
 
 export const REPO_IMAGE_WIDTH = 1200;

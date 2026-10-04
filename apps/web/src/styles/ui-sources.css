@@ -36,6 +36,7 @@
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-search-timing.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-search.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-sources-sheet.tsx";
+@source "../../../../packages/ui/src/components/framework-provider.tsx";
 @source "../../../../packages/ui/src/components/geo/engine-icon.tsx";
 @source "../../../../packages/ui/src/components/geo/gap-meter.tsx";
 @source "../../../../packages/ui/src/components/geo/geo-bar.tsx";
@@ -156,6 +157,7 @@
 @source "../../../../packages/ui/src/constants/claude-chat-models.ts";
 @source "../../../../packages/ui/src/constants/codex-skin.ts";
 @source "../../../../packages/ui/src/constants/command-tabs.ts";
+@source "../../../../packages/ui/src/constants/framework-image.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
 @source "../../../../packages/ui/src/constants/kibo-ui-labels.ts";
@@ -170,6 +172,7 @@
 @source "../../../../packages/ui/src/hooks/use-opencode-frame.ts";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";
 @source "../../../../packages/ui/src/lib/claude-chat-model.ts";
+@source "../../../../packages/ui/src/lib/framework-image.ts";
 @source "../../../../packages/ui/src/lib/gemini-model.ts";
 @source "../../../../packages/ui/src/lib/geo-answer-font.ts";
 @source "../../../../packages/ui/src/lib/geo-bar.ts";
@@ -189,6 +192,7 @@
 @source "../../../../packages/ui/src/types/chatgpt.ts";
 @source "../../../../packages/ui/src/types/claude-chat.ts";
 @source "../../../../packages/ui/src/types/codex-skin.ts";
+@source "../../../../packages/ui/src/types/framework.ts";
 @source "../../../../packages/ui/src/types/gemini.ts";
 @source "../../../../packages/ui/src/types/geo.ts";
 @source "../../../../packages/ui/src/types/instrument.ts";

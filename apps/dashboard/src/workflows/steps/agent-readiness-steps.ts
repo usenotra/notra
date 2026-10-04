@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { executeAgentReadinessScan } from "@notra/geo-core/geo/agent-readiness";
 import type {
   AgentReadinessWorkflowPayload,

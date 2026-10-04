@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
 import {

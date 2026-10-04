@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { db } from "@notra/db/drizzle";
 import { projects } from "@notra/db/schema";
 import { syncGscSuggestions } from "@notra/geo-core/geo/search-console";

@@ -4,7 +4,7 @@ import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/g
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { GeoShelfTitleFieldProps } from "@/types/geo-shelf";
 

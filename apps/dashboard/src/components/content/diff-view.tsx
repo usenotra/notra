@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
+import { useTranslations } from "use-intl";
 
 interface DiffViewProps {
   originalMarkdown: string;

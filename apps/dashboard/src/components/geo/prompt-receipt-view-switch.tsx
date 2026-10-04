@@ -4,7 +4,7 @@ import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { PromptReceiptViewSwitchProps } from "@/types/geo";
 

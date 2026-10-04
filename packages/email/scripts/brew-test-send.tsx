@@ -8,7 +8,6 @@ import type { ReactElement } from "react";
 
 import type { BrewEmailCategory } from "../src/types/brew";
 import { isBrewConfigured, sendBrewEmail } from "../src/utils/brew";
-import { EMAIL_SAMPLES } from "./email-samples";
 
 const toIndex = process.argv.indexOf("--to");
 const to = toIndex === -1 ? undefined : process.argv[toIndex + 1];
@@ -20,6 +19,12 @@ if (!to) {
 if (!isBrewConfigured()) {
   throw new Error("BREW_API_KEY is not set");
 }
+
+// The .env points at localhost, which no inbox can load the logo or links
+// from; the samples read these when imported.
+process.env.NEXT_PUBLIC_SITE_URL = "https://usenotra.com";
+process.env.NEXT_PUBLIC_APP_URL = "https://app.usenotra.com";
+const { EMAIL_SAMPLES } = await import("./email-samples");
 
 const runId = Date.now();
 

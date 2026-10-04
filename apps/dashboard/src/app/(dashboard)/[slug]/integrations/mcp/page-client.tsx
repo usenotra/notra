@@ -6,9 +6,9 @@ import { Kbd } from "@notra/ui/components/ui/kbd";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";

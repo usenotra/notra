@@ -10,8 +10,8 @@ import {
   StepperTrigger,
 } from "@notra/ui/components/ui/stepper";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { ANALYSIS_STEPS } from "@/constants/brand-identity";
 import type { StepIconState } from "@/types/brand-identity";

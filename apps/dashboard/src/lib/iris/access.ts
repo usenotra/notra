@@ -1,5 +1,4 @@
-import { getTranslations } from "next-intl/server";
-
+import { getTranslations } from "@/lib/i18n/server";
 import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
 import { forbidden } from "@/lib/orpc/utils/errors";
 

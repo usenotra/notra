@@ -26,6 +26,7 @@ export function ShelfView({
   onRowClick,
   onUpdateOpportunity,
   onSetPlacementStatus,
+  competitorCount,
 }: GeoShelfViewProps) {
   const showBoard = view === "board" && totalCount > 0;
   const [boardMounted, setBoardMounted] = useState(showBoard);
@@ -38,6 +39,7 @@ export function ShelfView({
     <>
       <Activity mode={showBoard ? "hidden" : "visible"}>
         <ShelfTable
+          competitorCount={competitorCount}
           currentMemberId={currentMemberId}
           filteredCount={filteredCount}
           hasNextPage={hasNextPage}

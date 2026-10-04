@@ -3,8 +3,8 @@
 import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import {
   NotificationToggleRow,

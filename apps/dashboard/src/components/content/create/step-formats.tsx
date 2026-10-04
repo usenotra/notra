@@ -18,7 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { CREATE_CONTENT_FORMAT_ORDER } from "@/constants/content-formats";
 import type { FormatsStepProps } from "@/types/content/create";

@@ -25,8 +25,8 @@ import {
 } from "@notra/ui/components/ui/permission-selector";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackDetailDialog } from "@/components/agent-feedback/feedback-detail-dialog";
 import { AgentFeedbackEmpty } from "@/components/agent-feedback/feedback-empty";
@@ -308,25 +308,14 @@ function FeedbackList({
           isPending={isLoading || isPlaceholderData}
           isUpdatingStatus={isUpdatingStatus}
           items={items}
+          loadingMore={isFetchingNextPage}
           onDelete={onDelete}
+          onLoadMore={hasNextPage ? onLoadMore : undefined}
           onSelect={onSelect}
           onStatusChange={onStatusChange}
           selectedId={selectedId}
         />
       </div>
-
-      {hasNextPage ? (
-        <div className="flex shrink-0 justify-center">
-          <Button
-            loading={isFetchingNextPage}
-            onClick={onLoadMore}
-            size="sm"
-            variant="outline"
-          >
-            {tCommon("actions.loadMore")}
-          </Button>
-        </div>
-      ) : null}
     </>
   );
 }
@@ -345,9 +334,7 @@ function FeedbackFilterEmpty({
         <EmptyMedia variant="icon">
           <AgentFeedbackStatusIcon className="size-5" status={status} />
         </EmptyMedia>
-        <EmptyTitle className="text-foreground">
-          {t(`filterEmpty.${status}.title`)}
-        </EmptyTitle>
+        <EmptyTitle>{t(`filterEmpty.${status}.title`)}</EmptyTitle>
         <EmptyDescription>
           {t(`filterEmpty.${status}.description`)}
         </EmptyDescription>

@@ -1,5 +1,5 @@
 import type { DASHBOARD_LOCALES } from "@notra/schemas/constants/dashboard/locales";
-import type { useTranslations } from "next-intl";
+import type { useTranslations } from "use-intl";
 
 import type messages from "../../messages/en.json";
 

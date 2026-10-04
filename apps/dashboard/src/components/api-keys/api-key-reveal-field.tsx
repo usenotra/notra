@@ -9,9 +9,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { ApiKeyRevealFieldProps } from "@/types/api-keys";

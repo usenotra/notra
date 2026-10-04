@@ -10,9 +10,8 @@ import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
 import { ORPCError } from "@orpc/client";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { CompetitorBrandLogo } from "@/components/onboarding/competitor-brand-logo";
@@ -37,6 +36,7 @@ import {
 } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { SuggestionOutcome } from "@/types/analytics/events";
 import type {

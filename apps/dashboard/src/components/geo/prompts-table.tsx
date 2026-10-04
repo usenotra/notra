@@ -29,6 +29,10 @@ import {
   ContextMenuSeparator,
 } from "@notra/ui/components/ui/context-menu";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -45,10 +49,10 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
-import { useTranslations } from "next-intl";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
@@ -58,7 +62,6 @@ import {
 } from "@/components/geo/prompt-badges";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import { PromptTagsActionDialog } from "@/components/geo/prompt-tags-action-dialog";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import {
   GEO_PROMPT_DEFAULT_FILTERS,
@@ -82,7 +85,7 @@ import {
   promptPresenceSortValue,
 } from "@/utils/geo-prompts";
 
-const PROMPT_ACTIONS_WIDTH = "6rem";
+const PROMPT_ACTIONS_WIDTH = "6.5rem";
 
 function PromptRowActions({
   row,
@@ -124,13 +127,12 @@ function PromptRowActions({
       {pauseSwitch}
       <Button
         aria-label={tGeoShared("removePrompt", { prompt: row.prompt })}
-        className="group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
         disabled={isPending}
         onClick={(event) => {
           event.stopPropagation();
           onDelete();
         }}
-        size="icon"
+        size="icon-sm"
         variant="ghost"
       >
         <HugeiconsIcon icon={Delete02Icon} size={14} />
@@ -349,7 +351,7 @@ export function PromptsTable({
         <EmptyMedia variant="icon">
           <HugeiconsIcon icon={SearchIcon} />
         </EmptyMedia>
-        <EmptyTitle className="text-foreground">{t("noMatches")}</EmptyTitle>
+        <EmptyTitle>{t("noMatches")}</EmptyTitle>
         <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
@@ -592,8 +594,7 @@ export function PromptsTable({
         </div>
       </div>
 
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={rows}
         emptyState={emptyState}

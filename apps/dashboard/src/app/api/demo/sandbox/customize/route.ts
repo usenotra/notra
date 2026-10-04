@@ -2,8 +2,6 @@ import { demoSandboxRoute } from "@/lib/demo/route";
 import { resetDemoSandbox } from "@/lib/demo/sandbox";
 import { demoPersonalizationSchema } from "@/schemas/demo";
 
-export const maxDuration = 60;
-
 /**
  * "Customize your experience": rebuilds the visitor's workspace around their
  * own name and company. Nothing is stored beyond the sandbox itself.

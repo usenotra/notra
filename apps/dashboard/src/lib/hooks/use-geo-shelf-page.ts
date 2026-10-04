@@ -167,15 +167,22 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const setPlacementStatus: GeoShelfDbApi["setPlacementStatus"] = (
     sourceId,
     competitorId,
-    status
+    status,
+    brand
   ) => {
     const nowIso = new Date().toISOString();
     setSelected((current) =>
       current?.id === sourceId
-        ? applyShelfPlacementStatus(current, competitorId, status, nowIso)
+        ? applyShelfPlacementStatus(
+            current,
+            competitorId,
+            status,
+            nowIso,
+            brand
+          )
         : current
     );
-    shelf.setPlacementStatus(sourceId, competitorId, status);
+    shelf.setPlacementStatus(sourceId, competitorId, status, brand);
   };
 
   return toGeoShelfPageModel({

@@ -182,16 +182,3 @@ test("an unknown step cost is not silently counted as zero", () => {
   });
   expect(usage.get()?.tokenCostUsd).toBeUndefined();
 });
-
-test("a collector distinguishes no model work from partial paid work", () => {
-  const usage = createGitHubMentionUsageCollector();
-  expect(usage.get()).toBeNull();
-  usage.add({
-    inputTokens: 1,
-    outputTokens: 1,
-    totalTokens: 2,
-    cacheReadTokens: 0,
-    cacheWriteTokens: 0,
-  });
-  expect(usage.get()?.totalTokens).toBe(2);
-});

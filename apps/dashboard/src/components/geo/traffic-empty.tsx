@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EmptyStateTrafficPreview } from "@/components/empty-state-preview";
 import { GeoIngestSetup } from "@/components/geo/geo-ingest-setup";

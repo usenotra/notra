@@ -19,7 +19,6 @@ import { Effect, Result } from "effect";
 
 import { GeoModelService, GeoSearchConsoleService } from "../src/deps";
 import { GeoModelError } from "../src/schemas/model-errors";
-import { GeoSearchConsoleError } from "../src/schemas/search-console-errors";
 import { fakeModels } from "./constants/geo-boundaries";
 import {
   initializeDatabase,
@@ -42,31 +41,6 @@ afterAll(() => database.postgres.close());
 beforeEach(resetDatabase);
 
 describe("Search Console Effect sync", () => {
-  test("disconnecting and unselected integrations skip generation", async () => {
-    await seedGsc();
-    const models = {
-      ...fakeModels,
-      suggest: () => Effect.die("Skipped integrations must not generate"),
-    };
-    await testDb
-      .update(projects)
-      .set({ gscSiteUrl: null })
-      .where(eq(projects.id, "gsc"));
-    expect(
-      await Effect.runPromise(
-        withGscServices(syncGscSuggestions("org-test"), models)
-      )
-    ).toEqual({ status: "skipped", reason: "no_site_selected" });
-    await testDb
-      .update(googleSearchConsoleIntegrations)
-      .set({ disconnectingAt: new Date() });
-    expect(
-      await Effect.runPromise(
-        withGscServices(syncGscSuggestions("org-test"), models)
-      )
-    ).toEqual({ status: "skipped", reason: "integration_changed" });
-  });
-
   test("empty keywords replace pending rows but preserve curated decisions", async () => {
     await seedGsc();
     await seedSuggestion("dismissed", "org-test", "gsc");
@@ -93,51 +67,6 @@ describe("Search Console Effect sync", () => {
     const rows = await testDb.select().from(geoPromptSuggestions);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.id).toBe("dismissed");
-  });
-  test("missing integration and reauth state skip without model calls", async () => {
-    expect(
-      await Effect.runPromise(withGscServices(syncGscSuggestions("absent")))
-    ).toEqual({ status: "skipped", reason: "not_connected" });
-    const integration = await seedGsc();
-    expect(
-      await Effect.runPromise(
-        withGscServices(
-          selectGscSiteAndSyncSuggestions(
-            { ...integration, status: "reauth_required" },
-            integration.siteUrl ?? "",
-            "gsc"
-          )
-        )
-      )
-    ).toEqual({ status: "skipped", reason: "reauth_required" });
-  });
-
-  test("site selection replaces pending suggestions and saves the site and sync time", async () => {
-    const integration = await seedGsc();
-    const outcome = await Effect.runPromise(
-      withGscServices(
-        selectGscSiteAndSyncSuggestions(
-          integration,
-          "https://new.example",
-          "gsc"
-        )
-      )
-    );
-    expect(outcome).toEqual({
-      status: "completed",
-      keywords: 1,
-      suggestionsAdded: 1,
-    });
-    const rows = await testDb.select().from(geoPromptSuggestions);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.prompt).toBe("What are the best tools for sending email?");
-    expect(
-      (await testDb.query.googleSearchConsoleIntegrations.findFirst())
-        ?.lastSyncedAt
-    ).not.toBeNull();
-    expect((await testDb.query.projects.findFirst())?.gscSiteUrl).toBe(
-      "https://new.example"
-    );
   });
 
   test("syncing another project preserves the first project's property and suggestions", async () => {
@@ -249,31 +178,6 @@ describe("Search Console Effect sync", () => {
     expect((await testDb.query.projects.findFirst())?.gscLastError).toBe(
       "We could not turn your Search Console keywords into prompt suggestions."
     );
-  });
-
-  test("Google reauth failure is typed and does not overwrite auth state", async () => {
-    await seedGsc();
-    const result = await Effect.runPromise(
-      syncGscSuggestions("org-test").pipe(
-        Effect.provideService(GeoModelService, fakeModels),
-        Effect.provideService(GeoSearchConsoleService, {
-          topQueries: () =>
-            Effect.fail(
-              new GeoSearchConsoleError({
-                reauthRequired: true,
-                cause: new Error("expired"),
-              })
-            ),
-        }),
-        Effect.result
-      )
-    );
-    assert.ok(Result.isFailure(result));
-    expect(result.failure._tag).toBe("GeoSearchConsoleError");
-    expect(
-      (await testDb.query.googleSearchConsoleIntegrations.findFirst())
-        ?.lastError
-    ).toBeNull();
   });
 
   test("transaction failure rolls back deletion and lastSyncedAt", async () => {

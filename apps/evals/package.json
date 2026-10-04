@@ -1,0 +1,25 @@
+{
+  "name": "evals",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.tsx",
+    "demo": "bun src/index.tsx --demo",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "4.0.85",
+    "@notra/ai": "workspace:*",
+    "@opentui/core": "0.5.12",
+    "@opentui/react": "0.5.12",
+    "ai": "7.0.105",
+    "react": "^19.3.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@notra/typescript-config": "workspace:*",
+    "@types/react": "^19.3.0",
+    "bun-types": "1.4.0",
+    "typescript": "7.0.2"
+  }
+}

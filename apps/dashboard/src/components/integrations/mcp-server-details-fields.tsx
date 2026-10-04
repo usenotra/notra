@@ -8,8 +8,8 @@ import {
 } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { buildMcpUrl, getMcpFormErrorMessage } from "@/lib/integrations/mcp";
 import { createMcpServerFormFieldsSchema } from "@/schemas/mcp-server-form";

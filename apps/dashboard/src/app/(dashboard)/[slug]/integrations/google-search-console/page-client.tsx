@@ -14,6 +14,10 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,20 +25,10 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Google } from "@notra/ui/components/ui/svgs/google";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -42,6 +36,7 @@ import {
   EmptyStateCardsPreview,
   EmptyStateTablePreview,
 } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { SearchConsolePropertyPicker } from "@/components/geo/search-console-card";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
@@ -53,6 +48,7 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import {
   useGeoSuggestions,
@@ -63,6 +59,7 @@ import {
   useGscSync,
 } from "@/lib/hooks/use-geo";
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
+import { usePathname } from "@/lib/navigation";
 import type {
   GoogleSearchConsoleAddedSuggestionsProps,
   GoogleSearchConsoleChangePropertyDialogProps,
@@ -219,62 +216,55 @@ function QueryTable({ queries }: GoogleSearchConsoleQueryTableProps) {
   }
 
   const visibleQueries = queries.slice(0, VISIBLE_QUERIES);
+  const columns: TableColumn<GscQueryRow>[] = [
+    {
+      key: "query",
+      header: tCommon2("labels.query"),
+      width: "2fr",
+      cell: (query) => (
+        <span className="font-medium" title={query.query}>
+          {query.query}
+        </span>
+      ),
+    },
+    {
+      key: "clicks",
+      header: tCommon2("labels.clicks"),
+      align: "right",
+      cell: (query) => formatCount(query.clicks, locale),
+    },
+    {
+      key: "impressions",
+      header: tCommon2("labels.impressions"),
+      align: "right",
+      cell: (query) => formatCount(query.impressions, locale),
+    },
+    {
+      key: "position",
+      header: tCommon2("labels.position"),
+      align: "right",
+      cell: (query) => formatOneDecimal(query.position, locale),
+    },
+  ];
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{tCommon2("labels.query")}</TableHead>
-            <TableHead className="text-right">
-              {tCommon2("labels.clicks")}
-            </TableHead>
-            <TableHead className="text-right">
-              {tCommon2("labels.impressions")}
-            </TableHead>
-            <TableHead className="text-right">
-              {tCommon2("labels.position")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {visibleQueries.map((query) => (
-            <TableRow key={query.query}>
-              <TableCell className="max-w-64">
-                <span
-                  className="block truncate font-medium"
-                  title={query.query}
-                >
-                  {query.query}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <span className="tabular-nums">
-                  {formatCount(query.clicks, locale)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <span className="tabular-nums">
-                  {formatCount(query.impressions, locale)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <span className="tabular-nums">
-                  {formatOneDecimal(query.position, locale)}
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      {queries.length > VISIBLE_QUERIES ? (
-        <p className="text-muted-foreground border-t px-3 py-2 text-xs">
-          {t("table.showing", {
-            visible: VISIBLE_QUERIES,
-            total: formatCount(queries.length, locale),
-          })}
-        </p>
-      ) : null}
-    </div>
+    <DataTable
+      autoHeight
+      columns={columns}
+      data={visibleQueries}
+      footer={
+        queries.length > VISIBLE_QUERIES ? (
+          <p className="text-muted-foreground px-4 py-2.5 text-xs">
+            {t("table.showing", {
+              visible: VISIBLE_QUERIES,
+              total: formatCount(queries.length, locale),
+            })}
+          </p>
+        ) : undefined
+      }
+      getRowId={(query) => query.query}
+      rowHeight={TABLE_ROW_HEIGHT}
+      rowSizing="content"
+    />
   );
 }
 
@@ -306,6 +296,26 @@ function AddedSuggestions({
   }
 
   const visibleSuggestions = suggestions.slice(0, VISIBLE_QUERIES);
+  const suggestionColumns: TableColumn<(typeof visibleSuggestions)[number]>[] =
+    [
+      {
+        key: "prompt",
+        header: t("suggestions.promptSuggestion"),
+        width: "1.6fr",
+        cell: (suggestion) => (
+          <span title={suggestion.prompt}>{suggestion.prompt}</span>
+        ),
+      },
+      {
+        key: "query",
+        header: t("suggestions.fromQuery"),
+        cell: (suggestion) => (
+          <span className="text-muted-foreground">
+            {suggestion.keywords[0]?.query ?? "—"}
+          </span>
+        ),
+      },
+    ];
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-4">
@@ -317,32 +327,14 @@ function AddedSuggestions({
           {tCommon("labels.prompts")}
         </Link>
       </div>
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("suggestions.promptSuggestion")}</TableHead>
-              <TableHead>{t("suggestions.fromQuery")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleSuggestions.map((suggestion) => (
-              <TableRow key={suggestion.id}>
-                <TableCell className="max-w-80">
-                  <span className="block truncate" title={suggestion.prompt}>
-                    {suggestion.prompt}
-                  </span>
-                </TableCell>
-                <TableCell className="max-w-48">
-                  <span className="text-muted-foreground block truncate">
-                    {suggestion.keywords[0]?.query ?? "—"}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        autoHeight
+        columns={suggestionColumns}
+        data={visibleSuggestions}
+        getRowId={(suggestion) => suggestion.id}
+        rowHeight={TABLE_ROW_HEIGHT}
+        rowSizing="content"
+      />
     </div>
   );
 }

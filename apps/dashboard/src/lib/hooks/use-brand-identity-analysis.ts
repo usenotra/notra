@@ -1,9 +1,9 @@
 "use client";
 
 import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import {
   useAnalyzeBrand,

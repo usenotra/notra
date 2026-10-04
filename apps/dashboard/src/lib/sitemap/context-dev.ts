@@ -1,4 +1,4 @@
-import "server-only";
+import "@tanstack/react-start/server-only";
 import { crawlSitemap } from "@notra/ai/utils/context-dev";
 
 import {

@@ -1,11 +1,11 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 import { buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
+import { useRouter } from "@/lib/navigation";
 import type { NotFoundContentProps } from "@/types/components/not-found";
 
 export function NotFoundContent({ className }: NotFoundContentProps) {

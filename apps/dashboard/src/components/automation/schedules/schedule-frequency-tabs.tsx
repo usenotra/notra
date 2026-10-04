@@ -2,7 +2,7 @@
 
 import { CRON_FREQUENCIES } from "@notra/schemas/dashboard/integrations";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { ScheduleFrequencyTabsProps } from "@/types/automation/schedule";
 

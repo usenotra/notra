@@ -93,6 +93,7 @@ export interface WriteOptionCardProps {
   onToggle: () => void;
   compact?: boolean;
   badge?: string | null;
+  disabled?: boolean;
 }
 
 export interface WriteDialogBaseline {

@@ -13,7 +13,7 @@ import {
   SplitButtonTrigger,
 } from "@notra/ui/components/ui/split-button";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";

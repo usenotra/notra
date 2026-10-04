@@ -1,9 +1,12 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useFormatter, useTranslations } from "next-intl";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import { useFormatter, useTranslations } from "use-intl";
 
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { BillingInvoice, InvoicesTableProps } from "@/types/billing/plan";
 import { getInvoiceDescription } from "@/utils/billing-plans";
@@ -68,7 +71,7 @@ export function InvoicesTable({ invoices, plans }: InvoicesTableProps) {
   ];
 
   return (
-    <Table
+    <DataTable
       columns={columns}
       data={invoices}
       defaultSort={{ key: "createdAt", direction: "desc" }}

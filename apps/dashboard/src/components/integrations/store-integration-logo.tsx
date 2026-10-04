@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import type { StoreIntegrationLogoProps } from "@/types/integrations/mcp";
 
 export function StoreIntegrationLogo({

@@ -2,8 +2,8 @@
 
 import type { AuthFlowResult } from "@notra/schemas/types/dashboard/auth";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { resumeSocialEnrollmentAction } from "@/lib/auth/mfa-actions";

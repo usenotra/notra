@@ -2,8 +2,8 @@
 
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
-import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { EditIntegrationDialog } from "@/components/integrations/edit-integration-dialog";

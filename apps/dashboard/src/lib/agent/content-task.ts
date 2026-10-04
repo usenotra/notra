@@ -6,6 +6,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { runAgentTask } from "@/lib/agent/client";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import type { ContentGenerationResult } from "@/lib/workflows/schedule/types";
 import type { AgentContentTaskOptions } from "@/types/agent-content-task";
 
@@ -41,6 +42,9 @@ export async function generateContentViaAgentTask(
   options: AgentContentTaskOptions
 ): Promise<ContentGenerationResult> {
   try {
+    const codeResearch = await isCodeResearchEnabledForOrganization(
+      options.organizationId
+    );
     const { output } = await runAgentTask({
       scope: {
         organizationId: options.organizationId,
@@ -52,6 +56,7 @@ export async function generateContentViaAgentTask(
         chargeAiCredits: options.chargeAiCredits,
         brandAgentType: options.brandAgentType,
         sourceMetadata: options.sourceMetadata,
+        codeResearch,
         generationConfig: {
           selectionFilters: options.selectionFilters,
           commitWindow: options.commitWindow,

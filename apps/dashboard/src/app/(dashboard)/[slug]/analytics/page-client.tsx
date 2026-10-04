@@ -1,8 +1,8 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { AccountSeriesChartCard } from "@/components/analytics/account-series-chart-card";
 import { useAnalyticsAccounts } from "@/components/analytics/analytics-context";

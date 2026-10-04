@@ -1,4 +1,4 @@
-import "server-only";
+import "@tanstack/react-start/server-only";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { and, eq, gte, lt, sql } from "drizzle-orm";

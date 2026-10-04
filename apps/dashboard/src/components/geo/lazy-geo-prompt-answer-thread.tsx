@@ -1,8 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
+import dynamic from "@/utils/lazy-component";
 
 // Markdown renderer (~138 kB gz) stays off the dashboard shell until a prompt
 // answer sheet actually opens.

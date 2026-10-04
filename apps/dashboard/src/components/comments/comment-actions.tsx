@@ -26,8 +26,8 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { COMMENT_REACTIONS } from "@/constants/comments";

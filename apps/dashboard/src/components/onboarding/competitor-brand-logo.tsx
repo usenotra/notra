@@ -2,10 +2,10 @@
 
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import type { CompetitorBrandLogoProps } from "@/types/onboarding";
 

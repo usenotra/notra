@@ -8,17 +8,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { ContentDetailMainDocument } from "@/components/content/content-detail-main-document";
 import { ContentDetailSourceMetadata } from "@/components/content/content-detail-source-metadata";
 import { ContentDetailToolbar } from "@/components/content/content-detail-toolbar";
 import { RecommendationsSection } from "@/components/content/recommendations-section";
+import Link from "@/components/framework/link";
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
+import { useSearchParams } from "@/lib/navigation";
 import type { ContentApiResponse } from "@/types/hooks/content";
 
 interface ContentDetailLoadedViewProps {

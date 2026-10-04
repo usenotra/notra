@@ -1,14 +1,18 @@
 "use client";
 
-import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
+import {
+  GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS,
+  GEO_SCAN_POLL_INTERVAL_MS,
+} from "@notra/geo-core/constants/geo";
 import {
   keepPreviousData,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useCallback } from "react";
+import { useTranslations } from "use-intl";
 
+import { useGeoLive } from "@/components/providers/geo-live-provider";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -27,6 +31,9 @@ export function useGeoScanRun(
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const isScanning = useIsGeoScanning(organizationId);
+  const pollInterval = useGeoLive()
+    ? GEO_LIVE_SCAN_FALLBACK_INTERVAL_MS
+    : GEO_SCAN_POLL_INTERVAL_MS;
   const followsLatest = scanId === undefined;
   return useQuery({
     ...dashboardOrpc.geo.scanRun.queryOptions({
@@ -44,7 +51,7 @@ export function useGeoScanRun(
     staleTime: GEO_SCAN_POLL_INTERVAL_MS,
     refetchInterval: (query) =>
       query.state.data?.status === "running" || (followsLatest && isScanning)
-        ? GEO_SCAN_POLL_INTERVAL_MS
+        ? pollInterval
         : false,
     meta: { errorMessage: tToast("loadScanResultsFailed") },
   });

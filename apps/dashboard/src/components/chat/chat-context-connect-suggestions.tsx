@@ -5,12 +5,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CommandGroup, CommandItem } from "@notra/ui/components/ui/command";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { CHAT_CONTEXT_SUGGESTED_INTEGRATIONS } from "@/constants/chat-context";
 import { buildOrganizationIntegrationConnectPath } from "@/lib/integrations/deeplink";
+import { useRouter } from "@/lib/navigation";
 import type {
   ChatContextConnectSuggestionsProps,
   ChatContextSuggestedIntegrationId,

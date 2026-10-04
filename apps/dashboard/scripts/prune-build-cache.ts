@@ -5,21 +5,11 @@ import {
   readFileSync,
   readlinkSync,
   rmSync,
-  statSync,
 } from "node:fs";
 import path from "node:path";
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const storeDir = path.join(repoRoot, "node_modules/.bun");
-const turbopackCacheDir = path.join(
-  repoRoot,
-  "apps/dashboard/.next/cache/turbopack"
-);
-const dashboardNextDir = path.join(
-  repoRoot,
-  "apps/dashboard/node_modules/next"
-);
-const MAX_TURBOPACK_CACHE_BYTES = 2 * 1024 ** 3;
 
 const listDir = (dir: string): string[] =>
   existsSync(dir) ? readdirSync(dir) : [];
@@ -44,15 +34,6 @@ const toStoreEntry = (link: string): string | undefined => {
   }
   return relative.split(path.sep)[0];
 };
-
-const directorySize = (dir: string): number =>
-  readdirSync(dir, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .reduce(
-      (total, entry) =>
-        total + statSync(path.join(entry.parentPath, entry.name)).size,
-      0
-    );
 
 const DEPENDENCY_FIELDS = [
   "dependencies",
@@ -135,34 +116,4 @@ const pruneBunStore = (): void => {
   );
 };
 
-const pruneTurbopackCache = (): void => {
-  const { version }: { version: string } = JSON.parse(
-    readFileSync(path.join(dashboardNextDir, "package.json"), "utf8")
-  );
-  const cacheDirs = listDir(turbopackCacheDir);
-  const isCurrent = (name: string): boolean => name.startsWith(`v${version}-`);
-  const current = cacheDirs.filter(isCurrent);
-  const stale = cacheDirs.filter((name) => !isCurrent(name));
-  for (const name of stale) {
-    rmSync(path.join(turbopackCacheDir, name), {
-      force: true,
-      recursive: true,
-    });
-  }
-  console.log(`Pruned ${stale.length} stale Turbopack caches`);
-
-  for (const name of current) {
-    const dir = path.join(turbopackCacheDir, name);
-    const size = directorySize(dir);
-    const reset = size > MAX_TURBOPACK_CACHE_BYTES;
-    if (reset) {
-      rmSync(dir, { force: true, recursive: true });
-    }
-    console.log(
-      `Turbopack cache ${name} is ${Math.round(size / 1024 ** 2)} MB${reset ? ", reset" : ""}`
-    );
-  }
-};
-
 pruneBunStore();
-pruneTurbopackCache();

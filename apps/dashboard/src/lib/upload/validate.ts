@@ -10,8 +10,8 @@ import {
   SVG_MIME_TYPE,
 } from "@notra/schemas/constants/dashboard/upload";
 import { ORPCError } from "@orpc/server";
-import { getTranslations } from "next-intl/server";
 
+import { getTranslations } from "@/lib/i18n/server";
 import type { UploadType } from "@/types/upload/client";
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;

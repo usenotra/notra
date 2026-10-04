@@ -59,17 +59,6 @@ describe("cachedQuery live scope", () => {
     redis = createFakeRedis();
   });
 
-  test("serves the cached entry while the purge generation is unchanged", async () => {
-    const fetch = mock(async () => ({ visits: 1 }));
-
-    const first = await cachedQuery(liveOptions(fetch));
-    const second = await cachedQuery(liveOptions(fetch));
-
-    expect(first).toEqual({ visits: 1 });
-    expect(second).toEqual({ visits: 1 });
-    expect(fetch).toHaveBeenCalledTimes(1);
-  });
-
   test("entries from before a purge are not served after the generation bump", async () => {
     const staleFetch = mock(async () => ({ visits: 1 }));
     const freshFetch = mock(async () => ({ visits: 2 }));

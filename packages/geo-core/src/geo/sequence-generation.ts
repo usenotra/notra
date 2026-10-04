@@ -3,11 +3,11 @@ import { gateway } from "@notra/ai/gateway";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
-  geoCompetitors,
   geoPrompts,
   geoPromptSequences,
   geoSettings,
 } from "@notra/db/schema";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import { generateText, Output } from "ai";
 import { and, asc, count, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -137,10 +137,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
           })
         ),
         geoDb("competitors lookup failed", () =>
-          db
-            .select({ name: geoCompetitors.name })
-            .from(geoCompetitors)
-            .where(eq(geoCompetitors.projectId, scope.projectId))
+          selectGeoContextCompetitors(scope)
         ),
         geoDb("prompts lookup failed", () =>
           db
@@ -185,7 +182,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       // Scans label conversation turns with the prompt language, so the steps
       // must be written in it rather than in the brand identity's language.
       language: settings?.promptLanguage ?? DEFAULT_LANGUAGE,
-      competitors: competitors.map((row) => row.name),
+      competitors: competitors.competitors.map((row) => row.name),
       prompts: prompts.map((row) => row.prompt),
       existingNames: existing.map((row) => row.name),
       count: Math.min(GEO_GENERATED_CONVERSATIONS_MAX, room),

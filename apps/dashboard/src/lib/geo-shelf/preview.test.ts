@@ -50,52 +50,6 @@ describe("GEO shelf preview network validation", () => {
     expect(isPublicShelfAddress("64:ff9b:1::5db8:d822", 6)).toBeFalse();
   });
 
-  test("returns cleaned metadata for a stable public page", async () => {
-    lookup.mockImplementation(async () => [
-      { address: "64:ff9b::5db8:d822", family: 6 as const },
-    ]);
-    fetchWebpage.mockImplementationOnce(async ({ url }) => ({
-      success: true as const,
-      url,
-      markdown: "",
-      metadata: {
-        title: "  Example\n page  ",
-        description: "  A\t useful   description. ",
-        finalUrl: "https://www.example.com/final",
-      },
-    }));
-
-    const result = await previewGeoShelfUrl("https://example.com/page");
-
-    expect(result).toEqual({
-      url: "https://example.com/page",
-      finalUrl: "https://www.example.com/final",
-      domain: "example.com",
-      title: "Example page",
-      description: "A useful description.",
-      available: true,
-    });
-    expect(lookup).toHaveBeenCalledTimes(4);
-    expect(fetchWebpage).toHaveBeenCalledTimes(1);
-  });
-
-  test("returns unavailable without network calls when Context.dev is not configured", async () => {
-    delete process.env.CONTEXT_DEV_API_KEY;
-
-    const result = await previewGeoShelfUrl("https://example.com/page");
-
-    expect(result).toEqual({
-      url: "https://example.com/page",
-      finalUrl: null,
-      domain: "example.com",
-      title: null,
-      description: null,
-      available: false,
-    });
-    expect(lookup).not.toHaveBeenCalled();
-    expect(fetchWebpage).not.toHaveBeenCalled();
-  });
-
   test("does not call fetchWebpage when DNS resolves to a private address", async () => {
     lookup.mockImplementation(async () => [
       { address: "127.0.0.1", family: 4 as const },

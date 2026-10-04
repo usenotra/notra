@@ -2,9 +2,9 @@
 
 import { Input } from "@notra/ui/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GitHubWebhookRotationDialog } from "@/components/integrations/github/github-webhook-rotation-dialog";

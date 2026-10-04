@@ -12,8 +12,8 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useReducedMotion } from "motion/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";

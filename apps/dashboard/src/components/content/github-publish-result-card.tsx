@@ -3,7 +3,7 @@
 import { ArrowUpRight01Icon, GitCommitIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { GitHubPublishResultCardProps } from "@/types/content/detail";
 

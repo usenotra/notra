@@ -5,9 +5,7 @@ import type {
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-
-import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
@@ -18,6 +16,7 @@ const GENERATING_POLL_INTERVAL = 4000;
 export function useCollections(
   organizationId: string,
   page: number,
+  pageSize: number,
   initialProjectId: string | null
 ) {
   const tToast = useTranslations("content.toasts");
@@ -36,7 +35,7 @@ export function useCollections(
         organizationId,
         projectId: scopedProjectId,
         page,
-        pageSize: COLLECTIONS_PAGE_SIZE,
+        pageSize,
       },
     }),
     enabled: !!organizationId && (isResolved || initialProjectId !== undefined),

@@ -19,9 +19,9 @@ import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { OnboardingEmailPrefs } from "@/components/onboarding/email-prefs";
 import { OrgLogoField } from "@/components/onboarding/org-logo-field";
@@ -35,6 +35,7 @@ import {
 } from "@/constants/onboarding";
 import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
 import { extractDomain } from "@/lib/onboarding/company-logo";
+import { continueAfterWorkspace } from "@/lib/onboarding/continue-after-workspace";
 import {
   MAX_LOGO_FILE_SIZE_MB,
   readFileAsDataUrl,
@@ -42,6 +43,7 @@ import {
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type {
+  OnboardingExistingOrg,
   WorkspaceFormField,
   WorkspaceFormProps,
   WorkspaceSlugCheck,
@@ -105,6 +107,8 @@ export function WorkspaceForm({
     return t("validation.checkField");
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrg, setCreatedOrg] = useState<OnboardingExistingOrg>();
+  const currentOrg = existingOrg ?? createdOrg;
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
@@ -117,7 +121,7 @@ export function WorkspaceForm({
   const fetchedLogoUrl = logoFile
     ? null
     : (getGoogleFaviconUrl(companyDomain) ?? null);
-  const isResuming = !!existingOrg;
+  const isResuming = !!currentOrg;
 
   const handleLogoSelect = async (file: File) => {
     const validationError = validateLogoFile(file);
@@ -164,12 +168,13 @@ export function WorkspaceForm({
 
       try {
         await submitWorkspaceForm({
-          existingOrg,
+          existingOrg: currentOrg,
+          onOrganizationCreated: setCreatedOrg,
           logoFile,
           logoSourceUrl: null,
           value,
         });
-        window.location.assign("/onboarding/visibility");
+        await continueAfterWorkspace(currentOrg, value);
       } catch (err) {
         toast.error(
           err instanceof Error && err.message ? err.message : t("createFailed")

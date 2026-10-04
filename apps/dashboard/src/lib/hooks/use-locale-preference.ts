@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import type { LocalePreference } from "@/types/i18n";
 import { isDashboardLocale } from "@/utils/i18n";
 

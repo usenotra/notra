@@ -12,9 +12,9 @@ import {
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Slack } from "@notra/ui/components/ui/svgs/slack";
-import { useTranslations } from "next-intl";
 import type React from "react";
 import { isValidElement, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";

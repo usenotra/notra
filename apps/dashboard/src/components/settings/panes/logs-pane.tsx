@@ -1,7 +1,8 @@
 "use client";
 
+import type { SortState } from "@notra/ui/components/ui/data-table";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import {
   parseAsInteger,
   parseAsString,
@@ -9,15 +10,15 @@ import {
   useQueryState,
 } from "nuqs";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useLogColumns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
-import { DataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";
+import { LogsDataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";
 import { LogsPageSkeleton } from "@/app/(dashboard)/[slug]/settings/logs/skeleton";
 import { Button } from "@/components/button";
 import { LogDetailsSheet } from "@/components/logs/log-details-sheet";
 import { LogFilters } from "@/components/logs/log-filters";
 import { LogRetentionHint } from "@/components/logs/log-retention-hint";
-import type { SortState } from "@/components/motion/table/types";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import {
@@ -37,6 +38,13 @@ export function LogsSettingsPane() {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [rawPageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger.withDefault(LOGS_PAGE_SIZE)
+  );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, LOGS_PAGE_SIZE);
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [source, setSource] = useQueryState(
     "source",
@@ -68,7 +76,7 @@ export function LogsSettingsPane() {
   });
   const result = getLogPage(logsQuery.data?.logs ?? [], {
     page,
-    pageSize: LOGS_PAGE_SIZE,
+    pageSize,
     source,
     status,
     search,
@@ -117,7 +125,7 @@ export function LogsSettingsPane() {
       ) : null}
       {organizationId && logsQuery.isPending ? <LogsPageSkeleton /> : null}
       {logsQuery.data ? (
-        <DataTable
+        <LogsDataTable
           columns={columns}
           data={result.logs}
           getRowId={(log) => log.id}
@@ -142,8 +150,8 @@ export function LogsSettingsPane() {
           onPageChange={setPage}
           onRowClick={(log) => setSelection({ organizationId, log })}
           page={result.page}
-          pageSize={LOGS_PAGE_SIZE}
-          totalPages={result.totalPages}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
           totalCount={result.totalCount}
           isLoading={logsQuery.isFetching && Boolean(logsQuery.data)}
         />

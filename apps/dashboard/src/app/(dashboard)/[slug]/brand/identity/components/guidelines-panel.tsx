@@ -4,9 +4,9 @@ import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateGuidelinesPreview } from "@/components/empty-state-preview";

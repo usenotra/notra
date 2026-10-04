@@ -1,8 +1,7 @@
-import { getWorkOS, saveSession } from "@workos-inc/authkit-nextjs";
+import { redirect } from "@tanstack/react-router";
+import { deleteCookie, getCookie } from "@tanstack/react-start/server";
+import { getWorkOS } from "@workos/authkit-session";
 import { Effect } from "effect";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import type { NextRequest } from "next/server";
 
 import { LOGIN_MFA_QUERY_KEY, MFA_ERROR_CODES } from "@/constants/security";
 import { SOCIAL_AUTH_STATE_COOKIE } from "@/constants/social-auth";
@@ -12,6 +11,7 @@ import { storePendingMfaFlow } from "@/lib/auth/mfa-cookies";
 import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
+import { saveAuthSession } from "@/lib/auth/workos";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 
 const VERIFICATION_REQUIRED_CODE = "email_verification_required";
@@ -40,8 +40,7 @@ const exchangeSocialCode = Effect.fn("auth.social.exchangeCode")(function* (
   );
 
   yield* Effect.tryPromise({
-    try: () =>
-      saveSession(response, process.env.APP_URL ?? "http://localhost:3000"),
+    try: () => saveAuthSession(response),
     catch: (cause) =>
       new UserSyncError({ message: "Failed to persist session", cause }),
   });
@@ -121,17 +120,16 @@ function buildMfaLoginUrl(flowId: string, returnTo: string) {
   return `/login?${params.toString()}`;
 }
 
-export async function GET(request: NextRequest) {
-  const code = request.nextUrl.searchParams.get("code");
-  const state = request.nextUrl.searchParams.get("state");
+export async function GET(request: Request) {
+  const code = new URL(request.url).searchParams.get("code");
+  const state = new URL(request.url).searchParams.get("state");
 
   if (!code) {
-    redirect("/login");
+    throw redirect({ href: "/login" });
   }
 
-  const cookieStore = await cookies();
-  const expectedNonce = cookieStore.get(SOCIAL_AUTH_STATE_COOKIE)?.value;
-  cookieStore.delete(SOCIAL_AUTH_STATE_COOKIE);
+  const expectedNonce = getCookie(SOCIAL_AUTH_STATE_COOKIE);
+  deleteCookie(SOCIAL_AUTH_STATE_COOKIE);
 
   const separatorIndex = state?.indexOf(":") ?? -1;
   const stateNonce =
@@ -140,7 +138,7 @@ export async function GET(request: NextRequest) {
     separatorIndex === -1 ? null : (state?.slice(separatorIndex + 1) ?? null);
 
   if (!(expectedNonce && stateNonce) || expectedNonce !== stateNonce) {
-    redirect("/login?error=social-sign-in-failed");
+    throw redirect({ href: "/login?error=social-sign-in-failed" });
   }
 
   const outcome = await Effect.runPromise(
@@ -160,7 +158,7 @@ export async function GET(request: NextRequest) {
     if (outcome.email) {
       params.set("email", outcome.email);
     }
-    redirect(`/login?${params.toString()}`);
+    throw redirect({ href: `/login?${params.toString()}` });
   }
 
   if (outcome.kind === "mfa-required") {
@@ -170,7 +168,7 @@ export async function GET(request: NextRequest) {
       authenticationChallengeId: outcome.authenticationChallengeId ?? "",
       email: outcome.email ?? "",
     });
-    redirect(buildMfaLoginUrl(flowId, returnTo));
+    throw redirect({ href: buildMfaLoginUrl(flowId, returnTo) });
   }
 
   if (outcome.kind === "mfa-enrollment-required") {
@@ -180,12 +178,12 @@ export async function GET(request: NextRequest) {
       workosUserId: outcome.workosUserId ?? "",
       email: outcome.email ?? "",
     });
-    redirect(buildMfaLoginUrl(flowId, returnTo));
+    throw redirect({ href: buildMfaLoginUrl(flowId, returnTo) });
   }
 
   if (outcome.kind === "failed") {
-    redirect("/login?error=social-sign-in-failed");
+    throw redirect({ href: "/login?error=social-sign-in-failed" });
   }
 
-  redirect(returnTo);
+  throw redirect({ href: returnTo });
 }

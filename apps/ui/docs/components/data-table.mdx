@@ -1,0 +1,136 @@
+---
+title: Data Table
+description: The table from the Notra dashboard, with sorting, selection, pagination and an infinite-scroll variant.
+---
+
+Every table in Notra uses the same frame: a grey shell with a 2px rim on all four sides, the column headers on the shell, and the rows on a lifted white card. `DataTable` adds sorting, row selection, column resizing, a sticky header with a virtualized body, and a footer pager.
+
+<Component path="data-table/examples/data-table-demo" />
+
+## Installation
+
+```bash
+bunx shadcn@latest add @notra/data-table
+```
+
+This installs the table into `components/data-table/` and replaces `components/ui/table.tsx` with the framed [Table](#table) primitives. It also pulls in [Button](/components/button) and [Tooltip](/components/tooltip), plus shadcn's Checkbox, Select, Context Menu and Skeleton.
+
+The table needs a shadcn project on Base UI (a `base-*` style) and Tailwind CSS v4. On a Radix style, the Checkbox, Tooltip and Context Menu APIs differ and the table won't compile.
+
+## Usage
+
+Describe the columns once and pass the rows. A column reads `row[key]` unless it has a `cell` renderer, and sorts by the same value unless it has `sortValue`.
+
+```tsx
+import { DataTable, type TableColumn } from "@/components/data-table/components/data-table";
+
+const columns: TableColumn<Prompt>[] = [
+  { key: "prompt", header: "Prompt", width: "2fr", sortable: true },
+  { key: "engine", header: "Engine", collapsePriority: 1 },
+  {
+    key: "position",
+    header: "Position",
+    align: "right",
+    sortable: true,
+    cell: (row) => (row.position === null ? "–" : `#${row.position}`),
+  },
+];
+
+<DataTable columns={columns} data={prompts} getRowId={(row) => row.id} />;
+```
+
+`width` takes any CSS length or an `fr` share. Columns with a `collapsePriority` drop out on narrow screens instead of scrolling sideways, highest number first. A `hint` adds an info icon with a tooltip to the header.
+
+## Pagination
+
+Pass `pagination` and the footer shows a page-size select on the left and "Page 2 of 9" with previous and next buttons on the right. Changing the page size jumps back to the first page.
+
+| Mode | When | You pass |
+| --- | --- | --- |
+| `client` (default) | Every row is loaded. The table slices them after sorting and keeps the chosen page size itself. | `page`, `pageSize`, `onPageChange` |
+| `server` | `data` is the current page and the server knows the total. | plus `totalItems` and `onPageSizeChange` |
+| `cursor` | `data` is the current page and you only know whether more exist. | plus `hasNextPage` and `onPageSizeChange` |
+
+```tsx
+<DataTable
+  columns={columns}
+  data={rows}
+  pagination={{
+    mode: "server",
+    page,
+    pageSize,
+    totalItems: total,
+    onPageChange: setPage,
+    onPageSizeChange: setPageSize,
+    itemLabel: "prompts",
+  }}
+/>
+```
+
+Server and cursor tables without `onPageSizeChange` show the range, like "11-20 of 170 prompts", instead of the select. `pageSizeOptions` changes the offered sizes (10 to 50 by default), and `formatRange` rewrites the range text.
+
+## Infinite scroll
+
+`InfiniteDataTable` keeps a fixed height and calls `onEndReached` when the reader nears the bottom. Clear it while a page loads or when nothing is left, and set `loadingMore` to show skeleton rows under the list.
+
+<Component path="data-table/examples/data-table-infinite" />
+
+```tsx
+<InfiniteDataTable
+  columns={columns}
+  data={rows}
+  height={400}
+  loading={isFetching}
+  loadingMore={isFetchingNextPage}
+  onEndReached={hasNextPage && !isFetching ? fetchNextPage : undefined}
+/>
+```
+
+## Loading and empty states
+
+`loading` fills an empty table with skeleton rows and dims a table that already has rows. `DataTableSkeleton` renders the same frame on its own for route-level loading. `emptyState` takes text or any node, such as an Empty block with an action.
+
+<Component path="data-table/examples/data-table-empty" />
+
+```tsx
+<DataTable
+  columns={columns}
+  data={visits}
+  height={300}
+  emptyState={
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <BotIcon />
+        </EmptyMedia>
+        <EmptyTitle>No crawler visits yet</EmptyTitle>
+        <EmptyDescription>Add the tracking snippet to your site.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button size="sm">Add snippet</Button>
+      </EmptyContent>
+    </Empty>
+  }
+/>
+```
+
+`height` sizes the empty state; once rows arrive, the table shrinks to fit them.
+
+## Labels
+
+Every string the table renders comes from `labels`, in English by default. Pass the ones you want to translate:
+
+```tsx
+<DataTable
+  labels={{
+    pageOf: (page, total) => `Seite ${page} von ${total}`,
+    showRows: (count) => `${count} anzeigen`,
+  }}
+/>
+```
+
+## Table
+
+The shadcn `Table` primitives get the same frame, for small static tables that don't need sorting or paging.
+
+<Component path="data-table/examples/table-primitives" />

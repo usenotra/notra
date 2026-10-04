@@ -8,8 +8,8 @@ import {
 import { Progress } from "@notra/ui/components/ui/progress";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { AGENT_RUN_REFETCH_INTERVAL_MS } from "@/constants/onboarding-agent";

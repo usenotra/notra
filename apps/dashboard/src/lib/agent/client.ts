@@ -3,6 +3,7 @@ import {
   AGENT_BRAND_AGENT_TYPE_HEADER,
   AGENT_CHARGE_AI_CREDITS_HEADER,
   AGENT_CHAT_HEADER,
+  AGENT_CODE_RESEARCH_HEADER,
   AGENT_COLLECTION_HEADER,
   AGENT_CONTENT_HEADER,
   AGENT_CONTENT_TYPE_HEADER,
@@ -96,6 +97,9 @@ function buildAgentScopeHeaders(
     headers[AGENT_GENERATION_CONFIG_HEADER] = JSON.stringify(
       scope.generationConfig
     );
+  }
+  if (scope.codeResearch !== undefined) {
+    headers[AGENT_CODE_RESEARCH_HEADER] = scope.codeResearch ? "true" : "false";
   }
   return headers;
 }

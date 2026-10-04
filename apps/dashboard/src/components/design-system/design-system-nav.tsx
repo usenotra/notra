@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/framework/link";
 
 const LINKS = [
   { href: "/design-system#colors", label: "UI kit" },
   { href: "/design-system/icons", label: "Icons" },
   { href: "/design-system#auth-mfa", label: "Auth" },
   { href: "/design-system/auth-flow", label: "Auth flow" },
+  { href: "/design-system/code-research", label: "Code research" },
   { href: "/design-system#chatgpt-thread", label: "ChatGPT chat" },
   { href: "/design-system#claude-chat-thread", label: "Claude chat" },
   { href: "/design-system#gemini-thread", label: "Gemini chat" },
@@ -16,6 +17,8 @@ const LINKS = [
   { href: "/design-system#opencode-session", label: "OpenCode TUI" },
   { href: "/design-system/geo-traffic", label: "GEO traffic" },
   { href: "/design-system/scan-filters", label: "Scans table" },
+  { href: "/design-system/webhooks", label: "Webhooks" },
+  { href: "/design-system/break-ui", label: "Break UI" },
 ] as const;
 
 export function DesignSystemNav() {

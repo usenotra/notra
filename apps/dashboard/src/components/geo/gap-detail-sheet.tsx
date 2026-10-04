@@ -8,8 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GapAnswerPanel } from "@/components/geo/gap-answer-panel";
 import type { GeoGapDetailSheetProps } from "@/types/components/geo-gaps";

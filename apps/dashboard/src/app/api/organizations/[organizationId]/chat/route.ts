@@ -51,8 +51,6 @@ import {
   type UIMessage,
 } from "ai";
 import { nanoid } from "nanoid";
-import type { NextRequest } from "next/server";
-import { after, NextResponse } from "next/server";
 
 import {
   AI_CREDITS_SOURCE_STANDALONE_CHAT,
@@ -64,15 +62,15 @@ import {
   getChatContextKinds,
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
+import { afterResponse } from "@/lib/framework/after-response";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 
-export const maxDuration = 1800;
-
 export const POST = withEvlog(async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: RouteContext<{ organizationId: string }>
 ) {
   const log = getLogger();
@@ -100,7 +98,7 @@ export const POST = withEvlog(async function POST(
     const parseResult = standaloneChatRequestSchema.safeParse(body);
 
     if (!parseResult.success) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Invalid request body", details: parseResult.error.issues },
         { status: 400 }
       );
@@ -116,7 +114,7 @@ export const POST = withEvlog(async function POST(
 
     const latestMessage = messages.at(-1);
     if (!latestMessage?.id) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Latest message must include an id" },
         { status: 400 }
       );
@@ -137,11 +135,11 @@ export const POST = withEvlog(async function POST(
       : null;
     if (existingSession) {
       if (existingSession.deletedAt !== null) {
-        return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+        return Response.json({ error: "Chat not found" }, { status: 404 });
       }
       if (existingSession.externalChannelSource === "slack") {
         trackBlocked("CHAT_READ_ONLY");
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Slack-mirrored chats are read-only in the dashboard",
             code: "CHAT_READ_ONLY",
@@ -160,7 +158,7 @@ export const POST = withEvlog(async function POST(
       !bindProjectFromSession &&
       !(await isProjectInOrganization(organizationId, projectId))
     ) {
-      return NextResponse.json({ error: "Project not found" }, { status: 400 });
+      return Response.json({ error: "Project not found" }, { status: 400 });
     }
 
     const rateLimited = await enforceChatGenerationRatelimit(
@@ -185,7 +183,7 @@ export const POST = withEvlog(async function POST(
           error: checkError,
         });
         trackBlocked("BILLING_ERROR");
-        return NextResponse.json(
+        return Response.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
           { status: 500 }
         );
@@ -193,7 +191,7 @@ export const POST = withEvlog(async function POST(
 
       if (!billing.allowed) {
         trackBlocked("USAGE_LIMIT_REACHED");
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Usage limit reached",
             code: "USAGE_LIMIT_REACHED",
@@ -208,7 +206,7 @@ export const POST = withEvlog(async function POST(
       billingMode = billing.mode;
     } else {
       trackBlocked("BILLING_UNAVAILABLE");
-      return NextResponse.json(
+      return Response.json(
         { error: "Billing service is unavailable", code: "BILLING_ERROR" },
         { status: 503 }
       );
@@ -226,7 +224,7 @@ export const POST = withEvlog(async function POST(
     );
     if (!streamAcquired) {
       trackBlocked("ALREADY_GENERATING");
-      return NextResponse.json(
+      return Response.json(
         { error: "A response is already being generated for this chat" },
         { status: 409 }
       );
@@ -234,10 +232,13 @@ export const POST = withEvlog(async function POST(
     cleanupStreamId = streamId;
 
     // Finish all preparation before error cleanup can release the stream lock.
-    const [hydrationResult, integrationsResult] = await Promise.allSettled([
-      hydrateSavedChatPosts(organizationId, chatId, messages),
-      getStandaloneChatIntegrations(organizationId),
-    ]);
+    // Code research fails closed on its own, so it never rejects here.
+    const [hydrationResult, integrationsResult, codeResearchResult] =
+      await Promise.allSettled([
+        hydrateSavedChatPosts(organizationId, chatId, messages),
+        getStandaloneChatIntegrations(organizationId),
+        isCodeResearchEnabledForOrganization(organizationId),
+      ]);
 
     if (hydrationResult.status === "rejected") {
       throw hydrationResult.reason;
@@ -246,6 +247,8 @@ export const POST = withEvlog(async function POST(
       throw integrationsResult.reason;
     }
     const validatedIntegrations = integrationsResult.value;
+    const codeResearch =
+      codeResearchResult.status === "fulfilled" && codeResearchResult.value;
     messages = preserveConversationSelection(
       hydrationResult.value,
       existingSession?.messages ?? []
@@ -269,19 +272,21 @@ export const POST = withEvlog(async function POST(
       await clearActiveChatStream(organizationId, chatId, streamId);
       const currentSession = await getChatSessionState(organizationId, chatId);
       if (currentSession && currentSession.deletedAt === null) {
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Chat changed while sending. Reload the chat and try again.",
           },
           { status: 409 }
         );
       }
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+      return Response.json({ error: "Chat not found" }, { status: 404 });
     }
 
     if (messages.length === 1 && latestMessage.role === "user") {
       // Start immediately alongside the response and keep it alive after the request.
-      after(generateAndSetChatTitle(organizationId, chatId, latestMessage));
+      afterResponse(async () => {
+        await generateAndSetChatTitle(organizationId, chatId, latestMessage);
+      });
     }
 
     const canUseWorkflowStreaming = canUseChatWorkflowStreaming();
@@ -322,6 +327,7 @@ export const POST = withEvlog(async function POST(
         validatedIntegrations,
         useMarkup,
         chargeAiCredits,
+        codeResearch,
         requestId,
         log,
         model: parseResult.data.model,
@@ -355,7 +361,7 @@ export const POST = withEvlog(async function POST(
 
     await startStandaloneChatRun(workflowPayload);
 
-    return NextResponse.json(
+    return Response.json(
       { ok: true, chatId, streamId },
       {
         status: 202,
@@ -376,7 +382,7 @@ export const POST = withEvlog(async function POST(
       error: errorMessage,
       stack: e instanceof Error ? e.stack : undefined,
     });
-    return NextResponse.json(
+    return Response.json(
       {
         error:
           process.env.NODE_ENV === "development"
@@ -406,6 +412,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations,
   useMarkup,
   chargeAiCredits,
+  codeResearch,
   requestId,
   log,
   model,
@@ -427,6 +434,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations: ValidatedIntegration[];
   useMarkup: boolean;
   chargeAiCredits: boolean;
+  codeResearch: boolean;
   requestId: string;
   log: ReturnType<typeof getLogger>;
   model?: string;
@@ -474,6 +482,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
       },

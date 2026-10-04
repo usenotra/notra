@@ -1,9 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -18,6 +17,7 @@ import {
   useGeoPromptGapIgnore,
   useGeoWriterGaps,
 } from "@/lib/hooks/use-geo-writer";
+import { useRouter } from "@/lib/navigation";
 import type { GeoGapsPageModel } from "@/types/components/geo-gaps";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import {

@@ -2,11 +2,11 @@ import { db } from "@notra/db/drizzle";
 import { projects } from "@notra/db/schema";
 import { GEO_PROJECTS_OLDEST_ORDER } from "@notra/geo-core/constants/geo-projects";
 import { and, eq } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { cache } from "react";
 
 import { retryTransientDbError } from "@/lib/db/retry";
 import { getLastVisitedProject } from "@/utils/cookies";
+import { readServerCookies as cookies } from "@/utils/server-cookies";
 
 /**
  * The project the GEO pages will show once the client has hydrated. The

@@ -1,5 +1,5 @@
 import type { OnboardingHeardAboutNotraSource } from "@notra/schemas/types/dashboard/onboarding";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useHeardAboutLabels(): Record<
   OnboardingHeardAboutNotraSource,

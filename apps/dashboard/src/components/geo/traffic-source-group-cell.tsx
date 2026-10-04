@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import type { TrafficSourceGroupCellProps } from "@/types/geo";

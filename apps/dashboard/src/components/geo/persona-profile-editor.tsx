@@ -8,9 +8,9 @@ import { hasGeoPersonaDetailsChanged } from "@notra/geo-core/utils/geo-personas"
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GEO_PERSONA_PROFILE_SECTIONS } from "@/constants/geo-personas";

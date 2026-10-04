@@ -24,7 +24,6 @@ export interface InvitationSummary {
   status: "pending" | "accepted" | "expired" | "revoked";
   expiresAt: Date;
   createdAt: Date;
-  acceptInvitationUrl: string;
 }
 
 export interface MemberWithUser extends MemberRow {
@@ -41,6 +40,7 @@ export interface FullOrganization extends OrganizationRow {
 }
 
 export interface CreateOrganizationInput {
+  websiteUrl?: string;
   name: string;
   slug: string;
   logo?: string;
@@ -80,6 +80,14 @@ export interface UpdateMemberRoleInput {
 export interface RemoveMemberInput {
   memberIdOrEmail: string;
   organizationId?: string;
+}
+
+export interface OrganizationLookupInput {
+  query?: { organizationId?: string; organizationSlug?: string };
+}
+
+export interface OrganizationScopedQueryInput {
+  query?: { organizationId?: string };
 }
 
 export interface ListMembersInput {

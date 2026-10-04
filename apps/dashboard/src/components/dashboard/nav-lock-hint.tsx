@@ -8,13 +8,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { PAYWALL_KINDS } from "@/constants/analytics-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
+import { usePathname } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { NavLockHintProps } from "@/types/components/nav";
 

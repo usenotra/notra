@@ -4,7 +4,6 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import type { SecurityLoadStatus } from "@notra/ui/types/security";
 import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { DeleteAccountSection } from "@/components/settings/delete-account";
@@ -14,6 +13,7 @@ import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { TwoFactorSection } from "@/components/settings/two-factor-section";
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 function resolveSecurityStatus(

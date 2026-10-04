@@ -4,9 +4,10 @@ import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useLocale, useTranslations } from "next-intl";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
+import { useLocale, useNow, useTranslations } from "use-intl";
 
-import type { TableColumn } from "@/components/motion/table";
+import { cn } from "@/lib/utils";
 import type { InvitationSummary } from "@/types/organizations/actions";
 
 import { InvitationActions } from "./invitation-actions";
@@ -30,7 +31,9 @@ function RoleBadge({ role }: { role: string | null | undefined }) {
 
 export function useInvitationColumns(): TableColumn<InvitationSummary>[] {
   const tCommon = useTranslations("common");
+  const tMembers = useTranslations("members");
   const locale = useLocale();
+  const now = useNow({ updateInterval: 60_000 });
   return [
     {
       key: "email",
@@ -67,11 +70,23 @@ export function useInvitationColumns(): TableColumn<InvitationSummary>[] {
       sortable: true,
       sortValue: (invitation) =>
         new Date(invitation.expiresAt).getTime() || Number.MAX_SAFE_INTEGER,
-      cell: (invitation) => (
-        <span className="text-muted-foreground text-sm whitespace-nowrap tabular-nums">
-          {new Date(invitation.expiresAt).toLocaleDateString(locale)}
-        </span>
-      ),
+      cell: (invitation) => {
+        const expiresAt = new Date(invitation.expiresAt);
+        const date = expiresAt.toLocaleDateString(locale);
+        // Expired invitations stay "pending" until resent or canceled.
+        const expired = expiresAt.getTime() <= now.getTime();
+        return (
+          <span
+            className={cn(
+              "text-sm whitespace-nowrap tabular-nums",
+              expired ? "text-destructive" : "text-muted-foreground"
+            )}
+            title={expired ? date : undefined}
+          >
+            {expired ? tMembers("invitationExpired") : date}
+          </span>
+        );
+      },
     },
     {
       key: "actions",

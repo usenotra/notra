@@ -19,14 +19,18 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
@@ -38,7 +42,6 @@ import {
   BrandTrackingBadge,
   TrackBrandButton,
 } from "@/components/geo/share-of-voice-brand-tag";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
@@ -236,8 +239,7 @@ function CompetitorPromptAppearances({
 }: CompetitorPromptAppearancesProps) {
   const t = useTranslations("geo.competitorDetailView");
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={prompts}
       defaultSort={{ key: "capturedAt", direction: "desc" }}

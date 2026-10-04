@@ -84,7 +84,7 @@ export const MARKETING_NAV: readonly MarketingNavEntry[] = [
         icon: AiBrain01Icon,
       },
       {
-        href: "https://docs.usenotra.com/devtools/cli",
+        href: "https://www.usenotra.com/docs/devtools/cli",
         label: "CLI",
         icon: CommandLineIcon,
         external: true,
@@ -118,7 +118,7 @@ export const MARKETING_NAV: readonly MarketingNavEntry[] = [
     railHeading: "More",
     rail: [
       {
-        href: "https://docs.usenotra.com",
+        href: "https://www.usenotra.com/docs",
         label: "Docs",
         icon: BookOpen01Icon,
         external: true,

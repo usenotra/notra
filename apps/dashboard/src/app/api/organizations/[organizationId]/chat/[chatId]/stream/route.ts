@@ -9,8 +9,6 @@ import { chatIdSchema } from "@notra/ai/schemas/chat";
 import type { HistoryMessage } from "@upstash/realtime";
 import type { UIMessageChunk } from "ai";
 import { UI_MESSAGE_STREAM_HEADERS } from "ai";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import {
   CHAT_STREAM_CURSOR_HEADER,
@@ -30,8 +28,7 @@ function toSseChunk(chunk: UIMessageChunk, cursor: string) {
   return `id: ${cursor}\ndata: ${JSON.stringify(chunk)}\n\n`;
 }
 
-// react-doctor-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler -- pending.delete only mutates this connection's replay buffer, not application state
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -41,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const chatIdParse = chatIdSchema.safeParse(chatId);
   if (!chatIdParse.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid chat ID", details: chatIdParse.error.issues },
       { status: 400 }
     );
@@ -53,7 +50,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     cursor: request.headers.get(CHAT_STREAM_CURSOR_HEADER),
   });
   if (!resume.success || (resume.data.cursor && !resume.data.streamId)) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid stream resume cursor" },
       { status: 400 }
     );
@@ -62,7 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     `${organizationId}:${auth.context.user.id}`
   );
   if (!withinLimit) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Rate limit exceeded", reset },
       { status: 429 }
     );

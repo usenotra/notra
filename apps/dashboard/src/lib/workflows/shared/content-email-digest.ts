@@ -1,3 +1,6 @@
+import "@/workflows/runtime";
+import { randomUUID } from "node:crypto";
+
 import { redis } from "@notra/ai/utils/redis";
 import type { EmailResult } from "@notra/email/types/brew";
 
@@ -6,6 +9,7 @@ import {
   CONTENT_EMAIL_DIGEST_BATCH_SENT,
   CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
   CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+  PIN_CONTENT_EMAIL_DIGEST_SCRIPT,
 } from "@/constants/workflows";
 import {
   sendAiCreditsDepletedEmail,
@@ -63,21 +67,25 @@ export async function appendContentEmailDigestEvent({
   return true;
 }
 
-export async function claimContentEmailDigestWindow(digestKey: string) {
+/** Returns the lock token when this call opened the window, else null. */
+export async function claimContentEmailDigestWindow(
+  digestKey: string
+): Promise<string | null> {
   if (!redis) {
-    return false;
+    return null;
   }
 
+  const lockToken = randomUUID();
   const claimed = await redis.set(
     getContentEmailDigestLockKey(digestKey),
-    "1",
+    lockToken,
     {
       ex: CONTENT_EMAIL_DIGEST_TTL_SECONDS,
       nx: true,
     }
   );
 
-  return claimed === "OK";
+  return claimed === "OK" ? lockToken : null;
 }
 
 export async function releaseContentEmailDigestWindow(digestKey: string) {
@@ -163,24 +171,35 @@ function assertEmailSent({
  * Pins the events a flush sends to its first attempt, so a retry resends the
  * same email under the same Brew idempotency key. Events appended meanwhile
  * go to the next flush. `acknowledge` is safe to repeat and tells whether
- * such events are waiting.
+ * such events are waiting. A run that lost its window sends nothing.
  */
-async function readDigestBatch(digestKey: string, batchId: string) {
+async function readDigestBatch(
+  { digestKey, lockToken = "" }: ContentEmailDigestPayload,
+  batchId: string
+) {
   if (!redis) {
-    return {
-      rawEvents: [] as unknown[],
-      alreadySent: false,
-      acknowledge: async () => false,
-    };
+    return null;
   }
 
   const client = redis;
-  const batchKey = `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`;
-  await client.set(batchKey, await client.llen(digestKey), {
-    ex: CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
-    nx: true,
-  });
-  const batch = await client.get<number | string>(batchKey);
+  const keys = [
+    digestKey,
+    getContentEmailDigestLockKey(digestKey),
+    `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`,
+  ];
+  const batch = await client.eval<string[], number | string | null>(
+    PIN_CONTENT_EMAIL_DIGEST_SCRIPT,
+    keys,
+    [
+      lockToken,
+      String(CONTENT_EMAIL_DIGEST_TTL_SECONDS),
+      String(CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS),
+    ]
+  );
+  if (batch === null) {
+    return null;
+  }
+
   const alreadySent = batch === CONTENT_EMAIL_DIGEST_BATCH_SENT;
   const batchSize = alreadySent ? 0 : Number(batch);
   const rawEvents =
@@ -192,15 +211,12 @@ async function readDigestBatch(digestKey: string, batchId: string) {
     rawEvents,
     alreadySent,
     acknowledge: async () =>
-      (await client.eval(
-        ACK_CONTENT_EMAIL_DIGEST_SCRIPT,
-        [digestKey, getContentEmailDigestLockKey(digestKey), batchKey],
-        [
-          CONTENT_EMAIL_DIGEST_TTL_SECONDS,
-          CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
-          CONTENT_EMAIL_DIGEST_BATCH_SENT,
-        ]
-      )) === 1,
+      (await client.eval(ACK_CONTENT_EMAIL_DIGEST_SCRIPT, keys, [
+        lockToken,
+        String(CONTENT_EMAIL_DIGEST_TTL_SECONDS),
+        String(CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS),
+        CONTENT_EMAIL_DIGEST_BATCH_SENT,
+      ])) === 1,
   };
 }
 
@@ -348,10 +364,12 @@ export async function flushContentEmailDigest(
   payload: ContentEmailDigestPayload,
   batchId: string
 ): Promise<boolean> {
-  const { rawEvents, alreadySent, acknowledge } = await readDigestBatch(
-    payload.digestKey,
-    batchId
-  );
+  const batch = await readDigestBatch(payload, batchId);
+  if (!batch) {
+    return false;
+  }
+
+  const { rawEvents, alreadySent, acknowledge } = batch;
   if (!alreadySent) {
     await sendDigest(
       payload,

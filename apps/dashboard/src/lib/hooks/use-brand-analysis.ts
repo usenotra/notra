@@ -6,8 +6,8 @@ import type {
   DeleteResourceResponse,
 } from "@notra/schemas/dashboard/integrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import type {
   BrandSettings,

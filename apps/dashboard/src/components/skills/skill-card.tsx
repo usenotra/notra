@@ -1,10 +1,10 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import type { SkillCardProps } from "@/types/skills/page";
 import { formatSkillUpdatedAt, skillDisplayName } from "@/utils/skills";
 

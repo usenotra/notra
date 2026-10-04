@@ -5,13 +5,13 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { PlanCard } from "@/components/billing/plan-card";
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { OnboardingProgress } from "@/components/onboarding/progress";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
 import { ONBOARDING_STEPS, PLAN_SURFACES } from "@/constants/analytics-events";

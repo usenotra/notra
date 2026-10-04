@@ -6,7 +6,6 @@ import { Effect } from "effect";
 
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
@@ -22,10 +21,6 @@ function authorizeGitHub(callbackURL: string) {
       await startSocialSignInAction({
         provider: "github",
         returnTo: callbackURL,
-      }).catch((error) => {
-        if (!isNextRedirectError(error)) {
-          throw error;
-        }
       });
       return true;
     },

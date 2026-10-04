@@ -2,7 +2,6 @@
 
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import {
@@ -13,6 +12,7 @@ import type {
   IntegrationCardDitherInteraction,
   IntegrationCardDitherProps,
 } from "@/types/integrations";
+import dynamic from "@/utils/lazy-component";
 
 const Dithering = dynamic(
   () =>

@@ -16,8 +16,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { INSTRUMENT_SURFACE_CLASSES } from "@/constants/instrument";
 import { cn } from "@/lib/utils";

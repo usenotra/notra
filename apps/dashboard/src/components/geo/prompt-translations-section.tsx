@@ -4,8 +4,8 @@ import { trackedPromptScanId } from "@notra/geo-core/geo/prompts";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { LanguageLabel } from "@/components/geo/geo-language-picker";

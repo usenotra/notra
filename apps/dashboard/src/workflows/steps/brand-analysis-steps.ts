@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
 import { gateway } from "@notra/ai/gateway";
 import { withRouterDefaults } from "@notra/ai/provider-options";

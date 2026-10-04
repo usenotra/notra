@@ -46,3 +46,5 @@ export const DYNAMIC_PAGE_CACHE_CONTROL =
   "private, no-cache, no-store, max-age=0, must-revalidate";
 
 export const GEO_INGEST_ENDPOINT = "https://ingest.usenotra.com";
+
+export const DOCS_PROXY_ORIGIN = "https://notra.mintlify.site";

@@ -121,7 +121,7 @@ export function buildFeaturesMarkdown() {
       ANSWER_EXAMPLE_SUBCOPY,
       "",
       "### Competitors",
-      "Track up to 25 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
+      "Track up to 2,000 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
       "",
       "### Agent journeys",
       "Follow a single AI agent across your site: which pages it fetched, in what order and whether it asked for markdown.",
@@ -151,7 +151,7 @@ export function buildFeaturesMarkdown() {
       "- OAuth 2.1 through oauth.usenotra.com or scoped API keys.",
       "- MCP server at https://mcp.usenotra.com/mcp.",
       "- @usenotra/geo on npm for traffic capture, agent classification and link tagging.",
-      "- Docs at https://docs.usenotra.com.",
+      "- Docs at https://www.usenotra.com/docs.",
     ]),
     markdownSection("Studio", [
       "The content automation that Notra started with is still here. Connect GitHub, Linear and Slack, and Notra drafts changelogs, launch posts and social updates in your brand voice, on a schedule or when something ships.",

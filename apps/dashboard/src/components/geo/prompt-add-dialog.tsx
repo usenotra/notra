@@ -31,8 +31,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptKeywordTextarea } from "@/components/geo/prompt-keyword-textarea";
@@ -88,11 +88,14 @@ export function PromptAddDialog({
   const canGenerate = normalizedUrl !== null && !busy;
   const writeMode = mode === "write";
 
-  const close = () => {
+  const close = () => onOpenChange(false);
+
+  // Cleared once the close animation is done, so the closing dialog keeps
+  // showing what the user saw instead of snapping back to an empty draft.
+  const reset = () => {
     setMode("write");
     setDraft("");
     setUrl("");
-    onOpenChange(false);
   };
 
   const handleAdd = () => {
@@ -133,6 +136,11 @@ export function PromptAddDialog({
 
   return (
     <ResponsiveDialog
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) {
+          reset();
+        }
+      }}
       onOpenChange={(next) => {
         if (next) {
           onOpenChange(true);
@@ -211,6 +219,9 @@ export function PromptAddDialog({
                         handleAdd();
                       }
                     }}
+                    // A fixed height: a growing textarea resized (and
+                    // re-centred) the whole dialog on every wrapped line.
+                    className="field-sizing-fixed h-28 resize-none"
                     placeholder={t("questionPlaceholder")}
                     ref={promptRef}
                     rows={4}

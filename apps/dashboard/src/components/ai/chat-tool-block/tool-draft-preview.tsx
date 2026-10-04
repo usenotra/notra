@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { TOOL_DRAFT_PREVIEW_MAX_CHARS } from "@/constants/chat-tool-draft";
 import type { ToolDraftPreviewProps } from "@/types/components/chat-tool-draft";
 

@@ -1,19 +1,12 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { defineNodeInstrumentation } from "evlog/next/instrumentation";
 
-const evlogInstrumentation = defineNodeInstrumentation(async () => {
-  const [evlog, { after }] = await Promise.all([
-    import("@notra/ai/evlog"),
-    import("next/server"),
-  ]);
-  evlog.setLogFlushScheduler((flush) => after(flush));
-  return evlog;
-});
+let registration: Promise<void> | undefined;
 
-export async function register() {
-  await evlogInstrumentation.register();
+async function initialize() {
+  const { register: registerLogs } = await import("@notra/ai/evlog");
+  await registerLogs();
 
-  if (process.env.NEXT_RUNTIME === "nodejs" && isDemoMode()) {
+  if (isDemoMode()) {
     const [{ registerGeoDemoTraffic }, { registerDemoSocialAnalytics }] =
       await Promise.all([
         import("@notra/geo-core/geo/demo-traffic"),
@@ -23,60 +16,54 @@ export async function register() {
     registerDemoSocialAnalytics();
   }
 
-  // Tracing exports to The Context Company; deployments without its key
-  // (the public demo) would otherwise fail to start.
-  if (
-    process.env.NEXT_RUNTIME === "nodejs" &&
-    process.env.NODE_ENV === "production" &&
-    process.env.TCC_API_KEY
-  ) {
-    const [{ registerOTelTCC }, { OpenTelemetry }, { registerTelemetry }] =
-      await Promise.all([
-        import("@contextcompany/otel/nextjs"),
-        import("@ai-sdk/otel"),
-        import("ai"),
-      ]);
-    registerOTelTCC();
+  if (process.env.NODE_ENV === "production" && process.env.TCC_API_KEY) {
+    const [
+      { TCCSpanProcessor },
+      { registerOTel },
+      { OpenTelemetry },
+      { registerTelemetry },
+    ] = await Promise.all([
+      import("@contextcompany/otel"),
+      import("@vercel/otel"),
+      import("@ai-sdk/otel"),
+      import("ai"),
+    ]);
+    registerOTel({ spanProcessors: [new TCCSpanProcessor()] });
     registerTelemetry(new OpenTelemetry({ runtimeContext: true }));
   }
 }
 
-export const onRequestError: typeof evlogInstrumentation.onRequestError =
-  async (error, request, context) => {
-    await evlogInstrumentation.onRequestError(error, request, context);
+export function register() {
+  registration ??= initialize().catch((error) => {
+    registration = undefined;
+    throw error;
+  });
+  return registration;
+}
 
-    if (process.env.NEXT_RUNTIME !== "nodejs") {
-      return;
-    }
-
-    const [
-      { captureServerException, flushPostHogServer },
-      { getPostHogRequestContext },
-      { scheduleRequestErrorTelemetry },
-    ] = await Promise.all([
+export async function onRequestError(error: unknown, request: Request) {
+  const [{ log }, { captureServerException }, { getPostHogRequestContext }] =
+    await Promise.all([
+      import("@notra/ai/evlog"),
       import("@notra/posthog/server"),
       import("@notra/posthog/request"),
-      import("@/utils/request-error-telemetry"),
     ]);
-
-    const requestContext = getPostHogRequestContext({
-      get: (name) => request.headers[name] ?? null,
-    });
-
-    captureServerException({
-      error,
-      distinctId: requestContext.distinctId,
-      sessionId: requestContext.sessionId,
-      properties: {
-        path: request.path,
-        method: request.method,
-        router_kind: context.routerKind,
-        route_path: context.routePath,
-        route_type: context.routeType,
-      },
-    });
-    const { flushLogs } = await import("@notra/ai/evlog");
-    scheduleRequestErrorTelemetry(() =>
-      Promise.allSettled([flushPostHogServer(), flushLogs()])
-    );
-  };
+  const requestContext = getPostHogRequestContext(request.headers);
+  const path = new URL(request.url).pathname;
+  log.error({
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    path,
+    method: request.method,
+  });
+  captureServerException({
+    error,
+    distinctId: requestContext.distinctId,
+    sessionId: requestContext.sessionId,
+    properties: {
+      path,
+      method: request.method,
+      router_kind: "TanStack Start",
+    },
+  });
+}

@@ -28,9 +28,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import {
@@ -46,6 +45,7 @@ import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import { ChatSkillSlashMenu } from "@/components/chat/chat-skill-slash-menu";
 import { ChatSkillTagChips } from "@/components/chat/chat-skill-tag-chips";
 import { Composer } from "@/components/composer/composer-shell";
+import Link from "@/components/framework/link";
 import { useContentChatInput } from "@/lib/hooks/use-content-chat-input";
 import type {
   ChatInputComposerNudgeProps,
@@ -181,7 +181,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
           <section aria-label={tChatShared("chatInputDropArea")}>
             <ChatQuotePreview />
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
               className="hidden"
               multiple
               onChange={onFileInputChange}

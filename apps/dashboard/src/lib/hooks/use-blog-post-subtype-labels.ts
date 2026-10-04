@@ -1,5 +1,5 @@
 import type { BlogPostSubtype } from "@notra/db/types/content";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useBlogPostSubtypeLabels(): Record<BlogPostSubtype, string> {
   const t = useTranslations("content.plan.subtypes");

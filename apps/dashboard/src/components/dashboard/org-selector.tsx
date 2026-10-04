@@ -40,12 +40,10 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { CreditBalanceMenuItem } from "@/components/billing/credit-balance-button";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -55,10 +53,13 @@ import { authClient } from "@/lib/auth/client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname, useRouter } from "@/lib/navigation";
 import { cn, errorMessageOr } from "@/lib/utils";
 import type { OrganizationOptionsListProps } from "@/types/dashboard";
 import { planDisplayName } from "@/utils/billing-plans";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+import dynamic from "@/utils/lazy-component";
+import { nameInitials } from "@/utils/name-initials";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { scheduleDemo } from "@/utils/schedule-demo";
 
@@ -72,71 +73,6 @@ const CreateOrgModal = dynamic(() =>
     default: mod.CreateOrgModal,
   }))
 );
-
-function OverflowAwareText({
-  text,
-  className,
-  thresholdMultiplier = 1,
-}: {
-  text?: string;
-  className?: string;
-  thresholdMultiplier?: number;
-}) {
-  const [shouldShowEllipsis, setShouldShowEllipsis] = useState(true);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const ellipsisRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!text) {
-      return;
-    }
-
-    const textElement = textRef.current;
-    const ellipsisElement = ellipsisRef.current;
-
-    if (!textElement || !ellipsisElement) {
-      return;
-    }
-
-    const updateEllipsisState = () => {
-      const overflowWidth = textElement.scrollWidth - textElement.clientWidth;
-      const ellipsisWidth = ellipsisElement.offsetWidth * thresholdMultiplier;
-
-      setShouldShowEllipsis(overflowWidth > ellipsisWidth);
-    };
-
-    updateEllipsisState();
-
-    const resizeObserver = new ResizeObserver(updateEllipsisState);
-    resizeObserver.observe(textElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [text, thresholdMultiplier]);
-
-  return (
-    <div className="relative min-w-0 flex-1">
-      <span
-        className={cn(
-          "block min-w-0 overflow-hidden whitespace-nowrap",
-          shouldShowEllipsis ? "text-ellipsis" : "",
-          className
-        )}
-        ref={textRef}
-      >
-        {text}
-      </span>
-      <span
-        aria-hidden
-        className={cn("invisible absolute", className)}
-        ref={ellipsisRef}
-      >
-        ...
-      </span>
-    </div>
-  );
-}
 
 function OrgSelectorTrigger({
   isSwitching,
@@ -163,14 +99,16 @@ function OrgSelectorTrigger({
               src={activeOrganization?.logo || undefined}
             />
             <AvatarFallback className="bg-sidebar-accent rounded-lg">
-              {activeOrganization?.name.charAt(0)}
+              {nameInitials(activeOrganization?.name ?? "", 1)}
             </AvatarFallback>
           </Avatar>
           <div className="duration-normal flex min-w-0 flex-1 items-center gap-2 text-left text-sm leading-tight transition-opacity ease-(--sidebar-ease) group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:delay-75 group-data-[state=expanded]:delay-150 motion-reduce:transition-none motion-reduce:delay-0">
-            <OverflowAwareText
-              className="text-sm font-medium"
-              text={activeOrganization?.name}
-            />
+            <span
+              className="min-w-0 flex-1 truncate text-sm font-medium"
+              title={activeOrganization?.name}
+            >
+              {activeOrganization?.name}
+            </span>
             {planBadge ? (
               <Badge
                 className="bg-primary/10 text-primary shrink-0 font-semibold uppercase"
@@ -241,14 +179,12 @@ function OrganizationOptionsList({
             <Avatar className="size-5 rounded-md after:rounded-md">
               <AvatarImage src={org.logo || undefined} />
               <AvatarFallback className="rounded-md text-[10px]">
-                {org.name.slice(0, 2)}
+                {nameInitials(org.name)}
               </AvatarFallback>
             </Avatar>
-            <OverflowAwareText
-              className="text-sm"
-              text={org.name}
-              thresholdMultiplier={1.75}
-            />
+            <span className="min-w-0 flex-1 truncate text-sm" title={org.name}>
+              {org.name}
+            </span>
             {isSelected ? (
               <HugeiconsIcon
                 className="text-muted-foreground ml-auto size-4"

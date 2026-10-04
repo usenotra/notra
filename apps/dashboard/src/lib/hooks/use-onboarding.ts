@@ -25,6 +25,10 @@ import type {
   UseOnboardingStatusOptions,
   UseOnboardingSuggestionsOptions,
 } from "@/types/hooks/onboarding";
+import {
+  isOnboardingBannerDismissedFromClient,
+  setOnboardingBannerDismissedCookie,
+} from "@/utils/cookies";
 
 import { dashboardOrpc } from "../orpc/query";
 
@@ -132,19 +136,42 @@ function subscribeToBannerDismissal(callback: () => void) {
   };
 }
 
-export function useOnboardingAgentBannerDismissal(organizationId: string) {
-  const storageKey =
+/**
+ * The dismissal lives in a cookie the shell loader reads, so the server render
+ * already leaves the banner out. `serverDismissed` is that cookie's value.
+ */
+export function useOnboardingAgentBannerDismissal(
+  organizationId: string,
+  serverDismissed: boolean
+) {
+  // Dismissals from before the cookie were only kept in localStorage.
+  const legacyKey =
     localStorageKeys.onboardingAgentBannerDismissed(organizationId);
   const dismissed = useSyncExternalStore(
     subscribeToBannerDismissal,
-    () => localStorage.getItem(storageKey) === "true",
-    () => false
+    () =>
+      isOnboardingBannerDismissedFromClient(organizationId) ||
+      localStorage.getItem(legacyKey) === "true",
+    () => serverDismissed
   );
-  const dismiss = () => {
-    localStorage.setItem(storageKey, "true");
-    for (const listener of bannerDismissListeners) {
-      listener();
+
+  useEffect(() => {
+    if (
+      localStorage.getItem(legacyKey) === "true" &&
+      !isOnboardingBannerDismissedFromClient(organizationId)
+    ) {
+      setOnboardingBannerDismissedCookie(organizationId).catch(() => undefined);
     }
+  }, [legacyKey, organizationId]);
+
+  const dismiss = () => {
+    setOnboardingBannerDismissedCookie(organizationId)
+      .catch(() => undefined)
+      .finally(() => {
+        for (const listener of bannerDismissListeners) {
+          listener();
+        }
+      });
   };
   return { dismiss, dismissed };
 }

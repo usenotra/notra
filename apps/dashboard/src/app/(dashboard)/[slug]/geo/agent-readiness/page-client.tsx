@@ -4,8 +4,8 @@ import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getAgentReadinessScanErrorMessage } from "@notra/geo-core/utils/agent-readiness";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateReadinessPreview } from "@/components/empty-state-preview";

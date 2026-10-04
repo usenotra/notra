@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { AnimatePresence, LazyMotion, m, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import {
   type MouseEvent,
   type ReactNode,
@@ -28,6 +27,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PlanText } from "@/components/content/plan-text";

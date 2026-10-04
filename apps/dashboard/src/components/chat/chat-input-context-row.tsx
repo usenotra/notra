@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";

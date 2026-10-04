@@ -3,9 +3,8 @@
 import type { ContentType } from "@notra/ai/schemas/content";
 import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ContentCard } from "@/components/content/content-card";
@@ -14,6 +13,7 @@ import { LazyCreateContentDialog } from "@/components/content/lazy-create-conten
 import { LazyContentActivityCard } from "@/components/dashboard/lazy-content-activity-card";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";

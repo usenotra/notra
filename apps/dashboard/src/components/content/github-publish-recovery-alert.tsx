@@ -7,7 +7,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { GitHubPublishRecoveryAlertProps } from "@/types/content/detail";
 

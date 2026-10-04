@@ -20,15 +20,15 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { LegacyEditTokenDialog as EditTokenDialog } from "@/components/integrations/legacy/edit-token-dialog";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { IntegrationCardProps } from "@/types/integrations";
 

@@ -3,6 +3,7 @@ import type { ProgressData } from "@/types/hooks/brand-analysis";
 
 export interface BrandAnalysisProgressInput {
   organizationId: string;
+  websiteUrl?: string;
   jobId?: string;
   progress: ProgressData;
   startedAt?: number;

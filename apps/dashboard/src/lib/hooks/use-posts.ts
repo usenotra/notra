@@ -2,7 +2,7 @@
 
 import type { RecentPostsResponse } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { recentPostsQueryInput } from "@/utils/recent-posts-query";
 

@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import { getBrandFaviconUrl } from "@/utils/brand";

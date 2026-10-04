@@ -86,10 +86,13 @@ export const BILLING_PLAN_FEATURE_SKELETON_KEYS = [
   "feature-6",
 ] as const;
 
-export const BILLING_INVOICE_SKELETON_KEYS = [
-  "invoice-1",
-  "invoice-2",
-  "invoice-3",
+export const BILLING_INVOICE_SKELETON_ROWS = 3;
+
+export const INVOICE_SKELETON_COLUMN_WIDTHS = [
+  "140px",
+  "1fr",
+  "120px",
+  "120px",
 ] as const;
 
 export const USAGE_METRIC_SKELETON_KEYS = [

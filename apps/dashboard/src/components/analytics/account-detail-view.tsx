@@ -7,18 +7,21 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   ACCOUNT_DETAIL_MIN_POINTS,
@@ -42,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import type {
   AccountDetailViewProps,
+  AccountIdentity,
   LeaderboardDetailMetric,
   TopPostItem,
 } from "@/types/analytics";
@@ -60,92 +64,13 @@ import {
 import { seriesColors } from "@/utils/chart-colors";
 import { isSquareTwitterAvatar } from "@/utils/twitter";
 
-export function AccountDetailView({
-  organizationSlug,
-  handle,
-  variant = "modal",
-}: AccountDetailViewProps) {
-  const t = useTranslations("analytics.accountDetail");
+/** Columns for an account's top posts, newest metrics on the right. */
+function useTopPostColumns(): TableColumn<TopPostItem>[] {
   const tAnalyticsShared = useTranslations("analytics.shared");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
-  const tSummary = useTranslations("analytics.summary");
-  const metricLabels: Record<LeaderboardDetailMetric["labelKey"], string> = {
-    followers: tAnalyticsShared("followers"),
-    impressions: tCommon("labels.impressions"),
-    likes: tAnalyticsShared("likes"),
-    replies: tAnalyticsShared("replies"),
-    reposts: t("metrics.reposts"),
-    quotes: t("metrics.quotes"),
-    bookmarks: t("metrics.bookmarks"),
-    engagementRate: t("metrics.engagementRate"),
-  };
-  const format = useFormatter();
   const formatMetric = useFormatMetric();
   const formatDayLabel = useDayLabel();
-  const chartConfig = useMemo<ChartConfig>(
-    () => ({
-      [ACCOUNT_DETAIL_SERIES_KEY]: {
-        label: tAnalyticsShared("engagement"),
-        colors: seriesColors(CHART_PRIMARY_COLOR),
-      },
-    }),
-    [t]
-  );
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  const orgFromList = getOrganization(organizationSlug);
-  const organization =
-    activeOrganization?.slug === organizationSlug
-      ? activeOrganization
-      : orgFromList;
-  const organizationId = organization?.id ?? "";
-
-  const { data: overview, isLoading: isOverviewLoading } =
-    useSocialOverview(organizationId);
-  const { data: leaderboard } = useLeaderboard(
-    organizationId,
-    ACCOUNT_DETAIL_WINDOW
-  );
-  const { data: engagement, isLoading: isEngagementLoading } =
-    useEngagementTimeseries(organizationId);
-  const { data: topPosts, isLoading: isPostsLoading } = useTopPosts(
-    organizationId,
-    ACCOUNT_DETAIL_POSTS_LIMIT
-  );
-
-  const account = useMemo(
-    () => findOverviewAccount(overview?.accounts ?? [], handle),
-    [overview?.accounts, handle]
-  );
-  const entry = useMemo(
-    () => findLeaderboardEntry(leaderboard?.entries ?? [], handle),
-    [leaderboard?.entries, handle]
-  );
-  const identity = useMemo(
-    () => buildAccountIdentity(account, entry),
-    [account, entry]
-  );
-
-  const points = useMemo(
-    () =>
-      buildAccountEngagementPoints(engagement?.points ?? [], identity, locale),
-    [engagement?.points, identity, locale]
-  );
-
-  const posts = useMemo(
-    () => postsForAccount(topPosts?.posts ?? [], identity),
-    [topPosts?.posts, identity]
-  );
-
-  const metrics = useMemo(
-    () =>
-      account
-        ? leaderboardDetailMetrics(account, locale, tCommon("labels.nA"))
-        : [],
-    [account, locale, tSummary]
-  );
-
-  const columns = useMemo<TableColumn<TopPostItem>[]>(
+  return useMemo<TableColumn<TopPostItem>[]>(
     () => [
       {
         key: "content",
@@ -227,62 +152,163 @@ export function AccountDetailView({
         ),
       },
     ],
-    [t, formatDayLabel, formatMetric]
+    [tAnalyticsShared, tCommon, formatDayLabel, formatMetric]
   );
+}
 
+/** Avatar, name, handle and follower count at the top of the account view. */
+function AccountHeader({
+  handle,
+  identity,
+}: {
+  handle: string;
+  identity: AccountIdentity | null;
+}) {
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const formatMetric = useFormatMetric();
   const displayName = identity?.displayName ?? identity?.username ?? handle;
   const username = identity?.username ?? handle;
   const providerIcon =
     identity?.provider === "linkedin" ? Linkedin02Icon : NewTwitterIcon;
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Avatar
+          className={cn(
+            "size-10 shrink-0",
+            isSquareTwitterAvatar(identity?.verifiedType ?? null) &&
+              "rounded-md"
+          )}
+        >
+          {identity?.profileImageUrl && (
+            <AvatarImage
+              alt={displayName}
+              className={cn(
+                isSquareTwitterAvatar(identity.verifiedType) && "rounded-md"
+              )}
+              src={identity.profileImageUrl}
+            />
+          )}
+          <AvatarFallback className="text-xs">
+            {username.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 leading-tight">
+          <p className="flex min-w-0 items-center gap-1.5 text-lg font-semibold">
+            <span className="truncate">{displayName}</span>
+            <XVerificationBadge
+              className="size-4 shrink-0"
+              verified={identity?.verified ?? false}
+              verifiedType={identity?.verifiedType ?? null}
+            />
+          </p>
+          <span className="text-muted-foreground flex items-center gap-1.5 font-mono text-xs">
+            <HugeiconsIcon icon={providerIcon} size={12} />
+            <span className="truncate">@{username}</span>
+          </span>
+        </div>
+      </div>
+      <div className="text-right leading-tight">
+        <p className="text-lg font-semibold tabular-nums">
+          {formatMetric(identity?.followersCount ?? null)}
+        </p>
+        <p className="text-muted-foreground text-xs">
+          {tAnalyticsShared("followers")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function AccountDetailView({
+  organizationSlug,
+  handle,
+  variant = "modal",
+}: AccountDetailViewProps) {
+  const t = useTranslations("analytics.accountDetail");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const tSummary = useTranslations("analytics.summary");
+  const metricLabels: Record<LeaderboardDetailMetric["labelKey"], string> = {
+    followers: tAnalyticsShared("followers"),
+    impressions: tCommon("labels.impressions"),
+    likes: tAnalyticsShared("likes"),
+    replies: tAnalyticsShared("replies"),
+    reposts: t("metrics.reposts"),
+    quotes: t("metrics.quotes"),
+    bookmarks: t("metrics.bookmarks"),
+    engagementRate: t("metrics.engagementRate"),
+  };
+  const format = useFormatter();
+  const chartConfig = useMemo<ChartConfig>(
+    () => ({
+      [ACCOUNT_DETAIL_SERIES_KEY]: {
+        label: tAnalyticsShared("engagement"),
+        colors: seriesColors(CHART_PRIMARY_COLOR),
+      },
+    }),
+    [t]
+  );
+  const { getOrganization, activeOrganization } = useOrganizationsContext();
+  const orgFromList = getOrganization(organizationSlug);
+  const organization =
+    activeOrganization?.slug === organizationSlug
+      ? activeOrganization
+      : orgFromList;
+  const organizationId = organization?.id ?? "";
+
+  const { data: overview, isLoading: isOverviewLoading } =
+    useSocialOverview(organizationId);
+  const { data: leaderboard } = useLeaderboard(
+    organizationId,
+    ACCOUNT_DETAIL_WINDOW
+  );
+  const { data: engagement, isLoading: isEngagementLoading } =
+    useEngagementTimeseries(organizationId);
+  const { data: topPosts, isLoading: isPostsLoading } = useTopPosts(
+    organizationId,
+    ACCOUNT_DETAIL_POSTS_LIMIT
+  );
+
+  const account = useMemo(
+    () => findOverviewAccount(overview?.accounts ?? [], handle),
+    [overview?.accounts, handle]
+  );
+  const entry = useMemo(
+    () => findLeaderboardEntry(leaderboard?.entries ?? [], handle),
+    [leaderboard?.entries, handle]
+  );
+  const identity = useMemo(
+    () => buildAccountIdentity(account, entry),
+    [account, entry]
+  );
+
+  const points = useMemo(
+    () =>
+      buildAccountEngagementPoints(engagement?.points ?? [], identity, locale),
+    [engagement?.points, identity, locale]
+  );
+
+  const posts = useMemo(
+    () => postsForAccount(topPosts?.posts ?? [], identity),
+    [topPosts?.posts, identity]
+  );
+
+  const metrics = useMemo(
+    () =>
+      account
+        ? leaderboardDetailMetrics(account, locale, tCommon("labels.nA"))
+        : [],
+    [account, locale, tSummary]
+  );
+
+  const columns = useTopPostColumns();
+  const username = identity?.username ?? handle;
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <Avatar
-            className={cn(
-              "size-10 shrink-0",
-              isSquareTwitterAvatar(identity?.verifiedType ?? null) &&
-                "rounded-md"
-            )}
-          >
-            {identity?.profileImageUrl && (
-              <AvatarImage
-                alt={displayName}
-                className={cn(
-                  isSquareTwitterAvatar(identity.verifiedType) && "rounded-md"
-                )}
-                src={identity.profileImageUrl}
-              />
-            )}
-            <AvatarFallback className="text-xs">
-              {username.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 leading-tight">
-            <p className="flex min-w-0 items-center gap-1.5 text-lg font-semibold">
-              <span className="truncate">{displayName}</span>
-              <XVerificationBadge
-                className="size-4 shrink-0"
-                verified={identity?.verified ?? false}
-                verifiedType={identity?.verifiedType ?? null}
-              />
-            </p>
-            <span className="text-muted-foreground flex items-center gap-1.5 font-mono text-xs">
-              <HugeiconsIcon icon={providerIcon} size={12} />
-              <span className="truncate">@{username}</span>
-            </span>
-          </div>
-        </div>
-        <div className="text-right leading-tight">
-          <p className="text-lg font-semibold tabular-nums">
-            {formatMetric(identity?.followersCount ?? null)}
-          </p>
-          <p className="text-muted-foreground text-xs">
-            {tAnalyticsShared("followers")}
-          </p>
-        </div>
-      </div>
+      <AccountHeader handle={handle} identity={identity} />
 
       {isOverviewLoading && <Skeleton className="h-14 w-full rounded-2xl" />}
       {!isOverviewLoading && metrics.length > 0 && (
@@ -340,8 +366,7 @@ export function AccountDetailView({
             })}
           </span>
         </div>
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={columns}
           data={posts}
           defaultSort={{ key: "postedAt", direction: "desc" }}

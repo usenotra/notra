@@ -18,7 +18,7 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { parseISO } from "date-fns";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { shortMonthLabels } from "@/lib/i18n/month-labels";
 import { dashboardOrpc } from "@/lib/orpc/query";

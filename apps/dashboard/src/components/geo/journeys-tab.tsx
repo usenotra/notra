@@ -3,19 +3,17 @@
 import { GEO_JOURNEY_OVERVIEW_ROWS } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { JourneyDetailSheet } from "@/components/geo/journey-detail-sheet";
 import { JourneyGroupSheet } from "@/components/geo/journey-group-sheet";
 import { JourneyOverviewCard } from "@/components/geo/journey-overview-card";
 import { JourneyPathsCard } from "@/components/geo/journey-paths-card";
 import { JourneysCard } from "@/components/geo/journeys-card";
-import {
-  GeoSectionSkeleton,
-  GeoTableSkeleton,
-} from "@/components/geo/skeleton-parts";
+import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -28,10 +26,9 @@ const STAT_SKELETON_KEYS = ["a", "b", "c"] as const;
 
 function JourneyStatCardSkeleton({ eyebrow }: { eyebrow: string }) {
   return (
-    <div className="bg-card flex flex-col gap-5 rounded-xl border p-6">
-      <div className="flex h-7 items-center justify-between">
+    <div className="flex flex-col gap-5">
+      <div className="flex h-7 items-center">
         <p className="text-sm font-medium">{eyebrow}</p>
-        <Skeleton className="h-4 w-20" />
       </div>
       <Skeleton className="h-9 w-32" />
       <div className="grid grid-cols-3 gap-3">
@@ -42,7 +39,7 @@ function JourneyStatCardSkeleton({ eyebrow }: { eyebrow: string }) {
           </div>
         ))}
       </div>
-      <GeoTableSkeleton rows={GEO_JOURNEY_OVERVIEW_ROWS} />
+      <DataTableSkeleton rows={GEO_JOURNEY_OVERVIEW_ROWS} />
     </div>
   );
 }
@@ -59,7 +56,7 @@ function JourneysTabSkeleton() {
         <JourneyStatCardSkeleton eyebrow={tGeoShared("fetchedPages")} />
       </div>
       <GeoSectionSkeleton eyebrow={tGeoShared("agentJourneys")}>
-        <GeoTableSkeleton rows={JOURNEY_TABLE_SKELETON_ROWS} />
+        <DataTableSkeleton rows={JOURNEY_TABLE_SKELETON_ROWS} />
       </GeoSectionSkeleton>
     </div>
   );

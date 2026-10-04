@@ -1,40 +1,51 @@
 "use client";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
+import { useFormatter, useTranslations } from "use-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import { WebhookStatus } from "@/components/webhooks/status";
 import type { OutboundDelivery } from "@/types/webhooks/outbound";
-import { formatLogTimestamp } from "@/utils/logs";
+import { webhookHost } from "@/utils/outbound-webhooks";
+
+function isToday(date: Date): boolean {
+  return date.toDateString() === new Date().toDateString();
+}
 
 export function useWebhookColumns(): TableColumn<OutboundDelivery>[] {
   const t = useTranslations("settings.panes.webhooks.columns");
   const tLabels = useTranslations("common.labels");
-  const locale = useLocale();
   const format = useFormatter();
   return [
     {
       key: "eventType",
       header: t("event"),
       width: "1fr",
-      minWidth: "15rem",
+      minWidth: "10rem",
       cell: (row) => (
-        <div className="min-w-0 space-y-1">
-          <span className="block truncate font-mono text-xs font-medium">
-            {row.eventType}
-          </span>
-          <span
-            title={row.url}
-            className="text-muted-foreground block truncate text-xs"
-          >
-            {row.url}
-          </span>
-        </div>
+        <span
+          title={row.eventType}
+          className="block truncate text-xs font-medium"
+        >
+          {row.eventType}
+        </span>
+      ),
+    },
+    {
+      key: "url",
+      header: t("destination"),
+      width: "7.5rem",
+      cell: (row) => (
+        <span
+          title={row.url}
+          className="text-muted-foreground block truncate text-xs"
+        >
+          {webhookHost(row.url)}
+        </span>
       ),
     },
     {
       key: "status",
       header: tLabels("status"),
-      width: "7.5rem",
+      width: "6.5rem",
       cell: (row) => <WebhookStatus status={row.status} />,
     },
     {
@@ -42,26 +53,25 @@ export function useWebhookColumns(): TableColumn<OutboundDelivery>[] {
       header: t("response"),
       width: "5.5rem",
       cell: (row) => (
-        <span className="text-muted-foreground font-mono text-xs tabular-nums">
-          {row.statusCode ?? (row.error ? "ERR" : "-")}
-        </span>
-      ),
-    },
-    {
-      key: "attemptCount",
-      header: t("attempts"),
-      width: "5rem",
-      align: "right",
-      cell: (row) => (
-        <span className="text-muted-foreground font-mono text-xs tabular-nums">
-          {String(row.attemptCount).padStart(2, "0")}
+        <span className="text-muted-foreground flex items-baseline gap-1.5 text-xs tabular-nums">
+          <span className="font-mono">
+            {row.statusCode ?? (row.error ? "ERR" : "-")}
+          </span>
+          {row.attemptCount > 1 ? (
+            <span
+              title={t("attemptCount", { count: row.attemptCount })}
+              className="text-muted-foreground/70"
+            >
+              ×{row.attemptCount}
+            </span>
+          ) : null}
         </span>
       ),
     },
     {
       key: "createdAt",
       header: tLabels("created"),
-      width: "9rem",
+      width: "5.5rem",
       align: "right",
       cell: (row) => (
         <time
@@ -72,7 +82,12 @@ export function useWebhookColumns(): TableColumn<OutboundDelivery>[] {
           })}
           className="text-muted-foreground text-xs tabular-nums"
         >
-          {formatLogTimestamp(row.createdAt, locale)}
+          {format.dateTime(
+            new Date(row.createdAt),
+            isToday(new Date(row.createdAt))
+              ? { timeStyle: "short" }
+              : { month: "short", day: "numeric" }
+          )}
         </time>
       ),
     },

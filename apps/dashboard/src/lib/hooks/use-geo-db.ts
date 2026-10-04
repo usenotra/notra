@@ -19,9 +19,9 @@ import {
   useDbClient,
   useLiveQuery,
 } from "@tanstack/react-db";
-import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
@@ -340,7 +340,7 @@ export function useGeoCompetitorsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery({
+  const { data, isLoading } = useLiveQuery({
     queryKey: [definition.id, isEnabled],
     query: (q) =>
       q
@@ -371,6 +371,7 @@ export function useGeoCompetitorsDb(
 
   return {
     competitors,
+    isLoading,
     pendingCompetitorIds: pendingIds,
     saveCompetitor,
     removeCompetitor,

@@ -55,7 +55,6 @@ import { Route as ApiOssProgramRouteImport } from './routes/api/oss-program'
 import { Route as ApiStatusRouteImport } from './routes/api/status'
 import { Route as ApiV1RouteImport } from './routes/api/v1'
 import { Route as DevelopersLlmsDottxtRouteImport } from './routes/developers/llms[.]txt'
-import { Route as DocsLlmsDottxtRouteImport } from './routes/docs/llms[.]txt'
 import { Route as MarketingChatRouteImport } from './routes/marketing/chat'
 import { Route as MdSplatRouteImport } from './routes/md/$'
 import { Route as SchemaNotraDotjsonlRouteImport } from './routes/schema/notra[.]jsonl'
@@ -331,11 +330,6 @@ const DevelopersLlmsDottxtRoute = DevelopersLlmsDottxtRouteImport.update({
   path: '/developers/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsLlmsDottxtRoute = DocsLlmsDottxtRouteImport.update({
-  id: '/docs/llms.txt',
-  path: '/docs/llms.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MarketingChatRoute = MarketingChatRouteImport.update({
   id: '/marketing/chat',
   path: '/marketing/chat',
@@ -608,7 +602,6 @@ export interface FileRoutesByFullPath {
   '/api/status': typeof ApiStatusRoute
   '/api/v1': typeof ApiV1Route
   '/developers/llms.txt': typeof DevelopersLlmsDottxtRoute
-  '/docs/llms.txt': typeof DocsLlmsDottxtRoute
   '/marketing/chat': typeof MarketingChatRoute
   '/md/$': typeof MdSplatRoute
   '/schema/notra.jsonl': typeof SchemaNotraDotjsonlRoute
@@ -695,7 +688,6 @@ export interface FileRoutesByTo {
   '/api/status': typeof ApiStatusRoute
   '/api/v1': typeof ApiV1Route
   '/developers/llms.txt': typeof DevelopersLlmsDottxtRoute
-  '/docs/llms.txt': typeof DocsLlmsDottxtRoute
   '/marketing/chat': typeof MarketingChatRoute
   '/md/$': typeof MdSplatRoute
   '/schema/notra.jsonl': typeof SchemaNotraDotjsonlRoute
@@ -787,7 +779,6 @@ export interface FileRoutesById {
   '/api/status': typeof ApiStatusRoute
   '/api/v1': typeof ApiV1Route
   '/developers/llms.txt': typeof DevelopersLlmsDottxtRoute
-  '/docs/llms.txt': typeof DocsLlmsDottxtRoute
   '/marketing/chat': typeof MarketingChatRoute
   '/md/$': typeof MdSplatRoute
   '/schema/notra.jsonl': typeof SchemaNotraDotjsonlRoute
@@ -877,7 +868,6 @@ export interface FileRouteTypes {
     | '/api/status'
     | '/api/v1'
     | '/developers/llms.txt'
-    | '/docs/llms.txt'
     | '/marketing/chat'
     | '/md/$'
     | '/schema/notra.jsonl'
@@ -964,7 +954,6 @@ export interface FileRouteTypes {
     | '/api/status'
     | '/api/v1'
     | '/developers/llms.txt'
-    | '/docs/llms.txt'
     | '/marketing/chat'
     | '/md/$'
     | '/schema/notra.jsonl'
@@ -1055,7 +1044,6 @@ export interface FileRouteTypes {
     | '/api/status'
     | '/api/v1'
     | '/developers/llms.txt'
-    | '/docs/llms.txt'
     | '/marketing/chat'
     | '/md/$'
     | '/schema/notra.jsonl'
@@ -1130,7 +1118,6 @@ export interface RootRouteChildren {
   ApiStatusRoute: typeof ApiStatusRoute
   ApiV1Route: typeof ApiV1Route
   DevelopersLlmsDottxtRoute: typeof DevelopersLlmsDottxtRoute
-  DocsLlmsDottxtRoute: typeof DocsLlmsDottxtRoute
   MarketingChatRoute: typeof MarketingChatRoute
   MdSplatRoute: typeof MdSplatRoute
   SchemaNotraDotjsonlRoute: typeof SchemaNotraDotjsonlRoute
@@ -1473,13 +1460,6 @@ declare module '@tanstack/react-router' {
       path: '/developers/llms.txt'
       fullPath: '/developers/llms.txt'
       preLoaderRoute: typeof DevelopersLlmsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs/llms.txt': {
-      id: '/docs/llms.txt'
-      path: '/docs/llms.txt'
-      fullPath: '/docs/llms.txt'
-      preLoaderRoute: typeof DocsLlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketing/chat': {
@@ -1953,7 +1933,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStatusRoute: ApiStatusRoute,
   ApiV1Route: ApiV1Route,
   DevelopersLlmsDottxtRoute: DevelopersLlmsDottxtRoute,
-  DocsLlmsDottxtRoute: DocsLlmsDottxtRoute,
   MarketingChatRoute: MarketingChatRoute,
   MdSplatRoute: MdSplatRoute,
   SchemaNotraDotjsonlRoute: SchemaNotraDotjsonlRoute,

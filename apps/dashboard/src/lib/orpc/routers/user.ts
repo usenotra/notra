@@ -6,9 +6,9 @@ import {
 } from "@notra/schemas/dashboard/api-params";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { deleteAutumnCustomer } from "@/lib/billing/delete-autumn-customer";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   deleteOrganizationFromWorkOS,
   removeMembershipFromWorkOS,
@@ -26,8 +26,11 @@ import type {
 } from "@/types/user";
 
 import { badRequest, forbidden, notFound } from "../utils/errors";
+import { userAccountRouter, userSecurityRouter } from "./user-account";
 
 export const userRouter = {
+  account: userAccountRouter,
+  security: userSecurityRouter,
   organizations: {
     listOwned: authorizedProcedure.handler(async ({ context }) => {
       const ownedMemberships = await db.query.members.findMany({

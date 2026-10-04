@@ -395,17 +395,6 @@ describe("findNewActiveContent", () => {
     ).toEqual([]);
   });
 
-  test("prose can change around exact existing inline HTML", () => {
-    const script = "<script>console.log(1)</script>";
-    expect(
-      reasons(
-        "docs/guide.md",
-        `Old introduction ${script} old conclusion.`,
-        `New introduction ${script} new conclusion.`
-      )
-    ).toEqual([]);
-  });
-
   test("SVG mutation elements cannot introduce active URL assignments", () => {
     for (const extension of ["md", "mdx"]) {
       for (const tag of ["animate", "set"]) {

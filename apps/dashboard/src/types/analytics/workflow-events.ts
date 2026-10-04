@@ -26,6 +26,7 @@ export interface WorkflowStartedInput {
 }
 
 export interface WorkflowOutcomeInput {
+  websiteUrl?: string;
   workflow: WorkflowAnalyticsName;
   outcome: WorkflowOutcome;
   organizationId?: string | null;

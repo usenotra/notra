@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tabs,
@@ -9,13 +10,12 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { useMemberColumns } from "@/components/members/columns";
 import { useInvitationColumns } from "@/components/members/invitation-columns";
 import { InviteMemberPopover } from "@/components/members/invite-member-popover";
-import { Table } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -25,6 +25,7 @@ import { tableHeightFor } from "@/utils/table";
 export function MembersSettingsPane() {
   const t = useTranslations("settings.panes.members");
   const tCommon = useTranslations("common");
+  const format = useFormatter();
   const memberColumns = useMemberColumns();
   const invitationColumns = useInvitationColumns();
   const { activeOrganization: organization } = useOrganizationsContext();
@@ -91,7 +92,7 @@ export function MembersSettingsPane() {
               {tCommon("labels.members")}
               {members && members.length > 0 ? (
                 <Badge size="sm" variant="secondary">
-                  {members.length}
+                  {format.number(members.length)}
                 </Badge>
               ) : null}
             </TabsTrigger>
@@ -99,7 +100,7 @@ export function MembersSettingsPane() {
               {tCommon("labels.pending")}
               {pendingInvitations && pendingInvitations.length > 0 ? (
                 <Badge size="sm" variant="secondary">
-                  {pendingInvitations.length}
+                  {format.number(pendingInvitations.length)}
                 </Badge>
               ) : null}
             </TabsTrigger>
@@ -108,7 +109,7 @@ export function MembersSettingsPane() {
         </div>
 
         <TabsContent className="mt-4" value="members">
-          <Table
+          <DataTable
             columns={memberColumns}
             data={members ?? []}
             emptyState={t("noMembers")}
@@ -120,7 +121,7 @@ export function MembersSettingsPane() {
         </TabsContent>
 
         <TabsContent className="mt-4" value="pending">
-          <Table
+          <DataTable
             columns={invitationColumns}
             data={pendingInvitations ?? []}
             emptyState={t("noPending")}

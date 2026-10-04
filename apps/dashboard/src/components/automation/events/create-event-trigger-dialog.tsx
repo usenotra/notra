@@ -9,8 +9,8 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useEventTriggerForm } from "@/lib/hooks/use-event-trigger-form";
 import { dashboardOrpc } from "@/lib/orpc/query";

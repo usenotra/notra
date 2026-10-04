@@ -10,10 +10,10 @@ import {
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import { GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES } from "@/constants/github";
 import { assertAuthenticated } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import type {
   UploadPresignedResponse,
   UploadType,

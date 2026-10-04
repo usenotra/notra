@@ -7,16 +7,16 @@ import {
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
 } from "@notra/geo-core/constants/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { DataTable } from "@notra/ui/components/ui/data-table";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
+import { useLocale, useTranslations } from "use-intl";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
-import { Table } from "@/components/motion/table";
 import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
@@ -176,8 +176,8 @@ function MoreCompetitors({
 }: PromptHistoryNewCompetitorsCellProps) {
   const t = useTranslations("geo.promptReceiptHistory");
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <HoverCard>
+      <HoverCardTrigger
         aria-label={t("moreAria", {
           count: names.length,
           names: names.join(", "),
@@ -192,17 +192,20 @@ function MoreCompetitors({
         }
       >
         +{names.length}
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs">
-        <ul className="flex flex-col gap-1.5">
+      </HoverCardTrigger>
+      <DetailCardContent
+        aside={`+${names.length}`}
+        title={t("columns.newCompetitors")}
+      >
+        <ul className="flex flex-col">
           {names.map((name) => (
-            <li key={name}>
+            <li className="px-3 py-1.5" key={name}>
               <BrandToken competitors={competitors} name={name} />
             </li>
           ))}
         </ul>
-      </TooltipContent>
-    </Tooltip>
+      </DetailCardContent>
+    </HoverCard>
   );
 }
 
@@ -256,7 +259,7 @@ export function PromptReceiptHistory({
     ) : undefined;
 
   return (
-    <Table
+    <DataTable
       columns={[
         {
           key: "scan",
@@ -373,6 +376,7 @@ export function PromptReceiptHistory({
       loading={isLoading}
       rowHeight={TABLE_ROW_HEIGHT}
       rowSizing="content"
+      autoHeight
       skeletonRows={GEO_PROMPT_HISTORY_SKELETON_ROWS}
       toolbar={<h3 className="px-4 py-3 text-sm font-medium">{title}</h3>}
     />

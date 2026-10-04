@@ -12,19 +12,9 @@ minimumReleaseAgeExcludes = [
   "@turbo/windows-64",
   "@turbo/windows-arm64",
   "@base-ui/react",
-  "@next/env",
-  "@next/swc-darwin-arm64",
-  "@next/swc-darwin-x64",
-  "@next/swc-linux-arm64-gnu",
-  "@next/swc-linux-arm64-musl",
-  "@next/swc-linux-x64-gnu",
-  "@next/swc-linux-x64-musl",
-  "@next/swc-win32-arm64-msvc",
-  "@next/swc-win32-x64-msvc",
   "@types/react",
   "@types/react-dom",
   "cnfast",
-  "next",
   "shadcn",
   "@shadcn/lint",
   "@shadcn/react",
@@ -80,6 +70,9 @@ minimumReleaseAgeExcludes = [
   "@tanstack/store",
   # apps/web runs on TanStack Start + Vite 8; keep the toolchain on its latest release.
   "vite",
+  # @streamdown/code 2.0.0 moves to shiki 4, so the dashboard ships one shiki
+  # instead of two. TODO: remove this entry from 2026-10-07 on.
+  "@streamdown/code",
   # Effect v4 went stable 2026-10-01; tsgo tracks it with per-platform binaries.
   # TODO: remove these entries from 2026-10-08 on, once effect@4.0.0 and tsgo@0.47.2 clear the 7-day window.
   "effect",

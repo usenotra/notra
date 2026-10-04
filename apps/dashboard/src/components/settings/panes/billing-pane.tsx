@@ -2,21 +2,14 @@
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useListPlans } from "autumn-js/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { InvoicesTable } from "@/components/billing/invoices-table";
 import { PlanCard } from "@/components/billing/plan-card";
@@ -26,7 +19,8 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { PLAN_SURFACES } from "@/constants/analytics-events";
 import {
-  BILLING_INVOICE_SKELETON_KEYS,
+  BILLING_INVOICE_SKELETON_ROWS,
+  INVOICE_SKELETON_COLUMN_WIDTHS,
   BILLING_PLAN_FEATURE_SKELETON_KEYS,
   BILLING_PLAN_SKELETON_KEYS,
   FEATURED_PLAN_TIER,
@@ -81,46 +75,11 @@ function BillingPlanCardSkeleton() {
 }
 
 function InvoiceTableSkeleton() {
-  const tCommon2 = useTranslations("common");
   return (
-    <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[140px]">
-              {tCommon2("labels.date")}
-            </TableHead>
-            <TableHead className="w-[40%]">
-              {tCommon2("labels.description")}
-            </TableHead>
-            <TableHead className="w-[120px]">
-              {tCommon2("labels.amount")}
-            </TableHead>
-            <TableHead className="w-[120px]">
-              {tCommon2("labels.status")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {BILLING_INVOICE_SKELETON_KEYS.map((key) => (
-            <TableRow key={key}>
-              <TableCell className="w-[140px]">
-                <Skeleton className="h-4 w-20" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-40" />
-              </TableCell>
-              <TableCell className="w-[120px]">
-                <Skeleton className="h-4 w-14" />
-              </TableCell>
-              <TableCell className="w-[120px]">
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTableSkeleton
+      columnWidths={INVOICE_SKELETON_COLUMN_WIDTHS}
+      rows={BILLING_INVOICE_SKELETON_ROWS}
+    />
   );
 }
 

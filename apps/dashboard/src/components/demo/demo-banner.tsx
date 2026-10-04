@@ -14,9 +14,9 @@ import {
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import { Button } from "@notra/ui/components/ui/button";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { DemoCustomizeDialog } from "@/components/demo/demo-customize-dialog";
 import { DEMO_SIGNUP_URL } from "@/constants/demo";

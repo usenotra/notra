@@ -9,7 +9,7 @@ import {
   AGENT_READINESS_MAX_SCORE,
 } from "@notra/geo-core/constants/agent-readiness";
 import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { AgentReadinessScoreGaugeProps } from "@/types/agent-readiness";

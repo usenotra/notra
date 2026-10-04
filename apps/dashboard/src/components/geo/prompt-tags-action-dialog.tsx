@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { PromptTagsDialog } from "@/components/geo/prompt-tags-dialog";
 import type { PromptTagsActionDialogProps } from "@/types/geo";

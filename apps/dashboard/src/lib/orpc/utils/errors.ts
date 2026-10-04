@@ -65,6 +65,12 @@ export function serviceUnavailable(message: string) {
   });
 }
 
+export function badGateway(message: string) {
+  return new ORPCError("BAD_GATEWAY", {
+    message,
+  });
+}
+
 export function internalServerError(message: string, cause?: unknown) {
   let resolvedCause: Error | undefined;
   if (cause instanceof Error) {

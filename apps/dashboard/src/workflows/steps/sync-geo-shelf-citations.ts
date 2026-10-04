@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 
 import { syncGeoShelfCitationsForScope } from "@/lib/geo-shelf/service";

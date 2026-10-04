@@ -7,8 +7,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";

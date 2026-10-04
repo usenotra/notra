@@ -6,7 +6,6 @@ import {
   updateNotificationSettingsInputSchema,
 } from "@notra/schemas/dashboard/notification-settings";
 import { eq } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
 
 import { runAfterResponse } from "@/lib/after-response";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
@@ -16,6 +15,7 @@ import {
   getMarketingEmailsState,
   setMarketingEmails,
 } from "@/lib/email/marketing-consent";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 
 import { forbidden } from "../utils/errors";

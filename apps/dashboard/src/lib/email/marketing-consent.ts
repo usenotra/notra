@@ -1,4 +1,4 @@
-import "server-only";
+import "@tanstack/react-start/server-only";
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
 import { BREW_MARKETING_CONSENT_POLICY_VERSION } from "@notra/email/constants/brew";
@@ -7,9 +7,9 @@ import {
   setBrewMarketingUnsubscribed,
 } from "@notra/email/utils/brew";
 import { eq } from "drizzle-orm";
-import { getLocale, getTranslations } from "next-intl/server";
 
 import { syncBrewContacts } from "@/lib/email/brew-contacts";
+import { getLocale, getTranslations } from "@/lib/i18n/server";
 import type {
   MarketingEmailsState,
   MarketingOptInSource,

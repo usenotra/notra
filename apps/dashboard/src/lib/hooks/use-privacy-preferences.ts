@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { authClient } from "@/lib/auth/client";
 

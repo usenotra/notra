@@ -14,8 +14,8 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { ShelfDueDateField } from "@/components/geo/shelf/shelf-due-date-field";
 import { ShelfMemberSelect } from "@/components/geo/shelf/shelf-member-select";

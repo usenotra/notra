@@ -1,8 +1,8 @@
 import { db } from "@notra/db/drizzle";
 import { organizations } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 
+import { redirect } from "@/lib/navigation";
 import { validatedOnboardingProjectId } from "@/lib/onboarding/project";
 import { withGeoProject } from "@/utils/geo-paths";
 

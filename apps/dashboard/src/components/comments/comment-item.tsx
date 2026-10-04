@@ -9,8 +9,8 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { CommentActions } from "@/components/comments/comment-actions";
 import { CommentBody } from "@/components/comments/comment-body";

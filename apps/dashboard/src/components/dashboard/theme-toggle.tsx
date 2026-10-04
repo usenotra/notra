@@ -4,9 +4,9 @@ import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { SidebarMenuButton, useSidebar } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "use-intl";
 
 const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;

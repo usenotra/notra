@@ -7,7 +7,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button, buttonVariants } from "@notra/ui/components/ui/button";
-import { useLocale, useTranslations } from "next-intl";
 import type * as React from "react";
 import { useEffect, useRef } from "react";
 import {
@@ -15,6 +14,7 @@ import {
   DayPicker,
   getDefaultClassNames,
 } from "react-day-picker";
+import { useLocale, useTranslations } from "use-intl";
 
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { cn } from "@/lib/utils";

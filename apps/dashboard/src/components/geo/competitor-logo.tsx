@@ -5,10 +5,10 @@ import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
 import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { CompetitorLogoProps } from "@/types/geo";
