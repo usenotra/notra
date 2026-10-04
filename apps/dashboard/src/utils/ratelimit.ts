@@ -61,6 +61,11 @@ export const ratelimit = {
     prefix: "ratelimit:onboarding-brand-analysis",
     limiter: Ratelimit.slidingWindow(2, "10m"),
   }),
+  onboardingWebsiteCheck: new Ratelimit({
+    redis,
+    prefix: "ratelimit:onboarding-website-check",
+    limiter: Ratelimit.slidingWindow(30, "1m"),
+  }),
   companyLogo: new Ratelimit({
     redis,
     prefix: "ratelimit:company-logo",

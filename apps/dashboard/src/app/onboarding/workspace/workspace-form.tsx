@@ -42,6 +42,7 @@ import {
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type {
+  OnboardingExistingOrg,
   WorkspaceFormField,
   WorkspaceFormProps,
   WorkspaceSlugCheck,
@@ -105,6 +106,8 @@ export function WorkspaceForm({
     return t("validation.checkField");
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrg, setCreatedOrg] = useState<OnboardingExistingOrg>();
+  const currentOrg = existingOrg ?? createdOrg;
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
@@ -117,7 +120,7 @@ export function WorkspaceForm({
   const fetchedLogoUrl = logoFile
     ? null
     : (getGoogleFaviconUrl(companyDomain) ?? null);
-  const isResuming = !!existingOrg;
+  const isResuming = !!currentOrg;
 
   const handleLogoSelect = async (file: File) => {
     const validationError = validateLogoFile(file);
@@ -164,7 +167,8 @@ export function WorkspaceForm({
 
       try {
         await submitWorkspaceForm({
-          existingOrg,
+          existingOrg: currentOrg,
+          onOrganizationCreated: setCreatedOrg,
           logoFile,
           logoSourceUrl: null,
           value,

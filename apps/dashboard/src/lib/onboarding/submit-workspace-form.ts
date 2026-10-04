@@ -5,6 +5,7 @@ import {
   saveOnboardingNotificationSettings,
   triggerOnboardingAgentSetup,
   triggerOnboardingBrandAnalysis,
+  validateOnboardingWebsiteUrl,
 } from "@/app/onboarding/workspace/actions";
 import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
@@ -54,6 +55,7 @@ async function applyOrganizationLogoFromUrl(
 
 export async function submitWorkspaceForm({
   existingOrg,
+  onOrganizationCreated,
   logoFile,
   logoSourceUrl,
   value,
@@ -67,6 +69,14 @@ export async function submitWorkspaceForm({
   let organizationId: string;
 
   if (existingOrg) {
+    if (parsed.data.websiteUrl) {
+      const validation = await validateOnboardingWebsiteUrl(
+        parsed.data.websiteUrl
+      );
+      if (validation.error) {
+        throw new Error(validation.error.message);
+      }
+    }
     organizationId = existingOrg.id;
     if (logoFile || logoSourceUrl) {
       await authClient.organization.setActive({
@@ -75,6 +85,7 @@ export async function submitWorkspaceForm({
     }
   } else {
     const { data, error } = await authClient.organization.create({
+      websiteUrl: parsed.data.websiteUrl,
       name: parsed.data.name,
       slug: parsed.data.slug,
       logo: generateOrganizationAvatar(parsed.data.slug),
@@ -85,6 +96,11 @@ export async function submitWorkspaceForm({
     }
 
     organizationId = data.id;
+    onOrganizationCreated?.({
+      ...data,
+      dailySummary: parsed.data.dailySummary,
+      marketingEmails: parsed.data.marketingEmails,
+    });
 
     await authClient.organization.setActive({
       organizationId: data.id,
@@ -149,17 +165,13 @@ export async function submitWorkspaceForm({
   }
 
   if (parsed.data.websiteUrl) {
-    try {
-      await triggerOnboardingBrandAnalysis({
-        organizationId,
-        websiteUrl: parsed.data.websiteUrl,
-        name: parsed.data.name,
-      });
-    } catch (error) {
-      console.error("[Onboarding] Background brand analysis failed", {
-        organizationId,
-        error,
-      });
+    const analysis = await triggerOnboardingBrandAnalysis({
+      organizationId,
+      websiteUrl: parsed.data.websiteUrl,
+      name: parsed.data.name,
+    });
+    if (analysis.error) {
+      throw new Error(analysis.error.message);
     }
   }
 
