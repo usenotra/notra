@@ -1,5 +1,6 @@
 export interface TablePaginationRange {
   start: number;
   end: number;
-  total: number;
+  /** Unknown with cursor paging. */
+  total?: number;
 }

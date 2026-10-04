@@ -1,7 +1,19 @@
 "use client";
-import { Delete02Icon, WebhookIcon } from "@hugeicons/core-free-icons";
+import {
+  Delete02Icon,
+  Link04Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import type { CSSProperties } from "react";
@@ -166,29 +178,23 @@ export function WebhookEndpoints({
   onCreate,
 }: WebhookEndpointsProps) {
   const t = useTranslations("settings.panes.webhooks");
-  const tActions = useTranslations("common.actions");
   if (endpoints.length === 0) {
     return (
-      <div className="space-y-3 rounded-lg border px-6 py-10 text-center">
-        <HugeiconsIcon
-          icon={WebhookIcon}
-          className="text-muted-foreground mx-auto size-7"
-        />
-        <div className="space-y-1">
-          <p className="text-sm font-medium">{t("endpointsEmpty.title")}</p>
-          <p className="text-muted-foreground text-xs">
-            {t("endpointsEmpty.description")}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={disabled}
-          onClick={onCreate}
-        >
-          {t("addEndpoint")}
-        </Button>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon icon={Link04Icon} />
+          </EmptyMedia>
+          <EmptyTitle>{t("endpointsEmpty.title")}</EmptyTitle>
+          <EmptyDescription>{t("endpointsEmpty.description")}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button disabled={disabled} onClick={onCreate} size="sm">
+            <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+            {t("addEndpoint")}
+          </Button>
+        </EmptyContent>
+      </Empty>
     );
   }
   return (
@@ -210,7 +216,7 @@ export function WebhookEndpoints({
           <Button
             size="icon-sm"
             variant="ghost"
-            aria-label={tActions("remove")}
+            aria-label={t("removeEndpoint", { url: endpoint.url })}
             disabled={disabled}
             onClick={() => onRemove(endpoint.id)}
           >

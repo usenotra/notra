@@ -1,7 +1,7 @@
 "use client";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useFormatter, useTranslations } from "use-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import { WebhookStatus } from "@/components/webhooks/status";
 import type { OutboundDelivery } from "@/types/webhooks/outbound";
 import { webhookHost } from "@/utils/outbound-webhooks";

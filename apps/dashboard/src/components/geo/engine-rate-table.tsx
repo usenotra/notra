@@ -12,6 +12,10 @@ import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
@@ -25,7 +29,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { EngineRateTableProps } from "@/types/geo";
@@ -279,8 +282,7 @@ export function EngineRateTable({
         />
       ) : (
         <div className="flex flex-col gap-2">
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={columns}
             data={filtered}
             defaultSort={{ key: "rate", direction: "desc" }}

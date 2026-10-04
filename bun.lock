@@ -308,6 +308,7 @@
         "@base-ui/react": "^1.8.0",
         "@paper-design/shaders": "0.0.77",
         "@tanstack/hotkeys": "^0.8.0",
+        "@tanstack/react-virtual": "^3.14.9",
         "blume": "2.0.3",
         "class-variance-authority": "^0.7.1",
         "cn": "^0.3.0",

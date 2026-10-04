@@ -5,6 +5,7 @@ import type {
   GeoCompetitor,
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
+import { TABLE_BODY_CLASS, TABLE_FRAME_CLASS } from "@notra/ui/constants/table";
 import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
@@ -12,6 +13,7 @@ import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptReceiptHistory } from "@/components/geo/prompt-receipt-history";
 import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
+import { cn } from "@/lib/utils";
 import type { PromptReceiptAnalysisProps } from "@/types/geo";
 import { uniquePromptBrandNames } from "@/utils/geo-prompt-brands";
 import {
@@ -41,14 +43,14 @@ function CompetitorsCell({
   const tCommon2 = useTranslations("common");
   if (names.length === 0) {
     return (
-      <p className="text-muted-foreground border-t px-4 py-5 text-center text-sm">
+      <p className="text-muted-foreground px-4 py-5 text-center text-sm">
         {tCommon2("states.none")}
       </p>
     );
   }
 
   return (
-    <ul className="divide-border/60 border-border/60 divide-y border-t">
+    <ul className="divide-border/60 divide-y">
       {names.map((name) => (
         <li className="flex min-w-0 items-center gap-3 px-4 py-2.5" key={name}>
           {name === "ChatGPT" || name === "Gemini" ? (
@@ -126,7 +128,7 @@ function OutcomeStrip({ result }: { result: GeoPromptResult }) {
 
 function SearchQueries({ queries }: { queries: readonly string[] }) {
   return (
-    <ul className="divide-border/60 border-border/60 divide-y border-t">
+    <ul className="divide-border/60 divide-y">
       {queries.map((query) => (
         <li className="truncate px-4 py-2.5 text-sm" key={query} title={query}>
           {query}
@@ -138,7 +140,7 @@ function SearchQueries({ queries }: { queries: readonly string[] }) {
 
 function SourcesList({ sources }: { sources: readonly GeoAnswerSource[] }) {
   return (
-    <ul className="divide-border/60 border-border/60 divide-y border-t">
+    <ul className="divide-border/60 divide-y">
       {sources.map((source) => {
         const href = getSafeReferenceSourceUrl(source.url);
         const content = (
@@ -182,8 +184,8 @@ function ReceiptSection({
 }) {
   const locale = useLocale();
   return (
-    <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
-      <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
+    <section className={cn(TABLE_FRAME_CLASS, "min-w-0")}>
+      <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
         <h3 className="text-sm font-medium">{title}</h3>
         {typeof count === "number" ? (
           <span className="text-muted-foreground text-xs tabular-nums">
@@ -191,7 +193,7 @@ function ReceiptSection({
           </span>
         ) : null}
       </div>
-      {children}
+      <div className={cn(TABLE_BODY_CLASS, "overflow-hidden")}>{children}</div>
     </section>
   );
 }

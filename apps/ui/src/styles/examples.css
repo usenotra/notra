@@ -4,6 +4,14 @@
    so the import path is relative to that folder. */
 @import "../../../src/styles/blocks.css";
 
+/* Blume sizes each example frame to its content. When an example grows,
+   the content is briefly taller than the frame, and a classic scrollbar
+   would flash in, narrow the page and shift every column sideways. The
+   frame never needs to scroll, so it never gets one. */
+html {
+  overflow-y: hidden;
+}
+
 /* Notra dashboard palette (packages/ui/src/styles/globals.css), mapped onto
    Blume's tokens so previews match the product. Accent is shadcn's hover gray
    here, not the brand color, like in the dashboard. */

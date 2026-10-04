@@ -61,6 +61,7 @@ import type {
   GeoPromptTranslationLanguagePlan,
   GeoPromptTranslationEntry,
 } from "@notra/geo-core/types/geo";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
@@ -69,7 +70,6 @@ import type {
 import type { useTranslations } from "use-intl";
 
 import type { Button } from "@/components/button";
-import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
@@ -1640,11 +1640,6 @@ export interface GeoSectionSkeletonProps {
   action?: ReactNode;
   children: ReactNode;
   className?: string;
-}
-
-export interface GeoTableSkeletonProps {
-  rows: number;
-  toolbar?: ReactNode;
 }
 
 export interface GeoSettingsSkeletonSectionProps {

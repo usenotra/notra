@@ -1,6 +1,7 @@
 "use client";
 
-import { Table } from "@/components/motion/table";
+import { DataTable } from "@notra/ui/components/ui/data-table";
+
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { tableHeightFor } from "@/utils/table";
 
@@ -11,8 +12,7 @@ const LOGS_SKELETON_ROW_COUNT = 10;
 export function LogsPageSkeleton() {
   const columns = useLogColumns();
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={[]}
       height={tableHeightFor(LOGS_SKELETON_ROW_COUNT, TABLE_ROW_HEIGHT)}

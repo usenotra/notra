@@ -308,25 +308,14 @@ function FeedbackList({
           isPending={isLoading || isPlaceholderData}
           isUpdatingStatus={isUpdatingStatus}
           items={items}
+          loadingMore={isFetchingNextPage}
           onDelete={onDelete}
+          onLoadMore={hasNextPage ? onLoadMore : undefined}
           onSelect={onSelect}
           onStatusChange={onStatusChange}
           selectedId={selectedId}
         />
       </div>
-
-      {hasNextPage ? (
-        <div className="flex shrink-0 justify-center">
-          <Button
-            loading={isFetchingNextPage}
-            onClick={onLoadMore}
-            size="sm"
-            variant="outline"
-          >
-            {tCommon("actions.loadMore")}
-          </Button>
-        </div>
-      ) : null}
     </>
   );
 }
@@ -345,9 +334,7 @@ function FeedbackFilterEmpty({
         <EmptyMedia variant="icon">
           <AgentFeedbackStatusIcon className="size-5" status={status} />
         </EmptyMedia>
-        <EmptyTitle className="text-foreground">
-          {t(`filterEmpty.${status}.title`)}
-        </EmptyTitle>
+        <EmptyTitle>{t(`filterEmpty.${status}.title`)}</EmptyTitle>
         <EmptyDescription>
           {t(`filterEmpty.${status}.description`)}
         </EmptyDescription>

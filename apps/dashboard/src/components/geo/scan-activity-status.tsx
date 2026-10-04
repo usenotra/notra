@@ -8,7 +8,10 @@ import type {
   ScanActivityRelativeFormatter,
   ScanActivityStatusTranslator,
 } from "@/types/geo-scan-activity";
-import { geoRunProgress } from "@/utils/geo-scan-activity";
+import {
+  geoRunProgress,
+  hasScanActivityStatus,
+} from "@/utils/geo-scan-activity";
 
 function scanSentence(
   run: GeoScanActivityStatusProps["run"],
@@ -28,19 +31,19 @@ function scanSentence(
         })
       : t("running", { checks });
   }
-  const when = formatRelative(run.finishedAt ?? run.startedAt);
-  return run.status === "failed"
-    ? t("failed", { when })
-    : t("finished", { when });
+  return t("failed", { when: formatRelative(run.finishedAt ?? run.startedAt) });
 }
 
-/** One-line scan status beside the answers filters, with live progress. */
+/** One-line scan status beside the answers filters; hidden once a scan finished. */
 export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
   const t = useTranslations("geo.scanActivityStatus");
   const locale = useLocale();
   const formatRelative = useFormatRelative();
   const running = !run || run.status === "running";
   const progress = run ? geoRunProgress(run) : null;
+  if (!hasScanActivityStatus(run)) {
+    return null;
+  }
 
   return (
     <div className="flex min-w-0 items-center gap-3">

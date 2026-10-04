@@ -1,7 +1,6 @@
-import { TableCell, TableHead, TableRow } from "@notra/ui/components/ui/table";
-
 import { RankBadge } from "@/components/feature-pages/rank-badge";
 import { TableCard } from "@/components/feature-pages/table-card";
+import { TableCell, TableHead, TableRow } from "@/components/marketing-table";
 import { FEATURE_ENGINES } from "@/constants/feature-pages/engines";
 import { PERSONAS_VISIBILITY_ROWS } from "@/constants/feature-pages/personas";
 import { FEATURE_TABLE_ROW_CLASS } from "@/constants/feature-pages/tables";

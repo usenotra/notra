@@ -15,6 +15,10 @@ import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -27,7 +31,6 @@ import { useLocale, useTranslations } from "use-intl";
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -236,8 +239,7 @@ function TrafficSourceSheetContent({
               ? t("bots")
               : tCommon("labels.sources")}
           </h3>
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={memberColumns(
               group.visits,
               group.visitorType,
@@ -262,8 +264,7 @@ function TrafficSourceSheetContent({
 
         <section className="space-y-3">
           <h3 className="text-sm font-medium">{t("topPages")}</h3>
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={pageColumns(
               { page: tGeoShared("page"), visits: tGeoShared("visits") },
               locale

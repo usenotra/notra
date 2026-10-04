@@ -2,12 +2,12 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 
 const PROMPT_ROW_COUNT = 6;
@@ -43,7 +43,7 @@ export function GeoPromptsSkeleton() {
         </div>
         <div className="space-y-3">
           <Skeleton className="h-9 w-full rounded-md sm:max-w-72" />
-          <GeoTableSkeleton rows={PROMPT_ROW_COUNT} />
+          <DataTableSkeleton rows={PROMPT_ROW_COUNT} />
         </div>
       </div>
     </PageContainer>

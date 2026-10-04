@@ -120,7 +120,11 @@ export function WebhookWorkspaceView({
             loading={loading}
             fetching={fetching}
             hasMore={hasMore}
+            hasEndpoints={endpoints.length > 0}
+            canCreate={canManage}
+            onCreate={onCreate}
             onSelect={onSelect}
+            onFilter={onFilter}
             onPage={onPage}
           />
         </TabsContent>

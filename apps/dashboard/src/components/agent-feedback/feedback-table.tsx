@@ -11,6 +11,11 @@ import {
   ContextMenuRadioItem,
   ContextMenuSeparator,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  InfiniteDataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "use-intl";
 
 import { AgentFeedbackAgent } from "@/components/agent-feedback/feedback-agent-icon";
@@ -19,7 +24,6 @@ import {
   AgentFeedbackSentimentLabel,
   AgentFeedbackStatusBadge,
 } from "@/components/agent-feedback/feedback-badges";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useAvailableTableHeight } from "@/lib/hooks/use-available-table-height";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type {
@@ -124,8 +128,7 @@ export function AgentFeedbackTableSkeleton() {
 
   return (
     <div className="h-full min-h-0" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[]}
         height={tableHeight}
@@ -147,6 +150,8 @@ export function AgentFeedbackTable({
   onSelect,
   onStatusChange,
   onDelete,
+  onLoadMore,
+  loadingMore = false,
 }: AgentFeedbackTableProps) {
   const t = useTranslations("feedback.table");
   const tCommon = useTranslations("common");
@@ -161,15 +166,16 @@ export function AgentFeedbackTable({
 
   return (
     <div className="h-full min-h-0" ref={tableRef}>
-      <Table
-        className="rounded-2xl"
+      <InfiniteDataTable
         columns={columns}
         data={items}
         defaultSort={{ key: "createdAt", direction: "desc" }}
         emptyState={emptyState}
         getRowId={(item) => item.id}
         height={tableHeight}
-        loading={isPending}
+        loading={isPending || loadingMore}
+        loadingMore={loadingMore}
+        onEndReached={loadingMore ? undefined : onLoadMore}
         onRowClick={onSelect}
         renderRowContextMenu={(item) => (
           <>

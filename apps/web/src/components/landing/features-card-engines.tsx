@@ -1,5 +1,8 @@
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { cn } from "@notra/ui/lib/utils";
+
+import { MockFrame } from "@/components/landing/mock-frame";
 import {
   Table,
   TableBody,
@@ -7,10 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
-import { MockFrame } from "@/components/landing/mock-frame";
+} from "@/components/marketing-table";
 import {
   FEATURES_ENGINE_HEADERS,
   FEATURES_ENGINE_ROWS,
