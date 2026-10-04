@@ -233,10 +233,9 @@ function mapContextDevError(
 
   return {
     success: false,
-    error:
-      error instanceof Error
-        ? error.message
-        : "Unknown error attempting to scrape website",
+    error: isContextDevConfigured()
+      ? "Website could not be retrieved. Please try again."
+      : "Website scraping is not configured.",
     fatal: false,
   };
 }
@@ -401,7 +400,9 @@ export async function scrapeWebsiteForBrandAnalysis(
       content: truncateContent(formatScrapedPagesForBrandAnalysis(pages)),
     };
   } catch (error) {
-    console.error("Error scraping website:", error);
+    console.error("Error scraping website", {
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
     return mapContextDevError(error);
   }
 }

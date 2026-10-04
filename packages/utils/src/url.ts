@@ -1,8 +1,6 @@
 import type { LookupAddress } from "node:dns";
-import { Resolver } from "node:dns/promises";
+import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-
-import { WEBSITE_DNS_TIMEOUT_MS } from "./constants/url";
 
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",
@@ -270,38 +268,15 @@ export async function resolvePublicHttpUrl(
     return [{ address: hostname, family: ipVersion }];
   }
 
-  const resolver = new Resolver({ timeout: WEBSITE_DNS_TIMEOUT_MS, tries: 1 });
-  const timer = setTimeout(() => resolver.cancel(), WEBSITE_DNS_TIMEOUT_MS);
   let addresses: LookupAddress[];
   try {
-    const results = await Promise.allSettled([
-      resolver.resolve4(hostname),
-      resolver.resolve6(hostname),
-    ]);
-    addresses = results.flatMap((result, index) =>
-      result.status === "fulfilled"
-        ? result.value.map((address) => ({
-            address,
-            family: index === 0 ? 4 : 6,
-          }))
-        : []
-    );
-    if (addresses.length === 0) {
-      const temporary = results.some(
-        (result) =>
-          result.status === "rejected" &&
-          result.reason?.code !== "ENOTFOUND" &&
-          result.reason?.code !== "ENODATA"
-      );
-      throw new PublicUrlValidationError(
-        temporary
-          ? "Website domain check is temporarily unavailable. Please try again."
-          : "Website domain could not be resolved. Please check the domain name.",
-        temporary ? "temporary" : "not_found"
-      );
-    }
-  } finally {
-    clearTimeout(timer);
+    addresses = await lookup(hostname, { all: true, verbatim: false });
+  } catch {
+    throw new PublicUrlValidationError("URL hostname could not be resolved");
+  }
+
+  if (addresses.length === 0) {
+    throw new PublicUrlValidationError("URL hostname could not be resolved");
   }
 
   for (const address of addresses) {

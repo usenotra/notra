@@ -1,7 +1,5 @@
-import {
-  assertPublicHttpUrlResolution,
-  PublicUrlValidationError,
-} from "@notra/utils/url";
+import { PublicUrlValidationError } from "@notra/utils/url";
+import { assertPublicWebsiteUrlResolution } from "@notra/utils/website-url";
 import { Effect } from "effect";
 
 import { BrandIdentityWebsiteUrlError } from "../errors/brand-identities";
@@ -10,7 +8,7 @@ export const validateBrandWebsiteUrl = Effect.fn(
   "brandIdentities.validateWebsiteUrl"
 )(function* (url: string) {
   yield* Effect.tryPromise({
-    try: () => assertPublicHttpUrlResolution(url),
+    try: () => assertPublicWebsiteUrlResolution(url),
     catch: (error) =>
       new BrandIdentityWebsiteUrlError({
         message:

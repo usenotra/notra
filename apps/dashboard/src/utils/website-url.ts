@@ -1,8 +1,6 @@
 import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
-import {
-  assertPublicHttpUrlResolution,
-  PublicUrlValidationError,
-} from "@notra/utils/url";
+import { PublicUrlValidationError } from "@notra/utils/url";
+import { assertPublicWebsiteUrlResolution } from "@notra/utils/website-url";
 import { ORPCError } from "@orpc/server";
 import { getTranslations } from "next-intl/server";
 
@@ -29,7 +27,7 @@ export async function validateWebsiteUrl(rawUrl: string): Promise<string> {
     throw new ORPCError("BAD_REQUEST", { message: t("publicUrlInvalid") });
   }
   try {
-    await assertPublicHttpUrlResolution(parsed.data);
+    await assertPublicWebsiteUrlResolution(parsed.data);
   } catch (error) {
     if (!(error instanceof PublicUrlValidationError)) {
       throw error;

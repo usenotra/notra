@@ -218,6 +218,7 @@ export interface OnboardingWorkspaceFormValues {
 
 export interface SubmitWorkspaceFormArgs {
   existingOrg?: OnboardingExistingOrg;
+  onOrganizationCreated?: (organization: OnboardingExistingOrg) => void;
   logoFile: File | null;
   logoSourceUrl: string | null;
   value: OnboardingWorkspaceFormValues;

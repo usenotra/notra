@@ -55,6 +55,7 @@ async function applyOrganizationLogoFromUrl(
 
 export async function submitWorkspaceForm({
   existingOrg,
+  onOrganizationCreated,
   logoFile,
   logoSourceUrl,
   value,
@@ -95,6 +96,11 @@ export async function submitWorkspaceForm({
     }
 
     organizationId = data.id;
+    onOrganizationCreated?.({
+      ...data,
+      dailySummary: parsed.data.dailySummary,
+      marketingEmails: parsed.data.marketingEmails,
+    });
 
     await authClient.organization.setActive({
       organizationId: data.id,
@@ -159,17 +165,13 @@ export async function submitWorkspaceForm({
   }
 
   if (parsed.data.websiteUrl) {
-    try {
-      await triggerOnboardingBrandAnalysis({
-        organizationId,
-        websiteUrl: parsed.data.websiteUrl,
-        name: parsed.data.name,
-      });
-    } catch (error) {
-      console.error("[Onboarding] Background brand analysis failed", {
-        organizationId,
-        error,
-      });
+    const analysis = await triggerOnboardingBrandAnalysis({
+      organizationId,
+      websiteUrl: parsed.data.websiteUrl,
+      name: parsed.data.name,
+    });
+    if (analysis.error) {
+      throw new Error(analysis.error.message);
     }
   }
 
