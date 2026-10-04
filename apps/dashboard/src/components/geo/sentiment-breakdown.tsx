@@ -102,7 +102,7 @@ export function SentimentBreakdown({
         <EChartsBarChart
           animation={false}
           barCategoryGap={4}
-          className="min-h-52 w-full flex-1 cursor-crosshair"
+          className="h-56 w-full cursor-crosshair"
           config={{
             positive: {
               label: tCommon("positive"),

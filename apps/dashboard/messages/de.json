@@ -3373,6 +3373,7 @@
         "retry": "Erneut versuchen"
       },
       "noRatedAnswers": "Keine bewerteten Antworten",
+      "ratedAnswers": "{count, plural, one {# bewertete Antwort} other {# bewertete Antworten}}",
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
       "band": {

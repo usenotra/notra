@@ -3373,6 +3373,7 @@
         "retry": "Try again"
       },
       "noRatedAnswers": "No rated answers",
+      "ratedAnswers": "{count, plural, one {# rated answer} other {# rated answers}}",
       "deltaLabel": "Sentiment score",
       "deltaHint": "vs. previous period",
       "band": {
