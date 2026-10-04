@@ -10,7 +10,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
-import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
 import { normalizeChatTitle } from "@notra/ai/utils/chat";
 import {
@@ -58,6 +57,7 @@ import {
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
 import { usePathname, useRouter } from "@/lib/navigation";
+import { dashboardOrpcClient } from "@/lib/orpc/client";
 import { cn } from "@/lib/utils";
 import {
   displayChatTitle,
@@ -102,26 +102,15 @@ export function ChatHistoryNav() {
     queryClient.prefetchQuery({
       queryKey: ["chat-history", organizationId, chatId],
       queryFn: async () => {
-        const res = await fetch(
-          `/api/organizations/${organizationId}/chat/${encodeURIComponent(chatId)}`
-        );
-        if (!res.ok) {
-          throw new Error("Failed to prefetch chat history");
-        }
-        const data = await res.json();
-        const externalChannelId = externalChannelIdSchema.safeParse(
-          data?.externalChannelId
-        );
+        const data = await dashboardOrpcClient.chat.sessions.get({
+          organizationId,
+          chatId,
+        });
         return {
-          messages: data?.messages ?? null,
-          lastResponseStopped: Boolean(data?.lastResponseStopped),
-          activeStreamId:
-            typeof data?.activeStreamId === "string"
-              ? data.activeStreamId
-              : null,
-          externalChannelId: externalChannelId.success
-            ? externalChannelId.data
-            : null,
+          messages: data.messages,
+          lastResponseStopped: data.lastResponseStopped,
+          activeStreamId: data.activeStreamId,
+          externalChannelId: data.externalChannelId,
         };
       },
       staleTime: 1000 * 60 * 5,

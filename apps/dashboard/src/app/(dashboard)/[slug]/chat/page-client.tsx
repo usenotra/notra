@@ -3,7 +3,6 @@
 import { useChat } from "@ai-sdk/react";
 import { ArrowReloadHorizontalIcon, X } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ContentType } from "@notra/ai/schemas/content";
 import { createdPostToolOutputSchema } from "@notra/ai/schemas/post";
 import type {
@@ -30,6 +29,7 @@ import {
   MessageScrollerViewport,
 } from "@notra/ui/components/ui/message-scroller";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { ORPCError } from "@orpc/client";
 import {
   useMutation,
   useQuery,
@@ -121,6 +121,7 @@ import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
 import { usePathname, useRouter } from "@/lib/navigation";
+import { dashboardOrpcClient } from "@/lib/orpc/client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { isImageMimeType } from "@/lib/upload/mime";
 import { cn } from "@/lib/utils";
@@ -848,26 +849,16 @@ function StandaloneChatPageClient({
       if (!initialChatId) {
         return null;
       }
-      const res = await fetch(
-        `/api/organizations/${organizationId}/chat/${encodeURIComponent(initialChatId)}`
-      );
-      if (!res.ok) {
-        throw new Error("Failed to load chat history");
-      }
-      const data = await res.json();
-      const externalChannelId = externalChannelIdSchema.safeParse(
-        data?.externalChannelId
-      );
+      const data = await dashboardOrpcClient.chat.sessions.get({
+        organizationId,
+        chatId: initialChatId,
+      });
       return {
-        messages: data?.messages ?? null,
-        lastResponseStopped: Boolean(data?.lastResponseStopped),
-        activeStreamId:
-          typeof data?.activeStreamId === "string" ? data.activeStreamId : null,
-        externalChannelId: externalChannelId.success
-          ? externalChannelId.data
-          : null,
-        slackThreadUrl:
-          typeof data?.slackThreadUrl === "string" ? data.slackThreadUrl : null,
+        messages: data.messages,
+        lastResponseStopped: data.lastResponseStopped,
+        activeStreamId: data.activeStreamId,
+        externalChannelId: data.externalChannelId,
+        slackThreadUrl: data.slackThreadUrl,
       };
     },
     enabled: Boolean(initialChatId) && Boolean(organizationId),
@@ -1849,17 +1840,17 @@ function StandaloneChatPageClient({
   }, []);
 
   const checkActiveStream = useCallback(async () => {
-    const response = await fetch(
-      `/api/organizations/${organizationId}/chat/${encodeURIComponent(stableChatId)}`
-    );
-    if (!(response.ok && activeStreamPollRef.current)) {
-      return;
-    }
-    const data: {
-      messages?: ChatUIMessage[] | null;
-      activeStreamId?: string | null;
-    } = await response.json();
-    if (data.activeStreamId || !activeStreamPollRef.current) {
+    const data = await dashboardOrpcClient.chat.sessions
+      .get({ organizationId, chatId: stableChatId })
+      .catch((error: unknown) => {
+        // A failed response just waits for the next poll; network errors
+        // still surface through the poller's logging.
+        if (error instanceof ORPCError) {
+          return null;
+        }
+        throw error;
+      });
+    if (!data || data.activeStreamId || !activeStreamPollRef.current) {
       return;
     }
     stopActiveStreamPolling();
@@ -2318,26 +2309,18 @@ function StandaloneChatPageClient({
                 trackDraftAction(
                   status === "published" ? "save_published" : "save_draft"
                 );
-                const response = await fetch(
-                  `/api/organizations/${organizationId}/chat/posts`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      ...payload,
-                      chatId: stableChatId,
-                      toolCallId: toolPart.toolCallId,
-                      contentType,
-                      status,
-                    }),
-                  }
-                );
-                if (!response.ok) {
-                  throw new Error(tCommon("errors.generic"));
-                }
-                const savedPost = createdPostToolOutputSchema.parse(
-                  await response.json()
-                );
+                const savedPost = await dashboardOrpcClient.chat.posts
+                  .create({
+                    ...payload,
+                    organizationId,
+                    chatId: stableChatId,
+                    toolCallId: toolPart.toolCallId,
+                    contentType,
+                    status,
+                  })
+                  .catch(() => {
+                    throw new Error(tCommon("errors.generic"));
+                  });
                 setMessages((current) =>
                   linkSavedChatPosts(current, [
                     {

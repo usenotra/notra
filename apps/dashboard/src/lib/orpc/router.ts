@@ -4,6 +4,7 @@ import { apiKeysRouter } from "./routers/api-keys";
 import { attachmentsRouter } from "./routers/attachments";
 import { automationRouter } from "./routers/automation";
 import { brandRouter } from "./routers/brand";
+import { chatRouter } from "./routers/chat";
 import { commentsRouter } from "./routers/comments";
 import { contentRouter } from "./routers/content";
 import { feedbackRouter } from "./routers/feedback";
@@ -32,6 +33,7 @@ export const dashboardRouter = {
   attachments: attachmentsRouter,
   automation: automationRouter,
   brand: brandRouter,
+  chat: chatRouter,
   content: contentRouter,
   feedback: feedbackRouter,
   geo: geoRouter,

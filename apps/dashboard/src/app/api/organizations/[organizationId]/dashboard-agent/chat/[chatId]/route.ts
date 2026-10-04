@@ -2,9 +2,8 @@ import { getChatSession } from "@notra/ai/chat/history";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { loadChatHistoryPayload } from "@/lib/chat/history";
 import type { RouteContext } from "@/types/api/routes";
-
-import { GET as getChatHistory } from "../../../chat/[chatId]/route";
 
 export async function GET(
   request: Request,
@@ -33,5 +32,13 @@ export async function GET(
     return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
-  return getChatHistory(request, { params });
+  const history = await loadChatHistoryPayload(
+    organizationId,
+    parsedChatId.data
+  );
+  if (!history) {
+    return Response.json({ error: "Chat not found" }, { status: 404 });
+  }
+
+  return Response.json(history);
 }

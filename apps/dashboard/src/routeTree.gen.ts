@@ -67,9 +67,6 @@ import { Route as ApiUploadsContentImagesSplatRouteImport } from './routes/api.u
 import { Route as ApiWebhooksGithubAppRouteImport } from './routes/api.webhooks.github.app'
 import { Route as ApiIntegrationsMcpOauthCallbackRouteImport } from './routes/api.integrations.mcp.oauth.callback'
 import { Route as ApiOrganizationsOrganizationIdAgentSplatRouteImport } from './routes/api.organizations.$organizationId.agent.$'
-import { Route as ApiOrganizationsOrganizationIdChatChatIdRouteImport } from './routes/api.organizations.$organizationId.chat.$chatId'
-import { Route as ApiOrganizationsOrganizationIdChatPostsRouteImport } from './routes/api.organizations.$organizationId.chat.posts'
-import { Route as ApiOrganizationsOrganizationIdChatSessionsRouteImport } from './routes/api.organizations.$organizationId.chat.sessions'
 import { Route as ApiOrganizationsOrganizationIdDashboardAgentChatRouteImport } from './routes/api.organizations.$organizationId.dashboard-agent.chat'
 import { Route as ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRouteImport } from './routes/api.organizations.$organizationId.chat.$chatId.mirror-stream'
 import { Route as ApiOrganizationsOrganizationIdChatChatIdRelayRouteImport } from './routes/api.organizations.$organizationId.chat.$chatId.relay'
@@ -397,24 +394,6 @@ const ApiOrganizationsOrganizationIdAgentSplatRoute =
     path: '/api/organizations/$organizationId/agent/$',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiOrganizationsOrganizationIdChatChatIdRoute =
-  ApiOrganizationsOrganizationIdChatChatIdRouteImport.update({
-    id: '/$chatId',
-    path: '/$chatId',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
-  } as any)
-const ApiOrganizationsOrganizationIdChatPostsRoute =
-  ApiOrganizationsOrganizationIdChatPostsRouteImport.update({
-    id: '/posts',
-    path: '/posts',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
-  } as any)
-const ApiOrganizationsOrganizationIdChatSessionsRoute =
-  ApiOrganizationsOrganizationIdChatSessionsRouteImport.update({
-    id: '/sessions',
-    path: '/sessions',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
-  } as any)
 const ApiOrganizationsOrganizationIdDashboardAgentChatRoute =
   ApiOrganizationsOrganizationIdDashboardAgentChatRouteImport.update({
     id: '/api/organizations/$organizationId/dashboard-agent/chat',
@@ -423,33 +402,33 @@ const ApiOrganizationsOrganizationIdDashboardAgentChatRoute =
   } as any)
 const ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute =
   ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRouteImport.update({
-    id: '/mirror-stream',
-    path: '/mirror-stream',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatChatIdRoute,
+    id: '/$chatId/mirror-stream',
+    path: '/$chatId/mirror-stream',
+    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
   } as any)
 const ApiOrganizationsOrganizationIdChatChatIdRelayRoute =
   ApiOrganizationsOrganizationIdChatChatIdRelayRouteImport.update({
-    id: '/relay',
-    path: '/relay',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatChatIdRoute,
+    id: '/$chatId/relay',
+    path: '/$chatId/relay',
+    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
   } as any)
 const ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRoute =
   ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRouteImport.update({
-    id: '/relay-approval',
-    path: '/relay-approval',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatChatIdRoute,
+    id: '/$chatId/relay-approval',
+    path: '/$chatId/relay-approval',
+    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
   } as any)
 const ApiOrganizationsOrganizationIdChatChatIdStopRoute =
   ApiOrganizationsOrganizationIdChatChatIdStopRouteImport.update({
-    id: '/stop',
-    path: '/stop',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatChatIdRoute,
+    id: '/$chatId/stop',
+    path: '/$chatId/stop',
+    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
   } as any)
 const ApiOrganizationsOrganizationIdChatChatIdStreamRoute =
   ApiOrganizationsOrganizationIdChatChatIdStreamRouteImport.update({
-    id: '/stream',
-    path: '/stream',
-    getParentRoute: () => ApiOrganizationsOrganizationIdChatChatIdRoute,
+    id: '/$chatId/stream',
+    path: '/$chatId/stream',
+    getParentRoute: () => ApiOrganizationsOrganizationIdChatRoute,
   } as any)
 const ApiOrganizationsOrganizationIdContentContentIdChatRoute =
   ApiOrganizationsOrganizationIdContentContentIdChatRouteImport.update({
@@ -536,9 +515,6 @@ export interface FileRoutesByFullPath {
   '/api/webhooks/github/app': typeof ApiWebhooksGithubAppRoute
   '/api/integrations/mcp/oauth/callback': typeof ApiIntegrationsMcpOauthCallbackRoute
   '/api/organizations/$organizationId/agent/$': typeof ApiOrganizationsOrganizationIdAgentSplatRoute
-  '/api/organizations/$organizationId/chat/$chatId': typeof ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren
-  '/api/organizations/$organizationId/chat/posts': typeof ApiOrganizationsOrganizationIdChatPostsRoute
-  '/api/organizations/$organizationId/chat/sessions': typeof ApiOrganizationsOrganizationIdChatSessionsRoute
   '/api/organizations/$organizationId/dashboard-agent/chat': typeof ApiOrganizationsOrganizationIdDashboardAgentChatRouteWithChildren
   '/api/organizations/$organizationId/chat/$chatId/mirror-stream': typeof ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute
   '/api/organizations/$organizationId/chat/$chatId/relay': typeof ApiOrganizationsOrganizationIdChatChatIdRelayRoute
@@ -609,9 +585,6 @@ export interface FileRoutesByTo {
   '/api/webhooks/github/app': typeof ApiWebhooksGithubAppRoute
   '/api/integrations/mcp/oauth/callback': typeof ApiIntegrationsMcpOauthCallbackRoute
   '/api/organizations/$organizationId/agent/$': typeof ApiOrganizationsOrganizationIdAgentSplatRoute
-  '/api/organizations/$organizationId/chat/$chatId': typeof ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren
-  '/api/organizations/$organizationId/chat/posts': typeof ApiOrganizationsOrganizationIdChatPostsRoute
-  '/api/organizations/$organizationId/chat/sessions': typeof ApiOrganizationsOrganizationIdChatSessionsRoute
   '/api/organizations/$organizationId/dashboard-agent/chat': typeof ApiOrganizationsOrganizationIdDashboardAgentChatRouteWithChildren
   '/api/organizations/$organizationId/chat/$chatId/mirror-stream': typeof ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute
   '/api/organizations/$organizationId/chat/$chatId/relay': typeof ApiOrganizationsOrganizationIdChatChatIdRelayRoute
@@ -683,9 +656,6 @@ export interface FileRoutesById {
   '/api/webhooks/github/app': typeof ApiWebhooksGithubAppRoute
   '/api/integrations/mcp/oauth/callback': typeof ApiIntegrationsMcpOauthCallbackRoute
   '/api/organizations/$organizationId/agent/$': typeof ApiOrganizationsOrganizationIdAgentSplatRoute
-  '/api/organizations/$organizationId/chat/$chatId': typeof ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren
-  '/api/organizations/$organizationId/chat/posts': typeof ApiOrganizationsOrganizationIdChatPostsRoute
-  '/api/organizations/$organizationId/chat/sessions': typeof ApiOrganizationsOrganizationIdChatSessionsRoute
   '/api/organizations/$organizationId/dashboard-agent/chat': typeof ApiOrganizationsOrganizationIdDashboardAgentChatRouteWithChildren
   '/api/organizations/$organizationId/chat/$chatId/mirror-stream': typeof ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute
   '/api/organizations/$organizationId/chat/$chatId/relay': typeof ApiOrganizationsOrganizationIdChatChatIdRelayRoute
@@ -758,9 +728,6 @@ export interface FileRouteTypes {
     | '/api/webhooks/github/app'
     | '/api/integrations/mcp/oauth/callback'
     | '/api/organizations/$organizationId/agent/$'
-    | '/api/organizations/$organizationId/chat/$chatId'
-    | '/api/organizations/$organizationId/chat/posts'
-    | '/api/organizations/$organizationId/chat/sessions'
     | '/api/organizations/$organizationId/dashboard-agent/chat'
     | '/api/organizations/$organizationId/chat/$chatId/mirror-stream'
     | '/api/organizations/$organizationId/chat/$chatId/relay'
@@ -831,9 +798,6 @@ export interface FileRouteTypes {
     | '/api/webhooks/github/app'
     | '/api/integrations/mcp/oauth/callback'
     | '/api/organizations/$organizationId/agent/$'
-    | '/api/organizations/$organizationId/chat/$chatId'
-    | '/api/organizations/$organizationId/chat/posts'
-    | '/api/organizations/$organizationId/chat/sessions'
     | '/api/organizations/$organizationId/dashboard-agent/chat'
     | '/api/organizations/$organizationId/chat/$chatId/mirror-stream'
     | '/api/organizations/$organizationId/chat/$chatId/relay'
@@ -904,9 +868,6 @@ export interface FileRouteTypes {
     | '/api/webhooks/github/app'
     | '/api/integrations/mcp/oauth/callback'
     | '/api/organizations/$organizationId/agent/$'
-    | '/api/organizations/$organizationId/chat/$chatId'
-    | '/api/organizations/$organizationId/chat/posts'
-    | '/api/organizations/$organizationId/chat/sessions'
     | '/api/organizations/$organizationId/dashboard-agent/chat'
     | '/api/organizations/$organizationId/chat/$chatId/mirror-stream'
     | '/api/organizations/$organizationId/chat/$chatId/relay'
@@ -1385,27 +1346,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdAgentSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/organizations/$organizationId/chat/$chatId': {
-      id: '/api/organizations/$organizationId/chat/$chatId'
-      path: '/$chatId'
-      fullPath: '/api/organizations/$organizationId/chat/$chatId'
-      preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
-    }
-    '/api/organizations/$organizationId/chat/posts': {
-      id: '/api/organizations/$organizationId/chat/posts'
-      path: '/posts'
-      fullPath: '/api/organizations/$organizationId/chat/posts'
-      preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatPostsRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
-    }
-    '/api/organizations/$organizationId/chat/sessions': {
-      id: '/api/organizations/$organizationId/chat/sessions'
-      path: '/sessions'
-      fullPath: '/api/organizations/$organizationId/chat/sessions'
-      preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatSessionsRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
-    }
     '/api/organizations/$organizationId/dashboard-agent/chat': {
       id: '/api/organizations/$organizationId/dashboard-agent/chat'
       path: '/api/organizations/$organizationId/dashboard-agent/chat'
@@ -1415,38 +1355,38 @@ declare module '@tanstack/react-router' {
     }
     '/api/organizations/$organizationId/chat/$chatId/mirror-stream': {
       id: '/api/organizations/$organizationId/chat/$chatId/mirror-stream'
-      path: '/mirror-stream'
+      path: '/$chatId/mirror-stream'
       fullPath: '/api/organizations/$organizationId/chat/$chatId/mirror-stream'
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRoute
+      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
     }
     '/api/organizations/$organizationId/chat/$chatId/relay': {
       id: '/api/organizations/$organizationId/chat/$chatId/relay'
-      path: '/relay'
+      path: '/$chatId/relay'
       fullPath: '/api/organizations/$organizationId/chat/$chatId/relay'
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRelayRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRoute
+      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
     }
     '/api/organizations/$organizationId/chat/$chatId/relay-approval': {
       id: '/api/organizations/$organizationId/chat/$chatId/relay-approval'
-      path: '/relay-approval'
+      path: '/$chatId/relay-approval'
       fullPath: '/api/organizations/$organizationId/chat/$chatId/relay-approval'
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRoute
+      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
     }
     '/api/organizations/$organizationId/chat/$chatId/stop': {
       id: '/api/organizations/$organizationId/chat/$chatId/stop'
-      path: '/stop'
+      path: '/$chatId/stop'
       fullPath: '/api/organizations/$organizationId/chat/$chatId/stop'
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdStopRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRoute
+      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
     }
     '/api/organizations/$organizationId/chat/$chatId/stream': {
       id: '/api/organizations/$organizationId/chat/$chatId/stream'
-      path: '/stream'
+      path: '/$chatId/stream'
       fullPath: '/api/organizations/$organizationId/chat/$chatId/stream'
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdChatChatIdStreamRouteImport
-      parentRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRoute
+      parentRoute: typeof ApiOrganizationsOrganizationIdChatRoute
     }
     '/api/organizations/$organizationId/content/$contentId/chat': {
       id: '/api/organizations/$organizationId/content/$contentId/chat'
@@ -1524,7 +1464,7 @@ const ApiDemoSandboxRouteWithChildren = ApiDemoSandboxRoute._addFileChildren(
   ApiDemoSandboxRouteChildren,
 )
 
-interface ApiOrganizationsOrganizationIdChatChatIdRouteChildren {
+interface ApiOrganizationsOrganizationIdChatRouteChildren {
   ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute: typeof ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute
   ApiOrganizationsOrganizationIdChatChatIdRelayRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRelayRoute
   ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRoute
@@ -1532,7 +1472,7 @@ interface ApiOrganizationsOrganizationIdChatChatIdRouteChildren {
   ApiOrganizationsOrganizationIdChatChatIdStreamRoute: typeof ApiOrganizationsOrganizationIdChatChatIdStreamRoute
 }
 
-const ApiOrganizationsOrganizationIdChatChatIdRouteChildren: ApiOrganizationsOrganizationIdChatChatIdRouteChildren =
+const ApiOrganizationsOrganizationIdChatRouteChildren: ApiOrganizationsOrganizationIdChatRouteChildren =
   {
     ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute:
       ApiOrganizationsOrganizationIdChatChatIdMirrorStreamRoute,
@@ -1544,27 +1484,6 @@ const ApiOrganizationsOrganizationIdChatChatIdRouteChildren: ApiOrganizationsOrg
       ApiOrganizationsOrganizationIdChatChatIdStopRoute,
     ApiOrganizationsOrganizationIdChatChatIdStreamRoute:
       ApiOrganizationsOrganizationIdChatChatIdStreamRoute,
-  }
-
-const ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren =
-  ApiOrganizationsOrganizationIdChatChatIdRoute._addFileChildren(
-    ApiOrganizationsOrganizationIdChatChatIdRouteChildren,
-  )
-
-interface ApiOrganizationsOrganizationIdChatRouteChildren {
-  ApiOrganizationsOrganizationIdChatChatIdRoute: typeof ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren
-  ApiOrganizationsOrganizationIdChatPostsRoute: typeof ApiOrganizationsOrganizationIdChatPostsRoute
-  ApiOrganizationsOrganizationIdChatSessionsRoute: typeof ApiOrganizationsOrganizationIdChatSessionsRoute
-}
-
-const ApiOrganizationsOrganizationIdChatRouteChildren: ApiOrganizationsOrganizationIdChatRouteChildren =
-  {
-    ApiOrganizationsOrganizationIdChatChatIdRoute:
-      ApiOrganizationsOrganizationIdChatChatIdRouteWithChildren,
-    ApiOrganizationsOrganizationIdChatPostsRoute:
-      ApiOrganizationsOrganizationIdChatPostsRoute,
-    ApiOrganizationsOrganizationIdChatSessionsRoute:
-      ApiOrganizationsOrganizationIdChatSessionsRoute,
   }
 
 const ApiOrganizationsOrganizationIdChatRouteWithChildren =

@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  chatSessionResponseSchema,
-  chatSessionsListResponseSchema,
-} from "@notra/ai/schemas/chat";
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
-import {
-  chatSessionPath,
-  chatSessionsPath,
-  chatSessionsQueryKey,
-  sortChatSessions,
-} from "@notra/ai/utils/chat";
+import { chatSessionsQueryKey, sortChatSessions } from "@notra/ai/utils/chat";
 import {
   useQuery,
   useQueryClient,
@@ -23,6 +14,7 @@ import { useTranslations } from "use-intl";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DEFAULT_CHAT_TITLE } from "@/constants/chat-history";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { dashboardOrpcClient } from "@/lib/orpc/client";
 import {
   excludeArrivedGeneratingIds,
   excludeArrivedPendingSessions,
@@ -140,14 +132,15 @@ export function useChatSessions() {
       if (!organizationId) {
         return [];
       }
-      const response = await fetch(chatSessionsPath(organizationId, projectId));
-      if (!response.ok) {
+      try {
+        const { sessions } = await dashboardOrpcClient.chat.sessions.list({
+          organizationId,
+          projectId,
+        });
+        return sessions;
+      } catch {
         return [];
       }
-      const parsed = chatSessionsListResponseSchema.safeParse(
-        await response.json()
-      );
-      return parsed.success ? (parsed.data.sessions ?? []) : [];
     },
     enabled: Boolean(organizationId) && isResolved,
     staleTime: 1000 * 60,
@@ -295,24 +288,13 @@ export function useChatSessionMutations() {
     replaceSessionInCache(chatId, (item) => ({ ...item, title: nextTitle }));
 
     try {
-      const response = await fetch(chatSessionPath(organizationId, chatId), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: nextTitle }),
-      });
-
-      if (!response.ok) {
-        queryClient.setQueryData(queryKey, previousSessions);
-        toast.error(tToast("renameChatFailed"));
-        renameInFlightRef.current.delete(chatId);
-        return false;
-      }
-
-      const parsed = chatSessionResponseSchema.safeParse(await response.json());
-      if (parsed.success && parsed.data.session) {
-        const updated = parsed.data.session;
-        replaceSessionInCache(chatId, () => updated);
-      }
+      const { session: updated } =
+        await dashboardOrpcClient.chat.sessions.update({
+          organizationId,
+          chatId,
+          title: nextTitle,
+        });
+      replaceSessionInCache(chatId, () => updated);
       renameInFlightRef.current.delete(chatId);
       return true;
     } catch {
@@ -339,26 +321,13 @@ export function useChatSessionMutations() {
     }));
 
     try {
-      const response = await fetch(
-        chatSessionPath(organizationId, session.chatId),
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pinned: nextPinned }),
-        }
-      );
-
-      if (!response.ok) {
-        queryClient.setQueryData(queryKey, previousSessions);
-        toast.error(tToast("updateChatPinFailed"));
-        return false;
-      }
-
-      const parsed = chatSessionResponseSchema.safeParse(await response.json());
-      if (parsed.success && parsed.data.session) {
-        const updated = parsed.data.session;
-        replaceSessionInCache(session.chatId, () => updated);
-      }
+      const { session: updated } =
+        await dashboardOrpcClient.chat.sessions.update({
+          organizationId,
+          chatId: session.chatId,
+          pinned: nextPinned,
+        });
+      replaceSessionInCache(session.chatId, () => updated);
       return true;
     } catch {
       queryClient.setQueryData(queryKey, previousSessions);
@@ -373,14 +342,10 @@ export function useChatSessionMutations() {
     }
 
     try {
-      const response = await fetch(chatSessionPath(organizationId, chatId), {
-        method: "DELETE",
+      await dashboardOrpcClient.chat.sessions.delete({
+        organizationId,
+        chatId,
       });
-
-      if (!response.ok) {
-        toast.error(tToast("deleteChatFailed"));
-        return false;
-      }
 
       queryClient.setQueryData<ChatSessionSummary[]>(queryKey, (current = []) =>
         current.filter((item) => item.chatId !== chatId)
