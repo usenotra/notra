@@ -53,10 +53,6 @@ html {
 }
 
 :root {
-  --shell: hsl(240 6% 94.5%);
-  --shell-border: hsl(240 5% 87%);
-  --surface-lift:
-    0 1px 2px hsl(240 10% 10% / 0.06), 0 2px 8px -2px hsl(240 10% 10% / 0.06);
   --aio-bg: #ffffff;
   --aio-fg: #0a0a0a;
   --aio-label: #1f1f1f;
@@ -82,10 +78,6 @@ html {
 
 .dark,
 [data-theme="dark"] {
-  --shell: hsl(240 5% 14.5%);
-  --shell-border: hsl(240 4% 20%);
-  --surface-lift:
-    inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(0 0% 0% / 0.4);
   --aio-bg: #22242a;
   --aio-fg: #e6e8f0;
   --aio-label: #e8e8e8;
@@ -110,9 +102,6 @@ html {
 }
 
 @theme inline {
-  --color-shell: var(--shell);
-  --color-shell-border: var(--shell-border);
-  --shadow-lift: var(--surface-lift);
   --color-aio-bg: var(--aio-bg);
   --color-aio-fg: var(--aio-fg);
   --color-aio-label: var(--aio-label);
