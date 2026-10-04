@@ -99,10 +99,12 @@ export const users = pgTable("users", {
   locale: text("locale"),
   workosUserId: text("workos_user_id").unique(),
   /**
-   * When the user opted into marketing email; null means no consent. Opting
-   * out from an email footer lives in Brew, not here.
+   * When the user opted into marketing email; null means no consent. Opt-outs
+   * from an email footer live in Brew, not here.
    */
   marketingOptInAt: timestamp("marketing_opt_in_at"),
+  /** Where the opt-in was given ("onboarding" or "settings"), for proof. */
+  marketingOptInSource: text("marketing_opt_in_source"),
 });
 
 export const userBackupCodes = pgTable(

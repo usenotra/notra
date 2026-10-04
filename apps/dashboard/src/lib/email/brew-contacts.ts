@@ -5,7 +5,10 @@ import {
   organizationNotificationSettings,
   users,
 } from "@notra/db/schema";
-import { BREW_MARKETING_CONSENT_EVIDENCE } from "@notra/email/constants/brew";
+import {
+  BREW_MARKETING_CONSENT_POLICY_VERSION,
+  BREW_MARKETING_CONSENT_WORDING,
+} from "@notra/email/constants/brew";
 import type { BrewContactInput } from "@notra/email/types/brew";
 import {
   deleteBrewContact,
@@ -49,6 +52,7 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
       name: users.name,
       createdAt: users.createdAt,
       marketingOptInAt: users.marketingOptInAt,
+      marketingOptInSource: users.marketingOptInSource,
       dailySummaryEmails: ownedOrganizationsWith(
         organizationNotificationSettings.dailySummary,
         true
@@ -79,7 +83,15 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
     .groupBy(users.id);
 
   return rows.map(
-    ({ id, email, name, createdAt, marketingOptInAt, ...preferences }) => ({
+    ({
+      id,
+      email,
+      name,
+      createdAt,
+      marketingOptInAt,
+      marketingOptInSource,
+      ...preferences
+    }) => ({
       email,
       ...splitName(name, email),
       customFields: {
@@ -92,7 +104,8 @@ async function loadContacts(userIds?: string[]): Promise<BrewContactInput[]> {
         consent: {
           source: "form" as const,
           capturedAt: marketingOptInAt.toISOString(),
-          evidence: BREW_MARKETING_CONSENT_EVIDENCE,
+          policyVersion: BREW_MARKETING_CONSENT_POLICY_VERSION,
+          evidence: `Notra ${marketingOptInSource ?? "app"}: ${BREW_MARKETING_CONSENT_WORDING}`,
         },
       }),
     })

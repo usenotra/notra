@@ -8,12 +8,16 @@ import {
 import { eq } from "drizzle-orm";
 
 import { syncBrewContacts } from "@/lib/email/brew-contacts";
-import type { MarketingEmailsState } from "@/types/settings/notifications";
+import type {
+  MarketingEmailsState,
+  MarketingOptInSource,
+} from "@/types/settings/notifications";
 
 /**
  * Marketing consent has two halves: the opt-in is ours
- * (`users.marketing_opt_in_at`), the opt-out is Brew's (the marketing domain's
- * unsubscribe list, filled by email footers and by this toggle).
+ * (`users.marketing_opt_in_at`), the opt-out is Brew's. An email footer
+ * unsubscribes brand-wide, which only Brew's app can undo; the settings toggle
+ * uses the marketing domain's unsubscribe list, which it can lift again.
  */
 export async function getMarketingEmailsState(
   userId: string
@@ -41,13 +45,18 @@ export async function getMarketingEmailsState(
 export async function setMarketingEmails({
   userId,
   enabled,
+  source,
 }: {
   userId: string;
   enabled: boolean;
+  source: MarketingOptInSource;
 }): Promise<MarketingEmailsState> {
   const [user] = await db
     .update(users)
-    .set({ marketingOptInAt: enabled ? new Date() : null })
+    .set({
+      marketingOptInAt: enabled ? new Date() : null,
+      marketingOptInSource: enabled ? source : null,
+    })
     .where(eq(users.id, userId))
     .returning({ email: users.email });
   if (!user) {
@@ -82,5 +91,5 @@ export async function applyOnboardingMarketingChoice({
     return;
   }
 
-  await setMarketingEmails({ userId, enabled });
+  await setMarketingEmails({ userId, enabled, source: "onboarding" });
 }

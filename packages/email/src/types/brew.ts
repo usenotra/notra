@@ -86,6 +86,7 @@ export interface BrewContactCustomFields {
 export interface BrewContactConsent {
   source: "api" | "form" | "import";
   capturedAt: string;
+  policyVersion: string;
   evidence: string;
 }
 

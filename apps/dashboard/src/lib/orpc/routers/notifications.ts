@@ -115,6 +115,10 @@ export const notificationsRouter = {
   updateMarketing: authorizedProcedure
     .input(updateMarketingEmailsInputSchema)
     .handler(({ context, input }) =>
-      setMarketingEmails({ userId: context.user.id, enabled: input.enabled })
+      setMarketingEmails({
+        userId: context.user.id,
+        enabled: input.enabled,
+        source: "settings",
+      })
     ),
 };

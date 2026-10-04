@@ -34,6 +34,8 @@ export function MarketingEmailsCard() {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : t("updateFailed"));
+      // The choice is saved before Brew is called, so show what was stored.
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

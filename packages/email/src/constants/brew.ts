@@ -27,14 +27,18 @@ export const BREW_RETRY_MAX_DELAY_MS = 60_000;
 export const BREW_CONTACTS_PAGE_SIZE = 100;
 
 /**
- * Sending domain for marketing email. Its unsubscribe list is where opting
- * out lands, from the email footer or from the Notra settings.
+ * Sending domain for marketing email. Turning marketing off in the Notra
+ * settings puts the address on this domain's unsubscribe list, which (unlike
+ * a brand-wide footer unsubscribe) can be lifted again via the API.
  */
 export const BREW_MARKETING_DOMAIN = "marketing.usenotra.com";
 
-/** Recorded with every marketing opt-in as Brew consent evidence. */
-export const BREW_MARKETING_CONSENT_EVIDENCE =
-  'Notra app checkbox "Product updates" (new features, tips and announcements)';
+/** Wording the user agreed to, recorded as Brew consent evidence. */
+export const BREW_MARKETING_CONSENT_WORDING =
+  'unchecked checkbox "Product updates: new features, tips and announcements", ticked by the signed-in user (verified email)';
+
+/** Privacy policy in force when consent is given; bump with the policy date. */
+export const BREW_MARKETING_CONSENT_POLICY_VERSION = "privacy-2026-10-04";
 
 /** Brew caps contact upserts at 1000 rows per request. */
 export const BREW_CONTACTS_BATCH_SIZE = 1000;

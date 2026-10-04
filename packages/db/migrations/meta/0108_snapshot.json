@@ -1,5 +1,5 @@
 {
-  "id": "815f28f3-3e6e-436b-a597-d06cae5d472f",
+  "id": "d6d5bf03-2b60-41d0-b46d-dabca8f7bb6b",
   "prevId": "ba2321e4-6324-4e25-b21e-29cbc66d198c",
   "version": "7",
   "dialect": "postgresql",
@@ -12760,6 +12760,12 @@
         "marketing_opt_in_at": {
           "name": "marketing_opt_in_at",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "marketing_opt_in_source": {
+          "name": "marketing_opt_in_source",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

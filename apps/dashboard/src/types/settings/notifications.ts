@@ -17,6 +17,9 @@ export interface MarketingEmailsState {
   blockedByUnsubscribe: boolean;
 }
 
+/** Where a marketing opt-in was given, kept as proof of consent. */
+export type MarketingOptInSource = "onboarding" | "settings";
+
 export type NotificationToggleKey = keyof NotificationSettings;
 
 export interface NotificationToggleConfig {
