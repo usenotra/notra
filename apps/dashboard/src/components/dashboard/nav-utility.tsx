@@ -4,10 +4,10 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 import { NAV_UTILITY_LINKS } from "@/constants/nav";
+import { usePathname } from "@/lib/navigation";
 import type { NavUtilityProps } from "@/types/components/nav";
 import { resolveActiveNavLink } from "@/utils/nav";
 

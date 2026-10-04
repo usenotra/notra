@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Github } from "@notra/ui/components/ui/svgs/github";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubAccountSelectProps } from "@/types/integrations/github";

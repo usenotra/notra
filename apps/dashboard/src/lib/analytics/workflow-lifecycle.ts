@@ -92,6 +92,7 @@ export async function trackWorkflowOutcomeAndFlush(
       organizationId: input.organizationId,
       projectId: input.projectId,
       reason: input.reason ?? input.stepFailed,
+      websiteUrl: input.websiteUrl,
     });
   }
   await trackServerEventAndFlush({
@@ -157,5 +158,6 @@ export async function trackBrandAnalysisOutcomeAndFlush(
     startedAt: input.startedAt,
     stepFailed: phaseFailed,
     reason: failed ? error : undefined,
+    websiteUrl: input.websiteUrl,
   });
 }

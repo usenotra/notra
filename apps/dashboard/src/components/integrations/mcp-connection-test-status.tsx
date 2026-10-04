@@ -1,7 +1,7 @@
 import { Alert01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { McpConnectionTestStatusProps } from "@/types/integrations/mcp";
 

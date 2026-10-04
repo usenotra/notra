@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "use-intl";
 
 import type { GuidelinesStatusLineProps } from "@/types/brand-identity";
 import { latest } from "@/utils/latest-date";

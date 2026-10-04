@@ -1,4 +1,5 @@
 import { runBackgroundGen } from "@notra/ai/agents/background-gen";
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import type {
   TwitterAgentOptions,
   TwitterAgentResult,
@@ -10,10 +11,7 @@ export async function generateTwitterPost(
   return runBackgroundGen({
     organizationId: options.organizationId,
     collectionId: options.collectionId,
-    skillName: "twitter",
-    contentType: "twitter_post",
-    brandAgentType: "twitter",
-    contentLabel: "tweet",
+    ...CONTENT_AGENT_PROFILES.twitter_post,
     voiceId: options.voiceId,
     repositories: options.repositories,
     linearIntegrations: options.linearIntegrations,
@@ -27,6 +25,5 @@ export async function generateTwitterPost(
     resolveLinearContext: options.resolveLinearContext,
     log: options.log,
     telemetryMetadata: options.telemetryMetadata,
-    includeSearchBrandReferencesTool: true,
   });
 }

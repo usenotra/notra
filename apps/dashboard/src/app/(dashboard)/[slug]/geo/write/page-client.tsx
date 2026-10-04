@@ -3,14 +3,13 @@
 import { PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_GAPS_NAV_LINK } from "@notra/geo-core/constants/geo";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { BriefHistory } from "@/components/geo/writer/brief-history";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
@@ -24,6 +23,7 @@ import {
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoWriterBriefs } from "@/lib/hooks/use-geo-writer";
+import { useRouter } from "@/lib/navigation";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type { GeoPageClientProps } from "@/types/geo";
 import { withGeoProject } from "@/utils/geo-paths";

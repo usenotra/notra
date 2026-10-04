@@ -1,8 +1,8 @@
 import { mock } from "bun:test";
 
-import { createFormatter, createTranslator } from "next-intl";
-import type { Messages, NamespaceKeys, NestedKeyOf } from "next-intl";
 import type { ReactNode } from "react";
+import type { Messages, NamespaceKeys, NestedKeyOf } from "use-intl";
+import { createFormatter, createTranslator } from "use-intl/core";
 
 import messages from "../../messages/en.json";
 
@@ -13,12 +13,11 @@ type Namespace = NamespaceKeys<Messages, NestedKeyOf<Messages>>;
 const translator = (namespace?: Namespace) =>
   createTranslator({ locale, messages, namespace, timeZone });
 const formatter = () => createFormatter({ locale, timeZone });
-const actual = await import("next-intl");
-const actualServer = await import("next-intl/server");
+const actual = await import("use-intl");
 
-mock.module("next-intl", () => ({
+mock.module("use-intl", () => ({
   ...actual,
-  NextIntlClientProvider: ({ children }: { children: ReactNode }) => children,
+  IntlProvider: ({ children }: { children: ReactNode }) => children,
   useFormatter: formatter,
   useLocale: () => locale,
   useMessages: () => messages,
@@ -27,8 +26,7 @@ mock.module("next-intl", () => ({
   useTranslations: translator,
 }));
 
-mock.module("next-intl/server", () => ({
-  ...actualServer,
+mock.module("@/lib/i18n/server", () => ({
   getFormatter: async () => formatter(),
   getLocale: async () => locale,
   getMessages: async () => messages,

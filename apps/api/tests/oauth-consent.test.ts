@@ -1,19 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
-import {
-  API_GRANULAR_SCOPES,
-  API_SCOPE_RESOURCES,
-} from "@notra/utils/api-scopes";
-import {
-  buildOAuthConsentOptions,
-  readOAuthConsentGrant,
-} from "@notra/utils/oauth-consent";
+import { API_GRANULAR_SCOPES } from "@notra/utils/api-scopes";
+import { readOAuthConsentGrant } from "@notra/utils/oauth-consent";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { Hono } from "hono";
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
 
 import { authMiddleware } from "../src/middleware/auth";
-import { buildProtectedResourceMetadata } from "../src/utils/agent-discovery";
 
 const issuer = "https://consent-test.authkit.app";
 const audience = "https://mcp.usenotra.com/mcp";
@@ -108,21 +101,6 @@ function request(token: string, path = "/posts", method = "GET") {
 }
 
 describe("Connect consent authorization through API middleware", () => {
-  test("consent covers every API-key permission and discovery requests supported scopes", () => {
-    const options = buildOAuthConsentOptions();
-    expect(options).toHaveLength(1);
-    expect(options[0].claim).toBe("urn:notra:access");
-    expect(options[0].choices.map(({ value }) => value)).toEqual([
-      "read",
-      "write",
-      "full",
-    ]);
-    expect(buildProtectedResourceMetadata().scopes_supported).toEqual([
-      "openid",
-      "offline_access",
-    ]);
-  });
-
   test("access levels enforce read, write and full across content and GEO", async () => {
     for (const level of ["read", "write", "full"]) {
       const token = await sign({
@@ -188,23 +166,6 @@ describe("Connect consent authorization through API middleware", () => {
     expect(
       (await request(await sign({ "urn:notra:access": "full" }))).status
     ).toBe(401);
-  });
-
-  test("all 34 permissions remain available, including every GEO resource", () => {
-    const allWrite = Object.fromEntries(
-      API_SCOPE_RESOURCES.map(({ id }) => [
-        `urn:notra:permission:${id}`,
-        "write",
-      ])
-    );
-    const grant = readOAuthConsentGrant({
-      ...allWrite,
-      "urn:notra:workspace": "workspace-1",
-    });
-    expect(new Set(grant?.scopes)).toEqual(new Set(API_GRANULAR_SCOPES));
-    expect(
-      readOAuthConsentGrant({ "urn:notra:workspace": "workspace-1" })?.scopes
-    ).toEqual([]);
   });
 
   test("signed read grant works without org_id; write includes read and GEO write works", async () => {

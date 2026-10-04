@@ -31,12 +31,12 @@ import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard
 import { slugify } from "@notra/utils/slugify";
 import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import {
   DEFAULT_GITHUB_CONTENT_DIRECTORIES,
   DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED,
 } from "@/constants/github";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   prepareR2GitHubContentAssets,
   resolveGitHubImagePathTemplate,

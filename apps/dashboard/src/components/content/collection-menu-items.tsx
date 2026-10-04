@@ -20,9 +20,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import type { CollectionMenuItemsProps } from "@/types/content/collection";
 import { collectionHref, collectionTitle } from "@/utils/content-collections";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";

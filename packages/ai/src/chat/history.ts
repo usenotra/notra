@@ -354,10 +354,10 @@ export async function replaceContentChatHistory(
   );
 }
 
-export async function loadChatHistory(
+export async function loadChatHistory<TMessage extends UIMessage = UIMessage>(
   organizationId: string,
   chatId: string
-): Promise<UIMessage[]> {
+): Promise<TMessage[]> {
   const row = await db
     .select({
       messages: chatSessions.messages,
@@ -378,7 +378,7 @@ export async function loadChatHistory(
     return [];
   }
 
-  return row.messages as UIMessage[];
+  return row.messages as TMessage[];
 }
 
 export async function getChatSessionState(

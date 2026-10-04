@@ -1,8 +1,3 @@
-export interface RouteErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
-}
-
 export interface ErrorContentCopy {
   eyebrow: string;
   title: string;

@@ -22,10 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useLocale, useTranslations } from "next-intl";
 import type { ChangeEvent, DragEvent, RefObject } from "react";
 import { useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {

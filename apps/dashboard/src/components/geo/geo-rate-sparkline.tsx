@@ -5,7 +5,7 @@ import {
   GEO_RATE_SPARKLINE_PADDING,
   GEO_RATE_SPARKLINE_WIDTH,
 } from "@notra/geo-core/constants/geo";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { GeoRateSparklineProps } from "@/types/geo";

@@ -10,8 +10,8 @@ import {
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import type { OrgLogoFieldProps } from "@/types/onboarding";
 

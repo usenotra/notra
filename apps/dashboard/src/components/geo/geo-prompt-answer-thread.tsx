@@ -9,8 +9,8 @@ import {
   geoAnswerMarkdownFontClass,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
 import { GeoAnswerActions } from "@/components/geo/geo-answer-actions";

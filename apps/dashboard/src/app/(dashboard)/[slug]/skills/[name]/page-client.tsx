@@ -1,11 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 import { SkillDeleteDialog } from "@/components/skills/skill-delete-dialog";
@@ -13,6 +12,7 @@ import { SkillDetailHeader } from "@/components/skills/skill-detail-header";
 import { SkillEditorForm } from "@/components/skills/skill-editor-form";
 import { SkillUnsavedChangesToast } from "@/components/skills/skill-unsaved-changes-toast";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { updateSkillFormSchema } from "@/schemas/skill-form";
 import type { SkillDetailPageClientProps } from "@/types/skills/page";

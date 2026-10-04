@@ -7,11 +7,11 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 import { CONTENT_NAV_LINK, NAV_RECENT_SKELETON_IDS } from "@/constants/nav";
 import { useRecentPosts } from "@/lib/hooks/use-posts";
+import { usePathname } from "@/lib/navigation";
 import type { NavRecentContentProps } from "@/types/components/nav";
 
 import { NavRecentContentItem } from "./nav-recent-content-item";

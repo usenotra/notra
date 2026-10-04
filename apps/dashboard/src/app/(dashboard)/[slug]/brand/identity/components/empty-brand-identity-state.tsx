@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@notra/ui/components/ui/card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 import { getModalState } from "@/utils/brand-identity";

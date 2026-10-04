@@ -5,7 +5,6 @@ import {
 import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
 import type { InputIntegrationType } from "@notra/schemas/dashboard/integrations";
 import { webhookParamsWithRepoSchema } from "@notra/schemas/dashboard/webhooks";
-import type { NextRequest } from "next/server";
 
 import { handleGitHubWebhook } from "@/lib/webhooks/github";
 import { handleLinearWebhook } from "@/lib/webhooks/linear";
@@ -61,7 +60,7 @@ const INTEGRATION_FETCHERS: Record<
   "google-search-console": null,
 };
 
-export async function POST(request: NextRequest, { params }: RouteContext) {
+export async function POST(request: Request, { params }: RouteContext) {
   const rawParams = await params;
 
   const validation = webhookParamsWithRepoSchema.safeParse(rawParams);

@@ -73,20 +73,20 @@ function geoSelectionErrorMessage(
  * response returns it straight from the row, hidden ids included, so rejecting
  * them would break that same round trip.
  */
-export const validateGeoSelection = Effect.fn("geo.validateSelection")(
-  function* (input: ValidateGeoSelectionInput) {
-    const catalog = yield* loadGeoModelCatalog(input.organizationId);
-    const catalogIds = catalog.models.map((model) => model.id);
-    const message = geoSelectionErrorMessage(
-      catalogIds,
-      input.engines,
-      input.languages
-    );
-    if (message) {
-      return yield* Effect.fail(new GeoSelectionInvalidError({ message }));
-    }
+const validateGeoSelection = Effect.fn("geo.validateSelection")(function* (
+  input: ValidateGeoSelectionInput
+) {
+  const catalog = yield* loadGeoModelCatalog(input.organizationId);
+  const catalogIds = catalog.models.map((model) => model.id);
+  const message = geoSelectionErrorMessage(
+    catalogIds,
+    input.engines,
+    input.languages
+  );
+  if (message) {
+    return yield* Effect.fail(new GeoSelectionInvalidError({ message }));
   }
-);
+});
 
 export const upsertGeoSettingsWithValidation = Effect.fn(
   "geo.settingsUpsertWithValidation"

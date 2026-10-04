@@ -32,12 +32,12 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
+import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   hasProviderWordmark,

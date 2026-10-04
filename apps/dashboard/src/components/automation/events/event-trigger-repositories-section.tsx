@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/ui/combobox";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Github } from "@notra/ui/components/ui/svgs/github";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { AddRepositoryButton } from "@/components/integrations/add-repository-button";
 import type { EventTriggerRepositoriesSectionProps } from "@/types/automation/event-trigger";

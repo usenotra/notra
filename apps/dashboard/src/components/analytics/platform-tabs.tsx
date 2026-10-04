@@ -7,8 +7,8 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { SPRING } from "@notra/ui/lib/motion";
 import { AnimatePresence, domMax, LazyMotion, m } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { PlatformTabItem, PlatformTabsProps } from "@/types/analytics";

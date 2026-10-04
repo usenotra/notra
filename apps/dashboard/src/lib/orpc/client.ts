@@ -1,8 +1,8 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import { BatchLinkPlugin } from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 
+import { createDashboardLinkPlugins } from "./link-plugins";
 import type { DashboardRouter } from "./router";
 
 function getBaseUrl() {
@@ -17,30 +17,11 @@ function getBaseUrl() {
   );
 }
 
-/**
- * Batch responses are buffered per item, so anything that streams or carries a
- * binary/FormData payload has to stay on its own request. The plugin already
- * skips `Blob`/`FormData`/async-iterator bodies; these namespaces are excluded
- * on top because they exist to move files around.
- */
-const NON_BATCHABLE_ROOT_PATHS = new Set(["attachments", "upload"]);
-
-function isUnbatchedProcedure(path: readonly string[]) {
-  if (NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? "")) {
-    return true;
-  }
-  // The GitHub catalog talks to GitHub. Keeping it out of the page batch
-  // means a slow GitHub response cannot hold back the saved repositories.
-  return path[0] === "github" && path[1] === "app" && path[2] === "catalog";
-}
-
 const link = new RPCLink({
-  plugins: [
-    new BatchLinkPlugin({
-      exclude: ({ path }) => isUnbatchedProcedure(path),
-      groups: [{ condition: () => true, context: {} }],
-    }),
-  ],
+  // Looked up per call rather than captured once, so a page that swaps
+  // `fetch` (the break-ui preview's write guard) also covers this client.
+  fetch: (request, init) => globalThis.fetch(request, init),
+  plugins: createDashboardLinkPlugins(),
   url: `${getBaseUrl()}/rpc`,
 });
 

@@ -101,6 +101,7 @@ export async function brandAnalysisWorkflow(
     if (!scrapingResult.success) {
       await setBrandAnalysisProgress({
         organizationId,
+        websiteUrl: url,
         jobId,
         startedAt: workflowStartedAt,
         progress: {
@@ -138,6 +139,7 @@ export async function brandAnalysisWorkflow(
     if (!extractionResult.success) {
       await setBrandAnalysisProgress({
         organizationId,
+        websiteUrl: url,
         jobId,
         startedAt: workflowStartedAt,
         progress: {
@@ -191,6 +193,7 @@ export async function brandAnalysisWorkflow(
   } catch (error) {
     await setBrandAnalysisProgress({
       organizationId,
+      websiteUrl: url,
       jobId,
       startedAt: workflowStartedAt,
       progress: {

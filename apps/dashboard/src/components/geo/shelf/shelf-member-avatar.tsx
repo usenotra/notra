@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { GeoShelfMemberAvatarProps } from "@/types/geo-shelf";

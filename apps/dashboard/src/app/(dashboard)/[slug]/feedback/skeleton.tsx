@@ -1,5 +1,5 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackTableSkeleton } from "@/components/agent-feedback/feedback-table";
 import { PageContainer } from "@/components/layout/container";

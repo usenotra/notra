@@ -10,6 +10,10 @@ import {
 } from "@notra/geo-core/utils/ai-traffic";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -17,15 +21,14 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathTree } from "@/components/geo/journey-path-tree";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { CountryFlag } from "@/components/geo/twemoji";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoJourneyDetail } from "@/lib/hooks/use-geo";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -217,8 +220,7 @@ function JourneyDetailContent({
 
         <section className="space-y-3">
           <SectionHeader meta={fetchLimitMeta} title={tGeoShared("fetches")} />
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={columns}
             data={events}
             emptyState={t("noFetches")}

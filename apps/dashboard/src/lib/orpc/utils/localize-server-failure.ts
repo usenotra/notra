@@ -1,6 +1,7 @@
 import { ORPCError, toORPCError } from "@orpc/client";
 import { ValidationError } from "@orpc/server";
-import { getTranslations } from "next-intl/server";
+
+import { getTranslations } from "@/lib/i18n/server";
 
 async function localizedMessage(
   orpcError: ORPCError<string, unknown>

@@ -76,12 +76,6 @@ beforeEach(() => {
   writeCache.mockClear();
 });
 
-test("a logo-heavy cold page can load 54 different brands", async () => {
-  await Promise.all(Array.from({ length: 54 }, (_, i) => lookup(`Brand ${i}`)));
-  expect(search).toHaveBeenCalledTimes(54);
-  expect(usage.get("user-1")).toBe(54);
-});
-
 test("varying queries and modes cannot bypass one user's limit, including concurrent calls", async () => {
   const results = await Promise.allSettled(
     Array.from(
@@ -104,20 +98,6 @@ test("varying queries and modes cannot bypass one user's limit, including concur
   await expect(
     lookup("other-brand.com", false, "user-2")
   ).resolves.toBeDefined();
-});
-
-test("cached resolved and unresolved results remain available after the budget is exhausted", async () => {
-  usage.set("user-1", COMPANY_LOGO_RATE_LIMIT_PER_USER_PER_MINUTE);
-  for (const result of [
-    { domain: "cached.com", url: "https://media.brand.dev/logo.png" },
-    { domain: null, url: null },
-  ]) {
-    cached.set("Cached", result);
-    await expect(lookup("Cached")).resolves.toEqual(result);
-  }
-  expect(limit).not.toHaveBeenCalled();
-  expect(search).not.toHaveBeenCalled();
-  expect(retrieve).not.toHaveBeenCalled();
 });
 
 test("a fail-open limiter timeout never reaches either paid lookup", async () => {

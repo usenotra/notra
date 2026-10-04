@@ -2,8 +2,6 @@ import { isDemoMode } from "@notra/utils/demo-mode";
 
 import { syncBrewContacts } from "@/lib/email/brew-contacts";
 
-export const maxDuration = 300;
-
 /**
  * Vercel Cron entry point that upserts every user into Brew. Signups and
  * preference changes sync right away; this catches the rest (role changes,

@@ -3,7 +3,6 @@
 import { useChat } from "@ai-sdk/react";
 import { ArrowReloadHorizontalIcon, X } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ContentType } from "@notra/ai/schemas/content";
 import { createdPostToolOutputSchema } from "@notra/ai/schemas/post";
 import type {
@@ -30,6 +29,7 @@ import {
   MessageScrollerViewport,
 } from "@notra/ui/components/ui/message-scroller";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { ORPCError } from "@orpc/client";
 import {
   useMutation,
   useQuery,
@@ -44,9 +44,6 @@ import {
 } from "ai";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
-import { useLocale, useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import {
   Children,
@@ -61,10 +58,12 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
@@ -121,6 +120,8 @@ import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
+import { usePathname, useRouter } from "@/lib/navigation";
+import { dashboardOrpcClient } from "@/lib/orpc/client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { isImageMimeType } from "@/lib/upload/mime";
 import { cn } from "@/lib/utils";
@@ -166,6 +167,7 @@ import {
   resetNewChatClientState,
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { formatLongDate } from "@/utils/dashboard-greeting";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
@@ -174,6 +176,7 @@ import {
   getReferenceDisplay,
   parseReferenceValue,
 } from "@/utils/integration-reference";
+import dynamic from "@/utils/lazy-component";
 import { getOutputTypePromptLabel } from "@/utils/output-types";
 import { buildPublishedChatMessage } from "@/utils/social-publish";
 
@@ -522,7 +525,7 @@ function StandaloneChatPageClient({
     () => false
   );
 
-  const [generatedChatId, setGeneratedChatId] = useState(() =>
+  const [generatedChatId, setGeneratedChatId] = useState<string>(() =>
     crypto.randomUUID()
   );
   const stableChatId = initialChatId ?? generatedChatId;
@@ -846,26 +849,16 @@ function StandaloneChatPageClient({
       if (!initialChatId) {
         return null;
       }
-      const res = await fetch(
-        `/api/organizations/${organizationId}/chat/${encodeURIComponent(initialChatId)}`
-      );
-      if (!res.ok) {
-        throw new Error("Failed to load chat history");
-      }
-      const data = await res.json();
-      const externalChannelId = externalChannelIdSchema.safeParse(
-        data?.externalChannelId
-      );
+      const data = await dashboardOrpcClient.chat.sessions.get({
+        organizationId,
+        chatId: initialChatId,
+      });
       return {
-        messages: data?.messages ?? null,
-        lastResponseStopped: Boolean(data?.lastResponseStopped),
-        activeStreamId:
-          typeof data?.activeStreamId === "string" ? data.activeStreamId : null,
-        externalChannelId: externalChannelId.success
-          ? externalChannelId.data
-          : null,
-        slackThreadUrl:
-          typeof data?.slackThreadUrl === "string" ? data.slackThreadUrl : null,
+        messages: data.messages,
+        lastResponseStopped: data.lastResponseStopped,
+        activeStreamId: data.activeStreamId,
+        externalChannelId: data.externalChannelId,
+        slackThreadUrl: data.slackThreadUrl,
       };
     },
     enabled: Boolean(initialChatId) && Boolean(organizationId),
@@ -1847,17 +1840,17 @@ function StandaloneChatPageClient({
   }, []);
 
   const checkActiveStream = useCallback(async () => {
-    const response = await fetch(
-      `/api/organizations/${organizationId}/chat/${encodeURIComponent(stableChatId)}`
-    );
-    if (!(response.ok && activeStreamPollRef.current)) {
-      return;
-    }
-    const data: {
-      messages?: ChatUIMessage[] | null;
-      activeStreamId?: string | null;
-    } = await response.json();
-    if (data.activeStreamId || !activeStreamPollRef.current) {
+    const data = await dashboardOrpcClient.chat.sessions
+      .get({ organizationId, chatId: stableChatId })
+      .catch((error: unknown) => {
+        // A failed response just waits for the next poll; network errors
+        // still surface through the poller's logging.
+        if (error instanceof ORPCError) {
+          return null;
+        }
+        throw error;
+      });
+    if (!data || data.activeStreamId || !activeStreamPollRef.current) {
       return;
     }
     stopActiveStreamPolling();
@@ -2073,6 +2066,7 @@ function StandaloneChatPageClient({
   const chatActivity = getChatActivity(messages, isLoading || isMirrorWorking, {
     isStandaloneTool: (part) =>
       isContentEditorStandaloneTool(part) ||
+      (isToolUIPart(part) && isChatSubagentName(getToolName(part))) ||
       (isToolUIPart(part) &&
         part.type !== "dynamic-tool" &&
         (isCreateTool(part.type) || part.type === "tool-createImage")),
@@ -2315,26 +2309,18 @@ function StandaloneChatPageClient({
                 trackDraftAction(
                   status === "published" ? "save_published" : "save_draft"
                 );
-                const response = await fetch(
-                  `/api/organizations/${organizationId}/chat/posts`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      ...payload,
-                      chatId: stableChatId,
-                      toolCallId: toolPart.toolCallId,
-                      contentType,
-                      status,
-                    }),
-                  }
-                );
-                if (!response.ok) {
-                  throw new Error(tCommon("errors.generic"));
-                }
-                const savedPost = createdPostToolOutputSchema.parse(
-                  await response.json()
-                );
+                const savedPost = await dashboardOrpcClient.chat.posts
+                  .create({
+                    ...payload,
+                    organizationId,
+                    chatId: stableChatId,
+                    toolCallId: toolPart.toolCallId,
+                    contentType,
+                    status,
+                  })
+                  .catch(() => {
+                    throw new Error(tCommon("errors.generic"));
+                  });
                 setMessages((current) =>
                   linkSavedChatPosts(current, [
                     {
@@ -2473,6 +2459,16 @@ function StandaloneChatPageClient({
               title={title}
             />
           </CompletedToolTimer>
+        );
+      }
+
+      if (isChatSubagentName(toolName)) {
+        return (
+          <ChatSubagentToolPart
+            isActive={messageId === chatActivity.activeMessageId}
+            key={toolPart.toolCallId}
+            part={toolPart}
+          />
         );
       }
 
@@ -2673,6 +2669,9 @@ function StandaloneChatPageClient({
                         : undefined;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
+                      const isGenerating =
+                        (isLoading || isMirrorWorking) &&
+                        message.id === lastAssistantMessageId;
                       const isEditing =
                         isUser && editingMessageId === message.id;
                       const userContentParts = isUser
@@ -2788,12 +2787,11 @@ function StandaloneChatPageClient({
                                       ? activitySeconds
                                       : undefined
                                   }
-                                  isLoading={
-                                    (isLoading || isMirrorWorking) &&
-                                    message.id === lastAssistantMessageId
-                                  }
+                                  isLoading={isGenerating}
                                   isStandaloneTool={(part) =>
                                     isContentEditorStandaloneTool(part) ||
+                                    (isToolUIPart(part) &&
+                                      isChatSubagentName(getToolName(part))) ||
                                     (isToolUIPart(part) &&
                                       part.type !== "dynamic-tool" &&
                                       (isCreateTool(part.type) ||
@@ -2839,7 +2837,7 @@ function StandaloneChatPageClient({
                                 }
                               />
                             )}
-                            {message.role === "assistant" && (
+                            {message.role === "assistant" && !isGenerating && (
                               <AssistantMetadataHover
                                 metadata={message.metadata}
                               />

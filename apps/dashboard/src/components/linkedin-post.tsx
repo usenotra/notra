@@ -27,13 +27,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import type * as React from "react";
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";
+import Image from "@/components/framework/image";
 import { LINKEDIN_TRUNCATION_LIMIT } from "@/constants/linkedin";
 import { cn } from "@/lib/utils";
 import type {

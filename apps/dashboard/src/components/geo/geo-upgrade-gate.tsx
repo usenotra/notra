@@ -3,9 +3,8 @@
 import { SquareLock02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoPageSkeleton } from "@/app/(dashboard)/[slug]/geo/skeleton";
 import { GeoUpgradeDialog } from "@/components/billing/geo-upgrade-dialog";
@@ -19,6 +18,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
 import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import { usePathname, useRouter } from "@/lib/navigation";
 import type { GeoUpgradeGateProps } from "@/types/components/geo";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
@@ -30,6 +30,7 @@ function subscribeToStorage(callback: () => void) {
 export function GeoUpgradeGate({
   slug,
   children,
+  entitled = false,
   fallback,
 }: GeoUpgradeGateProps) {
   const t = useTranslations("geo.geoUpgradeGate");
@@ -87,7 +88,7 @@ export function GeoUpgradeGate({
   }, [dialogOpen, organizationId, route]);
 
   if (isLoading) {
-    return fallback ?? <GeoPageSkeleton />;
+    return entitled ? children : (fallback ?? <GeoPageSkeleton />);
   }
 
   if (isUnavailable) {

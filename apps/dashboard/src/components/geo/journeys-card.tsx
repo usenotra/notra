@@ -7,11 +7,15 @@ import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
+import {
+  InfiniteDataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
@@ -20,7 +24,6 @@ import {
   InstrumentModule,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneysCardProps } from "@/types/geo";
@@ -137,8 +140,7 @@ export function JourneysCard({
 
   return (
     <InstrumentSection eyebrow={tGeoShared("agentJourneys")}>
-      <Table
-        className="rounded-2xl"
+      <InfiniteDataTable
         columns={columns}
         data={journeys}
         defaultSort={{ key: "lastSeenAt", direction: "desc" }}
@@ -153,7 +155,7 @@ export function JourneysCard({
         }
         onRowClick={onOpenJourney}
         onRowPointerEnter={onPrefetchJourney}
-        pageSize={limit}
+        visibleRowCount={limit}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />

@@ -12,7 +12,6 @@ import {
 } from "@notra/schemas/dashboard/upload";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import {
   COMPANY_LOGO_FETCH_TIMEOUT_MS,
@@ -20,6 +19,7 @@ import {
 } from "@/constants/company-logo";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getChatAttachmentSizeBucket } from "@/lib/analytics/studio-events";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { getFileExtension } from "@/lib/upload/mime";
 import { getR2Config } from "@/lib/upload/r2";

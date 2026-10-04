@@ -21,8 +21,8 @@ import type {
 } from "@/types/analytics/posthog";
 
 function scheduleCapture(capture: () => void): void {
-  // Capture itself can start network work. Keep both capture and delivery in
-  // Next's supported lifetime, including during prerendering. Workflows use
+  // Capture itself can start network work, so both capture and delivery run
+  // after the response (outside a request they run right away). Workflows use
   // trackServerEventAndFlush instead of relying on a request context.
   runAfterResponse("[posthog] capture delivery failed", async () => {
     capture();

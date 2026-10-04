@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import type { WebhookAttemptListProps } from "@/types/webhooks/outbound";
 import { formatLogTimestamp } from "@/utils/logs";

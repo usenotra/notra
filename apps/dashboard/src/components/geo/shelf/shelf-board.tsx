@@ -25,9 +25,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useTranslations } from "next-intl";
 import { memo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";

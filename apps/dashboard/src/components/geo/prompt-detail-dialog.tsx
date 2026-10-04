@@ -29,7 +29,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -38,6 +37,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";

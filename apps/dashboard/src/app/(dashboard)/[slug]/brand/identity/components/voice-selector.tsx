@@ -34,9 +34,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { AffectedTriggersWarning } from "@/components/affected-triggers-warning";
 import { Button } from "@/components/button";

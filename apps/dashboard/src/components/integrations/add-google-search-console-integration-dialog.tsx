@@ -11,8 +11,8 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Google } from "@notra/ui/components/ui/svgs/google";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";

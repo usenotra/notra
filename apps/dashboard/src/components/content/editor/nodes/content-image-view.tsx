@@ -5,8 +5,8 @@ import {
   DialogContent,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 export function ContentImageView({ alt, src }: { alt: string; src: string }) {
   const t = useTranslations("content.editor.media");
@@ -23,7 +23,6 @@ export function ContentImageView({ alt, src }: { alt: string; src: string }) {
         onMouseDown={(event) => event.preventDefault()}
         type="button"
       >
-        {/* biome-ignore lint/performance/noImgElement: remote content images are not limited to next/image hosts */}
         <img
           alt={alt}
           className="ring-foreground/10 max-h-128 w-full rounded-xl object-contain ring-1"
@@ -35,7 +34,6 @@ export function ContentImageView({ alt, src }: { alt: string; src: string }) {
         <DialogContent className="sm:max-w-6xl">
           <DialogTitle className="sr-only">{label}</DialogTitle>
           <div className="pt-6">
-            {/* biome-ignore lint/performance/noImgElement: remote content images are not limited to next/image hosts */}
             <img
               alt={alt}
               className="max-h-dvh w-full rounded-lg object-contain"

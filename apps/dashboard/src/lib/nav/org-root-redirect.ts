@@ -1,14 +1,15 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { getRequestHeaders as headers } from "@tanstack/react-start/server";
 
 import { DEFAULT_SIDEBAR_ENTRY_MODE } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { redirect } from "@/lib/navigation";
 import {
   getLastVisitedProject,
   getSidebarModeFromCookies,
 } from "@/utils/cookies";
 import { resolveOrgRootRedirect } from "@/utils/nav";
+import { readServerCookies as cookies } from "@/utils/server-cookies";
 
 type OrgRootSearchParams = Promise<
   Record<string, string | string[] | undefined>
@@ -36,7 +37,7 @@ export async function redirectOrgRootToStoredMode(
       has_project: Boolean(projectId),
     },
   });
-  const path = resolveOrgRootRedirect(slug, storedMode, projectId);
+  const path = resolveOrgRootRedirect(slug, storedMode, projectId, query);
   if (path) {
     redirect(path);
   }

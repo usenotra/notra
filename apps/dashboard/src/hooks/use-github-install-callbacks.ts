@@ -1,7 +1,7 @@
-import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { GITHUB_CALLBACK_ERROR_MESSAGE_KEYS } from "@/constants/github";
 import {

@@ -4,8 +4,8 @@ import {
   CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
 
+import Link from "@/components/framework/link";
 import { cn } from "@/lib/utils";
 import type { IrisReadinessListProps } from "@/types/iris";
 

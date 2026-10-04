@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 import { GEO_PERSONA_SKELETON_ROW_COUNT } from "@/constants/geo-personas";
@@ -20,7 +20,7 @@ export function GeoPersonasSkeleton() {
         >
           <Skeleton className="h-9 w-44 rounded-lg" />
         </PageHeader>
-        <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
+        <DataTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
       </div>
     </PageContainer>
   );

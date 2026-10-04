@@ -1,5 +1,3 @@
-"use server";
-
 import { autumn } from "@notra/ai/billing/autumn";
 import { checkTeamMembersLimit } from "@notra/ai/billing/team-members";
 import { seedSystemSkills } from "@notra/ai/skills/seed";
@@ -19,13 +17,13 @@ import {
   updateOrganizationInputSchema,
 } from "@notra/schemas/dashboard/organizations/actions";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { ORPCError } from "@orpc/server";
+import { getCookie, setCookie } from "@tanstack/react-start/server";
 import type { Invitation } from "@workos-inc/node";
+import { getWorkOS } from "@workos/authkit-session";
 import { and, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { isValid as isNotDisposableEmail } from "mailchecker";
-import { getTranslations } from "next-intl/server";
-import { cookies } from "next/headers";
 
 import { ACTION_ERROR_CODES } from "@/constants/actions";
 import { QUOTA_FEATURES } from "@/constants/analytics-events";
@@ -43,6 +41,7 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { readWorkOSError } from "@/lib/auth/workos-error";
+import { getTranslations } from "@/lib/i18n/server";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import {
   requireManagerMembership,
@@ -66,13 +65,16 @@ import type {
   ListMembersInput,
   MembersListResult,
   MemberWithUser,
+  OrganizationLookupInput,
   OrganizationRow,
+  OrganizationScopedQueryInput,
   RemoveMemberInput,
   SetActiveOrganizationInput,
   UpdateMemberRoleInput,
   UpdateOrganizationInput,
 } from "@/types/organizations/actions";
 import type { OrganizationTrackingInput } from "@/types/organizations/analytics";
+import { validateOnboardingWebsite } from "@/utils/website-url";
 
 const enforceTeamMembersLimit = Effect.fn(
   "organizations.actions.enforceTeamMembersLimit"
@@ -195,7 +197,6 @@ const mapInvitation = (invitation: Invitation): InvitationSummary => ({
   status: invitation.state,
   expiresAt: new Date(invitation.expiresAt),
   createdAt: new Date(invitation.createdAt),
-  acceptInvitationUrl: invitation.acceptInvitationUrl,
 });
 
 const requireWorkOSOrganizationId = Effect.fn(
@@ -265,7 +266,7 @@ const requireInvitationManagement = Effect.fn(
   };
 });
 
-export async function createOrganizationAction(
+export async function createOrganization(
   rawInput: CreateOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
   return runAction(
@@ -281,7 +282,7 @@ export async function createOrganizationAction(
         createOrganizationInputSchema,
         rawInput
       );
-      const { slug } = input;
+      const { slug, websiteUrl } = input;
 
       const existing = yield* tryDb(
         () =>
@@ -300,6 +301,20 @@ export async function createOrganizationAction(
             ))("slugTaken"),
           })
         );
+      }
+
+      if (websiteUrl) {
+        yield* Effect.tryPromise({
+          try: () => validateOnboardingWebsite(websiteUrl, session.user.id),
+          catch: (error) =>
+            new ActionFailure({
+              message:
+                error instanceof ORPCError
+                  ? error.message
+                  : "Website domain check failed",
+              cause: error instanceof ORPCError ? undefined : error,
+            }),
+        });
       }
 
       const organizationId = crypto.randomUUID();
@@ -420,11 +435,7 @@ export async function createOrganizationAction(
       });
 
       if (!input.keepCurrentActiveOrganization) {
-        const cookieStore = yield* tryDb(
-          () => cookies(),
-          "Failed to access cookies"
-        );
-        cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, slug, {
+        setCookie(LAST_VISITED_ORGANIZATION_COOKIE, slug, {
           path: "/",
           maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
         });
@@ -435,7 +446,7 @@ export async function createOrganizationAction(
   );
 }
 
-export async function updateOrganizationAction(
+export async function updateOrganization(
   rawInput: UpdateOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
   return runAction(
@@ -499,21 +510,14 @@ export async function updateOrganizationAction(
         });
       }
 
-      if (updates.slug) {
-        const cookieStore = yield* tryDb(
-          () => cookies(),
-          "Failed to access cookies"
-        );
-
-        if (
-          cookieStore.get(LAST_VISITED_ORGANIZATION_COOKIE)?.value !==
-          organization.slug
-        ) {
-          cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, organization.slug, {
-            path: "/",
-            maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
-          });
-        }
+      if (
+        updates.slug &&
+        getCookie(LAST_VISITED_ORGANIZATION_COOKIE) !== organization.slug
+      ) {
+        setCookie(LAST_VISITED_ORGANIZATION_COOKIE, organization.slug, {
+          path: "/",
+          maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
+        });
       }
 
       return organization;
@@ -521,7 +525,7 @@ export async function updateOrganizationAction(
   );
 }
 
-export async function listOrganizationsAction(): Promise<
+export async function listOrganizations(): Promise<
   ActionResult<OrganizationRow[]>
 > {
   return runAction(
@@ -561,7 +565,7 @@ function findOrganizationForSelection(input: SetActiveOrganizationInput) {
   return Promise.resolve(undefined);
 }
 
-export async function setActiveOrganizationAction(
+export async function setActiveOrganization(
   rawInput: SetActiveOrganizationInput
 ): Promise<ActionResult<OrganizationRow>> {
   return runAction(
@@ -589,11 +593,7 @@ export async function setActiveOrganizationAction(
 
       yield* requireMembership(session, organization.id);
 
-      const cookieStore = yield* tryDb(
-        () => cookies(),
-        "Failed to access cookies"
-      );
-      cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, organization.slug, {
+      setCookie(LAST_VISITED_ORGANIZATION_COOKIE, organization.slug, {
         path: "/",
         maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
       });
@@ -603,7 +603,7 @@ export async function setActiveOrganizationAction(
   );
 }
 
-export async function getOrganizationSummaryAction(
+export async function getOrganizationSummary(
   rawSlug: string
 ): Promise<ActionResult<OrganizationRow>> {
   return runAction(
@@ -639,9 +639,9 @@ export async function getOrganizationSummaryAction(
   );
 }
 
-export async function getFullOrganizationAction(rawInput?: {
-  query?: { organizationId?: string; organizationSlug?: string };
-}): Promise<ActionResult<FullOrganization | null>> {
+export async function getFullOrganization(
+  rawInput?: OrganizationLookupInput
+): Promise<ActionResult<FullOrganization | null>> {
   return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
@@ -710,7 +710,7 @@ export async function getFullOrganizationAction(rawInput?: {
   );
 }
 
-export async function listMembersAction(
+export async function listMembers(
   rawInput?: ListMembersInput
 ): Promise<ActionResult<MembersListResult>> {
   return runAction(
@@ -746,7 +746,7 @@ export async function listMembersAction(
   );
 }
 
-export async function updateMemberRoleAction(
+export async function updateMemberRole(
   rawInput: UpdateMemberRoleInput
 ): Promise<ActionResult<MemberWithUser | null>> {
   return runAction(
@@ -847,7 +847,7 @@ export async function updateMemberRoleAction(
   );
 }
 
-export async function removeMemberAction(
+export async function removeMember(
   rawInput: RemoveMemberInput
 ): Promise<ActionResult<{ removed: boolean }>> {
   return runAction(
@@ -861,6 +861,9 @@ export async function removeMemberAction(
         session,
         input.organizationId
       );
+      // Before the lookup: a non-member must not learn from the error which
+      // emails belong to the organization.
+      yield* requireMembership(session, organizationId);
 
       const isEmail = input.memberIdOrEmail.includes("@");
 
@@ -942,9 +945,9 @@ export async function removeMemberAction(
   );
 }
 
-export async function listInvitationsAction(rawInput?: {
-  query?: { organizationId?: string };
-}): Promise<ActionResult<InvitationSummary[]>> {
+export async function listInvitations(
+  rawInput?: OrganizationScopedQueryInput
+): Promise<ActionResult<InvitationSummary[]>> {
   return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
@@ -977,7 +980,7 @@ export async function listInvitationsAction(rawInput?: {
   );
 }
 
-export async function inviteMemberAction(
+export async function inviteMember(
   rawInput: InviteMemberInput
 ): Promise<ActionResult<InvitationSummary>> {
   return runAction(
@@ -1083,7 +1086,7 @@ export async function inviteMemberAction(
   );
 }
 
-export async function cancelInvitationAction(
+export async function cancelInvitation(
   rawInput: InvitationActionInput
 ): Promise<ActionResult<InvitationSummary>> {
   return runAction(
@@ -1111,7 +1114,7 @@ export async function cancelInvitationAction(
   );
 }
 
-export async function resendInvitationAction(
+export async function resendInvitation(
   rawInput: InvitationActionInput
 ): Promise<ActionResult<InvitationSummary>> {
   return runAction(

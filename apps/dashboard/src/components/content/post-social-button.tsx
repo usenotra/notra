@@ -11,10 +11,9 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Linkedin } from "@notra/ui/components/ui/svgs/linkedin";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
 import { Confetti } from "@/components/confetti";
@@ -30,6 +29,7 @@ import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useCreateReferenceForVoice } from "@/lib/hooks/use-brand-references";
 import { usePublishSocialPost } from "@/lib/hooks/use-connected-accounts";
 import { useSelectedSocialAccount } from "@/lib/hooks/use-selected-social-account";
+import { useParams, useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { PostSocialButtonProps } from "@/types/content/post-social";
 import { linkedInAuthorFromAccount } from "@/utils/linkedin";

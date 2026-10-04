@@ -16,7 +16,6 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useTranslations } from "next-intl";
 import {
   createContext,
   useContext,
@@ -26,6 +25,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import type {
   ChatQuoteContextValue,

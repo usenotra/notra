@@ -3,8 +3,9 @@
 import { Download01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { useTranslations } from "use-intl";
+
+import Image from "@/components/framework/image";
 
 import type { ToolOutputImage } from "./types";
 import { downloadToolOutputImage } from "./utils";

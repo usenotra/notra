@@ -3,10 +3,10 @@
 import { LinkSquare02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
 
 const STEPS = [

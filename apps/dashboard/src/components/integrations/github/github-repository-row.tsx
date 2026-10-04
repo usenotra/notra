@@ -8,8 +8,8 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import { Github } from "@notra/ui/components/ui/svgs/github";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import type { GitHubRepositoryRowProps } from "@/types/integrations/github";
 

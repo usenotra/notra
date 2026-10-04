@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import {
   AI_TRAFFIC_CONFIDENCES,

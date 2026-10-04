@@ -12,7 +12,7 @@ import {
   PermissionRow,
   PermissionSelector,
 } from "@notra/ui/components/ui/permission-selector";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import {
   API_KEY_RESOURCE_COMMON_LABEL_KEYS,

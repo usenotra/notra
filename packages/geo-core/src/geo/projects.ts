@@ -1,6 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoSettings, projects } from "@notra/db/schema";
 import type { GeoCheckScope } from "@notra/db/types/geo-checks";
+import { bumpGeoCheckGeneration } from "@notra/db/utils/geo-check-cache";
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -291,6 +292,9 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
   }
 
   if (outcome === "deleted") {
+    // The project's checks went with it (cascade); org-wide aggregates must
+    // stop counting them now, not when their cache entries expire.
+    yield* Effect.promise(() => bumpGeoCheckGeneration([organizationId]));
     if (URL.canParse(existing.websiteUrl)) {
       const onboardingUrl = normalizeWebsiteUrl(existing.websiteUrl);
       const urls = [existing.websiteUrl];

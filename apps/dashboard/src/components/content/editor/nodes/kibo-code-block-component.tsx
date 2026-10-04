@@ -21,8 +21,8 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
 } from "lexical";
-import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";

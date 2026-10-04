@@ -110,6 +110,31 @@ function mentionEvents(
   return [{ ...base, kind: "position_dropped" }];
 }
 
+const competitorsByDomainCache = new WeakMap<
+  readonly GeoCompetitor[],
+  Map<string, GeoCompetitor>
+>();
+
+function competitorsByDomain(
+  competitors: readonly GeoCompetitor[]
+): Map<string, GeoCompetitor> {
+  const cached = competitorsByDomainCache.get(competitors);
+  if (cached) {
+    return cached;
+  }
+  const byDomain = new Map<string, GeoCompetitor>();
+  for (const competitor of competitors) {
+    const tracked = competitor.domain
+      ? normalizeCompetitorDomain(competitor.domain)
+      : null;
+    if (tracked && !byDomain.has(tracked)) {
+      byDomain.set(tracked, competitor);
+    }
+  }
+  competitorsByDomainCache.set(competitors, byDomain);
+  return byDomain;
+}
+
 // Tracked domains can overlap (example.com and cloud.example.com), so the
 // longest matching domain wins: an exact host beats any parent domain.
 function competitorForDomain(
@@ -120,22 +145,20 @@ function competitorForDomain(
   if (!host) {
     return null;
   }
-  let match: GeoCompetitor | null = null;
-  let matchLength = 0;
-  for (const competitor of competitors) {
-    const tracked = competitor.domain
-      ? normalizeCompetitorDomain(competitor.domain)
-      : null;
-    if (
-      tracked !== null &&
-      tracked.length > matchLength &&
-      (host === tracked || host.endsWith(`.${tracked}`))
-    ) {
-      match = competitor;
-      matchLength = tracked.length;
+  const byDomain = competitorsByDomain(competitors);
+  let candidate = host;
+  while (candidate.length > 0) {
+    const match = byDomain.get(candidate);
+    if (match) {
+      return match;
     }
+    const dot = candidate.indexOf(".");
+    if (dot === -1) {
+      return null;
+    }
+    candidate = candidate.slice(dot + 1);
   }
-  return match;
+  return null;
 }
 
 // Engines reshuffle their web sources on every run, so third-party domain

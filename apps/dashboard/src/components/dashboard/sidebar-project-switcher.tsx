@@ -23,8 +23,8 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoProjectCreateDialog } from "@/components/geo/project-create-dialog";
 import { ProjectLogo } from "@/components/geo/project-logo";

@@ -1,9 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
-import { withAuth } from "@workos-inc/authkit-nextjs";
+import { isNotFound, isRedirect } from "@tanstack/react-router";
+import { getRequestHeaders } from "@tanstack/react-start/server";
+import { getAuthKitContext } from "@workos/authkit-tanstack-react-start";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { unstable_rethrow } from "next/navigation";
 
 import type { BannedStatusUser } from "@/types/auth/banned";
 import { evaluateLocalDevAuth } from "@/utils/local-dev-auth";
@@ -17,7 +17,7 @@ export function isUserBanned(user: BannedStatusUser) {
 
 export async function isSessionBanned(): Promise<boolean> {
   try {
-    const headerList = await headers();
+    const headerList = getRequestHeaders();
     if (evaluateLocalDevAuth(headerList).kind === "allowed") {
       const email = process.env.DEV_AUTH_EMAIL?.trim();
       if (!email) {
@@ -34,7 +34,7 @@ export async function isSessionBanned(): Promise<boolean> {
   }
 
   try {
-    const { user } = await withAuth();
+    const { user } = getAuthKitContext().auth();
 
     if (!user) {
       return false;
@@ -47,7 +47,9 @@ export async function isSessionBanned(): Promise<boolean> {
 
     return localUser ? isUserBanned(localUser) : false;
   } catch (error) {
-    unstable_rethrow(error);
+    if (isRedirect(error) || isNotFound(error)) {
+      throw error;
+    }
     return false;
   }
 }

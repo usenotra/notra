@@ -8,8 +8,8 @@ import {
 } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -86,7 +86,9 @@ function TrafficPageView({
 
   const header = (
     <PageHeader description={t("description")} title={t("title")}>
-      <GeoRangePicker control={geoRange} />
+      <div className="flex items-center gap-2">
+        <GeoRangePicker control={geoRange} />
+      </div>
     </PageHeader>
   );
 

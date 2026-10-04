@@ -6,7 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { DirectionCockpit } from "@/components/geo/directions/direction-cockpit";
 import { DirectionInstrument } from "@/components/geo/directions/direction-instrument";

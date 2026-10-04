@@ -38,6 +38,8 @@ export interface OnboardingExistingOrg {
   name: string;
   dailySummary: boolean;
   marketingEmails: boolean;
+  /** A brand exists, so the GEO onboarding steps can run without a new website. */
+  hasBrand?: boolean;
 }
 
 export interface WorkspaceFormProps {
@@ -192,13 +194,6 @@ export interface VisibilityBrandDraft {
   languages: readonly string[];
 }
 
-export interface OnboardingGeoPageProps {
-  searchParams: Promise<{
-    project?: string | string[];
-    replay?: string | string[];
-  }>;
-}
-
 export interface OrgLogoFieldProps {
   disabled?: boolean;
   isLoading?: boolean;
@@ -218,6 +213,7 @@ export interface OnboardingWorkspaceFormValues {
 
 export interface SubmitWorkspaceFormArgs {
   existingOrg?: OnboardingExistingOrg;
+  onOrganizationCreated?: (organization: OnboardingExistingOrg) => void;
   logoFile: File | null;
   logoSourceUrl: string | null;
   value: OnboardingWorkspaceFormValues;

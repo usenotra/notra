@@ -1,5 +1,4 @@
-import { getTranslations } from "next-intl/server";
-
+import { getTranslations } from "@/lib/i18n/server";
 import { recordGitHubPublishFailure } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   GitHubContentBranchConflictError,

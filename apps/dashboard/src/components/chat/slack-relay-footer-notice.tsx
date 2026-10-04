@@ -1,7 +1,7 @@
 "use client";
 
 import { Slack } from "@notra/ui/components/ui/svgs/slack";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { SlackRelayInputMode } from "@/types/slack-relay";
 

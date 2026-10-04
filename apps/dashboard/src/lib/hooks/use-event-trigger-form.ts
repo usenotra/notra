@@ -3,9 +3,9 @@
 import type { EventTriggerFormValues } from "@notra/schemas/dashboard/automation/event-trigger-form";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";

@@ -17,10 +17,9 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -33,6 +32,7 @@ import { PromptAddDialog } from "@/components/geo/prompt-add-dialog";
 import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
+import { SlideInTabIcon } from "@/components/geo/slide-in-tab-icon";
 import { SlidingTabIndicator } from "@/components/geo/sliding-tab-indicator";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -55,11 +55,9 @@ import {
 import { useGeoPromptsDb, useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { usePrefetchGeoLatestScanRun } from "@/lib/hooks/use-geo-scan-history";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import type {
-  PromptsPageTabCountProps,
-  PromptsPageTabIconProps,
-} from "@/types/geo";
+import type { PromptsPageTabCountProps } from "@/types/geo";
 import { formatCount } from "@/utils/format";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -67,33 +65,6 @@ import { GeoPromptsSkeleton } from "./skeleton";
 
 interface PageClientProps {
   organizationSlug: string;
-}
-
-/**
- * Icon that only shows on the active tab: it widens and fades in beside the
- * label, so inactive tabs stay text-only. `SlidingTabIndicator` follows the
- * resize frame by frame. `pinned` keeps it visible anyway,
- * e.g. for a live scan spinner.
- */
-function SlideInTabIcon({ children, pinned = false }: PromptsPageTabIconProps) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "duration-normal ease-emphasized -me-1.5 flex w-0 shrink-0 items-center justify-center overflow-hidden opacity-0 transition-all group-data-active/tab:me-0 group-data-active/tab:w-4 group-data-active/tab:opacity-100 motion-reduce:transition-none",
-        pinned && "me-0 w-4 opacity-100"
-      )}
-    >
-      <span
-        className={cn(
-          "duration-normal ease-emphasized flex scale-50 items-center transition-transform group-data-active/tab:scale-100 motion-reduce:transition-none",
-          pinned && "scale-100"
-        )}
-      >
-        {children}
-      </span>
-    </span>
-  );
 }
 
 function TabCount({ count }: PromptsPageTabCountProps) {

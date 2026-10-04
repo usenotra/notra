@@ -1,8 +1,8 @@
 "use client";
 
 import { SidebarRail, useSidebar } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   SIDEBAR_DEFAULT_WIDTH,

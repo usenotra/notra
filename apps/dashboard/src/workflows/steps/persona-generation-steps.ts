@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { generateGeoPersonas } from "@notra/geo-core/geo/personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Effect } from "effect";
@@ -55,7 +56,7 @@ export async function generatePersonasStep(
 // after an ambiguous failure could generate and charge twice.
 generatePersonasStep.maxRetries = 0;
 
-export function creditsExhaustedMessage(error: unknown): string | null {
+function creditsExhaustedMessage(error: unknown): string | null {
   if (
     typeof error !== "object" ||
     error === null ||

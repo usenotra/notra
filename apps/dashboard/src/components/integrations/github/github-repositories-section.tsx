@@ -1,6 +1,6 @@
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { GitHubRepositoriesSkeleton } from "@/app/(dashboard)/[slug]/integrations/github/skeleton";
 import { Button } from "@/components/button";

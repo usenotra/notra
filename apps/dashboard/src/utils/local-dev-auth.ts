@@ -3,13 +3,6 @@ import type {
   LocalDevAuthDecision,
 } from "@/types/auth/local-dev-auth";
 
-/**
- * AuthKit's Edge proxy reads `process.env[name]`, which Next does not inline.
- * Without a live WorkOS key, every request 500s. Local `development` can skip
- * AuthKit and authenticate as a database user instead — but only after an
- * explicit opt-in, a pinned email, and a loopback request. Staging, test,
- * production, and tunneled hosts never take this path.
- */
 export function isLiveWorkOSApiKey(apiKey: string | undefined): boolean {
   if (!apiKey) {
     return false;
@@ -131,8 +124,6 @@ export function evaluateLocalDevAuth(
   if (!localDevAuthEmail(options?.email)) {
     return { kind: "blocked", reason: "missing_email" };
   }
-  // NextRequest no longer exposes a trusted peer IP. `next dev` binds to
-  // 127.0.0.1 so LAN clients cannot connect and spoof Host: localhost.
   const host = headers?.get("host") ?? null;
   if (!requestHostIsLoopback(host) || requestLooksPubliclyExposed(headers)) {
     return { kind: "blocked", reason: "non_loopback" };

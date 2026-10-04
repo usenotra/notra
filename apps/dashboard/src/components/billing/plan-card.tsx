@@ -11,8 +11,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId, useState } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import { Button } from "@/components/button";

@@ -1,15 +1,9 @@
-import {
-  CpuIcon,
-  File01Icon,
-  SourceCodeIcon,
-} from "@hugeicons/core-free-icons";
+import { CpuIcon } from "@hugeicons/core-free-icons";
+
+import { CHAT_TOOL_ICONS } from "@/constants/chat-tool-icons";
 
 export function getChatToolIcon(toolName: string) {
-  if (toolName === "editMarkdown") {
-    return SourceCodeIcon;
-  }
-  if (toolName === "getMarkdown") {
-    return File01Icon;
-  }
-  return CpuIcon;
+  return Object.hasOwn(CHAT_TOOL_ICONS, toolName)
+    ? (CHAT_TOOL_ICONS[toolName] ?? CpuIcon)
+    : CpuIcon;
 }

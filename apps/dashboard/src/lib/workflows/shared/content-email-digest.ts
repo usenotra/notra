@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { redis } from "@notra/ai/utils/redis";
 import type { EmailResult } from "@notra/email/types/brew";
 

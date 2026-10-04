@@ -9,7 +9,7 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { WebhookAttemptList } from "@/components/webhooks/attempt-list";
@@ -17,20 +17,17 @@ import { WebhookDeliverySummary } from "@/components/webhooks/delivery-summary";
 import { WebhookPayload } from "@/components/webhooks/payload";
 import { WEBHOOK_REFRESH_INTERVAL_MS } from "@/constants/outbound-webhooks";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { WebhookDetailsProps } from "@/types/webhooks/outbound";
+import type {
+  WebhookDetailsProps,
+  WebhookDetailsSheetViewProps,
+} from "@/types/webhooks/outbound";
 import { formatLogTimestamp } from "@/utils/logs";
 
 export function WebhookDetailsSheet({
   organizationId,
   delivery,
-  onClose,
-  onRetry,
-  retrying,
-  canRetry,
+  ...props
 }: WebhookDetailsProps) {
-  const t = useTranslations("settings.panes.webhooks.details");
-  const tCommon = useTranslations("common");
-  const locale = useLocale();
   const detail = useQuery({
     ...dashboardOrpc.outboundWebhooks.detail.queryOptions({
       input: { organizationId, deliveryId: delivery?.id ?? "" },
@@ -38,8 +35,33 @@ export function WebhookDetailsSheet({
     enabled: Boolean(delivery),
     refetchInterval: delivery ? WEBHOOK_REFRESH_INTERVAL_MS : false,
   });
-  const entry = detail.data?.delivery ?? delivery;
-  const loading = Boolean(delivery) && detail.isPending;
+  return (
+    <WebhookDetailsSheetView
+      delivery={delivery}
+      detail={detail.data}
+      loading={Boolean(delivery) && detail.isPending}
+      error={detail.isError ? detail.error.message : null}
+      onReload={() => detail.refetch()}
+      {...props}
+    />
+  );
+}
+
+export function WebhookDetailsSheetView({
+  delivery,
+  detail,
+  loading,
+  error,
+  onReload,
+  onClose,
+  onRetry,
+  retrying,
+  canRetry,
+}: WebhookDetailsSheetViewProps) {
+  const t = useTranslations("settings.panes.webhooks.details");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const entry = detail?.delivery ?? delivery;
   return (
     <Sheet
       open={Boolean(delivery)}
@@ -70,27 +92,23 @@ export function WebhookDetailsSheet({
               <Skeleton className="h-24 rounded-lg" />
             </div>
           ) : null}
-          {detail.isError ? (
+          {error ? (
             <div className="space-y-2 text-sm" role="alert">
-              <p>{detail.error.message}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => detail.refetch()}
-              >
+              <p>{error}</p>
+              <Button variant="outline" size="sm" onClick={onReload}>
                 {tCommon("actions.tryAgain")}
               </Button>
             </div>
           ) : null}
-          {detail.data ? (
+          {detail ? (
             <>
               <section className="space-y-3">
                 <h3 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                   {t("history")}
                 </h3>
-                <WebhookAttemptList attempts={detail.data.attempts} />
+                <WebhookAttemptList attempts={detail.attempts} />
               </section>
-              <WebhookPayload payload={detail.data.delivery.payload} />
+              <WebhookPayload payload={detail.delivery.payload} />
             </>
           ) : null}
         </div>

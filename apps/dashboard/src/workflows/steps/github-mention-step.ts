@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { flushLogs } from "@notra/ai/evlog";
 import type {
   GitHubMentionContext,

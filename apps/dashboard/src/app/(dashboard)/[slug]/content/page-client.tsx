@@ -3,9 +3,10 @@
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { CollectionsView } from "@/components/content/collections-view";
 import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
@@ -13,7 +14,10 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
+import {
+  CONTENT_COLLECTION_VIEWS,
+  COLLECTIONS_PAGE_SIZE,
+} from "@/constants/content-collections";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -45,13 +49,22 @@ export default function PageClient({
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
   );
   const page = Math.max(1, rawPage);
+  const [rawPageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger
+      .withDefault(COLLECTIONS_PAGE_SIZE)
+      .withOptions({ clearOnDefault: true })
+  );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, COLLECTIONS_PAGE_SIZE);
   const [view, setView] = useQueryState(
     "view",
     parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")
   );
 
   const { data, isPending, isError, isPlaceholderData, refetch } =
-    useCollections(organizationId, page, initialProjectId);
+    useCollections(organizationId, page, pageSize, initialProjectId);
 
   const collections = useMemo(
     () => data?.collections ?? [],
@@ -66,6 +79,10 @@ export default function PageClient({
     totalItems: data?.pagination.totalCount ?? collections.length,
     pageRowCount: collections.length,
     setPage: (next) => setPage(Math.min(Math.max(1, next), pageCount)),
+    onPageSizeChange: (next) => {
+      void setPageSize(next);
+      void setPage(1);
+    },
   };
 
   const isEmpty =

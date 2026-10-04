@@ -18,16 +18,16 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useHidePersonalData } from "@/lib/hooks/use-privacy-preferences";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { getUserAvatarUrl } from "@/utils/avatar";
 

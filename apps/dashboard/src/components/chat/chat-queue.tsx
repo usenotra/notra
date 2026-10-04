@@ -1,7 +1,7 @@
 "use client";
 
 import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
 import { Composer } from "@/components/composer/composer-shell";

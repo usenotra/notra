@@ -8,6 +8,7 @@ export interface DashboardShellProps {
   initialOnboardingAgentRun: InitialOnboardingAgentRun;
   initialSidebarOpen: boolean;
   initialSidebarWidth: number;
+  onboardingBannerDismissed: boolean;
 }
 
 export interface DashboardOnboardingBannerProps {

@@ -9,8 +9,8 @@ import {
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
-import { useTranslations } from "next-intl";
 import { createContext, use, useEffect, useLayoutEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { trackEvent } from "@/lib/analytics/posthog-client";

@@ -9,7 +9,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { EVENT_BADGE } from "@/constants/content-preview";
 import type { EventType } from "@/types/content/preview";

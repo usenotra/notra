@@ -1,3 +1,4 @@
+import { runWithGeoRequestMemo } from "@notra/geo-core/utils/request-memo";
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
 
@@ -34,7 +35,15 @@ async function canPrefetchGeoQueries(organizationId: string, headers: Headers) {
  * cache. The queries are intentionally not awaited: the query client dehydrates
  * pending queries, so the shell streams while they resolve.
  */
-export async function dehydrateGeoOverviewQueries(
+export function dehydrateGeoOverviewQueries(
+  ...args: Parameters<typeof dehydrateGeoOverview>
+) {
+  // The procedures below each resolve the same project scope and settings;
+  // the request memo (as on /rpc) lets them share one lookup.
+  return runWithGeoRequestMemo(() => dehydrateGeoOverview(...args));
+}
+
+async function dehydrateGeoOverview(
   organizationId: string,
   projectId: string | undefined,
   search: Record<string, string | string[] | undefined>,
@@ -126,7 +135,13 @@ export async function dehydrateGeoOverviewQueries(
  * traffic overview, top pages, the live log and the ingest setup all start on
  * the server so the page hydrates instead of cascading skeletons.
  */
-export async function dehydrateGeoTrafficQueries(
+export function dehydrateGeoTrafficQueries(
+  ...args: Parameters<typeof dehydrateGeoTraffic>
+) {
+  return runWithGeoRequestMemo(() => dehydrateGeoTraffic(...args));
+}
+
+async function dehydrateGeoTraffic(
   organizationId: string,
   projectId: string | undefined,
   search: Record<string, string | string[] | undefined>,

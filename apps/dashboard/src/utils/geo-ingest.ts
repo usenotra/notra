@@ -72,3 +72,9 @@ export function isGeoIngestPackageManager(
     (option) => option.value === value
   );
 }
+
+export function isGeoIngestFramework(
+  value: string
+): value is GeoIngestFramework {
+  return GEO_INGEST_FRAMEWORK_OPTIONS.some((option) => option.value === value);
+}

@@ -13,20 +13,23 @@ import {
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
@@ -156,8 +159,7 @@ function JourneyGroupBreakdown({
     return (
       <section className="space-y-3">
         <SectionTitle meta={sampleMeta} title={t("pagesFetched")} />
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={pageColumns}
           data={overview.paths}
           getRowId={(row) => row.path}
@@ -172,8 +174,7 @@ function JourneyGroupBreakdown({
   return (
     <section className="space-y-3">
       <SectionTitle meta={sampleMeta} title={tCommon("labels.sources")} />
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={sourceColumns}
         data={overview.sources}
         getRowId={(row) => `${row.source}-${row.visitorType}`}
@@ -330,8 +331,7 @@ function JourneyGroupContent({
 
         <section className="space-y-3">
           <SectionTitle meta={sampleMeta} title={t("recentJourneys")} />
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={journeyColumns}
             data={journeys}
             emptyState={t("noJourneysInRange")}

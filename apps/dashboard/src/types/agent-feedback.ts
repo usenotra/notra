@@ -107,6 +107,9 @@ export interface AgentFeedbackTableProps {
     status: AgentFeedbackStatus
   ) => void;
   onDelete: (item: AgentFeedbackItem) => void;
+  /** Loads the next page when the reader scrolls near the end. */
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
 export interface AgentFeedbackDetailDialogProps {

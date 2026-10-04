@@ -30,16 +30,16 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useChatSessionMutations,
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { displayChatTitle } from "@/utils/chat-history-groups";
 

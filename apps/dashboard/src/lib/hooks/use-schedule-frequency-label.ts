@@ -1,5 +1,5 @@
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { DAY_MS } from "@/constants/analytics-weekdays";
 import { WEEKDAY_REFERENCE_SUNDAY_UTC } from "@/constants/schedule";

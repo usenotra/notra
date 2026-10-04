@@ -1,5 +1,4 @@
-import { getTranslations } from "next-intl/server";
-
+import { getTranslations } from "@/lib/i18n/server";
 import type { AuthActionMessageKey } from "@/types/auth/action-messages";
 import type { WorkOSErrorInfo } from "@/types/auth/workos-error";
 

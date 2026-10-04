@@ -5,13 +5,13 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useListPlans } from "autumn-js/react";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { PLANS_ANCHOR, ZDR_ADDON_ANCHOR } from "@/constants/billing";
 import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";

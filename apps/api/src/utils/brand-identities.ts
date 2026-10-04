@@ -71,6 +71,9 @@ export function respondToBrandIdentityFailure(
   c: Context,
   failure: BrandIdentityDomainError
 ) {
+  if (failure._tag === "BrandIdentityWebsiteUrlError") {
+    return c.json({ error: failure.message }, failure.temporary ? 503 : 400);
+  }
   if (failure._tag === "BrandIdentityNotFoundError") {
     return c.json({ error: "Brand identity not found" }, 404);
   }

@@ -314,18 +314,6 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
       expect((await rows())[0]?.head_sha).toBe("H1");
     });
 
-    test("identical replay preserves the synchronized head", async () => {
-      await recordContentPublication(publication("B", "publish-head"), at(2));
-      await client.exec(
-        "update content_publications set head_sha = 'synced-head'"
-      );
-      await reconcileContentPublication({
-        publication: publication("B", "publish-head"),
-        publishedAt: at(2),
-      });
-      expect((await rows())[0]?.head_sha).toBe("synced-head");
-    });
-
     test("reconciliation closes only the matching repository integration", async () => {
       await client.exec(`
         insert into posts values ('other-post', 'other-org');

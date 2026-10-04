@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 export function useLinearConnectionToast() {
   const t = useTranslations("integrations.connectionToasts");

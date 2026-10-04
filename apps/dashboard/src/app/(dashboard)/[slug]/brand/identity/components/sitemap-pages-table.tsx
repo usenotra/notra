@@ -4,26 +4,19 @@ import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@notra/ui/components/ui/input-group";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@notra/ui/components/ui/pagination";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
-import { useFormatter, useNow, useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useFormatter, useNow, useTranslations } from "use-intl";
 
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useSitemapPages } from "@/lib/hooks/use-brand-sitemaps";
 import { getStatusCodeClassName } from "@/lib/sitemap/display";
@@ -49,7 +42,6 @@ export function SitemapPagesTable({
 }: SitemapPagesTableProps) {
   const t = useTranslations("brand.sitemap.pages");
   const tCommon = useTranslations("common");
-  const tUi = useTranslations("ui");
   const columns: TableColumn<SitemapPage>[] = [
     {
       key: "url",
@@ -137,16 +129,6 @@ export function SitemapPagesTable({
     });
   })();
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(visiblePages.length / SITEMAP_PAGES_PER_PAGE)
-  );
-  const currentPage = Math.min(Math.max(1, rawPage), totalPages);
-  const paginatedPages = visiblePages.slice(
-    (currentPage - 1) * SITEMAP_PAGES_PER_PAGE,
-    currentPage * SITEMAP_PAGES_PER_PAGE
-  );
-
   const filter = (
     <Tabs
       value={activeFilter}
@@ -192,66 +174,20 @@ export function SitemapPagesTable({
         </div>
       </div>
 
-      <Table
+      <DataTable
         columns={columns}
-        data={paginatedPages}
+        data={visiblePages}
+        pagination={{
+          page: rawPage,
+          pageSize: SITEMAP_PAGES_PER_PAGE,
+          onPageChange: setPage,
+          itemLabel: t("itemLabel"),
+        }}
         emptyState={search.trim() ? t("noSearchResults") : t("emptyView")}
         getRowId={(page) => page.id}
-        height={440}
         loading={isPending}
         rowHeight={TABLE_ROW_HEIGHT}
       />
-
-      {totalPages > 1 && (
-        <Pagination aria-label={tUi("pagination")}>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                aria-label={tUi("goToPreviousPage")}
-                className={cn(
-                  currentPage === 1 && "pointer-events-none opacity-50"
-                )}
-                onClick={(event) => {
-                  event.preventDefault();
-                  setPage(Math.max(1, currentPage - 1));
-                }}
-              />
-            </PaginationItem>
-            {getPageNumbers(currentPage, totalPages).map(
-              (pageNumber, index, pages) =>
-                pageNumber === "ellipsis" ? (
-                  <PaginationItem key={`ellipsis-${pages[index - 1]}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      isActive={pageNumber === currentPage}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        setPage(pageNumber);
-                      }}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-            )}
-            <PaginationItem>
-              <PaginationNext
-                aria-label={tUi("goToNextPage")}
-                className={cn(
-                  currentPage === totalPages && "pointer-events-none opacity-50"
-                )}
-                onClick={(event) => {
-                  event.preventDefault();
-                  setPage(Math.min(totalPages, currentPage + 1));
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
     </section>
   );
 }

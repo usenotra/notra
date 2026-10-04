@@ -12,11 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import type {
   GitHubPublishRepositoryFieldProps,
   GitHubPublishRepositoryStatusProps,

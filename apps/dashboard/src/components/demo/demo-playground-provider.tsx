@@ -1,10 +1,9 @@
 "use client";
 
 import type { DemoRequestEvent } from "@notra/db/types/demo";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { DemoPlaygroundContext } from "@/components/demo/demo-playground-context";
 import { DemoPlaygroundSheet } from "@/components/demo/demo-playground-sheet";
@@ -13,6 +12,7 @@ import {
   useDemoRequestStream,
   useDemoSandbox,
 } from "@/lib/hooks/use-demo-sandbox";
+import { useRouter } from "@/lib/navigation";
 import type { DemoPlaygroundTab } from "@/types/demo";
 import { demoEntityHref } from "@/utils/demo-entity-href";
 

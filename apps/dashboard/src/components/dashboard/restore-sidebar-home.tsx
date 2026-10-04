@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useStoredSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import { isOrgRootPath, resolveOrgRootRedirect } from "@/utils/nav";
 
 /**
@@ -14,6 +14,7 @@ import { isOrgRootPath, resolveOrgRootRedirect } from "@/utils/nav";
  */
 export function RestoreSidebarHome() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { activeOrganization } = useOrganizationsContext();
   const [projectParam] = useGeoProjectQueryState();
@@ -21,14 +22,18 @@ export function RestoreSidebarHome() {
   const slug = activeOrganization?.slug;
   const redirectTo =
     slug && isOrgRootPath(pathname, slug)
-      ? resolveOrgRootRedirect(slug, storedMode, projectParam ?? undefined)
+      ? resolveOrgRootRedirect(
+          slug,
+          storedMode,
+          projectParam ?? undefined,
+          Object.fromEntries(searchParams)
+        )
       : null;
 
   useEffect(() => {
     if (!redirectTo) {
       return;
     }
-    // react-doctor-disable-next-line nextjs-no-client-side-redirect -- fallback when the mode cookie is missing
     router.replace(redirectTo);
   }, [redirectTo, router]);
 

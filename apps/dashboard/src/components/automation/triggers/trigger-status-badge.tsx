@@ -1,5 +1,5 @@
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function TriggerStatusBadge({ enabled }: { enabled: boolean }) {
   const tCommon = useTranslations("common");

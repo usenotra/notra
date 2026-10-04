@@ -1,6 +1,5 @@
 import { and, desc, eq, gte, lt, type SQL, sql } from "drizzle-orm";
 
-import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
 import { GEO_PERSONA_SCAN_HISTORY_LIMIT } from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks } from "../schema";
@@ -9,6 +8,7 @@ import type {
   GeoCheckPersonaResultRow,
   GeoCheckPersonaScanRow,
 } from "../types/geo-persona-checks";
+import { withGeoCheckAggregateCache } from "./geo-check-cache";
 import { parseGeoCheckGrounding } from "./geo-grounding";
 
 function scopeWhere(scope: GeoCheckScope): SQL {
@@ -130,31 +130,33 @@ export async function queryGeoCheckPersonaActivity(
 ) {
   const day = sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD')`;
   const snapshotVersion = sql<string>`${geoMentionChecks.personaSnapshot} ->> 'version'`;
-  return db
-    .select({
-      personaId: geoMentionChecks.personaId,
-      snapshotVersion,
-      day,
-      lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`.mapWith(
-        (value) => (value instanceof Date ? value : new Date(String(value)))
-      ),
-      checks: sql<number>`count(*)`.mapWith(Number),
-      mentions:
-        sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
-          Number
+  return withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        personaId: geoMentionChecks.personaId,
+        snapshotVersion,
+        day,
+        lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`.mapWith(
+          (value) => (value instanceof Date ? value : new Date(String(value)))
         ),
-    })
-    .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
-    .where(
-      and(
-        scopeWhere(scope),
-        sql`${geoMentionChecks.personaId} is not null`,
-        sql`${snapshotVersion} is not null`,
-        gte(geoMentionChecks.capturedAt, from),
-        lt(geoMentionChecks.capturedAt, to)
+        checks: sql<number>`count(*)`.mapWith(Number),
+        mentions:
+          sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
+            Number
+          ),
+      })
+      .from(geoMentionChecks)
+      .where(
+        and(
+          scopeWhere(scope),
+          sql`${geoMentionChecks.personaId} is not null`,
+          sql`${snapshotVersion} is not null`,
+          gte(geoMentionChecks.capturedAt, from),
+          lt(geoMentionChecks.capturedAt, to)
+        )
       )
-    )
-    .groupBy(geoMentionChecks.personaId, snapshotVersion, day)
-    .orderBy(day, snapshotVersion);
+      .groupBy(geoMentionChecks.personaId, snapshotVersion, day)
+      .orderBy(day, snapshotVersion)
+  );
 }

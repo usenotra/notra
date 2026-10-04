@@ -8,9 +8,9 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
-import { after } from "next/server";
 
+import { afterResponse } from "@/lib/framework/after-response";
+import { getTranslations } from "@/lib/i18n/server";
 import { startBrandAnalysisRun } from "@/lib/workflows/start";
 import type {
   DispatchBrandAnalysisInput,
@@ -142,7 +142,7 @@ export async function queueBrandAnalysisForOnboarding({
     return { jobId, brandIdentityId: brandIdentity.id };
   }
 
-  after(() =>
+  afterResponse(() =>
     dispatchBrandAnalysisWorkflow({
       organizationId,
       websiteUrl,

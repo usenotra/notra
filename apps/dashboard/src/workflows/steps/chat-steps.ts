@@ -1,3 +1,4 @@
+import "@/workflows/runtime";
 import { calculateAiCreditCostCents } from "@notra/ai/billing/ai-credit-cost";
 import {
   allowUnmeteredAiInDevelopment,
@@ -41,6 +42,7 @@ import { nanoid } from "nanoid";
 import { AI_CREDITS_SOURCE_STANDALONE_CHAT } from "@/constants/studio-analytics";
 import { WORKFLOW_ANALYTICS_NAMES } from "@/constants/workflow-analytics";
 import { trackServerEventAndFlush } from "@/lib/analytics/posthog-server";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { reportStepError } from "@/lib/workflows/step-errors";
 import type {
@@ -174,9 +176,10 @@ export async function streamChatResponseStep(
     surface,
   } = input;
 
-  const [messages, projectId] = await Promise.all([
+  const [messages, projectId, codeResearch] = await Promise.all([
     loadChatHistory(organizationId, chatId),
     getChatProjectId(organizationId, chatId),
+    isCodeResearchEnabledForOrganization(organizationId),
   ]);
   if (messages.length === 0) {
     await clearActiveChatStream(organizationId, chatId, streamId);
@@ -266,6 +269,8 @@ export async function streamChatResponseStep(
         thinkingLevel,
         timezone,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
         telemetryMetadata: buildStandaloneChatTelemetryMetadata({

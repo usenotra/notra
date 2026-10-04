@@ -2,9 +2,10 @@
 set -euo pipefail
 cd ../..
 bun run db:check
-TURBO_TASKS_AVAILABLE_PARALLELISM=$(bash apps/dashboard/scripts/turbopack-parallelism.sh)
-export TURBO_TASKS_AVAILABLE_PARALLELISM
-turbo run build --filter=dashboard
+export NITRO_PRESET=vercel
+# Every commit misses the cache, and the output exceeds the remote cache's
+# upload limit (413): writing it only cost ~15 s per deploy.
+turbo run build --filter=dashboard --cache=remote:r
 bun apps/dashboard/scripts/prune-build-cache.ts
 if [ "${VERCEL_ENV:-}" = "production" ]; then
   # Deployments whose runtime role cannot run DDL (the public demo runs as a

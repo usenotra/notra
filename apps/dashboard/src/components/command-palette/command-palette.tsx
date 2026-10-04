@@ -29,8 +29,6 @@ import { Kbd } from "@notra/ui/components/ui/kbd";
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import {
   useEffect,
   useRef,
@@ -38,6 +36,7 @@ import {
   useSyncExternalStore,
   useTransition,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import { useFeedback } from "@/components/dashboard/feedback-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -52,6 +51,7 @@ import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   AiResult,

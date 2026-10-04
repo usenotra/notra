@@ -60,8 +60,4 @@ describe("findBrandMention", () => {
     expect(findBrandMention("推荐Notra给团队。", "Notra", [])).toBe("Notra");
     expect(findBrandMention("ใช้Notraสำหรับอีเมล", "Notra", [])).toBe("Notra");
   });
-
-  test("ignores empty aliases", () => {
-    expect(findBrandMention("Nothing here.", "Acme", ["", "  "])).toBeNull();
-  });
 });

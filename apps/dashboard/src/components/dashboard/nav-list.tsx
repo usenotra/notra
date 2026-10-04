@@ -7,7 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { NavListProps } from "@/types/components/nav";
 import { geoNavHref, isGeoDashboardPath } from "@/utils/geo-paths";

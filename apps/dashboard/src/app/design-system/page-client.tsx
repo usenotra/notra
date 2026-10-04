@@ -81,6 +81,10 @@ import {
   CommandShortcut,
 } from "@notra/ui/components/ui/command";
 import {
+  DetailCardContent,
+  DetailCardRow,
+} from "@notra/ui/components/ui/detail-card";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -1371,6 +1375,18 @@ export default function DesignSystemClientPage() {
                     Hover cards can show rich previews or explanations.
                   </p>
                 </HoverCardContent>
+              </HoverCard>
+
+              <HoverCard>
+                <HoverCardTrigger render={<Button variant="outline" />}>
+                  Detail card
+                </HoverCardTrigger>
+                <DetailCardContent aside="exabot/1.0" title="ExaSearchBot">
+                  <dl className="flex flex-col">
+                    <DetailCardRow label="Purpose">Search index</DetailCardRow>
+                    <DetailCardRow label="Confidence">Verified</DetailCardRow>
+                  </dl>
+                </DetailCardContent>
               </HoverCard>
 
               <Tooltip>

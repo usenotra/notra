@@ -14,8 +14,8 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import {
   USAGE_ANSWERS_CHART_CONFIG,

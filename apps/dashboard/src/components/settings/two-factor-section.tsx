@@ -12,9 +12,9 @@ import type {
   TwoFactorSettingsLabels,
 } from "@notra/ui/types/security";
 import { isDemoModeClient } from "@notra/utils/demo-mode";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { authClient } from "@/lib/auth/client";

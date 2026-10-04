@@ -1,15 +1,10 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import {
-  chatSessionsListResponseSchema,
-  uiMessageSchema,
-} from "@notra/ai/schemas/chat";
+import { uiMessageSchema } from "@notra/ai/schemas/chat";
 import type { ChatAttachment, ChatSessionSummary } from "@notra/ai/types/chat";
 import {
-  dashboardAgentChatHistoryPath,
   dashboardAgentChatHistoryQueryKey,
-  dashboardAgentChatSessionsPath,
   dashboardAgentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
 import {
@@ -22,8 +17,6 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
-import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -33,6 +26,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import ChatInput from "@/components/chat-input";
 import { ChatQuoteProvider } from "@/components/chat/chat-quote";
@@ -45,6 +39,8 @@ import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
+import { usePathname, useRouter } from "@/lib/navigation";
+import { dashboardOrpcClient } from "@/lib/orpc/client";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
@@ -68,7 +64,9 @@ function DashboardAgentChat({
   const open = active === "agent";
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
-  const [activeChatId, setActiveChatId] = useState(() => crypto.randomUUID());
+  const [activeChatId, setActiveChatId] = useState<string>(() =>
+    crypto.randomUUID()
+  );
   const [isHydratingHistory, setIsHydratingHistory] = useState(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
@@ -80,19 +78,10 @@ function DashboardAgentChat({
   const sessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
     queryFn: async () => {
-      const response = await fetch(
-        dashboardAgentChatSessionsPath(organizationId)
-      );
-      if (!response.ok) {
-        throw new Error("Failed to load agent chats");
-      }
-      const parsed = chatSessionsListResponseSchema.safeParse(
-        await response.json()
-      );
-      if (!parsed.success) {
-        throw new Error("Invalid agent chat sessions response");
-      }
-      return parsed.data.sessions ?? [];
+      const { sessions } = await dashboardOrpcClient.chat.sessions.list({
+        organizationId,
+      });
+      return sessions;
     },
     enabled: hasOpened,
     staleTime: 60_000,
@@ -232,14 +221,11 @@ function DashboardAgentChat({
       const history = await queryClient.fetchQuery({
         queryKey: dashboardAgentChatHistoryQueryKey(organizationId, chatId),
         queryFn: async () => {
-          const response = await fetch(
-            dashboardAgentChatHistoryPath(organizationId, chatId)
-          );
-          if (!response.ok) {
-            throw new Error("Failed to load agent chat history");
-          }
-          const payload = await response.json();
-          return uiMessageSchema.array().parse(payload?.messages);
+          const payload = await dashboardOrpcClient.chat.sessions.get({
+            organizationId,
+            chatId,
+          });
+          return uiMessageSchema.array().parse(payload.messages);
         },
         staleTime: 0,
       });

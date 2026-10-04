@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupEmpty } from "@/components/geo/geo-setup-empty";

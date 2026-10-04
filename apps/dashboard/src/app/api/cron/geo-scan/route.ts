@@ -7,7 +7,6 @@ import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 
 // One sweep starts up to GEO_SCAN_DUE_LIMIT_PER_SWEEP workflows in sequence;
 // the platform default would cut a busy catch-up sweep short.
-export const maxDuration = 300;
 
 /**
  * Vercel Cron entry point for scheduled GEO scans. The schedule is a due

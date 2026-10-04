@@ -1,13 +1,9 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useId } from "react";
 
 import { cn } from "@/lib/utils";
-import type {
-  GeoSectionSkeletonProps,
-  GeoTableSkeletonProps,
-} from "@/types/geo";
+import type { GeoSectionSkeletonProps } from "@/types/geo";
 
 export function GeoSectionSkeleton({
   eyebrow,
@@ -27,28 +23,6 @@ export function GeoSectionSkeleton({
       </div>
       <div className="min-w-0 flex-1">{children}</div>
     </section>
-  );
-}
-
-export function GeoTableSkeleton({ rows, toolbar }: GeoTableSkeletonProps) {
-  const id = useId();
-  return (
-    <div className="border-border overflow-hidden rounded-2xl border">
-      {toolbar ? <div className="border-border border-b">{toolbar}</div> : null}
-      <div className="bg-muted/40 flex h-10 items-center justify-between px-4">
-        <Skeleton className="h-3.5 w-28" />
-        <Skeleton className="h-3.5 w-16" />
-      </div>
-      {Array.from({ length: rows }).map((_, index) => (
-        <div
-          className="border-border/60 flex h-13 items-center justify-between gap-4 border-t px-4"
-          key={`${id}-row-${index}`}
-        >
-          <Skeleton className="h-4 w-2/5" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-      ))}
-    </div>
   );
 }
 

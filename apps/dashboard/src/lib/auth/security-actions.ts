@@ -1,5 +1,3 @@
-"use server";
-
 import { POSTHOG_EVENTS, type PostHogEventName } from "@notra/posthog/events";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import {
@@ -21,9 +19,8 @@ import type {
 } from "@notra/schemas/types/dashboard/auth";
 import { normalizeBackupCode } from "@notra/schemas/utils/auth";
 import type { Ratelimit } from "@upstash/ratelimit";
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS } from "@workos/authkit-session";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import { SECURITY_ERROR_CODES, TOTP_FACTOR_TYPE } from "@/constants/security";
 import { ActionFailure } from "@/lib/actions/errors";
@@ -45,6 +42,7 @@ import {
 } from "@/lib/auth/mfa-cookies";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 import { createTotpFactor } from "@/lib/auth/workos-mfa";
+import { getTranslations } from "@/lib/i18n/server";
 import { requireSession } from "@/lib/organizations/guards";
 import type { ActionResult } from "@/types/organizations/actions";
 import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
@@ -228,7 +226,7 @@ const withSecondFactor = <A>(
     );
   });
 
-export async function getSecurityOverviewAction(): Promise<
+export async function getSecurityOverview(): Promise<
   ActionResult<SecurityOverview>
 > {
   return runAction(
@@ -252,7 +250,7 @@ export async function getSecurityOverviewAction(): Promise<
   );
 }
 
-export async function startTotpEnrollmentAction(): Promise<
+export async function startTotpEnrollment(): Promise<
   ActionResult<StartTotpEnrollmentResult>
 > {
   return runAction(
@@ -281,7 +279,7 @@ export async function startTotpEnrollmentAction(): Promise<
   );
 }
 
-export async function discardTotpEnrollmentAction(
+export async function discardTotpEnrollment(
   rawInput: DiscardTotpEnrollmentInput
 ): Promise<ActionResult<{ discarded: boolean }>> {
   return runAction(
@@ -307,7 +305,7 @@ export async function discardTotpEnrollmentAction(
   );
 }
 
-export async function verifyTotpEnrollmentAction(
+export async function verifyTotpEnrollment(
   rawInput: VerifyTotpEnrollmentInput
 ): Promise<ActionResult<VerifyTotpEnrollmentResult>> {
   return runAction(
@@ -376,7 +374,7 @@ export async function verifyTotpEnrollmentAction(
   );
 }
 
-export async function regenerateBackupCodesAction(
+export async function regenerateBackupCodes(
   rawInput: RegenerateBackupCodesInput
 ): Promise<ActionResult<RegenerateBackupCodesResult>> {
   return runAction(
@@ -412,7 +410,7 @@ export async function regenerateBackupCodesAction(
   );
 }
 
-export async function removeAuthFactorAction(
+export async function removeAuthFactor(
   rawInput: RemoveAuthFactorInput
 ): Promise<ActionResult<{ removed: true }>> {
   return runAction(

@@ -12,7 +12,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { m, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { MessageAuthorAvatarProps } from "@/types/components/chat-page";

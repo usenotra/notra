@@ -3,19 +3,19 @@
 import { Copy01Icon, MoreVerticalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { IntegrationIcon } from "@/components/logs/integration-icon";
 import { LogStatusBadge } from "@/components/logs/log-status-badge";
-import type { TableColumn } from "@/components/motion/table";
 import { useLogSourceLabel } from "@/lib/hooks/use-log-source-label";
 import type { Log, StatusWithCode } from "@/types/webhooks/webhooks";
 import { isLogSourceFilter } from "@/utils/log-labels";

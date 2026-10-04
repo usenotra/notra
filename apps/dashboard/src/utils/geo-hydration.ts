@@ -58,11 +58,15 @@ export function geoProjectRepairPath(
   return `/${encodeURIComponent(slug)}${basePath}${suffix ? `?${suffix}` : ""}`;
 }
 
+// Project ids are generated tokens; anything else (e.g. a NUL byte, which
+// Postgres rejects with an error that quotes the SQL) is not a project.
+const PROJECT_ID = /^[\w-]+$/;
+
 export function normalizeGeoProjectId(
   projectId: string | null | undefined
 ): string | undefined {
   const trimmed = projectId?.trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed && PROJECT_ID.test(trimmed) ? trimmed : undefined;
 }
 
 /**

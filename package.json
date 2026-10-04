@@ -10,7 +10,7 @@
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
     "check-types": "dotenv -- turbo run check-types",
-    "test": "turbo run test",
+    "test": "node --test scripts/github/production-deploy.test.mjs && turbo run test",
     "knip": "dotenv -- turbo run knip --filter=web --filter=dashboard --filter=api",
     "db:generate": "dotenv -- bunx drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:check": "turbo run check:migrations --filter=@notra/db --",
@@ -19,6 +19,7 @@
     "db:studio": "dotenv -- bunx drizzle-kit studio --config packages/db/drizzle.config.ts",
     "db:drop": "dotenv -- bunx drizzle-kit drop --config packages/db/drizzle.config.ts",
     "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts",
+    "evals": "bun --cwd apps/evals src/index.tsx",
     "devtools:api": "cd apps/api && bunx @ai-sdk/devtools",
     "devtools:dashboard": "cd apps/dashboard && bunx @ai-sdk/devtools",
     "check": "bun run check:effect && ultracite check --threads=4",
@@ -66,6 +67,9 @@
   },
   "packageManager": "bun@1.4.0",
   "patchedDependencies": {
-    "evlog@2.28.1": "patches/evlog@2.28.1.patch"
+    "@workflow/builders@4.1.13": "patches/@workflow%2Fbuilders@4.1.13.patch",
+    "@workflow/nitro@4.1.14": "patches/@workflow%2Fnitro@4.1.14.patch",
+    "evlog@2.28.1": "patches/evlog@2.28.1.patch",
+    "@tanstack/start-plugin-core@1.171.49": "patches/@tanstack%2Fstart-plugin-core@1.171.49.patch"
   }
 }
