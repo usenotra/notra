@@ -11,6 +11,7 @@ import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useTranslations } from "use-intl";
 
 import { getUserAvatarUrl } from "@/utils/avatar";
+import { nameInitials } from "@/utils/name-initials";
 
 import { MemberActions } from "./member-actions";
 
@@ -59,7 +60,7 @@ export function useMemberColumns(): TableColumn<Member>[] {
               src={getUserAvatarUrl(member.user.image, member.user.email)}
             />
             <AvatarFallback>
-              {(member.user.name || member.user.email).charAt(0).toUpperCase()}
+              {nameInitials(member.user.name || member.user.email, 1)}
             </AvatarFallback>
           </Avatar>
           <TruncateWithTooltip className="font-medium">

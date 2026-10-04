@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useTranslations } from "use-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { useMemberColumns } from "@/components/members/columns";
 import { useInvitationColumns } from "@/components/members/invitation-columns";
@@ -25,6 +25,7 @@ import { tableHeightFor } from "@/utils/table";
 export function MembersSettingsPane() {
   const t = useTranslations("settings.panes.members");
   const tCommon = useTranslations("common");
+  const format = useFormatter();
   const memberColumns = useMemberColumns();
   const invitationColumns = useInvitationColumns();
   const { activeOrganization: organization } = useOrganizationsContext();
@@ -91,7 +92,7 @@ export function MembersSettingsPane() {
               {tCommon("labels.members")}
               {members && members.length > 0 ? (
                 <Badge size="sm" variant="secondary">
-                  {members.length}
+                  {format.number(members.length)}
                 </Badge>
               ) : null}
             </TabsTrigger>
@@ -99,7 +100,7 @@ export function MembersSettingsPane() {
               {tCommon("labels.pending")}
               {pendingInvitations && pendingInvitations.length > 0 ? (
                 <Badge size="sm" variant="secondary">
-                  {pendingInvitations.length}
+                  {format.number(pendingInvitations.length)}
                 </Badge>
               ) : null}
             </TabsTrigger>

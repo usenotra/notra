@@ -473,6 +473,7 @@
     "roleLabel": "{role, select, owner {Owner} admin {Admin} member {Member} other {{role}}}",
     "teamMemberLimit": "Team member limit reached on your current plan.",
     "viewPlans": "View plans",
+    "invitationExpired": "Expired",
     "columns": {
       "user": "User"
     },

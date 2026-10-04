@@ -473,6 +473,7 @@
     "roleLabel": "{role, select, owner {Inhaber} admin {Admin} member {Mitglied} other {{role}}}",
     "teamMemberLimit": "Du hast das Limit für Teammitglieder in deinem aktuellen Tarif erreicht.",
     "viewPlans": "Tarife ansehen",
+    "invitationExpired": "Abgelaufen",
     "columns": {
       "user": "Nutzer"
     },
