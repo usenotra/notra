@@ -327,6 +327,7 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
   codex: "Codex",
   copilot: "Copilot",
   mistral: "Mistral",
+  cohere: "Cohere",
   deepseek: "DeepSeek",
   meta: "Meta",
   grok: "Grok",

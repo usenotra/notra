@@ -82,7 +82,7 @@ export function SentimentBreakdown({
               )}
             </div>
           </div>
-          <ul className="flex items-center gap-4 text-xs">
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             {SENTIMENT_POLARITIES.map((polarity) => (
               <li className="flex items-center gap-1.5" key={polarity}>
                 <span
