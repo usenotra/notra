@@ -11,13 +11,7 @@ import {
 } from "../../utils/framework-request";
 import { afterResponse, dashboardRequestContext } from "./after-response";
 
-export function scheduleDashboardTask(flush: () => unknown) {
-  afterResponse(async () => {
-    await flush();
-  });
-}
-
-setLogFlushScheduler(scheduleDashboardTask);
+setLogFlushScheduler(afterResponse);
 
 export default defineMiddleware(async (event, next) => {
   onDispose(event, () =>

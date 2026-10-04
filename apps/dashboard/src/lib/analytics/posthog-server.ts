@@ -11,7 +11,7 @@ import {
   setServerPersonProperties,
 } from "@notra/posthog/server";
 
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import type {
   IdentifyOrganizationGroupInput,
   IdentifyProjectGroupInput,
@@ -33,7 +33,7 @@ function scheduleCapture(capture: () => void): void {
     }
   };
   try {
-    after(deliver);
+    afterResponse(deliver);
   } catch {
     void deliver();
   }

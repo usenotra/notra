@@ -7,9 +7,10 @@ import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { contentRouter } from "@/lib/orpc/routers/content";
 import { geoRouter } from "@/lib/orpc/routers/geo";
-import type { OrganizationMembership } from "@/types/auth/organization";
+import type { LoadedMembership } from "@/types/auth/organization";
 import { prefetchRecentPostsQuery } from "@/utils/content-recents-prefetch.server";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
+import { seedMembership } from "@/utils/seed-membership.server";
 
 /**
  * The request logs only show how long the whole page stream stayed open, so
@@ -45,19 +46,9 @@ export async function dehydrateDashboardHomeQueries(
   organizationId: string,
   projectId: string | undefined,
   requestHeaders: Headers,
-  membership?: OrganizationMembership & { userId: string }
+  membership?: LoadedMembership
 ) {
-  if (membership) {
-    // The page already loaded this membership; every prefetch would otherwise
-    // repeat the same SELECT before its own query.
-    const { requestMemo } = await createORPCContext({
-      headers: requestHeaders,
-    });
-    requestMemo.membershipByUserOrganization.set(
-      `${membership.userId}:${organizationId}`,
-      Promise.resolve({ id: membership.id, role: membership.role })
-    );
-  }
+  await seedMembership(organizationId, requestHeaders, membership);
 
   const client = createRouterClient(
     { content: contentRouter, geo: geoRouter },

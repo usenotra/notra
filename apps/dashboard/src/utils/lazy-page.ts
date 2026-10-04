@@ -6,7 +6,6 @@ import { type ComponentType, type LazyExoticComponent, lazy } from "react";
  * component when the route is preloaded (link hover) or loaded, so the chunk
  * downloads alongside the loader instead of after it.
  */
-// oxlint-disable-next-line typescript/no-explicit-any -- same bound as React.lazy
 export function lazyPage<T extends ComponentType<any>>(
   load: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> & { preload: () => Promise<void> } {

@@ -6,6 +6,7 @@ import {
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
+import { Cache, Duration, Effect, Exit } from "effect";
 
 import {
   ENTITLEMENT_FEATURES,
@@ -19,19 +20,12 @@ import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
 /**
  * Positive billing answers are reused across requests for a minute: every
  * GEO batch and dashboard render otherwise waits on an Autumn round trip.
- * Denials are never cached, so an upgrade applies on the next request; a
- * cancellation takes up to the TTL to apply.
+ * Denials and provider failures are never cached, so an upgrade applies on the
+ * next request; a cancellation takes up to the TTL to apply. Concurrent checks
+ * for one organization share a single lookup.
  */
-const GRANTED_ACCESS_TTL_MS = 60_000;
-const grantedGeoEntitlement = new Map<string, number>();
-const grantedAiProductAccess = new Map<
-  string,
-  { expiresAt: number; activePlanId: string | null }
->();
-
-function isFresh(expiresAt: number | undefined): expiresAt is number {
-  return expiresAt !== undefined && expiresAt > Date.now();
-}
+const GRANTED_ACCESS_TTL = Duration.minutes(1);
+const GRANTED_ACCESS_CACHE_CAPACITY = 10_000;
 
 const checkAiAnswersEntitlement = async (organizationId: string) => {
   if (!autumn) {
@@ -46,6 +40,26 @@ const checkAiAnswersEntitlement = async (organizationId: string) => {
     { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
   );
 };
+
+const geoEntitlementCache = Effect.runSync(
+  Cache.makeWith(
+    (organizationId: string) =>
+      Effect.tryPromise({
+        try: async (): Promise<"entitled" | "denied"> => {
+          const data = await checkAiAnswersEntitlement(organizationId);
+          return data?.balance == null ? "denied" : "entitled";
+        },
+        catch: (cause) => cause,
+      }),
+    {
+      capacity: GRANTED_ACCESS_CACHE_CAPACITY,
+      timeToLive: (exit) =>
+        Exit.isSuccess(exit) && exit.value === "entitled"
+          ? GRANTED_ACCESS_TTL
+          : Duration.zero,
+    }
+  )
+);
 
 async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
   if (!autumn) {
@@ -82,6 +96,50 @@ export async function hasAiCreditsGrant(
   return data.balance != null;
 }
 
+async function lookupAiProductAccess(organizationId: string) {
+  if (!autumn) {
+    return { hasAccess: true, activePlanId: null };
+  }
+
+  const customer = await autumn.customers.getOrCreate({
+    customerId: organizationId,
+  });
+
+  const activePlanId =
+    customer.subscriptions.find(
+      (subscription) => !subscription.addOn && subscription.status === "active"
+    )?.planId ?? null;
+
+  const hasPaidPlan = customer.subscriptions.some(
+    (subscription) =>
+      !subscription.addOn &&
+      subscription.status === "active" &&
+      PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
+  );
+
+  return {
+    hasAccess: hasPaidPlan || (await hasAiCreditsBalance(organizationId)),
+    activePlanId,
+  };
+}
+
+const aiProductAccessCache = Effect.runSync(
+  Cache.makeWith(
+    (organizationId: string) =>
+      Effect.tryPromise({
+        try: () => lookupAiProductAccess(organizationId),
+        catch: (cause) => cause,
+      }),
+    {
+      capacity: GRANTED_ACCESS_CACHE_CAPACITY,
+      timeToLive: (exit) =>
+        Exit.isSuccess(exit) && exit.value.hasAccess
+          ? GRANTED_ACCESS_TTL
+          : Duration.zero,
+    }
+  )
+);
+
 export async function resolveAiProductAccess(organizationId: string) {
   if (allowUnmeteredAiInDevelopment) {
     return { hasAccess: true, activePlanId: null };
@@ -94,49 +152,16 @@ export async function resolveAiProductAccess(organizationId: string) {
     return { hasAccess: true, activePlanId: null };
   }
 
-  const granted = grantedAiProductAccess.get(organizationId);
-  if (granted && isFresh(granted.expiresAt)) {
-    return { hasAccess: true, activePlanId: granted.activePlanId };
-  }
-
-  let hasAccess = false;
-  let activePlanId: string | null = null;
-
   try {
-    const customer = await autumn.customers.getOrCreate({
-      customerId: organizationId,
-    });
-
-    activePlanId =
-      customer.subscriptions.find(
-        (subscription) =>
-          !subscription.addOn && subscription.status === "active"
-      )?.planId ?? null;
-
-    hasAccess = customer.subscriptions.some(
-      (subscription) =>
-        !subscription.addOn &&
-        subscription.status === "active" &&
-        PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
+    return await Effect.runPromise(
+      Cache.get(aiProductAccessCache, organizationId)
     );
-
-    if (!hasAccess) {
-      hasAccess = await hasAiCreditsBalance(organizationId);
-    }
   } catch (error) {
     if (error instanceof ORPCError) {
       throw error;
     }
     throw internalServerError("Failed to verify subscription status");
   }
-
-  if (hasAccess) {
-    grantedAiProductAccess.set(organizationId, {
-      expiresAt: Date.now() + GRANTED_ACCESS_TTL_MS,
-      activePlanId,
-    });
-  }
-  return { hasAccess, activePlanId };
 }
 
 export async function assertActiveSubscription(
@@ -205,24 +230,13 @@ export async function resolveGeoEntitlement(
     return "skipped";
   }
 
-  if (isFresh(grantedGeoEntitlement.get(organizationId))) {
-    return "entitled";
-  }
-
   try {
     const memo = headers ? getORPCRequestMemo(headers) : undefined;
     let outcome = memo?.geoEntitlementByOrganization.get(organizationId);
     if (!outcome) {
-      outcome = checkAiAnswersEntitlement(organizationId).then((data) => {
-        if (data?.balance == null) {
-          return "denied";
-        }
-        grantedGeoEntitlement.set(
-          organizationId,
-          Date.now() + GRANTED_ACCESS_TTL_MS
-        );
-        return "entitled";
-      });
+      outcome = Effect.runPromise(
+        Cache.get(geoEntitlementCache, organizationId)
+      );
       memo?.geoEntitlementByOrganization.set(organizationId, outcome);
     }
     return await outcome;

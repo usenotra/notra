@@ -14,7 +14,7 @@ import { marked } from "marked";
 import { nanoid } from "nanoid";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import type { RouteContext } from "@/types/api/routes";
 
 export async function POST(
@@ -155,7 +155,7 @@ export async function POST(
     );
   }
 
-  after(async () => {
+  afterResponse(async () => {
     await maybeGenerateCollectionTitle({
       collectionId: result.collectionId,
       organizationId,

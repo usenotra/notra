@@ -9,6 +9,7 @@ import { createLoader, createSerializer } from "nuqs/server";
 import { CALLBACK_DESTINATIONS } from "@/constants/analytics-events";
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
 import { DEMO_THEME_PARAM } from "@/constants/demo";
+import { ORGANIZATION_COOKIE_SLUG_PATTERN } from "@/constants/framework";
 import { LOGIN_ERROR_KEYS } from "@/constants/login-error-messages";
 import { LOGIN_MFA_QUERY_KEY } from "@/constants/security";
 import {
@@ -24,7 +25,7 @@ import { getTranslations } from "@/lib/i18n/server";
 import { resolveIntegrationConnectDeeplink } from "@/lib/integrations/deeplink-resolution";
 import type { CallbackDestination } from "@/types/analytics/events";
 import type { LoginPageStart } from "@/types/auth/login-page";
-import type { UiRouteInput } from "@/types/migration-routes";
+import type { UiRouteInput } from "@/types/ui-route";
 import { demoHomePath, safeDemoReturnTo } from "@/utils/demo-return-to";
 import { withGeoProject } from "@/utils/geo-paths";
 import {
@@ -151,7 +152,7 @@ export const loadIntegrationEntry = createServerFn({ method: "GET" })
 export const loadLegacyApiKeys = createServerFn({ method: "GET" }).handler(
   async () => {
     const slug = getCookie(LAST_VISITED_ORGANIZATION_COOKIE);
-    if (slug && /^[a-z0-9-]+$/.test(slug)) {
+    if (slug && ORGANIZATION_COOKIE_SLUG_PATTERN.test(slug)) {
       throw redirect({ href: `/${slug}/api-keys` });
     }
     throw notFound();

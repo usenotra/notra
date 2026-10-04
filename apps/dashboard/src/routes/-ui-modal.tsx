@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { CompetitorDetailSkeleton } from "@/app/(dashboard)/[slug]/geo/competitors/skeleton";
 import { AccountModal } from "@/components/analytics/account-modal";
 import { CompetitorModal } from "@/components/geo/competitor-modal";
-import type { UiModalProviderProps } from "@/types/migration-routes";
+import type { UiModalProviderProps } from "@/types/ui-route";
 import { loadCompetitorDetailView } from "@/utils/competitor-detail-chunk";
 import { lazyPage } from "@/utils/lazy-page";
 

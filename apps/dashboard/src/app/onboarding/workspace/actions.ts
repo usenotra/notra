@@ -77,7 +77,7 @@ import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getAuthSession } from "@/lib/auth/server";
 import { queueBrandAnalysisForOnboarding } from "@/lib/brand-analysis";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import { getTranslations } from "@/lib/i18n/server";
 import {
   ensureDefaultBrandIdentity,
@@ -247,7 +247,7 @@ async function triggerOnboardingBrandAnalysisImpl(
   // The visibility step prefills its language from the browser, so warm the
   // same variant.
   const language = preferredGeoLanguage(requestHeaders?.get("accept-language"));
-  after(() =>
+  afterResponse(() =>
     warmGeoOnboardingCache(input.organizationId, input.websiteUrl, language)
   );
 
@@ -341,7 +341,7 @@ async function triggerOnboardingAgentSetupImpl(
     organizationId: input.organizationId,
   };
 
-  after(async () => {
+  afterResponse(async () => {
     try {
       await runOnboardingAgentSetup(taskInput);
     } catch (error) {

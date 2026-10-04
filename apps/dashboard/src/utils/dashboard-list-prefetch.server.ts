@@ -5,31 +5,9 @@ import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 import { geoDbQueryKey } from "@/lib/db/geo-collections";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { OrganizationMembership } from "@/types/auth/organization";
+import type { LoadedMembership } from "@/types/auth/organization";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
-
-type PrefetchMembership = OrganizationMembership & { userId: string };
-
-/**
- * The page already loaded this membership. Seed it so each prefetched
- * procedure does not repeat the same SELECT.
- */
-async function seedMembership(
-  organizationId: string,
-  requestHeaders: Headers,
-  membership: PrefetchMembership | undefined
-) {
-  if (!membership) {
-    return;
-  }
-  const { requestMemo } = await createORPCContext({
-    headers: requestHeaders,
-  });
-  requestMemo.membershipByUserOrganization.set(
-    `${membership.userId}:${organizationId}`,
-    Promise.resolve({ id: membership.id, role: membership.role })
-  );
-}
+import { seedMembership } from "@/utils/seed-membership.server";
 
 function routerContext(requestHeaders: Headers) {
   return () => createORPCContext({ headers: requestHeaders });
@@ -58,7 +36,7 @@ export async function dehydrateContentListQueries(
   projectId: string | undefined,
   page: number,
   requestHeaders: Headers,
-  membership?: PrefetchMembership
+  membership?: LoadedMembership
 ) {
   const [contentRouter, geoRouter] = await Promise.all([
     loadContentRouter(),
@@ -98,7 +76,7 @@ export async function dehydrateContentListQueries(
 export async function dehydrateIntegrationsQueries(
   organizationId: string,
   requestHeaders: Headers,
-  membership?: PrefetchMembership
+  membership?: LoadedMembership
 ) {
   const [integrationsRouter] = await Promise.all([
     loadIntegrationsRouter(),
@@ -134,7 +112,7 @@ export async function dehydrateIntegrationsQueries(
 export async function dehydrateSkillsQueries(
   organizationId: string,
   requestHeaders: Headers,
-  membership?: PrefetchMembership
+  membership?: LoadedMembership
 ) {
   const [skillsRouter] = await Promise.all([
     loadSkillsRouter(),
@@ -162,7 +140,7 @@ export async function dehydrateSkillDetailQuery(
   organizationId: string,
   name: string,
   requestHeaders: Headers,
-  membership?: PrefetchMembership
+  membership?: LoadedMembership
 ) {
   const [skillsRouter] = await Promise.all([
     loadSkillsRouter(),

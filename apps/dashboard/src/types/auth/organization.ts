@@ -13,6 +13,9 @@ export interface OrganizationMembership {
   role: string;
 }
 
+/** A membership a page loader already resolved for the signed-in user. */
+export type LoadedMembership = OrganizationMembership & { userId: string };
+
 export interface OrganizationAuthDependencies {
   getServerSession: typeof getServerSession;
   findMembership: (params: {

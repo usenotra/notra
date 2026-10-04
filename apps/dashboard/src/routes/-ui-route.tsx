@@ -10,7 +10,7 @@ import type {
   UiRouteSearch,
   UiRouteTitle,
   UiPageParams,
-} from "@/types/migration-routes";
+} from "@/types/ui-route";
 
 interface RootLoaderData {
   locale: DashboardLocale;

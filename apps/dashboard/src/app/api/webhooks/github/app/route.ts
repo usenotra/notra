@@ -1,7 +1,7 @@
 import { withEvlog } from "@notra/ai/evlog";
 import { ingestGitHubAppMentionWebhook } from "@notra/ai/utils/github-mention-ingest";
 
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import { writeMentionWebhookLog } from "@/lib/webhooks/github-mention-log";
 import { startGitHubMentionRun } from "@/lib/workflows/start";
 
@@ -23,7 +23,7 @@ export const POST = withEvlog(async (request: Request) => {
 
   if (result.log && !result.context) {
     const log = result.log;
-    after(() => writeMentionWebhookLog(log, deliveryId));
+    afterResponse(() => writeMentionWebhookLog(log, deliveryId));
   }
 
   return Response.json(result.body, { status: result.httpStatus });

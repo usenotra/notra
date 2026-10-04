@@ -63,7 +63,7 @@ import {
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
 import type { RouteContext } from "@/types/api/routes";
@@ -284,7 +284,7 @@ export const POST = withEvlog(async function POST(
 
     if (messages.length === 1 && latestMessage.role === "user") {
       // Start immediately alongside the response and keep it alive after the request.
-      after(async () => {
+      afterResponse(async () => {
         await generateAndSetChatTitle(organizationId, chatId, latestMessage);
       });
     }

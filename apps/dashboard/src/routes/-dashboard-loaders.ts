@@ -14,7 +14,7 @@ import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { getTranslations } from "@/lib/i18n/server";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
-import type { UiRouteInput } from "@/types/migration-routes";
+import type { UiRouteInput } from "@/types/ui-route";
 import { onboardingBannerDismissedCookie } from "@/utils/cookies";
 import { getGreetingPeriod } from "@/utils/dashboard-greeting-period";
 import {
@@ -240,16 +240,22 @@ export const gateGeoPage = createServerFn({ method: "GET" })
       slug,
       requestedProjectId
     );
-    redirectStaleGeoProject(slug, searchParams, kind, projectId);
+    redirectStaleGeoProject(
+      slug,
+      searchParams,
+      kind,
+      requestedProjectId,
+      projectId
+    );
   });
 
 function redirectStaleGeoProject(
   slug: string,
   searchParams: UiRouteInput["searchParams"],
   kind: GeoPageKind,
+  requestedProjectId: string | undefined,
   projectId: string | undefined
 ) {
-  const requestedProjectId = geoRequestedProjectId(searchParams);
   if (requestedProjectId && requestedProjectId !== projectId) {
     let repairPath: string | undefined;
     if (kind === "traffic") {
@@ -278,7 +284,13 @@ export const loadGeoPage = createServerFn({
       requestedProjectId
     );
     if (!gated) {
-      redirectStaleGeoProject(slug, searchParams, kind, projectId);
+      redirectStaleGeoProject(
+        slug,
+        searchParams,
+        kind,
+        requestedProjectId,
+        projectId
+      );
     }
     let state: DehydratedState | undefined;
     if (kind === "overview") {

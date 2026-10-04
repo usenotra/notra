@@ -49,7 +49,6 @@ export function useRouter() {
         }),
       refresh: () => router.invalidate(),
       back: () => router.history.back(),
-      forward: () => router.history.forward(),
       prefetch: (href: string) => {
         const url = new URL(href, "http://localhost");
         return router.preloadRoute({

@@ -173,9 +173,9 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
     path: "$slug",
     validateSearch: uiRouteSearch,
     beforeLoad: async ({ params, search, cause }) => {
-      // The shell only seeds client state (sidebar, active organization), like
-      // the Next layout that stayed mounted between pages. Reuse it while the
-      // user stays in this workspace; entering a workspace fetches it again.
+      // The shell only seeds client state (sidebar, active organization), so
+      // it stays mounted between pages. Reuse it while the user stays in this
+      // workspace; entering a workspace fetches it again.
       // Page loaders still check access on every request.
       const cached = clientShellCache;
       if (cause !== "enter" && cached?.slug === params.slug) {

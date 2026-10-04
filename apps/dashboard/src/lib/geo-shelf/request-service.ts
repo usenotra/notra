@@ -7,7 +7,7 @@ import {
 
 import { GEO_SHELF_OPEN_STATUSES } from "@/constants/geo-shelf";
 import { isUniqueConstraintError } from "@/lib/db/errors";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import { emptyShelfCitations } from "@/lib/geo-shelf/citations";
 import { assertGeoShelfOpportunityMembers } from "@/lib/geo-shelf/members";
 import {
@@ -66,7 +66,7 @@ export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
     organizationId: scope.organizationId,
     projectId: scope.projectId,
   };
-  after(async () => {
+  afterResponse(async () => {
     try {
       await syncGeoShelfCitationsForScope(target);
     } catch (error) {

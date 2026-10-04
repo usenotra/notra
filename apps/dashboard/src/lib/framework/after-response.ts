@@ -8,10 +8,10 @@ const host = globalThis as DashboardRuntimeHost;
 host.__notraDashboardRequests ??= new AsyncLocalStorage<H3Event>();
 export const dashboardRequestContext = host.__notraDashboardRequests;
 
-export function afterResponse(task: Promise<unknown> | (() => unknown)): void {
+export function afterResponse(task: () => unknown): void {
   const event = dashboardRequestContext.getStore();
   if (!event) {
     throw new Error("No dashboard request lifetime available");
   }
-  onDispose(event, typeof task === "function" ? task : () => task);
+  onDispose(event, task);
 }

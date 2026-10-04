@@ -29,8 +29,8 @@ import {
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
 import { redirectIfOnboardingDismissed } from "@/lib/onboarding/dismissal";
-import type { UiRouteInput } from "@/types/migration-routes";
 import type { OnboardingLayoutContext } from "@/types/onboarding-layout";
+import type { UiRouteInput } from "@/types/ui-route";
 import {
   geoDashboardPath,
   geoOnboardingCompetitorsPath,

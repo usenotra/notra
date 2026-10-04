@@ -11,7 +11,7 @@ import {
   trackServerEvent,
   trackServerException,
 } from "@/lib/analytics/posthog-server";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import { createORPCContext, type ORPCRequestMemo } from "@/lib/orpc/context";
 import { dashboardRouter } from "@/lib/orpc/router";
 import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
@@ -80,7 +80,7 @@ const handle = withEvlog(async (request: Request) => {
     const durationMs = Math.round(performance.now() - startedAt);
     log.set({ durationMs });
     if (durationMs >= DASHBOARD_RPC_SLOW_REQUEST_MS || status >= 400) {
-      after(async () => {
+      afterResponse(async () => {
         try {
           const auth = await requestMemo?.sessionLookup?.catch(() => undefined);
           trackServerEvent({

@@ -2,7 +2,7 @@ import { HydrationBoundary } from "@tanstack/react-query";
 import { type AnyRoute, redirect } from "@tanstack/react-router";
 
 import { GeoProjectQueryProvider } from "@/components/providers/geo-project-provider";
-import type { UiPageProps } from "@/types/migration-routes";
+import type { UiPageProps } from "@/types/ui-route";
 import { lazyPage } from "@/utils/lazy-page";
 
 import {

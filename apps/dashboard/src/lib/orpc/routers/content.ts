@@ -80,7 +80,7 @@ import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { getUtcDayRange } from "@/lib/content/content-calendar";
 import { getContentPublishingMetrics } from "@/lib/content/content-publishing-metrics.server";
 import { projectScopedCollectionIds } from "@/lib/content/project-scope";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import {
   addActiveGeneration,
   clearCompletedGeneration,
@@ -884,7 +884,7 @@ export const contentRouter = {
           updatedPost.status === "published" &&
           existingPost.status !== "published"
         ) {
-          after(() =>
+          afterResponse(() =>
             requestGeoRescanForPublishedPost({
               organizationId: input.organizationId,
               postId: updatedPost.id,

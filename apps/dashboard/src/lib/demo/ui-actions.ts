@@ -3,7 +3,7 @@ import { recordDemoRequest } from "@notra/ai/utils/demo-request-log";
 import { isDemoMode } from "@notra/utils/demo-mode";
 
 import { DEMO_UI_ACTIONS } from "@/constants/demo-ui-actions";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 
@@ -61,7 +61,7 @@ export function logDemoUiAction(input: {
   const { organizationId: _organizationId, ...body } = args;
   const responseBody = stringify(input.output);
 
-  after(() =>
+  afterResponse(() =>
     recordDemoRequest({
       organizationId,
       source: "ui",

@@ -42,8 +42,8 @@ export interface UiRouteOptions<T> {
   pageTitle?: (data: T) => string;
   /**
    * Stream the page data into the first server-rendered document: the shell
-   * and `pendingComponent` flush before `loader` resolves (like Next's
-   * loading.tsx). Client navigations still await the loader.
+   * and `pendingComponent` flush before `loader` resolves. Client navigations
+   * still await the loader.
    */
   stream?: boolean;
   /**

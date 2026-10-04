@@ -280,7 +280,7 @@ import {
   assertActiveSubscription,
   assertGeoEntitlement,
 } from "@/lib/billing/subscription";
-import { afterResponse as after } from "@/lib/framework/after-response";
+import { afterResponse } from "@/lib/framework/after-response";
 import {
   collectGeoShelfMemberIds,
   findCurrentGeoShelfMemberId,
@@ -978,7 +978,7 @@ export const geoRouter = {
     .handler(
       geoHandler((input) =>
         loadGeoSentimentAnalysis(input, geoWindow(input), true, (task) =>
-          after(async () => {
+          afterResponse(async () => {
             try {
               await task();
             } catch (error) {
