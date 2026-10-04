@@ -23,7 +23,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main' && github.repository == 'usenotra/notra'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 100
     steps:
       - name: Checkout release commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

@@ -382,8 +382,8 @@ and build cache remain in use. The workflow waits for `READY`, verifies the buil
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
 per project. Five sequential Vercel builds plus the 20-minute Railway phase can
-take up to 70 minutes, excluding API overhead. The workflow's job timeout is
-the overall limit; it can interrupt a release if it is shorter than that bound.
+take up to 70 minutes, excluding API overhead, within the workflow's 100-minute
+job limit.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
