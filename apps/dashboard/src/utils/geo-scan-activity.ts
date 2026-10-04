@@ -7,6 +7,11 @@ import type {
 } from "@/types/geo-scan-activity";
 import { paginatedTableHeightFor } from "@/utils/table";
 
+/** A finished scan needs no status line; only live and failed runs show one. */
+export function hasScanActivityStatus(run: GeoScanRunSummary | undefined) {
+  return !run || run.status === "running" || run.status === "failed";
+}
+
 export function geoRunProgress(run: GeoScanRunSummary) {
   const total = run.plan?.totalChecks;
   return total ? Math.min(100, (run.checks / total) * 100) : null;

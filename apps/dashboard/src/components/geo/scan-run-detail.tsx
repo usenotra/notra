@@ -65,7 +65,10 @@ import type {
 import type { GeoSharedTranslator } from "@/types/geo-shared";
 import type { CommonTranslator } from "@/types/i18n";
 import { formatEngineFamily } from "@/utils/geo-charts";
-import { scanRunDetailView } from "@/utils/geo-scan-activity";
+import {
+  hasScanActivityStatus,
+  scanRunDetailView,
+} from "@/utils/geo-scan-activity";
 
 const ALL_MODELS = "";
 const SCAN_SKELETON_ROWS = 3;
@@ -604,28 +607,30 @@ function ScanRunLoaded({
       aria-label={tGeoShared("scans")}
       className="min-w-0 space-y-3"
     >
-      <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <ScanActivityStatus run={run} />
-        {model.hasFilters ? (
-          <ScanRunFilters
-            answerCount={model.answerCount}
-            engine={state.engine}
-            engines={model.engines}
-            onEngineChange={(engine) =>
-              setState((prev) => ({
-                ...prev,
-                engine,
-                offset: 0,
-                pendingOffset: 0,
-              }))
-            }
-            onViewChange={(view) => setState((prev) => ({ ...prev, view }))}
-            pendingCount={model.pendingTotal}
-            running={model.running}
-            view={model.activeView}
-          />
-        ) : null}
-      </div>
+      {hasScanActivityStatus(run) || model.hasFilters ? (
+        <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <ScanActivityStatus run={run} />
+          {model.hasFilters ? (
+            <ScanRunFilters
+              answerCount={model.answerCount}
+              engine={state.engine}
+              engines={model.engines}
+              onEngineChange={(engine) =>
+                setState((prev) => ({
+                  ...prev,
+                  engine,
+                  offset: 0,
+                  pendingOffset: 0,
+                }))
+              }
+              onViewChange={(view) => setState((prev) => ({ ...prev, view }))}
+              pendingCount={model.pendingTotal}
+              running={model.running}
+              view={model.activeView}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {table}
       <ScanAnswerSheet
         checkId={checkId}

@@ -1104,6 +1104,11 @@
           "target": "components/data-table/hooks/use-row-selection.ts"
         },
         {
+          "path": "registry/notra/data-table/hooks/use-table-paging.ts",
+          "type": "registry:hook",
+          "target": "components/data-table/hooks/use-table-paging.ts"
+        },
+        {
           "path": "registry/notra/data-table/hooks/use-table-viewport.ts",
           "type": "registry:hook",
           "target": "components/data-table/hooks/use-table-viewport.ts"

@@ -8,14 +8,17 @@ import type {
   ScanActivityRelativeFormatter,
   ScanActivityStatusTranslator,
 } from "@/types/geo-scan-activity";
-import { geoRunProgress } from "@/utils/geo-scan-activity";
+import {
+  geoRunProgress,
+  hasScanActivityStatus,
+} from "@/utils/geo-scan-activity";
 
 function scanSentence(
   run: GeoScanActivityStatusProps["run"],
   t: ScanActivityStatusTranslator,
   formatRelative: ScanActivityRelativeFormatter,
   locale: string
-): string | null {
+): string {
   if (!run) {
     return t("starting");
   }
@@ -28,9 +31,6 @@ function scanSentence(
         })
       : t("running", { checks });
   }
-  if (run.status !== "failed") {
-    return null;
-  }
   return t("failed", { when: formatRelative(run.finishedAt ?? run.startedAt) });
 }
 
@@ -41,8 +41,7 @@ export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
   const formatRelative = useFormatRelative();
   const running = !run || run.status === "running";
   const progress = run ? geoRunProgress(run) : null;
-  const sentence = scanSentence(run, t, formatRelative, locale);
-  if (sentence === null) {
+  if (!hasScanActivityStatus(run)) {
     return null;
   }
 
@@ -57,7 +56,9 @@ export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
             size={14}
           />
         ) : null}
-        <span className="truncate">{sentence}</span>
+        <span className="truncate">
+          {scanSentence(run, t, formatRelative, locale)}
+        </span>
       </p>
       {running && progress !== null ? (
         <progress
