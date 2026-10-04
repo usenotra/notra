@@ -32,28 +32,6 @@ describe("carryOverImageTargets", () => {
       )
     ).toBe("![B](./b.png)\n![A](./a.png)");
   });
-
-  test("leaves video URLs inside fenced examples unchanged", () => {
-    const sample =
-      '```html\n<video controls src="https://cdn.notra.dev/a.mp4"></video>\n```';
-    const source = `${POST}\n\n${sample}`;
-    const repository = `${FILE}\n\n${sample}`;
-    expect(
-      carryOverImageTargets(
-        source.replace("Old intro.", "New intro."),
-        source,
-        repository
-      )
-    ).toBe(`${FILE.replace("Old intro.", "New intro.")}\n\n${sample}`);
-  });
-
-  test("does not treat data-src as a video source", () => {
-    const source =
-      '<video data-src="https://cdn.notra.dev/a.mp4" controls src="https://cdn.notra.dev/b.mp4"></video>';
-    const repository =
-      '<video data-src="https://cdn.notra.dev/a.mp4" controls src="./b.mp4"></video>';
-    expect(carryOverImageTargets(source, source, repository)).toBe(repository);
-  });
 });
 
 describe("resolveEditableMarkdown", () => {

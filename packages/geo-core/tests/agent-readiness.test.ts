@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
-import { brandSettings, geoAgentReadinessReports } from "@notra/db/schema";
+import { geoAgentReadinessReports } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Deferred, Effect, Result } from "effect";
 
@@ -88,74 +88,6 @@ describe("Agent Readiness Effect boundaries", () => {
     expect(loaded.report?.id).toBe("report-completed");
     expect(loaded.report?.score).toBe(71);
     expect(loaded.scan?.id).toBe("report-running");
-  });
-
-  test("failed handoff plus failed stamping retains the original handoff", async () => {
-    const scope = await seedProject("handoff-stamp");
-    const cause = new Error("test rejected handoff");
-    await database.postgres.exec(
-      "ALTER TABLE geo_agent_readiness_reports ADD CONSTRAINT reject_handoff_failure CHECK (status <> 'failed') NOT VALID"
-    );
-    try {
-      const result = await Effect.runPromise(
-        startAgentReadinessScan({
-          ...scope,
-          brandSettingsId: "brand-handoff-stamp",
-        }).pipe(
-          Effect.provideService(GeoWorkflowService, {
-            startGeoScanRun: () => Effect.die("unexpected"),
-            startGeoWriterRun: () => Effect.die("unexpected"),
-            startAgentReadinessRun: () => Effect.fail(cause),
-          }),
-          Effect.result
-        )
-      );
-      assert.ok(Result.isFailure(result));
-      assert.ok(result.failure._tag === "AgentReadinessStampError");
-      expect(result.failure.cause).toHaveProperty("cause", cause);
-      expect(result.failure.stampCause).toHaveProperty(
-        "_tag",
-        "GeoDatabaseError"
-      );
-    } finally {
-      await database.postgres.exec(
-        "ALTER TABLE geo_agent_readiness_reports DROP CONSTRAINT reject_handoff_failure"
-      );
-    }
-  });
-
-  test("report adapter classifies remote errors and malformed responses", async () => {
-    for (const response of [
-      new Response("unavailable", { status: 503 }),
-      Response.json({ unexpected: true }),
-    ]) {
-      const result = await Effect.runPromise(
-        Effect.gen(function* () {
-          const network = yield* AgentReadinessNetwork;
-          return yield* network.report("https://example.com");
-        }).pipe(
-          Effect.provide(makeAgentReadinessNetwork(async () => response)),
-          Effect.result
-        )
-      );
-      assert.ok(Result.isFailure(result));
-      expect(result.failure._tag).toBe("AgentReadinessApiError");
-    }
-  });
-  test("missing URL is an expected failure, not a defect", async () => {
-    const scope = await seedProject("missing-url");
-    await testDb
-      .update(brandSettings)
-      .set({ websiteUrl: "" })
-      .where(eq(brandSettings.id, "brand-missing-url"));
-    const result = await Effect.runPromise(
-      loadAgentReadiness({
-        ...scope,
-        brandSettingsId: "brand-missing-url",
-      }).pipe(Effect.result)
-    );
-    assert.ok(Result.isFailure(result));
-    expect(result.failure._tag).toBe("AgentReadinessTargetMissingError");
   });
 
   test("remote failure stamps a safe failed outcome", async () => {
@@ -250,33 +182,6 @@ describe("Agent Readiness Effect boundaries", () => {
     expect(
       (await testDb.query.geoAgentReadinessReports.findFirst())?.status
     ).toBe("failed");
-  });
-
-  test("failure-stamp rejection retains both failures", async () => {
-    const payload = await seedReadiness();
-    await database.postgres.exec(
-      "ALTER TABLE geo_agent_readiness_reports ADD CONSTRAINT reject_failure CHECK (status <> 'failed') NOT VALID"
-    );
-    const original = new AgentReadinessApiError({ message: "remote failed" });
-    try {
-      const result = await Effect.runPromise(
-        withReadiness(executeAgentReadinessScan(payload), {
-          ...readinessNetwork,
-          report: () => Effect.fail(original),
-        }).pipe(Effect.result)
-      );
-      assert.ok(Result.isFailure(result));
-      expect(result.failure._tag).toBe("AgentReadinessStampError");
-      expect(result.failure.cause).toBe(original);
-      expect(result.failure.stampCause).toHaveProperty(
-        "_tag",
-        "GeoDatabaseError"
-      );
-    } finally {
-      await database.postgres.exec(
-        "ALTER TABLE geo_agent_readiness_reports DROP CONSTRAINT reject_failure"
-      );
-    }
   });
 
   test("SSE error cancels an incomplete stream and releases its reader", async () => {

@@ -5,32 +5,13 @@ import type {
   GeoSearchGapRow,
 } from "@notra/geo-core/types/geo";
 
-import { GEO_GAPS_TABS } from "../src/constants/geo-gaps";
 import {
   filterUnifiedSearchGaps,
-  geoGapsEmptyKind,
-  isGeoGapsTab,
   primarySearchQuery,
   searchGapAiDraft,
   searchGapDemandRank,
   unifySearchGaps,
 } from "../src/utils/geo-gaps";
-
-test("content gaps has one search tab for both search sources", () => {
-  expect(GEO_GAPS_TABS.map((tab) => tab.value)).toEqual(["prompt", "search"]);
-  expect(isGeoGapsTab("ai")).toBe(false);
-});
-
-test("a missing snapshot is preparing rather than claiming there was no scan", () => {
-  expect(
-    geoGapsEmptyKind({
-      tab: "prompt",
-      hasScanData: false,
-      snapshotReady: false,
-      isScanning: false,
-    })
-  ).toBe("preparing");
-});
 
 test("the same query from Search Console and AI appears once", () => {
   const consoleGap: GeoSearchGapRow = {

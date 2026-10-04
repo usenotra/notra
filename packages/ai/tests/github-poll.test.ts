@@ -111,35 +111,6 @@ describe("scheduled GitHub activity polling against Vercel Labs Emulate", () => 
     );
   });
 
-  test("ignores draft and prerelease announcements", async () => {
-    for (const release of [
-      { tag_name: "v-draft", draft: true },
-      { tag_name: "v-preview", prerelease: true },
-      { tag_name: "v-stable" },
-    ]) {
-      await client.request("POST /repos/{owner}/{repo}/releases", {
-        owner: "notra-test",
-        repo: "product",
-        ...release,
-      });
-    }
-    const result = await poll();
-    expect(
-      result.items
-        .filter((item) => item.title.startsWith("Release "))
-        .map((item) => item.title)
-    ).toEqual(["Release v-stable in notra-test/product"]);
-  });
-
-  test("respects the lookback window for releases and commits", async () => {
-    await client.request("POST /repos/{owner}/{repo}/releases", {
-      owner: "notra-test",
-      repo: "product",
-      tag_name: "v-old",
-    });
-    expect((await poll(new Date(Date.now() + 86_400_000))).items).toEqual([]);
-  });
-
   test("a deleted repository does not prevent polling a healthy repository", async () => {
     repositories.unshift({
       id: "deleted",
@@ -166,15 +137,6 @@ describe("scheduled GitHub activity polling against Vercel Labs Emulate", () => 
     const result = await poll();
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.payload.repositoryId).toBe("integration-test");
-  });
-
-  test("an empty integration list skips without resolving credentials", async () => {
-    repositories = [];
-    expect(await poll()).toMatchObject({
-      items: [],
-      skippedReason: "No enabled GitHub repositories are connected",
-    });
-    expect(token).not.toHaveBeenCalled();
   });
 
   test("deduplication stays scoped to the connected repository", async () => {

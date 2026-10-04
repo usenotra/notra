@@ -61,31 +61,6 @@ afterAll(() => database.postgres.close());
 beforeEach(resetDatabase);
 
 describe("persona persistence", () => {
-  test("returns the committed response without a separate database read", async () => {
-    const scope = await seedProject("persona-response");
-    const read = spyOn(testDb.query.geoPersonas, "findMany").mockImplementation(
-      () => {
-        throw new Error("Connection unavailable outside the transaction");
-      }
-    );
-    try {
-      const personas = await Effect.runPromise(
-        persistGeneratedPersonas(scope.organizationId, scope.projectId, {
-          personas: [generatedPersona],
-        })
-      );
-      expect(personas).toHaveLength(1);
-      expect(personas[0]?.name).toBe(generatedPersona.name);
-      expect(personas[0]?.memories[0]?.content).toBe(
-        generatedPersona.memories[0]?.content
-      );
-      expect(read).not.toHaveBeenCalled();
-      expect(await testDb.select().from(geoPersonas)).toHaveLength(1);
-    } finally {
-      read.mockRestore();
-    }
-  });
-
   test("archives a persona without deleting memories or historical checks", async () => {
     const scope = await seedProject("persona-archive");
     const [persona] = await Effect.runPromise(

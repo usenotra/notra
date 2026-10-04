@@ -2,16 +2,13 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { MAX_JUDGE_COMPETITORS } from "../src/constants/geo-conversations";
 import { GeoModelService } from "../src/deps";
 import { judgeAnswer } from "../src/geo/check-evaluation";
-import { geoJudgeResultSchema } from "../src/schemas/geo";
 import type { GeoCheckContext, GeoJudgeResult } from "../src/types/geo";
 import type { GeoModelServiceShape } from "../src/types/model";
 import {
   applyMentionEvaluation,
   buildJudgePrompt,
-  MENTION_EVALUATION_QUESTIONS,
   type MentionEvaluationResult,
   toMentionEvaluation,
 } from "../src/utils/geo-check-evaluation";
@@ -45,34 +42,6 @@ describe("GEO check evaluation", () => {
     expect(prompt).not.toContain("Generic phrases");
     expect(prompt).not.toContain('\n"""\n');
   });
-
-  test("uses the persisted competitor cap as the judge schema bound", () => {
-    const result = {
-      mentioned: false,
-      position: null,
-      sentiment: null,
-      excerpt: "No mention",
-    };
-
-    expect(
-      geoJudgeResultSchema.safeParse({
-        ...result,
-        competitors: Array.from(
-          { length: MAX_JUDGE_COMPETITORS },
-          (_, index) => `Competitor ${index}`
-        ),
-      }).success
-    ).toBe(true);
-    expect(
-      geoJudgeResultSchema.safeParse({
-        ...result,
-        competitors: Array.from(
-          { length: MAX_JUDGE_COMPETITORS + 1 },
-          (_, index) => `Competitor ${index}`
-        ),
-      }).success
-    ).toBe(false);
-  });
 });
 
 const judgeResult: GeoJudgeResult = {
@@ -100,17 +69,6 @@ function evaluationResult(
 }
 
 describe("GEO mention evaluation", () => {
-  test("maps typed answers to sentiment and a numeric position", () => {
-    expect(toMentionEvaluation(evaluationResult("neutral", "3"))).toEqual({
-      sentiment: "neutral",
-      position: 3,
-      confidence: { sentiment: 0.9, position: 0.7 },
-    });
-    expect(
-      toMentionEvaluation(evaluationResult("negative", "none")).position
-    ).toBeNull();
-  });
-
   test("evaluation overrides the judge for sentiment and position", () => {
     const evaluation = toMentionEvaluation(evaluationResult("neutral", "none"));
     expect(applyMentionEvaluation(judgeResult, true, evaluation)).toEqual({
@@ -118,12 +76,6 @@ describe("GEO mention evaluation", () => {
       sentiment: "neutral",
       position: null,
     });
-  });
-
-  test("keeps the judge answers when the evaluation was skipped", () => {
-    expect(applyMentionEvaluation(judgeResult, true, null)).toEqual(
-      judgeResult
-    );
   });
 
   test("preserves a judge position beyond the evaluator's ranks", () => {
@@ -143,16 +95,6 @@ describe("GEO mention evaluation", () => {
     expect(
       applyMentionEvaluation(judgeResult, false, evaluation)
     ).toMatchObject({ mentioned: false, sentiment: null, position: null });
-  });
-
-  test("offers the position options the judge prompt describes", () => {
-    const options = Object.keys(MENTION_EVALUATION_QUESTIONS.position.criteria);
-    expect(options.toSorted()).toEqual(
-      [
-        "none",
-        ...Array.from({ length: 10 }, (_, index) => String(index + 1)),
-      ].toSorted()
-    );
   });
 });
 

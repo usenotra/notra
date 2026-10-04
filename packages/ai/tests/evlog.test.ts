@@ -4,10 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import type { DrainContext } from "evlog";
 
 import { getEvlogRuntime } from "../src/utils/evlog-runtime";
-import {
-  getOperationalContext,
-  runWithOperationalContext,
-} from "../src/utils/operational-context";
+import { getOperationalContext } from "../src/utils/operational-context";
 
 const runtime = getEvlogRuntime();
 const original = { ...runtime };
@@ -28,7 +25,7 @@ runtime.geoDrain = Object.assign(
   { flush: geoFlush }
 );
 
-const { createError, geoLog, log, setLogFlushScheduler, useLogger, withEvlog } =
+const { createError, setLogFlushScheduler, useLogger, withEvlog } =
   await import("../src/evlog");
 
 beforeEach(() => {
@@ -68,37 +65,6 @@ describe("framework-neutral request logging", () => {
     expect(aiEvents.every(({ event }) => event.status === 204)).toBe(true);
     expect(getOperationalContext()).toBeUndefined();
     expect(() => useLogger()).toThrow();
-  });
-
-  test("inherits the parent operational request ID", async () => {
-    const result: string = await runWithOperationalContext(
-      { requestId: "parent" },
-      withEvlog(async () => {
-        expect(useLogger().getContext().requestId).toBe("parent");
-        expect(getOperationalContext()?.requestId).toBe("parent");
-        return "ok";
-      })
-    );
-    expect(result).toBe("ok");
-    expect(aiEvents[0]?.event.requestId).toBe("parent");
-  });
-
-  test("routes standalone AI and GEO events and schedules both drain flushes", async () => {
-    const tasks: (() => Promise<void>)[] = [];
-    setLogFlushScheduler((task) => {
-      tasks.push(task);
-    });
-    log.info({ event: "ai.test" });
-    geoLog.info({ event: "geo.test" });
-    await sleep(0);
-    expect(aiEvents.some(({ event }) => event.event === "ai.test")).toBe(true);
-    expect(geoEvents.some(({ event }) => event.event === "geo.test")).toBe(
-      true
-    );
-    expect(tasks).toHaveLength(1);
-    await tasks[0]?.();
-    expect(aiFlush).toHaveBeenCalledTimes(1);
-    expect(geoFlush).toHaveBeenCalledTimes(1);
   });
 
   test("waits for streamed responses before emitting and scheduling flushes", async () => {

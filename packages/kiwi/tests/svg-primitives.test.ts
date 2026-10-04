@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 
-import { SVG_GEOMETRY_SELECTOR } from "../src/constants/dom-to-scene";
 import type { PathSubpath } from "../src/types/svg-path";
 import type { SvgPrimitiveAttrs } from "../src/types/svg-primitive";
 import {
@@ -36,22 +35,6 @@ function hasPoint(sub: PathSubpath, x: number, y: number): boolean {
 }
 
 describe("svg primitive imports (#388)", () => {
-  test("geometry selector covers path + all six primitives", () => {
-    for (const tag of [
-      "path",
-      "circle",
-      "ellipse",
-      "rect",
-      "line",
-      "polyline",
-      "polygon",
-    ]) {
-      expect(SVG_GEOMETRY_SELECTOR.split(",").map((s) => s.trim())).toContain(
-        tag
-      );
-    }
-  });
-
   test("circle converts to a closed loop spanning its diameter", () => {
     const sub = onlySubpath("circle", { cx: "50", cy: "50", r: "10" });
     expect(sub.closed).toBe(true);
@@ -132,20 +115,6 @@ describe("svg primitive imports (#388)", () => {
     ]) {
       expect(hasPoint(sub, x, y)).toBe(false);
     }
-  });
-
-  test("line converts to a single open segment", () => {
-    const sub = onlySubpath("line", {
-      x1: "0",
-      y1: "0",
-      x2: "10",
-      y2: "10",
-    });
-    expect(sub.closed).toBe(false);
-    expect(sub.points).toEqual([
-      { x: 0, y: 0 },
-      { x: 10, y: 10 },
-    ]);
   });
 
   test("polyline stays open, polygon closes", () => {

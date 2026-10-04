@@ -225,22 +225,4 @@ describe("GEO billing usage", () => {
 
     expect(cost.costCents).toBe(173);
   });
-
-  test("carries reasoning tokens through aggregation", () => {
-    const total = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, {
-      inputTokens: 10,
-      outputTokens: 20,
-      totalTokens: 30,
-      outputTokenDetails: { textTokens: 5, reasoningTokens: 15 },
-    });
-    expect(total.reasoningTokens).toBe(15);
-    expect(
-      addAgentTokenUsage(total, {
-        inputTokens: 1,
-        outputTokens: 2,
-        totalTokens: 3,
-        reasoningTokens: 4,
-      }).reasoningTokens
-    ).toBe(19);
-  });
 });

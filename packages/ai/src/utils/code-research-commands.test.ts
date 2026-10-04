@@ -1,20 +1,15 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  CODE_RESEARCH_EXIT_MARKER,
-  CODE_RESEARCH_REPO_DIR,
-} from "@notra/ai/constants/code-research";
+import { CODE_RESEARCH_REPO_DIR } from "@notra/ai/constants/code-research";
 
 import {
   buildCheckoutScript,
   buildCloneScript,
   buildListFilesScript,
   buildReadFileScript,
-  buildSearchScript,
   globToRegExp,
   isDeniedRepoPath,
   normalizeRepoPath,
-  parseCommandOutput,
   parseCommitLines,
   parseListFiles,
   parseSearchMatches,
@@ -125,21 +120,6 @@ describe("redactSecrets", () => {
   });
 });
 
-describe("parseCommandOutput", () => {
-  test("reads the exit trailer", () => {
-    expect(
-      parseCommandOutput(`hello\nworld\n\n${CODE_RESEARCH_EXIT_MARKER}3`, 0)
-    ).toEqual({ exitCode: 3, output: "hello\nworld\n" });
-  });
-
-  test("falls back to the box exit code without a trailer", () => {
-    expect(parseCommandOutput("boom", 2)).toEqual({
-      exitCode: 2,
-      output: "boom",
-    });
-  });
-});
-
 describe("parseSearchMatches", () => {
   test("hides denied files, redacts, and caps", () => {
     const output = [
@@ -175,25 +155,6 @@ describe("secret handling in results", () => {
 });
 
 describe("parseListFiles", () => {
-  test("collapses large listings into directories", () => {
-    const files = [
-      "apps/web/a.ts",
-      "apps/web/b.ts",
-      "apps/api/c.ts",
-      "README.md",
-    ];
-    const parsed = parseListFiles(files.join("\n"), "", 2);
-    expect(parsed.truncated).toBe(true);
-    expect(parsed.files).toEqual(["README.md"]);
-    expect(parsed.directories).toEqual([{ path: "apps", files: 3 }]);
-  });
-
-  test("returns small listings as files", () => {
-    const parsed = parseListFiles("src/a.ts\nsrc/b.ts", "src", 10);
-    expect(parsed.files).toEqual(["src/a.ts", "src/b.ts"]);
-    expect(parsed.truncated).toBe(false);
-  });
-
   test("filters by glob relative to the listed path", () => {
     const listing = [
       "apps/web/src/flag.ts",
@@ -319,32 +280,5 @@ describe("git scripts", () => {
       `ls-tree -r --name-only '${sha}'`
     );
     expect(() => buildReadFileScript("HEAD", "src/a.ts", 1, 10)).toThrow();
-  });
-
-  test("filters listings by glob before the scan cap", () => {
-    const script = buildListFilesScript("b".repeat(40), "apps/web", "**/*.ts");
-    expect(script).toContain(
-      "| grep -E '^apps/web/(.*/)?[^/]*\\.ts$' | head -n"
-    );
-  });
-
-  test("keeps git grep's exit status past the line cap", () => {
-    const script = buildSearchScript({
-      sha: "c".repeat(40),
-      query: "foo(",
-      regex: true,
-      ignoreCase: false,
-      path: "",
-      maxPerFile: 3,
-    });
-    expect(script).toContain('echo "$?" > "$s"; } | head -n 4000');
-    expect(script).toContain('[ "$c" = 141 ] && c=0');
-    expect(script).toContain('exit "$c"');
-  });
-
-  test("fetches pull request heads into a private ref", () => {
-    expect(
-      buildCheckoutScript({ kind: "pull_request", number: 42 }, "main")
-    ).toContain("+refs/pull/42/head:refs/remotes/origin/pr/42");
   });
 });

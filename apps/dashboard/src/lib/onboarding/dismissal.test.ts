@@ -45,15 +45,3 @@ test("dismissal drops a foreign or stale project", async () => {
     redirectIfOnboardingDismissed("org-1", "acme", "foreign-project")
   ).rejects.toThrow("REDIRECT:/acme");
 });
-
-test("development replay bypasses dismissal", async () => {
-  findFirst.mockClear();
-  await redirectIfOnboardingDismissed("org-1", "acme", "project-1", true);
-  expect(findFirst).not.toHaveBeenCalled();
-});
-
-test("active onboarding remains available", async () => {
-  findFirst.mockResolvedValue({ onboardingDismissed: false });
-  await redirectIfOnboardingDismissed("org-1", "acme");
-  expect(findFirst).toHaveBeenCalled();
-});

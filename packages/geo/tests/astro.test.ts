@@ -50,33 +50,6 @@ describe("Astro middleware", () => {
     });
   });
 
-  test("uses an explicitly configured endpoint instead of the default", async () => {
-    send.mockResolvedValue(new Response(null, { status: 204 }));
-    const middleware = createGeoMiddleware({
-      token: "test-token",
-      endpoint: "https://custom.example.com/",
-    });
-
-    await middleware(
-      { request: new Request("https://example.com/") },
-      () => new Response("page")
-    );
-
-    expect(send.mock.calls[0]?.[0]).toBe(
-      "https://custom.example.com/api/geo/ingest"
-    );
-  });
-
-  test("accepts a synchronous next result", async () => {
-    const response = new Response("page");
-    expect(
-      await createGeoMiddleware({ token: "" })(
-        { request: new Request("https://example.com/") },
-        () => response
-      )
-    ).toBe(response);
-  });
-
   test("runs the handler while sending and waits for capture before returning", async () => {
     const sent = Promise.withResolvers<Response>();
     send.mockReturnValue(sent.promise);

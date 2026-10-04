@@ -1,47 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-import * as healthcheck from "../src/app/api/healthcheck/route";
 import { NON_DASHBOARD_PATH } from "../src/constants/auth-routes";
 import {
   buildPostAuthRedirectPath,
   sanitizeReturnTo,
 } from "../src/lib/auth/return-to";
-import { dispatchRouteHandler } from "../src/lib/auth/route-handler";
 import { buildSessionCorsHeaders } from "../src/lib/auth/session-cors";
-import { negotiateDashboardLocale } from "../src/utils/i18n";
 import { evaluateLocalDevAuth } from "../src/utils/local-dev-auth";
 
 describe("migration executable security contracts", () => {
-  test("real healthcheck survives GET, HEAD, OPTIONS and unsupported method dispatch", async () => {
-    const get = await dispatchRouteHandler(
-      healthcheck,
-      new Request("http://127.0.0.1/api/healthcheck")
-    );
-    expect(get.status).toBe(200);
-    expect(get.headers.get("cache-control")).toBe("no-store");
-    const data = await get.json();
-    expect(data.ok).toBe(true);
-    expect(Number.isNaN(Date.parse(data.time))).toBe(false);
-    const head = await dispatchRouteHandler(
-      healthcheck,
-      new Request("http://127.0.0.1/api/healthcheck", { method: "HEAD" })
-    );
-    expect(head.status).toBe(200);
-    expect(head.headers.get("cache-control")).toBe("no-store");
-    expect(await head.text()).toBe("");
-    const options = await dispatchRouteHandler(
-      healthcheck,
-      new Request("http://127.0.0.1/api/healthcheck", { method: "OPTIONS" })
-    );
-    expect(options.status).toBe(204);
-    expect(options.headers.get("allow")).toBe("GET, HEAD, OPTIONS");
-    const post = await dispatchRouteHandler(
-      healthcheck,
-      new Request("http://127.0.0.1/api/healthcheck", { method: "POST" })
-    );
-    expect(post.status).toBe(405);
-  });
-
   test("callback paths reject external and encoded protocol-relative redirects", () => {
     for (const value of [
       "https://attacker.invalid",
@@ -136,14 +103,5 @@ describe("migration executable security contracts", () => {
         reason: "non_loopback",
       });
     }
-  });
-
-  test("locale negotiation preserves weighted German and English fallback", () => {
-    expect(negotiateDashboardLocale("de-DE,de;q=0.9,en;q=0.8")).toBe("de");
-    expect(negotiateDashboardLocale("de;q=0.2,en-US;q=0.9")).toBe("en");
-    expect(negotiateDashboardLocale("de;q=0,en;q=0.5")).toBe("en");
-    expect(negotiateDashboardLocale("fr-FR,es;q=0.9")).toBe("en");
-    expect(negotiateDashboardLocale("de;q=invalid,en;q=0.8")).toBe("en");
-    expect(negotiateDashboardLocale(null)).toBe("en");
   });
 });

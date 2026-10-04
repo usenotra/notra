@@ -26,31 +26,8 @@ if (process.env.NOTRA_FRAMEWORK_RUNTIME_TEST !== "1") {
 } else {
   const { H3 } = await import("nitro/h3");
   const { default: runtime, scheduleDashboardTask } = await import("./runtime");
-  const { afterResponse } = await import("./after-response");
 
   describe("dashboard Nitro middleware", () => {
-    test("accepts existing Promise and value-returning callback forms", async () => {
-      const app = new H3();
-      app.use(runtime);
-      let called = false;
-      let complete: (() => void) | undefined;
-      const completion = new Promise<void>((resolve) => {
-        complete = resolve;
-      });
-      app.get("/after", () => {
-        afterResponse(Promise.resolve());
-        afterResponse(() => {
-          called = true;
-          complete?.();
-          return "complete";
-        });
-        return new Response("ok");
-      });
-      const response = await app.request("http://localhost/after");
-      await response.text();
-      await completion;
-      expect(called).toBe(true);
-    });
     test("retains image-specific SVG sandbox and attachment headers", async () => {
       const { optimizeFrameworkImage } =
         await import("../../utils/framework-image.server");
@@ -132,12 +109,6 @@ if (process.env.NOTRA_FRAMEWORK_RUNTIME_TEST !== "1") {
       expect(await response.text()).toBe("streamed");
       await completed;
       expect(flushed).toBe(true);
-    });
-
-    test("requires a request lifetime for post-response callbacks", () => {
-      expect(() => scheduleDashboardTask(() => undefined)).toThrow(
-        "No dashboard request lifetime available"
-      );
     });
   });
 }

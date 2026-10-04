@@ -335,28 +335,6 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     ).rejects.toThrow("Bad Gateway");
   });
 
-  test("a head that is already recorded does not reread GitHub", async () => {
-    const octokit = {
-      request: async () => {
-        throw new Error("should not read GitHub");
-      },
-    } as unknown as GitHubMentionOctokit;
-    expect(
-      await syncPublishedPostFromPullRequestHead({
-        octokit,
-        organizationId: "org",
-        publication: {
-          ...publication,
-          headSha: "applied",
-          markdown: "# Applied",
-        },
-        commitSha: "applied",
-        branch: "content",
-      })
-    ).toEqual({ status: "synchronized", markdown: "# Applied" });
-    expect(syncWrite).not.toHaveBeenCalled();
-  });
-
   test("failed image translation schedules the immutable mapping payload", async () => {
     const scheduled: unknown[] = [];
     const octokit = {

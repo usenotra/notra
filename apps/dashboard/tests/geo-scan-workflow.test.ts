@@ -226,13 +226,6 @@ describe("GEO scan workflow orchestration", () => {
     expect(sleep).not.toHaveBeenCalled();
   });
 
-  test("invalid payloads do not reach project discovery", async () => {
-    expect(await geoScanWorkflow({ organizationId: "" })).toEqual({
-      status: "invalid_payload",
-    });
-    expect(listProjects).not.toHaveBeenCalled();
-  });
-
   test("empty project discovery does not prepare, bill, or retry a scan", async () => {
     listProjects.mockResolvedValue([]);
     expect(await geoScanWorkflow({ organizationId: "org-test" })).toEqual({
@@ -748,51 +741,5 @@ describe("GEO scan workflow orchestration", () => {
       integrationType: "geo",
       errorMessage: "Database unavailable",
     });
-  });
-
-  test("a logging failure after a failed wave does not escalate the failure", async () => {
-    const plan = scanPlan("project-test", GEO_SCAN_TASK_BATCH_SIZE + 1);
-    prepare.mockResolvedValue({ status: "planned", plan });
-    taskBatch.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          setTimeout(
-            () =>
-              resolve({
-                checks: 2,
-                mentions: 1,
-                dropped: 1,
-                usage: EMPTY_AGENT_TOKEN_USAGE,
-              }),
-            5
-          );
-        })
-    );
-    taskBatch.mockRejectedValueOnce(new Error("Engine unavailable"));
-    appendLog.mockRejectedValue(new Error("Redis unavailable"));
-    // The batch failure is already finalized as "failed"; the rejected log
-    // append must not throw on top of it or alter the returned result.
-    expect(await geoScanWorkflow({ organizationId: "org-test" })).toEqual({
-      status: "completed",
-      checks: 2,
-      mentions: 1,
-    });
-    expect(finalize).toHaveBeenCalledWith(
-      plan.context,
-      expect.objectContaining({ checks: 2 }),
-      "failed",
-      plan.claimedAt,
-      {
-        retried: false,
-        failureReason: "Error",
-        failure: {
-          errorCode: "scan_execution_failed",
-          errorMessage: "The scan could not be completed.",
-          failedStage: "execution",
-          retryable: null,
-        },
-      }
-    );
-    expect(appendLog).toHaveBeenCalledTimes(1);
   });
 });

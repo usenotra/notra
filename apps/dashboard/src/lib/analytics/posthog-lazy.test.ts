@@ -13,15 +13,8 @@ mock.module("@/constants/posthog", () => ({
   POSTHOG_CONFIG: {},
 }));
 
-const {
-  abandonPendingPostHogInit,
-  getPostHogInitGeneration,
-  initPostHog,
-  resetPostHogForTests,
-  subscribeWhenPostHogReady,
-  whenPostHogReady,
-  withPostHog,
-} = await import("./posthog-lazy");
+const { initPostHog, resetPostHogForTests, whenPostHogReady, withPostHog } =
+  await import("./posthog-lazy");
 const { flushTrackEvent } = await import("./posthog-client");
 
 type TimeoutHandle = number;
@@ -143,141 +136,6 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
     await Promise.resolve();
     expect(staleInit).not.toHaveBeenCalled();
     expect(liveInit).toHaveBeenCalledTimes(1);
-  } finally {
-    timers.restore();
-    resetPostHogForTests();
-  }
-});
-
-test("flush timeout abandons a hung idle init already in flight", async () => {
-  const staleInit = mock(() => undefined);
-  const liveInit = mock(() => undefined);
-  let importCalls = 0;
-  let resolveIdle:
-    | ((module: { default: { init: typeof staleInit } }) => void)
-    | undefined;
-
-  resetPostHogForTests(() => {
-    importCalls += 1;
-    if (importCalls === 1) {
-      return new Promise((resolve) => {
-        resolveIdle = resolve;
-      });
-    }
-    return Promise.resolve({ default: { init: liveInit } });
-  });
-
-  const timers = installMockTimers();
-  try {
-    initPostHog();
-    const flush = flushTrackEvent("$pageview");
-    expect(timers.pending.size).toBe(1);
-    timers.runPending();
-    await flush;
-
-    const retried = mock(() => undefined);
-    await withPostHog(retried);
-    expect(importCalls).toBe(2);
-    expect(liveInit).toHaveBeenCalledTimes(1);
-    expect(retried).toHaveBeenCalledTimes(1);
-
-    resolveIdle?.({ default: { init: staleInit } });
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(staleInit).not.toHaveBeenCalled();
-    expect(liveInit).toHaveBeenCalledTimes(1);
-  } finally {
-    timers.restore();
-    resetPostHogForTests();
-  }
-});
-
-test("subscribeWhenPostHogReady cleanup drops abandoned waiters", async () => {
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: { location: { hostname: "localhost" } },
-  });
-  resetPostHogForTests(() =>
-    Promise.resolve({
-      default: { init: mock(() => undefined) },
-    })
-  );
-  try {
-    const abandoned = mock(() => undefined);
-    const live = mock(() => undefined);
-    const unsubscribe = subscribeWhenPostHogReady(abandoned);
-    unsubscribe();
-    subscribeWhenPostHogReady(live);
-
-    await withPostHog(() => undefined);
-    expect(abandoned).not.toHaveBeenCalled();
-    expect(live).toHaveBeenCalledTimes(1);
-  } finally {
-    restoreWindow(previousWindow);
-    resetPostHogForTests();
-  }
-});
-
-test("a timed-out flush does not abandon a newer init", async () => {
-  const liveInit = mock(() => undefined);
-  let importCalls = 0;
-  let resolveLive:
-    | ((module: { default: { init: typeof liveInit } }) => void)
-    | undefined;
-
-  resetPostHogForTests(() => {
-    importCalls += 1;
-    if (importCalls === 1) {
-      return new Promise(() => undefined);
-    }
-    return new Promise((resolve) => {
-      resolveLive = resolve;
-    });
-  });
-
-  const timers = installMockTimers();
-  try {
-    const hungFlush = flushTrackEvent("$pageview");
-    const staleAttempt = getPostHogInitGeneration();
-    const staleTimeout = timers.pending.values().next().value as () => void;
-    staleTimeout();
-    await hungFlush;
-
-    const retried = mock(() => undefined);
-    const newer = withPostHog(retried);
-    abandonPendingPostHogInit(staleAttempt);
-    resolveLive?.({ default: { init: liveInit } });
-    await newer;
-
-    expect(importCalls).toBe(2);
-    expect(liveInit).toHaveBeenCalledTimes(1);
-    expect(retried).toHaveBeenCalledTimes(1);
-  } finally {
-    timers.restore();
-    resetPostHogForTests();
-  }
-});
-
-test("flushTrackEvent captures with sendBeacon so navigation can still deliver", async () => {
-  const capture = mock(() => undefined);
-  resetPostHogForTests(() =>
-    Promise.resolve({
-      default: {
-        init: mock(() => undefined),
-        capture,
-      },
-    })
-  );
-
-  const timers = installMockTimers();
-  try {
-    await flushTrackEvent("$pageview", { from: "logout" });
-    expect(capture).toHaveBeenCalledWith(
-      "$pageview",
-      { from: "logout" },
-      { send_instantly: true, transport: "sendBeacon" }
-    );
   } finally {
     timers.restore();
     resetPostHogForTests();

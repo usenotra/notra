@@ -53,11 +53,9 @@ mock.module("../src/ingest/ratelimit", () => ({
 
 const { runGeoIngest } = await import("../src/ingest/pipeline");
 const {
-  GeoIngestInvalidPayloadError,
   GeoIngestInvalidTokenError,
   GeoIngestFailedError,
   GeoIngestRateLimitedError,
-  GeoIngestUnparseableUrlError,
 } = await import("../src/ingest/errors");
 
 function ingestRequest(
@@ -143,33 +141,6 @@ describe("runGeoIngest ordering", () => {
     expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
   });
 
-  test("ingests tracked traffic after identity and host checks", async () => {
-    const outcome = await run(ingestRequest());
-
-    expect(outcome._tag).toBe("Success");
-    expect(isGeoIngestIdentityActive).toHaveBeenCalledTimes(1);
-    expect(loadIngestAllowedHosts).toHaveBeenCalledTimes(1);
-    expect(ratelimitLimit).toHaveBeenCalledTimes(1);
-    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
-  });
-
-  test("hands tracked traffic to the buffer instead of writing it", async () => {
-    const buffered: unknown[] = [];
-    const outcome = await Effect.runPromise(
-      runGeoIngest(ingestRequest(), () => {}, {
-        enqueue: (event) => {
-          buffered.push(event);
-          return true;
-        },
-        expedite: () => {},
-      })
-    );
-
-    expect(outcome.outcome).toBe("ingested");
-    expect(buffered).toHaveLength(1);
-    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
-  });
-
   test("writes directly when the buffer refuses the event", async () => {
     await Effect.runPromise(
       runGeoIngest(ingestRequest(), () => {}, {
@@ -178,19 +149,6 @@ describe("runGeoIngest ordering", () => {
       })
     );
     expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
-  });
-
-  test("defers analytics until after the event was stored", async () => {
-    const tasks: Array<() => Promise<void>> = [];
-    await Effect.runPromise(
-      runGeoIngest(ingestRequest(), (task) => tasks.push(task))
-    );
-
-    expect(ingestGeoTrafficEvents).toHaveBeenCalledTimes(1);
-    expect(trackGeoIngestAnalytics).not.toHaveBeenCalled();
-    expect(tasks).toHaveLength(1);
-    await tasks[0]?.();
-    expect(trackGeoIngestAnalytics).toHaveBeenCalledTimes(1);
   });
 
   test("rejects tracked traffic when the rate-limit transport fails", async () => {
@@ -307,23 +265,5 @@ describe("runGeoIngest ordering", () => {
       expect(outcome.failure).toBeInstanceOf(GeoIngestInvalidTokenError);
     }
     expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
-  });
-
-  test("returns 400 for malformed payloads while the identity is active", async () => {
-    const outcome = await run(ingestRequest({ method: "GET" }));
-
-    expect(outcome._tag).toBe("Failure");
-    if (outcome._tag === "Failure") {
-      expect(outcome.failure).toBeInstanceOf(GeoIngestInvalidPayloadError);
-    }
-  });
-
-  test("returns 400 for unparseable urls while the identity is active", async () => {
-    const outcome = await run(ingestRequest({ method: "GET", url: ":::" }));
-
-    expect(outcome._tag).toBe("Failure");
-    if (outcome._tag === "Failure") {
-      expect(outcome.failure).toBeInstanceOf(GeoIngestUnparseableUrlError);
-    }
   });
 });

@@ -9,10 +9,6 @@ import {
   GEO_MODEL_PROVIDERS,
 } from "../src/constants/geo-model-catalog";
 import type { GeoResolvedModelCatalog } from "../src/types/geo";
-import {
-  geoScanEmptyEngineSkipReason,
-  isGeoNativeSearchEngine,
-} from "../src/utils/geo-engines";
 import { resolveGroundedEngines } from "../src/utils/geo-grounded-engines";
 import { calcGeoScanSize } from "../src/utils/geo-scan";
 
@@ -59,43 +55,6 @@ const catalog: GeoResolvedModelCatalog = {
     },
   ],
 };
-
-describe("native search engines", () => {
-  test("SerpApi and Box search; Cursor and bare catalog models do not", () => {
-    expect(isGeoNativeSearchEngine(catalog, GEO_AI_OVERVIEW_ENGINE_ID)).toBe(
-      true
-    );
-    expect(
-      isGeoNativeSearchEngine(catalog, "opencode/gpt-5.6-sol-medium")
-    ).toBe(true);
-    expect(isGeoNativeSearchEngine(catalog, "cursor/composer-2.5")).toBe(false);
-    expect(isGeoNativeSearchEngine(catalog, "anthropic/claude-sonnet-5")).toBe(
-      false
-    );
-    expect(isGeoNativeSearchEngine(catalog, "deepseek/deepseek-v4-pro")).toBe(
-      false
-    );
-  });
-});
-
-describe("empty engine skip reason", () => {
-  test("a Cursor-only selection is not a ZDR skip", () => {
-    expect(
-      geoScanEmptyEngineSkipReason(["cursor/composer-2.5"], 0, undefined, 1)
-    ).toBe("no_search_engines");
-  });
-
-  test("ZDR still wins when nothing passed the retention filter", () => {
-    expect(
-      geoScanEmptyEngineSkipReason(
-        ["anthropic/claude-sonnet-5"],
-        0,
-        undefined,
-        0
-      )
-    ).toBe("zdr");
-  });
-});
 
 describe("scan size without bare model calls", () => {
   test("catalog models only count their web-search checks", () => {

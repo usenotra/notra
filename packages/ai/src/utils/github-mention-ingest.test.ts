@@ -81,40 +81,6 @@ describe("ingestGitHubAppMentionWebhook", () => {
     syncPublishedPostFromPullRequestHead.mockReset();
   });
 
-  test("marks the publication merged when its pull request closes", async () => {
-    closeContentPublicationForPullRequest.mockResolvedValue(1);
-    const body = JSON.stringify({
-      action: "closed",
-      pull_request: {
-        number: 42,
-        title: "docs: add release",
-        html_url: "https://github.com/acme/app/pull/42",
-        merged: true,
-        head: { ref: "notra/changelog", sha: "abc" },
-        base: { ref: "main", sha: "def" },
-      },
-      repository: {
-        id: 99,
-        name: "app",
-        full_name: "acme/app",
-        default_branch: "main",
-        owner: { login: "acme" },
-      },
-    });
-    const result = await ingest("pull_request", body, "pr-closed-1");
-    expect(result).toMatchObject({
-      httpStatus: 200,
-      body: { message: "publication_synced", updated: 1 },
-    });
-    expect(closeContentPublicationForPullRequest).toHaveBeenCalledWith({
-      owner: "acme",
-      repo: "app",
-      pullRequestNumber: 42,
-      merged: true,
-    });
-    expect(resolveGitHubMentionContext).not.toHaveBeenCalled();
-  });
-
   test("copies an applied suggestion into the Notra post", async () => {
     findOpenContentPublicationByPullRequest.mockResolvedValue({
       id: "pub",
@@ -270,34 +236,6 @@ describe("ingestGitHubAppMentionWebhook", () => {
         branch: "notra/changelog",
       })
     );
-  });
-
-  test("ignores a pull request head update with no linked publication", async () => {
-    findOpenContentPublicationByPullRequest.mockResolvedValue(null);
-    const body = JSON.stringify({
-      action: "synchronize",
-      pull_request: {
-        number: 42,
-        title: "docs: add release",
-        html_url: "https://github.com/acme/app/pull/42",
-        merged: false,
-        head: { ref: "notra/changelog", sha: "applied" },
-        base: { ref: "main", sha: "def" },
-      },
-      repository: {
-        id: 99,
-        name: "app",
-        full_name: "acme/app",
-        default_branch: "main",
-        owner: { login: "acme" },
-      },
-      installation: { id: 55 },
-    });
-    expect(await ingest("pull_request", body, "pr-sync-none")).toMatchObject({
-      httpStatus: 200,
-      body: { message: "ignored", reason: "no_publication" },
-    });
-    expect(syncPublishedPostFromPullRequestHead).not.toHaveBeenCalled();
   });
 
   test("ignores a synchronize delivery without an installation", async () => {

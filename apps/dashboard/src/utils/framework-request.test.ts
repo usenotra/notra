@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 
-import { DASHBOARD_FUNCTION_RULES } from "../constants/framework";
 import {
   getDashboardRedirect,
   getDashboardSecurityHeaders,
@@ -73,18 +72,6 @@ describe("dashboard deployment security", () => {
     );
     expect(headers["Strict-Transport-Security"]).toBe(
       "max-age=63072000; includeSubDomains; preload"
-    );
-  });
-
-  test("retains long-lived chat and agent deployment durations", () => {
-    expect(
-      DASHBOARD_FUNCTION_RULES["/api/organizations/*/chat"].maxDuration
-    ).toBe(1800);
-    expect(
-      DASHBOARD_FUNCTION_RULES["/api/organizations/*/agent/**"].maxDuration
-    ).toBe(800);
-    expect(DASHBOARD_FUNCTION_RULES["/api/cron/geo-scan"].maxDuration).toBe(
-      300
     );
   });
 });

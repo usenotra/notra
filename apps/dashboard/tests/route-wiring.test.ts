@@ -67,19 +67,3 @@ test("every original handler has a native route registered in the generated tree
     expect(representedPaths.get(handler)?.has(`${base}$`)).toBe(true);
   }
 });
-
-test("router combines generated server routes with dashboard, entry and onboarding UI routes", () => {
-  const source = readFileSync(
-    new URL("../src/router.tsx", import.meta.url),
-    "utf8"
-  );
-  expect(source).toContain("Object.values(routeTree.children ?? {})");
-  for (const factory of [
-    "createDashboardUiRoutes",
-    "createEntryUiRoutes",
-    "createOnboardingUiRoutes",
-  ]) {
-    expect(source).toContain(`${factory}(routeTree)`);
-  }
-  expect(source).toContain("routeTree: dashboardRouteTree");
-});

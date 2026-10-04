@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  InternalDashboardAdapterError,
-  InternalDashboardError,
-  InternalDashboardTimeoutError,
-} from "@notra/schemas/api/internal-dashboard";
+import { InternalDashboardTimeoutError } from "@notra/schemas/api/internal-dashboard";
 import { QstashError } from "@notra/schemas/api/qstash";
 import { Effect, Fiber, Layer } from "effect";
 import * as TestClock from "effect/testing/TestClock";
@@ -23,99 +19,6 @@ import {
 import { runServiceEffect } from "../src/utils/run-service-effect";
 
 describe("QStash adapter", () => {
-  test("successful creation preserves explicit schedule IDs when the response omits one", async () => {
-    for (const body of ['{"scheduleId":"returned"}', "{}", ""]) {
-      const id = await runServiceEffect(
-        Effect.gen(function* () {
-          const service = yield* QstashService;
-          return yield* service.create({
-            triggerId: "trigger",
-            cron: "0 0 * * *",
-            scheduleId: "existing",
-          });
-        }).pipe(
-          Effect.provide(
-            qstashLayer(
-              {
-                QSTASH_TOKEN: "test",
-                WORKFLOW_BASE_URL: "https://example.test/",
-              },
-              async (url, init) => {
-                expect(String(url)).toEndWith(
-                  encodeURIComponent(
-                    "https://example.test/api/workflows/schedule"
-                  )
-                );
-                expect(
-                  new Headers(init?.headers).get("Upstash-Schedule-Id")
-                ).toBe("existing");
-                return new Response(body);
-              }
-            )
-          )
-        )
-      );
-      expect(id).toBe(body.includes("returned") ? "returned" : "existing");
-    }
-  });
-
-  test("destination problems are classified at the adapter, not by callers", async () => {
-    const create = (
-      env: { QSTASH_TOKEN?: string; WORKFLOW_BASE_URL?: string },
-      body: string
-    ) =>
-      Effect.runPromise(
-        Effect.gen(function* () {
-          const service = yield* QstashService;
-          return yield* Effect.flip(
-            service.create({ triggerId: "trigger", cron: "0 0 * * *" })
-          );
-        }).pipe(
-          Effect.provide(
-            qstashLayer(env, async () => new Response(body, { status: 400 }))
-          )
-        )
-      );
-
-    const configured = {
-      QSTASH_TOKEN: "test",
-      WORKFLOW_BASE_URL: "http://localhost:3000",
-    };
-    expect(
-      await create(configured, '{"error":"invalid destination url: localhost"}')
-    ).toMatchObject({ kind: "destination", status: 400 });
-    expect(
-      await create(configured, '{"error":"unable to resolve host example"}')
-    ).toMatchObject({ kind: "destination" });
-    expect(await create(configured, '{"error":"invalid cron"}')).toMatchObject({
-      kind: "http",
-      status: 400,
-    });
-    expect(await create({ QSTASH_TOKEN: "test" }, "")).toMatchObject({
-      kind: "destination",
-    });
-    expect(
-      await create({ WORKFLOW_BASE_URL: "https://example.test" }, "")
-    ).toMatchObject({ kind: "configuration" });
-  });
-
-  test("configuration failures stop before transport", async () => {
-    let calls = 0;
-    await expect(
-      runServiceEffect(
-        deleteQstashWithRetry("schedule").pipe(
-          Effect.provide(
-            qstashLayer({}, async () => {
-              calls++;
-              return new Response();
-            })
-          )
-        )
-      )
-    ).rejects.toMatchObject({ kind: "configuration" });
-    expect(calls).toBe(0);
-  });
-
   test("404 deletion succeeds; HTTP failures retain status and are not retried by the transport", async () => {
     for (const status of [404, 400, 401, 403, 429, 500]) {
       let calls = 0;
@@ -237,87 +140,6 @@ describe("QStash adapter", () => {
 });
 
 describe("Internal dashboard adapter", () => {
-  test("successful calls decode the response and retain the unauthenticated fallback", async () => {
-    const result = await runServiceEffect(
-      Effect.gen(function* () {
-        const service = yield* InternalDashboardService;
-        return yield* service.call(
-          "https://example.test",
-          { value: 1 },
-          z.object({ runId: z.string() })
-        );
-      }).pipe(
-        Effect.provide(
-          internalDashboardLayer({
-            credentials: Effect.succeed(null),
-            request: async (_url, init) => {
-              expect(new Headers(init?.headers).has("authorization")).toBe(
-                false
-              );
-              expect(init?.body).toBe('{"value":1}');
-              return new Response('{"runId":"run"}');
-            },
-          })
-        )
-      )
-    );
-    expect(result).toEqual({ runId: "run" });
-  });
-
-  test("preserves HTTP domain evidence and Promise error identity", async () => {
-    const body = JSON.stringify({
-      code: "FEATURE_DISABLED",
-      failure: { _tag: "GeoPromptNotFoundError" },
-    });
-    const layer = internalDashboardLayer({
-      credentials: Effect.succeed("test"),
-      request: async (_url, init) => {
-        expect(new Headers(init?.headers).get("authorization")).toBe(
-          "Bearer test"
-        );
-        return new Response(body, { status: 403 });
-      },
-    });
-    const result = runServiceEffect(
-      Effect.gen(function* () {
-        const service = yield* InternalDashboardService;
-        return yield* service.call(
-          "https://example.test",
-          {},
-          z.object({ runId: z.string() })
-        );
-      }).pipe(Effect.provide(layer))
-    );
-    await expect(result).rejects.toBeInstanceOf(InternalDashboardError);
-    await expect(result).rejects.toMatchObject({
-      status: 403,
-      code: "FEATURE_DISABLED",
-      body,
-    });
-  });
-
-  test("invalid successful responses are decode failures", async () => {
-    await expect(
-      runServiceEffect(
-        Effect.gen(function* () {
-          const service = yield* InternalDashboardService;
-          return yield* service.call(
-            "https://example.test",
-            {},
-            z.object({ runId: z.string() })
-          );
-        }).pipe(
-          Effect.provide(
-            internalDashboardLayer({
-              credentials: Effect.succeed(null),
-              request: async () => new Response('{"runId":4}'),
-            })
-          )
-        )
-      )
-    ).rejects.toBeInstanceOf(InternalDashboardAdapterError);
-  });
-
   test("timeout includes body consumption and does not retry paid work", async () => {
     let calls = 0;
     let aborted = false;

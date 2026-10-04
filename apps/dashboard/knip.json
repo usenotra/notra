@@ -8,8 +8,6 @@
     "src/app/**/route.ts",
     "scripts/*.ts",
     "tests/fixtures/*.fixture.{ts,tsx}",
-    "tests/fixtures/workflow-runtime/vite.config.ts",
-    "tests/fixtures/workflow-runtime/src/probe.ts",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"
   ],

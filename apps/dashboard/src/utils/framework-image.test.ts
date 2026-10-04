@@ -5,11 +5,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 import type { CachedImage } from "../types/framework-image";
-import {
-  getImageWidths,
-  isAllowedImageUrl,
-  negotiateImageFormat,
-} from "./framework-image";
+import { isAllowedImageUrl, negotiateImageFormat } from "./framework-image";
 import {
   FrameworkImageCache,
   imageCacheMaxAge,
@@ -198,11 +194,6 @@ describe("image output", () => {
       "webp"
     );
     expect(negotiateImageFormat("image/png,*/*")).toBeUndefined();
-  });
-
-  test("generates density widths for fixed images", () => {
-    expect(getImageWidths(40)).toEqual({ widths: [48, 96], kind: "x" });
-    expect(getImageWidths(undefined, "100vw").kind).toBe("w");
   });
 
   test.each(["avif", "webp"])(

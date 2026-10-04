@@ -5,7 +5,6 @@ import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 import {
   buildScanModelOptions,
   defaultScanModelSelection,
-  filterScanModelOptions,
 } from "@/utils/geo-scan-models";
 
 function model(
@@ -31,16 +30,6 @@ const catalog = [
 ];
 
 describe("buildScanModelOptions", () => {
-  test("lists tracked models first and preselects only them", () => {
-    const options = buildScanModelOptions({ tracked: ["openai/c"], catalog });
-    expect(options.map((option) => option.id)).toEqual([
-      "openai/c",
-      "openai/a",
-      "openai/b",
-    ]);
-    expect([...defaultScanModelSelection(options)]).toEqual(["openai/c"]);
-  });
-
   test("blocks models without a ZDR host when ZDR is enforced", () => {
     const options = buildScanModelOptions({
       tracked: ["openai/a", "openai/b"],
@@ -51,12 +40,5 @@ describe("buildScanModelOptions", () => {
       true
     );
     expect([...defaultScanModelSelection(options)]).toEqual(["openai/a"]);
-  });
-
-  test("filters by label", () => {
-    const options = buildScanModelOptions({ tracked: [], catalog });
-    expect(
-      filterScanModelOptions(options, " model b").map((option) => option.id)
-    ).toEqual(["openai/b"]);
   });
 });

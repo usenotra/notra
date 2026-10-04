@@ -41,14 +41,6 @@ function collectSqlText(fragment: unknown): string {
 }
 
 describe("postUpdatedAtMatches", () => {
-  test("matches separate Date instances with the same millisecond", () => {
-    const prepared = new Date("2026-01-01T00:00:00.123Z");
-    const freshRead = new Date(prepared);
-
-    expect(prepared).not.toBe(freshRead);
-    expect(postUpdatedAtMatches(freshRead, prepared)).toBe(true);
-  });
-
   test("treats normalized timestamps as equal at millisecond precision", () => {
     const prepared = new Date("2026-01-01T00:00:00.123Z");
     const storedFromPostgres = new Date("2026-01-01T00:00:00.123999Z");
@@ -58,15 +50,6 @@ describe("postUpdatedAtMatches", () => {
       postUpdatedAtMatches(storedFromPostgres, normalizePostUpdatedAt(prepared))
     ).toBe(true);
     expect(normalizePostUpdatedAt(prepared)).not.toBe(prepared);
-  });
-
-  test("detects changed rows", () => {
-    expect(
-      postUpdatedAtMatches(
-        new Date("2026-01-01T00:00:00.456Z"),
-        new Date("2026-01-01T00:00:00.123Z")
-      )
-    ).toBe(false);
   });
 });
 

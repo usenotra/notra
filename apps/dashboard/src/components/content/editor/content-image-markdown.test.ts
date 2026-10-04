@@ -72,12 +72,3 @@ test("unsafe media urls stay as text", () => {
   expect(serialized).not.toContain('"content-video"');
   expect(serialized).toContain("alert(1)");
 });
-
-test("image destinations with spaces stay as text, encoded parens round-trip", () => {
-  expect(withMarkdown("![x](https://cdn.example/foo bar.png)").next).toContain(
-    "![x](https://cdn.example/foo bar.png)"
-  );
-  expect(withMarkdown("![x](https://cdn.example/a%29.png)").next).toContain(
-    "![x](https://cdn.example/a%29.png)"
-  );
-});

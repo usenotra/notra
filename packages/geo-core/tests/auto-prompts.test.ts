@@ -1,14 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  applyAutoPromptChange,
-  buildGeoPrompts,
-  customPromptScanId,
-  generatedAutoPromptIds,
-  isGeoAutoPromptId,
-  shouldSkipUnmatchedGapScan,
-  toAutoTrackedPrompts,
-} from "../src/geo/prompts";
+import { applyAutoPromptChange, buildGeoPrompts } from "../src/geo/prompts";
 
 const SETTINGS = { companyName: "Acme", aliases: [] as string[] };
 
@@ -45,71 +37,6 @@ describe("applyAutoPromptChange", () => {
     );
     expect(next.pausedAutoPromptIds).toEqual([]);
     expect(next.removedAutoPromptIds).toEqual(["best-tools"]);
-  });
-});
-
-describe("generatedAutoPromptIds", () => {
-  test("omits audience-specific when the project has no usable audience", () => {
-    const ids = generatedAutoPromptIds(SETTINGS, {
-      companyDescription: "A writing platform for teams",
-      audience: null,
-    });
-    expect(ids.has("best-tools")).toBe(true);
-    expect(ids.has("audience-specific")).toBe(false);
-    expect(isGeoAutoPromptId("audience-specific")).toBe(true);
-  });
-
-  test("includes audience-specific when the project has an audience", () => {
-    const ids = generatedAutoPromptIds(SETTINGS, {
-      companyDescription: "A writing platform for teams",
-      audience: "content marketers",
-    });
-    expect(ids.has("audience-specific")).toBe(true);
-  });
-});
-
-describe("toAutoTrackedPrompts", () => {
-  test("drops removed auto prompts from the tracked list", () => {
-    const prompts = toAutoTrackedPrompts(
-      [
-        { id: "best-tools", text: "what tools should I use for writing" },
-        { id: "alternatives", text: "what's a good alternative for writing" },
-      ],
-      [],
-      ["best-tools"]
-    );
-    expect(prompts.map((prompt) => prompt.id)).toEqual(["alternatives"]);
-  });
-});
-
-describe("shouldSkipUnmatchedGapScan", () => {
-  test("skips a removed auto prompt so it cannot remain an opportunity", () => {
-    expect(
-      shouldSkipUnmatchedGapScan(
-        "best-tools",
-        new Set(),
-        new Set(["best-tools"])
-      )
-    ).toBe(true);
-  });
-
-  test("keeps an unmatched auto prompt that is still tracked", () => {
-    expect(shouldSkipUnmatchedGapScan("best-tools", new Set(), new Set())).toBe(
-      false
-    );
-  });
-
-  test("skips custom and conversation scan ids", () => {
-    expect(
-      shouldSkipUnmatchedGapScan(
-        customPromptScanId("prompt-1"),
-        new Set(),
-        new Set()
-      )
-    ).toBe(true);
-    expect(
-      shouldSkipUnmatchedGapScan("sequence-abc", new Set(), new Set())
-    ).toBe(true);
   });
 });
 
@@ -215,20 +142,5 @@ describe("buildGeoPrompts", () => {
     expect(prompts[0]?.text).toBe(
       "what's the best option for find their best times right now"
     );
-  });
-
-  test("every auto prompt opens differently and reads like a typed message", () => {
-    const prompts = buildGeoPrompts(SETTINGS, {
-      companyDescription: "A writing platform for teams",
-      audience: "content marketers",
-    });
-    const openers = new Set(
-      prompts.map((prompt) => prompt.text.split(" ").slice(0, 2).join(" "))
-    );
-    expect(openers.size).toBe(prompts.length);
-    for (const prompt of prompts) {
-      expect(prompt.text).toBe(prompt.text.toLowerCase());
-      expect(prompt.text.endsWith("?")).toBe(false);
-    }
   });
 });

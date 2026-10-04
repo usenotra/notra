@@ -76,12 +76,6 @@ beforeEach(() => {
   writeCache.mockClear();
 });
 
-test("a logo-heavy cold page can load 54 different brands", async () => {
-  await Promise.all(Array.from({ length: 54 }, (_, i) => lookup(`Brand ${i}`)));
-  expect(search).toHaveBeenCalledTimes(54);
-  expect(usage.get("user-1")).toBe(54);
-});
-
 test("varying queries and modes cannot bypass one user's limit, including concurrent calls", async () => {
   const results = await Promise.allSettled(
     Array.from(

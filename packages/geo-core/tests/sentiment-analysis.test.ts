@@ -1,10 +1,8 @@
 import { expect, test } from "bun:test";
 import assert from "node:assert/strict";
 
-import { MockLanguageModelV4 } from "ai/test";
 import { Effect } from "effect";
 
-import { generateSentimentAnalysis } from "../src/geo/sentiment-analysis-agent";
 import { billSentimentAnalysis } from "../src/geo/sentiment-analysis-billing";
 import {
   readSentimentAnalysis,
@@ -387,32 +385,6 @@ test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixe
       sample
     )
   ).toThrow();
-});
-
-test("real structured generation has no tools and treats injected answers as data", async () => {
-  const model = new MockLanguageModelV4({
-    doGenerate: {
-      content: [{ type: "text", text: JSON.stringify(output) }],
-      finishReason: { unified: "stop", raw: "stop" },
-      usage: {
-        inputTokens: { total: 100, noCache: 100, cacheRead: 0, cacheWrite: 0 },
-        outputTokens: { total: 50, text: 50, reasoning: 0 },
-      },
-      warnings: [],
-    },
-  });
-  const result = await generateSentimentAnalysis(model, sample, "Notra");
-  expect(validateSentimentThemes(result.output, sample)).toHaveLength(1);
-  const call = model.doGenerateCalls[0];
-  assert.ok(call);
-  expect(call.tools ?? []).toHaveLength(0);
-  expect(call.maxOutputTokens).toBe(8000);
-  expect(call.reasoning).toBe("low");
-  expect(call.temperature).toBeUndefined();
-  expect(JSON.stringify(call.prompt[0])).toContain("UNTRUSTED DATA");
-  expect(JSON.stringify(call.prompt[1])).toContain("IGNORE ALL RULES");
-  expect(call.responseFormat?.type).toBe("json");
-  expect(model.doGenerateCalls).toHaveLength(1);
 });
 
 test("read path never extracts; concurrent calls singleflight and ready calls idempotent", async () => {

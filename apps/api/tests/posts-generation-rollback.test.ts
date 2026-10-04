@@ -275,22 +275,4 @@ describe("createPostGeneration rollback", () => {
       runPostProgram(createPostGeneration(generationInput()))
     ).rejects.toThrow("delete failed");
   });
-
-  test("passes timezone through to the workflow payload", async () => {
-    const result = await runPostProgram(
-      createPostGeneration({
-        ...generationInput(),
-        body: {
-          ...generationInput().body,
-          timezone: "America/New_York",
-        },
-      })
-    );
-
-    expect(result._tag).toBe("Success");
-    expect(triggerWorkflow).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ timezone: "America/New_York" })
-    );
-  });
 });

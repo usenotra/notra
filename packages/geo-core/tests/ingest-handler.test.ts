@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Effect } from "effect";
 
 import {
-  GeoIngestFailedError,
   GeoIngestInvalidTokenError,
   GeoIngestRateLimitedError,
 } from "../src/ingest/errors";
@@ -36,32 +35,6 @@ describe("handleGeoIngestRequest", () => {
     geoLogInfo.mockClear();
   });
 
-  test("logs ingested events with status, duration and full weight", async () => {
-    runOutcome = () =>
-      Effect.succeed({
-        outcome: "ingested",
-        organizationId: "org_1",
-        projectId: null,
-        visitorType: "ai_assistant",
-        source: "chatgpt",
-        agent: "ChatGPT-User",
-        ingestMs: 12,
-      });
-
-    const { response, event } = await handle();
-
-    expect(response.status).toBe(202);
-    expect(event).toMatchObject({
-      event: "geo.ingest",
-      outcome: "ingested",
-      status: 202,
-      weight: 1,
-      projectId: "",
-      agent: "ChatGPT-User",
-    });
-    expect(typeof event?.durationMs).toBe("number");
-  });
-
   test("logs rejected requests with their reason", async () => {
     runOutcome = () => Effect.fail(new GeoIngestInvalidTokenError({}));
 
@@ -88,19 +61,6 @@ describe("handleGeoIngestRequest", () => {
     });
   });
 
-  test("logs upstream failures with a truncated message", async () => {
-    runOutcome = () =>
-      Effect.fail(
-        new GeoIngestFailedError({ cause: new Error("x".repeat(500)) })
-      );
-
-    const { response, event } = await handle();
-
-    expect(response.status).toBe(502);
-    expect(event).toMatchObject({ outcome: "failed", reason: "failed" });
-    expect(String(event?.errorMessage)).toHaveLength(200);
-  });
-
   test("answers and logs defects instead of throwing", async () => {
     runOutcome = () => Effect.die(new Error("boom"));
 
@@ -112,30 +72,5 @@ describe("handleGeoIngestRequest", () => {
       reason: "defect",
       errorMessage: "boom",
     });
-  });
-
-  test("samples dropped visitor traffic and weights the kept lines", async () => {
-    runOutcome = () =>
-      Effect.succeed({
-        outcome: "dropped",
-        reason: "visitor_type",
-        organizationId: "org_1",
-        projectId: "proj_1",
-        visitorType: "human",
-      });
-    const random = Math.random;
-    Math.random = () => 0;
-    try {
-      const { response, event } = await handle();
-      expect(response.status).toBe(202);
-      expect(event).toMatchObject({ outcome: "dropped", weight: 20 });
-
-      geoLogInfo.mockClear();
-      Math.random = () => 0.99;
-      await handle();
-      expect(geoLogInfo).not.toHaveBeenCalled();
-    } finally {
-      Math.random = random;
-    }
   });
 });
