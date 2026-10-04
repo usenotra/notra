@@ -1,0 +1,65 @@
+apps/api/src/utils/geo-visibility.ts
+  s_7a0c38829ccc1e::t_8374427550339d 24
+apps/dashboard/src/lib/analytics/flag-client.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 6
+packages/geo-core/tests/auto-prompts.test.ts
+  s_7a0c38829ccc1e::t_29e7b024f3a60a 3
+packages/ai/src/prompts/github-mention.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3
+packages/ai/src/utils/code-research-commands.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3
+packages/ai/src/utils/code-mode.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 4
+  s_7a0c38829ccc1e::t_6544563698373a 5
+apps/api/tests/api-services.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3
+apps/dashboard/src/workflows/steps/persona-generation-steps.ts
+  s_7a0c38829ccc1e::t_8374427550339d 59
+bun.lock
+  ai_agent 3674,7598-7599
+packages/geo-core/tests/agent-readiness.test.ts
+  s_7a0c38829ccc1e::t_29e7b024f3a60a 12
+apps/api/tests/oauth-consent.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3-4
+packages/ai/tests/evlog.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 7
+  s_7a0c38829ccc1e::t_32631ba9511ca8 28
+apps/dashboard/src/utils/framework-image.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 8
+apps/dashboard/src/lib/analytics/posthog-lazy.test.ts
+  s_7a0c38829ccc1e::t_6544563698373a 16-17
+apps/dashboard/src/lib/content/image-export.ts
+  s_7a0c38829ccc1e::t_bb9c1ad06b9dab 20,27
+apps/api/src/programs/geo.ts
+  ai_agent 76-87,89
+apps/api/tests/feedback-program.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 6-7
+apps/dashboard/src/utils/framework-workflow-plugin.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 1,5
+apps/dashboard/src/utils/chat-search-activity.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3
+packages/geo-core/tests/model-scan.test.ts
+  s_7a0c38829ccc1e::t_a7f130fa192af2 33-35
+  s_7a0c38829ccc1e::t_29e7b024f3a60a 16
+apps/dashboard/src/utils/daily-summary.test.ts
+  s_7a0c38829ccc1e::t_0cd9c21f335394 3
+apps/dashboard/src/lib/integrations/github/content-assets.test.ts
+  s_7a0c38829ccc1e::t_6544563698373a 6
+  s_7a0c38829ccc1e::t_0cd9c21f335394 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bbdfa35fd234a71c17b2afa6aebb525cb58c411c",
+  "prompts": {},
+  "sessions": {
+    "s_7a0c38829ccc1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e68d0d0-a31c-4bdc-a689-6ef5e139bdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
