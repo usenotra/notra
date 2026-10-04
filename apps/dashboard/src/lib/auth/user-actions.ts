@@ -1,47 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-
-import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
-
-const signOutServerFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid action arguments");
-    }
-    return data as Parameters<typeof signOutActionImpl>;
-  })
-  .handler(({ data }) => signOutActionImpl(...data));
-export const signOutAction = (...data: Parameters<typeof signOutActionImpl>) =>
-  followServerRedirect(signOutServerFn({ data }));
-
-const updateUserServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof updateUserActionImpl>) => data)
-  .handler(({ data }) => updateUserActionImpl(...data));
-export const updateUserAction = (
-  ...data: Parameters<typeof updateUserActionImpl>
-) => updateUserServerFn({ data });
-
-const deleteUserServerFn = createServerFn({ method: "POST" }).handler(() =>
-  deleteUserActionImpl()
-);
-export const deleteUserAction = () => deleteUserServerFn();
-
-const requestPasswordResetServerFn = createServerFn({ method: "POST" }).handler(
-  () => requestPasswordResetActionImpl()
-);
-export const requestPasswordResetAction = () => requestPasswordResetServerFn();
-
-const listAccountsServerFn = createServerFn({ method: "POST" }).handler(() =>
-  listAccountsActionImpl()
-);
-export const listAccountsAction = () => listAccountsServerFn();
-
-const unlinkAccountServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof unlinkAccountActionImpl>) => data)
-  .handler(({ data }) => unlinkAccountActionImpl(...data));
-export const unlinkAccountAction = (
-  ...data: Parameters<typeof unlinkAccountActionImpl>
-) => unlinkAccountServerFn({ data });
-
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -88,7 +44,7 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
     catch: (cause) => new ActionFailure({ message, cause }),
   });
 
-async function signOutActionImpl(options?: SignOutActionOptions) {
+export async function signOut(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
   await clearLocaleCookie();
   // Leaving the public demo drops the sandbox cookie; the sandbox itself
@@ -100,7 +56,7 @@ async function signOutActionImpl(options?: SignOutActionOptions) {
   await signOutAuthSession(parsed.success ? parsed.data : undefined);
 }
 
-async function updateUserActionImpl(
+export async function updateUser(
   rawInput: UpdateUserInput
 ): Promise<ActionResult<SessionUser>> {
   return runAction(
@@ -181,7 +137,7 @@ async function updateUserActionImpl(
   );
 }
 
-async function deleteUserActionImpl(): Promise<
+export async function deleteUser(): Promise<
   ActionResult<{ deleted: boolean }>
 > {
   return runAction(
@@ -258,7 +214,7 @@ async function deleteUserActionImpl(): Promise<
   );
 }
 
-async function requestPasswordResetActionImpl(): Promise<
+export async function requestPasswordReset(): Promise<
   ActionResult<{ sent: boolean }>
 > {
   return runAction(
@@ -283,7 +239,7 @@ async function requestPasswordResetActionImpl(): Promise<
   );
 }
 
-async function listAccountsActionImpl(): Promise<ActionResult<AccountInfo[]>> {
+export async function listAccounts(): Promise<ActionResult<AccountInfo[]>> {
   return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
@@ -307,7 +263,7 @@ async function listAccountsActionImpl(): Promise<ActionResult<AccountInfo[]>> {
   );
 }
 
-async function unlinkAccountActionImpl(
+export async function unlinkAccount(
   rawInput: UnlinkAccountInput
 ): Promise<ActionResult<{ removed: boolean }>> {
   return runAction(

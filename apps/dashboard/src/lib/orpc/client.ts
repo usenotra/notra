@@ -1,6 +1,9 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import { BatchLinkPlugin } from "@orpc/client/plugins";
+import {
+  BatchLinkPlugin,
+  SimpleCsrfProtectionLinkPlugin,
+} from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 
 import type { DashboardRouter } from "./router";
@@ -40,6 +43,7 @@ const link = new RPCLink({
       exclude: ({ path }) => isUnbatchedProcedure(path),
       groups: [{ condition: () => true, context: {} }],
     }),
+    new SimpleCsrfProtectionLinkPlugin(),
   ],
   url: `${getBaseUrl()}/rpc`,
 });

@@ -26,8 +26,11 @@ import type {
 } from "@/types/user";
 
 import { badRequest, forbidden, notFound } from "../utils/errors";
+import { userAccountRouter, userSecurityRouter } from "./user-account";
 
 export const userRouter = {
+  account: userAccountRouter,
+  security: userSecurityRouter,
   organizations: {
     listOwned: authorizedProcedure.handler(async ({ context }) => {
       const ownedMemberships = await db.query.members.findMany({

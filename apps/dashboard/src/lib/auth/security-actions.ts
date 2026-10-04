@@ -1,43 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-
-const getSecurityOverviewServerFn = createServerFn({ method: "POST" }).handler(
-  () => getSecurityOverviewActionImpl()
-);
-export const getSecurityOverviewAction = () => getSecurityOverviewServerFn();
-
-const startTotpEnrollmentServerFn = createServerFn({ method: "POST" }).handler(
-  () => startTotpEnrollmentActionImpl()
-);
-export const startTotpEnrollmentAction = () => startTotpEnrollmentServerFn();
-
-const discardTotpEnrollmentServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof discardTotpEnrollmentActionImpl>) => data)
-  .handler(({ data }) => discardTotpEnrollmentActionImpl(...data));
-export const discardTotpEnrollmentAction = (
-  ...data: Parameters<typeof discardTotpEnrollmentActionImpl>
-) => discardTotpEnrollmentServerFn({ data });
-
-const verifyTotpEnrollmentServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof verifyTotpEnrollmentActionImpl>) => data)
-  .handler(({ data }) => verifyTotpEnrollmentActionImpl(...data));
-export const verifyTotpEnrollmentAction = (
-  ...data: Parameters<typeof verifyTotpEnrollmentActionImpl>
-) => verifyTotpEnrollmentServerFn({ data });
-
-const regenerateBackupCodesServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof regenerateBackupCodesActionImpl>) => data)
-  .handler(({ data }) => regenerateBackupCodesActionImpl(...data));
-export const regenerateBackupCodesAction = (
-  ...data: Parameters<typeof regenerateBackupCodesActionImpl>
-) => regenerateBackupCodesServerFn({ data });
-
-const removeAuthFactorServerFn = createServerFn({ method: "POST" })
-  .validator((data: Parameters<typeof removeAuthFactorActionImpl>) => data)
-  .handler(({ data }) => removeAuthFactorActionImpl(...data));
-export const removeAuthFactorAction = (
-  ...data: Parameters<typeof removeAuthFactorActionImpl>
-) => removeAuthFactorServerFn({ data });
-
 import { POSTHOG_EVENTS, type PostHogEventName } from "@notra/posthog/events";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import {
@@ -266,7 +226,7 @@ const withSecondFactor = <A>(
     );
   });
 
-async function getSecurityOverviewActionImpl(): Promise<
+export async function getSecurityOverview(): Promise<
   ActionResult<SecurityOverview>
 > {
   return runAction(
@@ -290,7 +250,7 @@ async function getSecurityOverviewActionImpl(): Promise<
   );
 }
 
-async function startTotpEnrollmentActionImpl(): Promise<
+export async function startTotpEnrollment(): Promise<
   ActionResult<StartTotpEnrollmentResult>
 > {
   return runAction(
@@ -319,7 +279,7 @@ async function startTotpEnrollmentActionImpl(): Promise<
   );
 }
 
-async function discardTotpEnrollmentActionImpl(
+export async function discardTotpEnrollment(
   rawInput: DiscardTotpEnrollmentInput
 ): Promise<ActionResult<{ discarded: boolean }>> {
   return runAction(
@@ -345,7 +305,7 @@ async function discardTotpEnrollmentActionImpl(
   );
 }
 
-async function verifyTotpEnrollmentActionImpl(
+export async function verifyTotpEnrollment(
   rawInput: VerifyTotpEnrollmentInput
 ): Promise<ActionResult<VerifyTotpEnrollmentResult>> {
   return runAction(
@@ -414,7 +374,7 @@ async function verifyTotpEnrollmentActionImpl(
   );
 }
 
-async function regenerateBackupCodesActionImpl(
+export async function regenerateBackupCodes(
   rawInput: RegenerateBackupCodesInput
 ): Promise<ActionResult<RegenerateBackupCodesResult>> {
   return runAction(
@@ -450,7 +410,7 @@ async function regenerateBackupCodesActionImpl(
   );
 }
 
-async function removeAuthFactorActionImpl(
+export async function removeAuthFactor(
   rawInput: RemoveAuthFactorInput
 ): Promise<ActionResult<{ removed: true }>> {
   return runAction(
