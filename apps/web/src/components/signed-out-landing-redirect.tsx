@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "@tanstack/react-router";
 
-import type { DashboardSessionState } from "@/lib/auth/use-dashboard-session";
+import type { DashboardSessionState } from "@/types/auth/session";
 import { buildSignedOutLandingHref } from "@/utils/signed-out-landing";
 
 export function SignedOutLandingRedirect({
