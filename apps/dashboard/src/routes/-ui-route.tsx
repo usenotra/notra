@@ -1,5 +1,5 @@
 import { createRoute, type Router } from "@tanstack/react-router";
-import { use } from "react";
+import { createElement, Suspense, use } from "react";
 import { createTranslator } from "use-intl/core";
 
 import { getCatalog } from "@/lib/i18n/catalog";
@@ -101,7 +101,7 @@ export function createUiRoute<T = undefined>({
         params,
         searchParams: uiRouteSearch(location.search as Record<string, unknown>),
       };
-      if (stream && loader && import.meta.env.SSR) {
+      if (stream && loader && (import.meta.env.SSR || gate)) {
         await gate?.(input);
         return {
           data: undefined,
@@ -143,12 +143,16 @@ export function createUiRoute<T = undefined>({
     const searchParams = route.useSearch<Router<typeof route>>();
     if (pending) {
       return (
-        <StreamedUiPage
-          page={Page}
-          params={uiPageParams(params)}
-          pending={pending as Promise<T>}
-          searchParams={searchParams}
-        />
+        <Suspense
+          fallback={pendingComponent ? createElement(pendingComponent) : null}
+        >
+          <StreamedUiPage
+            page={Page}
+            params={uiPageParams(params)}
+            pending={pending as Promise<T>}
+            searchParams={searchParams}
+          />
+        </Suspense>
       );
     }
     return (
@@ -162,8 +166,13 @@ export function createUiRoute<T = undefined>({
   // The router calls `component.preload` while the route preloads or loads.
   const preloadPage =
     preload ?? (Page as { preload?: () => Promise<unknown> }).preload;
-  if (preloadPage) {
-    Object.assign(UiPage, { preload: preloadPage });
+  const preloadPending = (
+    pendingComponent as { preload?: () => Promise<unknown> } | undefined
+  )?.preload;
+  if (preloadPage || preloadPending) {
+    Object.assign(UiPage, {
+      preload: () => Promise.all([preloadPage?.(), preloadPending?.()]),
+    });
   }
   return route.update({ component: UiPage });
 }

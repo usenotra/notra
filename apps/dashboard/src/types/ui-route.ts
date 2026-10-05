@@ -42,14 +42,14 @@ export interface UiRouteOptions<T> {
   pageTitle?: (data: T) => string;
   /**
    * Stream the page data into the first server-rendered document: the shell
-   * and `pendingComponent` flush before `loader` resolves. Client navigations
-   * still await the loader.
+   * and `pendingComponent` flush before `loader` resolves. Gated client
+   * navigations also defer data, with a page-local loading boundary.
    */
   stream?: boolean;
   /**
    * Awaited before a streamed loader starts, for redirects that must reach
-   * the browser as HTTP redirects. The loader repeats them on client
-   * navigations, so a gate never runs there.
+   * the browser as HTTP redirects. Also runs before deferring client data,
+   * so the router handles redirects before committing the destination.
    */
   gate?: (input: UiRouteInput) => Promise<unknown>;
   /**
