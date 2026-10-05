@@ -1,0 +1,20 @@
+apps/dashboard/src/components/geo/competitor-engine-matrix-card.tsx
+  s_81f2be883d9504::t_c9ea4161553d23 158-162,167-181,187,203
+  s_81f2be883d9504::t_fddd5b0be4dc71 193-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e63c69ea4cd15f8fab4f1dbe27f8ee93df394af9",
+  "prompts": {},
+  "sessions": {
+    "s_81f2be883d9504": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "955fcecb-7f06-4c96-987e-dfe893bdc433",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
