@@ -36,6 +36,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import {
   type ChatOnFinishCallback,
   type DynamicToolUIPart,
@@ -645,6 +646,7 @@ function StandaloneChatPageClient({
   const isSendingRef = useRef(false);
   const isDrainingRef = useRef(false);
   const isStoppingResponseRef = useRef(false);
+  const isWaitingForActiveStreamRef = useRef(false);
   const wasInterruptedForQueueRef = useRef(false);
   const finishAfterStopRef = useRef<(() => void) | null>(null);
   // Moving a new chat to its own URL remounts this page, so it waits until no
@@ -709,6 +711,8 @@ function StandaloneChatPageClient({
         }
         if (!isError && !isDisconnect) {
           navigateToNewChatRef.current(message);
+        } else if (!isWaitingForActiveStreamRef.current) {
+          hasPendingChatNavigationRef.current = false;
         }
       };
       if (isStoppingResponseRef.current) {
@@ -772,7 +776,6 @@ function StandaloneChatPageClient({
   const [isStopping, setIsStopping] = useState(false);
   const [isWaitingForActiveStream, setIsWaitingForActiveStream] =
     useState(false);
-  const isWaitingForActiveStreamRef = useRef(false);
 
   const handleModelChange = useCallback((model: string) => {
     const nextModel = parseStoredChatModel(model);
@@ -1107,13 +1110,21 @@ function StandaloneChatPageClient({
 
   const hasUpdatedUrlRef = useRef(false);
   const pathname = usePathname();
+  const navigationKey = useLocation({
+    select: (location) => location.state.__TSR_key,
+  });
+  const previousNavigationKeyRef = useRef(navigationKey);
   const previousInitialChatIdRef = useRef(initialChatId);
 
   useEffect(() => {
+    const hasNavigated = previousNavigationKeyRef.current !== navigationKey;
+    previousNavigationKeyRef.current = navigationKey;
     const returnedToNewChat =
       !initialChatId &&
       hasUpdatedUrlRef.current &&
-      !hasPendingChatNavigationRef.current &&
+      !isSendingRef.current &&
+      !isWaitingForActiveStreamRef.current &&
+      hasNavigated &&
       pathname === `/${organizationSlug}/chat`;
     if (
       previousInitialChatIdRef.current === initialChatId &&
@@ -1147,7 +1158,7 @@ function StandaloneChatPageClient({
       setWasStoppedByUser,
       wasStoppedByUserRef,
     });
-  }, [initialChatId, organizationSlug, pathname]);
+  }, [initialChatId, navigationKey, organizationSlug, pathname]);
 
   const draftStorageKey = localStorageKeys.chatDraft(
     initialChatId ?? `new:${organizationSlug}`
@@ -1418,6 +1429,9 @@ function StandaloneChatPageClient({
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
       setChatError(null);
       isSendingRef.current = true;
+      if (!initialChatId) {
+        hasPendingChatNavigationRef.current = true;
+      }
       if (attachments.length > 0) {
         const parts: ChatMessagePart[] = [];
         if (text.length > 0) {
@@ -1438,7 +1452,7 @@ function StandaloneChatPageClient({
         });
       }
     },
-    [authorMetadata, isSlackMirrored, sendMessage, setMessages]
+    [authorMetadata, initialChatId, isSlackMirrored, sendMessage, setMessages]
   );
 
   const handleEditMessage = useCallback(
@@ -1534,6 +1548,9 @@ function StandaloneChatPageClient({
       }
 
       isSendingRef.current = true;
+      if (!initialChatId) {
+        hasPendingChatNavigationRef.current = true;
+      }
       const isFirstMessage = !initialChatId && !hasUpdatedUrlRef.current;
       if (messagesRef.current.length === 0) {
         triggerFirstMessageTransition();
@@ -1560,7 +1577,6 @@ function StandaloneChatPageClient({
       }
       if (isFirstMessage) {
         hasUpdatedUrlRef.current = true;
-        hasPendingChatNavigationRef.current = true;
         insertPendingChatSession(stableChatId);
       }
       if (attachments.length > 0) {
