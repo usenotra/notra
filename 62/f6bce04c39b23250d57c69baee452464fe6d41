@@ -1,0 +1,22 @@
+packages/sites-server/src/deployments.ts
+  s_2e1b04b64a383c::t_2e634113667253 9
+  s_2e1b04b64a383c::t_10a5625f7d6872 174-177,180-181,201-207
+packages/sites-server/src/pipeline.ts
+  s_2e1b04b64a383c::t_2e634113667253 35-36,38,44,51,54-61,70-78,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "62f6bce04c39b23250d57c69baee452464fe6d41",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
