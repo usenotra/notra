@@ -34,12 +34,15 @@ function MatrixCell({
   minRate,
   maxRate,
   noChecksLabel,
+  countLabel,
   onPointerMove,
 }: {
   rate: number | null;
   minRate: number;
   maxRate: number;
   noChecksLabel: string;
+  /** Mention count for screen readers; sighted pointer users get the tooltip. */
+  countLabel: string;
   onPointerMove: (event: PointerEvent<HTMLSpanElement>) => void;
 }) {
   if (rate === null) {
@@ -67,6 +70,7 @@ function MatrixCell({
       style={{ "--matrix-tint": `${tint}%` } as CSSProperties}
     >
       {formatUsageShare(rate)}
+      <span className="sr-only">, {countLabel}</span>
     </span>
   );
 }
@@ -117,6 +121,7 @@ export function CompetitorEngineMatrixCard({
       bodyClassName="p-2"
       eyebrow={t("title")}
       hint={t("hint")}
+      readout={isError && !isEmpty ? t("refreshFailed") : undefined}
       variant="table"
     >
       {isEmpty ? (
@@ -153,6 +158,15 @@ export function CompetitorEngineMatrixCard({
             <tbody onPointerLeave={() => setTip(null)}>
               {matrix.rows.map((row) => {
                 const openable = !row.own && Boolean(organizationSlug);
+                const cellDetail = (index: number) => {
+                  const checks = matrix.columns[index]?.checks ?? 0;
+                  return checks === 0
+                    ? t("noChecks")
+                    : t("cellDetail", {
+                        mentions: row.mentions[index] ?? 0,
+                        checks,
+                      });
+                };
                 return (
                   <tr
                     className={cn(
@@ -211,6 +225,7 @@ export function CompetitorEngineMatrixCard({
                     {matrix.columns.map((column, index) => (
                       <td className="p-0" key={column.family}>
                         <MatrixCell
+                          countLabel={cellDetail(index)}
                           maxRate={matrix.maxRate}
                           minRate={matrix.minRate}
                           noChecksLabel={t("noChecks")}
@@ -218,13 +233,7 @@ export function CompetitorEngineMatrixCard({
                             setTip({
                               ...cursorTipPosition(event),
                               title: `${row.brand} · ${column.label}`,
-                              detail:
-                                column.checks === 0
-                                  ? t("noChecks")
-                                  : t("cellDetail", {
-                                      mentions: row.mentions[index] ?? 0,
-                                      checks: column.checks,
-                                    }),
+                              detail: cellDetail(index),
                             })
                           }
                           rate={row.rates[index] ?? null}

@@ -1118,25 +1118,36 @@ export const loadGeoCompetitorEngineMatrix = Effect.fn(
   // Tracked competitors are matched by name and synonyms regardless of rank,
   // so one outside the top brands still gets its row. Untracked brands only
   // stand in while nothing is tracked.
-  const trackedKeys = new Set(
-    competitors.flatMap((competitor) =>
-      [competitor.name, ...competitor.synonyms]
-        .map(competitorKey)
-        .filter((key) => key.length > 0)
-    )
-  );
-  const brandKeys =
-    trackedKeys.size > 0
-      ? [...trackedKeys]
-      : (yield* geoDb("competitor share query failed", () =>
-          queryGeoCheckCompetitorShare(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        )).map((row) => competitorKey(row.brand));
+  const brands = new Map<string, string>();
+  for (const competitor of competitors) {
+    for (const alias of [competitor.name, ...competitor.synonyms]) {
+      const key = competitorKey(alias);
+      if (key.length > 0 && !brands.has(key)) {
+        brands.set(key, competitor.name);
+      }
+    }
+  }
+  if (brands.size === 0) {
+    const topBrands = yield* geoDb("competitor share query failed", () =>
+      queryGeoCheckCompetitorShare(
+        checkScope,
+        checkWindow,
+        GEO_COMPETITOR_SHARE_LIMIT
+      )
+    );
+    for (const row of topBrands) {
+      const key = competitorKey(row.brand);
+      if (key.length > 0 && !brands.has(key)) {
+        brands.set(key, row.brand);
+      }
+    }
+  }
   const cells = yield* geoDb("engine brand mentions query failed", () =>
-    queryGeoCheckEngineBrandMentions(checkScope, checkWindow, brandKeys)
+    queryGeoCheckEngineBrandMentions(
+      checkScope,
+      checkWindow,
+      Array.from(brands, ([key, name]) => ({ key, name }))
+    )
   );
 
   const response: GeoCompetitorEngineMatrixResponse = {

@@ -140,7 +140,7 @@ export function buildEngineMatrix(
     .sort((left, right) => total(right.mentions) - total(left.mentions));
 
   const toRate = (mentions: number, checks: number) =>
-    checks === 0 ? null : Math.min(mentions / checks, 1);
+    checks === 0 ? null : mentions / checks;
 
   const rows: EngineMatrix["rows"] = [];
   if (options.companyName) {
@@ -163,10 +163,7 @@ export function buildEngineMatrix(
       rates: families.map((totals, index) =>
         toRate(entry.mentions[index] ?? 0, totals.column.checks)
       ),
-      // Clamped like the rate: a check naming two synonyms counts twice.
-      mentions: families.map((totals, index) =>
-        Math.min(entry.mentions[index] ?? 0, totals.column.checks)
-      ),
+      mentions: families.map((_, index) => entry.mentions[index] ?? 0),
     });
   }
 

@@ -2468,7 +2468,8 @@
       "empty": "Noch keine Antworten in diesem Zeitraum.",
       "scanning": "Engines werden gescannt…",
       "loadFailed": "Empfehlungen nach Assistent konnten nicht geladen werden.",
-      "cellDetail": "{mentions, number} von {checks, number} Antworten"
+      "cellDetail": "{mentions, number} von {checks, number} Antworten",
+      "refreshFailed": "Aktualisierung fehlgeschlagen, ältere Daten"
     },
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"

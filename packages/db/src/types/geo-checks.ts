@@ -152,6 +152,11 @@ export interface GeoCheckCompetitorShareRow {
   mentions: number;
 }
 
+export interface GeoCheckBrandKey {
+  key: string;
+  name: string;
+}
+
 export interface GeoCheckEngineBrandRow {
   engine: string;
   brand: string;

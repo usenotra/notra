@@ -2468,7 +2468,8 @@
       "empty": "No answers in this period yet.",
       "scanning": "Scanning engines…",
       "loadFailed": "Couldn't load assistant recommendations.",
-      "cellDetail": "{mentions, number} of {checks, number} answers"
+      "cellDetail": "{mentions, number} of {checks, number} answers",
+      "refreshFailed": "Couldn't refresh, showing earlier data"
     },
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"

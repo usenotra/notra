@@ -22,6 +22,7 @@ import type {
   GeoCheckCompetitorShareTimeseriesRow,
   GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
+  GeoCheckBrandKey,
   GeoCheckEngineBrandRow,
   GeoCheckEngineTotalRow,
   GeoCheckFilterOptions,
@@ -739,35 +740,35 @@ export async function queryGeoCheckEngineTotals(
 }
 
 /**
- * Mentions per engine and raw brand name, for brands whose key (trimmed,
- * lowercased) is in `brandKeys`. Raw names are kept so callers can fold
- * synonyms onto a tracked competitor and still label untracked brands.
+ * Answers per engine that mention each brand. `brands` maps brand keys
+ * (trimmed, lowercased) onto the name to report, so synonyms fold onto one
+ * brand and an answer naming two of them still counts once.
  */
 export async function queryGeoCheckEngineBrandMentions(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined,
-  brandKeys: readonly string[]
+  brands: readonly GeoCheckBrandKey[]
 ): Promise<GeoCheckEngineBrandRow[]> {
-  if (brandKeys.length === 0) {
+  if (brands.length === 0) {
     return [];
   }
+  const brandName = sql<string>`brand_map.name`;
   const rows = await withGeoCheckAggregateCache(
     scope,
     db
       .select({
         engine: geoMentionChecks.engine,
-        brand: competitorBrand,
-        mentions: sql<number>`count(*)::int`,
+        brand: brandName,
+        mentions: sql<number>`count(distinct ${geoMentionChecks.id})::int`,
       })
       .from(geoMentionChecks)
       .crossJoinLateral(unnestedCompetitorBrand)
-      .where(
-        and(
-          mentionFilters(scope, window),
-          sql`lower(trim(${competitorBrand})) = any(${sql.param([...brandKeys])}::text[])`
-        )
+      .innerJoin(
+        sql`unnest(${sql.param(brands.map((brand) => brand.key))}::text[], ${sql.param(brands.map((brand) => brand.name))}::text[]) as brand_map(key, name)`,
+        sql`brand_map.key = lower(trim(${competitorBrand}))`
       )
-      .groupBy(geoMentionChecks.engine, competitorBrand)
+      .where(mentionFilters(scope, window))
+      .groupBy(geoMentionChecks.engine, brandName)
   );
 
   return rows.map((row) => ({
