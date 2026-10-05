@@ -653,6 +653,11 @@
     }
   },
   "feedback": {
+    "activity": {
+      "title": "Feedback-Aktivität",
+      "loadFailed": "Feedback-Aktivität konnte nicht geladen werden",
+      "seriesLabel": "Feedback"
+    },
     "unspecified": "Nicht angegeben",
     "kind": {
       "bug": "Bug",
@@ -1192,8 +1197,8 @@
       "startFreeTrial": "Kostenlos testen",
       "selectPlan": "Tarif {plan} auswählen",
       "title": "Wähle deinen Tarif",
-      "description": "Nutze Feedback kostenlos oder upgrade für KI-Inhalte und Sichtbarkeits-Tracking.",
-      "continueFree": "Mit kostenlosem Feedback fortfahren",
+      "description": "Wähle einen Plan für KI-Sichtbarkeits-Tracking und Content oder schließe das hier und sieh dich erst um.",
+      "close": "Schließen und zum Dashboard",
       "renews": "{interval, select, year {Dein Tarif verlängert sich jedes Jahr automatisch, bis du kündigst.} other {Dein Tarif verlängert sich jeden Monat automatisch, bis du kündigst.}}"
     },
     "workspace": {
@@ -1834,6 +1839,7 @@
       "year": "Jahr",
       "month": "Monat",
       "current": "Aktuell",
+      "billingInterval": "Abrechnungszeitraum",
       "monthly": "Monatlich",
       "yearly": "Jährlich",
       "title": "Titel",
@@ -6321,8 +6327,9 @@
     "emptyAction": "Inhalte ansehen",
     "emptyDescription": "Du hast heute noch keine neuen Beiträge. Erstelle jetzt einen oder sieh dir deine Entwürfe auf der Inhaltsseite an.",
     "emptyTitle": "Heute noch keine Inhalte erstellt",
-    "upgradeTitle": "Mit Studio Inhalte erstellen",
-    "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
+    "feedbackSetupTitle": "Feedback einrichten",
+    "feedbackSetupDescription": "Verbinde deinen KI-Agenten, damit er Bugs, Fragen und Wünsche zu deinem Produkt meldet. Dauert etwa zwei Minuten.",
+    "feedbackDescription": "Was KI-Agenten über dein Produkt melden."
   },
   "ai": {
     "subagent": {

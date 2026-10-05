@@ -113,7 +113,9 @@ export function WorkspaceForm({
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
   );
-  const [websiteValue, setWebsiteValue] = useState("");
+  const [websiteValue, setWebsiteValue] = useState(
+    existingOrg?.websiteUrl ?? ""
+  );
   const [debouncedWebsite] = useDebouncedValue(websiteValue, {
     wait: COMPANY_LOGO_DEBOUNCE_MS,
   });
@@ -156,7 +158,7 @@ export function WorkspaceForm({
       heardAboutNotraSource: initialSource,
       name: existingOrg?.name ?? "",
       slug: existingOrg?.slug ?? "",
-      websiteUrl: "",
+      websiteUrl: existingOrg?.websiteUrl ?? "",
       dailySummary: existingOrg?.dailySummary ?? true,
       marketingEmails: existingOrg?.marketingEmails ?? true,
     },

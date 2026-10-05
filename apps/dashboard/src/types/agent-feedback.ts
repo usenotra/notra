@@ -187,4 +187,46 @@ export interface AgentFeedbackDetailRow {
 
 export interface AgentFeedbackSetupDialogProps {
   organizationId: string;
+  triggerVariant?: "default" | "outline";
+}
+
+export interface AgentFeedbackCardProps {
+  item: AgentFeedbackItem;
+  href: string;
+}
+
+export interface AgentFeedbackInboxProps {
+  organizationId: string;
+  /** Rendered above the list; receives whether the inbox is empty. */
+  heading: (isEmpty: boolean) => ReactNode;
+  /** Replaces the default setup empty state. */
+  emptyState?: ReactNode;
+  /** Rendered below the table once there is feedback. */
+  footer?: ReactNode;
+}
+
+export interface AgentFeedbackSetupNudgeProps {
+  organizationId: string;
+  /** Drops the table preview, for pages with other sections. */
+  compact?: boolean;
+}
+
+export interface AgentFeedbackDailyCount {
+  day: string;
+  count: number;
+}
+
+export interface AgentFeedbackActivityRange {
+  /** First day, YYYY-MM-DD. */
+  from: string;
+  /** Last day, YYYY-MM-DD. */
+  to: string;
+}
+
+export interface AgentFeedbackActivityData {
+  points: { day: string; value: number }[];
+}
+
+export interface AgentFeedbackActivityCardProps {
+  organizationId: string;
 }

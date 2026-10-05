@@ -9,11 +9,14 @@ import {
 } from "@/app/onboarding/workspace/actions";
 import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
+import { extractDomain } from "@/lib/onboarding/company-logo";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { uploadFile } from "@/lib/upload/client";
 import { generateOrganizationAvatar } from "@/lib/utils";
 import type { SubmitWorkspaceFormArgs } from "@/types/onboarding";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+
+const WWW_PREFIX_REGEX = /^www\./;
 
 function isAllowedLogoSourceUrl(sourceUrl: string): boolean {
   try {
@@ -51,6 +54,15 @@ async function applyOrganizationLogoFromUrl(
     sourceUrl,
   });
   await setOrganizationLogo(organizationId, publicUrl);
+}
+
+function isSameWebsite(next: string, current: string | null | undefined) {
+  if (!current) {
+    return false;
+  }
+  const normalize = (url: string) =>
+    extractDomain(url)?.replace(WWW_PREFIX_REGEX, "");
+  return normalize(next) === normalize(current);
 }
 
 export async function submitWorkspaceForm({
@@ -164,7 +176,10 @@ export async function submitWorkspaceForm({
       });
   }
 
-  if (parsed.data.websiteUrl) {
+  if (
+    parsed.data.websiteUrl &&
+    !isSameWebsite(parsed.data.websiteUrl, existingOrg?.websiteUrl)
+  ) {
     const analysis = await triggerOnboardingBrandAnalysis({
       organizationId,
       websiteUrl: parsed.data.websiteUrl,

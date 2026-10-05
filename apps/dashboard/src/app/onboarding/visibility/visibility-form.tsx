@@ -366,6 +366,7 @@ export function VisibilityForm({
             </div>
             <GeoLanguagePicker
               disabled={isAnalyzing}
+              inputClassName="h-11 rounded-xl"
               inputId={`${id}-languages`}
               labeled={false}
               lockedLanguage={lockedLanguage}

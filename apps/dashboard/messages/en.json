@@ -653,6 +653,11 @@
     }
   },
   "feedback": {
+    "activity": {
+      "title": "Feedback activity",
+      "loadFailed": "Failed to load feedback activity",
+      "seriesLabel": "Feedback"
+    },
     "unspecified": "Unspecified",
     "kind": {
       "bug": "Bug",
@@ -1192,8 +1197,8 @@
       "startFreeTrial": "Start free trial",
       "selectPlan": "Select {plan}",
       "title": "Choose your plan",
-      "description": "Use feedback for free, or upgrade for AI content and visibility tracking.",
-      "continueFree": "Continue with free feedback",
+      "description": "Pick a plan to unlock AI visibility tracking and content, or close this and look around first.",
+      "close": "Close and go to dashboard",
       "renews": "{interval, select, year {Your plan renews automatically every year until you cancel.} other {Your plan renews automatically every month until you cancel.}}"
     },
     "workspace": {
@@ -1834,6 +1839,7 @@
       "year": "year",
       "month": "month",
       "current": "Current",
+      "billingInterval": "Billing interval",
       "monthly": "Monthly",
       "yearly": "Yearly",
       "title": "Title",
@@ -6321,8 +6327,9 @@
     "emptyAction": "View content",
     "emptyDescription": "You have no new posts today. Create one now or review your existing drafts on the content page.",
     "emptyTitle": "No content created today",
-    "upgradeTitle": "Create with Studio",
-    "upgradeDescription": "Studio is included in paid plans. Upgrade to create content and use AI tools."
+    "feedbackSetupTitle": "Set up feedback",
+    "feedbackSetupDescription": "Connect your AI agent so it can report bugs, questions and requests about your product. Takes about two minutes.",
+    "feedbackDescription": "What AI agents report about your product."
   },
   "ai": {
     "subagent": {
