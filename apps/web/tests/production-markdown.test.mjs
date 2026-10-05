@@ -8,20 +8,16 @@ import { test } from "node:test";
 
 test("production markdown endpoints work without the source tree", async (t) => {
   const cwd = await mkdtemp(join(tmpdir(), "notra-web-markdown-"));
-  let child;
-  t.after(async () => {
-    if (child && child.exitCode === null && child.signalCode === null) {
-      const exited = once(child, "exit");
-      child.kill("SIGTERM");
-      await exited;
-    }
+  try {
+    await cp(new URL("../.output/", import.meta.url), cwd, {
+      recursive: true,
+      dereference: true,
+    });
+  } catch (error) {
     await rm(cwd, { recursive: true, force: true });
-  });
-  await cp(new URL("../.output/", import.meta.url), cwd, {
-    recursive: true,
-    dereference: true,
-  });
-  child = spawn(process.execPath, [join(cwd, "server/index.mjs")], {
+    throw error;
+  }
+  const child = spawn(process.execPath, [join(cwd, "server/index.mjs")], {
     cwd,
     env: {
       PATH: process.env.PATH,
@@ -30,6 +26,14 @@ test("production markdown endpoints work without the source tree", async (t) => 
       NITRO_HOST: "127.0.0.1",
     },
     stdio: ["ignore", "pipe", "pipe"],
+  });
+  t.after(async () => {
+    if (child.exitCode === null && child.signalCode === null) {
+      const exited = once(child, "exit");
+      child.kill("SIGTERM");
+      await exited;
+    }
+    await rm(cwd, { recursive: true, force: true });
   });
 
   const url = await new Promise((resolve, reject) => {
