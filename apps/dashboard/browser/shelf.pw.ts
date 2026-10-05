@@ -14,7 +14,7 @@ for (const view of ["table", "board"] as const) {
             .filter({ visible: true });
     await expect
       .poll(() => content.evaluate((el) => el.clientHeight))
-      .toBe(view === "table" ? 120 : 168);
+      .toBe(view === "table" ? 288 : 321);
     await page.getByTestId("scrollport").evaluate((el) => {
       el.scrollTop = 200;
     });
@@ -50,7 +50,7 @@ for (const view of ["table", "board"] as const) {
             .filter({ visible: true });
     await expect
       .poll(() => content.evaluate((el) => el.clientHeight))
-      .toBe(view === "table" ? 120 : 168);
+      .toBe(view === "table" ? 344 : 360);
     await page.evaluate(() => window.scrollTo(0, 200));
     await expect
       .poll(() => content.evaluate((el) => el.clientHeight))

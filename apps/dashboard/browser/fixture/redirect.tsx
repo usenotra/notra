@@ -36,10 +36,9 @@ function Controls() {
           Open other page
         </button>
         <button
-          onClick={() => {
-            void router
-              .preloadRoute({ to: "/traffic" })
-              .then(() => setPrefetched(true));
+          onClick={async () => {
+            await router.preloadRoute({ to: "/traffic" });
+            setPrefetched(true);
           }}
           type="button"
         >
@@ -108,7 +107,11 @@ const login = createUiRoute({
 const router: AnyRouter = createRouter({
   routeTree: root.addChildren([home, traffic, other, login]),
   history: createMemoryHistory({
-    initialEntries: [window.location.pathname === "/login" ? "/login" : "/"],
+    initialEntries: [
+      typeof window !== "undefined" && window.location.pathname === "/login"
+        ? "/login"
+        : "/",
+    ],
   }),
   defaultPreloadStaleTime: 30_000,
   defaultStaleTime: 30_000,

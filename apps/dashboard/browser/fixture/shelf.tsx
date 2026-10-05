@@ -35,7 +35,9 @@ const seed = toShelfRows(
 );
 
 export function ShelfFixture() {
-  const query = new URLSearchParams(window.location.search);
+  const query = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
   const windowScroll = query.get("scroll") === "window";
   const [view, setView] = useState<GeoShelfView>(
     query.get("view") === "board" ? "board" : "table"

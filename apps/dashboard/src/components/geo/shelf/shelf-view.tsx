@@ -5,7 +5,10 @@ import { Activity, useLayoutEffect, useRef, useState } from "react";
 
 import { ShelfBoard } from "@/components/geo/shelf/shelf-board";
 import { ShelfTable } from "@/components/geo/shelf/shelf-table";
-import { GEO_SHELF_TABLE_ROW_HEIGHT } from "@/constants/geo-shelf";
+import {
+  GEO_SHELF_MIN_VIEWPORT_RATIO,
+  GEO_SHELF_TABLE_ROW_HEIGHT,
+} from "@/constants/geo-shelf";
 import type { GeoShelfViewProps } from "@/types/geo-shelf";
 
 export function ShelfView({
@@ -70,6 +73,7 @@ export function ShelfView({
       setHeight(
         Math.max(
           minimumHeight,
+          Math.floor((bottom - top) * GEO_SHELF_MIN_VIEWPORT_RATIO),
           unscrolledSpace < minimumHeight
             ? Math.floor(bottom - top - paddingBottom)
             : 0,

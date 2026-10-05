@@ -5,16 +5,19 @@ import "../../src/styles/globals.css";
 import { RedirectFixture } from "./redirect";
 import { ShelfFixture } from "./shelf";
 
-const root = document.getElementById("root");
-if (!root) {
-  throw new Error("Missing browser fixture root");
+if (typeof document !== "undefined" && typeof window !== "undefined") {
+  const root = document.getElementById("root");
+  if (!root) {
+    throw new Error("Missing browser fixture root");
+  }
+  createRoot(root).render(
+    <StrictMode>
+      {new URLSearchParams(window.location.search).get("test") ===
+      "redirect" ? (
+        <RedirectFixture />
+      ) : (
+        <ShelfFixture />
+      )}
+    </StrictMode>
+  );
 }
-createRoot(root).render(
-  <StrictMode>
-    {new URLSearchParams(window.location.search).get("test") === "redirect" ? (
-      <RedirectFixture />
-    ) : (
-      <ShelfFixture />
-    )}
-  </StrictMode>
-);
