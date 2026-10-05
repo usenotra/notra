@@ -93,3 +93,39 @@ test("failure response bodies are canceled and their cancellation errors do not 
     "GEO ingest request failed (HTTP 429)"
   );
 });
+
+test("HTTP error reporting does not wait for pending body cancellation", async () => {
+  let releaseCancellation: () => void = () => undefined;
+  let markCancellationStarted: () => void = () => undefined;
+  const cancellation = new Promise<void>((resolve) => {
+    releaseCancellation = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    markCancellationStarted = resolve;
+  });
+  const cancel = mock(() => {
+    markCancellationStarted();
+    return cancellation;
+  });
+  const onError = mock();
+  const sending = sendRequestLog(
+    { method: "GET", url: "https://example.com/" },
+    {
+      token: "fixture",
+      fetch: async () =>
+        new Response(new ReadableStream({ cancel }), { status: 502 }),
+      onError,
+    }
+  );
+  try {
+    await started;
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0]?.[0]?.message).toBe(
+      "GEO ingest request failed (HTTP 502)"
+    );
+    await expect(sending).resolves.toBeUndefined();
+  } finally {
+    releaseCancellation();
+    await sending;
+  }
+});

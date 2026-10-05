@@ -29,7 +29,7 @@ export async function sendRequestLog(
       signal: AbortSignal.timeout(INGEST_TIMEOUT_MS),
     });
     if (!response.ok) {
-      await response.body?.cancel().catch(() => undefined);
+      void response.body?.cancel().catch(() => undefined);
       throw new Error(`GEO ingest request failed (HTTP ${response.status})`);
     }
   } catch (error) {
