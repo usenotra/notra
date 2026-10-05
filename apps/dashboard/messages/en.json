@@ -779,7 +779,6 @@
       "or": "Or",
       "emailPlaceholder": "jane@company.com",
       "passwordPlaceholder": "At least 10 characters",
-      "creating": "Creating account…",
       "submit": "Create account",
       "forgotPassword": "Forgot your password? <link>Reset your password</link>",
       "haveAccount": "Already have an account? <link>Log in</link>"
@@ -821,7 +820,6 @@
       "descriptionNoEmail": "We sent a 6-digit code to your email address. Enter it below to continue.",
       "codeLabel": "Verification code",
       "submit": "Verify email",
-      "submitting": "Verifying…",
       "errorFallback": "Verification failed. Please try again."
     },
     "mfaChallenge": {
@@ -835,7 +833,6 @@
       "backupDescription": "Enter one of the backup codes you saved when you set up two-factor authentication. Each code works once.",
       "backupCodeLabel": "Backup code",
       "backupSubmit": "Use backup code",
-      "backupSubmitting": "Checking…",
       "useAuthenticator": "Use my authenticator app instead",
       "issuedCodesTitle": "Your backup codes",
       "issuedCodesDescription": "You're signed in. Save these backup codes now: each one lets you in once if you lose your authenticator app."
@@ -852,7 +849,6 @@
       "passwordPlaceholder": "Your password",
       "lastUsed": "Last used",
       "submit": "Log in",
-      "submitting": "Signing in…",
       "resetPassword": "Reset your password",
       "noAccount": "Don't have an account?",
       "register": "Register",
@@ -1168,7 +1164,6 @@
       "tryingAgain": "Trying again",
       "noSuggestions": "Nothing obvious for {domain}. Search above instead.",
       "showMore": "Show {count} more",
-      "runningFirstScan": "Running your first scan",
       "description": "When AI recommends someone instead of {companyName}, who is it? Pick the brands you want to be measured against.",
       "descriptionFallback": "When AI recommends someone instead of you, who is it? Pick the brands you want to be measured against.",
       "title": "Who do you lose deals to?"
@@ -1219,12 +1214,10 @@
       "heardAbout": "Where did you hear about Notra?",
       "selectOption": "Select an option",
       "tellUsWhere": "Tell us where",
-      "tellUsWherePlaceholder": "Podcast, community, friend, etc.",
-      "settingUp": "Setting up…"
+      "tellUsWherePlaceholder": "Podcast, community, friend, etc."
     },
     "shared": {
-      "skipOnboarding": "Skip onboarding",
-      "saving": "Saving"
+      "skipOnboarding": "Skip onboarding"
     }
   },
   "shared": {

@@ -54,7 +54,6 @@ function VisibilityReview({
   skipHref,
 }: VisibilityReviewProps) {
   const t = useTranslations("onboarding.visibility");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -184,15 +183,8 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Loader2Icon className="size-4 animate-spin" />
-            {tOnboardingShared("saving")}
-          </>
-        ) : (
-          tCommon("actions.continue")
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {tCommon("actions.continue")}
       </CtaButton>
 
       <div className="text-center">

@@ -597,15 +597,8 @@ export function WorkspaceForm({
           )}
         </form.Field>
 
-        <CtaButton className="w-full" disabled={isSubmitting} type="submit">
-          {isSubmitting ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              {t("settingUp")}
-            </>
-          ) : (
-            tCommon("actions.continue")
-          )}
+        <CtaButton className="w-full" loading={isSubmitting} type="submit">
+          {tCommon("actions.continue")}
         </CtaButton>
       </form>
     </div>

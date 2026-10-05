@@ -779,7 +779,6 @@
       "or": "Oder",
       "emailPlaceholder": "jane@firma.de",
       "passwordPlaceholder": "Mindestens 10 Zeichen",
-      "creating": "Konto wird erstellt…",
       "submit": "Konto erstellen",
       "forgotPassword": "Passwort vergessen? <link>Passwort zurücksetzen</link>",
       "haveAccount": "Du hast schon ein Konto? <link>Anmelden</link>"
@@ -821,7 +820,6 @@
       "descriptionNoEmail": "Wir haben einen 6-stelligen Code an deine E-Mail-Adresse gesendet. Gib ihn unten ein, um fortzufahren.",
       "codeLabel": "Bestätigungscode",
       "submit": "E-Mail bestätigen",
-      "submitting": "Wird geprüft…",
       "errorFallback": "Bestätigung fehlgeschlagen. Bitte versuch es nochmal."
     },
     "mfaChallenge": {
@@ -835,7 +833,6 @@
       "backupDescription": "Gib einen der Backup-Codes ein, die du beim Einrichten der Zwei-Faktor-Authentifizierung gespeichert hast. Jeder Code funktioniert einmal.",
       "backupCodeLabel": "Backup-Code",
       "backupSubmit": "Backup-Code verwenden",
-      "backupSubmitting": "Wird geprüft…",
       "useAuthenticator": "Stattdessen meine Authenticator-App verwenden",
       "issuedCodesTitle": "Deine Backup-Codes",
       "issuedCodesDescription": "Du bist angemeldet. Speichere jetzt diese Backup-Codes: Mit jedem kommst du einmal rein, falls du deine Authenticator-App verlierst."
@@ -852,7 +849,6 @@
       "passwordPlaceholder": "Dein Passwort",
       "lastUsed": "Zuletzt verwendet",
       "submit": "Anmelden",
-      "submitting": "Anmeldung läuft…",
       "resetPassword": "Passwort zurücksetzen",
       "noAccount": "Noch kein Konto?",
       "register": "Registrieren",
@@ -1168,7 +1164,6 @@
       "tryingAgain": "Neuer Versuch",
       "noSuggestions": "Nichts Offensichtliches für {domain}. Nutze stattdessen die Suche oben.",
       "showMore": "{count} weitere anzeigen",
-      "runningFirstScan": "Dein erster Scan läuft",
       "description": "Wenn KI statt {companyName} jemand anderen empfiehlt, wer ist das? Wähle die Marken, mit denen du dich messen willst.",
       "descriptionFallback": "Wenn KI statt dir jemand anderen empfiehlt, wer ist das? Wähle die Marken, mit denen du dich messen willst.",
       "title": "An wen verlierst du Deals?"
@@ -1219,12 +1214,10 @@
       "heardAbout": "Wo hast du von Notra gehört?",
       "selectOption": "Option auswählen",
       "tellUsWhere": "Verrate uns, wo",
-      "tellUsWherePlaceholder": "Podcast, Community, Freunde usw.",
-      "settingUp": "Wird eingerichtet…"
+      "tellUsWherePlaceholder": "Podcast, Community, Freunde usw."
     },
     "shared": {
-      "skipOnboarding": "Onboarding überspringen",
-      "saving": "Wird gespeichert"
+      "skipOnboarding": "Onboarding überspringen"
     }
   },
   "shared": {

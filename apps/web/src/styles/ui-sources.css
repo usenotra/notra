@@ -50,6 +50,7 @@
 @source "../../../../packages/ui/src/components/instrument/instrument-module.tsx";
 @source "../../../../packages/ui/src/components/kibo-ui/color-picker/index.tsx";
 @source "../../../../packages/ui/src/components/kibo-ui/marquee/index.tsx";
+@source "../../../../packages/ui/src/components/shared/cta-button-content.tsx";
 @source "../../../../packages/ui/src/components/shared/cta-button.tsx";
 @source "../../../../packages/ui/src/components/shared/orbit-images.tsx";
 @source "../../../../packages/ui/src/components/shared/responsive-dialog.tsx";
