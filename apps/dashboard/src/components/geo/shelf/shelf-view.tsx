@@ -5,7 +5,10 @@ import { Activity, useLayoutEffect, useRef, useState } from "react";
 
 import { ShelfBoard } from "@/components/geo/shelf/shelf-board";
 import { ShelfTable } from "@/components/geo/shelf/shelf-table";
-import { GEO_SHELF_TABLE_ROW_HEIGHT } from "@/constants/geo-shelf";
+import {
+  GEO_SHELF_MIN_VIEWPORT_RATIO,
+  GEO_SHELF_TABLE_ROW_HEIGHT,
+} from "@/constants/geo-shelf";
 import type { GeoShelfViewProps } from "@/types/geo-shelf";
 
 export function ShelfView({
@@ -47,6 +50,7 @@ export function ShelfView({
       parent = parent.parentElement;
     }
     const measure = () => {
+      let top = 0;
       let bottom = window.innerHeight;
       let paddingBottom = 0;
       let scrollTop = window.scrollY;
@@ -54,19 +58,20 @@ export function ShelfView({
         const style = getComputedStyle(ancestor);
         paddingBottom += Number.parseFloat(style.paddingBottom) || 0;
         if (["auto", "scroll", "hidden"].includes(style.overflowY)) {
-          bottom = Math.min(
-            bottom,
-            ancestor.getBoundingClientRect().top +
-              ancestor.clientTop +
-              ancestor.clientHeight
-          );
+          top = ancestor.getBoundingClientRect().top + ancestor.clientTop;
+          bottom = Math.min(bottom, top + ancestor.clientHeight);
           scrollTop = ancestor.scrollTop;
           break;
         }
       }
+      // Measured from the unscrolled layout so scrolling never resizes the
+      // shelf; on short viewports the floor keeps it readable once reached.
       setHeight(
         Math.max(
           GEO_SHELF_TABLE_ROW_HEIGHT * 2 + TABLE_FRAME_INSET_PX,
+          Math.floor(
+            (bottom - Math.max(top, 0)) * GEO_SHELF_MIN_VIEWPORT_RATIO
+          ),
           Math.floor(
             bottom -
               element.getBoundingClientRect().top -

@@ -2,6 +2,7 @@ import { createRoute, type Router } from "@tanstack/react-router";
 import { createElement, Suspense, use } from "react";
 import { createTranslator } from "use-intl/core";
 
+import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
 import { getCatalog } from "@/lib/i18n/catalog";
 import type { DashboardLocale } from "@/types/i18n";
 import type {
@@ -103,9 +104,13 @@ export function createUiRoute<T = undefined>({
       };
       if (stream && loader && (import.meta.env.SSR || gate)) {
         await gate?.(input);
+        // The destination has already committed, so a redirect the loader
+        // raises later (expired session, revoked access) can't reach the router.
         return {
           data: undefined,
-          pending: loader({ ...input, gated: gate !== undefined }),
+          pending: followServerRedirect(
+            loader({ ...input, gated: gate !== undefined })
+          ),
         };
       }
       return { data: await loader?.(input), pending: undefined };
