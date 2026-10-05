@@ -111,6 +111,7 @@ import {
   summarizeGeoChanges,
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
+import { competitorCanonicalMap } from "../utils/geo-competitor-names";
 import {
   normalizeConversionPaths,
   sumConversionVisits,
@@ -1118,15 +1119,9 @@ export const loadGeoCompetitorEngineMatrix = Effect.fn(
   // Tracked competitors are matched by name and synonyms regardless of rank,
   // so one outside the top brands still gets its row. Untracked brands only
   // stand in while nothing is tracked.
-  const brands = new Map<string, string>();
-  for (const competitor of competitors) {
-    for (const alias of [competitor.name, ...competitor.synonyms]) {
-      const key = competitorKey(alias);
-      if (key.length > 0 && !brands.has(key)) {
-        brands.set(key, competitor.name);
-      }
-    }
-  }
+  // Same mapping as the client, so an exact tracked name wins over another
+  // competitor's synonym.
+  const brands = competitorCanonicalMap(competitors);
   if (brands.size === 0) {
     const topBrands = yield* geoDb("competitor share query failed", () =>
       queryGeoCheckCompetitorShare(
