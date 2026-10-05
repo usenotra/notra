@@ -155,22 +155,43 @@ export function CompetitorEngineMatrixCard({
                 const openable = !row.own && Boolean(organizationSlug);
                 return (
                   <tr
-                    className={cn("group", openable && "cursor-pointer")}
+                    className={cn(
+                      "group",
+                      openable &&
+                        "focus-visible:outline-ring cursor-pointer rounded-lg focus-visible:outline-2"
+                    )}
                     key={row.own ? "own" : row.brand}
                     onClick={
                       openable ? () => navigation.openRow(row.brand) : undefined
+                    }
+                    onFocus={
+                      openable
+                        ? () => navigation.prefetchRow(row.brand)
+                        : undefined
+                    }
+                    onKeyDown={
+                      openable
+                        ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              navigation.openRow(row.brand);
+                            }
+                          }
+                        : undefined
                     }
                     onPointerEnter={
                       openable
                         ? () => navigation.prefetchRow(row.brand)
                         : undefined
                     }
+                    tabIndex={openable ? 0 : undefined}
                   >
                     <th
                       className={cn(
                         "rounded-lg px-2 text-left text-sm font-normal transition-colors",
                         row.own && "bg-primary/10 font-medium",
-                        openable && "group-hover:bg-muted/60"
+                        openable &&
+                          "group-hover:bg-muted/60 group-focus-visible:bg-muted/60"
                       )}
                       scope="row"
                     >
@@ -179,17 +200,7 @@ export function CompetitorEngineMatrixCard({
                           competitors={competitors}
                           name={row.brand}
                         />
-                        {openable ? (
-                          <button
-                            className="focus-visible:ring-ring min-w-0 cursor-pointer truncate rounded-sm text-left outline-none focus-visible:ring-2"
-                            onFocus={() => navigation.prefetchRow(row.brand)}
-                            type="button"
-                          >
-                            {row.brand}
-                          </button>
-                        ) : (
-                          <span className="truncate">{row.brand}</span>
-                        )}
+                        <span className="truncate">{row.brand}</span>
                         {row.own ? (
                           <span className="text-muted-foreground shrink-0 text-xs font-normal">
                             {t("you")}
