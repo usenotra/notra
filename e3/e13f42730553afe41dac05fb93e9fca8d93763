@@ -1,0 +1,30 @@
+apps/dashboard/messages/en.json
+  s_81f2be883d9504::t_490b338fa926e5 2470-2471
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/page-client.tsx
+  s_81f2be883d9504::t_490b338fa926e5 168
+apps/dashboard/src/types/geo.ts
+  s_81f2be883d9504::t_9e975d5a8badbe 1320-1321,1339
+apps/dashboard/src/components/geo/competitor-engine-matrix-card.tsx
+  s_81f2be883d9504::t_490b338fa926e5 4,7,14-17,19,21,29-31,37,43,47-50,60-61,66,82,85-89,153-167,169-225,228
+apps/dashboard/src/utils/geo-engine-matrix.ts
+  s_81f2be883d9504::t_c19f068d9703ad 166-168
+  s_81f2be883d9504::t_9e975d5a8badbe 153,165
+apps/dashboard/messages/de.json
+  s_81f2be883d9504::t_490b338fa926e5 2470-2471
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e3e13f42730553afe41dac05fb93e9fca8d93763",
+  "prompts": {},
+  "sessions": {
+    "s_81f2be883d9504": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "955fcecb-7f06-4c96-987e-dfe893bdc433",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
