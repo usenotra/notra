@@ -61,7 +61,7 @@ export function DemoBanner() {
         {firstName ? t("titleNamed", { name: firstName }) : t("title")}
       </p>
       <button
-        className="decoration-foreground/30 hover:decoration-foreground focus-visible:ring-ring/50 inline-flex h-7 shrink-0 items-center rounded-md px-1 underline underline-offset-4 transition-colors outline-none focus-visible:ring-3"
+        className="decoration-foreground/30 hover:decoration-foreground focus-visible:ring-ring/50 inline-flex h-7 shrink-0 cursor-pointer items-center rounded-md px-1 underline underline-offset-4 transition-colors outline-none focus-visible:ring-3"
         onClick={() => setCustomizeOpen(true)}
         type="button"
       >
