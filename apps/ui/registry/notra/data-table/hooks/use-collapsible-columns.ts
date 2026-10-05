@@ -1,39 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { headerMinWidth, isFrWidth } from "../lib/data-table";
+import { tableMinWidthCss } from "../lib/data-table";
 import type { TableColumn } from "../types/data-table";
 
 interface CollapsibleColumnsOptions {
   minColumnWidth: number;
   extraFixedWidths?: readonly string[];
-}
-
-/**
- * The width a column actually occupies at its narrowest: fixed widths never
- * shrink below their declared size (see `colWidthStyle`), flexible ones stop
- * at their header floor.
- */
-function columnFloorCss<T>(
-  column: TableColumn<T>,
-  minColumnWidth: number
-): string {
-  const floor = headerMinWidth(column, minColumnWidth);
-  if (!column.width || isFrWidth(column.width)) {
-    return floor;
-  }
-  return `max(${column.width}, ${floor})`;
-}
-
-function tableFloorCss<T>(
-  columns: readonly TableColumn<T>[],
-  minColumnWidth: number,
-  extraFixedWidths: readonly string[]
-): string {
-  const parts = [
-    ...extraFixedWidths,
-    ...columns.map((column) => columnFloorCss(column, minColumnWidth)),
-  ];
-  return parts.length === 0 ? "0px" : `calc(${parts.join(" + ")})`;
 }
 
 function columnSignature<T>(column: TableColumn<T>): string {
@@ -94,7 +66,7 @@ export function useCollapsibleColumns<T>(
     container.append(probe);
     const floors = collapseOrder.map((_, count) => {
       const hidden = new Set(collapseOrder.slice(0, count));
-      probe.style.width = tableFloorCss(
+      probe.style.width = tableMinWidthCss(
         current.filter((column) => !hidden.has(column.key)),
         minColumnWidth,
         fixed

@@ -116,18 +116,41 @@ export function headerMinWidth(
   return `${minColumnWidth}px`;
 }
 
-/** Sum of column floors so `table-layout: fixed` cannot crush titles. */
+/**
+ * The width a column actually occupies at its narrowest: fixed widths never
+ * shrink below their declared size (see `colWidthStyle`), flexible ones stop
+ * at their header floor.
+ */
+export function columnFloorCss<T>(
+  column: Pick<
+    TableColumn<T>,
+    "header" | "hint" | "sortable" | "minWidth" | "width"
+  >,
+  minColumnWidth: number
+): string {
+  const floor = headerMinWidth(column, minColumnWidth);
+  if (!column.width || isFrWidth(column.width)) {
+    return floor;
+  }
+  return `max(${column.width}, ${floor})`;
+}
+
+/**
+ * Sum of column floors so `table-layout: fixed` cannot crush titles. Fixed
+ * widths count in full: WebKit fits a fixed table to its `min-width`, so a
+ * smaller sum squeezes the flexible columns to nothing on narrow screens.
+ */
 export function tableMinWidthCss<T>(
   columns: readonly Pick<
     TableColumn<T>,
-    "header" | "hint" | "sortable" | "minWidth"
+    "header" | "hint" | "sortable" | "minWidth" | "width"
   >[],
   minColumnWidth: number,
   extraFixedWidths: readonly string[] = []
 ): string {
   const parts = [
     ...extraFixedWidths,
-    ...columns.map((column) => headerMinWidth(column, minColumnWidth)),
+    ...columns.map((column) => columnFloorCss(column, minColumnWidth)),
   ];
   if (parts.length === 0) {
     return "0px";
@@ -304,11 +327,20 @@ export function tableLayout<T>(
   // Shrink-wrap only after every column has an explicit resized width.
   const sized =
     columns.length > 0 && columns.every((column) => widths[column.key] != null);
+  // A resized column floors at its dragged width, not the declared one.
+  const floorColumns = columns.map((column) => {
+    const override = widths[column.key];
+    return override == null ? column : { ...column, width: `${override}px` };
+  });
   return {
     className: sized ? "w-max min-w-full" : "w-full",
     style: {
       tableLayout: "fixed" as const,
-      minWidth: tableMinWidthCss(columns, minColumnWidth, extraFixedWidths),
+      minWidth: tableMinWidthCss(
+        floorColumns,
+        minColumnWidth,
+        extraFixedWidths
+      ),
     },
   };
 }
