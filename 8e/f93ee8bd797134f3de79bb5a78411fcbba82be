@@ -1,0 +1,19 @@
+apps/web/tests/production-markdown.test.mjs
+  s_a78e42590c5913::t_6833a8ceefebcd 11-19,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8ef93ee8bd797134f3de79bb5a78411fcbba82be",
+  "prompts": {},
+  "sessions": {
+    "s_a78e42590c5913": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06cf4392-418e-4ef5-a5ca-e94e6ffa105a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
