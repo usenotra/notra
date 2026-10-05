@@ -6,6 +6,7 @@ import {
   listNotraChangelogPosts,
 } from "@/utils/changelog";
 import { stripFrontmatter } from "@/utils/markdown";
+import { readAppMarkdownSource } from "@/utils/markdown-source";
 import { SITE_DESCRIPTION } from "@/utils/metadata";
 import {
   getShowcaseCompany,
@@ -67,7 +68,9 @@ async function buildShowcaseEntrySections() {
       const companySlug = entry.info.path.split("/")[0] ?? "";
       const company = getShowcaseCompany(companySlug);
       const slug = getShowcaseEntrySlug(entry.info.path);
-      const content = stripFrontmatter(await entry.getText("raw"));
+      const content = stripFrontmatter(
+        readAppMarkdownSource("changelog", entry.info.path)
+      );
 
       return [
         `## ${company?.name ?? companySlug}: ${entry.title}`,

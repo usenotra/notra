@@ -35,6 +35,7 @@ import {
 } from "@/utils/changelog";
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
+import { readAppMarkdownSource } from "@/utils/markdown-source";
 import { MarkdownNotFoundError } from "@/utils/not-found";
 import {
   getShowcaseCompany,
@@ -101,43 +102,6 @@ function markdownFromTitleAndBody(title: string, body: string) {
   return withTrailingNewline([`# ${title}`, "", content].join("\n"));
 }
 
-const CONTENT_SOURCES = import.meta.glob<string>(
-  [
-    "/src/content/pages/*.md",
-    "/src/content/pages/features/*.md",
-    "/src/content/legal/*.mdx",
-    "/src/content/changelog/**/*.mdx",
-  ],
-  { query: "?raw", import: "default", eager: true }
-);
-
-async function readAppMarkdownSource(...segments: string[]) {
-  const source = CONTENT_SOURCES[`/src/content/${segments.join("/")}`];
-
-  if (source === undefined) {
-    throw new Error(`Unable to load markdown source: ${segments.join("/")}`);
-  }
-
-  return source;
-}
-
-async function getShowcaseEntryMarkdown(
-  name: string,
-  slug: string,
-  entry: (typeof changelog)[number]
-) {
-  try {
-    return stripFrontmatter(await entry.getText("raw"));
-  } catch {
-    const source = await readAppMarkdownSource(
-      "changelog",
-      name,
-      `${slug}.mdx`
-    );
-    return stripFrontmatter(source);
-  }
-}
-
 function renderDatedEntry(entry: MarkdownTwinEntry) {
   const lines = [`# ${entry.data.title}`, ""];
 
@@ -200,7 +164,9 @@ async function getShowcaseEntries(name: string): Promise<MarkdownTwinEntry[]> {
           dateLabel: entry.date,
           publishedDate: new Date(entry.date),
         },
-        body: await getShowcaseEntryMarkdown(name, slug, entry),
+        body: stripFrontmatter(
+          readAppMarkdownSource("changelog", entry.info.path)
+        ),
       };
     })
   );

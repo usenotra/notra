@@ -73,6 +73,12 @@ jobs:
       - name: Run unit and integration tests
         run: bun run test --force
 
+      - name: Verify production markdown endpoints
+        run: |
+          bun run build --filter=web
+          cd apps/web
+          bun run test:production
+
       - name: Restore incremental TypeScript state
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -84,4 +90,4 @@ jobs:
             typecheck-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock', 'package.json', 'apps/*/package.json', 'packages/*/package.json', 'apps/*/tsconfig*.json', 'packages/*/tsconfig*.json', 'packages/typescript-config/*.json') }}-
 
       - name: Typecheck tested packages and UI docs
-        run: bun run check-types --filter=@usenotra/geo --filter=@notra/agent --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui
+        run: bun run check-types --filter=@usenotra/geo --filter=@notra/agent --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui --filter=web

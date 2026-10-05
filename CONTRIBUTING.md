@@ -544,3 +544,8 @@ Workflow orchestration tests replace steps and `sleep`; they do not verify
 Vercel's durable runtime, restart recovery, or actual cron delivery. Live model
 answers, billing providers, and the committed database migration chain are also
 outside this suite.
+
+The Code quality job also builds the website and runs `bun run test:production`
+from `apps/web`. This starts the production artifact from an empty directory and
+checks the Markdown endpoints without access to the source tree. Run
+`bun run build --filter=web && (cd apps/web && bun run test:production)` locally.
