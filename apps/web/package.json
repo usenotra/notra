@@ -9,7 +9,7 @@
     "start": "node .output/server/index.mjs",
     "check-types": "tsc --noEmit",
     "test": "bun test src",
-    "test:production": "node --test tests/production-markdown.test.mjs",
+    "test:production": "node --test tests/production-*.test.mjs",
     "styles:generate": "bun scripts/generate-ui-sources.mjs",
     "styles:check": "bun scripts/generate-ui-sources.mjs --check",
     "knip": "knip",

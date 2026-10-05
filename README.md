@@ -45,7 +45,7 @@ See the [product documentation](https://www.usenotra.com/docs) for setup and aut
 
 ## Repository
 
-Notra is a Bun and Turborepo monorepo, built with TypeScript, React, Hono, PostgreSQL, and Drizzle ORM. The dashboard uses TanStack Start, Vite, and Nitro; the public website uses Next.js.
+Notra is a Bun and Turborepo monorepo, built with TypeScript, React, Hono, PostgreSQL, and Drizzle ORM. The dashboard and public website use TanStack Start, Vite, and Nitro.
 
 | Path | Purpose |
 | --- | --- |
