@@ -1,7 +1,7 @@
 "use client";
 
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { DEFAULT_AUTH_LAST_USED_LABEL } from "@notra/ui/constants/auth-labels";
-import { Loader2Icon } from "lucide-react";
 
 import type {
   AuthSocialButtonsProps,
@@ -45,7 +45,7 @@ export function AuthSocialButtons({
             variant="light"
           >
             {authMethod === provider ? (
-              <Loader2Icon className="size-4 animate-spin" />
+              <Spinner />
             ) : (
               <Icon
                 className={

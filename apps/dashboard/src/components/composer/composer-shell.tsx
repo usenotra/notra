@@ -6,6 +6,7 @@ import {
   Edit02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +15,6 @@ import {
 import type { ComponentProps } from "react";
 import { useTranslations } from "use-intl";
 
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   COMPOSER_FRAME_TRANSITION,
   COMPOSER_INNER_FRAME,
@@ -222,7 +222,7 @@ function ComposerSend({
           />
         }
       >
-        {busy ? <StatusSpinner /> : children}
+        {busy ? <Spinner className="size-3.5" /> : children}
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>

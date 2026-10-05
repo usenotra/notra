@@ -9,9 +9,9 @@ import {
 } from "@notra/ui/components/ui/avatar";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useForm } from "@tanstack/react-form";
-import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -145,7 +145,7 @@ export function ProfileSection({
               </AvatarFallback>
               {isUploadingAvatar && (
                 <span className="bg-background/80 absolute inset-0 flex items-center justify-center rounded-lg">
-                  <Loader2Icon className="size-6 animate-spin" />
+                  <Spinner className="size-6" />
                 </span>
               )}
               <span className="bg-background/80 absolute inset-0 flex items-center justify-center rounded-lg opacity-0 transition-opacity group-hover/avatar:opacity-100">

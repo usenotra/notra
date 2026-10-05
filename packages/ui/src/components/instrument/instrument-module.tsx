@@ -1,3 +1,4 @@
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Card,
   CardAction,
@@ -173,32 +174,7 @@ export function InstrumentEmpty({
         )}
       >
         {busy ? (
-          <span
-            aria-hidden="true"
-            className="inline-flex size-4 text-muted-foreground motion-safe:animate-spin"
-          >
-            <svg
-              aria-hidden="true"
-              className="size-full"
-              fill="none"
-              viewBox="0 0 16 16"
-            >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="currentColor"
-                strokeOpacity="0.25"
-                strokeWidth="2"
-              />
-              <path
-                d="M14 8A6 6 0 0 0 8 2"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2"
-              />
-            </svg>
-          </span>
+          <Spinner className="text-muted-foreground" />
         ) : null}
         <p className="text-muted-foreground text-sm capitalize">{message}</p>
       </div>

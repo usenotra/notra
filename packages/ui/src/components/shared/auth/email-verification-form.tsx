@@ -1,10 +1,10 @@
 "use client";
 
 
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import { DEFAULT_EMAIL_VERIFICATION_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 
-import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { EmailVerificationFormProps } from "../../../types/auth";
 import { CtaButton } from "../cta-button";
@@ -87,7 +87,7 @@ export function EmailVerificationForm({
           >
             {isPending ? (
               <>
-                <Loader2Icon className="size-4 animate-spin" />
+                <Spinner />
                 {l.submitting}
               </>
             ) : (

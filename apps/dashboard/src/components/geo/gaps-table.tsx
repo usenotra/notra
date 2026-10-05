@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -66,7 +67,6 @@ import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GapDetailSheet } from "@/components/geo/gap-detail-sheet";
 import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -300,7 +300,7 @@ function WriteCell({
             }
           >
             {isIgnoring ? (
-              <StatusSpinner />
+              <Spinner className="size-3.5" />
             ) : (
               <HugeiconsIcon icon={ViewOffSlashIcon} size={15} />
             )}
@@ -318,7 +318,7 @@ function WriteCell({
           size="sm"
           variant="ghost"
         >
-          {isIgnoring ? <StatusSpinner /> : null}
+          {isIgnoring ? <Spinner className="size-3.5" /> : null}
           {t("ignore")}
         </Button>
       ) : null}
@@ -411,7 +411,7 @@ function SearchWriteCell({
             {hasDismiss ? (
               <DropdownMenuItem disabled={isDismissing} onClick={onDismiss}>
                 {isDismissing ? (
-                  <StatusSpinner />
+                  <Spinner className="size-3.5" />
                 ) : (
                   <HugeiconsIcon icon={ViewOffSlashIcon} size={15} />
                 )}
@@ -435,7 +435,7 @@ function SearchWriteCell({
           size="sm"
           variant="ghost"
         >
-          {isDismissing ? <StatusSpinner /> : null}
+          {isDismissing ? <Spinner className="size-3.5" /> : null}
           {tCommon("labels.dismiss")}
         </Button>
         <Button
@@ -640,7 +640,7 @@ function GapsEmpty({ kind, isScanning, onRunScan }: GeoGapsEmptyProps) {
   if (kind === "no-scan") {
     action = (
       <Button disabled={isScanning} onClick={onRunScan}>
-        {isScanning ? <StatusSpinner /> : null}
+        {isScanning ? <Spinner className="size-3.5" /> : null}
         {tGeoShared("runScan")}
       </Button>
     );

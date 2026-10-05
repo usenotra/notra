@@ -45,6 +45,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
@@ -57,7 +58,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import {
   type Dispatch,
   type KeyboardEvent,
@@ -343,7 +343,7 @@ function ChatComposerSendButton({
       tooltip={t(send.tooltipKey)}
     >
       {send.icon === "queued" ? (
-        <Loader2Icon className="size-4 animate-spin" />
+        <Spinner />
       ) : (
         <HugeiconsIcon
           className="size-4"
@@ -704,7 +704,7 @@ function ChatComposerNudge({
           ))}
           {pendingUploads.map((pending) => (
             <Composer.Chip
-              icon={<Loader2Icon className="size-3 animate-spin" />}
+              icon={<Spinner className="size-3" />}
               key={pending.id}
               label={pending.filename}
               pending

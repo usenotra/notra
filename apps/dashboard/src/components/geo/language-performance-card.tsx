@@ -27,6 +27,7 @@ import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -38,7 +39,6 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Twemoji } from "@/components/geo/twemoji";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
@@ -94,7 +94,7 @@ function LanguageAddButton({
   const languageLabel = useLanguageLabel();
   const tCommon2 = useTranslations("common");
   const content = pending ? (
-    <StatusSpinner />
+    <Spinner className="size-3.5" />
   ) : (
     <HugeiconsIcon className="size-3.5" icon={PlusSignIcon} />
   );

@@ -1,6 +1,7 @@
 "use client";
 
 
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   BACKUP_CODE_LENGTH,
   TOTP_CODE_LENGTH,
@@ -8,7 +9,6 @@ import {
 import { normalizeBackupCode } from "@notra/schemas/utils/auth";
 import { DEFAULT_MFA_CHALLENGE_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 
-import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 
 import type {
@@ -35,7 +35,7 @@ function SubmitButton({
     <CtaButton className="w-full" disabled={disabled} type="submit">
       {isPending ? (
         <>
-          <Loader2Icon className="size-4 animate-spin" />
+          <Spinner />
           {pendingLabel}
         </>
       ) : (

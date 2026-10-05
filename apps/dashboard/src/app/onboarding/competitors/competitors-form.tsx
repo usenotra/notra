@@ -8,8 +8,8 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { ORPCError } from "@orpc/client";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -305,7 +305,7 @@ function CompetitorsPicker({
       <CtaButton className="w-full" disabled={busy} type="submit">
         {busy ? (
           <>
-            <Loader2Icon className="size-4 animate-spin" />
+            <Spinner />
             {geoLocked ? tOnboardingShared("saving") : t("runningFirstScan")}
           </>
         ) : (

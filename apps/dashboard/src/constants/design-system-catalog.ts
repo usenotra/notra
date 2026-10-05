@@ -86,6 +86,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "spinner",
+    label: "Spinner",
+    href: "/design-system#spinner",
+    level: "section",
+  },
+  {
     id: "braille-loader",
     label: "Braille Loader",
     href: "/design-system#braille-loader",

@@ -9,7 +9,7 @@ import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-heade
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -187,7 +187,7 @@ function VisibilityReview({
       <CtaButton className="w-full" disabled={busy} type="submit">
         {busy ? (
           <>
-            <Loader2Icon className="size-4 animate-spin" />
+            <Spinner />
             {tOnboardingShared("saving")}
           </>
         ) : (
@@ -337,7 +337,7 @@ export function VisibilityForm({
               />
               {isAnalyzing ? (
                 <span className="text-muted-foreground flex h-full items-center px-3.5">
-                  <Loader2Icon className="size-4 animate-spin" />
+                  <Spinner />
                 </span>
               ) : null}
             </div>

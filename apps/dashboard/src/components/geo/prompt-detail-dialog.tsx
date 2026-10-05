@@ -29,6 +29,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -52,7 +53,6 @@ import { ReceiptSection } from "@/components/geo/prompt-receipt-analysis";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
 import { PromptTranslationsSection } from "@/components/geo/prompt-translations-section";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   GeoScanControlsProvider,
   useGeoScanControls,
@@ -336,7 +336,7 @@ function PromptAnswerEmpty({
       <EmptyHeader>
         <EmptyMedia variant="icon">
           {isScanning ? (
-            <StatusSpinner />
+            <Spinner className="size-3.5" />
           ) : (
             <HugeiconsIcon icon={AiChat02Icon} />
           )}

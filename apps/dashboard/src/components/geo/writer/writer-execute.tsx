@@ -9,10 +9,10 @@ import {
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { createContext, use, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslations } from "use-intl";
 
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoWriterBrief,
@@ -136,7 +136,7 @@ function WriterExecuteBanner() {
   if (status === "writing" || status === "approved") {
     return (
       <Alert>
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
         <AlertTitle>{t("writingTitle")}</AlertTitle>
         <AlertDescription>{t("writingDescription")}</AlertDescription>
       </Alert>
@@ -191,7 +191,7 @@ function WriterExecuteButton() {
       variant={isFailed ? "outline" : "default"}
     >
       {isBusy ? (
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
       ) : (
         <HugeiconsIcon className="size-4" icon={PlayIcon} />
       )}

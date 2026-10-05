@@ -12,12 +12,12 @@ import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { TABLE_FRAME_INSET_PX } from "@notra/ui/constants/table";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useBriefStatusLabels } from "@/lib/hooks/use-brief-status-labels";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import type { BriefHistoryProps } from "@/types/components/geo-writer";
@@ -42,7 +42,7 @@ function BriefStatusBadge({ status }: { status: GeoContentBriefStatus }) {
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
-      {status === "writing" ? <StatusSpinner /> : null}
+      {status === "writing" ? <Spinner className="size-3.5" /> : null}
       {statusLabels[status]}
     </Badge>
   );

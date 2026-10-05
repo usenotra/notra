@@ -16,8 +16,8 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Dithering } from "@paper-design/shaders-react";
-import { Loader2Icon } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
@@ -70,10 +70,7 @@ export function OnboardingAgentBanner({
       />
       {state === "running" ? (
         <output className="text-foreground flex items-center gap-2">
-          <Loader2Icon
-            aria-hidden
-            className="size-4 animate-spin motion-reduce:animate-none"
-          />
+          <Spinner />
           <span className="text-sm font-medium">{t("running")}</span>
         </output>
       ) : (
@@ -86,12 +83,7 @@ export function OnboardingAgentBanner({
               disabled={starting}
               render={<Button className="shrink-0" size="sm" />}
             >
-              {starting ? (
-                <Loader2Icon
-                  aria-hidden
-                  className="size-4 animate-spin motion-reduce:animate-none"
-                />
-              ) : null}
+              {starting ? <Spinner /> : null}
               {t("start")}
             </ResponsiveDialogTrigger>
             <ResponsiveDialogContent>
