@@ -119,6 +119,27 @@ export interface CompareCompetitorProps {
   competitor: CompareCompetitor;
 }
 
+export interface CompareSignupProps extends CompareCompetitorProps {
+  signupSource: string;
+}
+
+export interface CompareReasonListProps {
+  title: string;
+  reasons: string[];
+  highlight?: boolean;
+}
+
+export interface ComparePlanCardProps {
+  name: string;
+  plans: ComparePlan[];
+  note: string;
+  highlight?: boolean;
+}
+
+export interface CompareRelatedProps {
+  related: CompareCompetitor[];
+}
+
 export interface CompareDetailViewProps {
   competitor: CompareCompetitor;
   related: CompareCompetitor[];
