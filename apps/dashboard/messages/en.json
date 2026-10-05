@@ -2458,6 +2458,16 @@
       "customColor": "Pick a custom color",
       "kindHint": "Direct sells what you sell. Indirect solves the same problem differently."
     },
+    "competitorEngineMatrix": {
+      "title": "Recommendations by assistant",
+      "hint": "Share of each assistant's answers that mention the brand in the selected period. Darker cells mean more mentions.",
+      "tableLabel": "Brand mention rate by AI assistant",
+      "brandColumn": "Brand",
+      "you": "You",
+      "noChecks": "No answers",
+      "empty": "No answers in this period yet.",
+      "scanning": "Scanning engines…"
+    },
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"
     },

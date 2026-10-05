@@ -2458,6 +2458,16 @@
       "customColor": "Eigene Farbe wählen",
       "kindHint": "Direkt verkauft, was du verkaufst. Indirekt löst dasselbe Problem auf andere Weise."
     },
+    "competitorEngineMatrix": {
+      "title": "Empfehlungen nach Assistent",
+      "hint": "Anteil der Antworten jedes Assistenten im ausgewählten Zeitraum, die die Marke erwähnen. Dunklere Zellen bedeuten mehr Erwähnungen.",
+      "tableLabel": "Erwähnungsrate der Marken nach KI-Assistent",
+      "brandColumn": "Marke",
+      "you": "Du",
+      "noChecks": "Keine Antworten",
+      "empty": "Noch keine Antworten in diesem Zeitraum.",
+      "scanning": "Engines werden gescannt…"
+    },
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"
     },

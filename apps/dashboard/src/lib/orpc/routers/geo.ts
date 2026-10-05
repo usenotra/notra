@@ -73,6 +73,7 @@ import {
   loadAiTraffic,
   loadGeoChanges,
   loadGeoCompetitorDetail,
+  loadGeoCompetitorEngineMatrix,
   loadGeoCompetitorShare,
   loadGeoCompetitors,
   loadGeoJourneyDetail,
@@ -1017,6 +1018,13 @@ export const geoRouter = {
     .handler(
       geoOpenHandler((input) =>
         loadGeoCompetitorShare(input, geoWindow(input), input.summaryOnly)
+      )
+    ),
+  competitorEngineMatrix: authorizedProcedure
+    .input(geoTimeseriesInputSchema)
+    .handler(
+      geoOpenHandler((input) =>
+        loadGeoCompetitorEngineMatrix(input, geoWindow(input))
       )
     ),
   competitors: authorizedProcedure

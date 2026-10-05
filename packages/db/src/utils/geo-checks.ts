@@ -22,6 +22,8 @@ import type {
   GeoCheckCompetitorShareTimeseriesRow,
   GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
+  GeoCheckEngineBrandRow,
+  GeoCheckEngineTotalRow,
   GeoCheckFilterOptions,
   GeoCheckInsertSummary,
   GeoCheckLanguageShareRow,
@@ -703,6 +705,69 @@ export async function queryGeoCheckCompetitorShare(
   );
 
   return rows.map((row) => ({
+    brand: row.brand,
+    mentions: toNumber(row.mentions),
+  }));
+}
+
+/**
+ * Checks and own-brand mentions per engine, with the same filters as the
+ * competitor share so both sides of the brand × engine matrix line up.
+ */
+export async function queryGeoCheckEngineTotals(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined
+): Promise<GeoCheckEngineTotalRow[]> {
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        engine: geoMentionChecks.engine,
+        checks: sql<number>`count(*)::int`,
+        mentions: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})::int`,
+      })
+      .from(geoMentionChecks)
+      .where(mentionFilters(scope, window))
+      .groupBy(geoMentionChecks.engine)
+  );
+
+  return rows.map((row) => ({
+    engine: row.engine,
+    checks: toNumber(row.checks),
+    mentions: toNumber(row.mentions),
+  }));
+}
+
+/** Mentions per engine for the given raw brand names. */
+export async function queryGeoCheckEngineBrandMentions(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined,
+  brands: readonly string[]
+): Promise<GeoCheckEngineBrandRow[]> {
+  if (brands.length === 0) {
+    return [];
+  }
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        engine: geoMentionChecks.engine,
+        brand: competitorBrand,
+        mentions: sql<number>`count(*)::int`,
+      })
+      .from(geoMentionChecks)
+      .crossJoinLateral(unnestedCompetitorBrand)
+      .where(
+        and(
+          mentionFilters(scope, window),
+          sql`${competitorBrand} = any(${sql.param([...brands])}::text[])`
+        )
+      )
+      .groupBy(geoMentionChecks.engine, competitorBrand)
+  );
+
+  return rows.map((row) => ({
+    engine: row.engine,
     brand: row.brand,
     mentions: toNumber(row.mentions),
   }));

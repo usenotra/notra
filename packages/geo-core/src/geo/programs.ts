@@ -25,6 +25,8 @@ import {
   queryGeoCheckCompetitorShareTimeseries,
   queryGeoCheckCompetitorShareTrends,
   queryGeoCheckCompetitorTimeseries,
+  queryGeoCheckEngineBrandMentions,
+  queryGeoCheckEngineTotals,
   queryGeoCheckLanguageShare,
   queryGeoCheckLanguageShareTrends,
   queryGeoCheckOverview,
@@ -65,6 +67,7 @@ import type {
   GeoCompetitorMerge,
   GeoCompetitorReconcileOutcome,
   GeoCompetitorSeed,
+  GeoCompetitorEngineMatrixResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorsResponse,
   GeoCompetitorUpsertInput,
@@ -1093,6 +1096,44 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     return response;
   }
 );
+
+export const loadGeoCompetitorEngineMatrix = Effect.fn(
+  "geo.competitorEngineMatrix"
+)(function* (input: GeoScopeInput, window: GeoWindowInput) {
+  const scope = yield* resolveGeoScope(input);
+  const checkScope = geoCheckScope(scope);
+  const checkWindow = toGeoCheckWindow(window);
+
+  const [engines, topBrands] = yield* Effect.all(
+    [
+      geoDb("engine totals query failed", () =>
+        queryGeoCheckEngineTotals(checkScope, checkWindow)
+      ),
+      geoDb("competitor share query failed", () =>
+        queryGeoCheckCompetitorShare(
+          checkScope,
+          checkWindow,
+          GEO_COMPETITOR_SHARE_LIMIT
+        )
+      ),
+    ],
+    { concurrency: "unbounded" }
+  );
+  const cells = yield* geoDb("engine brand mentions query failed", () =>
+    queryGeoCheckEngineBrandMentions(
+      checkScope,
+      checkWindow,
+      topBrands.map((row) => row.brand)
+    )
+  );
+
+  const response: GeoCompetitorEngineMatrixResponse = {
+    configured: true,
+    engines,
+    cells,
+  };
+  return response;
+});
 
 export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
   function* (
