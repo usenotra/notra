@@ -2,7 +2,12 @@
 
 import { Cancel01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Input } from "@notra/ui/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@notra/ui/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -59,15 +64,13 @@ export function LogFilters({
   };
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-      <div className="relative flex-1">
-        <HugeiconsIcon
-          className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
-          icon={Search01Icon}
-        />
-        <Input
+      <InputGroup className="flex-1">
+        <InputGroupAddon>
+          <HugeiconsIcon aria-hidden="true" icon={Search01Icon} />
+        </InputGroupAddon>
+        <InputGroupInput
           aria-label={t("filters.searchLabel")}
           autoComplete="off"
-          className="pr-8 pl-8"
           name="log-search"
           onChange={(event) => updateSearch(event.target.value)}
           placeholder={t("filters.searchPlaceholder")}
@@ -75,20 +78,22 @@ export function LogFilters({
           value={searchInput}
         />
         {searchInput.length > 0 ? (
-          <button
-            aria-label={tCommon2("labels.clearSearch")}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
-            onClick={() => updateSearch("")}
-            type="button"
-          >
-            <HugeiconsIcon
-              aria-hidden="true"
-              className="size-3.5"
-              icon={Cancel01Icon}
-            />
-          </button>
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              aria-label={tCommon2("labels.clearSearch")}
+              onClick={() => updateSearch("")}
+              size="icon-xs"
+              type="button"
+            >
+              <HugeiconsIcon
+                aria-hidden="true"
+                className="size-3.5"
+                icon={Cancel01Icon}
+              />
+            </InputGroupButton>
+          </InputGroupAddon>
         ) : null}
-      </div>
+      </InputGroup>
       <Select
         onValueChange={(value) => onSourceChange(value ?? "all")}
         value={source}

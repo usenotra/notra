@@ -1,9 +1,9 @@
 "use client";
 
 import { CRON_FREQUENCIES } from "@notra/schemas/dashboard/integrations";
-import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "use-intl";
 
+import { Button } from "@/components/button";
 import type { ScheduleFrequencyTabsProps } from "@/types/automation/schedule";
 
 export function ScheduleFrequencyTabs({
@@ -16,20 +16,16 @@ export function ScheduleFrequencyTabs({
       {CRON_FREQUENCIES.map((option) => {
         const isActive = option === value;
         return (
-          <button
+          <Button
             aria-pressed={isActive}
-            className={cn(
-              "h-10 rounded-lg border px-3 text-sm font-medium transition-all",
-              isActive
-                ? "border-foreground bg-muted text-foreground font-semibold"
-                : "border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            )}
+            className="h-10"
             key={option}
             onClick={() => onChange(option)}
             type="button"
+            variant={isActive ? "secondary" : "outline"}
           >
             {t(option)}
-          </button>
+          </Button>
         );
       })}
     </div>
