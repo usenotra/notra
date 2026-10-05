@@ -29,7 +29,9 @@ function CtaButtonSpinner({
     <span
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 flex items-center justify-center motion-reduce:animate-none",
+        // Shortened rather than removed under reduced motion: the swap only
+        // finishes on `animationend`, which never fires without an animation.
+        "pointer-events-none absolute inset-0 flex items-center justify-center motion-reduce:[animation-duration:1ms] motion-reduce:[animation-delay:0ms]",
         loading
           ? entering && "animate-button-swap-in [animation-delay:70ms]"
           : "animate-button-swap-out opacity-0"
