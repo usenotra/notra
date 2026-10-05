@@ -2,6 +2,7 @@ import {
   calculateTokenCostUsd,
   promptTokensOf,
 } from "@notra/ai/billing/token-pricing";
+import { ROUTE_USAGE_LOOKUP_CONCURRENCY } from "@notra/ai/constants/router";
 import { enrichRouteMetadata, getRouteMetadata } from "@notra/ai/gateway";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
@@ -33,33 +34,43 @@ export async function summarizeRouteUsage(
   let tokenCostUsd = 0;
   let pricedSteps = 0;
 
-  for (const step of steps) {
-    const routeMetadata = getRouteMetadata(step.providerMetadata);
-    const stepRoute = routeMetadata
-      ? await enrichRouteMetadata(routeMetadata)
-      : undefined;
-    if (stepRoute) {
-      route = stepRoute;
-    }
+  for (
+    let offset = 0;
+    offset < steps.length;
+    offset += ROUTE_USAGE_LOOKUP_CONCURRENCY
+  ) {
+    const batch = steps.slice(offset, offset + ROUTE_USAGE_LOOKUP_CONCURRENCY);
+    const routes = await Promise.all(
+      batch.map((step) => {
+        const metadata = getRouteMetadata(step.providerMetadata);
+        return metadata ? enrichRouteMetadata(metadata) : undefined;
+      })
+    );
+    for (const [index, step] of batch.entries()) {
+      const stepRoute = routes[index];
+      if (stepRoute) {
+        route = stepRoute;
+      }
 
-    const usage = stepUsage(step);
-    if (usage) {
-      maxPromptTokens = Math.max(maxPromptTokens, promptTokensOf(usage));
-    }
-    if (
-      typeof stepRoute?.costUsd === "number" &&
-      Number.isFinite(stepRoute.costUsd) &&
-      stepRoute.costUsd >= 0
-    ) {
-      pricedSteps += 1;
-      tokenCostUsd += stepRoute.costUsd;
-    } else if (usage) {
-      pricedSteps += 1;
-      tokenCostUsd += calculateTokenCostUsd(
-        usage,
-        stepRoute?.model ?? modelId,
-        stepRoute?.gateway
-      );
+      const usage = stepUsage(step);
+      if (usage) {
+        maxPromptTokens = Math.max(maxPromptTokens, promptTokensOf(usage));
+      }
+      if (
+        typeof stepRoute?.costUsd === "number" &&
+        Number.isFinite(stepRoute.costUsd) &&
+        stepRoute.costUsd >= 0
+      ) {
+        pricedSteps += 1;
+        tokenCostUsd += stepRoute.costUsd;
+      } else if (usage) {
+        pricedSteps += 1;
+        tokenCostUsd += calculateTokenCostUsd(
+          usage,
+          stepRoute?.model ?? modelId,
+          stepRoute?.gateway
+        );
+      }
     }
   }
 
