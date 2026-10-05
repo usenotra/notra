@@ -5,9 +5,7 @@ description: The orange spinner line while Claude works and the dim summary afte
 
 <Component path="claude-code/examples/claude-code-status" />
 
-```bash
-bunx shadcn@latest add @notra/claude-code-status
-```
+<RegistryInstall name="claude-code-status" />
 
 `ClaudeCodeSpinner` is the line Claude Code shows while a turn runs: an orange glyph that cycles through `· ✢ ✳ ✶ ✻ ✽`, the verb in orange and the elapsed time, tokens and extra details in dim parentheses. A `tip` prints on a `⎿` line under it. The glyph holds still with `paused` or when the visitor prefers reduced motion, and the root is a `role="status"` region.
 

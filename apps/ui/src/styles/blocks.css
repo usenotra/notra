@@ -13,6 +13,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --code: oklch(0.985 0 0);
+  --code-foreground: oklch(0.141 0.005 285.823);
   --shell: hsl(240 6% 94.5%);
   --shell-border: hsl(240 5% 87%);
   --surface-lift:
@@ -30,6 +32,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --code: oklch(0.21 0.006 285.885);
+  --code-foreground: oklch(0.985 0 0);
   --shell: hsl(240 5% 14.5%);
   --shell-border: hsl(240 4% 20%);
   --surface-lift:
@@ -37,6 +41,8 @@
 }
 
 @theme inline {
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);

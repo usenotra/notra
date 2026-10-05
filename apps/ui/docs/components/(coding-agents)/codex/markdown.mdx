@@ -5,9 +5,7 @@ description: Lists, tables and inline code styled like Codex's rendered answers.
 
 <Component path="codex/examples/codex-markdown" />
 
-```bash
-bunx shadcn@latest add @notra/codex-markdown
-```
+<RegistryInstall name="codex-markdown" />
 
 Put these inside an assistant `CodexMessage`. `CodexList` draws `•` bullets with a hanging indent. `CodexTable` is built on the shadcn `Table` primitives, with bold yellow headers, a heavier rule under the header, thin gray rules between rows and gaps between the columns. Other props go to the `Table`. `CodexCode` colors inline code green.
 

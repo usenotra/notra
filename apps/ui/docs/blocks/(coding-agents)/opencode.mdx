@@ -9,9 +9,7 @@ A rebuild of a session in the OpenCode terminal UI, composed from the [OpenCode 
 
 ## Installation
 
-```bash
-bunx shadcn@latest add @notra/opencode
-```
+<RegistryInstall name="opencode" />
 
 This adds every OpenCode component to `components/opencode` along with the demo session and the `useOpencodeChat` hook. The hook starts from the finished turns you pass it and answers each prompt with the next scripted reply from `OPENCODE_REPLIES`. Pass `chat.busy`, `chat.send` and `chat.stop` to `OpencodeComposer` as `busy`, `onSend` and `onStop`, and replace the hook with your agent's stream to run a real session.
 

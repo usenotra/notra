@@ -5,9 +5,7 @@ description: A chip with the current thinking effort that expands into a slider 
 
 <Component path="chatgpt/examples/chatgpt-model-selector" />
 
-```bash
-bunx shadcn@latest add @notra/chatgpt-model-selector
-```
+<RegistryInstall name="chatgpt-model-selector" />
 
 The chip is a shadcn `Popover`. Its content is a shadcn `Slider` with one stop per effort: Instant, Medium, High, Extra High and Pro. The thumb snaps to the stops, and the fill turns into the purple Pro gradient at the last one. The current effort sits above the slider. Click it to switch to the list of models, and picking one goes back to the slider.
 
