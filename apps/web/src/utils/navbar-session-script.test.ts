@@ -107,7 +107,9 @@ describe("navbar session prefetch", () => {
     expect(window.__notraNavbarSession).toBeUndefined();
 
     runInNewContext(buildNavbarSessionScript(), context);
+    expect(window.__notraNavbarSessionResolved).toBeUndefined();
     expect(await window.__notraNavbarSession).toBe(true);
+    expect(window.__notraNavbarSessionResolved).toBe(true);
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -133,7 +135,11 @@ describe("navbar session prefetch", () => {
     try {
       expect(await getNavbarSession()).toBe(false);
       expect(window.__notraNavbarSession).toBeUndefined();
-      expect(await getNavbarSession()).toBe(true);
+      expect(window.__notraNavbarSessionResolved).toBe(false);
+      const retry = getNavbarSession();
+      expect(window.__notraNavbarSessionResolved).toBeUndefined();
+      expect(await retry).toBe(true);
+      expect(window.__notraNavbarSessionResolved).toBe(true);
       expect(fetch).toHaveBeenCalledTimes(2);
     } finally {
       if (originalWindow) {
