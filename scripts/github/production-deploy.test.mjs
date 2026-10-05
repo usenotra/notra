@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { release } from "./production-deploy.mjs";
+import { requireReleaseCI } from "./utils/release-ci.mjs";
 
 function fixture({
   dryRun = false,
@@ -181,6 +183,266 @@ function builds(calls) {
       body?.query?.includes("serviceInstanceDeployV2")
   );
 }
+
+function ciFixture(override) {
+  const sha = "a".repeat(40);
+  const calls = [];
+  const messages = [];
+  const sleeps = [];
+  const env = {
+    GH_TOKEN: "private-test-token",
+    GITHUB_SHA: sha,
+    GITHUB_REPOSITORY: "usenotra/notra",
+    GITHUB_REF: "refs/heads/main",
+  };
+  const passed = {
+    id: 123,
+    head_sha: sha,
+    status: "completed",
+    conclusion: "success",
+  };
+  return {
+    calls,
+    messages,
+    sleeps,
+    env,
+    run: () =>
+      requireReleaseCI({
+        env,
+        report: (message) => messages.push(message),
+        sleep: async (ms) => sleeps.push(ms),
+        fetchImpl: async (input, options) => {
+          const url = new URL(input);
+          calls.push({ url, options });
+          return (
+            override?.({ url, passed, reads: calls.length }) ?? {
+              ok: true,
+              json: async () => ({ workflow_runs: [passed] }),
+            }
+          );
+        },
+      }),
+  };
+}
+
+test("release CI queries both latest main push runs for the pinned SHA", async () => {
+  const { run, calls, sleeps, messages, env } = ciFixture();
+  await run();
+  assert.deepEqual(
+    calls.map(({ url }) => url.pathname.split("/").at(-2)),
+    ["code-quality.yml", "knip.yml"]
+  );
+  for (const { url, options } of calls) {
+    assert.equal(url.hostname, "api.github.com");
+    assert.equal(url.searchParams.get("head_sha"), env.GITHUB_SHA);
+    assert.equal(url.searchParams.get("branch"), "main");
+    assert.equal(url.searchParams.get("event"), "push");
+    assert.equal(url.searchParams.get("per_page"), "1");
+    assert.equal(options.headers["Cache-Control"], "no-cache");
+  }
+  assert.equal(sleeps.length, 0);
+  assert.ok(messages.every((message) => message.includes("run 123")));
+  assert.ok(messages.every((message) => !message.includes(env.GH_TOKEN)));
+});
+
+for (const [name, runs] of [
+  ["missing run", () => []],
+  [
+    "queued run",
+    (passed) => [{ ...passed, status: "queued", conclusion: null }],
+  ],
+  [
+    "running rerun",
+    (passed) => [{ ...passed, status: "in_progress", conclusion: null }],
+  ],
+  ["stale SHA", (passed) => [{ ...passed, head_sha: "b".repeat(40) }]],
+]) {
+  test(`release CI waits for a ${name} and then allows the release`, async () => {
+    const { run, calls, sleeps, messages } = ciFixture(({ passed, reads }) =>
+      reads === 1
+        ? { ok: true, json: async () => ({ workflow_runs: runs(passed) }) }
+        : undefined
+    );
+    await run();
+    assert.equal(calls.length, 4);
+    assert.deepEqual(sleeps, [30_000]);
+    assert.ok(
+      messages.some((message) => message.includes("Waiting for release CI"))
+    );
+  });
+}
+
+for (const conclusion of [
+  "failure",
+  "cancelled",
+  "timed_out",
+  "skipped",
+  "neutral",
+  null,
+]) {
+  test(`release CI fails closed immediately on completed ${conclusion}`, async () => {
+    const { run, calls, sleeps } = ciFixture(({ passed }) => ({
+      ok: true,
+      json: async () => ({ workflow_runs: [{ ...passed, conclusion }] }),
+    }));
+    await assert.rejects(
+      run(),
+      /code-quality.yml: run 123.*has not passed.*no builds started/
+    );
+    assert.equal(calls.length, 1);
+    assert.equal(sleeps.length, 0);
+  });
+}
+
+test("release CI polling is bounded and reports the blocked workflow and SHA", async () => {
+  const { run, calls, sleeps, env } = ciFixture(() => ({
+    ok: true,
+    json: async () => ({ workflow_runs: [] }),
+  }));
+  await assert.rejects(run(), (error) => {
+    assert.match(
+      error.message,
+      /after 20 checks.*code-quality.yml.*knip.yml.*no builds started/
+    );
+    assert.ok(error.message.includes(env.GITHUB_SHA));
+    return true;
+  });
+  assert.equal(calls.length, 40);
+  assert.equal(sleeps.length, 19);
+});
+
+for (const status of [429, 500, 503]) {
+  test(`release CI retries transient GitHub HTTP ${status}`, async () => {
+    const { run, sleeps, messages } = ciFixture(({ reads }) =>
+      reads === 1 ? { ok: false, status } : undefined
+    );
+    await run();
+    assert.deepEqual(sleeps, [30_000]);
+    assert.ok(
+      messages.some((message) => message.includes(`GitHub HTTP ${status}`))
+    );
+  });
+}
+
+for (const status of [401, 403, 404]) {
+  test(`release CI does not retry GitHub HTTP ${status}`, async () => {
+    const { run, sleeps } = ciFixture(() => ({ ok: false, status }));
+    await assert.rejects(
+      run(),
+      new RegExp(`HTTP ${status}; no builds started`)
+    );
+    assert.equal(sleeps.length, 0);
+  });
+}
+
+test("release CI retries transport failures without logging error contents", async () => {
+  const { run, sleeps, messages } = ciFixture(({ reads }) => {
+    if (reads === 1) {
+      throw new Error("private-test-token");
+    }
+  });
+  await run();
+  assert.deepEqual(sleeps, [30_000]);
+  assert.ok(
+    messages.every((message) => !message.includes("private-test-token"))
+  );
+});
+
+test("release CI rejects malformed responses without allowing a build", async () => {
+  const { run, sleeps } = ciFixture(() => ({
+    ok: true,
+    json: async () => ({}),
+  }));
+  await assert.rejects(run(), /invalid GitHub response; no builds started/);
+  assert.equal(sleeps.length, 0);
+});
+
+for (const update of [
+  { GH_TOKEN: "" },
+  { GITHUB_SHA: "" },
+  { GITHUB_REF: "refs/heads/feature" },
+  { GITHUB_REPOSITORY: "other/repo" },
+]) {
+  test(`release CI rejects invalid environment ${JSON.stringify(update)}`, async () => {
+    const { run, env, calls } = ciFixture();
+    Object.assign(env, update);
+    await assert.rejects(run());
+    assert.equal(calls.length, 0);
+  });
+}
+
+test("release recovers from an initially missing CI run before contacting providers", async () => {
+  let reads = 0;
+  const { run, calls } = fixture({
+    override: ({ url }) => {
+      if (url.pathname.includes("/actions/workflows/") && ++reads === 1) {
+        return { workflow_runs: [] };
+      }
+    },
+  });
+  await run();
+  assert.ok(
+    calls.slice(0, 4).every(({ url }) => url.hostname === "api.github.com")
+  );
+  assert.equal(builds(calls).length, 8);
+});
+
+test("failed Knip prevents every provider request even after Code Quality passes", async () => {
+  const { run, calls } = fixture({
+    override: ({ url }) =>
+      url.pathname.includes("knip.yml")
+        ? {
+            workflow_runs: [
+              {
+                head_sha: "a".repeat(40),
+                status: "completed",
+                conclusion: "failure",
+              },
+            ],
+          }
+        : undefined,
+  });
+  await assert.rejects(run(), /knip.yml.*has not passed.*no builds started/);
+  assert.ok(calls.every(({ url }) => url.hostname === "api.github.com"));
+});
+
+test("release CI rechecks a previously passing workflow while another is pending", async () => {
+  const { run, calls, sleeps } = ciFixture(({ passed, reads }) => {
+    if (reads === 2) {
+      return {
+        ok: true,
+        json: async () => ({ workflow_runs: [] }),
+      };
+    }
+    if (reads === 3) {
+      return {
+        ok: true,
+        json: async () => ({
+          workflow_runs: [{ ...passed, conclusion: "failure" }],
+        }),
+      };
+    }
+  });
+  await assert.rejects(run(), /code-quality.yml.*failure.*no builds started/);
+  assert.equal(calls.length, 3);
+  assert.deepEqual(sleeps, [30_000]);
+});
+
+test("production workflow uses the shared CI gate before builds with a pinned checkout", () => {
+  const workflow = readFileSync(
+    new URL("../../.github/workflows/production-deploy.yml", import.meta.url),
+    "utf8"
+  );
+  const setup = workflow.indexOf("- name: Setup Node");
+  const gate = workflow.indexOf("- name: Require passing release CI");
+  const build = workflow.indexOf("- name: Build and boot agents");
+  const deploy = workflow.indexOf("- name: Deploy checked main commit");
+  assert.ok(setup >= 0 && setup < gate && gate < build && build < deploy);
+  assert.ok(workflow.includes("run: node scripts/github/utils/release-ci.mjs"));
+  assert.ok(workflow.includes(`ref: \${{ github.sha }}`));
+  assert.ok(workflow.includes('cron: "0 12,19 * * *"'));
+  assert.ok(workflow.includes("timezone: Europe/Berlin"));
+});
 
 test("all five Vercel projects and three Railway services deploy the pinned SHA", async () => {
   const { run, calls, sha, directories } = fixture();

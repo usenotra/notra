@@ -30,15 +30,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
 
       - name: Require passing release CI
-        shell: bash
-        run: |
-          for workflow in code-quality.yml knip.yml; do
-            gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs" \
-              -f head_sha="$GITHUB_SHA" -f branch=main -f event=push -f per_page=1 \
-              | jq -e --arg sha "$GITHUB_SHA" '.workflow_runs[0] | .head_sha == $sha and .status == "completed" and .conclusion == "success"'
-          done
+        timeout-minutes: 12
+        run: node scripts/github/utils/release-ci.mjs
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -47,11 +48,6 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
-
-      - name: Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
 
       - name: Build and boot agents
         if: ${{ !inputs.dry_run }}
