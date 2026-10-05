@@ -1,0 +1,31 @@
+apps/dashboard/messages/en.json
+  s_81f2be883d9504::t_dd5edf7e1d528d 2469-2470
+packages/geo-core/src/geo/programs.ts
+  s_81f2be883d9504::t_bf09404e1e7ab7 1107,1112-1113,1118-1125,1128-1139
+  s_81f2be883d9504::t_a44a5b8c2dc4cc 1114
+apps/dashboard/src/components/geo/competitor-engine-matrix-card.tsx
+  s_81f2be883d9504::t_dd5edf7e1d528d 68,83-85,102-103,154-155,160
+  s_81f2be883d9504::t_a1c8a9348e8220 86-91
+packages/db/src/utils/geo-checks.ts
+  s_81f2be883d9504::t_bf09404e1e7ab7 741-745,749,751,767
+apps/dashboard/src/utils/geo-engine-matrix.ts
+  s_81f2be883d9504::t_4c1caeeb283aae 58-69,104-114
+apps/dashboard/messages/de.json
+  s_81f2be883d9504::t_dd5edf7e1d528d 2469-2470
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fdee2d0485432451beb26b679cdd92953cf7d1b7",
+  "prompts": {},
+  "sessions": {
+    "s_81f2be883d9504": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "955fcecb-7f06-4c96-987e-dfe893bdc433",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
