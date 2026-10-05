@@ -1,0 +1,19 @@
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart.tsx
+  s_49ac3051e4cd3f::t_33594d0b680fda 1052-1054,1078,1085,1099
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bdffc34f92423fb745d225a3379bef421be1ecb6",
+  "prompts": {},
+  "sessions": {
+    "s_49ac3051e4cd3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "037cd438-d958-4035-8365-c173d9542190",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
