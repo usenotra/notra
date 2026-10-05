@@ -1,0 +1,145 @@
+apps/dashboard/src/components/sites/site-domain-dns.tsx
+  ai_agent 6,8,12-15,18,23,46-57,59-79,83-87,90-95,97-101,103-120,124-127,137,139-157,160-162,164,167-170,173,175
+apps/dashboard/src/app/(dashboard)/[slug]/sites/[siteId]/integrations/page.tsx
+  ai_agent 1-13
+apps/dashboard/src/components/sites/pages/site-domains-page.tsx
+  ai_agent 13,89-109
+apps/dashboard/src/constants/sites.ts
+  ai_agent 7,46,57,259
+apps/dashboard/src/lib/hooks/use-site-starter.ts
+  ai_agent 1-52
+apps/dashboard/src/lib/orpc/routers/content.ts
+  ai_agent 936-938
+apps/dashboard/src/utils/site-integrations.ts
+  ai_agent 1-85
+apps/dashboard/src/utils/site-github-publish.ts
+  ai_agent 1-282
+apps/dashboard/src/constants/site-integrations.ts
+  ai_agent 1-186
+apps/dashboard/src/utils/site-create.ts
+  ai_agent 2-3,5,81-118
+apps/dashboard/src/components/sites/site-create-step.tsx
+  ai_agent 1-72
+apps/dashboard/src/app/api/internal/content/sync-github/route.ts
+  ai_agent 60-69
+apps/dashboard/src/types/components/sites.ts
+  ai_agent 4,10,21,27-28,68-71,74-87,98,152-164,548-555,557-559,612-696
+apps/dashboard/src/components/sites/site-integration-row.tsx
+  ai_agent 1-101
+apps/dashboard/src/schemas/site-github-publish.ts
+  ai_agent 1-15
+apps/dashboard/messages/en.json
+  ai_agent 4848,4850,4855,4858,4874,4888-4936,4962-4963,5361-5362,5391-5393,5410,5414-5422,5438-5439,5504-5505,5511-5513,5524,5528,5547-5646
+apps/dashboard/src/components/sites/site-create-step-list.tsx
+  ai_agent 5-6,8-10,12,15-19,21-26,28-58
+apps/dashboard/src/types/site-integrations.ts
+  ai_agent 1-26
+apps/dashboard/src/lib/integrations/github/site-publish-target.ts
+  ai_agent 1-157
+apps/dashboard/src/lib/integrations/github/content-assets.test.ts
+  ai_agent 152-174
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  ai_agent 1-5,17,28,34,44,70-73,91-94,112,134,253-257,264-323,335,337-342,360-382,653,770-787
+apps/dashboard/src/lib/hooks/use-create-site.ts
+  ai_agent 10-11,17
+apps/dashboard/src/constants/github.ts
+  ai_agent 35-37
+apps/dashboard/src/components/sites/site-previews-table.tsx
+  ai_agent 216-217,227-234,240
+apps/dashboard/src/lib/sites/dns-callback.ts
+  ai_agent 1-82
+apps/dashboard/src/components/sites/pages/site-integrations-page.tsx
+  ai_agent 1-137
+apps/dashboard/src/components/sites/site-create-sections.tsx
+  ai_agent 1-70
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  ai_agent 159-165,167-178
+apps/dashboard/src/lib/sites/orpc-errors.ts
+  ai_agent 16-22
+apps/dashboard/src/types/integrations/site-github-publish.ts
+  ai_agent 1-33
+apps/dashboard/src/app/sites/domain-connect/[token]/route.ts
+  ai_agent 2,4-11,31-33,39,46-52
+apps/dashboard/src/components/sites/site-preview-frame.tsx
+  ai_agent 14
+apps/dashboard/src/constants/site-github-publish.ts
+  ai_agent 1-17
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/page-client.tsx
+  ai_agent 32-35
+apps/dashboard/src/types/integrations/github.ts
+  ai_agent 370-371
+apps/dashboard/src/components/sites/site-address-input.tsx
+  ai_agent 20,25
+apps/dashboard/src/components/sites/site-confirm-dialog.tsx
+  ai_agent 3-10,13-14,16-27,30-58
+apps/dashboard/src/components/sites/site-rollback-dialog.tsx
+  ai_agent 7,42-65
+apps/dashboard/src/components/sites/site-integration-dialog.tsx
+  ai_agent 1-272
+apps/dashboard/src/lib/integrations/github/content-assets.ts
+  ai_agent 10,264-271,339-340,366
+apps/dashboard/src/utils/site-github-publish.test.ts
+  ai_agent 1-117
+apps/dashboard/src/components/sites/site-create-stage.tsx
+  ai_agent 1-114
+apps/dashboard/src/components/sites/site-domain-proxy.tsx
+  ai_agent 22,32
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  ai_agent 10,104-113
+apps/dashboard/src/components/sites/editor/site-editor-header-actions.tsx
+  ai_agent 3,10
+apps/dashboard/src/components/sites/site-suggest-input.tsx
+  ai_agent 24-25,35-36
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/skeleton.tsx
+  ai_agent 10-14,16
+apps/dashboard/src/lib/hooks/use-site-choice-options.ts
+  ai_agent 3
+apps/dashboard/src/components/sites/site-domain-add-dialog.tsx
+  ai_agent 3-8,35,38-42,55-56,58-64,67,71,77,96,100-101,105-106,109-110,113-201,204,214
+apps/dashboard/src/lib/integrations/github/publish-saved-content.ts
+  ai_agent 53-56,69-72,75-81,84-85,99,107,228-254,260,269-279,333-350,383,387-393,404-416
+apps/dashboard/messages/de.json
+  ai_agent 4848,4850,4855,4858,4874,4888-4936,4962-4963,5361-5362,5391-5393,5411,5414-5422,5438-5439,5504-5505,5511-5513,5524,5528,5547-5646
+apps/dashboard/src/lib/hooks/use-site-integrations.ts
+  ai_agent 1-40
+apps/dashboard/src/app/sites/vercel-dns/route.ts
+  ai_agent 1-87
+apps/dashboard/src/components/sites/site-preview-delete-dialog.tsx
+  ai_agent 7,41-56
+apps/dashboard/src/types/sites.ts
+  ai_agent 6,10,33-37,156-158,292-299
+apps/dashboard/src/constants/site-create.ts
+  ai_agent 1-4,25-88
+apps/dashboard/src/utils/site-domains.ts
+  ai_agent 1-5,10,38-73
+apps/dashboard/src/components/sites/site-import-list.tsx
+  ai_agent 1-215
+apps/dashboard/src/components/sites/site-create-form.tsx
+  ai_agent 3-9,12,14-16,18-21,23-29,33-47,49,51,56-62,70,72-76,80-110,114-123,125-138,140-191,193,195-218,220-247,249-255,257-264,266-271,273-320,322-337
+apps/dashboard/src/types/integrations/github-publish.ts
+  ai_agent 9-13
+apps/dashboard/src/components/sites/sites-page-shell.tsx
+  ai_agent 11
+apps/dashboard/src/components/sites/site-domains-table.tsx
+  ai_agent 14-17,31,48,191-199,201-228,234-258,353,369-378,380-383,403,407-408
+apps/dashboard/src/lib/hooks/use-importable-repositories.ts
+  ai_agent 1-30
+apps/dashboard/src/components/sites/site-copy-button.tsx
+  ai_agent 19,64
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  ai_agent 5-7,11-12,14,18-21,30-32,35,41,45-47,49-80,82-124,126-148,150
+apps/dashboard/src/components/sites/site-create-starter.tsx
+  ai_agent 3-7,11-16,18-47,50-52,54-56,58-103
+apps/dashboard/src/components/sites/site-integration-logo.tsx
+  ai_agent 1-25
+apps/dashboard/src/components/sites/site-create-deploy.tsx
+  ai_agent 1-217
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  ai_agent 12,19,25,31,62-63,183-202,252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "16fcf44f93419e75a61874c86b4b6ac3496aec21",
+  "prompts": {}
+}
