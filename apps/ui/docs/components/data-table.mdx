@@ -116,6 +116,20 @@ Server and cursor tables without `onPageSizeChange` show the range, like "11-20 
 
 `height` sizes the empty state; once rows arrive, the table shrinks to fit them.
 
+## Toolbar
+
+`toolbar` puts a row above the column headers on its own white card, for summaries or filters that belong to the table.
+
+<Component path="data-table/examples/data-table-toolbar" />
+
+```tsx
+<DataTable
+  columns={columns}
+  data={changes}
+  toolbar={<SummaryToolbar />}
+/>
+```
+
 ## Labels
 
 Every string the table renders comes from `labels`, in English by default. Pass the ones you want to translate:

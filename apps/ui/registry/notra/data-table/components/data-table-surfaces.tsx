@@ -44,11 +44,7 @@ export function TableHeaderSurface({
         flushTop && "rounded-t-none"
       )}
     >
-      {toolbar ? (
-        <div className="border-border bg-background rounded-t-[14px] border-b">
-          {toolbar}
-        </div>
-      ) : null}
+      {toolbar ? <div className={TABLE_BODY_CLASS}>{toolbar}</div> : null}
       {children}
     </div>
   );
