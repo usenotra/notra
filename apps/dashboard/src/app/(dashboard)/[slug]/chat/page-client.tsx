@@ -37,6 +37,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import {
+  type ChatOnFinishCallback,
   type DynamicToolUIPart,
   getToolName,
   isToolUIPart,
@@ -160,6 +161,7 @@ import {
 import {
   markQueuedMessageSteering,
   parseQueuedMessages,
+  shouldDrainQueueAfterFinish,
   takeQueuedMessage,
 } from "@/utils/chat-queue";
 import {
@@ -639,7 +641,12 @@ function StandaloneChatPageClient({
   });
   const steerAfterStopRef = useRef<QueuedMessage | null>(null);
   const queuedMessagesRef = useRef<QueuedMessage[]>([]);
+  const messagesRef = useRef<ChatUIMessage[]>([]);
+  const isSendingRef = useRef(false);
   const isDrainingRef = useRef(false);
+  const isStoppingResponseRef = useRef(false);
+  const wasInterruptedForQueueRef = useRef(false);
+  const finishAfterStopRef = useRef<(() => void) | null>(null);
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
   const hasPendingChatNavigationRef = useRef(false);
@@ -647,8 +654,15 @@ function StandaloneChatPageClient({
     // Populated after the queue refs are defined below.
   });
 
-  const handleFinish = useCallback(
-    ({ message }: { message: ChatUIMessage }) => {
+  const handleFinish = useCallback<ChatOnFinishCallback<ChatUIMessage>>(
+    ({
+      message,
+      messages: finishedMessages,
+      isAbort,
+      isError,
+      isDisconnect,
+    }) => {
+      messagesRef.current = finishedMessages;
       const pinnedModel = getPinnedModelFromAutoMetadata(message.metadata);
       if (pinnedModel) {
         selectedModelRef.current = pinnedModel;
@@ -673,13 +687,35 @@ function StandaloneChatPageClient({
           });
         }
       }
-      isDrainingRef.current = false;
-      if (steerAfterStopRef.current) {
-        flushSteerAfterStopRef.current();
+      const finishQueue = () => {
+        const wasInterruptedForQueue = wasInterruptedForQueueRef.current;
+        wasInterruptedForQueueRef.current = false;
+        isSendingRef.current = false;
+        isDrainingRef.current = false;
+        if (steerAfterStopRef.current) {
+          flushSteerAfterStopRef.current();
+          return;
+        }
+        if (
+          shouldDrainQueueAfterFinish({
+            isAbort,
+            isError,
+            isDisconnect,
+            wasInterruptedForQueue,
+            wasStoppedByUser: wasStoppedByUserRef.current,
+          })
+        ) {
+          drainQueueRef.current();
+        }
+        if (!isError && !isDisconnect) {
+          navigateToNewChatRef.current(message);
+        }
+      };
+      if (isStoppingResponseRef.current) {
+        finishAfterStopRef.current = finishQueue;
         return;
       }
-      drainQueueRef.current();
-      navigateToNewChatRef.current(message);
+      finishQueue();
     },
     [organizationId, queryClient]
   );
@@ -702,7 +738,6 @@ function StandaloneChatPageClient({
     onFinish: handleFinish,
     onError: (err) => {
       if (steerAfterStopRef.current) {
-        flushSteerAfterStopRef.current();
         return;
       }
       const conflictedMessageId = activeStreamConflictRef.current;
@@ -814,6 +849,10 @@ function StandaloneChatPageClient({
   }, [initialChatId, selectedModel, thinkingLevel]);
 
   const stopActiveResponse = useCallback(async () => {
+    if (isStoppingResponseRef.current) {
+      return;
+    }
+    isStoppingResponseRef.current = true;
     try {
       if (organizationId && stableChatId) {
         await fetch(
@@ -825,9 +864,21 @@ function StandaloneChatPageClient({
       console.error("[Chat] Failed to notify server to stop:", stopError);
     }
     stop();
+    isStoppingResponseRef.current = false;
+    const finish = finishAfterStopRef.current;
+    finishAfterStopRef.current = null;
+    finish?.();
   }, [organizationId, stableChatId, stop]);
 
   const handleStop = useCallback(async () => {
+    wasInterruptedForQueueRef.current = false;
+    steerAfterStopRef.current = null;
+    const next = queuedMessagesRef.current.map((message) => ({
+      ...message,
+      steering: false,
+    }));
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
     setIsStopping(true);
     updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
     await stopActiveResponse();
@@ -1062,6 +1113,7 @@ function StandaloneChatPageClient({
     const returnedToNewChat =
       !initialChatId &&
       hasUpdatedUrlRef.current &&
+      !hasPendingChatNavigationRef.current &&
       pathname === `/${organizationSlug}/chat`;
     if (
       previousInitialChatIdRef.current === initialChatId &&
@@ -1155,6 +1207,11 @@ function StandaloneChatPageClient({
       isChatHistoryPending ||
       pendingHistoryMessages > 0);
   const isLoading = status === "streaming" || status === "submitted";
+  useLayoutEffect(() => {
+    if (isLoading) {
+      isSendingRef.current = true;
+    }
+  }, [isLoading]);
   const activitySeconds = useChatActivityTimer(
     isLoading || isMirrorWorking,
     stableChatId,
@@ -1266,8 +1323,6 @@ function StandaloneChatPageClient({
     );
   }, []);
 
-  const messagesRef = useRef(messages);
-
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -1362,6 +1417,7 @@ function StandaloneChatPageClient({
       setIsStopping(false);
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
       setChatError(null);
+      isSendingRef.current = true;
       if (attachments.length > 0) {
         const parts: ChatMessagePart[] = [];
         if (text.length > 0) {
@@ -1477,6 +1533,7 @@ function StandaloneChatPageClient({
         return;
       }
 
+      isSendingRef.current = true;
       const isFirstMessage = !initialChatId && !hasUpdatedUrlRef.current;
       if (messagesRef.current.length === 0) {
         triggerFirstMessageTransition();
@@ -1504,11 +1561,6 @@ function StandaloneChatPageClient({
       if (isFirstMessage) {
         hasUpdatedUrlRef.current = true;
         hasPendingChatNavigationRef.current = true;
-        window.history.replaceState(
-          null,
-          "",
-          `/${organizationSlug}/chat/${stableChatId}`
-        );
         insertPendingChatSession(stableChatId);
       }
       if (attachments.length > 0) {
@@ -1536,7 +1588,6 @@ function StandaloneChatPageClient({
       insertPendingChatSession,
       isProjectScopePending,
       isSlackMirrored,
-      organizationSlug,
       sendMessage,
       stableChatId,
       triggerFirstMessageTransition,
@@ -1552,7 +1603,7 @@ function StandaloneChatPageClient({
         }
         return;
       }
-      if (isLoading || isWaitingForActiveStream) {
+      if (isSendingRef.current || isLoading || isWaitingForActiveStream) {
         if (attachments.length > 0) {
           return;
         }
@@ -1688,9 +1739,12 @@ function StandaloneChatPageClient({
       }
       queuedMessagesRef.current = taken.remaining;
       setQueuedMessages(taken.remaining);
+      isDrainingRef.current = true;
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
       dispatchMessage(message.text).catch((error) => {
         console.error("[Chat] Failed to steer queued message:", error);
+        isSendingRef.current = false;
+        isDrainingRef.current = false;
         const restored = [message, ...queuedMessagesRef.current];
         queuedMessagesRef.current = restored;
         setQueuedMessages(restored);
@@ -1718,7 +1772,7 @@ function StandaloneChatPageClient({
       ) {
         return;
       }
-      if (!(isLoading || isWaitingForActiveStream)) {
+      if (!(isSendingRef.current || isLoading || isWaitingForActiveStream)) {
         sendSteeredQueued(message);
         return;
       }
@@ -1796,7 +1850,11 @@ function StandaloneChatPageClient({
       if (isSlackMirrored) {
         return;
       }
-      if (isDrainingRef.current || isWaitingForActiveStreamRef.current) {
+      if (
+        isSendingRef.current ||
+        isDrainingRef.current ||
+        isWaitingForActiveStreamRef.current
+      ) {
         return;
       }
       if (wasStoppedByUserRef.current) {
@@ -1820,6 +1878,7 @@ function StandaloneChatPageClient({
       setQueuedMessages(remaining);
       dispatchMessage(next.text).catch((error) => {
         console.error("[Chat] Failed to drain queued message:", error);
+        isSendingRef.current = false;
         isDrainingRef.current = false;
         const restored = [next, ...queuedMessagesRef.current];
         queuedMessagesRef.current = restored;
@@ -1996,6 +2055,7 @@ function StandaloneChatPageClient({
     }
 
     isDrainingRef.current = true;
+    wasInterruptedForQueueRef.current = true;
 
     stopActiveResponse().catch((error) => {
       console.error(

@@ -50,7 +50,7 @@ import { handleStandaloneChatError } from "@/utils/chat-error";
 import { buildUserMessageParts } from "@/utils/chat-message-parts";
 import {
   markQueuedMessageSteering,
-  shouldDrainQueueAfterError,
+  shouldDrainQueueAfterFinish,
   takeQueuedMessage,
 } from "@/utils/chat-queue";
 import { snapshotContentChatAttachments } from "@/utils/content-chat-attachments";
@@ -107,6 +107,7 @@ export function useContentDetailChat({
   const flushSteerAfterStopRef = useRef<() => void>(() => {});
   const isDrainingRef = useRef(false);
   const wasStoppedByUserRef = useRef(false);
+  const wasInterruptedForQueueRef = useRef(false);
   const queuedMessagesRef = useRef<QueuedMessage[]>([]);
   const steerAfterStopRef = useRef<QueuedMessage | null>(null);
   const steerInFlightRef = useRef<QueuedMessage | null>(null);
@@ -172,7 +173,15 @@ export function useContentDetailChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
     }),
-    onFinish: () => {
+    onFinish: ({
+      messages: finishedMessages,
+      isAbort,
+      isError,
+      isDisconnect,
+    }) => {
+      const wasInterruptedForQueue = wasInterruptedForQueueRef.current;
+      wasInterruptedForQueueRef.current = false;
+      messagesRef.current = finishedMessages;
       clearSelection();
       emitAutumnRefresh();
       if (activeChatId) {
@@ -200,20 +209,27 @@ export function useContentDetailChat({
         return;
       }
       if (wasStoppedByUserRef.current) {
-        wasStoppedByUserRef.current = false;
         return;
       }
-      drainQueueRef.current();
+      if (
+        shouldDrainQueueAfterFinish({
+          isAbort,
+          isError,
+          isDisconnect,
+          wasInterruptedForQueue,
+          wasStoppedByUser: wasStoppedByUserRef.current,
+        })
+      ) {
+        drainQueueRef.current();
+      }
     },
     onError: (err) => {
       isDrainingRef.current = false;
       isAgentBusyRef.current = false;
       if (steerAfterStopRef.current) {
-        flushSteerAfterStopRef.current();
         return;
       }
       const steered = steerInFlightRef.current;
-      const skipQueueDrain = skipQueueDrainRef.current || Boolean(steered);
       if (steered) {
         steerInFlightRef.current = null;
         const restored = [steered, ...queuedMessagesRef.current];
@@ -255,15 +271,6 @@ export function useContentDetailChat({
       });
       if (!isUsageLimit) {
         toast.error(tToast("editContentFailed"));
-      }
-      if (
-        shouldDrainQueueAfterError({
-          hasPendingSteer: false,
-          hasSteerInFlight: skipQueueDrain,
-          isUsageLimit,
-        })
-      ) {
-        drainQueueRef.current();
       }
     },
   });
@@ -312,7 +319,9 @@ export function useContentDetailChat({
 
   useLayoutEffect(() => {
     messagesRef.current = messages;
-    isAgentBusyRef.current = isAgentBusy;
+    if (isAgentBusy) {
+      isAgentBusyRef.current = true;
+    }
   }, [messages, isAgentBusy]);
 
   useLayoutEffect(() => {
@@ -567,6 +576,14 @@ export function useContentDetailChat({
   );
 
   const handleStop = useCallback(() => {
+    wasInterruptedForQueueRef.current = false;
+    steerAfterStopRef.current = null;
+    const next = queuedMessagesRef.current.map((message) => ({
+      ...message,
+      steering: false,
+    }));
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
     wasStoppedByUserRef.current = true;
     stop();
   }, [stop]);
@@ -676,6 +693,8 @@ export function useContentDetailChat({
   const drainQueue = useCallback(() => {
     if (
       isDrainingRef.current ||
+      isAgentBusyRef.current ||
+      wasStoppedByUserRef.current ||
       steerAfterStopRef.current ||
       steerInFlightRef.current ||
       skipQueueDrainRef.current ||
@@ -690,6 +709,7 @@ export function useContentDetailChat({
     }
 
     isDrainingRef.current = true;
+    isAgentBusyRef.current = true;
     queuedMessagesRef.current = queue.slice(1);
     setQueuedMessages(queue.slice(1));
     dispatchContentEdit(next.text, {
@@ -698,6 +718,7 @@ export function useContentDetailChat({
     }).catch((error) => {
       console.error("[Content] Failed to drain queued message:", error);
       isDrainingRef.current = false;
+      isAgentBusyRef.current = false;
       const restored = [next, ...queuedMessagesRef.current];
       queuedMessagesRef.current = restored;
       setQueuedMessages(restored);
@@ -767,6 +788,7 @@ export function useContentDetailChat({
     }
 
     isDrainingRef.current = true;
+    wasInterruptedForQueueRef.current = true;
     stop();
   }, [isAgentBusy, messages, queuedMessages.length, stop]);
 

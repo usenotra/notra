@@ -23,16 +23,25 @@ export function takeQueuedMessage<T extends { id: string }>(
   };
 }
 
-export function shouldDrainQueueAfterError({
-  hasPendingSteer,
-  hasSteerInFlight,
-  isUsageLimit,
+export function shouldDrainQueueAfterFinish({
+  isAbort = false,
+  isError,
+  isDisconnect,
+  wasInterruptedForQueue = false,
+  wasStoppedByUser,
 }: {
-  hasPendingSteer: boolean;
-  hasSteerInFlight: boolean;
-  isUsageLimit: boolean;
+  isAbort?: boolean;
+  isError: boolean;
+  isDisconnect: boolean;
+  wasInterruptedForQueue?: boolean;
+  wasStoppedByUser: boolean;
 }): boolean {
-  return !hasPendingSteer && !hasSteerInFlight && !isUsageLimit;
+  return (
+    !isError &&
+    !isDisconnect &&
+    !wasStoppedByUser &&
+    (!isAbort || wasInterruptedForQueue)
+  );
 }
 
 export function parseQueuedMessages(value: unknown): QueuedMessage[] {
