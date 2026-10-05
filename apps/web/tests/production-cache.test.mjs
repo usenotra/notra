@@ -61,6 +61,34 @@ test("production responses isolate cache variants and journey links", async (t) 
   );
 
   await t.test(
+    "live integration Markdown aliases and fallback responses are not cached",
+    async () => {
+      for (const path of [
+        "/integrations.md",
+        "/integrations/brew.md",
+        "/md/integrations",
+        "/md/integrations/brew",
+        "/integrations",
+        "/integrations/brew",
+      ]) {
+        const response = await fetch(`${url}${path}`, {
+          headers: { "User-Agent": "Mozilla/5.0", Accept: "text/markdown" },
+        });
+        assert.equal(response.status, 200, path);
+        assert.match(response.headers.get("content-type"), /text\/markdown/);
+        assert.match(response.headers.get("cache-control"), /private/);
+        assert.match(response.headers.get("cache-control"), /no-store/);
+        assert.ok((await response.text()).includes("Brew"));
+      }
+      const slack = await fetch(`${url}/integrations/slack.md`);
+      assert.equal(slack.status, 200);
+      assert.match(slack.headers.get("content-type"), /text\/markdown/);
+      assert.equal(slack.headers.get("cache-control"), "public, max-age=300");
+      await slack.text();
+    }
+  );
+
+  await t.test(
     "HTML, Markdown and rejected Accept headers vary by negotiation inputs",
     async () => {
       for (const [userAgent, accept, status, contentType] of [
