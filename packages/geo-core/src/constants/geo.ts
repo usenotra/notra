@@ -344,10 +344,12 @@ export const GEO_MAX_SEQUENCES = 10;
 export const GEO_COMPETITOR_SHARE_LIMIT = 50;
 export const GEO_PROMPT_HISTORY_LIMIT = 120;
 export const GEO_PROMPT_HISTORY_SKELETON_ROWS = 4;
-/** Named brands shown in the scan-history "New brands" cell before +N. */
-export const GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE = 3;
-export const GEO_PROMPT_HISTORY_EMPTY_POSITION = "\u2013";
-export const GEO_PROMPT_HISTORY_EMPTY_COMPETITORS = "\u2013";
+/** Scans the prompt sheet's history renders per infinite-scroll page. */
+export const GEO_PROMPT_HISTORY_PAGE_SIZE = 10;
+/** Sources listed in the prompt sheet before "Show all". */
+export const GEO_PROMPT_SOURCES_VISIBLE_ROWS = 5;
+/** Brands named in the prompts table's "Mentioned instead" cell before +N. */
+export const GEO_PROMPT_MENTIONED_INSTEAD_VISIBLE = 2;
 export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;

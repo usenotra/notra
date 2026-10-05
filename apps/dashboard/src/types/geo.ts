@@ -248,6 +248,11 @@ export interface GeoPromptTableRow {
   results: GeoPromptResultSummary[];
 }
 
+export interface GeoPromptBrandCount {
+  name: string;
+  count: number;
+}
+
 export type GeoPromptIntentFilter = GeoPromptIntent | "all";
 
 export type GeoPromptSourceFilter = GeoPromptSource | "all";
@@ -286,10 +291,6 @@ export interface PromptTagsFormProps {
 
 export interface PromptTagChipsProps {
   tags: string[];
-}
-
-export interface PromptIntentBadgeProps {
-  intent: GeoPromptIntent;
 }
 
 export interface PromptPresenceBadgeProps {
@@ -1525,23 +1526,10 @@ export interface PromptAnswerContentProps extends Omit<
 }
 
 export interface PromptReceiptHistoryProps {
-  title: string;
   entries: PromptHistoryEntry[];
   isLoading: boolean;
-  /** Tracked competitors, used to resolve brand logos by domain. */
-  competitors?: readonly GeoCompetitor[];
   /** Opens the answer captured by one scan. Rows become clickable when set. */
   onSelect?: (check: GeoPromptHistoryCheck) => void;
-}
-
-export interface PromptHistoryBrandTokenProps {
-  name: string;
-  competitors: readonly GeoCompetitor[] | undefined;
-}
-
-export interface PromptHistoryNewCompetitorsCellProps {
-  names: readonly string[];
-  competitors: readonly GeoCompetitor[] | undefined;
 }
 
 export interface GeoAnswerActionsProps {

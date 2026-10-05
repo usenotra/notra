@@ -3127,7 +3127,8 @@
       "latestAnswer": "Latest answer from each engine",
       "answerLanguage": "Answer language",
       "noTags": "No tags",
-      "addTag": "Add a tag…"
+      "addTag": "Add a tag…",
+      "lastScan": "Last scan"
     },
     "promptDetailStatus": {
       "loading": "Loading answer…",
@@ -3148,26 +3149,19 @@
       "competitors": "Brands mentioned instead",
       "searches": "Searches the engine ran",
       "sources": "Sources cited",
-      "history": "Scan history"
+      "history": "Scan history",
+      "showAllSources": "Show all {count} sources"
     },
     "promptReceiptHistory": {
       "gainedMention": "Now mentioned",
-      "gainedMentionAt": "at",
       "lostMention": "No longer mentioned",
-      "moved": "Moved",
       "noChange": "No change",
       "firstScan": "First scan",
       "gainedLabel": "Now mentioned at {position}",
       "movedLabel": "Moved {from} → {to}",
-      "moreAria": "{count} more: {names}",
-      "viewAnswer": "View answer",
       "viewAnswerAria": "View answer · {timestamp}",
-      "singleScan": "Only one scan so far",
       "noHistory": "No scans recorded yet",
-      "columns": {
-        "date": "Scan",
-        "newCompetitors": "New brands"
-      }
+      "newBrands": "{count, plural, one {# new brand} other {# new brands}}"
     },
     "promptReceiptViewSwitch": {
       "groupLabel": "Receipt view",
@@ -3202,10 +3196,7 @@
       "suggestions": "Tags in use"
     },
     "promptsTable": {
-      "pauseAria": "Pause {prompt}",
-      "enableAria": "Enable {prompt}",
       "copiedPrompt": "Copied prompt",
-      "pausePrompt": "Pause prompt",
       "enablePrompt": "Enable prompt",
       "removePrompt": "Remove prompt",
       "removeDescriptionOne": "\"{prompt}\" will no longer be asked in GEO scans. Historical answers stay in your results.",
@@ -3216,7 +3207,8 @@
       "nounPlural": "prompts",
       "tagsCustomOnly": "Tags apply to custom prompts. Auto-generated prompts were skipped.",
       "columns": {
-        "presence": "Presence"
+        "presence": "Presence",
+        "mentionedInstead": "Mentioned instead"
       },
       "filterAria": "Filter prompts",
       "filterPlaceholder": "Filter prompts…",

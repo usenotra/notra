@@ -48,6 +48,7 @@ import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
 import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
+import { ReceiptSection } from "@/components/geo/prompt-receipt-analysis";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
 import { PromptTranslationsSection } from "@/components/geo/prompt-translations-section";
@@ -75,7 +76,7 @@ import type {
   PromptAnswerEmptyProps,
   PromptAnswerHeaderProps,
   PromptAnswerLanguageBarProps,
-  PromptAnswerTagsFooterProps,
+  PromptAnswerDetailsProps,
   PromptDetailOpenedEventProps,
 } from "@/types/geo-prompt-detail";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
@@ -175,17 +176,20 @@ function PromptAnswerHeader({
 
   return (
     <SheetHeader className="shrink-0 gap-3 border-b p-4">
-      <div className="flex min-w-0 items-start gap-3 pr-8">
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
+      <div className="flex min-w-0 items-start gap-3 pr-9">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <SheetTitle className="min-w-0 text-base leading-6 font-medium">
             <PromptCopyButton prompt={promptText ?? row.prompt} />
           </SheetTitle>
-          {results.length > 0 ? (
-            <dl className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 px-2 text-xs">
-              <div>
-                <dt className="sr-only">{tCommon("labels.intent")}</dt>
-                <dd>{intentLabel(row.intent)}</dd>
-              </div>
+          <SheetDescription className="sr-only">
+            {t("latestAnswer")}
+          </SheetDescription>
+          <dl className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs">
+            <div>
+              <dt className="sr-only">{tCommon("labels.intent")}</dt>
+              <dd>{intentLabel(row.intent)}</dd>
+            </div>
+            {results.length > 0 ? (
               <div className="flex items-center gap-1 before:content-['·']">
                 <dt>{tGeoShared("bestPosition")}</dt>
                 <dd className="text-foreground font-medium tabular-nums">
@@ -194,31 +198,28 @@ function PromptAnswerHeader({
                     : `#${row.bestPosition}`}
                 </dd>
               </div>
-            </dl>
-          ) : null}
+            ) : null}
+            {latestCheck ? (
+              <div className="flex items-center gap-1 before:content-['·']">
+                <dt className="sr-only">{t("lastScan")}</dt>
+                <dd>
+                  <time className="tabular-nums" dateTime={latestCheck}>
+                    {formatAiTrafficTimestamp(latestCheck, locale)}
+                  </time>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
         </div>
-        <SheetDescription className="sr-only">
-          {t("latestAnswer")}
-        </SheetDescription>
-        <div className="flex shrink-0 items-center gap-2">
-          {latestCheck ? (
-            <time
-              className="text-muted-foreground text-xs tabular-nums"
-              dateTime={latestCheck}
-            >
-              {formatAiTrafficTimestamp(latestCheck, locale)}
-            </time>
-          ) : null}
-          <PromptScanButton
-            onPrepare={onPrepareScan}
-            organizationId={organizationId}
-            primary
-            row={row}
-          />
-        </div>
+        <PromptScanButton
+          onPrepare={onPrepareScan}
+          organizationId={organizationId}
+          primary
+          row={row}
+        />
       </div>
       {results.length > 0 && active ? (
-        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <PromptEngineSwitcher
             active={active}
             onChange={onSelectEngine}
@@ -331,7 +332,7 @@ function PromptAnswerEmpty({
   }
 
   return (
-    <Empty className="min-h-full">
+    <Empty className="flex-1">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           {isScanning ? (
@@ -392,44 +393,42 @@ function PromptAnswerLanguageBar({
   );
 }
 
-function PromptAnswerTagsFooter({
+function PromptAnswerDetails({
   tagsInputId,
   row,
   tags,
   pending,
   onChange,
   children,
-}: PromptAnswerTagsFooterProps) {
+}: PromptAnswerDetailsProps) {
   const t = useTranslations("geo.promptDetailDialog");
   const tGeoShared = useTranslations("geo.shared");
   return (
-    <section
-      className="bg-muted/20 shrink-0 space-y-3 border-t px-4 pt-3 pb-4"
-      aria-labelledby={`${tagsInputId}-heading`}
-    >
-      <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
-        {tGeoShared("tags")}
-      </h3>
-      {row.source === "auto" ? (
-        <p className="text-sm break-words">
-          {tags.length > 0 ? tags.join(", ") : t("noTags")}
-        </p>
-      ) : (
-        <GeoTagList
-          disabled={pending}
-          id={tagsInputId}
-          inline
-          inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
-          label={tGeoShared("tags")}
-          labeled={false}
-          max={GEO_PROMPT_MAX_TAGS}
-          onChange={onChange}
-          placeholder={t("addTag")}
-          values={tags}
-        />
-      )}
+    <div className="bg-muted/20 flex flex-col gap-4 px-4 pb-4">
+      <ReceiptSection title={tGeoShared("tags")}>
+        <div className="px-3 py-2">
+          {row.source === "auto" ? (
+            <p className="px-1 py-1 text-sm break-words">
+              {tags.length > 0 ? tags.join(", ") : t("noTags")}
+            </p>
+          ) : (
+            <GeoTagList
+              disabled={pending}
+              id={tagsInputId}
+              inline
+              inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
+              label={tGeoShared("tags")}
+              labeled={false}
+              max={GEO_PROMPT_MAX_TAGS}
+              onChange={onChange}
+              placeholder={t("addTag")}
+              values={tags}
+            />
+          )}
+        </div>
+      </ReceiptSection>
       {children}
-    </section>
+    </div>
   );
 }
 
@@ -566,47 +565,42 @@ export function PromptAnswerPage({
           selectedLanguage={selectedLanguage}
         />
       ) : null}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div
-          className={cn(
-            "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
-            view === "raw" && active
-              ? GEO_CHAT_SKIN_SURFACE[geoChatSkin(active.engine)]
-              : undefined
-          )}
-        >
-          {active ? (
-            <div
-              className="flex min-h-full min-w-0 flex-col"
-              key={active.engine}
-            >
-              <PromptAnswerBody
-                organizationId={organizationId}
-                competitors={competitors}
-                detailState={detailState}
-                history={engineHistory}
-                isHistoryLoading={history.isPending}
-                onBackToLatest={() => setSelectedCheck(null)}
-                onRetry={onRetry}
-                onSelectCheck={openHistoryAnswer}
-                prompt={promptText}
-                scanPromptId={scanPromptId}
-                selectedCheck={selectedCheck}
-                view={view}
-              />
-            </div>
-          ) : (
-            <PromptAnswerEmpty
-              detailState={detailState}
-              isScanning={isScanning}
+      <div
+        className={cn(
+          "relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain",
+          view === "raw" && active
+            ? GEO_CHAT_SKIN_SURFACE[geoChatSkin(active.engine)]
+            : "bg-muted/20"
+        )}
+      >
+        {active ? (
+          <div className="flex min-w-0 flex-1 flex-col" key={active.engine}>
+            <PromptAnswerBody
               organizationId={organizationId}
+              competitors={competitors}
+              detailState={detailState}
+              history={engineHistory}
+              isHistoryLoading={history.isPending}
+              onBackToLatest={() => setSelectedCheck(null)}
               onRetry={onRetry}
+              onSelectCheck={openHistoryAnswer}
+              prompt={promptText}
+              scanPromptId={scanPromptId}
+              selectedCheck={selectedCheck}
               view={view}
             />
-          )}
-        </div>
-        {view === "analysis" ? (
-          <PromptAnswerTagsFooter
+          </div>
+        ) : (
+          <PromptAnswerEmpty
+            detailState={detailState}
+            isScanning={isScanning}
+            organizationId={organizationId}
+            onRetry={onRetry}
+            view={view}
+          />
+        )}
+        {view === "analysis" && !selectedCheck ? (
+          <PromptAnswerDetails
             onChange={(nextTags) =>
               setPromptTags(row.id, normalizePromptTags(nextTags))
             }
@@ -620,7 +614,7 @@ export function PromptAnswerPage({
               organizationId={organizationId}
               row={row}
             />
-          </PromptAnswerTagsFooter>
+          </PromptAnswerDetails>
         ) : null}
       </div>
     </div>

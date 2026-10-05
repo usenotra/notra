@@ -3127,7 +3127,8 @@
       "latestAnswer": "Neueste Antwort jeder KI-Engine",
       "answerLanguage": "Antwortsprache",
       "noTags": "Keine Tags",
-      "addTag": "Tag hinzufügen…"
+      "addTag": "Tag hinzufügen…",
+      "lastScan": "Letzter Scan"
     },
     "promptDetailStatus": {
       "loading": "Antwort wird geladen…",
@@ -3148,26 +3149,19 @@
       "competitors": "Stattdessen erwähnte Marken",
       "searches": "Suchen der KI-Engine",
       "sources": "Zitierte Quellen",
-      "history": "Scan-Verlauf"
+      "history": "Scan-Verlauf",
+      "showAllSources": "Alle {count} Quellen anzeigen"
     },
     "promptReceiptHistory": {
       "gainedMention": "Jetzt erwähnt",
-      "gainedMentionAt": "auf",
       "lostMention": "Nicht mehr erwähnt",
-      "moved": "Verschoben",
       "noChange": "Keine Änderung",
       "firstScan": "Erster Scan",
       "gainedLabel": "Jetzt erwähnt auf {position}",
       "movedLabel": "Verschoben {from} → {to}",
-      "moreAria": "{count} weitere: {names}",
-      "viewAnswer": "Antwort ansehen",
       "viewAnswerAria": "Antwort ansehen · {timestamp}",
-      "singleScan": "Bisher nur ein Scan",
       "noHistory": "Noch keine Scans aufgezeichnet",
-      "columns": {
-        "date": "Scan",
-        "newCompetitors": "Neue Marken"
-      }
+      "newBrands": "{count, plural, one {# neue Marke} other {# neue Marken}}"
     },
     "promptReceiptViewSwitch": {
       "groupLabel": "Ansicht",
@@ -3202,10 +3196,7 @@
       "suggestions": "Verwendete Tags"
     },
     "promptsTable": {
-      "pauseAria": "{prompt} pausieren",
-      "enableAria": "{prompt} aktivieren",
       "copiedPrompt": "Prompt kopiert",
-      "pausePrompt": "Prompt pausieren",
       "enablePrompt": "Prompt aktivieren",
       "removePrompt": "Prompt entfernen",
       "removeDescriptionOne": "„{prompt}“ wird in GEO-Scans nicht mehr abgefragt. Bisherige Antworten bleiben in deinen Ergebnissen.",
@@ -3216,7 +3207,8 @@
       "nounPlural": "Prompts",
       "tagsCustomOnly": "Tags gelten nur für eigene Prompts. Automatisch erzeugte Prompts wurden übersprungen.",
       "columns": {
-        "presence": "Präsenz"
+        "presence": "Präsenz",
+        "mentionedInstead": "Stattdessen genannt"
       },
       "filterAria": "Prompts filtern",
       "filterPlaceholder": "Prompts filtern…",
