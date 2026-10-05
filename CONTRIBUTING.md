@@ -259,22 +259,6 @@ bun run build
 git commit -m "feat(dashboard): add integration activity filters"
 ```
 
-## Dashboard Browser Tests
-
-The dashboard test command includes Playwright checks against isolated fixtures
-with real components, styles, and the React Compiler. The fixtures use synthetic
-data and do not require authentication or a database.
-
-Install Chromium once after installing dependencies, then run the suite:
-
-```bash
-bun --cwd apps/dashboard run playwright install chromium
-bun --cwd apps/dashboard run test:browser
-```
-
-The code-quality workflow installs Chromium and its Linux dependencies before
-running the repository tests.
-
 ## Landing Page Copy Sync
 
 If you update landing page copy in `apps/web/src/components/landing/landing-page.tsx`, also update the markdown version in `apps/web/src/utils/site-markdown.ts`.
