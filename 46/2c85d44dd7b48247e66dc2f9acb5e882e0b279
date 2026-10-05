@@ -1,0 +1,23 @@
+apps/dashboard/messages/de.json
+  s_de8cd59e7fde64::t_4ca9750a2dacc4 3163-3164
+apps/dashboard/messages/en.json
+  s_de8cd59e7fde64::t_4ca9750a2dacc4 3163-3164
+apps/dashboard/src/components/geo/prompt-receipt-history.tsx
+  s_de8cd59e7fde64::t_4ca9750a2dacc4 15,22,68,76-82,94-98,119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "462c85d44dd7b48247e66dc2f9acb5e882e0b279",
+  "prompts": {},
+  "sessions": {
+    "s_de8cd59e7fde64": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e5d678f0-cf5e-477e-9d50-633c93ff612f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
