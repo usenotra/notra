@@ -978,8 +978,6 @@ export const GEO_TAB_VALUES = [
   "journeys",
 ] as const satisfies readonly GeoTab[];
 
-export const GEO_TRAFFIC_REVEAL_MS = 150;
-
 export const GEO_DEFAULT_TAB: GeoTab = "visibility";
 
 export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
