@@ -17,10 +17,21 @@ export async function requireReleaseCI({
     throw new Error("Production releases must run from usenotra/notra main");
   }
 
-  let pending;
+  const deadline = Date.now() + 10 * 60_000;
+  let pending = [];
+  let checks = 0;
   for (let attempt = 1; attempt <= 20; attempt += 1) {
+    if (Date.now() >= deadline) {
+      break;
+    }
+    checks = attempt;
     pending = [];
     for (const workflow of ["code-quality.yml", "knip.yml"]) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        pending.push(`${workflow}: CI polling deadline reached`);
+        continue;
+      }
       const url = new URL(
         `https://api.github.com/repos/${env.GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs`
       );
@@ -39,7 +50,7 @@ export async function requireReleaseCI({
             "X-GitHub-Api-Version": "2022-11-28",
             "Cache-Control": "no-cache",
           },
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(Math.min(30_000, remaining)),
         });
       } catch {
         pending.push(`${workflow}: GitHub request failed`);
@@ -76,11 +87,14 @@ export async function requireReleaseCI({
     }
     await report(`Waiting for release CI: ${pending.join("; ")}`);
     if (attempt < 20) {
-      await sleep(30_000);
+      const remaining = deadline - Date.now();
+      if (remaining > 0) {
+        await sleep(Math.min(30_000, remaining));
+      }
     }
   }
   throw new Error(
-    `Release CI has not passed for ${env.GITHUB_SHA} after 20 checks: ${pending.join("; ")}; no builds started`
+    `Release CI has not passed for ${env.GITHUB_SHA} after ${checks} checks (10-minute limit): ${pending.join("; ")}; no builds started`
   );
 }
 
