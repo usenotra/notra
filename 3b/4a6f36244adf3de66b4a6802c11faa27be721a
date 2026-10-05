@@ -1,0 +1,21 @@
+apps/dashboard/src/components/agent-feedback/feedback-setup-nudge.tsx
+  s_c374b9140cc0ae::t_d86885c301dc08 6,27-31,34
+apps/dashboard/src/lib/onboarding/submit-workspace-form.ts
+  s_c374b9140cc0ae::t_d86885c301dc08 72-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3b4a6f36244adf3de66b4a6802c11faa27be721a",
+  "prompts": {},
+  "sessions": {
+    "s_c374b9140cc0ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3865e68a-395b-42e1-94b7-c7fc94bebbda",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
