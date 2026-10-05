@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { CompareLogoTile } from "@/components/compare/compare-logo";
 import { CompareCell } from "@/components/compare/compare-table";
 import { HeroDither } from "@/components/landing/hero-dither";
+import { NumberedStepCard } from "@/components/numbered-step-card";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
   COMPARE_BODY_CLASS,
@@ -223,18 +224,42 @@ export function CompareShortAnswer({ competitor }: CompareCompetitorProps) {
 export function CompareAdvantages({ competitor }: CompareCompetitorProps) {
   return (
     <section className={COMPARE_SECTION_CLASS}>
-      <h2 className={COMPARE_SECTION_HEADING_CLASS}>
-        Why teams pick Notra over {competitor.name}
+      <h2
+        className={cn(
+          COMPARE_SECTION_HEADING_CLASS,
+          "flex flex-wrap items-center gap-x-3 gap-y-2"
+        )}
+      >
+        Why teams pick
+        <span className="inline-flex items-center gap-3">
+          <CompareLogoTile logo={NOTRA_COMPARE_LOGO} name="Notra" size="sm" />
+          Notra
+        </span>
+        over
+        <span className="inline-flex items-center gap-3">
+          <CompareLogoTile
+            logo={competitor.logo}
+            name={competitor.name}
+            size="sm"
+          />
+          {competitor.name}
+        </span>
       </h2>
-      <ol className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <ol
+        className={cn(
+          "grid grid-cols-1 gap-4",
+          competitor.advantages.length === 3
+            ? "lg:grid-cols-3"
+            : "md:grid-cols-2"
+        )}
+      >
         {competitor.advantages.map((advantage, index) => (
-          <li className={COMPARE_CARD_CLASS} key={advantage.title}>
-            <span className="font-display text-primary text-sm font-medium">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <h3 className={COMPARE_CARD_HEADING_CLASS}>{advantage.title}</h3>
-            <p className={COMPARE_BODY_CLASS}>{advantage.description}</p>
-          </li>
+          <NumberedStepCard
+            body={advantage.description}
+            key={advantage.title}
+            number={String(index + 1)}
+            title={advantage.title}
+          />
         ))}
       </ol>
     </section>
