@@ -738,13 +738,17 @@ export async function queryGeoCheckEngineTotals(
   }));
 }
 
-/** Mentions per engine for the given raw brand names. */
+/**
+ * Mentions per engine and raw brand name, for brands whose key (trimmed,
+ * lowercased) is in `brandKeys`. Raw names are kept so callers can fold
+ * synonyms onto a tracked competitor and still label untracked brands.
+ */
 export async function queryGeoCheckEngineBrandMentions(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined,
-  brands: readonly string[]
+  brandKeys: readonly string[]
 ): Promise<GeoCheckEngineBrandRow[]> {
-  if (brands.length === 0) {
+  if (brandKeys.length === 0) {
     return [];
   }
   const rows = await withGeoCheckAggregateCache(
@@ -760,7 +764,7 @@ export async function queryGeoCheckEngineBrandMentions(
       .where(
         and(
           mentionFilters(scope, window),
-          sql`${competitorBrand} = any(${sql.param([...brands])}::text[])`
+          sql`lower(trim(${competitorBrand})) = any(${sql.param([...brandKeys])}::text[])`
         )
       )
       .groupBy(geoMentionChecks.engine, competitorBrand)

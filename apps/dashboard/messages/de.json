@@ -2466,7 +2466,8 @@
       "you": "Du",
       "noChecks": "Keine Antworten",
       "empty": "Noch keine Antworten in diesem Zeitraum.",
-      "scanning": "Engines werden gescannt…"
+      "scanning": "Engines werden gescannt…",
+      "loadFailed": "Empfehlungen nach Assistent konnten nicht geladen werden."
     },
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"

@@ -55,6 +55,18 @@ function familyColumns(
     }
     byFamily.set(family, totals);
   }
+  // Enabled assistants without answers in the range keep their column, so
+  // the gap reads as "no answers" instead of the assistant going missing.
+  for (const engine of trackedEngines) {
+    const family = engineFamilyOf(engine);
+    if (!byFamily.has(family)) {
+      byFamily.set(family, {
+        column: { family, engine, label: engineFamilyLabel(family), checks: 0 },
+        engineChecks: 0,
+        ownMentions: 0,
+      });
+    }
+  }
   return [...byFamily.values()].sort(
     (left, right) =>
       right.column.checks - left.column.checks ||
@@ -89,6 +101,17 @@ export function buildEngineMatrix(
   );
 
   const brands = new Map<string, { brand: string; mentions: number[] }>();
+  // Seeded so a tracked competitor without mentions shows its 0% row.
+  for (const competitor of options.competitors ?? []) {
+    if (
+      !isOwnBrandName(competitor.name, options.companyName, options.aliases)
+    ) {
+      brands.set(competitorKey(competitor.name), {
+        brand: competitor.name,
+        mentions: families.map(() => 0),
+      });
+    }
+  }
   for (const cell of data?.cells ?? []) {
     const index = columnIndex.get(engineFamilyOf(cell.engine));
     if (

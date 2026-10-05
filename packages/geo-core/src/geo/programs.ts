@@ -1104,27 +1104,39 @@ export const loadGeoCompetitorEngineMatrix = Effect.fn(
   const checkScope = geoCheckScope(scope);
   const checkWindow = toGeoCheckWindow(window);
 
-  const [engines, topBrands] = yield* Effect.all(
+  const [engines, competitors] = yield* Effect.all(
     [
       geoDb("engine totals query failed", () =>
         queryGeoCheckEngineTotals(checkScope, checkWindow)
       ),
-      geoDb("competitor share query failed", () =>
-        queryGeoCheckCompetitorShare(
-          checkScope,
-          checkWindow,
-          GEO_COMPETITOR_SHARE_LIMIT
-        )
-      ),
+      scope.projectId
+        ? loadCompetitorsByProject(scope.projectId)
+        : Effect.succeed<GeoCompetitor[]>([]),
     ],
     { concurrency: "unbounded" }
   );
-  const cells = yield* geoDb("engine brand mentions query failed", () =>
-    queryGeoCheckEngineBrandMentions(
-      checkScope,
-      checkWindow,
-      topBrands.map((row) => row.brand)
+  // Tracked competitors are matched by name and synonyms regardless of rank,
+  // so one outside the top brands still gets its row. Untracked brands only
+  // stand in while nothing is tracked.
+  const trackedKeys = new Set(
+    competitors.flatMap((competitor) =>
+      [competitor.name, ...competitor.synonyms]
+        .map(competitorKey)
+        .filter((key) => key.length > 0)
     )
+  );
+  const brandKeys =
+    trackedKeys.size > 0
+      ? [...trackedKeys]
+      : (yield* geoDb("competitor share query failed", () =>
+          queryGeoCheckCompetitorShare(
+            checkScope,
+            checkWindow,
+            GEO_COMPETITOR_SHARE_LIMIT
+          )
+        )).map((row) => competitorKey(row.brand));
+  const cells = yield* geoDb("engine brand mentions query failed", () =>
+    queryGeoCheckEngineBrandMentions(checkScope, checkWindow, brandKeys)
   );
 
   const response: GeoCompetitorEngineMatrixResponse = {

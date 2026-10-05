@@ -65,7 +65,7 @@ export function CompetitorEngineMatrixCard({
   isScanning = false,
 }: CompetitorEngineMatrixCardProps) {
   const t = useTranslations("geo.competitorEngineMatrix");
-  const { data, isPending } = useGeoCompetitorEngineMatrix(
+  const { data, isPending, isError } = useGeoCompetitorEngineMatrix(
     organizationId,
     range
   );
@@ -80,7 +80,15 @@ export function CompetitorEngineMatrixCard({
     competitors,
     trackedEngines,
   });
-  const isEmpty = matrix.columns.length === 0 || matrix.rows.length === 0;
+  const isEmpty =
+    matrix.rows.length === 0 ||
+    matrix.columns.every((column) => column.checks === 0);
+  let emptyMessage = t("empty");
+  if (isError) {
+    emptyMessage = t("loadFailed");
+  } else if (isScanning) {
+    emptyMessage = t("scanning");
+  }
 
   return (
     <InstrumentModule
@@ -91,8 +99,8 @@ export function CompetitorEngineMatrixCard({
     >
       {isEmpty ? (
         <InstrumentEmpty
-          busy={isScanning}
-          message={isScanning ? t("scanning") : t("empty")}
+          busy={isScanning && !isError}
+          message={emptyMessage}
           seed="competitor-engine-matrix"
         />
       ) : (
@@ -143,16 +151,13 @@ export function CompetitorEngineMatrixCard({
                       ) : null}
                     </span>
                   </th>
-                  {row.rates.map((rate, index) => (
-                    <td
-                      className="p-0"
-                      key={matrix.columns[index]?.family ?? index}
-                    >
+                  {matrix.columns.map((column, index) => (
+                    <td className="p-0" key={column.family}>
                       <MatrixCell
                         maxRate={matrix.maxRate}
                         minRate={matrix.minRate}
                         noChecksLabel={t("noChecks")}
-                        rate={rate}
+                        rate={row.rates[index] ?? null}
                       />
                     </td>
                   ))}
