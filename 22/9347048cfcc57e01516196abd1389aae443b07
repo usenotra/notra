@@ -1,0 +1,19 @@
+apps/dashboard/src/components/geo/shelf/shelf-view.tsx
+  s_1628bb36a538b9::t_94a51eb3a957a4 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "229347048cfcc57e01516196abd1389aae443b07",
+  "prompts": {},
+  "sessions": {
+    "s_1628bb36a538b9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "71325c76-9ecc-4a88-9299-3a2092b382fe",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
