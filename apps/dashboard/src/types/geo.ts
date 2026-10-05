@@ -157,7 +157,6 @@ export interface TrafficPageViewProps {
   projectId: string | undefined;
   settings: GeoSettings | null;
   isEmptyTraffic: boolean;
-  revealActive: boolean;
   geoRange: GeoRangeControl;
   traffic: AiTrafficResponse | undefined;
   isTrafficPending: boolean;
