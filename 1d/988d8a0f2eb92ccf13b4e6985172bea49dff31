@@ -1,0 +1,49 @@
+packages/sites-server/src/sites.ts
+  ai_agent 59,68-73,98-99,108,170-171,179-180,189,194-195,210,418
+packages/sites-server/src/types/domain-connect.ts
+  ai_agent 25-27
+packages/sites-server/src/types/vercel-dns.ts
+  ai_agent 1-28
+packages/sites-server/src/editor.ts
+  ai_agent 20-21,137-148,156-157,176-241,460-461,468-480,495-500
+packages/schemas/package.json
+  ai_agent 23
+packages/sites-server/src/types/editor.ts
+  ai_agent 51-66
+packages/sites-server/src/utils/starter-html.ts
+  ai_agent 1-566
+packages/sites-server/src/webhooks.ts
+  ai_agent 163
+packages/sites-server/src/moderation.ts
+  ai_agent 12,38-39,47,51-54,66,75-78,90-92
+packages/sites-server/src/utils/starter-color.ts
+  ai_agent 1-56
+packages/sites-server/src/starter.ts
+  ai_agent 1-376
+packages/sites-server/src/types/starter.ts
+  ai_agent 1-84
+packages/sites-server/src/vercel-dns.ts
+  ai_agent 1-209
+packages/sites-server/tests/starter.test.ts
+  ai_agent 1-303
+packages/schemas/src/schemas/dashboard/sites.ts
+  ai_agent 1,113-131
+packages/sites-server/src/dns-setup.ts
+  ai_agent 1-58
+packages/sites-server/src/constants/starter.ts
+  ai_agent 1-87
+packages/sites-server/src/domain-connect.ts
+  ai_agent 243,245,255-256,261,266-267,273,327-337,344-349
+packages/sites-server/src/constants/vercel-dns.ts
+  ai_agent 1-10
+packages/sites-server/src/types/sites.ts
+  ai_agent 6-19
+packages/sites-server/src/utils/starter-files.ts
+  ai_agent 1-352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1d988d8a0f2eb92ccf13b4e6985172bea49dff31",
+  "prompts": {}
+}
