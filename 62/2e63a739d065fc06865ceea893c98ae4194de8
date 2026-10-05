@@ -1,0 +1,320 @@
+packages/sites-compiler/src/utils/paths.ts
+  s_2e1b04b64a383c::t_98636c3e5368df 7
+apps/sites-builder/package.json
+  s_2e1b04b64a383c::t_069518c9b45a07 11,22,33
+  s_2e1b04b64a383c::t_1446e6bae9f33b 23
+apps/sites-builder/src/pages/index.astro
+  s_2e1b04b64a383c::t_3da1b9d813f214 5-8,11-17,20-23,25-52
+  s_2e1b04b64a383c::t_29719901fa6a27 55
+apps/sites-builder/fixtures/acme/blog/calm-software.mdx
+  s_2e1b04b64a383c::t_6bb12e418766c3 18-21
+  s_2e1b04b64a383c::t_3cafc616be733c 5
+packages/sites-compiler/src/types/variables.ts
+  s_2e1b04b64a383c::t_1633621350c057 1-18
+apps/sites-builder/src/pages/sitemap.xml.ts
+  s_2e1b04b64a383c::t_f20fae1b7ce195 3,37-40,42-51
+  s_2e1b04b64a383c::t_5c6e04ccc132f4 5,36,41
+  s_2e1b04b64a383c::t_9a3e2bbc60f8da 20-29,31-35
+packages/sites-compiler/src/validate.ts
+  s_2e1b04b64a383c::t_a524f4ef97adca 2-5,7,17,63-78,80-85,88-97,153-176,258-267,290-292,395-397,401-409
+  s_2e1b04b64a383c::t_ca33e3741dba59 33,236
+  s_2e1b04b64a383c::t_560a442d8c165c 98-152,231-232,234-235
+  s_2e1b04b64a383c::t_940d2af4fdaf95 31,398-400
+  s_2e1b04b64a383c::t_488d12a18840ba 27-30,225-227,427-429
+  s_2e1b04b64a383c::t_2905c966c4f67d 9-11,229-230,233,237
+apps/sites-builder/compiler/constants/build.ts
+  s_2e1b04b64a383c::t_d3292ec651ec4d 3-9
+apps/sites-builder/src/constants/og.ts
+  s_2e1b04b64a383c::t_9206fa6f11c054 1-2
+apps/sites-builder/src/layouts/Base.astro
+  s_2e1b04b64a383c::t_87a13f40405116 10,14,25-26,29-30,38-50,71,74-76,79,85-87,89-93,96
+  s_2e1b04b64a383c::t_ed16285b069271 4,6,9,11-12,20-21,33,37,56-60,95,108-117,125-128,131
+apps/sites-builder/compiler/constants/agent-files.ts
+  s_2e1b04b64a383c::t_c43a96260d4b4e 1-2
+apps/sites-builder/tests/sandbox-imports.test.ts
+  s_2e1b04b64a383c::t_59259ab9143ebc 1-6,9-26
+  s_2e1b04b64a383c::t_02abf0c5780d7a 7-8
+apps/sites-builder/src/components/Header.astro
+  s_2e1b04b64a383c::t_9edfad703c5ced 2,6,14-18,54-61,68-75,99-100,106-118
+  s_2e1b04b64a383c::t_9ba46be1e7ee19 3,7,13,39,42-44
+apps/sites-builder/fixtures/acme/header.mdx
+  s_2e1b04b64a383c::t_6bb12e418766c3 1-11
+packages/sites-compiler/tests/variables.test.ts
+  s_2e1b04b64a383c::t_0227904c2f28f1 59,63
+  s_2e1b04b64a383c::t_560a442d8c165c 77-79,86-92,96-97
+  s_2e1b04b64a383c::t_9727d60d443f83 1-2,7-8,10-58,60-62,64-76
+  s_2e1b04b64a383c::t_ca33e3741dba59 3-6,80-85,93-95
+  s_2e1b04b64a383c::t_1446e6bae9f33b 9
+apps/sites-builder/src/components/SiteAreas.astro
+  s_2e1b04b64a383c::t_9ba46be1e7ee19 1-27
+apps/sites-builder/src/lib/featured.ts
+  s_2e1b04b64a383c::t_75a358e824c9a1 1-25
+packages/sites-compiler/src/constants/variables.ts
+  s_2e1b04b64a383c::t_1633621350c057 1-13
+apps/sites-builder/src/types/build-params.ts
+  ai_agent 3-7
+  s_2e1b04b64a383c::t_b051a4124b7e15 1
+packages/sites-compiler/src/constants/builtins.ts
+  s_2e1b04b64a383c::t_98636c3e5368df 3
+  s_2e1b04b64a383c::t_9ba46be1e7ee19 27-28
+apps/sites-builder/src/components/ChangelogEntry.astro
+  s_2e1b04b64a383c::t_17961c26c75831 6-7,13-14,17,22,25-46,49-67
+  s_2e1b04b64a383c::t_904be92953069f 47-48
+apps/sites-builder/src/lib/slot-data.ts
+  s_2e1b04b64a383c::t_6d4792e87896ff 1-57
+apps/sites-builder/src/lib/contextual.ts
+  s_2e1b04b64a383c::t_c2465f550e09b7 59,71,83
+  s_2e1b04b64a383c::t_0659c3df02036e 1-20,32-58,60-70,72-82,84-93
+  s_2e1b04b64a383c::t_93aa40f32a2845 21-31
+packages/sites-compiler/src/frontmatter.ts
+  s_2e1b04b64a383c::t_bd35ca93683094 7,21-22,39
+  s_2e1b04b64a383c::t_7b65e621662ec4 1-6,8-20,23-38,40-70
+apps/sites-builder/src/components/CopyArticle.astro
+  s_2e1b04b64a383c::t_08d6a8e7e18853 11,96-109
+  s_2e1b04b64a383c::t_83e1700480d746 1,3,5-8,12-13,17-18,76-95,110-112
+  s_2e1b04b64a383c::t_c2465f550e09b7 2,4,9-10,14-16,20-40,47-75
+  s_2e1b04b64a383c::t_52df9c7241e2df 19
+  s_2e1b04b64a383c::t_1ddbc9eaefda3a 41-46
+apps/sites-builder/fixtures/acme/blog/live-editing.mdx
+  s_2e1b04b64a383c::t_3cafc616be733c 5
+apps/sites-builder/src/constants/navigation.ts
+  s_2e1b04b64a383c::t_93aa40f32a2845 8-9
+  s_2e1b04b64a383c::t_619c145c85249d 1-7,10-27
+apps/sites-builder/compiler/types/og-images.ts
+  s_2e1b04b64a383c::t_1af5d406382ec0 1-34
+apps/sites-builder/src/components/BlogIndex.astro
+  s_2e1b04b64a383c::t_9424f146d84e2b 2,5,7,19,25,27-29,38,46-47
+  s_2e1b04b64a383c::t_e47a8d3ca57a8b 3-4,6,9,12-16,20-22,26,30-37,39-45
+packages/sites-compiler/src/jsx.ts
+  s_2e1b04b64a383c::t_98636c3e5368df 25
+apps/sites-builder/src/builtins/index.ts
+  s_2e1b04b64a383c::t_0af6499bc1a7d5 21
+  s_2e1b04b64a383c::t_9ba46be1e7ee19 19-20
+apps/sites-builder/src/lib/authors.ts
+  s_2e1b04b64a383c::t_4ccc3fd345bcf3 1-61
+apps/sites-builder/src/components/ChangelogIndex.astro
+  s_2e1b04b64a383c::t_acbe0b0edeedb1 6
+  s_2e1b04b64a383c::t_cda5b4e9f9df3b 3,5,8,11,16-18,20-34,36-40
+  s_2e1b04b64a383c::t_17961c26c75831 12-13,35
+apps/sites-builder/src/constants/ai-assistants.ts
+  s_2e1b04b64a383c::t_02abf0c5780d7a 12,18,24,30,36
+  s_2e1b04b64a383c::t_08d6a8e7e18853 1-11,13-17,19-23,25-29,31-35,37-38
+apps/sites-builder/compiler/agent-files.ts
+  s_2e1b04b64a383c::t_1446e6bae9f33b 71-72,80-82,224-227
+  s_2e1b04b64a383c::t_106c019ce5eaa4 48-49,105-108,121-122,124-132
+  s_2e1b04b64a383c::t_c43a96260d4b4e 3,67-70,73-79,83-92,99-103,156,165-172,213
+apps/sites-builder/src/pages/author/[author].astro
+  s_2e1b04b64a383c::t_121101a6977ac1 1-7,9-11,13-16,21-26,29-34,37-77
+  s_2e1b04b64a383c::t_5c6e04ccc132f4 8,27-28,35-36
+  s_2e1b04b64a383c::t_e93885af6a9733 12,17-20
+apps/sites-builder/src/utils/excerpt.ts
+  s_2e1b04b64a383c::t_f29a5b0887c4b6 4-18
+  s_2e1b04b64a383c::t_07e1349bef3d1a 1-3,19-54
+apps/sites-builder/compiler/constants/og-images.ts
+  s_2e1b04b64a383c::t_1af5d406382ec0 1-12,16,23-24,28-47
+  s_2e1b04b64a383c::t_1446e6bae9f33b 17-22
+  s_2e1b04b64a383c::t_8f4d057d215f7f 13-15,25-27
+apps/sites-builder/fixtures/acme/blog/hello-world.md
+  s_2e1b04b64a383c::t_3cafc616be733c 5
+packages/sites-compiler/src/mdx.ts
+  s_2e1b04b64a383c::t_98636c3e5368df 340
+  s_2e1b04b64a383c::t_2380a822594c95 385-396
+  s_2e1b04b64a383c::t_7c78b7de7c4d0e 21
+packages/sites-core/src/constants/site-layout.ts
+  s_2e1b04b64a383c::t_29c2aa52fdb415 1-54
+apps/sites-builder/src/utils/icons.ts
+  s_2e1b04b64a383c::t_93aa40f32a2845 14-15
+apps/sites-builder/src/components/AuthorAvatar.astro
+  s_2e1b04b64a383c::t_9424f146d84e2b 1-22
+apps/sites-builder/src/types/navigation.ts
+  s_2e1b04b64a383c::t_619c145c85249d 1-15
+apps/sites-builder/src/components/BlogPost.astro
+  s_2e1b04b64a383c::t_48bb4670129b23 50
+  s_2e1b04b64a383c::t_52df9c7241e2df 52,58-59,81
+  s_2e1b04b64a383c::t_8e109723a38634 5-8,16,25,27-29,31,35-38,41-46,55,57,60,63-67,69-79,82,87-89
+  s_2e1b04b64a383c::t_730a45c445ab5e 68
+  s_2e1b04b64a383c::t_f309cd4fa21891 3-4,12-15,17,24,30,32-34,47-49,51,53-54,56,61,83-86
+packages/sites-compiler/tests/validate.test.ts
+  s_2e1b04b64a383c::t_98636c3e5368df 24
+  s_2e1b04b64a383c::t_9727d60d443f83 157-173,177-198,202-259
+  s_2e1b04b64a383c::t_1446e6bae9f33b 174-176,199-201
+  s_2e1b04b64a383c::t_940d2af4fdaf95 260-325
+apps/sites-builder/src/types/authors.ts
+  s_2e1b04b64a383c::t_4ccc3fd345bcf3 1-16
+apps/sites-builder/compiler/components/og-card.tsx
+  s_2e1b04b64a383c::t_a88f70ccab64d5 1
+  s_2e1b04b64a383c::t_680c4b402ed297 2-13,19-105
+  s_2e1b04b64a383c::t_e156f582de2ce7 14-18
+apps/sites-builder/compiler/types/agent-files.ts
+  s_2e1b04b64a383c::t_106c019ce5eaa4 11-12
+  s_2e1b04b64a383c::t_c43a96260d4b4e 31-32,42-43
+apps/sites-builder/src/lib/navigation.ts
+  s_2e1b04b64a383c::t_619c145c85249d 1-82
+apps/sites-builder/compiler/prepare.ts
+  s_2e1b04b64a383c::t_e93885af6a9733 56-62
+  s_2e1b04b64a383c::t_98636c3e5368df 84,98
+apps/sites-builder/src/components/AreaHero.astro
+  s_2e1b04b64a383c::t_9424f146d84e2b 1,5-10,15-20
+  s_2e1b04b64a383c::t_6b1a6259e9acc9 2-4,11-14,21-43
+apps/sites-builder/src/lib/seo.ts
+  s_2e1b04b64a383c::t_f29a5b0887c4b6 7-14,23,76-79,117-120,130,133
+  s_2e1b04b64a383c::t_29719901fa6a27 21-22,24
+  s_2e1b04b64a383c::t_6d37748d07cb86 32-35,37-45,49-51,126-128,131-132,137-139,142-144,150-154
+  s_2e1b04b64a383c::t_7ede02eeecd7c6 57,68-73,159
+  s_2e1b04b64a383c::t_c342e4f3a48191 1-6,15-20,25-31,36,52-56,58-67,74-75,80-116,121-125,129,134-136,140-141,155-158,160-186
+  s_2e1b04b64a383c::t_93aa40f32a2845 46-48,145-149
+apps/sites-builder/compiler/cli.ts
+  s_2e1b04b64a383c::t_ed16285b069271 17,107-118,122,124-130
+apps/sites-builder/src/types/ai-assistants.ts
+  s_2e1b04b64a383c::t_0659c3df02036e 1-2,10-13,16-23
+  s_2e1b04b64a383c::t_c2465f550e09b7 14-15
+  s_2e1b04b64a383c::t_08d6a8e7e18853 3-9,24
+apps/sites-builder/src/components/CustomChrome.astro
+  s_2e1b04b64a383c::t_ccf175da26599e 1-35
+apps/sites-builder/src/styles/global.css
+  s_2e1b04b64a383c::t_85c9cce36a7346 219-220
+  s_2e1b04b64a383c::t_96bfc0ea1f60d5 599-606
+  s_2e1b04b64a383c::t_e90c4de3c778e1 201,221-226,237-252
+  s_2e1b04b64a383c::t_d2f0ac5b07ec33 5
+  s_2e1b04b64a383c::t_deeb20e8572fa3 202-218
+  s_2e1b04b64a383c::t_aab40e57f97807 232
+  s_2e1b04b64a383c::t_55485b511a6bd7 40-43,111-166,227-231,233-236
+apps/sites-builder/compiler/og-images.ts
+  s_2e1b04b64a383c::t_1446e6bae9f33b 101-103,152-157,169-171,179-182
+  s_2e1b04b64a383c::t_680c4b402ed297 1-46,48-100,104-151,158-168,172-178,183-196
+  s_2e1b04b64a383c::t_8f4d057d215f7f 47
+apps/sites-builder/fixtures/acme/blog/previews.mdx
+  s_2e1b04b64a383c::t_3cafc616be733c 5
+packages/sites-core/src/utils/site-config-json-schema.ts
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 1-32
+packages/sites-compiler/src/utils/markdown-html.ts
+  s_2e1b04b64a383c::t_940d2af4fdaf95 1-36
+apps/sites-builder/fixtures/acme/slots/after-post.mdx
+  s_2e1b04b64a383c::t_6bb12e418766c3 1-5
+packages/sites-core/package.json
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 14-15
+packages/sites-core/scripts/generate-json-schema.ts
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 1-17
+apps/sites-builder/fixtures/acme/blog/2026/launch.mdx
+  s_2e1b04b64a383c::t_3cafc616be733c 5
+apps/sites-builder/src/lib/theme.ts
+  s_2e1b04b64a383c::t_4621a52e84e8a4 1-5,25-34,55-68,71
+  s_2e1b04b64a383c::t_ef5868477abae9 52-54
+  s_2e1b04b64a383c::t_93aa40f32a2845 69-70
+apps/sites-builder/src/components/BrandIcon.astro
+  s_2e1b04b64a383c::t_418fee2af0b31e 1-16
+packages/sites-core/src/constants/json-schema.ts
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 1-6
+apps/sites-builder/tests/agent-files.test.ts
+  s_2e1b04b64a383c::t_677520125411cd 1-51
+apps/sites-builder/src/constants/icons.ts
+  s_2e1b04b64a383c::t_96bfc0ea1f60d5 9-11
+  s_2e1b04b64a383c::t_05240c901283b7 39,41-44,46-47,49-58,61-62,64-73,76-97,102-107,109-118,120-123,125-130,134-135,137-142,144-150,173
+  s_2e1b04b64a383c::t_9224948ac3135d 40,45,48,59-60,63,74-75,98-101,108,119,124,131-133,136,143,151-172,174-177
+apps/sites-builder/src/components/AuthorList.astro
+  s_2e1b04b64a383c::t_83e1700480d746 1-34
+apps/sites-builder/src/components/LinkIcon.astro
+  s_2e1b04b64a383c::t_418fee2af0b31e 1-18
+apps/sites-builder/src/components/PostCard.astro
+  s_2e1b04b64a383c::t_9424f146d84e2b 2,7,9
+  s_2e1b04b64a383c::t_c706d864110b6e 3,8,14-17,20-23,26-27,33-103
+  s_2e1b04b64a383c::t_8fbc7d757d46ed 28-30
+  s_2e1b04b64a383c::t_fc9153d7d26f7d 24-25
+packages/sites-compiler/src/utils/variables.ts
+  s_2e1b04b64a383c::t_bd35ca93683094 1
+  s_2e1b04b64a383c::t_1633621350c057 2-53,57-65,72-80,87-102,154
+  s_2e1b04b64a383c::t_560a442d8c165c 54-56,66-71,103-153
+  s_2e1b04b64a383c::t_1446e6bae9f33b 81-86
+packages/sites-compiler/src/constants/elements.ts
+  s_2e1b04b64a383c::t_7c78b7de7c4d0e 1-5
+apps/sites-builder/src/lib/options.ts
+  s_2e1b04b64a383c::t_2905c966c4f67d 1-27
+packages/sites-compiler/src/constants/frontmatter.ts
+  s_2e1b04b64a383c::t_bd35ca93683094 1-2
+apps/web/public/schemas/notra.json
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 1-243,245-810,813-1126,1223-1256
+  s_2e1b04b64a383c::t_69d220a98615e8 244
+  s_2e1b04b64a383c::t_488d12a18840ba 811-812
+  s_2e1b04b64a383c::t_4f4c019f710455 1127-1222
+packages/sites-core/src/schemas/site-layout.ts
+  s_2e1b04b64a383c::t_488d12a18840ba 75-77,103-110
+  s_2e1b04b64a383c::t_5031330b91c034 1-74,78-102,111-114,124-127,137-142,147-189,194-199,204-208,212-231,236-244,252-259,267-281
+  s_2e1b04b64a383c::t_a39f9b5e2f1975 115-123,128-136,143-145,190-193,200-203,209-211,232-235,245-251,260-266
+  s_2e1b04b64a383c::t_785d0055097c65 146
+apps/sites-builder/src/pages/notra-pages.json.ts
+  s_2e1b04b64a383c::t_9a3e2bbc60f8da 7,25,36
+  s_2e1b04b64a383c::t_15d72fb17f0598 28
+  s_2e1b04b64a383c::t_b051a4124b7e15 3-4
+apps/sites-builder/src/pages/[...slug].astro
+  s_2e1b04b64a383c::t_acbe0b0edeedb1 4,7-8,57,83-86
+  s_2e1b04b64a383c::t_85b273f882eda6 5,9-10,40-41,70,82,90
+  s_2e1b04b64a383c::t_3da1b9d813f214 11-12,14,35-39,42-56,58-63,67-68,71,74-75
+packages/sites-core/src/constants/sites.ts
+  s_2e1b04b64a383c::t_0ac3362d142e71 1-4,10-11,92,95,98-100,130
+apps/sites-builder/src/constants/theme.ts
+  s_2e1b04b64a383c::t_4621a52e84e8a4 2-15
+apps/sites-builder/fixtures/acme/footer.mdx
+  s_2e1b04b64a383c::t_6bb12e418766c3 1-6
+apps/sites-builder/src/components/PostPagination.astro
+  s_2e1b04b64a383c::t_83e1700480d746 1-47
+apps/sites-builder/compiler/utils/fs.ts
+  s_2e1b04b64a383c::t_f4751d2ff78cb2 22-25
+apps/sites-builder/src/constants/seo.ts
+  s_2e1b04b64a383c::t_07e1349bef3d1a 1-4,7-14,21-23
+  s_2e1b04b64a383c::t_f29a5b0887c4b6 5-6,15-20
+packages/sites-compiler/src/types/frontmatter.ts
+  s_2e1b04b64a383c::t_7b65e621662ec4 1-16
+apps/sites-builder/src/components/Footer.astro
+  s_2e1b04b64a383c::t_ccf175da26599e 2,4,7-9,16-36,40-47,53-55
+apps/sites-builder/src/components/Toc.astro
+  s_2e1b04b64a383c::t_83e1700480d746 1-49
+apps/sites-builder/src/pages/404.astro
+  s_2e1b04b64a383c::t_474a90e887aeee 4-8,11-22,25-27
+  s_2e1b04b64a383c::t_acbe0b0edeedb1 23
+packages/sites-core/tests/json-schema.test.ts
+  s_2e1b04b64a383c::t_8ff3b5ab59ade6 1-29
+apps/sites-builder/fixtures/acme/notra.json
+  s_2e1b04b64a383c::t_677520125411cd 5-10
+  s_2e1b04b64a383c::t_6bb12e418766c3 11-14
+  s_2e1b04b64a383c::t_1b8ffefbc3022a 58-74
+apps/sites-builder/compiler/build.ts
+  s_2e1b04b64a383c::t_c43a96260d4b4e 19,242
+  s_2e1b04b64a383c::t_1fa08f14cba76a 20,69-71
+  s_2e1b04b64a383c::t_f4751d2ff78cb2 21,112-130,138,157
+  s_2e1b04b64a383c::t_d3292ec651ec4d 63-68,72-78
+apps/sites-builder/src/utils/inline-markdown.ts
+  s_2e1b04b64a383c::t_5679727e5934db 1-3,6,10-22,27-35,65,67
+  s_2e1b04b64a383c::t_93aa40f32a2845 23-26
+  s_2e1b04b64a383c::t_ab3cd4bbf9b964 4-5,7,36-38,40-41,44-59,61-64,66
+  s_2e1b04b64a383c::t_f474f36cbe02ce 8-9,39,42-43,60
+packages/sites-core/src/schemas/site-config.ts
+  s_2e1b04b64a383c::t_785d0055097c65 5-19,98-102,139-140,160-163,176-184
+  s_2e1b04b64a383c::t_3ae8507f978237 35-50,55-62,164-175
+  s_2e1b04b64a383c::t_a39f9b5e2f1975 51-54
+apps/sites-builder/src/pages/feed.xml.ts
+  s_2e1b04b64a383c::t_636d4e7162cfe9 9,49-53
+  s_2e1b04b64a383c::t_15d72fb17f0598 18-20
+  s_2e1b04b64a383c::t_b051a4124b7e15 3
+  s_2e1b04b64a383c::t_9a3e2bbc60f8da 13-14,17,21-22,32-34,36-42,45-47
+packages/sites-compiler/src/utils/config-checks.ts
+  s_2e1b04b64a383c::t_488d12a18840ba 1-78
+apps/sites-builder/src/lib/og.ts
+  s_2e1b04b64a383c::t_9206fa6f11c054 1-4,6-25,27,29-30
+  s_2e1b04b64a383c::t_f2629dc9d38e9c 5,26,28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "622e63a739d065fc06865ceea893c98ae4194de8",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
