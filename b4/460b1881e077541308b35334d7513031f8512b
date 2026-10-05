@@ -1,0 +1,19 @@
+apps/dashboard/src/components/geo/competitor-detail-view.tsx
+  s_81f2be883d9504::t_9606508cff20ab 242-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b4460b1881e077541308b35334d7513031f8512b",
+  "prompts": {},
+  "sessions": {
+    "s_81f2be883d9504": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "955fcecb-7f06-4c96-987e-dfe893bdc433",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
