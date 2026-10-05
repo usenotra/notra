@@ -1,0 +1,21 @@
+apps/ui/registry/notra/marketing-button/components/marketing-button-content.tsx
+  s_8a6a5c17e2f9a2::t_5ffed67aedf329 31-33
+packages/ui/src/components/shared/cta-button-content.tsx
+  s_8a6a5c17e2f9a2::t_5ffed67aedf329 32-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "df04d85dfb79c2ab747bc0919d972668e6435c96",
+  "prompts": {},
+  "sessions": {
+    "s_8a6a5c17e2f9a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9263c81c-a714-4254-ab55-218b5a1d6578",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
