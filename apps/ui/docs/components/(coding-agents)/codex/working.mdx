@@ -5,9 +5,7 @@ description: The shimmering status line Codex shows while a turn runs.
 
 <Component path="codex/examples/codex-working" />
 
-```bash
-bunx shadcn@latest add @notra/codex-working
-```
+<RegistryInstall name="codex-working" />
 
 `CodexWorking` renders `• Working (13s • esc to interrupt)`. A highlight sweeps across the label and the bullet blinks. Both animations use the Web Animations API, so there are no keyframes to add, and they stay off when the user prefers reduced motion. It has `role="status"`.
 
