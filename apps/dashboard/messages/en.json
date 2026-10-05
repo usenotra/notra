@@ -3159,9 +3159,9 @@
       "firstScan": "First scan",
       "gainedLabel": "Now mentioned at {position}",
       "movedLabel": "Moved {from} → {to}",
-      "viewAnswerAria": "View answer · {timestamp}",
       "noHistory": "No scans recorded yet",
-      "newBrands": "{count, plural, one {# new brand} other {# new brands}}"
+      "newBrands": "New: {names}",
+      "viewAnswer": "View answer"
     },
     "promptReceiptViewSwitch": {
       "groupLabel": "Receipt view",

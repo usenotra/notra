@@ -12,12 +12,14 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
+import { GEO_PROMPT_OUTCOME_LABEL_KEYS } from "@/constants/geo-prompts";
 import { cn } from "@/lib/utils";
 import type {
   PromptHistoryChange,
   PromptHistoryEntry,
   PromptReceiptHistoryProps,
 } from "@/types/geo";
+import { promptOutcomeKey } from "@/utils/geo-prompt-history";
 
 function ChangeText({ change }: { change: PromptHistoryChange }) {
   const t = useTranslations("geo.promptReceiptHistory");
@@ -63,6 +65,7 @@ function HistoryRow({
   onSelect?: PromptReceiptHistoryProps["onSelect"];
 }) {
   const t = useTranslations("geo.promptReceiptHistory");
+  const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
   const { check } = entry;
   const timestamp = formatAiTrafficTimestamp(check.capturedAt, locale);
@@ -70,6 +73,13 @@ function HistoryRow({
   const content = (
     <>
       <PromptOutcomeIcon mentioned={visible} />
+      <span className="sr-only">
+        {tGeoShared(
+          GEO_PROMPT_OUTCOME_LABEL_KEYS[
+            promptOutcomeKey(check.mentioned, check.ownedSourceCited)
+          ]
+        )}
+      </span>
       <time
         className="text-foreground w-32 shrink-0 tabular-nums"
         dateTime={check.capturedAt}
@@ -81,8 +91,11 @@ function HistoryRow({
           <ChangeText change={change} key={change.kind} />
         ))}
         {entry.newCompetitors.length > 0 ? (
-          <span className="truncate" title={entry.newCompetitors.join(", ")}>
-            {t("newBrands", { count: entry.newCompetitors.length })}
+          <span
+            className="min-w-0 truncate"
+            title={entry.newCompetitors.join(", ")}
+          >
+            {t("newBrands", { names: entry.newCompetitors.join(", ") })}
           </span>
         ) : null}
       </span>
@@ -103,7 +116,8 @@ function HistoryRow({
   }
   return (
     <button
-      aria-label={t("viewAnswerAria", { timestamp })}
+      // The row's text (outcome, time, changes) is its accessible name.
+      title={t("viewAnswer")}
       className={cn(
         rowClass,
         "group hover:bg-muted/50 focus-visible:ring-ring cursor-pointer text-left transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
