@@ -1,0 +1,33 @@
+packages/ai/src/utils/scheduled-publications.ts
+  s_400beee9e2f793::t_300c3612b28a6d 578-583,587,611,616,627
+  s_400beee9e2f793::t_fd50c4641726f9 647-649
+apps/dashboard/messages/en.json
+  s_400beee9e2f793::t_96c60353961f58 6224
+apps/dashboard/src/components/content/schedule/content-publish-button.tsx
+  s_400beee9e2f793::t_96c60353961f58 45,47-56,128,132,136-144,173-189
+  s_400beee9e2f793::t_300c3612b28a6d 36-39,46
+apps/dashboard/src/app/api/workflows/scheduled-publication-wake/route.ts
+  s_400beee9e2f793::t_300c3612b28a6d 53
+apps/dashboard/src/lib/content/scheduled-publication-sweep.ts
+  s_400beee9e2f793::t_300c3612b28a6d 21,25
+apps/dashboard/messages/de.json
+  s_400beee9e2f793::t_96c60353961f58 6224
+apps/dashboard/src/types/content/schedule.ts
+  s_400beee9e2f793::t_300c3612b28a6d 190-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "976d381f4e686d803334fffd2f7da39e90ef2355",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
