@@ -66,6 +66,7 @@ import {
   tooltipBaseOption,
   tooltipShell,
 } from "@/components/evilcharts/ui/echarts-tooltip";
+import { withTooltipSizeMotion } from "@/utils/chart-tooltip-size";
 import type {
   ChartConfig,
   ChartMarker,
@@ -1120,7 +1121,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
       strokeWidth: STROKE_WIDTH,
       pointer: tooltipSlot.pointer,
     }),
-    formatter: createTooltipFormatter(ctx),
+    formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
 

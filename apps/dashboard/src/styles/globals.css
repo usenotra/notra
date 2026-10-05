@@ -3,6 +3,18 @@
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
+@property --ec-tooltip-scale-x {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --ec-tooltip-scale-y {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 /* Status, GEO, and sidebar tokens come from @notra/ui via globals.css. */
 
 @theme inline {
@@ -60,6 +72,19 @@
 }
 
 @layer components {
+  .ec-tooltip-surface {
+    transform-origin: top left;
+    transform: scale(var(--ec-tooltip-scale-x), var(--ec-tooltip-scale-y));
+  }
+
+  .ec-tooltip-content {
+    transform-origin: top left;
+    transform: scale(
+      calc(1 / var(--ec-tooltip-scale-x)),
+      calc(1 / var(--ec-tooltip-scale-y))
+    );
+  }
+
   /* Lexical highlight uses <mark>; UA + color-scheme:dark paint neon yellow. */
   .lexical-editor mark {
     color: inherit;

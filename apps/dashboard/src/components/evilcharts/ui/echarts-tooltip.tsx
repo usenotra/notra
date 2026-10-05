@@ -1,5 +1,9 @@
 import type { TooltipComponentOption } from "echarts/components";
 import {
+  TOOLTIP_MOVE_DURATION_S,
+  TOOLTIP_MOVE_EASING,
+} from "@/constants/chart-tooltip";
+import {
   getColorsCount,
   indicatorBackground,
   resolvedIndicatorBackground,
@@ -36,8 +40,6 @@ export type TooltipAxisPointer = "none" | "line" | "shadow" | "cross";
 // Hover motion — the cursor line snaps to the hovered category (an eased line
 // trails the pointer and smears); the tooltip box and its bars get a short
 // ease so values do not pop.
-export const TOOLTIP_MOVE_DURATION_S = 0.16;
-const TOOLTIP_MOVE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 export const TOOLTIP_BAR_MOTION_STYLE = `transition:width ${TOOLTIP_MOVE_DURATION_S}s ${TOOLTIP_MOVE_EASING}`;
 export const TOOLTIP_VALUE_MOTION_STYLE =
   "transition:opacity 0.24s ease,transform 0.24s ease";
@@ -321,13 +323,15 @@ export function tooltipShell({
       ? `<div class="text-[11px] font-medium text-muted-foreground">${escapeHtml(label)}</div>`
       : "";
   const surface = isRows
-    ? "min-w-32 gap-1.5 px-2.5 py-2"
-    : "min-w-52 gap-2 px-3 py-2.5";
+    ? "gap-1.5 px-2.5 py-2"
+    : "gap-2 px-3 py-2.5";
   const bodyGap =
     layout === "activity" ? "gap-1" : isRows ? "gap-1.5" : "gap-2";
-  return `<div class="grid ${surface} items-start border border-border ${tooltipVariantClass[variant]} text-xs shadow-md ${roundnessClass[roundness]}">
+  return `<div class="ec-tooltip-surface ${isRows ? "min-w-32" : "min-w-52"} overflow-hidden border border-border ${tooltipVariantClass[variant]} text-xs shadow-md ${roundnessClass[roundness]}">
+    <div class="ec-tooltip-content grid ${surface} content-start items-start">
       ${header}
       <div class="grid ${bodyGap}" style="transition:opacity 0.24s ease">${body}</div>
+    </div>
     </div>`;
 }
 
