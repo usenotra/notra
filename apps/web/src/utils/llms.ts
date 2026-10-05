@@ -107,6 +107,11 @@ export async function buildLlmsText() {
       "/pricing.md",
       "Plans, feature comparison and a step-by-step guide for estimating AI answers and linking a prefilled calculator"
     ),
+    formatLink(
+      "Compare",
+      "/compare.md",
+      "Honest comparisons of Notra with Profound, Peec AI, AthenaHQ, Scrunch and other GEO tools"
+    ),
     formatLink("Blog", "/blog.md", "Index of Notra blog posts"),
     formatLink(
       "Changelog",

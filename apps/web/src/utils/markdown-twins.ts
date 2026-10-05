@@ -12,6 +12,11 @@ import {
   buildBlogAuthorMarkdown,
   listBlogAuthorMarkdownPages,
 } from "@/lib/blog/author-markdown";
+import {
+  buildCompareIndexMarkdown,
+  buildCompareMarkdown,
+  listCompareMarkdownPages,
+} from "@/lib/compare/markdown";
 import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
 import {
@@ -310,6 +315,11 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/agent", render: () => buildAgentPageMarkdown() },
     { pattern: "/mcp", render: () => buildMcpMarkdown() },
     { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/compare", render: () => buildCompareIndexMarkdown() },
+    ...listCompareMarkdownPages().map((page) => ({
+      pattern: page.pattern,
+      render: () => buildCompareMarkdown(page.slug) ?? "",
+    })),
     { pattern: "/contributors", render: () => buildContributorsMarkdown() },
     { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
     {
