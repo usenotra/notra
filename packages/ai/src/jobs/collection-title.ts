@@ -104,7 +104,10 @@ export async function generateCollectionTitle(
     instructions: COLLECTION_TITLE_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
     providerOptions: withRouterDefaults(
-      { gateway: { tags: ["content-collection-title"] } },
+      {
+        gateway: { tags: ["content-collection-title"] },
+        openai: { reasoningEffort: "none" },
+      },
       {
         modelId: COLLECTION_TITLE_MODEL_ID,
       }

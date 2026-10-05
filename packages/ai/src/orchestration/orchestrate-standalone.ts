@@ -225,6 +225,7 @@ export async function orchestrateStandaloneChat(
   );
 
   const modelMessages = await convertToModelMessages(messagesForModel, {
+    tools,
     ignoreIncompleteToolCalls: true,
   });
   const getActiveToolNames = async (

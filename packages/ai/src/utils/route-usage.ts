@@ -44,8 +44,17 @@ export async function summarizeRouteUsage(
 
     const usage = stepUsage(step);
     if (usage) {
-      pricedSteps += 1;
       maxPromptTokens = Math.max(maxPromptTokens, promptTokensOf(usage));
+    }
+    if (
+      typeof stepRoute?.costUsd === "number" &&
+      Number.isFinite(stepRoute.costUsd) &&
+      stepRoute.costUsd >= 0
+    ) {
+      pricedSteps += 1;
+      tokenCostUsd += stepRoute.costUsd;
+    } else if (usage) {
+      pricedSteps += 1;
       tokenCostUsd += calculateTokenCostUsd(
         usage,
         stepRoute?.model ?? modelId,

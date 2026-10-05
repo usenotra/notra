@@ -364,6 +364,11 @@ export const GEO_CONVERSATION_CONTEXT_PROMPT_LIMIT = 12;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
+export const GEO_FLEX_MODELS: ReadonlySet<string> = new Set([
+  "openai/gpt-5.6-sol",
+  "openai/gpt-5.6-luna",
+  "openai/gpt-5.6-terra",
+]);
 export const GEO_JUDGE_MAX_TOKENS = 800;
 export const GEO_SCAN_CONCURRENCY = 4;
 export const GEO_SCAN_DEFAULT_INTERVAL_HOURS = 24;

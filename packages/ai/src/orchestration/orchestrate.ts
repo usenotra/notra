@@ -150,6 +150,7 @@ export async function orchestrateChat(
     model: modelWithMemory,
     instructions: systemPrompt,
     messages: await convertToModelMessages(messagesForModel, {
+      tools,
       ignoreIncompleteToolCalls: true,
     }),
     tools,

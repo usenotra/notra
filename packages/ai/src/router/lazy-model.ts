@@ -170,6 +170,7 @@ export function buildRouteMetadata(
     ...(extracted.upstreamProvider
       ? { upstreamProvider: extracted.upstreamProvider }
       : {}),
+    ...(extracted.costUsd === undefined ? {} : { costUsd: extracted.costUsd }),
     ...(decision.fallbackFrom ? { fallbackFrom: decision.fallbackFrom } : {}),
     ...(decision.fallbackReason
       ? { fallbackReason: decision.fallbackReason }
