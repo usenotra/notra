@@ -3,7 +3,7 @@
 import { useTranslations } from "use-intl";
 
 import { AgentFeedbackSetupDialog } from "@/components/agent-feedback/feedback-setup-dialog";
-import { Button } from "@/components/button";
+import { buttonVariants } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { AGENT_FEEDBACK_DOCS_URL } from "@/constants/agent-feedback";
@@ -24,20 +24,14 @@ export function AgentFeedbackSetupNudge({
     <EmptyState
       action={
         <div className="flex items-center gap-2">
-          <Button
-            nativeButton={false}
-            render={
-              <a
-                href={AGENT_FEEDBACK_DOCS_URL}
-                rel="noopener noreferrer"
-                target="_blank"
-              />
-            }
-            size="sm"
-            variant="secondary"
+          <a
+            className={buttonVariants({ size: "sm", variant: "secondary" })}
+            href={AGENT_FEEDBACK_DOCS_URL}
+            rel="noopener noreferrer"
+            target="_blank"
           >
             {tCommon("actions.learnMore")}
-          </Button>
+          </a>
           <AgentFeedbackSetupDialog
             organizationId={organizationId}
             triggerVariant="default"
