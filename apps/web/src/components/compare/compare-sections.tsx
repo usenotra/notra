@@ -60,20 +60,12 @@ export function CompareHero({ competitor, signupSource }: CompareSignupProps) {
         <div className="relative flex w-full flex-col items-center gap-6 px-6 pt-28 pb-16 lg:pt-32 lg:pb-20">
           <h1 className="flex flex-col items-center gap-6 text-center">
             <span className="flex items-center gap-2.5 font-sans text-lg font-medium text-[#1E1E1EBF] dark:text-white/75">
-              <CompareLogoTile
-                logo={NOTRA_COMPARE_LOGO}
-                name="Notra"
-                size="xs"
-              />
+              <CompareLogoTile logo={NOTRA_COMPARE_LOGO} size="xs" />
               Notra
               <span className="px-1 text-sm font-semibold tracking-[0.08em] text-[#1E1E1E66] uppercase dark:text-white/40">
                 vs
               </span>
-              <CompareLogoTile
-                logo={competitor.logo}
-                name={competitor.name}
-                size="xs"
-              />
+              <CompareLogoTile logo={competitor.logo} size="xs" />
               {competitor.name}
             </span>
             <span className="font-display max-w-[52rem] text-[2.75rem] leading-[1.06] font-medium tracking-[-0.025em] text-balance text-[#1E1E1E] sm:text-[3.75rem] lg:text-[4.5rem] dark:text-white">
@@ -123,21 +115,13 @@ export function CompareAtAGlance({ competitor }: CompareCompetitorProps) {
           <span className="px-4 py-4 sm:px-6" />
           <span className="font-display text-primary flex items-center justify-center gap-2.5 bg-[#C8B2EE26] px-4 py-4 text-center text-lg font-medium sm:px-6 dark:bg-[#8B5CF614]">
             <span className="hidden sm:inline-flex">
-              <CompareLogoTile
-                logo={NOTRA_COMPARE_LOGO}
-                name="Notra"
-                size="xs"
-              />
+              <CompareLogoTile logo={NOTRA_COMPARE_LOGO} size="xs" />
             </span>
             Notra
           </span>
           <span className="font-display flex items-center justify-center gap-2.5 px-4 py-4 text-center text-lg font-medium text-[#1E1E1E] sm:px-6 dark:text-white">
             <span className="hidden sm:inline-flex">
-              <CompareLogoTile
-                logo={competitor.logo}
-                name={competitor.name}
-                size="xs"
-              />
+              <CompareLogoTile logo={competitor.logo} size="xs" />
             </span>
             {competitor.name}
           </span>
@@ -232,16 +216,12 @@ export function CompareAdvantages({ competitor }: CompareCompetitorProps) {
       >
         Why teams pick
         <span className="inline-flex items-center gap-3">
-          <CompareLogoTile logo={NOTRA_COMPARE_LOGO} name="Notra" size="sm" />
+          <CompareLogoTile logo={NOTRA_COMPARE_LOGO} size="sm" />
           Notra
         </span>
         over
         <span className="inline-flex items-center gap-3">
-          <CompareLogoTile
-            logo={competitor.logo}
-            name={competitor.name}
-            size="sm"
-          />
+          <CompareLogoTile logo={competitor.logo} size="sm" />
           {competitor.name}
         </span>
       </h2>
@@ -366,7 +346,7 @@ export function CompareRelated({ related }: CompareRelatedProps) {
               className="focus-visible:ring-primary flex items-center gap-3 rounded-2xl bg-white p-3 font-sans text-[0.9375rem] font-medium text-[#1E1E1E] [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-[box-shadow] outline-none hover:[box-shadow:#E0E0E0_0_0_0_0.0625rem,#28282814_0_0.25rem_1rem] focus-visible:ring-2 dark:bg-white/[0.02] dark:text-white dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]"
               to={getCompareHref(item)}
             >
-              <CompareLogoTile logo={item.logo} name={item.name} size="sm" />
+              <CompareLogoTile logo={item.logo} size="sm" />
               {getCompareTitle(item)}
             </Link>
           </li>
