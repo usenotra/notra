@@ -150,6 +150,7 @@ export function buildEngineMatrix(
       rates: families.map((totals) =>
         toRate(totals.ownMentions, totals.column.checks)
       ),
+      mentions: families.map((totals) => totals.ownMentions),
     });
   }
   for (const entry of ranked) {
@@ -161,6 +162,10 @@ export function buildEngineMatrix(
       own: false,
       rates: families.map((totals, index) =>
         toRate(entry.mentions[index] ?? 0, totals.column.checks)
+      ),
+      // Clamped like the rate: a check naming two synonyms counts twice.
+      mentions: families.map((totals, index) =>
+        Math.min(entry.mentions[index] ?? 0, totals.column.checks)
       ),
     });
   }

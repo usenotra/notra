@@ -165,6 +165,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           competitors={competitors}
           isScanning={isScanning}
           organizationId={organizationId}
+          organizationSlug={organizationSlug}
           range={geoRange.query}
           trackedEngines={settings.engines}
         />

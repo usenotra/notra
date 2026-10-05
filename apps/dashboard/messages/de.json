@@ -2467,7 +2467,8 @@
       "noChecks": "Keine Antworten",
       "empty": "Noch keine Antworten in diesem Zeitraum.",
       "scanning": "Engines werden gescannt…",
-      "loadFailed": "Empfehlungen nach Assistent konnten nicht geladen werden."
+      "loadFailed": "Empfehlungen nach Assistent konnten nicht geladen werden.",
+      "cellDetail": "{mentions, number} von {checks, number} Antworten"
     },
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"

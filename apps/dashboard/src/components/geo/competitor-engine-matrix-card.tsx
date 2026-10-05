@@ -1,18 +1,24 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import type { CSSProperties } from "react";
+import { type CSSProperties, type PointerEvent, useState } from "react";
 import { useTranslations } from "use-intl";
 
+import { CursorTooltip } from "@/components/analytics/cursor-tooltip";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
-import { useGeoCompetitorEngineMatrix } from "@/lib/hooks/use-geo";
+import {
+  useGeoCompetitorEngineMatrix,
+  useGeoCompetitorRowNavigation,
+} from "@/lib/hooks/use-geo";
 import { cn } from "@/lib/utils";
+import type { CursorTipState } from "@/types/analytics";
 import type { CompetitorEngineMatrixCardProps } from "@/types/geo";
+import { cursorTipPosition } from "@/utils/analytics-charts";
 import { formatUsageShare } from "@/utils/geo-charts";
 import {
   buildEngineMatrix,
@@ -20,20 +26,28 @@ import {
   engineMatrixUsesLightText,
 } from "@/utils/geo-engine-matrix";
 
+const MATRIX_CELL_CLASS =
+  "flex h-10 items-center justify-center rounded-lg text-sm ring-inset transition-shadow hover:ring-2 hover:ring-foreground/20";
+
 function MatrixCell({
   rate,
   minRate,
   maxRate,
   noChecksLabel,
+  onPointerMove,
 }: {
   rate: number | null;
   minRate: number;
   maxRate: number;
   noChecksLabel: string;
+  onPointerMove: (event: PointerEvent<HTMLSpanElement>) => void;
 }) {
   if (rate === null) {
     return (
-      <span className="bg-muted/60 text-muted-foreground flex h-10 items-center justify-center rounded-lg text-sm">
+      <span
+        className={cn(MATRIX_CELL_CLASS, "bg-muted/60 text-muted-foreground")}
+        onPointerMove={onPointerMove}
+      >
         <span aria-hidden="true">–</span>
         <span className="sr-only">{noChecksLabel}</span>
       </span>
@@ -43,11 +57,13 @@ function MatrixCell({
   return (
     <span
       className={cn(
-        "flex h-10 items-center justify-center rounded-lg bg-[color-mix(in_oklab,var(--primary)_var(--matrix-tint),var(--muted))] text-sm tabular-nums",
+        MATRIX_CELL_CLASS,
+        "bg-[color-mix(in_oklab,var(--primary)_var(--matrix-tint),var(--muted))] tabular-nums",
         engineMatrixUsesLightText(tint)
           ? "text-primary-foreground"
           : "text-foreground"
       )}
+      onPointerMove={onPointerMove}
       style={{ "--matrix-tint": `${tint}%` } as CSSProperties}
     >
       {formatUsageShare(rate)}
@@ -63,8 +79,14 @@ export function CompetitorEngineMatrixCard({
   competitors,
   trackedEngines,
   isScanning = false,
+  organizationSlug,
 }: CompetitorEngineMatrixCardProps) {
   const t = useTranslations("geo.competitorEngineMatrix");
+  const navigation = useGeoCompetitorRowNavigation(
+    organizationSlug,
+    organizationId
+  );
+  const [tip, setTip] = useState<CursorTipState | null>(null);
   const { data, isPending, isError } = useGeoCompetitorEngineMatrix(
     organizationId,
     range
@@ -128,43 +150,82 @@ export function CompetitorEngineMatrixCard({
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {matrix.rows.map((row) => (
-                <tr key={row.own ? "own" : row.brand}>
-                  <th
-                    className={cn(
-                      "rounded-lg px-2 text-left text-sm font-normal",
-                      row.own && "bg-primary/10 font-medium"
-                    )}
-                    scope="row"
+            <tbody onPointerLeave={() => setTip(null)}>
+              {matrix.rows.map((row) => {
+                const openable = !row.own && Boolean(organizationSlug);
+                return (
+                  <tr
+                    className={cn("group", openable && "cursor-pointer")}
+                    key={row.own ? "own" : row.brand}
+                    onClick={
+                      openable ? () => navigation.openRow(row.brand) : undefined
+                    }
+                    onPointerEnter={
+                      openable
+                        ? () => navigation.prefetchRow(row.brand)
+                        : undefined
+                    }
                   >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <CompetitorLogo
-                        competitors={competitors}
-                        name={row.brand}
-                      />
-                      <span className="truncate">{row.brand}</span>
-                      {row.own ? (
-                        <span className="text-muted-foreground shrink-0 text-xs font-normal">
-                          {t("you")}
-                        </span>
-                      ) : null}
-                    </span>
-                  </th>
-                  {matrix.columns.map((column, index) => (
-                    <td className="p-0" key={column.family}>
-                      <MatrixCell
-                        maxRate={matrix.maxRate}
-                        minRate={matrix.minRate}
-                        noChecksLabel={t("noChecks")}
-                        rate={row.rates[index] ?? null}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
+                    <th
+                      className={cn(
+                        "rounded-lg px-2 text-left text-sm font-normal transition-colors",
+                        row.own && "bg-primary/10 font-medium",
+                        openable && "group-hover:bg-muted/60"
+                      )}
+                      scope="row"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <CompetitorLogo
+                          competitors={competitors}
+                          name={row.brand}
+                        />
+                        {openable ? (
+                          <button
+                            className="focus-visible:ring-ring min-w-0 cursor-pointer truncate rounded-sm text-left outline-none focus-visible:ring-2"
+                            onFocus={() => navigation.prefetchRow(row.brand)}
+                            type="button"
+                          >
+                            {row.brand}
+                          </button>
+                        ) : (
+                          <span className="truncate">{row.brand}</span>
+                        )}
+                        {row.own ? (
+                          <span className="text-muted-foreground shrink-0 text-xs font-normal">
+                            {t("you")}
+                          </span>
+                        ) : null}
+                      </span>
+                    </th>
+                    {matrix.columns.map((column, index) => (
+                      <td className="p-0" key={column.family}>
+                        <MatrixCell
+                          maxRate={matrix.maxRate}
+                          minRate={matrix.minRate}
+                          noChecksLabel={t("noChecks")}
+                          onPointerMove={(event) =>
+                            setTip({
+                              ...cursorTipPosition(event),
+                              title: `${row.brand} · ${column.label}`,
+                              detail:
+                                column.checks === 0
+                                  ? t("noChecks")
+                                  : t("cellDetail", {
+                                      mentions: row.mentions[index] ?? 0,
+                                      checks: column.checks,
+                                    }),
+                            })
+                          }
+                          rate={row.rates[index] ?? null}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          <CursorTooltip tip={tip} />
         </div>
       )}
     </InstrumentModule>

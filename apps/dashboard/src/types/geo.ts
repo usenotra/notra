@@ -1317,6 +1317,8 @@ export interface EngineMatrixRow {
   own: boolean;
   /** Mention rate per column, `null` where the engine has no checks. */
   rates: (number | null)[];
+  /** Answers mentioning the brand, per column. */
+  mentions: number[];
 }
 
 export interface EngineMatrix {
@@ -1334,6 +1336,7 @@ export interface CompetitorEngineMatrixCardProps {
   competitors?: GeoCompetitor[];
   trackedEngines?: readonly string[];
   isScanning?: boolean;
+  organizationSlug?: string;
 }
 
 export interface CompetitorEditDialogProps {

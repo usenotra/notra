@@ -2467,7 +2467,8 @@
       "noChecks": "No answers",
       "empty": "No answers in this period yet.",
       "scanning": "Scanning engines…",
-      "loadFailed": "Couldn't load assistant recommendations."
+      "loadFailed": "Couldn't load assistant recommendations.",
+      "cellDetail": "{mentions, number} of {checks, number} answers"
     },
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"
