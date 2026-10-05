@@ -70,6 +70,10 @@ jobs:
       - name: Run ultracite check
         run: bun check
 
+      - name: Install dashboard browser test runtime
+        working-directory: apps/dashboard
+        run: bun run playwright install --with-deps chromium
+
       - name: Run unit and integration tests
         run: bun run test --force
 

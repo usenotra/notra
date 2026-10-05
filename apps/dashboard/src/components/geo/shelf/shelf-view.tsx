@@ -47,6 +47,7 @@ export function ShelfView({
       parent = parent.parentElement;
     }
     const measure = () => {
+      let top = 0;
       let bottom = window.innerHeight;
       let paddingBottom = 0;
       let scrollTop = window.scrollY;
@@ -54,37 +55,53 @@ export function ShelfView({
         const style = getComputedStyle(ancestor);
         paddingBottom += Number.parseFloat(style.paddingBottom) || 0;
         if (["auto", "scroll", "hidden"].includes(style.overflowY)) {
-          bottom = Math.min(
-            bottom,
-            ancestor.getBoundingClientRect().top +
-              ancestor.clientTop +
-              ancestor.clientHeight
-          );
+          const scrollportTop =
+            ancestor.getBoundingClientRect().top + ancestor.clientTop;
+          top = Math.max(top, scrollportTop);
+          bottom = Math.min(bottom, scrollportTop + ancestor.clientHeight);
           scrollTop = ancestor.scrollTop;
           break;
         }
       }
+      const shelfTop = element.getBoundingClientRect().top;
+      const minimumHeight =
+        GEO_SHELF_TABLE_ROW_HEIGHT * 2 + TABLE_FRAME_INSET_PX;
+      const unscrolledSpace = bottom - shelfTop - scrollTop - paddingBottom;
       setHeight(
         Math.max(
-          GEO_SHELF_TABLE_ROW_HEIGHT * 2 + TABLE_FRAME_INSET_PX,
-          Math.floor(
-            bottom -
-              element.getBoundingClientRect().top -
-              scrollTop -
-              paddingBottom
-          )
+          minimumHeight,
+          unscrolledSpace < minimumHeight
+            ? Math.floor(bottom - top - paddingBottom)
+            : 0,
+          Math.floor(bottom - Math.max(top, shelfTop) - paddingBottom)
         )
       );
+    };
+    let scrollFrame = 0;
+    const onScroll = () => {
+      if (!scrollFrame) {
+        scrollFrame = requestAnimationFrame(() => {
+          scrollFrame = 0;
+          measure();
+        });
+      }
     };
     const observer = new ResizeObserver(measure);
     for (const ancestor of ancestors) {
       observer.observe(ancestor);
+      ancestor.addEventListener("scroll", onScroll, { passive: true });
     }
     measure();
     window.addEventListener("resize", measure);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       observer.disconnect();
+      cancelAnimationFrame(scrollFrame);
+      for (const ancestor of ancestors) {
+        ancestor.removeEventListener("scroll", onScroll);
+      }
       window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 

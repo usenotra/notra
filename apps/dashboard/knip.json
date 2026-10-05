@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "browser/fixture/main.tsx",
+    "browser/vite.config.ts",
     "src/start.ts",
     "src/client.tsx",
     "src/router.tsx",

@@ -14,7 +14,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "smoke:autonomy": "bun run scripts/autonomy-smoke.ts",
-    "test": "bun test src && bun test tests"
+    "test": "bun test src && bun test tests && bun run test:browser",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "@ai-sdk/code-mode": "1.0.62",
@@ -132,6 +133,7 @@
   "devDependencies": {
     "@ai-sdk/devtools": "1.0.22",
     "@notra/typescript-config": "workspace:*",
+    "@playwright/test": "^1.63.0",
     "@rolldown/plugin-babel": "0.2.4",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "^20",

@@ -1,7 +1,8 @@
-import { createRoute, type Router } from "@tanstack/react-router";
-import { createElement, Suspense, use } from "react";
+import { createRoute, type Router, useRouter } from "@tanstack/react-router";
+import { createElement, Suspense, use, useMemo } from "react";
 import { createTranslator } from "use-intl/core";
 
+import { followServerRedirect } from "@/lib/framework/follow-server-redirect";
 import { getCatalog } from "@/lib/i18n/catalog";
 import type { DashboardLocale } from "@/types/i18n";
 import type {
@@ -103,9 +104,11 @@ export function createUiRoute<T = undefined>({
       };
       if (stream && loader && (import.meta.env.SSR || gate)) {
         await gate?.(input);
+        const pending = loader({ ...input, gated: gate !== undefined });
+        void pending.catch(() => undefined);
         return {
           data: undefined,
-          pending: loader({ ...input, gated: gate !== undefined }),
+          pending,
         };
       }
       return { data: await loader?.(input), pending: undefined };
@@ -138,10 +141,24 @@ export function createUiRoute<T = undefined>({
     pendingComponent,
   });
   function UiPage() {
+    const router = useRouter();
     const { data, pending } = route.useLoaderData<Router<typeof route>>();
     const params = route.useParams<Router<typeof route>>();
     const searchParams = route.useSearch<Router<typeof route>>();
-    if (pending) {
+    const streamed = useMemo(
+      () =>
+        pending &&
+        followServerRedirect(pending as Promise<T>, () =>
+          router.state.matches.some(
+            (match) =>
+              match.pathname === router.state.location.pathname &&
+              (match.loaderData as { pending?: Promise<T> } | undefined)
+                ?.pending === pending
+          )
+        ),
+      [pending, router]
+    );
+    if (streamed) {
       return (
         <Suspense
           fallback={pendingComponent ? createElement(pendingComponent) : null}
@@ -149,7 +166,7 @@ export function createUiRoute<T = undefined>({
           <StreamedUiPage
             page={Page}
             params={uiPageParams(params)}
-            pending={pending as Promise<T>}
+            pending={streamed}
             searchParams={searchParams}
           />
         </Suspense>
