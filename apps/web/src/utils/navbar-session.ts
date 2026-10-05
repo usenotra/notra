@@ -11,6 +11,7 @@ export function buildNavbarSessionScript() {
       .then(response => { if (!response.ok) throw new Error("Navbar session probe failed"); return response.json(); })
       .then(data => data?.isAuthenticated === true)
       .catch(() => { window.__notraNavbarSession = undefined; return false; })
+      .then(isAuthenticated => { window.__notraNavbarSessionResolved = isAuthenticated; return isAuthenticated; })
       .finally(() => window.clearTimeout(timeout));
   })();`;
 }
@@ -41,6 +42,10 @@ export function getNavbarSession(): Promise<boolean> {
     .catch(() => {
       window.__notraNavbarSession = undefined;
       return false;
+    })
+    .then((isAuthenticated) => {
+      window.__notraNavbarSessionResolved = isAuthenticated;
+      return isAuthenticated;
     })
     .finally(() => window.clearTimeout(timeout));
 
