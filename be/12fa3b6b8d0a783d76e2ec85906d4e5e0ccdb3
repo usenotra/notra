@@ -1,0 +1,27 @@
+packages/ui/src/hooks/use-collapsible-columns.ts
+  s_f48f2e5a4d52a3::t_9a215caf3b2808 4,75
+packages/ui/src/lib/data-table.ts
+  s_f48f2e5a4d52a3::t_9a215caf3b2808 119-142,146,153
+  s_f48f2e5a4d52a3::t_4beb813487a85c 330-334,339-343
+apps/ui/registry/notra/data-table/hooks/use-collapsible-columns.ts
+  s_f48f2e5a4d52a3::t_9a215caf3b2808 3,69
+apps/ui/registry/notra/data-table/lib/data-table.ts
+  s_f48f2e5a4d52a3::t_9a215caf3b2808 115-138,142,149
+  s_f48f2e5a4d52a3::t_4beb813487a85c 311-315,320-324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "be12fa3b6b8d0a783d76e2ec85906d4e5e0ccdb3",
+  "prompts": {},
+  "sessions": {
+    "s_f48f2e5a4d52a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bfe9a8b9-9520-470d-900c-0bb594b731ef",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
