@@ -1,0 +1,45 @@
+apps/dashboard/src/utils/site-create.ts
+  ai_agent 2,7-10,14,32,43-44,58,60-77,79-92,105-107
+apps/dashboard/messages/de.json
+  ai_agent 5120,5191,5229,5452,5457-5459,5477,5480,5483,5488,5500,5515,5518,5522,5525,5537
+apps/dashboard/src/lib/hooks/use-repository-suggestions.ts
+  ai_agent 5-8,14-16,38-39,44
+apps/dashboard/src/components/sites/site-deployment-failure.tsx
+  ai_agent 11,18-22,24-26,28,30-36,38-39,59-60
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  ai_agent 17-20,28,51-62,73-90
+apps/dashboard/src/components/sites/site-create-section-fields.tsx
+  ai_agent 3,7-11,13-17,19-21,23,25-41,43-44,46,48-49,51-54,56,58,62-63
+apps/dashboard/src/components/sites/site-preview-build-toggle.tsx
+  ai_agent 10,23-25
+apps/dashboard/src/components/sites/site-environment-badge.tsx
+  ai_agent 4,6,8,11-12,14-21,23-30,32-39
+apps/dashboard/src/constants/site-create.ts
+  ai_agent 7,14-15
+apps/dashboard/src/components/sites/site-create-deploy.tsx
+  ai_agent 151-155,157
+apps/dashboard/src/components/sites/site-preview-access-modes.tsx
+  ai_agent 11,15,23,26,31-49
+apps/dashboard/src/types/components/sites.ts
+  ai_agent 6,13,72-73,76,78-80,366-369,371,374,376-379
+apps/dashboard/src/components/sites/site-preview-access-dialog.tsx
+  ai_agent 79-85,133
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  ai_agent 11,18-19,33-34,124,127-129
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  ai_agent 4,7,16,18,20-21,43-47,90-93,125-127,130,136-145,159-174,176-177,179-181,197,207-208,212-238,246,248,287,291,293,295-296
+apps/dashboard/src/components/sites/site-deployment-summary.tsx
+  ai_agent 3-8,11,13-18,20-31,33-57,61-62,66,72-73,75-76,80-81,84-94,96-104,107-117,119,122-253
+apps/dashboard/messages/en.json
+  ai_agent 5120,5191,5229,5452,5457-5459,5477,5480,5483,5488,5500,5515,5518,5522,5525,5537
+apps/dashboard/src/components/sites/site-create-form.tsx
+  ai_agent 36,50,55,93-103,184,327,330
+apps/dashboard/src/types/sites.ts
+  ai_agent 6,148-150,253-260,263-271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e691dc8ad8869beb18fa706c71f6e45a872bc7a4",
+  "prompts": {}
+}
