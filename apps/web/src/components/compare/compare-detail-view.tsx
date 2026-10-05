@@ -304,7 +304,10 @@ export function CompareDetailView({
       </section>
 
       <div className="-my-20 w-full lg:-my-24">
-        <FaqSection content={getCompareFaqContent(competitor)} />
+        <FaqSection
+          content={getCompareFaqContent(competitor)}
+          key={competitor.slug}
+        />
       </div>
 
       <section className={SECTION_CLASS}>

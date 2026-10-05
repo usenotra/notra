@@ -21,7 +21,7 @@ export const ATHENA: CompareCompetitor = {
     "You want to see how answers are collected and how often",
   ],
   chooseCompetitor: [
-    "You need Grok, DeepSeek, Meta AI, Mistral or Copilot tracked",
+    "You need Microsoft Copilot tracked",
     "You run Shopify and want AI revenue attribution",
     "You want SOC 2 Type II, SSO and audit logs",
     "You want a free tier to start",
@@ -138,7 +138,7 @@ export const ATHENA: CompareCompetitor = {
     {
       question: "Which engines does AthenaHQ track that Notra does not?",
       answer:
-        "Copilot, Grok, DeepSeek, Meta AI and Mistral. Notra tracks ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and AI Mode.",
+        "Microsoft Copilot. Notra tracks ChatGPT, Claude, Gemini, Perplexity, Google AI, Grok, DeepSeek, Meta AI and Mistral.",
     },
   ],
 };

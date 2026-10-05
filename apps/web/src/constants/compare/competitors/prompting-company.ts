@@ -142,7 +142,7 @@ export const PROMPTING_COMPANY: CompareCompetitor = {
     {
       question: "How do credits compare to Notra's AI answers?",
       answer:
-        "Both count one engine answer as one unit. TPC Basic includes 1,000 credits for $99. Notra Starter includes 2,000 answers, all five engines and 10 long-form posts for $100.",
+        "Both count one engine answer as one unit. TPC Basic includes 1,000 credits for $99. Notra Starter includes 2,000 answers, every engine and 10 long-form posts for $100.",
     },
     {
       question: "Does Notra track coding agents?",

@@ -24,7 +24,7 @@ export const PROMPTWATCH: CompareCompetitor = {
     "You want multi-turn conversations, open source code and zero data retention",
   ],
   chooseCompetitor: [
-    "You need Copilot, Grok, DeepSeek or Alexa tracked",
+    "You need Copilot or Alexa tracked",
     "You want crawler logs from CloudFront, Fastly or Akamai",
     "You want auto-publishing to WordPress or Webflow",
     "You want a free plan or city-level targeting",
@@ -153,7 +153,7 @@ export const PROMPTWATCH: CompareCompetitor = {
     {
       question: "Which engines does Promptwatch track that Notra does not?",
       answer:
-        "Microsoft Copilot, Alexa, Grok, DeepSeek, Mistral and Meta Llama. Notra tracks ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and AI Mode.",
+        "Microsoft Copilot and Alexa. Notra tracks ChatGPT, Claude, Gemini, Perplexity, Google AI, Grok, DeepSeek, Meta AI and Mistral.",
     },
     {
       question: "How does prompt demand data compare?",

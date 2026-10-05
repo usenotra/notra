@@ -25,7 +25,7 @@ export const PROFOUND: CompareCompetitor = {
     "Your team cares about open source code and zero data retention",
   ],
   chooseCompetitor: [
-    "You need Copilot, DeepSeek or ChatGPT Shopping tracked",
+    "You need Copilot or ChatGPT Shopping tracked",
     "You want prompt volume data on what real users ask AI assistants",
     "Procurement needs SOC 2, SSO and SCIM on day one",
     "You have an enterprise budget and want a dedicated success team",
@@ -144,7 +144,7 @@ export const PROFOUND: CompareCompetitor = {
     {
       question: "Does Notra track as many engines as Profound?",
       answer:
-        "Not all of them. Notra scans ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews and AI Mode on every plan. Profound Enterprise also covers Copilot, DeepSeek and Exa.",
+        "Almost. Notra scans ChatGPT, Claude, Gemini, Perplexity, Google AI, Grok, DeepSeek, Meta AI and Mistral on every plan. Profound Enterprise also covers Copilot and Exa, which Notra does not.",
     },
     {
       question: "Does Notra have prompt volume data like Profound?",

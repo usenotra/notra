@@ -128,7 +128,7 @@ export const COMPARE_ROW_GROUPS: CompareRowGroup[] = [
       {
         id: "otherEngines",
         label: "Grok, DeepSeek or Meta AI",
-        notra: false,
+        notra: "Grok 4.7, DeepSeek V4, Muse Spark 1.3",
       },
       {
         id: "codingAgents",
@@ -143,7 +143,8 @@ export const COMPARE_ROW_GROUPS: CompareRowGroup[] = [
       {
         id: "entryEngines",
         label: "Engines on the cheapest plan",
-        notra: "ChatGPT, Claude, Gemini, Perplexity, Google AI",
+        notra:
+          "ChatGPT, Claude, Gemini, Perplexity, Google AI, Grok, DeepSeek, Meta AI",
       },
       {
         id: "collection",

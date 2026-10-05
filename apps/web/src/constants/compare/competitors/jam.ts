@@ -10,7 +10,7 @@ export const JAM: CompareCompetitor = {
   headline: "A tool built only for AI visibility.",
   headlineAccent: "AI visibility",
   heroSubtitle:
-    "Jam is a cheap all-round growth agent where AI search is one of five channels. Notra is built for AI visibility, with five engines, sentiment, sources and crawler logs.",
+    "Jam is a cheap all-round growth agent where AI search is one of five channels. Notra is built for AI visibility, with every major engine, sentiment, sources and crawler logs.",
   metaDescription:
     "Notra vs Jam (spreadjam.com) compared: AI visibility tracking, engines, crawler logs, content and pricing.",
   chooseNotra: [
@@ -131,7 +131,7 @@ export const JAM: CompareCompetitor = {
     {
       question: "Which engines does Jam track?",
       answer:
-        "ChatGPT, Perplexity, Gemini and Claude, with only Gemini and Perplexity on Starter. Notra adds Google AI Overviews and covers all five on every plan.",
+        "ChatGPT, Perplexity, Gemini and Claude, with only Gemini and Perplexity on Starter. Notra adds Google AI Overviews, Grok, DeepSeek and Meta AI and covers them all on every plan.",
     },
     {
       question: "Does Jam have AI crawler logs?",

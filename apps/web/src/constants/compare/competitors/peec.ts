@@ -147,7 +147,7 @@ export const PEEC: CompareCompetitor = {
     {
       question: "Is Peec AI cheaper than Notra?",
       answer:
-        "Peec starts at $95 a month and Notra at $100. Peec includes more raw answers on its entry plan. Notra includes all five engines, unlimited prompts and 10 long-form posts a month.",
+        "Peec starts at $95 a month and Notra at $100. Peec includes more raw answers on its entry plan. Notra includes every engine, unlimited prompts and 10 long-form posts a month.",
     },
     {
       question: "How does Notra measure prompt demand compared to Peec?",

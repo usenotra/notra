@@ -1,10 +1,12 @@
 import { changelog } from "@/../.source/server";
+import { COMPARE_COMPETITORS } from "@/constants/compare/competitors";
 import { NOTRA_CAPABILITIES } from "@/utils/agent-metadata";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
   getChangelogPostHref,
   listNotraChangelogPosts,
 } from "@/utils/changelog";
+import { getCompareHref, getCompareTitle } from "@/utils/compare";
 import { stripFrontmatter } from "@/utils/markdown";
 import { readAppMarkdownSource } from "@/utils/markdown-source";
 import { SITE_DESCRIPTION } from "@/utils/metadata";
@@ -156,6 +158,16 @@ export async function buildLlmsText() {
     "## Capabilities",
     "",
     ...NOTRA_CAPABILITIES.map((capability) => `- ${capability}`),
+    "",
+    "## Comparisons",
+    "",
+    ...COMPARE_COMPETITORS.map((competitor) =>
+      formatLink(
+        getCompareTitle(competitor),
+        `${getCompareHref(competitor)}.md`,
+        competitor.summary
+      )
+    ),
     "",
     "## Blog Posts",
     "",

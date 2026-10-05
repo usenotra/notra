@@ -21,7 +21,7 @@ export const SCRUNCH: CompareCompetitor = {
     "You want open source code and zero data retention",
   ],
   chooseCompetitor: [
-    "You need Copilot and Meta AI tracked",
+    "You need Microsoft Copilot tracked",
     "You want AXP to serve AI bots a machine-readable copy of each page",
     "You are on Sitecore or want an enterprise vendor with SOC 2 Type II",
   ],
@@ -29,7 +29,7 @@ export const SCRUNCH: CompareCompetitor = {
     {
       title: "A third of the entry price",
       description:
-        "Scrunch starts at $300 a month. Notra Starter is $100 with all five engines, unlimited prompts and 10 long-form posts.",
+        "Scrunch starts at $300 a month. Notra Starter is $100 with every engine, unlimited prompts and 10 long-form posts.",
     },
     {
       title: "Gaps turned into posts",

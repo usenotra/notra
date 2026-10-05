@@ -142,7 +142,7 @@ export const BYDEFAULT: CompareCompetitor = {
     {
       question: "Which is cheaper, ByDefault or Notra?",
       answer:
-        "ByDefault starts at $99 and Notra at $100. ByDefault includes more daily answers. Notra includes five engines, unlimited prompts, 10 long-form posts and unlimited social posts.",
+        "ByDefault starts at $99 and Notra at $100. ByDefault includes more daily answers. Notra includes every engine, unlimited prompts, 10 long-form posts and unlimited social posts.",
     },
   ],
 };
