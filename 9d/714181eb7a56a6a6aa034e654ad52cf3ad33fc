@@ -1,0 +1,94 @@
+packages/ui/src/components/shared/auth/auth-social-buttons.tsx
+  s_8a6a5c17e2f9a2::t_b591b23764c495 42,47-53
+packages/ui/src/styles/cta-button.css
+  s_8a6a5c17e2f9a2::t_e82f16bca70453 44-60
+apps/ui/docs/components/marketing-button.mdx
+  s_8a6a5c17e2f9a2::t_294c9945f0fd10 10,14-15
+  s_8a6a5c17e2f9a2::t_be57276c8ab738 32,35-37
+  s_8a6a5c17e2f9a2::t_1e46f095075774 16,34
+  s_8a6a5c17e2f9a2::t_3e9fbf1af432fe 33
+apps/ui/src/styles/examples.css
+  s_8a6a5c17e2f9a2::t_f2b4e6ee4d94bf 193-217
+apps/dashboard/messages/de.json
+  s_8a6a5c17e2f9a2::t_0115272f8db663 1217,1220
+apps/web/src/styles/ui-sources.css
+  s_8a6a5c17e2f9a2::t_1e46f095075774 53
+apps/web/src/components/contributors/notra-ai-callout.tsx
+  ai_agent 5
+  s_8a6a5c17e2f9a2::t_48645d0a70e925 3,49-52
+apps/web/src/components/star-video/star-video-preview.tsx
+  s_8a6a5c17e2f9a2::t_08808090f53db2 291-292,297
+packages/ui/src/components/shared/auth/login-form.tsx
+  s_8a6a5c17e2f9a2::t_b591b23764c495 267,270
+apps/web/src/components/integrations/integration-connect-button.tsx
+  s_8a6a5c17e2f9a2::t_48645d0a70e925 1,15-16
+apps/ui/registry/notra/marketing-button/components/marketing-button-content.tsx
+  s_8a6a5c17e2f9a2::t_1e46f095075774 1-114
+apps/ui/registry/notra/marketing-button/examples/marketing-button-loading.tsx
+  s_8a6a5c17e2f9a2::t_ff74e829fae99d 4,13-15,17-18,23,26,28-30,32-35
+  s_8a6a5c17e2f9a2::t_81c02048187b8f 1-3,5-12,16,19-22,24-25,27,31,36-38
+apps/web/src/components/ip-checker/ip-checker-tool.tsx
+  s_8a6a5c17e2f9a2::t_bc23ba64e9ee56 1
+  s_8a6a5c17e2f9a2::t_b11801b603fd5a 148,151
+apps/web/src/components/star-video/repo-input-form.tsx
+  s_8a6a5c17e2f9a2::t_bc2ed97fe38761 1,59-60,62,65
+packages/ui/src/components/shared/cta-button-content.tsx
+  s_8a6a5c17e2f9a2::t_68f4de6f2f3dad 1-115
+apps/web/src/components/integrations/integrations-view.tsx
+  s_8a6a5c17e2f9a2::t_48645d0a70e925 3-4,67-70
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_8a6a5c17e2f9a2::t_b591b23764c495 311,314
+apps/ui/registry/notra/marketing-button/components/marketing-button.tsx
+  s_8a6a5c17e2f9a2::t_0b24967d745d1a 13,17,37-38,46
+  s_8a6a5c17e2f9a2::t_045b69600fb98d 30,32-33,39-42,45,49,53,59,61-63,65,69
+  s_8a6a5c17e2f9a2::t_1e46f095075774 5-6,31,47,66,68
+  s_8a6a5c17e2f9a2::t_1797e7e7626e42 8,48,67
+apps/dashboard/messages/en.json
+  s_8a6a5c17e2f9a2::t_0115272f8db663 1217,1220
+packages/ui/src/components/shared/cta-button.tsx
+  s_8a6a5c17e2f9a2::t_0f8eeb082925a8 14
+  s_8a6a5c17e2f9a2::t_5873bcfd3a5580 30-31,33-35,40-43,45-47,50,54-60,62-64,66,68,72-73
+  s_8a6a5c17e2f9a2::t_1797e7e7626e42 9,49
+  s_8a6a5c17e2f9a2::t_68f4de6f2f3dad 6-7,32,48,67
+  s_8a6a5c17e2f9a2::t_88d1a952283d94 18
+apps/web/src/components/changelog-featured-entry.tsx
+  s_8a6a5c17e2f9a2::t_bc2ed97fe38761 3-4,36-42
+packages/ui/src/components/shared/auth/email-verification-form.tsx
+  s_8a6a5c17e2f9a2::t_b591b23764c495 84-85,88
+packages/ui/src/components/shared/auth/mfa-challenge-form.tsx
+  s_8a6a5c17e2f9a2::t_b591b23764c495 173-180,224-231
+apps/web/src/components/navbar-mobile-menu.tsx
+  s_8a6a5c17e2f9a2::t_bc2ed97fe38761 384,407
+  s_8a6a5c17e2f9a2::t_48645d0a70e925 2,53-56
+apps/web/src/components/contact/contact-form.tsx
+  s_8a6a5c17e2f9a2::t_b11801b603fd5a 304-305,309
+apps/dashboard/src/app/onboarding/competitors/competitors-form.tsx
+  s_8a6a5c17e2f9a2::t_36f0e7401b0baf 303-304
+apps/ui/registry.json
+  s_8a6a5c17e2f9a2::t_adba563d9720c7 903-907
+  s_8a6a5c17e2f9a2::t_1e46f095075774 839-841,848-851,855-878
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_8a6a5c17e2f9a2::t_36f0e7401b0baf 600-601
+apps/ui/theme.css
+  s_8a6a5c17e2f9a2::t_f2b4e6ee4d94bf 197-210
+apps/dashboard/src/app/onboarding/visibility/visibility-form.tsx
+  s_8a6a5c17e2f9a2::t_36f0e7401b0baf 186-187
+apps/web/src/components/mcp/mcp-use-cases-callout.tsx
+  s_8a6a5c17e2f9a2::t_48645d0a70e925 3-4,29-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9d714181eb7a56a6a6aa034e654ad52cf3ad33fc",
+  "prompts": {},
+  "sessions": {
+    "s_8a6a5c17e2f9a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9263c81c-a714-4254-ab55-218b5a1d6578",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
