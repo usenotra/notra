@@ -1,0 +1,186 @@
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/page-client.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 675,844
+  s_d2a045b30093ab::t_2e698384735f98 36
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_d2a045b30093ab::t_2e698384735f98 32
+  s_d2a045b30093ab::t_3a2b9f777cff8a 339
+apps/dashboard/src/components/geo/language-performance-card.tsx
+  s_d2a045b30093ab::t_2e698384735f98 30
+  s_d2a045b30093ab::t_3a2b9f777cff8a 97
+packages/ui/src/components/ai-elements/prompt-input.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 3,1026
+apps/dashboard/src/components/integrations/github/github-directory-picker.tsx
+  s_d2a045b30093ab::t_c7fd012e656ab9 162,208
+  s_d2a045b30093ab::t_2e698384735f98 30
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-status-line.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 3,20
+apps/dashboard/src/components/design-system/code-research-sandbox-panel.tsx
+  s_d2a045b30093ab::t_2e698384735f98 11,65
+apps/dashboard/src/app/onboarding/visibility/visibility-form.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 190,340
+  s_d2a045b30093ab::t_2e698384735f98 12
+apps/dashboard/src/components/composer/composer-shell.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 225
+  s_d2a045b30093ab::t_2e698384735f98 9
+apps/dashboard/src/components/geo/prompt-translations-section.tsx
+  s_d2a045b30093ab::t_2e698384735f98 4,102
+apps/dashboard/src/components/geo/shelf/shelf-title-field.tsx
+  s_d2a045b30093ab::t_2e698384735f98 6
+  s_d2a045b30093ab::t_07486b5d8b2d88 37
+apps/dashboard/src/components/integrations/github/github-branch-picker.tsx
+  s_d2a045b30093ab::t_2e698384735f98 3,10
+  s_d2a045b30093ab::t_c7fd012e656ab9 110
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/analysis-stepper.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 22
+  s_d2a045b30093ab::t_2e698384735f98 3
+apps/dashboard/src/components/dashboard/onboarding-agent-banner.tsx
+  s_d2a045b30093ab::t_2e698384735f98 19,86
+  s_d2a045b30093ab::t_07486b5d8b2d88 73
+apps/dashboard/src/app/onboarding/competitors/competitors-form.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 308
+  s_d2a045b30093ab::t_2e698384735f98 11
+apps/dashboard/src/components/settings/profile-section.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 148
+  s_d2a045b30093ab::t_2e698384735f98 12
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-reference-dialog.tsx
+  s_d2a045b30093ab::t_2e698384735f98 29
+  s_d2a045b30093ab::t_07486b5d8b2d88 482,568
+apps/dashboard/src/components/integrations/mcp-connection-test-status.tsx
+  s_d2a045b30093ab::t_2e698384735f98 3,23
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_d2a045b30093ab::t_c394e1e2a6d1f9 89-93
+apps/dashboard/src/components/instrument/instrument-module.tsx
+  s_d2a045b30093ab::t_2e698384735f98 14,254
+apps/dashboard/src/components/analytics/connect-accounts-buttons.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 58
+  s_d2a045b30093ab::t_2e698384735f98 11
+oxlint.config.ts
+  s_d2a045b30093ab::t_01a2d3f0628b69 40-41
+apps/dashboard/src/components/chat/attachment-preview.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 57
+  s_d2a045b30093ab::t_2e698384735f98 13
+apps/dashboard/src/components/geo/geo-csv-import-dialog.tsx
+  s_d2a045b30093ab::t_2e698384735f98 38
+  s_d2a045b30093ab::t_3a2b9f777cff8a 348
+apps/dashboard/src/components/settings/organization-details-card.tsx
+  s_d2a045b30093ab::t_2e698384735f98 13
+  s_d2a045b30093ab::t_07486b5d8b2d88 220
+apps/dashboard/src/components/geo/writer/writer-execute.tsx
+  s_d2a045b30093ab::t_2e698384735f98 12
+  s_d2a045b30093ab::t_3a2b9f777cff8a 139,194
+apps/dashboard/src/components/auth/social-enrollment-resume.tsx
+  s_d2a045b30093ab::t_2e698384735f98 4
+  s_d2a045b30093ab::t_07486b5d8b2d88 40
+apps/dashboard/src/components/chat/chat-composer-attachments.tsx
+  s_d2a045b30093ab::t_2e698384735f98 10
+  s_d2a045b30093ab::t_07486b5d8b2d88 134
+apps/dashboard/src/components/onboarding/competitor-search.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 55
+  s_d2a045b30093ab::t_2e698384735f98 5
+apps/dashboard/src/components/geo/gaps-table.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 303,321,414,438,643
+  s_d2a045b30093ab::t_2e698384735f98 51
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_d2a045b30093ab::t_2e698384735f98 184
+  s_d2a045b30093ab::t_ae2166179c2c6f 1831-1877
+apps/dashboard/src/components/content/add-reference-control.tsx
+  s_d2a045b30093ab::t_2e698384735f98 11
+  s_d2a045b30093ab::t_07486b5d8b2d88 43
+apps/dashboard/src/components/integrations/github/github-branch-list.tsx
+  s_d2a045b30093ab::t_c7fd012e656ab9 52
+  s_d2a045b30093ab::t_2e698384735f98 3,12
+apps/dashboard/src/components/demo/demo-start.tsx
+  s_d2a045b30093ab::t_2e698384735f98 4
+  s_d2a045b30093ab::t_c7fd012e656ab9 68
+apps/dashboard/src/components/content/collections-view.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 79
+  s_d2a045b30093ab::t_2e698384735f98 26
+apps/dashboard/src/components/settings/delete-account-dialog.tsx
+  s_d2a045b30093ab::t_2e698384735f98 27
+  s_d2a045b30093ab::t_07486b5d8b2d88 317
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_d2a045b30093ab::t_2e698384735f98 26
+  s_d2a045b30093ab::t_3a2b9f777cff8a 154
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_d2a045b30093ab::t_2e698384735f98 13
+  s_d2a045b30093ab::t_07486b5d8b2d88 316
+packages/ui/src/components/ui/spinner.tsx
+  s_d2a045b30093ab::t_de2261fedbc463 1-30
+apps/dashboard/src/components/geo/sentiment-themes.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 60
+  s_d2a045b30093ab::t_2e698384735f98 1
+apps/dashboard/src/components/geo/writer/brief-history.tsx
+  s_d2a045b30093ab::t_2e698384735f98 15
+  s_d2a045b30093ab::t_3a2b9f777cff8a 45
+packages/ui/src/components/instrument/instrument-module.tsx
+  s_d2a045b30093ab::t_60f8d6a58c49a8 1,177
+apps/dashboard/src/components/content/content-skeleton-card.tsx
+  s_d2a045b30093ab::t_2e698384735f98 7
+  s_d2a045b30093ab::t_07486b5d8b2d88 42
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/google-search-console/page-client.tsx
+  s_d2a045b30093ab::t_2e698384735f98 27
+  s_d2a045b30093ab::t_3a2b9f777cff8a 147,204
+packages/ui/src/components/shared/auth/mfa-challenge-form.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 4,38
+apps/dashboard/src/components/charts/echarts-plot-frame.tsx
+  s_d2a045b30093ab::t_c7fd012e656ab9 3,63
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/modal-content.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 1,24
+apps/dashboard/src/components/geo/agent-readiness/readiness-scanning-notice.tsx
+  s_d2a045b30093ab::t_2e698384735f98 5
+  s_d2a045b30093ab::t_3a2b9f777cff8a 34
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_d2a045b30093ab::t_2e698384735f98 18
+  s_d2a045b30093ab::t_78e0794271d787 381-383
+  s_d2a045b30093ab::t_07486b5d8b2d88 606
+  s_d2a045b30093ab::t_c7fd012e656ab9 22,380
+  s_d2a045b30093ab::t_baad218873cce7 379
+packages/ui/src/components/shared/auth/auth-social-buttons.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 3,48
+packages/ui/src/components/shared/auth/login-form.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 4,272
+packages/ui/src/components/ui/sonner.tsx
+  s_d2a045b30093ab::t_60f8d6a58c49a8 11,57
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 69,84,288,309,313
+  s_d2a045b30093ab::t_2e698384735f98 19
+apps/dashboard/src/app/design-system/icon-preview.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 100
+  s_d2a045b30093ab::t_2e698384735f98 17
+apps/dashboard/src/components/geo/prompt-add-dialog.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 311
+  s_d2a045b30093ab::t_2e698384735f98 28
+apps/dashboard/src/components/geo/conversations-card.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 277
+  s_d2a045b30093ab::t_2e698384735f98 34
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-panel.tsx
+  s_d2a045b30093ab::t_2e698384735f98 6
+  s_d2a045b30093ab::t_07486b5d8b2d88 119
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_d2a045b30093ab::t_2e698384735f98 48
+  s_d2a045b30093ab::t_07486b5d8b2d88 346,707
+apps/dashboard/src/app/connect/linkedin/page.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 232
+  s_d2a045b30093ab::t_2e698384735f98 11
+packages/ui/src/components/shared/auth/email-verification-form.tsx
+  s_d2a045b30093ab::t_07486b5d8b2d88 4,90
+apps/dashboard/src/components/geo/search-console-card.tsx
+  s_d2a045b30093ab::t_3a2b9f777cff8a 172,208,291
+  s_d2a045b30093ab::t_2e698384735f98 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f8acac923d514e6633203115765ec92f68c7aea2",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
