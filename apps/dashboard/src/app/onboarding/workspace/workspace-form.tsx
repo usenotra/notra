@@ -429,9 +429,9 @@ export function WorkspaceForm({
                       : undefined
                   }
                   aria-invalid={field.state.meta.errors.length > 0}
-                  autoFocus={isResuming}
+                  autoFocus={isResuming && !existingOrg?.hasBrand}
                   className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || Boolean(existingOrg?.hasBrand)}
                   id="website"
                   onBlur={field.handleBlur}
                   onChange={(e) => {

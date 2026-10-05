@@ -32,6 +32,8 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { attachPlanWithAddons } from "@/lib/billing/attach-plan";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { BillingPlanGroup } from "@/types/billing/plan";
 import type { PricingClientProps } from "@/types/onboarding";
@@ -45,6 +47,7 @@ import {
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
+import { setSidebarModeCookie } from "@/utils/cookies";
 
 export function PricingClient({
   canSkipOnboarding,
@@ -56,6 +59,7 @@ export function PricingClient({
   const tCommon = useTranslations("common");
   const tBilling = useTranslations("billing");
   const locale = useLocale();
+  const router = useRouter();
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -83,6 +87,18 @@ export function PricingClient({
       surface: PLAN_SURFACES.ONBOARDING,
     });
   }, [plansLoading, plans]);
+
+  // A stored "geo" mode would send the org root straight to the GEO paywall,
+  // so switch to Studio (where free feedback lives) before leaving.
+  async function handleClose(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    trackEvent(POSTHOG_EVENTS.PAYWALL_DISMISSED, {
+      kind: PAYWALL_KINDS.ONBOARDING_PRICING,
+    });
+    pickSidebarMode("studio", undefined);
+    await setSidebarModeCookie("studio").catch(() => undefined);
+    router.push(closeHref);
+  }
 
   function handleIntervalChange(value: string) {
     const yearly = value === "yearly";
@@ -204,11 +220,7 @@ export function PricingClient({
             "text-muted-foreground"
           )}
           href={closeHref}
-          onClick={() =>
-            trackEvent(POSTHOG_EVENTS.PAYWALL_DISMISSED, {
-              kind: PAYWALL_KINDS.ONBOARDING_PRICING,
-            })
-          }
+          onClick={handleClose}
         >
           <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
         </Link>
