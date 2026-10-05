@@ -1,0 +1,20 @@
+packages/sites-server/src/state.ts
+  s_2e1b04b64a383c::t_99430bac24e3ad 171
+  s_2e1b04b64a383c::t_9a2515b508eed7 59-67,69-72,76-79,102-105,116-120,169-170,172,178-193,195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b8ae9da619ad44fbbc9e473f10be4aa225fa4b8e",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
