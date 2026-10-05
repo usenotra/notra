@@ -18,7 +18,7 @@ export async function sendRequestLog(
   const send = options.fetch ?? globalThis.fetch;
 
   try {
-    await send(ingestUrl(options.endpoint), {
+    const response = await send(ingestUrl(options.endpoint), {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -28,6 +28,10 @@ export async function sendRequestLog(
       keepalive: true,
       signal: AbortSignal.timeout(INGEST_TIMEOUT_MS),
     });
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new Error(`GEO ingest request failed (HTTP ${response.status})`);
+    }
   } catch (error) {
     reportGeoError(options.onError, error);
   }

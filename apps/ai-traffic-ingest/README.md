@@ -24,6 +24,12 @@ Rate-limit hits return `429`; Redis transport failures and limiter timeouts retu
 `502` without writing an event. Redis availability is required for tracked ingestion.
 Token generation is still checked against Postgres and fails closed on an outage.
 
+Before identity and host lookups, tracked AI envelopes and malformed signed payloads
+pass a separate 1,000-request-per-minute admission limit keyed by organization,
+project and token generation. Token rotation gets a fresh admission budget, and
+revoked tokens cannot consume the existing organization-wide accepted-traffic quota.
+Human/unknown traffic keeps its zero-I/O drop path.
+
 ## Local development
 
 From the repository root:

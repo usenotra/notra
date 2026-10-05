@@ -125,7 +125,7 @@ send alive.
 | `endpoint` | `https://ingest.usenotra.com` | Ingest origin, the SDK appends `/api/geo/ingest` |
 | `exclude` | `["/api"]` | Paths to skip. Pass `[]` to disable |
 | `sample` | `1` | Fraction of eligible requests to send, 0 to 1 |
-| `onError` | none | Called with anything that goes wrong. The SDK never throws |
+| `onError` | none | Called for network failures and non-success HTTP responses, including 401, 429 and 502. The SDK never throws |
 | `fetch` | global `fetch` | Injectable fetch, for tests |
 
 Requests go directly to `https://ingest.usenotra.com` when `endpoint` is omitted.
