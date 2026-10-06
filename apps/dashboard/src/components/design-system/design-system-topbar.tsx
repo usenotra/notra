@@ -69,7 +69,7 @@ export function DesignSystemTopbar({ activeId }: { activeId: string | null }) {
             {crumbs.map((crumb, index) => {
               const isLast = index === crumbs.length - 1;
               return (
-                <Fragment key={`${crumb}-${index}`}>
+                <Fragment key={crumb}>
                   <BreadcrumbSeparator>
                     <HugeiconsIcon icon={ArrowRight01Icon} />
                   </BreadcrumbSeparator>

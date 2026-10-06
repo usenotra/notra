@@ -57,10 +57,12 @@ export function DesignSystemSidebar({ activeId }: { activeId: string | null }) {
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       isActive={onIndex && activeId === item.id}
-                      render={<a href={`${DESIGN_SYSTEM_PATH}#${item.id}`} />}
-                    >
-                      {item.label}
-                    </SidebarMenuButton>
+                      render={
+                        <a href={`${DESIGN_SYSTEM_PATH}#${item.id}`}>
+                          {item.label}
+                        </a>
+                      }
+                    />
                     {item.children && expanded ? (
                       <SidebarMenuSub>
                         {item.children.map((child) => (
