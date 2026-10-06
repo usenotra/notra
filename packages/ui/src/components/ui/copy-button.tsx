@@ -6,6 +6,7 @@ import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
 import { useCopyToClipboard } from "@notra/ui/hooks/use-copy-to-clipboard";
 import { cn } from "@notra/ui/lib/utils";
+import { useState } from "react";
 import type {
   CopyButtonClickHandler,
   CopyButtonProps,
@@ -23,6 +24,19 @@ const FILLED_VARIANTS = new Set<CopyButtonProps["variant"]>([
   "default",
   "destructive",
 ]);
+
+/* True from the first `copied` change until the swap back has finished, so
+   buttons don't animate on mount and stop clipping once they're idle again.
+   Same lifecycle as Button's loading swap. */
+function useCopiedSwap(copied: boolean) {
+  const [previousCopied, setPreviousCopied] = useState(copied);
+  const [isSwapping, setIsSwapping] = useState(false);
+  if (copied !== previousCopied) {
+    setPreviousCopied(copied);
+    setIsSwapping(true);
+  }
+  return { finishSwap: () => setIsSwapping(false), isSwapping };
+}
 
 /**
  * Copy icon that turns into a tick while `copied`. Use it inside your own
@@ -86,6 +100,11 @@ export function CopyButton({
   });
   const hasLabel = children !== undefined && children !== null;
   const swapsLabel = hasLabel && copiedLabel !== undefined;
+  const { finishSwap, isSwapping } = useCopiedSwap(copied);
+  const tickClassName = cn(
+    !FILLED_VARIANTS.has(variant) && "text-success",
+    iconClassName
+  );
 
   const idleAriaLabel = ariaLabel ?? (hasLabel ? undefined : labels.copy);
   const activeAriaLabel = hasLabel
@@ -112,28 +131,65 @@ export function CopyButton({
       variant={variant}
       {...props}
     >
-      <CopyStateIcon
-        copied={copied}
-        iconClassName={iconClassName}
-        tinted={!FILLED_VARIANTS.has(variant)}
-      />
       {swapsLabel ? (
-        <span className="grid text-start">
+        <>
+          {/* Like Button's loading state: the idle label sets the width and
+              blurs up and out, the copied label rises in centred over it. */}
           <span
             aria-hidden={copied}
-            className={cn(SWAP_CLASS, copied && "opacity-0 blur-xs")}
+            className={cn(
+              "relative inline-flex min-w-0 flex-1 items-center [gap:inherit] [justify-content:inherit] motion-reduce:animate-none",
+              copied && "opacity-0",
+              isSwapping &&
+                (copied
+                  ? "animate-button-swap-out"
+                  : "animate-button-swap-in [animation-delay:70ms]")
+            )}
+            data-clip={isSwapping || copied ? "" : undefined}
+            data-slot="button-label"
           >
+            <HugeiconsIcon
+              aria-hidden="true"
+              className={iconClassName}
+              data-icon="inline-start"
+              icon={Copy01Icon}
+            />
             {children}
           </span>
-          <span
-            aria-hidden={!copied}
-            className={cn(SWAP_CLASS, !copied && "opacity-0 blur-xs")}
-          >
-            {copiedLabel}
-          </span>
-        </span>
+          {copied || isSwapping ? (
+            <span
+              aria-hidden={!copied}
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center [gap:inherit] motion-reduce:animate-none",
+                copied
+                  ? isSwapping && "animate-button-swap-in [animation-delay:70ms]"
+                  : "animate-button-swap-out opacity-0"
+              )}
+              data-slot="copy-button-copied"
+              onAnimationEnd={(event) => {
+                if (event.target === event.currentTarget) {
+                  finishSwap();
+                }
+              }}
+            >
+              <HugeiconsIcon
+                aria-hidden="true"
+                className={tickClassName}
+                icon={Tick02Icon}
+              />
+              {copiedLabel}
+            </span>
+          ) : null}
+        </>
       ) : (
-        children
+        <>
+          <CopyStateIcon
+            copied={copied}
+            iconClassName={iconClassName}
+            tinted={!FILLED_VARIANTS.has(variant)}
+          />
+          {children}
+        </>
       )}
     </Button>
   );
