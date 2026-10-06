@@ -14,6 +14,8 @@ interface RequestAIUsage {
   reasoningTokens: number;
   costUsd: number;
   models: Set<string>;
+  /** Generations whose gateway-reported cost is already in `costUsd`. */
+  costedGenerations: Set<string>;
 }
 
 export interface ModelCallUsage {
@@ -30,13 +32,48 @@ const MICRO_USD = 1_000_000;
 
 const usageByRequest = new WeakMap<RequestLogger, RequestAIUsage>();
 
-function routeCostUsd(
-  providerMetadata: SharedV4ProviderMetadata | undefined
-): number {
-  const cost = providerMetadata?.[ROUTER_METADATA_KEY]?.costUsd;
-  return typeof cost === "number" && Number.isFinite(cost) && cost >= 0
-    ? cost
-    : 0;
+function routeCost(providerMetadata: SharedV4ProviderMetadata | undefined): {
+  costUsd: number;
+  generationId?: string;
+} {
+  const route = providerMetadata?.[ROUTER_METADATA_KEY];
+  const record =
+    route && typeof route === "object" && !Array.isArray(route) ? route : {};
+  const { costUsd, generationId } = record;
+  return {
+    costUsd:
+      typeof costUsd === "number" && Number.isFinite(costUsd) && costUsd >= 0
+        ? costUsd
+        : 0,
+    ...(typeof generationId === "string" ? { generationId } : {}),
+  };
+}
+
+function usageFor(logger: RequestLogger): RequestAIUsage {
+  const existing = usageByRequest.get(logger);
+  if (existing) {
+    return existing;
+  }
+  const usage: RequestAIUsage = {
+    calls: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    totalTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    reasoningTokens: 0,
+    costUsd: 0,
+    models: new Set<string>(),
+    costedGenerations: new Set<string>(),
+  };
+  usageByRequest.set(logger, usage);
+  return usage;
+}
+
+function roundedCost(usage: RequestAIUsage) {
+  return usage.costUsd > 0
+    ? { costUsd: Math.round(usage.costUsd * MICRO_USD) / MICRO_USD }
+    : {};
 }
 
 /**
@@ -50,19 +87,7 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
   if (!logger) {
     return;
   }
-  const usage = usageByRequest.get(logger) ?? {
-    calls: 0,
-    inputTokens: 0,
-    outputTokens: 0,
-    totalTokens: 0,
-    cacheReadTokens: 0,
-    cacheWriteTokens: 0,
-    reasoningTokens: 0,
-    costUsd: 0,
-    models: new Set<string>(),
-  };
-  usageByRequest.set(logger, usage);
-
+  const usage = usageFor(logger);
   const inputTokens = call.inputTokens ?? 0;
   const outputTokens = call.outputTokens ?? 0;
   usage.calls += 1;
@@ -72,7 +97,13 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
   usage.cacheReadTokens += call.cacheReadTokens ?? 0;
   usage.cacheWriteTokens += call.cacheWriteTokens ?? 0;
   usage.reasoningTokens += call.reasoningTokens ?? 0;
-  usage.costUsd += routeCostUsd(call.providerMetadata);
+  const cost = routeCost(call.providerMetadata);
+  if (cost.costUsd > 0) {
+    usage.costUsd += cost.costUsd;
+    if (cost.generationId) {
+      usage.costedGenerations.add(cost.generationId);
+    }
+  }
   // evlog concatenates arrays on set(), so only hand it models it hasn't seen.
   const newModel = !usage.models.has(call.model);
   usage.models.add(call.model);
@@ -87,10 +118,30 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
       cacheReadTokens: usage.cacheReadTokens,
       cacheWriteTokens: usage.cacheWriteTokens,
       reasoningTokens: usage.reasoningTokens,
-      ...(usage.costUsd > 0
-        ? { costUsd: Math.round(usage.costUsd * MICRO_USD) / MICRO_USD }
-        : {}),
+      ...roundedCost(usage),
       ...(newModel ? { models: [call.model] } : {}),
     },
   });
+}
+
+/**
+ * Vercel reports cost only through the generation lookup that billing already
+ * runs after a call. Add that cost when it lands while the request event is
+ * still open; no extra lookup is made for observability.
+ */
+export function recordRequestAICost(
+  generationId: string,
+  costUsd: number
+): void {
+  const logger = getOpenRequestLogger();
+  if (!logger || !Number.isFinite(costUsd) || costUsd < 0) {
+    return;
+  }
+  const usage = usageFor(logger);
+  if (usage.costedGenerations.has(generationId)) {
+    return;
+  }
+  usage.costedGenerations.add(generationId);
+  usage.costUsd += costUsd;
+  logger.set({ ai: roundedCost(usage) });
 }
