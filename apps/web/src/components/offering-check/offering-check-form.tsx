@@ -13,6 +13,7 @@ import {
 } from "nuqs";
 import { type FocusEvent, type FormEvent, useRef, useState } from "react";
 
+import { Turnstile } from "@/components/turnstile";
 import {
   OFFERING_CHECK_PROBLEM_COUNTER_FROM,
   OFFERING_CHECK_PROBLEM_MAX_LENGTH,
@@ -20,6 +21,7 @@ import {
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
   OFFERING_REPORT_PATH,
 } from "@/constants/offering-check";
+import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { preflightOfferingCheck } from "@/lib/offering-check/preflight";
 import { useSampleTyping } from "@/lib/offering-check/use-sample-typing";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
@@ -29,6 +31,7 @@ import type {
   OfferingFormProblem,
   OfferingSampleField,
 } from "@/types/offering-check";
+import type { TurnstileHandle } from "@/types/turnstile";
 import { describeOfferingNotice } from "@/utils/offering-check";
 
 import { OfferingDomainFavicon } from "./offering-domain-favicon";
@@ -65,6 +68,8 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   // Counts failed submits so a repeated error shakes the field again.
   const [attempt, setAttempt] = useState(0);
   const [editingSentence, setEditingSentence] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstile = useRef<TurnstileHandle>(null);
   const sentence = useRef<HTMLParagraphElement>(null);
   // Focus moving between the two sentence fields keeps the sentence "open".
   const leaveSentenceField = (event: FocusEvent<HTMLInputElement>) => {
@@ -106,7 +111,11 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
         feature: input.feature || undefined,
         problem: input.problem || undefined,
       },
+      // Tokens are single-use: the report spends this one on its scan, and
+      // the form needs a new one if the visitor comes back.
+      state: { offeringTurnstileToken: turnstileToken },
     });
+    turnstile.current?.reset();
   };
 
   const fillSample = (sample: OfferingCheckInput) => {
@@ -324,6 +333,14 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           </span>
         </CtaButton>
       </div>
+      {/* Invisible unless Cloudflare needs a click; uncached scans need it. */}
+      <Turnstile
+        action={OFFERING_TURNSTILE_ACTION}
+        appearance="interaction-only"
+        failureMessage="Verification could not load. You can still try; the report will ask again."
+        onToken={setTurnstileToken}
+        ref={turnstile}
+      />
     </form>
   );
 }

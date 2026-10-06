@@ -1,13 +1,15 @@
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
+import { Turnstile } from "@/components/turnstile";
 import {
   OFFERING_CHECK_PATH,
   OFFERING_CHECK_SIGNUP_SOURCE,
   OFFERING_REPORT_FAILURE_MESSAGES,
 } from "@/constants/offering-check";
+import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
 import type { OfferingReportProps } from "@/types/offering-check";
 import { getOfferingHeroCopy } from "@/utils/offering-check";
@@ -21,12 +23,42 @@ const backLinkClass =
   "font-sans text-[0.9375rem]/6 font-medium text-[#8B5CF6] hover:underline dark:text-[#A78BFA]";
 
 export function OfferingReport({ input }: OfferingReportProps) {
-  const state = useOfferingStream(input);
+  const turnstileToken = useRouterState({
+    select: (router) => router.location.state.offeringTurnstileToken ?? "",
+  });
+  const { state, verify } = useOfferingStream(input, turnstileToken);
   const { result, status } = state;
   const hasFeature = input.feature.length > 0;
   const subject = hasFeature
     ? input.feature
     : (result?.companyName ?? input.domain);
+
+  if (status === "verify") {
+    return (
+      <>
+        <MarketingHeroWash
+          subtitle="One quick check before we ask the model."
+          title={
+            <>
+              Ready to check{" "}
+              <span className="text-primary wrap-anywhere">{subject}</span>
+            </>
+          }
+        />
+        <div className="flex w-full max-w-[28rem] flex-col items-center gap-3 px-4 sm:px-6">
+          <Turnstile
+            action={OFFERING_TURNSTILE_ACTION}
+            failureMessage="Verification could not load. Reload the page to try again."
+            onToken={(token) => {
+              if (token) {
+                verify(token);
+              }
+            }}
+          />
+        </div>
+      </>
+    );
+  }
 
   if (status !== "checking" && status !== "done") {
     return (

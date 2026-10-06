@@ -103,7 +103,12 @@ export type OfferingFailureStatus =
   | "unavailable"
   | "error";
 
-type OfferingReportStatus = "checking" | "done" | OfferingFailureStatus;
+type OfferingReportStatus =
+  | "checking"
+  | "done"
+  /** The server wants a Turnstile token before it runs an uncached scan. */
+  | "verify"
+  | OfferingFailureStatus;
 
 export type OfferingFormProblem =
   | "invalid-domain"
@@ -227,4 +232,11 @@ export interface OfferingErrorTooltipProps {
   /** Sits inside a line of text, like the sentence fields. */
   inline?: boolean;
   children: ReactNode;
+}
+
+declare module "@tanstack/react-router" {
+  interface HistoryState {
+    /** Turnstile token the form hands to the report for its first scan. */
+    offeringTurnstileToken?: string;
+  }
 }

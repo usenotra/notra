@@ -7,6 +7,7 @@ import {
   writeCachedOfferingCheck,
 } from "@/lib/offering-check/cache";
 import { ensureOfferingSiteExists } from "@/lib/offering-check/domain-exists";
+import { ensureOfferingVisitorIsHuman } from "@/lib/offering-check/human-check";
 import { enforceOfferingCheckRateLimit } from "@/lib/offering-check/ratelimit";
 import {
   checkErrorResponse,
@@ -87,6 +88,7 @@ async function POST(request: Request) {
       if (!cached) {
         // Before the rate limit, so a typo does not cost a free check.
         yield* ensureOfferingSiteExists(input.domain);
+        yield* ensureOfferingVisitorIsHuman(request);
         yield* enforceOfferingCheckRateLimit(request, input);
       }
       return streamEvents(request, input, cached);

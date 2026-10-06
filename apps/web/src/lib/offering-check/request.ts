@@ -8,6 +8,10 @@ import { jsonError } from "@/utils/api-response";
 
 import type { OfferingCheckUnknownSite } from "./domain-exists";
 import type {
+  OfferingCheckVerificationRequired,
+  OfferingCheckVerificationUnavailable,
+} from "./human-check";
+import type {
   OfferingCheckRateLimitExceeded,
   OfferingCheckRateLimitUnavailable,
 } from "./ratelimit";
@@ -57,9 +61,20 @@ export function checkErrorResponse(
     | OfferingCheckRateLimitExceeded
     | OfferingCheckRateLimitUnavailable
     | OfferingCheckUnknownSite
+    | OfferingCheckVerificationRequired
+    | OfferingCheckVerificationUnavailable
 ): Response {
   if (error._tag === "OfferingCheckUnknownSite") {
     return jsonError("Website not found", 422);
+  }
+  if (error._tag === "OfferingCheckVerificationRequired") {
+    return Response.json(
+      { error: "Verification required", code: "verification" },
+      { status: 403 }
+    );
+  }
+  if (error._tag === "OfferingCheckVerificationUnavailable") {
+    return jsonError("Verification is not configured", 503);
   }
   if (error._tag === "OfferingCheckRateLimitUnavailable") {
     return jsonError("Rate limit service unavailable", 503);

@@ -1,10 +1,13 @@
-import { CONTACT_TURNSTILE_ACTION } from "@/constants/turnstile";
 import {
   turnstileTokenSchema,
   turnstileVerificationSchema,
 } from "@/schemas/turnstile";
 
-export async function verifyContactTurnstile(token: unknown): Promise<boolean> {
+/** True when Turnstile confirms the token for this action on one of our hosts. */
+export async function verifyTurnstile(
+  token: unknown,
+  action: string
+): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET;
   const hostnames = (process.env.TURNSTILE_HOSTNAMES ?? "")
     .split(",")
@@ -51,10 +54,18 @@ export async function verifyContactTurnstile(token: unknown): Promise<boolean> {
     const result = turnstileVerificationSchema.safeParse(await response.json());
     return (
       result.success &&
-      result.data.action === CONTACT_TURNSTILE_ACTION &&
+      result.data.action === action &&
       hostnames.includes(result.data.hostname)
     );
   } catch {
     return false;
   }
+}
+
+/** Turnstile can only be checked when the secret and hostnames are set. */
+export function isTurnstileConfigured(): boolean {
+  return Boolean(
+    process.env.TURNSTILE_SECRET?.trim() &&
+    process.env.TURNSTILE_HOSTNAMES?.trim()
+  );
 }

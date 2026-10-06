@@ -27,6 +27,9 @@ export const OFFERING_CHECK_HERO_SUBTITLE =
 
 export const OFFERING_CHECK_MODEL = "openai/gpt-6-luna";
 
+/** The scan request carries the visitor's Turnstile token in this header. */
+export const OFFERING_TURNSTILE_HEADER = "x-turnstile-token";
+
 export const OFFERING_CHECK_GATEWAY_TAG = "offering-check";
 
 export const OFFERING_CHECK_MODEL_LABEL = "GPT-6";

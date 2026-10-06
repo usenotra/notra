@@ -1,6 +1,9 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 
-import { OFFERING_CHECK_API_PATH } from "@/constants/offering-check";
+import {
+  OFFERING_CHECK_API_PATH,
+  OFFERING_TURNSTILE_HEADER,
+} from "@/constants/offering-check";
 import { offeringStreamEventSchema } from "@/schemas/offering-check";
 import type {
   OfferingCheckInput,
@@ -16,7 +19,9 @@ import { failureStatusFor } from "@/utils/offering-report";
 
 type Action =
   | { type: "event"; event: OfferingStreamEvent }
-  | { type: "failed"; status: OfferingFailureStatus };
+  | { type: "failed"; status: OfferingFailureStatus }
+  | { type: "verify" }
+  | { type: "restart" };
 
 function initialState(input: OfferingCheckInput): OfferingLiveState {
   return {
@@ -66,6 +71,12 @@ function updateThread(
 function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
   if (action.type === "failed") {
     return { ...state, status: action.status };
+  }
+  if (action.type === "verify") {
+    return { ...state, status: "verify" };
+  }
+  if (action.type === "restart") {
+    return { ...state, status: "checking" };
   }
   const { event } = action;
   switch (event.type) {
@@ -126,19 +137,51 @@ async function readEvents(
   }
 }
 
+async function needsVerification(response: Response): Promise<boolean> {
+  if (response.status !== 403) {
+    return false;
+  }
+  const body: unknown = await response
+    .clone()
+    .json()
+    .catch(() => null);
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "code" in body &&
+    body.code === "verification"
+  );
+}
+
 async function streamOfferingCheck(
   input: OfferingCheckInput,
+  turnstileToken: string,
   signal: AbortSignal,
-  onEvent: (event: OfferingStreamEvent) => void,
-  onFailure: (status: OfferingFailureStatus) => void
+  update: (action: Action) => void,
+  canAskAgain: boolean
 ) {
   const response = await fetch(OFFERING_CHECK_API_PATH, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(turnstileToken
+        ? { [OFFERING_TURNSTILE_HEADER]: turnstileToken }
+        : {}),
+    },
     body: JSON.stringify(input),
     signal,
   }).catch(() => null);
   if (signal.aborted) {
+    return;
+  }
+  const onFailure = (status: OfferingFailureStatus) =>
+    update({ type: "failed", status });
+  if (response && (await needsVerification(response))) {
+    // A fresh token that still fails means verification is broken, not that
+    // the visitor needs another try; asking again would loop forever.
+    update(
+      canAskAgain ? { type: "verify" } : { type: "failed", status: "error" }
+    );
     return;
   }
   if (!response?.ok) {
@@ -149,14 +192,24 @@ async function streamOfferingCheck(
   let finished = false;
   await readEvents(response, (event) => {
     finished = finished || event.type === "result" || event.type === "error";
-    onEvent(event);
+    if (!signal.aborted) {
+      update({ type: "event", event });
+    }
   }).catch(() => null);
   if (!(finished || signal.aborted)) {
     onFailure("error");
   }
 }
 
-function createOfferingStreamStore(input: OfferingCheckInput) {
+/**
+ * Starts the check once someone watches it. A missing or spent Turnstile
+ * token makes the server ask for verification; `verify` reruns the check
+ * with a fresh token from the report page.
+ */
+function createOfferingStreamStore(
+  input: OfferingCheckInput,
+  turnstileToken: string
+) {
   let state = initialState(input);
   let start: ReturnType<typeof setTimeout> | null = null;
   let controller: AbortController | null = null;
@@ -167,26 +220,30 @@ function createOfferingStreamStore(input: OfferingCheckInput) {
       listener();
     }
   };
+  const run = (token: string, canAskAgain: boolean) => {
+    controller?.abort();
+    controller = new AbortController();
+    void streamOfferingCheck(
+      input,
+      token,
+      controller.signal,
+      update,
+      canAskAgain
+    );
+  };
 
   return {
     getSnapshot: () => state,
+    verify: (token: string) => {
+      update({ type: "restart" });
+      run(token, false);
+    },
     subscribe: (listener: () => void) => {
       listeners.add(listener);
       if (!(start || controller)) {
         start = setTimeout(() => {
           start = null;
-          controller = new AbortController();
-          const { signal } = controller;
-          void streamOfferingCheck(
-            input,
-            signal,
-            (event) => {
-              if (!signal.aborted) {
-                update({ type: "event", event });
-              }
-            },
-            (status) => update({ type: "failed", status })
-          );
+          run(turnstileToken, true);
         }, 0);
       }
       return () => {
@@ -205,16 +262,20 @@ function createOfferingStreamStore(input: OfferingCheckInput) {
 }
 
 export function useOfferingStream(
-  input: OfferingCheckInput
-): OfferingLiveState {
+  input: OfferingCheckInput,
+  turnstileToken: string
+): { state: OfferingLiveState; verify: (token: string) => void } {
   const { domain, feature, problem } = input;
+  // The token from the form is only used for the first request.
+  const [initialToken] = useState(turnstileToken);
   const store = useMemo(
-    () => createOfferingStreamStore({ domain, feature, problem }),
-    [domain, feature, problem]
+    () => createOfferingStreamStore({ domain, feature, problem }, initialToken),
+    [domain, feature, problem, initialToken]
   );
-  return useSyncExternalStore(
+  const state = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     store.getSnapshot
   );
+  return { state, verify: store.verify };
 }
