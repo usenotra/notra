@@ -65,7 +65,7 @@ export function PromptEngineSwitcher({
       <div className="bg-background dark:bg-input/30 flex h-8 w-72 max-w-full min-w-0 items-center overflow-hidden rounded-lg border">
         <Button
           aria-label={t("previous")}
-          className={`${stepButtonClassName} border-r`}
+          className={`${stepButtonClassName} border-r-border border-r`}
           onClick={() =>
             onChange(adjacentPromptEngine(engines, active.engine, -1), -1)
           }
@@ -142,7 +142,7 @@ export function PromptEngineSwitcher({
         </DropdownMenu>
         <Button
           aria-label={t("next")}
-          className={`${stepButtonClassName} border-l`}
+          className={`${stepButtonClassName} border-l-border border-l`}
           onClick={() =>
             onChange(adjacentPromptEngine(engines, active.engine, 1), 1)
           }
