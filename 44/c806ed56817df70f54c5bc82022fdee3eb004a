@@ -1,0 +1,19 @@
+apps/dashboard/src/components/design-system/sections/instrument-module-section.tsx
+  s_d2a045b30093ab::t_ffd1a97d604f7e 1-64,67-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "44c806ed56817df70f54c5bc82022fdee3eb004a",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
