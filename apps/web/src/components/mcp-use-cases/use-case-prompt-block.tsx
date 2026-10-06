@@ -88,7 +88,7 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
         </LazyMotion>
       </div>
       <div className="relative rounded-[1rem] bg-white px-5 py-5 [box-shadow:#E4E4E7_0_0_0_0.0625rem,#0A0D140A_0_0.0625rem_0.125rem] sm:px-6 sm:py-6 dark:bg-[#161618] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem,#FFFFFF0F_0_-0.0625rem_0_inset]">
-        <p className="font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] whitespace-pre-line text-[#1E1E1E] dark:text-white/90">
+        <p className="font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] text-[#1E1E1E] dark:text-white/90">
           {entry.prompt}
         </p>
       </div>

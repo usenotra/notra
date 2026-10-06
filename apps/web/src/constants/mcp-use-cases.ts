@@ -4,7 +4,6 @@ import {
   QuillWrite01Icon,
   RepeatIcon,
 } from "@hugeicons/core-free-icons";
-import { NOTRA_AGENT_FEEDBACK_PROMPT } from "@notra/utils/constants/agent-feedback-prompt";
 
 import type {
   McpUseCase,
@@ -78,7 +77,7 @@ export const MCP_USE_CASE_FILTER_IDS = MCP_USE_CASE_CATEGORY_FILTERS.map(
   (filter) => filter.id
 );
 
-const MCP_USE_CASE_WORKFLOWS: McpUseCase[] = [
+export const MCP_USE_CASES: McpUseCase[] = [
   {
     slug: "search-console-to-prompt-discovery",
     title: "Search Console to prompt discovery",
@@ -351,10 +350,3 @@ const MCP_USE_CASE_WORKFLOWS: McpUseCase[] = [
     ],
   },
 ];
-
-export const MCP_USE_CASES: McpUseCase[] = MCP_USE_CASE_WORKFLOWS.map(
-  (entry) => ({
-    ...entry,
-    prompt: `${entry.prompt}\n\n${NOTRA_AGENT_FEEDBACK_PROMPT}`,
-  })
-);
