@@ -34,10 +34,12 @@ const ShimmerComponent = ({
       <span className="text-shimmer__text" id={textId}>
         {children}
       </span>
+      {/* Keyed by the text: Chrome keeps painting the old glyph mask when the text changes in place. */}
       <span
         aria-hidden="true"
         className="text-shimmer__mask"
         inert
+        key={children}
       >
         {children}
       </span>

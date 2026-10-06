@@ -13,6 +13,7 @@ import {
   trackedGeoLanguages,
 } from "@notra/geo-core/utils/geo-language-rows";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
 import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DataTable,
@@ -31,7 +32,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { Twemoji } from "@/components/geo/twemoji";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoSettingsLanguageAdd } from "@/lib/hooks/use-geo";

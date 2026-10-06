@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { type CSSProperties, type PointerEvent, useState } from "react";
 import { useTranslations } from "use-intl";
@@ -7,10 +11,6 @@ import { useTranslations } from "use-intl";
 import { CursorTooltip } from "@/components/analytics/cursor-tooltip";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import {
   useGeoCompetitorEngineMatrix,
   useGeoCompetitorRowNavigation,

@@ -3619,11 +3619,6 @@
         "starting": "Starting…"
       }
     },
-    "instrument": {
-      "instrumentModule": {
-        "moreInfo": "More info"
-      }
-    },
     "shelf": {
       "labels": {
         "kind": {
@@ -6572,6 +6567,7 @@
     "removeAttachment": "Remove attachment",
     "expandImage": "Expand image",
     "minimizeImage": "Minimize image",
+    "moreInfo": "More info",
     "breadcrumb": "Breadcrumb",
     "logoStack": {
       "additionalItems": "Additional items",

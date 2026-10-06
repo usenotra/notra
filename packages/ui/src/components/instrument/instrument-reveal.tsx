@@ -2,8 +2,8 @@
 
 import type { CSSProperties } from "react";
 
-import { cn } from "@/lib/utils";
-import type { InstrumentRevealProps } from "@/types/instrument";
+import { cn } from "@notra/ui/lib/utils";
+import type { InstrumentRevealProps } from "@notra/ui/types/instrument";
 
 export function InstrumentReveal({
   active,

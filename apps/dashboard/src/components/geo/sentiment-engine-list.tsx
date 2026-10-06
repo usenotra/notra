@@ -1,3 +1,4 @@
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import {
   Tooltip,
   TooltipContent,
@@ -7,7 +8,6 @@ import { useFormatter, useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { SentimentDistributionBar } from "@/components/geo/sentiment-distribution-bar";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_POLARITIES,
   SENTIMENT_POLARITY_STYLES,

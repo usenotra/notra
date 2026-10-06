@@ -9,11 +9,11 @@ import {
   groupAgentReadinessIssues,
 } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { useTranslations } from "use-intl";
 
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { AGENT_READINESS_FIX_COPY_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import type {

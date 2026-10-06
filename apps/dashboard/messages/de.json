@@ -3619,11 +3619,6 @@
         "starting": "Wird gestartet…"
       }
     },
-    "instrument": {
-      "instrumentModule": {
-        "moreInfo": "Mehr Infos"
-      }
-    },
     "shelf": {
       "labels": {
         "kind": {
@@ -6572,6 +6567,7 @@
     "removeAttachment": "Anhang entfernen",
     "expandImage": "Bild vergrößern",
     "minimizeImage": "Bild verkleinern",
+    "moreInfo": "Mehr Infos",
     "breadcrumb": "Brotkrumennavigation",
     "logoStack": {
       "additionalItems": "Weitere Einträge",

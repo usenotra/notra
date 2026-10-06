@@ -60,4 +60,5 @@ export const DEFAULT_UI_LABELS: UiLabels = {
   composerRemove: (label) => `Remove ${label}`,
   composerSteer: (label) => `Steer with ${label}`,
   composerPreview: (label) => `Preview ${label}`,
+  moreInfo: "More info",
 };

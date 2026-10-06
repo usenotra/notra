@@ -1,13 +1,16 @@
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 
-import {
-  CONTACT_TURNSTILE_ACTION,
-  TURNSTILE_SITE_KEY,
-} from "@/constants/turnstile";
-import { loadTurnstileScript } from "@/lib/contact/load-turnstile";
-import type { ContactTurnstileProps } from "@/types/turnstile";
+import { TURNSTILE_SITE_KEY } from "@/constants/turnstile";
+import { loadTurnstileScript } from "@/lib/turnstile/load-script";
+import type { TurnstileProps } from "@/types/turnstile";
 
-export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
+export function Turnstile({
+  action,
+  appearance = "always",
+  failureMessage,
+  onToken,
+  ref,
+}: TurnstileProps) {
   const container = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -53,7 +56,8 @@ export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
 
     const id = api.render(container.current, {
       sitekey: TURNSTILE_SITE_KEY,
-      action: CONTACT_TURNSTILE_ACTION,
+      action,
+      appearance,
       size: "flexible",
       callback: (token) => {
         setFailed(false);
@@ -72,15 +76,14 @@ export function ContactTurnstile({ onToken, ref }: ContactTurnstileProps) {
       api.remove(id);
       widgetId.current = null;
     };
-  }, [ready, onToken]);
+  }, [ready, onToken, action, appearance]);
 
   return (
     <div className="flex flex-col gap-2">
       <div ref={container} />
-      {failed || !TURNSTILE_SITE_KEY ? (
+      {failed || (!TURNSTILE_SITE_KEY && import.meta.env.PROD) ? (
         <p className="text-destructive font-sans text-sm" role="alert">
-          Verification could not load. Please reload the page, or email us at
-          hello@usenotra.com.
+          {failureMessage}
         </p>
       ) : null}
     </div>

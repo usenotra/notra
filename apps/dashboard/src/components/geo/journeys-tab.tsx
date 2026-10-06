@@ -3,6 +3,8 @@
 import { GEO_JOURNEY_OVERVIEW_ROWS } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentGrid } from "@notra/ui/components/instrument/instrument-grid";
+import { InstrumentReveal } from "@notra/ui/components/instrument/instrument-reveal";
 import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMemo, useState } from "react";
@@ -14,8 +16,6 @@ import { JourneyOverviewCard } from "@/components/geo/journey-overview-card";
 import { JourneyPathsCard } from "@/components/geo/journey-paths-card";
 import { JourneysCard } from "@/components/geo/journeys-card";
 import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
-import { InstrumentGrid } from "@/components/instrument/instrument-grid";
-import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { usePrefetchGeoJourneyDetail } from "@/lib/hooks/use-geo";
 import type { GeoJourneyGroupSelection, JourneysTabProps } from "@/types/geo";

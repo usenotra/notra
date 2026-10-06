@@ -17,7 +17,11 @@ export function MockFrame({
         className
       )}
     >
-      <InstrumentSection description={subhead} eyebrow={heading}>
+      <InstrumentSection
+        className="[&_h2]:capitalize"
+        description={subhead}
+        eyebrow={heading}
+      >
         <div className="border-border bg-card overflow-hidden rounded-xl border">
           {children}
         </div>

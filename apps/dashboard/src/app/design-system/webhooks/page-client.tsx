@@ -1,14 +1,14 @@
 "use client";
 
+import {
+  SplitModalContent,
+  SplitModalPane,
+} from "@notra/ui/components/shared/split-modal";
 import { Dialog, DialogTitle } from "@notra/ui/components/ui/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/button";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
-import {
-  SplitModalContent,
-  SplitModalPane,
-} from "@/components/shared/split-modal";
 import { WebhookCreateDialogView } from "@/components/webhooks/create-dialog";
 import { WebhookDetailsSheetView } from "@/components/webhooks/details-sheet";
 import { WebhookWorkspaceView } from "@/components/webhooks/workspace";

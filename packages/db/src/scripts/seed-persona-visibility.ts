@@ -291,13 +291,11 @@ async function resolveTargets() {
     // Backfill mode: only touch projects that already have personas but no
     // persona activity yet. Projects without personas are left alone (seed
     // them explicitly via --org-slug / --project-id).
-    const personaProjectRows = await db.execute(
-      sql<{ project_id: string }>`select distinct project_id from geo_personas`
+    const personaProjectRows = await db.execute<{ project_id: string }>(
+      sql`select distinct project_id from geo_personas`
     );
-    const checkProjectRows = await db.execute(
-      sql<{
-        project_id: string;
-      }>`select distinct project_id from geo_mention_checks where persona_id is not null`
+    const checkProjectRows = await db.execute<{ project_id: string }>(
+      sql`select distinct project_id from geo_mention_checks where persona_id is not null`
     );
     const withChecks = new Set(
       checkProjectRows.rows.map((row: { project_id: string }) => row.project_id)

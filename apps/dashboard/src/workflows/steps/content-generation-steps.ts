@@ -4,7 +4,7 @@ import {
   releaseContentBilling,
   reserveContentBilling,
 } from "@notra/ai/billing/content-billing";
-import { logError, logWarn } from "@notra/ai/utils/server-log";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
@@ -512,7 +512,7 @@ export async function appendAutomationLogBestEffort(
 ): Promise<void> {
   const [result] = await Promise.allSettled([appendAutomationLog(input)]);
   if (result?.status === "rejected") {
-    console.error("[ActivityLog] Failed to record activity log");
+    console.error("[ActivityLog] Failed to record activity log", result.reason);
   }
 }
 
