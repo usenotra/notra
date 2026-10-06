@@ -1,7 +1,5 @@
 "use client";
 
-import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -12,6 +10,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,42 +23,23 @@ import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { WebhookSetupDialogProps } from "@/types/integrations";
 import type { WebhookConfig } from "@/types/services/integrations";
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 import { isNotFoundError } from "@/utils/orpc-errors";
 
-function CopyButton({ value, label }: { value: string; label: string }) {
+function WebhookCopyButton({ value, label }: { value: string; label: string }) {
   const t = useTranslations("integrations.webhookSetup");
-  const tCommon2 = useTranslations("common");
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (!navigator.clipboard) {
-      toast.error(tCommon2("toasts.clipboardUnsupported"));
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success(t("copied", { label }));
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error(tCommon2("toasts.copyFailed"));
-    }
-  };
+  const tCommon = useTranslations("common");
 
   return (
-    <Button
-      className="shrink-0"
-      onClick={handleCopy}
+    <CopyButton
+      aria-label={tCommon("labels.copyLabel", { label })}
+      copiedAriaLabel={tCommon("labels.labelCopied", { label })}
+      onCopy={() => toast.success(t("copied", { label }))}
+      onCopyError={toastCopyError}
       size="icon"
-      type="button"
+      value={value}
       variant="outline"
-    >
-      {copied ? (
-        <HugeiconsIcon className="size-4" icon={Tick02Icon} />
-      ) : (
-        <HugeiconsIcon className="size-4" icon={Copy01Icon} />
-      )}
-    </Button>
+    />
   );
 }
 
@@ -208,7 +188,7 @@ export function WebhookSetupDialog({
                     readOnly
                     value={webhookConfig.webhookUrl}
                   />
-                  <CopyButton
+                  <WebhookCopyButton
                     label={tCommon("labels.url")}
                     value={webhookConfig.webhookUrl}
                   />
@@ -235,7 +215,7 @@ export function WebhookSetupDialog({
                     type={secretRevealed ? "text" : "password"}
                     value={webhookConfig.webhookSecret}
                   />
-                  <CopyButton
+                  <WebhookCopyButton
                     label={tIntegrationsShared("secret")}
                     value={webhookConfig.webhookSecret}
                   />
