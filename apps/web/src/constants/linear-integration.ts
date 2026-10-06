@@ -14,7 +14,7 @@ export const LINEAR_HEADLINE: LinearHeadline = {
 };
 
 export const LINEAR_HERO_SUBHEAD =
-  "Notra reads the issues, projects and cycles in the Linear teams you connect. It turns finished work into release notes and changelog entries in your brand voice.";
+  "Notra reads the issues, projects and cycles in your Linear workspace. It turns finished work into release notes and changelog entries in your brand voice.";
 
 export const LINEAR_CONNECT_LABEL = "Connect Linear";
 
@@ -59,9 +59,9 @@ export const LINEAR_DRAFT_META = "Drafted from 12 issues in cycle 24";
 
 export const LINEAR_FEATURES: LinearFeature[] = [
   {
-    title: "Reads the teams you pick",
+    title: "Reads your workspace",
     description:
-      "Connect Linear and choose which teams Notra can read. It can't see the rest of your workspace.",
+      "Connect Linear and Notra can read the issues, projects and cycles in your workspace. You choose which work goes into each draft.",
   },
   {
     title: "Knows what finished",

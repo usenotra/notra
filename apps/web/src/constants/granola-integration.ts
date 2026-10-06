@@ -14,7 +14,7 @@ export const GRANOLA_HEADLINE: GranolaHeadline = {
 };
 
 export const GRANOLA_HERO_SUBHEAD =
-  "Notra reads the Granola notes you share. It turns summaries, transcripts and attendee lists into customer stories, changelog entries and posts in your brand voice.";
+  "Notra reads your Granola notes. It turns summaries, transcripts and attendee lists into customer stories, changelog entries and posts in your brand voice.";
 
 export const GRANOLA_CONNECT_LABEL = "Connect Granola";
 
@@ -57,9 +57,9 @@ export const GRANOLA_DRAFT_META = "Drafted from Mintcloud <> Notra";
 
 export const GRANOLA_FEATURES: GranolaFeature[] = [
   {
-    title: "Reads the folders you pick",
+    title: "Reads your meeting notes",
     description:
-      "Point Notra at your customer-call folders in Granola. It can't see your other meetings.",
+      "Connect Granola with an API key. Notra can read the notes that key can access, and you choose which calls it writes about.",
   },
   {
     title: "Quotes the customer",
